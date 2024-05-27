@@ -1801,7 +1801,7 @@ export type operations = {
         /** @description UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID. */
         uuid: string;
         /** @description ID of visible element. Each element has an ID that is returned on validation endpoints. */
-        elementId: number | null;
+        elementId: number;
       };
     };
     responses: {
@@ -1811,7 +1811,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: unknown;
             };
           };
         };
@@ -1823,7 +1823,7 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                errors: Record<string, never>;
+                errors: string[];
               };
             };
           };
@@ -1882,10 +1882,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: {
-                /** Format: int64 */
-                fileElementId: number;
-              };
+              data: unknown;
             };
           };
         };
