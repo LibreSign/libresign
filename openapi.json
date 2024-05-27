@@ -4684,10 +4684,18 @@
                                         "description": "The identifier value of LibreSign file"
                                     },
                                     "signers": {
-                                        "type": "object",
+                                        "type": "array",
                                         "description": "Signers data",
-                                        "additionalProperties": {
-                                            "type": "object"
+                                        "items": {
+                                            "type": "object",
+                                            "required": [
+                                                "email"
+                                            ],
+                                            "properties": {
+                                                "email": {
+                                                    "type": "string"
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -4741,7 +4749,15 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -4777,7 +4793,25 @@
                                                     ],
                                                     "properties": {
                                                         "messages": {
-                                                            "type": "object"
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "required": [
+                                                                    "type",
+                                                                    "message"
+                                                                ],
+                                                                "properties": {
+                                                                    "type": {
+                                                                        "type": "string",
+                                                                        "enum": [
+                                                                            "danger"
+                                                                        ]
+                                                                    },
+                                                                    "message": {
+                                                                        "type": "string"
+                                                                    }
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }

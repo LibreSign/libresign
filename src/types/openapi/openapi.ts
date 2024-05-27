@@ -1954,8 +1954,8 @@ export type operations = {
           fileId: number;
           /** @description Signers data */
           signers: {
-            [key: string]: Record<string, never>;
-          };
+              email: string;
+            }[];
         };
       };
     };
@@ -1966,7 +1966,9 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: {
+                message: string;
+              };
             };
           };
         };
@@ -1978,7 +1980,11 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                messages: Record<string, never>;
+                messages: {
+                    /** @enum {string} */
+                    type: "danger";
+                    message: string;
+                  }[];
               };
             };
           };
