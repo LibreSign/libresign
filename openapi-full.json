@@ -40,11 +40,7 @@
             "Coordinate": {
                 "type": "object",
                 "required": [
-                    "page",
-                    "urx",
-                    "ury",
-                    "llx",
-                    "lly"
+                    "page"
                 ],
                 "properties": {
                     "page": {
@@ -64,6 +60,22 @@
                         "format": "int64"
                     },
                     "lly": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "top": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "left": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "width": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "height": {
                         "type": "integer",
                         "format": "int64"
                     }
@@ -4070,7 +4082,7 @@
                                         "description": "Metadata of visible elements to associate with the document"
                                     },
                                     "coordinates": {
-                                        "type": "object",
+                                        "$ref": "#/components/schemas/Coordinate",
                                         "default": [],
                                         "description": "Coortinates of a visible element on PDF"
                                     }
@@ -4134,7 +4146,16 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "type": "object",
+                                                    "required": [
+                                                        "fileElementId"
+                                                    ],
+                                                    "properties": {
+                                                        "fileElementId": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -4170,7 +4191,10 @@
                                                     ],
                                                     "properties": {
                                                         "errors": {
-                                                            "type": "object"
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
                                                         }
                                                     }
                                                 }
