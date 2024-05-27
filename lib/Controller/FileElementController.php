@@ -91,8 +91,8 @@ class FileElementController extends AEnvironmentAwareController {
 	 * @param integer|null $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
 	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
 	 * @param array{} $metadata Metadata of visible elements to associate with the document
-	 * @param array{} $coordinates Coortinates of a visible element on PDF
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: array{}}, array{}>
+	 * @param LibresignCoordinate $coordinates Coortinates of a visible element on PDF
+	 * @return DataResponse<Http::STATUS_OK, array{fileElementId: integer}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: string[]}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Failure when patch visible element

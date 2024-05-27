@@ -4154,7 +4154,7 @@
                                         "description": "Metadata of visible elements to associate with the document"
                                     },
                                     "coordinates": {
-                                        "type": "object",
+                                        "$ref": "#/components/schemas/Coordinate",
                                         "default": [],
                                         "description": "Coortinates of a visible element on PDF"
                                     }
@@ -4229,7 +4229,16 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "type": "object",
+                                                    "required": [
+                                                        "fileElementId"
+                                                    ],
+                                                    "properties": {
+                                                        "fileElementId": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -4265,7 +4274,10 @@
                                                     ],
                                                     "properties": {
                                                         "errors": {
-                                                            "type": "object"
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
                                                         }
                                                     }
                                                 }
