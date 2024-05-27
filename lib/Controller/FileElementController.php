@@ -82,7 +82,6 @@ class FileElementController extends AEnvironmentAwareController {
 				'uuid' => $uuid,
 				'userManager' => $this->userSession->getUser()
 			]);
-			$this->validateHelper->signerCanHaveVisibleElement($signRequestId);
 			$fileElement = $this->fileElementService->saveVisibleElement($visibleElement, $uuid);
 			$return = [
 				'fileElementId' => $fileElement->getId(),
