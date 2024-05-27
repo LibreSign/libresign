@@ -4324,18 +4324,7 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "fileElementId"
-                                                    ],
-                                                    "properties": {
-                                                        "fileElementId": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        }
-                                                    }
-                                                }
+                                                "data": {}
                                             }
                                         }
                                     }
@@ -4430,8 +4419,7 @@
                         "required": true,
                         "schema": {
                             "type": "integer",
-                            "format": "int64",
-                            "nullable": true
+                            "format": "int64"
                         }
                     },
                     {
@@ -4466,9 +4454,7 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {
-                                                    "type": "object"
-                                                }
+                                                "data": {}
                                             }
                                         }
                                     }
@@ -4503,7 +4489,10 @@
                                                     ],
                                                     "properties": {
                                                         "errors": {
-                                                            "type": "object"
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
                                                         }
                                                     }
                                                 }
