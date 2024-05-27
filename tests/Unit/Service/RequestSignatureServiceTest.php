@@ -200,6 +200,29 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	}
 
 	/**
+	 * @dataProvider dataGetFileMetadata
+	 */
+	public function testGetFileMetadata(string $extension, array $expected): void {
+		$inputFile = $this->createMock(\OC\Files\Node\File::class);
+		$inputFile
+			->method('getExtension')
+			->willReturn($extension);
+		$this->pdfParserService
+			->method('getMetadata')
+			->willReturn(['isValid' => true]);
+		$actual = self::invokePrivate($this->getService(), 'getFileMetadata', [$inputFile]);
+		$this->assertEquals($expected, $actual);
+	}
+
+	public static function dataGetFileMetadata(): array {
+		return [
+			['pdfff', ['extension' => 'pdfff']],
+			['', []],
+			['PDF', ['extension' => 'pdf', 'isValid' => true]],
+		];
+	}
+
+	/**
 	 * @dataProvider dataSaveVisibleElements
 	 */
 	public function testSaveVisibleElements($elements) {
