@@ -108,12 +108,15 @@ class RequestSignatureService {
 		return $file;
 	}
 
-	public function getFileMetadata(\OCP\Files\Node $node): array {
-		$metadata = [
-			'extension' => $node->getExtension(),
-		];
-		if ($metadata['extension'] === 'pdf') {
-			$metadata = $this->pdfParserService->getMetadata($node);
+	private function getFileMetadata(\OCP\Files\Node $node): array {
+		$metadata = [];
+		if ($extension = strtolower($node->getExtension())) {
+			$metadata = [
+				'extension' => $extension,
+			];
+			if ($metadata['extension'] === 'pdf') {
+				$metadata = array_merge($metadata, $this->pdfParserService->getMetadata($node));
+			}
 		}
 		return $metadata;
 	}
