@@ -9,11 +9,6 @@ declare(strict_types=1);
 namespace OCA\Libresign;
 
 /**
- * @psalm-type LibresignAccountFile = array{
- *     file: LibresignNewFile,
- *     name?: string,
- *     type?: string,
- * }
  * @psalm-type LibresignCoordinate = array{
  *     page: int,
  *     urx: int,
@@ -64,6 +59,11 @@ namespace OCA\Libresign;
  *     base64?: string,
  *     fileId?: int,
  *     url?: string,
+ * }
+ * @psalm-type LibresignAccountFile = array{
+ *     file: LibresignNewFile,
+ *     name?: string,
+ *     type?: string,
  * }
  * @psalm-type LibresignNextcloudFile = array{
  *     message: string,

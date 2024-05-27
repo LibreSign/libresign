@@ -2302,7 +2302,7 @@
                                 "properties": {
                                     "files": {
                                         "type": "array",
-                                        "description": "the list of files to add to profile",
+                                        "description": "The list of files to add to profile",
                                         "items": {
                                             "$ref": "#/components/schemas/AccountFile"
                                         }
@@ -4067,18 +4067,12 @@
                                     "metadata": {
                                         "type": "object",
                                         "default": [],
-                                        "description": "Metadata of visible elements to associate with the document",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "description": "Metadata of visible elements to associate with the document"
                                     },
                                     "coordinates": {
                                         "type": "object",
                                         "default": [],
-                                        "description": "Coortinates of a visible element on PDF",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "description": "Coortinates of a visible element on PDF"
                                     }
                                 }
                             }
@@ -4229,18 +4223,12 @@
                                     "metadata": {
                                         "type": "object",
                                         "default": [],
-                                        "description": "Metadata of visible elements to associate with the document",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "description": "Metadata of visible elements to associate with the document"
                                     },
                                     "coordinates": {
                                         "type": "object",
                                         "default": [],
-                                        "description": "Coortinates of a visible element on PDF",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "description": "Coortinates of a visible element on PDF"
                                     }
                                 }
                             }
