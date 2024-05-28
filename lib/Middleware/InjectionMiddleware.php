@@ -28,7 +28,7 @@ use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
-use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Middleware;
@@ -205,10 +205,26 @@ class InjectionMiddleware extends Middleware {
 					'message' => $exception->getMessage(),
 				];
 			}
-			return new JSONResponse(
+			$response = new DataResponse(
 				data: $body,
 				statusCode: $this->getStatusCodeFromException($exception)
 			);
+			if ($controller instanceof \OCP\AppFramework\OCSController) {
+				$format = $this->request->getParam('format');
+
+				// if none is given try the first Accept header
+				if ($format === null) {
+					$headers = $this->request->getHeader('Accept');
+					$format = $controller->getResponderByHTTPHeader($headers, null);
+				}
+
+				if ($format !== null) {
+					$response = $controller->buildResponse($response, $format);
+				} else {
+					$response = $controller->buildResponse($response);
+				}
+			}
+			return $response;
 		}
 
 		throw $exception;
