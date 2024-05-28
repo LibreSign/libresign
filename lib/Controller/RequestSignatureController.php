@@ -43,7 +43,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param string $name The name of file to sign
 	 * @param string|null $callback URL that will receive a POST after the document is signed
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string,action?: integer,errors?: ?string[]}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Unauthorized
