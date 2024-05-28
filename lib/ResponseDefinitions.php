@@ -68,7 +68,7 @@ namespace OCA\Libresign;
  *     folderPatterns?: array{
  *         name: string,
  *         setting?: string,
- *     }
+ *     },
  * }
  * @psalm-type LibresignIdentifyMethod = array{
  *     method: string,
@@ -79,7 +79,7 @@ namespace OCA\Libresign;
  *     identify: array{
  *         email?: string,
  *         account?: string,
- *     }
+ *     },
  * }
  * @psalm-type LibresignNewFile = array{
  *     base64?: string,
