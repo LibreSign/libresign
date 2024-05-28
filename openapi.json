@@ -5208,10 +5208,18 @@
                                         }
                                     },
                                     "file": {
-                                        "$ref": "#/components/schemas/NewFile",
                                         "nullable": true,
                                         "default": [],
-                                        "description": "File object."
+                                        "description": "File object.",
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/components/schemas/NewFile"
+                                            },
+                                            {
+                                                "type": "array",
+                                                "maxItems": 0
+                                            }
+                                        ]
                                     },
                                     "status": {
                                         "type": "integer",

@@ -11,6 +11,7 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
+use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCP\AppFramework\Http;
@@ -103,7 +104,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param LibresignNewSigner[]|null $users Collection of users who must sign the document
 	 * @param string|null $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
 	 * @param LibresignVisibleElement[]|null $visibleElements Visible elements on document
-	 * @param LibresignNewFile|null $file File object.
+	 * @param LibresignNewFile|array<empty>|null $file File object.
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
 	 * @return DataResponse<Http::STATUS_OK, array{message: string, data: LibresignRequestSignature}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string,action?: integer,errors?: ?string[]}, array{}>
 	 *

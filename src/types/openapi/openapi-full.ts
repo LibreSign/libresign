@@ -2212,7 +2212,7 @@ export type operations = {
            * @description File object.
            * @default []
            */
-          file?: components["schemas"]["NewFile"];
+          file?: (components["schemas"]["NewFile"] | unknown[]) | null;
           /**
            * Format: int64
            * @description Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
