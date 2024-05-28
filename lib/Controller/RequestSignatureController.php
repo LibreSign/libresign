@@ -24,6 +24,8 @@ use OCP\IUserSession;
 /**
  * @psalm-import-type LibresignNewSigner from ResponseDefinitions
  * @psalm-import-type LibresignRequestSignature from ResponseDefinitions
+ * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
+ * @psalm-import-type LibresignNewFile from ResponseDefinitions
  */
 class RequestSignatureController extends AEnvironmentAwareController {
 	public function __construct(
@@ -98,12 +100,12 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 *
 	 * Is necessary to inform the UUID of the file and a list of people
 	 *
-	 * @param array<string, mixed>|null $users Collection of users who must sign the document
+	 * @param LibresignNewSigner[]|null $users Collection of users who must sign the document
 	 * @param string|null $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
-	 * @param array<string, mixed>|null $visibleElements Visible elements on document
-	 * @param array<string, mixed>|null $file File object.
+	 * @param LibresignVisibleElement[]|null $visibleElements Visible elements on document
+	 * @param LibresignNewFile|null $file File object.
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{message: string, data: LibresignRequestSignature}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string,action?: integer,errors?: ?string[]}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Unauthorized
