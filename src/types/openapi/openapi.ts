@@ -2138,22 +2138,16 @@ export type operations = {
            * @description Collection of users who must sign the document
            * @default []
            */
-          users?: {
-            [key: string]: Record<string, never>;
-          } | null;
+          users?: components["schemas"]["NewSigner"][] | null;
           /** @description UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID. */
           uuid?: string | null;
           /** @description Visible elements on document */
-          visibleElements?: {
-            [key: string]: Record<string, never>;
-          } | null;
+          visibleElements?: components["schemas"]["VisibleElement"][] | null;
           /**
            * @description File object.
            * @default []
            */
-          file?: {
-            [key: string]: Record<string, never>;
-          } | null;
+          file?: components["schemas"]["NewFile"];
           /**
            * Format: int64
            * @description Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
@@ -2169,7 +2163,10 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: {
+                message: string;
+                data: components["schemas"]["RequestSignature"];
+              };
             };
           };
         };
@@ -2181,7 +2178,10 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                message: string;
+                message?: string;
+                /** Format: int64 */
+                action?: number;
+                errors?: string[] | null;
               };
             };
           };
