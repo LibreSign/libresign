@@ -231,7 +231,7 @@ class InjectionMiddleware extends Middleware {
 				// if none is given try the first Accept header
 				if ($format === null) {
 					$headers = $this->request->getHeader('Accept');
-					$format = $controller->getResponderByHTTPHeader($headers, null);
+					$format = $controller->getResponderByHTTPHeader($headers, 'json');
 				}
 
 				if ($format !== null) {
