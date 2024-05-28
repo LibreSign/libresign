@@ -14,7 +14,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\InjectionMiddleware;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IL10N;
@@ -103,11 +103,11 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[
 				json_encode(['action' => 1000]), 1, LibresignException::class,
 				function (self $self, $message, int $code, $actual):void {
-					/** @var JSONResponse $actual */
+					/** @var DataResponse $actual */
 					$self->assertInstanceOf(
-						JSONResponse::class,
+						DataResponse::class,
 						$actual,
-						'The response need to be JSONResponse'
+						'The response need to be DataResponse'
 					);
 					$self->assertJsonStringEqualsJsonString(
 						$message,
@@ -124,11 +124,11 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[
 				'a text here', 1, LibresignException::class,
 				function (self $self, $message, int $code, $actual):void {
-					/** @var JSONResponse $actual */
+					/** @var DataResponse $actual */
 					$self->assertInstanceOf(
-						JSONResponse::class,
+						DataResponse::class,
 						$actual,
-						'The response need to be JSONResponse'
+						'The response need to be DataResponse'
 					);
 					$self->assertJsonStringEqualsJsonString(
 						json_encode(['message' => $message]),
