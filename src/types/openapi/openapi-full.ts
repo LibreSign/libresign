@@ -2418,6 +2418,21 @@ export type operations = {
           };
         };
       };
+      /** @description Failed */
+      422: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                /** Format: int64 */
+                action: number;
+                errors: string[];
+              };
+            };
+          };
+        };
+      };
     };
   };
   /**

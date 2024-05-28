@@ -162,10 +162,11 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 *
 	 * @param integer $fileId Node id of a Nextcloud file
 	 * @param integer $signRequestId The sign request id
-	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: string[]}, array{}>
 	 *
 	 * 200: OK
 	 * 401: Failed
+	 * 422: Failed
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
