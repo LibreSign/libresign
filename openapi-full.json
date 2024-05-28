@@ -5301,12 +5301,12 @@
                                 "type": "object",
                                 "properties": {
                                     "users": {
-                                        "type": "object",
+                                        "type": "array",
                                         "nullable": true,
                                         "default": [],
                                         "description": "Collection of users who must sign the document",
-                                        "additionalProperties": {
-                                            "type": "object"
+                                        "items": {
+                                            "$ref": "#/components/schemas/NewSigner"
                                         }
                                     },
                                     "uuid": {
@@ -5315,21 +5315,18 @@
                                         "description": "UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID."
                                     },
                                     "visibleElements": {
-                                        "type": "object",
+                                        "type": "array",
                                         "nullable": true,
                                         "description": "Visible elements on document",
-                                        "additionalProperties": {
-                                            "type": "object"
+                                        "items": {
+                                            "$ref": "#/components/schemas/VisibleElement"
                                         }
                                     },
                                     "file": {
-                                        "type": "object",
+                                        "$ref": "#/components/schemas/NewFile",
                                         "nullable": true,
                                         "default": [],
-                                        "description": "File object.",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "description": "File object."
                                     },
                                     "status": {
                                         "type": "integer",
@@ -5388,7 +5385,19 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        },
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/RequestSignature"
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -5419,12 +5428,20 @@
                                                 },
                                                 "data": {
                                                     "type": "object",
-                                                    "required": [
-                                                        "message"
-                                                    ],
                                                     "properties": {
                                                         "message": {
                                                             "type": "string"
+                                                        },
+                                                        "action": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        },
+                                                        "errors": {
+                                                            "type": "array",
+                                                            "nullable": true,
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
                                                         }
                                                     }
                                                 }
