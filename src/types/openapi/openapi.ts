@@ -2090,7 +2090,10 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                message: string;
+                message?: string;
+                /** Format: int64 */
+                action?: number;
+                errors?: string[] | null;
               };
             };
           };
