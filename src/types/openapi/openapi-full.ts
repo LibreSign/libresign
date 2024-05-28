@@ -392,6 +392,12 @@ export type components = {
       fileId?: number;
       url?: string;
     };
+    NewSigner: {
+      identify: {
+        email?: string;
+        account?: string;
+      };
+    };
     NextcloudFile: {
       message: string;
       name: string;
@@ -416,6 +422,23 @@ export type components = {
       prev: string | null;
       last: string | null;
       first: string | null;
+    };
+    RequestSignature: {
+      file: string;
+      name: string;
+      /** Format: int64 */
+      nodeId: number;
+      request_date: string;
+      requested_by: {
+        uid: string;
+        displayName: string;
+      };
+      signers: components["schemas"]["Signer"][];
+      /** Format: int64 */
+      status: number;
+      statusText: string;
+      uuid: string;
+      settings: components["schemas"]["Settings"];
     };
     RootCertificate: {
       commonName: string;
@@ -2110,13 +2133,9 @@ export type operations = {
       content: {
         "application/json": {
           /** @description File object. */
-          file: {
-            [key: string]: Record<string, never>;
-          };
+          file: components["schemas"]["NewFile"];
           /** @description Collection of users who must sign the document */
-          users: {
-            [key: string]: Record<string, never>;
-          };
+          users: components["schemas"]["NewSigner"][];
           /** @description The name of file to sign */
           name: string;
           /** @description URL that will receive a POST after the document is signed */
@@ -2137,7 +2156,10 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: {
+                message: string;
+                data: components["schemas"]["RequestSignature"];
+              };
             };
           };
         };
