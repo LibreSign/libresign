@@ -5589,6 +5589,52 @@
                                 }
                             }
                         }
+                    },
+                    "422": {
+                        "description": "Failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "action",
+                                                        "errors"
+                                                    ],
+                                                    "properties": {
+                                                        "action": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        },
+                                                        "errors": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
