@@ -2351,7 +2351,9 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: {
+                message: string;
+              };
             };
           };
         };
@@ -2396,7 +2398,9 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: {
+                message: string;
+              };
             };
           };
         };
