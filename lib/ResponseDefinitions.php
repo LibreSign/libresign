@@ -21,6 +21,21 @@ namespace OCA\Libresign;
  *     height?: int,
  *     page?: int,
  * }
+ * @psalm-type LibresignRequestSignature = array{
+ *     file: string,
+ *     name: string,
+ *     nodeId: integer,
+ *     request_date: string,
+ *     requested_by: array{
+ *         uid: string,
+ *         displayName: string,
+ *     },
+ *     signers: LibresignSigner[],
+ *     status: integer,
+ *     statusText: string,
+ *     uuid: string,
+ *     settings: LibresignSettings,
+ * }
  * @psalm-type LibresignFile = array{
  *     account: array{
  *         uid: string,
@@ -59,6 +74,12 @@ namespace OCA\Libresign;
  *     method: string,
  *     value: string,
  *     mandatory: int,
+ * }
+ * @psalm-type LibresignNewSigner = array{
+ *     identify: array{
+ *         email?: string,
+ *         account?: string,
+ *     }
  * }
  * @psalm-type LibresignNewFile = array{
  *     base64?: string,

@@ -286,6 +286,70 @@
                     }
                 }
             },
+            "RequestSignature": {
+                "type": "object",
+                "required": [
+                    "file",
+                    "name",
+                    "nodeId",
+                    "request_date",
+                    "requested_by",
+                    "signers",
+                    "status",
+                    "statusText",
+                    "uuid",
+                    "settings"
+                ],
+                "properties": {
+                    "file": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "nodeId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "request_date": {
+                        "type": "string"
+                    },
+                    "requested_by": {
+                        "type": "object",
+                        "required": [
+                            "uid",
+                            "displayName"
+                        ],
+                        "properties": {
+                            "uid": {
+                                "type": "string"
+                            },
+                            "displayName": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "signers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Signer"
+                        }
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "statusText": {
+                        "type": "string"
+                    },
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "settings": {
+                        "$ref": "#/components/schemas/Settings"
+                    }
+                }
+            },
             "Settings": {
                 "type": "object",
                 "required": [
@@ -4953,17 +5017,14 @@
                                 ],
                                 "properties": {
                                     "file": {
-                                        "type": "object",
-                                        "description": "File object.",
-                                        "additionalProperties": {
-                                            "type": "object"
-                                        }
+                                        "$ref": "#/components/schemas/NewFile",
+                                        "description": "File object."
                                     },
                                     "users": {
-                                        "type": "object",
+                                        "type": "array",
                                         "description": "Collection of users who must sign the document",
-                                        "additionalProperties": {
-                                            "type": "object"
+                                        "items": {
+                                            "$ref": "#/components/schemas/NewSigner"
                                         }
                                     },
                                     "name": {
@@ -5033,7 +5094,19 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        },
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/RequestSignature"
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
