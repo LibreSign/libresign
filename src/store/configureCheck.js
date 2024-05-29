@@ -30,7 +30,7 @@ export const useConfigureCheckStore = function(...args) {
 				const response = await axios.get(
 					generateOcsUrl('/apps/libresign/api/v1/admin/configure-check'),
 				)
-				set(this, 'items', response.data)
+				set(this, 'items', response.data.ocs.data)
 			},
 		},
 	})
