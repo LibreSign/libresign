@@ -153,7 +153,7 @@ export default {
 			try {
 				const response = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${uuid}`))
 				showSuccess(t('libresign', 'This document is valid'))
-				this.document = response.data
+				this.document = response.data.ocs.data
 				this.hasInfo = true
 				this.hasLoading = false
 				if (this.isAfterSigned) {
@@ -162,7 +162,7 @@ export default {
 				}
 			} catch (err) {
 				this.hasLoading = false
-				showError(err.response.data.errors[0])
+				showError(err.response.data.ocs.data.errors[0])
 			}
 		},
 		async validateByNodeID(nodeId) {
@@ -170,7 +170,7 @@ export default {
 			try {
 				const response = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${nodeId}`))
 				showSuccess(t('libresign', 'This document is valid'))
-				this.document = response.data
+				this.document = response.data.ocs.data
 				this.hasInfo = true
 				this.hasLoading = false
 				if (this.isAfterSigned) {
@@ -179,7 +179,7 @@ export default {
 				}
 			} catch (err) {
 				this.hasLoading = false
-				showError(err.response.data.errors[0])
+				showError(err.response.data.ocs.data.errors[0])
 			}
 		},
 		async getData() {

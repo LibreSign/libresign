@@ -108,7 +108,7 @@ export default {
 				return
 			}
 
-			this.options = response.data
+			this.options = response.data.ocs.data
 			this.loading = false
 		},
 	},

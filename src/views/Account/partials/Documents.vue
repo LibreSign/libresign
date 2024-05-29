@@ -137,7 +137,7 @@ export default {
 			this.loading = true
 			try {
 				const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/files'))
-				this.documentList = data?.data ?? []
+				this.documentList = data?.ocs?.data?.data ?? []
 			} catch (err) {
 				onError(err)
 			} finally {

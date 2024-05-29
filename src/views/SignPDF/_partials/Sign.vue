@@ -203,7 +203,7 @@ export default {
 			if (getCurrentUser()) {
 				try {
 					const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
-					this.user = data
+					this.user = data.ocs.data
 				} catch (err) {
 				}
 			}
@@ -264,10 +264,10 @@ export default {
 
 			await axios.post(url, payload)
 				.then(({ data }) => {
-					if (data.action === 3500) { // ACTION_SIGNED
+					if (data.ocs.data.action === 3500) { // ACTION_SIGNED
 						this.signMethodsStore.closeModal(payload.method)
 						this.sidebarStore.hideSidebar()
-						this.$emit('signed', data)
+						this.$emit('signed', data.ocs.data)
 					}
 				})
 				.catch((err) => {

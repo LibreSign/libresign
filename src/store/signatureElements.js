@@ -74,12 +74,12 @@ export const useSignatureElementsStore = function(...args) {
 				}
 				await axios(config)
 					.then(({ data }) => {
-						data.elements.forEach(current => {
+						data.ocs.data.elements.forEach(current => {
 							set(this.signs, current.type, current)
 						})
 					})
 					.catch(({ data }) => {
-						this.error = data.message
+						this.error = data.ocs.data.message
 					})
 				this._initialized = true
 			},
@@ -118,19 +118,19 @@ export const useSignatureElementsStore = function(...args) {
 				}
 				await axios(config)
 					.then(({ data }) => {
-						if (Object.hasOwn(data, 'elements')) {
-							data.elements.forEach(element => {
+						if (Object.hasOwn(data.ocs.data, 'elements')) {
+							data.ocs.data.elements.forEach(element => {
 								set(this.signs, element.type, element)
 							})
 						}
 						set(this.signs[type], 'value', base64)
-						this.success = data.message
+						this.success = data.ocs.data.message
 					})
 					.catch(({ response }) => {
-						if (Object.hasOwn(response.data, 'errors')) {
-							this.error = response.data.errors[0]
+						if (Object.hasOwn(response.data.ocs.data, 'errors')) {
+							this.error = response.data.ocs.data.errors[0]
 						} else {
-							this.error = response.data.message
+							this.error = response.data.ocs.data.message
 						}
 					})
 			},
@@ -149,10 +149,10 @@ export const useSignatureElementsStore = function(...args) {
 				await axios(config)
 					.then(({ data }) => {
 						this.signs[type] = emptyElement
-						this.success = data.message
+						this.success = data.ocs.data.message
 					})
 					.catch(({ data }) => {
-						this.error = data.message
+						this.error = data.ocs.data.message
 					})
 			},
 		},
