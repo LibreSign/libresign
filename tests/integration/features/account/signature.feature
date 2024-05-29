@@ -7,10 +7,15 @@ Feature: account/signature
     And sending "get" to ocs "/apps/libresign/api/v1/admin/certificate"
     And the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                        | value                                   |
-      | (jq).rootCert.commonName   | Common Name |
-      | (jq).rootCert.names        | [{"id":"C","value":"BR"},{"id":"ST","value":"State of Company"},{"id":"L","value":"City name"},{"id":"O","value":"Organization"},{"id":"OU","value":"Organizational Unit"}] |
-      | generated                  | true                                    |
+      | key                                  | value                                     |
+      | (jq).ocs.data.rootCert.commonName    | Common Name                               |
+      | (jq).ocs.data.rootCert.names\|length | 5                                         |
+      | (jq).ocs.data.rootCert.names[0]      | {"id":"C","value":"BR"}                   |
+      | (jq).ocs.data.rootCert.names[1]      | {"id":"ST","value":"State of Company"}    |
+      | (jq).ocs.data.rootCert.names[2]      | {"id":"L","value":"City name"}            |
+      | (jq).ocs.data.rootCert.names[3]      | {"id":"O","value":"Organization"}         |
+      | (jq).ocs.data.rootCert.names[4]      | {"id":"OU","value":"Organizational Unit"} |
+      | (jq).ocs.data.generated              | true                                      |
 
   Scenario: Create root certificate with CFSSL engine using API
     Given as user "admin"
@@ -22,10 +27,15 @@ Feature: account/signature
     And sending "get" to ocs "/apps/libresign/api/v1/admin/certificate"
     And the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                        | value                                   |
-      | (jq).rootCert.commonName   | Common Name |
-      | (jq).rootCert.names        | [{"id":"C","value":"BR"},{"id":"ST","value":"State of Company"},{"id":"L","value":"City name"},{"id":"O","value":"Organization"},{"id":"OU","value":"Organizational Unit"}] |
-      | generated                  | true                                    |
+      | key                                  | value                                     |
+      | (jq).ocs.data.rootCert.commonName    | Common Name                               |
+      | (jq).ocs.data.rootCert.names\|length | 5                                         |
+      | (jq).ocs.data.rootCert.names[0]      | {"id":"C","value":"BR"}                   |
+      | (jq).ocs.data.rootCert.names[1]      | {"id":"ST","value":"State of Company"}    |
+      | (jq).ocs.data.rootCert.names[2]      | {"id":"L","value":"City name"}            |
+      | (jq).ocs.data.rootCert.names[3]      | {"id":"O","value":"Organization"}         |
+      | (jq).ocs.data.rootCert.names[4]      | {"id":"OU","value":"Organizational Unit"} |
+      | (jq).ocs.data.generated              | true                                      |
 
   Scenario: Create pfx with success using CFSSL
     Given user "signer1" exists
@@ -41,16 +51,28 @@ Feature: account/signature
       | key      | value    |
       | password | password |
     Then the response should be a JSON array with the following mandatory values
-      | key                              | value |
-      | name                             | /C=BR/ST=State of Company/L=City Name/O=Organization/OU=Organization Unit/CN=signer1-displayname |
-      | issuer                           | {"CN": "Common Name","C": "BR","ST": "State of Company","L":"City Name","O": "Organization","OU":"Organization Unit"} |
-      | subject                          | {"CN": "signer1-displayname","C": "BR","ST": "State of Company","L":"City Name","O": "Organization","OU":"Organization Unit"} |
-      | (jq).extensions.basicConstraints | CA:FALSE |
-      | (jq).extensions.subjectAltName   | email:signer@domain.test |
-      | (jq).extensions.keyUsage         | Digital Signature, Key Encipherment, Certificate Sign |
-      | (jq).extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection      |
-      | (jq).extensions | (jq).authorityKeyIdentifier \| test("([0-9A-F]{2}:)+[0-9A-F]{2}") |
-      | (jq).extensions | (jq).subjectKeyIdentifier != "" |
+      | key                                            | value                                                 |
+      | (jq).ocs.data.name                             | /C=BR/ST=State of Company/L=City Name/O=Organization/OU=Organization Unit/CN=signer1-displayname |
+      | (jq).ocs.data.issuer\|length                   | 6                                                     |
+      | (jq).ocs.data.issuer.CN                        | Common Name                                           |
+      | (jq).ocs.data.issuer.C                         | BR                                                    |
+      | (jq).ocs.data.issuer.ST                        | State of Company                                      |
+      | (jq).ocs.data.issuer.L                         | City Name                                             |
+      | (jq).ocs.data.issuer.O                         | Organization                                          |
+      | (jq).ocs.data.issuer.OU                        | Organization Unit                                     |
+      | (jq).ocs.data.subject\|length                  | 6                                                     |
+      | (jq).ocs.data.subject.CN                       | signer1-displayname                                   |
+      | (jq).ocs.data.subject.C                        | BR                                                    |
+      | (jq).ocs.data.subject.ST                       | State of Company                                      |
+      | (jq).ocs.data.subject.L                        | City Name                                             |
+      | (jq).ocs.data.subject.O                        | Organization                                          |
+      | (jq).ocs.data.subject.OU                       | Organization Unit                                     |
+      | (jq).ocs.data.extensions.basicConstraints      | CA:FALSE                                              |
+      | (jq).ocs.data.extensions.subjectAltName        | email:signer@domain.test                              |
+      | (jq).ocs.data.extensions.keyUsage              | Digital Signature, Key Encipherment, Certificate Sign |
+      | (jq).ocs.data.extensions.extendedKeyUsage      | TLS Web Client Authentication, E-mail Protection      |
+      | (jq).ocs.data.extensions                       | (jq).authorityKeyIdentifier \| test("([0-9A-F]{2}:)+[0-9A-F]{2}") |
+      | (jq).ocs.data.extensions                       | (jq).subjectKeyIdentifier != ""                       |
 
   Scenario: Create pfx with success using OpenSSL
     Given user "signer1" exists
@@ -64,16 +86,28 @@ Feature: account/signature
       | key      | value    |
       | password | password |
     Then the response should be a JSON array with the following mandatory values
-      | key                              | value |
-      | name                             | /C=BR/ST=State of Company/L=City Name/O=Organization/OU=Organization Unit/CN=signer1-displayname |
-      | issuer                           | {"CN": "Common Name","C": "BR","ST": "State of Company","L":"City Name","O": "Organization","OU":"Organization Unit"} |
-      | subject                          | {"CN": "signer1-displayname","C": "BR","ST": "State of Company","L":"City Name","O": "Organization","OU":"Organization Unit"} |
-      | (jq).extensions.basicConstraints | CA:FALSE |
-      | (jq).extensions.subjectAltName   | email:signer@domain.test |
-      | (jq).extensions.keyUsage         | Digital Signature, Key Encipherment, Certificate Sign |
-      | (jq).extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection      |
-      | (jq).extensions | (jq).authorityKeyIdentifier \| test("([0-9A-F]{2}:)+[0-9A-F]{2}") |
-      | (jq).extensions | (jq).subjectKeyIdentifier != "" |
+      | key                                            | value                                                 |
+      | (jq).ocs.data.name                             | /C=BR/ST=State of Company/L=City Name/O=Organization/OU=Organization Unit/CN=signer1-displayname |
+      | (jq).ocs.data.issuer\|length                   | 6                                                     |
+      | (jq).ocs.data.issuer.CN                        | Common Name                                           |
+      | (jq).ocs.data.issuer.C                         | BR                                                    |
+      | (jq).ocs.data.issuer.ST                        | State of Company                                      |
+      | (jq).ocs.data.issuer.L                         | City Name                                             |
+      | (jq).ocs.data.issuer.O                         | Organization                                          |
+      | (jq).ocs.data.issuer.OU                        | Organization Unit                                     |
+      | (jq).ocs.data.subject\|length                  | 6                                                     |
+      | (jq).ocs.data.subject.CN                       | signer1-displayname                                   |
+      | (jq).ocs.data.subject.C                        | BR                                                    |
+      | (jq).ocs.data.subject.ST                       | State of Company                                      |
+      | (jq).ocs.data.subject.L                        | City Name                                             |
+      | (jq).ocs.data.subject.O                        | Organization                                          |
+      | (jq).ocs.data.subject.OU                       | Organization Unit                                     |
+      | (jq).ocs.data.extensions.basicConstraints      | CA:FALSE                                              |
+      | (jq).ocs.data.extensions.subjectAltName        | email:signer@domain.test                              |
+      | (jq).ocs.data.extensions.keyUsage              | Digital Signature, Key Encipherment, Certificate Sign |
+      | (jq).ocs.data.extensions.extendedKeyUsage      | TLS Web Client Authentication, E-mail Protection      |
+      | (jq).ocs.data.extensions                       | (jq).authorityKeyIdentifier \| test("([0-9A-F]{2}:)+[0-9A-F]{2}") |
+      | (jq).ocs.data.extensions                       | (jq).subjectKeyIdentifier != ""                       |
 
   Scenario: Upload PFX file with error
     Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name" with result code 0
@@ -82,8 +116,8 @@ Feature: account/signature
     When sending "post" to ocs "/apps/libresign/api/v1/account/pfx"
     Then the response should have a status code 400
     And the response should be a JSON array with the following mandatory values
-      | key     | value                        |
-      | message | No certificate file provided |
+      | key                   | value                                  |
+      | (jq).ocs.data.message | No certificate file provided |
 
   Scenario: Change pfx password with success
     Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name" with result code 0
@@ -97,15 +131,15 @@ Feature: account/signature
       | new | new |
     Then the response should have a status code 202
     And the response should be a JSON array with the following mandatory values
-      | key     | value                                           |
-      | message | New password to sign documents has been created |
+      | key                   | value                                  |
+      | (jq).ocs.data.message | New password to sign documents has been created |
     Given sending "patch" to ocs "/apps/libresign/api/v1/account/pfx"
       | current | new |
       | new | anotherpassword |
     Then the response should have a status code 202
     And the response should be a JSON array with the following mandatory values
-      | key     | value                                           |
-      | message | New password to sign documents has been created |
+      | key                   | value                                  |
+      | (jq).ocs.data.message | New password to sign documents has been created |
 
   Scenario: Delete pfx password with success
     Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name" with result code 0
@@ -117,8 +151,8 @@ Feature: account/signature
     Given sending "delete" to ocs "/apps/libresign/api/v1/account/pfx"
     Then the response should have a status code 202
     And the response should be a JSON array with the following mandatory values
-      | key     | value                                  |
-      | message | Certificate file deleted with success. |
+      | key                   | value                                  |
+      | (jq).ocs.data.message | Certificate file deleted with success. |
 
   Scenario: Create password to guest
     Given guest "guest@test.coop" exists
@@ -138,8 +172,9 @@ Feature: account/signature
     When sending "get" to ocs "/apps/libresign/api/v1/signature/elements"
     Then the response should be a JSON array with the following mandatory values
       | key      | value                         |
-      | elements | (jq).[]\|.type == "signature" |
-    And fetch field "(NODE_ID)elements.0.file.nodeId" from prevous JSON response
+      | (jq).ocs.data.elements\|length | 1         |
+      | (jq).ocs.data.elements[0].type | signature |
+    And fetch field "(NODE_ID)ocs.data.elements.0.file.nodeId" from prevous JSON response
     When sending "delete" to ocs "/apps/libresign/api/v1/signature/elements/<NODE_ID>"
     Then the response should have a status code 200
 
@@ -162,8 +197,9 @@ Feature: account/signature
     Then the response should have a status code 200
     When sending "get" to ocs "/apps/libresign/api/v1/signature/elements"
     Then the response should be a JSON array with the following mandatory values
-      | key      | value                         |
-      | elements | (jq).[]\|.type == "signature" |
-    And fetch field "(NODE_ID)elements.0.file.nodeId" from prevous JSON response
+      | key                            | value     |
+      | (jq).ocs.data.elements\|length | 1         |
+      | (jq).ocs.data.elements[0].type | signature |
+    And fetch field "(NODE_ID)ocs.data.elements.0.file.nodeId" from prevous JSON response
     When sending "delete" to ocs "/apps/libresign/api/v1/signature/elements/<NODE_ID>"
     Then the response should have a status code 200
