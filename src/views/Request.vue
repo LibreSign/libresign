@@ -182,12 +182,12 @@ export default {
 					},
 				})
 				this.filesStore.addFile({
-					nodeId: response.data.id,
-					name: response.data.name,
+					nodeId: response.data.ocs.data.id,
+					name: response.data.ocs.data.name,
 				})
-				this.filesStore.selectFile(response.data.id)
+				this.filesStore.selectFile(response.data.ocs.data.id)
 			} catch (err) {
-				this.error = err.response.data.errors
+				this.error = err.response.data.ocs.data.errors
 				this.loading = false
 				onError(err)
 				return
@@ -247,10 +247,10 @@ export default {
 					name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
 				})
 				this.filesStore.addFile({
-					nodeId: response.data.id,
-					name: response.data.name,
+					nodeId: response.data.ocs.data.id,
+					name: response.data.ocs.data.name,
 				})
-				this.filesStore.selectFile(response.data.id)
+				this.filesStore.selectFile(response.data.ocs.data.id)
 			} catch (err) {
 				onError(err)
 			}

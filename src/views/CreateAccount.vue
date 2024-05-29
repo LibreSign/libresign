@@ -187,7 +187,7 @@ export default {
 				email: this.email,
 				password: this.password,
 			})
-				.then(({ data }) => {
+				.then(() => {
 					const url = this.$router.resolve({ name: 'SignPDF' })
 					window.location.href = url.href
 				})
