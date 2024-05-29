@@ -29,9 +29,9 @@ Feature: account/create_to_sign
       | password | 123456              |
     And the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
-      | key     | value                 |
-      | message | This is not your file |
-      | action  | 2000                  |
+      | key                   | value                 |
+      | (jq).ocs.data.message | This is not your file |
+      | (jq).ocs.data.action  | 2000                  |
 
 
   Scenario: Create with valid data
