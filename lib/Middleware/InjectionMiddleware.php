@@ -29,6 +29,7 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Middleware;
@@ -205,10 +206,6 @@ class InjectionMiddleware extends Middleware {
 					'message' => $exception->getMessage(),
 				];
 			}
-			$response = new DataResponse(
-				data: $body,
-				statusCode: $this->getStatusCodeFromException($exception)
-			);
 			if ($controller instanceof \OCP\AppFramework\OCSController) {
 				$format = $this->request->getParam('format');
 
@@ -218,11 +215,20 @@ class InjectionMiddleware extends Middleware {
 					$format = $controller->getResponderByHTTPHeader($headers, 'json');
 				}
 
+				$response = new DataResponse(
+					data: $body,
+					statusCode: $this->getStatusCodeFromException($exception)
+				);
 				if ($format !== null) {
 					$response = $controller->buildResponse($response, $format);
 				} else {
 					$response = $controller->buildResponse($response);
 				}
+			} else {
+				$response = new JSONResponse(
+					data: $body,
+					statusCode: $this->getStatusCodeFromException($exception)
+				);
 			}
 			return $response;
 		}

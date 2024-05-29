@@ -136,16 +136,16 @@ Feature: request-signature
     When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
-      | key    | value       |
-      | action | 4500        |
-      | title | Link expired |
+      | key    | value        |
+      | action | 4500         |
+      | title  | Link expired |
     Given my inbox is empty
     When as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>/renew/email"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key     | value                                        |
-      | message | Renewed with success. Access the link again. |
+      | key                   | value                                        |
+      | (jq).ocs.data.message | Renewed with success. Access the link again. |
     And I open the latest email to "signer2@domain.test" with subject "LibreSign: Changes into a file for you to sign"
     And I fetch the signer UUID from opened email
     And as user ""
@@ -176,8 +176,8 @@ Feature: request-signature
       | users | [{"identify":{"account":"signer2"}}] |
       | name | document |
     Then the response should be a JSON array with the following mandatory values
-      | key     | value           |
-      | message | User not found. |
+      | key                   | value           |
+      | (jq).ocs.data.message | User not found. |
 
   Scenario: Request to sign with success using account as identifier
     Given as user "admin"
@@ -195,13 +195,13 @@ Feature: request-signature
     When as user "signer1"
     Then sending "get" to ocs "/apps/notifications/api/v2/notifications"
     And the response should be a JSON array with the following mandatory values
-      | key | value                                                                   |
-      | (jq).ocs.data.data\|.[0].subject | admin requested your signature on document |
-      | (jq).ocs.data.data\|.[0].message |                                            |
+      | key                      | value                                      |
+      | (jq).ocs.data[0].subject | admin requested your signature on document |
+      | (jq).ocs.data[0].message |                                            |
     When sending "get" to ocs "/apps/activity/api/v2/activity/libresign?since=0"
     Then the response should be a JSON array with the following mandatory values
-      | key | value                                                                   |
-      | (jq).ocs.data.data\|.[0].subject | admin requested your signature on document |
+      | key                      | value                                      |
+      | (jq).ocs.data[0].subject | admin requested your signature on document |
     When as user "admin"
     And sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
       | uuid | <FILE_UUID> |
@@ -210,13 +210,13 @@ Feature: request-signature
     When as user "signer1"
     Then sending "get" to ocs "/apps/notifications/api/v2/notifications"
     And the response should be a JSON array with the following mandatory values
-      | key | value                                                                               |
-      | (jq).ocs.data.data\|.[0].subject | admin requested your signature on  ocument"            |
-      | (jq).ocs.data.data\|.[0].message | Changes have been made in a file that you have to sign |
+      | key                      | value                                                   |
+      | (jq).ocs.data[0].subject | admin requested your signature on document              |
+      | (jq).ocs.data[0].message | Changes have been made in a file that you have to sign. |
     When sending "get" to ocs "/apps/activity/api/v2/activity/libresign?since=0"
     Then the response should be a JSON array with the following mandatory values
-      | key | value                                                       |
-      | (jq).ocs.data.data\|.[0].subject | admin made changes on document |
+      | key                      | value                          |
+      | (jq).ocs.data[0].subject | admin made changes on document |
 
   Scenario: Request to sign with error using account as identifier with invalid email
     Given as user "admin"
