@@ -61,8 +61,8 @@ export default {
 				})
 				.catch(({ response }) => {
 					this.signMethodsStore.setHasSignatureFile(false)
-					if (response.data.message) {
-						showError(response.data.message)
+					if (response.data.ocs.data.message) {
+						showError(response.data.ocs.data.message)
 					} else {
 						showError(t('libresign', 'Error creating new password, please contact the administrator'))
 					}

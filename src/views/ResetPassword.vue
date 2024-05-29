@@ -77,13 +77,13 @@ export default {
 					current: this.currentPassword,
 					new: this.newPassword,
 				})
-				showSuccess(response.data.message)
+				showSuccess(response.data.ocs.data.message)
 				this.hasLoading = false
 				this.signMethodsStore.closeModal('resetPassword')
 				this.$emit('close', true)
 			} catch (err) {
-				if (err.response.data.message) {
-					showError(err.response.data.message)
+				if (err.response.data.ocs.data.message) {
+					showError(err.response.data.ocs.data.message)
 				} else {
 					showError(t('libresign', 'Error creating new password, please contact the administrator'))
 				}

@@ -144,13 +144,13 @@ export default {
 				password: this.password,
 			})
 				.then(({ data }) => {
-					this.certificateData = data
+					this.certificateData = data.ocs.data
 					this.size = 'large'
 					this.error = ''
 				})
 				.catch(({ response }) => {
-					if (response?.data?.message?.length > 0) {
-						this.error = response.data.message
+					if (response?.data?.ocs?.data?.message?.length > 0) {
+						this.error = response.data.ocs.data.message
 					} else {
 						this.error = t('libresign', 'Invalid password')
 					}
