@@ -50,6 +50,7 @@ OC.L10N.register(
     "Actions" : "アクション",
     "Select your file" : "あなたのファイルを選択",
     "Choose" : "選択",
+    "Delete certificate" : "証明書を削除する",
     "Change password" : "パスワードを変更",
     "Signature" : "署名",
     "Profile picture" : "プロフィール画像",
