@@ -203,17 +203,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	/**
-	 * @When delete signer :signer from file :file of previous listing
-	 */
-	public function deleteSignerFromFileOfPreviousListing(int $signerSequence, int $fileSequence): void {
-		$this->response->getBody()->seek(0);
-		$responseArray = json_decode($this->response->getBody()->getContents(), true);
-		$fileId = $responseArray['data'][$fileSequence - 1]['nodeId'];
-		$signRequestId = $responseArray['data'][$fileSequence - 1]['signers'][$signerSequence - 1]['signRequestId'];
-		$this->sendOCSRequest('delete', '/apps/libresign/api/v1/sign/file_id/' . $fileId . '/'. $signRequestId);
-	}
-
-	/**
 	 * @When /^wait for ([0-9]+) (second|seconds)$/
 	 */
 	public function waitForXSecond(int $seconds): void {
