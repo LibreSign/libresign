@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Success" : "Rath",
     "Settings saved" : "Socruithe sábháilte",
+    "deleted" : "scriosta",
     "File is too big" : "Tá an comhad ró-mhór.",
     "View" : "Amharc",
     "Dismiss notification" : "Déan an fógra a dhíbhe",
@@ -36,6 +37,7 @@ OC.L10N.register(
     "Signature" : "Sínithe",
     "Profile picture" : "Pictiúr próifíle",
     "Password" : "Pasfhocal",
+    "Enter a password" : "Cuir isteach pasfhocal",
     "Page not found" : "Ní bhfuarthas an leathanach",
     "Send" : "Seol",
     "Password reset" : "Athshocrú pasfhocal",
