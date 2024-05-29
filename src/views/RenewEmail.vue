@@ -71,9 +71,9 @@ export default {
 				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/renew/email', {
 					uuid: this.uuid,
 				}))
-				this.response = response.data.message
+				this.response = response.data.ocs.data.message
 			} catch (e) {
-				this.error = e.response.data.message
+				this.error = e.response.data.ocs.data.message
 			}
 			this.hasLoading = false
 		},

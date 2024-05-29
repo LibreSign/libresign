@@ -10,17 +10,20 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\FileElementService;
-use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
-use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
-class FileElementController extends Controller {
+/**
+ * @psalm-import-type LibresignCoordinate from ResponseDefinitions
+ */
+class FileElementController extends AEnvironmentAwareController {
 	public function __construct(
 		IRequest $request,
 		private FileElementService $fileElementService,
@@ -31,9 +34,25 @@ class FileElementController extends Controller {
 		parent::__construct(Application::APP_ID, $request);
 	}
 
+	/**
+	 * Create visible element
+	 *
+	 * Create visible element of a specific file
+	 *
+	 * @param string $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
+	 * @param integer $signRequestId Id of sign request
+	 * @param integer|null $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
+	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
+	 * @param array{} $metadata Metadata of visible elements to associate with the document
+	 * @param LibresignCoordinate $coordinates Coortinates of a visible element on PDF
+	 * @return DataResponse<Http::STATUS_OK, array{fileElementId: integer}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: string[]}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Failure when create visible element
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function post(string $uuid, int $signRequestId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): JSONResponse {
+	public function post(string $uuid, int $signRequestId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
 		$visibleElement = [
 			'elementId' => $elementId,
 			'type' => $type,
@@ -48,7 +67,6 @@ class FileElementController extends Controller {
 				'uuid' => $uuid,
 				'userManager' => $this->userSession->getUser()
 			]);
-			$this->validateHelper->signerCanHaveVisibleElement($signRequestId);
 			$fileElement = $this->fileElementService->saveVisibleElement($visibleElement, $uuid);
 			$return = [
 				'fileElementId' => $fileElement->getId(),
@@ -61,18 +79,46 @@ class FileElementController extends Controller {
 			];
 			$statusCode = $th->getCode() > 0 ? $th->getCode() : Http::STATUS_NOT_FOUND;
 		}
-		return new JSONResponse($return, $statusCode);
+		return new DataResponse($return, $statusCode);
 	}
 
+	/**
+	 * Update visible element
+	 *
+	 * Update visible element of a specific file
+	 *
+	 * @param string $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
+	 * @param integer $signRequestId Id of sign request
+	 * @param integer|null $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
+	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
+	 * @param array{} $metadata Metadata of visible elements to associate with the document
+	 * @param LibresignCoordinate $coordinates Coortinates of a visible element on PDF
+	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: string[]}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Failure when patch visible element
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function patch(string $uuid, int $signRequestId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): JSONResponse {
+	public function patch(string $uuid, int $signRequestId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
 		return $this->post($uuid, $signRequestId, $elementId, $type, $metadata, $coordinates);
 	}
 
+	/**
+	 * Delete visible element
+	 *
+	 * Delete visible element of a specific file
+	 *
+	 * @param string $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
+	 * @param integer $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
+	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: string[]}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Failure when delete visible element or file not found
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function delete(string $uuid, int $elementId): JSONResponse {
+	public function delete(string $uuid, int $elementId): DataResponse {
 		try {
 			$this->validateHelper->validateExistingFile([
 				'uuid' => $uuid,
@@ -89,6 +135,6 @@ class FileElementController extends Controller {
 			];
 			$statusCode = $th->getCode() > 0 ? $th->getCode() : Http::STATUS_NOT_FOUND;
 		}
-		return new JSONResponse($return, $statusCode);
+		return new DataResponse($return, $statusCode);
 	}
 }

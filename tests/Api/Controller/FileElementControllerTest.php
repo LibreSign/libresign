@@ -59,7 +59,7 @@ final class FileElementControllerTest extends ApiTestCase {
 		$body = json_decode($response->getBody()->getContents(), true);
 		return [
 			'file' => $file,
-			'fileElementId' => $body['fileElementId'],
+			'fileElementId' => $body['ocs']['data']['fileElementId'],
 		];
 	}
 
@@ -93,7 +93,7 @@ final class FileElementControllerTest extends ApiTestCase {
 		$body = json_decode($response->getBody()->getContents(), true);
 		return [
 			'file' => $file,
-			'fileElementId' => $body['fileElementId'],
+			'fileElementId' => $body['ocs']['data']['fileElementId'],
 		];
 	}
 

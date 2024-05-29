@@ -154,7 +154,7 @@ export default {
 							signMethod: 'emailToken',
 						},
 					)
-					showSuccess(data.message)
+					showSuccess(data.ocs.data.message)
 				} else {
 					const signer = this.signStore.document.signers.find(row => row.me) || {}
 					const { data } = await axios.post(
@@ -167,7 +167,7 @@ export default {
 							signMethod: 'emailToken',
 						},
 					)
-					showSuccess(data.message)
+					showSuccess(data.ocs.data.message)
 				}
 				this.signMethodsStore.hasEmailConfirmCode(true)
 			} catch (err) {

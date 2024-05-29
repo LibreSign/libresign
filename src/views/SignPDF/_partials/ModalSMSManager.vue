@@ -122,13 +122,13 @@ export default {
 					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', {
 						fileId: this.signStore.document.fileId,
 					}))
-					showSuccess(data.message)
+					showSuccess(data.ocs.data.message)
 				} else {
 					const signer = this.signStore.document.signers.find(row => row.me) || {}
 					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{fileId}/code', {
 						uuid: signer.sign_uuid,
 					}))
-					showSuccess(data.message)
+					showSuccess(data.ocs.data.message)
 				}
 				this.tokenRequested = true
 			} catch (err) {

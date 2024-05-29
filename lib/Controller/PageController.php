@@ -30,8 +30,8 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
-use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IAppConfig;
@@ -68,7 +68,11 @@ class PageController extends AEnvironmentPageAwareController {
 	}
 
 	/**
-	 * Render default template
+	 * Index page
+	 *
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -101,6 +105,16 @@ class PageController extends AEnvironmentPageAwareController {
 		return $response;
 	}
 
+	/**
+	 * Index page to authenticated users
+	 *
+	 * This router is used to be possible render pages with /f/, is a
+	 * workaround at frontend side to identify pages with authenticated accounts
+	 *
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'main')]
@@ -108,6 +122,13 @@ class PageController extends AEnvironmentPageAwareController {
 		return $this->index();
 	}
 
+	/**
+	 * Incomplete page
+	 *
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function incomplete(): TemplateResponse {
@@ -116,6 +137,13 @@ class PageController extends AEnvironmentPageAwareController {
 		return $response;
 	}
 
+	/**
+	 * Incomplete page in full screen
+	 *
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
 	public function incompleteP(): TemplateResponse {
@@ -124,6 +152,16 @@ class PageController extends AEnvironmentPageAwareController {
 		return $response;
 	}
 
+	/**
+	 * Main page to authenticated signer with a path
+	 *
+	 * The path is used only by frontend
+	 *
+	 * @param string $uuid Sign request uuid
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'main')]
@@ -131,6 +169,15 @@ class PageController extends AEnvironmentPageAwareController {
 		return $this->index();
 	}
 
+
+	/**
+	 * Sign page to authenticated signer
+	 *
+	 * @param string $uuid Sign request uuid
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
@@ -141,6 +188,16 @@ class PageController extends AEnvironmentPageAwareController {
 		return $this->index();
 	}
 
+	/**
+	 * Sign page to authenticated signer with the path of file
+	 *
+	 * The path is used only by frontend
+	 *
+	 * @param string $uuid Sign request uuid
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
@@ -151,6 +208,16 @@ class PageController extends AEnvironmentPageAwareController {
 		return $this->index();
 	}
 
+	/**
+	 * Sign page to authenticated signer
+	 *
+	 * The path is used only by frontend
+	 *
+	 * @param string $uuid Sign request uuid
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
@@ -204,6 +271,12 @@ class PageController extends AEnvironmentPageAwareController {
 
 	/**
 	 * Show signature page
+	 *
+	 * @param string $uuid Sign request uuid
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 * 404: Invalid UUID
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -266,7 +339,12 @@ class PageController extends AEnvironmentPageAwareController {
 	/**
 	 * Use UUID of file to get PDF
 	 *
-	 * @return JSONResponse|FileDisplayResponse
+	 * @param string $uuid File uuid
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_NOT_FOUND, array<empty>, array{}>
+	 *
+	 * 200: OK
+	 * 401: Validation page not accessible if unauthenticated
+	 * 404: File not found
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -278,19 +356,20 @@ class PageController extends AEnvironmentPageAwareController {
 		try {
 			$file = $this->accountService->getPdfByUuid($uuid);
 		} catch (DoesNotExistException $th) {
-			return new JSONResponse([], Http::STATUS_NOT_FOUND);
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 
-		$resp = new FileDisplayResponse($file);
-		$resp->addHeader('Content-Type', 'application/pdf');
-
-		return $resp;
+		return new FileDisplayResponse($file, Http::STATUS_OK, ['Content-Type' => $file->getMimeType()]);
 	}
 
 	/**
 	 * Use UUID of user to get PDF
 	 *
-	 * @return FileDisplayResponse
+	 * @param string $uuid Sign request uuid
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>
+	 *
+	 * 200: OK
+	 * 401: Validation page not accessible if unauthenticated
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -298,16 +377,19 @@ class PageController extends AEnvironmentPageAwareController {
 	#[PublicPage]
 	#[RequireSetupOk]
 	#[AnonRateLimit(limit: 30, period: 60)]
-	public function getPdfFile($uuid) {
+	public function getPdfFile($uuid): FileDisplayResponse {
 		$this->throwIfValidationPageNotAccessible();
-		$resp = new FileDisplayResponse($this->getNextcloudFile());
-		$resp->addHeader('Content-Type', 'application/pdf');
-
-		return $resp;
+		$file = $this->getNextcloudFile();
+		return new FileDisplayResponse($file, Http::STATUS_OK, ['Content-Type' => $file->getMimeType()]);
 	}
 
 	/**
 	 * Show validation page
+	 *
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 * 401: Validation page not accessible if unauthenticated
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -344,6 +426,14 @@ class PageController extends AEnvironmentPageAwareController {
 
 	/**
 	 * Show validation page
+	 *
+	 * The path is used only by frontend
+	 *
+	 * @param string $uuid Sign request uuid
+	 * @return RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
+	 *
+	 * 303: Redirected to validation page
+	 * 401: Validation page not accessible if unauthenticated
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -357,6 +447,11 @@ class PageController extends AEnvironmentPageAwareController {
 
 	/**
 	 * Show validation page
+	 *
+	 * @param string $uuid Sign request uuid
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -376,6 +471,12 @@ class PageController extends AEnvironmentPageAwareController {
 
 	/**
 	 * Show validation page for a specific file UUID
+	 *
+	 * @param string $uuid File uuid
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 * 401: Validation page not accessible if unauthenticated
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
