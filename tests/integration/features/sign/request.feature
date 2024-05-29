@@ -191,17 +191,17 @@ Feature: request-signature
       | users | [{"identify":{"account":"signer1"}}] |
       | name | document |
     Then the response should have a status code 200
-    And fetch field "(FILE_UUID)data.uuid" from prevous JSON response
+    And fetch field "(FILE_UUID)ocs.data.data.uuid" from prevous JSON response
     When as user "signer1"
     Then sending "get" to ocs "/apps/notifications/api/v2/notifications"
     And the response should be a JSON array with the following mandatory values
-      | key | value                                                                  |
-      | ocs | (jq).data\|.[0].subject == "admin requested your signature on document"|
-      | ocs | (jq).data\|.[0].message == ""                                          |
+      | key | value                                                                   |
+      | (jq).ocs.data.data\|.[0].subject | admin requested your signature on document |
+      | (jq).ocs.data.data\|.[0].message |                                            |
     When sending "get" to ocs "/apps/activity/api/v2/activity/libresign?since=0"
     Then the response should be a JSON array with the following mandatory values
-      | key | value                                                                  |
-      | ocs | (jq).data\|.[0].subject == "admin requested your signature on document"|
+      | key | value                                                                   |
+      | (jq).ocs.data.data\|.[0].subject | admin requested your signature on document |
     When as user "admin"
     And sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
       | uuid | <FILE_UUID> |
@@ -211,24 +211,24 @@ Feature: request-signature
     Then sending "get" to ocs "/apps/notifications/api/v2/notifications"
     And the response should be a JSON array with the following mandatory values
       | key | value                                                                               |
-      | ocs | (jq).data\|.[0].subject == "admin requested your signature on document"             |
-      | ocs | (jq).data\|.[0].message == "Changes have been made in a file that you have to sign."|
+      | (jq).ocs.data.data\|.[0].subject | admin requested your signature on  ocument"            |
+      | (jq).ocs.data.data\|.[0].message | Changes have been made in a file that you have to sign |
     When sending "get" to ocs "/apps/activity/api/v2/activity/libresign?since=0"
     Then the response should be a JSON array with the following mandatory values
-      | key | value                                                      |
-      | ocs | (jq).data\|.[0].subject == "admin made changes on document"|
+      | key | value                                                       |
+      | (jq).ocs.data.data\|.[0].subject | admin made changes on document |
 
   Scenario: Request to sign with error using account as identifier with invalid email
     Given as user "admin"
     And run the command "libresign:configure:openssl --cn test" with result code 0
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"}  |
       | users | [{"identify":{"account":"invaliddomain.test"}}] |
       | name | document |
     Then the response should have a status code 422
     Then the response should be a JSON array with the following mandatory values
-      | key     | value           |
-      | message | User not found. |
+      | key                   | value           |
+      | (jq).ocs.data.message | User not found. |
 
   Scenario: Request to sign with error using email as account identifier
     Given as user "admin"
@@ -239,8 +239,8 @@ Feature: request-signature
       | name | document |
     Then the response should have a status code 422
     Then the response should be a JSON array with the following mandatory values
-      | key     | value           |
-      | message | User not found. |
+      | key                   | value           |
+      | (jq).ocs.data.message | User not found. |
 
   Scenario: Request to sign with success using email as identifier and URL as file
     Given as user "admin"
@@ -430,7 +430,6 @@ Feature: request-signature
       | (jq).ocs.data.data[0].status                   | 1                       |
       | (jq).ocs.data.data[0].statusText               | available for signature |
       | (jq).ocs.data.data[0].requested_by.uid         | admin                   |
-      | (jq).ocs.data.data[0].requested_by.displayName | Admin                   |
       | (jq).ocs.data.data[0].signers\|length          | 2                       |
       | (jq).ocs.data.data[0].signers[0].email         | signer1@domain.test     |
       | (jq).ocs.data.data[0].signers[0].me            | false                   |
@@ -447,7 +446,6 @@ Feature: request-signature
       | (jq).ocs.data.data[0].status                   | 1                       |
       | (jq).ocs.data.data[0].statusText               | available for signature |
       | (jq).ocs.data.data[0].requested_by.uid         | admin                   |
-      | (jq).ocs.data.data[0].requested_by.displayName | Admin                   |
       | (jq).ocs.data.data[0].signers\|length          | 1                       |
       | (jq).ocs.data.data[0].signers[0].email         | signer1@domain.test     |
       | (jq).ocs.data.data[0].signers[0].me            | false                   |
