@@ -9,9 +9,9 @@ Feature: request-signature
       | name | document |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
-      | key    | value                                      |
-      | action | 2000                                       |
-      | errors | ["You are not allowed to request signing"] |
+      | key                  | value                                      |
+      | (jq).ocs.data.action | 2000                                       |
+      | (jq).ocs.data.errors | ["You are not allowed to request signing"] |
 
   Scenario: Get error when try to request to sign without file name
     Given as user "admin"
@@ -22,8 +22,8 @@ Feature: request-signature
       | name | |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
-      | key      | value             |
-      | message  | Name is mandatory |
+      | key                   | value             |
+      | (jq).ocs.data.message | Name is mandatory |
 
   Scenario: Request to sign with error using different authenticated account
     Given as user "admin"
