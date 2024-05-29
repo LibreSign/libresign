@@ -57,20 +57,15 @@ Feature: search
     Given as user "admin"
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"email","enabled":true}] |
-    And run the command "group:add request_signature"
-    And run the command "group:adduser request_signature search-signer1"
-    And run the command "config:app:set libresign groups_request_sign --value=[\"request_signature\"]"
-    Given as user "search-signer1"
-    And set the email of user "search-signer1" to "my@email.tld"
-    And set the display name of user "search-signer1" to "My Name"
-    And sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=search-signer1"
+    And set the display name of user "admin" to "Temporary Name"
+    And set the email of user "admin" to "my@email.tld"
+    And sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=admin"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key                   | value |
-      | (jq).ocs.data\|length | []    |
-    And run the command "group:delete request_signature" with result code 0
-    And run the command "config:app:delete libresign groups_request_sign" with result code 0
-    And set the display name of user "search-signer1" to "search-signer1-displayname"
+      | (jq).ocs.data\|length | 0     |
+    And set the email of user "admin" to "admin@email.tld"
+    And set the display name of user "admin" to "admin"
 
   Scenario: Search account by herself with permission to identify by account
     Given as user "admin"
