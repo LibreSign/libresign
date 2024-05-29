@@ -63,8 +63,8 @@ Feature: search
     And sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=search-signer1"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key   | value |
-      | (jq). | []    |
+      | key                   | value |
+      | (jq).ocs.data\|length | []    |
     And run the command "group:delete request_signature" with result code 0
     And run the command "config:app:delete libresign groups_request_sign" with result code 0
     And set the display name of user "search-signer1" to "search-signer1-displayname"
@@ -77,13 +77,14 @@ Feature: search
     When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=admin"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                 | value           |
-      | (jq).[].id          | admin           |
-      | (jq).[].isNoUser    | false           |
-      | (jq).[].displayName | admin           |
-      | (jq).[].subname     | admin@email.tld |
-      | (jq).[].icon        | icon-user       |
-      | (jq).[].shareType   | 0               |
+      | key                          | value           |
+      | (jq).ocs.data\|length        | 1               |
+      | (jq).ocs.data[0].id          | admin           |
+      | (jq).ocs.data[0].isNoUser    | false           |
+      | (jq).ocs.data[0].displayName | admin           |
+      | (jq).ocs.data[0].subname     | admin@email.tld |
+      | (jq).ocs.data[0].icon        | icon-user       |
+      | (jq).ocs.data[0].shareType   | 0               |
 
   Scenario: Search account by herself without permission to identify by email
     Given as user "admin"
@@ -104,10 +105,11 @@ Feature: search
     When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=admin@email.tld"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                 | value           |
-      | (jq).[].id          | admin@email.tld |
-      | (jq).[].isNoUser    | true            |
-      | (jq).[].displayName | admin           |
-      | (jq).[].subname     | admin@email.tld |
-      | (jq).[].icon        | icon-mail       |
-      | (jq).[].shareType   | 4               |
+      | key                          | value           |
+      | (jq).ocs.data\|length        | 1               |
+      | (jq).ocs.data[0].id          | admin@email.tld |
+      | (jq).ocs.data[0].isNoUser    | true            |
+      | (jq).ocs.data[0].displayName | admin           |
+      | (jq).ocs.data[0].subname     | admin@email.tld |
+      | (jq).ocs.data[0].icon        | icon-mail       |
+      | (jq).ocs.data[0].shareType   | 4               |
