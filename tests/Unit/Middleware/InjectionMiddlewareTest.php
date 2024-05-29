@@ -14,7 +14,6 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\InjectionMiddleware;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
