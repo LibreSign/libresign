@@ -16,6 +16,7 @@ use OCP\IL10N;
  * Class FileTypeMapper
  *
  * @package OCA\Libresign\DB
+ * @template-extends QBMapper<FileType>
  */
 class FileTypeMapper extends QBMapper {
 	private $types = [];
