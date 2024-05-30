@@ -357,10 +357,6 @@ class SignRequestMapper extends QBMapper {
 		return end($this->signers);
 	}
 
-	/**
-	 * @return array<\OCA\Libresign\Helper\Pagination|array>
-	 * @psalm-return array{pagination: \OCA\Libresign\Helper\Pagination, data: array}
-	 */
 	public function getFilesAssociatedFilesWithMeFormatted(
 		IUser $user,
 		int $page = null,
