@@ -2352,6 +2352,7 @@ export type operations = {
                 /** Format: int64 */
                 action: number;
                 errors: string[];
+                redirect?: string;
               };
             };
           };
