@@ -735,14 +735,6 @@ class ValidateHelper {
 		}
 	}
 
-	public function valdateCode(SignRequest $signRequest, array $params): void {
-		if (empty($params['code']) || !$this->hasher->verify($params['code'], $signRequest->getCode())) {
-			throw new LibresignException($this->l10n->t('Invalid code.'));
-		}
-		$signRequest->setCode('');
-		$this->signRequestMapper->update($signRequest);
-	}
-
 	public function validateFileTypeExists(string $type): void {
 		$profileFileTypes = $this->fileTypeMapper->getTypes();
 		if (!array_key_exists($type, $profileFileTypes)) {
