@@ -43,6 +43,7 @@ use OCP\IUserManager;
  * Class SignRequestMapper
  *
  * @package OCA\Libresign\DB
+ * @template-extends QBMapper<SignRequest>
  */
 class SignRequestMapper extends QBMapper {
 	/**

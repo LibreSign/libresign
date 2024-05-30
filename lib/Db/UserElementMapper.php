@@ -32,6 +32,7 @@ use OCP\IDBConnection;
  * Class FileElementsMapper
  *
  * @package OCA\Libresign\DB
+ * @template-extends QBMapper<UserElement>
  */
 class UserElementMapper extends QBMapper {
 	public function __construct(IDBConnection $db) {
