@@ -514,9 +514,15 @@ class PageController extends AEnvironmentPageAwareController {
 				$this->initialState->provideInitialState('errors', [$this->l10n->t('Invalid UUID')]);
 			}
 		}
-		$this->initialState->provideInitialState('config',
-			$this->accountService->getConfig($this->userSession?->getUser())
-		);
+		if ($this->userSession->isLoggedIn()) {
+			$this->initialState->provideInitialState('config',
+				$this->accountService->getConfig($this->userSession->getUser())
+			);
+		} else {
+			$this->initialState->provideInitialState('config',
+				$this->accountService->getConfig()
+			);
+		}
 
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
 

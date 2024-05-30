@@ -249,7 +249,7 @@ class AccountService {
 	/**
 	 * @return array[]
 	 */
-	public function getConfig(?IUser $user): array {
+	public function getConfig(?IUser $user = null): array {
 		$info['identificationDocumentsFlow'] = $this->appConfig->getAppValue('identification_documents') ? true : false;
 		$info['hasSignatureFile'] = $this->hasSignatureFile($user);
 		$info['phoneNumber'] = $this->getPhoneNumber($user);
