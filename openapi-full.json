@@ -5926,6 +5926,9 @@
                                                             "items": {
                                                                 "type": "string"
                                                             }
+                                                        },
+                                                        "redirect": {
+                                                            "type": "string"
                                                         }
                                                     }
                                                 }
