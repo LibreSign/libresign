@@ -453,13 +453,6 @@ class FileService {
 		];
 	}
 
-	/**
-	 * @param IUser $userId
-	 * @param array $files
-	 * @param array<SignRequest> $signers
-	 * @param array<array-key, array<array-key, \OCP\AppFramework\Db\Entity&\OCA\Libresign\Db\IdentifyMethod>> $identifyMethods
-	 * @param SignRequest[][]
-	 */
 	private function associateAllAndFormat(IUser $user, array $files, array $signers, array $identifyMethods, array $visibleElements): array {
 		foreach ($files as $key => $file) {
 			$totalSigned = 0;
