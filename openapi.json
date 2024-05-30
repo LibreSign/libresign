@@ -419,9 +419,6 @@
                     "signRequestId"
                 ],
                 "properties": {
-                    "email": {
-                        "type": "string"
-                    },
                     "description": {
                         "type": "string",
                         "nullable": true
@@ -446,16 +443,10 @@
                     "me": {
                         "type": "boolean"
                     },
-                    "uid": {
-                        "type": "string"
-                    },
                     "signRequestId": {
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0
-                    },
-                    "identifyMethod": {
-                        "type": "string"
                     },
                     "identifyMethods": {
                         "type": "array",

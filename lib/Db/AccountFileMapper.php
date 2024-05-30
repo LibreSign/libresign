@@ -233,16 +233,13 @@ class AccountFileMapper extends QBMapper {
 			foreach ($signers as $signerKey => $signer) {
 				if ($signer->getFileId() === $file['id']) {
 					$data = [
-						'email' => $signer->getEmail(),
 						'description' => $signer->getDescription(),
 						'displayName' => $signer->getDisplayName(),
 						'request_sign_date' => (new \DateTime())
 							->setTimestamp($signer->getCreatedAt())
 							->format('Y-m-d H:i:s'),
 						'sign_date' => null,
-						'uid' => $signer->getUserId(),
 						'signRequestId' => $signer->getId(),
-						'identifyMethod' => $signer->getIdentifyMethod(),
 					];
 					if ($signer->getSigned()) {
 						$data['sign_date'] = (new \DateTime())
