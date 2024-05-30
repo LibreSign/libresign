@@ -207,7 +207,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$signRequest = $this->identifyService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
 		$startTime = $this->identifyService->getSessionService()->getSignStartTime();
 		$createdAt = $signRequest->getCreatedAt();
-		$lastAttempt = $this->getEntity()->getLastAttemptDate()?->format('U');
+		$lastAttempt = (int) $this->getEntity()->getLastAttemptDate()?->format('U');
 		$lastActionDate = max(
 			$startTime,
 			$createdAt,
