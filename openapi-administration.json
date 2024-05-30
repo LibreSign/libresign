@@ -20,6 +20,33 @@
             }
         },
         "schemas": {
+            "ConfigureCheck": {
+                "type": "object",
+                "required": [
+                    "status",
+                    "message",
+                    "resource",
+                    "tip"
+                ],
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "error",
+                            "success"
+                        ]
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "resource": {
+                        "type": "string"
+                    },
+                    "tip": {
+                        "type": "string"
+                    }
+                }
+            },
             "OCSMeta": {
                 "type": "object",
                 "required": [
@@ -585,7 +612,92 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/ConfigureCheck"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
+            "get": {
+                "operationId": "setting-has-root-cert",
+                "summary": "Has root certificate",
+                "description": "Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have",
+                "tags": [
+                    "setting"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "hasRootCert"
+                                                    ],
+                                                    "properties": {
+                                                        "hasRootCert": {
+                                                            "type": "boolean"
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
