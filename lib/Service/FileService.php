@@ -17,6 +17,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Services\IAppConfig;
@@ -31,6 +32,9 @@ use OCP\IUserManager;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @psalm-import-type LibresignSigner from ResponseDefinitions
+ */
 class FileService {
 	use TFile;
 
@@ -401,9 +405,7 @@ class FileService {
 	}
 
 	/**
-	 * @return ((mixed|string[])[]|int|mixed|string)[]
-	 *
-	 * @psalm-return array{status: int, statusText: mixed, fileId: int, uuid: int, name: string, file: string, signers?: array, pages?: array, visibleElements?: array, settings?: array, messages?: non-empty-list<array{type: 'info', message: string}>}
+	 * @return LibresignSigner
 	 */
 	public function formatFile(): array {
 		$return = $this->getFile();

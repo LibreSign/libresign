@@ -5222,17 +5222,6 @@
                                                     "properties": {
                                                         "message": {
                                                             "type": "string"
-                                                        },
-                                                        "action": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "errors": {
-                                                            "type": "array",
-                                                            "nullable": true,
-                                                            "items": {
-                                                                "type": "string"
-                                                            }
                                                         }
                                                     }
                                                 }
@@ -5370,7 +5359,7 @@
                                                             "type": "string"
                                                         },
                                                         "data": {
-                                                            "$ref": "#/components/schemas/RequestSignature"
+                                                            "$ref": "#/components/schemas/Signer"
                                                         }
                                                     }
                                                 }
@@ -5406,17 +5395,6 @@
                                                     "properties": {
                                                         "message": {
                                                             "type": "string"
-                                                        },
-                                                        "action": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "errors": {
-                                                            "type": "array",
-                                                            "nullable": true,
-                                                            "items": {
-                                                                "type": "string"
-                                                            }
                                                         }
                                                     }
                                                 }
