@@ -1947,7 +1947,9 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: {
+                message: string;
+              };
             };
           };
         };
@@ -1959,7 +1961,11 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                message: string;
+                messages: {
+                    /** @enum {string} */
+                    type: "danger";
+                    message: string;
+                  }[];
               };
             };
           };
