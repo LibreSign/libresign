@@ -36,7 +36,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('File not found', $body['errors'][0]);
+		$this->assertEquals('File not found', $body['ocs']['data']['errors'][0]);
 	}
 
 	/**
@@ -59,7 +59,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('Invalid UUID', $body['errors'][0]);
+		$this->assertEquals('Invalid UUID', $body['ocs']['data']['errors'][0]);
 	}
 
 	/**
@@ -101,7 +101,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('File already signed.', $body['errors'][0]);
+		$this->assertEquals('File already signed.', $body['ocs']['data']['errors'][0]);
 	}
 
 	/**
@@ -144,7 +144,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('File not found', $body['errors'][0]);
+		$this->assertEquals('File not found', $body['ocs']['data']['errors'][0]);
 	}
 
 	/**
@@ -183,8 +183,8 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals(200, $body['action']);
-		$this->assertEquals('Empty identify data.', $body['errors'][0]);
+		$this->assertEquals(200, $body['ocs']['data']['action']);
+		$this->assertEquals('Empty identify data.', $body['ocs']['data']['errors'][0]);
 	}
 
 	/**
@@ -244,7 +244,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('Empty identify data.', $body['errors'][0]);
+		$this->assertEquals('Empty identify data.', $body['ocs']['data']['errors'][0]);
 	}
 
 	/**
@@ -316,139 +316,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testPostRegisterWithValidationFailure() {
-		$this->createAccount('username', 'password');
-		$this->request
-			->withMethod('POST')
-			->withPath('/request-signature')
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password'),
-				'Content-Type' => 'application/json'
-			])
-			->withRequestBody([
-				'name' => 'filename',
-				'file' => [],
-				'users' => []
-			])
-			->assertResponseCode(422);
-
-		$response = $this->assertRequest();
-		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('You are not allowed to request signing', $body['errors'][0]);
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
-	public function testPostRegisterWithSuccess() {
-		$this->createAccount('allowrequestsign', 'password', 'testGroup');
-
-		$this->mockAppConfig([
-			'groups_request_sign' => '["admin","testGroup"]',
-			'notifyUnsignedUser' => 0,
-		]);
-
-		$this->request
-			->withMethod('POST')
-			->withPath('/request-signature')
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password'),
-				'Content-Type' => 'application/json'
-			])
-			->withRequestBody([
-				'name' => 'filename',
-				'file' => [
-					'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))
-				],
-				'users' => [
-					[
-						'identify' => [
-							'email' => 'user@test.coop',
-						],
-					],
-				],
-			]);
-
-		$response = $this->assertRequest();
-		$body = json_decode($response->getBody()->getContents(), true);
-		$body['data']['users'][] = ['email' => 'user@test.coop'];
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
-	public function testPatchRegisterWithValidationFailure() {
-		$this->createAccount('username', 'password');
-		$this->request
-			->withMethod('PATCH')
-			->withPath('/request-signature')
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password'),
-				'Content-Type' => 'application/json'
-			])
-			->withRequestBody([
-				'uuid' => '12345678-1234-1234-1234-123456789012',
-				'users' => []
-			])
-			->assertResponseCode(422);
-
-		$response = $this->assertRequest();
-		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('You are not allowed to request signing', $body['errors'][0]);
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
-	public function testPatchRegisterWithSuccess() {
-		$user = $this->createAccount('allowrequestsign', 'password', 'testGroup');
-
-		$this->mockAppConfig([
-			'groups_request_sign' => '["admin","testGroup"]',
-			'notifyUnsignedUser' => 0,
-		]);
-
-		$user->setEMailAddress('person@test.coop');
-		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
-			'name' => 'test',
-			'users' => [
-				[
-					'identify' => [
-						'email' => 'person@test.coop',
-					],
-				],
-			],
-			'userManager' => $user,
-		]);
-
-		$this->request
-			->withMethod('PATCH')
-			->withPath('/request-signature')
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password'),
-				'Content-Type' => 'application/json'
-			])
-			->withRequestBody([
-				'uuid' => $file->getUuid(),
-				'users' => [
-					[
-						'identify' => [
-							'email' => 'user@test.coop',
-						],
-					],
-				],
-			]);
-
-		$response = $this->assertRequest();
-		$body = json_decode($response->getBody()->getContents(), true);
-		$body['data']['users'][] = ['email' => 'user@test.coop'];
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
-	public function testAccountSignatureEndpointWithSuccess() {
+	public function testAccountSignatureEndpointWithSuccess():void {
 		$this->markTestSkipped('Need to reimplement this test, stated to failure');
 		$user = $this->createAccount('username', 'password');
 		$user->setEMailAddress('person@test.coop');

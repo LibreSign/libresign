@@ -113,7 +113,7 @@ export default {
 				const formData = new FormData()
 				formData.append('file', file)
 				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/pfx'), formData)
-				showSuccess(response.data.message)
+				showSuccess(response.data.ocs.data.message)
 				this.signMethodsStore.setHasSignatureFile(true)
 			} catch (err) {
 				showError(err.response.data.message)
@@ -121,7 +121,7 @@ export default {
 		},
 		async deleteCertificate() {
 			const response = await axios.delete(generateOcsUrl('/apps/libresign/api/v1/account/pfx'))
-			showSuccess(response.data.message)
+			showSuccess(response.data.ocs.data.message)
 			this.signMethodsStore.setHasSignatureFile(false)
 		},
 	},

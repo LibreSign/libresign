@@ -119,7 +119,7 @@ export const useFilesStore = defineStore('files', {
 				fileId: nodeId,
 			}))
 				.then((response) => {
-					set(this.files, nodeId, response.data)
+					set(this.files, nodeId, response.data.ocs.data)
 					this.addUniqueIdentifierToAllSigners(this.files[nodeId].signers)
 				})
 				.catch(() => {
@@ -177,7 +177,7 @@ export const useFilesStore = defineStore('files', {
 				},
 			})
 			this.files = {}
-			response.data.data.forEach(file => {
+			response.data.ocs.data.data.forEach(file => {
 				this.addFile(file)
 			})
 			return this.files

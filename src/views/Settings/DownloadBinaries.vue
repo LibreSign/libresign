@@ -76,10 +76,10 @@ export default {
 			this.changeState('in progress')
 			axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/configure-check'))
 				.then(({ data }) => {
-					this.configureCheckStore.items = data
-					const java = data.filter((o) => o.resource === 'java' && o.status === 'error').length === 0
-					const jsignpdf = data.filter((o) => o.resource === 'jsignpdf' && o.status === 'error').length === 0
-					const cfssl = data.filter((o) => o.resource === 'cfssl' && o.status === 'error').length === 0
+					this.configureCheckStore.items = data.ocs.data
+					const java = data.ocs.data.filter((o) => o.resource === 'java' && o.status === 'error').length === 0
+					const jsignpdf = data.ocs.data.filter((o) => o.resource === 'jsignpdf' && o.status === 'error').length === 0
+					const cfssl = data.ocs.data.filter((o) => o.resource === 'cfssl' && o.status === 'error').length === 0
 					if (!java
 						|| !jsignpdf
 						|| !cfssl

@@ -258,9 +258,9 @@ export default {
 					visibleElements,
 					status: 1,
 				})
-				this.filesStore.addFile(response.data.data)
+				this.filesStore.addFile(response.data.ocs.data.data)
 				this.showConfirm = false
-				showSuccess(t('libresign', response.data.message))
+				showSuccess(t('libresign', response.data.ocs.data.message))
 				this.closeModal()
 				emit('libresign:visible-elements-saved')
 			} catch (err) {

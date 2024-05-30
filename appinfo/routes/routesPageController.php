@@ -1,7 +1,7 @@
 <?php
 
 $requirements = [
-	'apiVersion' => 'v1',
+	'apiVersion' => '(v1)',
 ];
 
 return [

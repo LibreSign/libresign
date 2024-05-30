@@ -31,18 +31,18 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
+use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SessionService;
-use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
-use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
@@ -55,7 +55,14 @@ use OCP\IUserSession;
 use OCP\Preview\IMimeIconProvider;
 use Psr\Log\LoggerInterface;
 
-class FileController extends Controller {
+/**
+ * @psalm-import-type LibresignNewFile from ResponseDefinitions
+ * @psalm-import-type LibresignFolderSettings from ResponseDefinitions
+ * @psalm-import-type LibresignNextcloudFile from ResponseDefinitions
+ * @psalm-import-type LibresignSettings from ResponseDefinitions
+ * @psalm-import-type LibresignSigner from ResponseDefinitions
+ */
+class FileController extends AEnvironmentAwareController {
 	public function __construct(
 		IRequest $request,
 		private IL10N $l10n,
@@ -74,24 +81,61 @@ class FileController extends Controller {
 		parent::__construct(Application::APP_ID, $request);
 	}
 
+	/**
+	 * Validate a file using Uuid
+	 *
+	 * Validate a file returning file data.
+	 *
+	 * @param string $uuid The UUID of the LibreSign file
+	 * @return DataResponse<Http::STATUS_OK, array{file: string, name: string, url?: string, nodeId: int, request_date: string, requested_by: array{uid: string, displayName: string}, status: int, statusText: string, uuid: string, signers: LibresignSigner[], action?: int, errors?: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Request failed
+	 * 422: Request failed
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	public function validateUuid($uuid): JSONResponse {
+	public function validateUuid(string $uuid): DataResponse {
 		return $this->validate('Uuid', $uuid);
 	}
 
+	/**
+	 * Validate a file using FileId
+	 *
+	 * Validate a file returning file data.
+	 *
+	 * @param int $fileId The identifier value of the LibreSign file
+	 * @return DataResponse<Http::STATUS_OK, array{file: string, name: string, url?: string, nodeId: int, request_date: string, requested_by: array{uid: string, displayName: string}, status: int, statusText: string, uuid: string, signers: LibresignSigner[], action?: int, errors?: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Request failed
+	 * 422: Request failed
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	public function validateFileId($fileId): JSONResponse {
+	public function validateFileId(int $fileId): DataResponse {
 		return $this->validate('FileId', $fileId);
 	}
 
+	/**
+	 * Validate a file
+	 *
+	 * Validate a file returning file data.
+	 *
+	 * @param string|null $type The type of identifier could be Uuid or FileId
+	 * @param string|int $identifier The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer
+	 * @return DataResponse<Http::STATUS_OK, array{file: string, name: string, url?: string, nodeId: int, request_date: string, requested_by: array{uid: string, displayName: string}, status: int, statusText: string, uuid: string, signers: LibresignSigner[], action?: int, errors?: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Request failed
+	 * 422: Request failed
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	public function validate(?string $type = null, $identifier = null): JSONResponse {
+	public function validate(?string $type = null, $identifier = null): DataResponse {
 		try {
 			if ($type === 'Uuid' && !empty($identifier)) {
 				try {
@@ -149,18 +193,42 @@ class FileController extends Controller {
 				->formatFile()
 		);
 
-		return new JSONResponse($return, $statusCode);
+		return new DataResponse($return, $statusCode);
 	}
 
+	/**
+	 * List account files that need to be approved
+	 *
+	 * @param array{signer_uuid?: string, nodeId?: string} $filter Filter params
+	 * @param int|null $page the number of page to return
+	 * @param int|null $length Total of elements to return
+	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function list($page = null, $length = null, ?array $filter = []): JSONResponse {
+	public function list($page = null, $length = null, ?array $filter = []): DataResponse {
 		$return = $this->fileService
 			->setMe($this->userSession->getUser())
 			->listAssociatedFilesOfSignFlow($page, $length, $filter);
-		return new JSONResponse($return, Http::STATUS_OK);
+		return new DataResponse($return, Http::STATUS_OK);
 	}
 
+	/**
+	 * Return the thumbnail of a LibreSign file
+	 *
+	 * @param integer $nodeId The nodeId of document
+	 * @param integer $x Width of generated file
+	 * @param integer $y Height of generated file
+	 * @param boolean $a Crop, boolean value, default false
+	 * @param boolean $forceIcon Force to generate a new thumbnail
+	 * @param string $mode To force a given mimetype for the file
+	 * @param boolean $mimeFallback If we have no preview enabled, we can redirect to the mime icon if any
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function getThumbnail(
@@ -173,7 +241,7 @@ class FileController extends Controller {
 		bool $mimeFallback = false
 	) {
 		if ($nodeId === -1 || $x === 0 || $y === 0) {
-			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
+			return new DataResponse([], Http::STATUS_BAD_REQUEST);
 		}
 
 		try {
@@ -182,14 +250,14 @@ class FileController extends Controller {
 				->getMyLibresignFile($nodeId);
 			$node = $this->accountService->getPdfByUuid($myLibreSignFile->getUuid());
 		} catch (DoesNotExistException $e) {
-			return new JSONResponse([], Http::STATUS_NOT_FOUND);
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 
 		return $this->fetchPreview($node, $x, $y, $a, $forceIcon, $mode, $mimeFallback);
 	}
 
 	/**
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|JSONResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
 	 */
 	private function fetchPreview(
 		Node $node,
@@ -201,10 +269,10 @@ class FileController extends Controller {
 		bool $mimeFallback = false,
 	) : Http\Response {
 		if (!($node instanceof File) || (!$forceIcon && !$this->preview->isAvailable($node))) {
-			return new JSONResponse([], Http::STATUS_NOT_FOUND);
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 		if (!$node->isReadable()) {
-			return new JSONResponse([], Http::STATUS_FORBIDDEN);
+			return new DataResponse([], Http::STATUS_FORBIDDEN);
 		}
 
 		$storage = $node->getStorage();
@@ -213,7 +281,7 @@ class FileController extends Controller {
 			$share = $storage->getShare();
 			$attributes = $share->getAttributes();
 			if ($attributes !== null && $attributes->getAttribute('permissions', 'download') === false) {
-				return new JSONResponse([], Http::STATUS_FORBIDDEN);
+				return new DataResponse([], Http::STATUS_FORBIDDEN);
 			}
 		}
 
@@ -232,16 +300,29 @@ class FileController extends Controller {
 				}
 			}
 
-			return new JSONResponse([], Http::STATUS_NOT_FOUND);
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		} catch (\InvalidArgumentException $e) {
-			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
+			return new DataResponse([], Http::STATUS_BAD_REQUEST);
 		}
 	}
 
+	/**
+	 * Send a file
+	 *
+	 * Send a new file to Nextcloud and return the fileId to request to sign usign fileId
+	 *
+	 * @param LibresignNewFile $file File to save
+	 * @param string $name The name of file to sign
+	 * @param LibresignFolderSettings $settings Settings to define the pattern to store the file. See more informations at FolderService::getFolderName method.
+	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 422: Failed to save data
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	public function save(array $file, string $name = '', array $settings = []): JSONResponse {
+	public function save(array $file, string $name = '', array $settings = []): DataResponse {
 		try {
 			if (empty($name)) {
 				if (!empty($file['url'])) {
@@ -265,7 +346,7 @@ class FileController extends Controller {
 				'settings' => $settings
 			]);
 
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Success'),
 					'name' => $name,
@@ -277,7 +358,7 @@ class FileController extends Controller {
 				Http::STATUS_OK
 			);
 		} catch (\Exception $e) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $e->getMessage(),
 				],
