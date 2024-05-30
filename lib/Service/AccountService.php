@@ -442,13 +442,7 @@ class AccountService {
 		$this->userElementMapper->insert($userElement);
 	}
 
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 * @psalm-suppress MixedMethodCall
-	 *
-	 * @return false|resource|string
-	 */
-	private function getFileRaw(array $data) {
+	private function getFileRaw(array $data): string {
 		if (!empty($data['file']['url'])) {
 			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
 				throw new \Exception($this->l10n->t('Invalid URL file'));
@@ -463,14 +457,17 @@ class AccountService {
 				throw new \Exception($this->l10n->t('Empty file'));
 			}
 			$this->validateHelper->validateBase64($content, ValidateHelper::TYPE_VISIBLE_ELEMENT_USER);
+			return $content;
+		}
+		$this->validateHelper->validateBase64($data['file']['base64'], ValidateHelper::TYPE_VISIBLE_ELEMENT_USER);
+		$withMime = explode(',', $data['file']['base64']);
+		if (count($withMime) === 2) {
+			$content = base64_decode($withMime[1]);
 		} else {
-			$this->validateHelper->validateBase64($data['file']['base64'], ValidateHelper::TYPE_VISIBLE_ELEMENT_USER);
-			$withMime = explode(',', $data['file']['base64']);
-			if (count($withMime) === 2) {
-				$content = base64_decode($withMime[1]);
-			} else {
-				$content = base64_decode($data['file']['base64']);
-			}
+			$content = base64_decode($data['file']['base64']);
+		}
+		if (!$content) {
+			return '';
 		}
 		return $content;
 	}
