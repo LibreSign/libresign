@@ -32,21 +32,20 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
-use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
-use OCP\AppFramework\Http\JSONResponse;
 use OCP\IL10N;
 use OCP\IPreview;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
 
-class SignatureElementsController extends ApiController implements ISignatureUuid {
+class SignatureElementsController extends AEnvironmentAwareController implements ISignatureUuid {
 	use LibresignTrait;
 	public function __construct(
 		IRequest $request,
@@ -63,11 +62,20 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 		parent::__construct(Application::APP_ID, $request);
 	}
 
+	/**
+	 * Create signature element
+	 *
+	 * @param array<string, mixed> $elements Element object
+	 * @return DataResponse<Http::STATUS_OK, array{message: string, elements: array{}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 422: Invalid data
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
-	public function createSignatureElement(array $elements): JSONResponse {
+	public function createSignatureElement(array $elements): DataResponse {
 		try {
 			$this->validateHelper->validateVisibleElements($elements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
 			$this->accountService->saveVisibleElements(
@@ -76,14 +84,14 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 				user: $this->userSession->getUser(),
 			);
 		} catch (\Throwable $th) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $th->getMessage(),
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
-		return new JSONResponse(
+		return new DataResponse(
 			[
 				'message' => $this->l10n->n(
 					'Element created with success',
@@ -101,14 +109,22 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 		);
 	}
 
+	/**
+	 * Get signature elements
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{elements: array{}}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Invalid data
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
-	public function getSignatureElements(): JSONResponse {
+	public function getSignatureElements(): DataResponse {
 		$userId = $this->userSession->getUser()?->getUID();
 		try {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'elements' =>
 						(
@@ -120,7 +136,7 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 				Http::STATUS_OK
 			);
 		} catch (\Throwable $th) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Elements not found')
 				],
@@ -129,6 +145,15 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 		}
 	}
 
+	/**
+	 * Get preview of signature elements of
+	 *
+	 * @param int $nodeId Node id of a Nextcloud file
+	 * @return FileDisplayResponse<Http::STATUS_OK, string>|DataResponse<Http::STATUS_NOT_FOUND, array{}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Invalid data
+	 */
 	#[NoAdminRequired]
 	#[PublicPage]
 	#[NoCSRFRequired]
@@ -140,7 +165,7 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 				$this->sessionService->getSessionId()
 			);
 		} catch (DoesNotExistException $th) {
-			return new JSONResponse([], Http::STATUS_NOT_FOUND);
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 		$preview = $this->preview->getPreview(
 			file: $node,
@@ -153,17 +178,26 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 		return $response;
 	}
 
+	/**
+	 * Get signature element of signer
+	 *
+	 * @param int $nodeId Node id of a Nextcloud file
+	 * @return FileDisplayResponse<Http::STATUS_OK, string>|DataResponse<Http::STATUS_NOT_FOUND, array{}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Invalid data
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function getSignatureElement(int $nodeId): JSONResponse {
+	public function getSignatureElement(int $nodeId): DataResponse {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
-			return new JSONResponse(
+			return new DataResponse(
 				$this->signerElementsService->getUserElementByNodeId($userId, $nodeId),
 				Http::STATUS_OK
 			);
 		} catch (\Throwable $th) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Element not found')
 				],
@@ -172,11 +206,22 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 		}
 	}
 
+	/**
+	 * Update signature element
+	 *
+	 * @param int $nodeId Node id of a Nextcloud file
+	 * @param string $type The type of signature element
+	 * @param array<string, mixed> $file Element object
+	 * @return DataResponse<Http::STATUS_OK, array{elements: array{}}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Not found
+	 */
 	#[NoAdminRequired]
 	#[PublicPage]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
-	public function patchSignatureElement(int $nodeId, string $type = '', array $file = []): JSONResponse {
+	public function patchSignatureElement(int $nodeId, string $type = '', array $file = []): DataResponse {
 		try {
 			$element['nodeId'] = $nodeId;
 			if ($type) {
@@ -195,7 +240,7 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 				$element['elementId'] = $userElement['id'];
 			}
 			$this->accountService->saveVisibleElement($element, $this->sessionService->getSessionId(), $user);
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Element updated with success'),
 					'elements' =>
@@ -208,7 +253,7 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 				Http::STATUS_OK
 			);
 		} catch (\Throwable $th) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $th->getMessage()
 				],
@@ -217,11 +262,20 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 		}
 	}
 
+	/**
+	 * Delete signature element
+	 *
+	 * @param int $nodeId Node id of a Nextcloud file
+	 * @return DataResponse<Http::STATUS_OK, array{elements: array{}}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Not found
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
-	public function deleteSignatureElement(int $nodeId): JSONResponse {
+	public function deleteSignatureElement(int $nodeId): DataResponse {
 		try {
 			$this->accountService->deleteSignatureElement(
 				user: $this->userSession->getUser(),
@@ -229,14 +283,14 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 				sessionId: $this->sessionService->getSessionId(),
 			);
 		} catch (\Throwable $th) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Element not found')
 				],
 				Http::STATUS_NOT_FOUND
 			);
 		}
-		return new JSONResponse(
+		return new DataResponse(
 			[
 				'message' => $this->l10n->t('Visible element deleted')
 			],

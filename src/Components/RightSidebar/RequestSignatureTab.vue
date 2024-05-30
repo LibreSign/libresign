@@ -194,7 +194,7 @@ export default {
 				}
 
 				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/notify/signer'), body)
-				showSuccess(t('libresign', response.data.message))
+				showSuccess(t('libresign', response.data.ocs.data.message))
 			} catch (err) {
 				if (err.response) {
 					return showResponseError(err.response)
@@ -256,14 +256,14 @@ export default {
 			}
 			await axios(config)
 				.then(({ data }) => {
-					this.filesStore.addFile(data.data)
+					this.filesStore.addFile(data.ocs.data.data)
 					emit('libresign:show-visible-elements')
 				})
 				.catch(({ response }) => {
-					if (response.data.message) {
-						showError(response.data.message)
-					} else if (response.data.errors) {
-						response.data.errors.forEach(error => showError(error))
+					if (response.data.ocs.data.message) {
+						showError(response.data.ocs.data.message)
+					} else if (response.data.ocs.data.errors) {
+						response.data.ocs.data.errors.forEach(error => showError(error))
 					}
 				})
 			this.hasLoading = false

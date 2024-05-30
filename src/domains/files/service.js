@@ -28,13 +28,13 @@ const buildService = (http) => ({
 		const { data } = await http.post(url, { file: { base64: file }, name, settings })
 
 		return {
-			id: data.id,
-			etag: data.etag,
-			path: data.path,
-			type: data.type,
-			fileId: data.fileId,
-			message: data.message,
-			name: data.name,
+			id: data.ocs.data.id,
+			etag: data.ocs.data.etag,
+			path: data.ocs.data.path,
+			type: data.ocs.data.type,
+			fileId: data.ocs.data.fileId,
+			message: data.ocs.data.message,
+			name: data.ocs.data.name,
 		}
 	},
 })
