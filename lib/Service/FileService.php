@@ -305,7 +305,7 @@ class FileService {
 	private function getSettings(): array {
 		if ($this->me) {
 			$this->settings = array_merge($this->settings, $this->accountService->getSettings($this->me));
-			$this->settings['phoneNumber'] = $this->getPhoneNumber($this->me);
+			$this->settings['phoneNumber'] = $this->getPhoneNumber();
 			$status = $this->getIdentificationDocumentsStatus($this->me->getUID());
 			if ($status === self::IDENTIFICATION_DOCUMENTS_NEED_SEND) {
 				$this->settings['needIdentificationDocuments'] = true;
