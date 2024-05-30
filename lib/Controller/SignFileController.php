@@ -26,6 +26,7 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
@@ -221,7 +222,12 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[RequireSigner]
 	#[PublicPage]
 	public function getCodeUsingUuid(string $uuid): DataResponse {
-		return $this->getCode($uuid);
+		try {
+			$signRequest = $this->signRequestMapper->getBySignerUuidAndUserId($uuid);
+		} catch (\Throwable $th) {
+			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
+		}
+		return $this->getCode($signRequest);
 	}
 
 	/**
@@ -241,23 +247,20 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[RequireSigner]
 	#[PublicPage]
 	public function getCodeUsingFileId(int $fileId, ?string $identifyMethod, ?string $signMethod, ?string $identify): DataResponse {
-		return $this->getCode(null, $fileId);
+		try {
+			$signRequest = $this->signRequestMapper->getByFileIdAndUserId($fileId);
+		} catch (\Throwable $th) {
+			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
+		}
+		return $this->getCode($signRequest);
 	}
 
 	/**
 	 * @todo validate if can request code
+	 * @return DataResponse<Http::STATUS_OK|Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 */
-	private function getCode(string $uuid = null, int $fileId = null): DataResponse {
+	private function getCode(SignRequest $signRequest): DataResponse {
 		try {
-			try {
-				if ($fileId) {
-					$signRequest = $this->signRequestMapper->getByFileIdAndUserId($fileId);
-				} else {
-					$signRequest = $this->signRequestMapper->getBySignerUuidAndUserId($uuid);
-				}
-			} catch (\Throwable $th) {
-				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
-			}
 			$libreSignFile = $this->fileMapper->getById($signRequest->getFileId());
 			$this->validateHelper->fileCanBeSigned($libreSignFile);
 			$this->signFileService->requestCode(
@@ -274,7 +277,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		}
 		return new DataResponse(
 			[
-				'message' => [$message],
+				'message' => $message,
 			],
 			$statusCode,
 		);
