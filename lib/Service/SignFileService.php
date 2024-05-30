@@ -561,9 +561,9 @@ class SignFileService {
 				$pdf->setCommand($command);
 				$pdf->addFile($dest);
 				$buffer = $pdf->stamp($background)
-					->toString($dest);
+					->toString();
 			} else {
-				$buffer = $originalFile->getContent($originalFile);
+				$buffer = $originalFile->getContent();
 			}
 			$fileToSign = $this->forceSaveFileOfDifferentUser($signedFilePath, $buffer);
 		}
