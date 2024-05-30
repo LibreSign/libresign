@@ -91,10 +91,6 @@ class AccountFileMapper extends QBMapper {
 		return $this->findEntity($qb);
 	}
 
-	/**
-	 * @return array<\OCA\Libresign\Helper\Pagination|array>
-	 * @psalm-return array{pagination: \OCA\Libresign\Helper\Pagination, data: array}
-	 */
 	public function accountFileList(array $filter, int $page = null, int $length = null): array {
 		$pagination = $this->getUserAccountFile($filter);
 		$pagination->setMaxPerPage($length);
@@ -177,11 +173,6 @@ class AccountFileMapper extends QBMapper {
 		return $pagination;
 	}
 
-	/**
-	 * @return (((int|mixed|string)[]|false|mixed|null|string)[]|mixed)[]
-	 *
-	 * @psalm-return array{file: array{name: mixed, status: mixed, statusText: null|string, request_date: false|string, file: array{type: 'pdf', nodeId: int, url: string}, callback: mixed, uuid: mixed}}
-	 */
 	private function formatListRow(array $row, string $url): array {
 		$row['account'] = [
 			'uid' => $row['account_uid'],
