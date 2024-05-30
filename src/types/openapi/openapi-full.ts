@@ -485,6 +485,18 @@ export type components = {
       identifyMethods?: components["schemas"]["IdentifyMethod"][];
       visibleElements?: components["schemas"]["VisibleElement"][];
     };
+    UserElement: {
+      /** Format: int64 */
+      id: number;
+      type: string;
+      file: {
+        url: string;
+        nodeId: string;
+      };
+      /** Format: int64 */
+      starred: number | null;
+      createdAt: string;
+    };
     VisibleElement: {
       /** Format: int64 */
       elementId: number;
@@ -2702,7 +2714,7 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                elements: Record<string, never>;
+                elements: components["schemas"]["UserElement"][];
               };
             };
           };
