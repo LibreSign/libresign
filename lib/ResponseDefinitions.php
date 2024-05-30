@@ -25,7 +25,6 @@ namespace OCA\Libresign;
  *     left?: non-negative-int,
  *     width?: non-negative-int,
  *     height?: non-negative-int,
- *     page?: non-negative-int,
  * }
  * @psalm-type LibresignRequestSignature = array{
  *     file: string,
