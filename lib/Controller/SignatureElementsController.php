@@ -196,10 +196,10 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	 * @param int $nodeId Node id of a Nextcloud file
 	 * @param string $type The type of signature element
 	 * @param array<string, mixed> $file Element object
-	 * @return DataResponse<Http::STATUS_OK, array{elements: array{}}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{elements: array{}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
 	 * 200: OK
-	 * 404: Not found
+	 * 422: Error
 	 */
 	#[NoAdminRequired]
 	#[PublicPage]
