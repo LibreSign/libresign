@@ -249,9 +249,6 @@ class ValidateHelper {
 		$this->validateElementCoordinate($element);
 	}
 
-	/**
-	 * @psalm-param array{coordinates: mixed} $element
-	 */
 	private function validateElementCoordinate(array $element): void {
 		foreach ($element['coordinates'] as $type => $value) {
 			if (in_array($type, ['llx', 'lly', 'urx', 'ury', 'width', 'height', 'left', 'top'])) {
