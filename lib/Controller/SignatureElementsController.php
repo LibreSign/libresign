@@ -185,7 +185,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	 * Get signature element of signer
 	 *
 	 * @param int $nodeId Node id of a Nextcloud file
-	 * @return FileDisplayResponse<Http::STATUS_OK, string>|DataResponse<Http::STATUS_NOT_FOUND, array{}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, string, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid data

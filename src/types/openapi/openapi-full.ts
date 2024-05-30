@@ -2617,7 +2617,12 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "*/*": string;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: string;
+            };
+          };
         };
       };
       /** @description Invalid data */
