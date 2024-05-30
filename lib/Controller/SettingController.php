@@ -10,6 +10,7 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
+use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
