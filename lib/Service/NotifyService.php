@@ -80,10 +80,10 @@ class NotifyService {
 				return $carry;
 			});
 			if ($identifyMethod instanceof IIdentifyMethod) {
-				$identifyMethod->notify(true, $signRequest);
+				$identifyMethod->notify();
 			} else {
 				foreach ($instances as $instance) {
-					$instance->notify(true, $signRequest);
+					$instance->notify();
 				}
 			}
 		}
