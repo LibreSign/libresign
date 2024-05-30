@@ -2708,8 +2708,8 @@ export type operations = {
           };
         };
       };
-      /** @description Not found */
-      404: {
+      /** @description Error */
+      422: {
         content: {
           "application/json": {
             ocs: {

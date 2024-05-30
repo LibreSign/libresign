@@ -6640,8 +6640,8 @@
                             }
                         }
                     },
-                    "404": {
-                        "description": "Not found",
+                    "422": {
+                        "description": "Error",
                         "content": {
                             "application/json": {
                                 "schema": {
