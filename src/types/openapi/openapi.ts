@@ -2109,8 +2109,8 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                message: string;
                 data: components["schemas"]["RequestSignature"];
+                message: string;
               };
             };
           };
@@ -2123,7 +2123,7 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                message?: string;
+                message: string;
               };
             };
           };

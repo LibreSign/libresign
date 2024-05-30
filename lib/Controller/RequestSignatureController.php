@@ -52,7 +52,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param string $name The name of file to sign
 	 * @param string|null $callback URL that will receive a POST after the document is signed
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
-	 * @return DataResponse<Http::STATUS_OK, array{message: string, data: LibresignRequestSignature}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{data: LibresignRequestSignature, message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Unauthorized
@@ -81,6 +81,13 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				->showSettings()
 				->showMessages()
 				->formatFile();
+			return new DataResponse(
+				[
+					'message' => $this->l10n->t('Success'),
+					'data' => $return
+				],
+				Http::STATUS_OK
+			);
 		} catch (\Throwable $th) {
 			return new DataResponse(
 				[
@@ -89,13 +96,6 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
-		return new DataResponse(
-			[
-				'message' => $this->l10n->t('Success'),
-				'data' => $return
-			],
-			Http::STATUS_OK
-		);
 	}
 
 	/**
