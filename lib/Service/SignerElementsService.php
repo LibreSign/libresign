@@ -42,13 +42,14 @@ class SignerElementsService {
 	) {
 	}
 
-	public function getUserElementByNodeId(string $userId, $nodeId): array {
+	public function getUserElementByNodeId(string $userId, int $nodeId): UserElement {
 		$element = $this->userElementMapper->findOne(['file_id' => $nodeId, 'user_id' => $userId]);
 		$exists = $this->signatureFileExists($element);
 		if (!$exists) {
-			return [];
+			throw new NotFoundException();
 		}
-		return [
+		$userElement = new UserElement();
+		$userElement->fromRow([
 			'id' => $element->getId(),
 			'type' => $element->getType(),
 			'file' => [
@@ -58,10 +59,11 @@ class SignerElementsService {
 				]),
 				'nodeId' => $element->getFileId()
 			],
-			'uid' => $element->getUserId(),
+			'userId' => $element->getUserId(),
 			'starred' => $element->getStarred() ? 1 : 0,
 			'createdAt' => $element->getCreatedAt()
-		];
+		]);
+		return $userElement;
 	}
 
 	public function getUserElements(string $userId): array {
@@ -72,7 +74,7 @@ class SignerElementsService {
 			if (!$exists) {
 				continue;
 			}
-			$return[] = [
+			$return[] = (new UserElement())->fromRow([
 				'id' => $element->getId(),
 				'type' => $element->getType(),
 				'file' => [
@@ -84,7 +86,7 @@ class SignerElementsService {
 				],
 				'starred' => $element->getStarred() ? 1 : 0,
 				'createdAt' => $element->getCreatedAt()->format('Y-m-d H:i:s'),
-			];
+			]);
 		}
 		return $return;
 	}
@@ -116,7 +118,7 @@ class SignerElementsService {
 		$fileList = $this->getElementsFromSession();
 		foreach ($fileList as $fileElement) {
 			list($type, $timestamp) = explode('_', pathinfo($fileElement->getName(), PATHINFO_FILENAME));
-			$return[] = [
+			$return[] = (new UserElement())->fromRow([
 				'type' => $type,
 				'file' => [
 					'url' => $this->urlGenerator->linkToRoute('ocs.libresign.SignatureElements.getSignatureElementPreview', [
@@ -128,7 +130,7 @@ class SignerElementsService {
 				],
 				'starred' => 0,
 				'createdAt' => (new \DateTime())->setTimestamp((int) $timestamp)->format('Y-m-d H:i:s'),
-			];
+			]);
 		}
 		return $return;
 	}

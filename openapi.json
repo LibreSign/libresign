@@ -6070,7 +6070,10 @@
                                                             "type": "string"
                                                         },
                                                         "elements": {
-                                                            "type": "object"
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/UserElement"
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -6188,7 +6191,10 @@
                                                     ],
                                                     "properties": {
                                                         "elements": {
-                                                            "type": "object"
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/UserElement"
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -6406,7 +6412,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "string"
+                                                    "$ref": "#/components/schemas/UserElement"
                                                 }
                                             }
                                         }
