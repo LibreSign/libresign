@@ -96,9 +96,11 @@ class NotifyService {
 				return $carry;
 			});
 			if ($identifyMethod instanceof IIdentifyMethod) {
+				$identifyMethod->willNotifyUser(true);
 				$identifyMethod->notify();
 			} else {
 				foreach ($instances as $instance) {
+					$instance->willNotifyUser(true);
 					$instance->notify();
 				}
 			}
