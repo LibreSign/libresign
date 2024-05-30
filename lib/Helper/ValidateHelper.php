@@ -548,7 +548,7 @@ class ValidateHelper {
 			} else {
 				throw new LibresignException($this->l10n->t('Email required'));
 			}
-		} elseif (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+		} elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
 			throw new LibresignException($this->l10n->t('Invalid email'));
 		}
 	}
