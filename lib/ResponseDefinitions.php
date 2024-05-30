@@ -147,6 +147,16 @@ namespace OCA\Libresign;
  *     type: string,
  *     coordinates: LibresignCoordinate,
  * }
+ * @psalm-type LibresignUserElement = array{
+ *     id: non-negative-int,
+ *     type: string,
+ *     file: array{
+ *         url: string,
+ *         nodeId: string,
+ *     },
+ *     starred: non-negative-int|null,
+ *     createdAt: string,
+ * }
  */
 class ResponseDefinitions {
 }

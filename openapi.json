@@ -462,6 +462,50 @@
                     }
                 }
             },
+            "UserElement": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "type",
+                    "file",
+                    "starred",
+                    "createdAt"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "file": {
+                        "type": "object",
+                        "required": [
+                            "url",
+                            "nodeId"
+                        ],
+                        "properties": {
+                            "url": {
+                                "type": "string"
+                            },
+                            "nodeId": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "starred": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true,
+                        "minimum": 0
+                    },
+                    "createdAt": {
+                        "type": "string"
+                    }
+                }
+            },
             "VisibleElement": {
                 "type": "object",
                 "required": [
@@ -6486,7 +6530,10 @@
                                                     ],
                                                     "properties": {
                                                         "elements": {
-                                                            "type": "object"
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/UserElement"
+                                                            }
                                                         }
                                                     }
                                                 }
