@@ -2203,9 +2203,6 @@ export type operations = {
               meta: components["schemas"]["OCSMeta"];
               data: {
                 message?: string;
-                /** Format: int64 */
-                action?: number;
-                errors?: string[] | null;
               };
             };
           };
@@ -2261,7 +2258,7 @@ export type operations = {
               meta: components["schemas"]["OCSMeta"];
               data: {
                 message: string;
-                data: components["schemas"]["RequestSignature"];
+                data: components["schemas"]["Signer"];
               };
             };
           };
@@ -2275,9 +2272,6 @@ export type operations = {
               meta: components["schemas"]["OCSMeta"];
               data: {
                 message?: string;
-                /** Format: int64 */
-                action?: number;
-                errors?: string[] | null;
               };
             };
           };
