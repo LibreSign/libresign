@@ -36,6 +36,7 @@ use OCP\IURLGenerator;
  * Class FileMapper
  *
  * @package OCA\Libresign\DB
+ * @template-extends QBMapper<AccountFile>
  */
 class AccountFileMapper extends QBMapper {
 	public function __construct(
