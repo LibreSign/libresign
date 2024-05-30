@@ -6531,10 +6531,29 @@
                     "200": {
                         "description": "OK",
                         "content": {
-                            "*/*": {
+                            "application/json": {
                                 "schema": {
-                                    "type": "string",
-                                    "format": "binary"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
