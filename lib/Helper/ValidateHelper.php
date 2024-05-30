@@ -756,11 +756,11 @@ class ValidateHelper {
 		}
 
 		$authorized = json_decode($this->appConfig->getAppValue('approval_group', '["admin"]'));
-		if (!$authorized) {
+		if (!$authorized || !is_array($authorized) || empty($authorized)) {
 			$authorized = ['admin'];
 		}
 		$userGroups = $this->groupManager->getUserGroupIds($user);
-		if (!$authorized || !array_intersect($userGroups, $authorized)) {
+		if (!array_intersect($userGroups, $authorized)) {
 			if ($throw) {
 				throw new LibresignException($this->l10n->t('You are not allowed to approve user profile documents.'));
 			}
