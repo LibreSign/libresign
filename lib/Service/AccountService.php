@@ -517,9 +517,6 @@ class AccountService {
 	 * @throws InvalidArgumentException
 	 */
 	public function uploadPfx(array $file, IUser $user): void {
-		if ($file === null) {
-			throw new InvalidArgumentException($this->l10n->t('No certificate file provided'));
-		}
 		if (
 			$file['error'] !== 0 ||
 			!is_uploaded_file($file['tmp_name']) ||
