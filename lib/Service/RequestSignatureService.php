@@ -73,7 +73,7 @@ class RequestSignatureService {
 	/**
 	 * Save file data
 	 *
-	 * @param array{userManager: IUser, name: string, callback: string} $data
+	 * @param array{userManager: IUser, name: string, callback: string, uuid?: ?string, status: int, file?: array{fileId?: int, fileNode?: Node}} $data
 	 */
 	public function saveFile(array $data): FileEntity {
 		if (!empty($data['uuid'])) {
