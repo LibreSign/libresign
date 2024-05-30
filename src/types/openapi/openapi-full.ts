@@ -473,7 +473,6 @@ export type components = {
       phoneNumber: string;
     };
     Signer: {
-      email?: string;
       description: string | null;
       displayName: string;
       request_sign_date: string;
@@ -481,10 +480,8 @@ export type components = {
       sign_date?: string | null;
       sign_uuid?: string;
       me: boolean;
-      uid?: string;
       /** Format: int64 */
       signRequestId: number;
-      identifyMethod?: string;
       identifyMethods?: components["schemas"]["IdentifyMethod"][];
       visibleElements?: components["schemas"]["VisibleElement"][];
     };
