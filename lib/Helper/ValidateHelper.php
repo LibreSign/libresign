@@ -334,11 +334,11 @@ class ValidateHelper {
 			$signRequest = $this->signRequestMapper->getById($documentElement->getSignRequestId());
 			$file = $this->fileMapper->getById($signRequest->getFileId());
 			if ($file->getUserId() !== $uid) {
-				throw new LibresignException($this->l10n->t('Field %s does not belong to user', $documentElementId));
+				throw new LibresignException($this->l10n->t('Field %s does not belong to user', (string) $documentElementId));
 			}
 		} catch (\Throwable $th) {
 			($signRequest->getFileId());
-			throw new LibresignException($this->l10n->t('Field %s does not belong to user', $documentElementId));
+			throw new LibresignException($this->l10n->t('Field %s does not belong to user', (string) $documentElementId));
 		}
 	}
 
