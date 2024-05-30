@@ -611,14 +611,14 @@
                     "id",
                     "type",
                     "file",
+                    "userId",
                     "starred",
                     "createdAt"
                 ],
                 "properties": {
                     "id": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "type": {
                         "type": "string"
@@ -634,15 +634,21 @@
                                 "type": "string"
                             },
                             "nodeId": {
-                                "type": "string"
+                                "type": "integer",
+                                "format": "int64"
                             }
                         }
+                    },
+                    "userId": {
+                        "type": "string"
                     },
                     "starred": {
                         "type": "integer",
                         "format": "int64",
-                        "nullable": true,
-                        "minimum": 0
+                        "enum": [
+                            0,
+                            1
+                        ]
                     },
                     "createdAt": {
                         "type": "string"
@@ -6205,18 +6211,18 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
-                                                        "message",
-                                                        "elements"
+                                                        "elements",
+                                                        "message"
                                                     ],
                                                     "properties": {
-                                                        "message": {
-                                                            "type": "string"
-                                                        },
                                                         "elements": {
                                                             "type": "array",
                                                             "items": {
                                                                 "$ref": "#/components/schemas/UserElement"
                                                             }
+                                                        },
+                                                        "message": {
+                                                            "type": "string"
                                                         }
                                                     }
                                                 }
@@ -6702,7 +6708,8 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
-                                                        "elements"
+                                                        "elements",
+                                                        "message"
                                                     ],
                                                     "properties": {
                                                         "elements": {
@@ -6710,6 +6717,9 @@
                                                             "items": {
                                                                 "$ref": "#/components/schemas/UserElement"
                                                             }
+                                                        },
+                                                        "message": {
+                                                            "type": "string"
                                                         }
                                                     }
                                                 }
@@ -6833,11 +6843,11 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
-                                                        "elements"
+                                                        "message"
                                                     ],
                                                     "properties": {
-                                                        "elements": {
-                                                            "type": "object"
+                                                        "message": {
+                                                            "type": "string"
                                                         }
                                                     }
                                                 }

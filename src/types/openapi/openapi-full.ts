@@ -491,10 +491,15 @@ export type components = {
       type: string;
       file: {
         url: string;
-        nodeId: string;
+        /** Format: int64 */
+        nodeId: number;
       };
-      /** Format: int64 */
-      starred: number | null;
+      userId: string;
+      /**
+       * Format: int64
+       * @enum {integer}
+       */
+      starred: 0 | 1;
       createdAt: string;
     };
     VisibleElement: {
@@ -2545,8 +2550,8 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                message: string;
                 elements: components["schemas"]["UserElement"][];
+                message: string;
               };
             };
           };
@@ -2661,7 +2666,7 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                elements: Record<string, never>;
+                message: string;
               };
             };
           };
@@ -2722,6 +2727,7 @@ export type operations = {
               meta: components["schemas"]["OCSMeta"];
               data: {
                 elements: components["schemas"]["UserElement"][];
+                message: string;
               };
             };
           };
