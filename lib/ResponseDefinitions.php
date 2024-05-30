@@ -9,29 +9,35 @@ declare(strict_types=1);
 namespace OCA\Libresign;
 
 /**
+ * @psalm-type LibresignConfigureCheck = array{
+ *     status: "error"|"success",
+ *     message: string,
+ *     resource: string,
+ *     tip: string,
+ * }
  * @psalm-type LibresignCoordinate = array{
- *     page: int,
- *     urx?: int,
- *     ury?: int,
- *     llx?: int,
- *     lly?: int,
- *     top?: int,
- *     left?: int,
- *     width?: int,
- *     height?: int,
- *     page?: int,
+ *     page: non-negative-int,
+ *     urx?: non-negative-int,
+ *     ury?: non-negative-int,
+ *     llx?: non-negative-int,
+ *     lly?: non-negative-int,
+ *     top?: non-negative-int,
+ *     left?: non-negative-int,
+ *     width?: non-negative-int,
+ *     height?: non-negative-int,
+ *     page?: non-negative-int,
  * }
  * @psalm-type LibresignRequestSignature = array{
  *     file: string,
  *     name: string,
- *     nodeId: integer,
+ *     nodeId: non-negative-int,
  *     request_date: string,
  *     requested_by: array{
  *         uid: string,
  *         displayName: string,
  *     },
  *     signers: LibresignSigner[],
- *     status: integer,
+ *     status: 0|1|2,
  *     statusText: string,
  *     uuid: string,
  *     settings: LibresignSettings,
@@ -49,12 +55,12 @@ namespace OCA\Libresign;
  *     request_date: string,
  *     file: array{
  *         name: string,
- *         status: string,
+ *         status: 0|1|2|3|4,
  *         statusText: string,
  *         request_date: string,
  *         file: array{
  *             type: string,
- *             nodeId: int,
+ *             nodeId: non-negative-int,
  *             url: string,
  *         },
  *         callback: ?string,
@@ -71,9 +77,9 @@ namespace OCA\Libresign;
  *     },
  * }
  * @psalm-type LibresignIdentifyMethod = array{
- *     method: string,
+ *     method: "email"|"account",
  *     value: string,
- *     mandatory: int,
+ *     mandatory: non-negative-int,
  * }
  * @psalm-type LibresignNewSigner = array{
  *     identify: array{
@@ -83,7 +89,7 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignNewFile = array{
  *     base64?: string,
- *     fileId?: int,
+ *     fileId?: non-negative-int,
  *     url?: string,
  * }
  * @psalm-type LibresignAccountFile = array{
@@ -94,13 +100,13 @@ namespace OCA\Libresign;
  * @psalm-type LibresignNextcloudFile = array{
  *     message: string,
  *     name: string,
- *     id: int,
+ *     id: non-negative-int,
  *     etag: string,
  *     path: string,
  *     type: string,
  * }
  * @psalm-type LibresignPagination = array{
- *     total: int,
+ *     total: non-negative-int,
  *     current: ?string,
  *     next: ?string,
  *     prev: ?string,
@@ -134,14 +140,14 @@ namespace OCA\Libresign;
  *     sign_uuid?: string,
  *     me: bool,
  *     uid?: string,
- *     signRequestId: int,
+ *     signRequestId: non-negative-int,
  *     identifyMethod?: string,
  *     identifyMethods?: LibresignIdentifyMethod[],
  *     visibleElements?: LibresignVisibleElement[],
  * }
  * @psalm-type LibresignVisibleElement = array{
- *     elementId: int,
- *     signRequestId: int,
+ *     elementId: non-negative-int,
+ *     signRequestId: non-negative-int,
  *     type: string,
  *     coordinates: LibresignCoordinate,
  * }

@@ -40,6 +40,7 @@ use OCP\IL10N;
 use OCP\IRequest;
 
 /**
+ * @psalm-import-type LibresignConfigureCheck from ResponseDefinitions
  * @psalm-import-type LibresignRootCertificate from ResponseDefinitions
  */
 class AdminController extends AEnvironmentAwareController {
@@ -166,7 +167,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * Return the status of necessary configuration and tips to fix the problems.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignConfigureCheck[], array{}>
 	 *
 	 * 200: OK
 	 */

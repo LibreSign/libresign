@@ -28,6 +28,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 
@@ -50,6 +51,7 @@ class SettingController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[OpenAPI(scope: OpenAPI::SCOPE_ADMINISTRATION)]
 	public function hasRootCert(): DataResponse {
 		$checkData = [
 			'hasRootCert' => $this->certificateEngineHandler->getEngine()->isSetupOk()

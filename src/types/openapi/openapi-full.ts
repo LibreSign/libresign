@@ -243,13 +243,6 @@ export type paths = {
      */
     delete: operations["request_signature-delete-one-request-signature-using-file-id"];
   };
-  "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
-    /**
-     * Has root certificate
-     * @description Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have
-     */
-    get: operations["setting-has-root-cert"];
-  };
   "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements": {
     /** Get signature elements */
     get: operations["signature_elements-get-signature-elements"];
@@ -314,6 +307,13 @@ export type paths = {
      */
     get: operations["admin-configure-check"];
   };
+  "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
+    /**
+     * Has root certificate
+     * @description Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have
+     */
+    get: operations["setting-has-root-cert"];
+  };
 };
 
 export type webhooks = Record<string, never>;
@@ -324,6 +324,13 @@ export type components = {
       file: components["schemas"]["NewFile"];
       name?: string;
       type?: string;
+    };
+    ConfigureCheck: {
+      /** @enum {string} */
+      status: "error" | "success";
+      message: string;
+      resource: string;
+      tip: string;
     };
     Coordinate: {
       /** Format: int64 */
@@ -358,7 +365,11 @@ export type components = {
       request_date: string;
       file: {
         name: string;
-        status: string;
+        /**
+         * Format: int64
+         * @enum {integer}
+         */
+        status: 0 | 1 | 2 | 3 | 4;
         statusText: string;
         request_date: string;
         file: {
@@ -381,7 +392,8 @@ export type components = {
       };
     };
     IdentifyMethod: {
-      method: string;
+      /** @enum {string} */
+      method: "email" | "account";
       value: string;
       /** Format: int64 */
       mandatory: number;
@@ -434,8 +446,11 @@ export type components = {
         displayName: string;
       };
       signers: components["schemas"]["Signer"][];
-      /** Format: int64 */
-      status: number;
+      /**
+       * Format: int64
+       * @enum {integer}
+       */
+      status: 0 | 1 | 2;
       statusText: string;
       uuid: string;
       settings: components["schemas"]["Settings"];
@@ -1258,7 +1273,8 @@ export type operations = {
               data: {
                 /** Format: int64 */
                 file: number | null;
-                type: string | null;
+                /** @enum {string} */
+                type: "info" | "warning" | "danger";
                 message: string;
               };
             };
@@ -1322,7 +1338,8 @@ export type operations = {
       query?: {
         /** @description Filter params */
         filter?: {
-          approved?: string;
+          /** @enum {string} */
+          approved?: "yes";
         };
         /** @description the number of page to return */
         page?: number | null;
@@ -2450,36 +2467,6 @@ export type operations = {
       };
     };
   };
-  /**
-   * Has root certificate
-   * @description Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have
-   */
-  "setting-has-root-cert": {
-    parameters: {
-      header: {
-        /** @description Required to be true for the API request to pass */
-        "OCS-APIRequest": boolean;
-      };
-      path: {
-        apiVersion: "v1";
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                hasRootCert: boolean;
-              };
-            };
-          };
-        };
-      };
-    };
-  };
   /** Get signature elements */
   "signature_elements-get-signature-elements": {
     parameters: {
@@ -2899,6 +2886,21 @@ export type operations = {
         fileId: number;
       };
     };
+    requestBody?: {
+      content: {
+        "application/json": {
+          /**
+           * @description Identify signer method
+           * @enum {string|null}
+           */
+          identifyMethod?: "account" | "email" | null;
+          /** @description Method used to sign the document */
+          signMethod?: string | null;
+          /** @description Identify value, i.e. the signer email, account or phone number */
+          identify?: string | null;
+        };
+      };
+    };
     responses: {
       /** @description OK */
       200: {
@@ -3116,7 +3118,37 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: components["schemas"]["ConfigureCheck"][];
+            };
+          };
+        };
+      };
+    };
+  };
+  /**
+   * Has root certificate
+   * @description Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have
+   */
+  "setting-has-root-cert": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                hasRootCert: boolean;
+              };
             };
           };
         };
