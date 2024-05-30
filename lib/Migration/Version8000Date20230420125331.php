@@ -51,15 +51,12 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 		/** @var ISchemaWrapper */
 		$schema = $schemaClosure();
 		$fileUser = $schema->getTable('libresign_file_user');
-		$changed = false;
 		if ($fileUser->hasColumn('identify_method')) {
 			$fileUser->dropColumn('identify_method');
-			$changed = true;
 		}
 		$libresignFileUser = $schema->getTable('libresign_file_user');
 		if ($libresignFileUser->hasColumn('code')) {
 			$libresignFileUser->dropColumn('code');
-			$changed = true;
 		}
 		if (!$schema->hasTable('libresign_identify_method')) {
 			$identifyMethod = $schema->createTable('libresign_identify_method');
@@ -102,16 +99,11 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 				'unsigned' => true,
 			]);
 			$identifyMethod->setPrimaryKey(['id'], 'identify_pk_idx');
-			$changed = true;
 		} else {
 			$table = $schema->getTable('libresign_identify_method');
 			$table->dropIndex('identify_method_unique_index');
-			$changed = true;
 		}
-		if ($changed) {
-			return $schema;
-		}
-		return null;
+		return $schema;
 	}
 
 	public function postSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
