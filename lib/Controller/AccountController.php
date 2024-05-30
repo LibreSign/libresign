@@ -186,7 +186,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 * Add files to account profile
 	 *
 	 * @param LibresignAccountFile[] $files The list of files to add to profile
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{file: ?int, type: ?string, message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{file: ?int, type: "info"|"warning"|"danger", message: string}, array{}>
 	 *
 	 * 200: Certificate saved with success
 	 * 401: No file provided or other problem with provided file
@@ -316,7 +316,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	/**
 	 * List account files that need to be approved
 	 *
-	 * @param array{approved?: string} $filter Filter params
+	 * @param array{approved?: "yes"} $filter Filter params
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
 	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>

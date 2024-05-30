@@ -212,6 +212,9 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * Get code to sign the document using FileID
 	 *
 	 * @param int $fileId Id of LibreSign file
+	 * @param "account"|"email"|null $identifyMethod Identify signer method
+	 * @param string|null $signMethod Method used to sign the document
+	 * @param string|null $identify Identify value, i.e. the signer email, account or phone number
 	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
 	 * 200: OK
@@ -221,7 +224,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoCSRFRequired]
 	#[RequireSigner]
 	#[PublicPage]
-	public function getCodeUsingFileId(int $fileId): DataResponse {
+	public function getCodeUsingFileId(int $fileId, ?string $identifyMethod, ?string $signMethod, ?string $identify): DataResponse {
 		return $this->getCode(null, $fileId);
 	}
 

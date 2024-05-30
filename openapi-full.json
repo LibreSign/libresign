@@ -37,6 +37,33 @@
                     }
                 }
             },
+            "ConfigureCheck": {
+                "type": "object",
+                "required": [
+                    "status",
+                    "message",
+                    "resource",
+                    "tip"
+                ],
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "error",
+                            "success"
+                        ]
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "resource": {
+                        "type": "string"
+                    },
+                    "tip": {
+                        "type": "string"
+                    }
+                }
+            },
             "Coordinate": {
                 "type": "object",
                 "required": [
@@ -45,39 +72,48 @@
                 "properties": {
                     "page": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "urx": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "ury": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "llx": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "lly": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "top": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "left": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "width": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "height": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     }
                 }
             },
@@ -145,7 +181,15 @@
                                 "type": "string"
                             },
                             "status": {
-                                "type": "string"
+                                "type": "integer",
+                                "format": "int64",
+                                "enum": [
+                                    0,
+                                    1,
+                                    2,
+                                    3,
+                                    4
+                                ]
                             },
                             "statusText": {
                                 "type": "string"
@@ -166,7 +210,8 @@
                                     },
                                     "nodeId": {
                                         "type": "integer",
-                                        "format": "int64"
+                                        "format": "int64",
+                                        "minimum": 0
                                     },
                                     "url": {
                                         "type": "string"
@@ -224,14 +269,19 @@
                 ],
                 "properties": {
                     "method": {
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "email",
+                            "account"
+                        ]
                     },
                     "value": {
                         "type": "string"
                     },
                     "mandatory": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     }
                 }
             },
@@ -243,7 +293,8 @@
                     },
                     "fileId": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "url": {
                         "type": "string"
@@ -288,7 +339,8 @@
                     },
                     "id": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "etag": {
                         "type": "string"
@@ -338,7 +390,8 @@
                 "properties": {
                     "total": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "current": {
                         "type": "string",
@@ -385,7 +438,8 @@
                     },
                     "nodeId": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "request_date": {
                         "type": "string"
@@ -413,7 +467,12 @@
                     },
                     "status": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "enum": [
+                            0,
+                            1,
+                            2
+                        ]
                     },
                     "statusText": {
                         "type": "string"
@@ -535,7 +594,8 @@
                     },
                     "signRequestId": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "identifyMethod": {
                         "type": "string"
@@ -565,11 +625,13 @@
                 "properties": {
                     "elementId": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "signRequestId": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "type": {
                         "type": "string"
@@ -2495,7 +2557,11 @@
                                                         },
                                                         "type": {
                                                             "type": "string",
-                                                            "nullable": true
+                                                            "enum": [
+                                                                "info",
+                                                                "warning",
+                                                                "danger"
+                                                            ]
                                                         },
                                                         "message": {
                                                             "type": "string"
@@ -2825,7 +2891,10 @@
                             "default": [],
                             "properties": {
                                 "approved": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "enum": [
+                                        "yes"
+                                    ]
                                 }
                             }
                         }
@@ -6015,88 +6084,6 @@
                 }
             }
         },
-        "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
-            "get": {
-                "operationId": "setting-has-root-cert",
-                "summary": "Has root certificate",
-                "description": "Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have",
-                "tags": [
-                    "setting"
-                ],
-                "security": [
-                    {
-                        "bearer_auth": []
-                    },
-                    {
-                        "basic_auth": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "apiVersion",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "v1"
-                            ],
-                            "default": "v1"
-                        }
-                    },
-                    {
-                        "name": "OCS-APIRequest",
-                        "in": "header",
-                        "description": "Required to be true for the API request to pass",
-                        "required": true,
-                        "schema": {
-                            "type": "boolean",
-                            "default": true
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "hasRootCert"
-                                                    ],
-                                                    "properties": {
-                                                        "hasRootCert": {
-                                                            "type": "boolean"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements": {
             "post": {
                 "operationId": "signature_elements-create-signature-element",
@@ -7269,6 +7256,37 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "identifyMethod": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "enum": [
+                                            "account",
+                                            "email"
+                                        ],
+                                        "description": "Identify signer method"
+                                    },
+                                    "signMethod": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "description": "Method used to sign the document"
+                                    },
+                                    "identify": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "description": "Identify value, i.e. the signer email, account or phone number"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
                     {
                         "name": "apiVersion",
@@ -7882,7 +7900,92 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/ConfigureCheck"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
+            "get": {
+                "operationId": "setting-has-root-cert",
+                "summary": "Has root certificate",
+                "description": "Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have",
+                "tags": [
+                    "setting"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "hasRootCert"
+                                                    ],
+                                                    "properties": {
+                                                        "hasRootCert": {
+                                                            "type": "boolean"
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
