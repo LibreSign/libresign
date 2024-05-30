@@ -130,7 +130,6 @@ namespace OCA\Libresign;
  *     phoneNumber: string,
  * }
  * @psalm-type LibresignSigner = array{
- *     email?: string,
  *     description: ?string,
  *     displayName: string,
  *     request_sign_date: string,
@@ -138,9 +137,7 @@ namespace OCA\Libresign;
  *     sign_date?: ?string,
  *     sign_uuid?: string,
  *     me: bool,
- *     uid?: string,
  *     signRequestId: non-negative-int,
- *     identifyMethod?: string,
  *     identifyMethods?: LibresignIdentifyMethod[],
  *     visibleElements?: LibresignVisibleElement[],
  * }
