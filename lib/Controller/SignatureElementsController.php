@@ -69,7 +69,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	 * Create signature element
 	 *
 	 * @param array<string, mixed> $elements Element object
-	 * @return DataResponse<Http::STATUS_OK, array{message: string, elements: LibresignUserElement[]}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{elements: LibresignUserElement[], message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Invalid data
@@ -127,14 +127,14 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	public function getSignatureElements(): DataResponse {
 		$userId = $this->userSession->getUser()?->getUID();
 		try {
+			$elements = (
+				$userId
+				? $this->signerElementsService->getUserElements($userId)
+				: $this->signerElementsService->getElementsFromSessionAsArray()
+			);
 			return new DataResponse(
 				[
-					'elements' =>
-						(
-							$userId
-							? $this->signerElementsService->getUserElements($userId)
-							: $this->signerElementsService->getElementsFromSessionAsArray()
-						)
+					'elements' => $elements,
 				],
 				Http::STATUS_OK
 			);
@@ -152,7 +152,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	 * Get preview of signature elements of
 	 *
 	 * @param int $nodeId Node id of a Nextcloud file
-	 * @return FileDisplayResponse<Http::STATUS_OK, string>|DataResponse<Http::STATUS_NOT_FOUND, array{}, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_NOT_FOUND, array{}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid data
@@ -215,7 +215,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	 * @param int $nodeId Node id of a Nextcloud file
 	 * @param string $type The type of signature element
 	 * @param array<string, mixed> $file Element object
-	 * @return DataResponse<Http::STATUS_OK, array{elements: LibresignUserElement[]}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{elements: LibresignUserElement[], message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Error
@@ -240,18 +240,19 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 					$user->getUID(),
 					$nodeId,
 				);
-				$element['elementId'] = $userElement->getId();
+				$element['elementId'] = $userElement['id'];
 			}
 			$this->accountService->saveVisibleElement($element, $this->sessionService->getSessionId(), $user);
+			/** @var LibresignUserElement[] $elements */
+			$elements = (
+				$this->userSession->getUser() instanceof IUser
+				? $this->signerElementsService->getUserElements($this->userSession->getUser()->getUID())
+				: $this->signerElementsService->getElementsFromSessionAsArray()
+			);
 			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Element updated with success'),
-					'elements' =>
-						(
-							$this->userSession->getUser() instanceof IUser
-							? $this->signerElementsService->getUserElements($this->userSession->getUser()->getUID())
-							: $this->signerElementsService->getElementsFromSessionAsArray()
-						),
+					'elements' => $elements,
 				],
 				Http::STATUS_OK
 			);
@@ -269,7 +270,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	 * Delete signature element
 	 *
 	 * @param int $nodeId Node id of a Nextcloud file
-	 * @return DataResponse<Http::STATUS_OK, array{elements: array{}}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK|Http::STATUS_NOT_FOUND, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Not found

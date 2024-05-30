@@ -26,10 +26,14 @@ namespace OCA\Libresign\Service;
 
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\ResponseDefinitions;
 use OCP\Files\Folder;
 use OCP\Files\NotFoundException;
 use OCP\IURLGenerator;
 
+/**
+ * @psalm-import-type LibresignUserElement from ResponseDefinitions
+ */
 class SignerElementsService {
 	public const ELEMENT_SIGN_WIDTH = 350;
 	public const ELEMENT_SIGN_HEIGHT = 100;
@@ -42,14 +46,16 @@ class SignerElementsService {
 	) {
 	}
 
-	public function getUserElementByNodeId(string $userId, int $nodeId): UserElement {
+	/**
+	 * @return LibresignUserElement
+	 */
+	public function getUserElementByNodeId(string $userId, int $nodeId): array {
 		$element = $this->userElementMapper->findOne(['file_id' => $nodeId, 'user_id' => $userId]);
 		$exists = $this->signatureFileExists($element);
 		if (!$exists) {
 			throw new NotFoundException();
 		}
-		$userElement = new UserElement();
-		$userElement->fromRow([
+		return [
 			'id' => $element->getId(),
 			'type' => $element->getType(),
 			'file' => [
@@ -61,11 +67,13 @@ class SignerElementsService {
 			],
 			'userId' => $element->getUserId(),
 			'starred' => $element->getStarred() ? 1 : 0,
-			'createdAt' => $element->getCreatedAt()
-		]);
-		return $userElement;
+			'createdAt' => $element->getCreatedAt()->format('Y-m-d H:i:s'),
+		];
 	}
 
+	/**
+	 * @return LibresignUserElement[]
+	 */
 	public function getUserElements(string $userId): array {
 		$elements = $this->userElementMapper->findMany(['user_id' => $userId]);
 		$return = [];
@@ -74,7 +82,7 @@ class SignerElementsService {
 			if (!$exists) {
 				continue;
 			}
-			$return[] = (new UserElement())->fromRow([
+			$return[] = [
 				'id' => $element->getId(),
 				'type' => $element->getType(),
 				'file' => [
@@ -85,8 +93,9 @@ class SignerElementsService {
 					'nodeId' => $element->getFileId()
 				],
 				'starred' => $element->getStarred() ? 1 : 0,
+				'userId' => $element->getUserId(),
 				'createdAt' => $element->getCreatedAt()->format('Y-m-d H:i:s'),
-			]);
+			];
 		}
 		return $return;
 	}
@@ -113,6 +122,9 @@ class SignerElementsService {
 		return $fileList;
 	}
 
+	/**
+	 * @return LibresignUserElement[]
+	 */
 	public function getElementsFromSessionAsArray(): array {
 		$return = [];
 		$fileList = $this->getElementsFromSession();

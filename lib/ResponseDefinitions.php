@@ -148,13 +148,14 @@ namespace OCA\Libresign;
  *     coordinates: LibresignCoordinate,
  * }
  * @psalm-type LibresignUserElement = array{
- *     id: non-negative-int,
+ *     id: int,
  *     type: string,
  *     file: array{
  *         url: string,
- *         nodeId: string,
+ *         nodeId: int,
  *     },
- *     starred: non-negative-int|null,
+ *     userId: string,
+ *     starred: 0|1,
  *     createdAt: string,
  * }
  */
