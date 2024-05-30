@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <files psalm-version="4.30.0@d0bc6e25d89f649e4f36a534f330f8bb4643dd69">
   <file src="lib/AppInfo/Application.php">
-    <InvalidArgument occurrences="5">
-      <code>registerEventListener</code>
-      <code>registerEventListener</code>
-      <code>registerEventListener</code>
-      <code>registerEventListener</code>
-      <code>registerEventListener</code>
-    </InvalidArgument>
     <UndefinedClass occurrences="1">
       <code>LoadSidebar</code>
     </UndefinedClass>
@@ -100,11 +93,6 @@
       <code>UUIDUtil</code>
       <code>UUIDUtil</code>
       <code>private</code>
-    </UndefinedClass>
-  </file>
-  <file src="lib/Service/Install/InstallService.php">
-    <UndefinedClass occurrences="1">
-      <code>Process</code>
     </UndefinedClass>
   </file>
   <file src="lib/Service/RequestSignatureService.php">
