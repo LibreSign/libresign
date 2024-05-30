@@ -69,7 +69,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		$this->stopIfRunning();
 
 		for ($i = 1; $i <= 4; $i++) {
-			if ($this->isUp($this->getCfsslUri())) {
+			if ($this->isUp()) {
 				break;
 			}
 			sleep(2);
