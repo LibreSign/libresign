@@ -2135,7 +2135,10 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                message: string;
+                message?: string;
+                /** Format: int64 */
+                action?: number;
+                errors?: string[];
               };
             };
           };
@@ -2205,6 +2208,9 @@ export type operations = {
               meta: components["schemas"]["OCSMeta"];
               data: {
                 message?: string;
+                /** Format: int64 */
+                action?: number;
+                errors?: string[];
               };
             };
           };
