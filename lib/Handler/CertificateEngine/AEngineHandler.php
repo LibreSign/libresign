@@ -175,6 +175,11 @@ class AEngineHandler {
 		throw new InvalidPasswordException();
 	}
 
+	/**
+	 * @param (int|string) $name
+	 *
+	 * @psalm-param array-key $name
+	 */
 	public function translateToLong($name): string {
 		switch ($name) {
 			case 'CN':
