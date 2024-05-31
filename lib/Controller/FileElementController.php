@@ -60,7 +60,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 * @param integer|null $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
 	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
 	 * @param array{} $metadata Metadata of visible elements to associate with the document
-	 * @param LibresignCoordinate|array{} $coordinates Coortinates of a visible element on PDF
+	 * @param LibresignCoordinate $coordinates Coortinates of a visible element on PDF
 	 * @return DataResponse<Http::STATUS_OK, array{fileElementId: integer}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: string[]}, array{}>
 	 *
 	 * 200: OK
@@ -109,7 +109,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 * @param integer|null $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
 	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
 	 * @param array{} $metadata Metadata of visible elements to associate with the document
-	 * @param LibresignCoordinate|array{} $coordinates Coortinates of a visible element on PDF
+	 * @param LibresignCoordinate $coordinates Coortinates of a visible element on PDF
 	 * @return DataResponse<Http::STATUS_OK, array{fileElementId: integer}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: string[]}, array{}>
 	 *
 	 * 200: OK
