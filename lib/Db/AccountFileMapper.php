@@ -20,6 +20,7 @@ use OCP\IURLGenerator;
  * Class FileMapper
  *
  * @package OCA\Libresign\DB
+ * @template-extends QBMapper<AccountFile>
  */
 class AccountFileMapper extends QBMapper {
 	public function __construct(
@@ -74,10 +75,6 @@ class AccountFileMapper extends QBMapper {
 		return $this->findEntity($qb);
 	}
 
-	/**
-	 * @return array<\OCA\Libresign\Helper\Pagination|array>
-	 * @psalm-return array{pagination: \OCA\Libresign\Helper\Pagination, data: array}
-	 */
 	public function accountFileList(array $filter, int $page = null, int $length = null): array {
 		$pagination = $this->getUserAccountFile($filter);
 		$pagination->setMaxPerPage($length);
@@ -160,11 +157,6 @@ class AccountFileMapper extends QBMapper {
 		return $pagination;
 	}
 
-	/**
-	 * @return (((int|mixed|string)[]|false|mixed|null|string)[]|mixed)[]
-	 *
-	 * @psalm-return array{file: array{name: mixed, status: mixed, statusText: null|string, request_date: false|string, file: array{type: 'pdf', nodeId: int, url: string}, callback: mixed, uuid: mixed}}
-	 */
 	private function formatListRow(array $row, string $url): array {
 		$row['account'] = [
 			'uid' => $row['account_uid'],
@@ -216,16 +208,13 @@ class AccountFileMapper extends QBMapper {
 			foreach ($signers as $signerKey => $signer) {
 				if ($signer->getFileId() === $file['id']) {
 					$data = [
-						'email' => $signer->getEmail(),
 						'description' => $signer->getDescription(),
 						'displayName' => $signer->getDisplayName(),
 						'request_sign_date' => (new \DateTime())
 							->setTimestamp($signer->getCreatedAt())
 							->format('Y-m-d H:i:s'),
 						'sign_date' => null,
-						'uid' => $signer->getUserId(),
 						'signRequestId' => $signer->getId(),
-						'identifyMethod' => $signer->getIdentifyMethod(),
 					];
 					if ($signer->getSigned()) {
 						$data['sign_date'] = (new \DateTime())

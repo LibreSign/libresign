@@ -11,9 +11,13 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\Db\AccountFile;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File;
+use OCA\Libresign\ResponseDefinitions;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\IUser;
 
+/**
+ * @psalm-import-type LibresignFile from ResponseDefinitions
+ */
 class AccountFileService {
 	public function __construct(
 		protected AccountFileMapper $accountFileMapper,
@@ -39,7 +43,7 @@ class AccountFileService {
 	/**
 	 * @return array[]
 	 *
-	 * @psalm-return array{data: array, pagination: array}
+	 * @psalm-return array{data: LibresignFile[], pagination: array}
 	 */
 	public function accountFileList(array $filter, ?int $page = null, ?int $length = null): array {
 		$page = $page ?? 1;

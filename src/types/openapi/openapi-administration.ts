@@ -35,12 +35,33 @@ export type paths = {
      */
     get: operations["admin-configure-check"];
   };
+  "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
+    /**
+     * Has root certificate
+     * @description Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have
+     */
+    get: operations["setting-has-root-cert"];
+  };
 };
 
 export type webhooks = Record<string, never>;
 
 export type components = {
   schemas: {
+    CetificateDataGenerated: components["schemas"]["EngineHandler"] & {
+      generated: boolean;
+    };
+    ConfigureCheck: {
+      message: string;
+      resource: string;
+      /** @enum {string} */
+      status: "error" | "success";
+      tip: string;
+    };
+    EngineHandler: {
+      configPath: string;
+      rootCert: components["schemas"]["RootCertificate"];
+    };
     OCSMeta: {
       status: string;
       statuscode: number;
@@ -51,8 +72,6 @@ export type components = {
     RootCertificate: {
       commonName: string;
       names: components["schemas"]["RootCertificateName"][];
-      name?: string;
-      type?: string;
     };
     RootCertificateName: {
       id: string;
@@ -119,8 +138,7 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                configPath: string;
-                rootCert: components["schemas"]["RootCertificate"];
+                data: components["schemas"]["EngineHandler"];
               };
             };
           };
@@ -183,8 +201,7 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                configPath: string;
-                rootCert: components["schemas"]["RootCertificate"];
+                data: components["schemas"]["EngineHandler"];
               };
             };
           };
@@ -227,11 +244,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: {
-                configPath: string;
-                rootCert: components["schemas"]["RootCertificate"];
-                generated: boolean;
-              };
+              data: components["schemas"]["CetificateDataGenerated"];
             };
           };
         };
@@ -260,7 +273,37 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: components["schemas"]["ConfigureCheck"][];
+            };
+          };
+        };
+      };
+    };
+  };
+  /**
+   * Has root certificate
+   * @description Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have
+   */
+  "setting-has-root-cert": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                hasRootCert: boolean;
+              };
             };
           };
         };

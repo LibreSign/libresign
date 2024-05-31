@@ -16,6 +16,7 @@ use OCP\IDBConnection;
  * Class FileElementsMapper
  *
  * @package OCA\Libresign\DB
+ * @template-extends QBMapper<FileElement>
  */
 class FileElementMapper extends QBMapper {
 	/** @var FileElement[][] */

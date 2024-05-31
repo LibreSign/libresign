@@ -58,7 +58,7 @@ class Email extends AbstractIdentifyMethod {
 		$this->updateIdentifiedAt();
 	}
 
-	protected function throwIfNeedToCreateAccount() {
+	protected function throwIfNeedToCreateAccount(): void {
 		$user = $this->userSession->getUser();
 		if ($user instanceof IUser) {
 			return;

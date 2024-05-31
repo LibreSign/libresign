@@ -21,6 +21,9 @@ use OCP\EventDispatcher\IEventListener;
 use OCP\IRequest;
 use OCP\IUserSession;
 
+/**
+ * @template-implements IEventListener<Event>
+ */
 class TemplateLoader implements IEventListener {
 	public function __construct(
 		private IRequest $request,

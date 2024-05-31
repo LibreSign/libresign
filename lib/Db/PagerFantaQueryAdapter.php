@@ -31,7 +31,6 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 	 * @throws InvalidArgumentException if a non-SELECT query is given
 	 */
 	public function __construct(IQueryBuilder $queryBuilder, callable $countQueryBuilderModifier) {
-		$queryBuilder->getType();
 		if (QueryBuilder::SELECT !== $queryBuilder->getType()) {
 			// @codeCoverageIgnoreStart
 			throw new InvalidArgumentException('Only SELECT queries can be paginated.');
@@ -44,10 +43,7 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 
 	public function getNbResults(): int {
 		$qb = $this->prepareCountQueryBuilder();
-		$result = $qb->executeQuery()->fetch();
-		$values = array_values($result);
-		/** @var int<0, max> */
-		return (int) $values[0];
+		return (int) $qb->executeQuery()->fetchOne();
 	}
 
 	/**

@@ -77,7 +77,7 @@ class SignRequest implements IProvider {
 		return $event;
 	}
 
-	private function getParsedSubject($l, $subject) {
+	private function getParsedSubject(\OCP\IL10N $l, string $subject) {
 		if ($subject === 'new_sign_request') {
 			return $l->t('{from} requested your signature on {file}');
 		} elseif ($subject === 'update_sign_request') {

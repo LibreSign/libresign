@@ -21,9 +21,9 @@ class Handler {
 	}
 
 	/**
-	 * @return CfsslHandler|OpenSslHandler|IEngineHandler
+	 * @return CfsslHandler|OpenSslHandler|AEngineHandler
 	 */
-	public function getEngine(string $engineName = '', array $rootCert = []): IEngineHandler {
+	public function getEngine(string $engineName = '', array $rootCert = []): AEngineHandler {
 		if (!$engineName) {
 			$engineName = $this->appConfig->getAppValue('certificate_engine', 'openssl');
 		}

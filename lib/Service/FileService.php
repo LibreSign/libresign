@@ -17,6 +17,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Services\IAppConfig;
@@ -31,6 +32,9 @@ use OCP\IUserManager;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @psalm-import-type LibresignValidateFile from ResponseDefinitions
+ */
 class FileService {
 	use TFile;
 
@@ -202,7 +206,7 @@ class FileService {
 					$signatureToShow['email'] = $email;
 					$user = $this->userManager->getByEmail($email);
 					if ($user && count($user) === 1) {
-						$signatureToShow['uid'] = $user[0]->getUID();
+						$signatureToShow['userId'] = $user[0]->getUID();
 					}
 				}
 				// Identify if I'm signer
@@ -305,7 +309,7 @@ class FileService {
 	private function getSettings(): array {
 		if ($this->me) {
 			$this->settings = array_merge($this->settings, $this->accountService->getSettings($this->me));
-			$this->settings['phoneNumber'] = $this->getPhoneNumber($this->me);
+			$this->settings['phoneNumber'] = $this->getPhoneNumber();
 			$status = $this->getIdentificationDocumentsStatus($this->me->getUID());
 			if ($status === self::IDENTIFICATION_DOCUMENTS_NEED_SEND) {
 				$this->settings['needIdentificationDocuments'] = true;
@@ -361,7 +365,7 @@ class FileService {
 		$return['nodeId'] = $this->file->getNodeId();
 
 		$return['requested_by'] = [
-			'uid' => $this->file->getUserId(),
+			'userId' => $this->file->getUserId(),
 			'displayName' => $this->userManager->get($this->file->getUserId())->getDisplayName(),
 		];
 		$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $this->file->getUuid()]);
@@ -401,9 +405,7 @@ class FileService {
 	}
 
 	/**
-	 * @return ((mixed|string[])[]|int|mixed|string)[]
-	 *
-	 * @psalm-return array{status: int, statusText: mixed, fileId: int, uuid: int, name: string, file: string, signers?: array, pages?: array, visibleElements?: array, settings?: array, messages?: non-empty-list<array{type: 'info', message: string}>}
+	 * @return LibresignValidateFile
 	 */
 	public function formatFile(): array {
 		$return = $this->getFile();
@@ -453,13 +455,6 @@ class FileService {
 		];
 	}
 
-	/**
-	 * @param IUser $userId
-	 * @param array $files
-	 * @param array<SignRequest> $signers
-	 * @param array<array-key, array<array-key, \OCP\AppFramework\Db\Entity&\OCA\Libresign\Db\IdentifyMethod>> $identifyMethods
-	 * @param SignRequest[][]
-	 */
 	private function associateAllAndFormat(IUser $user, array $files, array $signers, array $identifyMethods, array $visibleElements): array {
 		foreach ($files as $key => $file) {
 			$totalSigned = 0;

@@ -12,6 +12,7 @@ use OCA\Libresign\Events\ASignedEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
+/** @template-implements IEventListener<ASignedEvent> */
 class SignedListener implements IEventListener {
 	public function handle(Event $event): void {
 		/** @var ASignedEvent */

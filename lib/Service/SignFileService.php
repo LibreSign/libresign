@@ -115,7 +115,13 @@ class SignFileService {
 			throw new \Exception($this->l10n->t('Document already signed'));
 		}
 		array_walk($data['users'], function ($user) use ($signatures) {
-			$exists = array_filter($signatures, fn ($s) => $s->getEmail() === $user['email']);
+			$exists = array_filter($signatures, function (SignRequestEntity $signRequest) use ($user) {
+				$identifyMethod = $this->identifyMethodService->getIdentifiedMethod($signRequest->getId());
+				if ($identifyMethod->getName() === 'email') {
+					return $identifyMethod->getEntity()->getIdentifierValue() === $user['email'];
+				}
+				return false;
+			});
 			if (!$exists) {
 				throw new \Exception($this->l10n->t('No signature was requested to %s', $user['email']));
 			}
@@ -311,7 +317,7 @@ class SignFileService {
 	private function getSigners(): array {
 		if (empty($this->signers)) {
 			$this->signers = $this->signRequestMapper->getByFileId($this->signRequest->getFileId());
-			if ($this->signRequest) {
+			if ($this->signers) {
 				foreach ($this->signers as $key => $signer) {
 					if ($signer->getId() === $this->signRequest->getId()) {
 						$this->signers[$key] = $this->signRequest;
@@ -561,9 +567,9 @@ class SignFileService {
 				$pdf->setCommand($command);
 				$pdf->addFile($dest);
 				$buffer = $pdf->stamp($background)
-					->toString($dest);
+					->toString();
 			} else {
-				$buffer = $originalFile->getContent($originalFile);
+				$buffer = $originalFile->getContent();
 			}
 			$fileToSign = $this->forceSaveFileOfDifferentUser($signedFilePath, $buffer);
 		}
@@ -648,11 +654,11 @@ class SignFileService {
 		return $fileToSign;
 	}
 
-	public function validateSigner($uuid, $user): void {
+	public function validateSigner(string $uuid, ?IUser $user = null): void {
 		$this->validateHelper->validateSigner($uuid, $user);
 	}
 
-	public function validateRenewSigner($uuid, $user): void {
+	public function validateRenewSigner(string $uuid, ?IUser $user = null): void {
 		$this->validateHelper->validateRenewSigner($uuid, $user);
 	}
 

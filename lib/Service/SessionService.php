@@ -29,7 +29,7 @@ class SessionService {
 		return $this->session->getId();
 	}
 
-	public function setIdentifyMethodId(int $id) {
+	public function setIdentifyMethodId(int $id): void {
 		$this->session->set('identify_method_id', $id);
 	}
 
@@ -47,7 +47,7 @@ class SessionService {
 		$this->session->set('libresign-sign-start-time', time());
 	}
 
-	public function isAuthenticated() {
+	public function isAuthenticated(): bool {
 		return $this->session->get('user_id') ? true : false;
 	}
 }

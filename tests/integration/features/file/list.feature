@@ -18,7 +18,7 @@ Feature: file-list
       | (jq).ocs.data.data[0].name                                 | document                |
       | (jq).ocs.data.data[0].status                               | 1                       |
       | (jq).ocs.data.data[0].statusText                           | available for signature |
-      | (jq).ocs.data.data[0].requested_by.uid                     | admin                   |
+      | (jq).ocs.data.data[0].requested_by.userId                  | admin                   |
       | (jq).ocs.data.data[0].signers\|length                      | 2                       |
       | (jq).ocs.data.data[0].signers[0].email                     | signer1@domain.test     |
       | (jq).ocs.data.data[0].signers[0].identifyMethods\|length   | 1                       |
@@ -37,7 +37,7 @@ Feature: file-list
       | (jq).ocs.data.data[0].name                                 | document                |
       | (jq).ocs.data.data[0].status                               | 1                       |
       | (jq).ocs.data.data[0].statusText                           | available for signature |
-      | (jq).ocs.data.data[0].requested_by.uid                     | admin                   |
+      | (jq).ocs.data.data[0].requested_by.userId                  | admin                   |
       | (jq).ocs.data.data[0].signers\|length                      | 1                       |
       | (jq).ocs.data.data[0].signers[0].email                     |                         |
       | (jq).ocs.data.data[0].signers[0].me                        | false                   |

@@ -102,7 +102,12 @@ class NotificationListener implements IEventListener {
 		return false;
 	}
 
-	protected function getFileParameter(SignRequest $signRequest, FileEntity $libreSignFile) {
+	/**
+	 * @return (int|string)[]
+	 *
+	 * @psalm-return array{type: 'file', id: int, name: string, path: string, link: string}
+	 */
+	protected function getFileParameter(SignRequest $signRequest, FileEntity $libreSignFile): array {
 		return [
 			'type' => 'file',
 			'id' => $libreSignFile->getNodeId(),
@@ -114,7 +119,7 @@ class NotificationListener implements IEventListener {
 
 	protected function getUserParameter(
 		string $userId,
-		$displayName,
+		string $displayName,
 	): array {
 		return [
 			'type' => 'user',

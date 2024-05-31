@@ -17,6 +17,9 @@ use OCP\Files\Events\Node\BeforeNodeDeletedEvent;
 use OCP\Files\File;
 use OCP\IDBConnection;
 
+/**
+ * @template-implements IEventListener<Event|BeforeNodeDeletedEvent>
+ */
 class BeforeNodeDeletedListener implements IEventListener {
 	public function __construct(
 		private FileMapper $fileMapper,

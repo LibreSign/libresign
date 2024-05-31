@@ -159,6 +159,11 @@ class AEngineHandler {
 		throw new InvalidPasswordException();
 	}
 
+	/**
+	 * @param (int|string) $name
+	 *
+	 * @psalm-param array-key $name
+	 */
 	public function translateToLong($name): string {
 		switch ($name) {
 			case 'CN':
@@ -285,6 +290,10 @@ class AEngineHandler {
 
 	public function isSetupOk(): bool {
 		return $this->appConfig->getAppValue('authkey') ? true : false;
+	}
+
+	public function configureCheck(): array {
+		throw new \Exception('Necessary to implement configureCheck method');
 	}
 
 	public function toArray(): array {

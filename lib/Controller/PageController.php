@@ -311,7 +311,7 @@ class PageController extends AEnvironmentPageAwareController {
 			->showVisibleElements()
 			->showSigners()
 			->formatFile();
-		$this->initialState->provideInitialState('fileId', $file['fileId']);
+		$this->initialState->provideInitialState('fileId', $file['nodeId']);
 		$this->initialState->provideInitialState('status', $file['status']);
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
 		$this->initialState->provideInitialState('visibleElements', []);
@@ -498,9 +498,15 @@ class PageController extends AEnvironmentPageAwareController {
 				$this->initialState->provideInitialState('errors', [$this->l10n->t('Invalid UUID')]);
 			}
 		}
-		$this->initialState->provideInitialState('config',
-			$this->accountService->getConfig($this->userSession?->getUser())
-		);
+		if ($this->userSession->isLoggedIn()) {
+			$this->initialState->provideInitialState('config',
+				$this->accountService->getConfig($this->userSession->getUser())
+			);
+		} else {
+			$this->initialState->provideInitialState('config',
+				$this->accountService->getConfig()
+			);
+		}
 
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
 

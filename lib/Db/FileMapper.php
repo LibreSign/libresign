@@ -18,6 +18,7 @@ use OCP\IL10N;
  * Class FileMapper
  *
  * @package OCA\Libresign\DB
+ * @template-extends QBMapper<File>
  */
 class FileMapper extends QBMapper {
 	/** @var File[] */

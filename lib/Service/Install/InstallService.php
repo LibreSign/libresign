@@ -15,7 +15,10 @@ use OC\Archive\ZIP;
 use OC\Memcache\NullCache;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\CertificateEngine\AEngineHandler;
+use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
+use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
@@ -246,7 +249,7 @@ class InstallService {
 		return $return;
 	}
 
-	public function saveErrorMessage(string $message) {
+	public function saveErrorMessage(string $message): void {
 		$data = $this->getProressData();
 		$data['error'] = $message;
 		$this->setCache($this->resource, $data);
@@ -704,11 +707,13 @@ class InstallService {
 		];
 		$engine = $this->certificateEngineHandler->getEngine($properties['engine'] ?? '', $rootCert);
 		if ($engine->getEngine() === 'cfssl') {
+			/** @var CfsslHandler $engine */
 			$engine->setCfsslUri($properties['cfsslUri']);
 		}
 
 		$engine->setConfigPath($properties['configPath'] ?? '');
 
+		/** @var IEngineHandler $engine */
 		$privateKey = $engine->generateRootCert(
 			$commonName,
 			$names
@@ -716,7 +721,10 @@ class InstallService {
 
 		$this->appConfig->setAppValue('root_cert', json_encode($rootCert));
 		$this->appConfig->setAppValue('authkey', $privateKey);
-		$this->appConfig->setAppValue('config_path', $engine->getConfigPath());
+		/** @var AEngineHandler $engine */
+		if ($engine->getEngine() === 'cfssl') {
+			$this->appConfig->setAppValue('config_path', $engine->getConfigPath());
+		}
 		$this->appConfig->setAppValue('notify_unsigned_user', '1');
 	}
 }

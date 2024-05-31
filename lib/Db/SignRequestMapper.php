@@ -27,6 +27,7 @@ use OCP\IUserManager;
  * Class SignRequestMapper
  *
  * @package OCA\Libresign\DB
+ * @template-extends QBMapper<SignRequest>
  */
 class SignRequestMapper extends QBMapper {
 	/**
@@ -340,10 +341,6 @@ class SignRequestMapper extends QBMapper {
 		return end($this->signers);
 	}
 
-	/**
-	 * @return array<\OCA\Libresign\Helper\Pagination|array>
-	 * @psalm-return array{pagination: \OCA\Libresign\Helper\Pagination, data: array}
-	 */
 	public function getFilesAssociatedFilesWithMeFormatted(
 		IUser $user,
 		int $page = null,
@@ -526,7 +523,7 @@ class SignRequestMapper extends QBMapper {
 		$row['statusText'] = $this->fileMapper->getTextOfStatus($row['status']);
 		$row['nodeId'] = (int) $row['node_id'];
 		$row['requested_by'] = [
-			'uid' => $row['user_id'],
+			'userId' => $row['user_id'],
 			'displayName' => $this->userManager->get($row['user_id'])?->getDisplayName(),
 		];
 		$row['request_date'] = (new \DateTime())
