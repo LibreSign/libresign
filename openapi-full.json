@@ -37,6 +37,45 @@
                     }
                 }
             },
+            "CertificatePfxData": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "subject",
+                    "issuer",
+                    "extensions",
+                    "validate"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "subject": {
+                        "type": "string"
+                    },
+                    "issuer": {
+                        "type": "string"
+                    },
+                    "extensions": {
+                        "type": "string"
+                    },
+                    "validate": {
+                        "type": "object",
+                        "required": [
+                            "from",
+                            "to"
+                        ],
+                        "properties": {
+                            "from": {
+                                "type": "string"
+                            },
+                            "to": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "ConfigureCheck": {
                 "type": "object",
                 "required": [
@@ -2196,7 +2235,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "$ref": "#/components/schemas/CertificatePfxData"
                                                 }
                                             }
                                         }
@@ -2303,7 +2342,7 @@
                     }
                 ],
                 "responses": {
-                    "202": {
+                    "200": {
                         "description": "Settings saved",
                         "content": {
                             "application/json": {
@@ -2789,7 +2828,15 @@
                                                     ],
                                                     "properties": {
                                                         "messages": {
-                                                            "type": "object"
+                                                            "type": "object",
+                                                            "required": [
+                                                                null
+                                                            ],
+                                                            "properties": {
+                                                                "": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }

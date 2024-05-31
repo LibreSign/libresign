@@ -40,6 +40,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * @psalm-import-type LibresignAccountFile from ResponseDefinitions
+ * @psalm-import-type LibresignCertificatePfxData from ResponseDefinitions
  * @psalm-import-type LibresignFile from ResponseDefinitions
  * @psalm-import-type LibresignPagination from ResponseDefinitions
  */
@@ -224,7 +225,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * @param int $nodeId the nodeId of file to be delete
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{messages: array{}}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{messages: array{string}}, array{}>
 	 *
 	 * 200: File deleted with success
 	 * 401: Failure to delete file from account
@@ -346,9 +347,9 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * @param string|null $phone the phone number to be defined. If null will remove the phone number
 	 *
-	 * @return DataResponse<Http::STATUS_ACCEPTED, array{data: array{userId: string, phone: string, message: string}}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{data: array{userId: string, phone: string, message: string}}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
 	 *
-	 * 202: Settings saved
+	 * 200: Settings saved
 	 * 404: Invalid data to update phone number
 	 */
 	#[NoAdminRequired]
@@ -482,7 +483,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * @param string $password password of PFX file to decrypt the file and return his content
 	 *
-	 * @return DataResponse<Http::STATUS_ACCEPTED, array{}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_ACCEPTED, LibresignCertificatePfxData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
 	 *
 	 * 202: Certificate saved with success
 	 * 400: No file provided or other problem with provided file
