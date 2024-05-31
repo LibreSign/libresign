@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.30.0@d0bc6e25d89f649e4f36a534f330f8bb4643dd69">
+<files psalm-version="5.24.0@462c80e31c34e58cc4f750c656be3927e80e550e">
   <file src="lib/AppInfo/Application.php">
-    <UndefinedClass occurrences="1">
-      <code>LoadSidebar</code>
+    <UndefinedClass>
+      <code><![CDATA[LoadSidebar]]></code>
     </UndefinedClass>
   </file>
   <file src="lib/Command/Configure/Cfssl.php">
-    <MissingDependency occurrences="1">
-      <code>Base</code>
+    <MissingDependency>
+      <code><![CDATA[Base]]></code>
     </MissingDependency>
   </file>
   <file src="lib/Command/Configure/OpenSsl.php">
-    <MissingDependency occurrences="1">
-      <code>Base</code>
+    <MissingDependency>
+      <code><![CDATA[Base]]></code>
     </MissingDependency>
   </file>
   <file src="lib/Command/Install.php">
-    <MissingDependency occurrences="1">
-      <code>Base</code>
+    <MissingDependency>
+      <code><![CDATA[Base]]></code>
     </MissingDependency>
   </file>
   <file src="lib/Command/Uninstall.php">
-    <MissingDependency occurrences="1">
-      <code>Base</code>
+    <MissingDependency>
+      <code><![CDATA[Base]]></code>
     </MissingDependency>
   </file>
   <file src="lib/Controller/FileController.php">
@@ -35,73 +35,80 @@
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Controller/PageController.php">
-    <InvalidThrow occurrences="1">
-      <code>throw new NotLoggedInException();</code>
+    <InvalidThrow>
+      <code><![CDATA[throw new NotLoggedInException();]]></code>
     </InvalidThrow>
   </file>
   <file src="lib/Db/PagerFantaQueryAdapter.php">
-    <InvalidArgument occurrences="1">
-      <code>$qb</code>
+    <InvalidArgument>
+      <code><![CDATA[$qb]]></code>
     </InvalidArgument>
-    <UndefinedDocblockClass occurrences="2">
-      <code>callable(QueryBuilder): void</code>
-      <code>callable(QueryBuilder): void</code>
+    <UndefinedDocblockClass>
+      <code><![CDATA[callable(QueryBuilder): void]]></code>
+      <code><![CDATA[callable(QueryBuilder): void]]></code>
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Db/SignRequestMapper.php">
-    <UndefinedClass occurrences="1">
-      <code>PostgreSQLPlatform</code>
+    <UndefinedClass>
+      <code><![CDATA[PostgreSQLPlatform]]></code>
     </UndefinedClass>
-    <UndefinedDocblockClass occurrences="1">
-      <code>$qb-&gt;getConnection()-&gt;getDatabasePlatform()</code>
+    <UndefinedDocblockClass>
+      <code><![CDATA[$qb->getConnection()->getDatabasePlatform()]]></code>
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Files/TemplateLoader.php">
-    <UndefinedClass occurrences="2">
-      <code>LoadSidebar</code>
-      <code>LoadSidebar</code>
+    <UndefinedClass>
+      <code><![CDATA[LoadSidebar]]></code>
+      <code><![CDATA[LoadSidebar]]></code>
     </UndefinedClass>
   </file>
-  <file src="lib/Helper/ValidateHelper.php">
-    <InvalidPropertyAssignmentValue occurrences="2">
-      <code>$this-&gt;file</code>
-      <code>$this-&gt;file</code>
-    </InvalidPropertyAssignmentValue>
+  <file src="lib/Handler/CertificateEngine/AEngineHandler.php">
+    <ForbiddenCode>
+      <code><![CDATA[shell_exec(<<<REPACK_COMMAND
+				cat $tempPassword | openssl pkcs12 -legacy -in $tempEncriptedOriginal -nodes -out $tempDecrypted -passin stdin &&
+				cat $tempPassword | openssl pkcs12 -in $tempDecrypted -export -out $tempEncriptedRepacked -passout stdin
+				REPACK_COMMAND
+			)]]></code>
+    </ForbiddenCode>
+  </file>
+  <file src="lib/Handler/CertificateEngine/CfsslHandler.php">
+    <ForbiddenCode>
+      <code><![CDATA[shell_exec($cmd)]]></code>
+      <code><![CDATA[shell_exec($cmd)]]></code>
+      <code><![CDATA[shell_exec($cmd)]]></code>
+    </ForbiddenCode>
   </file>
   <file src="lib/Listener/LoadSidebarListener.php">
-    <UndefinedClass occurrences="1">
-      <code>LoadSidebar</code>
+    <UndefinedClass>
+      <code><![CDATA[LoadSidebar]]></code>
     </UndefinedClass>
   </file>
   <file src="lib/Middleware/GlobalInjectionMiddleware.php">
-    <UndefinedClass occurrences="1">
-      <code>ViewController</code>
+    <UndefinedClass>
+      <code><![CDATA[ViewController]]></code>
     </UndefinedClass>
   </file>
   <file src="lib/Migration/Version8000Date20231103003922.php">
-    <UndefinedDocblockClass occurrences="1">
-      <code>$schema-&gt;dropTable('libresign_file_user')</code>
+    <UndefinedDocblockClass>
+      <code><![CDATA[$schema->dropTable('libresign_file_user')]]></code>
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Migration/Version8000Date20240405142042.php">
-    <UndefinedClass occurrences="2">
-      <code>JsonType</code>
-      <code>PostgreSQLPlatform</code>
+    <UndefinedClass>
+      <code><![CDATA[JsonType]]></code>
+      <code><![CDATA[PostgreSQLPlatform]]></code>
     </UndefinedClass>
-    <UndefinedDocblockClass occurrences="1">
-      <code>$schema-&gt;getDatabasePlatform()</code>
+    <UndefinedDocblockClass>
+      <code><![CDATA[$schema->getDatabasePlatform()]]></code>
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Service/AccountService.php">
-    <InvalidPropertyAssignmentValue occurrences="1">
-      <code>current($fileToSign)</code>
-    </InvalidPropertyAssignmentValue>
-    <UndefinedClass occurrences="5">
-      <code>$this-&gt;newUserMail</code>
-      <code>$this-&gt;newUserMail</code>
-      <code>UUIDUtil</code>
-      <code>UUIDUtil</code>
-      <code>private</code>
+    <UndefinedClass>
+      <code><![CDATA[$this->newUserMail]]></code>
+      <code><![CDATA[$this->newUserMail]]></code>
+      <code><![CDATA[UUIDUtil]]></code>
+      <code><![CDATA[UUIDUtil]]></code>
+      <code><![CDATA[private]]></code>
     </UndefinedClass>
     <UndefinedDocblockClass occurrences="1">
       <code>\OCA\Files\Node\File</code>
@@ -123,24 +130,30 @@
       <code>$config</code>
     </InvalidArgument>
   </file>
+  <file src="lib/Service/Install/InstallService.php">
+    <ForbiddenCode>
+      <code><![CDATA[shell_exec($cmd)]]></code>
+      <code><![CDATA[shell_exec('cat /etc/*-release')]]></code>
+    </ForbiddenCode>
+  </file>
   <file src="lib/Service/RequestSignatureService.php">
-    <UndefinedClass occurrences="2">
-      <code>UUIDUtil</code>
-      <code>UUIDUtil</code>
+    <UndefinedClass>
+      <code><![CDATA[UUIDUtil]]></code>
+      <code><![CDATA[UUIDUtil]]></code>
     </UndefinedClass>
   </file>
   <file src="lib/Service/SignFileService.php">
-    <UndefinedClass occurrences="2">
-      <code>UUIDUtil</code>
-      <code>UUIDUtil</code>
+    <UndefinedClass>
+      <code><![CDATA[UUIDUtil]]></code>
+      <code><![CDATA[UUIDUtil]]></code>
     </UndefinedClass>
   </file>
   <file src="lib/Service/TFile.php">
-    <UndefinedDocblockClass occurrences="1">
-      <code>PdfTypeException</code>
+    <UndefinedDocblockClass>
+      <code><![CDATA[PdfTypeException]]></code>
     </UndefinedDocblockClass>
-    <UndefinedInterfaceMethod occurrences="1">
-      <code>getAllMappings</code>
+    <UndefinedInterfaceMethod>
+      <code><![CDATA[getAllMappings]]></code>
     </UndefinedInterfaceMethod>
   </file>
 </files>
