@@ -118,6 +118,14 @@ class ConfigureCheckService {
 		if ($pdftkPath) {
 			if (file_exists($pdftkPath)) {
 				$javaPath = $this->appConfig->getAppValue('java_path');
+				if (empty($javaPath)) {
+					return [
+						(new ConfigureCheckHelper())
+							->setErrorMessage('Java is necessary to run pdftk')
+							->setResource('pdftk')
+							->setTip('Run occ libresign:install --java'),
+					];
+				}
 				$version = [];
 				\exec($javaPath . ' -jar ' . $pdftkPath . " --version 2>&1", $version);
 				if (isset($version[0])) {
