@@ -110,7 +110,12 @@ class FooterHandler {
 		}
 	}
 
-	public function setTemplateVar(string $name, mixed $value): self {
+	/**
+	 * @param (int|string)[][] $value
+	 *
+	 * @psalm-param array<array{displayName: string, signed: int}> $value
+	 */
+	public function setTemplateVar(string $name, array $value): self {
 		$this->templateVars[$name] = $value;
 		return $this;
 	}
