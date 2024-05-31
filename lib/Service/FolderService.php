@@ -99,6 +99,9 @@ class FolderService {
 		/** @var Folder $folder */
 		$folder = $containerFolder->get($path);
 		$file = $folder->getById($nodeId);
+		if (empty($file)) {
+			throw new NotFoundException('Invalid node');
+		}
 		/** @var File */
 		return current($file);
 	}
