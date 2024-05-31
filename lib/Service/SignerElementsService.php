@@ -114,7 +114,7 @@ class SignerElementsService {
 		$fileList = $this->getElementsFromSession();
 		foreach ($fileList as $fileElement) {
 			list($type, $timestamp) = explode('_', pathinfo($fileElement->getName(), PATHINFO_FILENAME));
-			$return[] = (new UserElement())->fromRow([
+			$return[] = [
 				'type' => $type,
 				'file' => [
 					'url' => $this->urlGenerator->linkToRoute('ocs.libresign.SignatureElements.getSignatureElementPreview', [
@@ -126,7 +126,7 @@ class SignerElementsService {
 				],
 				'starred' => 0,
 				'createdAt' => (new \DateTime())->setTimestamp((int) $timestamp)->format('Y-m-d H:i:s'),
-			]);
+			];
 		}
 		return $return;
 	}
