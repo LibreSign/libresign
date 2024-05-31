@@ -61,9 +61,6 @@
             },
             "Coordinate": {
                 "type": "object",
-                "required": [
-                    "page"
-                ],
                 "properties": {
                     "page": {
                         "type": "integer",
