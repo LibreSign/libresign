@@ -103,7 +103,7 @@ namespace OCA\Libresign;
  *     mandatory: non-negative-int,
  * }
  * @psalm-type LibresignCoordinate = array{
- *     page: non-negative-int,
+ *     page?: non-negative-int,
  *     urx?: non-negative-int,
  *     ury?: non-negative-int,
  *     llx?: non-negative-int,
