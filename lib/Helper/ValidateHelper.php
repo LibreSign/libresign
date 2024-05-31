@@ -249,9 +249,6 @@ class ValidateHelper {
 		$this->validateElementCoordinate($element);
 	}
 
-	/**
-	 * @psalm-param array{coordinates: mixed} $element
-	 */
 	private function validateElementCoordinate(array $element): void {
 		foreach ($element['coordinates'] as $type => $value) {
 			if (in_array($type, ['llx', 'lly', 'urx', 'ury', 'width', 'height', 'left', 'top'])) {
@@ -350,11 +347,11 @@ class ValidateHelper {
 			$signRequest = $this->signRequestMapper->getById($documentElement->getSignRequestId());
 			$file = $this->fileMapper->getById($signRequest->getFileId());
 			if ($file->getUserId() !== $uid) {
-				throw new LibresignException($this->l10n->t('Field %s does not belong to user', $documentElementId));
+				throw new LibresignException($this->l10n->t('Field %s does not belong to user', (string) $documentElementId));
 			}
 		} catch (\Throwable $th) {
 			($signRequest->getFileId());
-			throw new LibresignException($this->l10n->t('Field %s does not belong to user', $documentElementId));
+			throw new LibresignException($this->l10n->t('Field %s does not belong to user', (string) $documentElementId));
 		}
 	}
 
@@ -548,7 +545,7 @@ class ValidateHelper {
 			} else {
 				throw new LibresignException($this->l10n->t('Email required'));
 			}
-		} elseif (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+		} elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
 			throw new LibresignException($this->l10n->t('Invalid email'));
 		}
 	}
@@ -725,7 +722,7 @@ class ValidateHelper {
 		$identifyMethod->validateToIdentify();
 	}
 
-	public function validateIfIdentifyMethodExists($identifyMethod): void {
+	public function validateIfIdentifyMethodExists(string $identifyMethod): void {
 		if (!in_array($identifyMethod, IdentifyMethodService::IDENTIFY_METHODS)) {
 			// TRANSLATORS When is requested to a person to sign a file, is
 			// necessary identify what is the identification method. The
@@ -733,14 +730,6 @@ class ValidateHelper {
 			// flow.
 			throw new LibresignException($this->l10n->t('Invalid identification method'));
 		}
-	}
-
-	public function valdateCode(SignRequest $signRequest, array $params): void {
-		if (empty($params['code']) || !$this->hasher->verify($params['code'], $signRequest->getCode())) {
-			throw new LibresignException($this->l10n->t('Invalid code.'));
-		}
-		$signRequest->setCode('');
-		$this->signRequestMapper->update($signRequest);
 	}
 
 	public function validateFileTypeExists(string $type): void {
@@ -756,11 +745,11 @@ class ValidateHelper {
 		}
 
 		$authorized = json_decode($this->appConfig->getAppValue('approval_group', '["admin"]'));
-		if (!$authorized) {
+		if (!$authorized || !is_array($authorized) || empty($authorized)) {
 			$authorized = ['admin'];
 		}
 		$userGroups = $this->groupManager->getUserGroupIds($user);
-		if (!$authorized || !array_intersect($userGroups, $authorized)) {
+		if (!array_intersect($userGroups, $authorized)) {
 			if ($throw) {
 				throw new LibresignException($this->l10n->t('You are not allowed to approve user profile documents.'));
 			}

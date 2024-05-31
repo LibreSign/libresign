@@ -53,6 +53,8 @@ class UserElement extends Entity {
 	public $starred;
 	/** @var \DateTime */
 	public $createdAt;
+	/** @var array{url: string, nodeId: non-negative-int}|null */
+	public $file;
 	public function __construct() {
 		$this->addType('id', 'integer');
 		$this->addType('type', 'string');
@@ -62,6 +64,9 @@ class UserElement extends Entity {
 		$this->addType('createdAt', 'datetime');
 	}
 
+	/**
+	 * @param \DateTime|string $createdAt
+	 */
 	public function setCreatedAt($createdAt): void {
 		if (!$createdAt instanceof \DateTime) {
 			$createdAt = new \DateTime($createdAt);

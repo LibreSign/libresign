@@ -9,58 +9,11 @@ declare(strict_types=1);
 namespace OCA\Libresign;
 
 /**
- * @psalm-type LibresignCoordinate = array{
- *     page: int,
- *     urx?: int,
- *     ury?: int,
- *     llx?: int,
- *     lly?: int,
- *     top?: int,
- *     left?: int,
- *     width?: int,
- *     height?: int,
- *     page?: int,
- * }
- * @psalm-type LibresignRequestSignature = array{
- *     file: string,
- *     name: string,
- *     nodeId: integer,
- *     request_date: string,
- *     requested_by: array{
- *         uid: string,
- *         displayName: string,
- *     },
- *     signers: LibresignSigner[],
- *     status: integer,
- *     statusText: string,
- *     uuid: string,
- *     settings: LibresignSettings,
- * }
- * @psalm-type LibresignFile = array{
- *     account: array{
- *         uid: string,
- *         displayName: string,
- *     },
- *     file_type: array{
- *         type: string,
- *         name: string,
- *         description: ?string,
- *     },
- *     request_date: string,
- *     file: array{
- *         name: string,
- *         status: string,
- *         statusText: string,
- *         request_date: string,
- *         file: array{
- *             type: string,
- *             nodeId: int,
- *             url: string,
- *         },
- *         callback: ?string,
- *         uuid: string,
- *         signers: LibresignSigner[],
- *     },
+ * @psalm-type LibresignConfigureCheck = array{
+ *     message: string,
+ *     resource: string,
+ *     status: "error"|"success",
+ *     tip: string,
  * }
  * @psalm-type LibresignFolderSettings = array{
  *     folderName?: string,
@@ -70,11 +23,6 @@ namespace OCA\Libresign;
  *         setting?: string,
  *     },
  * }
- * @psalm-type LibresignIdentifyMethod = array{
- *     method: string,
- *     value: string,
- *     mandatory: int,
- * }
  * @psalm-type LibresignNewSigner = array{
  *     identify: array{
  *         email?: string,
@@ -83,7 +31,7 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignNewFile = array{
  *     base64?: string,
- *     fileId?: int,
+ *     fileId?: non-negative-int,
  *     url?: string,
  * }
  * @psalm-type LibresignAccountFile = array{
@@ -99,13 +47,31 @@ namespace OCA\Libresign;
  *     path: string,
  *     type: string,
  * }
+ * @psalm-type LibresignIdentifyAccount = array{
+ *     id: non-negative-int,
+ *     isNoUser: boolean,
+ *     displayName: string,
+ *     subname: string,
+ *     shareType: 0|4,
+ *     icon?: 'icon-mail'|'icon-user',
+ * }
  * @psalm-type LibresignPagination = array{
- *     total: int,
+ *     total: non-negative-int,
  *     current: ?string,
  *     next: ?string,
  *     prev: ?string,
  *     last: ?string,
  *     first: ?string,
+ * }
+ * @psalm-type LibresignCertificatePfxData = array{
+ *     name: string,
+ *     subject: string,
+ *     issuer: string,
+ *     extensions: string,
+ *     validate: array{
+ *         from: string,
+ *         to: string,
+ *     },
  * }
  * @psalm-type LibresignRootCertificateName = array{
  *     id: string,
@@ -114,8 +80,13 @@ namespace OCA\Libresign;
  * @psalm-type LibresignRootCertificate = array{
  *     commonName: string,
  *     names: LibresignRootCertificateName[],
- *     name?: string,
- *     type?: string,
+ * }
+ * @psalm-type LibresignEngineHandler = array{
+ *     configPath: string,
+ *     rootCert: LibresignRootCertificate,
+ * }
+ * @psalm-type LibresignCetificateDataGenerated = LibresignEngineHandler&array{
+ *     generated: boolean,
  * }
  * @psalm-type LibresignSettings = array{
  *     canSign: bool,
@@ -123,27 +94,101 @@ namespace OCA\Libresign;
  *     signerFileUuid: ?string,
  *     hasSignatureFile?: bool,
  *     phoneNumber: string,
+ *     needIdentificationDocuments?: bool,
+ *     identificationDocumentsWaitingApproval?: bool,
+ * }
+ * @psalm-type LibresignIdentifyMethod = array{
+ *     method: "email"|"account",
+ *     value: string,
+ *     mandatory: non-negative-int,
+ * }
+ * @psalm-type LibresignCoordinate = array{
+ *     page?: non-negative-int,
+ *     urx?: non-negative-int,
+ *     ury?: non-negative-int,
+ *     llx?: non-negative-int,
+ *     lly?: non-negative-int,
+ *     top?: non-negative-int,
+ *     left?: non-negative-int,
+ *     width?: non-negative-int,
+ *     height?: non-negative-int,
+ * }
+ * @psalm-type LibresignVisibleElement = array{
+ *     elementId: non-negative-int,
+ *     signRequestId: non-negative-int,
+ *     type: string,
+ *     coordinates: LibresignCoordinate,
  * }
  * @psalm-type LibresignSigner = array{
- *     email?: string,
  *     description: ?string,
  *     displayName: string,
  *     request_sign_date: string,
+ *     email?: string,
+ *     userId?: string,
  *     signed: ?string,
  *     sign_date?: ?string,
  *     sign_uuid?: string,
  *     me: bool,
- *     uid?: string,
- *     signRequestId: int,
- *     identifyMethod?: string,
+ *     signRequestId: non-negative-int,
  *     identifyMethods?: LibresignIdentifyMethod[],
  *     visibleElements?: LibresignVisibleElement[],
  * }
- * @psalm-type LibresignVisibleElement = array{
- *     elementId: int,
- *     signRequestId: int,
+ * @psalm-type LibresignValidateFile = array{
+ *     uuid: string,
+ *     name: string,
+ *     status: 0|1|2|3|4,
+ *     statusText: string,
+ *     nodeId: non-negative-int,
+ *     request_date: string,
+ *     requested_by: array{
+ *         userId: string,
+ *         displayName: string,
+ *     },
+ *     file: string,
+ *     url?: string,
+ *     signers?: LibresignSigner[],
+ *     settings?: LibresignSettings,
+ *     messages?: array{
+ *         type: 'info',
+ *         message: string,
+ *     }[],
+ * }
+ * @psalm-type LibresignFile = array{
+ *     account: array{
+ *         userId: string,
+ *         displayName: string,
+ *     },
+ *     file_type: array{
+ *         type: string,
+ *         name: string,
+ *         description: ?string,
+ *     },
+ *     request_date: string,
+ *     file: array{
+ *         name: string,
+ *         status: 0|1|2|3|4,
+ *         statusText: string,
+ *         request_date: string,
+ *         file: array{
+ *             type: string,
+ *             nodeId: non-negative-int,
+ *             url: string,
+ *         },
+ *         callback: ?string,
+ *         uuid: string,
+ *         signers: LibresignSigner[],
+ *     },
+ * }
+ * @psalm-type LibresignUserElement = array{
+ *     id: int,
  *     type: string,
- *     coordinates: LibresignCoordinate,
+ *     file: array{
+ *         url: string,
+ *         nodeId: int,
+ *     },
+ *     userId: string,
+ *     starred: 0|1,
+ *     createdAt: string,
  * }
  */
 class ResponseDefinitions {

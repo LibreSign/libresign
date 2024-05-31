@@ -20,6 +20,66 @@
             }
         },
         "schemas": {
+            "CetificateDataGenerated": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/EngineHandler"
+                    },
+                    {
+                        "type": "object",
+                        "required": [
+                            "generated"
+                        ],
+                        "properties": {
+                            "generated": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                ]
+            },
+            "ConfigureCheck": {
+                "type": "object",
+                "required": [
+                    "message",
+                    "resource",
+                    "status",
+                    "tip"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "resource": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "error",
+                            "success"
+                        ]
+                    },
+                    "tip": {
+                        "type": "string"
+                    }
+                }
+            },
+            "EngineHandler": {
+                "type": "object",
+                "required": [
+                    "configPath",
+                    "rootCert"
+                ],
+                "properties": {
+                    "configPath": {
+                        "type": "string"
+                    },
+                    "rootCert": {
+                        "$ref": "#/components/schemas/RootCertificate"
+                    }
+                }
+            },
             "OCSMeta": {
                 "type": "object",
                 "required": [
@@ -59,12 +119,6 @@
                         "items": {
                             "$ref": "#/components/schemas/RootCertificateName"
                         }
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "type": {
-                        "type": "string"
                     }
                 }
             },
@@ -202,15 +256,11 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
-                                                        "configPath",
-                                                        "rootCert"
+                                                        "data"
                                                     ],
                                                     "properties": {
-                                                        "configPath": {
-                                                            "type": "string"
-                                                        },
-                                                        "rootCert": {
-                                                            "$ref": "#/components/schemas/RootCertificate"
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/EngineHandler"
                                                         }
                                                     }
                                                 }
@@ -373,15 +423,11 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
-                                                        "configPath",
-                                                        "rootCert"
+                                                        "data"
                                                     ],
                                                     "properties": {
-                                                        "configPath": {
-                                                            "type": "string"
-                                                        },
-                                                        "rootCert": {
-                                                            "$ref": "#/components/schemas/RootCertificate"
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/EngineHandler"
                                                         }
                                                     }
                                                 }
@@ -495,23 +541,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "configPath",
-                                                        "rootCert",
-                                                        "generated"
-                                                    ],
-                                                    "properties": {
-                                                        "configPath": {
-                                                            "type": "string"
-                                                        },
-                                                        "rootCert": {
-                                                            "$ref": "#/components/schemas/RootCertificate"
-                                                        },
-                                                        "generated": {
-                                                            "type": "boolean"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/CetificateDataGenerated"
                                                 }
                                             }
                                         }
@@ -585,7 +615,92 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/ConfigureCheck"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
+            "get": {
+                "operationId": "setting-has-root-cert",
+                "summary": "Has root certificate",
+                "description": "Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have",
+                "tags": [
+                    "setting"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "hasRootCert"
+                                                    ],
+                                                    "properties": {
+                                                        "hasRootCert": {
+                                                            "type": "boolean"
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }

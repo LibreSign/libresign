@@ -6,7 +6,11 @@
 
 export type paths = {
   "/index.php/apps/libresign/develop/pdf": {
-    /** Get a demo PDF file to be used by test purpose */
+    /**
+     * Get a demo PDF file to be used by test purpose
+     * @description To use this endpoint is necessary to enable the debug mode in your instance. To do this, run the command:
+     * `occ config:system:set debug --value true --type boolean`
+     */
     get: operations["develop-pdf"];
   };
   "/index.php/apps/libresign": {
@@ -243,13 +247,6 @@ export type paths = {
      */
     delete: operations["request_signature-delete-one-request-signature-using-file-id"];
   };
-  "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
-    /**
-     * Has root certificate
-     * @description Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have
-     */
-    get: operations["setting-has-root-cert"];
-  };
   "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements": {
     /** Get signature elements */
     get: operations["signature_elements-get-signature-elements"];
@@ -314,6 +311,13 @@ export type paths = {
      */
     get: operations["admin-configure-check"];
   };
+  "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
+    /**
+     * Has root certificate
+     * @description Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have
+     */
+    get: operations["setting-has-root-cert"];
+  };
 };
 
 export type webhooks = Record<string, never>;
@@ -325,9 +329,29 @@ export type components = {
       name?: string;
       type?: string;
     };
+    CertificatePfxData: {
+      name: string;
+      subject: string;
+      issuer: string;
+      extensions: string;
+      validate: {
+        from: string;
+        to: string;
+      };
+    };
+    CetificateDataGenerated: components["schemas"]["EngineHandler"] & {
+      generated: boolean;
+    };
+    ConfigureCheck: {
+      message: string;
+      resource: string;
+      /** @enum {string} */
+      status: "error" | "success";
+      tip: string;
+    };
     Coordinate: {
       /** Format: int64 */
-      page: number;
+      page?: number;
       /** Format: int64 */
       urx?: number;
       /** Format: int64 */
@@ -345,9 +369,13 @@ export type components = {
       /** Format: int64 */
       height?: number;
     };
+    EngineHandler: {
+      configPath: string;
+      rootCert: components["schemas"]["RootCertificate"];
+    };
     File: {
       account: {
-        uid: string;
+        userId: string;
         displayName: string;
       };
       file_type: {
@@ -358,7 +386,11 @@ export type components = {
       request_date: string;
       file: {
         name: string;
-        status: string;
+        /**
+         * Format: int64
+         * @enum {integer}
+         */
+        status: 0 | 1 | 2 | 3 | 4;
         statusText: string;
         request_date: string;
         file: {
@@ -380,8 +412,23 @@ export type components = {
         setting?: string;
       };
     };
+    IdentifyAccount: {
+      /** Format: int64 */
+      id: number;
+      isNoUser: boolean;
+      displayName: string;
+      subname: string;
+      /**
+       * Format: int64
+       * @enum {integer}
+       */
+      shareType: 0 | 4;
+      /** @enum {string} */
+      icon?: "icon-mail" | "icon-user";
+    };
     IdentifyMethod: {
-      method: string;
+      /** @enum {string} */
+      method: "email" | "account";
       value: string;
       /** Format: int64 */
       mandatory: number;
@@ -423,28 +470,9 @@ export type components = {
       last: string | null;
       first: string | null;
     };
-    RequestSignature: {
-      file: string;
-      name: string;
-      /** Format: int64 */
-      nodeId: number;
-      request_date: string;
-      requested_by: {
-        uid: string;
-        displayName: string;
-      };
-      signers: components["schemas"]["Signer"][];
-      /** Format: int64 */
-      status: number;
-      statusText: string;
-      uuid: string;
-      settings: components["schemas"]["Settings"];
-    };
     RootCertificate: {
       commonName: string;
       names: components["schemas"]["RootCertificateName"][];
-      name?: string;
-      type?: string;
     };
     RootCertificateName: {
       id: string;
@@ -456,22 +484,66 @@ export type components = {
       signerFileUuid: string | null;
       hasSignatureFile?: boolean;
       phoneNumber: string;
+      needIdentificationDocuments?: boolean;
+      identificationDocumentsWaitingApproval?: boolean;
     };
     Signer: {
-      email?: string;
       description: string | null;
       displayName: string;
       request_sign_date: string;
+      email?: string;
+      userId?: string;
       signed: string | null;
       sign_date?: string | null;
       sign_uuid?: string;
       me: boolean;
-      uid?: string;
       /** Format: int64 */
       signRequestId: number;
-      identifyMethod?: string;
       identifyMethods?: components["schemas"]["IdentifyMethod"][];
       visibleElements?: components["schemas"]["VisibleElement"][];
+    };
+    UserElement: {
+      /** Format: int64 */
+      id: number;
+      type: string;
+      file: {
+        url: string;
+        /** Format: int64 */
+        nodeId: number;
+      };
+      userId: string;
+      /**
+       * Format: int64
+       * @enum {integer}
+       */
+      starred: 0 | 1;
+      createdAt: string;
+    };
+    ValidateFile: {
+      uuid: string;
+      name: string;
+      /**
+       * Format: int64
+       * @enum {integer}
+       */
+      status: 0 | 1 | 2 | 3 | 4;
+      statusText: string;
+      /** Format: int64 */
+      nodeId: number;
+      request_date: string;
+      requested_by: {
+        userId: string;
+        displayName: string;
+      };
+      file: string;
+      url?: string;
+      signers?: components["schemas"]["Signer"][];
+      settings?: components["schemas"]["Settings"];
+      messages?: {
+          /** @enum {string} */
+          type: "info";
+          message: string;
+        }[];
     };
     VisibleElement: {
       /** Format: int64 */
@@ -495,18 +567,27 @@ export type external = Record<string, never>;
 
 export type operations = {
 
-  /** Get a demo PDF file to be used by test purpose */
+  /**
+   * Get a demo PDF file to be used by test purpose
+   * @description To use this endpoint is necessary to enable the debug mode in your instance. To do this, run the command:
+   * `occ config:system:set debug --value true --type boolean`
+   */
   "develop-pdf": {
     responses: {
       /** @description PDF returned */
       200: {
+        headers: {
+          "Content-Disposition"?: "inline; filename=\"file.pdf\"";
+        };
         content: {
-          "*/*": string;
+          "application/pdf": string;
         };
       };
       /** @description Debug mode not enabled */
       404: {
-        content: never;
+        content: {
+          "application/json": unknown;
+        };
       };
     };
   };
@@ -1049,7 +1130,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: components["schemas"]["CertificatePfxData"];
             };
           };
         };
@@ -1090,7 +1171,7 @@ export type operations = {
     };
     responses: {
       /** @description Settings saved */
-      202: {
+      200: {
         content: {
           "application/json": {
             ocs: {
@@ -1173,8 +1254,9 @@ export type operations = {
       query?: {
         /** @description Filter params */
         filter?: {
-          approved?: string;
-        };
+          /** @enum {string} */
+          approved?: "yes";
+        } | null;
         /** @description the number of page to return */
         page?: number | null;
         /** @description Total of elements to return */
@@ -1197,14 +1279,14 @@ export type operations = {
               meta: components["schemas"]["OCSMeta"];
               data: {
                 pagination: components["schemas"]["Pagination"];
-                data: components["schemas"]["File"][] | null;
+                data: components["schemas"]["File"][];
               };
             };
           };
         };
       };
       /** @description No file provided or other problem with provided file */
-      400: {
+      404: {
         content: {
           "application/json": {
             ocs: {
@@ -1258,7 +1340,8 @@ export type operations = {
               data: {
                 /** Format: int64 */
                 file: number | null;
-                type: string | null;
+                /** @enum {string} */
+                type: "info" | "warning" | "danger";
                 message: string;
               };
             };
@@ -1296,7 +1379,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: unknown;
             };
           };
         };
@@ -1308,7 +1391,7 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                messages: Record<string, never>;
+                messages: string[];
               };
             };
           };
@@ -1322,8 +1405,9 @@ export type operations = {
       query?: {
         /** @description Filter params */
         filter?: {
-          approved?: string;
-        };
+          /** @enum {string} */
+          approved?: "yes";
+        } | null;
         /** @description the number of page to return */
         page?: number | null;
         /** @description Total of elements to return */
@@ -1438,7 +1522,7 @@ export type operations = {
         filter?: {
           signer_uuid?: string;
           nodeId?: string;
-        };
+        } | null;
       };
       header: {
         /** @description Required to be true for the API request to pass */
@@ -1496,10 +1580,45 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
+          "*/*": string;
+        };
+      };
+      /** @description Redirect */
+      303: {
+        headers: {
+          Location?: string;
+        };
+        content: never;
+      };
+      /** @description Bad request */
+      400: {
+        content: {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: unknown;
+            };
+          };
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: unknown;
+            };
+          };
+        };
+      };
+      /** @description Not found */
+      404: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: unknown;
             };
           };
         };
@@ -1533,31 +1652,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: {
-                file: string;
-                name: string;
-                url?: string;
-                /** Format: int64 */
-                nodeId: number;
-                request_date: string;
-                requested_by: {
-                  uid: string;
-                  displayName: string;
-                };
-                /** Format: int64 */
-                status: number;
-                statusText: string;
-                uuid: string;
-                signers: components["schemas"]["Signer"][];
-                /** Format: int64 */
-                action?: number;
-                errors?: string[];
-                settings: components["schemas"]["Settings"];
-                messages?: {
-                    type: string;
-                    message: string;
-                  }[];
-              };
+              data: components["schemas"]["ValidateFile"];
             };
           };
         };
@@ -1607,31 +1702,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: {
-                file: string;
-                name: string;
-                url?: string;
-                /** Format: int64 */
-                nodeId: number;
-                request_date: string;
-                requested_by: {
-                  uid: string;
-                  displayName: string;
-                };
-                /** Format: int64 */
-                status: number;
-                statusText: string;
-                uuid: string;
-                signers: components["schemas"]["Signer"][];
-                /** Format: int64 */
-                action?: number;
-                errors?: string[];
-                settings: components["schemas"]["Settings"];
-                messages?: {
-                    type: string;
-                    message: string;
-                  }[];
-              };
+              data: components["schemas"]["ValidateFile"];
             };
           };
         };
@@ -1681,31 +1752,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: {
-                file: string;
-                name: string;
-                url?: string;
-                /** Format: int64 */
-                nodeId: number;
-                request_date: string;
-                requested_by: {
-                  uid: string;
-                  displayName: string;
-                };
-                /** Format: int64 */
-                status: number;
-                statusText: string;
-                uuid: string;
-                signers: components["schemas"]["Signer"][];
-                /** Format: int64 */
-                action?: number;
-                errors?: string[];
-                settings: components["schemas"]["Settings"];
-                messages?: {
-                    type: string;
-                    message: string;
-                  }[];
-              };
+              data: components["schemas"]["ValidateFile"];
             };
           };
         };
@@ -1905,7 +1952,10 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: unknown;
+              data: {
+                /** Format: int64 */
+                fileElementId: number;
+              };
             };
           };
         };
@@ -1933,11 +1983,11 @@ export type operations = {
     parameters: {
       query?: {
         /** @description search params */
-        search?: Record<string, never>;
+        search?: string;
         /** @description the number of page to return. Default: 1 */
-        page?: number | null;
+        page?: number;
         /** @description Total of elements to return. Default: 25 */
-        limit?: number | null;
+        limit?: number;
       };
       header: {
         /** @description Required to be true for the API request to pass */
@@ -1949,12 +1999,12 @@ export type operations = {
     };
     responses: {
       /** @description Certificate saved with success */
-      202: {
+      200: {
         content: {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: components["schemas"]["IdentifyAccount"][];
             };
           };
         };
@@ -1995,7 +2045,9 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: {
+                message: string;
+              };
             };
           };
         };
@@ -2007,7 +2059,11 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                message: string;
+                messages: {
+                    /** @enum {string} */
+                    type: "danger";
+                    message: string;
+                  }[];
               };
             };
           };
@@ -2157,8 +2213,8 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
+                data: components["schemas"]["ValidateFile"];
                 message: string;
-                data: components["schemas"]["RequestSignature"];
               };
             };
           };
@@ -2174,7 +2230,7 @@ export type operations = {
                 message?: string;
                 /** Format: int64 */
                 action?: number;
-                errors?: string[] | null;
+                errors?: string[];
               };
             };
           };
@@ -2230,7 +2286,7 @@ export type operations = {
               meta: components["schemas"]["OCSMeta"];
               data: {
                 message: string;
-                data: components["schemas"]["RequestSignature"];
+                data: components["schemas"]["ValidateFile"];
               };
             };
           };
@@ -2246,7 +2302,7 @@ export type operations = {
                 message?: string;
                 /** Format: int64 */
                 action?: number;
-                errors?: string[] | null;
+                errors?: string[];
               };
             };
           };
@@ -2321,6 +2377,7 @@ export type operations = {
                 /** Format: int64 */
                 action: number;
                 errors: string[];
+                redirect?: string;
               };
             };
           };
@@ -2450,36 +2507,6 @@ export type operations = {
       };
     };
   };
-  /**
-   * Has root certificate
-   * @description Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have
-   */
-  "setting-has-root-cert": {
-    parameters: {
-      header: {
-        /** @description Required to be true for the API request to pass */
-        "OCS-APIRequest": boolean;
-      };
-      path: {
-        apiVersion: "v1";
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                hasRootCert: boolean;
-              };
-            };
-          };
-        };
-      };
-    };
-  };
   /** Get signature elements */
   "signature_elements-get-signature-elements": {
     parameters: {
@@ -2499,7 +2526,7 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                elements: Record<string, never>;
+                elements: components["schemas"]["UserElement"][];
               };
             };
           };
@@ -2549,8 +2576,8 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
+                elements: components["schemas"]["UserElement"][];
                 message: string;
-                elements: Record<string, never>;
               };
             };
           };
@@ -2621,7 +2648,12 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "*/*": string;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: components["schemas"]["UserElement"];
+            };
+          };
         };
       };
       /** @description Invalid data */
@@ -2630,7 +2662,9 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: {
+                message: string;
+              };
             };
           };
         };
@@ -2658,7 +2692,7 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                elements: Record<string, never>;
+                message: string;
               };
             };
           };
@@ -2718,14 +2752,15 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                elements: Record<string, never>;
+                elements: components["schemas"]["UserElement"][];
+                message: string;
               };
             };
           };
         };
       };
-      /** @description Not found */
-      404: {
+      /** @description Error */
+      422: {
         content: {
           "application/json": {
             ocs: {
@@ -2899,6 +2934,21 @@ export type operations = {
         fileId: number;
       };
     };
+    requestBody?: {
+      content: {
+        "application/json": {
+          /**
+           * @description Identify signer method
+           * @enum {string|null}
+           */
+          identifyMethod?: "account" | "email" | null;
+          /** @description Method used to sign the document */
+          signMethod?: string | null;
+          /** @description Identify value, i.e. the signer email, account or phone number */
+          identify?: string | null;
+        };
+      };
+    };
     responses: {
       /** @description OK */
       200: {
@@ -2975,8 +3025,7 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                configPath: string;
-                rootCert: components["schemas"]["RootCertificate"];
+                data: components["schemas"]["EngineHandler"];
               };
             };
           };
@@ -3039,8 +3088,7 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                configPath: string;
-                rootCert: components["schemas"]["RootCertificate"];
+                data: components["schemas"]["EngineHandler"];
               };
             };
           };
@@ -3083,11 +3131,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: {
-                configPath: string;
-                rootCert: components["schemas"]["RootCertificate"];
-                generated: boolean;
-              };
+              data: components["schemas"]["CetificateDataGenerated"];
             };
           };
         };
@@ -3116,7 +3160,37 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: components["schemas"]["ConfigureCheck"][];
+            };
+          };
+        };
+      };
+    };
+  };
+  /**
+   * Has root certificate
+   * @description Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have
+   */
+  "setting-has-root-cert": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                hasRootCert: boolean;
+              };
             };
           };
         };

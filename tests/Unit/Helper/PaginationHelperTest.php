@@ -17,8 +17,8 @@ class PaginationHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$result = $this->createMock(ResultAdapter::class);
 		$result
-			->method('fetch')
-			->willReturn(['total_results' => 1]);
+			->method('fetchOne')
+			->willReturn(1);
 		$queryBuilder
 			->method('executeQuery')
 			->willReturn($result);
@@ -47,8 +47,8 @@ class PaginationHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$result = $this->createMock(ResultAdapter::class);
 		$result
-			->method('fetch')
-			->willReturn(['total_results' => 2]);
+			->method('fetchOne')
+			->willReturn(2);
 		$queryBuilder
 			->method('executeQuery')
 			->willReturn($result);

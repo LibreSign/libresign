@@ -56,11 +56,14 @@ use OCP\Preview\IMimeIconProvider;
 use Psr\Log\LoggerInterface;
 
 /**
+ * @psalm-import-type LibresignFile from ResponseDefinitions
  * @psalm-import-type LibresignNewFile from ResponseDefinitions
  * @psalm-import-type LibresignFolderSettings from ResponseDefinitions
  * @psalm-import-type LibresignNextcloudFile from ResponseDefinitions
+ * @psalm-import-type LibresignPagination from ResponseDefinitions
  * @psalm-import-type LibresignSettings from ResponseDefinitions
  * @psalm-import-type LibresignSigner from ResponseDefinitions
+ * @psalm-import-type LibresignValidateFile from ResponseDefinitions
  */
 class FileController extends AEnvironmentAwareController {
 	public function __construct(
@@ -87,7 +90,7 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a file returning file data.
 	 *
 	 * @param string $uuid The UUID of the LibreSign file
-	 * @return DataResponse<Http::STATUS_OK, array{file: string, name: string, url?: string, nodeId: int, request_date: string, requested_by: array{uid: string, displayName: string}, status: int, statusText: string, uuid: string, signers: LibresignSigner[], action?: int, errors?: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
@@ -106,7 +109,7 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a file returning file data.
 	 *
 	 * @param int $fileId The identifier value of the LibreSign file
-	 * @return DataResponse<Http::STATUS_OK, array{file: string, name: string, url?: string, nodeId: int, request_date: string, requested_by: array{uid: string, displayName: string}, status: int, statusText: string, uuid: string, signers: LibresignSigner[], action?: int, errors?: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
@@ -126,7 +129,7 @@ class FileController extends AEnvironmentAwareController {
 	 *
 	 * @param string|null $type The type of identifier could be Uuid or FileId
 	 * @param string|int $identifier The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer
-	 * @return DataResponse<Http::STATUS_OK, array{file: string, name: string, url?: string, nodeId: int, request_date: string, requested_by: array{uid: string, displayName: string}, status: int, statusText: string, uuid: string, signers: LibresignSigner[], action?: int, errors?: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
@@ -171,7 +174,7 @@ class FileController extends AEnvironmentAwareController {
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$message]
 			];
-			$statusCode = $e->getCode() ?? Http::STATUS_UNPROCESSABLE_ENTITY;
+			$statusCode = Http::STATUS_NOT_FOUND;
 		} catch (\Throwable $th) {
 			$message = $this->l10n->t($th->getMessage());
 			$this->logger->error($message);
@@ -179,7 +182,7 @@ class FileController extends AEnvironmentAwareController {
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$message]
 			];
-			$statusCode = $th->getCode() ?? Http::STATUS_UNPROCESSABLE_ENTITY;
+			$statusCode = Http::STATUS_NOT_FOUND;
 		}
 
 		$return = array_merge($return,
@@ -199,7 +202,7 @@ class FileController extends AEnvironmentAwareController {
 	/**
 	 * List account files that need to be approved
 	 *
-	 * @param array{signer_uuid?: string, nodeId?: string} $filter Filter params
+	 * @param array{signer_uuid?: string, nodeId?: string}|null $filter Filter params
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
 	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>
@@ -225,9 +228,13 @@ class FileController extends AEnvironmentAwareController {
 	 * @param boolean $forceIcon Force to generate a new thumbnail
 	 * @param string $mode To force a given mimetype for the file
 	 * @param boolean $mimeFallback If we have no preview enabled, we can redirect to the mime icon if any
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
 	 *
 	 * 200: OK
+	 * 303: Redirect
+	 * 400: Bad request
+	 * 403: Forbidden
+	 * 404: Not found
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

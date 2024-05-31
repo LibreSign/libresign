@@ -29,6 +29,9 @@ use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
+/**
+ * @template-extends QBMapper<IdentifyMethod>
+ */
 class IdentifyMethodMapper extends QBMapper {
 	/**
 	 * @var IdentifyMethod[][]

@@ -122,29 +122,6 @@ class MailService {
 		}
 	}
 
-	/**
-	 * @psalm-suppress MixedMethodCall
-	 */
-	public function notifyCancelSign(SignRequest $data): void {
-		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
-		$emailTemplate->setSubject($this->l10n->t('LibreSign: Signature request cancelled'));
-		$emailTemplate->addHeader();
-		$emailTemplate->addBodyText($this->l10n->t('The signature request has been canceled.'));
-		$message = $this->mailer->createMessage();
-		if ($data->getDisplayName()) {
-			$message->setTo([$data->getEmail() => $data->getDisplayName()]);
-		} else {
-			$message->setTo([$data->getEmail()]);
-		}
-		$message->useTemplate($emailTemplate);
-		try {
-			$this->mailer->send($message);
-		} catch (\Exception $e) {
-			$this->logger->error('Notify cancel sign notification mail could not be sent: ' . $e->getMessage());
-			throw new LibresignException('Notify cancel sign notification mail could not be sent', 1);
-		}
-	}
-
 	public function sendCodeToSign(string $email, string $name, string $code): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		$emailTemplate->setSubject($this->l10n->t('LibreSign: Code to sign file'));

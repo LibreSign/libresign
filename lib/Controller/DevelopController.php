@@ -29,6 +29,7 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\Files\SimpleFS\InMemoryFile;
@@ -46,7 +47,11 @@ class DevelopController extends Controller {
 	/**
 	 * Get a demo PDF file to be used by test purpose
 	 *
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|Response<Http::STATUS_NOT_FOUND, array{}>
+	 * To use this endpoint is necessary to enable the debug mode in your instance. To do this, run the command:
+	 *
+	 * `occ config:system:set debug --value true --type boolean`
+	 *
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: 'application/pdf',Content-Disposition: 'inline; filename="file.pdf"'}>|DataResponse<Http::STATUS_NOT_FOUND, array<empty>, array{}>
 	 *
 	 * 200: PDF returned
 	 * 404: Debug mode not enabled
@@ -55,12 +60,14 @@ class DevelopController extends Controller {
 	#[PublicPage]
 	public function pdf(): FileDisplayResponse|Response {
 		if (!$this->isDebugMode()) {
-			return new Response(Http::STATUS_NOT_FOUND);
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 		$file = new InMemoryFile('file.pdf', file_get_contents(__DIR__ . '/../../tests/fixtures/small_valid.pdf'));
 		$response = new FileDisplayResponse($file);
-		$response->addHeader('Content-Disposition', 'inline; filename="file.pdf"');
-		$response->addHeader('Content-Type', 'application/pdf');
+		$response->setHeaders([
+			'Content-Disposition' => 'inline; filename="file.pdf"',
+			'Content-Type' => 'application/pdf',
+		]);
 		return $response;
 	}
 

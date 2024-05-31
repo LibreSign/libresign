@@ -56,6 +56,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * @psalm-import-type LibresignAccountFile from ResponseDefinitions
+ * @psalm-import-type LibresignCertificatePfxData from ResponseDefinitions
  * @psalm-import-type LibresignFile from ResponseDefinitions
  * @psalm-import-type LibresignPagination from ResponseDefinitions
  */
@@ -202,7 +203,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 * Add files to account profile
 	 *
 	 * @param LibresignAccountFile[] $files The list of files to add to profile
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{file: ?int, type: ?string, message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{file: ?int, type: 'info'|'warning'|'danger', message: string}, array{}>
 	 *
 	 * 200: Certificate saved with success
 	 * 401: No file provided or other problem with provided file
@@ -240,7 +241,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * @param int $nodeId the nodeId of file to be delete
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{messages: array{}}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{messages: string[]}, array{}>
 	 *
 	 * 200: File deleted with success
 	 * 401: Failure to delete file from account
@@ -304,13 +305,13 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	/**
 	 * List account files of authenticated account
 	 *
-	 * @param array{approved?: string} $filter Filter params
+	 * @param array{approved?: 'yes'}|null $filter Filter params
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
-	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: LibresignFile[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
 	 *
 	 * 200: Certificate saved with success
-	 * 400: No file provided or other problem with provided file
+	 * 404: No file provided or other problem with provided file
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -332,7 +333,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	/**
 	 * List account files that need to be approved
 	 *
-	 * @param array{approved?: string} $filter Filter params
+	 * @param array{approved?: 'yes'}|null $filter Filter params
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
 	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
@@ -362,9 +363,9 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * @param string|null $phone the phone number to be defined. If null will remove the phone number
 	 *
-	 * @return DataResponse<Http::STATUS_ACCEPTED, array{data: array{userId: string, phone: string, message: string}}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{data: array{userId: string, phone: string, message: string}}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
 	 *
-	 * 202: Settings saved
+	 * 200: Settings saved
 	 * 404: Invalid data to update phone number
 	 */
 	#[NoAdminRequired]
@@ -498,7 +499,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * @param string $password password of PFX file to decrypt the file and return his content
 	 *
-	 * @return DataResponse<Http::STATUS_ACCEPTED, array{}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_ACCEPTED, LibresignCertificatePfxData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
 	 *
 	 * 202: Certificate saved with success
 	 * 400: No file provided or other problem with provided file
