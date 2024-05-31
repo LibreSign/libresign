@@ -466,26 +466,6 @@ export type components = {
       last: string | null;
       first: string | null;
     };
-    RequestSignature: {
-      file: string;
-      name: string;
-      /** Format: int64 */
-      nodeId: number;
-      request_date: string;
-      requested_by: {
-        uid: string;
-        displayName: string;
-      };
-      signers: components["schemas"]["Signer"][];
-      /**
-       * Format: int64
-       * @enum {integer}
-       */
-      status: 0 | 1 | 2;
-      statusText: string;
-      uuid: string;
-      settings: components["schemas"]["Settings"];
-    };
     RootCertificate: {
       commonName: string;
       names: components["schemas"]["RootCertificateName"][];
@@ -500,6 +480,8 @@ export type components = {
       signerFileUuid: string | null;
       hasSignatureFile?: boolean;
       phoneNumber: string;
+      needIdentificationDocuments?: boolean;
+      identificationDocumentsWaitingApproval?: boolean;
     };
     Signer: {
       description: string | null;
@@ -530,6 +512,32 @@ export type components = {
        */
       starred: 0 | 1;
       createdAt: string;
+    };
+    ValidateFile: {
+      uuid: string;
+      name: string;
+      /**
+       * Format: int64
+       * @enum {integer}
+       */
+      status: 0 | 1 | 2 | 3 | 4;
+      statusText: string;
+      /** Format: int64 */
+      nodeId: number;
+      request_date: string;
+      requested_by: {
+        uid: string;
+        displayName: string;
+      };
+      file: string;
+      url?: string;
+      signers?: components["schemas"]["Signer"][];
+      settings?: components["schemas"]["Settings"];
+      messages?: {
+        /** @enum {string} */
+        type: "info";
+        message: string;
+      };
     };
     VisibleElement: {
       /** Format: int64 */
@@ -1633,7 +1641,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: components["schemas"]["File"];
+              data: components["schemas"]["ValidateFile"];
             };
           };
         };
@@ -1683,7 +1691,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: components["schemas"]["File"];
+              data: components["schemas"]["ValidateFile"];
             };
           };
         };
@@ -1733,7 +1741,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: components["schemas"]["File"];
+              data: components["schemas"]["ValidateFile"];
             };
           };
         };
@@ -2194,7 +2202,7 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                data: components["schemas"]["RequestSignature"];
+                data: components["schemas"]["ValidateFile"];
                 message: string;
               };
             };

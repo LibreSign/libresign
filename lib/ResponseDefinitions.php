@@ -94,6 +94,8 @@ namespace OCA\Libresign;
  *     signerFileUuid: ?string,
  *     hasSignatureFile?: bool,
  *     phoneNumber: string,
+ *     needIdentificationDocuments?: bool,
+ *     identificationDocumentsWaitingApproval?: bool,
  * }
  * @psalm-type LibresignIdentifyMethod = array{
  *     method: "email"|"account",
@@ -129,20 +131,25 @@ namespace OCA\Libresign;
  *     identifyMethods?: LibresignIdentifyMethod[],
  *     visibleElements?: LibresignVisibleElement[],
  * }
- * @psalm-type LibresignRequestSignature = array{
- *     file: string,
+ * @psalm-type LibresignValidateFile = array{
+ *     uuid: string,
  *     name: string,
+ *     status: 0|1|2|3|4,
+ *     statusText: string,
  *     nodeId: non-negative-int,
  *     request_date: string,
  *     requested_by: array{
  *         uid: string,
  *         displayName: string,
  *     },
- *     signers: LibresignSigner[],
- *     status: 0|1|2,
- *     statusText: string,
- *     uuid: string,
- *     settings: LibresignSettings,
+ *     file: string,
+ *     url?: string,
+ *     signers?: LibresignSigner[],
+ *     settings?: LibresignSettings,
+ *     messages?: array{
+ *         type: 'info',
+ *         message: string,
+ *     },
  * }
  * @psalm-type LibresignFile = array{
  *     account: array{

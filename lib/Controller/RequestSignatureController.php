@@ -41,7 +41,7 @@ use OCP\IUserSession;
 /**
  * @psalm-import-type LibresignNewFile from ResponseDefinitions
  * @psalm-import-type LibresignNewSigner from ResponseDefinitions
- * @psalm-import-type LibresignRequestSignature from ResponseDefinitions
+ * @psalm-import-type LibresignValidateFile from ResponseDefinitions
  * @psalm-import-type LibresignSettings from ResponseDefinitions
  * @psalm-import-type LibresignSigner from ResponseDefinitions
  * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
@@ -68,7 +68,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param string $name The name of file to sign
 	 * @param string|null $callback URL that will receive a POST after the document is signed
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
-	 * @return DataResponse<Http::STATUS_OK, array{data: LibresignRequestSignature, message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{data: LibresignValidateFile, message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Unauthorized
