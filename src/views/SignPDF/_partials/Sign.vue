@@ -103,7 +103,6 @@ import axios from '@nextcloud/axios'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { onError } from '../../../helpers/errors.js'
 import SMSManager from './ModalSMSManager.vue'
 import EmailManager from './ModalEmailManager.vue'
 import Signatures from '../../../views/Account/partials/Signatures.vue'
@@ -271,7 +270,9 @@ export default {
 					}
 				})
 				.catch((err) => {
-					onError(err)
+					err.response.data.ocs.data.errors.forEach(err => {
+						showError(err)
+					})
 				})
 			this.loading = false
 		},
