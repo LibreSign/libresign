@@ -153,11 +153,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('__call')
 			->withConsecutive(
 				[$this->equalTo('getSigned')],
-				[$this->equalTo('getEmail')]
+				[$this->equalTo('getId')]
 			)
 			->will($this->returnValueMap([
 				['getSigned', [], null],
-				['getEmail', [], 'otheremail@test.coop']
+				['getId', [], 171]
 			]));
 		$this->signRequestMapper->method('getByFileUuid')->will($this->returnValue([$signRequest]));
 		$this->expectExceptionMessage('No signature was requested to %');
