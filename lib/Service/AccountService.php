@@ -178,7 +178,7 @@ class AccountService {
 	/**
 	 * Get signRequest by Uuid
 	 */
-	public function getSignRequestByUuid($uuid): SignRequest {
+	public function getSignRequestByUuid(string $uuid): SignRequest {
 		if (!$this->signRequest instanceof SignRequest) {
 			$this->signRequest = $this->signRequestMapper->getByUuid($uuid);
 		}

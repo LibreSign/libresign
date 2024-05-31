@@ -654,11 +654,11 @@ class SignFileService {
 		return $fileToSign;
 	}
 
-	public function validateSigner($uuid, $user): void {
+	public function validateSigner(string $uuid, ?IUser $user = null): void {
 		$this->validateHelper->validateSigner($uuid, $user);
 	}
 
-	public function validateRenewSigner($uuid, $user): void {
+	public function validateRenewSigner(string $uuid, ?IUser $user = null): void {
 		$this->validateHelper->validateRenewSigner($uuid, $user);
 	}
 
