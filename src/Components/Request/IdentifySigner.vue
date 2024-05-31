@@ -214,6 +214,10 @@ export default {
 	width: 96%;
 	margin: 0 auto;
 
+	#account-or-email {
+		width: 100%;
+	}
+
 	&__footer {
 		width: 100%;
 		display: flex;
