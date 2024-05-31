@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
 use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
 use Libresign\NextcloudBehat\NextcloudApiContext;
