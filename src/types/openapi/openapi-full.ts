@@ -325,6 +325,16 @@ export type components = {
       name?: string;
       type?: string;
     };
+    CertificatePfxData: {
+      name: string;
+      subject: string;
+      issuer: string;
+      extensions: string;
+      validate: {
+        from: string;
+        to: string;
+      };
+    };
     ConfigureCheck: {
       /** @enum {string} */
       status: "error" | "success";
@@ -1097,7 +1107,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: components["schemas"]["CertificatePfxData"];
             };
           };
         };
@@ -1138,7 +1148,7 @@ export type operations = {
     };
     responses: {
       /** @description Settings saved */
-      202: {
+      200: {
         content: {
           "application/json": {
             ocs: {
@@ -1357,7 +1367,9 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                messages: Record<string, never>;
+                messages: {
+                  ""?: string;
+                };
               };
             };
           };

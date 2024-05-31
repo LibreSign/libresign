@@ -63,6 +63,16 @@ namespace OCA\Libresign;
  *     last: ?string,
  *     first: ?string,
  * }
+ * @psalm-type LibresignCertificatePfxData = array{
+ *     name: string,
+ *     subject: string,
+ *     issuer: string,
+ *     extensions: string,
+ *     validate: array{
+ *         from: string,
+ *         to: string,
+ *     },
+ * }
  * @psalm-type LibresignRootCertificateName = array{
  *     id: string,
  *     value: string,
