@@ -6,7 +6,11 @@
 
 export type paths = {
   "/index.php/apps/libresign/develop/pdf": {
-    /** Get a demo PDF file to be used by test purpose */
+    /**
+     * Get a demo PDF file to be used by test purpose
+     * @description To use this endpoint is necessary to enable the debug mode in your instance. To do this, run the command:
+     * `occ config:system:set debug --value true --type boolean`
+     */
     get: operations["develop-pdf"];
   };
   "/index.php/apps/libresign": {
@@ -479,7 +483,11 @@ export type external = Record<string, never>;
 
 export type operations = {
 
-  /** Get a demo PDF file to be used by test purpose */
+  /**
+   * Get a demo PDF file to be used by test purpose
+   * @description To use this endpoint is necessary to enable the debug mode in your instance. To do this, run the command:
+   * `occ config:system:set debug --value true --type boolean`
+   */
   "develop-pdf": {
     responses: {
       /** @description PDF returned */
