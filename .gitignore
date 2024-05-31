@@ -12,3 +12,4 @@ node_modules/
 .phpunit.result.cache
 *.phar
 /src/__test__/coverage
+/appinfo/install-signature.json
