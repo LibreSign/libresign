@@ -265,7 +265,7 @@ class InstallService {
 		return $return;
 	}
 
-	public function saveErrorMessage(string $message) {
+	public function saveErrorMessage(string $message): void {
 		$data = $this->getProressData();
 		$data['error'] = $message;
 		$this->setCache($this->resource, $data);
