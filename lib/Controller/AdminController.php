@@ -47,7 +47,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * @param array{commonName: string, names: array<string, array{value:string}>} $rootCert fields of root certificate
 	 * @param string $cfsslUri URI of CFSSL API
 	 * @param string $configPath Path of config files of CFSSL
-	 * @return DataResponse<Http::STATUS_OK, array{configPath: string, rootCert: LibresignRootCertificate}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{data: array{configPath: string, rootCert: LibresignRootCertificate, cfsslUri?: string}}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 401: Account not found
@@ -70,7 +70,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * @param array{commonName: string, names: array<string, array{value:string}>} $rootCert fields of root certificate
 	 * @param string $configPath Path of config files of CFSSL
-	 * @return DataResponse<Http::STATUS_OK, array{configPath: string, rootCert: LibresignRootCertificate}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{data: array{configPath: string, rootCert: LibresignRootCertificate, cfsslUri?: string}}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 401: Account not found
@@ -86,6 +86,9 @@ class AdminController extends AEnvironmentAwareController {
 		]);
 	}
 
+	/**
+	 * @return DataResponse<Http::STATUS_OK, array{data: array{configPath: string, rootCert: LibresignRootCertificate, cfsslUri?: string}}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 */
 	private function generateCertificate(
 		array $rootCert,
 		array $properties = [],
@@ -97,7 +100,7 @@ class AdminController extends AEnvironmentAwareController {
 			}
 			$this->installService->generate(
 				$this->trimAndThrowIfEmpty('commonName', $rootCert['commonName']),
-				$names ?? [],
+				$names,
 				$properties,
 			);
 
@@ -184,7 +187,7 @@ class AdminController extends AEnvironmentAwareController {
 				}
 				usleep(200000); // 0.2 seconds
 				$seconds += 0.2;
-				if ($seconds === 5) {
+				if ($seconds === 5.0) {
 					$this->eventSource->send('configure_check', $this->configureCheckService->checkAll());
 					$seconds = 0;
 				}
