@@ -1549,31 +1549,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: {
-                file: string;
-                name: string;
-                url?: string;
-                /** Format: int64 */
-                nodeId: number;
-                request_date: string;
-                requested_by: {
-                  uid: string;
-                  displayName: string;
-                };
-                /** Format: int64 */
-                status: number;
-                statusText: string;
-                uuid: string;
-                signers: components["schemas"]["Signer"][];
-                /** Format: int64 */
-                action?: number;
-                errors?: string[];
-                settings: components["schemas"]["Settings"];
-                messages?: {
-                    type: string;
-                    message: string;
-                  }[];
-              };
+              data: components["schemas"]["File"];
             };
           };
         };
@@ -1623,31 +1599,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: {
-                file: string;
-                name: string;
-                url?: string;
-                /** Format: int64 */
-                nodeId: number;
-                request_date: string;
-                requested_by: {
-                  uid: string;
-                  displayName: string;
-                };
-                /** Format: int64 */
-                status: number;
-                statusText: string;
-                uuid: string;
-                signers: components["schemas"]["Signer"][];
-                /** Format: int64 */
-                action?: number;
-                errors?: string[];
-                settings: components["schemas"]["Settings"];
-                messages?: {
-                    type: string;
-                    message: string;
-                  }[];
-              };
+              data: components["schemas"]["File"];
             };
           };
         };
@@ -1697,31 +1649,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: {
-                file: string;
-                name: string;
-                url?: string;
-                /** Format: int64 */
-                nodeId: number;
-                request_date: string;
-                requested_by: {
-                  uid: string;
-                  displayName: string;
-                };
-                /** Format: int64 */
-                status: number;
-                statusText: string;
-                uuid: string;
-                signers: components["schemas"]["Signer"][];
-                /** Format: int64 */
-                action?: number;
-                errors?: string[];
-                settings: components["schemas"]["Settings"];
-                messages?: {
-                    type: string;
-                    message: string;
-                  }[];
-              };
+              data: components["schemas"]["File"];
             };
           };
         };
