@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <files psalm-version="5.24.0@462c80e31c34e58cc4f750c656be3927e80e550e">
   <file src="lib/AppInfo/Application.php">
-    <UndefinedClass>
-      <code><![CDATA[LoadSidebar]]></code>
-    </UndefinedClass>
+    <InvalidArgument>
+      <code><![CDATA[LoadSidebarListener::class]]></code>
+      <code><![CDATA[registerEventListener]]></code>
+    </InvalidArgument>
   </file>
   <file src="lib/Command/Configure/Cfssl.php">
     <MissingDependency>
@@ -26,12 +27,12 @@
     </MissingDependency>
   </file>
   <file src="lib/Controller/FileController.php">
-    <UndefinedClass occurrences="1">
-      <code>SharedStorage</code>
+    <UndefinedClass>
+      <code><![CDATA[SharedStorage]]></code>
     </UndefinedClass>
-    <UndefinedDocblockClass occurrences="2">
-      <code>$share</code>
-      <code>$storage</code>
+    <UndefinedDocblockClass>
+      <code><![CDATA[$share]]></code>
+      <code><![CDATA[$storage]]></code>
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Controller/PageController.php">
@@ -39,10 +40,36 @@
       <code><![CDATA[throw new NotLoggedInException();]]></code>
     </InvalidThrow>
   </file>
+  <file src="lib/Controller/RequestSignatureController.php">
+    <InvalidReturnStatement>
+      <code><![CDATA[new DataResponse(
+				[
+					'message' => $this->l10n->t('Success'),
+					'data' => $return
+				],
+				Http::STATUS_OK
+			)]]></code>
+    </InvalidReturnStatement>
+    <InvalidReturnType>
+      <code><![CDATA[DataResponse<Http::STATUS_OK, array{message: string, data: LibresignSigner}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string}, array{}>]]></code>
+    </InvalidReturnType>
+  </file>
   <file src="lib/Db/PagerFantaQueryAdapter.php">
     <InvalidArgument>
       <code><![CDATA[$qb]]></code>
     </InvalidArgument>
+    <LessSpecificReturnStatement>
+      <code><![CDATA[(int) $qb->executeQuery()->fetchOne()]]></code>
+    </LessSpecificReturnStatement>
+    <MissingTemplateParam>
+      <code><![CDATA[AdapterInterface]]></code>
+    </MissingTemplateParam>
+    <MoreSpecificReturnType>
+      <code><![CDATA[int]]></code>
+    </MoreSpecificReturnType>
+    <UndefinedClass>
+      <code><![CDATA[QueryBuilder]]></code>
+    </UndefinedClass>
     <UndefinedDocblockClass>
       <code><![CDATA[callable(QueryBuilder): void]]></code>
       <code><![CDATA[callable(QueryBuilder): void]]></code>
@@ -57,10 +84,9 @@
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Files/TemplateLoader.php">
-    <UndefinedClass>
-      <code><![CDATA[LoadSidebar]]></code>
-      <code><![CDATA[LoadSidebar]]></code>
-    </UndefinedClass>
+    <InvalidArgument>
+      <code><![CDATA[addServiceListener]]></code>
+    </InvalidArgument>
   </file>
   <file src="lib/Handler/CertificateEngine/AEngineHandler.php">
     <ForbiddenCode>
@@ -78,10 +104,21 @@
       <code><![CDATA[shell_exec($cmd)]]></code>
     </ForbiddenCode>
   </file>
+  <file src="lib/Helper/Pagination.php">
+    <MissingTemplateParam>
+      <code><![CDATA[Pagination]]></code>
+    </MissingTemplateParam>
+  </file>
   <file src="lib/Listener/LoadSidebarListener.php">
-    <UndefinedClass>
-      <code><![CDATA[LoadSidebar]]></code>
-    </UndefinedClass>
+    <InvalidTemplateParam>
+      <code><![CDATA[IEventListener]]></code>
+    </InvalidTemplateParam>
+    <MoreSpecificImplementedParamType>
+      <code><![CDATA[$event]]></code>
+    </MoreSpecificImplementedParamType>
+    <UndefinedDocblockClass>
+      <code><![CDATA[LoadSidebarListener]]></code>
+    </UndefinedDocblockClass>
   </file>
   <file src="lib/Middleware/GlobalInjectionMiddleware.php">
     <UndefinedClass>
@@ -103,6 +140,9 @@
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Service/AccountService.php">
+    <TooManyArguments>
+      <code><![CDATA[delete]]></code>
+    </TooManyArguments>
     <UndefinedClass>
       <code><![CDATA[$this->newUserMail]]></code>
       <code><![CDATA[$this->newUserMail]]></code>
