@@ -42,6 +42,7 @@ class SignFiles {
 		'cfssl_config',
 		'unauthetnicated',
 	];
+	private string $architecture;
 	public function __construct(
 		private FileAccessHelper $fileAccessHelper,
 		private IConfig $config,
@@ -72,6 +73,7 @@ class SignFiles {
 		RSA $privateKey,
 		string $architecture,
 	) {
+		$this->architecture = $architecture;
 		$appInfoDir = __DIR__ . '/../../../appinfo';
 		try {
 			$this->fileAccessHelper->assertDirectoryExists($appInfoDir);
@@ -80,7 +82,7 @@ class SignFiles {
 			$hashes = $this->generateHashes($iterator);
 			$signature = $this->createSignatureData($hashes, $certificate, $privateKey);
 			$this->fileAccessHelper->file_put_contents(
-				$appInfoDir . '/install-' . $architecture . '.json',
+				$appInfoDir . '/install-' . $this->architecture . '.json',
 				json_encode($signature, JSON_PRETTY_PRINT)
 			);
 		} catch (\Exception $e) {
@@ -110,7 +112,7 @@ class SignFiles {
 
 	private function getInstallPath(): string {
 		$folder = $this->getDataDir() . '/' .
-			$this->getInternalPathOfFolder($this->appData->getFolder('/'));
+			$this->getInternalPathOfFolder($this->appData->getFolder($this->architecture));
 		return $folder;
 	}
 
