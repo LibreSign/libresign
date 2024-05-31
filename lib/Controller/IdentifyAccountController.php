@@ -121,7 +121,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 		foreach ($list as $key => $item) {
 			$list[$key] = [
 				'id' => $item['value']['shareWith'],
-				'isNoUser' => $item['value']['shareType'] !== IShare::TYPE_USER ?? false,
+				'isNoUser' => $item['value']['shareType'] !== IShare::TYPE_USER,
 				'displayName' => $item['label'],
 				'subname' => $item['shareWithDisplayNameUnique'] ?? '',
 				'shareType' => $item['value']['shareType'],
