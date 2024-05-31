@@ -75,6 +75,7 @@ class InstallService {
 		'pdftk',
 		'cfssl'
 	];
+	private string $architecture;
 
 	public function __construct(
 		ICacheFactory $cacheFactory,
@@ -88,6 +89,7 @@ class InstallService {
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign-setup');
 		$this->appData = $appDataFactory->get('libresign');
+		$this->architecture = php_uname('m');
 	}
 
 	public function setOutput(OutputInterface $output): void {
@@ -345,11 +347,10 @@ class InstallService {
 		 */
 		if (PHP_OS_FAMILY === 'Linux') {
 			$linuxDistribution = $this->getLinuxDistributionToDownloadJava();
-			$architecture = php_uname('m');
-			if ($architecture === 'x86_64') {
+			if ($this->architecture === 'x86_64') {
 				$compressedFileName = 'OpenJDK21U-jre_x64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
 				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.2+13/' . $compressedFileName;
-			} elseif ($architecture === 'aarch64') {
+			} elseif ($this->architecture === 'aarch64') {
 				$compressedFileName = 'OpenJDK21U-jre_aarch64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
 				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.2+13/' . $compressedFileName;
 			}
@@ -359,7 +360,7 @@ class InstallService {
 		}
 		$folder = $this->getFolder();
 		$checksumUrl = $url . '.sha256.txt';
-		$hash = $this->getHash($folder, 'java_' . $linuxDistribution . '_' . $architecture, $compressedFileName, self::JAVA_PARTIAL_VERSION, $checksumUrl);
+		$hash = $this->getHash($folder, 'java_' . $linuxDistribution . '_' . $this->architecture, $compressedFileName, self::JAVA_PARTIAL_VERSION, $checksumUrl);
 		try {
 			$compressedFile = $javaFolder->getFile($compressedFileName);
 		} catch (NotFoundException $th) {
@@ -515,10 +516,9 @@ class InstallService {
 		if (PHP_OS_FAMILY !== 'Linux') {
 			throw new RuntimeException(sprintf('OS_FAMILY %s is incompatible with LibreSign.', PHP_OS_FAMILY));
 		}
-		$architecture = php_uname('m');
-		if ($architecture === 'x86_64') {
+		if ($this->architecture === 'x86_64') {
 			$this->installCfssl64();
-		} elseif ($architecture === 'aarch64') {
+		} elseif ($this->architecture === 'aarch64') {
 			$this->installCfsslArm();
 		}
 		$this->removeDownloadProgress();
