@@ -135,7 +135,7 @@ class InstallService {
 		return $dataDir;
 	}
 
-	public function getFullPath(): string {
+	private function getFullPath(): string {
 		$folder = $this->getFolder();
 		return $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
 	}
