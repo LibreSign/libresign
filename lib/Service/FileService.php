@@ -49,7 +49,7 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
- * @psalm-import-type LibresignRequestSignature from ResponseDefinitions
+ * @psalm-import-type LibresignValidateFile from ResponseDefinitions
  */
 class FileService {
 	use TFile;
@@ -421,7 +421,7 @@ class FileService {
 	}
 
 	/**
-	 * @return LibresignRequestSignature
+	 * @return LibresignValidateFile
 	 */
 	public function formatFile(): array {
 		$return = $this->getFile();
