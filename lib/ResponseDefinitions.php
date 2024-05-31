@@ -124,6 +124,7 @@ namespace OCA\Libresign;
  *     displayName: string,
  *     request_sign_date: string,
  *     email?: string,
+ *     userId?: string,
  *     signed: ?string,
  *     sign_date?: ?string,
  *     sign_uuid?: string,
@@ -150,7 +151,7 @@ namespace OCA\Libresign;
  *     messages?: array{
  *         type: 'info',
  *         message: string,
- *     },
+ *     }[],
  * }
  * @psalm-type LibresignFile = array{
  *     account: array{
