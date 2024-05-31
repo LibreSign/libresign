@@ -614,6 +614,9 @@
                     "email": {
                         "type": "string"
                     },
+                    "userId": {
+                        "type": "string"
+                    },
                     "signed": {
                         "type": "string",
                         "nullable": true
@@ -769,20 +772,23 @@
                         "$ref": "#/components/schemas/Settings"
                     },
                     "messages": {
-                        "type": "object",
-                        "required": [
-                            "type",
-                            "message"
-                        ],
-                        "properties": {
-                            "type": {
-                                "type": "string",
-                                "enum": [
-                                    "info"
-                                ]
-                            },
-                            "message": {
-                                "type": "string"
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "type",
+                                "message"
+                            ],
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "info"
+                                    ]
+                                },
+                                "message": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }

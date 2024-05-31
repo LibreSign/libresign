@@ -404,6 +404,7 @@ export type components = {
       displayName: string;
       request_sign_date: string;
       email?: string;
+      userId?: string;
       signed: string | null;
       sign_date?: string | null;
       sign_uuid?: string;
@@ -451,10 +452,10 @@ export type components = {
       signers?: components["schemas"]["Signer"][];
       settings?: components["schemas"]["Settings"];
       messages?: {
-        /** @enum {string} */
-        type: "info";
-        message: string;
-      };
+          /** @enum {string} */
+          type: "info";
+          message: string;
+        }[];
     };
     VisibleElement: {
       /** Format: int64 */

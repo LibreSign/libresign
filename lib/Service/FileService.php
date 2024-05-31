@@ -206,7 +206,7 @@ class FileService {
 					$signatureToShow['email'] = $email;
 					$user = $this->userManager->getByEmail($email);
 					if ($user && count($user) === 1) {
-						$signatureToShow['uid'] = $user[0]->getUID();
+						$signatureToShow['userId'] = $user[0]->getUID();
 					}
 				}
 				// Identify if I'm signer
