@@ -32,6 +32,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslServerHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
+use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\Install\InstallService;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
@@ -45,6 +46,7 @@ use OCP\ITempManager;
  * @package OCA\Libresign\Handler
  *
  * @method CfsslHandler setClient(Client $client)
+ * @psalm-import-type LibresignRootCertificate from ResponseDefinitions
  */
 class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	public const CFSSL_URI = 'http://127.0.0.1:8888/api/v1/cfssl/';
@@ -137,6 +139,9 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		);
 	}
 
+	/**
+	 * @return array{configPath: string, rootCert: LibresignRootCertificate, generated: boolean}, array{}
+	 */
 	public function toArray(): array {
 		$return = parent::toArray();
 		if (!empty($return['configPath'])) {

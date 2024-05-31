@@ -133,8 +133,11 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                configPath: string;
-                rootCert: components["schemas"]["RootCertificate"];
+                data: {
+                  configPath: string;
+                  rootCert: components["schemas"]["RootCertificate"];
+                  cfsslUri?: string;
+                };
               };
             };
           };
@@ -197,8 +200,11 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                configPath: string;
-                rootCert: components["schemas"]["RootCertificate"];
+                data: {
+                  configPath: string;
+                  rootCert: components["schemas"]["RootCertificate"];
+                  cfsslUri?: string;
+                };
               };
             };
           };
