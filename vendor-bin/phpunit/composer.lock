@@ -91,21 +91,25 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-webrequest.git",
-                "reference": "11b5b8389ce198306b9a42e3b0adb16177a8c507"
+                "reference": "7d2670ef2f438249772d68b8defb160caf391ec5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-webrequest/zipball/11b5b8389ce198306b9a42e3b0adb16177a8c507",
-                "reference": "11b5b8389ce198306b9a42e3b0adb16177a8c507",
+                "url": "https://api.github.com/repos/byjg/php-webrequest/zipball/7d2670ef2f438249772d68b8defb160caf391ec5",
+                "reference": "7d2670ef2f438249772d68b8defb160caf391ec5",
                 "shasum": ""
             },
             "require": {
-                "byjg/uri": "4.9.x-dev",
+                "byjg/uri": "4.9.*",
                 "ext-curl": "*",
                 "ext-json": "*",
                 "php": ">=7.4",
                 "psr/http-client": "^1.0",
                 "psr/http-message": "^1.0|^2.0"
+            },
+            "provide": {
+                "psr/http-client-implementation": "1.0",
+                "psr/http-message-implementation": "1.0"
             },
             "require-dev": {
                 "phpunit/phpunit": "^9.5"
@@ -125,7 +129,7 @@
                 "issues": "https://github.com/byjg/php-webrequest/issues",
                 "source": "https://github.com/byjg/php-webrequest/tree/4.9"
             },
-            "time": "2024-05-09T18:56:02+00:00"
+            "time": "2024-05-30T16:58:17+00:00"
         },
         {
             "name": "doctrine/instantiator",
@@ -509,12 +513,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "c5ee33df86c06b3278c670f64273b1ba768a0744"
+                "reference": "d327cf2acf22ad3d1fac5a382b7420bb6fd73bb8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/c5ee33df86c06b3278c670f64273b1ba768a0744",
-                "reference": "c5ee33df86c06b3278c670f64273b1ba768a0744",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/d327cf2acf22ad3d1fac5a382b7420bb6fd73bb8",
+                "reference": "d327cf2acf22ad3d1fac5a382b7420bb6fd73bb8",
                 "shasum": ""
             },
             "require": {
@@ -560,7 +564,7 @@
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
                 "source": "https://github.com/nikic/PHP-Parser/tree/master"
             },
-            "time": "2024-04-19T12:04:10+00:00"
+            "time": "2024-05-21T16:12:19+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -1006,12 +1010,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "bbcbb0823b0e06be56e6b180faa0df1f3b3e2733"
+                "reference": "0826901219afd2970f0ec8b7a5bce8f0e3000efc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/bbcbb0823b0e06be56e6b180faa0df1f3b3e2733",
-                "reference": "bbcbb0823b0e06be56e6b180faa0df1f3b3e2733",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/0826901219afd2970f0ec8b7a5bce8f0e3000efc",
+                "reference": "0826901219afd2970f0ec8b7a5bce8f0e3000efc",
                 "shasum": ""
             },
             "require": {
@@ -1101,7 +1105,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-04-30T05:22:06+00:00"
+            "time": "2024-05-16T09:07:01+00:00"
         },
         {
             "name": "psr/http-client",
@@ -2279,12 +2283,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/smalot/pdfparser.git",
-                "reference": "14adf318f8620a6195c0b00d51c6a507837b9ff4"
+                "reference": "4b86c6636d086ca7ea4780c07c2d7390321982b5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smalot/pdfparser/zipball/14adf318f8620a6195c0b00d51c6a507837b9ff4",
-                "reference": "14adf318f8620a6195c0b00d51c6a507837b9ff4",
+                "url": "https://api.github.com/repos/smalot/pdfparser/zipball/4b86c6636d086ca7ea4780c07c2d7390321982b5",
+                "reference": "4b86c6636d086ca7ea4780c07c2d7390321982b5",
                 "shasum": ""
             },
             "require": {
@@ -2321,9 +2325,9 @@
             ],
             "support": {
                 "issues": "https://github.com/smalot/pdfparser/issues",
-                "source": "https://github.com/smalot/pdfparser/tree/v2.10.0"
+                "source": "https://github.com/smalot/pdfparser/tree/master"
             },
-            "time": "2024-04-29T06:36:50+00:00"
+            "time": "2024-05-20T06:14:59+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
