@@ -125,25 +125,6 @@
       <code><![CDATA[UUIDUtil]]></code>
       <code><![CDATA[private]]></code>
     </UndefinedClass>
-    <UndefinedDocblockClass occurrences="1">
-      <code>\OCA\Files\Node\File</code>
-    </UndefinedDocblockClass>
-  </file>
-  <file src="lib/Service/FileService.php">
-    <UndefinedInterfaceMethod occurrences="1">
-      <code>getContent</code>
-    </UndefinedInterfaceMethod>
-  </file>
-  <file src="lib/Service/IdentifyMethod/AbstractIdentifyMethod.php">
-    <InaccessibleProperty occurrences="2">
-      <code>$this-&gt;appConfig</code>
-      <code>$this-&gt;appConfig</code>
-    </InaccessibleProperty>
-  </file>
-  <file src="lib/Service/IdentifyMethod/SignatureMethod/EmailToken.php">
-    <InvalidArgument occurrences="1">
-      <code>$config</code>
-    </InvalidArgument>
   </file>
   <file src="lib/Service/RequestSignatureService.php">
     <UndefinedClass>
