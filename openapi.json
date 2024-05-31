@@ -2648,9 +2648,7 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {
-                                                    "type": "object"
-                                                }
+                                                "data": {}
                                             }
                                         }
                                     }
@@ -2685,14 +2683,9 @@
                                                     ],
                                                     "properties": {
                                                         "messages": {
-                                                            "type": "object",
-                                                            "required": [
-                                                                null
-                                                            ],
-                                                            "properties": {
-                                                                "": {
-                                                                    "type": "string"
-                                                                }
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
                                                             }
                                                         }
                                                     }

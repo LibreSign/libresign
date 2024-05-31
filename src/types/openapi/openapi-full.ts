@@ -335,11 +335,14 @@ export type components = {
         to: string;
       };
     };
+    CetificateDataGenerated: components["schemas"]["EngineHandler"] & {
+      generated: boolean;
+    };
     ConfigureCheck: {
-      /** @enum {string} */
-      status: "error" | "success";
       message: string;
       resource: string;
+      /** @enum {string} */
+      status: "error" | "success";
       tip: string;
     };
     Coordinate: {
@@ -361,6 +364,10 @@ export type components = {
       width?: number;
       /** Format: int64 */
       height?: number;
+    };
+    EngineHandler: {
+      configPath: string;
+      rootCert: components["schemas"]["RootCertificate"];
     };
     File: {
       account: {
@@ -482,8 +489,6 @@ export type components = {
     RootCertificate: {
       commonName: string;
       names: components["schemas"]["RootCertificateName"][];
-      name?: string;
-      type?: string;
     };
     RootCertificateName: {
       id: string;
@@ -1355,7 +1360,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: unknown;
             };
           };
         };
@@ -1367,9 +1372,7 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                messages: {
-                  ""?: string;
-                };
+                messages: string[];
               };
             };
           };
@@ -3069,11 +3072,7 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                data: {
-                  configPath: string;
-                  rootCert: components["schemas"]["RootCertificate"];
-                  cfsslUri?: string;
-                };
+                data: components["schemas"]["EngineHandler"];
               };
             };
           };
@@ -3136,11 +3135,7 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                data: {
-                  configPath: string;
-                  rootCert: components["schemas"]["RootCertificate"];
-                  cfsslUri?: string;
-                };
+                data: components["schemas"]["EngineHandler"];
               };
             };
           };
@@ -3183,11 +3178,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: {
-                configPath: string;
-                rootCert: components["schemas"]["RootCertificate"];
-                generated: boolean;
-              };
+              data: components["schemas"]["CetificateDataGenerated"];
             };
           };
         };

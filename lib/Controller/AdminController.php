@@ -26,6 +26,7 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\CertificateEngine\AEngineHandler;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\ResponseDefinitions;
@@ -40,6 +41,8 @@ use OCP\IL10N;
 use OCP\IRequest;
 
 /**
+ * @psalm-import-type LibresignEngineHandler from ResponseDefinitions
+ * @psalm-import-type LibresignCetificateDataGenerated from ResponseDefinitions
  * @psalm-import-type LibresignConfigureCheck from ResponseDefinitions
  * @psalm-import-type LibresignRootCertificate from ResponseDefinitions
  */
@@ -63,7 +66,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * @param array{commonName: string, names: array<string, array{value:string}>} $rootCert fields of root certificate
 	 * @param string $cfsslUri URI of CFSSL API
 	 * @param string $configPath Path of config files of CFSSL
-	 * @return DataResponse<Http::STATUS_OK, array{data: array{configPath: string, rootCert: LibresignRootCertificate, cfsslUri?: string}}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{data: LibresignEngineHandler}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 401: Account not found
@@ -74,54 +77,14 @@ class AdminController extends AEnvironmentAwareController {
 		string $cfsslUri = '',
 		string $configPath = ''
 	): DataResponse {
-		return $this->generateCertificate($rootCert, [
-			'engine' => 'cfssl',
-			'configPath' => trim($configPath),
-			'cfsslUri' => trim($cfsslUri),
-		]);
-	}
-
-	/**
-	 * Generate certificate using OpenSSL engine
-	 *
-	 * @param array{commonName: string, names: array<string, array{value:string}>} $rootCert fields of root certificate
-	 * @param string $configPath Path of config files of CFSSL
-	 * @return DataResponse<Http::STATUS_OK, array{data: array{configPath: string, rootCert: LibresignRootCertificate, cfsslUri?: string}}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
-	 *
-	 * 200: OK
-	 * 401: Account not found
-	 */
-	#[NoCSRFRequired]
-	public function generateCertificateOpenSsl(
-		array $rootCert,
-		string $configPath = ''
-	): DataResponse {
-		return $this->generateCertificate($rootCert, [
-			'engine' => 'openssl',
-			'configPath' => trim($configPath),
-		]);
-	}
-
-	/**
-	 * @return DataResponse<Http::STATUS_OK, array{data: array{configPath: string, rootCert: LibresignRootCertificate, cfsslUri?: string}}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
-	 */
-	private function generateCertificate(
-		array $rootCert,
-		array $properties = [],
-	): DataResponse {
 		try {
-			$names = [];
-			foreach ($rootCert['names'] as $item) {
-				$names[$item['id']]['value'] = $this->trimAndThrowIfEmpty($item['id'], $item['value']);
-			}
-			$this->installService->generate(
-				$this->trimAndThrowIfEmpty('commonName', $rootCert['commonName']),
-				$names,
-				$properties,
-			);
-
+			$engineHandler = $this->generateCertificate($rootCert, [
+				'engine' => 'cfssl',
+				'configPath' => trim($configPath),
+				'cfsslUri' => trim($cfsslUri),
+			])->toArray();
 			return new DataResponse([
-				'data' => $this->certificateEngineHandler->getEngine()->toArray(),
+				'data' => $engineHandler,
 			]);
 		} catch (\Exception $exception) {
 			return new DataResponse(
@@ -134,17 +97,68 @@ class AdminController extends AEnvironmentAwareController {
 	}
 
 	/**
+	 * Generate certificate using OpenSSL engine
+	 *
+	 * @param array{commonName: string, names: array<string, array{value:string}>} $rootCert fields of root certificate
+	 * @param string $configPath Path of config files of CFSSL
+	 * @return DataResponse<Http::STATUS_OK, array{data: LibresignEngineHandler}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 401: Account not found
+	 */
+	#[NoCSRFRequired]
+	public function generateCertificateOpenSsl(
+		array $rootCert,
+		string $configPath = ''
+	): DataResponse {
+		try {
+			$engineHandler = $this->generateCertificate($rootCert, [
+				'engine' => 'openssl',
+				'configPath' => trim($configPath),
+			])->toArray();
+			return new DataResponse([
+				'data' => $engineHandler,
+			]);
+		} catch (\Exception $exception) {
+			return new DataResponse(
+				[
+					'message' => $exception->getMessage()
+				],
+				Http::STATUS_UNAUTHORIZED
+			);
+		}
+	}
+
+	private function generateCertificate(
+		array $rootCert,
+		array $properties = [],
+	): AEngineHandler {
+		$names = [];
+		foreach ($rootCert['names'] as $item) {
+			$names[$item['id']]['value'] = $this->trimAndThrowIfEmpty($item['id'], $item['value']);
+		}
+		$this->installService->generate(
+			$this->trimAndThrowIfEmpty('commonName', $rootCert['commonName']),
+			$names,
+			$properties,
+		);
+
+		return $this->certificateEngineHandler->getEngine();
+	}
+
+	/**
 	 * Load certificate data
 	 *
 	 * Return all data of root certificate and a field called `generated` with a boolean value.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{configPath: string, rootCert: LibresignRootCertificate, generated: boolean}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignCetificateDataGenerated, array{}>
 	 *
 	 * 200: OK
 	 */
 	#[NoCSRFRequired]
 	public function loadCertificate(): DataResponse {
 		$engine = $this->certificateEngineHandler->getEngine();
+		/** @var LibresignEngineHandler */
 		$certificate = $engine->toArray();
 		$configureResult = $engine->configureCheck();
 		$success = array_filter(
@@ -176,8 +190,10 @@ class AdminController extends AEnvironmentAwareController {
 	 */
 	#[NoCSRFRequired]
 	public function configureCheck(): DataResponse {
+		/** @var LibresignConfigureCheck[] */
+		$configureCheckList = $this->configureCheckService->checkAll();
 		return new DataResponse(
-			$this->configureCheckService->checkAll()
+			$configureCheckList
 		);
 	}
 
