@@ -134,4 +134,24 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 		];
 	}
+
+	/**
+	 * @dataProvider providerGetFolder
+	 */
+	public function testGetFolder(string $path): void {
+		$install = \OCP\Server::get(\OCA\Libresign\Service\Install\InstallService::class);
+
+		$appPath = self::invokePrivate($install, 'getFullPath');
+
+		self::invokePrivate($install, 'getFolder', [$path]);
+
+		$this->assertDirectoryExists($appPath . '/' . $path);
+	}
+
+	public static function providerGetFolder(): array {
+		return [
+			[''],
+			['test'],
+		];
+	}
 }

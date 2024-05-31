@@ -73,29 +73,43 @@ class InstallService {
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign-setup');
 		$this->appData = $appDataFactory->get('libresign');
-		$this->architecture = php_uname('m');
+		$this->setArchitecture(php_uname('m'));
 	}
 
 	public function setOutput(OutputInterface $output): void {
 		$this->output = $output;
 	}
 
-	private function getFolder(string $path = ''): ISimpleFolder {
-		$folder = $this->appData->getFolder('/');
-		if ($path) {
+	public function setArchitecture(string $architecture): void {
+		$this->architecture = $architecture;
+	}
+
+	private function getFolder(string $path = '', ?ISimpleFolder $folder = null): ISimpleFolder {
+		if (!$folder) {
+			$folder = $this->appData->getFolder('/');
+			if (!$path) {
+				$path = $this->architecture;
+			} else {
+				$path = $this->architecture . '/' . $path;
+			}
+			$path = explode('/', $path);
+			foreach ($path as $snippet) {
+				$folder = $this->getFolder($snippet, $folder);
+			}
+			return $folder;
+		}
+		try {
+			$folder = $folder->getFolder($path, $folder);
+		} catch (\Throwable $th) {
 			try {
-				$folder = $folder->getFolder($path);
-			} catch (\Throwable $th) {
-				try {
-					$folder = $folder->newFolder($path);
-				} catch (NotPermittedException $e) {
-					$user = posix_getpwuid(posix_getuid());
-					throw new LibresignException(
-						$e->getMessage() . '. ' .
-						'Permission problems. ' .
-						'Maybe this could fix: chown -R ' . $user['name'] . ' ' . $this->getDataDir()
-					);
-				}
+				$folder = $folder->newFolder($path);
+			} catch (NotPermittedException $e) {
+				$user = posix_getpwuid(posix_getuid());
+				throw new LibresignException(
+					$e->getMessage() . '. ' .
+					'Permission problems. ' .
+					'Maybe this could fix: chown -R ' . $user['name'] . ' ' . $this->getDataDir()
+				);
 			}
 		}
 		return $folder;
@@ -344,7 +358,7 @@ class InstallService {
 		}
 		$folder = $this->getFolder();
 		$checksumUrl = $url . '.sha256.txt';
-		$hash = $this->getHash($folder, 'java_' . $linuxDistribution . '_' . $this->architecture, $compressedFileName, self::JAVA_PARTIAL_VERSION, $checksumUrl);
+		$hash = $this->getHash($folder, 'java_' . $linuxDistribution, $compressedFileName, self::JAVA_PARTIAL_VERSION, $checksumUrl);
 		try {
 			$compressedFile = $javaFolder->getFile($compressedFileName);
 		} catch (NotFoundException $th) {
