@@ -139,7 +139,7 @@ namespace OCA\Libresign;
  *     nodeId: non-negative-int,
  *     request_date: string,
  *     requested_by: array{
- *         uid: string,
+ *         userId: string,
  *         displayName: string,
  *     },
  *     file: string,
@@ -153,7 +153,7 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignFile = array{
  *     account: array{
- *         uid: string,
+ *         userId: string,
  *         displayName: string,
  *     },
  *     file_type: array{
