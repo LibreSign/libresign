@@ -283,6 +283,16 @@ export type webhooks = Record<string, never>;
 
 export type components = {
   schemas: {
+    CertificatePfxData: {
+      name: string;
+      subject: string;
+      issuer: string;
+      extensions: string;
+      validate: {
+        from: string;
+        to: string;
+      };
+    };
     Coordinate: {
       /** Format: int64 */
       page: number;
@@ -1018,7 +1028,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: components["schemas"]["CertificatePfxData"];
             };
           };
         };
@@ -1059,7 +1069,7 @@ export type operations = {
     };
     responses: {
       /** @description Settings saved */
-      202: {
+      200: {
         content: {
           "application/json": {
             ocs: {
@@ -1278,7 +1288,9 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                messages: Record<string, never>;
+                messages: {
+                  ""?: string;
+                };
               };
             };
           };
