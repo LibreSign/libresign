@@ -1741,7 +1741,7 @@ export type operations = {
            * @description Coortinates of a visible element on PDF
            * @default []
            */
-          coordinates?: components["schemas"]["Coordinate"];
+          coordinates?: components["schemas"]["Coordinate"] | Record<string, never>;
         };
       };
     };
@@ -1860,7 +1860,7 @@ export type operations = {
            * @description Coortinates of a visible element on PDF
            * @default []
            */
-          coordinates?: components["schemas"]["Coordinate"];
+          coordinates?: components["schemas"]["Coordinate"] | Record<string, never>;
         };
       };
     };
@@ -1871,7 +1871,10 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: unknown;
+              data: {
+                /** Format: int64 */
+                fileElementId: number;
+              };
             };
           };
         };

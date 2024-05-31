@@ -4316,9 +4316,16 @@
                                         "description": "Metadata of visible elements to associate with the document"
                                     },
                                     "coordinates": {
-                                        "$ref": "#/components/schemas/Coordinate",
                                         "default": [],
-                                        "description": "Coortinates of a visible element on PDF"
+                                        "description": "Coortinates of a visible element on PDF",
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/components/schemas/Coordinate"
+                                            },
+                                            {
+                                                "type": "object"
+                                            }
+                                        ]
                                     }
                                 }
                             }
@@ -4484,9 +4491,16 @@
                                         "description": "Metadata of visible elements to associate with the document"
                                     },
                                     "coordinates": {
-                                        "$ref": "#/components/schemas/Coordinate",
                                         "default": [],
-                                        "description": "Coortinates of a visible element on PDF"
+                                        "description": "Coortinates of a visible element on PDF",
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/components/schemas/Coordinate"
+                                            },
+                                            {
+                                                "type": "object"
+                                            }
+                                        ]
                                     }
                                 }
                             }
@@ -4558,7 +4572,18 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {}
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "fileElementId"
+                                                    ],
+                                                    "properties": {
+                                                        "fileElementId": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }

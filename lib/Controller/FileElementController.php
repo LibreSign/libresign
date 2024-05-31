@@ -44,7 +44,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 * @param integer|null $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
 	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
 	 * @param array{} $metadata Metadata of visible elements to associate with the document
-	 * @param LibresignCoordinate $coordinates Coortinates of a visible element on PDF
+	 * @param LibresignCoordinate|array{} $coordinates Coortinates of a visible element on PDF
 	 * @return DataResponse<Http::STATUS_OK, array{fileElementId: integer}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: string[]}, array{}>
 	 *
 	 * 200: OK
@@ -68,18 +68,19 @@ class FileElementController extends AEnvironmentAwareController {
 				'userManager' => $this->userSession->getUser()
 			]);
 			$fileElement = $this->fileElementService->saveVisibleElement($visibleElement, $uuid);
-			$return = [
-				'fileElementId' => $fileElement->getId(),
-			];
 			$statusCode = Http::STATUS_OK;
+			return new DataResponse([
+				'fileElementId' => $fileElement->getId(),
+			]);
 		} catch (\Throwable $th) {
 			$this->logger->error($th->getMessage());
-			$return = [
-				'errors' => [$th->getMessage()]
-			];
-			$statusCode = $th->getCode() > 0 ? $th->getCode() : Http::STATUS_NOT_FOUND;
+			return new DataResponse(
+				[
+					'errors' => [$th->getMessage()]
+				],
+				Http::STATUS_NOT_FOUND
+			);
 		}
-		return new DataResponse($return, $statusCode);
 	}
 
 	/**
@@ -92,8 +93,8 @@ class FileElementController extends AEnvironmentAwareController {
 	 * @param integer|null $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
 	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
 	 * @param array{} $metadata Metadata of visible elements to associate with the document
-	 * @param LibresignCoordinate $coordinates Coortinates of a visible element on PDF
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: string[]}, array{}>
+	 * @param LibresignCoordinate|array{} $coordinates Coortinates of a visible element on PDF
+	 * @return DataResponse<Http::STATUS_OK, array{fileElementId: integer}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: string[]}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Failure when patch visible element
@@ -126,15 +127,15 @@ class FileElementController extends AEnvironmentAwareController {
 			]);
 			$this->validateHelper->validateAuthenticatedUserIsOwnerOfPdfVisibleElement($elementId, $this->userSession->getUser()->getUID());
 			$this->fileElementService->deleteVisibleElement($elementId);
-			$return = [];
-			$statusCode = Http::STATUS_OK;
+			return new DataResponse();
 		} catch (\Throwable $th) {
 			$this->logger->error($th->getMessage());
-			$return = [
-				'errors' => [$th->getMessage()]
-			];
-			$statusCode = $th->getCode() > 0 ? $th->getCode() : Http::STATUS_NOT_FOUND;
+			return new DataResponse(
+				[
+					'errors' => [$th->getMessage()]
+				],
+				Http::STATUS_NOT_FOUND
+			);
 		}
-		return new DataResponse($return, $statusCode);
 	}
 }
