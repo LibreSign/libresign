@@ -108,7 +108,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param LibresignVisibleElement[]|null $visibleElements Visible elements on document
 	 * @param LibresignNewFile|array<empty>|null $file File object.
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
-	 * @return DataResponse<Http::STATUS_OK, array{message: string, data: LibresignSigner}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{message: string, data: LibresignValidateFile}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Unauthorized

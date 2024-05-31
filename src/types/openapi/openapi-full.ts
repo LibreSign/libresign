@@ -487,6 +487,7 @@ export type components = {
       description: string | null;
       displayName: string;
       request_sign_date: string;
+      email?: string;
       signed: string | null;
       sign_date?: string | null;
       sign_uuid?: string;
@@ -1812,7 +1813,7 @@ export type operations = {
            * @description Coortinates of a visible element on PDF
            * @default []
            */
-          coordinates?: components["schemas"]["Coordinate"] | Record<string, never>;
+          coordinates?: components["schemas"]["Coordinate"];
         };
       };
     };
@@ -1931,7 +1932,7 @@ export type operations = {
            * @description Coortinates of a visible element on PDF
            * @default []
            */
-          coordinates?: components["schemas"]["Coordinate"] | Record<string, never>;
+          coordinates?: components["schemas"]["Coordinate"];
         };
       };
     };
@@ -2273,7 +2274,7 @@ export type operations = {
               meta: components["schemas"]["OCSMeta"];
               data: {
                 message: string;
-                data: components["schemas"]["Signer"];
+                data: components["schemas"]["ValidateFile"];
               };
             };
           };
