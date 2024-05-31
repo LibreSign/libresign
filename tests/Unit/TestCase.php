@@ -169,7 +169,7 @@ class TestCase extends \Test\TestCase {
 	private function getBinariesFromCache(): void {
 		/** @var \OCA\Libresign\Service\Install\InstallService */
 		$install = \OCP\Server::get(\OCA\Libresign\Service\Install\InstallService::class);
-		$appPath = $install->getFullPath();
+		$appPath = self::invokePrivate($install, 'getFullPath');
 		$cachePath = preg_replace('/\/.*\/appdata_[a-z0-9]*/', \OC::$server->getTempManager()->getTempBaseDir(), $appPath);
 		if (!file_exists($cachePath)) {
 			return;
@@ -183,7 +183,7 @@ class TestCase extends \Test\TestCase {
 	private function backupBinaries(): void {
 		/** @var \OCA\Libresign\Service\Install\InstallService */
 		$install = \OCP\Server::get(\OCA\Libresign\Service\Install\InstallService::class);
-		$appPath = $install->getFullPath();
+		$appPath = self::invokePrivate($install, 'getFullPath');
 		if (!is_readable($appPath)) {
 			return;
 		}
