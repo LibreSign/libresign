@@ -7764,15 +7764,26 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
-                                                        "configPath",
-                                                        "rootCert"
+                                                        "data"
                                                     ],
                                                     "properties": {
-                                                        "configPath": {
-                                                            "type": "string"
-                                                        },
-                                                        "rootCert": {
-                                                            "$ref": "#/components/schemas/RootCertificate"
+                                                        "data": {
+                                                            "type": "object",
+                                                            "required": [
+                                                                "configPath",
+                                                                "rootCert"
+                                                            ],
+                                                            "properties": {
+                                                                "configPath": {
+                                                                    "type": "string"
+                                                                },
+                                                                "rootCert": {
+                                                                    "$ref": "#/components/schemas/RootCertificate"
+                                                                },
+                                                                "cfsslUri": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -7935,15 +7946,26 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
-                                                        "configPath",
-                                                        "rootCert"
+                                                        "data"
                                                     ],
                                                     "properties": {
-                                                        "configPath": {
-                                                            "type": "string"
-                                                        },
-                                                        "rootCert": {
-                                                            "$ref": "#/components/schemas/RootCertificate"
+                                                        "data": {
+                                                            "type": "object",
+                                                            "required": [
+                                                                "configPath",
+                                                                "rootCert"
+                                                            ],
+                                                            "properties": {
+                                                                "configPath": {
+                                                                    "type": "string"
+                                                                },
+                                                                "rootCert": {
+                                                                    "$ref": "#/components/schemas/RootCertificate"
+                                                                },
+                                                                "cfsslUri": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }
