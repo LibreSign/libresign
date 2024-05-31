@@ -83,12 +83,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/vitormattos/openapi-extractor.git",
-                "reference": "de770b2b4e8220f4a752f8ab31528352ecd48b67"
+                "reference": "deb5c884c4d2979292428c533cdcde5c46677c54"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vitormattos/openapi-extractor/zipball/de770b2b4e8220f4a752f8ab31528352ecd48b67",
-                "reference": "de770b2b4e8220f4a752f8ab31528352ecd48b67",
+                "url": "https://api.github.com/repos/vitormattos/openapi-extractor/zipball/deb5c884c4d2979292428c533cdcde5c46677c54",
+                "reference": "deb5c884c4d2979292428c533cdcde5c46677c54",
                 "shasum": ""
             },
             "require": {
@@ -128,7 +128,7 @@
             "support": {
                 "source": "https://github.com/vitormattos/openapi-extractor/tree/develop"
             },
-            "time": "2024-05-16T16:37:15+00:00"
+            "time": "2024-05-31T06:56:46+00:00"
         },
         {
             "name": "nikic/php-parser",

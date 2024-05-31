@@ -202,7 +202,7 @@ class FileController extends AEnvironmentAwareController {
 	/**
 	 * List account files that need to be approved
 	 *
-	 * @param array{signer_uuid?: string, nodeId?: string} $filter Filter params
+	 * @param array{signer_uuid?: string, nodeId?: string}|null $filter Filter params
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
 	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>
