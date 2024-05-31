@@ -289,7 +289,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	/**
 	 * List account files of authenticated account
 	 *
-	 * @param array{approved?: string} $filter Filter params
+	 * @param array{approved?: 'yes'}|null $filter Filter params
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
 	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: LibresignFile[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
@@ -317,7 +317,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	/**
 	 * List account files that need to be approved
 	 *
-	 * @param array{approved?: 'yes'} $filter Filter params
+	 * @param array{approved?: 'yes'}|null $filter Filter params
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
 	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
