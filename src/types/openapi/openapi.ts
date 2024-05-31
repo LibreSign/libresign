@@ -295,7 +295,7 @@ export type components = {
     };
     Coordinate: {
       /** Format: int64 */
-      page: number;
+      page?: number;
       /** Format: int64 */
       urx?: number;
       /** Format: int64 */

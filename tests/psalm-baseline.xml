@@ -48,20 +48,6 @@
       <code><![CDATA[throw new NotLoggedInException();]]></code>
     </InvalidThrow>
   </file>
-  <file src="lib/Controller/RequestSignatureController.php">
-    <InvalidReturnStatement>
-      <code><![CDATA[new DataResponse(
-				[
-					'message' => $this->l10n->t('Success'),
-					'data' => $return
-				],
-				Http::STATUS_OK
-			)]]></code>
-    </InvalidReturnStatement>
-    <InvalidReturnType>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, array{message: string, data: LibresignSigner}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string}, array{}>]]></code>
-    </InvalidReturnType>
-  </file>
   <file src="lib/Db/PagerFantaQueryAdapter.php">
     <InvalidArgument>
       <code><![CDATA[$qb]]></code>
@@ -95,22 +81,6 @@
     <InvalidArgument>
       <code><![CDATA[addServiceListener]]></code>
     </InvalidArgument>
-  </file>
-  <file src="lib/Handler/CertificateEngine/AEngineHandler.php">
-    <ForbiddenCode>
-      <code><![CDATA[shell_exec(<<<REPACK_COMMAND
-				cat $tempPassword | openssl pkcs12 -legacy -in $tempEncriptedOriginal -nodes -out $tempDecrypted -passin stdin &&
-				cat $tempPassword | openssl pkcs12 -in $tempDecrypted -export -out $tempEncriptedRepacked -passout stdin
-				REPACK_COMMAND
-			)]]></code>
-    </ForbiddenCode>
-  </file>
-  <file src="lib/Handler/CertificateEngine/CfsslHandler.php">
-    <ForbiddenCode>
-      <code><![CDATA[shell_exec($cmd)]]></code>
-      <code><![CDATA[shell_exec($cmd)]]></code>
-      <code><![CDATA[shell_exec($cmd)]]></code>
-    </ForbiddenCode>
   </file>
   <file src="lib/Helper/Pagination.php">
     <MissingTemplateParam>
@@ -148,9 +118,6 @@
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Service/AccountService.php">
-    <TooManyArguments>
-      <code><![CDATA[delete]]></code>
-    </TooManyArguments>
     <UndefinedClass>
       <code><![CDATA[$this->newUserMail]]></code>
       <code><![CDATA[$this->newUserMail]]></code>
@@ -177,12 +144,6 @@
     <InvalidArgument occurrences="1">
       <code>$config</code>
     </InvalidArgument>
-  </file>
-  <file src="lib/Service/Install/InstallService.php">
-    <ForbiddenCode>
-      <code><![CDATA[shell_exec($cmd)]]></code>
-      <code><![CDATA[shell_exec('cat /etc/*-release')]]></code>
-    </ForbiddenCode>
   </file>
   <file src="lib/Service/RequestSignatureService.php">
     <UndefinedClass>
