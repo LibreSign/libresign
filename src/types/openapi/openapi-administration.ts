@@ -48,12 +48,19 @@ export type webhooks = Record<string, never>;
 
 export type components = {
   schemas: {
+    CetificateDataGenerated: components["schemas"]["EngineHandler"] & {
+      generated: boolean;
+    };
     ConfigureCheck: {
-      /** @enum {string} */
-      status: "error" | "success";
       message: string;
       resource: string;
+      /** @enum {string} */
+      status: "error" | "success";
       tip: string;
+    };
+    EngineHandler: {
+      configPath: string;
+      rootCert: components["schemas"]["RootCertificate"];
     };
     OCSMeta: {
       status: string;
@@ -65,8 +72,6 @@ export type components = {
     RootCertificate: {
       commonName: string;
       names: components["schemas"]["RootCertificateName"][];
-      name?: string;
-      type?: string;
     };
     RootCertificateName: {
       id: string;
@@ -133,11 +138,7 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                data: {
-                  configPath: string;
-                  rootCert: components["schemas"]["RootCertificate"];
-                  cfsslUri?: string;
-                };
+                data: components["schemas"]["EngineHandler"];
               };
             };
           };
@@ -200,11 +201,7 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                data: {
-                  configPath: string;
-                  rootCert: components["schemas"]["RootCertificate"];
-                  cfsslUri?: string;
-                };
+                data: components["schemas"]["EngineHandler"];
               };
             };
           };
@@ -247,11 +244,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: {
-                configPath: string;
-                rootCert: components["schemas"]["RootCertificate"];
-                generated: boolean;
-              };
+              data: components["schemas"]["CetificateDataGenerated"];
             };
           };
         };

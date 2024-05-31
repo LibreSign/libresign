@@ -10,9 +10,9 @@ namespace OCA\Libresign;
 
 /**
  * @psalm-type LibresignConfigureCheck = array{
- *     status: "error"|"success",
  *     message: string,
  *     resource: string,
+ *     status: "error"|"success",
  *     tip: string,
  * }
  * @psalm-type LibresignFolderSettings = array{
@@ -80,8 +80,13 @@ namespace OCA\Libresign;
  * @psalm-type LibresignRootCertificate = array{
  *     commonName: string,
  *     names: LibresignRootCertificateName[],
- *     name?: string,
- *     type?: string,
+ * }
+ * @psalm-type LibresignEngineHandler = array{
+ *     configPath: string,
+ *     rootCert: LibresignRootCertificate,
+ * }
+ * @psalm-type LibresignCetificateDataGenerated = LibresignEngineHandler&array{
+ *     generated: boolean,
  * }
  * @psalm-type LibresignSettings = array{
  *     canSign: bool,

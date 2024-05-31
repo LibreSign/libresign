@@ -20,15 +20,39 @@
             }
         },
         "schemas": {
+            "CetificateDataGenerated": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/EngineHandler"
+                    },
+                    {
+                        "type": "object",
+                        "required": [
+                            "generated"
+                        ],
+                        "properties": {
+                            "generated": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                ]
+            },
             "ConfigureCheck": {
                 "type": "object",
                 "required": [
-                    "status",
                     "message",
                     "resource",
+                    "status",
                     "tip"
                 ],
                 "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "resource": {
+                        "type": "string"
+                    },
                     "status": {
                         "type": "string",
                         "enum": [
@@ -36,14 +60,23 @@
                             "success"
                         ]
                     },
-                    "message": {
-                        "type": "string"
-                    },
-                    "resource": {
-                        "type": "string"
-                    },
                     "tip": {
                         "type": "string"
+                    }
+                }
+            },
+            "EngineHandler": {
+                "type": "object",
+                "required": [
+                    "configPath",
+                    "rootCert"
+                ],
+                "properties": {
+                    "configPath": {
+                        "type": "string"
+                    },
+                    "rootCert": {
+                        "$ref": "#/components/schemas/RootCertificate"
                     }
                 }
             },
@@ -86,12 +119,6 @@
                         "items": {
                             "$ref": "#/components/schemas/RootCertificateName"
                         }
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "type": {
-                        "type": "string"
                     }
                 }
             },
@@ -233,22 +260,7 @@
                                                     ],
                                                     "properties": {
                                                         "data": {
-                                                            "type": "object",
-                                                            "required": [
-                                                                "configPath",
-                                                                "rootCert"
-                                                            ],
-                                                            "properties": {
-                                                                "configPath": {
-                                                                    "type": "string"
-                                                                },
-                                                                "rootCert": {
-                                                                    "$ref": "#/components/schemas/RootCertificate"
-                                                                },
-                                                                "cfsslUri": {
-                                                                    "type": "string"
-                                                                }
-                                                            }
+                                                            "$ref": "#/components/schemas/EngineHandler"
                                                         }
                                                     }
                                                 }
@@ -415,22 +427,7 @@
                                                     ],
                                                     "properties": {
                                                         "data": {
-                                                            "type": "object",
-                                                            "required": [
-                                                                "configPath",
-                                                                "rootCert"
-                                                            ],
-                                                            "properties": {
-                                                                "configPath": {
-                                                                    "type": "string"
-                                                                },
-                                                                "rootCert": {
-                                                                    "$ref": "#/components/schemas/RootCertificate"
-                                                                },
-                                                                "cfsslUri": {
-                                                                    "type": "string"
-                                                                }
-                                                            }
+                                                            "$ref": "#/components/schemas/EngineHandler"
                                                         }
                                                     }
                                                 }
@@ -544,23 +541,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "configPath",
-                                                        "rootCert",
-                                                        "generated"
-                                                    ],
-                                                    "properties": {
-                                                        "configPath": {
-                                                            "type": "string"
-                                                        },
-                                                        "rootCert": {
-                                                            "$ref": "#/components/schemas/RootCertificate"
-                                                        },
-                                                        "generated": {
-                                                            "type": "boolean"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/CetificateDataGenerated"
                                                 }
                                             }
                                         }
