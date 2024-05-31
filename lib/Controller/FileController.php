@@ -44,6 +44,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignNewFile from ResponseDefinitions
  * @psalm-import-type LibresignFolderSettings from ResponseDefinitions
  * @psalm-import-type LibresignNextcloudFile from ResponseDefinitions
+ * @psalm-import-type LibresignPagination from ResponseDefinitions
  * @psalm-import-type LibresignSettings from ResponseDefinitions
  * @psalm-import-type LibresignSigner from ResponseDefinitions
  */
