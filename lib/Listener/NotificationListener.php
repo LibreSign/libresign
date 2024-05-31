@@ -130,7 +130,7 @@ class NotificationListener implements IEventListener {
 
 	protected function getUserParameter(
 		string $userId,
-		$displayName,
+		string $displayName,
 	): array {
 		return [
 			'type' => 'user',
