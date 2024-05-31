@@ -5189,12 +5189,19 @@
                                                 },
                                                 "data": {
                                                     "type": "object",
-                                                    "required": [
-                                                        "message"
-                                                    ],
                                                     "properties": {
                                                         "message": {
                                                             "type": "string"
+                                                        },
+                                                        "action": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        },
+                                                        "errors": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -5368,6 +5375,16 @@
                                                     "properties": {
                                                         "message": {
                                                             "type": "string"
+                                                        },
+                                                        "action": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        },
+                                                        "errors": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
                                                         }
                                                     }
                                                 }
