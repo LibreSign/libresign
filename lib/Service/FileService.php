@@ -365,7 +365,7 @@ class FileService {
 		$return['nodeId'] = $this->file->getNodeId();
 
 		$return['requested_by'] = [
-			'uid' => $this->file->getUserId(),
+			'userId' => $this->file->getUserId(),
 			'displayName' => $this->userManager->get($this->file->getUserId())->getDisplayName(),
 		];
 		$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $this->file->getUuid()]);

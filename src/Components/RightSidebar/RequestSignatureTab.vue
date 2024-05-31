@@ -119,7 +119,7 @@ export default {
 			return this.canRequestSign
 				&& (
 					!Object.hasOwn(this.filesStore.getFile(), 'requested_by')
-					|| this.filesStore.getFile().requested_by.uid === getCurrentUser().uid
+					|| this.filesStore.getFile().requested_by.userId === getCurrentUser().uid
 				)
 				&& !this.filesStore.isPartialSigned()
 				&& !this.filesStore.isFullSigned()
@@ -128,7 +128,7 @@ export default {
 			return this.canRequestSign
 				&& (
 					!Object.hasOwn(this.filesStore.getFile(), 'requested_by')
-					|| this.filesStore.getFile().requested_by.uid === getCurrentUser().uid
+					|| this.filesStore.getFile().requested_by.userId === getCurrentUser().uid
 				)
 				&& !this.filesStore.isPartialSigned()
 				&& !this.filesStore.isFullSigned()

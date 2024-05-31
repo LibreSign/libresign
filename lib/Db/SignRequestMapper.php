@@ -523,7 +523,7 @@ class SignRequestMapper extends QBMapper {
 		$row['statusText'] = $this->fileMapper->getTextOfStatus($row['status']);
 		$row['nodeId'] = (int) $row['node_id'];
 		$row['requested_by'] = [
-			'uid' => $row['user_id'],
+			'userId' => $row['user_id'],
 			'displayName' => $this->userManager->get($row['user_id'])?->getDisplayName(),
 		];
 		$row['request_date'] = (new \DateTime())
