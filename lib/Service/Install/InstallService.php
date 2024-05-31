@@ -136,7 +136,7 @@ class InstallService {
 			$reflectionProperty = $reflection->getProperty('parentFolder');
 			$reflectionProperty->setAccessible(true);
 			$folder = $reflectionProperty->getValue($node);
-			$path = $folder->getInternalPath() . DIRECTORY_SEPARATOR . $node->getName();
+			$path = $folder->getInternalPath() . '/' . $node->getName();
 		} elseif ($reflection->hasProperty('file')) {
 			$reflectionProperty = $reflection->getProperty('file');
 			$reflectionProperty->setAccessible(true);
@@ -332,8 +332,8 @@ class InstallService {
 			$this->runAsync();
 			return;
 		}
-		$extractDir = $this->getFullPath() . DIRECTORY_SEPARATOR . 'java';
-		$javaFolder = $this->getFolder('java');
+		$extractDir = $this->getFullPath() . '/java';
+		$javaFolder = $this->getFolder('/java');
 
 		/**
 		 * Steps to update:
@@ -365,7 +365,7 @@ class InstallService {
 		} catch (NotFoundException $th) {
 			$compressedFile = $javaFolder->newFile($compressedFileName);
 		}
-		$comporessedInternalFileName = $this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($compressedFile);
+		$comporessedInternalFileName = $this->getDataDir() . '/' . $this->getInternalPathOfFile($compressedFile);
 
 		$this->download($url, 'java', $comporessedInternalFileName, $hash, 'sha256');
 
@@ -426,17 +426,17 @@ class InstallService {
 		} catch (\Throwable $th) {
 			$compressedFile = $this->getFolder()->newFile($compressedFileName);
 		}
-		$comporessedInternalFileName = $this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($compressedFile);
+		$comporessedInternalFileName = $this->getDataDir() . '/' . $this->getInternalPathOfFile($compressedFile);
 		$url = 'https://github.com/intoolswetrust/jsignpdf/releases/download/JSignPdf_' . str_replace('.', '_', JSignPdfHandler::VERSION) . '/jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
 		/** WHEN UPDATE version: generate this hash handmade and update here */
 		$hash = '7c66f5a9f5e7e35b601725414491a867';
 
 		$this->download($url, 'JSignPdf', $comporessedInternalFileName, $hash);
 
-		$zip = new ZIP($extractDir . DIRECTORY_SEPARATOR . $compressedFileName);
+		$zip = new ZIP($extractDir . '/' . $compressedFileName);
 		$zip->extract($extractDir);
 
-		$fullPath = $extractDir . DIRECTORY_SEPARATOR . 'jsignpdf-' . JSignPdfHandler::VERSION . DIRECTORY_SEPARATOR . 'JSignPdf.jar';
+		$fullPath = $extractDir . '/jsignpdf-' . JSignPdfHandler::VERSION . '/JSignPdf.jar';
 		$this->appConfig->setAppValue('jsignpdf_jar_path', $fullPath);
 		$this->removeDownloadProgress();
 	}
@@ -451,7 +451,7 @@ class InstallService {
 		// Remove prefix
 		$path = explode($name, $jsignpdJarPath)[1];
 		// Remove sufix
-		$path = trim($path, DIRECTORY_SEPARATOR . 'JSignPdf.jar');
+		$path = trim($path, '/JSignPdf.jar');
 		try {
 			$folder = $appFolder->getFolder($path);
 			$folder->delete();
@@ -472,7 +472,7 @@ class InstallService {
 		} catch (\Throwable $th) {
 			$file = $this->getFolder()->newFile('pdftk.jar');
 		}
-		$fullPath = $this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($file);
+		$fullPath = $this->getDataDir() . '/' . $this->getInternalPathOfFile($file);
 		$url = 'https://gitlab.com/api/v4/projects/5024297/packages/generic/pdftk-java/v' . self::PDFTK_VERSION . '/pdftk-all.jar';
 		/** WHEN UPDATE version: generate this hash handmade and update here */
 		$hash = '59a28bed53b428595d165d52988bf4cf';
@@ -543,15 +543,15 @@ class InstallService {
 			$hash = $this->getHash($folder, 'cfssl', $download['file'], self::CFSSL_VERSION, $checksumUrl);
 
 			$file = $folder->newFile($download['destination']);
-			$fullPath = $this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($file);
+			$fullPath = $this->getDataDir() . '/' . $this->getInternalPathOfFile($file);
 
 			$this->download($baseUrl . $download['file'], $download['destination'], $fullPath, $hash, 'sha256');
 
 			chmod($fullPath, 0700);
 		}
 
-		$cfsslBinPath = $this->getDataDir() . DIRECTORY_SEPARATOR .
-			$this->getInternalPathOfFolder($this->getFolder()) . DIRECTORY_SEPARATOR .
+		$cfsslBinPath = $this->getDataDir() . '/' .
+			$this->getInternalPathOfFolder($this->getFolder()) . '/' .
 			$downloads[0]['destination'];
 		$this->appConfig->setAppValue('cfssl_bin', $cfsslBinPath);
 	}
@@ -573,20 +573,20 @@ class InstallService {
 			$compressedFile = $cfsslFolder->newFile($compressedFileName);
 		}
 
-		$comporessedInternalFileName = $this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($compressedFile);
+		$comporessedInternalFileName = $this->getDataDir() . '/' . $this->getInternalPathOfFile($compressedFile);
 
 		$this->download($url, 'cfssl', $comporessedInternalFileName, $hash, 'sha256');
 
 		$this->appConfig->deleteAppValue('cfssl_bin');
 		$extractor = new TAR($comporessedInternalFileName);
 
-		$extractDir = $this->getFullPath() . DIRECTORY_SEPARATOR . 'cfssl';
+		$extractDir = $this->getFullPath() . '/cfssl';
 		$result = $extractor->extract($extractDir);
 		if (!$result) {
 			throw new \RuntimeException('Error to extract xz file. Install xz. Read more: https://github.com/codemasher/php-ext-xz');
 		}
-		$cfsslBinPath = $this->getDataDir() . DIRECTORY_SEPARATOR .
-			$this->getInternalPathOfFolder($this->getFolder()) . DIRECTORY_SEPARATOR .
+		$cfsslBinPath = $this->getDataDir() . '/' .
+			$this->getInternalPathOfFolder($this->getFolder()) . '/' .
 			'cfssl/usr/bin/cfssl';
 		$this->appConfig->setAppValue('cfssl_bin', $cfsslBinPath);
 	}
