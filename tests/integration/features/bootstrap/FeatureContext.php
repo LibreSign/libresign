@@ -181,25 +181,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	/**
-	 * @When the response of file list match with:
-	 */
-	public function theResponseOfFileListMatchWith(PyStringNode $expected): void {
-		$this->response->getBody()->seek(0);
-		$realResponseArray = json_decode($this->response->getBody()->getContents(), true);
-		$expectedArray = json_decode((string) $expected, true);
-		Assert::assertArrayHasKey('pagination', $realResponseArray, 'The response have not pagination');
-		Assert::assertJsonStringEqualsJsonString(json_encode($expectedArray['pagination']), json_encode($realResponseArray['pagination']));
-		Assert::assertArrayHasKey('data', $realResponseArray);
-		Assert::assertCount(count($expectedArray['data']), $realResponseArray['data']);
-		foreach ($expectedArray['data'] as $fileFey => $file) {
-			Assert::assertCount(count($file['signers']), $realResponseArray['data'][$fileFey]['signers']);
-			foreach ($file['signers'] as $signerKey => $signer) {
-				Assert::assertCount(count($signer['identifyMethods']), $realResponseArray['data'][$fileFey]['signers'][$signerKey]['identifyMethods']);
-			}
-		}
-	}
-
-	/**
 	 * @When /^wait for ([0-9]+) (second|seconds)$/
 	 */
 	public function waitForXSecond(int $seconds): void {
