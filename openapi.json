@@ -390,76 +390,6 @@
                     }
                 }
             },
-            "RequestSignature": {
-                "type": "object",
-                "required": [
-                    "file",
-                    "name",
-                    "nodeId",
-                    "request_date",
-                    "requested_by",
-                    "signers",
-                    "status",
-                    "statusText",
-                    "uuid",
-                    "settings"
-                ],
-                "properties": {
-                    "file": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "nodeId": {
-                        "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
-                    },
-                    "request_date": {
-                        "type": "string"
-                    },
-                    "requested_by": {
-                        "type": "object",
-                        "required": [
-                            "uid",
-                            "displayName"
-                        ],
-                        "properties": {
-                            "uid": {
-                                "type": "string"
-                            },
-                            "displayName": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "signers": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/Signer"
-                        }
-                    },
-                    "status": {
-                        "type": "integer",
-                        "format": "int64",
-                        "enum": [
-                            0,
-                            1,
-                            2
-                        ]
-                    },
-                    "statusText": {
-                        "type": "string"
-                    },
-                    "uuid": {
-                        "type": "string"
-                    },
-                    "settings": {
-                        "$ref": "#/components/schemas/Settings"
-                    }
-                }
-            },
             "Settings": {
                 "type": "object",
                 "required": [
@@ -484,6 +414,12 @@
                     },
                     "phoneNumber": {
                         "type": "string"
+                    },
+                    "needIdentificationDocuments": {
+                        "type": "boolean"
+                    },
+                    "identificationDocumentsWaitingApproval": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -588,6 +524,97 @@
                     },
                     "createdAt": {
                         "type": "string"
+                    }
+                }
+            },
+            "ValidateFile": {
+                "type": "object",
+                "required": [
+                    "uuid",
+                    "name",
+                    "status",
+                    "statusText",
+                    "nodeId",
+                    "request_date",
+                    "requested_by",
+                    "file"
+                ],
+                "properties": {
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int64",
+                        "enum": [
+                            0,
+                            1,
+                            2,
+                            3,
+                            4
+                        ]
+                    },
+                    "statusText": {
+                        "type": "string"
+                    },
+                    "nodeId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "request_date": {
+                        "type": "string"
+                    },
+                    "requested_by": {
+                        "type": "object",
+                        "required": [
+                            "uid",
+                            "displayName"
+                        ],
+                        "properties": {
+                            "uid": {
+                                "type": "string"
+                            },
+                            "displayName": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "file": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
+                    },
+                    "signers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Signer"
+                        }
+                    },
+                    "settings": {
+                        "$ref": "#/components/schemas/Settings"
+                    },
+                    "messages": {
+                        "type": "object",
+                        "required": [
+                            "type",
+                            "message"
+                        ],
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "info"
+                                ]
+                            },
+                            "message": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             },
@@ -3592,7 +3619,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/File"
+                                                    "$ref": "#/components/schemas/ValidateFile"
                                                 }
                                             }
                                         }
@@ -3744,7 +3771,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/File"
+                                                    "$ref": "#/components/schemas/ValidateFile"
                                                 }
                                             }
                                         }
@@ -3897,7 +3924,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/File"
+                                                    "$ref": "#/components/schemas/ValidateFile"
                                                 }
                                             }
                                         }
@@ -5128,7 +5155,7 @@
                                                     ],
                                                     "properties": {
                                                         "data": {
-                                                            "$ref": "#/components/schemas/RequestSignature"
+                                                            "$ref": "#/components/schemas/ValidateFile"
                                                         },
                                                         "message": {
                                                             "type": "string"
