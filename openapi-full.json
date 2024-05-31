@@ -744,8 +744,18 @@
                 "responses": {
                     "200": {
                         "description": "PDF returned",
+                        "headers": {
+                            "Content-Disposition": {
+                                "schema": {
+                                    "type": "string",
+                                    "enum": [
+                                        "inline; filename=\"file.pdf\""
+                                    ]
+                                }
+                            }
+                        },
                         "content": {
-                            "*/*": {
+                            "application/pdf": {
                                 "schema": {
                                     "type": "string",
                                     "format": "binary"
@@ -754,7 +764,12 @@
                         }
                     },
                     "404": {
-                        "description": "Debug mode not enabled"
+                        "description": "Debug mode not enabled",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
                     }
                 }
             }

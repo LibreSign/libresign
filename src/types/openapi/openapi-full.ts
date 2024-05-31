@@ -543,13 +543,18 @@ export type operations = {
     responses: {
       /** @description PDF returned */
       200: {
+        headers: {
+          "Content-Disposition"?: "inline; filename=\"file.pdf\"";
+        };
         content: {
-          "*/*": string;
+          "application/pdf": string;
         };
       };
       /** @description Debug mode not enabled */
       404: {
-        content: never;
+        content: {
+          "application/json": unknown;
+        };
       };
     };
   };
