@@ -56,6 +56,7 @@ use OCP\Preview\IMimeIconProvider;
 use Psr\Log\LoggerInterface;
 
 /**
+ * @psalm-import-type LibresignFile from ResponseDefinitions
  * @psalm-import-type LibresignNewFile from ResponseDefinitions
  * @psalm-import-type LibresignFolderSettings from ResponseDefinitions
  * @psalm-import-type LibresignNextcloudFile from ResponseDefinitions
@@ -225,9 +226,13 @@ class FileController extends AEnvironmentAwareController {
 	 * @param boolean $forceIcon Force to generate a new thumbnail
 	 * @param string $mode To force a given mimetype for the file
 	 * @param boolean $mimeFallback If we have no preview enabled, we can redirect to the mime icon if any
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
 	 *
 	 * 200: OK
+	 * 303: Redirect
+	 * 400: Bad request
+	 * 403: Forbidden
+	 * 404: Not found
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

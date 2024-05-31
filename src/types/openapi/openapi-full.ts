@@ -1541,10 +1541,45 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
+          "*/*": string;
+        };
+      };
+      /** @description Redirect */
+      303: {
+        headers: {
+          Location?: string;
+        };
+        content: never;
+      };
+      /** @description Bad request */
+      400: {
+        content: {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: unknown;
+            };
+          };
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: unknown;
+            };
+          };
+        };
+      };
+      /** @description Not found */
+      404: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: unknown;
             };
           };
         };
