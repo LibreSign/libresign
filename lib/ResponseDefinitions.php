@@ -123,6 +123,7 @@ namespace OCA\Libresign;
  *     description: ?string,
  *     displayName: string,
  *     request_sign_date: string,
+ *     email?: string,
  *     signed: ?string,
  *     sign_date?: ?string,
  *     sign_uuid?: string,

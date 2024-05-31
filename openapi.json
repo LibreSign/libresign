@@ -444,6 +444,9 @@
                     "request_sign_date": {
                         "type": "string"
                     },
+                    "email": {
+                        "type": "string"
+                    },
                     "signed": {
                         "type": "string",
                         "nullable": true
@@ -4058,16 +4061,9 @@
                                         "description": "Metadata of visible elements to associate with the document"
                                     },
                                     "coordinates": {
+                                        "$ref": "#/components/schemas/Coordinate",
                                         "default": [],
-                                        "description": "Coortinates of a visible element on PDF",
-                                        "anyOf": [
-                                            {
-                                                "$ref": "#/components/schemas/Coordinate"
-                                            },
-                                            {
-                                                "type": "object"
-                                            }
-                                        ]
+                                        "description": "Coortinates of a visible element on PDF"
                                     }
                                 }
                             }
@@ -4233,16 +4229,9 @@
                                         "description": "Metadata of visible elements to associate with the document"
                                     },
                                     "coordinates": {
+                                        "$ref": "#/components/schemas/Coordinate",
                                         "default": [],
-                                        "description": "Coortinates of a visible element on PDF",
-                                        "anyOf": [
-                                            {
-                                                "$ref": "#/components/schemas/Coordinate"
-                                            },
-                                            {
-                                                "type": "object"
-                                            }
-                                        ]
+                                        "description": "Coortinates of a visible element on PDF"
                                     }
                                 }
                             }
@@ -5340,7 +5329,7 @@
                                                             "type": "string"
                                                         },
                                                         "data": {
-                                                            "$ref": "#/components/schemas/Signer"
+                                                            "$ref": "#/components/schemas/ValidateFile"
                                                         }
                                                     }
                                                 }
