@@ -23,7 +23,7 @@
 			"bamarni/composer-bin-plugin": true
 		},
 		"platform": {
-			"php": "8.0"
+			"php": "8.1"
 		}
 	},
 	"scripts": {
