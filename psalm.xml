@@ -1,12 +1,14 @@
 <?xml version="1.0"?>
 <psalm
+    errorBaseline="tests/psalm-baseline.xml"
     errorLevel="5"
+    findUnusedBaselineEntry="true"
+    findUnusedCode="false"
     resolveFromConfigFile="true"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     phpVersion="8.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="https://getpsalm.org/schema/config"
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
-    errorBaseline="tests/psalm-baseline.xml"
 >
     <projectFiles>
         <directory name="lib" />
@@ -25,6 +27,7 @@
                 <referencedClass name="GuzzleHttp\*" />
                 <referencedClass name="OC" />
                 <referencedClass name="OC\*" />
+                <referencedClass name="OCA\Files\Event\LoadSidebar" />
                 <referencedClass name="OCA\TwoFactorGateway\Service\Gateway\IGateway" />
             </errorLevel>
         </UndefinedClass>

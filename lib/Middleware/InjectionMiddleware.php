@@ -140,7 +140,7 @@ class InjectionMiddleware extends Middleware {
 	}
 
 	private function getUuidFromRequest(): ?string {
-		return $this->request->getParam('uuid', $this->request->getHeader('LibreSign-sign-request-uuid', ''));
+		return $this->request->getParam('uuid', $this->request->getHeader('LibreSign-sign-request-uuid'));
 	}
 
 	private function getLoggedIn(): void {

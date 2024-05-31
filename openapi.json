@@ -20,47 +20,92 @@
             }
         },
         "schemas": {
-            "Coordinate": {
+            "CertificatePfxData": {
                 "type": "object",
                 "required": [
-                    "page"
+                    "name",
+                    "subject",
+                    "issuer",
+                    "extensions",
+                    "validate"
                 ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "subject": {
+                        "type": "string"
+                    },
+                    "issuer": {
+                        "type": "string"
+                    },
+                    "extensions": {
+                        "type": "string"
+                    },
+                    "validate": {
+                        "type": "object",
+                        "required": [
+                            "from",
+                            "to"
+                        ],
+                        "properties": {
+                            "from": {
+                                "type": "string"
+                            },
+                            "to": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "Coordinate": {
+                "type": "object",
                 "properties": {
                     "page": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "urx": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "ury": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "llx": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "lly": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "top": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "left": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "width": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "height": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     }
                 }
             },
@@ -76,11 +121,11 @@
                     "account": {
                         "type": "object",
                         "required": [
-                            "uid",
+                            "userId",
                             "displayName"
                         ],
                         "properties": {
-                            "uid": {
+                            "userId": {
                                 "type": "string"
                             },
                             "displayName": {
@@ -128,7 +173,15 @@
                                 "type": "string"
                             },
                             "status": {
-                                "type": "string"
+                                "type": "integer",
+                                "format": "int64",
+                                "enum": [
+                                    0,
+                                    1,
+                                    2,
+                                    3,
+                                    4
+                                ]
                             },
                             "statusText": {
                                 "type": "string"
@@ -149,7 +202,8 @@
                                     },
                                     "nodeId": {
                                         "type": "integer",
-                                        "format": "int64"
+                                        "format": "int64",
+                                        "minimum": 0
                                     },
                                     "url": {
                                         "type": "string"
@@ -173,6 +227,47 @@
                     }
                 }
             },
+            "IdentifyAccount": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "isNoUser",
+                    "displayName",
+                    "subname",
+                    "shareType"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "isNoUser": {
+                        "type": "boolean"
+                    },
+                    "displayName": {
+                        "type": "string"
+                    },
+                    "subname": {
+                        "type": "string"
+                    },
+                    "shareType": {
+                        "type": "integer",
+                        "format": "int64",
+                        "enum": [
+                            0,
+                            4
+                        ]
+                    },
+                    "icon": {
+                        "type": "string",
+                        "enum": [
+                            "icon-mail",
+                            "icon-user"
+                        ]
+                    }
+                }
+            },
             "IdentifyMethod": {
                 "type": "object",
                 "required": [
@@ -182,14 +277,19 @@
                 ],
                 "properties": {
                     "method": {
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "email",
+                            "account"
+                        ]
                     },
                     "value": {
                         "type": "string"
                     },
                     "mandatory": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     }
                 }
             },
@@ -262,7 +362,8 @@
                 "properties": {
                     "total": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "current": {
                         "type": "string",
@@ -283,70 +384,6 @@
                     "first": {
                         "type": "string",
                         "nullable": true
-                    }
-                }
-            },
-            "RequestSignature": {
-                "type": "object",
-                "required": [
-                    "file",
-                    "name",
-                    "nodeId",
-                    "request_date",
-                    "requested_by",
-                    "signers",
-                    "status",
-                    "statusText",
-                    "uuid",
-                    "settings"
-                ],
-                "properties": {
-                    "file": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "nodeId": {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "request_date": {
-                        "type": "string"
-                    },
-                    "requested_by": {
-                        "type": "object",
-                        "required": [
-                            "uid",
-                            "displayName"
-                        ],
-                        "properties": {
-                            "uid": {
-                                "type": "string"
-                            },
-                            "displayName": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "signers": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/Signer"
-                        }
-                    },
-                    "status": {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "statusText": {
-                        "type": "string"
-                    },
-                    "uuid": {
-                        "type": "string"
-                    },
-                    "settings": {
-                        "$ref": "#/components/schemas/Settings"
                     }
                 }
             },
@@ -374,6 +411,12 @@
                     },
                     "phoneNumber": {
                         "type": "string"
+                    },
+                    "needIdentificationDocuments": {
+                        "type": "boolean"
+                    },
+                    "identificationDocumentsWaitingApproval": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -388,9 +431,6 @@
                     "signRequestId"
                 ],
                 "properties": {
-                    "email": {
-                        "type": "string"
-                    },
                     "description": {
                         "type": "string",
                         "nullable": true
@@ -399,6 +439,12 @@
                         "type": "string"
                     },
                     "request_sign_date": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "userId": {
                         "type": "string"
                     },
                     "signed": {
@@ -415,15 +461,10 @@
                     "me": {
                         "type": "boolean"
                     },
-                    "uid": {
-                        "type": "string"
-                    },
                     "signRequestId": {
                         "type": "integer",
-                        "format": "int64"
-                    },
-                    "identifyMethod": {
-                        "type": "string"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "identifyMethods": {
                         "type": "array",
@@ -439,6 +480,150 @@
                     }
                 }
             },
+            "UserElement": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "type",
+                    "file",
+                    "userId",
+                    "starred",
+                    "createdAt"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "file": {
+                        "type": "object",
+                        "required": [
+                            "url",
+                            "nodeId"
+                        ],
+                        "properties": {
+                            "url": {
+                                "type": "string"
+                            },
+                            "nodeId": {
+                                "type": "integer",
+                                "format": "int64"
+                            }
+                        }
+                    },
+                    "userId": {
+                        "type": "string"
+                    },
+                    "starred": {
+                        "type": "integer",
+                        "format": "int64",
+                        "enum": [
+                            0,
+                            1
+                        ]
+                    },
+                    "createdAt": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ValidateFile": {
+                "type": "object",
+                "required": [
+                    "uuid",
+                    "name",
+                    "status",
+                    "statusText",
+                    "nodeId",
+                    "request_date",
+                    "requested_by",
+                    "file"
+                ],
+                "properties": {
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int64",
+                        "enum": [
+                            0,
+                            1,
+                            2,
+                            3,
+                            4
+                        ]
+                    },
+                    "statusText": {
+                        "type": "string"
+                    },
+                    "nodeId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "request_date": {
+                        "type": "string"
+                    },
+                    "requested_by": {
+                        "type": "object",
+                        "required": [
+                            "userId",
+                            "displayName"
+                        ],
+                        "properties": {
+                            "userId": {
+                                "type": "string"
+                            },
+                            "displayName": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "file": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
+                    },
+                    "signers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Signer"
+                        }
+                    },
+                    "settings": {
+                        "$ref": "#/components/schemas/Settings"
+                    },
+                    "messages": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "type",
+                                "message"
+                            ],
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "info"
+                                    ]
+                                },
+                                "message": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             "VisibleElement": {
                 "type": "object",
                 "required": [
@@ -450,11 +635,13 @@
                 "properties": {
                     "elementId": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "signRequestId": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "type": {
                         "type": "string"
@@ -471,6 +658,7 @@
             "get": {
                 "operationId": "develop-pdf",
                 "summary": "Get a demo PDF file to be used by test purpose",
+                "description": "To use this endpoint is necessary to enable the debug mode in your instance. To do this, run the command:\n`occ config:system:set debug --value true --type boolean`",
                 "tags": [
                     "develop"
                 ],
@@ -486,8 +674,18 @@
                 "responses": {
                     "200": {
                         "description": "PDF returned",
+                        "headers": {
+                            "Content-Disposition": {
+                                "schema": {
+                                    "type": "string",
+                                    "enum": [
+                                        "inline; filename=\"file.pdf\""
+                                    ]
+                                }
+                            }
+                        },
                         "content": {
-                            "*/*": {
+                            "application/pdf": {
                                 "schema": {
                                     "type": "string",
                                     "format": "binary"
@@ -496,7 +694,12 @@
                         }
                     },
                     "404": {
-                        "description": "Debug mode not enabled"
+                        "description": "Debug mode not enabled",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
                     }
                 }
             }
@@ -1923,7 +2126,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "$ref": "#/components/schemas/CertificatePfxData"
                                                 }
                                             }
                                         }
@@ -2030,7 +2233,7 @@
                     }
                 ],
                 "responses": {
-                    "202": {
+                    "200": {
                         "description": "Settings saved",
                         "content": {
                             "application/json": {
@@ -2380,7 +2583,11 @@
                                                         },
                                                         "type": {
                                                             "type": "string",
-                                                            "nullable": true
+                                                            "enum": [
+                                                                "info",
+                                                                "warning",
+                                                                "danger"
+                                                            ]
                                                         },
                                                         "message": {
                                                             "type": "string"
@@ -2475,9 +2682,7 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {
-                                                    "type": "object"
-                                                }
+                                                "data": {}
                                             }
                                         }
                                     }
@@ -2512,7 +2717,10 @@
                                                     ],
                                                     "properties": {
                                                         "messages": {
-                                                            "type": "object"
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -2546,10 +2754,14 @@
                         "description": "Filter params",
                         "schema": {
                             "type": "object",
+                            "nullable": true,
                             "default": [],
                             "properties": {
                                 "approved": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "enum": [
+                                        "yes"
+                                    ]
                                 }
                             }
                         }
@@ -2630,7 +2842,6 @@
                                                         },
                                                         "data": {
                                                             "type": "array",
-                                                            "nullable": true,
                                                             "items": {
                                                                 "$ref": "#/components/schemas/File"
                                                             }
@@ -2644,7 +2855,7 @@
                             }
                         }
                     },
-                    "400": {
+                    "404": {
                         "description": "No file provided or other problem with provided file",
                         "content": {
                             "application/json": {
@@ -2707,10 +2918,14 @@
                         "description": "Filter params",
                         "schema": {
                             "type": "object",
+                            "nullable": true,
                             "default": [],
                             "properties": {
                                 "approved": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "enum": [
+                                        "yes"
+                                    ]
                                 }
                             }
                         }
@@ -3029,6 +3244,7 @@
                         "description": "Filter params",
                         "schema": {
                             "type": "object",
+                            "nullable": true,
                             "default": [],
                             "properties": {
                                 "signer_uuid": {
@@ -3223,6 +3439,17 @@
                     "200": {
                         "description": "OK",
                         "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "object",
@@ -3240,12 +3467,76 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {
-                                                    "type": "object"
-                                                }
+                                                "data": {}
                                             }
                                         }
                                     }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "303": {
+                        "description": "Redirect",
+                        "headers": {
+                            "Location": {
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -3341,99 +3632,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "file",
-                                                        "name",
-                                                        "nodeId",
-                                                        "request_date",
-                                                        "requested_by",
-                                                        "status",
-                                                        "statusText",
-                                                        "uuid",
-                                                        "signers",
-                                                        "settings"
-                                                    ],
-                                                    "properties": {
-                                                        "file": {
-                                                            "type": "string"
-                                                        },
-                                                        "name": {
-                                                            "type": "string"
-                                                        },
-                                                        "url": {
-                                                            "type": "string"
-                                                        },
-                                                        "nodeId": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "request_date": {
-                                                            "type": "string"
-                                                        },
-                                                        "requested_by": {
-                                                            "type": "object",
-                                                            "required": [
-                                                                "uid",
-                                                                "displayName"
-                                                            ],
-                                                            "properties": {
-                                                                "uid": {
-                                                                    "type": "string"
-                                                                },
-                                                                "displayName": {
-                                                                    "type": "string"
-                                                                }
-                                                            }
-                                                        },
-                                                        "status": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "statusText": {
-                                                            "type": "string"
-                                                        },
-                                                        "uuid": {
-                                                            "type": "string"
-                                                        },
-                                                        "signers": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/components/schemas/Signer"
-                                                            }
-                                                        },
-                                                        "action": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "errors": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "type": "string"
-                                                            }
-                                                        },
-                                                        "settings": {
-                                                            "$ref": "#/components/schemas/Settings"
-                                                        },
-                                                        "messages": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "type": "object",
-                                                                "required": [
-                                                                    "type",
-                                                                    "message"
-                                                                ],
-                                                                "properties": {
-                                                                    "type": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "message": {
-                                                                        "type": "string"
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/ValidateFile"
                                                 }
                                             }
                                         }
@@ -3585,99 +3784,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "file",
-                                                        "name",
-                                                        "nodeId",
-                                                        "request_date",
-                                                        "requested_by",
-                                                        "status",
-                                                        "statusText",
-                                                        "uuid",
-                                                        "signers",
-                                                        "settings"
-                                                    ],
-                                                    "properties": {
-                                                        "file": {
-                                                            "type": "string"
-                                                        },
-                                                        "name": {
-                                                            "type": "string"
-                                                        },
-                                                        "url": {
-                                                            "type": "string"
-                                                        },
-                                                        "nodeId": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "request_date": {
-                                                            "type": "string"
-                                                        },
-                                                        "requested_by": {
-                                                            "type": "object",
-                                                            "required": [
-                                                                "uid",
-                                                                "displayName"
-                                                            ],
-                                                            "properties": {
-                                                                "uid": {
-                                                                    "type": "string"
-                                                                },
-                                                                "displayName": {
-                                                                    "type": "string"
-                                                                }
-                                                            }
-                                                        },
-                                                        "status": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "statusText": {
-                                                            "type": "string"
-                                                        },
-                                                        "uuid": {
-                                                            "type": "string"
-                                                        },
-                                                        "signers": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/components/schemas/Signer"
-                                                            }
-                                                        },
-                                                        "action": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "errors": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "type": "string"
-                                                            }
-                                                        },
-                                                        "settings": {
-                                                            "$ref": "#/components/schemas/Settings"
-                                                        },
-                                                        "messages": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "type": "object",
-                                                                "required": [
-                                                                    "type",
-                                                                    "message"
-                                                                ],
-                                                                "properties": {
-                                                                    "type": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "message": {
-                                                                        "type": "string"
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/ValidateFile"
                                                 }
                                             }
                                         }
@@ -3830,99 +3937,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "file",
-                                                        "name",
-                                                        "nodeId",
-                                                        "request_date",
-                                                        "requested_by",
-                                                        "status",
-                                                        "statusText",
-                                                        "uuid",
-                                                        "signers",
-                                                        "settings"
-                                                    ],
-                                                    "properties": {
-                                                        "file": {
-                                                            "type": "string"
-                                                        },
-                                                        "name": {
-                                                            "type": "string"
-                                                        },
-                                                        "url": {
-                                                            "type": "string"
-                                                        },
-                                                        "nodeId": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "request_date": {
-                                                            "type": "string"
-                                                        },
-                                                        "requested_by": {
-                                                            "type": "object",
-                                                            "required": [
-                                                                "uid",
-                                                                "displayName"
-                                                            ],
-                                                            "properties": {
-                                                                "uid": {
-                                                                    "type": "string"
-                                                                },
-                                                                "displayName": {
-                                                                    "type": "string"
-                                                                }
-                                                            }
-                                                        },
-                                                        "status": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "statusText": {
-                                                            "type": "string"
-                                                        },
-                                                        "uuid": {
-                                                            "type": "string"
-                                                        },
-                                                        "signers": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/components/schemas/Signer"
-                                                            }
-                                                        },
-                                                        "action": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "errors": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "type": "string"
-                                                            }
-                                                        },
-                                                        "settings": {
-                                                            "$ref": "#/components/schemas/Settings"
-                                                        },
-                                                        "messages": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "type": "object",
-                                                                "required": [
-                                                                    "type",
-                                                                    "message"
-                                                                ],
-                                                                "properties": {
-                                                                    "type": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "message": {
-                                                                        "type": "string"
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/ValidateFile"
                                                 }
                                             }
                                         }
@@ -4292,7 +4307,18 @@
                                                 "meta": {
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "data": {}
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "fileElementId"
+                                                    ],
+                                                    "properties": {
+                                                        "fileElementId": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -4496,7 +4522,7 @@
                         "in": "query",
                         "description": "search params",
                         "schema": {
-                            "type": "object",
+                            "type": "string",
                             "default": ""
                         }
                     },
@@ -4507,7 +4533,6 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64",
-                            "nullable": true,
                             "default": 1
                         }
                     },
@@ -4518,7 +4543,6 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64",
-                            "nullable": true,
                             "default": 25
                         }
                     },
@@ -4546,7 +4570,7 @@
                     }
                 ],
                 "responses": {
-                    "202": {
+                    "200": {
                         "description": "Certificate saved with success",
                         "content": {
                             "application/json": {
@@ -4567,7 +4591,10 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/IdentifyAccount"
+                                                    }
                                                 }
                                             }
                                         }
@@ -4666,7 +4693,15 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -4698,11 +4733,29 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
-                                                        "message"
+                                                        "messages"
                                                     ],
                                                     "properties": {
-                                                        "message": {
-                                                            "type": "string"
+                                                        "messages": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "required": [
+                                                                    "type",
+                                                                    "message"
+                                                                ],
+                                                                "properties": {
+                                                                    "type": {
+                                                                        "type": "string",
+                                                                        "enum": [
+                                                                            "danger"
+                                                                        ]
+                                                                    },
+                                                                    "message": {
+                                                                        "type": "string"
+                                                                    }
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -5096,15 +5149,15 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
-                                                        "message",
-                                                        "data"
+                                                        "data",
+                                                        "message"
                                                     ],
                                                     "properties": {
+                                                        "data": {
+                                                            "$ref": "#/components/schemas/ValidateFile"
+                                                        },
                                                         "message": {
                                                             "type": "string"
-                                                        },
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/RequestSignature"
                                                         }
                                                     }
                                                 }
@@ -5147,7 +5200,6 @@
                                                         },
                                                         "errors": {
                                                             "type": "array",
-                                                            "nullable": true,
                                                             "items": {
                                                                 "type": "string"
                                                             }
@@ -5288,7 +5340,7 @@
                                                             "type": "string"
                                                         },
                                                         "data": {
-                                                            "$ref": "#/components/schemas/RequestSignature"
+                                                            "$ref": "#/components/schemas/ValidateFile"
                                                         }
                                                     }
                                                 }
@@ -5331,7 +5383,6 @@
                                                         },
                                                         "errors": {
                                                             "type": "array",
-                                                            "nullable": true,
                                                             "items": {
                                                                 "type": "string"
                                                             }
@@ -5701,6 +5752,9 @@
                                                             "items": {
                                                                 "type": "string"
                                                             }
+                                                        },
+                                                        "redirect": {
+                                                            "type": "string"
                                                         }
                                                     }
                                                 }
@@ -5900,88 +5954,6 @@
                 }
             }
         },
-        "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
-            "get": {
-                "operationId": "setting-has-root-cert",
-                "summary": "Has root certificate",
-                "description": "Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have",
-                "tags": [
-                    "setting"
-                ],
-                "security": [
-                    {
-                        "bearer_auth": []
-                    },
-                    {
-                        "basic_auth": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "apiVersion",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "v1"
-                            ],
-                            "default": "v1"
-                        }
-                    },
-                    {
-                        "name": "OCS-APIRequest",
-                        "in": "header",
-                        "description": "Required to be true for the API request to pass",
-                        "required": true,
-                        "schema": {
-                            "type": "boolean",
-                            "default": true
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "hasRootCert"
-                                                    ],
-                                                    "properties": {
-                                                        "hasRootCert": {
-                                                            "type": "boolean"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements": {
             "post": {
                 "operationId": "signature_elements-create-signature-element",
@@ -6068,15 +6040,18 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
-                                                        "message",
-                                                        "elements"
+                                                        "elements",
+                                                        "message"
                                                     ],
                                                     "properties": {
+                                                        "elements": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/UserElement"
+                                                            }
+                                                        },
                                                         "message": {
                                                             "type": "string"
-                                                        },
-                                                        "elements": {
-                                                            "type": "object"
                                                         }
                                                     }
                                                 }
@@ -6194,7 +6169,10 @@
                                                     ],
                                                     "properties": {
                                                         "elements": {
-                                                            "type": "object"
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/UserElement"
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -6394,10 +6372,29 @@
                     "200": {
                         "description": "OK",
                         "content": {
-                            "*/*": {
+                            "application/json": {
                                 "schema": {
-                                    "type": "string",
-                                    "format": "binary"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/UserElement"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -6423,7 +6420,15 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -6532,11 +6537,18 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
-                                                        "elements"
+                                                        "elements",
+                                                        "message"
                                                     ],
                                                     "properties": {
                                                         "elements": {
-                                                            "type": "object"
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/UserElement"
+                                                            }
+                                                        },
+                                                        "message": {
+                                                            "type": "string"
                                                         }
                                                     }
                                                 }
@@ -6547,8 +6559,8 @@
                             }
                         }
                     },
-                    "404": {
-                        "description": "Not found",
+                    "422": {
+                        "description": "Error",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6660,11 +6672,11 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
-                                                        "elements"
+                                                        "message"
                                                     ],
                                                     "properties": {
-                                                        "elements": {
-                                                            "type": "object"
+                                                        "message": {
+                                                            "type": "string"
                                                         }
                                                     }
                                                 }
@@ -7154,6 +7166,37 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "identifyMethod": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "enum": [
+                                            "account",
+                                            "email"
+                                        ],
+                                        "description": "Identify signer method"
+                                    },
+                                    "signMethod": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "description": "Method used to sign the document"
+                                    },
+                                    "identify": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "description": "Identify value, i.e. the signer email, account or phone number"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
                     {
                         "name": "apiVersion",

@@ -1,158 +1,149 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.30.0@d0bc6e25d89f649e4f36a534f330f8bb4643dd69">
+<files psalm-version="5.24.0@462c80e31c34e58cc4f750c656be3927e80e550e">
   <file src="lib/AppInfo/Application.php">
-    <InvalidArgument occurrences="5">
-      <code>registerEventListener</code>
-      <code>registerEventListener</code>
-      <code>registerEventListener</code>
-      <code>registerEventListener</code>
-      <code>registerEventListener</code>
+    <InvalidArgument>
+      <code><![CDATA[LoadSidebarListener::class]]></code>
+      <code><![CDATA[registerEventListener]]></code>
     </InvalidArgument>
-    <UndefinedClass occurrences="1">
-      <code>LoadSidebar</code>
-    </UndefinedClass>
   </file>
   <file src="lib/Command/Configure/Cfssl.php">
-    <MissingDependency occurrences="1">
-      <code>Base</code>
+    <MissingDependency>
+      <code><![CDATA[Base]]></code>
     </MissingDependency>
   </file>
   <file src="lib/Command/Configure/OpenSsl.php">
-    <MissingDependency occurrences="1">
-      <code>Base</code>
+    <MissingDependency>
+      <code><![CDATA[Base]]></code>
     </MissingDependency>
   </file>
   <file src="lib/Command/Install.php">
-    <MissingDependency occurrences="1">
-      <code>Base</code>
+    <MissingDependency>
+      <code><![CDATA[Base]]></code>
     </MissingDependency>
   </file>
   <file src="lib/Command/Uninstall.php">
-    <MissingDependency occurrences="1">
-      <code>Base</code>
+    <MissingDependency>
+      <code><![CDATA[Base]]></code>
     </MissingDependency>
   </file>
+  <file src="lib/Controller/DevelopController.php">
+    <LessSpecificReturnStatement>
+      <code><![CDATA[$response]]></code>
+    </LessSpecificReturnStatement>
+    <MoreSpecificReturnType>
+      <code><![CDATA[FileDisplayResponse<Http::STATUS_OK, array{Content-Type: 'application/pdf',Content-Disposition: 'inline; filename="file.pdf"'}>|DataResponse<Http::STATUS_NOT_FOUND, array<empty>, array{}>]]></code>
+    </MoreSpecificReturnType>
+  </file>
   <file src="lib/Controller/FileController.php">
-    <UndefinedClass occurrences="1">
-      <code>SharedStorage</code>
+    <UndefinedClass>
+      <code><![CDATA[SharedStorage]]></code>
     </UndefinedClass>
-    <UndefinedDocblockClass occurrences="2">
-      <code>$share</code>
-      <code>$storage</code>
+    <UndefinedDocblockClass>
+      <code><![CDATA[$share]]></code>
+      <code><![CDATA[$storage]]></code>
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Controller/PageController.php">
-    <InvalidThrow occurrences="1">
-      <code>throw new NotLoggedInException();</code>
+    <InvalidThrow>
+      <code><![CDATA[throw new NotLoggedInException();]]></code>
     </InvalidThrow>
   </file>
   <file src="lib/Db/PagerFantaQueryAdapter.php">
-    <InvalidArgument occurrences="1">
-      <code>$qb</code>
+    <InvalidArgument>
+      <code><![CDATA[$qb]]></code>
     </InvalidArgument>
-    <UndefinedDocblockClass occurrences="2">
-      <code>callable(QueryBuilder): void</code>
-      <code>callable(QueryBuilder): void</code>
+    <LessSpecificReturnStatement>
+      <code><![CDATA[(int) $qb->executeQuery()->fetchOne()]]></code>
+    </LessSpecificReturnStatement>
+    <MissingTemplateParam>
+      <code><![CDATA[AdapterInterface]]></code>
+    </MissingTemplateParam>
+    <MoreSpecificReturnType>
+      <code><![CDATA[int]]></code>
+    </MoreSpecificReturnType>
+    <UndefinedClass>
+      <code><![CDATA[QueryBuilder]]></code>
+    </UndefinedClass>
+    <UndefinedDocblockClass>
+      <code><![CDATA[callable(QueryBuilder): void]]></code>
+      <code><![CDATA[callable(QueryBuilder): void]]></code>
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Db/SignRequestMapper.php">
-    <UndefinedClass occurrences="1">
-      <code>PostgreSQLPlatform</code>
+    <UndefinedClass>
+      <code><![CDATA[PostgreSQLPlatform]]></code>
     </UndefinedClass>
-    <UndefinedDocblockClass occurrences="1">
-      <code>$qb-&gt;getConnection()-&gt;getDatabasePlatform()</code>
+    <UndefinedDocblockClass>
+      <code><![CDATA[$qb->getConnection()->getDatabasePlatform()]]></code>
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Files/TemplateLoader.php">
-    <UndefinedClass occurrences="2">
-      <code>LoadSidebar</code>
-      <code>LoadSidebar</code>
-    </UndefinedClass>
+    <InvalidArgument>
+      <code><![CDATA[addServiceListener]]></code>
+    </InvalidArgument>
   </file>
-  <file src="lib/Helper/ValidateHelper.php">
-    <InvalidPropertyAssignmentValue occurrences="2">
-      <code>$this-&gt;file</code>
-      <code>$this-&gt;file</code>
-    </InvalidPropertyAssignmentValue>
+  <file src="lib/Helper/Pagination.php">
+    <MissingTemplateParam>
+      <code><![CDATA[Pagination]]></code>
+    </MissingTemplateParam>
   </file>
   <file src="lib/Listener/LoadSidebarListener.php">
-    <UndefinedClass occurrences="1">
-      <code>LoadSidebar</code>
-    </UndefinedClass>
+    <InvalidTemplateParam>
+      <code><![CDATA[IEventListener]]></code>
+    </InvalidTemplateParam>
+    <MoreSpecificImplementedParamType>
+      <code><![CDATA[$event]]></code>
+    </MoreSpecificImplementedParamType>
+    <UndefinedDocblockClass>
+      <code><![CDATA[LoadSidebarListener]]></code>
+    </UndefinedDocblockClass>
   </file>
   <file src="lib/Middleware/GlobalInjectionMiddleware.php">
-    <UndefinedClass occurrences="1">
-      <code>ViewController</code>
+    <UndefinedClass>
+      <code><![CDATA[ViewController]]></code>
     </UndefinedClass>
   </file>
   <file src="lib/Migration/Version8000Date20231103003922.php">
-    <UndefinedDocblockClass occurrences="1">
-      <code>$schema-&gt;dropTable('libresign_file_user')</code>
+    <UndefinedDocblockClass>
+      <code><![CDATA[$schema->dropTable('libresign_file_user')]]></code>
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Migration/Version8000Date20240405142042.php">
-    <UndefinedClass occurrences="2">
-      <code>JsonType</code>
-      <code>PostgreSQLPlatform</code>
+    <UndefinedClass>
+      <code><![CDATA[JsonType]]></code>
+      <code><![CDATA[PostgreSQLPlatform]]></code>
     </UndefinedClass>
-    <UndefinedDocblockClass occurrences="1">
-      <code>$schema-&gt;getDatabasePlatform()</code>
+    <UndefinedDocblockClass>
+      <code><![CDATA[$schema->getDatabasePlatform()]]></code>
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Service/AccountService.php">
-    <InvalidPropertyAssignmentValue occurrences="1">
-      <code>current($fileToSign)</code>
-    </InvalidPropertyAssignmentValue>
-    <UndefinedClass occurrences="5">
-      <code>$this-&gt;newUserMail</code>
-      <code>$this-&gt;newUserMail</code>
-      <code>UUIDUtil</code>
-      <code>UUIDUtil</code>
-      <code>private</code>
-    </UndefinedClass>
-    <UndefinedDocblockClass occurrences="1">
-      <code>\OCA\Files\Node\File</code>
-    </UndefinedDocblockClass>
-  </file>
-  <file src="lib/Service/FileService.php">
-    <UndefinedInterfaceMethod occurrences="1">
-      <code>getContent</code>
-    </UndefinedInterfaceMethod>
-  </file>
-  <file src="lib/Service/IdentifyMethod/AbstractIdentifyMethod.php">
-    <InaccessibleProperty occurrences="2">
-      <code>$this-&gt;appConfig</code>
-      <code>$this-&gt;appConfig</code>
-    </InaccessibleProperty>
-  </file>
-  <file src="lib/Service/IdentifyMethod/SignatureMethod/EmailToken.php">
-    <InvalidArgument occurrences="1">
-      <code>$config</code>
-    </InvalidArgument>
-  </file>
-  <file src="lib/Service/Install/InstallService.php">
-    <UndefinedClass occurrences="1">
-      <code>Process</code>
+    <UndefinedClass>
+      <code><![CDATA[$this->newUserMail]]></code>
+      <code><![CDATA[$this->newUserMail]]></code>
+      <code><![CDATA[UUIDUtil]]></code>
+      <code><![CDATA[UUIDUtil]]></code>
+      <code><![CDATA[private]]></code>
     </UndefinedClass>
   </file>
   <file src="lib/Service/RequestSignatureService.php">
-    <UndefinedClass occurrences="2">
-      <code>UUIDUtil</code>
-      <code>UUIDUtil</code>
+    <UndefinedClass>
+      <code><![CDATA[UUIDUtil]]></code>
+      <code><![CDATA[UUIDUtil]]></code>
     </UndefinedClass>
   </file>
   <file src="lib/Service/SignFileService.php">
-    <UndefinedClass occurrences="2">
-      <code>UUIDUtil</code>
-      <code>UUIDUtil</code>
+    <UndefinedClass>
+      <code><![CDATA[UUIDUtil]]></code>
+      <code><![CDATA[UUIDUtil]]></code>
     </UndefinedClass>
   </file>
   <file src="lib/Service/TFile.php">
-    <UndefinedDocblockClass occurrences="1">
-      <code>PdfTypeException</code>
+    <UndefinedDocblockClass>
+      <code><![CDATA[PdfTypeException]]></code>
     </UndefinedDocblockClass>
-    <UndefinedInterfaceMethod occurrences="1">
-      <code>getAllMappings</code>
+    <UndefinedInterfaceMethod>
+      <code><![CDATA[getAllMappings]]></code>
     </UndefinedInterfaceMethod>
   </file>
 </files>
