@@ -308,10 +308,10 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 * @param array{approved?: string} $filter Filter params
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
-	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: LibresignFile[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
 	 *
 	 * 200: Certificate saved with success
-	 * 400: No file provided or other problem with provided file
+	 * 404: No file provided or other problem with provided file
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

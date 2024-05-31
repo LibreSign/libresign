@@ -2804,7 +2804,6 @@
                                                         },
                                                         "data": {
                                                             "type": "array",
-                                                            "nullable": true,
                                                             "items": {
                                                                 "$ref": "#/components/schemas/File"
                                                             }
@@ -2818,7 +2817,7 @@
                             }
                         }
                     },
-                    "400": {
+                    "404": {
                         "description": "No file provided or other problem with provided file",
                         "content": {
                             "application/json": {
