@@ -828,6 +828,7 @@
             "get": {
                 "operationId": "develop-pdf",
                 "summary": "Get a demo PDF file to be used by test purpose",
+                "description": "To use this endpoint is necessary to enable the debug mode in your instance. To do this, run the command:\n`occ config:system:set debug --value true --type boolean`",
                 "tags": [
                     "develop"
                 ],
