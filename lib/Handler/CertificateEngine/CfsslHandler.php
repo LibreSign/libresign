@@ -30,7 +30,6 @@ use OCP\ITempManager;
  * @package OCA\Libresign\Handler
  *
  * @method CfsslHandler setClient(Client $client)
- * @psalm-import-type LibresignRootCertificate from ResponseDefinitions
  */
 class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	public const CFSSL_URI = 'http://127.0.0.1:8888/api/v1/cfssl/';
@@ -123,9 +122,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		);
 	}
 
-	/**
-	 * @return array{configPath: string, rootCert: LibresignRootCertificate, generated: boolean}, array{}
-	 */
 	public function toArray(): array {
 		$return = parent::toArray();
 		if (!empty($return['configPath'])) {

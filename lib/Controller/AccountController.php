@@ -225,7 +225,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * @param int $nodeId the nodeId of file to be delete
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{messages: array{string}}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{messages: string[]}, array{}>
 	 *
 	 * 200: File deleted with success
 	 * 401: Failure to delete file from account
