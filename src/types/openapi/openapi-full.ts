@@ -1260,14 +1260,14 @@ export type operations = {
               meta: components["schemas"]["OCSMeta"];
               data: {
                 pagination: components["schemas"]["Pagination"];
-                data: components["schemas"]["File"][] | null;
+                data: components["schemas"]["File"][];
               };
             };
           };
         };
       };
       /** @description No file provided or other problem with provided file */
-      400: {
+      404: {
         content: {
           "application/json": {
             ocs: {
