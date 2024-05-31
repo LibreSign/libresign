@@ -47,6 +47,14 @@ namespace OCA\Libresign;
  *     path: string,
  *     type: string,
  * }
+ * @psalm-type LibresignIdentifyAccount = array{
+ *     id: non-negative-int,
+ *     isNoUser: boolean,
+ *     displayName: string,
+ *     subname: string,
+ *     shareType: 0|4,
+ *     icon?: 'icon-mail'|'icon-user',
+ * }
  * @psalm-type LibresignPagination = array{
  *     total: non-negative-int,
  *     current: ?string,

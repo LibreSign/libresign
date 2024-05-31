@@ -334,6 +334,20 @@ export type components = {
         signers: components["schemas"]["Signer"][];
       };
     };
+    IdentifyAccount: {
+      /** Format: int64 */
+      id: number;
+      isNoUser: boolean;
+      displayName: string;
+      subname: string;
+      /**
+       * Format: int64
+       * @enum {integer}
+       */
+      shareType: 0 | 4;
+      /** @enum {string} */
+      icon?: "icon-mail" | "icon-user";
+    };
     IdentifyMethod: {
       /** @enum {string} */
       method: "email" | "account";
@@ -1885,11 +1899,11 @@ export type operations = {
     parameters: {
       query?: {
         /** @description search params */
-        search?: Record<string, never>;
+        search?: string;
         /** @description the number of page to return. Default: 1 */
-        page?: number | null;
+        page?: number;
         /** @description Total of elements to return. Default: 25 */
-        limit?: number | null;
+        limit?: number;
       };
       header: {
         /** @description Required to be true for the API request to pass */
@@ -1901,12 +1915,12 @@ export type operations = {
     };
     responses: {
       /** @description Certificate saved with success */
-      202: {
+      200: {
         content: {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: components["schemas"]["IdentifyAccount"][];
             };
           };
         };

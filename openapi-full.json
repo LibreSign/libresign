@@ -260,6 +260,47 @@
                     }
                 }
             },
+            "IdentifyAccount": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "isNoUser",
+                    "displayName",
+                    "subname",
+                    "shareType"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "isNoUser": {
+                        "type": "boolean"
+                    },
+                    "displayName": {
+                        "type": "string"
+                    },
+                    "subname": {
+                        "type": "string"
+                    },
+                    "shareType": {
+                        "type": "integer",
+                        "format": "int64",
+                        "enum": [
+                            0,
+                            4
+                        ]
+                    },
+                    "icon": {
+                        "type": "string",
+                        "enum": [
+                            "icon-mail",
+                            "icon-user"
+                        ]
+                    }
+                }
+            },
             "IdentifyMethod": {
                 "type": "object",
                 "required": [
@@ -4721,7 +4762,7 @@
                         "in": "query",
                         "description": "search params",
                         "schema": {
-                            "type": "object",
+                            "type": "string",
                             "default": ""
                         }
                     },
@@ -4732,7 +4773,6 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64",
-                            "nullable": true,
                             "default": 1
                         }
                     },
@@ -4743,7 +4783,6 @@
                         "schema": {
                             "type": "integer",
                             "format": "int64",
-                            "nullable": true,
                             "default": 25
                         }
                     },
@@ -4771,7 +4810,7 @@
                     }
                 ],
                 "responses": {
-                    "202": {
+                    "200": {
                         "description": "Certificate saved with success",
                         "content": {
                             "application/json": {
@@ -4792,7 +4831,10 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/IdentifyAccount"
+                                                    }
                                                 }
                                             }
                                         }

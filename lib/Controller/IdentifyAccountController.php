@@ -26,8 +26,10 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
+use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
+use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\Collaboration\Collaborators\ISearch;
@@ -36,6 +38,9 @@ use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\Share\IShare;
 
+/**
+ * @psalm-import-type LibresignIdentifyAccount from ResponseDefinitions
+ */
 class IdentifyAccountController extends AEnvironmentAwareController {
 	private array $shareTypes = [];
 	public function __construct(
@@ -54,12 +59,12 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 	 *
 	 * Used to identify who can sign the document. The return of this endpoint is related with Administration Settiongs > LibreSign > Identify method.
 	 *
-	 * @param array{} $search search params
-	 * @param int|null $page the number of page to return. Default: 1
-	 * @param int|null $limit Total of elements to return. Default: 25
-	 * @return DataResponse<Http::STATUS_ACCEPTED, array{}, array{}>
+	 * @param string $search search params
+	 * @param int $page the number of page to return. Default: 1
+	 * @param int $limit Total of elements to return. Default: 25
+	 * @return DataResponse<Http::STATUS_OK, LibresignIdentifyAccount[], array{}>
 	 *
-	 * 202: Certificate saved with success
+	 * 200: Certificate saved with success
 	 * 400: No file provided or other problem with provided file
 	 */
 	#[NoAdminRequired]
