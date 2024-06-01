@@ -127,11 +127,11 @@
     </UndefinedClass>
   </file>
   <file src="lib/Service/Install/SignFiles.php">
-    <UndefinedClass occurrences="4">
-      <code>RSA</code>
-      <code>RSA</code>
-      <code>X509</code>
-      <code>X509</code>
+    <UndefinedClass>
+      <code><![CDATA[RSA]]></code>
+      <code><![CDATA[RSA]]></code>
+      <code><![CDATA[X509]]></code>
+      <code><![CDATA[X509]]></code>
     </UndefinedClass>
   </file>
   <file src="lib/Service/RequestSignatureService.php">
