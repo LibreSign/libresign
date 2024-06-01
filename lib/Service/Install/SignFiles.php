@@ -104,7 +104,7 @@ class SignFiles {
 	/**
 	 * @todo check a best solution to don't use reflection
 	 */
-	private function getInternalPathOfFolder(ISimpleFolder $node): string {
+	protected function getInternalPathOfFolder(ISimpleFolder $node): string {
 		$reflection = new \ReflectionClass($node);
 		$reflectionProperty = $reflection->getProperty('folder');
 		$reflectionProperty->setAccessible(true);
