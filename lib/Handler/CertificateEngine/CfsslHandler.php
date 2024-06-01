@@ -358,8 +358,8 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 					->setResource('cfssl'),
 			];
 		}
-		$cfsslInstalled = $this->appConfig->getAppValue('cfssl_bin');
-		if (!$cfsslInstalled) {
+		$binary = $this->appConfig->getAppValue('cfssl_bin');
+		if (!$binary) {
 			return [
 				(new ConfigureCheckHelper())
 					->setErrorMessage('CFSSL not installed.')
@@ -368,11 +368,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			];
 		}
 
-		$instanceId = $this->systemConfig->getValue('instanceid', null);
-		$binary = $this->systemConfig->getValue('datadirectory', \OC::$SERVERROOT . '/data/') . DIRECTORY_SEPARATOR .
-			'appdata_' . $instanceId . DIRECTORY_SEPARATOR .
-			Application::APP_ID . DIRECTORY_SEPARATOR .
-			'cfssl';
 		if (!file_exists($binary)) {
 			return [
 				(new ConfigureCheckHelper())
