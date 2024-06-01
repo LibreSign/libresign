@@ -371,6 +371,7 @@ class InstallService {
 
 		$extractor = new $class($comporessedInternalFileName);
 		$extractor->extract($extractDir);
+		unlink($comporessedInternalFileName);
 
 		$this->appConfig->setAppValue('java_path', $extractDir . '/jdk-' . self::JAVA_URL_PATH_NAME . '-jre/bin/java');
 		$this->removeDownloadProgress();
@@ -435,6 +436,7 @@ class InstallService {
 
 		$zip = new ZIP($extractDir . '/' . $compressedFileName);
 		$zip->extract($extractDir);
+		unlink($extractDir . '/' . $compressedFileName);
 
 		$fullPath = $extractDir . '/jsignpdf-' . JSignPdfHandler::VERSION . '/JSignPdf.jar';
 		$this->appConfig->setAppValue('jsignpdf_jar_path', $fullPath);
