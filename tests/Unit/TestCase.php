@@ -123,6 +123,13 @@ class TestCase extends \Test\TestCase {
 		$this->cleanDatabase();
 	}
 
+	public static function tearDownAfterClass(): void {
+		try {
+			parent::tearDownAfterClass();
+		} catch (\Throwable $th) {
+		}
+	}
+
 	private function cleanDatabase(): void {
 		$db = \OCP\Server::get(\OCP\IDBConnection::class);
 		if (!$db) {
