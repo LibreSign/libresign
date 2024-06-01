@@ -660,32 +660,9 @@ class InstallService {
 	}
 
 	private function getHash(ISimpleFolder $folder, string $type, string $file, string $version, string $checksumUrl): string {
-		$hashFileName = 'checksums_' . $type . '_' . $version . '.txt';
-		try {
-			$fileObject = $folder->getFile($hashFileName);
-		} catch (NotFoundException $th) {
-			$hashes = file_get_contents($checksumUrl);
-			if (!$hashes) {
-				throw new LibresignException('Failute to download hash file. URL: ' . $checksumUrl);
-			}
-			try {
-				$fileObject = $folder->newFile($hashFileName, $hashes);
-			} catch (\Throwable $th) {
-				throw new LibresignException(
-					'Failute to create hash file: ' . $hashFileName . '. ' .
-					'File corrupted or not found. Run "occ files:scan-app-data libresign".'
-				);
-			}
-		}
-		try {
-			$hashes = $fileObject->getContent();
-		} catch (\Throwable $th) {
-		}
-		if (empty($hashes)) {
-			throw new LibresignException(
-				'Failute to load content of hash file: ' . $hashFileName . '. ' .
-				'File corrupted or not found. Run "occ files:scan-app-data libresign".'
-			);
+		$hashes = file_get_contents($checksumUrl);
+		if (!$hashes) {
+			throw new LibresignException('Failute to download hash file. URL: ' . $checksumUrl);
 		}
 		preg_match('/(?<hash>\w*) +' . $file . '/', $hashes, $matches);
 		return $matches['hash'];
