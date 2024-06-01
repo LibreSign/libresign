@@ -556,34 +556,15 @@ class InstallService {
 	}
 
 	private function installCfsslArm(): void {
-		$appFolder = $this->getFolder();
-		try {
-			$cfsslFolder = $appFolder->getFolder('cfssl');
-		} catch (NotFoundException $th) {
-			$cfsslFolder = $appFolder->newFolder('cfssl');
-		}
-		$compressedFileName = 'cfssl-' . self::CFSSL_VERSION . '-1-aarch64.pkg.tar.xz';
-		$url = 'http://mirror.archlinuxarm.org/aarch64/community/' . $compressedFileName;
-		// Generated handmade with command sha256sum
-		$hash = '944a6c54e53b0e2ef04c9b22477eb5f637715271c74ccea9bb91d7ac0473b855';
-		try {
-			$compressedFile = $cfsslFolder->getFile($compressedFileName);
-		} catch (NotFoundException $th) {
-			$compressedFile = $cfsslFolder->newFile($compressedFileName);
-		}
+		$url = sprintf('https://github.com/cloudflare/cfssl/releases/download/v%s/cfssl-bundle_%s_linux_arm64', self::CFSSL_VERSION, self::CFSSL_VERSION);
 
-		$comporessedInternalFileName = $this->getDataDir() . '/' . $this->getInternalPathOfFile($compressedFile);
+		$folder = $this->getFolder();
+		$file = $folder->newFile('cfssl');
+		$fullPath = $this->getDataDir() . '/' . $this->getInternalPathOfFile($file);
+		$checksumUrl = sprintf('https://github.com/cloudflare/cfssl/releases/download/v%s/cfssl_%s_checksums.txt', self::CFSSL_VERSION, self::CFSSL_VERSION);
+		$hash = $this->getHash($folder, 'cfssl', 'cfssl-bundle_' . self::CFSSL_VERSION . '_linux_arm64', self::CFSSL_VERSION, $checksumUrl);
+		$this->download($url, 'cfssl', $fullPath, $hash, 'sha256');
 
-		$this->download($url, 'cfssl', $comporessedInternalFileName, $hash, 'sha256');
-
-		$this->appConfig->deleteAppValue('cfssl_bin');
-		$extractor = new TAR($comporessedInternalFileName);
-
-		$extractDir = $this->getFullPath() . '/cfssl';
-		$result = $extractor->extract($extractDir);
-		if (!$result) {
-			throw new \RuntimeException('Error to extract xz file. Install xz. Read more: https://github.com/codemasher/php-ext-xz');
-		}
 		$cfsslBinPath = $this->getDataDir() . '/' .
 			$this->getInternalPathOfFolder($this->getFolder()) . '/' .
 			'cfssl/usr/bin/cfssl';
