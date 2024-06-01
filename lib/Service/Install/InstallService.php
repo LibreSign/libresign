@@ -70,6 +70,7 @@ class InstallService {
 		private IAppConfig $appConfig,
 		private IRootFolder $rootFolder,
 		private LoggerInterface $logger,
+		private SignFiles $signFiles,
 		protected IAppDataFactory $appDataFactory,
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign-setup');
@@ -327,8 +328,15 @@ class InstallService {
 		return $this;
 	}
 
+	private function isDownloadedFilesOk(): bool {
+		return $this->signFiles->verify($this->architecture);
+	}
+
 	public function installJava(?bool $async = false): void {
 		$this->setResource('java');
+		if ($this->isDownloadedFilesOk()) {
+			return;
+		}
 		if ($async) {
 			$this->runAsync();
 			return;
@@ -415,6 +423,9 @@ class InstallService {
 			throw new RuntimeException('Zip extension is not available');
 		}
 		$this->setResource('jsignpdf');
+		if ($this->isDownloadedFilesOk()) {
+			return;
+		}
 		if ($async) {
 			$this->runAsync();
 			return;
@@ -464,6 +475,9 @@ class InstallService {
 
 	public function installPdftk(?bool $async = false): void {
 		$this->setResource('pdftk');
+		if ($this->isDownloadedFilesOk()) {
+			return;
+		}
 		if ($async) {
 			$this->runAsync();
 			return;
@@ -510,6 +524,9 @@ class InstallService {
 			return;
 		}
 		$this->setResource('cfssl');
+		if ($this->isDownloadedFilesOk()) {
+			return;
+		}
 		if ($async) {
 			$this->runAsync();
 			return;
