@@ -165,6 +165,8 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			[''],
 			['test'],
+			['test/folder1'],
+			['test/folder1/folder2'],
 		];
 	}
 }
