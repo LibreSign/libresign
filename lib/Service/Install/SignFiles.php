@@ -30,6 +30,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCP\App\IAppManager;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
+use OCP\Files\NotFoundException;
 use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IConfig;
 use phpseclib\Crypt\RSA;
@@ -85,6 +86,8 @@ class SignFiles {
 				$appInfoDir . '/install-' . $this->architecture . '.json',
 				json_encode($signature, JSON_PRETTY_PRINT)
 			);
+		} catch (NotFoundException $e) {
+			throw new \Exception(sprintf("Folder %s not found.\nIs necessary to run this command first: occ libresign:install --all --architecture %s", $e->getMessage(), $this->architecture));
 		} catch (\Exception $e) {
 			if (!$this->fileAccessHelper->is_writable($appInfoDir)) {
 				throw new \Exception($appInfoDir . ' is not writable');
