@@ -55,7 +55,7 @@ class SignFiles {
 
 	public function getArchitectures(): array {
 		$appInfo = $this->appManager->getAppInfo(Application::APP_ID);
-		if (!isset($appInfo['dependencies']['architecture'])) {
+		if (empty($appInfo['dependencies']['architecture'])) {
 			throw new \Exception('dependencies>architecture not found at info.xml');
 		}
 		return $appInfo['dependencies']['architecture'];
