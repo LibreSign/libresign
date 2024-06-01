@@ -663,7 +663,6 @@ class InstallService {
 		}
 		$progressBar->finish();
 		$this->output->writeln('');
-		$progressBar->finish();
 		if ($hash && file_exists($path) && hash_file($hash_algo, $path) !== $hash) {
 			$this->output->writeln('<error>Failure on download ' . $filename . ' try again</error>');
 			$this->output->writeln('<error>Invalid ' . $hash_algo . '</error>');
