@@ -28,13 +28,21 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appManager = $this->createMock(IAppManager::class);
 	}
 
-	private function getService(): SignFiles{
-		return new SignFiles(
-			$this->fileAccessHelper,
-			$this->config,
-			$this->appDataFactory,
-			$this->appManager
-		);
+	/**
+	 * @return SignFiles|MockObject
+	 */
+	private function getInstance(array $methods = []) {
+		return $this->getMockBuilder(SignFiles::class)
+			->setConstructorArgs([
+				$this->fileAccessHelper,
+				$this->config,
+				$this->appDataFactory,
+				$this->appManager,
+			])
+			->onlyMethods($methods)
+			->getMock();
+	}
+
 	}
 
 	/**
@@ -46,7 +54,7 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		if ($throwException) {
 			$this->expectExceptionMessage('dependencies>architecture not found at info.xml');
 		}
-		$actual = $this->getService()->getArchitectures();
+		$actual = $this->getInstance()->getArchitectures();
 		if ($throwException) {
 			return;
 		}
