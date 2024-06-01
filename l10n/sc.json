@@ -55,8 +55,6 @@
     "Sign »%s«" : "Firma »%s«",
     "LibreSign: There is a file for you to sign" : "LibreSign: b'at un'archìviu che deves firmare",
     "There is a document for you to sign. Access the link below:" : "B'at unu docuementu de firmare. Intra a su ligàmene in fatu:",
-    "LibreSign: Signature request cancelled" : "LibreSign: dimanda de firma annullada",
-    "The signature request has been canceled." : "Sa dimanda de firma est istada annullada.",
     "Empty users list" : "Elencu de utentes bòidu",
     "User list needs to be an array" : "S'elencu de utentes devet èssere unu vetore",
     "Document already signed" : "Documentu giai firmadu",

@@ -95,8 +95,6 @@ OC.L10N.register(
     "Sign »%s«" : "Potpiši »%s«",
     "LibreSign: There is a file for you to sign" : "LibreSign: postoji datoteka koju trebate potpisati",
     "There is a document for you to sign. Access the link below:" : "Postoji dokument koji trebate potpisati. Pristupite putem sljedeće poveznice:",
-    "LibreSign: Signature request cancelled" : "LibreSign: otkazan zahtjev za potpisivanje",
-    "The signature request has been canceled." : "Zahtjev za potpisivanje je otkazan.",
     "Empty users list" : "Prazan popis korisnika",
     "User list needs to be an array" : "Popis korisnika mora biti niz",
     "Document already signed" : "Dokument je već potpisan",
