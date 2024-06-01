@@ -41,6 +41,7 @@ use Symfony\Component\Process\Process;
 class InstallService {
 	public const JAVA_VERSION = 'openjdk version "21.0.2" 2024-01-16 LTS';
 	private const JAVA_PARTIAL_VERSION = '21.0.2_13';
+	private const JAVA_URL_PATH_NAME = '21.0.2+13';
 	public const PDFTK_VERSION = '3.3.3';
 	/**
 	 * When update, verify the hash of all architectures
@@ -347,10 +348,10 @@ class InstallService {
 			$linuxDistribution = $this->getLinuxDistributionToDownloadJava();
 			if ($this->architecture === 'x86_64') {
 				$compressedFileName = 'OpenJDK21U-jre_x64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
-				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.2+13/' . $compressedFileName;
+				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME  . '/' . $compressedFileName;
 			} elseif ($this->architecture === 'aarch64') {
 				$compressedFileName = 'OpenJDK21U-jre_aarch64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
-				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.2+13/' . $compressedFileName;
+				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
 			}
 			$class = TAR::class;
 		} else {
@@ -371,7 +372,7 @@ class InstallService {
 		$extractor = new $class($comporessedInternalFileName);
 		$extractor->extract($extractDir);
 
-		$this->appConfig->setAppValue('java_path', $extractDir . '/jdk-21.0.2+13-jre/bin/java');
+		$this->appConfig->setAppValue('java_path', $extractDir . '/jdk-' . self::JAVA_URL_PATH_NAME . '-jre/bin/java');
 		$this->removeDownloadProgress();
 	}
 
