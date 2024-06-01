@@ -96,6 +96,10 @@ class SignFiles {
 		}
 	}
 
+	public function verify(string $architecture): bool {
+		return true;
+	}
+
 	private function getDataDir(): string {
 		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
 		return $dataDir;
