@@ -189,6 +189,9 @@ class TestCase extends \Test\TestCase {
 
 	private function getBinariesFromCache(): void {
 		$appPath = $this->getFullLiresignAppFolder();
+		if (!$appPath) {
+			return;
+		}
 		$cachePath = preg_replace('/\/.*\/appdata_[a-z0-9]*/', \OC::$server->getTempManager()->getTempBaseDir(), $appPath);
 		if (!file_exists($cachePath)) {
 			return;
