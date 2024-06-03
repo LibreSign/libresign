@@ -43,6 +43,7 @@ OC.L10N.register(
     "Status" : "Статус",
     "Actions" : "Дії",
     "Choose" : "Вибрати",
+    "Delete certificate" : "Видалити сертифікат",
     "Signature" : "Підпис",
     "Profile picture" : "Зображення облікового запису",
     "Create account" : "Створити обліковий запис",
