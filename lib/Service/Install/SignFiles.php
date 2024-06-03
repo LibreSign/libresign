@@ -223,8 +223,12 @@ class SignFiles {
 	}
 
 	private function getInstallPath(): string {
-		$folder = $this->getDataDir() . '/' .
-			$this->getInternalPathOfFolder($this->appData->getFolder($this->architecture));
+		try {
+			$folder = $this->getDataDir() . '/' .
+				$this->getInternalPathOfFolder($this->appData->getFolder($this->architecture));
+		} catch (NotFoundException $e) {
+			throw new InvalidSignatureException('Invalid architecture ' . $this->architecture);
+		}
 		return $folder;
 	}
 
