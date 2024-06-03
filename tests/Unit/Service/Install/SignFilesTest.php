@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use bovigo\vfs\vfsStream;
+use OC\IntegrityCheck\Helpers\EnvironmentHelper;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\Service\Install\SignFiles;
 use OCP\App\IAppManager;
@@ -19,12 +20,14 @@ use phpseclib\File\X509;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
+	private EnvironmentHelper&MockObject $environmentHelper;
 	private FileAccessHelper $fileAccessHelper;
 	private IConfig&MockObject $config;
 	private IAppDataFactory&MockObject $appDataFactory;
 	private IAppManager&MockObject $appManager;
 
 	public function setUp(): void {
+		$this->environmentHelper = $this->createMock(EnvironmentHelper::class);
 		$this->fileAccessHelper = new FileAccessHelper();
 		$this->config = $this->createMock(IConfig::class);
 		$this->appDataFactory = $this->createMock(IAppDataFactory::class);
@@ -37,6 +40,7 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private function getInstance(array $methods = []) {
 		return $this->getMockBuilder(SignFiles::class)
 			->setConstructorArgs([
+				$this->environmentHelper,
 				$this->fileAccessHelper,
 				$this->config,
 				$this->appDataFactory,
@@ -52,7 +56,7 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
 		]);
 
-		$csrNames = ['commonName' => 'Jhon Doe'];
+		$csrNames = ['commonName' => 'LibreSign'];
 
 		$csr = openssl_csr_new($csrNames, $privateKey, ['digest_alg' => 'sha256']);
 		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365, ['digest_alg' => 'sha256']);
@@ -66,7 +70,7 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 		return [
 			'privateKey' => $privateKey,
-			'certificate' => $rootCertificate,
+			'rootCertificate' => $rootCertificate,
 			'publicKey' => $publicKey,
 		];
 	}
@@ -96,10 +100,7 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	/**
-	 * @dataProvider dataWriteAppSignature
-	 */
-	public function testWriteAppSignature(string $architecture): void {
+	private function writeAppSignature(string $architecture): SignFiles {
 		$this->appManager->method('getAppInfo')
 			->willReturn(['dependencies' => ['architecture' => [$architecture]]]);
 
@@ -108,13 +109,19 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$rsa->loadKey($certificate['privateKey']);
 		$rsa->loadKey($certificate['publicKey']);
 		$x509 = new X509();
-		$x509->loadX509($certificate['certificate']);
+		$x509->loadX509($certificate['rootCertificate']);
 		$x509->setPrivateKey($rsa);
 
 		$structure = [
 			'data' => [
 				'libresign' => [
-					'fakeFile' => 'content',
+					'fakeFile01' => 'content',
+					'fakeFile02' => 'content',
+				],
+			],
+			'resources' => [
+				'codesigning' => [
+					'root.crt' => $certificate['rootCertificate'],
 				],
 			],
 			'appinfo' => [],
@@ -123,6 +130,9 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->config->method('getSystemValue')
 			->willReturn(vfsStream::url('home/data'));
+
+		$this->environmentHelper->method('getServerRoot')
+			->willReturn('vfs://home');
 
 		$signFiles = $this->getInstance(['getInternalPathOfFolder']);
 		$signFiles->expects($this->any())
@@ -133,15 +143,56 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$json = file_get_contents('vfs://home/appinfo/install-' . $architecture . '.json');
 		$signatureContent = json_decode($json, true);
 		$this->assertArrayHasKey('hashes', $signatureContent);
-		$this->assertCount(1, $signatureContent['hashes']);
-		$expected = hash('sha512', $structure['data']['libresign']['fakeFile']);
-		$actual = $signatureContent['hashes']['fakeFile'];
+		$this->assertCount(2, $signatureContent['hashes']);
+		$expected = hash('sha512', $structure['data']['libresign']['fakeFile01']);
+		$actual = $signatureContent['hashes']['fakeFile01'];
 		$this->assertEquals($expected, $actual);
+		return $signFiles;
+	}
+
+	/**
+	 * @dataProvider dataWriteAppSignature
+	 */
+	public function testWriteAppSignature(string $architecture): void {
+		$signFiles = $this->writeAppSignature($architecture);
+		$actual = $signFiles->verify($architecture, 'vfs://home/appinfo', 'LibreSign');
+		$this->assertCount(0, $actual);
 	}
 
 	public static function dataWriteAppSignature(): array {
 		return [
 			['x86_64', 'aarch64'],
 		];
+	}
+
+	public function testVerify(): void {
+		$architecture = 'x86_64';
+		$signFiles = $this->writeAppSignature($architecture);
+		unlink('vfs://home/data/libresign/fakeFile01');
+		file_put_contents('vfs://home/data/libresign/fakeFile02', 'invalidContent');
+		file_put_contents('vfs://home/data/libresign/fakeFile03', 'invalidContent');
+		$expected = json_encode([
+			'FILE_MISSING' => [
+				'fakeFile01' => [
+					'expected' => 'b2d1d285b5199c85f988d03649c37e44fd3dde01e5d69c50fef90651962f48110e9340b60d49a479c4c0b53f5f07d690686dd87d2481937a512e8b85ee7c617f',
+					'current' => '',
+				],
+			],
+			'INVALID_HASH' => [
+				'fakeFile02' => [
+					'expected' => 'b2d1d285b5199c85f988d03649c37e44fd3dde01e5d69c50fef90651962f48110e9340b60d49a479c4c0b53f5f07d690686dd87d2481937a512e8b85ee7c617f',
+					'current' => '827a4e298c978e1eeffebdf09f0fa5a1e1d8b608c8071144f3fffb31f9ed21f6d27f88a63f7409583df7438105f713ff58d55e68e61e01a285125d763045c726',
+				],
+			],
+			'EXTRA_FILE' => [
+				'fakeFile03' => [
+					'expected' => '',
+					'current' => '827a4e298c978e1eeffebdf09f0fa5a1e1d8b608c8071144f3fffb31f9ed21f6d27f88a63f7409583df7438105f713ff58d55e68e61e01a285125d763045c726',
+				],
+			],
+		]);
+		$actual = $signFiles->verify($architecture, 'vfs://home/appinfo', 'LibreSign');
+		$actual = json_encode($actual);
+		$this->assertJsonStringEqualsJsonString($expected, $actual);
 	}
 }

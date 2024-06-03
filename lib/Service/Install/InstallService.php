@@ -329,7 +329,7 @@ class InstallService {
 	}
 
 	private function isDownloadedFilesOk(): bool {
-		return $this->signFiles->verify($this->architecture);
+		return count($this->signFiles->verify($this->architecture)) === 0;
 	}
 
 	public function installJava(?bool $async = false): void {
