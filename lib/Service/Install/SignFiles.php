@@ -25,8 +25,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Install;
 
+use OC\IntegrityCheck\Helpers\EnvironmentHelper;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\InvalidSignatureException;
 use OCP\App\IAppManager;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
@@ -44,8 +46,8 @@ class SignFiles {
 		'unauthetnicated',
 	];
 	private string $architecture;
-	private string $appInfoDir;
 	public function __construct(
+		private EnvironmentHelper $environmentHelper,
 		private FileAccessHelper $fileAccessHelper,
 		private IConfig $config,
 		private IAppDataFactory $appDataFactory,
@@ -77,11 +79,7 @@ class SignFiles {
 		string $appInfoDir = '',
 	) {
 		$this->architecture = $architecture;
-		if (is_dir($appInfoDir)) {
-			$this->appInfoDir = $appInfoDir;
-		} else {
-			$appInfoDir = realpath(__DIR__ . '/../../../appinfo');
-		}
+		$appInfoDir = $this->getAppInfoDirectory($appInfoDir);
 		try {
 			$this->fileAccessHelper->assertDirectoryExists($appInfoDir);
 
@@ -102,8 +100,109 @@ class SignFiles {
 		}
 	}
 
-	public function verify(string $architecture): bool {
-		return true;
+	private function getAppInfoDirectory(string $appInfoDir): string {
+		if (is_dir($appInfoDir)) {
+			return $appInfoDir;
+		}
+		return realpath(__DIR__ . '/../../../appinfo');
+	}
+
+	/**
+	 * Split the certificate file in individual certs
+	 *
+	 * @param string $cert
+	 * @return string[]
+	 */
+	private function splitCerts(string $cert): array {
+		preg_match_all('([\-]{3,}[\S\ ]+?[\-]{3,}[\S\s]+?[\-]{3,}[\S\ ]+?[\-]{3,})', $cert, $matches);
+
+		return $matches[0];
+	}
+
+	public function verify(string $architecture, string $appInfoDir = '', string $certificateCN = Application::APP_ID): array {
+		$this->architecture = $architecture;
+		$appInfoDir = $this->getAppInfoDirectory($appInfoDir);
+
+		$signaturePath = $appInfoDir . '/install-' . $this->architecture . '.json';
+		$content = $this->fileAccessHelper->file_get_contents($signaturePath);
+		$signatureData = null;
+
+		if (\is_string($content)) {
+			$signatureData = json_decode($content, true);
+		}
+		if (!\is_array($signatureData)) {
+			throw new InvalidSignatureException('Signature data not found.');
+		}
+
+		$expectedHashes = $signatureData['hashes'];
+		ksort($expectedHashes);
+		$signature = base64_decode($signatureData['signature']);
+		$certificate = $signatureData['certificate'];
+
+		// Check if certificate is signed by Nextcloud Root Authority
+		$x509 = new \phpseclib\File\X509();
+		$rootCertificatePublicKey = $this->fileAccessHelper->file_get_contents($this->environmentHelper->getServerRoot().'/resources/codesigning/root.crt');
+
+		$rootCerts = $this->splitCerts($rootCertificatePublicKey);
+		foreach ($rootCerts as $rootCert) {
+			$x509->loadCA($rootCert);
+		}
+		$x509->loadX509($certificate);
+		if (!$x509->validateSignature()) {
+			throw new InvalidSignatureException('Certificate is not valid.');
+		}
+		// Verify if certificate has proper CN. "core" CN is always trusted.
+		if ($x509->getDN(X509::DN_OPENSSL)['CN'] !== $certificateCN && $x509->getDN(X509::DN_OPENSSL)['CN'] !== 'core') {
+			throw new InvalidSignatureException(
+				sprintf('Certificate is not valid for required scope. (Requested: %s, current: CN=%s)', $certificateCN, $x509->getDN(true)['CN'])
+			);
+		}
+
+		// Check if the signature of the files is valid
+		$rsa = new \phpseclib\Crypt\RSA();
+		$rsa->loadKey($x509->currentCert['tbsCertificate']['subjectPublicKeyInfo']['subjectPublicKey']);
+		$rsa->setSignatureMode(RSA::SIGNATURE_PSS);
+		$rsa->setMGFHash('sha512');
+		// See https://tools.ietf.org/html/rfc3447#page-38
+		$rsa->setSaltLength(0);
+		if (!$rsa->verify(json_encode($expectedHashes), $signature)) {
+			throw new InvalidSignatureException('Signature could not get verified.');
+		}
+
+		// Compare the list of files which are not identical
+		$installPath = $this->getInstallPath();
+		$currentInstanceHashes = $this->generateHashes($this->getFolderIterator(), $installPath);
+		$differencesA = array_diff($expectedHashes, $currentInstanceHashes);
+		$differencesB = array_diff($currentInstanceHashes, $expectedHashes);
+		$differences = array_merge($differencesA, $differencesB);
+		$differenceArray = [];
+		foreach ($differences as $filename => $hash) {
+			// Check if file should not exist in the new signature table
+			if (!array_key_exists($filename, $expectedHashes)) {
+				$differenceArray['EXTRA_FILE'][$filename]['expected'] = '';
+				$differenceArray['EXTRA_FILE'][$filename]['current'] = $hash;
+				continue;
+			}
+
+			// Check if file is missing
+			if (!array_key_exists($filename, $currentInstanceHashes)) {
+				$differenceArray['FILE_MISSING'][$filename]['expected'] = $expectedHashes[$filename];
+				$differenceArray['FILE_MISSING'][$filename]['current'] = '';
+				continue;
+			}
+
+			// Check if hash does mismatch
+			if ($expectedHashes[$filename] !== $currentInstanceHashes[$filename]) {
+				$differenceArray['INVALID_HASH'][$filename]['expected'] = $expectedHashes[$filename];
+				$differenceArray['INVALID_HASH'][$filename]['current'] = $currentInstanceHashes[$filename];
+				continue;
+			}
+
+			// Should never happen.
+			throw new \Exception('Invalid behaviour in file hash comparison experienced. Please report this error to the developers.');
+		}
+
+		return $differenceArray;
 	}
 
 	private function getDataDir(): string {
