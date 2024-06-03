@@ -119,7 +119,7 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			'appinfo' => [],
 		];
-		$root = vfsStream::setup('home', 0755, $structure);
+		$root = vfsStream::setup('home', null, $structure);
 
 		$this->config->method('getSystemValue')
 			->willReturn(vfsStream::url('home/data'));
@@ -141,7 +141,7 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public static function dataWriteAppSignature(): array {
 		return [
-			['x86_64'],
+			['x86_64', 'aarch64'],
 		];
 	}
 }
