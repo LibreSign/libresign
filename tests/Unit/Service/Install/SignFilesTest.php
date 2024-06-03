@@ -19,13 +19,13 @@ use phpseclib\File\X509;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	private FileAccessHelper&MockObject $fileAccessHelper;
+	private FileAccessHelper $fileAccessHelper;
 	private IConfig&MockObject $config;
 	private IAppDataFactory&MockObject $appDataFactory;
 	private IAppManager&MockObject $appManager;
 
 	public function setUp(): void {
-		$this->fileAccessHelper = $this->createMock(FileAccessHelper::class);
+		$this->fileAccessHelper = new FileAccessHelper();
 		$this->config = $this->createMock(IConfig::class);
 		$this->appDataFactory = $this->createMock(IAppDataFactory::class);
 		$this->appManager = $this->createMock(IAppManager::class);
@@ -58,7 +58,7 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365, ['digest_alg' => 'sha256']);
 
 		openssl_x509_export($x509, $rootCertificate);
-		openssl_pkey_export($privateKey, $rootPrivateKey);
+		openssl_pkey_export($privateKey, $publicKey);
 
 		$privateKey = openssl_pkey_new([
 			'private_key_bits' => 2048,
@@ -67,6 +67,7 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			'privateKey' => $privateKey,
 			'certificate' => $rootCertificate,
+			'publicKey' => $publicKey,
 		];
 	}
 
@@ -105,12 +106,20 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$certificate = $this->getNewCert('123456');
 		$rsa = new RSA();
 		$rsa->loadKey($certificate['privateKey']);
+		$rsa->loadKey($certificate['publicKey']);
 		$x509 = new X509();
 		$x509->loadX509($certificate['certificate']);
 		$x509->setPrivateKey($rsa);
 
-
-		vfsStream::setup('home');
+		$structure = [
+			'data' => [
+				'libresign' => [
+					'fakeFile' => 'content',
+				],
+			],
+			'appinfo' => [],
+		];
+		$root = vfsStream::setup('home', 0755, $structure);
 
 		$this->config->method('getSystemValue')
 			->willReturn(vfsStream::url('home/data'));
@@ -119,8 +128,15 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signFiles->expects($this->any())
 			->method('getInternalPathOfFolder')
 			->willReturn('libresign');
-		mkdir('vfs://home/data/libresign', 0755, true);
-		$signFiles->writeAppSignature($x509, $rsa, $architecture);
+		$signFiles->writeAppSignature($x509, $rsa, $architecture, 'vfs://home/appinfo');
+		$this->assertFileExists('vfs://home/appinfo/install-' . $architecture . '.json');
+		$json = file_get_contents('vfs://home/appinfo/install-' . $architecture . '.json');
+		$signatureContent = json_decode($json, true);
+		$this->assertArrayHasKey('hashes', $signatureContent);
+		$this->assertCount(1, $signatureContent['hashes']);
+		$expected = hash('sha512', $structure['data']['libresign']['fakeFile']);
+		$actual = $signatureContent['hashes']['fakeFile'];
+		$this->assertEquals($expected, $actual);
 	}
 
 	public static function dataWriteAppSignature(): array {
