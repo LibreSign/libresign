@@ -44,6 +44,7 @@ class SignFiles {
 		'unauthetnicated',
 	];
 	private string $architecture;
+	private string $appInfoDir;
 	public function __construct(
 		private FileAccessHelper $fileAccessHelper,
 		private IConfig $config,
@@ -73,9 +74,14 @@ class SignFiles {
 		X509 $certificate,
 		RSA $privateKey,
 		string $architecture,
+		string $appInfoDir = '',
 	) {
 		$this->architecture = $architecture;
-		$appInfoDir = __DIR__ . '/../../../appinfo';
+		if (is_dir($appInfoDir)) {
+			$this->appInfoDir = $appInfoDir;
+		} else {
+			$appInfoDir = realpath(__DIR__ . '/../../../appinfo');
+		}
 		try {
 			$this->fileAccessHelper->assertDirectoryExists($appInfoDir);
 
