@@ -19,7 +19,8 @@ class ConfigureCheckService {
 		private IAppConfig $appConfig,
 		private SystemConfig $systemConfig,
 		private JSignPdfHandler $jSignPdfHandler,
-		private CertificateEngine $certificateEngine
+		private CertificateEngine $certificateEngine,
+		private InstallService $installService,
 	) {
 	}
 
@@ -42,10 +43,25 @@ class ConfigureCheckService {
 	 */
 	public function checkSign(): array {
 		$return = [];
+		$return = array_merge($return, $this->checkHash());
 		$return = array_merge($return, $this->checkJava());
 		$return = array_merge($return, $this->checkPdftk());
 		$return = array_merge($return, $this->checkJSignPdf());
 		return $return;
+	}
+
+	public function checkHash(): array {
+		if (!$this->installService->isDownloadedFilesOk()) {
+			return [
+				(new ConfigureCheckHelper())
+					->setErrorMessage(
+						'Invalid hash of binaries files.'
+					)
+					->setResource('java')
+					->setTip('Run occ libresign:install --all'),
+			];
+		}
+		return [];
 	}
 
 	/**
@@ -117,17 +133,25 @@ class ConfigureCheckService {
 		$pdftkPath = $this->appConfig->getAppValue('pdftk_path');
 		if ($pdftkPath) {
 			if (file_exists($pdftkPath)) {
-				$javaPath = $this->appConfig->getAppValue('java_path');
-				if (empty($javaPath)) {
+				if (!$this->isJavaOk()) {
 					return [
 						(new ConfigureCheckHelper())
-							->setErrorMessage('Java is necessary to run pdftk')
-							->setResource('pdftk')
+							->setErrorMessage('Necessary Java to run PDFtk')
+							->setResource('jsignpdf')
 							->setTip('Run occ libresign:install --java'),
 					];
 				}
+				$javaPath = $this->appConfig->getAppValue('java_path');
 				$version = [];
-				\exec($javaPath . ' -jar ' . $pdftkPath . " --version 2>&1", $version);
+				\exec($javaPath . ' -jar ' . $pdftkPath . " --version 2>&1", $version, $resultCode);
+				if ($resultCode !== 0) {
+					return [
+						(new ConfigureCheckHelper())
+							->setErrorMessage('Failure to check PDFtk version.')
+							->setResource('java')
+							->setTip('Run occ libresign:install --pdftk'),
+					];
+				}
 				if (isset($version[0])) {
 					preg_match('/pdftk port to java (?<version>.*) a Handy Tool/', $version[0], $matches);
 					if (isset($matches['version'])) {
@@ -178,7 +202,7 @@ class ConfigureCheckService {
 		$javaPath = $this->appConfig->getAppValue('java_path');
 		if ($javaPath) {
 			if (file_exists($javaPath)) {
-				\exec($javaPath . " -version 2>&1", $javaVersion);
+				\exec($javaPath . " -version 2>&1", $javaVersion, $resultCode);
 				if (empty($javaVersion)) {
 					return [
 						(new ConfigureCheckHelper())
@@ -187,6 +211,14 @@ class ConfigureCheckService {
 							)
 							->setResource('java')
 							->setTip('https://github.com/LibreSign/libresign/issues/2327#issuecomment-1961988790'),
+					];
+				}
+				if ($resultCode !== 0) {
+					return [
+						(new ConfigureCheckHelper())
+							->setErrorMessage('Failure to check Java version.')
+							->setResource('java')
+							->setTip('Run occ libresign:install --java'),
 					];
 				}
 				$javaVersion = current($javaVersion);
@@ -216,17 +248,6 @@ class ConfigureCheckService {
 			return [
 				(new ConfigureCheckHelper())
 					->setErrorMessage('Java binary not found: ' . $javaPath)
-					->setResource('java')
-					->setTip('Run occ libresign:install --java'),
-			];
-		}
-		\exec("java -version 2>&1", $javaVersion);
-		$javaVersion = current($javaVersion);
-		$hasJavaVersion = strpos($javaVersion, 'not found') === false;
-		if ($hasJavaVersion) {
-			return [
-				(new ConfigureCheckHelper())
-					->setSuccessMessage('Using java from operational system. Version: ' . $javaVersion)
 					->setResource('java')
 					->setTip('Run occ libresign:install --java'),
 			];

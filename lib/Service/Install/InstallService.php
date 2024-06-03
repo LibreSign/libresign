@@ -14,6 +14,7 @@ use OC\Archive\TAR;
 use OC\Archive\ZIP;
 use OC\Memcache\NullCache;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\InvalidSignatureException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\AEngineHandler;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
@@ -328,8 +329,12 @@ class InstallService {
 		return $this;
 	}
 
-	private function isDownloadedFilesOk(): bool {
-		return count($this->signFiles->verify($this->architecture)) === 0;
+	public function isDownloadedFilesOk(): bool {
+		try {
+			return count($this->signFiles->verify($this->architecture)) === 0;
+		} catch (InvalidSignatureException $e) {
+			return false;
+		}
 	}
 
 	public function installJava(?bool $async = false): void {
