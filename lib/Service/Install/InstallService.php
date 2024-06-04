@@ -347,7 +347,7 @@ class InstallService {
 
 	public function isDownloadedFilesOk(): bool {
 		try {
-			return count($this->signSetupService->verify($this->architecture)) === 0;
+			return count($this->signSetupService->verify($this->architecture, $this->resource)) === 0;
 		} catch (InvalidSignatureException $e) {
 			return false;
 		}
