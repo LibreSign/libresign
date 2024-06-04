@@ -370,7 +370,6 @@ class InstallService {
 		} else {
 			throw new RuntimeException(sprintf('OS_FAMILY %s is incompatible with LibreSign.', PHP_OS_FAMILY));
 		}
-		$folder = $this->getFolder();
 		$checksumUrl = $url . '.sha256.txt';
 		$hash = $this->getHash($compressedFileName, $checksumUrl);
 		try {
