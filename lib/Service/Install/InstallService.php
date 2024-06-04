@@ -532,23 +532,25 @@ class InstallService {
 			throw new RuntimeException(sprintf('OS_FAMILY %s is incompatible with LibreSign.', PHP_OS_FAMILY));
 		}
 		if ($this->architecture === 'x86_64') {
-			$this->installCfssl64();
+			$this->installCfsslByArchitecture('amd64');
 		} elseif ($this->architecture === 'aarch64') {
-			$this->installCfsslArm();
+			$this->installCfsslByArchitecture('arm64');
+		} else {
+			throw new InvalidArgumentException('Invalid architecture to download cfssl');
 		}
 		$this->removeDownloadProgress();
 	}
 
-	private function installCfssl64(): void {
-		$folder = $this->getFolder();
+	private function installCfsslByArchitecture(string $arcitecture): void {
+		$folder = $this->getFolder($this->resource);
 
 		$downloads = [
 			[
-				'file' => 'cfssl_' . self::CFSSL_VERSION . '_linux_amd64',
+				'file' => 'cfssl_' . self::CFSSL_VERSION . '_linux_' . $arcitecture,
 				'destination' => 'cfssl',
 			],
 			[
-				'file' => 'cfssljson_' . self::CFSSL_VERSION . '_linux_amd64',
+				'file' => 'cfssljson_' . self::CFSSL_VERSION . '_linux_' . $arcitecture,
 				'destination' => 'cfssljson',
 			],
 		];
@@ -566,24 +568,8 @@ class InstallService {
 		}
 
 		$cfsslBinPath = $this->getDataDir() . '/' .
-			$this->getInternalPathOfFolder($this->getFolder()) . '/' .
+			$this->getInternalPathOfFolder($folder) . '/' .
 			$downloads[0]['destination'];
-		$this->appConfig->setAppValue('cfssl_bin', $cfsslBinPath);
-	}
-
-	private function installCfsslArm(): void {
-		$url = sprintf('https://github.com/cloudflare/cfssl/releases/download/v%s/cfssl-bundle_%s_linux_arm64', self::CFSSL_VERSION, self::CFSSL_VERSION);
-
-		$folder = $this->getFolder();
-		$file = $folder->newFile('cfssl');
-		$fullPath = $this->getDataDir() . '/' . $this->getInternalPathOfFile($file);
-		$checksumUrl = sprintf('https://github.com/cloudflare/cfssl/releases/download/v%s/cfssl_%s_checksums.txt', self::CFSSL_VERSION, self::CFSSL_VERSION);
-		$hash = $this->getHash($folder, 'cfssl', 'cfssl-bundle_' . self::CFSSL_VERSION . '_linux_arm64', self::CFSSL_VERSION, $checksumUrl);
-		$this->download($url, 'cfssl', $fullPath, $hash, 'sha256');
-
-		$cfsslBinPath = $this->getDataDir() . '/' .
-			$this->getInternalPathOfFolder($this->getFolder()) . '/' .
-			'cfssl/usr/bin/cfssl';
 		$this->appConfig->setAppValue('cfssl_bin', $cfsslBinPath);
 	}
 
