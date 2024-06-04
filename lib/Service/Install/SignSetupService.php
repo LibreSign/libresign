@@ -21,7 +21,7 @@ use OCP\IConfig;
 use phpseclib\Crypt\RSA;
 use phpseclib\File\X509;
 
-class SignFiles {
+class SignSetupService {
 	private IAppData $appData;
 	private array $exclude = [
 		'openssl_config',
