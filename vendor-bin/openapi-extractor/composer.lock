@@ -83,12 +83,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/vitormattos/openapi-extractor.git",
-                "reference": "deb5c884c4d2979292428c533cdcde5c46677c54"
+                "reference": "597172ffb31f2ba832e30dd34aa27e0fad396281"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vitormattos/openapi-extractor/zipball/deb5c884c4d2979292428c533cdcde5c46677c54",
-                "reference": "deb5c884c4d2979292428c533cdcde5c46677c54",
+                "url": "https://api.github.com/repos/vitormattos/openapi-extractor/zipball/597172ffb31f2ba832e30dd34aa27e0fad396281",
+                "reference": "597172ffb31f2ba832e30dd34aa27e0fad396281",
                 "shasum": ""
             },
             "require": {
@@ -128,7 +128,7 @@
             "support": {
                 "source": "https://github.com/vitormattos/openapi-extractor/tree/develop"
             },
-            "time": "2024-05-31T06:56:46+00:00"
+            "time": "2024-06-04T12:20:17+00:00"
         },
         {
             "name": "nikic/php-parser",
@@ -190,16 +190,16 @@
         },
         {
             "name": "phpstan/phpdoc-parser",
-            "version": "1.29.0",
+            "version": "1.29.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpdoc-parser.git",
-                "reference": "536889f2b340489d328f5ffb7b02bb6b183ddedc"
+                "reference": "fcaefacf2d5c417e928405b71b400d4ce10daaf4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/536889f2b340489d328f5ffb7b02bb6b183ddedc",
-                "reference": "536889f2b340489d328f5ffb7b02bb6b183ddedc",
+                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/fcaefacf2d5c417e928405b71b400d4ce10daaf4",
+                "reference": "fcaefacf2d5c417e928405b71b400d4ce10daaf4",
                 "shasum": ""
             },
             "require": {
@@ -231,9 +231,9 @@
             "description": "PHPDoc parser with support for nullable, intersection and generic types",
             "support": {
                 "issues": "https://github.com/phpstan/phpdoc-parser/issues",
-                "source": "https://github.com/phpstan/phpdoc-parser/tree/1.29.0"
+                "source": "https://github.com/phpstan/phpdoc-parser/tree/1.29.1"
             },
-            "time": "2024-05-06T12:04:23+00:00"
+            "time": "2024-05-31T08:52:43+00:00"
         }
     ],
     "aliases": [],
