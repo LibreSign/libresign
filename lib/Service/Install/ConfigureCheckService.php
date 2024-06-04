@@ -15,13 +15,15 @@ use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCP\AppFramework\Services\IAppConfig;
 
 class ConfigureCheckService {
+	private string $architecture;
 	public function __construct(
 		private IAppConfig $appConfig,
 		private SystemConfig $systemConfig,
 		private JSignPdfHandler $jSignPdfHandler,
 		private CertificateEngine $certificateEngine,
-		private InstallService $installService,
+		private SignSetupService $signSetupService,
 	) {
+		$this->architecture = php_uname('m');
 	}
 
 	/**
@@ -43,25 +45,10 @@ class ConfigureCheckService {
 	 */
 	public function checkSign(): array {
 		$return = [];
-		$return = array_merge($return, $this->checkHash());
 		$return = array_merge($return, $this->checkJava());
 		$return = array_merge($return, $this->checkPdftk());
 		$return = array_merge($return, $this->checkJSignPdf());
 		return $return;
-	}
-
-	public function checkHash(): array {
-		if (!$this->installService->isDownloadedFilesOk()) {
-			return [
-				(new ConfigureCheckHelper())
-					->setErrorMessage(
-						'Invalid hash of binaries files.'
-					)
-					->setResource('java')
-					->setTip('Run occ libresign:install --all'),
-			];
-		}
-		return [];
 	}
 
 	/**
@@ -72,6 +59,16 @@ class ConfigureCheckService {
 	public function checkJSignPdf(): array {
 		$jsignpdJarPath = $this->appConfig->getAppValue('jsignpdf_jar_path');
 		if ($jsignpdJarPath) {
+			if (count($this->signSetupService->verify($this->architecture, 'jsignpdf'))) {
+				return [
+					(new ConfigureCheckHelper())
+						->setErrorMessage(
+							'Invalid hash of binaries files.'
+						)
+						->setResource('jsignpdf')
+						->setTip('Run occ libresign:install --all'),
+				];
+			}
 			if (file_exists($jsignpdJarPath)) {
 				if (!$this->isJavaOk()) {
 					return [
@@ -132,6 +129,16 @@ class ConfigureCheckService {
 	public function checkPdftk(): array {
 		$pdftkPath = $this->appConfig->getAppValue('pdftk_path');
 		if ($pdftkPath) {
+			if (count($this->signSetupService->verify($this->architecture, 'pdftk'))) {
+				return [
+					(new ConfigureCheckHelper())
+						->setErrorMessage(
+							'Invalid hash of binaries files.'
+						)
+						->setResource('pdftk')
+						->setTip('Run occ libresign:install --all'),
+				];
+			}
 			if (file_exists($pdftkPath)) {
 				if (!$this->isJavaOk()) {
 					return [
@@ -201,6 +208,16 @@ class ConfigureCheckService {
 	private function checkJava(): array {
 		$javaPath = $this->appConfig->getAppValue('java_path');
 		if ($javaPath) {
+			if (count($this->signSetupService->verify($this->architecture, 'java'))) {
+				return [
+					(new ConfigureCheckHelper())
+						->setErrorMessage(
+							'Invalid hash of binaries files.'
+						)
+						->setResource('java')
+						->setTip('Run occ libresign:install --all'),
+				];
+			}
 			if (file_exists($javaPath)) {
 				\exec($javaPath . " -version 2>&1", $javaVersion, $resultCode);
 				if (empty($javaVersion)) {

@@ -56,7 +56,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
 		]);
 
-		$csrNames = ['commonName' => 'LibreSign'];
+		$csrNames = ['commonName' => 'libresign'];
 
 		$csr = openssl_csr_new($csrNames, $privateKey, ['digest_alg' => 'sha256']);
 		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365, ['digest_alg' => 'sha256']);
@@ -115,8 +115,10 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$structure = [
 			'data' => [
 				'libresign' => [
-					'fakeFile01' => 'content',
-					'fakeFile02' => 'content',
+					'java' => [
+						'fakeFile01' => 'content',
+						'fakeFile02' => 'content',
+					],
 				],
 			],
 			'resources' => [
@@ -134,18 +136,25 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->environmentHelper->method('getServerRoot')
 			->willReturn('vfs://home');
 
-		$signSetupService = $this->getInstance(['getInternalPathOfFolder']);
+		$signSetupService = $this->getInstance([
+			'getInternalPathOfFolder',
+			'getAppInfoDirectory',
+		]);
 		$signSetupService->expects($this->any())
 			->method('getInternalPathOfFolder')
 			->willReturn('libresign');
+		$signSetupService->expects($this->any())
+			->method('getAppInfoDirectory')
+			->willReturn('vfs://home/appinfo');
+
 		$signSetupService->writeAppSignature($x509, $rsa, $architecture, 'vfs://home/appinfo');
 		$this->assertFileExists('vfs://home/appinfo/install-' . $architecture . '.json');
 		$json = file_get_contents('vfs://home/appinfo/install-' . $architecture . '.json');
 		$signatureContent = json_decode($json, true);
 		$this->assertArrayHasKey('hashes', $signatureContent);
 		$this->assertCount(2, $signatureContent['hashes']);
-		$expected = hash('sha512', $structure['data']['libresign']['fakeFile01']);
-		$actual = $signatureContent['hashes']['fakeFile01'];
+		$expected = hash('sha512', $structure['data']['libresign']['java']['fakeFile01']);
+		$actual = $signatureContent['hashes']['java/fakeFile01'];
 		$this->assertEquals($expected, $actual);
 		return $signSetupService;
 	}
@@ -155,7 +164,9 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 */
 	public function testWriteAppSignature(string $architecture): void {
 		$signSetupService = $this->writeAppSignature($architecture);
-		$actual = $signSetupService->verify($architecture, 'vfs://home/appinfo', 'LibreSign');
+		$architecture = 'x86_64';
+		$resource = 'java';
+		$actual = $signSetupService->verify($architecture, $resource);
 		$this->assertCount(0, $actual);
 	}
 
@@ -168,30 +179,30 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testVerify(): void {
 		$architecture = 'x86_64';
 		$signSetupService = $this->writeAppSignature($architecture);
-		unlink('vfs://home/data/libresign/fakeFile01');
-		file_put_contents('vfs://home/data/libresign/fakeFile02', 'invalidContent');
-		file_put_contents('vfs://home/data/libresign/fakeFile03', 'invalidContent');
+		unlink('vfs://home/data/libresign/java/fakeFile01');
+		file_put_contents('vfs://home/data/libresign/java/fakeFile02', 'invalidContent');
+		file_put_contents('vfs://home/data/libresign/java/fakeFile03', 'invalidContent');
 		$expected = json_encode([
 			'FILE_MISSING' => [
-				'fakeFile01' => [
+				'java/fakeFile01' => [
 					'expected' => 'b2d1d285b5199c85f988d03649c37e44fd3dde01e5d69c50fef90651962f48110e9340b60d49a479c4c0b53f5f07d690686dd87d2481937a512e8b85ee7c617f',
 					'current' => '',
 				],
 			],
 			'INVALID_HASH' => [
-				'fakeFile02' => [
+				'java/fakeFile02' => [
 					'expected' => 'b2d1d285b5199c85f988d03649c37e44fd3dde01e5d69c50fef90651962f48110e9340b60d49a479c4c0b53f5f07d690686dd87d2481937a512e8b85ee7c617f',
 					'current' => '827a4e298c978e1eeffebdf09f0fa5a1e1d8b608c8071144f3fffb31f9ed21f6d27f88a63f7409583df7438105f713ff58d55e68e61e01a285125d763045c726',
 				],
 			],
 			'EXTRA_FILE' => [
-				'fakeFile03' => [
+				'java/fakeFile03' => [
 					'expected' => '',
 					'current' => '827a4e298c978e1eeffebdf09f0fa5a1e1d8b608c8071144f3fffb31f9ed21f6d27f88a63f7409583df7438105f713ff58d55e68e61e01a285125d763045c726',
 				],
 			],
 		]);
-		$actual = $signSetupService->verify($architecture, 'vfs://home/appinfo', 'LibreSign');
+		$actual = $signSetupService->verify($architecture, 'java');
 		$actual = json_encode($actual);
 		$this->assertJsonStringEqualsJsonString($expected, $actual);
 	}

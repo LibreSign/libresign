@@ -29,6 +29,9 @@ class SignSetupService {
 		'unauthetnicated',
 	];
 	private string $architecture;
+	private string $resource;
+	private array $signatureData = [];
+	private ?x509 $x509 = null;
 	public function __construct(
 		private EnvironmentHelper $environmentHelper,
 		private FileAccessHelper $fileAccessHelper,
@@ -59,14 +62,11 @@ class SignSetupService {
 		X509 $certificate,
 		RSA $privateKey,
 		string $architecture,
-		string $appInfoDir = '',
 	) {
 		$this->architecture = $architecture;
-		$appInfoDir = $this->getAppInfoDirectory($appInfoDir);
+		$appInfoDir = $this->getAppInfoDirectory();
 		try {
-			$this->fileAccessHelper->assertDirectoryExists($appInfoDir);
-
-			$iterator = $this->getFolderIterator();
+			$iterator = $this->getFolderIterator($this->getInstallPath());
 			$hashes = $this->generateHashes($iterator);
 			$signature = $this->createSignatureData($hashes, $certificate, $privateKey);
 			$this->fileAccessHelper->file_put_contents(
@@ -83,11 +83,10 @@ class SignSetupService {
 		}
 	}
 
-	private function getAppInfoDirectory(string $appInfoDir): string {
-		if (is_dir($appInfoDir)) {
-			return $appInfoDir;
-		}
-		return realpath(__DIR__ . '/../../../appinfo');
+	protected function getAppInfoDirectory(): string {
+		$appInfoDir = realpath(__DIR__ . '/../../../appinfo');
+		$this->fileAccessHelper->assertDirectoryExists($appInfoDir);
+		return $appInfoDir;
 	}
 
 	/**
@@ -102,10 +101,11 @@ class SignSetupService {
 		return $matches[0];
 	}
 
-	public function verify(string $architecture, string $appInfoDir = '', string $certificateCN = Application::APP_ID): array {
-		$this->architecture = $architecture;
-		$appInfoDir = $this->getAppInfoDirectory($appInfoDir);
-
+	private function getSignatureData(): array {
+		if (!empty($this->signatureData)) {
+			return $this->signatureData;
+		}
+		$appInfoDir = $this->getAppInfoDirectory();
 		$signaturePath = $appInfoDir . '/install-' . $this->architecture . '.json';
 		$content = $this->fileAccessHelper->file_get_contents($signaturePath);
 		$signatureData = null;
@@ -116,30 +116,57 @@ class SignSetupService {
 		if (!\is_array($signatureData)) {
 			throw new InvalidSignatureException('Signature data not found.');
 		}
+		$this->signatureData = $signatureData;
 
+		$this->validateIfIssignedByLibresignAppCertificate($signatureData['hashes']);
+
+		return $this->signatureData;
+	}
+
+	private function getHashesOfResource(): array {
+		$signatureData = $this->getSignatureData();
 		$expectedHashes = $signatureData['hashes'];
-		ksort($expectedHashes);
-		$signature = base64_decode($signatureData['signature']);
+		$filtered = array_filter($expectedHashes, function (string $key) {
+			return str_starts_with($key, $this->resource);
+		}, ARRAY_FILTER_USE_KEY);
+		if (!$filtered) {
+			throw new InvalidSignatureException('No signature files to ' . $this->resource);
+		}
+		return $filtered;
+	}
+
+	private function getLibresignAppCertificate(): X509 {
+		if ($this->x509 instanceof X509) {
+			return $this->x509;
+		}
+		$signatureData = $this->getSignatureData();
 		$certificate = $signatureData['certificate'];
 
 		// Check if certificate is signed by Nextcloud Root Authority
-		$x509 = new \phpseclib\File\X509();
+		$this->x509 = new X509();
 		$rootCertificatePublicKey = $this->fileAccessHelper->file_get_contents($this->environmentHelper->getServerRoot().'/resources/codesigning/root.crt');
 
 		$rootCerts = $this->splitCerts($rootCertificatePublicKey);
 		foreach ($rootCerts as $rootCert) {
-			$x509->loadCA($rootCert);
+			$this->x509->loadCA($rootCert);
 		}
-		$x509->loadX509($certificate);
-		if (!$x509->validateSignature()) {
+		$this->x509->loadX509($certificate);
+		if (!$this->x509->validateSignature()) {
 			throw new InvalidSignatureException('Certificate is not valid.');
 		}
+
 		// Verify if certificate has proper CN. "core" CN is always trusted.
-		if ($x509->getDN(X509::DN_OPENSSL)['CN'] !== $certificateCN && $x509->getDN(X509::DN_OPENSSL)['CN'] !== 'core') {
+		if ($this->x509->getDN(X509::DN_OPENSSL)['CN'] !== Application::APP_ID && $this->x509->getDN(X509::DN_OPENSSL)['CN'] !== 'core') {
 			throw new InvalidSignatureException(
-				sprintf('Certificate is not valid for required scope. (Requested: %s, current: CN=%s)', $certificateCN, $x509->getDN(true)['CN'])
+				sprintf('Certificate is not valid for required scope. (Requested: %s, current: CN=%s)', Application::APP_ID, $this->x509->getDN(true)['CN'])
 			);
 		}
+
+		return $this->x509;
+	}
+
+	private function validateIfIssignedByLibresignAppCertificate(array $expectedHashes): void {
+		$x509 = $this->getLibresignAppCertificate();
 
 		// Check if the signature of the files is valid
 		$rsa = new \phpseclib\Crypt\RSA();
@@ -148,13 +175,23 @@ class SignSetupService {
 		$rsa->setMGFHash('sha512');
 		// See https://tools.ietf.org/html/rfc3447#page-38
 		$rsa->setSaltLength(0);
+
+		$signatureData = $this->getSignatureData();
+		$signature = base64_decode($signatureData['signature']);
 		if (!$rsa->verify(json_encode($expectedHashes), $signature)) {
 			throw new InvalidSignatureException('Signature could not get verified.');
 		}
+	}
+
+	public function verify(string $architecture, $resource): array {
+		$this->architecture = $architecture;
+		$this->resource = $resource;
+
+		$expectedHashes = $this->getHashesOfResource();
 
 		// Compare the list of files which are not identical
-		$installPath = $this->getInstallPath();
-		$currentInstanceHashes = $this->generateHashes($this->getFolderIterator(), $installPath);
+		$installPath = $this->getInstallPath() . '/' . $this->resource;
+		$currentInstanceHashes = $this->generateHashes($this->getFolderIterator($installPath), $installPath);
 		$differencesA = array_diff($expectedHashes, $currentInstanceHashes);
 		$differencesB = array_diff($currentInstanceHashes, $expectedHashes);
 		$differences = array_merge($differencesA, $differencesB);
@@ -224,9 +261,9 @@ class SignSetupService {
 	 * @return \RecursiveIteratorIterator
 	 * @throws \Exception
 	 */
-	private function getFolderIterator(): \RecursiveIteratorIterator {
+	private function getFolderIterator(string $folderToIterate): \RecursiveIteratorIterator {
 		$dirItr = new \RecursiveDirectoryIterator(
-			$this->getInstallPath(),
+			$folderToIterate,
 			\RecursiveDirectoryIterator::SKIP_DOTS
 		);
 

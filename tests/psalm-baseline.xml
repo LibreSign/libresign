@@ -128,6 +128,8 @@
   </file>
   <file src="lib/Service/Install/SignSetupService.php">
     <UndefinedClass>
+      <code><![CDATA[$x509->currentCert]]></code>
+      <code><![CDATA[?x509]]></code>
       <code><![CDATA[RSA]]></code>
       <code><![CDATA[RSA]]></code>
       <code><![CDATA[RSA]]></code>
@@ -136,7 +138,6 @@
       <code><![CDATA[X509]]></code>
       <code><![CDATA[X509]]></code>
       <code><![CDATA[\phpseclib\Crypt\RSA]]></code>
-      <code><![CDATA[\phpseclib\File\X509]]></code>
     </UndefinedClass>
   </file>
   <file src="lib/Service/RequestSignatureService.php">
