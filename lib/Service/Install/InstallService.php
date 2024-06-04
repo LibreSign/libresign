@@ -87,7 +87,7 @@ class InstallService {
 		private IAppConfig $appConfig,
 		private IRootFolder $rootFolder,
 		private LoggerInterface $logger,
-		private SignFiles $signFiles,
+		private SignSetupService $signSetupService,
 		protected IAppDataFactory $appDataFactory,
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign-setup');
@@ -347,7 +347,7 @@ class InstallService {
 
 	public function isDownloadedFilesOk(): bool {
 		try {
-			return count($this->signFiles->verify($this->architecture)) === 0;
+			return count($this->signSetupService->verify($this->architecture)) === 0;
 		} catch (InvalidSignatureException $e) {
 			return false;
 		}

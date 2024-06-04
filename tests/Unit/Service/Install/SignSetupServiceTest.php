@@ -11,7 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use bovigo\vfs\vfsStream;
 use OC\IntegrityCheck\Helpers\EnvironmentHelper;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
-use OCA\Libresign\Service\Install\SignFiles;
+use OCA\Libresign\Service\Install\SignSetupService;
 use OCP\App\IAppManager;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IConfig;
@@ -19,7 +19,7 @@ use phpseclib\Crypt\RSA;
 use phpseclib\File\X509;
 use PHPUnit\Framework\MockObject\MockObject;
 
-final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private EnvironmentHelper&MockObject $environmentHelper;
 	private FileAccessHelper $fileAccessHelper;
 	private IConfig&MockObject $config;
@@ -35,10 +35,10 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	/**
-	 * @return SignFiles|MockObject
+	 * @return SignSetupService|MockObject
 	 */
 	private function getInstance(array $methods = []) {
-		return $this->getMockBuilder(SignFiles::class)
+		return $this->getMockBuilder(SignSetupService::class)
 			->setConstructorArgs([
 				$this->environmentHelper,
 				$this->fileAccessHelper,
@@ -100,7 +100,7 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	private function writeAppSignature(string $architecture): SignFiles {
+	private function writeAppSignature(string $architecture): SignSetupService {
 		$this->appManager->method('getAppInfo')
 			->willReturn(['dependencies' => ['architecture' => [$architecture]]]);
 
@@ -134,11 +134,11 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->environmentHelper->method('getServerRoot')
 			->willReturn('vfs://home');
 
-		$signFiles = $this->getInstance(['getInternalPathOfFolder']);
-		$signFiles->expects($this->any())
+		$signSetupService = $this->getInstance(['getInternalPathOfFolder']);
+		$signSetupService->expects($this->any())
 			->method('getInternalPathOfFolder')
 			->willReturn('libresign');
-		$signFiles->writeAppSignature($x509, $rsa, $architecture, 'vfs://home/appinfo');
+		$signSetupService->writeAppSignature($x509, $rsa, $architecture, 'vfs://home/appinfo');
 		$this->assertFileExists('vfs://home/appinfo/install-' . $architecture . '.json');
 		$json = file_get_contents('vfs://home/appinfo/install-' . $architecture . '.json');
 		$signatureContent = json_decode($json, true);
@@ -147,15 +147,15 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$expected = hash('sha512', $structure['data']['libresign']['fakeFile01']);
 		$actual = $signatureContent['hashes']['fakeFile01'];
 		$this->assertEquals($expected, $actual);
-		return $signFiles;
+		return $signSetupService;
 	}
 
 	/**
 	 * @dataProvider dataWriteAppSignature
 	 */
 	public function testWriteAppSignature(string $architecture): void {
-		$signFiles = $this->writeAppSignature($architecture);
-		$actual = $signFiles->verify($architecture, 'vfs://home/appinfo', 'LibreSign');
+		$signSetupService = $this->writeAppSignature($architecture);
+		$actual = $signSetupService->verify($architecture, 'vfs://home/appinfo', 'LibreSign');
 		$this->assertCount(0, $actual);
 	}
 
@@ -167,7 +167,7 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testVerify(): void {
 		$architecture = 'x86_64';
-		$signFiles = $this->writeAppSignature($architecture);
+		$signSetupService = $this->writeAppSignature($architecture);
 		unlink('vfs://home/data/libresign/fakeFile01');
 		file_put_contents('vfs://home/data/libresign/fakeFile02', 'invalidContent');
 		file_put_contents('vfs://home/data/libresign/fakeFile03', 'invalidContent');
@@ -191,7 +191,7 @@ final class SignFilesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				],
 			],
 		]);
-		$actual = $signFiles->verify($architecture, 'vfs://home/appinfo', 'LibreSign');
+		$actual = $signSetupService->verify($architecture, 'vfs://home/appinfo', 'LibreSign');
 		$actual = json_encode($actual);
 		$this->assertJsonStringEqualsJsonString($expected, $actual);
 	}
