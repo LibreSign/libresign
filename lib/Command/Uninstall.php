@@ -62,6 +62,12 @@ class Uninstall extends Base {
 				shortcut: null,
 				mode: InputOption::VALUE_NONE,
 				description: 'Java'
+			)
+			->addOption(
+				name: 'architecture',
+				shortcut: null,
+				mode: InputOption::VALUE_REQUIRED,
+				description: 'x86_64 or aarch64'
 			);
 	}
 
@@ -69,6 +75,10 @@ class Uninstall extends Base {
 		$ok = false;
 
 		try {
+			$architecture = (string) $input->getOption('architecture');
+			if (in_array($architecture, ['x86_64', 'aarch64'])) {
+				$this->installService->setArchitecture($architecture);
+			}
 			$all = $input->getOption('all');
 			if ($input->getOption('java') || $all) {
 				$this->installService->uninstallJava();
