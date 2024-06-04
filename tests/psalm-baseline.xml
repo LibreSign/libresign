@@ -126,7 +126,7 @@
       <code><![CDATA[private]]></code>
     </UndefinedClass>
   </file>
-  <file src="lib/Service/Install/SignFiles.php">
+  <file src="lib/Service/Install/SignSetupService.php">
     <UndefinedClass>
       <code><![CDATA[RSA]]></code>
       <code><![CDATA[RSA]]></code>
