@@ -346,8 +346,8 @@ class InstallService {
 			$this->runAsync();
 			return;
 		}
-		$extractDir = $this->getFullPath() . '/java';
-		$javaFolder = $this->getFolder('/java');
+		$extractDir = $this->getFullPath() . '/' . $this->resource;
+		$javaFolder = $this->getFolder($this->resource);
 
 		/**
 		 * Steps to update:
@@ -407,17 +407,10 @@ class InstallService {
 		if (!$javaPath) {
 			return;
 		}
-		$appFolder = $this->getFolder('/');
-		$name = $appFolder->getName();
-		if (!strpos($javaPath, $name)) {
-			return;
-		}
-		if (PHP_OS_FAMILY !== 'Windows') {
-			exec('rm -rf ' . $this->getDataDir() . '/' . $this->getInternalPathOfFolder($this->getFolder()) . '/java');
-		}
+		$this->setResource('java');
+		$folder = $this->getFolder($this->resource);
 		try {
-			$javaFolder = $appFolder->getFolder('/libresign/java');
-			$javaFolder->delete();
+			$folder->delete();
 		} catch (NotFoundException $th) {
 		}
 		$this->appConfig->deleteAppValue('java_path');
@@ -435,13 +428,13 @@ class InstallService {
 			$this->runAsync();
 			return;
 		}
-		$extractDir = $this->getFullPath();
+		$extractDir = $this->getFullPath() . '/' . $this->resource;
 
 		$compressedFileName = 'jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
 		try {
-			$compressedFile = $this->getFolder()->getFile($compressedFileName);
+			$compressedFile = $this->getFolder($this->resource)->getFile($compressedFileName);
 		} catch (\Throwable $th) {
-			$compressedFile = $this->getFolder()->newFile($compressedFileName);
+			$compressedFile = $this->getFolder($this->resource)->newFile($compressedFileName);
 		}
 		$comporessedInternalFileName = $this->getDataDir() . '/' . $this->getInternalPathOfFile($compressedFile);
 		$url = 'https://github.com/intoolswetrust/jsignpdf/releases/download/JSignPdf_' . str_replace('.', '_', JSignPdfHandler::VERSION) . '/jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
@@ -484,9 +477,9 @@ class InstallService {
 		}
 
 		try {
-			$file = $this->getFolder()->getFile('pdftk.jar');
+			$file = $this->getFolder($this->resource)->getFile('pdftk.jar');
 		} catch (\Throwable $th) {
-			$file = $this->getFolder()->newFile('pdftk.jar');
+			$file = $this->getFolder($this->resource)->newFile('pdftk.jar');
 		}
 		$fullPath = $this->getDataDir() . '/' . $this->getInternalPathOfFile($file);
 		$url = 'https://gitlab.com/api/v4/projects/5024297/packages/generic/pdftk-java/v' . self::PDFTK_VERSION . '/pdftk-all.jar';
