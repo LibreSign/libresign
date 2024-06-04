@@ -130,12 +130,6 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}
         run: make updateocp
 
-      - name: Checkout site
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-        with:
-          repository: libresign/libresign.github.io
-          path: 'apps/${{ env.APP_NAME }}/build/site'
-
       - name: Set up Nextcloud
         env:
           DB_PORT: 4444
