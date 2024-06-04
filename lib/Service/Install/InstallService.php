@@ -464,14 +464,9 @@ class InstallService {
 		if (!$jsignpdJarPath) {
 			return;
 		}
-		$appFolder = $this->appData->getFolder('/');
-		$name = $appFolder->getName();
-		// Remove prefix
-		$path = explode($name, $jsignpdJarPath)[1];
-		// Remove sufix
-		$path = trim($path, '/JSignPdf.jar');
+		$this->setResource('jsignpdf');
+		$folder = $this->getFolder($this->resource);
 		try {
-			$folder = $appFolder->getFolder($path);
 			$folder->delete();
 		} catch (NotFoundException $e) {
 		}
@@ -509,13 +504,10 @@ class InstallService {
 		if (!$jsignpdJarPath) {
 			return;
 		}
-		$appFolder = $this->appData->getFolder('/');
-		$name = $appFolder->getName();
-		// Remove prefix
-		$path = explode($name, $jsignpdJarPath)[1];
+		$this->setResource('pdftk');
+		$folder = $this->getFolder($this->resource);
 		try {
-			$file = $appFolder->getFile($path);
-			$file->delete();
+			$folder->delete();
 		} catch (NotFoundException $e) {
 		}
 		$this->appConfig->deleteAppValue('pdftk_path');
@@ -600,12 +592,9 @@ class InstallService {
 		if (!$cfsslPath) {
 			return;
 		}
-		$appFolder = $this->appData->getFolder('/');
-		$name = $appFolder->getName();
-		// Remove prefix
-		$path = explode($name, $cfsslPath)[1];
+		$this->setResource('cfssl');
+		$folder = $this->getFolder($this->resource);
 		try {
-			$folder = $appFolder->getFolder($path);
 			$folder->delete();
 		} catch (NotFoundException $e) {
 		}
