@@ -16,6 +16,11 @@ appstore_sign_dir=$(appstore_build_directory)/sign
 cert_dir=$(build_tools_directory)/certificates
 npm=$(shell which npm 2> /dev/null)
 composer=$(shell which composer 2> /dev/null)
+ifeq (,$(shell type occ))
+	occ="php ../../occ"
+else
+	occ="occ"
+endif
 
 all: dev-setup build-js-production
 serve: dev-setup watch-js
@@ -82,9 +87,11 @@ updateocp:
 
 # Builds the source package for the app store, ignores php and js tests
 .PHONY: appstore
-appstore:
-	rm -rf $(appstore_build_directory)
+appstore: clean
 	mkdir -p $(appstore_sign_dir)/$(app_name)
+	composer install --no-dev
+	npm ci
+	npm run build
 	cp -r \
 		appinfo \
 		composer \
@@ -105,51 +112,11 @@ appstore:
 	mkdir -p $(appstore_sign_dir)/$(app_name)/tests/fixtures
 	cp tests/fixtures/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/fixtures
 
-	# Remove stray .htaccess files since they are filtered by Nextcloud
-	find $(appstore_sign_dir) -name .htaccess -exec rm {} \;
-
-	@if [ -f $(cert_dir)/$(app_name).key ]; then \
-		echo "Signing app files…"; \
-		php ../../occ integrity:sign-app \
-			--privateKey=$(cert_dir)/$(app_name).key\
-			--certificate=$(cert_dir)/$(app_name).crt\
-			--path=$(appstore_sign_dir)/$(app_name); \
-	fi
-	tar -czf $(appstore_package_name).tar.gz \
-		-C $(appstore_sign_dir) $(app_name)
-
-	@if [ -f $(cert_dir)/$(app_name).key ]; then \
-		echo "Signing package…"; \
-		openssl dgst -sha512 -sign $(cert_dir)/$(app_name).key $(build_dir)/$(app_name).tar.gz | openssl base64; \
-	fi
-
-# Earlier version of appstore command that builds the app and has some custom
-# support for local signing. Left here in case it's needed by some developer
-# used to it.
-.PHONY: appstore-local
-appstore-local: clean
-	mkdir -p $(appstore_sign_dir)/$(app_name)
-	composer install --no-dev
-	npm ci
-	npm run build
-	cp -r \
-		appinfo \
-		composer \
-		img \
-		js \
-		l10n \
-		lib \
-		templates \
-		vendor \
-		CHANGELOG.md \
-		LICENSE \
-		$(appstore_sign_dir)/$(app_name)
-	rm $(appstore_sign_dir)/$(app_name)/vendor/endroid/qr-code/assets/*
-	find $(appstore_sign_dir)/$(app_name)/vendor/mpdf/mpdf/ttfonts -type f -not -name 'DejaVuSerifCondensed.ttf' -delete
-	find $(appstore_sign_dir)/$(app_name)/vendor/mpdf/mpdf/data/ -type f -delete
-	rm -rf $(appstore_sign_dir)/$(app_name)/img/screenshot/
-	mkdir -p $(appstore_sign_dir)/$(app_name)/tests/fixtures
-	cp tests/fixtures/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/fixtures \
+	$(occ) config:app:set libresign certificate_engine --value cfssl
+	$(occ) libresign:install --all
+	$(occ) libresign:install --all --architecture aarch64
+	$(occ) libresign:developer:sign-setup --privateKey=$(cert_dir)/$(app_name).key \
+		--certificate=$(cert_dir)/$(app_name).crt
 
 	@if [ -z "$$GITHUB_ACTION" ]; then \
 		chown -R www-data:www-data $(appstore_sign_dir)/$(app_name) ; \
@@ -160,18 +127,17 @@ appstore-local: clean
 		curl -o $(cert_dir)/$(app_name).crt \
 			"https://github.com/nextcloud/app-certificate-requests/raw/master/$(app_name)/$(app_name).crt"; \
 	fi
-	@if [ -n "$$APP_PRIVATE_KEY" ]; then \
-		echo "$$APP_PRIVATE_KEY" > $(cert_dir)/$(app_name).key; \
+	@if [ -f $(cert_dir)/$(app_name).key ]; then \
 		echo "Signing app files…"; \
-		runuser -u www-data -- \
-		php ../../occ integrity:sign-app \
+		$(occ) integrity:sign-app \
 			--privateKey=$(cert_dir)/$(app_name).key\
 			--certificate=$(cert_dir)/$(app_name).crt\
 			--path=$(appstore_sign_dir)/$(app_name); \
-		echo "Signing app files ... done"; \
 	fi
-	tar -czf $(appstore_package_name).tar.gz -C $(appstore_sign_dir) $(app_name)
-	@if [ -n "$$APP_PRIVATE_KEY" ]; then \
+	tar -czf $(appstore_package_name).tar.gz \
+		-C $(appstore_sign_dir) $(app_name)
+
+	@if [ -f $(cert_dir)/$(app_name).key ]; then \
 		echo "Signing package…"; \
 		openssl dgst -sha512 -sign $(cert_dir)/$(app_name).key $(appstore_package_name).tar.gz | openssl base64; \
 	fi
