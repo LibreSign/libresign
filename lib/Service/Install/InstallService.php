@@ -388,7 +388,7 @@ class InstallService {
 		}
 		$folder = $this->getFolder();
 		$checksumUrl = $url . '.sha256.txt';
-		$hash = $this->getHash($folder, 'java_' . $linuxDistribution, $compressedFileName, self::JAVA_PARTIAL_VERSION, $checksumUrl);
+		$hash = $this->getHash($compressedFileName, $checksumUrl);
 		try {
 			$compressedFile = $javaFolder->getFile($compressedFileName);
 		} catch (NotFoundException $th) {
@@ -571,7 +571,7 @@ class InstallService {
 		$baseUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/';
 		$checksumUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/cfssl_' . self::CFSSL_VERSION . '_checksums.txt';
 		foreach ($downloads as $download) {
-			$hash = $this->getHash($folder, 'cfssl', $download['file'], self::CFSSL_VERSION, $checksumUrl);
+			$hash = $this->getHash($download['file'], $checksumUrl);
 
 			$file = $folder->newFile($download['destination']);
 			$fullPath = $this->getDataDir() . '/' . $this->getInternalPathOfFile($file);
@@ -685,7 +685,7 @@ class InstallService {
 		}
 	}
 
-	private function getHash(ISimpleFolder $folder, string $type, string $file, string $version, string $checksumUrl): string {
+	private function getHash(string $file, string $checksumUrl): string {
 		$hashes = file_get_contents($checksumUrl);
 		if (!$hashes) {
 			throw new LibresignException('Failute to download hash file. URL: ' . $checksumUrl);
