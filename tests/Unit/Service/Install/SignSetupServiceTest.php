@@ -20,11 +20,11 @@ use phpseclib\File\X509;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	private EnvironmentHelper&MockObject $environmentHelper;
+	private EnvironmentHelper|MockObject $environmentHelper;
 	private FileAccessHelper $fileAccessHelper;
-	private IConfig&MockObject $config;
-	private IAppDataFactory&MockObject $appDataFactory;
-	private IAppManager&MockObject $appManager;
+	private IConfig|MockObject $config;
+	private IAppDataFactory|MockObject $appDataFactory;
+	private IAppManager|MockObject $appManager;
 
 	public function setUp(): void {
 		$this->environmentHelper = $this->createMock(EnvironmentHelper::class);
