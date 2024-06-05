@@ -123,6 +123,13 @@ class TestCase extends \Test\TestCase {
 		$this->cleanDatabase();
 	}
 
+	public static function tearDownAfterClass(): void {
+		try {
+			parent::tearDownAfterClass();
+		} catch (\Throwable $th) {
+		}
+	}
+
 	private function cleanDatabase(): void {
 		$db = \OCP\Server::get(\OCP\IDBConnection::class);
 		if (!$db) {
@@ -188,9 +195,10 @@ class TestCase extends \Test\TestCase {
 	}
 
 	private function getBinariesFromCache(): void {
-		/** @var \OCA\Libresign\Service\Install\InstallService */
-		$install = \OCP\Server::get(\OCA\Libresign\Service\Install\InstallService::class);
-		$appPath = $install->getFullPath();
+		$appPath = $this->getFullLiresignAppFolder();
+		if (!$appPath) {
+			return;
+		}
 		$cachePath = preg_replace('/\/.*\/appdata_[a-z0-9]*/', \OC::$server->getTempManager()->getTempBaseDir(), $appPath);
 		if (!file_exists($cachePath)) {
 			return;
@@ -201,10 +209,16 @@ class TestCase extends \Test\TestCase {
 		$this->recursiveCopy($cachePath, $appPath);
 	}
 
+	private function getFullLiresignAppFolder(): string {
+		$libresignPath = glob('../../data/appdata_*/libresign');
+		if (empty($libresignPath)) {
+			return '';
+		}
+		return realpath(current($libresignPath));
+	}
+
 	private function backupBinaries(): void {
-		/** @var \OCA\Libresign\Service\Install\InstallService */
-		$install = \OCP\Server::get(\OCA\Libresign\Service\Install\InstallService::class);
-		$appPath = $install->getFullPath();
+		$appPath = $this->getFullLiresignAppFolder();
 		if (!is_readable($appPath)) {
 			return;
 		}
