@@ -262,6 +262,9 @@ class SignSetupService {
 	 * @throws \Exception
 	 */
 	private function getFolderIterator(string $folderToIterate): \RecursiveIteratorIterator {
+		if (!is_dir($folderToIterate)) {
+			throw new InvalidSignatureException('No such directory ' . $folderToIterate);
+		}
 		$dirItr = new \RecursiveDirectoryIterator(
 			$folderToIterate,
 			\RecursiveDirectoryIterator::SKIP_DOTS
