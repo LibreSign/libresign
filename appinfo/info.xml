@@ -47,6 +47,11 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
         <architecture>x86_64</architecture>
         <architecture>aarch64</architecture>
     </dependencies>
+    <repair-steps>
+        <post-migration>
+            <step>OCA\Libresign\Migration\DeleteOldBinaries</step>
+        </post-migration>
+    </repair-steps>
     <commands>
         <command>OCA\Libresign\Command\Configure\Check</command>
         <command>OCA\Libresign\Command\Configure\Cfssl</command>
