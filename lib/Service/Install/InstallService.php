@@ -87,7 +87,7 @@ class InstallService {
 		$this->architecture = $architecture;
 	}
 
-	private function getFolder(string $path = '', ?ISimpleFolder $folder = null): ISimpleFolder {
+	private function getFolder(string $path = '', ?ISimpleFolder $folder = null, $needToBeEmpty = false): ISimpleFolder {
 		if (!$folder) {
 			$folder = $this->appData->getFolder('/');
 			if (!$path) {
@@ -103,6 +103,10 @@ class InstallService {
 		}
 		try {
 			$folder = $folder->getFolder($path, $folder);
+			if ($needToBeEmpty) {
+				$folder->delete();
+				throw new \Exception('Need to be empty');
+			}
 		} catch (\Throwable $th) {
 			try {
 				$folder = $folder->newFolder($path);
@@ -116,6 +120,10 @@ class InstallService {
 			}
 		}
 		return $folder;
+	}
+
+	private function getEmptyFolder(string $path): ISimpleFolder {
+		return $this->getFolder($path, null, true);
 	}
 
 	/**
@@ -346,8 +354,8 @@ class InstallService {
 			$this->runAsync();
 			return;
 		}
+		$folder = $this->getEmptyFolder($this->resource);
 		$extractDir = $this->getFullPath() . '/' . $this->resource;
-		$javaFolder = $this->getFolder($this->resource);
 
 		/**
 		 * Steps to update:
@@ -373,9 +381,9 @@ class InstallService {
 		$checksumUrl = $url . '.sha256.txt';
 		$hash = $this->getHash($compressedFileName, $checksumUrl);
 		try {
-			$compressedFile = $javaFolder->getFile($compressedFileName);
+			$compressedFile = $folder->getFile($compressedFileName);
 		} catch (NotFoundException $th) {
-			$compressedFile = $javaFolder->newFile($compressedFileName);
+			$compressedFile = $folder->newFile($compressedFileName);
 		}
 		$comporessedInternalFileName = $this->getDataDir() . '/' . $this->getInternalPathOfFile($compressedFile);
 
@@ -427,13 +435,14 @@ class InstallService {
 			$this->runAsync();
 			return;
 		}
+		$folder = $this->getEmptyFolder($this->resource);
 		$extractDir = $this->getFullPath() . '/' . $this->resource;
 
 		$compressedFileName = 'jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
 		try {
-			$compressedFile = $this->getFolder($this->resource)->getFile($compressedFileName);
+			$compressedFile = $folder->getFile($compressedFileName);
 		} catch (\Throwable $th) {
-			$compressedFile = $this->getFolder($this->resource)->newFile($compressedFileName);
+			$compressedFile = $folder->newFile($compressedFileName);
 		}
 		$comporessedInternalFileName = $this->getDataDir() . '/' . $this->getInternalPathOfFile($compressedFile);
 		$url = 'https://github.com/intoolswetrust/jsignpdf/releases/download/JSignPdf_' . str_replace('.', '_', JSignPdfHandler::VERSION) . '/jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
@@ -474,11 +483,11 @@ class InstallService {
 			$this->runAsync();
 			return;
 		}
-
+		$folder = $this->getEmptyFolder($this->resource);
 		try {
-			$file = $this->getFolder($this->resource)->getFile('pdftk.jar');
+			$file = $folder->getFile('pdftk.jar');
 		} catch (\Throwable $th) {
-			$file = $this->getFolder($this->resource)->newFile('pdftk.jar');
+			$file = $folder->newFile('pdftk.jar');
 		}
 		$fullPath = $this->getDataDir() . '/' . $this->getInternalPathOfFile($file);
 		$url = 'https://gitlab.com/api/v4/projects/5024297/packages/generic/pdftk-java/v' . self::PDFTK_VERSION . '/pdftk-all.jar';
@@ -534,7 +543,7 @@ class InstallService {
 	}
 
 	private function installCfsslByArchitecture(string $arcitecture): void {
-		$folder = $this->getFolder($this->resource);
+		$folder = $this->getEmptyFolder($this->resource);
 
 		$downloads = [
 			[
