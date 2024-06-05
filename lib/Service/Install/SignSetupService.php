@@ -169,7 +169,7 @@ class SignSetupService {
 		$x509 = $this->getLibresignAppCertificate();
 
 		// Check if the signature of the files is valid
-		$rsa = new \phpseclib\Crypt\RSA();
+		$rsa = new RSA();
 		$rsa->loadKey($x509->currentCert['tbsCertificate']['subjectPublicKeyInfo']['subjectPublicKey']);
 		$rsa->setSignatureMode(RSA::SIGNATURE_PSS);
 		$rsa->setMGFHash('sha512');
