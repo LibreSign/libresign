@@ -27,6 +27,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\Install\SignSetupService;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IRootFolder;
@@ -46,6 +47,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig|MockObject $appConfig;
 	private IRootFolder|MockObject $rootFolder;
 	private LoggerInterface|MockObject $logger;
+	private SignSetupService|MockObject $ignSetupService;
 	private IAppDataFactory|MockObject $appDataFactory;
 
 	public function setUp(): void {
@@ -60,6 +62,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->rootFolder = $this->createMock(IRootFolder::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->ignSetupService = $this->createMock(SignSetupService::class);
 		$this->appDataFactory = $this->createMock(IAppDataFactory::class);
 		return new InstallService(
 			$this->cacheFactory,
@@ -69,6 +72,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->appConfig,
 			$this->rootFolder,
 			$this->logger,
+			$this->ignSetupService,
 			$this->appDataFactory
 		);
 	}
@@ -149,6 +153,24 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 					EXPECTEDOUTPUT
 			],
+		];
+	}
+
+	/**
+	 * @dataProvider providerGetFolder
+	 */
+	public function testGetFolder(string $path): void {
+		$install = \OCP\Server::get(\OCA\Libresign\Service\Install\InstallService::class);
+		self::invokePrivate($install, 'getFolder', [$path]);
+		$this->expectNotToPerformAssertions();
+	}
+
+	public static function providerGetFolder(): array {
+		return [
+			[''],
+			['test'],
+			['test/folder1'],
+			['test/folder1/folder2'],
 		];
 	}
 }
