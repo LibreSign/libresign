@@ -42,6 +42,7 @@ OC.L10N.register(
     "Status" : "Stádas",
     "Actions" : "Gníomhartha",
     "Choose" : "Roghnaigh",
+    "Delete certificate" : "Scrios teastas",
     "Change password" : "Athraigh do phasfhocal",
     "Signature" : "Sínithe",
     "Profile picture" : "Pictiúr próifíle",
