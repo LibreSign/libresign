@@ -35,6 +35,7 @@ OC.L10N.register(
     "Next" : "Ar aghaidh",
     "Confirm" : "Deimhnigh",
     "Loading …" : "Á lódáil…",
+    "pending" : "ar feitheamh",
     "Open sidebar" : "Oscail barra taoibh",
     "Details" : "Sonraí",
     "Certificate" : "Teastas",
