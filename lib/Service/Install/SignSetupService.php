@@ -11,7 +11,9 @@ namespace OCA\Libresign\Service\Install;
 use OC\IntegrityCheck\Helpers\EnvironmentHelper;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\EmptySignatureDataException;
 use OCA\Libresign\Exception\InvalidSignatureException;
+use OCA\Libresign\Exception\SignatureDataNotFoundException;
 use OCP\App\IAppManager;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
@@ -114,7 +116,7 @@ class SignSetupService {
 			$signatureData = json_decode($content, true);
 		}
 		if (!\is_array($signatureData)) {
-			throw new InvalidSignatureException('Signature data not found.');
+			throw new SignatureDataNotFoundException('Signature data not found.');
 		}
 		$this->signatureData = $signatureData;
 
@@ -130,7 +132,7 @@ class SignSetupService {
 			return str_starts_with($key, $this->resource);
 		}, ARRAY_FILTER_USE_KEY);
 		if (!$filtered) {
-			throw new InvalidSignatureException('No signature files to ' . $this->resource);
+			throw new EmptySignatureDataException('No signature files to ' . $this->resource);
 		}
 		return $filtered;
 	}
@@ -187,11 +189,25 @@ class SignSetupService {
 		$this->architecture = $architecture;
 		$this->resource = $resource;
 
-		$expectedHashes = $this->getHashesOfResource();
+		try {
+			$expectedHashes = $this->getHashesOfResource();
+			// Compare the list of files which are not identical
+			$installPath = $this->getInstallPath() . '/' . $this->resource;
+			$currentInstanceHashes = $this->generateHashes($this->getFolderIterator($installPath), $installPath);
+		} catch (EmptySignatureDataException $th) {
+			return [
+				'EMPTY_SIGNATURE_DATA' => $th->getMessage(),
+			];
+		} catch (SignatureDataNotFoundException $th) {
+			return [
+				'SIGNATURE_DATA_NOT_FOUND' => $th->getMessage(),
+			];
+		} catch (\Throwable $th) {
+			return [
+				'HASH_FILE_ERROR' => $th->getMessage(),
+			];
+		}
 
-		// Compare the list of files which are not identical
-		$installPath = $this->getInstallPath() . '/' . $this->resource;
-		$currentInstanceHashes = $this->generateHashes($this->getFolderIterator($installPath), $installPath);
 		$differencesA = array_diff($expectedHashes, $currentInstanceHashes);
 		$differencesB = array_diff($currentInstanceHashes, $expectedHashes);
 		$differences = array_merge($differencesA, $differencesB);
@@ -243,12 +259,8 @@ class SignSetupService {
 	}
 
 	private function getInstallPath(): string {
-		try {
-			$folder = $this->getDataDir() . '/' .
-				$this->getInternalPathOfFolder($this->appData->getFolder($this->architecture));
-		} catch (NotFoundException $e) {
-			throw new InvalidSignatureException('Invalid architecture ' . $this->architecture);
-		}
+		$folder = $this->getDataDir() . '/' .
+			$this->getInternalPathOfFolder($this->appData->getFolder($this->architecture));
 		return $folder;
 	}
 
@@ -263,7 +275,7 @@ class SignSetupService {
 	 */
 	private function getFolderIterator(string $folderToIterate): \RecursiveIteratorIterator {
 		if (!is_dir($folderToIterate)) {
-			throw new InvalidSignatureException('No such directory ' . $folderToIterate);
+			throw new NotFoundException('No such directory ' . $folderToIterate);
 		}
 		$dirItr = new \RecursiveDirectoryIterator(
 			$folderToIterate,

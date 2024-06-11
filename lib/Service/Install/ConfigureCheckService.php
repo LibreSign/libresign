@@ -59,7 +59,7 @@ class ConfigureCheckService {
 	public function checkJSignPdf(): array {
 		$jsignpdJarPath = $this->appConfig->getAppValue('jsignpdf_jar_path');
 		if ($jsignpdJarPath) {
-			if (count($this->signSetupService->verify($this->architecture, 'jsignpdf'))) {
+			if (count($this->verify('jsignpdf'))) {
 				return [
 					(new ConfigureCheckHelper())
 						->setErrorMessage(
@@ -129,7 +129,7 @@ class ConfigureCheckService {
 	public function checkPdftk(): array {
 		$pdftkPath = $this->appConfig->getAppValue('pdftk_path');
 		if ($pdftkPath) {
-			if (count($this->signSetupService->verify($this->architecture, 'pdftk'))) {
+			if (count($this->verify('pdftk'))) {
 				return [
 					(new ConfigureCheckHelper())
 						->setErrorMessage(
@@ -200,6 +200,23 @@ class ConfigureCheckService {
 		];
 	}
 
+	public function isDebugEnabled(): bool {
+		return $this->systemConfig->getValue('debug', false) === true;
+	}
+
+	private function verify(string $resource): array {
+		$result = $this->signSetupService->verify($this->architecture, $resource);
+		if (count($result) === 1 && $this->isDebugEnabled()) {
+			if (isset($result['SIGNATURE_DATA_NOT_FOUND'])) {
+				return [];
+			}
+			if (isset($result['EMPTY_SIGNATURE_DATA'])) {
+				return [];
+			}
+		}
+		return $result;
+	}
+
 	/**
 	 * Check all requirements to use Java
 	 *
@@ -208,7 +225,7 @@ class ConfigureCheckService {
 	private function checkJava(): array {
 		$javaPath = $this->appConfig->getAppValue('java_path');
 		if ($javaPath) {
-			if (count($this->signSetupService->verify($this->architecture, 'java'))) {
+			if (count($this->verify('java'))) {
 				return [
 					(new ConfigureCheckHelper())
 						->setErrorMessage(

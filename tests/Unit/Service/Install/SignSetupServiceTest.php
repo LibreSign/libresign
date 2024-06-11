@@ -50,7 +50,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->getMock();
 	}
 
-	private function getNewCert(): array {
+	public function getDevelopCert(): array {
 		$privateKey = openssl_pkey_new([
 			'private_key_bits' => 2048,
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
@@ -62,16 +62,16 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365, ['digest_alg' => 'sha256']);
 
 		openssl_x509_export($x509, $rootCertificate);
-		openssl_pkey_export($privateKey, $publicKey);
+		openssl_pkey_export($privateKey, $privateKeyCert);
 
-		$privateKey = openssl_pkey_new([
+		$privateKeyInstance = openssl_pkey_new([
 			'private_key_bits' => 2048,
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
 		]);
 		return [
-			'privateKey' => $privateKey,
 			'rootCertificate' => $rootCertificate,
-			'publicKey' => $publicKey,
+			'privateKeyInstance' => $privateKeyInstance,
+			'privateKeyCert' => $privateKeyCert,
 		];
 	}
 
@@ -101,13 +101,30 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	private function writeAppSignature(string $architecture): SignSetupService {
+		$this->config->method('getSystemValue')
+			->willReturn(vfsStream::url('home/data'));
+
+		$this->environmentHelper->method('getServerRoot')
+			->willReturn('vfs://home');
+
+		$signSetupService = $this->getInstance([
+			'getInternalPathOfFolder',
+			'getAppInfoDirectory',
+		]);
+		$signSetupService->expects($this->any())
+			->method('getInternalPathOfFolder')
+			->willReturn('libresign');
+		$signSetupService->expects($this->any())
+			->method('getAppInfoDirectory')
+			->willReturn('vfs://home/appinfo');
+
 		$this->appManager->method('getAppInfo')
 			->willReturn(['dependencies' => ['architecture' => [$architecture]]]);
 
-		$certificate = $this->getNewCert('123456');
+		$certificate = $this->getDevelopCert();
 		$rsa = new RSA();
-		$rsa->loadKey($certificate['privateKey']);
-		$rsa->loadKey($certificate['publicKey']);
+		$rsa->loadKey($certificate['privateKeyInstance']);
+		$rsa->loadKey($certificate['privateKeyCert']);
 		$x509 = new X509();
 		$x509->loadX509($certificate['rootCertificate']);
 		$x509->setPrivateKey($rsa);
@@ -129,23 +146,6 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'appinfo' => [],
 		];
 		$root = vfsStream::setup('home', null, $structure);
-
-		$this->config->method('getSystemValue')
-			->willReturn(vfsStream::url('home/data'));
-
-		$this->environmentHelper->method('getServerRoot')
-			->willReturn('vfs://home');
-
-		$signSetupService = $this->getInstance([
-			'getInternalPathOfFolder',
-			'getAppInfoDirectory',
-		]);
-		$signSetupService->expects($this->any())
-			->method('getInternalPathOfFolder')
-			->willReturn('libresign');
-		$signSetupService->expects($this->any())
-			->method('getAppInfoDirectory')
-			->willReturn('vfs://home/appinfo');
 
 		$signSetupService->writeAppSignature($x509, $rsa, $architecture, 'vfs://home/appinfo');
 		$this->assertFileExists('vfs://home/appinfo/install-' . $architecture . '.json');
