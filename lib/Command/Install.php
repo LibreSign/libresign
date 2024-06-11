@@ -24,11 +24,22 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Command;
 
+use OCA\Libresign\Service\Install\InstallService;
+use OCP\AppFramework\Services\IAppConfig;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Install extends Base {
+	public function __construct(
+		InstallService $installService,
+		LoggerInterface $logger,
+		private IAppConfig $appConfig,
+	) {
+		parent::__construct($installService, $logger);
+	}
+
 	protected function configure(): void {
 		$this
 			->setName('libresign:install')
@@ -94,7 +105,14 @@ class Install extends Base {
 				$ok = true;
 			}
 			if ($input->getOption('cfssl') || $all) {
+				$currentEngine = $this->appConfig->getAppValue('certificate_engine', 'openssl');
+				if ($currentEngine !== 'cfssl') {
+					$this->appConfig->setAppValue('certificate_engine', 'cfssl');
+				}
 				$this->installService->installCfssl();
+				if ($currentEngine !== 'cfssl') {
+					$this->appConfig->setAppValue('certificate_engine', $currentEngine);
+				}
 				$ok = true;
 			}
 		} catch (\Exception $e) {

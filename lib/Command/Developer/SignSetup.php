@@ -34,21 +34,22 @@ class SignSetup extends Base {
 	protected function configure(): void {
 		$this
 			->setName('libresign:developer:sign-setup')
-			->setDescription('Clean all LibreSign data')
+			->setDescription('Sign the current setup')
+			->addOption('develop', null, InputOption::VALUE_NONE, 'If develop mode enabled, do not will be necessary to use privateKey and certificate.')
 			->addOption('privateKey', null, InputOption::VALUE_REQUIRED, 'Path to private key to use for signing')
 			->addOption('certificate', null, InputOption::VALUE_REQUIRED, 'Path to certificate to use for signing')
 		;
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output): int {
+		$this->handleDevelopMode($input);
 		$privateKeyPath = $input->getOption('privateKey');
 		$keyBundlePath = $input->getOption('certificate');
 		if (is_null($privateKeyPath) || is_null($keyBundlePath)) {
-			$output->writeln('This command requires the --path, --privateKey and --certificate.');
+			$output->writeln('This command requires --privateKey and --certificate.');
 			$output->writeln('Example: ./occ libresign:developer:sign-setup --privateKey="/libresign/private/myapp.key" --certificate="/libresign/public/mycert.crt"');
 			return 1;
 		}
-
 		$privateKey = $this->fileAccessHelper->file_get_contents((string) $privateKeyPath);
 		$keyBundle = $this->fileAccessHelper->file_get_contents((string) $keyBundlePath);
 		if ($privateKey === false) {
@@ -76,5 +77,21 @@ class SignSetup extends Base {
 			return 1;
 		}
 		return 0;
+	}
+
+	private function handleDevelopMode(InputInterface $input): void {
+		$develop = $input->getOption('develop');
+		if (!$develop) {
+			return;
+		}
+		if (file_exists(__DIR__ . '/../../../build/tools/certificates/libresign.crt')) {
+			if (!$input->getOption('privateKey')) {
+				$input->setOption('certificate', __DIR__ . '/../../../build/tools/certificates/libresign.crt');
+			}
+			if (!$input->getOption('certificate')) {
+				$input->setOption('privateKey', __DIR__ . '/../../../build/tools/certificates/libresign.key');
+			}
+			return;
+		}
 	}
 }
