@@ -106,12 +106,9 @@ class Install extends Base {
 			}
 			if ($input->getOption('cfssl') || $all) {
 				$currentEngine = $this->appConfig->getAppValue('certificate_engine', 'openssl');
-				if ($currentEngine !== 'cfssl') {
-					$this->appConfig->setAppValue('certificate_engine', 'cfssl');
-				}
 				$this->installService->installCfssl();
 				if ($currentEngine !== 'cfssl') {
-					$this->appConfig->setAppValue('certificate_engine', $currentEngine);
+					$output->writeln('<comment>To use CFSSL, set the engine to cfssl with: config:app:set libresign certificate_engine --value cfssl</comment>');
 				}
 				$ok = true;
 			}
