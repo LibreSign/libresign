@@ -60,6 +60,7 @@ OC.L10N.register(
     "Yes" : "Tá",
     "No" : "Níl",
     "Forgot password?" : "Dearmad ar pasfhocal?",
-    "Pending" : "Ar feitheamh"
+    "Pending" : "Ar feitheamh",
+    "Return" : "Fill ar ais"
 },
 "nplurals=5; plural=(n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n<11 ? 3 : 4);");
