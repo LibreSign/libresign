@@ -261,7 +261,7 @@
     "Maximum validity in seconds of a request to sign." : "Validez máxima en segundos dunha solicitude de sinatura",
     "Renewal interval" : "Intervalo de renovación",
     "Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link." : "Intervalo de renovación en segundos dunha solicitude de subscrición. Ao acceder á ligazón, pediráselle que renove a ligazón.",
-    "Expiration rules" : "Normas de caducidade",
+    "Expiration rules" : "Regras de caducidade",
     "Enable identification documents flow" : "Activar o fluxo de documentos de identificación",
     "Identification documents" : "Documentos identificativos",
     "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "O fluxo de documentos identificativos será obrigatorio para todo aquel que teña que asinar un ficheiro, envíe os documentos identificativos para ser aprobados por algún membro do grupo de homologación. O usuario só pode crear o certificado após a aprobación dos documentos de identificación.",
