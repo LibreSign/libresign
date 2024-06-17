@@ -37,14 +37,12 @@ class SignSetup extends Base {
 		$this
 			->setName('libresign:developer:sign-setup')
 			->setDescription('Sign the current setup')
-			->addOption('develop', null, InputOption::VALUE_NONE, 'If develop mode enabled, do not will be necessary to use privateKey and certificate.')
 			->addOption('privateKey', null, InputOption::VALUE_REQUIRED, 'Path to private key to use for signing')
 			->addOption('certificate', null, InputOption::VALUE_REQUIRED, 'Path to certificate to use for signing')
 		;
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output): int {
-		$this->handleDevelopMode($input);
 		$privateKeyPath = $input->getOption('privateKey');
 		$keyBundlePath = $input->getOption('certificate');
 		if (is_null($privateKeyPath) || is_null($keyBundlePath)) {
@@ -83,21 +81,5 @@ class SignSetup extends Base {
 			return 1;
 		}
 		return 0;
-	}
-
-	private function handleDevelopMode(InputInterface $input): void {
-		$develop = $input->getOption('develop');
-		if (!$develop) {
-			return;
-		}
-		if (file_exists(__DIR__ . '/../../../build/tools/certificates/libresign.crt')) {
-			if (!$input->getOption('privateKey')) {
-				$input->setOption('certificate', __DIR__ . '/../../../build/tools/certificates/libresign.crt');
-			}
-			if (!$input->getOption('certificate')) {
-				$input->setOption('privateKey', __DIR__ . '/../../../build/tools/certificates/libresign.key');
-			}
-			return;
-		}
 	}
 }
