@@ -70,9 +70,11 @@ class SignSetup extends Base {
 		$x509->loadX509($keyBundle);
 		$x509->setPrivateKey($rsa);
 		try {
+			$this->signSetupService->setCertificate($x509);
+			$this->signSetupService->setPrivateKey($rsa);
 			foreach ($this->signSetupService->getArchitectures() as $architecture) {
 				foreach ($this->installService->getAvailableResources() as $resource) {
-					$this->signSetupService->writeAppSignature($x509, $rsa, $architecture, $resource);
+					$this->signSetupService->writeAppSignature($architecture, $resource);
 				}
 			}
 			$output->writeln('Successfully signed');

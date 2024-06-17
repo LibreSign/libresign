@@ -34,6 +34,7 @@ class SignSetupService {
 	private string $resource;
 	private array $signatureData = [];
 	private ?x509 $x509 = null;
+	private ?RSA $rsa= null;
 	public function __construct(
 		private EnvironmentHelper $environmentHelper,
 		private FileAccessHelper $fileAccessHelper,
@@ -52,6 +53,14 @@ class SignSetupService {
 		return $appInfo['dependencies']['architecture'];
 	}
 
+	public function setPrivateKey(RSA $privateKey): void {
+		$this->rsa = $privateKey;
+	}
+
+	public function setCertificate(x509 $x509): void {
+		$this->x509 = $x509;
+	}
+
 	/**
 	 * Write the signature of the app in the specified folder
 	 *
@@ -61,8 +70,6 @@ class SignSetupService {
 	 * @throws \Exception
 	 */
 	public function writeAppSignature(
-		X509 $certificate,
-		RSA $privateKey,
 		string $architecture,
 		string $resource,
 	) {
@@ -72,7 +79,7 @@ class SignSetupService {
 		try {
 			$iterator = $this->getFolderIterator($this->getInstallPath());
 			$hashes = $this->generateHashes($iterator);
-			$signature = $this->createSignatureData($hashes, $certificate, $privateKey);
+			$signature = $this->createSignatureData($hashes);
 			$this->fileAccessHelper->file_put_contents(
 				$appInfoDir . '/install-' . $this->architecture . '-' . $this->resource . '.json',
 				json_encode($signature, JSON_PRETTY_PRINT)
@@ -340,21 +347,19 @@ class SignSetupService {
 	 * @param RSA $privateKey
 	 * @return array
 	 */
-	private function createSignatureData(array $hashes,
-		X509 $certificate,
-		RSA $privateKey): array {
+	private function createSignatureData(array $hashes): array {
 		ksort($hashes);
 
-		$privateKey->setSignatureMode(RSA::SIGNATURE_PSS);
-		$privateKey->setMGFHash('sha512');
+		$this->rsa->setSignatureMode(RSA::SIGNATURE_PSS);
+		$this->rsa->setMGFHash('sha512');
 		// See https://tools.ietf.org/html/rfc3447#page-38
-		$privateKey->setSaltLength(0);
-		$signature = $privateKey->sign(json_encode($hashes));
+		$this->rsa->setSaltLength(0);
+		$signature = $this->rsa->sign(json_encode($hashes));
 
 		return [
 			'hashes' => $hashes,
 			'signature' => base64_encode($signature),
-			'certificate' => $certificate->saveX509($certificate->currentCert),
+			'certificate' => $this->x509->saveX509($this->x509->currentCert),
 		];
 	}
 }
