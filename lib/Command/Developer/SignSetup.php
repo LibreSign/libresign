@@ -10,6 +10,7 @@ namespace OCA\Libresign\Command\Developer;
 
 use OC\Core\Command\Base;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
+use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCP\IConfig;
 use phpseclib\Crypt\RSA;
@@ -23,6 +24,7 @@ class SignSetup extends Base {
 		private IConfig $config,
 		private FileAccessHelper $fileAccessHelper,
 		private SignSetupService $signSetupService,
+		private InstallService $installService,
 	) {
 		parent::__construct();
 	}
@@ -69,7 +71,9 @@ class SignSetup extends Base {
 		$x509->setPrivateKey($rsa);
 		try {
 			foreach ($this->signSetupService->getArchitectures() as $architecture) {
-				$this->signSetupService->writeAppSignature($x509, $rsa, $architecture);
+				foreach ($this->installService->getAvailableResources() as $resource) {
+					$this->signSetupService->writeAppSignature($x509, $rsa, $architecture, $resource);
+				}
 			}
 			$output->writeln('Successfully signed');
 		} catch (\Exception $e) {
