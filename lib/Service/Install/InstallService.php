@@ -77,6 +77,7 @@ class InstallService {
 		'cfssl'
 	];
 	private string $architecture;
+	private bool $willUseLocalCert = false;
 
 	public function __construct(
 		ICacheFactory $cacheFactory,
@@ -358,7 +359,19 @@ class InstallService {
 	}
 
 	public function isDownloadedFilesOk(): bool {
+		$this->signSetupService->willUseLocalCert($this->willUseLocalCert);
 		return count($this->signSetupService->verify($this->architecture, $this->resource)) === 0;
+	}
+
+	public function willUseLocalCert(): void {
+		$this->willUseLocalCert = true;
+	}
+
+	private function writeAppSignature(): void {
+		if (!$this->willUseLocalCert) {
+			return;
+		}
+		$this->signSetupService->writeAppSignature($this->architecture, $this->resource);
 	}
 
 	public function installJava(?bool $async = false): void {
@@ -408,6 +421,7 @@ class InstallService {
 			$extractor = new $class($comporessedInternalFileName);
 			$extractor->extract($extractDir);
 			unlink($comporessedInternalFileName);
+			$this->writeAppSignature();
 		}
 
 		$this->appConfig->setAppValue('java_path', $extractDir . '/jdk-' . self::JAVA_URL_PATH_NAME . '-jre/bin/java');
@@ -471,6 +485,7 @@ class InstallService {
 			$zip = new ZIP($extractDir . '/' . $compressedFileName);
 			$zip->extract($extractDir);
 			unlink($extractDir . '/' . $compressedFileName);
+			$this->writeAppSignature();
 		}
 
 		$fullPath = $extractDir . '/jsignpdf-' . JSignPdfHandler::VERSION . '/JSignPdf.jar';
@@ -498,20 +513,25 @@ class InstallService {
 			$this->runAsync();
 			return;
 		}
-		$folder = $this->getEmptyFolder($this->resource);
-		try {
-			$file = $folder->getFile('pdftk.jar');
-		} catch (\Throwable $th) {
-			$file = $folder->newFile('pdftk.jar');
-		}
-		$fullPath = $this->getDataDir() . '/' . $this->getInternalPathOfFile($file);
 
-		if (!$this->isDownloadedFilesOk()) {
+		if ($this->isDownloadedFilesOk()) {
+			$folder = $this->getFolder($this->resource);
+			$file = $folder->getFile('pdftk.jar');
+			$fullPath = $this->getDataDir() . '/' . $this->getInternalPathOfFile($file);
+		} else {
+			$folder = $this->getEmptyFolder($this->resource);
+			try {
+				$file = $folder->getFile('pdftk.jar');
+			} catch (\Throwable $th) {
+				$file = $folder->newFile('pdftk.jar');
+			}
+			$fullPath = $this->getDataDir() . '/' . $this->getInternalPathOfFile($file);
 			$url = 'https://gitlab.com/api/v4/projects/5024297/packages/generic/pdftk-java/v' . self::PDFTK_VERSION . '/pdftk-all.jar';
 			/** WHEN UPDATE version: generate this hash handmade and update here */
 			$hash = '59a28bed53b428595d165d52988bf4cf';
 
 			$this->download($url, 'pdftk', $fullPath, $hash);
+			$this->writeAppSignature();
 		}
 
 		$this->appConfig->setAppValue('pdftk_path', $fullPath);
@@ -578,6 +598,7 @@ class InstallService {
 
 				chmod($fullPath, 0700);
 			}
+			$this->writeAppSignature();
 		}
 
 		$cfsslBinPath = $this->getDataDir() . '/' .

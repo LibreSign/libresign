@@ -128,8 +128,18 @@
   </file>
   <file src="lib/Service/Install/SignSetupService.php">
     <UndefinedClass>
+      <code><![CDATA[$this->getCertificate()]]></code>
+      <code><![CDATA[$this->getCertificate()->currentCert]]></code>
+      <code><![CDATA[$this->getPrivateKey()]]></code>
+      <code><![CDATA[$this->getPrivateKey()]]></code>
+      <code><![CDATA[$this->getPrivateKey()]]></code>
+      <code><![CDATA[$this->getPrivateKey()]]></code>
       <code><![CDATA[$x509->currentCert]]></code>
-      <code><![CDATA[?x509]]></code>
+      <code><![CDATA[?RSA]]></code>
+      <code><![CDATA[?X509]]></code>
+      <code><![CDATA[RSA]]></code>
+      <code><![CDATA[RSA]]></code>
+      <code><![CDATA[RSA]]></code>
       <code><![CDATA[RSA]]></code>
       <code><![CDATA[RSA]]></code>
       <code><![CDATA[RSA]]></code>
@@ -138,6 +148,9 @@
       <code><![CDATA[X509]]></code>
       <code><![CDATA[X509]]></code>
       <code><![CDATA[X509]]></code>
+      <code><![CDATA[X509]]></code>
+      <code><![CDATA[x509]]></code>
+      <code><![CDATA[x509]]></code>
     </UndefinedClass>
   </file>
   <file src="lib/Service/RequestSignatureService.php">
