@@ -14,7 +14,6 @@ use OC\Archive\TAR;
 use OC\Archive\ZIP;
 use OC\Memcache\NullCache;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Exception\InvalidSignatureException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\AEngineHandler;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
@@ -62,6 +61,7 @@ class InstallService {
 		'cfssl'
 	];
 	private string $architecture;
+	private bool $willUseLocalCert = false;
 
 	public function __construct(
 		ICacheFactory $cacheFactory,
@@ -97,14 +97,15 @@ class InstallService {
 			}
 			$path = explode('/', $path);
 			foreach ($path as $snippet) {
-				$folder = $this->getFolder($snippet, $folder);
+				$folder = $this->getFolder($snippet, $folder, $needToBeEmpty);
 			}
 			return $folder;
 		}
 		try {
 			$folder = $folder->getFolder($path, $folder);
-			if ($needToBeEmpty) {
+			if ($needToBeEmpty && $path !== $this->architecture) {
 				$folder->delete();
+				$path = '';
 				throw new \Exception('Need to be empty');
 			}
 		} catch (\Throwable $th) {
@@ -260,6 +261,10 @@ class InstallService {
 		$this->cache->remove(Application::APP_ID . '-asyncDownloadProgress-' . $key);
 	}
 
+	public function getAvailableResources(): array {
+		return $this->availableResources;
+	}
+
 	public function getTotalSize(): array {
 		$return = [];
 		foreach ($this->availableResources as $resource) {
@@ -338,60 +343,70 @@ class InstallService {
 	}
 
 	public function isDownloadedFilesOk(): bool {
-		try {
-			return count($this->signSetupService->verify($this->architecture, $this->resource)) === 0;
-		} catch (InvalidSignatureException $e) {
-			return false;
+		$this->signSetupService->willUseLocalCert($this->willUseLocalCert);
+		return count($this->signSetupService->verify($this->architecture, $this->resource)) === 0;
+	}
+
+	public function willUseLocalCert(): void {
+		$this->willUseLocalCert = true;
+	}
+
+	private function writeAppSignature(): void {
+		if (!$this->willUseLocalCert) {
+			return;
 		}
+		$this->signSetupService->writeAppSignature($this->architecture, $this->resource);
 	}
 
 	public function installJava(?bool $async = false): void {
 		$this->setResource('java');
-		if ($this->isDownloadedFilesOk()) {
-			return;
-		}
 		if ($async) {
 			$this->runAsync();
 			return;
 		}
-		$folder = $this->getEmptyFolder($this->resource);
 		$extractDir = $this->getFullPath() . '/' . $this->resource;
 
-		/**
-		 * Steps to update:
-		 *     Check the compatible version of Java to use JSignPdf
-		 *     Update all the follow data
-		 *     Update the constants with java version
-		 * URL used to get the MD5 and URL to download:
-		 * https://jdk.java.net/java-se-ri/8-MR3
-		 */
-		if (PHP_OS_FAMILY === 'Linux') {
-			$linuxDistribution = $this->getLinuxDistributionToDownloadJava();
-			if ($this->architecture === 'x86_64') {
-				$compressedFileName = 'OpenJDK21U-jre_x64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
-				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME  . '/' . $compressedFileName;
-			} elseif ($this->architecture === 'aarch64') {
-				$compressedFileName = 'OpenJDK21U-jre_aarch64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
-				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
-			}
-			$class = TAR::class;
+		if ($this->isDownloadedFilesOk()) {
+			$folder = $this->getFolder($this->resource);
 		} else {
-			throw new RuntimeException(sprintf('OS_FAMILY %s is incompatible with LibreSign.', PHP_OS_FAMILY));
-		}
-		$checksumUrl = $url . '.sha256.txt';
-		$hash = $this->getHash($compressedFileName, $checksumUrl);
-		try {
-			$compressedFile = $folder->getFile($compressedFileName);
-		} catch (NotFoundException $th) {
-			$compressedFile = $folder->newFile($compressedFileName);
-		}
-		$comporessedInternalFileName = $this->getDataDir() . '/' . $this->getInternalPathOfFile($compressedFile);
+			$folder = $this->getEmptyFolder($this->resource);
+			/**
+			 * Steps to update:
+			 *     Check the compatible version of Java to use JSignPdf
+			 *     Update all the follow data
+			 *     Update the constants with java version
+			 * URL used to get the MD5 and URL to download:
+			 * https://jdk.java.net/java-se-ri/8-MR3
+			 */
+			if (PHP_OS_FAMILY === 'Linux') {
+				$linuxDistribution = $this->getLinuxDistributionToDownloadJava();
+				if ($this->architecture === 'x86_64') {
+					$compressedFileName = 'OpenJDK21U-jre_x64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
+					$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME  . '/' . $compressedFileName;
+				} elseif ($this->architecture === 'aarch64') {
+					$compressedFileName = 'OpenJDK21U-jre_aarch64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
+					$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
+				}
+				$class = TAR::class;
+			} else {
+				throw new RuntimeException(sprintf('OS_FAMILY %s is incompatible with LibreSign.', PHP_OS_FAMILY));
+			}
+			$checksumUrl = $url . '.sha256.txt';
+			$hash = $this->getHash($compressedFileName, $checksumUrl);
+			try {
+				$compressedFile = $folder->getFile($compressedFileName);
+			} catch (NotFoundException $th) {
+				$compressedFile = $folder->newFile($compressedFileName);
+			}
+			$comporessedInternalFileName = $this->getDataDir() . '/' . $this->getInternalPathOfFile($compressedFile);
 
-		$this->download($url, 'java', $comporessedInternalFileName, $hash, 'sha256');
+			$this->download($url, 'java', $comporessedInternalFileName, $hash, 'sha256');
 
-		$extractor = new $class($comporessedInternalFileName);
-		$extractor->extract($extractDir);
-		unlink($comporessedInternalFileName);
+			$extractor = new $class($comporessedInternalFileName);
+			$extractor->extract($extractDir);
+			unlink($comporessedInternalFileName);
+			$this->writeAppSignature();
+		}
 
 		$this->appConfig->setAppValue('java_path', $extractDir . '/jdk-' . self::JAVA_URL_PATH_NAME . '-jre/bin/java');
 		$this->removeDownloadProgress();
@@ -428,32 +443,34 @@ class InstallService {
 			throw new RuntimeException('Zip extension is not available');
 		}
 		$this->setResource('jsignpdf');
-		if ($this->isDownloadedFilesOk()) {
-			return;
-		}
 		if ($async) {
 			$this->runAsync();
 			return;
 		}
-		$folder = $this->getEmptyFolder($this->resource);
 		$extractDir = $this->getFullPath() . '/' . $this->resource;
 
-		$compressedFileName = 'jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
-		try {
-			$compressedFile = $folder->getFile($compressedFileName);
-		} catch (\Throwable $th) {
-			$compressedFile = $folder->newFile($compressedFileName);
+		if ($this->isDownloadedFilesOk()) {
+			$folder = $this->getFolder($this->resource);
+		} else {
+			$folder = $this->getEmptyFolder($this->resource);
+			$compressedFileName = 'jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
+			try {
+				$compressedFile = $folder->getFile($compressedFileName);
+			} catch (\Throwable $th) {
+				$compressedFile = $folder->newFile($compressedFileName);
+			}
+			$comporessedInternalFileName = $this->getDataDir() . '/' . $this->getInternalPathOfFile($compressedFile);
+			$url = 'https://github.com/intoolswetrust/jsignpdf/releases/download/JSignPdf_' . str_replace('.', '_', JSignPdfHandler::VERSION) . '/jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
+			/** WHEN UPDATE version: generate this hash handmade and update here */
+			$hash = '7c66f5a9f5e7e35b601725414491a867';
+
+			$this->download($url, 'JSignPdf', $comporessedInternalFileName, $hash);
+
+			$zip = new ZIP($extractDir . '/' . $compressedFileName);
+			$zip->extract($extractDir);
+			unlink($extractDir . '/' . $compressedFileName);
+			$this->writeAppSignature();
 		}
-		$comporessedInternalFileName = $this->getDataDir() . '/' . $this->getInternalPathOfFile($compressedFile);
-		$url = 'https://github.com/intoolswetrust/jsignpdf/releases/download/JSignPdf_' . str_replace('.', '_', JSignPdfHandler::VERSION) . '/jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
-		/** WHEN UPDATE version: generate this hash handmade and update here */
-		$hash = '7c66f5a9f5e7e35b601725414491a867';
-
-		$this->download($url, 'JSignPdf', $comporessedInternalFileName, $hash);
-
-		$zip = new ZIP($extractDir . '/' . $compressedFileName);
-		$zip->extract($extractDir);
-		unlink($extractDir . '/' . $compressedFileName);
 
 		$fullPath = $extractDir . '/jsignpdf-' . JSignPdfHandler::VERSION . '/JSignPdf.jar';
 		$this->appConfig->setAppValue('jsignpdf_jar_path', $fullPath);
@@ -476,25 +493,30 @@ class InstallService {
 
 	public function installPdftk(?bool $async = false): void {
 		$this->setResource('pdftk');
-		if ($this->isDownloadedFilesOk()) {
-			return;
-		}
 		if ($async) {
 			$this->runAsync();
 			return;
 		}
-		$folder = $this->getEmptyFolder($this->resource);
-		try {
-			$file = $folder->getFile('pdftk.jar');
-		} catch (\Throwable $th) {
-			$file = $folder->newFile('pdftk.jar');
-		}
-		$fullPath = $this->getDataDir() . '/' . $this->getInternalPathOfFile($file);
-		$url = 'https://gitlab.com/api/v4/projects/5024297/packages/generic/pdftk-java/v' . self::PDFTK_VERSION . '/pdftk-all.jar';
-		/** WHEN UPDATE version: generate this hash handmade and update here */
-		$hash = '59a28bed53b428595d165d52988bf4cf';
 
-		$this->download($url, 'pdftk', $fullPath, $hash);
+		if ($this->isDownloadedFilesOk()) {
+			$folder = $this->getFolder($this->resource);
+			$file = $folder->getFile('pdftk.jar');
+			$fullPath = $this->getDataDir() . '/' . $this->getInternalPathOfFile($file);
+		} else {
+			$folder = $this->getEmptyFolder($this->resource);
+			try {
+				$file = $folder->getFile('pdftk.jar');
+			} catch (\Throwable $th) {
+				$file = $folder->newFile('pdftk.jar');
+			}
+			$fullPath = $this->getDataDir() . '/' . $this->getInternalPathOfFile($file);
+			$url = 'https://gitlab.com/api/v4/projects/5024297/packages/generic/pdftk-java/v' . self::PDFTK_VERSION . '/pdftk-all.jar';
+			/** WHEN UPDATE version: generate this hash handmade and update here */
+			$hash = '59a28bed53b428595d165d52988bf4cf';
+
+			$this->download($url, 'pdftk', $fullPath, $hash);
+			$this->writeAppSignature();
+		}
 
 		$this->appConfig->setAppValue('pdftk_path', $fullPath);
 		$this->removeDownloadProgress();
@@ -515,16 +537,7 @@ class InstallService {
 	}
 
 	public function installCfssl(?bool $async = false): void {
-		if ($this->certificateEngineHandler->getEngine()->getName() !== 'cfssl') {
-			if (!$async) {
-				throw new InvalidArgumentException('Set the engine to cfssl with: config:app:set libresign certificate_engine --value cfssl');
-			}
-			return;
-		}
 		$this->setResource('cfssl');
-		if ($this->isDownloadedFilesOk()) {
-			return;
-		}
 		if ($async) {
 			$this->runAsync();
 			return;
@@ -543,34 +556,37 @@ class InstallService {
 	}
 
 	private function installCfsslByArchitecture(string $arcitecture): void {
-		$folder = $this->getEmptyFolder($this->resource);
+		if ($this->isDownloadedFilesOk()) {
+			$folder = $this->getFolder($this->resource);
+		} else {
+			$folder = $this->getEmptyFolder($this->resource);
+			$downloads = [
+				[
+					'file' => 'cfssl_' . self::CFSSL_VERSION . '_linux_' . $arcitecture,
+					'destination' => 'cfssl',
+				],
+				[
+					'file' => 'cfssljson_' . self::CFSSL_VERSION . '_linux_' . $arcitecture,
+					'destination' => 'cfssljson',
+				],
+			];
+			$baseUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/';
+			$checksumUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/cfssl_' . self::CFSSL_VERSION . '_checksums.txt';
+			foreach ($downloads as $download) {
+				$hash = $this->getHash($download['file'], $checksumUrl);
 
-		$downloads = [
-			[
-				'file' => 'cfssl_' . self::CFSSL_VERSION . '_linux_' . $arcitecture,
-				'destination' => 'cfssl',
-			],
-			[
-				'file' => 'cfssljson_' . self::CFSSL_VERSION . '_linux_' . $arcitecture,
-				'destination' => 'cfssljson',
-			],
-		];
-		$baseUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/';
-		$checksumUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/cfssl_' . self::CFSSL_VERSION . '_checksums.txt';
-		foreach ($downloads as $download) {
-			$hash = $this->getHash($download['file'], $checksumUrl);
+				$file = $folder->newFile($download['destination']);
+				$fullPath = $this->getDataDir() . '/' . $this->getInternalPathOfFile($file);
 
-			$file = $folder->newFile($download['destination']);
-			$fullPath = $this->getDataDir() . '/' . $this->getInternalPathOfFile($file);
+				$this->download($baseUrl . $download['file'], $download['destination'], $fullPath, $hash, 'sha256');
 
-			$this->download($baseUrl . $download['file'], $download['destination'], $fullPath, $hash, 'sha256');
-
-			chmod($fullPath, 0700);
+				chmod($fullPath, 0700);
+			}
+			$this->writeAppSignature();
 		}
 
 		$cfsslBinPath = $this->getDataDir() . '/' .
-			$this->getInternalPathOfFolder($folder) . '/' .
-			$downloads[0]['destination'];
+			$this->getInternalPathOfFolder($folder) . '/cfssl';
 		$this->appConfig->setAppValue('cfssl_bin', $cfsslBinPath);
 	}
 
@@ -639,12 +655,15 @@ class InstallService {
 				},
 			]);
 		} catch (\Exception $e) {
+			$progressBar->finish();
+			$this->output->writeln('');
 			$this->output->writeln('<error>Failure on download ' . $filename . ' try again.</error>');
 			$this->output->writeln('<error>' . $e->getMessage() . '</error>');
 			$this->logger->error('Failure on download ' . $filename . '. ' . $e->getMessage());
+		} finally {
+			$progressBar->finish();
+			$this->output->writeln('');
 		}
-		$progressBar->finish();
-		$this->output->writeln('');
 		if ($hash && file_exists($path) && hash_file($hash_algo, $path) !== $hash) {
 			$this->output->writeln('<error>Failure on download ' . $filename . ' try again</error>');
 			$this->output->writeln('<error>Invalid ' . $hash_algo . '</error>');

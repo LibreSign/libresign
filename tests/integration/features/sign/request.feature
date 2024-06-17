@@ -317,9 +317,9 @@ Feature: request-signature
   Scenario: Sign file
     Given as user "admin"
     And user "signer1" exists
-    And run the command "libresign:install --java" with result code 0
-    And run the command "libresign:install --jsignpdf" with result code 0
-    And run the command "libresign:install --pdftk" with result code 0
+    And run the command "libresign:install --use-local-cert --java" with result code 0
+    And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
+    And run the command "libresign:install --use-local-cert --pdftk" with result code 0
     And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
     And run the command "config:app:set libresign add_footer --value=1" with result code 0
     And run the command "config:app:set libresign write_qrcode_on_footer --value=1" with result code 0

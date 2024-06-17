@@ -8,11 +8,24 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Command;
 
+use OCA\Libresign\Service\Install\InstallService;
+use OCP\AppFramework\Services\IAppConfig;
+use OCP\IConfig;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Install extends Base {
+	public function __construct(
+		InstallService $installService,
+		LoggerInterface $logger,
+		private IAppConfig $appConfig,
+		private IConfig $config,
+	) {
+		parent::__construct($installService, $logger);
+	}
+
 	protected function configure(): void {
 		$this
 			->setName('libresign:install')
@@ -53,6 +66,14 @@ class Install extends Base {
 				mode: InputOption::VALUE_REQUIRED,
 				description: 'x86_64 or aarch64'
 			);
+		if ($this->config->getSystemValue('debug', false) === true) {
+			$this->addOption(
+				name: 'use-local-cert',
+				shortcut: null,
+				mode: InputOption::VALUE_NONE,
+				description: 'Use local cert'
+			);
+		}
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output): int {
@@ -63,6 +84,9 @@ class Install extends Base {
 			$architecture = (string) $input->getOption('architecture');
 			if (in_array($architecture, ['x86_64', 'aarch64'])) {
 				$this->installService->setArchitecture($architecture);
+			}
+			if ($input->hasOption('use-local-cert') && $input->getOption('use-local-cert')) {
+				$this->installService->willUseLocalCert();
 			}
 			$all = $input->getOption('all');
 			if ($input->getOption('java') || $all) {
@@ -78,7 +102,11 @@ class Install extends Base {
 				$ok = true;
 			}
 			if ($input->getOption('cfssl') || $all) {
+				$currentEngine = $this->appConfig->getAppValue('certificate_engine', 'openssl');
 				$this->installService->installCfssl();
+				if ($currentEngine !== 'cfssl') {
+					$output->writeln('<comment>To use CFSSL, set the engine to cfssl with:</comment> config:app:set libresign certificate_engine --value cfssl');
+				}
 				$ok = true;
 			}
 		} catch (\Exception $e) {

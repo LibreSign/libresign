@@ -20,7 +20,7 @@ Feature: account/signature
   Scenario: Create root certificate with CFSSL engine using API
     Given as user "admin"
     And run the command "config:app:set libresign certificate_engine --value cfssl" with result code 0
-    And run the command "libresign:install --cfssl" with result code 0
+    And run the command "libresign:install --use-local-cert --cfssl" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/cfssl"
       | rootCert | {"commonName":"Common Name","names":{"C":{"id":"C","value":"BR"},"ST":{"id":"ST","value":"State of Company"},"L":{"id":"L","value":"City name"},"O":{"id":"O","value":"Organization"},"OU":{"id":"OU","value":"Organizational Unit"}}} |
     And the response should have a status code 200
@@ -42,7 +42,7 @@ Feature: account/signature
     And set the email of user "signer1" to "signer@domain.test"
     And as user "signer1"
     And run the command "config:app:set libresign certificate_engine --value cfssl" with result code 0
-    And run the command "libresign:install --cfssl" with result code 0
+    And run the command "libresign:install --use-local-cert --cfssl" with result code 0
     And run the command "libresign:configure:cfssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/account/signature"
       | signPassword | password |
