@@ -586,8 +586,7 @@ class InstallService {
 		}
 
 		$cfsslBinPath = $this->getDataDir() . '/' .
-			$this->getInternalPathOfFolder($folder) . '/' .
-			$downloads[0]['destination'];
+			$this->getInternalPathOfFolder($folder) . '/cfssl';
 		$this->appConfig->setAppValue('cfssl_bin', $cfsslBinPath);
 	}
 
