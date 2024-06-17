@@ -118,8 +118,9 @@ class InstallService {
 		}
 		try {
 			$folder = $folder->getFolder($path, $folder);
-			if ($needToBeEmpty) {
+			if ($needToBeEmpty && $path !== $this->architecture) {
 				$folder->delete();
+				$path = '';
 				throw new \Exception('Need to be empty');
 			}
 		} catch (\Throwable $th) {
@@ -273,6 +274,10 @@ class InstallService {
 			return;
 		}
 		$this->cache->remove(Application::APP_ID . '-asyncDownloadProgress-' . $key);
+	}
+
+	public function getAvailableResources(): array {
+		return $this->availableResources;
 	}
 
 	public function getTotalSize(): array {
