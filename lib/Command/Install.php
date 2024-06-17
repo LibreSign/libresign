@@ -26,6 +26,7 @@ namespace OCA\Libresign\Command;
 
 use OCA\Libresign\Service\Install\InstallService;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\IConfig;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -36,6 +37,7 @@ class Install extends Base {
 		InstallService $installService,
 		LoggerInterface $logger,
 		private IAppConfig $appConfig,
+		private IConfig $config,
 	) {
 		parent::__construct($installService, $logger);
 	}
@@ -80,6 +82,14 @@ class Install extends Base {
 				mode: InputOption::VALUE_REQUIRED,
 				description: 'x86_64 or aarch64'
 			);
+		if ($this->config->getSystemValue('debug', false) === true) {
+			$this->addOption(
+				name: 'use-local-cert',
+				shortcut: null,
+				mode: InputOption::VALUE_NONE,
+				description: 'Use local cert'
+			);
+		}
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output): int {
@@ -90,6 +100,9 @@ class Install extends Base {
 			$architecture = (string) $input->getOption('architecture');
 			if (in_array($architecture, ['x86_64', 'aarch64'])) {
 				$this->installService->setArchitecture($architecture);
+			}
+			if ($input->hasOption('use-local-cert') && $input->getOption('use-local-cert')) {
+				$this->installService->willUseLocalCert();
 			}
 			$all = $input->getOption('all');
 			if ($input->getOption('java') || $all) {
