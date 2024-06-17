@@ -64,19 +64,26 @@ class SignSetupService {
 		X509 $certificate,
 		RSA $privateKey,
 		string $architecture,
+		string $resource,
 	) {
 		$this->architecture = $architecture;
+		$this->resource = $resource;
 		$appInfoDir = $this->getAppInfoDirectory();
 		try {
 			$iterator = $this->getFolderIterator($this->getInstallPath());
 			$hashes = $this->generateHashes($iterator);
 			$signature = $this->createSignatureData($hashes, $certificate, $privateKey);
 			$this->fileAccessHelper->file_put_contents(
-				$appInfoDir . '/install-' . $this->architecture . '.json',
+				$appInfoDir . '/install-' . $this->architecture . '-' . $this->resource . '.json',
 				json_encode($signature, JSON_PRETTY_PRINT)
 			);
 		} catch (NotFoundException $e) {
-			throw new \Exception(sprintf("Folder %s not found.\nIs necessary to run this command first: occ libresign:install --all --architecture %s", $e->getMessage(), $this->architecture));
+			throw new \Exception(sprintf(
+				"Folder %s not found.\nIs necessary to run this command first: occ libresign:install --%s --architecture %s",
+				$e->getMessage(),
+				$this->resource,
+				$this->architecture,
+			));
 		} catch (\Exception $e) {
 			if (!$this->fileAccessHelper->is_writable($appInfoDir)) {
 				throw new \Exception($appInfoDir . ' is not writable');
@@ -108,7 +115,7 @@ class SignSetupService {
 			return $this->signatureData;
 		}
 		$appInfoDir = $this->getAppInfoDirectory();
-		$signaturePath = $appInfoDir . '/install-' . $this->architecture . '.json';
+		$signaturePath = $appInfoDir . '/install-' . $this->architecture . '-' . $this->resource . '.json';
 		$content = $this->fileAccessHelper->file_get_contents($signaturePath);
 		$signatureData = null;
 
@@ -127,14 +134,10 @@ class SignSetupService {
 
 	private function getHashesOfResource(): array {
 		$signatureData = $this->getSignatureData();
-		$expectedHashes = $signatureData['hashes'];
-		$filtered = array_filter($expectedHashes, function (string $key) {
-			return str_starts_with($key, $this->resource);
-		}, ARRAY_FILTER_USE_KEY);
-		if (!$filtered) {
+		if (count($signatureData['hashes']) === 0) {
 			throw new EmptySignatureDataException('No signature files to ' . $this->resource);
 		}
-		return $filtered;
+		return $signatureData;
 	}
 
 	private function getLibresignAppCertificate(): X509 {
@@ -186,13 +189,14 @@ class SignSetupService {
 	}
 
 	public function verify(string $architecture, $resource): array {
+		$this->signatureData = [];
 		$this->architecture = $architecture;
 		$this->resource = $resource;
 
 		try {
 			$expectedHashes = $this->getHashesOfResource();
 			// Compare the list of files which are not identical
-			$installPath = $this->getInstallPath() . '/' . $this->resource;
+			$installPath = $this->getInstallPath();
 			$currentInstanceHashes = $this->generateHashes($this->getFolderIterator($installPath), $installPath);
 		} catch (EmptySignatureDataException $th) {
 			return [
@@ -208,13 +212,13 @@ class SignSetupService {
 			];
 		}
 
-		$differencesA = array_diff($expectedHashes, $currentInstanceHashes);
-		$differencesB = array_diff($currentInstanceHashes, $expectedHashes);
+		$differencesA = array_diff($expectedHashes['hashes'], $currentInstanceHashes);
+		$differencesB = array_diff($currentInstanceHashes, $expectedHashes['hashes']);
 		$differences = array_merge($differencesA, $differencesB);
 		$differenceArray = [];
 		foreach ($differences as $filename => $hash) {
 			// Check if file should not exist in the new signature table
-			if (!array_key_exists($filename, $expectedHashes)) {
+			if (!array_key_exists($filename, $expectedHashes['hashes'])) {
 				$differenceArray['EXTRA_FILE'][$filename]['expected'] = '';
 				$differenceArray['EXTRA_FILE'][$filename]['current'] = $hash;
 				continue;
@@ -222,14 +226,14 @@ class SignSetupService {
 
 			// Check if file is missing
 			if (!array_key_exists($filename, $currentInstanceHashes)) {
-				$differenceArray['FILE_MISSING'][$filename]['expected'] = $expectedHashes[$filename];
+				$differenceArray['FILE_MISSING'][$filename]['expected'] = $expectedHashes['hashes'][$filename];
 				$differenceArray['FILE_MISSING'][$filename]['current'] = '';
 				continue;
 			}
 
 			// Check if hash does mismatch
-			if ($expectedHashes[$filename] !== $currentInstanceHashes[$filename]) {
-				$differenceArray['INVALID_HASH'][$filename]['expected'] = $expectedHashes[$filename];
+			if ($expectedHashes['hashes'][$filename] !== $currentInstanceHashes[$filename]) {
+				$differenceArray['INVALID_HASH'][$filename]['expected'] = $expectedHashes['hashes'][$filename];
 				$differenceArray['INVALID_HASH'][$filename]['current'] = $currentInstanceHashes[$filename];
 				continue;
 			}
@@ -260,7 +264,7 @@ class SignSetupService {
 
 	private function getInstallPath(): string {
 		$folder = $this->getDataDir() . '/' .
-			$this->getInternalPathOfFolder($this->appData->getFolder($this->architecture));
+			$this->getInternalPathOfFolder($this->appData->getFolder($this->architecture . '/' . $this->resource));
 		return $folder;
 	}
 
