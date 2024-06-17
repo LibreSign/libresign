@@ -33,8 +33,9 @@ class SignSetupService {
 	private string $architecture;
 	private string $resource;
 	private array $signatureData = [];
-	private ?x509 $x509 = null;
-	private ?RSA $rsa= null;
+	private bool $willUseLocalCert = false;
+	private ?X509 $x509 = null;
+	private ?RSA $rsa = null;
 	public function __construct(
 		private EnvironmentHelper $environmentHelper,
 		private FileAccessHelper $fileAccessHelper,
@@ -59,6 +60,38 @@ class SignSetupService {
 
 	public function setCertificate(x509 $x509): void {
 		$this->x509 = $x509;
+	}
+
+	public function willUseLocalCert(bool $willUseLocalCert): void {
+		$this->willUseLocalCert = $willUseLocalCert;
+	}
+
+	private function getPrivateKey(): RSA {
+		if (!$this->rsa instanceof RSA) {
+			$oi = __DIR__ . '/../../../build/tools/certificates/local/libresign.key';
+			if (file_exists(__DIR__ . '/../../../build/tools/certificates/local/libresign.key')) {
+				$privateKey = file_get_contents(__DIR__ . '/../../../build/tools/certificates/local/libresign.key');
+				$this->rsa = new RSA();
+				$this->rsa->loadKey($privateKey);
+			} else {
+				$this->getDevelopCert();
+			}
+		}
+		return $this->rsa;
+	}
+
+	private function getCertificate(): X509 {
+		if (!$this->x509 instanceof x509) {
+			if (file_exists(__DIR__ . '/../../../build/tools/certificates/local/libresign.crt')) {
+				$x509 = file_get_contents(__DIR__ . '/../../../build/tools/certificates/local/libresign.crt');
+				$this->x509 = new X509();
+				$this->x509->loadX509($x509);
+				$this->x509->setPrivateKey($this->getPrivateKey());
+			} else {
+				$this->getDevelopCert();
+			}
+		}
+		return $this->x509;
 	}
 
 	/**
@@ -155,8 +188,8 @@ class SignSetupService {
 		$certificate = $signatureData['certificate'];
 
 		// Check if certificate is signed by Nextcloud Root Authority
+		$rootCertificatePublicKey = $this->getRootCertificatePublicKey();
 		$this->x509 = new X509();
-		$rootCertificatePublicKey = $this->fileAccessHelper->file_get_contents($this->environmentHelper->getServerRoot().'/resources/codesigning/root.crt');
 
 		$rootCerts = $this->splitCerts($rootCertificatePublicKey);
 		foreach ($rootCerts as $rootCert) {
@@ -350,16 +383,65 @@ class SignSetupService {
 	private function createSignatureData(array $hashes): array {
 		ksort($hashes);
 
-		$this->rsa->setSignatureMode(RSA::SIGNATURE_PSS);
-		$this->rsa->setMGFHash('sha512');
+		$this->getPrivateKey()->setSignatureMode(RSA::SIGNATURE_PSS);
+		$this->getPrivateKey()->setMGFHash('sha512');
 		// See https://tools.ietf.org/html/rfc3447#page-38
-		$this->rsa->setSaltLength(0);
-		$signature = $this->rsa->sign(json_encode($hashes));
+		$this->getPrivateKey()->setSaltLength(0);
+		$signature = $this->getPrivateKey()->sign(json_encode($hashes));
 
 		return [
 			'hashes' => $hashes,
 			'signature' => base64_encode($signature),
-			'certificate' => $this->x509->saveX509($this->x509->currentCert),
+			'certificate' => $this->getCertificate()->saveX509($this->getCertificate()->currentCert),
+		];
+	}
+
+	private function getRootCertificatePublicKey(): string {
+		if ($this->willUseLocalCert) {
+			$localCert = __DIR__ . '/../../../build/tools/certificates/local/root.crt';
+			if (file_exists($localCert)) {
+				return file_get_contents($localCert);
+			}
+		}
+		return $this->fileAccessHelper->file_get_contents($this->environmentHelper->getServerRoot().'/resources/codesigning/root.crt');
+	}
+
+	public function getDevelopCert(): array {
+		$privateKey = openssl_pkey_new([
+			'private_key_bits' => 2048,
+			'private_key_type' => OPENSSL_KEYTYPE_RSA,
+		]);
+
+		$csrNames = ['commonName' => 'libresign'];
+
+		$csr = openssl_csr_new($csrNames, $privateKey, ['digest_alg' => 'sha256']);
+		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365, ['digest_alg' => 'sha256']);
+
+		openssl_x509_export($x509, $rootCertificate);
+		openssl_pkey_export($privateKey, $privateKeyCert);
+
+		$this->rsa = new RSA();
+		$this->rsa->loadKey($privateKeyCert);
+		$this->x509 = new X509();
+		$this->x509->loadX509($rootCertificate);
+		$this->x509->setPrivateKey($this->rsa);
+
+		$rootCertPath = __DIR__ . '/../../../build/tools/certificates/local/';
+		if (!is_dir($rootCertPath)) {
+			mkdir($rootCertPath, 0777, true);
+		}
+		file_put_contents($rootCertPath . '/root.crt', $rootCertificate);
+		file_put_contents($rootCertPath . '/libresign.crt', $rootCertificate);
+		file_put_contents($rootCertPath . '/libresign.key', $privateKeyCert);
+
+		$privateKeyInstance = openssl_pkey_new([
+			'private_key_bits' => 2048,
+			'private_key_type' => OPENSSL_KEYTYPE_RSA,
+		]);
+		return [
+			'rootCertificate' => $rootCertificate,
+			'privateKeyInstance' => $privateKeyInstance,
+			'privateKeyCert' => $privateKeyCert,
 		];
 	}
 }

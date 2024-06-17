@@ -205,6 +205,7 @@ class ConfigureCheckService {
 	}
 
 	private function verify(string $resource): array {
+		$this->signSetupService->willUseLocalCert($this->isDebugEnabled());
 		$result = $this->signSetupService->verify($this->architecture, $resource);
 		if (count($result) === 1 && $this->isDebugEnabled()) {
 			if (isset($result['SIGNATURE_DATA_NOT_FOUND'])) {
