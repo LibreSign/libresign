@@ -99,7 +99,7 @@ class InstallService {
 			}
 			$path = explode('/', $path);
 			foreach ($path as $snippet) {
-				$folder = $this->getFolder($snippet, $folder);
+				$folder = $this->getFolder($snippet, $folder, $needToBeEmpty);
 			}
 			return $folder;
 		}
@@ -340,11 +340,7 @@ class InstallService {
 	}
 
 	public function isDownloadedFilesOk(): bool {
-		try {
-			return count($this->signSetupService->verify($this->architecture, $this->resource)) === 0;
-		} catch (InvalidSignatureException|SignatureDataNotFoundException|EmptySignatureDataException|NotFoundException $e) {
-			return false;
-		}
+		return count($this->signSetupService->verify($this->architecture, $this->resource)) === 0;
 	}
 
 	public function installJava(?bool $async = false): void {
@@ -353,10 +349,12 @@ class InstallService {
 			$this->runAsync();
 			return;
 		}
-		$folder = $this->getEmptyFolder($this->resource);
 		$extractDir = $this->getFullPath() . '/' . $this->resource;
 
-		if (!$this->isDownloadedFilesOk()) {
+		if ($this->isDownloadedFilesOk()) {
+			$folder = $this->getFolder($this->resource);
+		} else {
+			$folder = $this->getEmptyFolder($this->resource);
 			/**
 			 * Steps to update:
 			 *     Check the compatible version of Java to use JSignPdf
@@ -433,10 +431,12 @@ class InstallService {
 			$this->runAsync();
 			return;
 		}
-		$folder = $this->getEmptyFolder($this->resource);
 		$extractDir = $this->getFullPath() . '/' . $this->resource;
 
-		if (!$this->isDownloadedFilesOk()) {
+		if ($this->isDownloadedFilesOk()) {
+			$folder = $this->getFolder($this->resource);
+		} else {
+			$folder = $this->getEmptyFolder($this->resource);
 			$compressedFileName = 'jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
 			try {
 				$compressedFile = $folder->getFile($compressedFileName);
@@ -534,9 +534,10 @@ class InstallService {
 	}
 
 	private function installCfsslByArchitecture(string $arcitecture): void {
-		$folder = $this->getEmptyFolder($this->resource);
-
 		if ($this->isDownloadedFilesOk()) {
+			$folder = $this->getFolder($this->resource);
+		} else {
+			$folder = $this->getEmptyFolder($this->resource);
 			$downloads = [
 				[
 					'file' => 'cfssl_' . self::CFSSL_VERSION . '_linux_' . $arcitecture,
