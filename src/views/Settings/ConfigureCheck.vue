@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/no-v-html -->
 
 <template>
-	<NcSettingsSection :name="name" :description="description">
+	<NcSettingsSection v-if="configureCheckStore.items.length > 0" :name="name" :description="description">
 		<table class="grid">
 			<tbody>
 				<tr class="group-header">

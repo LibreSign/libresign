@@ -108,7 +108,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
-import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
+import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import CertificateCustonOptions from './CertificateCustonOptions.vue'
 import { selectCustonOption } from '../../helpers/certification.js'
@@ -210,7 +210,7 @@ export default {
 				}
 				this.certificate = response.data.ocs.data.data
 				this.afterCertificateGenerated()
-				emit('libresign:config-check')
+				this.configureCheckStore.checkSetup()
 				return
 			} catch (e) {
 				console.error(e)
