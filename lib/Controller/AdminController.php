@@ -213,7 +213,7 @@ class AdminController extends AEnvironmentAwareController {
 				$this->installService->installCfssl($async);
 			}
 
-			$this->eventSource->send('configure_check', $this->configureCheckService->checkAll());
+			$this->eventSource->send('configure_check', $this->configureCheckService->checkAll(true));
 			$seconds = 0;
 			while ($this->installService->isDownloadWip()) {
 				$totalSize = $this->installService->getTotalSize();
@@ -224,7 +224,7 @@ class AdminController extends AEnvironmentAwareController {
 				usleep(200000); // 0.2 seconds
 				$seconds += 0.2;
 				if ($seconds === 5.0) {
-					$this->eventSource->send('configure_check', $this->configureCheckService->checkAll());
+					$this->eventSource->send('configure_check', $this->configureCheckService->checkAll(true));
 					$seconds = 0;
 				}
 			}
@@ -238,7 +238,7 @@ class AdminController extends AEnvironmentAwareController {
 			]));
 		}
 
-		$this->eventSource->send('configure_check', $this->configureCheckService->checkAll());
+		$this->eventSource->send('configure_check', $this->configureCheckService->checkAll(true));
 		$this->eventSource->send('done', '');
 		$this->eventSource->close();
 		// Nextcloud inject a lot of headers that is incompatible with SSE
