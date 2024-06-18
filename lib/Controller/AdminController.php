@@ -35,6 +35,7 @@ use OCA\Libresign\Service\Install\InstallService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\IEventSource;
 use OCP\IEventSourceFactory;
 use OCP\IL10N;
@@ -50,6 +51,7 @@ class AdminController extends AEnvironmentAwareController {
 	private IEventSource $eventSource;
 	public function __construct(
 		IRequest $request,
+		private IAppConfig $appConfig,
 		private ConfigureCheckService $configureCheckService,
 		private InstallService $installService,
 		private CertificateEngineHandler $certificateEngineHandler,
@@ -207,7 +209,9 @@ class AdminController extends AEnvironmentAwareController {
 			$this->installService->installJava($async);
 			$this->installService->installJSignPdf($async);
 			$this->installService->installPdftk($async);
-			$this->installService->installCfssl($async);
+			if ($this->appConfig->getAppValue('certificate_engine') === 'cfssl') {
+				$this->installService->installCfssl($async);
+			}
 
 			$this->eventSource->send('configure_check', $this->configureCheckService->checkAll());
 			$seconds = 0;
