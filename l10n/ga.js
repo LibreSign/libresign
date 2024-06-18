@@ -57,6 +57,7 @@ OC.L10N.register(
     "New password" : "Focal Faire Nua",
     "Message" : "Teachtaireacht",
     "Dependencies" : "Spleáchais",
+    "Legal information" : "Eolas dlíthiúil",
     "Yes" : "Tá",
     "No" : "Níl",
     "Forgot password?" : "Dearmad ar pasfhocal?",
