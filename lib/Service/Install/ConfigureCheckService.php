@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Install;
 
+use OC\AppConfig;
 use OC\SystemConfig;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngine;
 use OCA\Libresign\Handler\JSignPdfHandler;
@@ -16,14 +17,20 @@ use OCP\AppFramework\Services\IAppConfig;
 
 class ConfigureCheckService {
 	private string $architecture;
+	private bool $isCacheDisabled = false;
 	public function __construct(
 		private IAppConfig $appConfig,
 		private SystemConfig $systemConfig,
+		private AppConfig $ocAppConfig,
 		private JSignPdfHandler $jSignPdfHandler,
 		private CertificateEngine $certificateEngine,
 		private SignSetupService $signSetupService,
 	) {
 		$this->architecture = php_uname('m');
+	}
+
+	public function disableCache(): void {
+		$this->isCacheDisabled = true;
 	}
 
 	/**
@@ -32,6 +39,9 @@ class ConfigureCheckService {
 	 * @return ConfigureCheckHelper[]
 	 */
 	public function checkAll(): array {
+		if ($this->isCacheDisabled) {
+			$this->ocAppConfig->clearCache();
+		}
 		$result = [];
 		$result = array_merge($result, $this->checkSign());
 		$result = array_merge($result, $this->checkCertificate());
