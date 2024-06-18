@@ -126,6 +126,11 @@
       <code><![CDATA[private]]></code>
     </UndefinedClass>
   </file>
+  <file src="lib/Service/Install/InstallService.php">
+    <UndefinedClass>
+      <code><![CDATA[Process]]></code>
+    </UndefinedClass>
+  </file>
   <file src="lib/Service/Install/SignSetupService.php">
     <UndefinedClass>
       <code><![CDATA[$this->getCertificate()]]></code>
