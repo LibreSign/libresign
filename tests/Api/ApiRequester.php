@@ -8,13 +8,13 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Api;
 
+use bovigo\vfs\vfsStream;
 use ByJG\ApiTools\AbstractRequester;
 use ByJG\Util\Psr7\Response;
 use GuzzleHttp\Psr7\Stream;
 use OC\AppFramework\Http\Request;
 use OCP\IRequest;
 use OCP\IRequestId;
-use org\bovigo\vfs\vfsStream;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\Routing\RequestContext;

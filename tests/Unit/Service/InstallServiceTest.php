@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use bovigo\vfs\vfsStream;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\SignSetupService;
@@ -17,7 +18,6 @@ use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\ICacheFactory;
 use OCP\IConfig;
-use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Output\BufferedOutput;

@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Api\Controller;
 
+use bovigo\vfs\vfsStream;
 use donatj\MockWebServer\Response;
 use OCA\Libresign\Tests\Api\ApiTestCase;
-use org\bovigo\vfs\vfsStream;
 
 /**
  * @group DB
