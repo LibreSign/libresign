@@ -74,12 +74,12 @@ export default {
 			return t('libresign', 'Download binaries')
 		},
 		description() {
-			if (this.configureCheckStore.state === 'in progress') {
-				return t('libresign', 'Binaries required to work. Download size could be nearly 340MB, please wait a moment.')
-			} else if (this.configureCheckStore.state === 'need download') {
-				return t('libresign', 'Binaries required to work. Download size could be nearly 340MB, please wait a moment.')
+			if (this.configureCheckStore.state === 'downloading binaries'
+				|| this.configureCheckStore.state === 'need download'
+			) {
+				return t('libresign', 'Binaries required to work. Download size could be nearly {size}, please wait a moment.', { size: '186MB' })
 			}
-			return t('libresign', 'Binaries required to work. Download size could be nearly 340MB, please wait a moment.')
+			return ''
 		},
 	},
 	methods: {
