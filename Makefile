@@ -113,8 +113,8 @@ appstore: clean
 	cp tests/fixtures/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/fixtures
 
 	$(occ) config:app:set libresign certificate_engine --value cfssl
-	$(occ) libresign:install --all
 	$(occ) libresign:install --all --architecture aarch64
+	$(occ) libresign:install --all --architecture x86_64
 	$(occ) libresign:developer:sign-setup --privateKey=$(cert_dir)/$(app_name).key \
 		--certificate=$(cert_dir)/$(app_name).crt
 

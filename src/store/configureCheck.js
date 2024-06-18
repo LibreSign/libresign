@@ -29,6 +29,8 @@ export const useConfigureCheckStore = function(...args) {
 	const store = defineStore('configureCheck', {
 		state: () => ({
 			items: [],
+			state: 'in progress',
+			downloadInProgress: false,
 		}),
 
 		actions: {
@@ -42,11 +44,30 @@ export const useConfigureCheckStore = function(...args) {
 					&& this.items.filter((o) => o.resource === 'cfssl').length > 0
 					&& this.items.filter((o) => o.resource === 'cfssl' && o.status === 'error').length === 0
 			},
+			updateItems(items) {
+				set(this, 'items', items)
+				const java = this.items.filter((o) => o.resource === 'java' && o.status === 'error').length === 0
+				const jsignpdf = this.items.filter((o) => o.resource === 'jsignpdf' && o.status === 'error').length === 0
+				const cfssl = this.items.filter((o) => o.resource === 'cfssl' && o.status === 'error').length === 0
+				if (!java
+					|| !jsignpdf
+					|| !cfssl
+				) {
+					set(this, 'state', 'need download')
+				} else {
+					set(this, 'state', 'done')
+				}
+				set(this, 'downloadInProgress', false)
+			},
 			async checkSetup() {
-				const response = await axios.get(
+				set(this, 'state', 'in progress')
+				set(this, 'downloadInProgress', true)
+				await axios.get(
 					generateOcsUrl('/apps/libresign/api/v1/admin/configure-check'),
 				)
-				set(this, 'items', response.data.ocs.data)
+					.then(({ data }) => {
+						this.updateItems(data.ocs.data)
+					})
 			},
 		},
 	})
