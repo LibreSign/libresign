@@ -11,7 +11,9 @@ namespace OCA\Libresign\Service\Install;
 use OC\IntegrityCheck\Helpers\EnvironmentHelper;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\EmptySignatureDataException;
 use OCA\Libresign\Exception\InvalidSignatureException;
+use OCA\Libresign\Exception\SignatureDataNotFoundException;
 use OCP\App\IAppManager;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
@@ -31,7 +33,9 @@ class SignSetupService {
 	private string $architecture;
 	private string $resource;
 	private array $signatureData = [];
-	private ?x509 $x509 = null;
+	private bool $willUseLocalCert = false;
+	private ?X509 $x509 = null;
+	private ?RSA $rsa = null;
 	public function __construct(
 		private EnvironmentHelper $environmentHelper,
 		private FileAccessHelper $fileAccessHelper,
@@ -50,6 +54,46 @@ class SignSetupService {
 		return $appInfo['dependencies']['architecture'];
 	}
 
+	public function setPrivateKey(RSA $privateKey): void {
+		$this->rsa = $privateKey;
+	}
+
+	public function setCertificate(x509 $x509): void {
+		$this->x509 = $x509;
+	}
+
+	public function willUseLocalCert(bool $willUseLocalCert): void {
+		$this->willUseLocalCert = $willUseLocalCert;
+	}
+
+	private function getPrivateKey(): RSA {
+		if (!$this->rsa instanceof RSA) {
+			$oi = __DIR__ . '/../../../build/tools/certificates/local/libresign.key';
+			if (file_exists(__DIR__ . '/../../../build/tools/certificates/local/libresign.key')) {
+				$privateKey = file_get_contents(__DIR__ . '/../../../build/tools/certificates/local/libresign.key');
+				$this->rsa = new RSA();
+				$this->rsa->loadKey($privateKey);
+			} else {
+				$this->getDevelopCert();
+			}
+		}
+		return $this->rsa;
+	}
+
+	private function getCertificate(): X509 {
+		if (!$this->x509 instanceof x509) {
+			if (file_exists(__DIR__ . '/../../../build/tools/certificates/local/libresign.crt')) {
+				$x509 = file_get_contents(__DIR__ . '/../../../build/tools/certificates/local/libresign.crt');
+				$this->x509 = new X509();
+				$this->x509->loadX509($x509);
+				$this->x509->setPrivateKey($this->getPrivateKey());
+			} else {
+				$this->getDevelopCert();
+			}
+		}
+		return $this->x509;
+	}
+
 	/**
 	 * Write the signature of the app in the specified folder
 	 *
@@ -59,22 +103,27 @@ class SignSetupService {
 	 * @throws \Exception
 	 */
 	public function writeAppSignature(
-		X509 $certificate,
-		RSA $privateKey,
 		string $architecture,
+		string $resource,
 	) {
 		$this->architecture = $architecture;
+		$this->resource = $resource;
 		$appInfoDir = $this->getAppInfoDirectory();
 		try {
 			$iterator = $this->getFolderIterator($this->getInstallPath());
 			$hashes = $this->generateHashes($iterator);
-			$signature = $this->createSignatureData($hashes, $certificate, $privateKey);
+			$signature = $this->createSignatureData($hashes);
 			$this->fileAccessHelper->file_put_contents(
-				$appInfoDir . '/install-' . $this->architecture . '.json',
+				$appInfoDir . '/install-' . $this->architecture . '-' . $this->resource . '.json',
 				json_encode($signature, JSON_PRETTY_PRINT)
 			);
 		} catch (NotFoundException $e) {
-			throw new \Exception(sprintf("Folder %s not found.\nIs necessary to run this command first: occ libresign:install --all --architecture %s", $e->getMessage(), $this->architecture));
+			throw new \Exception(sprintf(
+				"Folder %s not found.\nIs necessary to run this command first: occ libresign:install --%s --architecture %s",
+				$e->getMessage(),
+				$this->resource,
+				$this->architecture,
+			));
 		} catch (\Exception $e) {
 			if (!$this->fileAccessHelper->is_writable($appInfoDir)) {
 				throw new \Exception($appInfoDir . ' is not writable');
@@ -106,7 +155,7 @@ class SignSetupService {
 			return $this->signatureData;
 		}
 		$appInfoDir = $this->getAppInfoDirectory();
-		$signaturePath = $appInfoDir . '/install-' . $this->architecture . '.json';
+		$signaturePath = $appInfoDir . '/install-' . $this->architecture . '-' . $this->resource . '.json';
 		$content = $this->fileAccessHelper->file_get_contents($signaturePath);
 		$signatureData = null;
 
@@ -114,7 +163,7 @@ class SignSetupService {
 			$signatureData = json_decode($content, true);
 		}
 		if (!\is_array($signatureData)) {
-			throw new InvalidSignatureException('Signature data not found.');
+			throw new SignatureDataNotFoundException('Signature data not found.');
 		}
 		$this->signatureData = $signatureData;
 
@@ -125,14 +174,10 @@ class SignSetupService {
 
 	private function getHashesOfResource(): array {
 		$signatureData = $this->getSignatureData();
-		$expectedHashes = $signatureData['hashes'];
-		$filtered = array_filter($expectedHashes, function (string $key) {
-			return str_starts_with($key, $this->resource);
-		}, ARRAY_FILTER_USE_KEY);
-		if (!$filtered) {
-			throw new InvalidSignatureException('No signature files to ' . $this->resource);
+		if (count($signatureData['hashes']) === 0) {
+			throw new EmptySignatureDataException('No signature files to ' . $this->resource);
 		}
-		return $filtered;
+		return $signatureData;
 	}
 
 	private function getLibresignAppCertificate(): X509 {
@@ -143,8 +188,8 @@ class SignSetupService {
 		$certificate = $signatureData['certificate'];
 
 		// Check if certificate is signed by Nextcloud Root Authority
+		$rootCertificatePublicKey = $this->getRootCertificatePublicKey();
 		$this->x509 = new X509();
-		$rootCertificatePublicKey = $this->fileAccessHelper->file_get_contents($this->environmentHelper->getServerRoot().'/resources/codesigning/root.crt');
 
 		$rootCerts = $this->splitCerts($rootCertificatePublicKey);
 		foreach ($rootCerts as $rootCert) {
@@ -184,21 +229,36 @@ class SignSetupService {
 	}
 
 	public function verify(string $architecture, $resource): array {
+		$this->signatureData = [];
 		$this->architecture = $architecture;
 		$this->resource = $resource;
 
-		$expectedHashes = $this->getHashesOfResource();
+		try {
+			$expectedHashes = $this->getHashesOfResource();
+			// Compare the list of files which are not identical
+			$installPath = $this->getInstallPath();
+			$currentInstanceHashes = $this->generateHashes($this->getFolderIterator($installPath), $installPath);
+		} catch (EmptySignatureDataException $th) {
+			return [
+				'EMPTY_SIGNATURE_DATA' => $th->getMessage(),
+			];
+		} catch (SignatureDataNotFoundException $th) {
+			return [
+				'SIGNATURE_DATA_NOT_FOUND' => $th->getMessage(),
+			];
+		} catch (\Throwable $th) {
+			return [
+				'HASH_FILE_ERROR' => $th->getMessage(),
+			];
+		}
 
-		// Compare the list of files which are not identical
-		$installPath = $this->getInstallPath() . '/' . $this->resource;
-		$currentInstanceHashes = $this->generateHashes($this->getFolderIterator($installPath), $installPath);
-		$differencesA = array_diff($expectedHashes, $currentInstanceHashes);
-		$differencesB = array_diff($currentInstanceHashes, $expectedHashes);
+		$differencesA = array_diff($expectedHashes['hashes'], $currentInstanceHashes);
+		$differencesB = array_diff($currentInstanceHashes, $expectedHashes['hashes']);
 		$differences = array_merge($differencesA, $differencesB);
 		$differenceArray = [];
 		foreach ($differences as $filename => $hash) {
 			// Check if file should not exist in the new signature table
-			if (!array_key_exists($filename, $expectedHashes)) {
+			if (!array_key_exists($filename, $expectedHashes['hashes'])) {
 				$differenceArray['EXTRA_FILE'][$filename]['expected'] = '';
 				$differenceArray['EXTRA_FILE'][$filename]['current'] = $hash;
 				continue;
@@ -206,14 +266,14 @@ class SignSetupService {
 
 			// Check if file is missing
 			if (!array_key_exists($filename, $currentInstanceHashes)) {
-				$differenceArray['FILE_MISSING'][$filename]['expected'] = $expectedHashes[$filename];
+				$differenceArray['FILE_MISSING'][$filename]['expected'] = $expectedHashes['hashes'][$filename];
 				$differenceArray['FILE_MISSING'][$filename]['current'] = '';
 				continue;
 			}
 
 			// Check if hash does mismatch
-			if ($expectedHashes[$filename] !== $currentInstanceHashes[$filename]) {
-				$differenceArray['INVALID_HASH'][$filename]['expected'] = $expectedHashes[$filename];
+			if ($expectedHashes['hashes'][$filename] !== $currentInstanceHashes[$filename]) {
+				$differenceArray['INVALID_HASH'][$filename]['expected'] = $expectedHashes['hashes'][$filename];
 				$differenceArray['INVALID_HASH'][$filename]['current'] = $currentInstanceHashes[$filename];
 				continue;
 			}
@@ -243,12 +303,8 @@ class SignSetupService {
 	}
 
 	private function getInstallPath(): string {
-		try {
-			$folder = $this->getDataDir() . '/' .
-				$this->getInternalPathOfFolder($this->appData->getFolder($this->architecture));
-		} catch (NotFoundException $e) {
-			throw new InvalidSignatureException('Invalid architecture ' . $this->architecture);
-		}
+		$folder = $this->getDataDir() . '/' .
+			$this->getInternalPathOfFolder($this->appData->getFolder($this->architecture . '/' . $this->resource));
 		return $folder;
 	}
 
@@ -263,7 +319,7 @@ class SignSetupService {
 	 */
 	private function getFolderIterator(string $folderToIterate): \RecursiveIteratorIterator {
 		if (!is_dir($folderToIterate)) {
-			throw new InvalidSignatureException('No such directory ' . $folderToIterate);
+			throw new NotFoundException('No such directory ' . $folderToIterate);
 		}
 		$dirItr = new \RecursiveDirectoryIterator(
 			$folderToIterate,
@@ -324,21 +380,68 @@ class SignSetupService {
 	 * @param RSA $privateKey
 	 * @return array
 	 */
-	private function createSignatureData(array $hashes,
-		X509 $certificate,
-		RSA $privateKey): array {
+	private function createSignatureData(array $hashes): array {
 		ksort($hashes);
 
-		$privateKey->setSignatureMode(RSA::SIGNATURE_PSS);
-		$privateKey->setMGFHash('sha512');
+		$this->getPrivateKey()->setSignatureMode(RSA::SIGNATURE_PSS);
+		$this->getPrivateKey()->setMGFHash('sha512');
 		// See https://tools.ietf.org/html/rfc3447#page-38
-		$privateKey->setSaltLength(0);
-		$signature = $privateKey->sign(json_encode($hashes));
+		$this->getPrivateKey()->setSaltLength(0);
+		$signature = $this->getPrivateKey()->sign(json_encode($hashes));
 
 		return [
 			'hashes' => $hashes,
 			'signature' => base64_encode($signature),
-			'certificate' => $certificate->saveX509($certificate->currentCert),
+			'certificate' => $this->getCertificate()->saveX509($this->getCertificate()->currentCert),
+		];
+	}
+
+	private function getRootCertificatePublicKey(): string {
+		if ($this->willUseLocalCert) {
+			$localCert = __DIR__ . '/../../../build/tools/certificates/local/root.crt';
+			if (file_exists($localCert)) {
+				return file_get_contents($localCert);
+			}
+		}
+		return $this->fileAccessHelper->file_get_contents($this->environmentHelper->getServerRoot().'/resources/codesigning/root.crt');
+	}
+
+	public function getDevelopCert(): array {
+		$privateKey = openssl_pkey_new([
+			'private_key_bits' => 2048,
+			'private_key_type' => OPENSSL_KEYTYPE_RSA,
+		]);
+
+		$csrNames = ['commonName' => 'libresign'];
+
+		$csr = openssl_csr_new($csrNames, $privateKey, ['digest_alg' => 'sha256']);
+		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365, ['digest_alg' => 'sha256']);
+
+		openssl_x509_export($x509, $rootCertificate);
+		openssl_pkey_export($privateKey, $privateKeyCert);
+
+		$this->rsa = new RSA();
+		$this->rsa->loadKey($privateKeyCert);
+		$this->x509 = new X509();
+		$this->x509->loadX509($rootCertificate);
+		$this->x509->setPrivateKey($this->rsa);
+
+		$rootCertPath = __DIR__ . '/../../../build/tools/certificates/local/';
+		if (!is_dir($rootCertPath)) {
+			mkdir($rootCertPath, 0777, true);
+		}
+		file_put_contents($rootCertPath . '/root.crt', $rootCertificate);
+		file_put_contents($rootCertPath . '/libresign.crt', $rootCertificate);
+		file_put_contents($rootCertPath . '/libresign.key', $privateKeyCert);
+
+		$privateKeyInstance = openssl_pkey_new([
+			'private_key_bits' => 2048,
+			'private_key_type' => OPENSSL_KEYTYPE_RSA,
+		]);
+		return [
+			'rootCertificate' => $rootCertificate,
+			'privateKeyInstance' => $privateKeyInstance,
+			'privateKeyCert' => $privateKeyCert,
 		];
 	}
 }

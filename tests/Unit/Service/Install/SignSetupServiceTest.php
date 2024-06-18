@@ -50,31 +50,6 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->getMock();
 	}
 
-	private function getNewCert(): array {
-		$privateKey = openssl_pkey_new([
-			'private_key_bits' => 2048,
-			'private_key_type' => OPENSSL_KEYTYPE_RSA,
-		]);
-
-		$csrNames = ['commonName' => 'libresign'];
-
-		$csr = openssl_csr_new($csrNames, $privateKey, ['digest_alg' => 'sha256']);
-		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365, ['digest_alg' => 'sha256']);
-
-		openssl_x509_export($x509, $rootCertificate);
-		openssl_pkey_export($privateKey, $publicKey);
-
-		$privateKey = openssl_pkey_new([
-			'private_key_bits' => 2048,
-			'private_key_type' => OPENSSL_KEYTYPE_RSA,
-		]);
-		return [
-			'privateKey' => $privateKey,
-			'rootCertificate' => $rootCertificate,
-			'publicKey' => $publicKey,
-		];
-	}
-
 	/**
 	 * @dataProvider dataGetArchitectures
 	 */
@@ -100,14 +75,31 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	private function writeAppSignature(string $architecture): SignSetupService {
+	private function writeAppSignature(string $architecture, $resource): SignSetupService {
+		$this->config->method('getSystemValue')
+			->willReturn(vfsStream::url('home/data'));
+
+		$this->environmentHelper->method('getServerRoot')
+			->willReturn('vfs://home');
+
+		$signSetupService = $this->getInstance([
+			'getInternalPathOfFolder',
+			'getAppInfoDirectory',
+		]);
+		$signSetupService->expects($this->any())
+			->method('getInternalPathOfFolder')
+			->willReturn('libresign');
+		$signSetupService->expects($this->any())
+			->method('getAppInfoDirectory')
+			->willReturn('vfs://home/appinfo');
+
 		$this->appManager->method('getAppInfo')
 			->willReturn(['dependencies' => ['architecture' => [$architecture]]]);
 
-		$certificate = $this->getNewCert('123456');
+		$certificate = $signSetupService->getDevelopCert();
 		$rsa = new RSA();
-		$rsa->loadKey($certificate['privateKey']);
-		$rsa->loadKey($certificate['publicKey']);
+		$rsa->loadKey($certificate['privateKeyInstance']);
+		$rsa->loadKey($certificate['privateKeyCert']);
 		$x509 = new X509();
 		$x509->loadX509($certificate['rootCertificate']);
 		$x509->setPrivateKey($rsa);
@@ -130,30 +122,13 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 		$root = vfsStream::setup('home', null, $structure);
 
-		$this->config->method('getSystemValue')
-			->willReturn(vfsStream::url('home/data'));
-
-		$this->environmentHelper->method('getServerRoot')
-			->willReturn('vfs://home');
-
-		$signSetupService = $this->getInstance([
-			'getInternalPathOfFolder',
-			'getAppInfoDirectory',
-		]);
-		$signSetupService->expects($this->any())
-			->method('getInternalPathOfFolder')
-			->willReturn('libresign');
-		$signSetupService->expects($this->any())
-			->method('getAppInfoDirectory')
-			->willReturn('vfs://home/appinfo');
-
-		$signSetupService->writeAppSignature($x509, $rsa, $architecture, 'vfs://home/appinfo');
-		$this->assertFileExists('vfs://home/appinfo/install-' . $architecture . '.json');
-		$json = file_get_contents('vfs://home/appinfo/install-' . $architecture . '.json');
+		$signSetupService->writeAppSignature($architecture, $resource);
+		$this->assertFileExists('vfs://home/appinfo/install-' . $architecture . '-' . $resource . '.json');
+		$json = file_get_contents('vfs://home/appinfo/install-' . $architecture . '-' . $resource . '.json');
 		$signatureContent = json_decode($json, true);
 		$this->assertArrayHasKey('hashes', $signatureContent);
 		$this->assertCount(2, $signatureContent['hashes']);
-		$expected = hash('sha512', $structure['data']['libresign']['java']['fakeFile01']);
+		$expected = hash('sha512', $structure['data']['libresign'][$resource]['fakeFile01']);
 		$actual = $signatureContent['hashes']['java/fakeFile01'];
 		$this->assertEquals($expected, $actual);
 		return $signSetupService;
@@ -162,23 +137,22 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/**
 	 * @dataProvider dataWriteAppSignature
 	 */
-	public function testWriteAppSignature(string $architecture): void {
-		$signSetupService = $this->writeAppSignature($architecture);
-		$architecture = 'x86_64';
-		$resource = 'java';
+	public function testWriteAppSignature(string $architecture, $resource): void {
+		$signSetupService = $this->writeAppSignature($architecture, $resource);
 		$actual = $signSetupService->verify($architecture, $resource);
 		$this->assertCount(0, $actual);
 	}
 
 	public static function dataWriteAppSignature(): array {
 		return [
-			['x86_64', 'aarch64'],
+			['x86_64', 'java'],
+			['aarch64', 'java'],
 		];
 	}
 
 	public function testVerify(): void {
 		$architecture = 'x86_64';
-		$signSetupService = $this->writeAppSignature($architecture);
+		$signSetupService = $this->writeAppSignature($architecture, 'java');
 		unlink('vfs://home/data/libresign/java/fakeFile01');
 		file_put_contents('vfs://home/data/libresign/java/fakeFile02', 'invalidContent');
 		file_put_contents('vfs://home/data/libresign/java/fakeFile03', 'invalidContent');

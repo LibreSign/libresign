@@ -10,6 +10,7 @@ namespace OCA\Libresign\Command\Developer;
 
 use OC\Core\Command\Base;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
+use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCP\IConfig;
 use phpseclib\Crypt\RSA;
@@ -23,6 +24,7 @@ class SignSetup extends Base {
 		private IConfig $config,
 		private FileAccessHelper $fileAccessHelper,
 		private SignSetupService $signSetupService,
+		private InstallService $installService,
 	) {
 		parent::__construct();
 	}
@@ -34,7 +36,7 @@ class SignSetup extends Base {
 	protected function configure(): void {
 		$this
 			->setName('libresign:developer:sign-setup')
-			->setDescription('Clean all LibreSign data')
+			->setDescription('Sign the current setup')
 			->addOption('privateKey', null, InputOption::VALUE_REQUIRED, 'Path to private key to use for signing')
 			->addOption('certificate', null, InputOption::VALUE_REQUIRED, 'Path to certificate to use for signing')
 		;
@@ -44,11 +46,10 @@ class SignSetup extends Base {
 		$privateKeyPath = $input->getOption('privateKey');
 		$keyBundlePath = $input->getOption('certificate');
 		if (is_null($privateKeyPath) || is_null($keyBundlePath)) {
-			$output->writeln('This command requires the --path, --privateKey and --certificate.');
+			$output->writeln('This command requires --privateKey and --certificate.');
 			$output->writeln('Example: ./occ libresign:developer:sign-setup --privateKey="/libresign/private/myapp.key" --certificate="/libresign/public/mycert.crt"');
 			return 1;
 		}
-
 		$privateKey = $this->fileAccessHelper->file_get_contents((string) $privateKeyPath);
 		$keyBundle = $this->fileAccessHelper->file_get_contents((string) $keyBundlePath);
 		if ($privateKey === false) {
@@ -67,8 +68,12 @@ class SignSetup extends Base {
 		$x509->loadX509($keyBundle);
 		$x509->setPrivateKey($rsa);
 		try {
+			$this->signSetupService->setCertificate($x509);
+			$this->signSetupService->setPrivateKey($rsa);
 			foreach ($this->signSetupService->getArchitectures() as $architecture) {
-				$this->signSetupService->writeAppSignature($x509, $rsa, $architecture);
+				foreach ($this->installService->getAvailableResources() as $resource) {
+					$this->signSetupService->writeAppSignature($architecture, $resource);
+				}
 			}
 			$output->writeln('Successfully signed');
 		} catch (\Exception $e) {
