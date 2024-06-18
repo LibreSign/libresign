@@ -17,6 +17,7 @@ use OCP\AppFramework\Services\IAppConfig;
 
 class ConfigureCheckService {
 	private string $architecture;
+	private bool $isCacheDisabled = false;
 	public function __construct(
 		private IAppConfig $appConfig,
 		private SystemConfig $systemConfig,
@@ -28,13 +29,17 @@ class ConfigureCheckService {
 		$this->architecture = php_uname('m');
 	}
 
+	public function disableCache(): void {
+		$this->isCacheDisabled = true;
+	}
+
 	/**
 	 * Get result of all checks
 	 *
 	 * @return ConfigureCheckHelper[]
 	 */
-	public function checkAll(bool $clearCache = false): array {
-		if ($clearCache) {
+	public function checkAll(): array {
+		if ($this->isCacheDisabled) {
 			$this->ocAppConfig->clearCache();
 		}
 		$result = [];
