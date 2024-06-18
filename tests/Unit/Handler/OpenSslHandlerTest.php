@@ -6,7 +6,6 @@ use OCP\Files\AppData\IAppDataFactory;
 use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
-use org\bovigo\vfs\vfsStream;
 
 final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IConfig $config;
