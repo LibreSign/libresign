@@ -6,13 +6,13 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+use bovigo\vfs\vfsStream;
 use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
-use org\bovigo\vfs\vfsStream;
 
 final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IConfig $config;
