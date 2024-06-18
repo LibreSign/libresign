@@ -20,13 +20,6 @@ export const options = [
 		helperText: t('libresign', 'Two-letter ISO 3166 country code'),
 	},
 	{
-		id: 'CN',
-		label: 'Name',
-		min: 1,
-		value: '',
-		helperText: t('libresign', 'Name (CN)'),
-	},
-	{
 		id: 'ST',
 		label: 'State',
 		min: 1,
