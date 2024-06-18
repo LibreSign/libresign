@@ -29,50 +29,10 @@ use OCA\Libresign\Service\Install\InstallService;
 use Psr\Log\LoggerInterface;
 
 class Base extends CommandBase {
-	/** @var InstallService */
-	public $installService;
-
-	/** @var LoggerInterface */
-	protected $logger;
-
 	public function __construct(
-		InstallService $installService,
-		LoggerInterface $logger
+		public InstallService $installService,
+		protected LoggerInterface $logger
 	) {
 		parent::__construct();
-		$this->installService = $installService;
-		$this->logger = $logger;
-	}
-
-	protected function installJava(): void {
-		$this->installService->installJava();
-	}
-
-	protected function uninstallJava(): void {
-		$this->installService->uninstallJava();
-	}
-
-	protected function installJSignPdf(): void {
-		$this->installService->installJSignPdf();
-	}
-
-	protected function uninstallJSignPdf(): void {
-		$this->installService->uninstallJSignPdf();
-	}
-
-	protected function installPdftk(): void {
-		$this->installService->installPdftk();
-	}
-
-	protected function uninstallPdftk(): void {
-		$this->installService->uninstallPdftk();
-	}
-
-	protected function installCfssl(): void {
-		$this->installService->installCfssl();
-	}
-
-	protected function uninstallCfssl(): void {
-		$this->installService->uninstallCfssl();
 	}
 }
