@@ -260,6 +260,7 @@
     "Downloading binaries" : "下載二進製檔案中",
     "Download binaries" : "下載二進製檔案",
     "Validate setup" : "驗證設置",
+    "Binaries required to work. Download size could be nearly {size}, please wait a moment." : "需要可執行檔才能運作。下載大小可能接近 {size}，請稍候片刻。",
     "Rules for controlling the expiration of a request to sign a file." : "控制要求簽署檔案的到期規則。",
     "Maximum validity" : "最高有效性",
     "Maximum validity in seconds of a request to sign." : "最高有效的秒數要求簽署。",
