@@ -260,6 +260,7 @@ OC.L10N.register(
     "Downloading binaries" : "Laddar ned binärer",
     "Download binaries" : "Ladda ned binärer",
     "Validate setup" : "Validera inställningarna",
+    "Binaries required to work. Download size could be nearly {size}, please wait a moment." : "Binärfiler som krävs för att fungera. Nedladdningsstorleken kan vara nästan {size}, vänta ett ögonblick.",
     "Rules for controlling the expiration of a request to sign a file." : "Regler för att kontrollera utgången av en begäran om att signera en fil.",
     "Maximum validity" : "Maximal giltighet",
     "Maximum validity in seconds of a request to sign." : "Maximal giltighet i sekunder av en begäran att underteckna.",

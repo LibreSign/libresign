@@ -262,6 +262,7 @@ OC.L10N.register(
     "Downloading binaries" : "Binaries a íoslódáil",
     "Download binaries" : "Íosluchtaigh amhrán binaries",
     "Validate setup" : "Bailíochtaigh socrú",
+    "Binaries required to work. Download size could be nearly {size}, please wait a moment." : "Dénártha ag teastáil a bheith ag obair. D'fhéadfadh méid an íoslódála a bheith beagnach {méid}, fan nóiméad le do thoil.",
     "Rules for controlling the expiration of a request to sign a file." : "Rialacha chun dul in éag iarratas chun comhad a shíniú a rialú.",
     "Maximum validity" : "Bailíocht uasta",
     "Maximum validity in seconds of a request to sign." : "Bailíocht uasta i soicindí d'iarratas síniú.",

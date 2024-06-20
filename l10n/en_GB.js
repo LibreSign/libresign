@@ -262,6 +262,7 @@ OC.L10N.register(
     "Downloading binaries" : "Downloading binaries",
     "Download binaries" : "Download binaries",
     "Validate setup" : "Validate setup",
+    "Binaries required to work. Download size could be nearly {size}, please wait a moment." : "Binaries required to work. Download size could be nearly {size}, please wait a moment.",
     "Rules for controlling the expiration of a request to sign a file." : "Rules for controlling the expiration of a request to sign a file.",
     "Maximum validity" : "Maximum validity",
     "Maximum validity in seconds of a request to sign." : "Maximum validity in seconds of a request to sign.",
