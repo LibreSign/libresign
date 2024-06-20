@@ -262,6 +262,7 @@ OC.L10N.register(
     "Downloading binaries" : "تنزيل الملفات التنفيذية جارٍ ...",
     "Download binaries" : "تنزيل الملفات التنفيذية",
     "Validate setup" : "التحقَّق من صحة الإعدادات",
+    "Binaries required to work. Download size could be nearly {size}, please wait a moment." : "الأكواد الثنائية المطلوبة للعمل. يمكن أن يصل حجم التنزيل إلى {size} تقريبًا، يُرجى الانتظار قليلاً.",
     "Rules for controlling the expiration of a request to sign a file." : "قواعد التحكم في انتهاء صلاحية رابط طلب توقيع ملف.",
     "Maximum validity" : "أقصى صلاحية",
     "Maximum validity in seconds of a request to sign." : "أقصى صلاحية بالثواني لطلب التوقيع,",

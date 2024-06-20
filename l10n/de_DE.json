@@ -260,6 +260,7 @@
     "Downloading binaries" : "Lade Binärdateien herunter",
     "Download binaries" : "Binärdateien herunterladen",
     "Validate setup" : "Einrichtung überprüfen",
+    "Binaries required to work. Download size could be nearly {size}, please wait a moment." : "Zum Funktionieren sind Binärdateien erforderlich. Die Downloadgröße könnte ca. {size} betragen, bitte warten Sie einen Moment.",
     "Rules for controlling the expiration of a request to sign a file." : "Regeln zur Kontrolle des Ablaufs einer Aufforderung zum Signieren einer Datei.",
     "Maximum validity" : "Maximale Gültigkeit",
     "Maximum validity in seconds of a request to sign." : "Maximale Gültigkeitsdauer in Sekunden einer Aufforderung zum Signieren.",
