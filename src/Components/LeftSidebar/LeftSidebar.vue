@@ -113,6 +113,11 @@ export default {
 			return this.$route.query._back_to_signature
 		},
 		showLeftSidebar() {
+			if (this.$route.name === 'Incomplete'
+				|| this.$route.name === 'IncompleteExternal'
+			) {
+				return false
+			}
 			return getCurrentUser()
 				|| !this.$route.path.startsWith('/p/')
 		},
