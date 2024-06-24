@@ -72,7 +72,6 @@ import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import { getCurrentUser } from '@nextcloud/auth'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { showResponseError } from '../../helpers/errors.js'
 import Signers from '../Signers/Signers.vue'
 import IdentifySigner from '../Request/IdentifySigner.vue'
 import VisibleElements from '../Request/VisibleElements.vue'
@@ -187,20 +186,18 @@ export default {
 			this.filesStore.enableIdentifySigner()
 		},
 		async sendNotify(signer) {
-			try {
-				const body = {
-					fileId: this.filesStore.selectedNodeId,
-					signRequestId: signer.signRequestId,
-				}
-
-				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/notify/signer'), body)
-				showSuccess(t('libresign', response.data.ocs.data.message))
-			} catch (err) {
-				if (err.response) {
-					return showResponseError(err.response)
-				}
-				return showError(err.message)
+			const body = {
+				fileId: this.filesStore.selectedNodeId,
+				signRequestId: signer.signRequestId,
 			}
+
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/notify/signer'), body)
+				.then(({ data }) => {
+					showSuccess(t('libresign', data.ocs.data.message))
+				})
+				.catch(({ response }) => {
+					showError(response.data.ocs.data.message)
+				})
 
 		},
 		async sign() {
