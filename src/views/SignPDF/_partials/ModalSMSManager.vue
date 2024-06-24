@@ -53,7 +53,6 @@ import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { confirmPassword } from '@nextcloud/password-confirmation'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { onError } from '../../../helpers/errors.js'
 import { settingsService } from '../../../domains/settings/index.js'
 import { useSignStore } from '../../../store/sign.js'
 
@@ -106,7 +105,7 @@ export default {
 				}
 				showSuccess(t('libresign', 'Phone stored.'))
 			} catch (err) {
-				onError(err)
+				showError(err.response.data.ocs.data.message)
 			} finally {
 				this.loading = false
 			}
@@ -132,7 +131,7 @@ export default {
 				}
 				this.tokenRequested = true
 			} catch (err) {
-				onError(err)
+				showError(err.response.data.ocs.data.message)
 			} finally {
 				this.loading = false
 			}
