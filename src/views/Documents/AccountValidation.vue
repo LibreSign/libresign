@@ -35,7 +35,7 @@
 </template>
 
 <script>
-import { onError } from '../../helpers/errors.js'
+import { showError } from '@nextcloud/dialogs'
 import ProgressBar from '../../Components/ProgressBar.vue'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -55,15 +55,14 @@ export default {
 	methods: {
 		async loadDocuments() {
 			this.loading = true
-
-			try {
-				const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/files/approval/list'))
-				this.documentList = data.ocs.data.data
-			} catch (err) {
-				onError(err)
-			} finally {
-				this.loading = false
-			}
+			await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/files/approval/list'))
+				.then(({ data }) => {
+					this.documentList = data.ocs.data.data
+				})
+				.catch(({ response }) => {
+					showError(response.data.ocs.data.message)
+				})
+			this.loading = false
 		},
 
 		openApprove(doc) {
