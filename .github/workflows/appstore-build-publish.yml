@@ -152,6 +152,9 @@ jobs:
           echo '${{ secrets.APP_PRIVATE_KEY }}' > ${{ env.APP_NAME }}.key
           wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/${{ env.APP_NAME }}/${{ env.APP_NAME }}.crt"
           # Signing
+          php nextcloud/occ libresign:install --all --architecture aarch64
+          php nextcloud/occ libresign:install --all --architecture x86_64
+          php nextcloud/occ libresign:developer:sign-setup --privateKey=../${{ env.APP_NAME }}.key --certificate=../${{ env.APP_NAME }}.crt
           php nextcloud/occ integrity:sign-app --privateKey=../${{ env.APP_NAME }}.key --certificate=../${{ env.APP_NAME }}.crt --path=../${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}
           # Rebuilding archive
           cd ${{ env.APP_NAME }}/build/artifacts
