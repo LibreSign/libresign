@@ -3,6 +3,11 @@
 		<div class="container-request">
 			<header>
 				<h1>{{ t('libresign', 'Request Signatures') }}</h1>
+				<NcNoteCard v-for="message in errors"
+					:key="message"
+					type="error">
+					{{ message }}
+				</NcNoteCard>
 				<p v-if="!sidebarStore.isVisible()">
 					{{ t('libresign', 'Choose the file to request signatures.') }}
 				</p>
@@ -46,8 +51,9 @@
 			@close="showFilePicker = false" />
 		<NcDialog v-if="modalUploadFromUrl"
 			:name="t('libresign', 'URL of a PDF file')"
+			:can-close="!loading"
 			@closing="closeModalUploadFromUrl">
-			<NcNoteCard v-for="message in error"
+			<NcNoteCard v-for="message in uploadUrlErrors"
 				:key="message"
 				type="error">
 				{{ message }}
@@ -86,7 +92,6 @@ import UploadIcon from 'vue-material-design-icons/Upload.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
 import File from '../Components/File/File.vue'
 import { filesService } from '../domains/files/index.js'
-import { onError } from '../helpers/errors.js'
 import { useFilesStore } from '../store/files.js'
 import { useSidebarStore } from '../store/sidebar.js'
 
@@ -128,7 +133,8 @@ export default {
 			loading: false,
 			file: {},
 			signers: [],
-			error: '',
+			uploadUrlErrors: [],
+			errors: [],
 		}
 	},
 	computed: {
@@ -171,28 +177,32 @@ export default {
 			this.modalUploadFromUrl = true
 		},
 		closeModalUploadFromUrl() {
+			this.cleanErrors()
 			this.modalUploadFromUrl = false
+		},
+		cleanErrors() {
+			this.uploadUrlErrors = []
+			this.errors = []
 		},
 		async uploadUrl() {
 			this.loading = true
-			try {
-				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
-					file: {
-						url: this.pdfUrl,
-					},
+			this.cleanErrors()
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
+				file: {
+					url: this.pdfUrl,
+				},
+			})
+				.then(({ data }) => {
+					this.filesStore.addFile({
+						nodeId: data.ocs.data.id,
+						name: data.ocs.data.name,
+					})
+					this.filesStore.selectFile(data.ocs.data.id)
+					this.closeModalUploadFromUrl()
 				})
-				this.filesStore.addFile({
-					nodeId: response.data.ocs.data.id,
-					name: response.data.ocs.data.name,
+				.catch(({ response }) => {
+					this.uploadUrlErrors = [response.data.ocs.data.message]
 				})
-				this.filesStore.selectFile(response.data.ocs.data.id)
-			} catch (err) {
-				this.error = err.response.data.ocs.data.errors
-				this.loading = false
-				onError(err)
-				return
-			}
-			this.closeModalUploadFromUrl()
 			this.loading = false
 		},
 		async upload(file) {
@@ -210,8 +220,9 @@ export default {
 					name: res.name,
 				})
 				this.filesStore.selectFile(res.id)
+				this.cleanErrors()
 			} catch (err) {
-				onError(err)
+				this.errors = [err.response.data.ocs.data.message]
 			}
 		},
 		uploadFile() {
@@ -239,21 +250,24 @@ export default {
 				return
 			}
 
-			try {
-				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
-					file: {
-						path,
-					},
-					name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
+				file: {
+					path,
+				},
+				name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
+			})
+				.then(({ data }) => {
+					this.filesStore.addFile({
+						nodeId: data.ocs.data.id,
+						name: data.ocs.data.name,
+					})
+					this.filesStore.selectFile(data.ocs.data.id)
+					this.cleanErrors()
 				})
-				this.filesStore.addFile({
-					nodeId: response.data.ocs.data.id,
-					name: response.data.ocs.data.name,
+				.catch(({ response }) => {
+					this.errors = [response.data.ocs.data.message]
+					this.loading = false
 				})
-				this.filesStore.selectFile(response.data.ocs.data.id)
-			} catch (err) {
-				onError(err)
-			}
 		},
 	},
 }
