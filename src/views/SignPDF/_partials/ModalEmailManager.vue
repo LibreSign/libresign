@@ -64,12 +64,11 @@ import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
-import { showSuccess } from '@nextcloud/dialogs'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
 import FormTextboxPasswordIcon from 'vue-material-design-icons/FormTextboxPassword.vue'
 import EmailIcon from 'vue-material-design-icons/Email.vue'
 import md5 from 'blueimp-md5'
-import { onError } from '../../../helpers/errors.js'
 import { validateEmail } from '../../../utils/validators.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { useSignStore } from '../../../store/sign.js'
@@ -171,7 +170,7 @@ export default {
 				}
 				this.signMethodsStore.hasEmailConfirmCode(true)
 			} catch (err) {
-				onError(err)
+				showError(err.response.data.ocs.data.message)
 			} finally {
 				this.loading = false
 			}
