@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import { showErrors } from '../../helpers/errors.js'
+import { showError } from '@nextcloud/dialogs'
 import PdfEditor from '../../Components/PdfEditor/PdfEditor.vue'
 import { useSignStore } from '../../store/sign.js'
 import { useFilesStore } from '../../store/files.js'
@@ -42,7 +42,9 @@ export default {
 		} else if (this.$route.name === 'SignPDF') {
 			this.initSignInternal()
 		}
-		showErrors(this.signStore.errors)
+		this.signStore.errors.forEach(error => {
+			showError(error)
+		})
 	},
 	methods: {
 		initSignExternal() {
