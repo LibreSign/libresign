@@ -112,11 +112,12 @@ appstore: clean
 	mkdir -p $(appstore_sign_dir)/$(app_name)/tests/fixtures
 	cp tests/fixtures/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/fixtures
 
-	$(occ) config:app:set libresign certificate_engine --value cfssl
-	$(occ) libresign:install --all --architecture aarch64
-	$(occ) libresign:install --all --architecture x86_64
-	$(occ) libresign:developer:sign-setup --privateKey=$(cert_dir)/$(app_name).key \
-		--certificate=$(cert_dir)/$(app_name).crt
+	@if [ ! -f $(cert_dir)/$(app_name).crt ]; then \
+		$(occ) libresign:install --all --architecture aarch64 \
+		$(occ) libresign:install --all --architecture x86_64 \
+		$(occ) libresign:developer:sign-setup --privateKey=$(cert_dir)/$(app_name).key \
+			--certificate=$(cert_dir)/$(app_name).crt \
+	fi
 
 	@if [ -z "$$GITHUB_ACTION" ]; then \
 		chown -R www-data:www-data $(appstore_sign_dir)/$(app_name) ; \
