@@ -55,12 +55,11 @@
 
 <script>
 import { find, get } from 'lodash-es'
-import { showWarning, showSuccess } from '@nextcloud/dialogs'
+import { showError, showWarning, showSuccess } from '@nextcloud/dialogs'
 import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import ProgressBar from '../../../Components/ProgressBar.vue'
-import { onError } from '../../../helpers/errors.js'
 import { loadState } from '@nextcloud/initial-state'
 
 const FILE_TYPE_INFO = {
@@ -135,80 +134,73 @@ export default {
 		},
 		async loadDocuments() {
 			this.loading = true
-			try {
-				const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/files'))
-				this.documentList = data?.ocs?.data?.data ?? []
-			} catch (err) {
-				onError(err)
-			} finally {
-				this.loading = false
-			}
+			await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/files'))
+				.then(({ data }) => {
+					this.documentList = data.ocs.data.data
+				})
+				.catch(({ response }) => {
+					showError(response.data.ocs.data.message)
+				})
+			this.loading = false
 		},
 		async handleFileChoose(nodes) {
-			try {
-				const path = nodes[0]?.path
-				if (!path) {
-					showWarning(t('libresign', 'Impossible to get file entry'))
-					return
-				}
-
-				this.loading = true
-
-				await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/files'), {
-					files: [{
-						type: this.selectedType,
-						name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
-						file: {
-							path,
-						},
-					}],
-				})
-
-				showSuccess(t('libresign', 'File was sent.'))
-
-				await this.loadDocuments()
-			} catch (err) {
-				onError(err)
-			} finally {
-				this.loading = false
+			const path = nodes[0]?.path
+			if (!path) {
+				showWarning(t('libresign', 'Impossible to get file entry'))
+				return
 			}
+
+			this.loading = true
+
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/files'), {
+				files: [{
+					type: this.selectedType,
+					name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
+					file: {
+						path,
+					},
+				}],
+			})
+				.then(() => {
+					showSuccess(t('libresign', 'File was sent.'))
+				})
+				.catch(({ response }) => {
+					showError(response.data.ocs.data.message)
+				})
+			this.loading = false
 		},
 		async uploadFile(type, inputFile) {
 			this.loading = true
-			try {
-				const raw = await loadFileToBase64(inputFile)
-				await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/files'), {
-					files: [{
-						type,
-						name: inputFile.name,
-						file: {
-							base64: raw,
-						},
-					}],
+			const raw = await loadFileToBase64(inputFile)
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/files'), {
+				files: [{
+					type,
+					name: inputFile.name,
+					file: {
+						base64: raw,
+					},
+				}],
+			})
+				.then(() => {
+					showSuccess(t('libresign', 'File was sent.'))
 				})
-
-				showSuccess(t('libresign', 'File was sent.'))
-
-				await this.loadDocuments()
-			} catch (err) {
-				onError(err)
-			} finally {
-				this.loading = false
-			}
-
+				.catch(({ response }) => {
+					showError(response.data.ocs.data.message)
+				})
+			this.loading = false
 		},
 		async deleteFile({ nodeId }) {
-			try {
-				await axios.delete(generateOcsUrl('/apps/libresign/api/v1/account/files'), {
-					data: { nodeId },
+			await axios.delete(generateOcsUrl('/apps/libresign/api/v1/account/files'), {
+				data: { nodeId },
+			})
+				.then(async () => {
+					showSuccess(t('libresign', 'File was deleted.'))
+					await this.loadDocuments()
 				})
-				showSuccess(t('libresign', 'File was deleted.'))
-				await this.loadDocuments()
-			} catch (err) {
-				onError(err)
-			} finally {
-				this.loading = false
-			}
+				.catch(({ response }) => {
+					showError(response.data.ocs.data.message)
+				})
+			this.loading = false
 		},
 		inputFile(type) {
 			const input = document.createElement('input')
