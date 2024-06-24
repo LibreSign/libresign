@@ -53,6 +53,10 @@
 			:name="t('libresign', 'Confirm')"
 			:can-close="!loading"
 			:message="t('libresign', 'Request signatures?')">
+			<NcNoteCard v-if="errorConfirmRequest.length > 0"
+				type="error">
+				{{ errorConfirmRequest }}
+			</NcNoteCard>
 			<template #actions>
 				<NcButton type="secondary"
 					:disabled="loading"
@@ -73,16 +77,16 @@
 </template>
 
 <script>
-import { showError, showSuccess } from '@nextcloud/dialogs'
+import { showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
+import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import { subscribe, unsubscribe, emit } from '@nextcloud/event-bus'
 import { SIGN_STATUS } from '../../domains/sign/enum.js'
 import Signer from '../Signers/Signer.vue'
-import { showResponseError } from '../../helpers/errors.js'
 import { SignatureImageDimensions } from '../Draw/options.js'
 import Chip from '../Chip.vue'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
@@ -92,6 +96,7 @@ import { useFilesStore } from '../../store/files.js'
 export default {
 	name: 'VisibleElements',
 	components: {
+		NcNoteCard,
 		NcDialog,
 		Signer,
 		Chip,
@@ -109,6 +114,7 @@ export default {
 			modal: false,
 			showConfirm: false,
 			loading: false,
+			errorConfirmRequest: '',
 		}
 	},
 	computed: {
@@ -173,15 +179,9 @@ export default {
 			this.filesStore.loading = true
 		},
 		closeModal() {
+			this.errorConfirmRequest = ''
 			this.modal = false
 			this.filesStore.loading = true
-		},
-		onError(err) {
-			if (err.response) {
-				return showResponseError(err.response)
-			}
-
-			return showError(err.message)
 		},
 		updateSigners(data) {
 			this.document.signers.forEach(signer => {
@@ -227,49 +227,51 @@ export default {
 			}
 		},
 		async save() {
-			try {
-				this.loading = true
-				const visibleElements = []
-				Object.entries(this.$refs.pdfEditor.$refs.vuePdfEditor.allObjects).forEach(entry => {
-					const [pageNumber, page] = entry
-					const measurement = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs['page' + pageNumber][0].getCanvasMeasurement()
-					page.forEach(function(element) {
-						visibleElements.push({
-							type: 'signature',
-							signRequestId: element.signer.signRequestId,
-							elementId: element.signer.element.elementId,
-							coordinates: {
-								page: parseInt(pageNumber) + 1,
-								width: parseInt(element.width),
-								height: parseInt(element.height),
-								llx: parseInt(element.x),
-								lly: parseInt(measurement.canvasHeight - element.y),
-								ury: parseInt(measurement.canvasHeight - element.y - element.height),
-								urx: parseInt(element.x + element.width),
-							},
-						})
+			this.loading = true
+			this.errorConfirmRequest = ''
+			const visibleElements = []
+			Object.entries(this.$refs.pdfEditor.$refs.vuePdfEditor.allObjects).forEach(entry => {
+				const [pageNumber, page] = entry
+				const measurement = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs['page' + pageNumber][0].getCanvasMeasurement()
+				page.forEach(function(element) {
+					visibleElements.push({
+						type: 'signature',
+						signRequestId: element.signer.signRequestId,
+						elementId: element.signer.element.elementId,
+						coordinates: {
+							page: parseInt(pageNumber) + 1,
+							width: parseInt(element.width),
+							height: parseInt(element.height),
+							llx: parseInt(element.x),
+							lly: parseInt(measurement.canvasHeight - element.y),
+							ury: parseInt(measurement.canvasHeight - element.y - element.height),
+							urx: parseInt(element.x + element.width),
+						},
 					})
-				}, this)
-				const response = await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
-					users: this.filesStore.getFile().signers,
-					// Only add to array if not empty
-					...(this.filesStore.getFile().uuid && { uuid: this.filesStore.getFile().uuid }),
-					...(this.filesStore.getFile().nodeId && { file: { fileId: this.filesStore.getFile().nodeId } }),
-					visibleElements,
-					status: 1,
 				})
-				this.filesStore.addFile(response.data.ocs.data.data)
-				this.showConfirm = false
-				showSuccess(t('libresign', response.data.ocs.data.message))
-				this.closeModal()
-				emit('libresign:visible-elements-saved')
-			} catch (err) {
-				this.loading = false
-				this.onError(err)
-				return false
-			}
-			this.loading = false
-			return true
+			}, this)
+			return await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
+				users: this.filesStore.getFile().signers,
+				// Only add to array if not empty
+				...(this.filesStore.getFile().uuid && { uuid: this.filesStore.getFile().uuid }),
+				...(this.filesStore.getFile().nodeId && { file: { fileId: this.filesStore.getFile().nodeId } }),
+				visibleElements,
+				status: 1,
+			})
+				.then(({ data }) => {
+					this.filesStore.addFile(data.ocs.data.data)
+					this.showConfirm = false
+					showSuccess(t('libresign', data.ocs.data.message))
+					this.closeModal()
+					emit('libresign:visible-elements-saved')
+					this.loading = false
+					return true
+				})
+				.catch(({ response }) => {
+					this.errorConfirmRequest = response.data.ocs.data.message
+					this.loading = false
+					return false
+				})
 		},
 	},
 }
