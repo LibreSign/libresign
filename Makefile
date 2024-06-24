@@ -87,11 +87,9 @@ updateocp:
 
 # Builds the source package for the app store, ignores php and js tests
 .PHONY: appstore
-appstore: clean
+appstore:
+	rm -rf $(appstore_build_directory)
 	mkdir -p $(appstore_sign_dir)/$(app_name)
-	composer install --no-dev
-	npm ci
-	npm run build
 	cp -r \
 		appinfo \
 		composer \
@@ -104,20 +102,12 @@ appstore: clean
 		CHANGELOG.md \
 		LICENSE \
 		$(appstore_sign_dir)/$(app_name)
-
 	rm $(appstore_sign_dir)/$(app_name)/vendor/endroid/qr-code/assets/*
 	find $(appstore_sign_dir)/$(app_name)/vendor/mpdf/mpdf/ttfonts -type f -not -name 'DejaVuSerifCondensed.ttf' -delete
 	find $(appstore_sign_dir)/$(app_name)/vendor/mpdf/mpdf/data/ -type f -delete
 	rm -rf $(appstore_sign_dir)/$(app_name)/img/screenshot/
 	mkdir -p $(appstore_sign_dir)/$(app_name)/tests/fixtures
 	cp tests/fixtures/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/fixtures
-
-	@if [ ! -f $(cert_dir)/$(app_name).crt ]; then \
-		$(occ) libresign:install --all --architecture aarch64 \
-		$(occ) libresign:install --all --architecture x86_64 \
-		$(occ) libresign:developer:sign-setup --privateKey=$(cert_dir)/$(app_name).key \
-			--certificate=$(cert_dir)/$(app_name).crt \
-	fi
 
 	@if [ -z "$$GITHUB_ACTION" ]; then \
 		chown -R www-data:www-data $(appstore_sign_dir)/$(app_name) ; \
@@ -129,6 +119,10 @@ appstore: clean
 			"https://github.com/nextcloud/app-certificate-requests/raw/master/$(app_name)/$(app_name).crt"; \
 	fi
 	@if [ -f $(cert_dir)/$(app_name).key ]; then \
+		$(occ) libresign:install --all --architecture aarch64; \
+		$(occ) libresign:install --all --architecture x86_64; \
+		$(occ) libresign:developer:sign-setup --privateKey=$(cert_dir)/$(app_name).key \
+			--certificate=$(cert_dir)/$(app_name).crt; \
 		echo "Signing app files…"; \
 		$(occ) integrity:sign-app \
 			--privateKey=$(cert_dir)/$(app_name).key\

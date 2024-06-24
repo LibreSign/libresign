@@ -96,7 +96,6 @@ jobs:
         if: ${{ steps.versions.outputs.nodeVersion }}
         env:
           CYPRESS_INSTALL_BINARY: 0
-          NODE_ENV: production
         run: |
           cd ${{ env.APP_NAME }}
           npm ci
@@ -142,6 +141,24 @@ jobs:
           repository: nextcloud/server
           path: nextcloud
 
+      - name: Set up Nextcloud
+        env:
+          DB_PORT: 4444
+        run: |
+          tar -xvf ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz -C nextcloud/apps/
+          php nextcloud/occ maintenance:install \
+            --verbose \
+            --database=sqlite \
+            --database-name=nextcloud \
+            --database-host=127.0.0.1 \
+            --database-port=$DB_PORT \
+            --database-user=root \
+            --database-pass=rootpassword \
+            --admin-user admin \
+            --admin-pass admin
+          php nextcloud/occ --version
+          php nextcloud/occ app:enable --force ${{ env.APP_NAME }}
+
       - name: Sign app
         run: |
           # Extracting release
@@ -154,6 +171,7 @@ jobs:
           # Signing
           php nextcloud/occ libresign:install --all --architecture aarch64
           php nextcloud/occ libresign:install --all --architecture x86_64
+          php nextcloud/occ config:system:set debug --value true --type boolean
           php nextcloud/occ libresign:developer:sign-setup --privateKey=../${{ env.APP_NAME }}.key --certificate=../${{ env.APP_NAME }}.crt
           php nextcloud/occ integrity:sign-app --privateKey=../${{ env.APP_NAME }}.key --certificate=../${{ env.APP_NAME }}.crt --path=../${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}
           # Rebuilding archive
