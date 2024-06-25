@@ -26,6 +26,7 @@ namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
+use OCP\Comments\ICommentsManager;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use OCP\IL10N;
@@ -221,5 +222,27 @@ class FileMapper extends QBMapper {
 				return $this->l->t('deleted');
 		}
 		return '';
+	}
+
+	public function neutralizeDeletedUser(string $userId, string $displayName): void {
+		$update = $this->db->getQueryBuilder();
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('f.id')
+			->addSelect('f.metadata')
+			->from($this->getTableName(), 'f')
+			->where($qb->expr()->eq('f.user_id', $qb->createNamedParameter($userId)));
+		$cursor = $qb->executeQuery();
+		while ($row = $cursor->fetch()) {
+			$row['metadata'] = json_decode($row['metadata'], true);
+			$row['metadata']['deleted_user'] = [
+				'uid' => $userId,
+				'display_name' => $displayName,
+			];
+			$update->update($this->getTableName())
+				->set('user_id', $update->createNamedParameter(ICommentsManager::DELETED_USER))
+				->set('metadata', $update->createNamedParameter($row['metadata'], IQueryBuilder::PARAM_JSON))
+				->where($update->expr()->eq('id', $update->createNamedParameter($row['id'])));
+			$update->executeStatement();
+		}
 	}
 }

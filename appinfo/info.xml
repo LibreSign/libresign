@@ -47,6 +47,9 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
         <architecture>x86_64</architecture>
         <architecture>aarch64</architecture>
     </dependencies>
+    <background-jobs>
+        <job>OCA\Libresign\BackgroundJob\UserDeleted</job>
+    </background-jobs>
     <repair-steps>
         <post-migration>
             <step>OCA\Libresign\Migration\DeleteOldBinaries</step>

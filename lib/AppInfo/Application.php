@@ -34,6 +34,7 @@ use OCA\Libresign\Listener\LoadSidebarListener;
 use OCA\Libresign\Listener\MailNotifyListener;
 use OCA\Libresign\Listener\NotificationListener;
 use OCA\Libresign\Listener\SignedListener;
+use OCA\Libresign\Listener\UserDeletedListener;
 use OCA\Libresign\Middleware\GlobalInjectionMiddleware;
 use OCA\Libresign\Middleware\InjectionMiddleware;
 use OCA\Libresign\Notification\Notifier;
@@ -43,6 +44,7 @@ use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Events\Node\BeforeNodeDeletedEvent;
+use OCP\User\Events\UserDeletedEvent;
 
 /**
  * @codeCoverageIgnore
@@ -81,5 +83,7 @@ class Application extends App implements IBootstrap {
 
 		// MailNotify listener
 		$context->registerEventListener(SendSignNotificationEvent::class, MailNotifyListener::class);
+
+		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
 	}
 }
