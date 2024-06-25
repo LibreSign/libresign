@@ -86,15 +86,17 @@ class IdentifyMethod extends Entity {
 	}
 
 	public function isDeletedAccount(): bool {
-		return isset($this->metadata['deleted_account']);
+		$metadata = $this->getMetadata();
+		return isset($metadata['deleted_account']);
 	}
 
 	public function getIdentifierValue(): string {
-		if (isset($this->metadata['deleted_account'])) {
-			if (isset($this->metadata['deleted_account']['email'])) {
-				return $this->metadata['deleted_account']['email'];
+		$metadata = $this->getMetadata();
+		if (isset($metadata['deleted_account'])) {
+			if (isset($metadata['deleted_account']['email'])) {
+				return $metadata['deleted_account']['email'];
 			}
-			return $this->metadata['deleted_account']['account'];
+			return $metadata['deleted_account']['account'];
 		}
 		return $this->identifierValue;
 	}
