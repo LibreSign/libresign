@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\Entity;
+use OCP\DB\Types;
 
 /**
  * @method void setId(int $id)
@@ -18,11 +19,12 @@ use OCP\AppFramework\Db\Entity;
  * @method void setFileId(int $fileId)
  * @method int getFileId()
  * @method void setUserId(string $userId)
- * @method string getUserId()
  * @method void setStarred(int $starred)
  * @method int getStarred()
  * @method void setCreatedAt(\DateTime $createdAt)
  * @method \DateTime getCreatedAt()
+ * @method void setMetadata(array $metadata)
+ * @method array getMetadata()
  */
 class UserElement extends Entity {
 	/** @var integer */
@@ -37,6 +39,8 @@ class UserElement extends Entity {
 	public $starred;
 	/** @var \DateTime */
 	public $createdAt;
+	/** @var string */
+	protected $metadata;
 	/** @var array{url: string, nodeId: non-negative-int}|null */
 	public $file;
 	public function __construct() {
@@ -46,6 +50,20 @@ class UserElement extends Entity {
 		$this->addType('userId', 'string');
 		$this->addType('starred', 'integer');
 		$this->addType('createdAt', 'datetime');
+		$this->addType('metadata', Types::JSON);
+	}
+
+	public function isDeletedAccount(): bool {
+		$metadata = $this->getMetadata();
+		return isset($metadata['deleted_account']);
+	}
+
+	public function getUserId(): string {
+		$metadata = $this->getMetadata();
+		if (isset($metadata['deleted_account']['account'])) {
+			return $metadata['deleted_account']['account'];
+		}
+		return $this->userId;
 	}
 
 	/**
