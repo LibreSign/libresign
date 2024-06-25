@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\Entity;
+use OCP\DB\Types;
 
 /**
  * @method void setSignRequestId(int $signRequestId)
@@ -25,6 +26,8 @@ use OCP\AppFramework\Db\Entity;
  * @method string getCode()
  * @method ?\DateTime getIdentifiedAtDate()
  * @method ?\DateTime getLastAttemptDate()
+ * @method void setMetadata(array $metadata)
+ * @method array getMetadata()
  */
 class IdentifyMethod extends Entity {
 	/** @var integer */
@@ -43,6 +46,8 @@ class IdentifyMethod extends Entity {
 	public $identifiedAtDate;
 	/** @var ?\DateTime */
 	public $lastAttemptDate;
+	/** @var string */
+	protected $metadata;
 
 	public function __construct() {
 		$this->addType('signRequestId', 'integer');
@@ -53,6 +58,7 @@ class IdentifyMethod extends Entity {
 		$this->addType('attempts', 'int');
 		$this->addType('identifiedAtDate', 'datetime');
 		$this->addType('lastAttemptDate', 'datetime');
+		$this->addType('metadata', Types::JSON);
 	}
 
 	public function setIdentifiedAtDate(null|string|\DateTime $identifiedAtDate): void {

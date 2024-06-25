@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\QBMapper;
+use OCP\Comments\ICommentsManager;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
@@ -73,5 +74,27 @@ class UserElementMapper extends QBMapper {
 		$qb = $this->getQueryBuilder($data);
 		/** @var UserElement[] */
 		return $this->findEntities($qb);
+	}
+
+	public function neutralizeDeletedUser(string $userId, string $displayName): void {
+		$update = $this->db->getQueryBuilder();
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('ue.id')
+			->addSelect('ue.metadata')
+			->from($this->getTableName(), 'ue')
+			->where($qb->expr()->eq('ue.user_id', $qb->createNamedParameter($userId)));
+		$cursor = $qb->executeQuery();
+		while ($row = $cursor->fetch()) {
+			$row['metadata'] = json_decode($row['metadata'], true);
+			$row['metadata']['deleted_user'] = [
+				'uid' => $userId,
+				'display_name' => $displayName,
+			];
+			$update->update($this->getTableName())
+				->set('user_id', $update->createNamedParameter(ICommentsManager::DELETED_USER))
+				->set('metadata', $update->createNamedParameter($row['metadata'], IQueryBuilder::PARAM_JSON))
+				->where($update->expr()->eq('id', $update->createNamedParameter($row['id'])));
+			$update->executeStatement();
+		}
 	}
 }
