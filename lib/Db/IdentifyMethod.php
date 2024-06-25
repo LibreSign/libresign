@@ -26,6 +26,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\Entity;
+use OCP\DB\Types;
 
 /**
  * @method void setSignRequestId(int $signRequestId)
@@ -37,11 +38,12 @@ use OCP\AppFramework\Db\Entity;
  * @method void setIdentifierKey(string $identifierKey)
  * @method string getIdentifierKey()
  * @method void setIdentifierValue(string $identifierValue)
- * @method string getIdentifierValue()
  * @method void setCode(string $code)
  * @method string getCode()
  * @method ?\DateTime getIdentifiedAtDate()
  * @method ?\DateTime getLastAttemptDate()
+ * @method void setMetadata(array $metadata)
+ * @method array getMetadata()
  */
 class IdentifyMethod extends Entity {
 	/** @var integer */
@@ -60,6 +62,8 @@ class IdentifyMethod extends Entity {
 	public $identifiedAtDate;
 	/** @var ?\DateTime */
 	public $lastAttemptDate;
+	/** @var string */
+	protected $metadata;
 
 	public function __construct() {
 		$this->addType('signRequestId', 'integer');
@@ -70,6 +74,7 @@ class IdentifyMethod extends Entity {
 		$this->addType('attempts', 'int');
 		$this->addType('identifiedAtDate', 'datetime');
 		$this->addType('lastAttemptDate', 'datetime');
+		$this->addType('metadata', Types::JSON);
 	}
 
 	public function setIdentifiedAtDate(null|string|\DateTime $identifiedAtDate): void {
@@ -78,6 +83,22 @@ class IdentifyMethod extends Entity {
 		}
 		$this->identifiedAtDate = $identifiedAtDate;
 		$this->markFieldUpdated('identifiedAtDate');
+	}
+
+	public function isDeletedAccount(): bool {
+		$metadata = $this->getMetadata();
+		return isset($metadata['deleted_account']);
+	}
+
+	public function getIdentifierValue(): string {
+		$metadata = $this->getMetadata();
+		if (isset($metadata['deleted_account'])) {
+			if (isset($metadata['deleted_account']['email'])) {
+				return $metadata['deleted_account']['email'];
+			}
+			return $metadata['deleted_account']['account'];
+		}
+		return $this->identifierValue;
 	}
 
 	public function setLastAttemptDate(null|string|\DateTime $lastAttemptDate): void {

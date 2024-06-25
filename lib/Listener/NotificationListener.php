@@ -106,6 +106,9 @@ class NotificationListener implements IEventListener {
 		}
 		$activityUserSettings = \OCP\Server::get(\OCA\Activity\UserSettings::class);
 		if ($activityUserSettings) {
+			if ($identifyMethod->getEntity()->isDeletedAccount()) {
+				return false;
+			}
 			$notificationSetting = $activityUserSettings->getUserSetting(
 				$identifyMethod->getEntity()->getIdentifierValue(),
 				'notification',
