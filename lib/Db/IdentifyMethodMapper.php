@@ -75,8 +75,8 @@ class IdentifyMethodMapper extends QBMapper {
 		$cursor = $qb->executeQuery();
 		while ($row = $cursor->fetch()) {
 			$row['metadata'] = json_decode($row['metadata'], true);
-			$row['metadata']['deleted_user'] = [
-				'uid' => $userId,
+			$row['metadata']['deleted_account'] = [
+				'account' => $userId,
 				'display_name' => $displayName,
 			];
 			$update->update('libresign_identify_method')
