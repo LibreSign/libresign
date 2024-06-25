@@ -9,6 +9,9 @@
 					:disabled="loading"
 					type="primary"
 					@click="confirmSignDocument">
+					<template #icon>
+						<NcLoadingIcon v-if="loading" :size="20" />
+					</template>
 					{{ t('libresign', 'Sign the document.') }}
 				</NcButton>
 			</div>
@@ -69,7 +72,10 @@
 			<a id="lost-password" @click="toggleManagePassword">{{ t('libresign', 'Forgot password?') }}</a>
 			<ManagePassword v-if="showManagePassword" />
 			<template #actions>
-				<NcButton type="primary" :disabled="signPassword.length < 3" @click="signWithPassword()">
+				<NcButton type="primary" :disabled="signPassword.length < 3 || loading" @click="signWithPassword()">
+					<template #icon>
+						<NcLoadingIcon v-if="loading" :size="20" />
+					</template>
 					{{ t('libresign', 'Sign the document.') }}
 				</NcButton>
 			</template>
