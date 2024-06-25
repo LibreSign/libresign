@@ -54,12 +54,14 @@ class UserElement extends Entity {
 	}
 
 	public function isDeletedAccount(): bool {
-		return isset($this->metadata['deleted_account']);
+		$metadata = $this->getMetadata();
+		return isset($metadata['deleted_account']);
 	}
 
 	public function getUserId(): string {
-		if (isset($this->metadata['deleted_account']['account'])) {
-			return $this->metadata['deleted_account']['account'];
+		$metadata = $this->getMetadata();
+		if (isset($metadata['deleted_account']['account'])) {
+			return $metadata['deleted_account']['account'];
 		}
 		return $this->userId;
 	}
