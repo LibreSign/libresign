@@ -19,7 +19,6 @@ use OCP\DB\Types;
  * @method void setSignedNodeId(int $nodeId)
  * @method int getSignedNodeId()
  * @method void setUserId(string $userId)
- * @method string getUserId()
  * @method void setUuid(string $uuid)
  * @method string getUuid()
  * @method void setCreatedAt(int $createdAt)
@@ -81,5 +80,16 @@ class File extends Entity {
 		$this->addType('callback', 'string');
 		$this->addType('status', 'integer');
 		$this->addType('metadata', Types::JSON);
+	}
+
+	public function isDeletedAccount(): bool {
+		return isset($this->metadata['deleted_account']);
+	}
+
+	public function getUserId(): string {
+		if (isset($this->metadata['deleted_account']['account'])) {
+			return $this->metadata['deleted_account']['account'];
+		}
+		return $this->userId;
 	}
 }

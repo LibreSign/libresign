@@ -55,6 +55,9 @@ class MailNotifyListener implements IEventListener {
 			return;
 		}
 		try {
+			if ($identifyMethod->getEntity()->isDeletedAccount()) {
+				return;
+			}
 			$email = '';
 			if ($identifyMethod->getName() === 'account') {
 				$email = $this->userManager

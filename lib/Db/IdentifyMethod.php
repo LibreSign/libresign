@@ -21,7 +21,6 @@ use OCP\DB\Types;
  * @method void setIdentifierKey(string $identifierKey)
  * @method string getIdentifierKey()
  * @method void setIdentifierValue(string $identifierValue)
- * @method string getIdentifierValue()
  * @method void setCode(string $code)
  * @method string getCode()
  * @method ?\DateTime getIdentifiedAtDate()
@@ -67,6 +66,20 @@ class IdentifyMethod extends Entity {
 		}
 		$this->identifiedAtDate = $identifiedAtDate;
 		$this->markFieldUpdated('identifiedAtDate');
+	}
+
+	public function isDeletedAccount(): bool {
+		return isset($this->metadata['deleted_account']);
+	}
+
+	public function getIdentifierValue(): string {
+		if (isset($this->metadata['deleted_account'])) {
+			if (isset($this->metadata['deleted_account']['email'])) {
+				return $this->metadata['deleted_account']['email'];
+			}
+			return $this->metadata['deleted_account']['account'];
+		}
+		return $this->identifierValue;
 	}
 
 	public function setLastAttemptDate(null|string|\DateTime $lastAttemptDate): void {
