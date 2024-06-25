@@ -550,7 +550,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 */
 	public function testValidateExistingFile($dataFile, $uuid, $exception):void {
 		$user = $this->createMock(IUser::class);
-		$user->method('getUID')->willReturn(1);
+		$user->method('getUID')->willReturn('fake_user');
 		$data = [
 			'userManager' => $user
 		];
@@ -560,26 +560,20 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		if (!empty($uuid)) {
 			$libresignFile->method('__call')
-				->withConsecutive(
-					[$this->equalTo('getNodeId')],
-					[$this->equalTo('getUserId')],
-				)
-				->will($this->returnValueMap([
-					['getNodeId', [], 1],
-					['getUserId', [], 1],
-				]));
+				->willReturnCallback(fn ($method) =>
+					match ($method) {
+						'getNodeId' => 1,
+					}
+				);
+			$libresignFile->method('getUserId')
+				->willReturn('fake_user');
 			$this->fileMapper->method('getByUuid')->will($this->returnValue($libresignFile));
 			$this->fileMapper->method('getByFileId')->will($this->returnValue($libresignFile));
 
 			$data['uuid'] = $uuid;
 		} elseif (!empty($dataFile)) {
-			$libresignFile->method('__call')
-				->withConsecutive(
-					[$this->equalTo('getUserId')]
-				)
-				->will($this->returnValueMap([
-					['getUserId', [], 1]
-				]));
+			$libresignFile->method('getUserId')
+				->willReturn('fake_user');
 			$this->fileMapper->method('getByFileId')->will($this->returnValue($libresignFile));
 
 			$file = $this->createMock(\OCP\Files\File::class);
