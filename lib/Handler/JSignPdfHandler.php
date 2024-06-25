@@ -87,10 +87,11 @@ class JSignPdfHandler extends SignEngineHandler {
 		if ($visibleElements) {
 			$jSignPdf = $this->getJSignPdf();
 			$param = $this->getJSignParam();
+			$originalParam = clone $param;
 			foreach ($visibleElements as $element) {
 				$param
 					->setJSignParameters(
-						$param->getJSignParameters() .
+						$originalParam->getJSignParameters() .
 						' -pg ' . $element->getFileElement()->getPage() .
 						' -llx ' . $element->getFileElement()->getLlx() .
 						' -lly ' . $element->getFileElement()->getLly() .
@@ -102,6 +103,7 @@ class JSignPdfHandler extends SignEngineHandler {
 					);
 				$jSignPdf->setParam($param);
 				$signed = $this->signWrapper($jSignPdf);
+				$param->setPdf($signed);
 			}
 			return $signed;
 		}
