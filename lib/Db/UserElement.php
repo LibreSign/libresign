@@ -35,7 +35,6 @@ use OCP\DB\Types;
  * @method void setFileId(int $fileId)
  * @method int getFileId()
  * @method void setUserId(string $userId)
- * @method string getUserId()
  * @method void setStarred(int $starred)
  * @method int getStarred()
  * @method void setCreatedAt(\DateTime $createdAt)
@@ -68,6 +67,17 @@ class UserElement extends Entity {
 		$this->addType('starred', 'integer');
 		$this->addType('createdAt', 'datetime');
 		$this->addType('metadata', Types::JSON);
+	}
+
+	public function isDeletedAccount(): bool {
+		return isset($this->metadata['deleted_account']);
+	}
+
+	public function getUserId(): string {
+		if (isset($this->metadata['deleted_account']['account'])) {
+			return $this->metadata['deleted_account']['account'];
+		}
+		return $this->userId;
 	}
 
 	/**
