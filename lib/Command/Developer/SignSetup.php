@@ -76,9 +76,6 @@ class SignSetup extends Base {
 				}
 			}
 			$output->writeln('Successfully signed');
-			unlink(__DIR__ . '/../../../build/tools/certificates/local/root.crt');
-			unlink(__DIR__ . '/../../../build/tools/certificates/local/libresign.crt');
-			unlink(__DIR__ . '/../../../build/tools/certificates/local/libresign.key');
 		} catch (\Exception $e) {
 			$output->writeln('Error: ' . $e->getMessage());
 			return 1;

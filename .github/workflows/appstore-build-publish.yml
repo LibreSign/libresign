@@ -20,10 +20,10 @@ jobs:
     # if: ${{ github.repository_owner == 'nextcloud-releases' }}
 
     steps:
-      - name: Check actor permission
-        uses: skjnldsv/check-actor-permission@69e92a3c4711150929bca9fcf34448c5bf5526e7 # v3.0
-        with:
-          require: write
+      # - name: Check actor permission
+      #   uses: skjnldsv/check-actor-permission@69e92a3c4711150929bca9fcf34448c5bf5526e7 # v3.0
+      #   with:
+      #     require: write
 
       - name: Set app env
         run: |
@@ -75,6 +75,7 @@ jobs:
         uses: shivammathur/setup-php@fc14643b0a99ee9db10a3c025a33d76544fa3761 # v2
         with:
           php-version: ${{ steps.php-versions.outputs.php-min }}
+          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite, pdo_sqlite
           coverage: none
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -145,7 +146,7 @@ jobs:
         env:
           DB_PORT: 4444
         run: |
-          tar -xvf ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz -C nextcloud/apps/
+          ln -s `pwd`/${{ env.APP_NAME }}/build/artifacts/sign/${{ env.APP_NAME }} nextcloud/apps/${{ env.APP_NAME }}
           php nextcloud/occ maintenance:install \
             --verbose \
             --database=sqlite \
@@ -161,18 +162,15 @@ jobs:
 
       - name: Sign app
         run: |
-          # Extracting release
-          cd ${{ env.APP_NAME }}/build/artifacts
-          tar -xvf ${{ env.APP_NAME }}.tar.gz
-          cd ../../../
           # Setting up keys
           echo '${{ secrets.APP_PRIVATE_KEY }}' > ${{ env.APP_NAME }}.key
           wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/${{ env.APP_NAME }}/${{ env.APP_NAME }}.crt"
-          # Signing
+          # Signing dependencies
           php nextcloud/occ libresign:install --all --architecture aarch64
           php nextcloud/occ libresign:install --all --architecture x86_64
           php nextcloud/occ config:system:set debug --value true --type boolean
           php nextcloud/occ libresign:developer:sign-setup --privateKey=../${{ env.APP_NAME }}.key --certificate=../${{ env.APP_NAME }}.crt
+          # Signing
           php nextcloud/occ integrity:sign-app --privateKey=../${{ env.APP_NAME }}.key --certificate=../${{ env.APP_NAME }}.crt --path=../${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}
           # Rebuilding archive
           cd ${{ env.APP_NAME }}/build/artifacts
