@@ -13,6 +13,20 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 8.1.1 - 2024-06-26
+### Changed
+- Disable sign button when is loading
+  [#3224](https://github.com/nextcloud/spreed/pull/3224)
+- Bump dependencies
+
+### Fixes
+- signing dependencies at deploy to Nextcloud app store
+  [#3233](https://github.com/nextcloud/spreed/pull/3233)
+- Make possible use multiple signatures of same signer
+  [#3228](https://github.com/nextcloud/spreed/pull/3228)
+- neutralize deleted users
+  [#3221](https://github.com/nextcloud/spreed/pull/3221)
+
 ## 8.1.0 - 2024-06-24
 ### New feature
 * Clean old setup binaries
