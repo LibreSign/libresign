@@ -68,7 +68,6 @@ class SignSetupService {
 
 	private function getPrivateKey(): RSA {
 		if (!$this->rsa instanceof RSA) {
-			$oi = __DIR__ . '/../../../build/tools/certificates/local/libresign.key';
 			if (file_exists(__DIR__ . '/../../../build/tools/certificates/local/libresign.key')) {
 				$privateKey = file_get_contents(__DIR__ . '/../../../build/tools/certificates/local/libresign.key');
 				$this->rsa = new RSA();
@@ -126,7 +125,7 @@ class SignSetupService {
 			));
 		} catch (\Exception $e) {
 			if (!$this->fileAccessHelper->is_writable($appInfoDir)) {
-				throw new \Exception($appInfoDir . ' is not writable');
+				throw new \Exception($appInfoDir . ' is not writable. Original error: ' . $e->getMessage());
 			}
 			throw $e;
 		}
@@ -443,5 +442,17 @@ class SignSetupService {
 			'privateKeyInstance' => $privateKeyInstance,
 			'privateKeyCert' => $privateKeyCert,
 		];
+	}
+
+	public function __destruct() {
+		if (file_exists(__DIR__ . '/../../../build/tools/certificates/local/libresign.crt')) {
+			try {
+				$files = glob(__DIR__ . '/../../../build/tools/certificates/local/*', GLOB_MARK);
+				foreach ($files as $file) {
+					unlink($file);
+				}
+			} catch (\Exception $e) {
+			}
+		}
 	}
 }
