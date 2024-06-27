@@ -141,39 +141,15 @@ jobs:
           repository: nextcloud/server
           path: nextcloud
 
-      - name: Extracting release
-        run: |
-          # Extracting release
-          tar -xvf ${{ env.APP_NAME }}.tar.gz -C ${{ env.APP_NAME }}/build/artifacts
-          ln -s ${{ env.APP_NAME }}/build/artifacts/libresign nextcloud/apps/libresign
-
-      - name: Set up Nextcloud
-        env:
-          DB_PORT: 4444
-        run: |
-          php nextcloud/occ maintenance:install \
-            --verbose \
-            --database=sqlite \
-            --database-name=nextcloud \
-            --database-host=127.0.0.1 \
-            --database-port=$DB_PORT \
-            --database-user=root \
-            --database-pass=rootpassword \
-            --admin-user admin \
-            --admin-pass admin
-          php nextcloud/occ --version
-          php nextcloud/occ app:enable --force ${{ env.APP_NAME }}
-
       - name: Sign app
         run: |
+          # Extracting release
+          cd ${{ env.APP_NAME }}/build/artifacts
+          tar -xvf ${{ env.APP_NAME }}.tar.gz
+          cd ../../../
           # Setting up keys
           echo '${{ secrets.APP_PRIVATE_KEY }}' > ${{ env.APP_NAME }}.key
           wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/${{ env.APP_NAME }}/${{ env.APP_NAME }}.crt"
-          # Signing dependencies
-          php nextcloud/occ libresign:install --all --architecture aarch64
-          php nextcloud/occ libresign:install --all --architecture x86_64
-          php nextcloud/occ config:system:set debug --value true --type boolean
-          php nextcloud/occ libresign:developer:sign-setup --privateKey=../${{ env.APP_NAME }}.key --certificate=../${{ env.APP_NAME }}.crt
           # Signing
           php nextcloud/occ integrity:sign-app --privateKey=../${{ env.APP_NAME }}.key --certificate=../${{ env.APP_NAME }}.crt --path=../${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}
           # Rebuilding archive
