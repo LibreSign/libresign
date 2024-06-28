@@ -101,6 +101,7 @@ appstore:
 		vendor \
 		CHANGELOG.md \
 		LICENSE \
+		openapi*.json \
 		$(appstore_sign_dir)/$(app_name)
 	rm $(appstore_sign_dir)/$(app_name)/vendor/endroid/qr-code/assets/*
 	find $(appstore_sign_dir)/$(app_name)/vendor/mpdf/mpdf/ttfonts -type f -not -name 'DejaVuSerifCondensed.ttf' -delete
