@@ -14,26 +14,36 @@ Types of changes:
 
 <!-- changelog-linker -->
 
+## 9.1.2 - 2024-06-28
+### Fixes
+* fix: Internal error when signing [#3238](github.com/libresign/libresign/pull/3238)
+
+
+## 8.1.2 - 2024-06-28
+### Fixes
+* fix: Internal error when signing [#3238](github.com/libresign/libresign/pull/3238)
+
+
 ## 9.1.1 - 2024-06-26
 ### Changed
-- Disable sign button when is loading [#3225](https://github.com/nextcloud/spreed/pull/3225)
+- Disable sign button when is loading [#3225](https://github.com/libresign/libresign/pull/3225)
 - Bump dependencies
 
 ### Fixes
-- signing dependencies at deploy to Nextcloud app store [#3234](https://github.com/nextcloud/spreed/pull/3234)
-- Make possible use multiple signatures of same signer [#3229](https://github.com/nextcloud/spreed/pull/3229)
-- neutralize deleted users [#3222](https://github.com/nextcloud/spreed/pull/3222)
+- signing dependencies at deploy to Nextcloud app store [#3234](https://github.com/libresign/libresign/pull/3234)
+- Make possible use multiple signatures of same signer [#3229](https://github.com/libresign/libresign/pull/3229)
+- neutralize deleted users [#3222](https://github.com/libresign/libresign/pull/3222)
 - Bump dependencies
 
 ## 8.1.1 - 2024-06-26
 ### Changed
-- Disable sign button when is loading [#3224](https://github.com/nextcloud/spreed/pull/3224)
+- Disable sign button when is loading [#3224](https://github.com/libresign/libresign/pull/3224)
 - Bump dependencies
 
 ### Fixes
-- signing dependencies at deploy to Nextcloud app store [#3233](https://github.com/nextcloud/spreed/pull/3233)
-- Make possible use multiple signatures of same signer [#3228](https://github.com/nextcloud/spreed/pull/3228)
-- neutralize deleted users [#3221](https://github.com/nextcloud/spreed/pull/3221)
+- signing dependencies at deploy to Nextcloud app store [#3233](https://github.com/libresign/libresign/pull/3233)
+- Make possible use multiple signatures of same signer [#3228](https://github.com/libresign/libresign/pull/3228)
+- neutralize deleted users [#3221](https://github.com/libresign/libresign/pull/3221)
 
 ## 9.1.0 - 2024-06-24
 ### New feature
