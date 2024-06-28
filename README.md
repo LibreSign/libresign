@@ -1,4 +1,5 @@
 ![Test Status](https://github.com/LibreSign/libresign/actions/workflows/behat.yml/badge.svg?branch=main)
+![Total Downloads](https://img.shields.io/github/downloads/libresign/libresign/total)
 [![Coverage Status](https://coveralls.io/repos/github/LibreSign/libresign/badge.svg?branch=main)](https://coveralls.io/github/LibreSign/libresign?branch=main)
 [![Start contributing](https://img.shields.io/github/issues/LibreSign/libresign/good%20first%20issue?color=7057ff&label=Contribute)](https://github.com/LibreSign/libresign/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+issue%22)
 
