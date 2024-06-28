@@ -15,6 +15,7 @@ use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\DataResponse;
@@ -60,6 +61,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/request-signature', requirements: ['apiVersion' => '(v1)'])]
 	public function request(array $file, array $users, string $name, ?string $callback = null, ?int $status = 1): DataResponse {
 		$user = $this->userSession->getUser();
 		$data = [
@@ -116,6 +118,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
+	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/request-signature', requirements: ['apiVersion' => '(v1)'])]
 	public function updateSign(?array $users = [], ?string $uuid = null, ?array $visibleElements = null, ?array $file = [], ?int $status = null): DataResponse {
 		$user = $this->userSession->getUser();
 		$data = [
@@ -174,6 +177,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
+	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/sign/file_id/{fileId}/{signRequestId}', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteOneRequestSignatureUsingFileId(int $fileId, int $signRequestId): DataResponse {
 		try {
 			$data = [
@@ -216,6 +220,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
+	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/sign/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteAllRequestSignatureUsingFileId(int $fileId): DataResponse {
 		try {
 			$data = [

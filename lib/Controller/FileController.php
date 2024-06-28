@@ -22,6 +22,7 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
@@ -83,6 +84,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/validate/uuid/{uuid}', requirements: ['apiVersion' => '(v1)'])]
 	public function validateUuid(string $uuid): DataResponse {
 		return $this->validate('Uuid', $uuid);
 	}
@@ -102,6 +104,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/validate/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
 	public function validateFileId(int $fileId): DataResponse {
 		return $this->validate('FileId', $fileId);
 	}
@@ -122,6 +125,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/validate/', requirements: ['apiVersion' => '(v1)'])]
 	public function validate(?string $type = null, $identifier = null): DataResponse {
 		try {
 			if ($type === 'Uuid' && !empty($identifier)) {
@@ -195,6 +199,7 @@ class FileController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/list', requirements: ['apiVersion' => '(v1)'])]
 	public function list($page = null, $length = null, ?array $filter = []): DataResponse {
 		$return = $this->fileService
 			->setMe($this->userSession->getUser())
@@ -222,6 +227,7 @@ class FileController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/thumbnail/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function getThumbnail(
 		int $nodeId = -1,
 		int $x = 32,
@@ -313,6 +319,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file', requirements: ['apiVersion' => '(v1)'])]
 	public function save(array $file, string $name = '', array $settings = []): DataResponse {
 		try {
 			if (empty($name)) {

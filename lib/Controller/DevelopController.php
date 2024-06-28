@@ -11,6 +11,7 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
@@ -42,6 +43,7 @@ class DevelopController extends Controller {
 	 */
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[FrontpageRoute(verb: 'GET', url: '/develop/pdf')]
 	public function pdf(): FileDisplayResponse|Response {
 		if (!$this->isDebugMode()) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
