@@ -27,6 +27,7 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
@@ -53,6 +54,7 @@ class SettingController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI(scope: OpenAPI::SCOPE_ADMINISTRATION)]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/setting/has-root-cert', requirements: ['apiVersion' => '(v1)'])]
 	public function hasRootCert(): DataResponse {
 		$checkData = [
 			'hasRootCert' => $this->certificateEngineHandler->getEngine()->isSetupOk()

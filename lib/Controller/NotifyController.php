@@ -28,6 +28,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\NotifyService;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\DataResponse;
@@ -57,6 +58,7 @@ class NotifyController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/notify/signers', requirements: ['apiVersion' => '(v1)'])]
 	public function signers(int $fileId, array $signers): DataResponse {
 		try {
 			$this->notifyService->signers($fileId, $signers);
@@ -90,6 +92,7 @@ class NotifyController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/notify/signer', requirements: ['apiVersion' => '(v1)'])]
 	public function signer(int $fileId, int $signRequestId): DataResponse {
 		try {
 			$this->notifyService->signer($fileId, $signRequestId);
@@ -123,6 +126,7 @@ class NotifyController extends AEnvironmentAwareController {
 	 * 200: OK
 	 */
 	#[NoAdminRequired]
+	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/notify/notification', requirements: ['apiVersion' => '(v1)'])]
 	public function notificationDismiss(int $signRequestId, int $timestamp): DataResponse {
 		$this->notifyService->notificationDismiss(
 			$signRequestId,

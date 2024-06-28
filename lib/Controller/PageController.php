@@ -42,6 +42,7 @@ use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
+use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
@@ -93,6 +94,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'main')]
+	#[FrontpageRoute(verb: 'GET', url: '/')]
 	public function index(): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig($this->userSession->getUser()));
 		$this->initialState->provideInitialState('certificate_engine', $this->accountService->getCertificateEngineName());
@@ -134,6 +136,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'main')]
+	#[FrontpageRoute(verb: 'GET', url: '/f/')]
 	public function indexF(): TemplateResponse {
 		return $this->index();
 	}
@@ -147,6 +150,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[FrontpageRoute(verb: 'GET', url: '/f/incomplete')]
 	public function incomplete(): TemplateResponse {
 		Util::addScript(Application::APP_ID, 'libresign-main');
 		$response = new TemplateResponse(Application::APP_ID, 'main');
@@ -162,6 +166,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
+	#[FrontpageRoute(verb: 'GET', url: '/p/incomplete')]
 	public function incompleteP(): TemplateResponse {
 		Util::addScript(Application::APP_ID, 'libresign-main');
 		$response = new TemplateResponse(Application::APP_ID, 'main', [], TemplateResponse::RENDER_AS_BASE);
@@ -181,6 +186,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'main')]
+	#[FrontpageRoute(verb: 'GET', url: '/f/{path}', requirements: ['path' => '.+'])]
 	public function indexFPath(): TemplateResponse {
 		return $this->index();
 	}
@@ -199,6 +205,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[RequireSetupOk]
 	#[PublicPage]
 	#[RequireSignRequestUuid]
+	#[FrontpageRoute(verb: 'GET', url: '/f/sign/{uuid}')]
 	public function signF(string $uuid): TemplateResponse {
 		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN_INTERNAL);
 		return $this->index();
@@ -219,6 +226,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[RequireSetupOk]
 	#[PublicPage]
 	#[RequireSignRequestUuid]
+	#[FrontpageRoute(verb: 'GET', url: '/f/sign/{uuid}/{path}', requirements: ['path' => '.+'])]
 	public function signFPath(string $uuid): TemplateResponse {
 		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN_INTERNAL);
 		return $this->index();
@@ -239,6 +247,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[RequireSetupOk]
 	#[PublicPage]
 	#[RequireSignRequestUuid]
+	#[FrontpageRoute(verb: 'GET', url: '/p/sign/{uuid}')]
 	public function sign(string $uuid): TemplateResponse {
 		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN);
 		$this->initialState->provideInitialState('config',
@@ -297,6 +306,8 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
+	#[FrontpageRoute(verb: 'GET', url: '/p/account/files/approve/{uuid}')]
+	#[FrontpageRoute(verb: 'GET', url: '/p/account/files/approve/{uuid}/{path}', requirements: ['path' => '.+'], postfix: 'private')]
 	public function signAccountFile($uuid): TemplateResponse {
 		try {
 			$fileEntity = $this->signFileService->getFileByUuid($uuid);
@@ -367,6 +378,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[RequireSetupOk]
 	#[PublicPage]
 	#[AnonRateLimit(limit: 30, period: 60)]
+	#[FrontpageRoute(verb: 'GET', url: '/p/pdf/{uuid}')]
 	public function getPdf($uuid) {
 		$this->throwIfValidationPageNotAccessible();
 		try {
@@ -393,6 +405,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[PublicPage]
 	#[RequireSetupOk]
 	#[AnonRateLimit(limit: 30, period: 60)]
+	#[FrontpageRoute(verb: 'GET', url: '/pdf/{uuid}')]
 	public function getPdfFile($uuid): FileDisplayResponse {
 		$this->throwIfValidationPageNotAccessible();
 		$file = $this->getNextcloudFile();
@@ -412,6 +425,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[RequireSetupOk(template: 'validation')]
 	#[PublicPage]
 	#[AnonRateLimit(limit: 30, period: 60)]
+	#[FrontpageRoute(verb: 'GET', url: '/p/validation')]
 	public function validation(): TemplateResponse {
 		$this->throwIfValidationPageNotAccessible();
 		if ($this->getFileEntity()) {
@@ -456,6 +470,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[RequireSetupOk]
 	#[PublicPage]
 	#[AnonRateLimit(limit: 30, period: 60)]
+	#[FrontpageRoute(verb: 'GET', url: '/validation/{uuid}')]
 	public function validationFileWithShortUrl(): RedirectResponse {
 		$this->throwIfValidationPageNotAccessible();
 		return new RedirectResponse($this->url->linkToRoute('libresign.page.validationFile', ['uuid' => $this->request->getParam('uuid')]));
@@ -474,6 +489,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[RequireSetupOk(template: 'main')]
 	#[PublicPage]
 	#[RequireSignRequestUuid]
+	#[FrontpageRoute(verb: 'GET', url: '/reset-password')]
 	public function resetPassword(): TemplateResponse {
 		$this->initialState->provideInitialState('config',
 			$this->accountService->getConfig($this->userSession->getUser())
@@ -499,6 +515,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[RequireSetupOk(template: 'validation')]
 	#[PublicPage]
 	#[AnonRateLimit(limit: 30, period: 60)]
+	#[FrontpageRoute(verb: 'GET', url: '/p/validation/{uuid}')]
 	public function validationFile(string $uuid): TemplateResponse {
 		$this->throwIfValidationPageNotAccessible();
 		try {
