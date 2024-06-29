@@ -89,7 +89,7 @@ class InstallService {
 
 	private function getFolder(string $path = '', ?ISimpleFolder $folder = null, $needToBeEmpty = false): ISimpleFolder {
 		if (!$folder) {
-			$folder = $this->appData->getFolder('/');
+			$folder = $this->appData->newFolder('');
 			if (!$path) {
 				$path = $this->architecture;
 			} else {

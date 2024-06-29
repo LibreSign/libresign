@@ -443,16 +443,4 @@ class SignSetupService {
 			'privateKeyCert' => $privateKeyCert,
 		];
 	}
-
-	public function __destruct() {
-		if (file_exists(__DIR__ . '/../../../build/tools/certificates/local/libresign.crt')) {
-			try {
-				$files = glob(__DIR__ . '/../../../build/tools/certificates/local/*', GLOB_MARK);
-				foreach ($files as $file) {
-					unlink($file);
-				}
-			} catch (\Exception $e) {
-			}
-		}
-	}
 }
