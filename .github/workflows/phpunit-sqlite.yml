@@ -68,10 +68,9 @@ jobs:
       matrix:
         php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
         server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
-        testsuite: [unit, api]
         xdebug_mode: [debug, coverage]
 
-    name: SQLite PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }} Testsuite ${{ matrix.testsuite }}
+    name: SQLite PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
 
     steps:
       - name: Set app env
@@ -149,7 +148,7 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}
         env:
           XDEBUG_MODE: ${{ matrix.xdebug_mode }}
-        run: php vendor/bin/phpunit --colors=always --testsuite=${{ matrix.testsuite }}
+        run: composer run test:unit
 
       - name: Check PHPUnit integration script is defined
         id: check_integration
