@@ -150,12 +150,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/instantiator.git",
-                "reference": "9955122a490d18ce723cf9014b196c126222c180"
+                "reference": "0dfb69d79d0964b8a80bfa92c07f50e3e8d73542"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/instantiator/zipball/9955122a490d18ce723cf9014b196c126222c180",
-                "reference": "9955122a490d18ce723cf9014b196c126222c180",
+                "url": "https://api.github.com/repos/doctrine/instantiator/zipball/0dfb69d79d0964b8a80bfa92c07f50e3e8d73542",
+                "reference": "0dfb69d79d0964b8a80bfa92c07f50e3e8d73542",
                 "shasum": ""
             },
             "require": {
@@ -213,7 +213,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-05-05T15:09:38+00:00"
+            "time": "2024-06-20T19:34:15+00:00"
         },
         {
             "name": "donatj/mock-webserver",
@@ -705,12 +705,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-code-coverage.git",
-                "reference": "3352293d9e91513d5508c415835014881b420218"
+                "reference": "39d628812d8d83344a6c1b07799e3700d830d355"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/3352293d9e91513d5508c415835014881b420218",
-                "reference": "3352293d9e91513d5508c415835014881b420218",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/39d628812d8d83344a6c1b07799e3700d830d355",
+                "reference": "39d628812d8d83344a6c1b07799e3700d830d355",
                 "shasum": ""
             },
             "require": {
@@ -729,7 +729,7 @@
                 "theseer/tokenizer": "^1.2.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "^9.3"
+                "phpunit/phpunit": "^9.6"
             },
             "suggest": {
                 "ext-pcov": "PHP extension that provides line coverage",
@@ -738,7 +738,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "9.2-dev"
+                    "dev-main": "9.2-dev"
                 }
             },
             "autoload": {
@@ -775,7 +775,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-03-22T05:16:32+00:00"
+            "time": "2024-06-29T07:23:05+00:00"
         },
         {
             "name": "phpunit/php-file-iterator",
@@ -2297,12 +2297,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/smalot/pdfparser.git",
-                "reference": "a3e213d4c656fb837f3ec329f5f0c0ef887d1afc"
+                "reference": "db6af2783a0187320e957427a789d1b1edfa9713"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smalot/pdfparser/zipball/a3e213d4c656fb837f3ec329f5f0c0ef887d1afc",
-                "reference": "a3e213d4c656fb837f3ec329f5f0c0ef887d1afc",
+                "url": "https://api.github.com/repos/smalot/pdfparser/zipball/db6af2783a0187320e957427a789d1b1edfa9713",
+                "reference": "db6af2783a0187320e957427a789d1b1edfa9713",
                 "shasum": ""
             },
             "require": {
@@ -2341,7 +2341,7 @@
                 "issues": "https://github.com/smalot/pdfparser/issues",
                 "source": "https://github.com/smalot/pdfparser/tree/master"
             },
-            "time": "2024-06-05T14:34:19+00:00"
+            "time": "2024-06-26T08:03:19+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -2473,7 +2473,7 @@
                 "portable"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-ctype/tree/1.x"
+                "source": "https://github.com/symfony/polyfill-ctype/tree/v1.30.0"
             },
             "funding": [
                 {
@@ -2497,12 +2497,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
-                "reference": "098e36a5b73de12beeb5ac17e80abf3696f7ad5f"
+                "reference": "8740a072b86292957feb42703edde77fcfca84fb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/098e36a5b73de12beeb5ac17e80abf3696f7ad5f",
-                "reference": "098e36a5b73de12beeb5ac17e80abf3696f7ad5f",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/8740a072b86292957feb42703edde77fcfca84fb",
+                "reference": "8740a072b86292957feb42703edde77fcfca84fb",
                 "shasum": ""
             },
             "require": {
@@ -2570,7 +2570,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-05-31T15:07:36+00:00"
+            "time": "2024-06-20T08:18:00+00:00"
         },
         {
             "name": "symfony/yaml",
