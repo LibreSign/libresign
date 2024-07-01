@@ -149,7 +149,7 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}
         env:
           XDEBUG_MODE: ${{ matrix.xdebug_mode }}
-        run: composer run test:unit -- --testsuite ${{ matrix.testsuite }}
+        run: composer run test:unit -- --testsuite=${{ matrix.testsuite }}
 
       - name: Check PHPUnit integration script is defined
         id: check_integration
