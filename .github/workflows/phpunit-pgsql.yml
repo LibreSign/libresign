@@ -157,7 +157,7 @@ jobs:
         # Only run if phpunit config file exists
         if: steps.check_phpunit.outcome == 'success'
         working-directory: apps/${{ env.APP_NAME }}
-        run: composer run test:unit -- --testsuite=${{ matrix.testsuite }}
+        run: php vendor/bin/phpunit --colors=always --testsuite=${{ matrix.testsuite }}
 
       - name: Check PHPUnit integration script is defined
         id: check_integration
