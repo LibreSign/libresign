@@ -55,9 +55,6 @@
     <UndefinedClass>
       <code><![CDATA[QueryBuilder]]></code>
     </UndefinedClass>
-    <UndefinedDocblockClass>
-      <code><![CDATA[callable(QueryBuilder): void]]></code>
-    </UndefinedDocblockClass>
   </file>
   <file src="lib/Db/SignRequestMapper.php">
     <UndefinedClass>
