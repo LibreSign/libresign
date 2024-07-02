@@ -519,7 +519,7 @@ class SignRequestMapper extends QBMapper {
 			$qb->resetQueryPart('select')
 				->resetQueryPart('groupBy')
 				->selectAlias($qb->func()->count('f.id'), 'total')
-				->setFirstResult(null)
+				->setFirstResult(0)
 				->setMaxResults(null);
 			return (int) $qb->executeQuery()->fetchOne();
 		};
