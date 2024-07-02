@@ -109,7 +109,6 @@ appstore:
 		echo '${{ secrets.APP_PRIVATE_KEY }}' > $(cert_dir)/$(app_name).key ; \
 	fi
 	@if [ -f $(cert_dir)/$(app_name).key ]; then \
-		chown -R www-data:www-data $(project_directory) ; \
 		curl -o $(cert_dir)/$(app_name).crt \
 			"https://github.com/nextcloud/app-certificate-requests/raw/master/$(app_name)/$(app_name).crt"; \
 		php ../../occ libresign:install --all --architecture aarch64; \
