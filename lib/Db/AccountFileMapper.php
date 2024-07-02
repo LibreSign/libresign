@@ -76,6 +76,8 @@ class AccountFileMapper extends QBMapper {
 	}
 
 	public function accountFileList(array $filter, int $page = null, int $length = null): array {
+		$filter['length'] = $length;
+		$filter['page'] = $page;
 		$pagination = $this->getUserAccountFile($filter);
 		$pagination->setMaxPerPage($length);
 		$pagination->setCurrentPage($page);
@@ -97,7 +99,7 @@ class AccountFileMapper extends QBMapper {
 		return $return;
 	}
 
-	private function getUserAccountFile(array $filter = [], bool $count = false): Pagination {
+	private function getUserAccountFile(array $filter = []): Pagination {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
 			'f.id',
@@ -132,28 +134,24 @@ class AccountFileMapper extends QBMapper {
 				$qb->expr()->eq('af.user_id', $qb->createNamedParameter($filter['userId'])),
 			);
 		}
-
-		$countQueryBuilderModifier = function (IQueryBuilder &$qb) use ($filter): void {
-			$count = $qb->getConnection()->getQueryBuilder();
-			$count->selectAlias($count->func()->count(), 'total_results')
-				->from($this->getTableName(), 'af')
-				->setMaxResults(1);
-			if (!empty($filter['approved'])) {
-				if ($filter['approved'] === 'yes') {
-					$qb->andWhere(
-						$qb->expr()->eq('f.status', $qb->createNamedParameter(File::STATUS_SIGNED, Types::INTEGER)),
-					);
-				}
-			}
-			if (!empty($filter['userId'])) {
+		if (!empty($filter['approved'])) {
+			if ($filter['approved'] === 'yes') {
 				$qb->andWhere(
-					$qb->expr()->eq('af.user_id', $qb->createNamedParameter($filter['userId'])),
+					$qb->expr()->eq('f.status', $qb->createNamedParameter(File::STATUS_SIGNED, Types::INTEGER)),
 				);
 			}
-			$qb = $count;
-		};
+		}
+		if (!empty($filter['userId'])) {
+			$qb->andWhere(
+				$qb->expr()->eq('af.user_id', $qb->createNamedParameter($filter['userId'])),
+			);
+		}
+		if (isset($filter['length']) && isset($filter['page'])) {
+			$qb->setFirstResult($filter['length'] * ($filter['page'] - 1));
+			$qb->setMaxResults($filter['length']);
+		}
 
-		$pagination = new Pagination($qb, $countQueryBuilderModifier);
+		$pagination = new Pagination($qb);
 		return $pagination;
 	}
 
