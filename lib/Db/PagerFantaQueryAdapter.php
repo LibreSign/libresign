@@ -28,6 +28,7 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use Pagerfanta\Adapter\AdapterInterface;
 use Pagerfanta\Exception\InvalidArgumentException;
+use ReflectionClass;
 
 /**
  * Adapter which calculates pagination from a Doctrine DBAL QueryBuilder.
@@ -58,8 +59,24 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 	}
 
 	public function getNbResults(): int {
-		$qb = $this->prepareCountQueryBuilder();
-		return (int) $qb->executeQuery()->fetchOne();
+		/**
+		 * The clone isn't working fine if we clone the property $this->queryBuilder
+		 * because the internal property "queryBuilder" of $this->queryBuilder is
+		 * a reference and the clone don't work with reference. To solve this
+		 * was used reflection.
+		 */
+		$reflect = new ReflectionClass($this->queryBuilder);
+		$reflectionProperty = $reflect->getProperty('queryBuilder');
+		$reflectionProperty->setAccessible(true);
+		$qb = $reflectionProperty->getValue($this->queryBuilder);
+		$originalQueryBuilder = clone $qb;
+
+		$callable = $this->countQueryBuilderModifier;
+		$total = $callable($this->queryBuilder);
+
+		$reflectionProperty->setValue($this->queryBuilder, $originalQueryBuilder);
+
+		return $total;
 	}
 
 	/**
@@ -74,17 +91,5 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 			->setFirstResult($offset)
 			->executeQuery()
 			->fetchAll();
-	}
-
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 */
-	private function prepareCountQueryBuilder(): IQueryBuilder {
-		$qb = clone $this->queryBuilder;
-		$callable = $this->countQueryBuilderModifier;
-
-		$callable($qb);
-
-		return $qb;
 	}
 }
