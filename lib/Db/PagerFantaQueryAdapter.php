@@ -36,10 +36,6 @@ use ReflectionClass;
 class PagerFantaQueryAdapter implements AdapterInterface {
 	private IQueryBuilder $queryBuilder;
 
-	/**
-	 * @var callable
-	 * @phpstan-var callable(QueryBuilder): void
-	 */
 	private $countQueryBuilderModifier;
 
 	/**
