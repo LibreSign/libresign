@@ -16,11 +16,6 @@ appstore_sign_dir=$(appstore_build_directory)/sign
 cert_dir=$(build_tools_directory)/certificates
 npm=$(shell which npm 2> /dev/null)
 composer=$(shell which composer 2> /dev/null)
-ifeq (,$(shell type occ))
-	occ="php ../../occ"
-else
-	occ="occ"
-endif
 
 all: dev-setup build-js-production
 serve: dev-setup watch-js
@@ -109,22 +104,24 @@ appstore:
 	mkdir -p $(appstore_sign_dir)/$(app_name)/tests/fixtures
 	cp tests/fixtures/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/fixtures
 
-	@if [ -z "$$GITHUB_ACTION" ]; then \
-		chown -R www-data:www-data $(appstore_sign_dir)/$(app_name) ; \
-	fi
-
 	mkdir -p $(cert_dir)
-	@if [ ! -f $(cert_dir)/$(app_name).crt ]; then \
-		curl -o $(cert_dir)/$(app_name).crt \
-			"https://github.com/nextcloud/app-certificate-requests/raw/master/$(app_name)/$(app_name).crt"; \
+	@if [ -n "$$GITHUB_ACTION" ]; then \
+		echo '${{ secrets.APP_PRIVATE_KEY }}' > $(cert_dir)/$(app_name).key ; \
 	fi
 	@if [ -f $(cert_dir)/$(app_name).key ]; then \
-		$(occ) libresign:install --all --architecture aarch64; \
-		$(occ) libresign:install --all --architecture x86_64; \
-		$(occ) libresign:developer:sign-setup --privateKey=$(cert_dir)/$(app_name).key \
+		chown -R www-data:www-data $(project_directory) ; \
+		curl -o $(cert_dir)/$(app_name).crt \
+			"https://github.com/nextcloud/app-certificate-requests/raw/master/$(app_name)/$(app_name).crt"; \
+		php ../../occ libresign:install --all --architecture aarch64; \
+		php ../../occ libresign:install --all --architecture x86_64; \
+		echo "Signing setup files…"; \
+		php lib/Command/Developer/SignSetupApplication.php \
+			libresign:developer:sign-setup \
+			--privateKey=$(cert_dir)/$(app_name).key \
 			--certificate=$(cert_dir)/$(app_name).crt; \
+		cp -r appinfo $(appstore_sign_dir)/$(app_name); \
 		echo "Signing app files…"; \
-		$(occ) integrity:sign-app \
+		php ../../occ integrity:sign-app \
 			--privateKey=$(cert_dir)/$(app_name).key\
 			--certificate=$(cert_dir)/$(app_name).crt\
 			--path=$(appstore_sign_dir)/$(app_name); \

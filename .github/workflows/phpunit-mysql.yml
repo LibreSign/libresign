@@ -69,9 +69,8 @@ jobs:
         php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
         server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
         mysql-versions: ["8.4"]
-        testsuite: [unit, api]
 
-    name: MySQL ${{ matrix.mysql-versions }} PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }} Testsuite ${{ matrix.testsuite }}
+    name: MySQL ${{ matrix.mysql-versions }} PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
 
     services:
       mysql:
@@ -161,7 +160,7 @@ jobs:
         # Only run if phpunit config file exists
         if: steps.check_phpunit.outcome == 'success'
         working-directory: apps/${{ env.APP_NAME }}
-        run: php vendor/bin/phpunit --colors=always --testsuite=${{ matrix.testsuite }}
+        run: composer run test:unit
 
       - name: Check PHPUnit integration script is defined
         id: check_integration
