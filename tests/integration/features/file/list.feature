@@ -69,6 +69,7 @@ Feature: file-list
       | users | [{"identify":{"email":"signer1@domain.test"}}] |
       | name | document |
     And the response should have a status code 200
+    # first page
     When sending "get" to ocs "/apps/libresign/api/v1/file/list?length=2"
     Then the response should be a JSON array with the following mandatory values
       | key                              | value                      |
@@ -79,6 +80,7 @@ Feature: file-list
       | (jq).ocs.data.pagination.prev    | null                       |
       | (jq).ocs.data.pagination.last    | /file/list?page=3&length=2 |
       | (jq).ocs.data.pagination.first   | null                       |
+    # second page
     When sending "get" to ocs "/apps/libresign/api/v1/file/list?length=2&page=2"
     Then the response should be a JSON array with the following mandatory values
       | key                              | value                      |
@@ -88,4 +90,15 @@ Feature: file-list
       | (jq).ocs.data.pagination.next    | /file/list?page=3&length=2 |
       | (jq).ocs.data.pagination.prev    | /file/list?page=1&length=2 |
       | (jq).ocs.data.pagination.last    | /file/list?page=3&length=2 |
+      | (jq).ocs.data.pagination.first   | /file/list?page=1&length=2 |
+    # last page
+    When sending "get" to ocs "/apps/libresign/api/v1/file/list?length=2&page=3"
+    Then the response should be a JSON array with the following mandatory values
+      | key                              | value                      |
+      | (jq).ocs.data.data[0].name       | document                   |
+      | (jq).ocs.data.pagination.total   | 5                          |
+      | (jq).ocs.data.pagination.current | /file/list?page=3&length=2 |
+      | (jq).ocs.data.pagination.next    | null                       |
+      | (jq).ocs.data.pagination.prev    | /file/list?page=2&length=2 |
+      | (jq).ocs.data.pagination.last    | null                       |
       | (jq).ocs.data.pagination.first   | /file/list?page=1&length=2 |
