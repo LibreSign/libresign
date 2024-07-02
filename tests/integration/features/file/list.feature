@@ -3,7 +3,7 @@ Feature: file-list
     Given user "signer1" exists
     Given user "signer2" exists
 
-  Scenario: Return a list with two files
+  Scenario: Return a list with two signers
     Given as user "admin"
     And set the email of user "signer1" to "signer1@domain.test"
     And set the email of user "signer2" to ""
