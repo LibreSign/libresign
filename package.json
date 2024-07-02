@@ -67,7 +67,7 @@
     "@nextcloud/stylelint-config": "^3.0.1",
     "@nextcloud/webpack-vue-config": "^6.0.1",
     "file-loader": "^6.2.0",
-    "openapi-typescript": "^6.7.6",
+    "openapi-typescript": "^7.0.1",
     "url-loader": "^4.1.1",
     "vue-template-compiler": "^2.7.16"
   }
