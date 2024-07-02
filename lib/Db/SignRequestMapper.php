@@ -363,7 +363,10 @@ class SignRequestMapper extends QBMapper {
 		int $length = null,
 		array $filter,
 	): array {
-		$pagination = $this->getFilesAssociatedFilesWithMeStmt($user->getUID(), $user->getEMailAddress(), $filter);
+		$filter['email'] = $user->getEMailAddress();
+		$filter['length'] = $length;
+		$filter['page'] = $page;
+		$pagination = $this->getFilesAssociatedFilesWithMeStmt($user->getUID(), $filter);
 		$pagination->setMaxPerPage($length);
 		$pagination->setCurrentPage($page);
 		$currentPageResults = $pagination->getCurrentPageResults();
@@ -438,10 +441,9 @@ class SignRequestMapper extends QBMapper {
 		return $return;
 	}
 
-	public function getMyLibresignFile(string $userId, ?string $email, ?array $filter = []): File {
+	public function getMyLibresignFile(string $userId, ?array $filter = []): File {
 		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder(
 			userId: $userId,
-			email: $email,
 			filter: $filter,
 		);
 		$qb->select('f.*');
@@ -454,7 +456,7 @@ class SignRequestMapper extends QBMapper {
 		return $file->fromRow($row);
 	}
 
-	private function getFilesAssociatedFilesWithMeQueryBuilder(string $userId, ?string $email, ?array $filter = []): IQueryBuilder {
+	private function getFilesAssociatedFilesWithMeQueryBuilder(string $userId, ?array $filter = []): IQueryBuilder {
 		$qb = $this->db->getQueryBuilder();
 		$qb->from('libresign_file', 'f')
 			->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id')
@@ -483,14 +485,14 @@ class SignRequestMapper extends QBMapper {
 				$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($userId))
 			)
 		];
-		if ($email) {
-			$or[] = $qb->expr()->andX(
-				$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter(IdentifyMethodService::IDENTIFY_EMAIL)),
-				$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($email))
-			);
-		}
 		$qb->where($qb->expr()->orX(...$or));
 		if ($filter) {
+			if (isset($filter['email']) && filter_var($filter['email'], FILTER_VALIDATE_EMAIL)) {
+				$or[] = $qb->expr()->andX(
+					$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter(IdentifyMethodService::IDENTIFY_EMAIL)),
+					$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($filter['email']))
+				);
+			}
 			if (isset($filter['signer_uuid'])) {
 				$qb->andWhere(
 					$qb->expr()->eq('sr.uuid', $qb->createNamedParameter($filter['signer_uuid']))
@@ -501,12 +503,16 @@ class SignRequestMapper extends QBMapper {
 					$qb->expr()->eq('f.node_id', $qb->createNamedParameter($filter['nodeId'], IQueryBuilder::PARAM_INT))
 				);
 			}
+			if (isset($filter['length']) && isset($filter['page'])) {
+				$qb->setFirstResult($filter['length'] * ($filter['page'] - 1));
+				$qb->setMaxResults($filter['length']);
+			}
 		}
 		return $qb;
 	}
 
-	private function getFilesAssociatedFilesWithMeStmt(string $userId, ?string $email, ?array $filter = []): Pagination {
-		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder($userId, $email, $filter);
+	private function getFilesAssociatedFilesWithMeStmt(string $userId, ?array $filter = []): Pagination {
+		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder($userId, $filter);
 		$qb->select(
 			'f.id',
 			'f.node_id',
@@ -518,18 +524,16 @@ class SignRequestMapper extends QBMapper {
 		);
 		$qb->selectAlias('f.created_at', 'request_date');
 
-		$countQueryBuilderModifier = function (IQueryBuilder &$qb): void {
-			/** @todo improve this to don't do two queries */
-			$qb->select('f.id')
-				->groupBy('f.id');
-			$cursor = $qb->executeQuery();
-			$ids = $cursor->fetchAll();
-
-			$qb->resetQueryParts();
-			$qb->selectAlias($qb->createNamedParameter(count($ids)), 'total');
+		$countQueryBuilderModifier = function (IQueryBuilder $qb): int {
+			$qb->resetQueryPart('select')
+				->resetQueryPart('groupBy')
+				->select($qb->func()->count())
+				->setFirstResult(0)
+				->setMaxResults(null);
+			return (int) $qb->executeQuery()->fetchOne();
 		};
 
-		$pagination = new Pagination($qb, $countQueryBuilderModifier);
+		$pagination = new Pagination($qb);
 		return $pagination;
 	}
 

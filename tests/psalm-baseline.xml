@@ -49,25 +49,12 @@
     </InvalidThrow>
   </file>
   <file src="lib/Db/PagerFantaQueryAdapter.php">
-    <InvalidArgument>
-      <code><![CDATA[$qb]]></code>
-    </InvalidArgument>
-    <LessSpecificReturnStatement>
-      <code><![CDATA[(int) $qb->executeQuery()->fetchOne()]]></code>
-    </LessSpecificReturnStatement>
     <MissingTemplateParam>
       <code><![CDATA[AdapterInterface]]></code>
     </MissingTemplateParam>
-    <MoreSpecificReturnType>
-      <code><![CDATA[int]]></code>
-    </MoreSpecificReturnType>
     <UndefinedClass>
       <code><![CDATA[QueryBuilder]]></code>
     </UndefinedClass>
-    <UndefinedDocblockClass>
-      <code><![CDATA[callable(QueryBuilder): void]]></code>
-      <code><![CDATA[callable(QueryBuilder): void]]></code>
-    </UndefinedDocblockClass>
   </file>
   <file src="lib/Db/SignRequestMapper.php">
     <UndefinedClass>
