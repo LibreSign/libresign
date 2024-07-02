@@ -13,6 +13,17 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 8.1.3 - 2024-07-02
+### Changed
+* chore: update workflows [3255](https://github.com/LibreSign/libresign/pull/3255)
+* chore: bump dependencies of integration tests [3267](https://github.com/LibreSign/libresign/pull/3267)
+
+### Fixes
+* fix: pack openapi json file [3247](https://github.com/LibreSign/libresign/pull/3247)
+* fix: use equal to option [3257](https://github.com/LibreSign/libresign/pull/3257)
+* fix: sign setup when build [3262](https://github.com/LibreSign/libresign/pull/3262)
+* fix: pagination [3270](https://github.com/LibreSign/libresign/pull/3270)
+
 ## 8.1.2 - 2024-06-28
 ### Fixes
 * fix: Internal error when signing [#3238](github.com/libresign/libresign/pull/3238)
