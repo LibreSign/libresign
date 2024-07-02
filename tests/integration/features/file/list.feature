@@ -41,3 +41,28 @@ Feature: file-list
       | (jq).ocs.data.data[0].signers[0].me                        | false                   |
       | (jq).ocs.data.data[0].signers[0].identifyMethods\|length   | 1                       |
       | (jq).ocs.data.data[0].signers[0].identifyMethods[0].method | account                 |
+
+  Scenario: Return a list with pagination
+    Given as user "admin"
+    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"email","enabled":true,"mandatory":true,"can_create_account":false}] |
+    And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"identify":{"email":"signer1@domain.test"}}] |
+      | name | document |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"identify":{"email":"signer1@domain.test"}}] |
+      | name | document |
+    And the response should have a status code 200
+    And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"identify":{"email":"signer1@domain.test"}}] |
+      | name | document |
+    And the response should have a status code 200
+    When sending "get" to ocs "/apps/libresign/api/v1/file/list?length=2"
+    Then the response should be a JSON array with the following mandatory values
+      | key                                                        | value     |
+      | (jq).ocs.data.data[0].name                                 | document  |
+      | (jq).ocs.data.pagination.total                             | 3         |
