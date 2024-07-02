@@ -364,6 +364,8 @@ class SignRequestMapper extends QBMapper {
 		array $filter,
 	): array {
 		$filter['email'] = $user->getEMailAddress();
+		$filter['length'] = $length;
+		$filter['page'] = $page;
 		$pagination = $this->getFilesAssociatedFilesWithMeStmt($user->getUID(), $filter);
 		$pagination->setMaxPerPage($length);
 		$pagination->setCurrentPage($page);
@@ -500,6 +502,10 @@ class SignRequestMapper extends QBMapper {
 				$qb->andWhere(
 					$qb->expr()->eq('f.node_id', $qb->createNamedParameter($filter['nodeId'], IQueryBuilder::PARAM_INT))
 				);
+			}
+			if (isset($filter['length']) && isset($filter['page'])) {
+				$qb->setFirstResult($filter['length'] * ($filter['page'] - 1));
+				$qb->setMaxResults($filter['length']);
 			}
 		}
 		return $qb;
