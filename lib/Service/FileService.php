@@ -595,8 +595,8 @@ class FileService {
 	public function getMyLibresignFile(int $nodeId): File {
 		return $this->signRequestMapper->getMyLibresignFile(
 			userId: $this->me->getUID(),
-			email: $this->me->getEMailAddress(),
 			filter: [
+				'email' => $this->me->getEMailAddress(),
 				'nodeId' => $nodeId,
 			],
 		);
