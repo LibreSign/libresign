@@ -34,24 +34,17 @@ use ReflectionClass;
  * Adapter which calculates pagination from a Doctrine DBAL QueryBuilder.
  */
 class PagerFantaQueryAdapter implements AdapterInterface {
-	private IQueryBuilder $queryBuilder;
-
-	private $countQueryBuilderModifier;
-
 	/**
-	 * @phpstan-param callable(QueryBuilder): void $countQueryBuilderModifier
-	 *
 	 * @throws InvalidArgumentException if a non-SELECT query is given
 	 */
-	public function __construct(IQueryBuilder $queryBuilder, callable $countQueryBuilderModifier) {
+	public function __construct(
+		private IQueryBuilder $queryBuilder,
+	) {
 		if (QueryBuilder::SELECT !== $queryBuilder->getType()) {
 			// @codeCoverageIgnoreStart
 			throw new InvalidArgumentException('Only SELECT queries can be paginated.');
 			// @codeCoverageIgnoreEnd
 		}
-
-		$this->queryBuilder = clone $queryBuilder;
-		$this->countQueryBuilderModifier = $countQueryBuilderModifier;
 	}
 
 	public function getNbResults(): int {
@@ -67,12 +60,16 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 		$qb = $reflectionProperty->getValue($this->queryBuilder);
 		$originalQueryBuilder = clone $qb;
 
-		$callable = $this->countQueryBuilderModifier;
-		$total = $callable($this->queryBuilder);
+		$this->queryBuilder->resetQueryPart('select')
+			->resetQueryPart('groupBy')
+			->select($this->queryBuilder->func()->count())
+			->setFirstResult(0)
+			->setMaxResults(null);
+		$total = $this->queryBuilder->executeQuery()->fetchOne();
 
 		$reflectionProperty->setValue($this->queryBuilder, $originalQueryBuilder);
 
-		return $total;
+		return abs((int) $total);
 	}
 
 	/**

@@ -167,16 +167,7 @@ class AccountFileMapper extends QBMapper {
 			$qb->setMaxResults($filter['length']);
 		}
 
-		$countQueryBuilderModifier = function (IQueryBuilder $qb) use ($filter): int {
-			$qb->resetQueryPart('select')
-				->resetQueryPart('groupBy')
-				->select($qb->func()->count())
-				->setFirstResult(0)
-				->setMaxResults(null);
-			return (int) $qb->executeQuery()->fetchOne();
-		};
-
-		$pagination = new Pagination($qb, $countQueryBuilderModifier);
+		$pagination = new Pagination($qb);
 		return $pagination;
 	}
 
