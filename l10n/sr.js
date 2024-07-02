@@ -262,6 +262,7 @@ OC.L10N.register(
     "Downloading binaries" : "Преузимање бинарних фајлова",
     "Download binaries" : "Преузми бинарне фајлове",
     "Validate setup" : "Потврди подешавање",
+    "Binaries required to work. Download size could be nearly {size}, please wait a moment." : "Неопходни су бинарни фајлови за рад. Величина преузимања може бити скоро {size}, причекајте мало.",
     "Rules for controlling the expiration of a request to sign a file." : "Правила за контролу периода важења захтева за потпис фајла.",
     "Maximum validity" : "Макцимално важење",
     "Maximum validity in seconds of a request to sign." : "Максимално време важења захтева за потпис у секундама.",
