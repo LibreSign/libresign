@@ -443,8 +443,6 @@ class SignRequestMapper extends QBMapper {
 	private function getFilesAssociatedFilesWithMeQueryBuilder(string $userId, ?array $filter = []): IQueryBuilder {
 		$qb = $this->db->getQueryBuilder();
 		$qb->from('libresign_file', 'f')
-			->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id')
-			->leftJoin('f', 'libresign_identify_method', 'im', $qb->expr()->eq('sr.id', 'im.sign_request_id'))
 			->groupBy(
 				'f.id',
 				'f.node_id',
@@ -471,13 +469,21 @@ class SignRequestMapper extends QBMapper {
 		];
 		$qb->where($qb->expr()->orX(...$or));
 		if ($filter) {
-			if (isset($filter['email']) && filter_var(isset($filter['email']), FILTER_VALIDATE_EMAIL)) {
+			if (isset($filter['email']) && filter_var($filter['email'], FILTER_VALIDATE_EMAIL)) {
+				$qb->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id');
+				$qb->leftJoin('f', 'libresign_identify_method', 'im', $qb->expr()->eq('sr.id', 'im.sign_request_id'));
 				$or[] = $qb->expr()->andX(
 					$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter(IdentifyMethodService::IDENTIFY_EMAIL)),
 					$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($filter['email']))
 				);
 			}
 			if (isset($filter['signer_uuid'])) {
+				$join = $qb->getQueryPart('join');
+				array_walk($join, function($table) use ($qb) {
+					if (!array_filter($table, fn($j) => str_contains($j['joinAlias'], 'sr'))) {
+						$qb->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id');
+					}
+				});
 				$qb->andWhere(
 					$qb->expr()->eq('sr.uuid', $qb->createNamedParameter($filter['signer_uuid']))
 				);
