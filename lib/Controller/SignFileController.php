@@ -38,6 +38,7 @@ use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
@@ -82,6 +83,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoCSRFRequired]
 	#[RequireManager]
 	#[PublicPage]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
 	public function signUsingFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = ''): DataResponse {
 		return $this->sign($fileId, null, $method, $elements, $identifyValue, $token);
 	}
@@ -104,6 +106,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoCSRFRequired]
 	#[RequireSigner]
 	#[PublicPage]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}', requirements: ['apiVersion' => '(v1)'])]
 	public function signUsingUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = ''): DataResponse {
 		return $this->sign(null, $uuid, $method, $elements, $identifyValue, $token);
 	}
@@ -198,6 +201,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[CanSignRequestUuid]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}/renew/{method}', requirements: ['apiVersion' => '(v1)'])]
 	public function signRenew(string $method): DataResponse {
 		$this->signFileService->renew(
 			$this->getSignRequestEntity(),
@@ -224,6 +228,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoCSRFRequired]
 	#[RequireSigner]
 	#[PublicPage]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}/code', requirements: ['apiVersion' => '(v1)'])]
 	public function getCodeUsingUuid(string $uuid): DataResponse {
 		try {
 			$signRequest = $this->signRequestMapper->getBySignerUuidAndUserId($uuid);
@@ -249,6 +254,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoCSRFRequired]
 	#[RequireSigner]
 	#[PublicPage]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/file_id/{fileId}/code', requirements: ['apiVersion' => '(v1)'])]
 	public function getCodeUsingFileId(int $fileId, ?string $identifyMethod, ?string $signMethod, ?string $identify): DataResponse {
 		try {
 			$signRequest = $this->signRequestMapper->getByFileIdAndUserId($fileId);

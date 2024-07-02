@@ -33,6 +33,7 @@ use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCA\Libresign\Service\Install\InstallService;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Services\IAppConfig;
@@ -74,6 +75,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * 401: Account not found
 	 */
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/certificate/cfssl', requirements: ['apiVersion' => '(v1)'])]
 	public function generateCertificateCfssl(
 		array $rootCert,
 		string $cfsslUri = '',
@@ -109,6 +111,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * 401: Account not found
 	 */
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/certificate/openssl', requirements: ['apiVersion' => '(v1)'])]
 	public function generateCertificateOpenSsl(
 		array $rootCert,
 		string $configPath = ''
@@ -158,6 +161,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * 200: OK
 	 */
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/certificate', requirements: ['apiVersion' => '(v1)'])]
 	public function loadCertificate(): DataResponse {
 		$engine = $this->certificateEngineHandler->getEngine();
 		/** @var LibresignEngineHandler */
@@ -191,6 +195,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * 200: OK
 	 */
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/configure-check', requirements: ['apiVersion' => '(v1)'])]
 	public function configureCheck(): DataResponse {
 		/** @var LibresignConfigureCheck[] */
 		$configureCheckList = $this->configureCheckService->checkAll();
@@ -203,6 +208,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * @IgnoreOpenAPI
 	 */
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/install-and-validate', requirements: ['apiVersion' => '(v1)'])]
 	public function installAndValidate(): void {
 		try {
 			$async = \function_exists('proc_open');
