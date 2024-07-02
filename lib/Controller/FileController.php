@@ -200,7 +200,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/list', requirements: ['apiVersion' => '(v1)'])]
-	public function list($page = null, $length = null, ?array $filter = []): DataResponse {
+	public function list(?int $page = null, ?int $length = null, ?array $filter = []): DataResponse {
 		$return = $this->fileService
 			->setMe($this->userSession->getUser())
 			->listAssociatedFilesOfSignFlow($page, $length, $filter);
