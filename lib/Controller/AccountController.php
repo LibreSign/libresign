@@ -25,6 +25,7 @@ use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\CORS;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -84,6 +85,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[UseSession]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/account/create/{uuid}', requirements: ['apiVersion' => '(v1)'])]
 	public function createToSign(string $uuid, string $email, string $password, ?string $signPassword): DataResponse {
 		try {
 			$data = [
@@ -145,6 +147,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/account/signature', requirements: ['apiVersion' => '(v1)'])]
 	public function signatureGenerate(
 		string $signPassword
 	): DataResponse {
@@ -194,6 +197,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/account/files', requirements: ['apiVersion' => '(v1)'])]
 	public function addFiles(array $files): DataResponse {
 		try {
 			$this->accountService->addFilesToAccount($files, $this->userSession->getUser());
@@ -232,6 +236,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/account/files', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteFile(int $nodeId): DataResponse {
 		try {
 			$this->accountService->deleteFileFromAccount($nodeId, $this->userSession->getUser());
@@ -262,6 +267,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	#[CORS]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/account/me', requirements: ['apiVersion' => '(v1)'])]
 	public function me(): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -299,6 +305,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/account/files', requirements: ['apiVersion' => '(v1)'])]
 	public function accountFileListToOwner(array $filter = [], ?int $page = null, ?int $length = null): DataResponse {
 		try {
 			$filter['userId'] = $this->userSession->getUser()->getUID();
@@ -327,6 +334,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/account/files/approval/list', requirements: ['apiVersion' => '(v1)'])]
 	public function accountFileListToApproval(array $filter = [], ?int $page = null, ?int $length = null): DataResponse {
 		try {
 			$this->validateHelper->userCanApproveValidationDocuments($this->userSession->getUser());
@@ -354,6 +362,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/account/settings', requirements: ['apiVersion' => '(v1)'])]
 	public function updateSettings(?string $phone = null): DataResponse {
 		try {
 			$user = $this->userSession->getUser();
@@ -398,6 +407,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'delete', url: '/api/{apiVersion}/account/pfx', requirements: ['apiVersion' => '(v1)'])]
 	public function deletePfx(): DataResponse {
 		$this->accountService->deletePfx($this->userSession->getUser());
 		return new DataResponse(
@@ -419,6 +429,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/account/pfx', requirements: ['apiVersion' => '(v1)'])]
 	public function uploadPfx(): DataResponse {
 		$file = $this->request->getUploadedFile('file');
 		try {
@@ -458,6 +469,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/account/pfx', requirements: ['apiVersion' => '(v1)'])]
 	public function updatePfxPassword($current, $new): DataResponse {
 		try {
 			$this->accountService->updatePfxPassword($this->userSession->getUser(), $current, $new);
@@ -490,6 +502,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/account/pfx/read', requirements: ['apiVersion' => '(v1)'])]
 	public function readPfxData(string $password): DataResponse {
 		try {
 			$data = $this->accountService->readPfxData($this->userSession->getUser(), $password);

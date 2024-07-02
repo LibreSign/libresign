@@ -19,6 +19,7 @@ use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
@@ -63,6 +64,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/signature/elements', requirements: ['apiVersion' => '(v1)'])]
 	public function createSignatureElement(array $elements): DataResponse {
 		try {
 			$this->validateHelper->validateVisibleElements($elements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
@@ -109,6 +111,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/signature/elements', requirements: ['apiVersion' => '(v1)'])]
 	public function getSignatureElements(): DataResponse {
 		$userId = $this->userSession->getUser()?->getUID();
 		try {
@@ -146,6 +149,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[PublicPage]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/signature/elements/preview/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function getSignatureElementPreview(int $nodeId) {
 		try {
 			$node = $this->accountService->getFileByNodeIdAndSessionId(
@@ -177,6 +181,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/signature/elements/preview/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function getSignatureElement(int $nodeId): DataResponse {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
@@ -209,6 +214,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[PublicPage]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/signature/elements/preview/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function patchSignatureElement(int $nodeId, string $type = '', array $file = []): DataResponse {
 		try {
 			$element['nodeId'] = $nodeId;
@@ -264,6 +270,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
+	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/signature/elements/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteSignatureElement(int $nodeId): DataResponse {
 		try {
 			$this->accountService->deleteSignatureElement(

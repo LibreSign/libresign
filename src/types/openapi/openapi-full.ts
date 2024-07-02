@@ -28,35 +28,27 @@ export type paths = {
     /** Incomplete page */
     get: operations["page-incomplete"];
   };
-  "/index.php/apps/libresign/f/sign/{uuid}/{path}": {
-    /**
-     * Sign page to authenticated signer with the path of file
-     * @description The path is used only by frontend
-     */
-    get: operations["page-signf-path-extra"];
-  };
-  "/index.php/apps/libresign/f/sign/{uuid}": {
-    /** Sign page to authenticated signer */
-    get: operations["page-signf"];
+  "/index.php/apps/libresign/p/incomplete": {
+    /** Incomplete page in full screen */
+    get: operations["page-incompletep"];
   };
   "/index.php/apps/libresign/f/{path}": {
     /**
      * Main page to authenticated signer with a path
      * @description The path is used only by frontend
      */
-    get: operations["page-indexf-path-front"];
+    get: operations["page-indexf-path"];
   };
-  "/index.php/apps/libresign/pdf/{uuid}": {
-    /** Use UUID of user to get PDF */
-    get: operations["page-get-pdf-file"];
+  "/index.php/apps/libresign/f/sign/{uuid}": {
+    /** Sign page to authenticated signer */
+    get: operations["page-signf"];
   };
-  "/index.php/apps/libresign/reset-password": {
-    /** Show validation page */
-    get: operations["page-reset-password"];
-  };
-  "/index.php/apps/libresign/p/incomplete": {
-    /** Incomplete page in full screen */
-    get: operations["page-incompletep"];
+  "/index.php/apps/libresign/f/sign/{uuid}/{path}": {
+    /**
+     * Sign page to authenticated signer with the path of file
+     * @description The path is used only by frontend
+     */
+    get: operations["page-signf-path"];
   };
   "/index.php/apps/libresign/p/sign/{uuid}": {
     /**
@@ -65,20 +57,21 @@ export type paths = {
      */
     get: operations["page-sign"];
   };
-  "/index.php/apps/libresign/p/sign/{uuid}/{path}": {
-    /**
-     * Sign page to authenticated signer
-     * @description The path is used only by frontend
-     */
-    get: operations["page-sign-extra"];
-  };
   "/index.php/apps/libresign/p/account/files/approve/{uuid}": {
     /** Show signature page */
     get: operations["page-sign-account-file"];
   };
   "/index.php/apps/libresign/p/account/files/approve/{uuid}/{path}": {
     /** Show signature page */
-    get: operations["page-sign-account-file-extra"];
+    get: operations["page-sign-account-file-private"];
+  };
+  "/index.php/apps/libresign/p/pdf/{uuid}": {
+    /** Use UUID of file to get PDF */
+    get: operations["page-get-pdf"];
+  };
+  "/index.php/apps/libresign/pdf/{uuid}": {
+    /** Use UUID of user to get PDF */
+    get: operations["page-get-pdf-file"];
   };
   "/index.php/apps/libresign/p/validation": {
     /** Show validation page */
@@ -91,17 +84,29 @@ export type paths = {
      */
     get: operations["page-validation-file-with-short-url"];
   };
+  "/index.php/apps/libresign/reset-password": {
+    /** Show validation page */
+    get: operations["page-reset-password"];
+  };
   "/index.php/apps/libresign/p/validation/{uuid}": {
     /** Show validation page for a specific file UUID */
     get: operations["page-validation-file"];
   };
-  "/index.php/apps/libresign/p/pdf/{uuid}": {
-    /** Use UUID of file to get PDF */
-    get: operations["page-get-pdf"];
-  };
   "/ocs/v2.php/apps/libresign/api/{apiVersion}/account/create/{uuid}": {
     /** Create account to sign a document */
     post: operations["account-create-to-sign"];
+  };
+  "/ocs/v2.php/apps/libresign/api/{apiVersion}/account/signature": {
+    /** Create PFX file using self-signed certificate */
+    post: operations["account-signature-generate"];
+  };
+  "/ocs/v2.php/apps/libresign/api/{apiVersion}/account/files": {
+    /** List account files of authenticated account */
+    get: operations["account-account-file-list-to-owner"];
+    /** Add files to account profile */
+    post: operations["account-add-files"];
+    /** Delete file from account */
+    delete: operations["account-delete-file"];
   };
   "/ocs/v2.php/apps/libresign/api/{apiVersion}/account/me": {
     /**
@@ -109,6 +114,14 @@ export type paths = {
      * @description Validates API access data and returns the authenticated user's data.
      */
     get: operations["account-me"];
+  };
+  "/ocs/v2.php/apps/libresign/api/{apiVersion}/account/files/approval/list": {
+    /** List account files that need to be approved */
+    get: operations["account-account-file-list-to-approval"];
+  };
+  "/ocs/v2.php/apps/libresign/api/{apiVersion}/account/settings": {
+    /** Update the account phone number */
+    patch: operations["account-update-settings"];
   };
   "/ocs/v2.php/apps/libresign/api/{apiVersion}/account/pfx": {
     /** Upload PFX file */
@@ -125,48 +138,6 @@ export type paths = {
     /** Read content of PFX file */
     post: operations["account-read-pfx-data"];
   };
-  "/ocs/v2.php/apps/libresign/api/{apiVersion}/account/settings": {
-    /** Update the account phone number */
-    patch: operations["account-update-settings"];
-  };
-  "/ocs/v2.php/apps/libresign/api/{apiVersion}/account/signature": {
-    /** Create PFX file using self-signed certificate */
-    post: operations["account-signature-generate"];
-  };
-  "/ocs/v2.php/apps/libresign/api/{apiVersion}/account/files": {
-    /** List account files of authenticated account */
-    get: operations["account-account-file-list-to-owner"];
-    /** Add files to account profile */
-    post: operations["account-add-files"];
-    /** Delete file from account */
-    delete: operations["account-delete-file"];
-  };
-  "/ocs/v2.php/apps/libresign/api/{apiVersion}/account/files/approval/list": {
-    /** List account files that need to be approved */
-    get: operations["account-account-file-list-to-approval"];
-  };
-  "/ocs/v2.php/apps/libresign/api/{apiVersion}/file": {
-    /**
-     * Send a file
-     * @description Send a new file to Nextcloud and return the fileId to request to sign usign fileId
-     */
-    post: operations["file-save"];
-  };
-  "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/list": {
-    /** List account files that need to be approved */
-    get: operations["file-list"];
-  };
-  "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/thumbnail/{nodeId}": {
-    /** Return the thumbnail of a LibreSign file */
-    get: operations["file-get-thumbnail"];
-  };
-  "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/validate": {
-    /**
-     * Validate a file
-     * @description Validate a file returning file data.
-     */
-    get: operations["file-validate"];
-  };
   "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/validate/uuid/{uuid}": {
     /**
      * Validate a file using Uuid
@@ -180,6 +151,28 @@ export type paths = {
      * @description Validate a file returning file data.
      */
     get: operations["file-validate-file-id"];
+  };
+  "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/validate": {
+    /**
+     * Validate a file
+     * @description Validate a file returning file data.
+     */
+    get: operations["file-validate"];
+  };
+  "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/list": {
+    /** List account files that need to be approved */
+    get: operations["file-list"];
+  };
+  "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/thumbnail/{nodeId}": {
+    /** Return the thumbnail of a LibreSign file */
+    get: operations["file-get-thumbnail"];
+  };
+  "/ocs/v2.php/apps/libresign/api/{apiVersion}/file": {
+    /**
+     * Send a file
+     * @description Send a new file to Nextcloud and return the fileId to request to sign usign fileId
+     */
+    post: operations["file-save"];
   };
   "/ocs/v2.php/apps/libresign/api/{apiVersion}/file-element/{uuid}": {
     /**
@@ -207,15 +200,15 @@ export type paths = {
      */
     get: operations["identify_account-search"];
   };
-  "/ocs/v2.php/apps/libresign/api/{apiVersion}/notify/signer": {
-    /** Notify a signer of a file */
-    post: operations["notify-signer"];
-  };
   "/ocs/v2.php/apps/libresign/api/{apiVersion}/notify/signers": {
     /** Notify signers of a file */
     post: operations["notify-signers"];
   };
-  "/ocs/v2.php/apps/libresign/api/{apiVersion}/notif/notification": {
+  "/ocs/v2.php/apps/libresign/api/{apiVersion}/notify/signer": {
+    /** Notify a signer of a file */
+    post: operations["notify-signer"];
+  };
+  "/ocs/v2.php/apps/libresign/api/{apiVersion}/notify/notification": {
     /** Dismiss a specific notification */
     delete: operations["notify-notification-dismiss"];
   };
@@ -231,6 +224,13 @@ export type paths = {
      */
     patch: operations["request_signature-update-sign"];
   };
+  "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/file_id/{fileId}/{signRequestId}": {
+    /**
+     * Delete sign request
+     * @description You can only request exclusion as any sign
+     */
+    delete: operations["request_signature-delete-one-request-signature-using-file-id"];
+  };
   "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/file_id/{fileId}": {
     /** Sign a file using file Id */
     post: operations["sign_file-sign-using-file-id"];
@@ -239,31 +239,6 @@ export type paths = {
      * @description You can only request exclusion as any sign
      */
     delete: operations["request_signature-delete-all-request-signature-using-file-id"];
-  };
-  "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/file_id/{fileId}/{signRequestId}": {
-    /**
-     * Delete sign request
-     * @description You can only request exclusion as any sign
-     */
-    delete: operations["request_signature-delete-one-request-signature-using-file-id"];
-  };
-  "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements": {
-    /** Get signature elements */
-    get: operations["signature_elements-get-signature-elements"];
-    /** Create signature element */
-    post: operations["signature_elements-create-signature-element"];
-  };
-  "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements/preview/{nodeId}": {
-    /** Get preview of signature elements of */
-    get: operations["signature_elements-get-signature-element-preview"];
-  };
-  "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements/{nodeId}": {
-    /** Get signature element of signer */
-    get: operations["signature_elements-get-signature-element"];
-    /** Delete signature element */
-    delete: operations["signature_elements-delete-signature-element"];
-    /** Update signature element */
-    patch: operations["signature_elements-patch-signature-element"];
   };
   "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/uuid/{uuid}": {
     /** Sign a file using file UUID */
@@ -280,6 +255,24 @@ export type paths = {
   "/ocs/v2.php/apps/libresign/api/{apiVersion}/sign/file_id/{fileId}/code": {
     /** Get code to sign the document using FileID */
     post: operations["sign_file-get-code-using-file-id"];
+  };
+  "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements": {
+    /** Get signature elements */
+    get: operations["signature_elements-get-signature-elements"];
+    /** Create signature element */
+    post: operations["signature_elements-create-signature-element"];
+  };
+  "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements/preview/{nodeId}": {
+    /** Get signature element of signer */
+    get: operations["signature_elements-get-signature-element"];
+    /** Get preview of signature elements of */
+    post: operations["signature_elements-get-signature-element-preview"];
+    /** Update signature element */
+    patch: operations["signature_elements-patch-signature-element"];
+  };
+  "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements/{nodeId}": {
+    /** Delete signature element */
+    delete: operations["signature_elements-delete-signature-element"];
   };
   "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/certificate/cfssl": {
     /**
@@ -627,15 +620,24 @@ export type operations = {
       };
     };
   };
+  /** Incomplete page in full screen */
+  "page-incompletep": {
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "text/html": string;
+        };
+      };
+    };
+  };
   /**
-   * Sign page to authenticated signer with the path of file
+   * Main page to authenticated signer with a path
    * @description The path is used only by frontend
    */
-  "page-signf-path-extra": {
+  "page-indexf-path": {
     parameters: {
       path: {
-        /** @description Sign request uuid */
-        uuid: string;
         path: string;
       };
     };
@@ -666,54 +668,17 @@ export type operations = {
     };
   };
   /**
-   * Main page to authenticated signer with a path
+   * Sign page to authenticated signer with the path of file
    * @description The path is used only by frontend
    */
-  "page-indexf-path-front": {
-    parameters: {
-      path: {
-        path: string;
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        content: {
-          "text/html": string;
-        };
-      };
-    };
-  };
-  /** Use UUID of user to get PDF */
-  "page-get-pdf-file": {
+  "page-signf-path": {
     parameters: {
       path: {
         /** @description Sign request uuid */
         uuid: string;
+        path: string;
       };
     };
-    responses: {
-      /** @description OK */
-      200: {
-        content: {
-          "*/*": string;
-        };
-      };
-    };
-  };
-  /** Show validation page */
-  "page-reset-password": {
-    responses: {
-      /** @description OK */
-      200: {
-        content: {
-          "text/html": string;
-        };
-      };
-    };
-  };
-  /** Incomplete page in full screen */
-  "page-incompletep": {
     responses: {
       /** @description OK */
       200: {
@@ -743,27 +708,6 @@ export type operations = {
       };
     };
   };
-  /**
-   * Sign page to authenticated signer
-   * @description The path is used only by frontend
-   */
-  "page-sign-extra": {
-    parameters: {
-      path: {
-        /** @description Sign request uuid */
-        uuid: string;
-        path: string;
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        content: {
-          "text/html": string;
-        };
-      };
-    };
-  };
   /** Show signature page */
   "page-sign-account-file": {
     parameters: {
@@ -782,7 +726,7 @@ export type operations = {
     };
   };
   /** Show signature page */
-  "page-sign-account-file-extra": {
+  "page-sign-account-file-private": {
     parameters: {
       path: {
         /** @description Sign request uuid */
@@ -795,6 +739,46 @@ export type operations = {
       200: {
         content: {
           "text/html": string;
+        };
+      };
+    };
+  };
+  /** Use UUID of file to get PDF */
+  "page-get-pdf": {
+    parameters: {
+      path: {
+        /** @description File uuid */
+        uuid: string;
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "*/*": string;
+        };
+      };
+      /** @description File not found */
+      404: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
+  /** Use UUID of user to get PDF */
+  "page-get-pdf-file": {
+    parameters: {
+      path: {
+        /** @description Sign request uuid */
+        uuid: string;
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "*/*": string;
         };
       };
     };
@@ -830,6 +814,17 @@ export type operations = {
       };
     };
   };
+  /** Show validation page */
+  "page-reset-password": {
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "text/html": string;
+        };
+      };
+    };
+  };
   /** Show validation page for a specific file UUID */
   "page-validation-file": {
     parameters: {
@@ -843,29 +838,6 @@ export type operations = {
       200: {
         content: {
           "text/html": string;
-        };
-      };
-    };
-  };
-  /** Use UUID of file to get PDF */
-  "page-get-pdf": {
-    parameters: {
-      path: {
-        /** @description File uuid */
-        uuid: string;
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        content: {
-          "*/*": string;
-        };
-      };
-      /** @description File not found */
-      404: {
-        content: {
-          "application/json": unknown;
         };
       };
     };
@@ -926,275 +898,6 @@ export type operations = {
                 message: string;
                 /** Format: int64 */
                 action: number;
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-  /**
-   * Who am I
-   * @description Validates API access data and returns the authenticated user's data.
-   */
-  "account-me": {
-    parameters: {
-      header: {
-        /** @description Required to be true for the API request to pass */
-        "OCS-APIRequest": boolean;
-      };
-      path: {
-        apiVersion: "v1";
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                account: {
-                  uid: string;
-                  emailAddress: string;
-                  displayName: string;
-                };
-                settings: {
-                  canRequestSign: boolean;
-                  hasSignatureFile: boolean;
-                };
-              };
-            };
-          };
-        };
-      };
-      /** @description Invalid user or password */
-      404: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                message: string;
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-  /** Upload PFX file */
-  "account-upload-pfx": {
-    parameters: {
-      header: {
-        /** @description Required to be true for the API request to pass */
-        "OCS-APIRequest": boolean;
-      };
-      path: {
-        apiVersion: "v1";
-      };
-    };
-    responses: {
-      /** @description Certificate saved with success */
-      202: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                message: string;
-              };
-            };
-          };
-        };
-      };
-      /** @description No file provided or other problem with provided file */
-      400: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                message: string;
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-  /** Delete PFX file */
-  "account-delete-pfx": {
-    parameters: {
-      header: {
-        /** @description Required to be true for the API request to pass */
-        "OCS-APIRequest": boolean;
-      };
-      path: {
-        apiVersion: "v1";
-      };
-    };
-    responses: {
-      /** @description Certificate deleted with success */
-      202: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                message: string;
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-  /**
-   * Update PFX file
-   * @description Used to change the password of PFX file
-   */
-  "account-update-pfx-password": {
-    parameters: {
-      header: {
-        /** @description Required to be true for the API request to pass */
-        "OCS-APIRequest": boolean;
-      };
-      path: {
-        apiVersion: "v1";
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          /** @description Current password */
-          current: string;
-          /** @description New password */
-          new: string;
-        };
-      };
-    };
-    responses: {
-      /** @description Certificate saved with success */
-      202: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                message: string;
-              };
-            };
-          };
-        };
-      };
-      /** @description No file provided or other problem with provided file */
-      400: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                message: string;
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-  /** Read content of PFX file */
-  "account-read-pfx-data": {
-    parameters: {
-      header: {
-        /** @description Required to be true for the API request to pass */
-        "OCS-APIRequest": boolean;
-      };
-      path: {
-        apiVersion: "v1";
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          /** @description password of PFX file to decrypt the file and return his content */
-          password: string;
-        };
-      };
-    };
-    responses: {
-      /** @description Certificate saved with success */
-      202: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: components["schemas"]["CertificatePfxData"];
-            };
-          };
-        };
-      };
-      /** @description No file provided or other problem with provided file */
-      400: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                message: string;
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-  /** Update the account phone number */
-  "account-update-settings": {
-    parameters: {
-      header: {
-        /** @description Required to be true for the API request to pass */
-        "OCS-APIRequest": boolean;
-      };
-      path: {
-        apiVersion: "v1";
-      };
-    };
-    requestBody?: {
-      content: {
-        "application/json": {
-          /** @description the phone number to be defined. If null will remove the phone number */
-          phone?: string | null;
-        };
-      };
-    };
-    responses: {
-      /** @description Settings saved */
-      200: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                data: {
-                  userId: string;
-                  phone: string;
-                  message: string;
-                };
-              };
-            };
-          };
-        };
-      };
-      /** @description Invalid data to update phone number */
-      404: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                message: string;
               };
             };
           };
@@ -1399,6 +1102,57 @@ export type operations = {
       };
     };
   };
+  /**
+   * Who am I
+   * @description Validates API access data and returns the authenticated user's data.
+   */
+  "account-me": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                account: {
+                  uid: string;
+                  emailAddress: string;
+                  displayName: string;
+                };
+                settings: {
+                  canRequestSign: boolean;
+                  hasSignatureFile: boolean;
+                };
+              };
+            };
+          };
+        };
+      };
+      /** @description Invalid user or password */
+      404: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
+          };
+        };
+      };
+    };
+  };
   /** List account files that need to be approved */
   "account-account-file-list-to-approval": {
     parameters: {
@@ -1451,11 +1205,130 @@ export type operations = {
       };
     };
   };
+  /** Update the account phone number */
+  "account-update-settings": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+      };
+    };
+    requestBody?: {
+      content: {
+        "application/json": {
+          /** @description the phone number to be defined. If null will remove the phone number */
+          phone?: string | null;
+        };
+      };
+    };
+    responses: {
+      /** @description Settings saved */
+      200: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                data: {
+                  userId: string;
+                  phone: string;
+                  message: string;
+                };
+              };
+            };
+          };
+        };
+      };
+      /** @description Invalid data to update phone number */
+      404: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+  /** Upload PFX file */
+  "account-upload-pfx": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+      };
+    };
+    responses: {
+      /** @description Certificate saved with success */
+      202: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
+          };
+        };
+      };
+      /** @description No file provided or other problem with provided file */
+      400: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+  /** Delete PFX file */
+  "account-delete-pfx": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+      };
+    };
+    responses: {
+      /** @description Certificate deleted with success */
+      202: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
+          };
+        };
+      };
+    };
+  };
   /**
-   * Send a file
-   * @description Send a new file to Nextcloud and return the fileId to request to sign usign fileId
+   * Update PFX file
+   * @description Used to change the password of PFX file
    */
-  "file-save": {
+  "account-update-pfx-password": {
     parameters: {
       header: {
         /** @description Required to be true for the API request to pass */
@@ -1468,19 +1341,102 @@ export type operations = {
     requestBody: {
       content: {
         "application/json": {
-          /** @description File to save */
-          file: components["schemas"]["NewFile"];
-          /**
-           * @description The name of file to sign
-           * @default
-           */
-          name?: string;
-          /**
-           * @description Settings to define the pattern to store the file. See more informations at FolderService::getFolderName method.
-           * @default []
-           */
-          settings?: components["schemas"]["FolderSettings"];
+          /** @description Current password */
+          current: string;
+          /** @description New password */
+          new: string;
         };
+      };
+    };
+    responses: {
+      /** @description Certificate saved with success */
+      202: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
+          };
+        };
+      };
+      /** @description No file provided or other problem with provided file */
+      400: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+  /** Read content of PFX file */
+  "account-read-pfx-data": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @description password of PFX file to decrypt the file and return his content */
+          password: string;
+        };
+      };
+    };
+    responses: {
+      /** @description Certificate saved with success */
+      202: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: components["schemas"]["CertificatePfxData"];
+            };
+          };
+        };
+      };
+      /** @description No file provided or other problem with provided file */
+      400: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+  /**
+   * Validate a file using Uuid
+   * @description Validate a file returning file data.
+   */
+  "file-validate-uuid": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+        /** @description The UUID of the LibreSign file */
+        uuid: string;
       };
     };
     responses: {
@@ -1490,19 +1446,130 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: components["schemas"]["NextcloudFile"];
+              data: components["schemas"]["ValidateFile"];
             };
           };
         };
       };
-      /** @description Failed to save data */
-      422: {
+      /** @description Request failed */
+      404: {
         content: {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                message: string;
+                /** Format: int64 */
+                action: number;
+                errors: string[];
+                settings: components["schemas"]["Settings"];
+                messages?: {
+                    type: string;
+                    message: string;
+                  }[];
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+  /**
+   * Validate a file using FileId
+   * @description Validate a file returning file data.
+   */
+  "file-validate-file-id": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+        /** @description The identifier value of the LibreSign file */
+        fileId: number;
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: components["schemas"]["ValidateFile"];
+            };
+          };
+        };
+      };
+      /** @description Request failed */
+      404: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                /** Format: int64 */
+                action: number;
+                errors: string[];
+                settings: components["schemas"]["Settings"];
+                messages?: {
+                    type: string;
+                    message: string;
+                  }[];
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+  /**
+   * Validate a file
+   * @description Validate a file returning file data.
+   */
+  "file-validate": {
+    parameters: {
+      query?: {
+        /** @description The type of identifier could be Uuid or FileId */
+        type?: string | null;
+        /** @description The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer */
+        identifier?: string | number;
+      };
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: components["schemas"]["ValidateFile"];
+            };
+          };
+        };
+      };
+      /** @description Request failed */
+      404: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                /** Format: int64 */
+                action: number;
+                errors: string[];
+                settings: components["schemas"]["Settings"];
+                messages?: {
+                    type: string;
+                    message: string;
+                  }[];
               };
             };
           };
@@ -1626,23 +1693,35 @@ export type operations = {
     };
   };
   /**
-   * Validate a file
-   * @description Validate a file returning file data.
+   * Send a file
+   * @description Send a new file to Nextcloud and return the fileId to request to sign usign fileId
    */
-  "file-validate": {
+  "file-save": {
     parameters: {
-      query?: {
-        /** @description The type of identifier could be Uuid or FileId */
-        type?: string | null;
-        /** @description The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer */
-        identifier?: string | number;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @description File to save */
+          file: components["schemas"]["NewFile"];
+          /**
+           * @description The name of file to sign
+           * @default
+           */
+          name?: string;
+          /**
+           * @description Settings to define the pattern to store the file. See more informations at FolderService::getFolderName method.
+           * @default []
+           */
+          settings?: components["schemas"]["FolderSettings"];
+        };
       };
     };
     responses: {
@@ -1652,126 +1731,19 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: components["schemas"]["ValidateFile"];
+              data: components["schemas"]["NextcloudFile"];
             };
           };
         };
       };
-      /** @description Request failed */
-      404: {
+      /** @description Failed to save data */
+      422: {
         content: {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                /** Format: int64 */
-                action: number;
-                errors: string[];
-                settings: components["schemas"]["Settings"];
-                messages?: {
-                    type: string;
-                    message: string;
-                  }[];
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-  /**
-   * Validate a file using Uuid
-   * @description Validate a file returning file data.
-   */
-  "file-validate-uuid": {
-    parameters: {
-      header: {
-        /** @description Required to be true for the API request to pass */
-        "OCS-APIRequest": boolean;
-      };
-      path: {
-        apiVersion: "v1";
-        /** @description The UUID of the LibreSign file */
-        uuid: string;
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: components["schemas"]["ValidateFile"];
-            };
-          };
-        };
-      };
-      /** @description Request failed */
-      404: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                /** Format: int64 */
-                action: number;
-                errors: string[];
-                settings: components["schemas"]["Settings"];
-                messages?: {
-                    type: string;
-                    message: string;
-                  }[];
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-  /**
-   * Validate a file using FileId
-   * @description Validate a file returning file data.
-   */
-  "file-validate-file-id": {
-    parameters: {
-      header: {
-        /** @description Required to be true for the API request to pass */
-        "OCS-APIRequest": boolean;
-      };
-      path: {
-        apiVersion: "v1";
-        /** @description The identifier value of the LibreSign file */
-        fileId: number;
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: components["schemas"]["ValidateFile"];
-            };
-          };
-        };
-      };
-      /** @description Request failed */
-      404: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                /** Format: int64 */
-                action: number;
-                errors: string[];
-                settings: components["schemas"]["Settings"];
-                messages?: {
-                    type: string;
-                    message: string;
-                  }[];
+                message: string;
               };
             };
           };
@@ -2011,8 +1983,8 @@ export type operations = {
       };
     };
   };
-  /** Notify a signer of a file */
-  "notify-signer": {
+  /** Notify signers of a file */
+  "notify-signers": {
     parameters: {
       header: {
         /** @description Required to be true for the API request to pass */
@@ -2030,11 +2002,10 @@ export type operations = {
            * @description The identifier value of LibreSign file
            */
           fileId: number;
-          /**
-           * Format: int64
-           * @description The sign request id
-           */
-          signRequestId: number;
+          /** @description Signers data */
+          signers: {
+              email: string;
+            }[];
         };
       };
     };
@@ -2071,8 +2042,8 @@ export type operations = {
       };
     };
   };
-  /** Notify signers of a file */
-  "notify-signers": {
+  /** Notify a signer of a file */
+  "notify-signer": {
     parameters: {
       header: {
         /** @description Required to be true for the API request to pass */
@@ -2090,10 +2061,11 @@ export type operations = {
            * @description The identifier value of LibreSign file
            */
           fileId: number;
-          /** @description Signers data */
-          signers: {
-              email: string;
-            }[];
+          /**
+           * Format: int64
+           * @description The sign request id
+           */
+          signRequestId: number;
         };
       };
     };
@@ -2310,6 +2282,68 @@ export type operations = {
       };
     };
   };
+  /**
+   * Delete sign request
+   * @description You can only request exclusion as any sign
+   */
+  "request_signature-delete-one-request-signature-using-file-id": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+        /** @description Node id of a Nextcloud file */
+        fileId: number;
+        /** @description The sign request id */
+        signRequestId: number;
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
+          };
+        };
+      };
+      /** @description Failed */
+      401: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
+          };
+        };
+      };
+      /** @description Failed */
+      422: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                /** Format: int64 */
+                action: number;
+                errors: string[];
+              };
+            };
+          };
+        };
+      };
+    };
+  };
   /** Sign a file using file Id */
   "sign_file-sign-using-file-id": {
     parameters: {
@@ -2438,335 +2472,6 @@ export type operations = {
                 /** Format: int64 */
                 action: number;
                 errors: string[];
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-  /**
-   * Delete sign request
-   * @description You can only request exclusion as any sign
-   */
-  "request_signature-delete-one-request-signature-using-file-id": {
-    parameters: {
-      header: {
-        /** @description Required to be true for the API request to pass */
-        "OCS-APIRequest": boolean;
-      };
-      path: {
-        apiVersion: "v1";
-        /** @description Node id of a Nextcloud file */
-        fileId: number;
-        /** @description The sign request id */
-        signRequestId: number;
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                message: string;
-              };
-            };
-          };
-        };
-      };
-      /** @description Failed */
-      401: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                message: string;
-              };
-            };
-          };
-        };
-      };
-      /** @description Failed */
-      422: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                /** Format: int64 */
-                action: number;
-                errors: string[];
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-  /** Get signature elements */
-  "signature_elements-get-signature-elements": {
-    parameters: {
-      header: {
-        /** @description Required to be true for the API request to pass */
-        "OCS-APIRequest": boolean;
-      };
-      path: {
-        apiVersion: "v1";
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                elements: components["schemas"]["UserElement"][];
-              };
-            };
-          };
-        };
-      };
-      /** @description Invalid data */
-      404: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                message: string;
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-  /** Create signature element */
-  "signature_elements-create-signature-element": {
-    parameters: {
-      header: {
-        /** @description Required to be true for the API request to pass */
-        "OCS-APIRequest": boolean;
-      };
-      path: {
-        apiVersion: "v1";
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          /** @description Element object */
-          elements: {
-            [key: string]: Record<string, never>;
-          };
-        };
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                elements: components["schemas"]["UserElement"][];
-                message: string;
-              };
-            };
-          };
-        };
-      };
-      /** @description Invalid data */
-      422: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                message: string;
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-  /** Get preview of signature elements of */
-  "signature_elements-get-signature-element-preview": {
-    parameters: {
-      header: {
-        /** @description Required to be true for the API request to pass */
-        "OCS-APIRequest": boolean;
-      };
-      path: {
-        apiVersion: "v1";
-        /** @description Node id of a Nextcloud file */
-        nodeId: number;
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        content: {
-          "*/*": string;
-        };
-      };
-      /** @description Invalid data */
-      404: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
-            };
-          };
-        };
-      };
-    };
-  };
-  /** Get signature element of signer */
-  "signature_elements-get-signature-element": {
-    parameters: {
-      header: {
-        /** @description Required to be true for the API request to pass */
-        "OCS-APIRequest": boolean;
-      };
-      path: {
-        apiVersion: "v1";
-        /** @description Node id of a Nextcloud file */
-        nodeId: number;
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: components["schemas"]["UserElement"];
-            };
-          };
-        };
-      };
-      /** @description Invalid data */
-      404: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                message: string;
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-  /** Delete signature element */
-  "signature_elements-delete-signature-element": {
-    parameters: {
-      header: {
-        /** @description Required to be true for the API request to pass */
-        "OCS-APIRequest": boolean;
-      };
-      path: {
-        apiVersion: "v1";
-        /** @description Node id of a Nextcloud file */
-        nodeId: number;
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                message: string;
-              };
-            };
-          };
-        };
-      };
-      /** @description Not found */
-      404: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                message: string;
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-  /** Update signature element */
-  "signature_elements-patch-signature-element": {
-    parameters: {
-      header: {
-        /** @description Required to be true for the API request to pass */
-        "OCS-APIRequest": boolean;
-      };
-      path: {
-        apiVersion: "v1";
-        /** @description Node id of a Nextcloud file */
-        nodeId: number;
-      };
-    };
-    requestBody?: {
-      content: {
-        "application/json": {
-          /**
-           * @description The type of signature element
-           * @default
-           */
-          type?: string;
-          /**
-           * @description Element object
-           * @default []
-           */
-          file?: {
-            [key: string]: Record<string, never>;
-          };
-        };
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                elements: components["schemas"]["UserElement"][];
-                message: string;
-              };
-            };
-          };
-        };
-      };
-      /** @description Error */
-      422: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                message: string;
               };
             };
           };
@@ -2965,6 +2670,273 @@ export type operations = {
       };
       /** @description Error */
       422: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+  /** Get signature elements */
+  "signature_elements-get-signature-elements": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                elements: components["schemas"]["UserElement"][];
+              };
+            };
+          };
+        };
+      };
+      /** @description Invalid data */
+      404: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+  /** Create signature element */
+  "signature_elements-create-signature-element": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @description Element object */
+          elements: {
+            [key: string]: Record<string, never>;
+          };
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                elements: components["schemas"]["UserElement"][];
+                message: string;
+              };
+            };
+          };
+        };
+      };
+      /** @description Invalid data */
+      422: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+  /** Get signature element of signer */
+  "signature_elements-get-signature-element": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+        /** @description Node id of a Nextcloud file */
+        nodeId: number;
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: components["schemas"]["UserElement"];
+            };
+          };
+        };
+      };
+      /** @description Invalid data */
+      404: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+  /** Get preview of signature elements of */
+  "signature_elements-get-signature-element-preview": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+        /** @description Node id of a Nextcloud file */
+        nodeId: number;
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "*/*": string;
+        };
+      };
+      /** @description Invalid data */
+      404: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
+        };
+      };
+    };
+  };
+  /** Update signature element */
+  "signature_elements-patch-signature-element": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+        /** @description Node id of a Nextcloud file */
+        nodeId: number;
+      };
+    };
+    requestBody?: {
+      content: {
+        "application/json": {
+          /**
+           * @description The type of signature element
+           * @default
+           */
+          type?: string;
+          /**
+           * @description Element object
+           * @default []
+           */
+          file?: {
+            [key: string]: Record<string, never>;
+          };
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                elements: components["schemas"]["UserElement"][];
+                message: string;
+              };
+            };
+          };
+        };
+      };
+      /** @description Error */
+      422: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+  /** Delete signature element */
+  "signature_elements-delete-signature-element": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+        /** @description Node id of a Nextcloud file */
+        nodeId: number;
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
+          };
+        };
+      };
+      /** @description Not found */
+      404: {
         content: {
           "application/json": {
             ocs: {
