@@ -14,6 +14,29 @@ Types of changes:
 
 <!-- changelog-linker -->
 
+## 9.1.3 - 2024-07-02
+### Changed
+* chore: update workflows [3254](https://github.com/LibreSign/libresign/pull/3254)
+* chore: bump dependencies of integration tests [3268](https://github.com/LibreSign/libresign/pull/3268)
+* chore: move account routes definition to attributes [3269](https://github.com/LibreSign/libresign/pull/3269)
+
+### Fixes
+* fix: pack openapi json file [3248](https://github.com/LibreSign/libresign/pull/3248)
+* fix: use equal to option [3258](https://github.com/LibreSign/libresign/pull/3258)
+* fix: sign setup when build [3263](https://github.com/LibreSign/libresign/pull/3263)
+* fix: pagination [3271](https://github.com/LibreSign/libresign/pull/3271)
+
+## 8.1.3 - 2024-07-02
+### Changed
+* chore: update workflows [3255](https://github.com/LibreSign/libresign/pull/3255)
+* chore: bump dependencies of integration tests [3267](https://github.com/LibreSign/libresign/pull/3267)
+
+### Fixes
+* fix: pack openapi json file [3247](https://github.com/LibreSign/libresign/pull/3247)
+* fix: use equal to option [3257](https://github.com/LibreSign/libresign/pull/3257)
+* fix: sign setup when build [3262](https://github.com/LibreSign/libresign/pull/3262)
+* fix: pagination [3270](https://github.com/LibreSign/libresign/pull/3270)
+
 ## 9.1.2 - 2024-06-28
 ### Fixes
 * fix: Internal error when signing [#3238](github.com/libresign/libresign/pull/3238)
