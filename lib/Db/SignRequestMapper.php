@@ -479,8 +479,8 @@ class SignRequestMapper extends QBMapper {
 			}
 			if (isset($filter['signer_uuid'])) {
 				$join = $qb->getQueryPart('join');
-				array_walk($join, function($table) use ($qb) {
-					if (!array_filter($table, fn($j) => str_contains($j['joinAlias'], 'sr'))) {
+				array_walk($join, function ($table) use ($qb) {
+					if (!array_filter($table, fn ($j) => str_contains($j['joinAlias'], 'sr'))) {
 						$qb->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id');
 					}
 				});
