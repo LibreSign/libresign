@@ -530,15 +530,14 @@ class SignRequestMapper extends QBMapper {
 		);
 		$qb->selectAlias('f.created_at', 'request_date');
 
-		$countQueryBuilderModifier = function (IQueryBuilder &$qb): void {
+		$countQueryBuilderModifier = function (IQueryBuilder $qb): int {
 			/** @todo improve this to don't do two queries */
-			$qb->select('f.id')
-				->groupBy('f.id');
-			$cursor = $qb->executeQuery();
-			$ids = $cursor->fetchAll();
-
-			$qb->resetQueryParts();
-			$qb->selectAlias($qb->createNamedParameter(count($ids)), 'total');
+			$qb->resetQueryPart('select')
+				->resetQueryPart('groupBy')
+				->selectAlias($qb->func()->count('f.id'), 'total')
+				->setFirstResult(null)
+				->setMaxResults(null);
+			return (int) $qb->executeQuery()->fetchOne();
 		};
 
 		$pagination = new Pagination($qb, $countQueryBuilderModifier);
