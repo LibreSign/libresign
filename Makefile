@@ -16,6 +16,11 @@ appstore_sign_dir=$(appstore_build_directory)/sign
 cert_dir=$(build_tools_directory)/certificates
 npm=$(shell which npm 2> /dev/null)
 composer=$(shell which composer 2> /dev/null)
+ifneq (,$(wildcard $(CURDIR)/../nextcloud/occ))
+	occ=php $(CURDIR)/../nextcloud/occ
+else ifneq (,$(wildcard $(CURDIR)/../../occ))
+	occ=php $(CURDIR)/../../occ
+endif
 
 all: dev-setup build-js-production
 serve: dev-setup watch-js
@@ -105,22 +110,39 @@ appstore:
 	cp tests/fixtures/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/fixtures
 
 	mkdir -p $(cert_dir)
-	@if [ -n "$$GITHUB_ACTION" ]; then \
+	if [ -n "$$GITHUB_ACTION" ]; then \
+		echo "⌛️ Starting Nextcloud setup..."; \
+		mkdir $(CURDIR)/../nextcloud/data; \
+		ln -s $(CURDIR) $(CURDIR)/../nextcloud/apps/libresign; \
+		$(occ) maintenance:install \
+			--verbose \
+			--database=sqlite \
+			--database-name=nextcloud \
+			--database-host=127.0.0.1 \
+			--database-user=root \
+			--database-pass=rootpassword \
+			--admin-user admin \
+			--admin-pass admin; \
+		$(occ) --version; \
+		$(occ) app:enable --force libresign; \
 		echo '${{ secrets.APP_PRIVATE_KEY }}' > $(cert_dir)/$(app_name).key ; \
+		echo "🏁 Setup finished"; \
 	fi
-	@if [ -f $(cert_dir)/$(app_name).key ]; then \
+
+	if [ -f $(cert_dir)/$(app_name).key ]; then \
+		chown -R www-data:www-data $(project_directory) ; \
 		curl -o $(cert_dir)/$(app_name).crt \
 			"https://github.com/nextcloud/app-certificate-requests/raw/master/$(app_name)/$(app_name).crt"; \
-		php ../../occ libresign:install --all --architecture aarch64; \
-		php ../../occ libresign:install --all --architecture x86_64; \
+		$(occ) libresign:install --all --architecture aarch64; \
+		$(occ) libresign:install --all --architecture x86_64; \
 		echo "Signing setup files…"; \
-		php lib/Command/Developer/SignSetupApplication.php \
-			libresign:developer:sign-setup \
+		$(occ) config:system:set debug --value true --type boolean; \
+		$(occ) libresign:developer:sign-setup \
 			--privateKey=$(cert_dir)/$(app_name).key \
 			--certificate=$(cert_dir)/$(app_name).crt; \
 		cp -r appinfo $(appstore_sign_dir)/$(app_name); \
 		echo "Signing app files…"; \
-		php ../../occ integrity:sign-app \
+		$(occ) integrity:sign-app \
 			--privateKey=$(cert_dir)/$(app_name).key\
 			--certificate=$(cert_dir)/$(app_name).crt\
 			--path=$(appstore_sign_dir)/$(app_name); \
