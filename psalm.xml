@@ -14,7 +14,6 @@
         <directory name="lib" />
         <ignoreFiles>
             <directory name="vendor" />
-            <directory name="lib/Command/Application" />
         </ignoreFiles>
     </projectFiles>
     <issueHandlers>
