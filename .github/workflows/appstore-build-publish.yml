@@ -141,6 +141,10 @@ jobs:
         if: steps.krankerl.outputs.files_exists != 'true'
         run: |
           cd ${{ env.APP_NAME }}
+          # Setting up keys
+          mkdir -p build/tools/certificates/
+          echo '${{ secrets.APP_PRIVATE_KEY }}' > build/tools/certificates/${{ env.APP_NAME }}.key
+          ls -la build/tools/certificates/
           make appstore
 
       - name: Sign app
