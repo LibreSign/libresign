@@ -1,5 +1,6 @@
 .idea
 .vscode
+.env
 *.iml
 /vendor/
 /vendor-bin/**/vendor/
