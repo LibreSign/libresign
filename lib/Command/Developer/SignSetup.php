@@ -63,9 +63,15 @@ class SignSetup extends Base {
 		}
 
 		$rsa = new RSA();
-		$rsa->loadKey($privateKey);
+		if ($rsa->loadKey($privateKey) === false) {
+			$output->writeln('Invalid private key');
+			return 1;
+		}
 		$x509 = new X509();
-		$x509->loadX509($keyBundle);
+		if ($x509->loadX509($keyBundle) === false) {
+			$output->writeln('Invalid certificate');
+			return 1;
+		}
 		$x509->setPrivateKey($rsa);
 		try {
 			$this->signSetupService->setCertificate($x509);
