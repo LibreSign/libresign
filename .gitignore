@@ -1,6 +1,7 @@
 .idea
 .vscode
 .env
+.secrets
 *.iml
 /vendor/
 /vendor-bin/**/vendor/
