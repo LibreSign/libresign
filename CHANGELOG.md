@@ -16,7 +16,7 @@ Types of changes:
 ## 10.0.0-beta.1
 * 📲 New API documentation
 
-## 9.1.3 - 2024-07-03
+## 9.1.3 - 2024-07-08
 ### Changed
 * chore: update workflows [3254](https://github.com/LibreSign/libresign/pull/3254)
 * chore: bump dependencies of integration tests [3268](https://github.com/LibreSign/libresign/pull/3268)
@@ -28,7 +28,7 @@ Types of changes:
 * fix: sign setup when build [3263](https://github.com/LibreSign/libresign/pull/3263)
 * fix: pagination [3271](https://github.com/LibreSign/libresign/pull/3271)
 
-## 8.1.3 - 2024-07-03
+## 8.1.3 - 2024-07-08
 ### Changed
 * chore: update workflows [3255](https://github.com/LibreSign/libresign/pull/3255)
 * chore: bump dependencies of integration tests [3267](https://github.com/LibreSign/libresign/pull/3267)
