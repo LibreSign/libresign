@@ -523,16 +523,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "dev-master",
+            "version": "v5.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "3ef0811e45ba7e91fb0f066af5af7d52c3b24469"
+                "reference": "683130c2ff8c2739f4822ff7ac5c873ec529abd1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/3ef0811e45ba7e91fb0f066af5af7d52c3b24469",
-                "reference": "3ef0811e45ba7e91fb0f066af5af7d52c3b24469",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/683130c2ff8c2739f4822ff7ac5c873ec529abd1",
+                "reference": "683130c2ff8c2739f4822ff7ac5c873ec529abd1",
                 "shasum": ""
             },
             "require": {
@@ -545,7 +545,6 @@
                 "ircmaxell/php-yacc": "^0.0.7",
                 "phpunit/phpunit": "^9.0"
             },
-            "default-branch": true,
             "bin": [
                 "bin/php-parse"
             ],
@@ -576,9 +575,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
-                "source": "https://github.com/nikic/PHP-Parser/tree/master"
+                "source": "https://github.com/nikic/PHP-Parser/tree/v5.1.0"
             },
-            "time": "2024-06-12T18:31:58+00:00"
+            "time": "2024-07-01T20:03:41+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -1024,12 +1023,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "07da7f5d51ff0bc9b0ea757be084a57e174b1312"
+                "reference": "d229f5800280c68f1c5fc28b132bc64ff5ed3dd4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/07da7f5d51ff0bc9b0ea757be084a57e174b1312",
-                "reference": "07da7f5d51ff0bc9b0ea757be084a57e174b1312",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/d229f5800280c68f1c5fc28b132bc64ff5ed3dd4",
+                "reference": "d229f5800280c68f1c5fc28b132bc64ff5ed3dd4",
                 "shasum": ""
             },
             "require": {
@@ -1119,7 +1118,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-06-17T05:30:09+00:00"
+            "time": "2024-07-03T05:19:53+00:00"
         },
         {
             "name": "psr/http-client",
