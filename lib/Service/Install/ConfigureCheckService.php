@@ -346,7 +346,9 @@ class ConfigureCheckService {
 				(new ConfigureCheckHelper())
 					->setErrorMessage('Define the certificate engine to use')
 					->setResource('certificate-engine')
-					->setTip('Run occ libresign:configure:openssl --help or occ libresign:configure:cfssl --help'),
+					->setTip(sprintf('Run occ libresign:configure:%s --help',
+						$this->certificateEngine->getEngine()->getName()
+					)),
 			];
 		}
 		return $return;
