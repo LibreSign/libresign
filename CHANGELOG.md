@@ -13,7 +13,7 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
-## 8.1.3 - 2024-07-02
+## 8.1.3 - 2024-07-08
 ### Changed
 * chore: update workflows [3255](https://github.com/LibreSign/libresign/pull/3255)
 * chore: bump dependencies of integration tests [3267](https://github.com/LibreSign/libresign/pull/3267)
