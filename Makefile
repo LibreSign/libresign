@@ -125,7 +125,6 @@ appstore:
 			--admin-pass admin; \
 		$(occ) --version; \
 		$(occ) app:enable --force libresign; \
-		printf '%s\n' "$$APP_PRIVATE_KEY" > $(cert_dir)/$(app_name).key ; \
 		echo "🏁 Setup finished"; \
 	fi
 
