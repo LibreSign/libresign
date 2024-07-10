@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Listener;
 
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\EventDispatcher\Event;
@@ -32,10 +33,14 @@ class BeforeNodeDeletedListener implements IEventListener {
 		if (!$event instanceof BeforeNodeDeletedEvent) {
 			return;
 		}
-		if (!$event->getNode() instanceof File) {
+		$node = $event->getNode();
+		if (!$node instanceof File) {
 			return;
 		}
-		$nodeId = $event->getNode()->getId();
+		if (!in_array($node->getMimeType(), ValidateHelper::VALID_MIMETIPE)) {
+			return;
+		}
+		$nodeId = $node->getId();
 		$type = $this->fileMapper->getFileType($nodeId);
 		if ($type === 'not_libresign_file') {
 			return;
