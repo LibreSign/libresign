@@ -66,6 +66,10 @@ class ValidateHelper {
 	public const STATUS_PARTIAL_SIGNED = 2;
 	public const STATUS_SIGNED = 3;
 	public const STATUS_DELETED = 4;
+	public const VALID_MIMETIPE = [
+		'application/pdf',
+		'image/png',
+	];
 
 	public function __construct(
 		private IL10N $l10n,
