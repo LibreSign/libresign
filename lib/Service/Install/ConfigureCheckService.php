@@ -56,7 +56,7 @@ class ConfigureCheckService {
 	 */
 	public function checkAll(): array {
 		if ($this->isCacheDisabled) {
-			$this->ocAppConfig->clearCache();
+			$this->ocAppConfig->clearCachedConfig();
 		}
 		$result = [];
 		$result = array_merge($result, $this->checkSign());
