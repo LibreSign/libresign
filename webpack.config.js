@@ -1,5 +1,7 @@
 const { merge } = require('webpack-merge')
 const path = require('path')
+const BabelLoaderExcludeNodeModulesExcept = require('babel-loader-exclude-node-modules-except')
+const { EsbuildPlugin } = require('esbuild-loader')
 const nextcloudWebpackConfig = require('@nextcloud/webpack-vue-config')
 
 module.exports = merge(nextcloudWebpackConfig, {
@@ -9,9 +11,20 @@ module.exports = merge(nextcloudWebpackConfig, {
 		external: path.resolve(path.join('src', 'external.js')),
 		validation: path.resolve(path.join('src', 'validation.js')),
 	},
-	optimization: process.env.NODE_ENV === 'production'
-		? { chunkIds: 'deterministic' }
-		: {},
+	optimization: {
+		splitChunks: {
+			cacheGroups: {
+				defaultVendors: {
+					reuseExistingChunk: true,
+				},
+			},
+		},
+		minimizer: [
+			new EsbuildPlugin({
+				target: 'es2020',
+			}),
+		],
+	},
 	devServer: {
 		port: 3000, // use any port suitable for your configuration
 		host: '0.0.0.0', // to accept connections from outside container
@@ -21,6 +34,18 @@ module.exports = merge(nextcloudWebpackConfig, {
 	},
 	module: {
 		rules: [
+			{
+				test: /\.js$/,
+				loader: 'esbuild-loader',
+				options: {
+					// Implicitly set as JS loader for only JS parts of Vue SFCs will be transpiled
+					loader: 'js',
+					target: 'es2020',
+				},
+				exclude: BabelLoaderExcludeNodeModulesExcept([
+					'@nextcloud/event-bus',
+				]),
+			},
 			{
 				test: /\.(ttf|otf|eot|woff|woff2)$/,
 				type: 'asset/inline',
@@ -35,5 +60,6 @@ module.exports = merge(nextcloudWebpackConfig, {
 				type: 'asset/source',
 			},
 		],
-	}
+	},
+	cache: true,
 })
