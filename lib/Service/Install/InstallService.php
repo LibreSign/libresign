@@ -321,6 +321,12 @@ class InstallService {
 
 	private function getInstallPid(int $pid = 0): int {
 		if ($pid > 0) {
+			if (shell_exec('which ps') === null) {
+				if (is_dir('/proc/' . $pid)) {
+					return $pid;
+				}
+				return 0;
+			}
 			$cmd = 'ps -p ' . $pid . ' -o pid,command|';
 		} else {
 			$cmd = 'ps -eo pid,command|';
