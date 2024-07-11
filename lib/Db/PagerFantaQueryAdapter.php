@@ -24,7 +24,7 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 	public function __construct(
 		private IQueryBuilder $queryBuilder,
 	) {
-		if (QueryBuilder::SELECT !== $queryBuilder->getType()) {
+		if ($queryBuilder->getType() !== QueryBuilder::SELECT) {
 			// @codeCoverageIgnoreStart
 			throw new InvalidArgumentException('Only SELECT queries can be paginated.');
 			// @codeCoverageIgnoreEnd
