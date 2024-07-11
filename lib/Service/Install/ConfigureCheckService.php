@@ -85,14 +85,14 @@ class ConfigureCheckService {
 	public function checkJSignPdf(): array {
 		$jsignpdJarPath = $this->appConfig->getAppValue('jsignpdf_jar_path');
 		if ($jsignpdJarPath) {
-			if (count($this->verify('jsignpdf'))) {
+			$resultOfVerify = $this->verify('jsignpdf');
+			if (count($resultOfVerify)) {
+				[$errorMessage, $tip] = $this->getErrorAndTipToResultOfVerify($resultOfVerify);
 				return [
 					(new ConfigureCheckHelper())
-						->setErrorMessage(
-							'Invalid hash of binaries files.'
-						)
+						->setErrorMessage($errorMessage)
 						->setResource('jsignpdf')
-						->setTip('Run occ libresign:install --all'),
+						->setTip($tip),
 				];
 			}
 			if (file_exists($jsignpdJarPath)) {
@@ -155,14 +155,14 @@ class ConfigureCheckService {
 	public function checkPdftk(): array {
 		$pdftkPath = $this->appConfig->getAppValue('pdftk_path');
 		if ($pdftkPath) {
-			if (count($this->verify('pdftk'))) {
+			$resultOfVerify = $this->verify('pdftk');
+			if (count($resultOfVerify)) {
+				[$errorMessage, $tip] = $this->getErrorAndTipToResultOfVerify($resultOfVerify);
 				return [
 					(new ConfigureCheckHelper())
-						->setErrorMessage(
-							'Invalid hash of binaries files.'
-						)
+						->setErrorMessage($errorMessage)
 						->setResource('pdftk')
-						->setTip('Run occ libresign:install --all'),
+						->setTip($tip),
 				];
 			}
 			if (file_exists($pdftkPath)) {
@@ -244,6 +244,27 @@ class ConfigureCheckService {
 		return $result;
 	}
 
+	private function getErrorAndTipToResultOfVerify(array $result): array {
+		if (count($result) === 1 && !$this->isDebugEnabled()) {
+			if (isset($result['SIGNATURE_DATA_NOT_FOUND'])) {
+				return [
+					'Signature data not found.',
+					"Sounds that you are running from source code of LibreSign.\nEnable debug mode by: occ config:system:set debug --value true --type boolean",
+				];
+			}
+			if (isset($result['EMPTY_SIGNATURE_DATA'])) {
+				return [
+					'Your signature data is empty.',
+					"Sounds that you are running from source code of LibreSign.\nEnable debug mode by: occ config:system:set debug --value true --type boolean",
+				];
+			}
+		}
+		return [
+			'Invalid hash of binaries files.',
+			'Run occ libresign:install --all',
+		];
+	}
+
 	/**
 	 * Check all requirements to use Java
 	 *
@@ -252,14 +273,14 @@ class ConfigureCheckService {
 	private function checkJava(): array {
 		$javaPath = $this->appConfig->getAppValue('java_path');
 		if ($javaPath) {
-			if (count($this->verify('java'))) {
+			$resultOfVerify = $this->verify('java');
+			if (count($resultOfVerify)) {
+				[$errorMessage, $tip] = $this->getErrorAndTipToResultOfVerify($resultOfVerify);
 				return [
 					(new ConfigureCheckHelper())
-						->setErrorMessage(
-							'Invalid hash of binaries files.'
-						)
+						->setErrorMessage($errorMessage)
 						->setResource('java')
-						->setTip('Run occ libresign:install --all'),
+						->setTip($tip),
 				];
 			}
 			if (file_exists($javaPath)) {
