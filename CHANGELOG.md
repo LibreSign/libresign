@@ -13,6 +13,10 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 8.2.1 - 2024-07-11
+### Fixes
+* fix: setup at alpine #3354
+
 ## 8.2.0 - 2024-07-11
 ### Changed
 * apply cs fixer [#3335](https://github.com/LibreSign/libresign/pull/3335)
