@@ -561,18 +561,18 @@ class InstallService {
 		$this->removeDownloadProgress();
 	}
 
-	private function installCfsslByArchitecture(string $arcitecture): void {
+	private function installCfsslByArchitecture(string $architecture): void {
 		if ($this->isDownloadedFilesOk()) {
 			$folder = $this->getFolder($this->resource);
 		} else {
 			$folder = $this->getEmptyFolder($this->resource);
 			$downloads = [
 				[
-					'file' => 'cfssl_' . self::CFSSL_VERSION . '_linux_' . $arcitecture,
+					'file' => 'cfssl_' . self::CFSSL_VERSION . '_linux_' . $architecture,
 					'destination' => 'cfssl',
 				],
 				[
-					'file' => 'cfssljson_' . self::CFSSL_VERSION . '_linux_' . $arcitecture,
+					'file' => 'cfssljson_' . self::CFSSL_VERSION . '_linux_' . $architecture,
 					'destination' => 'cfssljson',
 				],
 			];
@@ -584,7 +584,8 @@ class InstallService {
 				$file = $folder->newFile($download['destination']);
 				$fullPath = $this->getDataDir() . '/' . $this->getInternalPathOfFile($file);
 
-				$this->download($baseUrl . $download['file'], $download['destination'], $fullPath, $hash, 'sha256');
+				$dependencyName = $download['destination'] . ' ' . $architecture;
+				$this->download($baseUrl . $download['file'], $dependencyName, $fullPath, $hash, 'sha256');
 
 				chmod($fullPath, 0700);
 			}
@@ -617,7 +618,7 @@ class InstallService {
 		return false;
 	}
 
-	protected function download(string $url, string $filename, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
+	protected function download(string $url, string $dependencyName, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
 		if (file_exists($path)) {
 			$this->progressToDatabase((int) filesize($path), 0);
 			if (hash_file($hash_algo, $path) === $hash) {
@@ -625,7 +626,7 @@ class InstallService {
 			}
 		}
 		if (php_sapi_name() === 'cli' && $this->output instanceof OutputInterface) {
-			$this->downloadCli($url, $filename, $path, $hash, $hash_algo);
+			$this->downloadCli($url, $dependencyName, $path, $hash, $hash_algo);
 			return;
 		}
 		$client = $this->clientService->newClient();
@@ -638,17 +639,17 @@ class InstallService {
 				},
 			]);
 		} catch (\Exception $e) {
-			throw new LibresignException('Failure on download ' . $filename . " try again.\n" . $e->getMessage());
+			throw new LibresignException('Failure on download ' . $dependencyName . " try again.\n" . $e->getMessage());
 		}
 		if ($hash && file_exists($path) && hash_file($hash_algo, $path) !== $hash) {
-			throw new LibresignException('Failure on download ' . $filename . ' try again. Invalid ' . $hash_algo . '.');
+			throw new LibresignException('Failure on download ' . $dependencyName . ' try again. Invalid ' . $hash_algo . '.');
 		}
 	}
 
-	protected function downloadCli(string $url, string $filename, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
+	protected function downloadCli(string $url, string $dependencyName, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
 		$client = $this->clientService->newClient();
 		$progressBar = new ProgressBar($this->output);
-		$this->output->writeln('Downloading ' . $filename . '...');
+		$this->output->writeln('Downloading ' . $dependencyName . '...');
 		$progressBar->start();
 		try {
 			$client->get($url, [
@@ -663,21 +664,21 @@ class InstallService {
 		} catch (\Exception $e) {
 			$progressBar->finish();
 			$this->output->writeln('');
-			$this->output->writeln('<error>Failure on download ' . $filename . ' try again.</error>');
+			$this->output->writeln('<error>Failure on download ' . $dependencyName . ' try again.</error>');
 			$this->output->writeln('<error>' . $e->getMessage() . '</error>');
-			$this->logger->error('Failure on download ' . $filename . '. ' . $e->getMessage());
+			$this->logger->error('Failure on download ' . $dependencyName . '. ' . $e->getMessage());
 		} finally {
 			$progressBar->finish();
 			$this->output->writeln('');
 		}
 		if ($hash && file_exists($path) && hash_file($hash_algo, $path) !== $hash) {
-			$this->output->writeln('<error>Failure on download ' . $filename . ' try again</error>');
+			$this->output->writeln('<error>Failure on download ' . $dependencyName . ' try again</error>');
 			$this->output->writeln('<error>Invalid ' . $hash_algo . '</error>');
-			$this->logger->error('Failure on download ' . $filename . '. Invalid ' . $hash_algo . '.');
+			$this->logger->error('Failure on download ' . $dependencyName . '. Invalid ' . $hash_algo . '.');
 		}
 		if (!file_exists($path)) {
-			$this->output->writeln('<error>Failure on download ' . $filename . ', empty file, try again</error>');
-			$this->logger->error('Failure on download ' . $filename . ', empty file.');
+			$this->output->writeln('<error>Failure on download ' . $dependencyName . ', empty file, try again</error>');
+			$this->logger->error('Failure on download ' . $dependencyName . ', empty file.');
 		}
 	}
 
