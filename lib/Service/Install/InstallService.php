@@ -89,17 +89,20 @@ class InstallService {
 
 	private function getFolder(string $path = '', ?ISimpleFolder $folder = null, $needToBeEmpty = false): ISimpleFolder {
 		if (!$folder) {
-			$folder = $this->appData->newFolder('');
-			if (!$path) {
-				$path = $this->architecture;
-			} else {
-				$path = $this->architecture . '/' . $path;
+			try {
+				$folder = $this->appData->newFolder('');
+				if (!$path) {
+					$path = $this->architecture;
+				} else {
+					$path = $this->architecture . '/' . $path;
+				}
+				$path = explode('/', $path);
+				foreach ($path as $snippet) {
+					$folder = $this->getFolder($snippet, $folder, $needToBeEmpty);
+				}
+				return $folder;
+			} catch (\Throwable $th) {
 			}
-			$path = explode('/', $path);
-			foreach ($path as $snippet) {
-				$folder = $this->getFolder($snippet, $folder, $needToBeEmpty);
-			}
-			return $folder;
 		}
 		try {
 			$folder = $folder->getFolder($path, $folder);
