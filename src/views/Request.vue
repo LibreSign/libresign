@@ -1,6 +1,6 @@
 <template>
 	<div class="container">
-		<div class="container-request">
+		<div id="container-request">
 			<header>
 				<h1>{{ t('libresign', 'Request Signatures') }}</h1>
 				<NcNoteCard v-for="message in errors"
@@ -283,12 +283,12 @@ export default {
 	height: 100%;
 }
 
-.container-request {
+#container-request {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	width: 100%;
+	width: 500px;
 	max-width: 100%;
 	text-align: center;
 
