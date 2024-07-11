@@ -113,7 +113,7 @@ class SignerElementsService {
 		$return = [];
 		$fileList = $this->getElementsFromSession();
 		foreach ($fileList as $fileElement) {
-			list($type, $timestamp) = explode('_', pathinfo($fileElement->getName(), PATHINFO_FILENAME));
+			[$type, $timestamp] = explode('_', pathinfo($fileElement->getName(), PATHINFO_FILENAME));
 			$return[] = [
 				'type' => $type,
 				'file' => [

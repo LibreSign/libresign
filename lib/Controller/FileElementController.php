@@ -54,7 +54,7 @@ class FileElementController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file-element/{uuid}', requirements: ['apiVersion' => '(v1)'])]
-	public function post(string $uuid, int $signRequestId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
+	public function post(string $uuid, int $signRequestId, ?int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
 		$visibleElement = [
 			'elementId' => $elementId,
 			'type' => $type,
@@ -104,7 +104,7 @@ class FileElementController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/file-element/{uuid}/{elementId}', requirements: ['apiVersion' => '(v1)'])]
-	public function patch(string $uuid, int $signRequestId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
+	public function patch(string $uuid, int $signRequestId, ?int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
 		return $this->post($uuid, $signRequestId, $elementId, $type, $metadata, $coordinates);
 	}
 

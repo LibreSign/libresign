@@ -343,9 +343,9 @@ class SignRequestMapper extends QBMapper {
 
 	public function getFilesAssociatedFilesWithMeFormatted(
 		IUser $user,
-		int $page = null,
-		int $length = null,
 		array $filter,
+		?int $page = null,
+		?int $length = null,
 	): array {
 		$filter['email'] = $user->getEMailAddress();
 		$filter['length'] = $length;

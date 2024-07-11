@@ -69,7 +69,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[PublicPage]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
 	public function signUsingFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = ''): DataResponse {
-		return $this->sign($fileId, null, $method, $elements, $identifyValue, $token);
+		return $this->sign($method, $elements, $identifyValue, $token, $fileId, null);
 	}
 
 	/**
@@ -92,13 +92,13 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[PublicPage]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}', requirements: ['apiVersion' => '(v1)'])]
 	public function signUsingUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = ''): DataResponse {
-		return $this->sign(null, $uuid, $method, $elements, $identifyValue, $token);
+		return $this->sign($method, $elements, $identifyValue, $token, null, $uuid);
 	}
 
 	/**
 	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: string[], redirect?: string}, array{}>
 	 */
-	public function sign(int $fileId = null, string $signRequestUuid = null, string $method, array $elements = [], string $identifyValue = '', string $token = ''): DataResponse {
+	public function sign(string $method, array $elements = [], string $identifyValue = '', string $token = '', ?int $fileId = null, ?string $signRequestUuid = null): DataResponse {
 		try {
 			$user = $this->userSession->getUser();
 			$this->validateHelper->canSignWithIdentificationDocumentStatus(
