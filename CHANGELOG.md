@@ -13,6 +13,22 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 8.2.0 - 2024-07-11
+### Changed
+* apply cs fixer [#3335](https://github.com/LibreSign/libresign/pull/3335)
+* bump cs fixer [#3327](https://github.com/LibreSign/libresign/pull/3327)
+* ui improvements [#3330](https://github.com/LibreSign/libresign/pull/3330)
+* js optimizations [#3322](https://github.com/LibreSign/libresign/pull/3322)
+* reduce a query when delete file [#3319](https://github.com/LibreSign/libresign/pull/3319)
+* bump dependencies [#3308](https://github.com/LibreSign/libresign/pull/3308)
+* use engine name at tip [#3305](https://github.com/LibreSign/libresign/pull/3305)
+
+### Fixes
+* install and check process [#3341](https://github.com/LibreSign/libresign/pull/3341)
+* prevent error when try to create folder and alreay exists [#3339](https://github.com/LibreSign/libresign/pull/3339)
+* prevent error when access method of Nextcloud 29 [#3317](https://github.com/LibreSign/libresign/pull/3317)
+* Prevent error when haven't ps command [#3315](https://github.com/LibreSign/libresign/pull/3315)
+
 ## 8.1.3 - 2024-07-08
 ### Changed
 * chore: update workflows [3255](https://github.com/LibreSign/libresign/pull/3255)
