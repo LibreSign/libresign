@@ -8,18 +8,42 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Migration;
 
+use OCA\Files\Command\ScanAppData;
 use OCP\Files\AppData\IAppDataFactory;
+use OCP\Files\Folder;
 use OCP\Files\IAppData;
 use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Input\ArrayInput;
 
 class DeleteOldBinaries implements IRepairStep {
 	protected IAppData $appData;
 	protected IOutput $output;
 	protected array $allowedFiles = [
-		'x86_64',
-		'aarch64',
+		'x86_64' => [
+			'alpine-linux' => [
+				'java',
+			],
+			'linux' => [
+				'java',
+			],
+			'cfssl',
+			'jsignpdf',
+			'pdftk',
+		],
+		'aarch64' => [
+			'alpine-linux' => [
+				'java',
+			],
+			'linux' => [
+				'java',
+			],
+			'cfssl',
+			'jsignpdf',
+			'pdftk',
+		],
 		'openssl_config',
 		'cfssl_config',
 		'unauthenticated',
@@ -35,19 +59,51 @@ class DeleteOldBinaries implements IRepairStep {
 	}
 
 	public function run(IOutput $output): void {
-		$output->warning('Run the follow command first: files:scan-app-data libresign');
+		$this->scan();
 		$this->output = $output;
 		$folder = $this->appData->getFolder('/');
 
-		$list = $this->getDirectoryListing($folder);
-		foreach ($list as $file) {
-			if (!in_array($file->getName(), $this->allowedFiles)) {
-				$file->delete();
+		$this->deleteFolder($folder, $this->allowedFiles);
+	}
+
+	private function scan(): void {
+		$application = \OCP\Server::get(Application::class);
+		$input = new ArrayInput([
+			'command' => 'files:scan-app-data',
+			'folder' => 'libresign',
+		]);
+		$application->add(\OC::$server->get(ScanAppData::class));
+		$application->setAutoExit(false);
+		$application->run($input);
+	}
+
+	private function deleteFolder(ISimpleFolder $folder, array $allowedFiles): void {
+		$list = $this->getSimpleFolderList($folder);
+		foreach ($list as $node) {
+			if (!in_array($node->getName(), $allowedFiles)) {
+				if (in_array($node->getName(), array_keys($allowedFiles))) {
+					$this->deleteRecursive($node, $allowedFiles[$node->getName()]);
+					continue;
+				}
+				$node->delete();
 			}
 		}
 	}
 
-	private function getDirectoryListing(ISimpleFolder $node): array {
+	private function deleteRecursive(Folder $folder, array $allowedFiles): void {
+		$list = $folder->getDirectoryListing();
+		foreach ($list as $node) {
+			if (!in_array($node->getName(), $allowedFiles)) {
+				if (in_array($node->getName(), array_keys($allowedFiles))) {
+					$this->deleteRecursive($node, $allowedFiles[$node->getName()]);
+					continue;
+				}
+				$node->delete();
+			}
+		}
+	}
+
+	private function getSimpleFolderList(ISimpleFolder $node): array {
 		$reflection = new \ReflectionClass($node);
 		$reflectionProperty = $reflection->getProperty('folder');
 		$reflectionProperty->setAccessible(true);
