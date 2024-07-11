@@ -438,9 +438,9 @@ class FileService {
 
 		$return = $this->signRequestMapper->getFilesAssociatedFilesWithMeFormatted(
 			$this->me,
+			$filter,
 			$page,
 			$length,
-			$filter,
 		);
 
 		$signers = $this->signRequestMapper->getByMultipleFileId(array_column($return['data'], 'id'));

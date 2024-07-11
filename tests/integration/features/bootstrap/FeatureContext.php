@@ -120,7 +120,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	protected function beforeRequest(string $fullUrl, array $options): array {
-		list($fullUrl, $options) = parent::beforeRequest($fullUrl, $options);
+		[$fullUrl, $options] = parent::beforeRequest($fullUrl, $options);
 		$options = $this->parseFormParams($options);
 		$fullUrl = $this->parseText($fullUrl);
 		return [$fullUrl, $options];

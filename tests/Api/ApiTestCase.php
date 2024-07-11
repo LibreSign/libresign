@@ -101,7 +101,7 @@ class ApiTestCase extends TestCase {
 	 * @throws StatusCodeNotMatchedException
 	 * @throws MessageException
 	 */
-	public function assertRequest(AbstractRequester $request = null):Response|ResponseInterface {
+	public function assertRequest(?AbstractRequester $request = null):Response|ResponseInterface {
 		if (!$request) {
 			$request = $this->request;
 		}
