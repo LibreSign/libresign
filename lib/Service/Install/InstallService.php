@@ -60,6 +60,7 @@ class InstallService {
 		'pdftk',
 		'cfssl'
 	];
+	private string $distro = '';
 	private string $architecture;
 	private bool $willUseLocalCert = false;
 
@@ -370,7 +371,11 @@ class InstallService {
 			$this->runAsync();
 			return;
 		}
-		$extractDir = $this->getFullPath() . '/' . $this->resource;
+		if (PHP_OS_FAMILY !== 'Linux') {
+			throw new RuntimeException(sprintf('OS_FAMILY %s is incompatible with LibreSign.', PHP_OS_FAMILY));
+		}
+		$linuxDistribution = $this->getLinuxDistributionToDownloadJava();
+		$extractDir = $this->getFullPath() . '/' . $linuxDistribution . '/' . $this->resource;
 
 		if ($this->isDownloadedFilesOk()) {
 			$folder = $this->getFolder($this->resource);
@@ -384,19 +389,14 @@ class InstallService {
 			 * URL used to get the MD5 and URL to download:
 			 * https://jdk.java.net/java-se-ri/8-MR3
 			 */
-			if (PHP_OS_FAMILY === 'Linux') {
-				$linuxDistribution = $this->getLinuxDistributionToDownloadJava();
-				if ($this->architecture === 'x86_64') {
-					$compressedFileName = 'OpenJDK21U-jre_x64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
-					$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME  . '/' . $compressedFileName;
-				} elseif ($this->architecture === 'aarch64') {
-					$compressedFileName = 'OpenJDK21U-jre_aarch64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
-					$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
-				}
-				$class = TAR::class;
-			} else {
-				throw new RuntimeException(sprintf('OS_FAMILY %s is incompatible with LibreSign.', PHP_OS_FAMILY));
+			if ($this->architecture === 'x86_64') {
+				$compressedFileName = 'OpenJDK21U-jre_x64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
+				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME  . '/' . $compressedFileName;
+			} elseif ($this->architecture === 'aarch64') {
+				$compressedFileName = 'OpenJDK21U-jre_aarch64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
+				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
 			}
+			$class = TAR::class;
 			$checksumUrl = $url . '.sha256.txt';
 			$hash = $this->getHash($compressedFileName, $checksumUrl);
 			try {
@@ -406,7 +406,8 @@ class InstallService {
 			}
 			$comporessedInternalFileName = $this->getDataDir() . '/' . $this->getInternalPathOfFile($compressedFile);
 
-			$this->download($url, 'java', $comporessedInternalFileName, $hash, 'sha256');
+			$dependencyName = 'java ' . $this->architecture . ' '. $linuxDistribution;
+			$this->download($url, $dependencyName, $comporessedInternalFileName, $hash, 'sha256');
 
 			$extractor = new $class($comporessedInternalFileName);
 			$extractor->extract($extractDir);
@@ -418,10 +419,17 @@ class InstallService {
 		$this->removeDownloadProgress();
 	}
 
+	public function setDistro(string $distro): void {
+		$this->distro = $distro;
+	}
+
 	/**
 	 * Return linux or alpine-linux
 	 */
 	private function getLinuxDistributionToDownloadJava(): string {
+		if ($this->distro) {
+			return $this->distro;
+		}
 		$distribution = shell_exec('cat /etc/*-release');
 		preg_match('/^ID=(?<version>.*)$/m', $distribution, $matches);
 		if (isset($matches['version']) && strtolower($matches['version']) === 'alpine') {
@@ -561,18 +569,18 @@ class InstallService {
 		$this->removeDownloadProgress();
 	}
 
-	private function installCfsslByArchitecture(string $arcitecture): void {
+	private function installCfsslByArchitecture(string $architecture): void {
 		if ($this->isDownloadedFilesOk()) {
 			$folder = $this->getFolder($this->resource);
 		} else {
 			$folder = $this->getEmptyFolder($this->resource);
 			$downloads = [
 				[
-					'file' => 'cfssl_' . self::CFSSL_VERSION . '_linux_' . $arcitecture,
+					'file' => 'cfssl_' . self::CFSSL_VERSION . '_linux_' . $architecture,
 					'destination' => 'cfssl',
 				],
 				[
-					'file' => 'cfssljson_' . self::CFSSL_VERSION . '_linux_' . $arcitecture,
+					'file' => 'cfssljson_' . self::CFSSL_VERSION . '_linux_' . $architecture,
 					'destination' => 'cfssljson',
 				],
 			];
@@ -584,7 +592,8 @@ class InstallService {
 				$file = $folder->newFile($download['destination']);
 				$fullPath = $this->getDataDir() . '/' . $this->getInternalPathOfFile($file);
 
-				$this->download($baseUrl . $download['file'], $download['destination'], $fullPath, $hash, 'sha256');
+				$dependencyName = $download['destination'] . ' ' . $architecture;
+				$this->download($baseUrl . $download['file'], $dependencyName, $fullPath, $hash, 'sha256');
 
 				chmod($fullPath, 0700);
 			}
@@ -617,7 +626,7 @@ class InstallService {
 		return false;
 	}
 
-	protected function download(string $url, string $filename, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
+	protected function download(string $url, string $dependencyName, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
 		if (file_exists($path)) {
 			$this->progressToDatabase((int) filesize($path), 0);
 			if (hash_file($hash_algo, $path) === $hash) {
@@ -625,7 +634,7 @@ class InstallService {
 			}
 		}
 		if (php_sapi_name() === 'cli' && $this->output instanceof OutputInterface) {
-			$this->downloadCli($url, $filename, $path, $hash, $hash_algo);
+			$this->downloadCli($url, $dependencyName, $path, $hash, $hash_algo);
 			return;
 		}
 		$client = $this->clientService->newClient();
@@ -638,17 +647,17 @@ class InstallService {
 				},
 			]);
 		} catch (\Exception $e) {
-			throw new LibresignException('Failure on download ' . $filename . " try again.\n" . $e->getMessage());
+			throw new LibresignException('Failure on download ' . $dependencyName . " try again.\n" . $e->getMessage());
 		}
 		if ($hash && file_exists($path) && hash_file($hash_algo, $path) !== $hash) {
-			throw new LibresignException('Failure on download ' . $filename . ' try again. Invalid ' . $hash_algo . '.');
+			throw new LibresignException('Failure on download ' . $dependencyName . ' try again. Invalid ' . $hash_algo . '.');
 		}
 	}
 
-	protected function downloadCli(string $url, string $filename, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
+	protected function downloadCli(string $url, string $dependencyName, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
 		$client = $this->clientService->newClient();
 		$progressBar = new ProgressBar($this->output);
-		$this->output->writeln('Downloading ' . $filename . '...');
+		$this->output->writeln('Downloading ' . $dependencyName . '...');
 		$progressBar->start();
 		try {
 			$client->get($url, [
@@ -663,21 +672,21 @@ class InstallService {
 		} catch (\Exception $e) {
 			$progressBar->finish();
 			$this->output->writeln('');
-			$this->output->writeln('<error>Failure on download ' . $filename . ' try again.</error>');
+			$this->output->writeln('<error>Failure on download ' . $dependencyName . ' try again.</error>');
 			$this->output->writeln('<error>' . $e->getMessage() . '</error>');
-			$this->logger->error('Failure on download ' . $filename . '. ' . $e->getMessage());
+			$this->logger->error('Failure on download ' . $dependencyName . '. ' . $e->getMessage());
 		} finally {
 			$progressBar->finish();
 			$this->output->writeln('');
 		}
 		if ($hash && file_exists($path) && hash_file($hash_algo, $path) !== $hash) {
-			$this->output->writeln('<error>Failure on download ' . $filename . ' try again</error>');
+			$this->output->writeln('<error>Failure on download ' . $dependencyName . ' try again</error>');
 			$this->output->writeln('<error>Invalid ' . $hash_algo . '</error>');
-			$this->logger->error('Failure on download ' . $filename . '. Invalid ' . $hash_algo . '.');
+			$this->logger->error('Failure on download ' . $dependencyName . '. Invalid ' . $hash_algo . '.');
 		}
 		if (!file_exists($path)) {
-			$this->output->writeln('<error>Failure on download ' . $filename . ', empty file, try again</error>');
-			$this->logger->error('Failure on download ' . $filename . ', empty file.');
+			$this->output->writeln('<error>Failure on download ' . $dependencyName . ', empty file, try again</error>');
+			$this->logger->error('Failure on download ' . $dependencyName . ', empty file.');
 		}
 	}
 
