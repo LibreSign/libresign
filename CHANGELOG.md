@@ -14,6 +14,36 @@ Types of changes:
 
 <!-- changelog-linker -->
 
+## 9.2.0 - 2024-07-11
+### Changed
+* bump cs fixer [#3328](https://github.com/LibreSign/libresign/pull/3328)
+* ui improvements [#3331](https://github.com/LibreSign/libresign/pull/3331)
+* js optimizations [#3323](https://github.com/LibreSign/libresign/pull/3323)
+* reduce a query when delete file [#3321](https://github.com/LibreSign/libresign/pull/3321)
+* bump dependencies [#3309](https://github.com/LibreSign/libresign/pull/3309)
+* use engine name at tip [#3306](https://github.com/LibreSign/libresign/pull/3306)
+
+### Fixes
+* install and check process [#3342](https://github.com/LibreSign/libresign/pull/3342)
+* prevent error when try to create folder and alreay exists [#3338](https://github.com/LibreSign/libresign/pull/3338)
+* Prevent error when haven't ps command [#3316](https://github.com/LibreSign/libresign/pull/3316)
+
+## 8.2.0 - 2024-07-11
+### Changed
+* apply cs fixer [#3335](https://github.com/LibreSign/libresign/pull/3335)
+* bump cs fixer [#3327](https://github.com/LibreSign/libresign/pull/3327)
+* ui improvements [#3330](https://github.com/LibreSign/libresign/pull/3330)
+* js optimizations [#3322](https://github.com/LibreSign/libresign/pull/3322)
+* reduce a query when delete file [#3319](https://github.com/LibreSign/libresign/pull/3319)
+* bump dependencies [#3308](https://github.com/LibreSign/libresign/pull/3308)
+* use engine name at tip [#3305](https://github.com/LibreSign/libresign/pull/3305)
+
+### Fixes
+* install and check process [#3341](https://github.com/LibreSign/libresign/pull/3341)
+* prevent error when try to create folder and alreay exists [#3339](https://github.com/LibreSign/libresign/pull/3339)
+* prevent error when access method of Nextcloud 29 [#3317](https://github.com/LibreSign/libresign/pull/3317)
+* Prevent error when haven't ps command [#3315](https://github.com/LibreSign/libresign/pull/3315)
+
 ## 9.1.3 - 2024-07-08
 ### Changed
 * chore: update workflows [3254](https://github.com/LibreSign/libresign/pull/3254)
