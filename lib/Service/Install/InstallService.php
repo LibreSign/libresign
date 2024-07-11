@@ -60,6 +60,7 @@ class InstallService {
 		'pdftk',
 		'cfssl'
 	];
+	private string $distro = '';
 	private string $architecture;
 	private bool $willUseLocalCert = false;
 
@@ -370,7 +371,11 @@ class InstallService {
 			$this->runAsync();
 			return;
 		}
-		$extractDir = $this->getFullPath() . '/' . $this->resource;
+		if (PHP_OS_FAMILY !== 'Linux') {
+			throw new RuntimeException(sprintf('OS_FAMILY %s is incompatible with LibreSign.', PHP_OS_FAMILY));
+		}
+		$linuxDistribution = $this->getLinuxDistributionToDownloadJava();
+		$extractDir = $this->getFullPath() . '/' . $linuxDistribution . '/' . $this->resource;
 
 		if ($this->isDownloadedFilesOk()) {
 			$folder = $this->getFolder($this->resource);
@@ -384,19 +389,14 @@ class InstallService {
 			 * URL used to get the MD5 and URL to download:
 			 * https://jdk.java.net/java-se-ri/8-MR3
 			 */
-			if (PHP_OS_FAMILY === 'Linux') {
-				$linuxDistribution = $this->getLinuxDistributionToDownloadJava();
-				if ($this->architecture === 'x86_64') {
-					$compressedFileName = 'OpenJDK21U-jre_x64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
-					$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME  . '/' . $compressedFileName;
-				} elseif ($this->architecture === 'aarch64') {
-					$compressedFileName = 'OpenJDK21U-jre_aarch64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
-					$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
-				}
-				$class = TAR::class;
-			} else {
-				throw new RuntimeException(sprintf('OS_FAMILY %s is incompatible with LibreSign.', PHP_OS_FAMILY));
+			if ($this->architecture === 'x86_64') {
+				$compressedFileName = 'OpenJDK21U-jre_x64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
+				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME  . '/' . $compressedFileName;
+			} elseif ($this->architecture === 'aarch64') {
+				$compressedFileName = 'OpenJDK21U-jre_aarch64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
+				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
 			}
+			$class = TAR::class;
 			$checksumUrl = $url . '.sha256.txt';
 			$hash = $this->getHash($compressedFileName, $checksumUrl);
 			try {
@@ -406,7 +406,8 @@ class InstallService {
 			}
 			$comporessedInternalFileName = $this->getDataDir() . '/' . $this->getInternalPathOfFile($compressedFile);
 
-			$this->download($url, 'java', $comporessedInternalFileName, $hash, 'sha256');
+			$dependencyName = 'java ' . $this->architecture . ' '. $linuxDistribution;
+			$this->download($url, $dependencyName, $comporessedInternalFileName, $hash, 'sha256');
 
 			$extractor = new $class($comporessedInternalFileName);
 			$extractor->extract($extractDir);
@@ -418,10 +419,17 @@ class InstallService {
 		$this->removeDownloadProgress();
 	}
 
+	public function setDistro(string $distro): void {
+		$this->distro = $distro;
+	}
+
 	/**
 	 * Return linux or alpine-linux
 	 */
 	private function getLinuxDistributionToDownloadJava(): string {
+		if ($this->distro) {
+			return $this->distro;
+		}
 		$distribution = shell_exec('cat /etc/*-release');
 		preg_match('/^ID=(?<version>.*)$/m', $distribution, $matches);
 		if (isset($matches['version']) && strtolower($matches['version']) === 'alpine') {

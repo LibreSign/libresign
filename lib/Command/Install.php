@@ -90,7 +90,14 @@ class Install extends Base {
 			}
 			$all = $input->getOption('all');
 			if ($input->getOption('java') || $all) {
-				$this->installService->installJava();
+				if ($all) {
+					foreach (['linux', 'alpine-linux'] as $distro) {
+						$this->installService->setDistro($distro);
+						$this->installService->installJava();
+					}
+				} else {
+					$this->installService->installJava();
+				}
 				$ok = true;
 			}
 			if ($input->getOption('jsignpdf') || $all) {
