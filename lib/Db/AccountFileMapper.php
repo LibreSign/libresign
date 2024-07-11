@@ -91,7 +91,7 @@ class AccountFileMapper extends QBMapper {
 		return $this->findEntity($qb);
 	}
 
-	public function accountFileList(array $filter, int $page = null, int $length = null): array {
+	public function accountFileList(array $filter, ?int $page = null, ?int $length = null): array {
 		$filter['length'] = $length;
 		$filter['page'] = $page;
 		$pagination = $this->getUserAccountFile($filter);
