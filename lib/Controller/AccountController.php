@@ -379,7 +379,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 			];
 			foreach ($updatable as $property => $data) {
 				$property = $userAccount->getProperty($property);
-				if (null !== $data['value']) {
+				if ($data['value'] !== null) {
 					$property->setValue($data['value']);
 				}
 			}

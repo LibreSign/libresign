@@ -117,7 +117,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	protected function beforeRequest(string $fullUrl, array $options): array {
-		list($fullUrl, $options) = parent::beforeRequest($fullUrl, $options);
+		[$fullUrl, $options] = parent::beforeRequest($fullUrl, $options);
 		$options = $this->parseFormParams($options);
 		$fullUrl = $this->parseText($fullUrl);
 		return [$fullUrl, $options];
@@ -192,7 +192,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 * @param string $user
 	 * @param TableNode|null $body
 	 */
-	public function userNotifications(string $user, TableNode $body = null): void {
+	public function userNotifications(string $user, ?TableNode $body = null): void {
 		$this->setCurrentUser($user);
 		$this->sendOCSRequest(
 			'GET', '/apps/notifications/api/v2/notifications'

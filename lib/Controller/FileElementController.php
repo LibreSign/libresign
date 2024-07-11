@@ -68,7 +68,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function post(string $uuid, int $signRequestId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
+	public function post(string $uuid, int $signRequestId, ?int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
 		$visibleElement = [
 			'elementId' => $elementId,
 			'type' => $type,
@@ -117,7 +117,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function patch(string $uuid, int $signRequestId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
+	public function patch(string $uuid, int $signRequestId, ?int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
 		return $this->post($uuid, $signRequestId, $elementId, $type, $metadata, $coordinates);
 	}
 
