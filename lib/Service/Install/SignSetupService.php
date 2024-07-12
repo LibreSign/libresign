@@ -15,15 +15,13 @@ use OCA\Libresign\Exception\EmptySignatureDataException;
 use OCA\Libresign\Exception\InvalidSignatureException;
 use OCA\Libresign\Exception\SignatureDataNotFoundException;
 use OCP\App\IAppManager;
-use OCP\Files\AppData\IAppDataFactory;
-use OCP\Files\IAppData;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\NotFoundException;
 use OCP\IConfig;
 use phpseclib\Crypt\RSA;
 use phpseclib\File\X509;
 
 class SignSetupService {
-	private IAppData $appData;
 	private array $exclude = [
 		'openssl_config',
 		'cfssl_config',
@@ -33,18 +31,16 @@ class SignSetupService {
 	private string $resource;
 	private array $signatureData = [];
 	private bool $willUseLocalCert = false;
-	private string $signatureFileName = '';
-	private string $installPath = '';
+	private string $distro = '';
 	private ?X509 $x509 = null;
 	private ?RSA $rsa = null;
 	public function __construct(
 		private EnvironmentHelper $environmentHelper,
 		private FileAccessHelper $fileAccessHelper,
 		private IConfig $config,
-		private IAppDataFactory $appDataFactory,
+		private IAppConfig $appConfig,
 		private IAppManager $appManager,
 	) {
-		$this->appData = $appDataFactory->get('libresign');
 	}
 
 	public function getArchitectures(): array {
@@ -109,7 +105,7 @@ class SignSetupService {
 		$this->architecture = $architecture;
 		$this->resource = $resource;
 		try {
-			$iterator = $this->getFolderIterator($this->installPath);
+			$iterator = $this->getFolderIterator($this->getInstallPath());
 			$hashes = $this->generateHashes($iterator);
 			$signature = $this->createSignatureData($hashes);
 			$this->fileAccessHelper->file_put_contents(
@@ -132,19 +128,72 @@ class SignSetupService {
 		}
 	}
 
-	public function setInstallPath(string $installPath): self {
-		$this->installPath = $installPath;
-		return $this;
-	}
-
-	public function setSignatureFileName(string $signatureFileName): self {
-		$this->signatureFileName = $signatureFileName;
-		return $this;
+	public function getInstallPath(): string {
+		switch ($this->resource) {
+			case 'java':
+				$path = $this->appConfig->getAppValue('java_path');
+				$installPath = substr($path, 0, -strlen('/bin/java'));
+				if (!str_contains($installPath, $this->distro)) {
+					$installPath = preg_replace(
+						'/\/' . $this->architecture . '\/(\w+)/i',
+						'/' . $this->architecture . '/'.$this->distro,
+						$installPath
+					);
+				}
+				break;
+			case 'jsignpdf':
+				$path = $this->appConfig->getAppValue('jsignpdf_jar_path');
+				$installPath = substr($path, 0, -strlen('/JSignPdf.jar'));
+				break;
+			case 'pdftk':
+				$path = $this->appConfig->getAppValue('pdftk_path');
+				$installPath = substr($path, 0, -strlen('/pdftk.jar'));
+				break;
+			case 'cfssl':
+				$path = $this->appConfig->getAppValue('cfssl_bin');
+				$installPath = substr($path, 0, -strlen('/cfssl'));
+				break;
+			default:
+				$installPath = '';
+		}
+		if (!str_contains($installPath, $this->architecture)) {
+			$installPath = preg_replace('/\/libresign\/(\w+)/i', '/libresign/'.$this->architecture, $installPath);
+		}
+		return $installPath;
 	}
 
 	private function getFileName(): string {
 		$appInfoDir = $this->getAppInfoDirectory();
-		return $appInfoDir . '/' . $this->signatureFileName;
+		return $appInfoDir . '/' . $this->getSignatureFileName();
+	}
+
+	public function getSignatureFileName(): string {
+		$path[] = 'install-' . $this->architecture;
+		if ($this->resource === 'java') {
+			$path[] = $this->getLinuxDistributionToDownloadJava();
+		}
+		$path[] = $this->resource . '.json';
+		return implode('-', $path);
+	}
+
+	public function setDistro(string $distro): self {
+		$this->distro = $distro;
+		return $this;
+	}
+
+	/**
+	 * Return linux or alpine-linux
+	 */
+	public function getLinuxDistributionToDownloadJava(): string {
+		if ($this->distro) {
+			return $this->distro;
+		}
+		$distribution = shell_exec('cat /etc/*-release');
+		preg_match('/^ID=(?<version>.*)$/m', $distribution, $matches);
+		if (isset($matches['version']) && strtolower($matches['version']) === 'alpine') {
+			return 'alpine-linux';
+		}
+		return 'linux';
 	}
 
 	protected function getAppInfoDirectory(): string {
@@ -249,7 +298,7 @@ class SignSetupService {
 		try {
 			$expectedHashes = $this->getHashesOfResource();
 			// Compare the list of files which are not identical
-			$currentInstanceHashes = $this->generateHashes($this->getFolderIterator($this->installPath), $this->installPath);
+			$currentInstanceHashes = $this->generateHashes($this->getFolderIterator($this->getInstallPath()));
 		} catch (EmptySignatureDataException $th) {
 			return [
 				'EMPTY_SIGNATURE_DATA' => $th->getMessage(),
@@ -331,7 +380,7 @@ class SignSetupService {
 	private function generateHashes(\RecursiveIteratorIterator $iterator): array {
 		$hashes = [];
 
-		$baseDirectoryLength = \strlen($this->installPath);
+		$baseDirectoryLength = \strlen($this->getInstallPath());
 		foreach ($iterator as $filename => $data) {
 			/** @var \DirectoryIterator $data */
 			if ($data->isDir()) {

@@ -13,7 +13,7 @@ use OC\IntegrityCheck\Helpers\EnvironmentHelper;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCP\App\IAppManager;
-use OCP\Files\AppData\IAppDataFactory;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\IConfig;
 use phpseclib\Crypt\RSA;
 use phpseclib\File\X509;
@@ -23,15 +23,15 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private EnvironmentHelper&MockObject $environmentHelper;
 	private FileAccessHelper $fileAccessHelper;
 	private IConfig&MockObject $config;
-	private IAppDataFactory&MockObject $appDataFactory;
+	private IAppConfig&MockObject $appConfig;
 	private IAppManager&MockObject $appManager;
 
 	public function setUp(): void {
 		$this->environmentHelper = $this->createMock(EnvironmentHelper::class);
 		$this->fileAccessHelper = new FileAccessHelper();
-		$this->config = $this->createMock(IConfig::class);
-		$this->appDataFactory = $this->createMock(IAppDataFactory::class);
 		$this->appManager = $this->createMock(IAppManager::class);
+		$this->config = $this->createMock(IConfig::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
 	}
 
 	/**
@@ -43,7 +43,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->environmentHelper,
 				$this->fileAccessHelper,
 				$this->config,
-				$this->appDataFactory,
+				$this->appConfig,
 				$this->appManager,
 			])
 			->onlyMethods($methods)
@@ -82,14 +82,20 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->environmentHelper->method('getServerRoot')
 			->willReturn('vfs://home');
 
+		$this->appConfig
+			->method('getAppValue')
+			->willReturnCallback(function ($key, $default) use ($architecture):string {
+				return match ($key) {
+					'java_path' => 'vfs://home/data/libresign/' . $architecture . '/linux/java/bin/java',
+					default => '',
+				};
+			});
 		$signSetupService = $this->getInstance([
 			'getAppInfoDirectory',
 		]);
 		$signSetupService->expects($this->any())
 			->method('getAppInfoDirectory')
 			->willReturn('vfs://home/appinfo');
-		$signSetupService->setSignatureFileName('install-' . $architecture . '-' . $resource . '.json');
-		$signSetupService->setInstallPath('vfs://home/data/libresign/' . $resource);
 
 		$this->appManager->method('getAppInfo')
 			->willReturn(['dependencies' => ['architecture' => [$architecture]]]);
@@ -105,10 +111,14 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$structure = [
 			'data' => [
 				'libresign' => [
-					'java' => [
-						'fakeFile01' => 'content',
-						'fakeFile02' => 'content',
-					],
+					$architecture => [
+						'linux' => [
+							'java' => [
+								'fakeFile01' => 'content',
+								'fakeFile02' => 'content',
+							],
+						]
+					]
 				],
 			],
 			'resources' => [
@@ -121,12 +131,12 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$root = vfsStream::setup('home', null, $structure);
 
 		$signSetupService->writeAppSignature($architecture, $resource);
-		$this->assertFileExists('vfs://home/appinfo/install-' . $architecture . '-' . $resource . '.json');
-		$json = file_get_contents('vfs://home/appinfo/install-' . $architecture . '-' . $resource . '.json');
+		$this->assertFileExists('vfs://home/appinfo/install-' . $architecture . '-linux-' . $resource . '.json');
+		$json = file_get_contents('vfs://home/appinfo/install-' . $architecture . '-linux-' . $resource . '.json');
 		$signatureContent = json_decode($json, true);
 		$this->assertArrayHasKey('hashes', $signatureContent);
 		$this->assertCount(2, $signatureContent['hashes']);
-		$expected = hash('sha512', $structure['data']['libresign'][$resource]['fakeFile01']);
+		$expected = hash('sha512', $structure['data']['libresign'][$architecture]['linux'][$resource]['fakeFile01']);
 		$this->assertArrayHasKey('fakeFile01', $signatureContent['hashes']);
 		$actual = $signatureContent['hashes']['fakeFile01'];
 		$this->assertEquals($expected, $actual);
@@ -152,9 +162,9 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testVerify(): void {
 		$architecture = 'x86_64';
 		$signSetupService = $this->writeAppSignature($architecture, 'java');
-		unlink('vfs://home/data/libresign/java/fakeFile01');
-		file_put_contents('vfs://home/data/libresign/java/fakeFile02', 'invalidContent');
-		file_put_contents('vfs://home/data/libresign/java/fakeFile03', 'invalidContent');
+		unlink('vfs://home/data/libresign/' . $architecture . '/linux/java/fakeFile01');
+		file_put_contents('vfs://home/data/libresign/' . $architecture . '/linux/java/fakeFile02', 'invalidContent');
+		file_put_contents('vfs://home/data/libresign/' . $architecture . '/linux/java/fakeFile03', 'invalidContent');
 		$expected = json_encode([
 			'FILE_MISSING' => [
 				'fakeFile01' => [
