@@ -58,7 +58,7 @@ class InstallService {
 		'java',
 		'jsignpdf',
 		'pdftk',
-		'cfssl'
+		'cfssl',
 	];
 	private string $distro = '';
 	private string $architecture;
@@ -84,8 +84,9 @@ class InstallService {
 		$this->output = $output;
 	}
 
-	public function setArchitecture(string $architecture): void {
+	public function setArchitecture(string $architecture): self {
 		$this->architecture = $architecture;
+		return $this;
 	}
 
 	private function getFolder(string $path = '', ?ISimpleFolder $folder = null, $needToBeEmpty = false): ISimpleFolder {
@@ -362,6 +363,13 @@ class InstallService {
 		if (!$this->willUseLocalCert) {
 			return;
 		}
+
+		$this->signSetupService->setSignatureFileName(
+			$this->getSignatureFileName()
+		);
+		$this->signSetupService->setInstallPath(
+			$this->getInstallPath()
+		);
 		$this->signSetupService->writeAppSignature($this->architecture, $this->resource);
 	}
 
@@ -377,9 +385,8 @@ class InstallService {
 		$linuxDistribution = $this->getLinuxDistributionToDownloadJava();
 		$extractDir = $this->getFullPath() . '/' . $linuxDistribution . '/' . $this->resource;
 
-		if ($this->isDownloadedFilesOk()) {
-			$folder = $this->getFolder($this->resource);
-		} else {
+		$downloadOk = $this->isDownloadedFilesOk();
+		if (!$downloadOk) {
 			$folder = $this->getEmptyFolder($this->resource);
 			/**
 			 * Steps to update:
@@ -412,10 +419,13 @@ class InstallService {
 			$extractor = new $class($comporessedInternalFileName);
 			$extractor->extract($extractDir);
 			unlink($comporessedInternalFileName);
-			$this->writeAppSignature();
+			$downloadOk = true;
 		}
 
 		$this->appConfig->setAppValue('java_path', $extractDir . '/jdk-' . self::JAVA_URL_PATH_NAME . '-jre/bin/java');
+		if ($downloadOk) {
+			$this->writeAppSignature();
+		}
 		$this->removeDownloadProgress();
 	}
 
@@ -423,10 +433,37 @@ class InstallService {
 		$this->distro = $distro;
 	}
 
+	public function getInstallPath(): string {
+		switch ($this->resource) {
+			case 'java':
+				$path = $this->appConfig->getAppValue('java_path');
+				return substr($path, 0, -strlen('/bin/java'));
+			case 'jsignpdf':
+				$path = $this->appConfig->getAppValue('jsignpdf_jar_path');
+				return substr($path, 0, -strlen('/JSignPdf.jar'));
+			case 'pdftk':
+				$path = $this->appConfig->getAppValue('pdftk_path');
+				return substr($path, 0, -strlen('/pdftk.jar'));
+			case 'cfssl':
+				$path = $this->appConfig->getAppValue('cfssl_bin');
+				return substr($path, 0, -strlen('/cfssl'));
+		}
+		return '';
+	}
+
+	public function getSignatureFileName(): string {
+		$path[] = 'install-' . $this->architecture;
+		if ($this->resource === 'java') {
+			$path[] = $this->getLinuxDistributionToDownloadJava();
+		}
+		$path[] = $this->resource . '.json';
+		return implode('-', $path);
+	}
+
 	/**
 	 * Return linux or alpine-linux
 	 */
-	private function getLinuxDistributionToDownloadJava(): string {
+	public function getLinuxDistributionToDownloadJava(): string {
 		if ($this->distro) {
 			return $this->distro;
 		}
@@ -463,9 +500,8 @@ class InstallService {
 		}
 		$extractDir = $this->getFullPath() . '/' . $this->resource;
 
-		if ($this->isDownloadedFilesOk()) {
-			$folder = $this->getFolder($this->resource);
-		} else {
+		$downloadOk = $this->isDownloadedFilesOk();
+		if (!$downloadOk) {
 			$folder = $this->getEmptyFolder($this->resource);
 			$compressedFileName = 'jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
 			try {
@@ -483,11 +519,14 @@ class InstallService {
 			$zip = new ZIP($extractDir . '/' . $compressedFileName);
 			$zip->extract($extractDir);
 			unlink($extractDir . '/' . $compressedFileName);
-			$this->writeAppSignature();
+			$downloadOk = true;
 		}
 
 		$fullPath = $extractDir . '/jsignpdf-' . JSignPdfHandler::VERSION . '/JSignPdf.jar';
 		$this->appConfig->setAppValue('jsignpdf_jar_path', $fullPath);
+		if ($downloadOk) {
+			$this->writeAppSignature();
+		}
 		$this->removeDownloadProgress();
 	}
 
@@ -512,7 +551,8 @@ class InstallService {
 			return;
 		}
 
-		if ($this->isDownloadedFilesOk()) {
+		$downloadOk = $this->isDownloadedFilesOk();
+		if ($downloadOk) {
 			$folder = $this->getFolder($this->resource);
 			$file = $folder->getFile('pdftk.jar');
 			$fullPath = $this->getDataDir() . '/' . $this->getInternalPathOfFile($file);
@@ -529,10 +569,12 @@ class InstallService {
 			$hash = '59a28bed53b428595d165d52988bf4cf';
 
 			$this->download($url, 'pdftk', $fullPath, $hash);
-			$this->writeAppSignature();
 		}
 
 		$this->appConfig->setAppValue('pdftk_path', $fullPath);
+		if ($downloadOk) {
+			$this->writeAppSignature();
+		}
 		$this->removeDownloadProgress();
 	}
 
@@ -570,7 +612,8 @@ class InstallService {
 	}
 
 	private function installCfsslByArchitecture(string $architecture): void {
-		if ($this->isDownloadedFilesOk()) {
+		$downloadOk = $this->isDownloadedFilesOk();
+		if ($downloadOk) {
 			$folder = $this->getFolder($this->resource);
 		} else {
 			$folder = $this->getEmptyFolder($this->resource);
@@ -597,12 +640,15 @@ class InstallService {
 
 				chmod($fullPath, 0700);
 			}
-			$this->writeAppSignature();
+			$downloadOk = true;
 		}
 
 		$cfsslBinPath = $this->getDataDir() . '/' .
 			$this->getInternalPathOfFolder($folder) . '/cfssl';
 		$this->appConfig->setAppValue('cfssl_bin', $cfsslBinPath);
+		if ($downloadOk) {
+			$this->writeAppSignature();
+		}
 	}
 
 	public function uninstallCfssl(): void {

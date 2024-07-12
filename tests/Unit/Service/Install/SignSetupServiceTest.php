@@ -83,15 +83,13 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn('vfs://home');
 
 		$signSetupService = $this->getInstance([
-			'getInternalPathOfFolder',
 			'getAppInfoDirectory',
 		]);
 		$signSetupService->expects($this->any())
-			->method('getInternalPathOfFolder')
-			->willReturn('libresign');
-		$signSetupService->expects($this->any())
 			->method('getAppInfoDirectory')
 			->willReturn('vfs://home/appinfo');
+		$signSetupService->setSignatureFileName('install-' . $architecture . '-' . $resource . '.json');
+		$signSetupService->setInstallPath('vfs://home/data/libresign/' . $resource);
 
 		$this->appManager->method('getAppInfo')
 			->willReturn(['dependencies' => ['architecture' => [$architecture]]]);
@@ -129,7 +127,8 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertArrayHasKey('hashes', $signatureContent);
 		$this->assertCount(2, $signatureContent['hashes']);
 		$expected = hash('sha512', $structure['data']['libresign'][$resource]['fakeFile01']);
-		$actual = $signatureContent['hashes']['java/fakeFile01'];
+		$this->assertArrayHasKey('fakeFile01', $signatureContent['hashes']);
+		$actual = $signatureContent['hashes']['fakeFile01'];
 		$this->assertEquals($expected, $actual);
 		return $signSetupService;
 	}
@@ -158,19 +157,19 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		file_put_contents('vfs://home/data/libresign/java/fakeFile03', 'invalidContent');
 		$expected = json_encode([
 			'FILE_MISSING' => [
-				'java/fakeFile01' => [
+				'fakeFile01' => [
 					'expected' => 'b2d1d285b5199c85f988d03649c37e44fd3dde01e5d69c50fef90651962f48110e9340b60d49a479c4c0b53f5f07d690686dd87d2481937a512e8b85ee7c617f',
 					'current' => '',
 				],
 			],
 			'INVALID_HASH' => [
-				'java/fakeFile02' => [
+				'fakeFile02' => [
 					'expected' => 'b2d1d285b5199c85f988d03649c37e44fd3dde01e5d69c50fef90651962f48110e9340b60d49a479c4c0b53f5f07d690686dd87d2481937a512e8b85ee7c617f',
 					'current' => '827a4e298c978e1eeffebdf09f0fa5a1e1d8b608c8071144f3fffb31f9ed21f6d27f88a63f7409583df7438105f713ff58d55e68e61e01a285125d763045c726',
 				],
 			],
 			'EXTRA_FILE' => [
-				'java/fakeFile03' => [
+				'fakeFile03' => [
 					'expected' => '',
 					'current' => '827a4e298c978e1eeffebdf09f0fa5a1e1d8b608c8071144f3fffb31f9ed21f6d27f88a63f7409583df7438105f713ff58d55e68e61e01a285125d763045c726',
 				],
