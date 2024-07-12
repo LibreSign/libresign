@@ -14,6 +14,14 @@ Types of changes:
 
 <!-- changelog-linker -->
 
+## 9.2.1 - 2024-07-11
+### Fixes
+* fix: setup at alpine #3354
+
+## 8.2.1 - 2024-07-11
+### Fixes
+* fix: setup at alpine #3354
+
 ## 9.2.0 - 2024-07-11
 ### Changed
 * bump cs fixer [#3328](https://github.com/LibreSign/libresign/pull/3328)
