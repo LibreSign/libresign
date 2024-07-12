@@ -58,7 +58,7 @@ class InstallService {
 		'java',
 		'jsignpdf',
 		'pdftk',
-		'cfssl'
+		'cfssl',
 	];
 	private string $distro = '';
 	private string $architecture;
@@ -84,8 +84,9 @@ class InstallService {
 		$this->output = $output;
 	}
 
-	public function setArchitecture(string $architecture): void {
+	public function setArchitecture(string $architecture): self {
 		$this->architecture = $architecture;
+		return $this;
 	}
 
 	private function getFolder(string $path = '', ?ISimpleFolder $folder = null, $needToBeEmpty = false): ISimpleFolder {
@@ -362,6 +363,10 @@ class InstallService {
 		if (!$this->willUseLocalCert) {
 			return;
 		}
+
+		$this->signSetupService->setSignatureFileName(
+			$this->getSignatureFileName()
+		);
 		$this->signSetupService->writeAppSignature($this->architecture, $this->resource);
 	}
 
@@ -423,10 +428,37 @@ class InstallService {
 		$this->distro = $distro;
 	}
 
+	public function getInstallPath(): string {
+		switch ($this->resource) {
+			case 'java':
+				$path = $this->appConfig->getAppValue('java_path');
+				return substr($path, 0, -strlen('/bin/java'));
+			case 'jsignpdf':
+				$path = $this->appConfig->getAppValue('jsignpdf_jar_path');
+				return substr($path, 0, -strlen('/JSignPdf.jar'));
+			case 'pdftk':
+				$path = $this->appConfig->getAppValue('pdftk_path');
+				return substr($path, 0, -strlen('/pdftk.jar'));
+			case 'cfssl':
+				$path = $this->appConfig->getAppValue('cfssl_bin');
+				return substr($path, 0, -strlen('/cfssl'));
+		}
+		return '';
+	}
+
+	public function getSignatureFileName(): string {
+		$path[] = 'install-' . $this->architecture;
+		if ($this->resource === 'java') {
+			$path[] = $this->getLinuxDistributionToDownloadJava();
+		}
+		$path[] = $this->resource . '.json';
+		return implode('-', $path);
+	}
+
 	/**
 	 * Return linux or alpine-linux
 	 */
-	private function getLinuxDistributionToDownloadJava(): string {
+	public function getLinuxDistributionToDownloadJava(): string {
 		if ($this->distro) {
 			return $this->distro;
 		}
