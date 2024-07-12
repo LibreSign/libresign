@@ -78,7 +78,14 @@ class SignSetup extends Base {
 			$this->signSetupService->setPrivateKey($rsa);
 			foreach ($this->signSetupService->getArchitectures() as $architecture) {
 				foreach ($this->installService->getAvailableResources() as $resource) {
-					$this->signSetupService->writeAppSignature($architecture, $resource);
+					if ($resource === 'java') {
+						foreach (['linux', 'alpine-linux'] as $distro) {
+							$this->installService->setDistro($distro);
+							$this->writeAppSignature($architecture, $resource);
+						}
+						continue;
+					}
+					$this->writeAppSignature($architecture, $resource);
 				}
 			}
 			$output->writeln('Successfully signed');
@@ -87,5 +94,18 @@ class SignSetup extends Base {
 			return 1;
 		}
 		return 0;
+	}
+
+	private function writeAppSignature(string $architecture, string $resource): void {
+		$this->installService
+			->setArchitecture($architecture)
+			->setResource($resource);
+		$this->signSetupService->setInstallPath(
+			$this->installService->getInstallPath()
+		);
+		$this->signSetupService->setSignatureFileName(
+			$this->installService->getSignatureFileName()
+		);
+		$this->signSetupService->writeAppSignature($architecture, $resource);
 	}
 }
