@@ -249,8 +249,7 @@ class SignSetupService {
 		try {
 			$expectedHashes = $this->getHashesOfResource();
 			// Compare the list of files which are not identical
-			$installPath = $this->installPath;
-			$currentInstanceHashes = $this->generateHashes($this->getFolderIterator($installPath), $installPath);
+			$currentInstanceHashes = $this->generateHashes($this->getFolderIterator($this->installPath), $this->installPath);
 		} catch (EmptySignatureDataException $th) {
 			return [
 				'EMPTY_SIGNATURE_DATA' => $th->getMessage(),
