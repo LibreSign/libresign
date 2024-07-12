@@ -131,8 +131,8 @@ appstore:
 	if [ -f $(cert_dir)/$(app_name).key ]; then \
 		curl -o $(cert_dir)/$(app_name).crt \
 			"https://raw.githubusercontent.com/nextcloud/app-certificate-requests/master/$(app_name)/$(app_name).crt"; \
-		$(occ) libresign:install --all --architecture aarch64; \
-		$(occ) libresign:install --all --architecture x86_64; \
+		$(occ) libresign:install --all --all-distros --architecture=aarch64; \
+		$(occ) libresign:install --all --all-distros --architecture=x86_64; \
 		echo "Signing setup files…"; \
 		$(occ) config:system:set debug --value true --type boolean; \
 		$(occ) libresign:developer:sign-setup \
