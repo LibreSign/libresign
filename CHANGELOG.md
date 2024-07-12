@@ -13,6 +13,10 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 8.2.2 - 2024-07-12
+### Fixes
+* fix: Java setup [3361]https://github.com/LibreSign/libresign/pull/3361
+
 ## 8.2.1 - 2024-07-11
 ### Fixes
 * fix: setup at alpine [#3354](https://github.com/LibreSign/libresign/pull/3354)
