@@ -18,7 +18,6 @@ use OCP\App\IAppManager;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
-use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IConfig;
 use phpseclib\Crypt\RSA;
 use phpseclib\File\X509;
@@ -34,6 +33,8 @@ class SignSetupService {
 	private string $resource;
 	private array $signatureData = [];
 	private bool $willUseLocalCert = false;
+	private string $signatureFileName = '';
+	private string $installPath = '';
 	private ?X509 $x509 = null;
 	private ?RSA $rsa = null;
 	public function __construct(
@@ -107,28 +108,43 @@ class SignSetupService {
 	) {
 		$this->architecture = $architecture;
 		$this->resource = $resource;
-		$appInfoDir = $this->getAppInfoDirectory();
 		try {
-			$iterator = $this->getFolderIterator($this->getInstallPath());
+			$iterator = $this->getFolderIterator($this->installPath);
 			$hashes = $this->generateHashes($iterator);
 			$signature = $this->createSignatureData($hashes);
 			$this->fileAccessHelper->file_put_contents(
-				$appInfoDir . '/install-' . $this->architecture . '-' . $this->resource . '.json',
+				$this->getFileName(),
 				json_encode($signature, JSON_PRETTY_PRINT)
 			);
 		} catch (NotFoundException $e) {
 			throw new \Exception(sprintf(
-				"Folder %s not found.\nIs necessary to run this command first: occ libresign:install --%s --architecture %s",
+				"Folder %s not found.\nIs necessary to run this command first: occ libresign:install --%s --architecture=%s",
 				$e->getMessage(),
 				$this->resource,
 				$this->architecture,
 			));
 		} catch (\Exception $e) {
+			$appInfoDir = $this->getAppInfoDirectory();
 			if (!$this->fileAccessHelper->is_writable($appInfoDir)) {
 				throw new \Exception($appInfoDir . ' is not writable. Original error: ' . $e->getMessage());
 			}
 			throw $e;
 		}
+	}
+
+	public function setInstallPath(string $installPath): self {
+		$this->installPath = $installPath;
+		return $this;
+	}
+
+	public function setSignatureFileName(string $signatureFileName): self {
+		$this->signatureFileName = $signatureFileName;
+		return $this;
+	}
+
+	private function getFileName(): string {
+		$appInfoDir = $this->getAppInfoDirectory();
+		return $appInfoDir . '/' . $this->signatureFileName;
 	}
 
 	protected function getAppInfoDirectory(): string {
@@ -153,9 +169,7 @@ class SignSetupService {
 		if (!empty($this->signatureData)) {
 			return $this->signatureData;
 		}
-		$appInfoDir = $this->getAppInfoDirectory();
-		$signaturePath = $appInfoDir . '/install-' . $this->architecture . '-' . $this->resource . '.json';
-		$content = $this->fileAccessHelper->file_get_contents($signaturePath);
+		$content = $this->fileAccessHelper->file_get_contents($this->getFileName());
 		$signatureData = null;
 
 		if (\is_string($content)) {
@@ -235,7 +249,7 @@ class SignSetupService {
 		try {
 			$expectedHashes = $this->getHashesOfResource();
 			// Compare the list of files which are not identical
-			$installPath = $this->getInstallPath();
+			$installPath = $this->installPath;
 			$currentInstanceHashes = $this->generateHashes($this->getFolderIterator($installPath), $installPath);
 		} catch (EmptySignatureDataException $th) {
 			return [
@@ -284,30 +298,6 @@ class SignSetupService {
 		return $differenceArray;
 	}
 
-	private function getDataDir(): string {
-		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
-		return $dataDir;
-	}
-
-	/**
-	 * @todo check a best solution to don't use reflection
-	 */
-	protected function getInternalPathOfFolder(ISimpleFolder $node): string {
-		$reflection = new \ReflectionClass($node);
-		$reflectionProperty = $reflection->getProperty('folder');
-		$reflectionProperty->setAccessible(true);
-		$folder = $reflectionProperty->getValue($node);
-		$path = $folder->getInternalPath();
-		return $path;
-	}
-
-	private function getInstallPath(): string {
-		$folder = $this->getDataDir() . '/' .
-			$this->getInternalPathOfFolder($this->appData->getFolder($this->architecture . '/' . $this->resource));
-		return $folder;
-	}
-
-
 	/**
 	 * Enumerates all files belonging to the folder. Sensible defaults are excluded.
 	 *
@@ -342,7 +332,7 @@ class SignSetupService {
 	private function generateHashes(\RecursiveIteratorIterator $iterator): array {
 		$hashes = [];
 
-		$baseDirectoryLength = \strlen($this->getInstallPath());
+		$baseDirectoryLength = \strlen($this->installPath);
 		foreach ($iterator as $filename => $data) {
 			/** @var \DirectoryIterator $data */
 			if ($data->isDir()) {
