@@ -13,6 +13,10 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 8.2.3 - 2024-07-12
+### Fixes
+* fix: use linux distro when build [3366]https://github.com/LibreSign/libresign/pull/3366
+
 ## 8.2.2 - 2024-07-12
 ### Fixes
 * fix: Java setup [3361]https://github.com/LibreSign/libresign/pull/3361
