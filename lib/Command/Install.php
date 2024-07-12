@@ -81,6 +81,12 @@ class Install extends Base {
 				shortcut: null,
 				mode: InputOption::VALUE_REQUIRED,
 				description: 'x86_64 or aarch64'
+			)
+			->addOption(
+				name: 'all-distros',
+				shortcut: null,
+				mode: InputOption::VALUE_NONE,
+				description: 'Will download java to all available distros'
 			);
 		if ($this->config->getSystemValue('debug', false) === true) {
 			$this->addOption(
@@ -106,8 +112,14 @@ class Install extends Base {
 			}
 			$all = $input->getOption('all');
 			if ($input->getOption('java') || $all) {
-				if ($all) {
-					foreach (['linux', 'alpine-linux'] as $distro) {
+				if ($input->getOption('all-distros')) {
+					$currentDistro = $this->installService->getLinuxDistributionToDownloadJava();
+					if ($currentDistro === 'linux') {
+						$distros = ['alpine-linux', 'linux'];
+					} else {
+						$distros = ['linux', 'alpine-linux'];
+					}
+					foreach ($distros as $distro) {
 						$this->installService->setDistro($distro);
 						$this->installService->installJava();
 					}
