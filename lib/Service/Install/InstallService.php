@@ -380,12 +380,7 @@ class InstallService {
 			return;
 		}
 
-		$this->signSetupService->setSignatureFileName(
-			$this->getSignatureFileName()
-		);
-		$this->signSetupService->setInstallPath(
-			$this->getInstallPath()
-		);
+		$this->signSetupService->setDistro($this->getLinuxDistributionToDownloadJava());
 		$this->signSetupService->writeAppSignature($this->architecture, $this->resource);
 	}
 
@@ -465,15 +460,6 @@ class InstallService {
 				return substr($path, 0, -strlen('/cfssl'));
 		}
 		return '';
-	}
-
-	public function getSignatureFileName(): string {
-		$path[] = 'install-' . $this->architecture;
-		if ($this->resource === 'java') {
-			$path[] = $this->getLinuxDistributionToDownloadJava();
-		}
-		$path[] = $this->resource . '.json';
-		return implode('-', $path);
 	}
 
 	/**
