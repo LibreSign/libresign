@@ -31,6 +31,9 @@ class UserDeleted extends QueuedJob {
 	 * @param array $argument
 	 */
 	public function run($argument): void {
+		if (!isset($argument['user_id'])) {
+			return;
+		}
 		$userId = $argument['user_id'];
 		$displayName = $argument['display_name'];
 		$this->logger->info('Neutralizing data for deleted user {user}', [
