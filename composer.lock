@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "eac76523c7c100b612f7f3a059627c2e",
+    "content-hash": "7c0f8e232cc3b5985ff418baa1a1ae59",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -234,6 +234,59 @@
                 "source": "https://github.com/JSignPdf/jsignpdf-php/tree/v1.2.5"
             },
             "time": "2024-04-24T17:19:52+00:00"
+        },
+        {
+            "name": "libresign/whatosami",
+            "version": "0.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/LibreSign/whatosami.git",
+                "reference": "88dd1b8eca8a50ca4566dbfbb8080c77579eadba"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/LibreSign/whatosami/zipball/88dd1b8eca8a50ca4566dbfbb8080c77579eadba",
+                "reference": "88dd1b8eca8a50ca4566dbfbb8080c77579eadba",
+                "shasum": ""
+            },
+            "require-dev": {
+                "bamarni/composer-bin-plugin": "dev-master",
+                "roave/security-advisories": "dev-latest"
+            },
+            "type": "library",
+            "extra": {
+                "bamarni-bin": {
+                    "bin-links": true,
+                    "forward-command": true
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "LibreSign\\WhatOSAmI\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "AGPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Vitor Mattos",
+                    "email": "vitor@php.rio"
+                }
+            ],
+            "description": "What operational sytem am I",
+            "support": {
+                "issues": "https://github.com/LibreSign/whatosami/issues",
+                "source": "https://github.com/LibreSign/whatosami/tree/v0.0.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/libresign",
+                    "type": "github"
+                }
+            ],
+            "time": "2024-07-15T19:52:41+00:00"
         },
         {
             "name": "mikehaertl/php-pdftk",

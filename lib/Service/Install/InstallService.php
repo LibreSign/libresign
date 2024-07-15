@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Install;
 
 use InvalidArgumentException;
+use LibreSign\WhatOSAmI\OperatingSystem;
 use OC;
 use OC\Archive\TAR;
 use OC\Archive\ZIP;
@@ -453,9 +454,9 @@ class InstallService {
 		if ($this->distro) {
 			return $this->distro;
 		}
-		$distribution = shell_exec('cat /etc/*-release');
-		preg_match('/^ID=(?<version>.*)$/m', $distribution, $matches);
-		if (isset($matches['version']) && strtolower($matches['version']) === 'alpine') {
+		$operatingSystem = new OperatingSystem();
+		$distribution = $operatingSystem->getLinuxDistribution();
+		if (strtolower($distribution) === 'alpine') {
 			return 'alpine-linux';
 		}
 		return 'linux';
