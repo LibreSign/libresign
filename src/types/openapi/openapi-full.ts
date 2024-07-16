@@ -311,6 +311,14 @@ export type paths = {
      */
     get: operations["admin-configure-check"];
   };
+  "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/disable-hate-limit": {
+    /**
+     * Disable hate limit to current session
+     * @description This will disable hate limit to current session.
+     * This endpoint requires admin access
+     */
+    get: operations["admin-disable-hate-limit"];
+  };
   "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
     /**
      * Has root certificate
@@ -3161,6 +3169,35 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: components["schemas"]["ConfigureCheck"][];
+            };
+          };
+        };
+      };
+    };
+  };
+  /**
+   * Disable hate limit to current session
+   * @description This will disable hate limit to current session.
+   * This endpoint requires admin access
+   */
+  "admin-disable-hate-limit": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: unknown;
             };
           };
         };
