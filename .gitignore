@@ -15,3 +15,4 @@ node_modules/
 *.phar
 /src/__test__/coverage
 /appinfo/install-*.json
+/.devcontainer/volumes

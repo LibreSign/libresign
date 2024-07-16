@@ -1,0 +1,75 @@
+services:
+  # pgsql:
+  #   image: postgres:13-alpine
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./volumes/postgres/data:/var/lib/postgresql/data
+  #   environment:
+  #     - POSTGRES_DB=${POSTGRES_DB:-nextcloud}
+  #     - POSTGRES_USER=${POSTGRES_USER:-nextcloud}
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-nextcloud}
+  #   ports:
+  #     - 127.0.0.1:5432:5432
+  #   command: postgres -c log_statement=all
+  mysql:
+    image: mysql
+    cap_add:
+      - SYS_NICE  # CAP_SYS_NICE
+    volumes:
+      - ./.docker/config/mysql:/etc/mysql/conf.d
+      - ./volumes/mysql/dump:/docker-entrypoint-initdb.d
+      - ./volumes/mysql/data:/var/lib/mysql
+    ports:
+      - 127.0.0.1:3306:3306
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ:-CET}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-nextcloud}
+      - MYSQL_USER=${MYSQL_USER:-nextcloud}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-nextcloud}
+  nextcloud:
+    image: ghcr.io/librecodecoop/nextcloud-dev-php${PHP_VERSION:-82}:latest
+    volumes:
+      - ~/.composer:/var/www/.composer/
+      - ~/.npm:/var/www/.npm/
+      - ./volumes/nextcloud:/var/www/html
+      - ../:/var/www/libresign
+    restart: unless-stopped
+    environment:
+      - HOST_UID=${HOST_UID:-1000}
+      - HOST_GID=${HOST_GID:-1000}
+      - DEFAULT_PHONE_REGION=${DEFAULT_PHONE_REGION:-UTC}
+      - NEXTCLOUD_ADMIN_USER=${NEXTCLOUD_ADMIN_USER:-admin}
+      - NEXTCLOUD_ADMIN_PASSWORD=${NEXTCLOUD_ADMIN_PASSWORD:-admin}
+      - NEXTCLOUD_ADMIN_EMAIL=${NEXTCLOUD_ADMIN_EMAIL:-a@test.tld}
+      - DB_HOST=${DB_HOST:-mysql}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-nextcloud}
+      - MYSQL_USER=${MYSQL_USER:-nextcloud}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-nextcloud}
+      - POSTGRES_DB=${POSTGRES_DB:-nextcloud}
+      - POSTGRES_USER=${POSTGRES_USER:-nextcloud}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-nextcloud}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-nextcloud}
+      - MAIL_DOMAIN=${MAIL_DOMAIN:-mailhog}
+      - MAIL_SMTPPORT=${MAIL_SMTPPORT:-1025}
+      - MAIL_SMTPHOST=${MAIL_SMTPHOST:-mailhog}
+      - VERSION_NEXTCLOUD=${VERSION_NEXTCLOUD:-master}
+      - AUTOINSTALL=${AUTOINSTALL:-1}
+      - XDEBUG_CONFIG
+      - HTTP_PORT=${HTTP_PORT:-80}
+    extra_hosts:
+      - host.docker.internal:host-gateway
+  nginx:
+    image: ghcr.io/librecodecoop/nextcloud-dev-nginx:latest
+    restart: unless-stopped
+    volumes:
+      - ./volumes/nextcloud:/var/www/html:ro
+    ports:
+      - 127.0.0.1:${HTTP_PORT:-80}:80
+  mailhog:
+    image: blueimp/mailhog
+    ports:
+      - 127.0.0.1:${MAILHOG_PORT:-8025}:8025
+  redis:
+    image: redis
