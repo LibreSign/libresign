@@ -142,7 +142,7 @@ OC.L10N.register(
     "Sign" : "Sinatu",
     "Confirm" : "Berretsi",
     "Request signatures?" : "Sinadurak eskatu?",
-    "Send reminder" : "Bidali abisua",
+    "Send reminder" : "Bidali gogorarazpena",
     "Loading …" : "Kargatzen …",
     "Document not available for signature." : "Dokumentua ezin da sinatu.",
     "pending" : "zain",
