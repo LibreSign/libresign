@@ -65,6 +65,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./volumes/nextcloud:/var/www/html:ro
+      - ../:/var/www/libresign:ro
     ports:
       - 127.0.0.1:${HTTP_PORT:-80}:80
   mailhog:
