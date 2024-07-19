@@ -1,9 +1,11 @@
 #!/bin/bash
 
-if [ ! -e /var/www/html/apps-extra/libresign  ]; then
-	ln -s /var/www/libresign /var/www/html/apps-extra/libresign
-fi
+(
+    . /var/www/scripts/entrypoint.sh && php-fpm --daemonize
+)
 
+git config --global --add safe.directory /var/www/html
+git config --global --add safe.directory /var/www/htm/apps-extra/libresign
 cd /var/www/html/apps-extra/libresign
 if [[ ! -d "vendor" ]]; then
 	composer install
