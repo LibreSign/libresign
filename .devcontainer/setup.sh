@@ -15,5 +15,5 @@ if [[ ! -d "node_modules" ]]; then
 	npm ci
 	npm run dev
 fi
-echo "LibreSign is up!"
+echo "✍️ LibreSign is up!"
 echo "If you want to develop at frontend, run the command 'npm run watch'"
