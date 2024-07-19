@@ -53,6 +53,7 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
     <repair-steps>
         <post-migration>
             <step>OCA\Libresign\Migration\DeleteOldBinaries</step>
+            <step>OCA\Libresign\Migration\ResynchronizeDatabaseSequences</step>
         </post-migration>
     </repair-steps>
     <commands>
