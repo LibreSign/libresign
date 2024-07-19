@@ -211,7 +211,6 @@ class AdminController extends AEnvironmentAwareController {
 	 * 200: OK
 	 */
 	#[NoCSRFRequired]
-	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/disable-hate-limit', requirements: ['apiVersion' => '(v1)'])]
 	public function disableHateLimit(): DataResponse {
 		$this->session->set('app_api', true);
 
