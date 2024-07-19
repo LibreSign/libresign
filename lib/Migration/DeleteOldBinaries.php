@@ -55,7 +55,7 @@ class DeleteOldBinaries implements IRepairStep {
 	}
 
 	public function getName(): string {
-		return 'Delete old binaries.';
+		return 'Delete old binaries';
 	}
 
 	public function run(IOutput $output): void {
