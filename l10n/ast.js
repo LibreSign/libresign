@@ -13,6 +13,7 @@ OC.L10N.register(
     "File not found" : "Nun s'atopó'l ficheru",
     "File already exists" : "El ficheru yá esiste",
     "Empty file" : "Ficheru baleru",
+    "You cannot request signature for this document, please contact your administrator" : "Nun pues solicitar la firma d'esti documentu. Ponte en contautu cola alministración",
     "Account" : "Cuenta",
     "Invalid user" : "L'usuariu ye inválidu",
     "Email" : "Corréu electrónicu",
