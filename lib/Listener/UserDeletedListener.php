@@ -25,6 +25,9 @@ class UserDeletedListener implements IEventListener {
 		if (!($event instanceof UserDeletedEvent)) {
 			return;
 		}
+		if (!$event->getUser()->getUID()) {
+			return;
+		}
 
 		$this->jobList->add(UserDeleted::class, [
 			'user_id' => $event->getUser()->getUID(),
