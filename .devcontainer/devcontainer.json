@@ -25,8 +25,8 @@
 		}
 	},
 	"workspaceFolder": "/var/www/html",
-	"postStartCommand": "bash /var/www/libresign/.devcontainer/waitForHttp.sh",
-	"postAttachCommand": "bash /var/www/libresign/.devcontainer/setup.sh",
+	"overrideCommand": true,
+	"postAttachCommand": "bash /var/www/html/apps-extra/libresign/.devcontainer/setup.sh",
 	"portsAttributes": {
 		"80": {
 			"label": "nginx"
