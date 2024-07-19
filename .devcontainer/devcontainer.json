@@ -1,0 +1,43 @@
+{
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "nextcloud",
+	"forwardPorts": [
+		80,
+		8025
+	],
+	"containerEnv": {
+		"XDEBUG_MODE": "debug",
+		"XDEBUG_CONFIG": "client_host=127.0.0.1 client_port=9003 start_with_request=yes"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"MehediDracula.php-namespace-resolver",
+				"bmewburn.vscode-intelephense-client",
+				"neilbrayfield.php-docblocker",
+				"xdebug.php-debug",
+				"Vue.volar"
+			],
+			"settings": {
+				"php.suggest.basic": false,
+				"git.alwaysSignOff": true
+			}
+		}
+	},
+	"workspaceFolder": "/var/www/html",
+	"overrideCommand": true,
+	"postAttachCommand": "bash /var/www/html/apps-extra/libresign/.devcontainer/setup.sh",
+	"portsAttributes": {
+		"80": {
+			"label": "http",
+			"protocol": "http"
+		},
+		"8025": {
+			"label": "mailhog",
+			"protocol": "http"
+		},
+		"9000": {
+			"label": "xdebug"
+		}
+	}
+}
