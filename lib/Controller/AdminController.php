@@ -40,6 +40,7 @@ use OCP\IEventSource;
 use OCP\IEventSourceFactory;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\ISession;
 
 /**
  * @psalm-import-type LibresignEngineHandler from ResponseDefinitions
@@ -57,6 +58,7 @@ class AdminController extends AEnvironmentAwareController {
 		private CertificateEngineHandler $certificateEngineHandler,
 		private IEventSourceFactory $eventSourceFactory,
 		private IL10N $l10n,
+		protected ISession $session,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->eventSource = $this->eventSourceFactory->create();
@@ -200,6 +202,26 @@ class AdminController extends AEnvironmentAwareController {
 	}
 
 	/**
+	 * Disable hate limit to current session
+	 *
+	 * This will disable hate limit to current session.
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>
+	 *
+	 * 200: OK
+	 */
+	#[NoCSRFRequired]
+	public function disableHateLimit(): DataResponse {
+		$this->session->set('app_api', true);
+
+		// TODO: Remove after drop support NC29
+		// deprecated since AppAPI 2.8.0
+		$this->session->set('app_api_system', true);
+
+		return new DataResponse();
+	}
+
+	/**
 	 * @IgnoreOpenAPI
 	 */
 	#[NoCSRFRequired]
@@ -245,4 +267,5 @@ class AdminController extends AEnvironmentAwareController {
 		// Nextcloud inject a lot of headers that is incompatible with SSE
 		exit();
 	}
+
 }

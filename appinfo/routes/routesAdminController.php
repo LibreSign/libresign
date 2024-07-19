@@ -11,5 +11,6 @@ return [
 		['name' => 'admin#generateCertificateOpenSsl', 'url' => '/api/{apiVersion}/admin/certificate/openssl', 'verb' => 'POST', 'requirements' => $requirements],
 		['name' => 'admin#loadCertificate',            'url' => '/api/{apiVersion}/admin/certificate', 'verb' => 'GET', 'requirements' => $requirements],
 		['name' => 'admin#configureCheck',             'url' => '/api/{apiVersion}/admin/configure-check', 'verb' => 'GET', 'requirements' => $requirements],
+		['name' => 'admin#disableHateLimit',           'url' => '/api/{apiVersion}/admin/disable-hate-limit', 'verb' => 'GET', 'requirements' => $requirements],
 	],
 ];
