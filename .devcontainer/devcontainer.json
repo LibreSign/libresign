@@ -29,7 +29,13 @@
 	"postAttachCommand": "bash /var/www/html/apps-extra/libresign/.devcontainer/setup.sh",
 	"portsAttributes": {
 		"80": {
-			"label": "nginx"
+			"label": "http"
+		},
+		"8025": {
+			"label": "mailhog"
+		},
+		"9000": {
+			"label": "xdebug"
 		}
 	}
 }
