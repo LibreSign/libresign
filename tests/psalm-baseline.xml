@@ -90,6 +90,11 @@
       <code><![CDATA[ViewController]]></code>
     </UndefinedClass>
   </file>
+  <file src="lib/Migration/ResynchronizeDatabaseSequences.php">
+    <UndefinedClass>
+      <code><![CDATA[PostgreSQLPlatform]]></code>
+    </UndefinedClass>
+  </file>
   <file src="lib/Migration/Version8000Date20231103003922.php">
     <UndefinedDocblockClass>
       <code><![CDATA[$schema->dropTable('libresign_file_user')]]></code>
