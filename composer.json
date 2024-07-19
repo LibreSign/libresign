@@ -2,6 +2,7 @@
 	"require": {
 		"endroid/qr-code": "^5.0",
 		"jsignpdf/jsignpdf-php": "^1.2",
+		"libresign/whatosami": "^0.0.1",
 		"mikehaertl/php-pdftk": "^0.13.0",
 		"mpdf/mpdf": "^8.2",
 		"pagerfanta/pagerfanta": "^4.5",

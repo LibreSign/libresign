@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Install;
 
+use LibreSign\WhatOSAmI\OperatingSystem;
 use OC\IntegrityCheck\Helpers\EnvironmentHelper;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\AppInfo\Application;
@@ -188,9 +189,9 @@ class SignSetupService {
 		if ($this->distro) {
 			return $this->distro;
 		}
-		$distribution = shell_exec('cat /etc/*-release');
-		preg_match('/^ID=(?<version>.*)$/m', $distribution, $matches);
-		if (isset($matches['version']) && strtolower($matches['version']) === 'alpine') {
+		$operatingSystem = new OperatingSystem();
+		$distribution = $operatingSystem->getLinuxDistribution();
+		if (strtolower($distribution) === 'alpine') {
 			return 'alpine-linux';
 		}
 		return 'linux';
