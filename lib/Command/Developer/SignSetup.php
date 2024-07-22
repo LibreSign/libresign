@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Command\Developer;
 
 use OC\Core\Command\Base;
-use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCP\IConfig;
@@ -22,7 +21,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 class SignSetup extends Base {
 	public function __construct(
 		private IConfig $config,
-		private FileAccessHelper $fileAccessHelper,
 		private SignSetupService $signSetupService,
 		private InstallService $installService,
 	) {
@@ -50,8 +48,8 @@ class SignSetup extends Base {
 			$output->writeln('Example: ./occ libresign:developer:sign-setup --privateKey="/libresign/private/myapp.key" --certificate="/libresign/public/mycert.crt"');
 			return 1;
 		}
-		$privateKey = $this->fileAccessHelper->file_get_contents((string) $privateKeyPath);
-		$keyBundle = $this->fileAccessHelper->file_get_contents((string) $keyBundlePath);
+		$privateKey = $this->fileGetContents((string) $privateKeyPath);
+		$keyBundle = $this->fileGetContents((string) $keyBundlePath);
 		if ($privateKey === false) {
 			$output->writeln(sprintf('Private key "%s" does not exists.', $privateKeyPath));
 			return 1;
@@ -98,5 +96,23 @@ class SignSetup extends Base {
 
 	private function writeAppSignature(string $architecture, string $resource): void {
 		$this->signSetupService->writeAppSignature($architecture, $resource);
+	}
+
+	/**
+	 * Wrapper around file_get_contents($filename, $data)
+	 *
+	 * @param string $filename
+	 * @return string|false
+	 */
+	private function fileGetContents(string $path) {
+		$filename = $path;
+		if (!str_starts_with($filename, '/')) {
+			$filename = \OC::$SERVERROOT . '/' . $filename;
+		}
+		$filename = realpath($filename);
+		if (!$filename) {
+			return false;
+		}
+		return file_get_contents($filename);
 	}
 }
