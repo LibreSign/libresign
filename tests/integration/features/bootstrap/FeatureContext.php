@@ -78,7 +78,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$command = str_replace('\"', '"', $command);
 		exec($command, $output, $actualResultCode);
 		Assert::assertEquals($resultCode, $actualResultCode, print_r([
-			'command' =>$command,
+			'command' => $command,
 			'output' => implode("\n", $output),
 			'exitCode' => $actualResultCode
 		], true));
