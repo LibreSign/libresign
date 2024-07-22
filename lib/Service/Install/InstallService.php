@@ -369,6 +369,7 @@ class InstallService {
 
 	public function isDownloadedFilesOk(): bool {
 		$this->signSetupService->willUseLocalCert($this->willUseLocalCert);
+		$this->signSetupService->setDistro($this->getLinuxDistributionToDownloadJava());
 		return count($this->signSetupService->verify($this->architecture, $this->resource)) === 0;
 	}
 
