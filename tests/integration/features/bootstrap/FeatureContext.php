@@ -72,6 +72,19 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	/**
+	 * @When /^run the bash command "(?P<command>(?:[^"]|\\")*)" with result code (\d+)$/
+	 */
+	public static function runBashCommandWithResultCode(string $command, int $resultCode = 0): void {
+		$command = str_replace('\"', '"', $command);
+		exec($command, $output, $actualResultCode);
+		Assert::assertEquals($resultCode, $actualResultCode, print_r([
+			'command' =>$command,
+			'output' => implode("\n", $output),
+			'exitCode' => $actualResultCode
+		], true));
+	}
+
+	/**
 	 * @Given create an environment :name with value :value to be used by occ command
 	 */
 	public static function createAnEnvironmentWithValueToBeUsedByOccCommand($name, $value):void {
