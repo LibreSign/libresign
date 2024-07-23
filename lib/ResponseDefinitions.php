@@ -83,6 +83,7 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignEngineHandler = array{
  *     configPath: string,
+ *     cfsslUri?: string,
  *     rootCert: LibresignRootCertificate,
  * }
  * @psalm-type LibresignCetificateDataGenerated = LibresignEngineHandler&array{
