@@ -149,7 +149,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[PublicPage]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
-	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/signature/elements/preview/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/signature/elements/preview/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function getSignatureElementPreview(int $nodeId) {
 		try {
 			$node = $this->accountService->getFileByNodeIdAndSessionId(
@@ -181,7 +181,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/signature/elements/preview/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/signature/elements/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function getSignatureElement(int $nodeId): DataResponse {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
