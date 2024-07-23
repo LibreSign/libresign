@@ -416,7 +416,6 @@ class InstallService {
 				$compressedFileName = 'OpenJDK21U-jre_aarch64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
 				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
 			}
-			$class = TAR::class;
 			$checksumUrl = $url . '.sha256.txt';
 			$hash = $this->getHash($compressedFileName, $checksumUrl);
 			try {
@@ -429,7 +428,7 @@ class InstallService {
 			$dependencyName = 'java ' . $this->architecture . ' '. $linuxDistribution;
 			$this->download($url, $dependencyName, $comporessedInternalFileName, $hash, 'sha256');
 
-			$extractor = new $class($comporessedInternalFileName);
+			$extractor = new TAR($comporessedInternalFileName);
 			$extractor->extract($extractDir);
 			unlink($comporessedInternalFileName);
 			$downloadOk = true;
