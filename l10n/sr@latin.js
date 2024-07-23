@@ -2,6 +2,7 @@ OC.L10N.register(
     "libresign",
     {
     "deleted" : "obrisano",
+    "File is too big" : "Fajl je preveliki",
     "Dismiss notification" : "Skloni obaveštenje",
     "File not found" : "Fajl nije nađen",
     "Email" : "email",
@@ -22,6 +23,7 @@ OC.L10N.register(
     "Password" : "Lozinka",
     "Enter a password" : "Unesite lozinku",
     "Send" : "Pošalji",
+    "Password reset" : "Resetovanje lozinke",
     "New password" : "Nova lozinka",
     "Yes" : "Da",
     "No" : "Ne",
