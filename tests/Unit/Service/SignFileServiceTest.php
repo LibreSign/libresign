@@ -133,12 +133,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest = $this->createMock(\OCA\Libresign\Db\SignRequest::class);
 		$signRequest
 			->method('__call')
-			->withConsecutive(
-				[$this->equalTo('getSigned')]
-			)
-			->will($this->returnValueMap([
-				['getSigned', [], '2021-01-01 01:01:01'],
-			]));
+			->willReturnCallback(fn (string $method) =>
+				match ($method) {
+					'getSigned' => ['getSigned', [], '2021-01-01 01:01:01'],
+				}
+			);
 		$this->signRequestMapper->method('getByFileUuid')->will($this->returnValue([$signRequest]));
 		$this->expectExceptionMessage('Document already signed');
 		$this->getService()->canDeleteRequestSignature(['uuid' => 'valid']);
@@ -151,14 +150,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest = $this->createMock(\OCA\Libresign\Db\SignRequest::class);
 		$signRequest
 			->method('__call')
-			->withConsecutive(
-				[$this->equalTo('getSigned')],
-				[$this->equalTo('getId')]
-			)
-			->will($this->returnValueMap([
-				['getSigned', [], null],
-				['getId', [], 171]
-			]));
+			->willReturnCallback(fn (string $method) =>
+				match ($method) {
+					'getSigned' => ['getSigned', [], null],
+					'getId' => ['getId', [], 171],
+				}
+			);
 		$this->signRequestMapper->method('getByFileUuid')->will($this->returnValue([$signRequest]));
 		$this->expectExceptionMessage('No signature was requested to %');
 		$this->getService()->canDeleteRequestSignature([

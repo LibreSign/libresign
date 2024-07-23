@@ -58,7 +58,7 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 
 	public function testLoadFileUuidWithEmptyUuid(): void {
 		$this->expectException(LibresignException::class);
-		$this->getExpectedExceptionCode(404);
+		$this->expectExceptionCode(404);
 		$this->expectExceptionMessage(json_encode([
 			'action' => 2000,
 			'errors' => ['Invalid UUID'],
@@ -91,7 +91,7 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 		$nextcloudFile[0]->delete();
 
 		$this->expectException(LibresignException::class);
-		$this->getExpectedExceptionCode(404);
+		$this->expectExceptionCode(404);
 		$this->expectExceptionMessage(json_encode([
 			'action' => 2000,
 			'errors' => ['File not found'],
