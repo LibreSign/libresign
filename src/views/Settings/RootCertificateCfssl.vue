@@ -25,7 +25,7 @@
 	<NcSettingsSection v-if="isThisEngine && loaded && configureCheckStore.cfsslBinariesOk()"
 		:name="name"
 		:description="description">
-		<div v-if="configureOk" id="tableRootCertificateCfssl" class="form-libresign">
+		<div v-if="configureOk && !isCertificateGenerated" id="tableRootCertificateCfssl" class="form-libresign">
 			<table class="grid">
 				<tbody>
 					<tr>
@@ -65,7 +65,7 @@
 				</template>
 			</NcDialog>
 		</div>
-		<div v-else-if="!configureOk" id="formRootCertificate" class="form-libresign">
+		<div v-else-if="!configureOk && isCertificateGenerated" id="formRootCertificate" class="form-libresign">
 			<div class="form-group">
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Name (CN)') }}</label>
 				<NcTextField id="commonName"
@@ -162,7 +162,10 @@ export default {
 	},
 	computed: {
 		configureOk() {
-			return this.configureCheckStore.isConfigureOk('cfssl') || this.certificate.configPath.length > 0
+			return this.configureCheckStore.isConfigureOk('cfssl')
+		},
+		isCertificateGenerated() {
+			return this.certificate.rootCert.names.length > 0
 		},
 		loaded() {
 			return this.configureCheckStore.items.length > 0

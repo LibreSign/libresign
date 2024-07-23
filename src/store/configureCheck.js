@@ -36,7 +36,7 @@ export const useConfigureCheckStore = function(...args) {
 		actions: {
 			isConfigureOk(engine) {
 				return this.items.length > 0
-					&& this.items.filter((o) => o.resource === engine + '-configure').length === 0
+					&& this.items.filter((o) => o.resource === engine + '-configure').length > 0
 					&& this.items.filter((o) => o.resource === engine + '-configure' && o.status === 'error').length === 0
 			},
 			cfsslBinariesOk() {
