@@ -25,7 +25,7 @@
 	<NcSettingsSection v-if="isThisEngine && loaded"
 		:name="name"
 		:description="description">
-		<div v-if="configureOk" id="tableRootCertificateOpenSsl" class="form-libresign">
+		<div v-if="configureOk && !isCertificateGenerated" id="tableRootCertificateOpenSsl" class="form-libresign">
 			<table class="grid">
 				<tbody>
 					<tr>
@@ -149,7 +149,10 @@ export default {
 	},
 	computed: {
 		configureOk() {
-			return this.configureCheckStore.isConfigureOk('openssl') || this.certificate.configPath.length > 0
+			return this.configureCheckStore.isConfigureOk('openssl')
+		},
+		isCertificateGenerated() {
+			return this.certificate.rootCert.names.length > 0
 		},
 		loaded() {
 			return this.configureCheckStore.items.length > 0
