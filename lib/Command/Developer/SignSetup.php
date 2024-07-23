@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Command\Developer;
 
+use Exception;
 use OC\Core\Command\Base;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\SignSetupService;
@@ -48,15 +49,11 @@ class SignSetup extends Base {
 			$output->writeln('Example: ./occ libresign:developer:sign-setup --privateKey="/libresign/private/myapp.key" --certificate="/libresign/public/mycert.crt"');
 			return 1;
 		}
-		$privateKey = $this->fileGetContents((string) $privateKeyPath);
-		$keyBundle = $this->fileGetContents((string) $keyBundlePath);
-		if ($privateKey === false) {
-			$output->writeln(sprintf('Private key "%s" does not exists.', $privateKeyPath));
-			return 1;
-		}
-
-		if ($keyBundle === false) {
-			$output->writeln(sprintf('Certificate "%s" does not exists.', $keyBundlePath));
+		try {
+			$privateKey = $this->fileGetContents((string) $privateKeyPath);
+			$keyBundle = $this->fileGetContents((string) $keyBundlePath);
+		} catch (\Throwable $th) {
+			$output->writeln('<error>' . $th->getMessage() . '</error>');
 			return 1;
 		}
 
@@ -99,19 +96,30 @@ class SignSetup extends Base {
 	}
 
 	/**
-	 * Wrapper around file_get_contents($filename, $data)
+	 * Wrapper around file_get_contents($filename)
 	 *
 	 * @param string $filename
 	 * @return string|false
 	 */
 	private function fileGetContents(string $path) {
 		$filename = $path;
+		$isRelative = false;
 		if (!str_starts_with($filename, '/')) {
 			$filename = \OC::$SERVERROOT . '/' . $filename;
+			$isRelative = true;
 		}
 		$filename = realpath($filename);
 		if (!$filename) {
-			return false;
+			if ($isRelative) {
+				throw new Exception(sprintf(
+					"File %s does not exists.\nRoot dir: %s.\nCurrent dir: %s.\nLibreSign dir: %s",
+					$path,
+					\OC::$SERVERROOT,
+					getcwd(),
+					realpath(__DIR__ . '/../../../'),
+				));
+			}
+			throw new Exception(sprintf('File "%s" does not exists.', $path));
 		}
 		return file_get_contents($filename);
 	}
