@@ -263,14 +263,14 @@ export type paths = {
     post: operations["signature_elements-create-signature-element"];
   };
   "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements/preview/{nodeId}": {
-    /** Get signature element of signer */
-    get: operations["signature_elements-get-signature-element"];
     /** Get preview of signature elements of */
-    post: operations["signature_elements-get-signature-element-preview"];
+    get: operations["signature_elements-get-signature-element-preview"];
     /** Update signature element */
     patch: operations["signature_elements-patch-signature-element"];
   };
   "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements/{nodeId}": {
+    /** Get signature element of signer */
+    get: operations["signature_elements-get-signature-element"];
     /** Delete signature element */
     delete: operations["signature_elements-delete-signature-element"];
   };
@@ -2690,46 +2690,6 @@ export type operations = {
       };
     };
   };
-  /** Get signature element of signer */
-  "signature_elements-get-signature-element": {
-    parameters: {
-      header: {
-        /** @description Required to be true for the API request to pass */
-        "OCS-APIRequest": boolean;
-      };
-      path: {
-        apiVersion: "v1";
-        /** @description Node id of a Nextcloud file */
-        nodeId: number;
-      };
-    };
-    responses: {
-      /** @description OK */
-      200: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: components["schemas"]["UserElement"];
-            };
-          };
-        };
-      };
-      /** @description Invalid data */
-      404: {
-        content: {
-          "application/json": {
-            ocs: {
-              meta: components["schemas"]["OCSMeta"];
-              data: {
-                message: string;
-              };
-            };
-          };
-        };
-      };
-    };
-  };
   /** Get preview of signature elements of */
   "signature_elements-get-signature-element-preview": {
     parameters: {
@@ -2811,6 +2771,46 @@ export type operations = {
       };
       /** @description Error */
       422: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+  /** Get signature element of signer */
+  "signature_elements-get-signature-element": {
+    parameters: {
+      header: {
+        /** @description Required to be true for the API request to pass */
+        "OCS-APIRequest": boolean;
+      };
+      path: {
+        apiVersion: "v1";
+        /** @description Node id of a Nextcloud file */
+        nodeId: number;
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: components["schemas"]["UserElement"];
+            };
+          };
+        };
+      };
+      /** @description Invalid data */
+      404: {
         content: {
           "application/json": {
             ocs: {
