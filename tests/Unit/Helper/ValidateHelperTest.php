@@ -185,7 +185,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 	}
 
-	public function dataValidateMimeTypeAcceptedByNodeId():array {
+	public static function dataValidateMimeTypeAcceptedByNodeId():array {
 		return [
 			['invalid',         ValidateHelper::TYPE_TO_SIGN,             'Must be a fileID of %s format'],
 			['application/pdf', ValidateHelper::TYPE_TO_SIGN,             ''],
@@ -268,7 +268,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($return);
 	}
 
-	public function dataValidateBase64(): array {
+	public static function dataValidateBase64(): array {
 		return [
 			[
 				'invalid',
@@ -327,7 +327,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getValidateHelper()->haveValidMail($data, ValidateHelper::TYPE_VISIBLE_ELEMENT_PDF);
 	}
 
-	public function dataProviderHaveValidMail():array {
+	public static function dataProviderHaveValidMail():array {
 		return [
 			[[], 'No user data'],
 			[[''], 'Email required'],
@@ -500,7 +500,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function dataElementType():array {
+	public static function dataElementType():array {
 		return [
 			[['type' => 'signature'], ''],
 			[['type' => 'initial'], ''],
@@ -520,7 +520,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function dataValidateElementCoordinates():array {
+	public static function dataValidateElementCoordinates():array {
 		return [
 			[[]],
 			[['coordinates' => ['page' => 1]]]
@@ -538,7 +538,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function dataValidateElementPage():array {
+	public static function dataValidateElementPage():array {
 		return [
 			[['coordinates' => ['page' => '']], 'Page number must be an integer'],
 			[['coordinates' => ['page' => 0]], 'Page must be equal to or greater than 1']
@@ -597,7 +597,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function dataValidateExistingFile():array {
+	public static function dataValidateExistingFile():array {
 		return [
 			[[],                            'uuid', ''],
 			[['file' => []],                '',     'Invalid fileID'],
@@ -617,7 +617,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($return);
 	}
 
-	public function datavalidateIfIdentifyMethodExists(): array {
+	public static function datavalidateIfIdentifyMethodExists(): array {
 		return [
 			['', true],
 			['invalid', true],

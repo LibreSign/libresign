@@ -81,7 +81,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertEquals($expectedOutput, $actual);
 	}
 
-	public function providerDownloadCli(): array {
+	public static function providerDownloadCli(): array {
 		return [
 			[
 				'url' => 'http://localhost/apps/libresign/img/app.svg',

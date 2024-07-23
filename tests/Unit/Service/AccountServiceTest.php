@@ -155,7 +155,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getService()->validateCreateToSign($arguments);
 	}
 
-	public function providerTestValidateCreateToSignUsingDataProvider():array {
+	public static function providerTestValidateCreateToSignUsingDataProvider():array {
 		return [
 			[ #0
 				[
@@ -301,7 +301,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getService()->validateCertificateData($arguments);
 	}
 
-	public function providerTestValidateCertificateDataUsingDataProvider():array {
+	public static function providerTestValidateCertificateDataUsingDataProvider():array {
 		return [
 			[
 				[
