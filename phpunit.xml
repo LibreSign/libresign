@@ -8,6 +8,7 @@
          failOnWarning="true"
          colors="true"
          cacheDirectory="build/logs/.phpunit.cache"
+         displayDetailsOnTestsThatTriggerWarnings="true"
          beStrictAboutCoverageMetadata="true">
   <testsuites>
     <testsuite name="default">
