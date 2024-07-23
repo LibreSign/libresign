@@ -247,7 +247,9 @@ export default {
 				}
 				this.certificate = response.data.ocs.data
 				this.customData = loadState('libresign', 'config_path').length > 0 && this.certificate.configPath.length > 0
-				this.afterCertificateGenerated()
+				if (this.certificate.generated) {
+					this.afterCertificateGenerated()
+				}
 			} catch (e) {
 				console.error(e)
 			}
