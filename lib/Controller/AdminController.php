@@ -142,6 +142,9 @@ class AdminController extends AEnvironmentAwareController {
 	): AEngineHandler {
 		$names = [];
 		foreach ($rootCert['names'] as $item) {
+			if (empty($item['id'])) {
+				throw new LibresignException('Parameter id is required!', 400);
+			}
 			$names[$item['id']]['value'] = $this->trimAndThrowIfEmpty($item['id'], $item['value']);
 		}
 		$this->installService->generate(
