@@ -158,6 +158,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	/**
 	 * @dataProvider providerGetFolder
+	 * @runInSeparateProcess
 	 */
 	public function testGetFolder(string $path): void {
 		$install = \OCP\Server::get(\OCA\Libresign\Service\Install\InstallService::class);

@@ -82,6 +82,9 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 		$this->controller->loadNextcloudFileFromSignRequestUuid('');
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testLoadFileUuidWhenFileNotFound(): void {
 		$user = $this->createAccount('username', 'password');
 		$user->setEMailAddress('person@test.coop');
