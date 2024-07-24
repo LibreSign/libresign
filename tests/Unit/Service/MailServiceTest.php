@@ -59,8 +59,9 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 			->willReturnCallback(fn (string $method) =>
 				match ($method) {
-					'getUuid' => ['getUuid', [], 'asdfg'],
-					'getFileId' => ['getFileId', [], 1],
+					'getUuid' => 'asdfg',
+					'getFileId' => 1,
+					'getDisplayName' => 'John Doe'
 				}
 			);
 
@@ -87,8 +88,9 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('__call')
 			->willReturnCallback(fn (string $method) =>
 				match ($method) {
-					'getUuid' => ['getUuid', [], 'asdfg'],
-					'getFileId' => ['getFileId', [], 1],
+					'getUuid' => 'asdfg',
+					'getFileId' => 1,
+					'getDisplayName' => 'John doe',
 				}
 			);
 

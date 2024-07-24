@@ -135,7 +135,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('__call')
 			->willReturnCallback(fn (string $method) =>
 				match ($method) {
-					'getSigned' => ['getSigned', [], '2021-01-01 01:01:01'],
+					'getSigned' => '2021-01-01 01:01:01',
 				}
 			);
 		$this->signRequestMapper->method('getByFileUuid')->will($this->returnValue([$signRequest]));
@@ -152,8 +152,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('__call')
 			->willReturnCallback(fn (string $method) =>
 				match ($method) {
-					'getSigned' => ['getSigned', [], null],
-					'getId' => ['getId', [], 171],
+					'getSigned' => null,
+					'getId' => 171,
 				}
 			);
 		$this->signRequestMapper->method('getByFileUuid')->will($this->returnValue([$signRequest]));

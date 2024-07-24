@@ -249,9 +249,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->method('__call')
 						->willReturnCallback(fn (string $method) =>
 							match ($method) {
-								'getEmail' => ['getEmail', [], 'valid@test.coop'],
-								'getFileId' => ['getFileId', [], 171],
-								'getUserId' => ['getUserId', [], 'username'],
+								'getEmail' => 'valid@test.coop',
+								'getFileId' => 171,
+								'getUserId' => 'username',
 							}
 						);
 					$file = $this->createMock(\OCA\Libresign\Db\File::class);
@@ -347,8 +347,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('__call')
 			->willReturnCallback(fn (string $method) =>
 				match ($method) {
-					'getDisplayName' => ['getDisplayName', [], 'John Doe'],
-					'getId' => ['getId', [], 1]
+					'getDisplayName' => 'John Doe',
+					'getId' => 1,
 				}
 			);
 		$this->signRequestMapper->method('getByUuid')->will($this->returnValue($signRequest));
