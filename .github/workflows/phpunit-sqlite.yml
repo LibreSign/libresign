@@ -148,7 +148,7 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}
         env:
           XDEBUG_MODE: ${{ matrix.xdebug_mode }}
-        run: composer run test:unit
+        run: composer run test:coverage
 
       - name: Check PHPUnit integration script is defined
         id: check_integration

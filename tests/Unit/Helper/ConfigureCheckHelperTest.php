@@ -34,7 +34,7 @@ class ConfigureCheckHelperTest extends TestCase {
 		$this->assertEqualsCanonicalizing($expected, $actual);
 	}
 
-	public function providerJsonSerialize(): array {
+	public static function providerJsonSerialize(): array {
 		return [
 			[
 				'success',

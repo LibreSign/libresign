@@ -155,7 +155,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getService()->validateCreateToSign($arguments);
 	}
 
-	public function providerTestValidateCreateToSignUsingDataProvider():array {
+	public static function providerTestValidateCreateToSignUsingDataProvider():array {
 		return [
 			[ #0
 				[
@@ -247,16 +247,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$signRequest = $this->createMock(SignRequest::class);
 					$signRequest
 						->method('__call')
-						->withConsecutive(
-							[$this->equalTo('getEmail')],
-							[$this->equalTo('getFileId')],
-							[$this->equalTo('getUserId')],
-						)
-						->will($this->returnValueMap([
-							['getEmail', [], 'valid@test.coop'],
-							['getFileId', [], 171],
-							['getUserId', [], 'username'],
-						]));
+						->willReturnCallback(fn (string $method) =>
+							match ($method) {
+								'getEmail' => 'valid@test.coop',
+								'getFileId' => 171,
+								'getUserId' => 'username',
+							}
+						);
 					$file = $this->createMock(\OCA\Libresign\Db\File::class);
 					$self->fileMapper
 						->method('getById')
@@ -301,7 +298,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getService()->validateCertificateData($arguments);
 	}
 
-	public function providerTestValidateCertificateDataUsingDataProvider():array {
+	public static function providerTestValidateCertificateDataUsingDataProvider():array {
 		return [
 			[
 				[
@@ -348,14 +345,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest = $this->createMock(\OCA\Libresign\Db\SignRequest::class);
 		$signRequest
 			->method('__call')
-			->withConsecutive(
-				[$this->equalTo('getDisplayName')],
-				[$this->equalTo('getId')]
-			)
-			->will($this->returnValueMap([
-				['getDisplayName', [], 'John Doe'],
-				['getId', [], 1]
-			]));
+			->willReturnCallback(fn (string $method) =>
+				match ($method) {
+					'getDisplayName' => 'John Doe',
+					'getId' => 1,
+				}
+			);
 		$this->signRequestMapper->method('getByUuid')->will($this->returnValue($signRequest));
 		$userToSign = $this->createMock(\OCP\IUser::class);
 		$this->userManager->method('createUser')->will($this->returnValue($userToSign));

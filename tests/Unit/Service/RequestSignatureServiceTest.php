@@ -223,7 +223,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertSameSize($elements, $actual);
 	}
 
-	public function dataSaveVisibleElements():array {
+	public static function dataSaveVisibleElements():array {
 		return [
 			[[]],
 			[[['uid' => 1]]],

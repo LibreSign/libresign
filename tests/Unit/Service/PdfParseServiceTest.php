@@ -49,7 +49,7 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getService()->getMetadata($file);
 	}
 
-	public function dataGetMetadataWithFail(): array {
+	public static function dataGetMetadataWithFail(): array {
 		return [
 			['/fail', '/Empty file/'],
 			['README.md', '/Impossible get metadata/'],
@@ -67,7 +67,7 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertEquals($expected, $actual);
 	}
 
-	public function providerGetMetadataWithSuccess(): array {
+	public static function providerGetMetadataWithSuccess(): array {
 		return [
 			[
 				'tests/fixtures/small_valid.pdf',

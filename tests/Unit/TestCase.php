@@ -81,7 +81,7 @@ class TestCase extends \Test\TestCase {
 			if (!$docblock) {
 				return false;
 			}
-			if (preg_match('#@depends ' . $this->getName(false) . '\n#s', $docblock)) {
+			if (preg_match('#@depends ' . $this->name() . '\n#s', $docblock)) {
 				return true;
 			}
 		}
@@ -90,7 +90,7 @@ class TestCase extends \Test\TestCase {
 
 	public function iDependOnOthers(): bool {
 		$reflector = new \ReflectionClass(\get_class($this));
-		$docblock = $reflector->getMethod($this->getName(false))->getDocComment();
+		$docblock = $reflector->getMethod($this->name())->getDocComment();
 		if (!$docblock) {
 			return false;
 		}

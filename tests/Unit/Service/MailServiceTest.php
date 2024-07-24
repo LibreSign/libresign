@@ -56,14 +56,14 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest = $this->createMock(SignRequest::class);
 		$signRequest
 			->method('__call')
-			->withConsecutive(
-				[$this->equalTo('getUuid'), $this->anything()],
-				[$this->equalTo('getFileId'), $this->anything()]
-			)
-			->will($this->returnValueMap([
-				['getUuid', [], 'asdfg'],
-				['getFileId', [], 1]
-			]));
+
+			->willReturnCallback(fn (string $method) =>
+				match ($method) {
+					'getUuid' => 'asdfg',
+					'getFileId' => 1,
+					'getDisplayName' => 'John Doe'
+				}
+			);
 
 		$file = $this->createMock(File::class);
 		$file
@@ -86,14 +86,13 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest = $this->createMock(SignRequest::class);
 		$signRequest
 			->method('__call')
-			->withConsecutive(
-				[$this->equalTo('getUuid'), $this->anything()],
-				[$this->equalTo('getFileId'), $this->anything()]
-			)
-			->will($this->returnValueMap([
-				['getUuid', [], 'asdfg'],
-				['getFileId', [], 1]
-			]));
+			->willReturnCallback(fn (string $method) =>
+				match ($method) {
+					'getUuid' => 'asdfg',
+					'getFileId' => 1,
+					'getDisplayName' => 'John doe',
+				}
+			);
 
 		$file = $this->createMock(File::class);
 		$file
