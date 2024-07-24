@@ -13,6 +13,31 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 8.2.4 - 2024-07-24
+### New feature
+* feat: implement support to devcontainer [3397](https://github.com/LibreSign/libresign/pull/3397)
+* feat: implement endpoint to disable hate limit [3393](https://github.com/LibreSign/libresign/pull/3393)
+
+### Changes
+* chore: add tsconfig by @Any97Cris [3444](https://github.com/LibreSign/libresign/pull/3444)
+* chore: remove unecessary string [3420](https://github.com/LibreSign/libresign/pull/3420)
+* chore: remove unecessary var [3413](https://github.com/LibreSign/libresign/pull/3413)
+* chore: prevent error when try to delete user that haven't uid [3391](https://github.com/LibreSign/libresign/pull/3391)
+* chore: replace way to identify Alpine Linux [3389](https://github.com/LibreSign/libresign/pull/3389)
+
+### Fixes
+* fix: imporve validation [3437](https://github.com/LibreSign/libresign/pull/3437)
+* fix: cfsslUri is optional value [3439](https://github.com/LibreSign/libresign/pull/3439)
+* fix: run test in separated proccess [3441](https://github.com/LibreSign/libresign/pull/3441)
+* fix: name of button after generate OpenSSL certificate [3429](https://github.com/LibreSign/libresign/pull/3429)
+* fix: prevent error when use relative path [3417](https://github.com/LibreSign/libresign/pull/3417)
+* fix: set linux distro before validate downloaded files [3415](https://github.com/LibreSign/libresign/pull/3415)
+* fix: check if certificate was generated [3407](https://github.com/LibreSign/libresign/pull/3407)
+* fix: resynchronize database sequences [3401](https://github.com/LibreSign/libresign/pull/3401)
+* fix: use linux distro when build [3366](https://github.com/LibreSign/libresign/pull/3366)
+* fix: Java setup [3361](https://github.com/LibreSign/libresign/pull/3361)
+* fix: setup at alpine [3353](https://github.com/LibreSign/libresign/pull/3353)
+
 ## 8.2.3 - 2024-07-12
 ### Fixes
 * fix: use linux distro when build [3366]https://github.com/LibreSign/libresign/pull/3366
