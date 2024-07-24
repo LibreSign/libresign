@@ -75,6 +75,9 @@
                     "configPath": {
                         "type": "string"
                     },
+                    "cfsslUri": {
+                        "type": "string"
+                    },
                     "rootCert": {
                         "$ref": "#/components/schemas/RootCertificate"
                     }

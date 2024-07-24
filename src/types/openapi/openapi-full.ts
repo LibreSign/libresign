@@ -379,6 +379,7 @@ export type components = {
     };
     EngineHandler: {
       configPath: string;
+      cfsslUri?: string;
       rootCert: components["schemas"]["RootCertificate"];
     };
     File: {
