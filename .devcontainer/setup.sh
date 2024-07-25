@@ -5,7 +5,7 @@
 )
 
 git config --global --add safe.directory /var/www/html
-git config --global --add safe.directory /var/www/htm/apps-extra/libresign
+git config --global --add safe.directory /var/www/html/apps-extra/libresign
 cd /var/www/html/apps-extra/libresign
 if [[ ! -d "vendor" ]]; then
 	composer install
