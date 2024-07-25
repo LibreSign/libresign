@@ -33,6 +33,7 @@
 					80,
 					120
 				],
+				"gitlens.showWelcomeOnInstall": false,
 				"telemetry.telemetryLevel": "off",
 				"intelephense.telemetry.enabled": false
 			}
