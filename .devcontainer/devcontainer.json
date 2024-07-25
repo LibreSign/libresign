@@ -22,6 +22,10 @@
 				"bmewburn.vscode-intelephense-client",
 				"neilbrayfield.php-docblocker",
 				"eamodio.gitlens",
+				"EditorConfig.EditorConfig",
+				"oderwat.indent-rainbow",
+				"PKief.material-icon-theme",
+				"davidnussio.vscode-jq-playground",
 				"xdebug.php-debug",
 				"Vue.volar"
 			],
