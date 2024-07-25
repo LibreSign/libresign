@@ -10,11 +10,6 @@
 		"XDEBUG_MODE": "debug",
 		"XDEBUG_CONFIG": "client_host=127.0.0.1 client_port=9003 start_with_request=yes"
 	},
-	"hostRequirements": {
-		"cpus": 4,
-		"memory": "16gb",
-		"storage": "32gb"
-	},
 	"customizations": {
 		"codespaces": {
 			"openFiles": [
