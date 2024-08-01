@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler;
 
 use OC\SystemConfig;
+use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\FolderService;
@@ -101,7 +102,11 @@ class Pkcs12Handler extends SignEngineHandler {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		}
 		if ($this->getPassword()) {
-			$this->certificateEngineHandler->getEngine()->opensslPkcs12Read($this->pfxContent, $this->getPassword());
+			try {
+				$this->certificateEngineHandler->getEngine()->opensslPkcs12Read($this->pfxContent, $this->getPassword());
+			} catch (InvalidPasswordException $e) {
+				throw new LibresignException($this->l10n->t('Invalid password'));
+			}
 		}
 		return $this->pfxContent;
 	}
