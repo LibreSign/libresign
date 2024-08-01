@@ -44,10 +44,23 @@ Feature: account/signature
     And run the command "config:app:set libresign certificate_engine --value cfssl" with result code 0
     And run the command "libresign:install --use-local-cert --cfssl" with result code 0
     And run the command "libresign:configure:cfssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
+    When sending "delete" to ocs "/apps/libresign/api/v1/account/pfx"
+    Then the response should have a status code 202
+    When sending "post" to ocs "/apps/libresign/api/v1/account/pfx/read"
+    Then the response should be a JSON array with the following mandatory values
+      | key                   | value                                                    |
+      | (jq).ocs.data.message | Password to sign not defined. Create a password to sign. |
     And sending "post" to ocs "/apps/libresign/api/v1/account/signature"
       | signPassword | password |
     And the response should have a status code 200
-    When sending "Post" to ocs "/apps/libresign/api/v1/account/pfx/read"
+    When sending "post" to ocs "/apps/libresign/api/v1/account/pfx/read"
+      | key      | value   |
+      | password | invalid |
+    And the response should have a status code 400
+    Then the response should be a JSON array with the following mandatory values
+      | key                   | value            |
+      | (jq).ocs.data.message | Invalid password |
+    When sending "post" to ocs "/apps/libresign/api/v1/account/pfx/read"
       | key      | value    |
       | password | password |
     Then the response should be a JSON array with the following mandatory values
@@ -79,10 +92,26 @@ Feature: account/signature
     And set the email of user "signer1" to "signer@domain.test"
     And as user "signer1"
     And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
+    When sending "delete" to ocs "/apps/libresign/api/v1/account/pfx"
+    Then the response should have a status code 202
+    When sending "post" to ocs "/apps/libresign/api/v1/account/pfx/read"
+      | key      | value   |
+      | password | invalid |
+    And the response should have a status code 400
+    Then the response should be a JSON array with the following mandatory values
+      | key                   | value                                                    |
+      | (jq).ocs.data.message | Password to sign not defined. Create a password to sign. |
     And sending "post" to ocs "/apps/libresign/api/v1/account/signature"
       | signPassword | password |
     And the response should have a status code 200
-    When sending "Post" to ocs "/apps/libresign/api/v1/account/pfx/read"
+    When sending "post" to ocs "/apps/libresign/api/v1/account/pfx/read"
+      | key      | value   |
+      | password | invalid |
+    And the response should have a status code 400
+    Then the response should be a JSON array with the following mandatory values
+      | key                   | value            |
+      | (jq).ocs.data.message | Invalid password |
+    When sending "post" to ocs "/apps/libresign/api/v1/account/pfx/read"
       | key      | value    |
       | password | password |
     Then the response should be a JSON array with the following mandatory values
