@@ -10,6 +10,7 @@ namespace OCA\Libresign\Listener;
 
 use OCA\Files\Event\LoadSidebar;
 use OCA\Libresign\AppInfo\Application;
+use OCP\App\IAppManager;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\Util;
@@ -18,8 +19,16 @@ use OCP\Util;
  * @template-implements IEventListener<Event|LoadSidebar>
  */
 class LoadSidebarListener implements IEventListener {
+	public function __construct(
+		private IAppManager $appManager,
+	) {
+	}
 	public function handle(Event $event): void {
 		if (!($event instanceof LoadSidebar)) {
+			return;
+		}
+
+		if (!$this->appManager->isEnabledForUser('libresign')) {
 			return;
 		}
 
