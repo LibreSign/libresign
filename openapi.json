@@ -20,6 +20,23 @@
             }
         },
         "schemas": {
+            "AccountFile": {
+                "type": "object",
+                "required": [
+                    "file"
+                ],
+                "properties": {
+                    "file": {
+                        "$ref": "#/components/schemas/NewFile"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                }
+            },
             "CertificatePfxData": {
                 "type": "object",
                 "required": [
@@ -227,6 +244,31 @@
                     }
                 }
             },
+            "FolderSettings": {
+                "type": "object",
+                "properties": {
+                    "folderName": {
+                        "type": "string"
+                    },
+                    "separator": {
+                        "type": "string"
+                    },
+                    "folderPatterns": {
+                        "type": "object",
+                        "required": [
+                            "name"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "setting": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "IdentifyAccount": {
                 "type": "object",
                 "required": [
@@ -290,6 +332,41 @@
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0
+                    }
+                }
+            },
+            "NewFile": {
+                "type": "object",
+                "properties": {
+                    "base64": {
+                        "type": "string"
+                    },
+                    "fileId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "url": {
+                        "type": "string"
+                    }
+                }
+            },
+            "NewSigner": {
+                "type": "object",
+                "required": [
+                    "identify"
+                ],
+                "properties": {
+                    "identify": {
+                        "type": "object",
+                        "properties": {
+                            "email": {
+                                "type": "string"
+                            },
+                            "account": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             },
