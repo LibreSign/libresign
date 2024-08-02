@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Settings saved" : "Configuraciones guardadas",
     "deleted" : "Borrado",
+    "Invalid password" : "Contraseña invalida",
     "File is too big" : "El archivo es demasiado grande.",
     "File sharing" : "Compartir archivos",
     "View" : "Ver",
@@ -11,7 +12,6 @@ OC.L10N.register(
     "Account" : "Cuenta",
     "Invalid user" : "Usuario inválido",
     "Email" : "Correo electrónico",
-    "Invalid password" : "Contraseña invalida",
     "Text" : "Texto",
     "Upload" : "Cargar",
     "Delete" : "Eliminar",

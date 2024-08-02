@@ -1,10 +1,10 @@
 OC.L10N.register(
     "libresign",
     {
+    "Invalid password" : "Feil passord",
     "File is too big" : "Fila er for stor",
     "File not found" : "Fann ikkje fila",
     "Email" : "Epost",
-    "Invalid password" : "Feil passord",
     "Upload" : "Last opp",
     "Delete" : "Slett",
     "Save" : "Lagre",
