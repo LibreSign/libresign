@@ -10,7 +10,7 @@
     "watch": "webpack --node-env development --progress --watch",
     "serve": "webpack serve --node-env development --progress --allowed-hosts all --host 0.0.0.0",
     "typescript:check": "tsc --noEmit",
-    "typescript:generate": "npx openapi-typescript \"./openapi*.json\" --immutable -t -o src/types/openapi/",
+    "typescript:generate": "npx openapi-typescript -t",
     "lint": "eslint --ext .js,.vue src",
     "lint:fix": "eslint --ext .js,.vue src --fix",
     "stylelint": "stylelint css/*.css css/*.scss src/**/*.scss src/**/*.vue",
@@ -41,7 +41,6 @@
     "js-confetti": "^0.12.0",
     "linkify-string": "^4.1.3",
     "lodash-es": "^4.17.21",
-    "openapi-typescript": "^6.7.6",
     "pinia": "^2.2.0",
     "style-loader": "^3.3.4",
     "v-perfect-signature": "^1.4.0",
@@ -71,6 +70,7 @@
     "babel-loader-exclude-node-modules-except": "^1.2.1",
     "esbuild-loader": "^4.2.2",
     "file-loader": "^6.2.0",
+    "openapi-typescript": "^7.3.0",
     "url-loader": "^4.1.1",
     "vue-template-compiler": "^2.7.16"
   }
