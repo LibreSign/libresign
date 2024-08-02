@@ -258,7 +258,7 @@ Feature: request-signature
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And set the email of user "signer1" to "signer1@domain.test"
+    And set the email of user "signer1" to ""
     And reset notifications of user "signer1"
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
@@ -271,7 +271,7 @@ Feature: request-signature
     Then the response should be a JSON array with the following mandatory values
       | key | value                                                         |
       | ocs | (jq).data\|.[].subject == "admin requested your signature on document"|
-    And there should be 1 emails in my inbox
+    And there should be 0 emails in my inbox
 
   Scenario: Request to sign with success using email as identifier
     Given as user "admin"
