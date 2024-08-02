@@ -258,7 +258,7 @@ Feature: request-signature
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And set the email of user "signer1" to "signer1@domain.test"
+    And set the email of user "signer1" to ""
     And reset notifications of user "signer1"
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
