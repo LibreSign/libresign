@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Settings saved" : "Iestatījumi saglabāti",
     "deleted" : "dzēsts",
+    "Invalid password" : "Nederīga parole",
     "File is too big" : "Datne ir par lielu",
     "File sharing" : "Datņu koplietošana",
     "View" : "Skats",
@@ -12,7 +13,6 @@ OC.L10N.register(
     "Account" : "Konts",
     "Invalid user" : "Nepareizs lietotājs",
     "Email" : "E-pasts",
-    "Invalid password" : "Nederīga parole",
     "Customize your signatures" : "Pielāgot savus parakstus",
     "Text" : "Teksts",
     "Upload" : "Augšupielādēt",

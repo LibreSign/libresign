@@ -2,10 +2,10 @@ OC.L10N.register(
     "libresign",
     {
     "deleted" : "yettwakkes",
+    "Invalid password" : "Yir awal uffir",
     "File is too big" : "Afaylu-agi bezzaf meqqer",
     "File not found" : "Ulac afaylu",
     "Email" : "Imayl",
-    "Invalid password" : "Yir awal uffir",
     "Upload" : "Sili",
     "Delete" : "Kkes",
     "Save" : "Sekles",
