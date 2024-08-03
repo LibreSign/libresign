@@ -44,6 +44,16 @@ class SignSetupService {
 	) {
 	}
 
+	public function setArchitecture(string $architecture): self {
+		$this->architecture = $architecture;
+		return $this;
+	}
+
+	public function setResource(string $resource): self {
+		$this->resource = $resource;
+		return $this;
+	}
+
 	public function getArchitectures(): array {
 		$appInfo = $this->appManager->getAppInfo(Application::APP_ID);
 		if (empty($appInfo['dependencies']['architecture'])) {
@@ -99,12 +109,7 @@ class SignSetupService {
 	 * @param RSA $privateKey
 	 * @throws \Exception
 	 */
-	public function writeAppSignature(
-		string $architecture,
-		string $resource,
-	) {
-		$this->architecture = $architecture;
-		$this->resource = $resource;
+	public function writeAppSignature() {
 		try {
 			$iterator = $this->getFolderIterator($this->getInstallPath());
 			$hashes = $this->generateHashes($iterator);
@@ -134,17 +139,18 @@ class SignSetupService {
 			case 'java':
 				$path = $this->appConfig->getAppValue('java_path');
 				$installPath = substr($path, 0, -strlen('/bin/java'));
-				if (!str_contains($installPath, $this->distro)) {
+				$expected = 'libresign/' . $this->architecture . '/' . $this->distro . '/java';
+				if (!str_contains($installPath, $expected)) {
 					$installPath = preg_replace(
-						'/\/' . $this->architecture . '\/(\w+)/i',
-						'/' . $this->architecture . '/'.$this->distro,
+						'/libresign\/.*\/.*\/java/i',
+						$expected,
 						$installPath
 					);
 				}
 				break;
 			case 'jsignpdf':
 				$path = $this->appConfig->getAppValue('jsignpdf_jar_path');
-				$installPath = substr($path, 0, -strlen('/JSignPdf.jar'));
+				$installPath = substr($path, 0, strrpos($path, '/', -strlen('_/JSignPdf.jar')));
 				break;
 			case 'pdftk':
 				$path = $this->appConfig->getAppValue('pdftk_path');
