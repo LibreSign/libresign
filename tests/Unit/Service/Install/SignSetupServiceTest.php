@@ -17,6 +17,7 @@ use OCP\AppFramework\Services\IAppConfig;
 use OCP\IConfig;
 use phpseclib\Crypt\RSA;
 use phpseclib\File\X509;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -86,7 +87,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getAppValue')
 			->willReturnCallback(function ($key, $default) use ($architecture):string {
 				return match ($key) {
-					'java_path' => 'vfs://home/data/libresign/' . $architecture . '/linux/java/bin/java',
+					'java_path' => 'vfs://home/data/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/bin/java',
 					default => '',
 				};
 			});
@@ -114,11 +115,13 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$architecture => [
 						'linux' => [
 							'java' => [
-								'fakeFile01' => 'content',
-								'fakeFile02' => 'content',
+								'jdk-21.0.2+13-jre' => [
+									'fakeFile01' => 'content',
+									'fakeFile02' => 'content',
+								],
 							],
-						]
-					]
+						],
+					],
 				],
 			],
 			'resources' => [
@@ -128,15 +131,19 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			'appinfo' => [],
 		];
-		$root = vfsStream::setup('home', null, $structure);
+		vfsStream::setup('home', null, $structure);
 
-		$signSetupService->writeAppSignature($architecture, $resource);
+		$signSetupService
+			->setArchitecture($architecture)
+			->setResource($resource)
+			->setDistro('linux')
+			->writeAppSignature();
 		$this->assertFileExists('vfs://home/appinfo/install-' . $architecture . '-linux-' . $resource . '.json');
 		$json = file_get_contents('vfs://home/appinfo/install-' . $architecture . '-linux-' . $resource . '.json');
 		$signatureContent = json_decode($json, true);
 		$this->assertArrayHasKey('hashes', $signatureContent);
 		$this->assertCount(2, $signatureContent['hashes']);
-		$expected = hash('sha512', $structure['data']['libresign'][$architecture]['linux'][$resource]['fakeFile01']);
+		$expected = hash('sha512', $structure['data']['libresign'][$architecture]['linux'][$resource]['jdk-21.0.2+13-jre']['fakeFile01']);
 		$this->assertArrayHasKey('fakeFile01', $signatureContent['hashes']);
 		$actual = $signatureContent['hashes']['fakeFile01'];
 		$this->assertEquals($expected, $actual);
@@ -162,9 +169,9 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testVerify(): void {
 		$architecture = 'x86_64';
 		$signSetupService = $this->writeAppSignature($architecture, 'java');
-		unlink('vfs://home/data/libresign/' . $architecture . '/linux/java/fakeFile01');
-		file_put_contents('vfs://home/data/libresign/' . $architecture . '/linux/java/fakeFile02', 'invalidContent');
-		file_put_contents('vfs://home/data/libresign/' . $architecture . '/linux/java/fakeFile03', 'invalidContent');
+		unlink('vfs://home/data/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/fakeFile01');
+		file_put_contents('vfs://home/data/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/fakeFile02', 'invalidContent');
+		file_put_contents('vfs://home/data/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/fakeFile03', 'invalidContent');
 		$expected = json_encode([
 			'FILE_MISSING' => [
 				'fakeFile01' => [
@@ -188,5 +195,50 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$actual = $signSetupService->verify($architecture, 'java');
 		$actual = json_encode($actual);
 		$this->assertJsonStringEqualsJsonString($expected, $actual);
+	}
+
+	#[DataProvider('dataGetInstallPath')]
+	public function testGetInstallPath(string $architecture, string $resource, string $distro, string $expected): void {
+		$this->appConfig
+			->method('getAppValue')
+			->willReturnCallback(function ($key, $default): string {
+				return match ($key) {
+					'java_path' => 'vfs://home/data/libresign/x86_64/linux/java/jdk-21.0.2+13-jre/bin/java',
+					'jsignpdf_jar_path' => 'vfs://home/data/libresign/x86_64/jsignpdf/jsignpdf-2.2.2/JSignPdf.jar',
+					'pdftk_path' => 'vfs://home/data/libresign/x86_64/pdftk/pdftk.jar',
+					'cfssl_bin' => 'vfs://home/data/libresign/x86_64/cfssl/cfssl',
+					default => '',
+				};
+			});
+		$actual = $this->getInstance()
+			->setArchitecture($architecture)
+			->setDistro($distro)
+			->setResource($resource)
+			->getInstallPath();
+		$this->assertEquals(
+			$expected,
+			$actual
+		);
+	}
+
+	public static function dataGetInstallPath(): array {
+		return [
+			['x86_64', 'java', 'linux', 'vfs://home/data/libresign/x86_64/linux/java/jdk-21.0.2+13-jre'],
+			['x86_64', 'java', 'alpine-linux', 'vfs://home/data/libresign/x86_64/alpine-linux/java/jdk-21.0.2+13-jre'],
+			['x86_64', 'pdftk', 'linux', 'vfs://home/data/libresign/x86_64/pdftk'],
+			['x86_64', 'pdftk', 'alpine-linux', 'vfs://home/data/libresign/x86_64/pdftk'],
+			['x86_64', 'jsignpdf', 'linux', 'vfs://home/data/libresign/x86_64/jsignpdf'],
+			['x86_64', 'jsignpdf', 'alpine-linux', 'vfs://home/data/libresign/x86_64/jsignpdf'],
+			['x86_64', 'cfssl', 'linux', 'vfs://home/data/libresign/x86_64/cfssl'],
+			['x86_64', 'cfssl', 'alpine-linux', 'vfs://home/data/libresign/x86_64/cfssl'],
+			['aarch64', 'java', 'linux', 'vfs://home/data/libresign/aarch64/linux/java/jdk-21.0.2+13-jre'],
+			['aarch64', 'java', 'alpine-linux', 'vfs://home/data/libresign/aarch64/alpine-linux/java/jdk-21.0.2+13-jre'],
+			['aarch64', 'pdftk', 'linux', 'vfs://home/data/libresign/aarch64/pdftk'],
+			['aarch64', 'pdftk', 'alpine-linux', 'vfs://home/data/libresign/aarch64/pdftk'],
+			['aarch64', 'jsignpdf', 'linux', 'vfs://home/data/libresign/aarch64/jsignpdf'],
+			['aarch64', 'jsignpdf', 'alpine-linux', 'vfs://home/data/libresign/aarch64/jsignpdf'],
+			['aarch64', 'cfssl', 'linux', 'vfs://home/data/libresign/aarch64/cfssl'],
+			['aarch64', 'cfssl', 'alpine-linux', 'vfs://home/data/libresign/aarch64/cfssl'],
+		];
 	}
 }

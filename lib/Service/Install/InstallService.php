@@ -366,8 +366,11 @@ class InstallService {
 			return;
 		}
 
-		$this->signSetupService->setDistro($this->getLinuxDistributionToDownloadJava());
-		$this->signSetupService->writeAppSignature($this->architecture, $this->resource);
+		$this->signSetupService
+			->setDistro($this->getLinuxDistributionToDownloadJava())
+			->setArchitecture($this->architecture)
+			->setResource($this->resource)
+			->writeAppSignature();
 	}
 
 	public function installJava(?bool $async = false): void {
