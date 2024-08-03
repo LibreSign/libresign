@@ -17,6 +17,7 @@ use OCP\AppFramework\Services\IAppConfig;
 use OCP\IConfig;
 use phpseclib\Crypt\RSA;
 use phpseclib\File\X509;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -188,5 +189,50 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$actual = $signSetupService->verify($architecture, 'java');
 		$actual = json_encode($actual);
 		$this->assertJsonStringEqualsJsonString($expected, $actual);
+	}
+
+	#[DataProvider('dataGetInstallPath')]
+	public function testGetInstallPath(string $architecture, string $resource, string $distro, string $expected): void {
+		$this->appConfig
+			->method('getAppValue')
+			->willReturnCallback(function ($key, $default): string {
+				return match ($key) {
+					'java_path' => 'vfs://home/data/libresign/x86_64/linux/java/jdk-21.0.2+13-jre/bin/java',
+					'jsignpdf_jar_path' => 'vfs://home/data/libresign/x86_64/jsignpdf/jsignpdf-2.2.2/JSignPdf.jar',
+					'pdftk_path' => 'vfs://home/data/libresign/x86_64/pdftk/pdftk.jar',
+					'cfssl_bin' => 'vfs://home/data/libresign/x86_64/cfssl/cfssl',
+					default => '',
+				};
+			});
+		$actual = $this->getInstance()
+			->setArchitecture($architecture)
+			->setDistro($distro)
+			->setResource($resource)
+			->getInstallPath();
+		$this->assertEquals(
+			$expected,
+			$actual
+		);
+	}
+
+	public static function dataGetInstallPath(): array {
+		return [
+			['x86_64', 'java', 'linux', 'vfs://home/data/libresign/x86_64/linux/java/jdk-21.0.2+13-jre'],
+			['x86_64', 'java', 'alpine-linux', 'vfs://home/data/libresign/x86_64/alpine-linux/java/jdk-21.0.2+13-jre'],
+			['x86_64', 'pdftk', 'linux', 'vfs://home/data/libresign/x86_64/pdftk'],
+			['x86_64', 'pdftk', 'alpine-linux', 'vfs://home/data/libresign/x86_64/pdftk'],
+			['x86_64', 'jsignpdf', 'linux', 'vfs://home/data/libresign/x86_64/jsignpdf'],
+			['x86_64', 'jsignpdf', 'alpine-linux', 'vfs://home/data/libresign/x86_64/jsignpdf'],
+			['x86_64', 'cfssl', 'linux', 'vfs://home/data/libresign/x86_64/cfssl'],
+			['x86_64', 'cfssl', 'alpine-linux', 'vfs://home/data/libresign/x86_64/cfssl'],
+			['aarch64', 'java', 'linux', 'vfs://home/data/libresign/aarch64/linux/java/jdk-21.0.2+13-jre'],
+			['aarch64', 'java', 'alpine-linux', 'vfs://home/data/libresign/aarch64/alpine-linux/java/jdk-21.0.2+13-jre'],
+			['aarch64', 'pdftk', 'linux', 'vfs://home/data/libresign/aarch64/pdftk'],
+			['aarch64', 'pdftk', 'alpine-linux', 'vfs://home/data/libresign/aarch64/pdftk'],
+			['aarch64', 'jsignpdf', 'linux', 'vfs://home/data/libresign/aarch64/jsignpdf'],
+			['aarch64', 'jsignpdf', 'alpine-linux', 'vfs://home/data/libresign/aarch64/jsignpdf'],
+			['aarch64', 'cfssl', 'linux', 'vfs://home/data/libresign/aarch64/cfssl'],
+			['aarch64', 'cfssl', 'alpine-linux', 'vfs://home/data/libresign/aarch64/cfssl'],
+		];
 	}
 }
