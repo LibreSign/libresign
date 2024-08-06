@@ -56,8 +56,23 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 			$fullCommand = http_build_query(self::$environments, '', ' ') . ' ' . $fullCommand;
 		}
 		$fullCommand .= '  2>&1';
-		exec($fullCommand, $output, $resultCode);
+		return self::runBashCommand($fullCommand);
+	}
+
+	private static function runBashCommand(string $command): array {
+		$command = str_replace('\"', '"', $command);
+		$patterns = [];
+		$replacements = [];
+		$fields['libresignRootDir'] = realpath(__DIR__ . '/../../../../');
+		foreach ($fields as $key => $value) {
+			$patterns[] = '/<' . $key . '>/';
+			$replacements[] = $value;
+		}
+		$command = preg_replace($patterns, $replacements, $command);
+
+		exec($command, $output, $resultCode);
 		return [
+			'command' => $command,
 			'output' => $output,
 			'resultCode' => $resultCode,
 		];
@@ -68,6 +83,14 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 */
 	public static function runCommandWithResultCode(string $command, int $resultCode = 0): void {
 		$return = self::runCommand($command);
+		Assert::assertEquals($resultCode, $return['resultCode'], print_r($return, true));
+	}
+
+	/**
+	 * @When /^run the bash command "(?P<command>(?:[^"]|\\")*)" with result code (\d+)$/
+	 */
+	public static function runBashCommandWithResultCode(string $command, int $resultCode = 0): void {
+		$return = self::runBashCommand($command);
 		Assert::assertEquals($resultCode, $return['resultCode'], print_r($return, true));
 	}
 
