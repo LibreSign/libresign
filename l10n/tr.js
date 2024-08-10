@@ -262,6 +262,7 @@ OC.L10N.register(
     "Downloading binaries" : "Binary dosyaları indiriliyor",
     "Download binaries" : "Binary dosyalarını indir",
     "Validate setup" : "Kurulumu doğrula",
+    "Binaries required to work. Download size could be nearly {size}, please wait a moment." : "Çalışması için binary dosyaları gerekiyor. Yaklaşık olarak {size} indirilecek, lütfen bekleyin.",
     "Rules for controlling the expiration of a request to sign a file." : "Bir dosyayı imzalama isteğinin süresinin dolmasını denetleme kuralları.",
     "Maximum validity" : "En uzun geçerlilik",
     "Maximum validity in seconds of a request to sign." : "Saniye olarak, imzalama isteğinin en uzun geçerliliği.",
