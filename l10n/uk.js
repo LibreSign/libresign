@@ -52,7 +52,7 @@ OC.L10N.register(
     "Enter a password" : "Enter a password",
     "Page not found" : "Сторінку не знайдено",
     "Send" : "Надіслати",
-    "Password reset" : "Перевстановлення пароля",
+    "Password reset" : "Відновлення пароля",
     "Current password" : "Поточний пароль",
     "New password" : "Новий пароль",
     "Repeat password" : "Повторіть пароль",
