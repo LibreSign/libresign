@@ -1,6 +1,7 @@
 <template>
 	<NcDialog v-if="mounted"
 		class="draw-signature"
+		:size="size"
 		:name="t('libresign', 'Customize your signatures')"
 		@closing="close">
 		<NcAppSidebar active="tab-draw"
@@ -93,6 +94,11 @@ export default {
 			mounted: false,
 		}
 	},
+	computed: {
+		size() {
+			return window.matchMedia('(max-width: 512px)').matches ? 'full' : 'small'
+		},
+	},
 	mounted() {
 		this.mounted = true
 	},
@@ -117,10 +123,6 @@ export default {
 	}
 	::v-deep #tab-tab-upload {
 		min-width: 350px;
-	}
-	::v-deep .modal-container {
-		width: unset !important;
-		height: unset !important;
 	}
 	::v-deep aside {
 		border-left: unset;
