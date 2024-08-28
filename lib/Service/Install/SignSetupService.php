@@ -35,6 +35,7 @@ class SignSetupService {
 	private string $distro = '';
 	private ?X509 $x509 = null;
 	private ?RSA $rsa = null;
+	private string $instanceId;
 	public function __construct(
 		private EnvironmentHelper $environmentHelper,
 		private FileAccessHelper $fileAccessHelper,
@@ -42,6 +43,7 @@ class SignSetupService {
 		private IAppConfig $appConfig,
 		private IAppManager $appManager,
 	) {
+		$this->instanceId = $this->config->getSystemValue('instanceid');
 	}
 
 	public function setArchitecture(string $architecture): self {
@@ -139,10 +141,10 @@ class SignSetupService {
 			case 'java':
 				$path = $this->appConfig->getAppValue('java_path');
 				$installPath = substr($path, 0, -strlen('/bin/java'));
-				$expected = 'libresign/' . $this->architecture . '/' . $this->distro . '/java';
+				$expected = "{$this->instanceId}/libresign/{$this->architecture}/{$this->distro}/java";
 				if (!str_contains($installPath, $expected)) {
 					$installPath = preg_replace(
-						'/libresign\/.*\/.*\/java/i',
+						"/{$this->instanceId}\/libresign\/(\w+)\/(\w+)\/java/i",
 						$expected,
 						$installPath
 					);
@@ -164,7 +166,11 @@ class SignSetupService {
 				$installPath = '';
 		}
 		if (!str_contains($installPath, $this->architecture)) {
-			$installPath = preg_replace('/\/libresign\/(\w+)/i', '/libresign/'.$this->architecture, $installPath);
+			$installPath = preg_replace(
+				"/{$this->instanceId}\/libresign\/(\w+)/i",
+				"{$this->instanceId}/libresign/{$this->architecture}",
+				$installPath
+			);
 		}
 		return $installPath;
 	}
