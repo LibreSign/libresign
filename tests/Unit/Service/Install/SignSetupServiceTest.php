@@ -39,6 +39,13 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 * @return SignSetupService|MockObject
 	 */
 	private function getInstance(array $methods = []) {
+		$this->config
+			->method('getSystemValue')
+			->willReturnCallback(function ($key, $default):string {
+				return match ($key) {
+					'instanceid' => '1',
+				};
+			});
 		return $this->getMockBuilder(SignSetupService::class)
 			->setConstructorArgs([
 				$this->environmentHelper,
@@ -77,9 +84,6 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	private function writeAppSignature(string $architecture, $resource): SignSetupService {
-		$this->config->method('getSystemValue')
-			->willReturn(vfsStream::url('home/data'));
-
 		$this->environmentHelper->method('getServerRoot')
 			->willReturn('vfs://home');
 
@@ -87,7 +91,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getAppValue')
 			->willReturnCallback(function ($key, $default) use ($architecture):string {
 				return match ($key) {
-					'java_path' => 'vfs://home/data/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/bin/java',
+					'java_path' => 'vfs://home/data/appdata_1/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/bin/java',
 					default => '',
 				};
 			});
@@ -111,18 +115,20 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$structure = [
 			'data' => [
-				'libresign' => [
-					$architecture => [
-						'linux' => [
-							'java' => [
-								'jdk-21.0.2+13-jre' => [
-									'fakeFile01' => 'content',
-									'fakeFile02' => 'content',
+				'appdata_1' => [
+					'libresign' => [
+						$architecture => [
+							'linux' => [
+								'java' => [
+									'jdk-21.0.2+13-jre' => [
+										'fakeFile01' => 'content',
+										'fakeFile02' => 'content',
+									],
 								],
 							],
 						],
 					],
-				],
+				]
 			],
 			'resources' => [
 				'codesigning' => [
@@ -143,7 +149,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signatureContent = json_decode($json, true);
 		$this->assertArrayHasKey('hashes', $signatureContent);
 		$this->assertCount(2, $signatureContent['hashes']);
-		$expected = hash('sha512', $structure['data']['libresign'][$architecture]['linux'][$resource]['jdk-21.0.2+13-jre']['fakeFile01']);
+		$expected = hash('sha512', $structure['data']['appdata_1']['libresign'][$architecture]['linux'][$resource]['jdk-21.0.2+13-jre']['fakeFile01']);
 		$this->assertArrayHasKey('fakeFile01', $signatureContent['hashes']);
 		$actual = $signatureContent['hashes']['fakeFile01'];
 		$this->assertEquals($expected, $actual);
@@ -169,9 +175,9 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testVerify(): void {
 		$architecture = 'x86_64';
 		$signSetupService = $this->writeAppSignature($architecture, 'java');
-		unlink('vfs://home/data/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/fakeFile01');
-		file_put_contents('vfs://home/data/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/fakeFile02', 'invalidContent');
-		file_put_contents('vfs://home/data/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/fakeFile03', 'invalidContent');
+		unlink('vfs://home/data/appdata_1/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/fakeFile01');
+		file_put_contents('vfs://home/data/appdata_1/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/fakeFile02', 'invalidContent');
+		file_put_contents('vfs://home/data/appdata_1/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/fakeFile03', 'invalidContent');
 		$expected = json_encode([
 			'FILE_MISSING' => [
 				'fakeFile01' => [
@@ -205,10 +211,10 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getAppValue')
 			->willReturnCallback(function ($key, $default): string {
 				return match ($key) {
-					'java_path' => 'vfs://home/data/libresign/x86_64/linux/java/jdk-21.0.2+13-jre/bin/java',
-					'jsignpdf_jar_path' => 'vfs://home/data/libresign/x86_64/jsignpdf/jsignpdf-2.2.2/JSignPdf.jar',
-					'pdftk_path' => 'vfs://home/data/libresign/x86_64/pdftk/pdftk.jar',
-					'cfssl_bin' => 'vfs://home/data/libresign/x86_64/cfssl/cfssl',
+					'java_path' => 'vfs://home/data/appdata_1/libresign/x86_64/linux/java/jdk-21.0.2+13-jre/bin/java',
+					'jsignpdf_jar_path' => 'vfs://home/data/appdata_1/libresign/x86_64/jsignpdf/jsignpdf-2.2.2/JSignPdf.jar',
+					'pdftk_path' => 'vfs://home/data/appdata_1/libresign/x86_64/pdftk/pdftk.jar',
+					'cfssl_bin' => 'vfs://home/data/appdata_1/libresign/x86_64/cfssl/cfssl',
 					default => '',
 				};
 			});
@@ -225,22 +231,22 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public static function dataGetInstallPath(): array {
 		return [
-			['x86_64', 'java', 'linux', 'vfs://home/data/libresign/x86_64/linux/java/jdk-21.0.2+13-jre'],
-			['x86_64', 'java', 'alpine-linux', 'vfs://home/data/libresign/x86_64/alpine-linux/java/jdk-21.0.2+13-jre'],
-			['x86_64', 'pdftk', 'linux', 'vfs://home/data/libresign/x86_64/pdftk'],
-			['x86_64', 'pdftk', 'alpine-linux', 'vfs://home/data/libresign/x86_64/pdftk'],
-			['x86_64', 'jsignpdf', 'linux', 'vfs://home/data/libresign/x86_64/jsignpdf'],
-			['x86_64', 'jsignpdf', 'alpine-linux', 'vfs://home/data/libresign/x86_64/jsignpdf'],
-			['x86_64', 'cfssl', 'linux', 'vfs://home/data/libresign/x86_64/cfssl'],
-			['x86_64', 'cfssl', 'alpine-linux', 'vfs://home/data/libresign/x86_64/cfssl'],
-			['aarch64', 'java', 'linux', 'vfs://home/data/libresign/aarch64/linux/java/jdk-21.0.2+13-jre'],
-			['aarch64', 'java', 'alpine-linux', 'vfs://home/data/libresign/aarch64/alpine-linux/java/jdk-21.0.2+13-jre'],
-			['aarch64', 'pdftk', 'linux', 'vfs://home/data/libresign/aarch64/pdftk'],
-			['aarch64', 'pdftk', 'alpine-linux', 'vfs://home/data/libresign/aarch64/pdftk'],
-			['aarch64', 'jsignpdf', 'linux', 'vfs://home/data/libresign/aarch64/jsignpdf'],
-			['aarch64', 'jsignpdf', 'alpine-linux', 'vfs://home/data/libresign/aarch64/jsignpdf'],
-			['aarch64', 'cfssl', 'linux', 'vfs://home/data/libresign/aarch64/cfssl'],
-			['aarch64', 'cfssl', 'alpine-linux', 'vfs://home/data/libresign/aarch64/cfssl'],
+			['x86_64', 'java', 'linux', 'vfs://home/data/appdata_1/libresign/x86_64/linux/java/jdk-21.0.2+13-jre'],
+			['x86_64', 'java', 'alpine-linux', 'vfs://home/data/appdata_1/libresign/x86_64/alpine-linux/java/jdk-21.0.2+13-jre'],
+			['x86_64', 'pdftk', 'linux', 'vfs://home/data/appdata_1/libresign/x86_64/pdftk'],
+			['x86_64', 'pdftk', 'alpine-linux', 'vfs://home/data/appdata_1/libresign/x86_64/pdftk'],
+			['x86_64', 'jsignpdf', 'linux', 'vfs://home/data/appdata_1/libresign/x86_64/jsignpdf'],
+			['x86_64', 'jsignpdf', 'alpine-linux', 'vfs://home/data/appdata_1/libresign/x86_64/jsignpdf'],
+			['x86_64', 'cfssl', 'linux', 'vfs://home/data/appdata_1/libresign/x86_64/cfssl'],
+			['x86_64', 'cfssl', 'alpine-linux', 'vfs://home/data/appdata_1/libresign/x86_64/cfssl'],
+			['aarch64', 'java', 'linux', 'vfs://home/data/appdata_1/libresign/aarch64/linux/java/jdk-21.0.2+13-jre'],
+			['aarch64', 'java', 'alpine-linux', 'vfs://home/data/appdata_1/libresign/aarch64/alpine-linux/java/jdk-21.0.2+13-jre'],
+			['aarch64', 'pdftk', 'linux', 'vfs://home/data/appdata_1/libresign/aarch64/pdftk'],
+			['aarch64', 'pdftk', 'alpine-linux', 'vfs://home/data/appdata_1/libresign/aarch64/pdftk'],
+			['aarch64', 'jsignpdf', 'linux', 'vfs://home/data/appdata_1/libresign/aarch64/jsignpdf'],
+			['aarch64', 'jsignpdf', 'alpine-linux', 'vfs://home/data/appdata_1/libresign/aarch64/jsignpdf'],
+			['aarch64', 'cfssl', 'linux', 'vfs://home/data/appdata_1/libresign/aarch64/cfssl'],
+			['aarch64', 'cfssl', 'alpine-linux', 'vfs://home/data/appdata_1/libresign/aarch64/cfssl'],
 		];
 	}
 }
