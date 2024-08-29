@@ -157,7 +157,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function throwIfMaximumValidityExpired(): void {
-		$maximumValidity = (int) $this->identifyService->getAppConfig()->getAppValue('maximum_validity', (string) SessionService::NO_MAXIMUM_VALIDITY);
+		$maximumValidity = (int)$this->identifyService->getAppConfig()->getAppValue('maximum_validity', (string)SessionService::NO_MAXIMUM_VALIDITY);
 		if ($maximumValidity <= 0) {
 			return;
 		}
@@ -182,7 +182,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 	protected function renewSession(): void {
 		$this->identifyService->getSessionService()->setIdentifyMethodId($this->getEntity()->getId());
-		$renewalInterval = (int) $this->identifyService->getAppConfig()->getAppValue('renewal_interval', (string) SessionService::NO_RENEWAL_INTERVAL);
+		$renewalInterval = (int)$this->identifyService->getAppConfig()->getAppValue('renewal_interval', (string)SessionService::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= 0) {
 			return;
 		}
@@ -200,14 +200,14 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function throwIfRenewalIntervalExpired(): void {
-		$renewalInterval = (int) $this->identifyService->getAppConfig()->getAppValue('renewal_interval', (string) SessionService::NO_RENEWAL_INTERVAL);
+		$renewalInterval = (int)$this->identifyService->getAppConfig()->getAppValue('renewal_interval', (string)SessionService::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= 0) {
 			return;
 		}
 		$signRequest = $this->identifyService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
 		$startTime = $this->identifyService->getSessionService()->getSignStartTime();
 		$createdAt = $signRequest->getCreatedAt();
-		$lastAttempt = (int) $this->getEntity()->getLastAttemptDate()?->format('U');
+		$lastAttempt = (int)$this->getEntity()->getLastAttemptDate()?->format('U');
 		$lastActionDate = max(
 			$startTime,
 			$createdAt,

@@ -21,7 +21,7 @@ use OCP\Migration\SimpleMigrationStep;
 class Version2040Date20211027183759 extends SimpleMigrationStep {
 	/** @var IDBConnection */
 	private $connection;
-	/** @var IRootFolder*/
+	/** @var IRootFolder */
 	private $root;
 	/** @var PdfParserService */
 	private $PdfParserService;

@@ -50,7 +50,7 @@ class ApiRequester extends AbstractRequester {
 	}
 
 	private function setupRequest(RequestInterface $request):void {
-		$request = $request->withHeader("User-Agent", "ByJG Swagger Test");
+		$request = $request->withHeader('User-Agent', 'ByJG Swagger Test');
 		$server = [
 			'REQUEST_METHOD' => $request->getMethod(),
 			'SERVER_PROTOCOL' => $request->getProtocolVersion(),
