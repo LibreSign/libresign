@@ -50,8 +50,8 @@ class SignSetup extends Base {
 			return 1;
 		}
 		try {
-			$privateKey = $this->fileGetContents((string) $privateKeyPath);
-			$keyBundle = $this->fileGetContents((string) $keyBundlePath);
+			$privateKey = $this->fileGetContents((string)$privateKeyPath);
+			$keyBundle = $this->fileGetContents((string)$keyBundlePath);
 		} catch (\Throwable $th) {
 			$output->writeln('<error>' . $th->getMessage() . '</error>');
 			return 1;

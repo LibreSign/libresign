@@ -68,7 +68,7 @@ class InjectionMiddleware extends Middleware {
 		if ($controller instanceof AEnvironmentAwareController) {
 			$apiVersion = $this->request->getParam('apiVersion');
 			/** @var AEnvironmentAwareController $controller */
-			$controller->setAPIVersion((int) substr($apiVersion, 1));
+			$controller->setAPIVersion((int)substr($apiVersion, 1));
 		}
 
 		$reflectionMethod = new \ReflectionMethod($controller, $methodName);
@@ -247,7 +247,7 @@ class InjectionMiddleware extends Middleware {
 		if ($exception->getCode() === 0) {
 			return AppFrameworkHttp::STATUS_UNPROCESSABLE_ENTITY;
 		}
-		return (int) $exception->getCode();
+		return (int)$exception->getCode();
 	}
 
 	protected function isJson(string $string): bool {

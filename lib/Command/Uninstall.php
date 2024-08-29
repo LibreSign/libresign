@@ -59,7 +59,7 @@ class Uninstall extends Base {
 		$ok = false;
 
 		try {
-			$architecture = (string) $input->getOption('architecture');
+			$architecture = (string)$input->getOption('architecture');
 			if (in_array($architecture, ['x86_64', 'aarch64'])) {
 				$this->installService->setArchitecture($architecture);
 			}

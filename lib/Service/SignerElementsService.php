@@ -125,7 +125,7 @@ class SignerElementsService {
 					'nodeId' => $fileElement->getId(),
 				],
 				'starred' => 0,
-				'createdAt' => (new \DateTime())->setTimestamp((int) $timestamp)->format('Y-m-d H:i:s'),
+				'createdAt' => (new \DateTime())->setTimestamp((int)$timestamp)->format('Y-m-d H:i:s'),
 			];
 		}
 		return $return;

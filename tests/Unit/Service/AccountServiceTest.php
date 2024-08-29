@@ -170,7 +170,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$self->signRequestMapper
 						->method('getByUuid')
 						->will($self->returnCallback(function ():void {
-							throw new \Exception("Beep, beep, not found!", 1);
+							throw new \Exception('Beep, beep, not found!', 1);
 						}));
 					return [
 						'uuid' => $uuid
@@ -358,7 +358,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$template = $this->createMock(\OCP\Mail\IEMailTemplate::class);
 		$this->newUserMail->method('generateTemplate')->will($this->returnValue($template));
 		$this->newUserMail->method('sendMail')->will($this->returnCallback(function ():void {
-			throw new \Exception("Error Processing Request", 1);
+			throw new \Exception('Error Processing Request', 1);
 		}));
 		$this->expectExceptionMessage('Unable to send the invitation');
 		$this->getService()->createToSign('uuid', 'username', 'passwordOfUser', 'passwordToSign');
@@ -439,7 +439,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testAccountvalidateWithSuccess():void {
 		$this->fileTypeMapper
 			->method('getTypes')
-			->willReturn(["IDENTIFICATION" => ["type" => "IDENTIFICATION"]]);
+			->willReturn(['IDENTIFICATION' => ['type' => 'IDENTIFICATION']]);
 		$user = $this->createMock(\OCP\IUser::class);
 		$user->method('getUID')
 			->willReturn('username');
@@ -458,7 +458,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectExceptionMessage('Invalid file type.');
 		$this->fileTypeMapper
 			->method('getTypes')
-			->willReturn(["IDENTIFICATION" => ["type" => "IDENTIFICATION"]]);
+			->willReturn(['IDENTIFICATION' => ['type' => 'IDENTIFICATION']]);
 		$user = $this->createMock(\OCP\IUser::class);
 		$this->getService()->validateAccountFiles([
 			[
@@ -473,7 +473,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testAddFilesToAccountWithSuccess():void {
 		$this->fileTypeMapper
 			->method('getTypes')
-			->willReturn(["IDENTIFICATION" => ["type" => "IDENTIFICATION"]]);
+			->willReturn(['IDENTIFICATION' => ['type' => 'IDENTIFICATION']]);
 		$files = [
 			[
 				'type' => 'IDENTIFICATION',

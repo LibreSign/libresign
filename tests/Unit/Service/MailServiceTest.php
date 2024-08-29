@@ -105,7 +105,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mailer
 			->method('send')
 			->willReturnCallback(function ():void {
-				throw new \Exception("Error Processing Request", 1);
+				throw new \Exception('Error Processing Request', 1);
 			});
 		$this->appConfig
 			->method('getAppValue')
