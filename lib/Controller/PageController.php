@@ -553,7 +553,7 @@ class PageController extends AEnvironmentPageAwareController {
 	}
 
 	private function throwIfValidationPageNotAccessible(): void {
-		$isValidationUrlPrivate = (bool) $this->appConfig->getAppValue('make_validation_url_private', '0');
+		$isValidationUrlPrivate = (bool)$this->appConfig->getAppValue('make_validation_url_private', '0');
 		if ($this->userSession->isLoggedIn()) {
 			return;
 		}

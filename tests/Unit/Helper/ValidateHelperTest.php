@@ -424,14 +424,14 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectExceptionMessage('Invalid file type.');
 		$this->fileTypeMapper
 			->method('getTypes')
-			->willReturn(["IDENTIFICATION" => ["type" => "IDENTIFICATION"]]);
+			->willReturn(['IDENTIFICATION' => ['type' => 'IDENTIFICATION']]);
 		$this->getValidateHelper()->validateFileTypeExists('0');
 	}
 
 	public function testValidFileType() {
 		$this->fileTypeMapper
 			->method('getTypes')
-			->willReturn(["IDENTIFICATION" => ["type" => "IDENTIFICATION"]]);
+			->willReturn(['IDENTIFICATION' => ['type' => 'IDENTIFICATION']]);
 		$actual = $this->getValidateHelper()->validateFileTypeExists('IDENTIFICATION');
 		$this->assertNull($actual);
 	}
@@ -442,7 +442,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->accountFileMapper
 			->method('getByUserAndType')
 			->willReturn($file);
-		$this->getValidateHelper()->validateUserHasNoFileWithThisType('username', (string) ValidateHelper::TYPE_TO_SIGN);
+		$this->getValidateHelper()->validateUserHasNoFileWithThisType('username', (string)ValidateHelper::TYPE_TO_SIGN);
 	}
 
 	public function testUserHasNoFileWithThisType() {
@@ -451,7 +451,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->will($this->returnCallback(function () {
 				throw new \Exception('not found');
 			}));
-		$actual = $this->getValidateHelper()->validateUserHasNoFileWithThisType('username', (string) ValidateHelper::TYPE_TO_SIGN);
+		$actual = $this->getValidateHelper()->validateUserHasNoFileWithThisType('username', (string)ValidateHelper::TYPE_TO_SIGN);
 		$this->assertNull($actual);
 	}
 

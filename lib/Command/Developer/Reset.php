@@ -115,11 +115,11 @@ class Reset extends Base {
 		try {
 			$all = $input->getOption('all');
 			if ($input->getOption('notifications') || $all) {
-				$this->resetNotifications((string) $input->getOption('notifications'));
+				$this->resetNotifications((string)$input->getOption('notifications'));
 				$ok = true;
 			}
 			if ($input->getOption('activity') || $all) {
-				$this->resetActivity((string) $input->getOption('activity'));
+				$this->resetActivity((string)$input->getOption('activity'));
 				$ok = true;
 			}
 			if ($input->getOption('identify') || $all) {
