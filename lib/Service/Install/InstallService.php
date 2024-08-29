@@ -343,7 +343,7 @@ class InstallService {
 			return 0;
 		}
 		$pid = trim($output);
-		return (int) $pid;
+		return (int)$pid;
 	}
 
 	public function setResource(string $resource): self {
@@ -664,7 +664,7 @@ class InstallService {
 
 	protected function download(string $url, string $dependencyName, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
 		if (file_exists($path)) {
-			$this->progressToDatabase((int) filesize($path), 0);
+			$this->progressToDatabase((int)filesize($path), 0);
 			if (hash_file($hash_algo, $path) === $hash) {
 				return;
 			}

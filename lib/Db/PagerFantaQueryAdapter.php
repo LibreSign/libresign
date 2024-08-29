@@ -53,7 +53,7 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 
 		$reflectionProperty->setValue($this->queryBuilder, $originalQueryBuilder);
 
-		return abs((int) $total);
+		return abs((int)$total);
 	}
 
 	/**

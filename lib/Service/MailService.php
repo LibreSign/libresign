@@ -76,7 +76,7 @@ class MailService {
 	 * @psalm-suppress MixedMethodCall
 	 */
 	public function notifyUnsignedUser(SignRequest $data, string $email): void {
-		$notifyUnsignedUser = (bool) $this->appConfig->getAppValue('notify_unsigned_user', '1');
+		$notifyUnsignedUser = (bool)$this->appConfig->getAppValue('notify_unsigned_user', '1');
 		if (!$notifyUnsignedUser) {
 			return;
 		}
