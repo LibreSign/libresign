@@ -182,16 +182,16 @@ class AccountFileMapper extends QBMapper {
 			'description' => $this->fileTypeMapper->getDescriptionOfType($row['file_type']),
 		];
 		$row['request_date'] = (new \DateTime())
-			->setTimestamp((int) $row['request_date'])
+			->setTimestamp((int)$row['request_date'])
 			->format('Y-m-d H:i:s');
 		$row['file'] = [
 			'name' => $row['name'],
 			'status' => $row['status'],
-			'statusText' => $this->fileMapper->getTextOfStatus((int) $row['status']),
+			'statusText' => $this->fileMapper->getTextOfStatus((int)$row['status']),
 			'request_date' => $row['request_date'],
 			'file' => [
 				'type' => 'pdf',
-				'nodeId' => (int) $row['node_id'],
+				'nodeId' => (int)$row['node_id'],
 				'url' => $url . $row['uuid'],
 			],
 			'callback' => $row['callback'],

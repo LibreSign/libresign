@@ -104,7 +104,7 @@ trait TFile {
 				throw new \Exception($this->l10n->t('Invalid URL file'));
 			}
 			$mimetypeFromHeader = $response->getHeader('Content-Type');
-			$content = (string) $response->getBody();
+			$content = (string)$response->getBody();
 			if (!$content) {
 				throw new \Exception($this->l10n->t('Empty file'));
 			}

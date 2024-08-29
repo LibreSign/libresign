@@ -55,7 +55,7 @@ class SessionService {
 	}
 
 	public function resetDurationOfSignPage(): void {
-		$renewalInterval = (int) $this->appConfig->getAppValue('renewal_interval', (string) self::NO_RENEWAL_INTERVAL);
+		$renewalInterval = (int)$this->appConfig->getAppValue('renewal_interval', (string)self::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= self::NO_RENEWAL_INTERVAL) {
 			return;
 		}
