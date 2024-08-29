@@ -69,7 +69,7 @@ class FooterHandler {
 	public function getFooter(File $file, FileEntity $fileEntity): string {
 		$this->file = $file;
 		$this->fileEntity = $fileEntity;
-		$add_footer = (bool) $this->appConfig->getAppValue('add_footer', '1');
+		$add_footer = (bool)$this->appConfig->getAppValue('add_footer', '1');
 		if (!$add_footer) {
 			return '';
 		}

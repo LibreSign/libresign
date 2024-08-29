@@ -63,7 +63,7 @@ class AccountFileService {
 	 */
 	public function accountFileList(array $filter, ?int $page = null, ?int $length = null): array {
 		$page = $page ?? 1;
-		$length = $length ?? (int) $this->appConfig->getAppValue('length_of_page', '100');
+		$length = $length ?? (int)$this->appConfig->getAppValue('length_of_page', '100');
 		$data = $this->accountFileMapper->accountFileList($filter, $page, $length);
 		$data['pagination']->setRootPath('/file/list');
 		return [
