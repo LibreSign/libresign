@@ -514,7 +514,7 @@ class SignRequestMapper extends QBMapper {
 				->select($qb->func()->count())
 				->setFirstResult(0)
 				->setMaxResults(null);
-			return (int) $qb->executeQuery()->fetchOne();
+			return (int)$qb->executeQuery()->fetchOne();
 		};
 
 		$pagination = new Pagination($qb);
@@ -522,19 +522,19 @@ class SignRequestMapper extends QBMapper {
 	}
 
 	private function formatListRow(array $row): array {
-		$row['id'] = (int) $row['id'];
-		$row['status'] = (int) $row['status'];
+		$row['id'] = (int)$row['id'];
+		$row['status'] = (int)$row['status'];
 		$row['statusText'] = $this->fileMapper->getTextOfStatus($row['status']);
-		$row['nodeId'] = (int) $row['node_id'];
+		$row['nodeId'] = (int)$row['node_id'];
 		$row['requested_by'] = [
 			'userId' => $row['user_id'],
 			'displayName' => $this->userManager->get($row['user_id'])?->getDisplayName(),
 		];
 		$row['request_date'] = (new \DateTime())
-			->setTimestamp((int) $row['request_date'])
+			->setTimestamp((int)$row['request_date'])
 			->format('Y-m-d H:i:s');
 		$row['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $row['uuid']]);
-		$row['nodeId'] = (int) $row['node_id'];
+		$row['nodeId'] = (int)$row['node_id'];
 		unset(
 			$row['user_id'],
 			$row['node_id'],

@@ -48,7 +48,7 @@ class CfsslServerHandler {
 		if ($response === false) {
 			throw new LibresignException(
 				"Error while writing CSR server file.\n" .
-				"Remove the CFSSL API URI and Config path to use the default values.",
+				'Remove the CFSSL API URI and Config path to use the default values.',
 				500
 			);
 		}
@@ -63,12 +63,12 @@ class CfsslServerHandler {
 						'auth_key' => 'key1',
 						'expiry' => '8760h',
 						'usages' => [
-							"signing",
-							"digital signature",
-							"cert sign",
-							"key encipherment",
-							"client auth",
-							"email protection"
+							'signing',
+							'digital signature',
+							'cert sign',
+							'key encipherment',
+							'client auth',
+							'email protection'
 						],
 					],
 				],
@@ -83,7 +83,7 @@ class CfsslServerHandler {
 
 		$response = file_put_contents($filename, json_encode($content));
 		if ($response === false) {
-			throw new LibresignException("Error while writing config server file!", 500);
+			throw new LibresignException('Error while writing config server file!', 500);
 		}
 	}
 }

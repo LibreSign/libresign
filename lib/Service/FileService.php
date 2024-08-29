@@ -434,7 +434,7 @@ class FileService {
 	 */
 	public function listAssociatedFilesOfSignFlow($page = null, $length = null, array $filter = []): array {
 		$page = $page ?? 1;
-		$length = $length ?? (int) $this->appConfig->getAppValue('length_of_page', '100');
+		$length = $length ?? (int)$this->appConfig->getAppValue('length_of_page', '100');
 
 		$return = $this->signRequestMapper->getFilesAssociatedFilesWithMeFormatted(
 			$this->me,
@@ -568,7 +568,7 @@ class FileService {
 				$files[$key]['signers'] = [];
 				$files[$key]['statusText'] = $this->l10n->t('no signers');
 			} else {
-				$files[$key]['statusText'] = $this->fileMapper->getTextOfStatus((int) $files[$key]['status']);
+				$files[$key]['statusText'] = $this->fileMapper->getTextOfStatus((int)$files[$key]['status']);
 			}
 			unset($files[$key]['id']);
 			ksort($files[$key]);

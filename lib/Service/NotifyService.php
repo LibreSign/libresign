@@ -56,7 +56,7 @@ class NotifyService {
 	public function notificationDismiss(int $signRequestId, IUser $user, int $timestamp): void {
 		$notification = $this->notificationManager->createNotification();
 		$notification->setApp(Application::APP_ID)
-			->setObject('signRequest', (string) $signRequestId)
+			->setObject('signRequest', (string)$signRequestId)
 			->setDateTime($this->timeFactory->getDateTime('@' . $timestamp))
 			->setUser($user->getUID())
 			->setSubject('new_sign_request');
