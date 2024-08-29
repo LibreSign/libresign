@@ -125,7 +125,9 @@ export default {
 		> * {
 			--color-border: var(--color-border-dark);
 		}
-		border-radius: 10px;
+		& {
+			border-radius: 10px;
+		}
 	}
 
 	img{
