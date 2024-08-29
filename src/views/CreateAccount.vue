@@ -235,11 +235,7 @@ body {
 			display: inline-flex;
 		}
 	}
-	.create-account {
-		h2 {
-			font-size: 20px;
-			font-weight: bold;
-		}
+	.create-account & {
 		--color-text-maxcontrast: var(--color-text-maxcontrast-background-blur, var(--color-main-text));
 		color: var(--color-main-text);
 		background-color: var(--color-main-background-blur);
@@ -250,6 +246,12 @@ body {
 		backdrop-filter: var(--filter-background-blur);
 		width: 320px;
 		box-sizing: border-box;
+	}
+	.create-account {
+		h2 {
+			font-size: 20px;
+			font-weight: bold;
+		}
 		&__headline{
 			text-align: center;
 			overflow-wrap: anywhere;

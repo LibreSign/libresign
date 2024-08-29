@@ -290,7 +290,9 @@ export default {
 	&--sidebar {
 		width: 300px;
 	}
-	overflow: auto;
+	& {
+		overflow: auto;
+	}
 	.button-vue {
 		margin: 4px;
 	}
