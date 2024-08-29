@@ -468,7 +468,7 @@ class AccountService {
 			if ($contentType !== 'image/png') {
 				throw new \Exception($this->l10n->t('Visible element file must be png.'));
 			}
-			$content = (string) $response->getBody();
+			$content = (string)$response->getBody();
 			if (empty($content)) {
 				throw new \Exception($this->l10n->t('Empty file'));
 			}

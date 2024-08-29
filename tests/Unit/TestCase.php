@@ -39,7 +39,7 @@ class TestCase extends \Test\TestCase {
 				if (is_array($value) || is_object($value)) {
 					$value = json_encode($value);
 				}
-				$service->setValueMixed('libresign', $key, (string) $value);
+				$service->setValueMixed('libresign', $key, (string)$value);
 			}
 			return;
 		}

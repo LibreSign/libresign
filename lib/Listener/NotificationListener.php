@@ -76,7 +76,7 @@ class NotificationListener implements IEventListener {
 		$notification = $this->notificationManager->createNotification();
 		$notification
 			->setApp(AppInfoApplication::APP_ID)
-			->setObject('signRequest', (string) $signRequest->getId())
+			->setObject('signRequest', (string)$signRequest->getId())
 			->setDateTime((new \DateTime())->setTimestamp($this->timeFactory->now()->getTimestamp()))
 			->setUser($identifyMethod->getEntity()->getIdentifierValue());
 		$isFirstNotification = $this->signRequestMapper->incrementNotificationCounter($signRequest, 'notify');

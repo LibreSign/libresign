@@ -123,7 +123,7 @@ class Cfssl extends Base {
 		$configPath = $input->getOption('config-path');
 
 		$this->installService->generate(
-			(string) $commonName,
+			(string)$commonName,
 			$names,
 			[
 				'engine' => 'cfssl',

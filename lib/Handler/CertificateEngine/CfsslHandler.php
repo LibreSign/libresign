@@ -130,9 +130,9 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		return array_merge(
 			$return,
 			[(new ConfigureCheckHelper())
-			->setErrorMessage('CFSSL (root certificate) not configured.')
-			->setResource('cfssl-configure')
-			->setTip('Run occ libresign:configure:cfssl --help')]
+				->setErrorMessage('CFSSL (root certificate) not configured.')
+				->setResource('cfssl-configure')
+				->setTip('Run occ libresign:configure:cfssl --help')]
 		);
 	}
 
@@ -172,14 +172,14 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 					$json
 				)
 			;
-		} catch (RequestException | ConnectException $th) {
+		} catch (RequestException|ConnectException $th) {
 			if ($th->getHandlerContext() && $th->getHandlerContext()['error']) {
 				throw new \Exception($th->getHandlerContext()['error'], 1);
 			}
 			throw new LibresignException($th->getMessage(), 500);
 		}
 
-		$responseDecoded = json_decode((string) $response->getBody(), true);
+		$responseDecoded = json_decode((string)$response->getBody(), true);
 		if (!isset($responseDecoded['success']) || !$responseDecoded['success']) {
 			throw new LibresignException('Error while generating certificate keys!', 500);
 		}
@@ -218,7 +218,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 					]
 				)
 			;
-		} catch (RequestException | ConnectException $th) {
+		} catch (RequestException|ConnectException $th) {
 			switch ($th->getCode()) {
 				case 404:
 					throw new \Exception('Endpoint /health of CFSSL server not found. Maybe you are using incompatible version of CFSSL server. Use latests version.', 1);
@@ -230,7 +230,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			}
 		}
 
-		$responseDecoded = json_decode((string) $response->getBody(), true);
+		$responseDecoded = json_decode((string)$response->getBody(), true);
 		if (!isset($responseDecoded['success']) || !$responseDecoded['success']) {
 			throw new LibresignException('Error while check cfssl API health!', 500);
 		}
@@ -239,7 +239,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			return false;
 		}
 
-		return (bool) $responseDecoded['result']['healthy'];
+		return (bool)$responseDecoded['result']['healthy'];
 	}
 
 	private function wakeUp(): void {
@@ -288,7 +288,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			return 0;
 		}
 		$pid = trim($output);
-		return (int) $pid;
+		return (int)$pid;
 	}
 
 	/**

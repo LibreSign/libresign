@@ -125,11 +125,11 @@ class ConfigureCheckService {
 						->setTip('Run occ libresign:install --jsignpdf');
 				}
 				$return[] = (new ConfigureCheckHelper())
-						->setSuccessMessage('JSignPdf version: ' . $currentVersion)
-						->setResource('jsignpdf');
+					->setSuccessMessage('JSignPdf version: ' . $currentVersion)
+					->setResource('jsignpdf');
 				$return[] = (new ConfigureCheckHelper())
-						->setSuccessMessage('JSignPdf path: ' . $jsignpdJarPath)
-						->setResource('jsignpdf');
+					->setSuccessMessage('JSignPdf path: ' . $jsignpdJarPath)
+					->setResource('jsignpdf');
 				return $return;
 			}
 			return [
@@ -176,7 +176,7 @@ class ConfigureCheckService {
 				}
 				$javaPath = $this->appConfig->getAppValue('java_path');
 				$version = [];
-				\exec($javaPath . ' -jar ' . $pdftkPath . " --version 2>&1", $version, $resultCode);
+				\exec($javaPath . ' -jar ' . $pdftkPath . ' --version 2>&1', $version, $resultCode);
 				if ($resultCode !== 0) {
 					return [
 						(new ConfigureCheckHelper())
@@ -190,11 +190,11 @@ class ConfigureCheckService {
 					if (isset($matches['version'])) {
 						if ($matches['version'] === InstallService::PDFTK_VERSION) {
 							$return[] = (new ConfigureCheckHelper())
-									->setSuccessMessage('PDFtk version: ' . InstallService::PDFTK_VERSION)
-									->setResource('pdftk');
+								->setSuccessMessage('PDFtk version: ' . InstallService::PDFTK_VERSION)
+								->setResource('pdftk');
 							$return[] = (new ConfigureCheckHelper())
-									->setSuccessMessage('PDFtk path: ' . $pdftkPath)
-									->setResource('pdftk');
+								->setSuccessMessage('PDFtk path: ' . $pdftkPath)
+								->setResource('pdftk');
 							return $return;
 						}
 						$message = 'Necessary install the version ' . InstallService::PDFTK_VERSION;
@@ -284,7 +284,7 @@ class ConfigureCheckService {
 				];
 			}
 			if (file_exists($javaPath)) {
-				\exec($javaPath . " -version 2>&1", $javaVersion, $resultCode);
+				\exec($javaPath . ' -version 2>&1', $javaVersion, $resultCode);
 				if (empty($javaVersion)) {
 					return [
 						(new ConfigureCheckHelper())
@@ -309,7 +309,7 @@ class ConfigureCheckService {
 						(new ConfigureCheckHelper())
 							->setErrorMessage(
 								sprintf(
-									"Invalid java version. Found: %s expected: %s",
+									'Invalid java version. Found: %s expected: %s',
 									$javaVersion,
 									InstallService::JAVA_VERSION
 								)
