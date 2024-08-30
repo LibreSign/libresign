@@ -213,7 +213,18 @@ class FileController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function list(?int $page = null, ?int $length = null, ?array $filter = []): DataResponse {
+	public function list(
+		?int $page = null,
+		?int $length = null,
+		?string $signer_uuid = null,
+		?string $nodeId = null,
+		?int $status = null,
+	): DataResponse {
+		$filter = array_filter([
+			'signer_uuid' => $signer_uuid,
+			'nodeId' => $nodeId,
+			'status' => $status,
+		], static function ($var) { return $var !== null; });
 		$return = $this->fileService
 			->setMe($this->userSession->getUser())
 			->listAssociatedFilesOfSignFlow($page, $length, $filter);
