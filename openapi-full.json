@@ -3412,21 +3412,31 @@
                         }
                     },
                     {
-                        "name": "filter",
+                        "name": "signer_uuid",
                         "in": "query",
-                        "description": "Filter params",
+                        "description": "Signer UUID",
                         "schema": {
-                            "type": "object",
-                            "nullable": true,
-                            "default": [],
-                            "properties": {
-                                "signer_uuid": {
-                                    "type": "string"
-                                },
-                                "nodeId": {
-                                    "type": "string"
-                                }
-                            }
+                            "type": "string",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "nodeId",
+                        "in": "query",
+                        "description": "The nodeId (also called fileId). Is the id of a file at Nextcloud",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Status could be one of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted.",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true
                         }
                     },
                     {

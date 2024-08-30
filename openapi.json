@@ -20,6 +20,23 @@
             }
         },
         "schemas": {
+            "AccountFile": {
+                "type": "object",
+                "required": [
+                    "file"
+                ],
+                "properties": {
+                    "file": {
+                        "$ref": "#/components/schemas/NewFile"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                }
+            },
             "CertificatePfxData": {
                 "type": "object",
                 "required": [
@@ -227,6 +244,31 @@
                     }
                 }
             },
+            "FolderSettings": {
+                "type": "object",
+                "properties": {
+                    "folderName": {
+                        "type": "string"
+                    },
+                    "separator": {
+                        "type": "string"
+                    },
+                    "folderPatterns": {
+                        "type": "object",
+                        "required": [
+                            "name"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "setting": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "IdentifyAccount": {
                 "type": "object",
                 "required": [
@@ -290,6 +332,41 @@
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0
+                    }
+                }
+            },
+            "NewFile": {
+                "type": "object",
+                "properties": {
+                    "base64": {
+                        "type": "string"
+                    },
+                    "fileId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "url": {
+                        "type": "string"
+                    }
+                }
+            },
+            "NewSigner": {
+                "type": "object",
+                "required": [
+                    "identify"
+                ],
+                "properties": {
+                    "identify": {
+                        "type": "object",
+                        "properties": {
+                            "email": {
+                                "type": "string"
+                            },
+                            "account": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             },
@@ -3239,21 +3316,31 @@
                         }
                     },
                     {
-                        "name": "filter",
+                        "name": "signer_uuid",
                         "in": "query",
-                        "description": "Filter params",
+                        "description": "Signer UUID",
                         "schema": {
-                            "type": "object",
-                            "nullable": true,
-                            "default": [],
-                            "properties": {
-                                "signer_uuid": {
-                                    "type": "string"
-                                },
-                                "nodeId": {
-                                    "type": "string"
-                                }
-                            }
+                            "type": "string",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "nodeId",
+                        "in": "query",
+                        "description": "The nodeId (also called fileId). Is the id of a file at Nextcloud",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Status could be one of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted.",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true
                         }
                     },
                     {
