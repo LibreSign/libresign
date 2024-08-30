@@ -218,7 +218,13 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/list', requirements: ['apiVersion' => '(v1)'])]
-	public function list(?int $page = null, ?int $length = null, ?string $signer_uuid = null, ?string $nodeId = null, ?int $status = null): DataResponse {
+	public function list(
+		?int $page = null,
+		?int $length = null,
+		?string $signer_uuid = null,
+		?string $nodeId = null,
+		?int $status = null,
+	): DataResponse {
 		$filter = array_filter([
 			'signer_uuid' => $signer_uuid,
 			'nodeId' => $nodeId,
