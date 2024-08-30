@@ -477,14 +477,19 @@ class SignRequestMapper extends QBMapper {
 					$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($filter['email']))
 				);
 			}
-			if (isset($filter['signer_uuid'])) {
+			if (!empty($filter['signer_uuid'])) {
 				$qb->andWhere(
 					$qb->expr()->eq('sr.uuid', $qb->createNamedParameter($filter['signer_uuid']))
 				);
 			}
-			if (isset($filter['nodeId'])) {
+			if (!empty($filter['nodeId'])) {
 				$qb->andWhere(
 					$qb->expr()->eq('f.node_id', $qb->createNamedParameter($filter['nodeId'], IQueryBuilder::PARAM_INT))
+				);
+			}
+			if (!empty($filter['status'])) {
+				$qb->andWhere(
+					$qb->expr()->eq('f.status', $qb->createNamedParameter($filter['status'], IQueryBuilder::PARAM_INT))
 				);
 			}
 			if (isset($filter['length']) && isset($filter['page'])) {
