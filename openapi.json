@@ -2617,26 +2617,6 @@
                         "basic_auth": []
                     }
                 ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "required": [
-                                    "nodeId"
-                                ],
-                                "properties": {
-                                    "nodeId": {
-                                        "type": "integer",
-                                        "format": "int64",
-                                        "description": "the nodeId of file to be delete"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
                 "parameters": [
                     {
                         "name": "apiVersion",
@@ -2648,6 +2628,16 @@
                                 "v1"
                             ],
                             "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "nodeId",
+                        "in": "query",
+                        "description": "the nodeId of file to be delete",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
                         }
                     },
                     {
@@ -2749,21 +2739,24 @@
                 ],
                 "parameters": [
                     {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
                         "name": "filter",
                         "in": "query",
                         "description": "Filter params",
                         "schema": {
-                            "type": "object",
-                            "nullable": true,
-                            "default": [],
-                            "properties": {
-                                "approved": {
-                                    "type": "string",
-                                    "enum": [
-                                        "yes"
-                                    ]
-                                }
-                            }
+                            "type": "string",
+                            "nullable": true
                         }
                     },
                     {
@@ -2784,18 +2777,6 @@
                             "type": "integer",
                             "format": "int64",
                             "nullable": true
-                        }
-                    },
-                    {
-                        "name": "apiVersion",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "v1"
-                            ],
-                            "default": "v1"
                         }
                     },
                     {
@@ -2913,21 +2894,24 @@
                 ],
                 "parameters": [
                     {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
                         "name": "filter",
                         "in": "query",
                         "description": "Filter params",
                         "schema": {
-                            "type": "object",
-                            "nullable": true,
-                            "default": [],
-                            "properties": {
-                                "approved": {
-                                    "type": "string",
-                                    "enum": [
-                                        "yes"
-                                    ]
-                                }
-                            }
+                            "type": "string",
+                            "nullable": true
                         }
                     },
                     {
@@ -2948,18 +2932,6 @@
                             "type": "integer",
                             "format": "int64",
                             "nullable": true
-                        }
-                    },
-                    {
-                        "name": "apiVersion",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "v1"
-                            ],
-                            "default": "v1"
                         }
                     },
                     {
@@ -3219,6 +3191,18 @@
                 ],
                 "parameters": [
                     {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
                         "name": "page",
                         "in": "query",
                         "description": "the number of page to return",
@@ -3239,33 +3223,31 @@
                         }
                     },
                     {
-                        "name": "filter",
+                        "name": "signer_uuid",
                         "in": "query",
-                        "description": "Filter params",
+                        "description": "Signer UUID",
                         "schema": {
-                            "type": "object",
-                            "nullable": true,
-                            "default": [],
-                            "properties": {
-                                "signer_uuid": {
-                                    "type": "string"
-                                },
-                                "nodeId": {
-                                    "type": "string"
-                                }
-                            }
+                            "type": "string",
+                            "nullable": true
                         }
                     },
                     {
-                        "name": "apiVersion",
-                        "in": "path",
-                        "required": true,
+                        "name": "nodeId",
+                        "in": "query",
+                        "description": "The nodeId (also called fileId). Is the id of a file at Nextcloud",
                         "schema": {
                             "type": "string",
-                            "enum": [
-                                "v1"
-                            ],
-                            "default": "v1"
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Status could be one of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted.",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true
                         }
                     },
                     {
@@ -3346,6 +3328,29 @@
                 ],
                 "parameters": [
                     {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "nodeId",
+                        "in": "path",
+                        "description": "The nodeId of document",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "default": -1
+                        }
+                    },
+                    {
                         "name": "x",
                         "in": "query",
                         "description": "Width of generated file",
@@ -3370,8 +3375,12 @@
                         "in": "query",
                         "description": "Crop, boolean value, default false",
                         "schema": {
-                            "type": "boolean",
-                            "default": false
+                            "type": "integer",
+                            "default": 0,
+                            "enum": [
+                                0,
+                                1
+                            ]
                         }
                     },
                     {
@@ -3379,8 +3388,12 @@
                         "in": "query",
                         "description": "Force to generate a new thumbnail",
                         "schema": {
-                            "type": "boolean",
-                            "default": true
+                            "type": "integer",
+                            "default": 1,
+                            "enum": [
+                                0,
+                                1
+                            ]
                         }
                     },
                     {
@@ -3397,31 +3410,12 @@
                         "in": "query",
                         "description": "If we have no preview enabled, we can redirect to the mime icon if any",
                         "schema": {
-                            "type": "boolean",
-                            "default": false
-                        }
-                    },
-                    {
-                        "name": "apiVersion",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "v1"
-                            ],
-                            "default": "v1"
-                        }
-                    },
-                    {
-                        "name": "nodeId",
-                        "in": "path",
-                        "description": "The nodeId of document",
-                        "required": true,
-                        "schema": {
                             "type": "integer",
-                            "format": "int64",
-                            "default": -1
+                            "default": 0,
+                            "enum": [
+                                0,
+                                1
+                            ]
                         }
                     },
                     {
@@ -4061,7 +4055,7 @@
                                     },
                                     "metadata": {
                                         "type": "object",
-                                        "default": [],
+                                        "default": {},
                                         "description": "Metadata of visible elements to associate with the document"
                                     },
                                     "coordinates": {
@@ -4229,7 +4223,7 @@
                                     },
                                     "metadata": {
                                         "type": "object",
-                                        "default": [],
+                                        "default": {},
                                         "description": "Metadata of visible elements to associate with the document"
                                     },
                                     "coordinates": {
@@ -4518,6 +4512,18 @@
                 ],
                 "parameters": [
                     {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
                         "name": "search",
                         "in": "query",
                         "description": "search params",
@@ -4544,18 +4550,6 @@
                             "type": "integer",
                             "format": "int64",
                             "default": 25
-                        }
-                    },
-                    {
-                        "name": "apiVersion",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "v1"
-                            ],
-                            "default": "v1"
                         }
                     },
                     {
@@ -4957,32 +4951,6 @@
                         "basic_auth": []
                     }
                 ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "required": [
-                                    "signRequestId",
-                                    "timestamp"
-                                ],
-                                "properties": {
-                                    "signRequestId": {
-                                        "type": "integer",
-                                        "format": "int64",
-                                        "description": "The sign request id"
-                                    },
-                                    "timestamp": {
-                                        "type": "integer",
-                                        "format": "int64",
-                                        "description": "Timestamp of notification to dismiss"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
                 "parameters": [
                     {
                         "name": "apiVersion",
@@ -4994,6 +4962,26 @@
                                 "v1"
                             ],
                             "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "signRequestId",
+                        "in": "query",
+                        "description": "The sign request id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "timestamp",
+                        "in": "query",
+                        "description": "Timestamp of notification to dismiss",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
                         }
                     },
                     {
@@ -5605,7 +5593,7 @@
                                     },
                                     "elements": {
                                         "type": "object",
-                                        "default": [],
+                                        "default": {},
                                         "description": "List of visible elements",
                                         "additionalProperties": {
                                             "type": "object"
@@ -6760,7 +6748,7 @@
                                     },
                                     "elements": {
                                         "type": "object",
-                                        "default": [],
+                                        "default": {},
                                         "description": "List of visible elements",
                                         "additionalProperties": {
                                             "type": "object"
