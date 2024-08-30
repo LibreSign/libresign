@@ -1609,10 +1609,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Filter params */
-                filter?: {
-                    /** @enum {string} */
-                    approved?: "yes";
-                };
+                filter?: string | null;
                 /** @description the number of page to return */
                 page?: number | null;
                 /** @description Total of elements to return */
@@ -1723,7 +1720,10 @@ export interface operations {
     };
     "account-delete-file": {
         parameters: {
-            query?: never;
+            query: {
+                /** @description the nodeId of file to be delete */
+                nodeId: number;
+            };
             header: {
                 /** @description Required to be true for the API request to pass */
                 "OCS-APIRequest": boolean;
@@ -1733,17 +1733,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /**
-                     * Format: int64
-                     * @description the nodeId of file to be delete
-                     */
-                    nodeId: number;
-                };
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description File deleted with success */
             200: {
@@ -1837,10 +1827,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Filter params */
-                filter?: {
-                    /** @enum {string} */
-                    approved?: "yes";
-                };
+                filter?: string | null;
                 /** @description the number of page to return */
                 page?: number | null;
                 /** @description Total of elements to return */
@@ -2316,11 +2303,12 @@ export interface operations {
                 page?: number | null;
                 /** @description Total of elements to return */
                 length?: number | null;
-                /** @description Filter params */
-                filter?: {
-                    signer_uuid?: string;
-                    nodeId?: string;
-                };
+                /** @description Signer UUID */
+                signer_uuid?: string | null;
+                /** @description The nodeId (also called fileId). Is the id of a file at Nextcloud */
+                nodeId?: string | null;
+                /** @description Status could be one of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted. */
+                status?: number | null;
             };
             header: {
                 /** @description Required to be true for the API request to pass */
@@ -2360,13 +2348,13 @@ export interface operations {
                 /** @description Height of generated file */
                 y?: number;
                 /** @description Crop, boolean value, default false */
-                a?: boolean;
+                a?: 0 | 1;
                 /** @description Force to generate a new thumbnail */
-                forceIcon?: boolean;
+                forceIcon?: 0 | 1;
                 /** @description To force a given mimetype for the file */
                 mode?: string;
                 /** @description If we have no preview enabled, we can redirect to the mime icon if any */
-                mimeFallback?: boolean;
+                mimeFallback?: 0 | 1;
             };
             header: {
                 /** @description Required to be true for the API request to pass */
@@ -2539,7 +2527,7 @@ export interface operations {
                     type?: string;
                     /**
                      * @description Metadata of visible elements to associate with the document
-                     * @default []
+                     * @default {}
                      */
                     metadata?: Record<string, never>;
                     /**
@@ -2667,7 +2655,7 @@ export interface operations {
                     type?: string;
                     /**
                      * @description Metadata of visible elements to associate with the document
-                     * @default []
+                     * @default {}
                      */
                     metadata?: Record<string, never>;
                     /**
@@ -2886,7 +2874,12 @@ export interface operations {
     };
     "notify-notification-dismiss": {
         parameters: {
-            query?: never;
+            query: {
+                /** @description The sign request id */
+                signRequestId: number;
+                /** @description Timestamp of notification to dismiss */
+                timestamp: number;
+            };
             header: {
                 /** @description Required to be true for the API request to pass */
                 "OCS-APIRequest": boolean;
@@ -2896,22 +2889,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /**
-                     * Format: int64
-                     * @description The sign request id
-                     */
-                    signRequestId: number;
-                    /**
-                     * Format: int64
-                     * @description Timestamp of notification to dismiss
-                     */
-                    timestamp: number;
-                };
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
@@ -3167,7 +3145,7 @@ export interface operations {
                     method: string;
                     /**
                      * @description List of visible elements
-                     * @default []
+                     * @default {}
                      */
                     elements?: {
                         [key: string]: Record<string, never>;
@@ -3317,7 +3295,7 @@ export interface operations {
                     method: string;
                     /**
                      * @description List of visible elements
-                     * @default []
+                     * @default {}
                      */
                     elements?: {
                         [key: string]: Record<string, never>;
@@ -3698,7 +3676,7 @@ export interface operations {
                     type?: string;
                     /**
                      * @description Element object
-                     * @default []
+                     * @default {}
                      */
                     file?: {
                         [key: string]: Record<string, never>;
