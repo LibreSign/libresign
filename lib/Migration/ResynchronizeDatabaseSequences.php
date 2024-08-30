@@ -31,7 +31,10 @@ class ResynchronizeDatabaseSequences implements IRepairStep {
 	public function run(IOutput $output): void {
 		if ($this->connection->getDatabasePlatform() instanceof PostgreSQLPlatform) {
 			$tools = new \OC\DB\PgSqlTools($this->config);
-			$tools->resynchronizeDatabaseSequences(\OC::$server->get(Connection::class));
+			try {
+				$tools->resynchronizeDatabaseSequences(\OC::$server->get(Connection::class));
+			} catch (\Throwable $th) {
+			}
 		}
 	}
 }
