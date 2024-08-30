@@ -1527,11 +1527,12 @@ export type operations = {
         page?: number | null;
         /** @description Total of elements to return */
         length?: number | null;
-        /** @description Filter params */
-        filter?: {
-          signer_uuid?: string;
-          nodeId?: string;
-        } | null;
+        /** @description Signer UUID */
+        signer_uuid?: string | null;
+        /** @description The nodeId (also called fileId). Is the id of a file at Nextcloud */
+        nodeId?: string | null;
+        /** @description Status could be one of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted. */
+        status?: number | null;
       };
       header: {
         /** @description Required to be true for the API request to pass */

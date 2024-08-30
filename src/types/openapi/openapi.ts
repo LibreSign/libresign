@@ -287,6 +287,11 @@ export type webhooks = Record<string, never>;
 
 export type components = {
   schemas: {
+    AccountFile: {
+      file: components["schemas"]["NewFile"];
+      name?: string;
+      type?: string;
+    };
     CertificatePfxData: {
       name: string;
       subject: string;
@@ -348,6 +353,14 @@ export type components = {
         signers: components["schemas"]["Signer"][];
       };
     };
+    FolderSettings: {
+      folderName?: string;
+      separator?: string;
+      folderPatterns?: {
+        name: string;
+        setting?: string;
+      };
+    };
     IdentifyAccount: {
       /** Format: int64 */
       id: number;
@@ -368,6 +381,18 @@ export type components = {
       value: string;
       /** Format: int64 */
       mandatory: number;
+    };
+    NewFile: {
+      base64?: string;
+      /** Format: int64 */
+      fileId?: number;
+      url?: string;
+    };
+    NewSigner: {
+      identify: {
+        email?: string;
+        account?: string;
+      };
     };
     NextcloudFile: {
       message: string;
@@ -1434,11 +1459,12 @@ export type operations = {
         page?: number | null;
         /** @description Total of elements to return */
         length?: number | null;
-        /** @description Filter params */
-        filter?: {
-          signer_uuid?: string;
-          nodeId?: string;
-        } | null;
+        /** @description Signer UUID */
+        signer_uuid?: string | null;
+        /** @description The nodeId (also called fileId). Is the id of a file at Nextcloud */
+        nodeId?: string | null;
+        /** @description Status could be one of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted. */
+        status?: number | null;
       };
       header: {
         /** @description Required to be true for the API request to pass */
