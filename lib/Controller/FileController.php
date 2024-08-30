@@ -206,7 +206,9 @@ class FileController extends AEnvironmentAwareController {
 	/**
 	 * List account files that need to be approved
 	 *
-	 * @param array{signer_uuid?: string, nodeId?: string}|null $filter Filter params
+	 * @param string|null $signer_uuid Signer UUID
+	 * @param string|null $nodeId The nodeId (also called fileId). Is the id of a file at Nextcloud
+	 * @param int|null $status Status could be one of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted.
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
 	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>
@@ -216,7 +218,12 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/list', requirements: ['apiVersion' => '(v1)'])]
-	public function list(?int $page = null, ?int $length = null, ?array $filter = []): DataResponse {
+	public function list(?int $page = null, ?int $length = null, ?string $signer_uuid = null, ?string $nodeId = null, ?int $status = null): DataResponse {
+		$filter = array_filter([
+			'signer_uuid' => $signer_uuid,
+			'nodeId' => $nodeId,
+			'status' => $status,
+		], static function ($var) { return $var !== null; });
 		$return = $this->fileService
 			->setMe($this->userSession->getUser())
 			->listAssociatedFilesOfSignFlow($page, $length, $filter);
