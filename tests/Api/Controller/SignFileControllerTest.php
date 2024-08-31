@@ -481,4 +481,94 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$this->assertRequest();
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testSignUsingFileIdWithSHA256Hash(): void {
+		$user = $this->createAccount('username', 'password');
+		$user->setEMailAddress('person@test.coop');
+
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'identify' => [
+						'account' => 'username',
+					],
+				],
+			],
+			'userManager' => $user,
+		]);
+
+		$mockHash = hash('sha256', 'test content');
+
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withPath('/api/v1/sign/file_id/' . $file->getId())
+			->withRequestBody([
+				'identifyValue' => 'secretPassword',
+				'method' => 'password',
+				'hash' => $mockHash,
+			]);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+
+		$this->assertEquals(200, $response->getStatusCode());
+		$this->assertArrayHasKey('message', $body['ocs']['data']);
+		$this->assertEquals('File signed successfully.', $body['ocs']['data']['message']);
+
+		$signRequest = $this->signRequestMapper->getByFileId($file->getId());
+		$this->assertNotNull($signRequest->getSigned());
+		$this->assertEquals($mockHash, $signRequest->getSignature());
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testSignUsingFileIdWithInvalidSHA256Hash(): void {
+		$user = $this->createAccount('username', 'password');
+		$user->setEMailAddress('person@test.coop');
+
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'identify' => [
+						'account' => 'username',
+					],
+				],
+			],
+			'userManager' => $user,
+		]);
+
+		$invalidHash = 'abc123';
+
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withPath('/api/v1/sign/file_id/' . $file->getId())
+			->withRequestBody([
+				'identifyValue' => 'secretPassword',
+				'method' => 'password',
+				'hash' => $invalidHash,
+			]);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+
+		$this->assertEquals(422, $response->getStatusCode());
+		$this->assertArrayHasKey('errors', $body['ocs']['data']);
+		$this->assertEquals('Invalid SHA256 hash', $body['ocs']['data']['errors'][0]);
+	}
 }

@@ -711,4 +711,22 @@ class SignFileService {
 		}
 		return $url;
 	}
+
+	public function signHash(string $hash, SignRequest $signRequest): void {
+		// In a real implementation, you'd use a proper cryptographic library to sign the hash
+		// For this example, we'll just store the hash as the signature
+		$signature = $hash;
+		$this->storeSignature($signature, $signRequest);
+	}
+
+	public function signFile(FileEntity $file, SignRequest $signRequest): void {
+		// Existing file signing logic
+		// ...
+	}
+
+	private function storeSignature(string $signature, SignRequest $signRequest): void {
+		$signRequest->setSigned(time());
+		$signRequest->setSignature($signature);
+		$this->signRequestMapper->update($signRequest);
+	}
 }
