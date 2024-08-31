@@ -19,7 +19,7 @@ use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
-use OCA\Libresign\Db\SignRequest as SignRequestEntity;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Events\SignedEvent;
@@ -54,7 +54,7 @@ use Sabre\DAV\UUIDUtil;
 use TypeError;
 
 class SignFileService {
-	/** @var SignRequestEntity */
+	/** @var SignRequest */
 	private $signRequest;
 	/** @var string */
 	private $password;
@@ -115,7 +115,7 @@ class SignFileService {
 			throw new \Exception($this->l10n->t('Document already signed'));
 		}
 		array_walk($data['users'], function ($user) use ($signatures) {
-			$exists = array_filter($signatures, function (SignRequestEntity $signRequest) use ($user) {
+			$exists = array_filter($signatures, function (SignRequest $signRequest) use ($user) {
 				$identifyMethod = $this->identifyMethodService->getIdentifiedMethod($signRequest->getId());
 				if ($identifyMethod->getName() === 'email') {
 					return $identifyMethod->getEntity()->getIdentifierValue() === $user['email'];
@@ -188,7 +188,7 @@ class SignFileService {
 	/**
 	 * @return static
 	 */
-	public function setSignRequest(SignRequestEntity $signRequest): self {
+	public function setSignRequest(SignRequest $signRequest): self {
 		$this->signRequest = $signRequest;
 		return $this;
 	}
@@ -312,7 +312,7 @@ class SignFileService {
 	}
 
 	/**
-	 * @return SignRequestEntity[]
+	 * @return SignRequest[]
 	 */
 	private function getSigners(): array {
 		if (empty($this->signers)) {
@@ -425,7 +425,7 @@ class SignFileService {
 		return $libresignFile;
 	}
 
-	public function renew(SignRequestEntity $signRequest, string $method): void {
+	public function renew(SignRequest $signRequest, string $method): void {
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 		if (empty($identifyMethods[$method])) {
 			throw new LibresignException($this->l10n->t('Invalid identification method'));
@@ -443,7 +443,7 @@ class SignFileService {
 	}
 
 	public function requestCode(
-		SignRequestEntity $signRequest,
+		SignRequest $signRequest,
 		string $identifyMethodName,
 		string $signMethodName,
 		string $identify = ''
@@ -466,7 +466,7 @@ class SignFileService {
 		throw new LibresignException($this->l10n->t('Sending authorization code not enabled.'));
 	}
 
-	public function getSignRequestToSign(FileEntity $libresignFile, ?string $signRequestUuid, ?IUser $user): SignRequestEntity {
+	public function getSignRequestToSign(FileEntity $libresignFile, ?string $signRequestUuid, ?IUser $user): SignRequest {
 		$this->validateHelper->fileCanBeSigned($libresignFile);
 		try {
 			$signRequests = $this->signRequestMapper->getByFileId($libresignFile->getId());
@@ -474,7 +474,7 @@ class SignFileService {
 			if (!empty($signRequestUuid)) {
 				$signRequest = $this->getSignRequest($signRequestUuid);
 			} else {
-				$signRequest = array_reduce($signRequests, function (?SignRequestEntity $carry, SignRequestEntity $signRequest) use ($user): ?SignRequestEntity {
+				$signRequest = array_reduce($signRequests, function (?SignRequest $carry, SignRequest $signRequest) use ($user): ?SignRequest {
 					$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 					$found = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($user) {
 						if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL
@@ -512,7 +512,7 @@ class SignFileService {
 				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 			}
 			$this->validateHelper->userCanApproveValidationDocuments($user);
-			$signRequest = new SignRequestEntity();
+			$signRequest = new SignRequest();
 			$signRequest->setFileId($libresignFile->getId());
 			$signRequest->setDisplayName($user->getDisplayName());
 			$signRequest->setUuid(UUIDUtil::getUUID());
@@ -545,7 +545,7 @@ class SignFileService {
 			);
 
 			$footer = $this->footerHandler
-				->setTemplateVar('signers', array_map(function (SignRequestEntity $signer) {
+				->setTemplateVar('signers', array_map(function (SignRequest $signer) {
 					return [
 						'displayName' => $signer->getDisplayName(),
 						'signed' => $signer->getSigned(),
@@ -614,7 +614,7 @@ class SignFileService {
 	/**
 	 * @throws DoesNotExistException
 	 */
-	public function getSignRequest(string $uuid): SignRequestEntity {
+	public function getSignRequest(string $uuid): SignRequest {
 		$this->validateHelper->validateUuidFormat($uuid);
 		return $this->signRequestMapper->getByUuid($uuid);
 	}
@@ -662,7 +662,7 @@ class SignFileService {
 		$this->validateHelper->validateRenewSigner($uuid, $user);
 	}
 
-	public function getSignerData(?IUser $user, ?SignRequestEntity $signRequest = null): array {
+	public function getSignerData(?IUser $user, ?SignRequest $signRequest = null): array {
 		$return = ['user' => ['name' => null]];
 		if ($signRequest) {
 			$return['user']['name'] = $signRequest->getDisplayName();
