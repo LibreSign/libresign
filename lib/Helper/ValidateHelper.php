@@ -745,13 +745,4 @@ class ValidateHelper {
 		}
 		return true;
 	}
-
-	public function validateSHA256Hash(?string $hash): void {
-		if ($hash === null) {
-			return;
-		}
-		if (!preg_match('/^[a-f0-9]{64}$/i', $hash)) {
-			throw new LibresignException($this->l10n->t('Invalid SHA256 hash'));
-		}
-	}
 }

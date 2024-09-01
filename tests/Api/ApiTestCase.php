@@ -11,7 +11,16 @@ namespace OCA\Libresign\Tests\Api;
 use ByJG\ApiTools\AbstractRequester;
 use ByJG\ApiTools\ApiRequester;
 use ByJG\ApiTools\Base\Schema;
+use ByJG\ApiTools\Exception\DefinitionNotFoundException;
+use ByJG\ApiTools\Exception\GenericSwaggerException;
+use ByJG\ApiTools\Exception\HttpMethodNotFoundException;
+use ByJG\ApiTools\Exception\InvalidDefinitionException;
+use ByJG\ApiTools\Exception\NotMatchedException;
+use ByJG\ApiTools\Exception\PathNotFoundException;
+use ByJG\ApiTools\Exception\StatusCodeNotMatchedException;
 use ByJG\ApiTools\OpenApi\OpenApiSchema;
+use ByJG\Util\Psr7\MessageException;
+use ByJG\Util\Psr7\Response;
 use OCA\Libresign\Tests\Unit\TestCase;
 use Psr\Http\Message\ResponseInterface;
 

@@ -57,7 +57,6 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param array<string, mixed> $elements List of visible elements
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
-	 * @param string|null $hash SHA256 hash of the file content
 	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: string[], redirect?: string}, array{}>
 	 *
 	 * 200: OK
@@ -69,67 +68,8 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[RequireManager]
 	#[PublicPage]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
-	public function signUsingFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = '', ?string $hash = null): DataResponse {
-		try {
-			$user = $this->userSession->getUser();
-			$this->validateHelper->canSignWithIdentificationDocumentStatus(
-				$user,
-				$this->fileService->getIdentificationDocumentsStatus($user?->getUID())
-			);
-			$libreSignFile = $this->signFileService->getLibresignFile($fileId);
-			$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, null, $user);
-			$this->validateHelper->validateVisibleElementsRelation($elements, $signRequest, $user);
-			$this->validateHelper->validateCredentials($signRequest, $user, $method, $identifyValue, $token);
-			if ($hash !== null) {
-				$this->validateHelper->validateSHA256Hash($hash);
-				$this->signFileService->signHash($hash, $signRequest);
-			} else {
-				$this->signFileService->signFile($libreSignFile, $signRequest);
-			}
-
-			return new DataResponse(
-				[
-					'action' => JSActions::ACTION_SIGNED,
-					'message' => $this->l10n->t('File signed'),
-					'file' => [
-						'uuid' => $libreSignFile->getUuid()
-					]
-				],
-				Http::STATUS_OK
-			);
-		} catch (LibresignException $e) {
-			return new DataResponse(
-				[
-					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [$e->getMessage()]
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
-		} catch (\Throwable $th) {
-			$message = $th->getMessage();
-			$action = JSActions::ACTION_DO_NOTHING;
-			switch ($message) {
-				case 'Password to sign not defined. Create a password to sign':
-					$action = JSActions::ACTION_CREATE_SIGNATURE_PASSWORD;
-					// no break
-				case 'Host violates local access rules.':
-				case 'Certificate Password Invalid.':
-				case 'Certificate Password is Empty.':
-					$message = $this->l10n->t($message);
-					break;
-				default:
-					$this->logger->error($message);
-					$this->logger->error(json_encode($th->getTrace()));
-					$message = $this->l10n->t('Internal error. Contact admin.');
-			}
-		}
-		return new DataResponse(
-			[
-				'action' => $action,
-				'errors' => [$message]
-			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
+	public function signUsingFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = ''): DataResponse {
+		return $this->sign($method, $elements, $identifyValue, $token, $fileId, null);
 	}
 
 	/**
