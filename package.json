@@ -20,7 +20,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@fontsource/dancing-script": "^5.0.19",
+    "@fontsource/dancing-script": "^5.0.20",
     "@libresign/vue-pdf-editor": "^1.2.7",
     "@marionebl/option": "^1.0.8",
     "@nextcloud/auth": "^2.4.0",
