@@ -56,7 +56,9 @@
 			</NcButton>
 		</div>
 		<VisibleElements />
-		<NcModal v-if="modalSrc" size="full" @close="closeModal()">
+		<NcModal v-if="modalSrc"
+			size="full"
+			:can-close="false">
 			<iframe :src="modalSrc" class="iframe" />
 		</NcModal>
 	</div>
@@ -157,16 +159,20 @@ export default {
 		},
 	},
 	async mounted() {
+		window.addEventListener('message', this.closeModal)
 		subscribe('libresign:edit-signer', this.editSigner)
 		this.filesStore.disableIdentifySigner()
 	},
 	beforeUnmount() {
+		window.removeEventListener('message', this.closeModal)
 		unsubscribe('libresign:edit-signer')
 	},
 	methods: {
-		closeModal() {
-			this.modalSrc = ''
-			this.filesStore.flushSelectedFile()
+		closeModal(message) {
+			if (message.data.type === 'close-modal') {
+				this.modalSrc = ''
+				this.filesStore.flushSelectedFile()
+			}
 		},
 		validationFile() {
 			if (this.useModal) {
