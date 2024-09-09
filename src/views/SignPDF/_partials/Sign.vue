@@ -4,17 +4,16 @@
 			<Signatures v-if="hasSignatures" />
 		</div>
 		<div v-if="!loading" class="button-wrapper">
-			<div v-if="ableToSign" class="button-wrapper">
-				<NcButton :wide="true"
-					:disabled="loading"
-					type="primary"
-					@click="confirmSignDocument">
-					<template #icon>
-						<NcLoadingIcon v-if="loading" :size="20" />
-					</template>
-					{{ t('libresign', 'Sign the document.') }}
-				</NcButton>
-			</div>
+			<NcButton v-if="ableToSign"
+				:wide="true"
+				:disabled="loading"
+				type="primary"
+				@click="confirmSignDocument">
+				<template #icon>
+					<NcLoadingIcon v-if="loading" :size="20" />
+				</template>
+				{{ t('libresign', 'Sign the document.') }}
+			</NcButton>
 			<div v-else-if="signMethodsStore.needCreatePassword()">
 				<p>
 					{{ t('libresign', 'Please define your sign password') }}
@@ -42,6 +41,13 @@
 					{{ t('libresign', 'Unable to sign.') }}
 				</p>
 			</div>
+			<NcButton v-if="isModal"
+				:wide="true"
+				:disabled="loading"
+				type="secondary"
+				@click="closeModal">
+				{{ t('libresign', 'Cancel') }}
+			</NcButton>
 		</div>
 		<NcDialog v-if="signMethodsStore.modal.clickToSign"
 			:can-close="!loading"
@@ -150,6 +156,7 @@ export default {
 			},
 			signPassword: '',
 			showManagePassword: false,
+			isModal: window.self !== window.top,
 		}
 	},
 	computed: {
@@ -212,6 +219,11 @@ export default {
 				} catch (err) {
 				}
 			}
+		},
+		closeModal() {
+			window.parent?.postMessage({
+				type: 'close-modal',
+			}, '*')
 		},
 		toggleManagePassword() {
 			this.showManagePassword = !this.showManagePassword
@@ -318,6 +330,9 @@ export default {
 
 .button-wrapper {
 	padding: calc(var(--default-grid-baseline, 4px)*2);
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
 }
 
 .sign-elements {
