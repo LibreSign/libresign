@@ -231,6 +231,26 @@ class PageController extends AEnvironmentPageAwareController {
 	#[RequireSetupOk]
 	#[PublicPage]
 	#[RequireSignRequestUuid]
+	#[FrontpageRoute(verb: 'GET', url: '/p/sign/{uuid}/pdf')]
+	public function signPdf(string $uuid): TemplateResponse {
+		return $this->sign($uuid);
+	}
+
+	/**
+	 * Sign page to authenticated signer
+	 *
+	 * The path is used only by frontend
+	 *
+	 * @param string $uuid Sign request uuid
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[RequireSetupOk]
+	#[PublicPage]
+	#[RequireSignRequestUuid]
 	#[FrontpageRoute(verb: 'GET', url: '/p/sign/{uuid}')]
 	public function sign(string $uuid): TemplateResponse {
 		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN);
