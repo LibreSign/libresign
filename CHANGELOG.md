@@ -13,8 +13,8 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
-## 10.0.0-beta.1
-* 📲 New API documentation
+## 10.0.0
+* Say hello to Nextcloud 30 🎉
 
 ## 9.2.3 - 2024-07-24
 ### New feature
