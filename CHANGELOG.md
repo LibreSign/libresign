@@ -14,6 +14,42 @@ Types of changes:
 
 <!-- changelog-linker -->
 
+## 9.3.0 - 2024-09-10
+### New feature
+* Support to GitHub codespace and devcontainers
+* Add filter by status to listing at API side [3603](https://github.com/LibreSign/libresign/pull/3603)
+
+### Changes
+* chore: Test signature proccess [3581](https://github.com/LibreSign/libresign/pull/3581)
+* chore: add unit tests [3504](https://github.com/LibreSign/libresign/pull/3504)
+
+### Fixes
+* fix: prevent error when resync sequence of other apps [3606](https://github.com/LibreSign/libresign/pull/3606)
+* fix: internal route [3626](https://github.com/LibreSign/libresign/pull/3626)
+* fix: js linter warning [3577](https://github.com/LibreSign/libresign/pull/3577)
+* fix: draw width [3546](https://github.com/LibreSign/libresign/pull/3546)
+* fix: handle error when is invalid password [3484](https://github.com/LibreSign/libresign/pull/3484)
+* fix: prevent js error when disabled for user [3487](https://github.com/LibreSign/libresign/pull/3487)
+* fix: git safe directory [3451](https://github.com/LibreSign/libresign/pull/3451)
+
+## 8.3.0 - 2024-09-10
+### New feature
+* Support to GitHub codespace and devcontainers
+* Add filter by status to listing at API side [3604](https://github.com/LibreSign/libresign/pull/3604)
+
+### Changes
+* chore: Test signature proccess [3580](https://github.com/LibreSign/libresign/pull/3580)
+* chore: add unit tests [3503](https://github.com/LibreSign/libresign/pull/3503)
+
+### Fixes
+* fix: prevent error when resync sequence of other apps [3607](https://github.com/LibreSign/libresign/pull/3607)
+* fix: internal route [3625](https://github.com/LibreSign/libresign/pull/3625)
+* fix: js linter warning [3578](https://github.com/LibreSign/libresign/pull/3578)
+* fix: draw width [3545](https://github.com/LibreSign/libresign/pull/3545)
+* fix: handle error when is invalid password [3483](https://github.com/LibreSign/libresign/pull/3483)
+* fix: prevent js error when disabled for user [3486](https://github.com/LibreSign/libresign/pull/3486)
+* fix: git safe directory [3450](https://github.com/LibreSign/libresign/pull/3450)
+
 ## 9.2.3 - 2024-07-24
 ### New feature
 feat: implement support to devcontainer [3398](https://github.com/LibreSign/libresign/pull/3398)
