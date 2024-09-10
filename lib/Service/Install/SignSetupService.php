@@ -141,7 +141,8 @@ class SignSetupService {
 			case 'java':
 				$path = $this->appConfig->getAppValue('java_path');
 				$installPath = substr($path, 0, -strlen('/bin/java'));
-				$expected = "{$this->instanceId}/libresign/{$this->architecture}/{$this->distro}/java";
+				$distro = $this->getLinuxDistributionToDownloadJava();
+				$expected = "{$this->instanceId}/libresign/{$this->architecture}/{$distro}/java";
 				if (!str_contains($installPath, $expected)) {
 					$installPath = preg_replace(
 						"/{$this->instanceId}\/libresign\/(\w+)\/(\w+)\/java/i",
