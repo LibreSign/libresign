@@ -13,6 +13,18 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 10.0.1 - 2024-09-10
+### Fixes
+* fix: check linux distro when get java path [3655](https://github.com/LibreSign/libresign/pull/3655)
+
+## 9.3.1 - 2024-09-10
+### Fixes
+* fix: check linux distro when get java path [3654](https://github.com/LibreSign/libresign/pull/3654)
+
+## 8.3.1 - 2024-09-10
+### Fixes
+* fix: check linux distro when get java path [3653](https://github.com/LibreSign/libresign/pull/3653)
+
 ## 10.0.0 - 2024-09-10
 * Say hello to Nextcloud 30 🎉
 
