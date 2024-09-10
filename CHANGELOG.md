@@ -13,6 +13,28 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 8.3.1 - 2024-09-10
+### Fixes
+* fix: check linux distro when get java path [3653](https://github.com/LibreSign/libresign/pull/3653)
+
+## 8.3.0 - 2024-09-10
+### New feature
+* Support to GitHub codespace and devcontainers
+* Add filter by status to listing at API side [3604](https://github.com/LibreSign/libresign/pull/3604)
+
+### Changes
+* chore: Test signature proccess [3580](https://github.com/LibreSign/libresign/pull/3580)
+* chore: add unit tests [3503](https://github.com/LibreSign/libresign/pull/3503)
+
+### Fixes
+* fix: prevent error when resync sequence of other apps [3607](https://github.com/LibreSign/libresign/pull/3607)
+* fix: internal route [3625](https://github.com/LibreSign/libresign/pull/3625)
+* fix: js linter warning [3578](https://github.com/LibreSign/libresign/pull/3578)
+* fix: draw width [3545](https://github.com/LibreSign/libresign/pull/3545)
+* fix: handle error when is invalid password [3483](https://github.com/LibreSign/libresign/pull/3483)
+* fix: prevent js error when disabled for user [3486](https://github.com/LibreSign/libresign/pull/3486)
+* fix: git safe directory [3450](https://github.com/LibreSign/libresign/pull/3450)
+
 ## 8.2.4 - 2024-07-24
 ### New feature
 * feat: implement support to devcontainer [3397](https://github.com/LibreSign/libresign/pull/3397)
