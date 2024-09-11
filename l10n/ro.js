@@ -25,6 +25,7 @@ OC.L10N.register(
     "Cancel" : "Anulare",
     "Files" : "Fișiere",
     "Settings" : "Setări",
+    "No recommendations. Start typing." : "Nu am găsit recomandări. Începeți să scrieți.",
     "Name" : "Nume",
     "Searching …" : "Căutare ...",
     "Update" : "Actualizare",
