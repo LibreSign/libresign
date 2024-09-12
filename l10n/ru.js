@@ -2,6 +2,7 @@ OC.L10N.register(
     "libresign",
     {
     "Other activities" : "Другие события",
+    "{from} requested your signature on {file}" : "{from} запросил вашу подпись на {file}",
     "Success" : "Выполнено",
     "Invalid user or password" : "Неверное имя пользователя или пароль",
     "Settings saved" : "Настройки сохранены",
