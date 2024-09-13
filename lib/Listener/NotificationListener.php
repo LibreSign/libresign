@@ -77,7 +77,7 @@ class NotificationListener implements IEventListener {
 			'file' => $this->getFileParameter($signRequest, $libreSignFile),
 			'signRequest' => [
 				'type' => 'sign-request',
-				'id' => $signRequest->getId(),
+				'id' => (string)$signRequest->getId(),
 				'name' => $actor->getDisplayName(),
 			],
 		]);
@@ -106,14 +106,12 @@ class NotificationListener implements IEventListener {
 	}
 
 	/**
-	 * @return (int|string)[]
-	 *
-	 * @psalm-return array{type: 'file', id: int, name: string, path: string, link: string}
+	 * @psalm-return array{type: 'file', id: string, name: string, path: string, link: string}
 	 */
 	protected function getFileParameter(SignRequest $signRequest, FileEntity $libreSignFile): array {
 		return [
 			'type' => 'file',
-			'id' => $libreSignFile->getNodeId(),
+			'id' => (string)$libreSignFile->getNodeId(),
 			'name' => $libreSignFile->getName(),
 			'path' => $libreSignFile->getName(),
 			'link' => $this->url->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]),
