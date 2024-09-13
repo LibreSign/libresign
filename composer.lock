@@ -1523,12 +1523,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-deps/ocp.git",
-                "reference": "ee7a71c33cb5c60e69919f7ac283621524d2b1ff"
+                "reference": "fc2066f5662af0b25eeaf83d1f0ffbccd4dc7c56"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/ee7a71c33cb5c60e69919f7ac283621524d2b1ff",
-                "reference": "ee7a71c33cb5c60e69919f7ac283621524d2b1ff",
+                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/fc2066f5662af0b25eeaf83d1f0ffbccd4dc7c56",
+                "reference": "fc2066f5662af0b25eeaf83d1f0ffbccd4dc7c56",
                 "shasum": ""
             },
             "require": {
@@ -1560,7 +1560,7 @@
                 "issues": "https://github.com/nextcloud-deps/ocp/issues",
                 "source": "https://github.com/nextcloud-deps/ocp/tree/master"
             },
-            "time": "2024-09-10T00:40:56+00:00"
+            "time": "2024-09-12T00:40:38+00:00"
         },
         {
             "name": "psr/clock",
@@ -1719,12 +1719,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "883f97eeb8484a500893e4508f60da3086c69ead"
+                "reference": "ed0688c3e18bf76d2a17fb243b99acb52c2e29ef"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/883f97eeb8484a500893e4508f60da3086c69ead",
-                "reference": "883f97eeb8484a500893e4508f60da3086c69ead",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/ed0688c3e18bf76d2a17fb243b99acb52c2e29ef",
+                "reference": "ed0688c3e18bf76d2a17fb243b99acb52c2e29ef",
                 "shasum": ""
             },
             "conflict": {
@@ -1836,6 +1836,7 @@
                 "croogo/croogo": "<4",
                 "cuyz/valinor": "<0.12",
                 "czproject/git-php": "<4.0.3",
+                "damienharper/auditor-bundle": "<6",
                 "dapphp/securimage": "<3.6.6",
                 "darylldoyle/safe-svg": "<1.9.10",
                 "datadog/dd-trace": ">=0.30,<0.30.2",
@@ -2378,7 +2379,7 @@
                 "truckersmp/phpwhois": "<=4.3.1",
                 "ttskch/pagination-service-provider": "<1",
                 "twbs/bootstrap": "<=3.4.1|>=4,<=4.6.2",
-                "twig/twig": "<1.44.8|>=2,<2.16.1|>=3,<3.14",
+                "twig/twig": "<1.44.8|>=2,<2.16.1|>=3,<3.11.1|>=3.12,<3.14",
                 "typo3/cms": "<9.5.29|>=10,<10.4.35|>=11,<11.5.23|>=12,<12.2",
                 "typo3/cms-backend": "<4.1.14|>=4.2,<4.2.15|>=4.3,<4.3.7|>=4.4,<4.4.4|>=7,<=7.6.50|>=8,<=8.7.39|>=9,<=9.5.24|>=10,<=10.4.13|>=11,<=11.1",
                 "typo3/cms-core": "<=8.7.56|>=9,<=9.5.47|>=10,<=10.4.44|>=11,<=11.5.36|>=12,<=12.4.14|>=13,<=13.1",
@@ -2532,7 +2533,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-09-09T23:04:55+00:00"
+            "time": "2024-09-10T18:06:22+00:00"
         }
     ],
     "aliases": [],
