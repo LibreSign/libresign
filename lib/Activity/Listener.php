@@ -114,7 +114,7 @@ class Listener implements IEventListener {
 				),
 				'signRequest' => [
 					'type' => 'sign-request',
-					'id' => $signRequest->getId(),
+					'id' => (string)$signRequest->getId(),
 					'name' => $actor->getDisplayName(),
 				],
 			]);
@@ -126,12 +126,12 @@ class Listener implements IEventListener {
 	}
 
 	/**
-	 * @return array{type: 'file', id: int, name: string, path: string, link: string}
+	 * @return array{type: 'file', id: string, name: string, path: string, link: string}
 	 */
 	protected function getFileParameter(SignRequest $signRequest, FileEntity $libreSignFile): array {
 		return [
 			'type' => 'file',
-			'id' => $libreSignFile->getNodeId(),
+			'id' => (string)$libreSignFile->getNodeId(),
 			'name' => $libreSignFile->getName(),
 			'path' => $libreSignFile->getName(),
 			'link' => $this->url->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]),
