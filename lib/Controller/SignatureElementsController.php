@@ -81,13 +81,14 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
+		if (count($elements) === 1) {
+			$message = $this->l10n->t('Element created with success');
+		} else {
+			$message = $this->l10n->t('Elements created with success');
+		}
 		return new DataResponse(
 			[
-				'message' => $this->l10n->n(
-					'Element created with success',
-					'Elements created with success',
-					count($elements)
-				),
+				'message' => $message,
 				'elements' =>
 					(
 						$this->userSession->getUser() instanceof IUser
