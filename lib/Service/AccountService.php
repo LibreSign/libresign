@@ -409,7 +409,7 @@ class AccountService {
 	}
 
 	private function saveFileOfVisibleElementUsingSession(array $data, string $sessionId): File {
-		if ($data['nodeId']) {
+		if (!empty($data['nodeId'])) {
 			return $this->updateFileOfVisibleElementUsingSession($data, $sessionId);
 		}
 		return $this->createFileOfVisibleElementUsingSession($data, $sessionId);
