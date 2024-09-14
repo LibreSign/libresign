@@ -155,11 +155,7 @@ export const useFilesStore = defineStore('files', {
 			)
 		},
 		async getAllFiles(filter) {
-			const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'), {
-				params: {
-					filter,
-				},
-			})
+			const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'), { params: filter })
 			this.files = {}
 			response.data.ocs.data.data.forEach(file => {
 				this.addFile(file)
