@@ -561,6 +561,9 @@ class SignFileService {
 
 				$javaPath = $this->appConfig->getAppValue('java_path');
 				$pdftkPath = $this->appConfig->getAppValue('pdftk_path');
+				if (!file_exists($javaPath) || !file_exists($pdftkPath)) {
+					throw new LibresignException($this->l10n->t('The admin hasn\'t set up LibreSign yet, please wait.'));
+				}
 				$pdf = new Pdf();
 				$command = new Command();
 				$command->setCommand($javaPath . ' -jar ' . $pdftkPath);
