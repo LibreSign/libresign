@@ -87,23 +87,6 @@ class SignRequestMapper extends QBMapper {
 	}
 
 	/**
-	 * Returns all users who have not signed
-	 *
-	 * @return SignRequest[]
-	 */
-	public function findUnsigned(): array {
-		$qb = $this->db->getQueryBuilder();
-
-		$qb->select('*')
-			->from($this->getTableName())
-			->where(
-				$qb->expr()->isNull('signed')
-			);
-		/** @var SignRequest[] */
-		return $this->findEntities($qb);
-	}
-
-	/**
 	 * Get sign request by UUID
 	 *
 	 * @throws DoesNotExistException
