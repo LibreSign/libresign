@@ -13,7 +13,7 @@ OC.L10N.register(
     "Internal error. Contact admin." : "내부 오류. 관리자에게 문의하십시오.",
     "Invalid data to sign file" : "파일에 서명할 데이터가 잘못되었습니다.",
     "The code to sign file was successfully requested." : "파일에 서명할 코드가 성공적으로 요청되었습니다.",
-    "_Element created with success_::_Elements created with success_" : ["성공적으로 생성된 요소"],
+    "Elements created with success" : "성공적으로 생성된 요소",
     "Elements not found" : "요소를 찾을 수 없습니다.",
     "Element not found" : "요소를 찾을 수 없습니다.",
     "Element updated with success" : "성공으로 요소가 업데이트되었습니다.",

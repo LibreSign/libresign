@@ -21,7 +21,6 @@ OC.L10N.register(
     "Renewed with success. Access the link again." : "تمّ التجديد بنحاحٍ. عاوِد الدخول على الرابط.",
     "Invalid data to sign file" : "بيانات غير صالحة للتوقيع على الملف",
     "The code to sign file was successfully requested." : "تم طلب كود توقيع الملف بنجاح.",
-    "_Element created with success_::_Elements created with success_" : ["تم إنشاء العناصر بنجاح","تم إنشاء العنصر بنجاح","تم إنشاء العناصر بنجاح","تم إنشاء العناصر بنجاح","تم إنشاء العناصر بنجاح","تم إنشاء العناصر بنجاح"],
     "Elements not found" : "العناصر غير موجودة",
     "Element not found" : "العنصر غير موجود",
     "Element updated with success" : "تم تحديث العنصر بنجاح",
