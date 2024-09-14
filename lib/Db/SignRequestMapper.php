@@ -139,7 +139,7 @@ class SignRequestMapper extends QBMapper {
 			);
 		/** @var SignRequest */
 		$signRequest = $this->findEntity($qb);
-		if (!array_filter($this->signers, fn ($s) => $s->getId() !== $signRequest->getId())) {
+		if (!array_filter($this->signers, fn ($s) => $s->getId() === $signRequest->getId())) {
 			$this->signers[] = $signRequest;
 		}
 		return $signRequest;
@@ -188,7 +188,7 @@ class SignRequestMapper extends QBMapper {
 		/** @var SignRequest[] */
 		$signers = $this->findEntities($qb);
 		foreach ($signers as $signRequest) {
-			if (!array_filter($signers, fn ($s) => $s->getId() !== $signRequest->getId())) {
+			if (!array_filter($this->signers, fn ($s) => $s->getId() === $signRequest->getId())) {
 				$this->signers[] = $signRequest;
 			}
 		}
@@ -214,7 +214,7 @@ class SignRequestMapper extends QBMapper {
 
 		/** @var SignRequest */
 		$signRequest = $this->findEntity($qb);
-		if (!array_filter($this->signers, fn ($s) => $s->getId() !== $signRequest->getId())) {
+		if (!array_filter($this->signers, fn ($s) => $s->getId() === $signRequest->getId())) {
 			$this->signers[] = $signRequest;
 		}
 		return $signRequest;
@@ -277,7 +277,7 @@ class SignRequestMapper extends QBMapper {
 		/** @var SignRequest[] */
 		$signers = $this->findEntities($qb);
 		foreach ($signers as $signRequest) {
-			if (!array_filter($signers, fn ($s) => $s->getId() !== $signRequest->getId())) {
+			if (!array_filter($this->signers, fn ($s) => $s->getId() === $signRequest->getId())) {
 				$this->signers[] = $signRequest;
 			}
 		}
@@ -295,7 +295,7 @@ class SignRequestMapper extends QBMapper {
 
 		/** @var SignRequest */
 		$signRequest = $this->findEntity($qb);
-		if (!array_filter($this->signers, fn ($s) => $s->getId() !== $signRequest->getId())) {
+		if (!array_filter($this->signers, fn ($s) => $s->getId() === $signRequest->getId())) {
 			$this->signers[] = $signRequest;
 		}
 		return $signRequest;
@@ -350,7 +350,7 @@ class SignRequestMapper extends QBMapper {
 			);
 
 		$signRequest = $this->findEntity($qb);
-		if (!array_filter($this->signers, fn ($s) => $s->getId() !== $signRequest->getId())) {
+		if (!array_filter($this->signers, fn ($s) => $s->getId() === $signRequest->getId())) {
 			$this->signers[] = $signRequest;
 		}
 		/** @var SignRequest */
