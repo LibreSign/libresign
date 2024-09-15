@@ -13,6 +13,19 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 8.3.2 - 2024-09-14
+### Fixes
+* fix: ajust condition to filter file list [3700](https://github.com/LibreSign/libresign/pull/3700)
+* fix: prevent warning when check if array has key [3690](https://github.com/LibreSign/libresign/pull/3690)
+* fix: prevent duplicate text [3687](https://github.com/LibreSign/libresign/pull/3687)
+* fix: notification parameters need to be string [3681](https://github.com/LibreSign/libresign/pull/3681)
+
+### Changes
+* chore: adjust filter condition [3703](https://github.com/LibreSign/libresign/pull/3703)
+* chore: validation setup improvement [3695](https://github.com/LibreSign/libresign/pull/3695)
+* bump dependencies
+* Update translations
+
 ## 8.3.1 - 2024-09-10
 ### Fixes
 * fix: check linux distro when get java path [3653](https://github.com/LibreSign/libresign/pull/3653)
