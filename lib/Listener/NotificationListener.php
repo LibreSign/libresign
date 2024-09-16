@@ -114,7 +114,7 @@ class NotificationListener implements IEventListener {
 			'id' => (string)$libreSignFile->getNodeId(),
 			'name' => $libreSignFile->getName(),
 			'path' => $libreSignFile->getName(),
-			'link' => $this->url->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]),
+			'link' => $this->url->linkToRouteAbsolute('libresign.page.signFPath', ['uuid' => $signRequest->getUuid(), 'path' => 'pdf']),
 		];
 	}
 
