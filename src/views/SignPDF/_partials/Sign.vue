@@ -285,6 +285,9 @@ export default {
 						this.signMethodsStore.closeModal(payload.method)
 						this.sidebarStore.hideSidebar()
 						this.$emit('signed', data.ocs.data)
+						window.parent?.postMessage({
+							type: 'can-close-modal',
+						}, '*')
 					}
 				})
 				.catch((err) => {

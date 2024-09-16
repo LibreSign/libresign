@@ -58,7 +58,7 @@
 		<VisibleElements />
 		<NcModal v-if="modalSrc"
 			size="full"
-			:can-close="false">
+			:can-close="canCloseModal">
 			<iframe :src="modalSrc" class="iframe" />
 		</NcModal>
 	</div>
@@ -113,6 +113,7 @@ export default {
 			signerToEdit: {},
 			modalSrc: '',
 			canRequestSign: loadState('libresign', 'can_request_sign', false),
+			canCloseModal: false,
 		}
 	},
 	computed: {
@@ -169,8 +170,14 @@ export default {
 	},
 	methods: {
 		closeModal(message) {
+			if (message.data.type === 'can-close-modal') {
+				this.canCloseModal = true
+			}
 			if (message.data.type === 'close-modal') {
 				this.modalSrc = ''
+				this.filesStore.flushSelectedFile()
+			}
+			if (!messaeg) {
 				this.filesStore.flushSelectedFile()
 			}
 		},
