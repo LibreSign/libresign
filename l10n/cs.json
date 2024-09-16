@@ -1,5 +1,6 @@
 { "translations": {
     "Other activities" : "Ostatní aktivity",
+    "{from} requested your signature on {file}" : "Uživatel {from} požádal o váš podpis u souboru {file}",
     "Success" : "Úspěch",
     "Invalid user or password" : "Neplatný uživatel nebo heslo",
     "Settings saved" : "Nastavení uložena",
