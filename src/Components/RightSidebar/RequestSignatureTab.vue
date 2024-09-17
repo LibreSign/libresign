@@ -58,7 +58,9 @@
 		<VisibleElements />
 		<NcModal v-if="modalSrc"
 			size="full"
-			:can-close="false">
+			:name="fileName"
+			:close-button-contained="false"
+			@close="closeModal()">
 			<iframe :src="modalSrc" class="iframe" />
 		</NcModal>
 	</div>
@@ -152,6 +154,9 @@ export default {
 		hasSigners() {
 			return this.filesStore.hasSigners()
 		},
+		fileName() {
+			return this.filesStore.getFile()?.name ?? ''
+		},
 	},
 	watch: {
 		signers(signers) {
@@ -159,20 +164,16 @@ export default {
 		},
 	},
 	async mounted() {
-		window.addEventListener('message', this.closeModal)
 		subscribe('libresign:edit-signer', this.editSigner)
 		this.filesStore.disableIdentifySigner()
 	},
 	beforeUnmount() {
-		window.removeEventListener('message', this.closeModal)
 		unsubscribe('libresign:edit-signer')
 	},
 	methods: {
-		closeModal(message) {
-			if (message.data.type === 'close-modal') {
-				this.modalSrc = ''
-				this.filesStore.flushSelectedFile()
-			}
+		closeModal() {
+			this.modalSrc = ''
+			this.filesStore.flushSelectedFile()
 		},
 		validationFile() {
 			if (this.useModal) {
