@@ -41,13 +41,6 @@
 					{{ t('libresign', 'Unable to sign.') }}
 				</p>
 			</div>
-			<NcButton v-if="isModal"
-				:wide="true"
-				:disabled="loading"
-				type="secondary"
-				@click="closeModal">
-				{{ t('libresign', 'Cancel') }}
-			</NcButton>
 		</div>
 		<NcDialog v-if="signMethodsStore.modal.clickToSign"
 			:can-close="!loading"
@@ -220,11 +213,6 @@ export default {
 				}
 			}
 		},
-		closeModal() {
-			window.parent?.postMessage({
-				type: 'close-modal',
-			}, '*')
-		},
 		toggleManagePassword() {
 			this.showManagePassword = !this.showManagePassword
 		},
@@ -330,9 +318,6 @@ export default {
 
 .button-wrapper {
 	padding: calc(var(--default-grid-baseline, 4px)*2);
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
 }
 
 .sign-elements {
