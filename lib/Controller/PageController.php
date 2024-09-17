@@ -39,6 +39,7 @@ use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
+use OCA\Viewer\Event\LoadViewer;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -52,6 +53,7 @@ use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Services\IInitialState;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -73,6 +75,7 @@ class PageController extends AEnvironmentPageAwareController {
 		private IAppConfig $appConfig,
 		private FileService $fileService,
 		private ValidateHelper $validateHelper,
+		private IEventDispatcher $eventDispatcher,
 		private IURLGenerator $url
 	) {
 		parent::__construct(
@@ -110,6 +113,10 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
 
 		Util::addScript(Application::APP_ID, 'libresign-main');
+
+		if (class_exists(LoadViewer::class)) {
+			$this->eventDispatcher->dispatchTyped(new LoadViewer());
+		}
 
 		$response = new TemplateResponse(Application::APP_ID, 'main');
 
@@ -530,6 +537,9 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('file_info', $this->fileService->formatFile());
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
+		if (class_exists(LoadViewer::class)) {
+			$this->eventDispatcher->dispatchTyped(new LoadViewer());
+		}
 		$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
 
 		return $response;
