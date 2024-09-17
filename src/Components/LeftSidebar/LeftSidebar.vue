@@ -22,12 +22,6 @@
 <template>
 	<NcAppNavigation v-if="showLeftSidebar">
 		<template #list>
-			<NcAppNavigationItem v-if="back_to_signature"
-				class="back_to_signature"
-				icon="icon-history"
-				:name="t('libresign', 'Back to sign')"
-				@click="goToSign" />
-
 			<NcAppNavigationItem v-if="canRequestSign"
 				id="request-files"
 				:to="{name: 'requestFiles'}"
@@ -40,6 +34,14 @@
 			<NcAppNavigationItem id="timeline"
 				:to="{ name: 'timeline' }"
 				:name="t('libresign', 'Files')"
+				@click="unselectFile">
+				<template #icon>
+					<FolderIcon :size="20" />
+				</template>
+			</NcAppNavigationItem>
+			<NcAppNavigationItem id="fileslist"
+				:to="{ name: 'fileslist' }"
+				:name="t('libresign', 'New files')"
 				@click="unselectFile">
 				<template #icon>
 					<FolderIcon :size="20" />
@@ -109,9 +111,6 @@ export default {
 		}
 	},
 	computed: {
-		back_to_signature() {
-			return this.$route.query._back_to_signature
-		},
 		showLeftSidebar() {
 			if (this.$route.name === 'Incomplete'
 				|| this.$route.name === 'IncompleteExternal'
@@ -127,21 +126,10 @@ export default {
 			this.filesStore.selectFile()
 		},
 		goToSign() {
-			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: this.back_to_signature } })
+			const route = this.$router.resolve({ name: 'SignPDF' })
 
 			window.location = route.href
 		},
 	},
 }
 </script>
-
-<style lang="scss">
-.app-libresign {
-	.app-navigation {
-		.back_to_signature
-			.app-navigation-entry__title {
-			color: var(--color-warning, #eca700);
-		}
-	}
-}
-</style>
