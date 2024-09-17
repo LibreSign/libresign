@@ -34,7 +34,7 @@
 								:use-markdown="true" />
 
 							<NcButton type="primary"
-								@click="viewDocument(document.file)">
+								@click="viewDocument()">
 								<template #icon>
 									<NcLoadingIcon v-if="hasLoading" :size="20" />
 								</template>
@@ -194,8 +194,18 @@ export default {
 
 			return 'None'
 		},
-		viewDocument(val) {
-			window.open(`${val}?_t=${Date.now()}`)
+		viewDocument() {
+			if (OCA?.Viewer !== undefined) {
+				OCA.Viewer.open({
+					fileInfo: {
+						source: this.document.file,
+						basename: this.document.name,
+						mime: 'application/pdf',
+					},
+				})
+			} else {
+				window.open(`${this.document.file}?_t=${Date.now()}`)
+			}
 		},
 		goBack() {
 			// Redirect if have path to go back
