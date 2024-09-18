@@ -125,7 +125,6 @@ OC.L10N.register(
     "Select your signature file." : "Selecciona tu archivo de firma.",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Usa la rueda del ratón para hacer zoom y encontrar la mejor vista de tu firma.",
     "Enter your Full Name or Initials to create Signature" : "Ingresa tu nombre completo o iniciales para crear la firma",
-    "Back to sign" : "Volver a firmar",
     "Request" : "Solicitud",
     "Files" : "Archivos",
     "Validate" : "Validar",
