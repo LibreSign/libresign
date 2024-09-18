@@ -126,7 +126,6 @@ OC.L10N.register(
     "Select your signature file." : "Изберете вашия файл с подпис.",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Използвайте колелото на мишката, за да увеличите или намалите изображението и да намерите най-добрия изглед на вашия подпис.",
     "Enter your Full Name or Initials to create Signature" : "Въведете вашето пълно име или инициали, за да създадете подпис",
-    "Back to sign" : "Обратно към подпис",
     "Request" : "Заявка",
     "Files" : "Файлове",
     "Validate" : "Проверка",

@@ -154,7 +154,6 @@ OC.L10N.register(
     "Select your signature file." : "選擇您的簽名文件。",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "使用滑鼠滾輪放大或縮小圖像並找到您簽名的最佳檢視。",
     "Enter your Full Name or Initials to create Signature" : "輸入您的全名或姓名首字母以創建簽名",
-    "Back to sign" : "回到簽署頁面",
     "Request" : "請求",
     "Files" : "檔案",
     "Validate" : "驗證",

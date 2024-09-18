@@ -154,7 +154,6 @@ OC.L10N.register(
     "Select your signature file." : "Velg signaturfilen din.",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Bruk musehjulet til å zoome inn eller ut på bildet og finne den beste visningen av signaturen din.",
     "Enter your Full Name or Initials to create Signature" : "Skriv inn ditt fulle navn eller initialer for å opprette signatur",
-    "Back to sign" : "Tilbake til signering",
     "Request" : "Forespørsel",
     "Files" : "Filer",
     "Validate" : "Valider",
