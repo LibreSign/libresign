@@ -143,7 +143,6 @@ OC.L10N.register(
     "Select your signature file." : "Vyberte soubor se svým podpisem.",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Kolečkem myši zvětšete nebo zmenšete obrázek a najděte tak nejlepší zobrazení pro svůj podpis.",
     "Enter your Full Name or Initials to create Signature" : "Pokud chcete vytvořit podpis, zadejte své celé jméno nebo iniciály",
-    "Back to sign" : "Zpět k podpisu",
     "Request" : "Požadavek",
     "Files" : "Soubory",
     "Validate" : "Ověřit správnost",

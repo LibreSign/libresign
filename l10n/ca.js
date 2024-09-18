@@ -134,7 +134,6 @@ OC.L10N.register(
     "Select your signature file." : "Seleccioneu el vostre fitxer de signatura.",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Utilitzeu la roda del ratolí per ampliar o reduir la imatge i trobar la millor visió de la vostra signatura.",
     "Enter your Full Name or Initials to create Signature" : "Introduïu el vostre nom complet o inicials per crear la signatura",
-    "Back to sign" : "Tornar a signar",
     "Request" : "Sol·licitud",
     "Files" : "Fitxers",
     "Validate" : "Valida",
