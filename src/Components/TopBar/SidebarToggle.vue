@@ -21,8 +21,8 @@
 
 <template>
 	<NcButton v-if="sidebarStore.canShow()"
-		:aria-label="t('spreed', 'Open sidebar')"
-		:title="t('spreed', 'Open sidebar')"
+		:aria-label="t('libresign', 'Open sidebar')"
+		:title="t('libresign', 'Open sidebar')"
 		close-after-click="true"
 		type="tertiary"
 		@click="openSidebar">
