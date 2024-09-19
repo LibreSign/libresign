@@ -20,7 +20,7 @@ class Version8000Date20230410230327 extends SimpleMigrationStep {
 
 	public function __construct(
 		protected IAppConfig $appConfig,
-		protected IAppDataFactory $appDataFactory
+		protected IAppDataFactory $appDataFactory,
 	) {
 		$this->appData = $appDataFactory->get('libresign');
 	}

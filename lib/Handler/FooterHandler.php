@@ -126,7 +126,7 @@ class FooterHandler {
 
 		$this->templateVars['validationSite'] = $this->appConfig->getAppValue('validation_site');
 		if ($this->templateVars['validationSite']) {
-			$this->templateVars['validationSite'] = rtrim($this->templateVars['validationSite'], '/').'/'.$this->fileEntity->getUuid();
+			$this->templateVars['validationSite'] = rtrim($this->templateVars['validationSite'], '/') . '/' . $this->fileEntity->getUuid();
 		} else {
 			$this->templateVars['validationSite'] = $this->urlGenerator->linkToRouteAbsolute('libresign.page.validationFileWithShortUrl', [
 				'uuid' => $this->fileEntity->getUuid(),

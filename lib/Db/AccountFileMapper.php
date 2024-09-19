@@ -28,7 +28,7 @@ class AccountFileMapper extends QBMapper {
 		private IURLGenerator $urlGenerator,
 		private FileMapper $fileMapper,
 		private SignRequestMapper $signRequestMapper,
-		private FileTypeMapper $fileTypeMapper
+		private FileTypeMapper $fileTypeMapper,
 	) {
 		parent::__construct($db, 'libresign_account_file');
 	}

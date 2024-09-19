@@ -10,7 +10,7 @@ namespace OCA\Libresign\Tests\Api;
 
 use bovigo\vfs\vfsStream;
 use ByJG\ApiTools\AbstractRequester;
-use ByJG\Util\Psr7\Response;
+use ByJG\WebRequest\Psr7\Response;
 use GuzzleHttp\Psr7\Stream;
 use OC\AppFramework\Http\Request;
 use OCP\IRequest;
@@ -23,7 +23,7 @@ use Symfony\Component\Routing\RequestContext;
  * Request handler based on ByJG HttpClient (WebRequest)
  */
 class ApiRequester extends AbstractRequester {
-	protected function handleRequest(RequestInterface $request):Response|ResponseInterface {
+	protected function handleRequest(RequestInterface $request):ResponseInterface {
 		$this->setupRequest($request);
 		$body = $this->doRequest();
 

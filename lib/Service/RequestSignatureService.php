@@ -43,7 +43,7 @@ class RequestSignatureService {
 		protected IMimeTypeDetector $mimeTypeDetector,
 		protected ValidateHelper $validateHelper,
 		protected IClientService $client,
-		protected LoggerInterface $logger
+		protected LoggerInterface $logger,
 	) {
 	}
 
