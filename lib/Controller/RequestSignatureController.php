@@ -38,7 +38,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		protected IUserSession $userSession,
 		protected FileService $fileService,
 		protected ValidateHelper $validateHelper,
-		protected RequestSignatureService $requestSignatureService
+		protected RequestSignatureService $requestSignatureService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}

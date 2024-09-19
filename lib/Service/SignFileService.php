@@ -446,7 +446,7 @@ class SignFileService {
 		SignRequestEntity $signRequest,
 		string $identifyMethodName,
 		string $signMethodName,
-		string $identify = ''
+		string $identify = '',
 	): void {
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 		if (empty($identifyMethods[$identifyMethodName])) {
