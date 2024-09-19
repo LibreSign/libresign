@@ -41,7 +41,7 @@ class Notifier implements INotifier {
 		private IURLGenerator $url,
 		private Definitions $definitions,
 		private FileMapper $fileMapper,
-		private SignRequestMapper $signRequestMapper
+		private SignRequestMapper $signRequestMapper,
 	) {
 	}
 
@@ -92,7 +92,7 @@ class Notifier implements INotifier {
 	private function parseSignRequest(
 		INotification $notification,
 		IL10N $l,
-		bool $update
+		bool $update,
 	): INotification {
 		$parameters = $notification->getSubjectParameters();
 		$notification->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')));

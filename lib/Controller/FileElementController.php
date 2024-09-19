@@ -46,7 +46,7 @@ class FileElementController extends AEnvironmentAwareController {
 		private FileElementService $fileElementService,
 		private IUserSession $userSession,
 		private ValidateHelper $validateHelper,
-		private LoggerInterface $logger
+		private LoggerInterface $logger,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}

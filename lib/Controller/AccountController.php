@@ -79,7 +79,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		protected IUserSession $userSession,
 		protected SessionService $sessionService,
 		private IPreview $preview,
-		private ValidateHelper $validateHelper
+		private ValidateHelper $validateHelper,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -165,7 +165,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/account/signature', requirements: ['apiVersion' => '(v1)'])]
 	public function signatureGenerate(
-		string $signPassword
+		string $signPassword,
 	): DataResponse {
 		try {
 			$identify = $this->userSession->getUser()->getEMailAddress();

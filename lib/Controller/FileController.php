@@ -80,7 +80,7 @@ class FileController extends AEnvironmentAwareController {
 		private IPreview $preview,
 		private IMimeIconProvider $mimeIconProvider,
 		private FileService $fileService,
-		private ValidateHelper $validateHelper
+		private ValidateHelper $validateHelper,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -264,7 +264,7 @@ class FileController extends AEnvironmentAwareController {
 		bool $a = false,
 		bool $forceIcon = true,
 		string $mode = 'fill',
-		bool $mimeFallback = false
+		bool $mimeFallback = false,
 	) {
 		if ($nodeId === -1 || $x === 0 || $y === 0) {
 			return new DataResponse([], Http::STATUS_BAD_REQUEST);

@@ -32,7 +32,7 @@ abstract class ASignedEvent extends Event {
 	public function __construct(
 		public SignFileService $fileService,
 		public File $signedFile,
-		public bool $allSigned
+		public bool $allSigned,
 	) {
 		parent::__construct();
 	}

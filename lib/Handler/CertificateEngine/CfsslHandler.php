@@ -67,7 +67,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 
 	public function generateRootCert(
 		string $commonName,
-		array $names = []
+		array $names = [],
 	): string {
 		$key = bin2hex(random_bytes(16));
 
@@ -253,7 +253,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		}
 		$cmd = 'nohup ' . $binary . ' serve -address=127.0.0.1 ' .
 			'-ca-key ' . $configPath . DIRECTORY_SEPARATOR . 'ca-key.pem ' .
-			'-ca ' . $configPath . DIRECTORY_SEPARATOR . 'ca.pem '.
+			'-ca ' . $configPath . DIRECTORY_SEPARATOR . 'ca.pem ' .
 			'-config ' . $configPath . DIRECTORY_SEPARATOR . 'config_server.json > /dev/null 2>&1 & echo $!';
 		shell_exec($cmd);
 		$loops = 0;
