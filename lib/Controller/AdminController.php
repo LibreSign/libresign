@@ -65,7 +65,7 @@ class AdminController extends AEnvironmentAwareController {
 	public function generateCertificateCfssl(
 		array $rootCert,
 		string $cfsslUri = '',
-		string $configPath = ''
+		string $configPath = '',
 	): DataResponse {
 		try {
 			$engineHandler = $this->generateCertificate($rootCert, [
@@ -100,7 +100,7 @@ class AdminController extends AEnvironmentAwareController {
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/certificate/openssl', requirements: ['apiVersion' => '(v1)'])]
 	public function generateCertificateOpenSsl(
 		array $rootCert,
-		string $configPath = ''
+		string $configPath = '',
 	): DataResponse {
 		try {
 			$engineHandler = $this->generateCertificate($rootCert, [

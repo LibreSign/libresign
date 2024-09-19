@@ -30,7 +30,7 @@ class ApiTestCase extends TestCase {
 	 */
 	protected $schema;
 
-	protected AbstractRequester|null $requester = null;
+	protected ?AbstractRequester $requester = null;
 
 	/**
 	 * @var \OCA\Libresign\Tests\Api\ApiRequester
@@ -73,7 +73,7 @@ class ApiTestCase extends TestCase {
 	 *
 	 * When set, all requests without an own schema use this one instead.
 	 */
-	public function setSchema(Schema|null $schema):void {
+	public function setSchema(?Schema $schema):void {
 		$this->schema = $schema;
 	}
 
@@ -84,7 +84,7 @@ class ApiTestCase extends TestCase {
 	/**
 	 * @return AbstractRequester
 	 */
-	protected function getRequester():AbstractRequester|null {
+	protected function getRequester():?AbstractRequester {
 		if (is_null($this->requester)) {
 			$this->requester = new ApiRequester();
 		}

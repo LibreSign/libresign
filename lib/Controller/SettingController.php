@@ -21,7 +21,7 @@ use OCP\IRequest;
 class SettingController extends AEnvironmentAwareController {
 	public function __construct(
 		IRequest $request,
-		private CertificateEngineHandler $certificateEngineHandler
+		private CertificateEngineHandler $certificateEngineHandler,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}

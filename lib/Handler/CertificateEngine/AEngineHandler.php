@@ -72,7 +72,7 @@ class AEngineHandler {
 
 	protected function exportToPkcs12(
 		OpenSSLCertificate|string $certificate,
-		OpenSSLAsymmetricKey|OpenSSLCertificate|string $privateKey
+		OpenSSLAsymmetricKey|OpenSSLCertificate|string $privateKey,
 	): string {
 		if (empty($certificate) || empty($privateKey)) {
 			throw new EmptyCertificateException();

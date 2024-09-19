@@ -25,7 +25,7 @@ class BeforeNodeDeletedListener implements IEventListener {
 	public function __construct(
 		private FileMapper $fileMapper,
 		private RequestSignatureService $requestSignatureService,
-		private IDBConnection $db
+		private IDBConnection $db,
 	) {
 	}
 
