@@ -154,6 +154,7 @@ OC.L10N.register(
     "Enter your Full Name or Initials to create Signature" : "Ange ditt fullständiga namn eller initialer för att skapa en signatur",
     "Request" : "Begäran",
     "Files" : "Filer",
+    "New files" : "Nya filer",
     "Validate" : "Validera",
     "Documents Validation" : "Dokumentvalidering",
     "Settings" : "Inställningar",
