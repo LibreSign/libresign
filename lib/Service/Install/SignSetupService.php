@@ -454,7 +454,7 @@ class SignSetupService {
 				return file_get_contents($localCert);
 			}
 		}
-		return $this->fileAccessHelper->file_get_contents($this->environmentHelper->getServerRoot().'/resources/codesigning/root.crt');
+		return $this->fileAccessHelper->file_get_contents($this->environmentHelper->getServerRoot() . '/resources/codesigning/root.crt');
 	}
 
 	public function getDevelopCert(): array {

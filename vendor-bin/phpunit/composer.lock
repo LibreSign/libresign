@@ -13,22 +13,23 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-swagger-test.git",
-                "reference": "91c268624566924776288fbd4725d62720cbafd3"
+                "reference": "30190f22f21e9d178f127361629edfae73ab9b8c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/91c268624566924776288fbd4725d62720cbafd3",
-                "reference": "91c268624566924776288fbd4725d62720cbafd3",
+                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/30190f22f21e9d178f127361629edfae73ab9b8c",
+                "reference": "30190f22f21e9d178f127361629edfae73ab9b8c",
                 "shasum": ""
             },
             "require": {
-                "byjg/webrequest": "dev-5.0.0rc",
+                "byjg/webrequest": "^5.0",
                 "ext-json": "*",
                 "php": ">=8.1"
             },
             "require-dev": {
                 "byjg/restserver": "^5.0",
-                "phpunit/phpunit": "^9.6"
+                "phpunit/phpunit": "^9.6",
+                "vimeo/psalm": "^5.9"
             },
             "type": "library",
             "autoload": {
@@ -45,7 +46,13 @@
                 "issues": "https://github.com/byjg/php-swagger-test/issues",
                 "source": "https://github.com/byjg/php-swagger-test/tree/5.0"
             },
-            "time": "2024-01-07T20:16:47+00:00"
+            "funding": [
+                {
+                    "url": "https://github.com/byjg",
+                    "type": "github"
+                }
+            ],
+            "time": "2024-09-16T15:24:20+00:00"
         },
         {
             "name": "byjg/uri",
@@ -97,34 +104,39 @@
         },
         {
             "name": "byjg/webrequest",
-            "version": "dev-5.0.0rc",
+            "version": "5.0.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-webrequest.git",
-                "reference": "f0940943d276c05e25772c9a1b1886db15868328"
+                "reference": "4b65cc127da2b921322eba0256fa5e5ccbc51bda"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-webrequest/zipball/f0940943d276c05e25772c9a1b1886db15868328",
-                "reference": "f0940943d276c05e25772c9a1b1886db15868328",
+                "url": "https://api.github.com/repos/byjg/php-webrequest/zipball/4b65cc127da2b921322eba0256fa5e5ccbc51bda",
+                "reference": "4b65cc127da2b921322eba0256fa5e5ccbc51bda",
                 "shasum": ""
             },
             "require": {
-                "byjg/uri": "5.0.x-dev",
+                "byjg/uri": "^5.0",
                 "ext-curl": "*",
                 "ext-json": "*",
                 "php": ">=8.1",
                 "psr/http-client": "^1.0",
-                "psr/http-message": "^2.0"
+                "psr/http-message": "^1.0|^2.0"
+            },
+            "provide": {
+                "psr/http-client-implementation": "1.0",
+                "psr/http-message-implementation": "1.0"
             },
             "require-dev": {
                 "ext-soap": "*",
-                "phpunit/phpunit": "^9.6"
+                "phpunit/phpunit": "^9.6",
+                "vimeo/psalm": "^5.9"
             },
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "ByJG\\Util\\": "src/"
+                    "ByJG\\WebRequest\\": "src/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -140,9 +152,9 @@
             "description": "A lightweight and highly customized CURL wrapper for making RESt calls using PSR7 implementation and a wrapper for call dynamically SOAP requests.",
             "support": {
                 "issues": "https://github.com/byjg/php-webrequest/issues",
-                "source": "https://github.com/byjg/php-webrequest/tree/5.0.0rc"
+                "source": "https://github.com/byjg/php-webrequest/tree/5.0"
             },
-            "time": "2024-01-07T23:30:39+00:00"
+            "time": "2024-09-16T14:43:58+00:00"
         },
         {
             "name": "donatj/mock-webserver",
@@ -452,16 +464,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v5.1.0",
+            "version": "v5.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "683130c2ff8c2739f4822ff7ac5c873ec529abd1"
+                "reference": "23c79fbbfb725fb92af9bcf41065c8e9a0d49ddb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/683130c2ff8c2739f4822ff7ac5c873ec529abd1",
-                "reference": "683130c2ff8c2739f4822ff7ac5c873ec529abd1",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/23c79fbbfb725fb92af9bcf41065c8e9a0d49ddb",
+                "reference": "23c79fbbfb725fb92af9bcf41065c8e9a0d49ddb",
                 "shasum": ""
             },
             "require": {
@@ -504,9 +516,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
-                "source": "https://github.com/nikic/PHP-Parser/tree/v5.1.0"
+                "source": "https://github.com/nikic/PHP-Parser/tree/v5.2.0"
             },
-            "time": "2024-07-01T20:03:41+00:00"
+            "time": "2024-09-15T16:40:33+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -956,12 +968,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "3c69d315bdf79080c8e115b69d1961c6905b0e18"
+                "reference": "7ac8b4e63f456046dcb4c9787da9382831a1874b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/3c69d315bdf79080c8e115b69d1961c6905b0e18",
-                "reference": "3c69d315bdf79080c8e115b69d1961c6905b0e18",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/7ac8b4e63f456046dcb4c9787da9382831a1874b",
+                "reference": "7ac8b4e63f456046dcb4c9787da9382831a1874b",
                 "shasum": ""
             },
             "require": {
@@ -1033,7 +1045,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/10.5.34"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/10.5"
             },
             "funding": [
                 {
@@ -1049,7 +1061,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-09-13T05:19:38+00:00"
+            "time": "2024-09-19T10:52:21+00:00"
         },
         {
             "name": "psr/http-client",
@@ -2467,12 +2479,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",
-                "reference": "62f96e1cfd4cf518882a36bfedcf1fe4093c1299"
+                "reference": "7025b964f123bbf1896d7563db6ec7f1f63e918a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/yaml/zipball/62f96e1cfd4cf518882a36bfedcf1fe4093c1299",
-                "reference": "62f96e1cfd4cf518882a36bfedcf1fe4093c1299",
+                "url": "https://api.github.com/repos/symfony/yaml/zipball/7025b964f123bbf1896d7563db6ec7f1f63e918a",
+                "reference": "7025b964f123bbf1896d7563db6ec7f1f63e918a",
                 "shasum": ""
             },
             "require": {
@@ -2534,7 +2546,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-08-11T17:40:32+00:00"
+            "time": "2024-09-16T14:36:56+00:00"
         },
         {
             "name": "theseer/tokenizer",

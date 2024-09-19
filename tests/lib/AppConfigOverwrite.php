@@ -29,7 +29,7 @@ class AppConfigOverwrite extends AppConfig {
 		string $app,
 		string $key,
 		string $default = '',
-		?bool $lazy = false
+		?bool $lazy = false,
 	): string {
 		if (isset($this->overWrite[$app]) && isset($this->overWrite[$app][$key])) {
 			return $this->overWrite[$app][$key];
@@ -43,7 +43,7 @@ class AppConfigOverwrite extends AppConfig {
 		string $key,
 		string $value,
 		bool $lazy = false,
-		bool $sensitive = false
+		bool $sensitive = false,
 	): bool {
 		$this->overWrite[$app][$key] = $value;
 		return true;

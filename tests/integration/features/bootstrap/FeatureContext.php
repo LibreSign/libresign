@@ -215,7 +215,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	/**
 	 * @When user :user has the following notifications
 	 */
-	public function userNotifications(string $user, TableNode|null $body = null): void {
+	public function userNotifications(string $user, ?TableNode $body = null): void {
 		$this->setCurrentUser($user);
 		$this->sendOCSRequest(
 			'GET', '/apps/notifications/api/v2/notifications'

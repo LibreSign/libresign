@@ -27,7 +27,7 @@ class FileMapper extends QBMapper {
 
 	public function __construct(
 		IDBConnection $db,
-		private IL10N $l
+		private IL10N $l,
 	) {
 		parent::__construct($db, 'libresign_file');
 	}
