@@ -63,7 +63,7 @@ class IdentifyMethodService {
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private IL10N $l10n,
 		private Account $account,
-		private Email $email
+		private Email $email,
 	) {
 	}
 

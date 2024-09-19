@@ -30,6 +30,6 @@ interface ISignHandler {
 	public function sign(
 		File $inputFile,
 		File $certificate,
-		string $password
+		string $password,
 	): string;
 }

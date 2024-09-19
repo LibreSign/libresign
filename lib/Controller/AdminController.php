@@ -79,7 +79,7 @@ class AdminController extends AEnvironmentAwareController {
 	public function generateCertificateCfssl(
 		array $rootCert,
 		string $cfsslUri = '',
-		string $configPath = ''
+		string $configPath = '',
 	): DataResponse {
 		try {
 			$engineHandler = $this->generateCertificate($rootCert, [
@@ -113,7 +113,7 @@ class AdminController extends AEnvironmentAwareController {
 	#[NoCSRFRequired]
 	public function generateCertificateOpenSsl(
 		array $rootCert,
-		string $configPath = ''
+		string $configPath = '',
 	): DataResponse {
 		try {
 			$engineHandler = $this->generateCertificate($rootCert, [
