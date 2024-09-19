@@ -31,7 +31,7 @@ use Psr\Log\LoggerInterface;
 class Base extends CommandBase {
 	public function __construct(
 		public InstallService $installService,
-		protected LoggerInterface $logger
+		protected LoggerInterface $logger,
 	) {
 		parent::__construct();
 	}

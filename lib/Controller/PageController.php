@@ -76,7 +76,7 @@ class PageController extends AEnvironmentPageAwareController {
 		private FileService $fileService,
 		private ValidateHelper $validateHelper,
 		private IEventDispatcher $eventDispatcher,
-		private IURLGenerator $url
+		private IURLGenerator $url,
 	) {
 		parent::__construct(
 			request: $request,

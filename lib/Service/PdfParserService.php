@@ -87,8 +87,8 @@ class PdfParserService {
 				'h' => $details['MediaBox'][3]
 			];
 			if (!is_numeric($widthAndHeight['w']) || !is_numeric($widthAndHeight['h'])) {
-				$this->logger->error('Impossible get metadata from this file: ' . $filename. '. Error to get page width and height.');
-				throw new LibresignException('Impossible get metadata from this file: ' . $filename. '. Error to get page width and height. If possible, open an issue at github.com/libresign/libresign with the file that you used.');
+				$this->logger->error('Impossible get metadata from this file: ' . $filename . '. Error to get page width and height.');
+				throw new LibresignException('Impossible get metadata from this file: ' . $filename . '. Error to get page width and height. If possible, open an issue at github.com/libresign/libresign with the file that you used.');
 			}
 			$output['d'][] = $widthAndHeight;
 		}

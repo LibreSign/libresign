@@ -414,7 +414,7 @@ class InstallService {
 			 */
 			if ($this->architecture === 'x86_64') {
 				$compressedFileName = 'OpenJDK21U-jre_x64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
-				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME  . '/' . $compressedFileName;
+				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
 			} elseif ($this->architecture === 'aarch64') {
 				$compressedFileName = 'OpenJDK21U-jre_aarch64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
 				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
@@ -428,7 +428,7 @@ class InstallService {
 			}
 			$comporessedInternalFileName = $this->getDataDir() . '/' . $this->getInternalPathOfFile($compressedFile);
 
-			$dependencyName = 'java ' . $this->architecture . ' '. $linuxDistribution;
+			$dependencyName = 'java ' . $this->architecture . ' ' . $linuxDistribution;
 			$this->download($url, $dependencyName, $comporessedInternalFileName, $hash, 'sha256');
 
 			$extractor = new TAR($comporessedInternalFileName);

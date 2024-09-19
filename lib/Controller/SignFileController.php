@@ -59,7 +59,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		protected SignFileService $signFileService,
 		private IdentifyMethodService $identifyMethodService,
 		private FileService $fileService,
-		protected LoggerInterface $logger
+		protected LoggerInterface $logger,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
