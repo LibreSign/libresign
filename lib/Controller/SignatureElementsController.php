@@ -62,7 +62,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		protected SessionService $sessionService,
 		protected SignFileService $signFileService,
 		private IPreview $preview,
-		private ValidateHelper $validateHelper
+		private ValidateHelper $validateHelper,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}

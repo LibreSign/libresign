@@ -22,7 +22,7 @@ class UserDeleted extends QueuedJob {
 		protected IdentifyMethodMapper $identifyMethodMapper,
 		protected UserElementMapper $userElementMapper,
 		protected ITimeFactory $time,
-		protected LoggerInterface $logger
+		protected LoggerInterface $logger,
 	) {
 		parent::__construct($time);
 	}

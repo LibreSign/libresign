@@ -34,7 +34,7 @@ class CfsslServerHandler {
 		string $commonName,
 		array $names,
 		string $key,
-		string $configPath
+		string $configPath,
 	): void {
 		$this->putCsrServer(
 			$commonName,
@@ -47,7 +47,7 @@ class CfsslServerHandler {
 	private function putCsrServer(
 		string $commonName,
 		array $names,
-		string $configPath
+		string $configPath,
 	): void {
 		$filename = $configPath . DIRECTORY_SEPARATOR . self::CSR_FILE;
 		$content = [

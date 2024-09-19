@@ -39,7 +39,7 @@ class Reset extends Base {
 	public function __construct(
 		private IConfig $config,
 		private IDBConnection $db,
-		private LoggerInterface $logger
+		private LoggerInterface $logger,
 	) {
 		parent::__construct();
 	}

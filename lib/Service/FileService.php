@@ -100,7 +100,7 @@ class FileService {
 		private IURLGenerator $urlGenerator,
 		protected IMimeTypeDetector $mimeTypeDetector,
 		protected LoggerInterface $logger,
-		protected IL10N $l10n
+		protected IL10N $l10n,
 	) {
 	}
 
