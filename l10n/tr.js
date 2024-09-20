@@ -156,6 +156,7 @@ OC.L10N.register(
     "Enter your Full Name or Initials to create Signature" : "İmza oluşturmak için tam adınızı ya da baş harflerini yazın",
     "Request" : "İste",
     "Files" : "Dosyalar",
+    "New files" : "Yeni dosyalar",
     "Validate" : "Doğrula",
     "Documents Validation" : "Belge doğrulaması",
     "Settings" : "Ayarlar",
