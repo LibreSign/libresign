@@ -46,19 +46,23 @@
 </template>
 
 <script>
-import { generateOcsUrl } from '@nextcloud/router'
-import { loadState } from '@nextcloud/initial-state'
-import { showError, showSuccess } from '@nextcloud/dialogs'
-import axios from '@nextcloud/axios'
 import CertificateIcon from 'vue-material-design-icons/Certificate.vue'
 import CloudUploadIcon from 'vue-material-design-icons/CloudUpload.vue'
 import DeleteIcon from 'vue-material-design-icons/Delete.vue'
 import FileReplaceIcon from 'vue-material-design-icons/FileReplace.vue'
 import LockOpenCheckIcon from 'vue-material-design-icons/LockOpenCheck.vue'
+
+import axios from '@nextcloud/axios'
+import { showError, showSuccess } from '@nextcloud/dialogs'
+import { loadState } from '@nextcloud/initial-state'
+import { generateOcsUrl } from '@nextcloud/router'
+
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+
 import CreatePassword from '../../CreatePassword.vue'
 import ReadCertificate from '../../ReadCertificate.vue'
 import ResetPassword from '../../ResetPassword.vue'
+
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 
 export default {

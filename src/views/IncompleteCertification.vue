@@ -21,10 +21,13 @@
 
 <script>
 
+import CogsIcon from 'vue-material-design-icons/Cogs.vue'
+
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import CogsIcon from 'vue-material-design-icons/Cogs.vue'
+
 import BackgroundImage from '../../img/logo-gray.svg'
 
 export default {

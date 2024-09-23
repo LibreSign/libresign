@@ -26,14 +26,17 @@
 	</NcSettingsSection>
 </template>
 <script>
+import { set } from 'vue'
+
 import { translate as t } from '@nextcloud/l10n'
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import { generateOcsUrl } from '@nextcloud/router'
+
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import NcProgressBar from '@nextcloud/vue/dist/Components/NcProgressBar.js'
-import { generateOcsUrl } from '@nextcloud/router'
-import { set } from 'vue'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
 export default {

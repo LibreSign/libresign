@@ -55,12 +55,14 @@
 
 <script>
 import { find, get } from 'lodash-es'
+
+import axios from '@nextcloud/axios'
 import { showError, showWarning, showSuccess } from '@nextcloud/dialogs'
 import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
-import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
-import ProgressBar from '../../../Components/ProgressBar.vue'
 import { loadState } from '@nextcloud/initial-state'
+import { generateOcsUrl } from '@nextcloud/router'
+
+import ProgressBar from '../../../Components/ProgressBar.vue'
 
 const FILE_TYPE_INFO = {
 	IDENTIFICATION: {

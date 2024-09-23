@@ -84,21 +84,22 @@
 <script>
 // eslint-disable-next-line n/no-missing-import
 import md5 from 'crypto-js/md5'
-import { showWarning } from '@nextcloud/dialogs'
-import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
-
 // eslint-disable-next-line n/no-missing-import
 import { required, email, minLength } from 'vuelidate/lib/validators'
 
-import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
-import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+import RightIcon from 'vue-material-design-icons/ArrowRight.vue'
 import EmailIcon from 'vue-material-design-icons/Email.vue'
-import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
+
+import axios from '@nextcloud/axios'
+import { showWarning } from '@nextcloud/dialogs'
+import { loadState } from '@nextcloud/initial-state'
+import { generateOcsUrl } from '@nextcloud/router'
+
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
-import RightIcon from 'vue-material-design-icons/ArrowRight.vue'
-import { loadState } from '@nextcloud/initial-state'
+import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
+import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 
 export default {
 	name: 'CreateAccount',

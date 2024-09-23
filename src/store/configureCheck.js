@@ -4,9 +4,10 @@
  */
 
 import { defineStore } from 'pinia'
+import { set } from 'vue'
+
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
-import { set } from 'vue'
 
 export const useConfigureCheckStore = function(...args) {
 

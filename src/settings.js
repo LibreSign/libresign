@@ -21,8 +21,9 @@
  *
  */
 
-import Vue from 'vue'
 import { createPinia, PiniaVuePlugin } from 'pinia'
+import Vue from 'vue'
+
 import Settings from './views/Settings/Settings.vue'
 
 Vue.mixin({ methods: { t, n } })
