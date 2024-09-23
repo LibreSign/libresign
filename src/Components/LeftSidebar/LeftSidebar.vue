@@ -39,6 +39,14 @@
 					<FolderIcon :size="20" />
 				</template>
 			</NcAppNavigationItem>
+			<NcAppNavigationItem id="fileslist"
+				:to="{ name: 'fileslist' }"
+				:name="t('libresign', 'New files')"
+				@click="unselectFile">
+				<template #icon>
+					<FolderIcon :size="20" />
+				</template>
+			</NcAppNavigationItem>
 			<NcAppNavigationItem id="validation"
 				:to="{name: 'validation'}"
 				:name="t('libresign', 'Validate')"

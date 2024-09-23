@@ -18,10 +18,13 @@
 
 <script>
 import { mdiCalendarRange } from '@mdi/js'
+import calendarSvg from '@mdi/svg/svg/calendar.svg?raw'
+
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcIconSvgWrapper from '@nextcloud/vue/dist/Components/NcIconSvgWrapper.js'
-import calendarSvg from '@mdi/svg/svg/calendar.svg?raw'
+
 import FileListFilter from './FileListFilter.vue'
+
 import { useFiltersStore } from '../../../store/filters.js'
 
 const startOfToday = () => (new Date()).setHours(0, 0, 0, 0)
