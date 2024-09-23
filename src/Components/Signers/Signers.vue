@@ -10,6 +10,7 @@
 </template>
 <script>
 import Signer from './Signer.vue'
+
 import { useFilesStore } from '../../store/files.js'
 
 export default {

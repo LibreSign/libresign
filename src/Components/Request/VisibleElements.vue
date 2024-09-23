@@ -77,21 +77,24 @@
 </template>
 
 <script>
-import { showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
-import { loadState } from '@nextcloud/initial-state'
-import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
-import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import { showSuccess } from '@nextcloud/dialogs'
 import { subscribe, unsubscribe, emit } from '@nextcloud/event-bus'
-import { SIGN_STATUS } from '../../domains/sign/enum.js'
-import Signer from '../Signers/Signer.vue'
-import { SignatureImageDimensions } from '../Draw/options.js'
-import Chip from '../Chip.vue'
+import { loadState } from '@nextcloud/initial-state'
+import { generateOcsUrl } from '@nextcloud/router'
+
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
+
+import Chip from '../Chip.vue'
 import PdfEditor from '../PdfEditor/PdfEditor.vue'
+import Signer from '../Signers/Signer.vue'
+
+import { SIGN_STATUS } from '../../domains/sign/enum.js'
 import { useFilesStore } from '../../store/files.js'
+import { SignatureImageDimensions } from '../Draw/options.js'
 
 export default {
 	name: 'VisibleElements',

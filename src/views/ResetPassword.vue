@@ -32,13 +32,15 @@
 </template>
 
 <script>
-import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
-import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
+import { generateOcsUrl } from '@nextcloud/router'
+
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
+
 import { useSignMethodsStore } from '../store/signMethods.js'
 
 export default {

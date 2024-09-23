@@ -4,12 +4,14 @@
  */
 
 import { defineStore } from 'pinia'
-import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
 import { set } from 'vue'
+
+import axios from '@nextcloud/axios'
 import Moment from '@nextcloud/moment'
-import { useSignStore } from './sign.js'
+import { generateOcsUrl } from '@nextcloud/router'
+
 import { useSidebarStore } from './sidebar.js'
+import { useSignStore } from './sign.js'
 
 export const useFilesStore = defineStore('files', {
 	state: () => {

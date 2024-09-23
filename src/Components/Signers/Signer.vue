@@ -19,13 +19,17 @@
 	</div>
 </template>
 <script>
-import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
-import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
 import CheckboxBlankCircle from 'vue-material-design-icons/CheckboxBlankCircle.vue'
-import Bullet from '../Bullet/Bullet.vue'
+
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import Moment from '@nextcloud/moment'
+
+import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
+import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
+
+import Bullet from '../Bullet/Bullet.vue'
+
 import { useFilesStore } from '../../store/files.js'
 
 export default {

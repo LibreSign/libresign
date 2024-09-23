@@ -5,7 +5,9 @@
 
 import { defineStore } from 'pinia'
 import { set } from 'vue'
+
 import { loadState } from '@nextcloud/initial-state'
+
 import { useFilesStore } from './files.js'
 import { useSidebarStore } from './sidebar.js'
 import { useSignMethodsStore } from './signMethods.js'

@@ -77,20 +77,24 @@
 	</div>
 </template>
 <script>
-import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
-import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
-import { subscribe, unsubscribe } from '@nextcloud/event-bus'
-import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
-import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
-import LinkIcon from 'vue-material-design-icons/Link.vue'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import CloudUploadIcon from 'vue-material-design-icons/CloudUpload.vue'
-import UploadIcon from 'vue-material-design-icons/Upload.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
+import LinkIcon from 'vue-material-design-icons/Link.vue'
+import UploadIcon from 'vue-material-design-icons/Upload.vue'
+
+import axios from '@nextcloud/axios'
+import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
+import { subscribe, unsubscribe } from '@nextcloud/event-bus'
+import { generateOcsUrl } from '@nextcloud/router'
+
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+
 import File from '../Components/File/File.vue'
+
 import { filesService } from '../domains/files/index.js'
 import { useFilesStore } from '../store/files.js'
 import { useSidebarStore } from '../store/sidebar.js'
