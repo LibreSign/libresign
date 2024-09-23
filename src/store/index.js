@@ -23,9 +23,10 @@
 
 import Vue, { set } from 'vue'
 import Vuex, { Store } from 'vuex'
-import sidebar from './modules/sidebar.js'
+
 import files from './modules/files.js'
 import settings from './modules/settings.js'
+import sidebar from './modules/sidebar.js'
 
 Vue.use(Vuex)
 

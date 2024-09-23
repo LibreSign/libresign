@@ -46,8 +46,9 @@
 </template>
 
 <script>
-import itemEventsMixin from '@libresign/vue-pdf-editor/src/Components/ItemEventsMixin.vue'
 import CloseCircleIcon from 'vue-material-design-icons/CloseCircle.vue'
+
+import itemEventsMixin from '@libresign/vue-pdf-editor/src/Components/ItemEventsMixin.vue'
 
 export default {
 	name: 'Signature',

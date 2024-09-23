@@ -24,7 +24,9 @@
 </template>
 <script>
 import { translate as t } from '@nextcloud/l10n'
+
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
 export default {

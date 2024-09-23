@@ -58,20 +58,24 @@
 </template>
 
 <script>
+import md5 from 'blueimp-md5'
+
+import EmailIcon from 'vue-material-design-icons/Email.vue'
+import FormTextboxPasswordIcon from 'vue-material-design-icons/FormTextboxPassword.vue'
+
 import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
-import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
-import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
-import FormTextboxPasswordIcon from 'vue-material-design-icons/FormTextboxPassword.vue'
-import EmailIcon from 'vue-material-design-icons/Email.vue'
-import md5 from 'blueimp-md5'
-import { validateEmail } from '../../../utils/validators.js'
-import { useSignMethodsStore } from '../../../store/signMethods.js'
+import { generateOcsUrl } from '@nextcloud/router'
+
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+
 import { useSignStore } from '../../../store/sign.js'
+import { useSignMethodsStore } from '../../../store/signMethods.js'
+import { validateEmail } from '../../../utils/validators.js'
 
 const sanitizeNumber = val => {
 	val = val.replace(/\D/g, '')
