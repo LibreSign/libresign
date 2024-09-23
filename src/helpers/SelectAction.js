@@ -22,6 +22,7 @@
  */
 
 import { loadState } from '@nextcloud/initial-state'
+
 import { isExternal } from '../helpers/isExternal.js'
 
 const redirectURL = loadState('libresign', 'redirect', 'Home')

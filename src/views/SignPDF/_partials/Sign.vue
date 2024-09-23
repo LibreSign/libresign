@@ -101,24 +101,27 @@
 </template>
 
 <script>
-import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
-import axios from '@nextcloud/axios'
 import { getCurrentUser } from '@nextcloud/auth'
-import { generateOcsUrl } from '@nextcloud/router'
+import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import SMSManager from './ModalSMSManager.vue'
-import EmailManager from './ModalEmailManager.vue'
-import Signatures from '../../../views/Account/partials/Signatures.vue'
-import Draw from '../../../Components/Draw/Draw.vue'
+import { generateOcsUrl } from '@nextcloud/router'
+
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
+
+import EmailManager from './ModalEmailManager.vue'
+import SMSManager from './ModalSMSManager.vue'
+import Draw from '../../../Components/Draw/Draw.vue'
+import Signatures from '../../../views/Account/partials/Signatures.vue'
 import CreatePassword from '../../../views/CreatePassword.vue'
-import { useSignStore } from '../../../store/sign.js'
-import { useSignMethodsStore } from '../../../store/signMethods.js'
-import { useSignatureElementsStore } from '../../../store/signatureElements.js'
-import { useSidebarStore } from '../../../store/sidebar.js'
 import ManagePassword from '../../Account/partials/ManagePassword.vue'
+
+import { useSidebarStore } from '../../../store/sidebar.js'
+import { useSignStore } from '../../../store/sign.js'
+import { useSignatureElementsStore } from '../../../store/signatureElements.js'
+import { useSignMethodsStore } from '../../../store/signMethods.js'
 
 export default {
 	name: 'Sign',

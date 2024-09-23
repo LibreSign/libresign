@@ -1,8 +1,10 @@
+import { deburr } from 'lodash-es'
+
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
+
 /* eslint-disable valid-jsdoc */
 import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
-import axios from '@nextcloud/axios'
-import { deburr } from 'lodash-es'
-import { generateOcsUrl } from '@nextcloud/router'
 
 // from https://gist.github.com/codeguy/6684588
 const slugfy = val =>

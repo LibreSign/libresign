@@ -37,12 +37,14 @@
 </template>
 
 <script>
-import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
+import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
-import LogoLibreSign from './../img/logo-gray.svg'
+
 import LeftSidebar from './Components/LeftSidebar/LeftSidebar.vue'
 import RightSidebar from './Components/RightSidebar/RightSidebar.vue'
+
+import LogoLibreSign from './../img/logo-gray.svg'
 
 export default {
 	name: 'App',

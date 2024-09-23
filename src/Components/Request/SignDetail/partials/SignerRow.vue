@@ -19,10 +19,11 @@
 </template>
 
 <script>
-import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
-import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
-import Moment from '@nextcloud/moment'
 import { emit } from '@nextcloud/event-bus'
+import Moment from '@nextcloud/moment'
+
+import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
+import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
 
 export default {
 	name: 'SignerRow',

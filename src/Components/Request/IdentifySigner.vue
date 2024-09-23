@@ -29,10 +29,13 @@
 	</div>
 </template>
 <script>
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import AccountOrEmail from './AccountOrEmail.vue'
-import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import { loadState } from '@nextcloud/initial-state'
+
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+
+import AccountOrEmail from './AccountOrEmail.vue'
+
 import { useFilesStore } from '../../store/files.js'
 
 export default {

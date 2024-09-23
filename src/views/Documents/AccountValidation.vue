@@ -35,10 +35,11 @@
 </template>
 
 <script>
-import { showError } from '@nextcloud/dialogs'
-import ProgressBar from '../../Components/ProgressBar.vue'
 import axios from '@nextcloud/axios'
+import { showError } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
+
+import ProgressBar from '../../Components/ProgressBar.vue'
 
 export default {
 	name: 'AccountValidation',

@@ -65,17 +65,21 @@
 </template>
 
 <script>
-import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation.js'
-import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem.js'
-import NcAppNavigationSettings from '@nextcloud/vue/dist/Components/NcAppNavigationSettings.js'
-import { getCurrentUser } from '@nextcloud/auth'
-import { loadState } from '@nextcloud/initial-state'
-import { useFilesStore } from '../../store/files.js'
 import AccountCheckIcon from 'vue-material-design-icons/AccountCheck.vue'
 import FileCheckIcon from 'vue-material-design-icons/FileCheck.vue'
 import FileSignIcon from 'vue-material-design-icons/FileSign.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
+
+import { getCurrentUser } from '@nextcloud/auth'
+import { loadState } from '@nextcloud/initial-state'
+
+import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation.js'
+import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem.js'
+import NcAppNavigationSettings from '@nextcloud/vue/dist/Components/NcAppNavigationSettings.js'
+
 import CroppedLayoutSettings from '../Settings/CroppedLayoutSettings.vue'
+
+import { useFilesStore } from '../../store/files.js'
 
 export default {
 	name: 'LeftSidebar',
