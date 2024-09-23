@@ -99,18 +99,21 @@
 </template>
 
 <script>
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
-import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
-import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
-import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
-import { translate as t } from '@nextcloud/l10n'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
+import { translate as t } from '@nextcloud/l10n'
+import { generateOcsUrl } from '@nextcloud/router'
+
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+
 import CertificateCustonOptions from './CertificateCustonOptions.vue'
+
 import { selectCustonOption } from '../../helpers/certification.js'
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
 

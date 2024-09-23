@@ -22,10 +22,12 @@
 
 import Vue from 'vue'
 import Router from 'vue-router'
-import { getRootUrl, generateUrl } from '@nextcloud/router'
-import { selectAction } from '../helpers/SelectAction.js'
-import { isExternal } from '../helpers/isExternal.js'
+
 import { loadState } from '@nextcloud/initial-state'
+import { getRootUrl, generateUrl } from '@nextcloud/router'
+
+import { isExternal } from '../helpers/isExternal.js'
+import { selectAction } from '../helpers/SelectAction.js'
 
 Vue.use(Router)
 

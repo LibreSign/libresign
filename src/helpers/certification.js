@@ -1,4 +1,5 @@
 import { Option } from '@marionebl/option'
+
 import { translate as t } from '@nextcloud/l10n'
 
 /**

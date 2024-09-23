@@ -19,8 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { registerFileAction, FileAction } from '@nextcloud/files'
-import { translate as t } from '@nextcloud/l10n'
 import { loadState } from '@nextcloud/initial-state'
+import { translate as t } from '@nextcloud/l10n'
+
 // eslint-disable-next-line import/no-unresolved
 import SvgIcon from '../../img/app-dark.svg?raw'
 import logger from '../logger.js'

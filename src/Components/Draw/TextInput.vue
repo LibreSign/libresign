@@ -36,12 +36,14 @@
 </template>
 
 <script>
-import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
-import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import '@fontsource/dancing-script'
-import { SignatureImageDimensions } from './options.js'
 import { isEmpty } from 'lodash-es'
+
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+
+import { SignatureImageDimensions } from './options.js'
 
 export default {
 	name: 'TextInput',

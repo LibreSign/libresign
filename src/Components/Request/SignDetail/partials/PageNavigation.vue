@@ -13,8 +13,9 @@
 </template>
 
 <script>
-import NcCounterBubble from '@nextcloud/vue/dist/Components/NcCounterBubble.js'
 import { size } from 'lodash-es'
+
+import NcCounterBubble from '@nextcloud/vue/dist/Components/NcCounterBubble.js'
 
 export default {
 	name: 'PageNavigation',

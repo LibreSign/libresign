@@ -20,10 +20,11 @@
  */
 
 import { defineStore } from 'pinia'
-import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
-import { loadState } from '@nextcloud/initial-state'
 import { set } from 'vue'
+
+import axios from '@nextcloud/axios'
+import { loadState } from '@nextcloud/initial-state'
+import { generateOcsUrl } from '@nextcloud/router'
 
 export const useSignatureElementsStore = function(...args) {
 	const emptyElement = {

@@ -40,12 +40,14 @@
 	</NcSettingsSection>
 </template>
 <script>
-import { translate as t } from '@nextcloud/l10n'
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
-import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
-import NcTextArea from '@nextcloud/vue/dist/Components/NcTextArea.js'
 import axios from '@nextcloud/axios'
+import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
+
+import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+import NcTextArea from '@nextcloud/vue/dist/Components/NcTextArea.js'
+
 export default {
 	name: 'Validation',
 	components: {

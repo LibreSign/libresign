@@ -13,11 +13,13 @@
 
 <script>
 import { showError } from '@nextcloud/dialogs'
+
 import PdfEditor from '../../Components/PdfEditor/PdfEditor.vue'
-import { useSignStore } from '../../store/sign.js'
-import { useFilesStore } from '../../store/files.js'
-import { useSignMethodsStore } from '../../store/signMethods.js'
 import TopBar from '../../Components/TopBar/TopBar.vue'
+
+import { useFilesStore } from '../../store/files.js'
+import { useSignStore } from '../../store/sign.js'
+import { useSignMethodsStore } from '../../store/signMethods.js'
 
 export default {
 	name: 'SignPDF',

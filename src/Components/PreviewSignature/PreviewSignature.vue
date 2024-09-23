@@ -8,8 +8,9 @@
 </template>
 
 <script>
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import axios from '@nextcloud/axios'
+
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 
 export default {
 	name: 'PreviewSignature',

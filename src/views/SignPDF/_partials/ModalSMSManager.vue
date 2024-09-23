@@ -45,14 +45,16 @@
 </template>
 
 <script>
-import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
+import axios from '@nextcloud/axios'
+import { showError, showSuccess } from '@nextcloud/dialogs'
+import { confirmPassword } from '@nextcloud/password-confirmation'
+import { generateOcsUrl } from '@nextcloud/router'
+
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
-import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
-import { confirmPassword } from '@nextcloud/password-confirmation'
-import { showError, showSuccess } from '@nextcloud/dialogs'
+
 import { settingsService } from '../../../domains/settings/index.js'
 import { useSignStore } from '../../../store/sign.js'
 
