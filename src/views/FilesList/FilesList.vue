@@ -51,7 +51,7 @@
 				type="tertiary"
 				@click="toggleGridView">
 				<template #icon>
-					<ListViewIcon v-if="userConfig.grid_view" />
+					<ListViewIcon v-if="userConfigStore.grid_view" />
 					<ViewGridIcon v-else />
 				</template>
 			</NcButton>
@@ -73,25 +73,30 @@
 </template>
 
 <script>
-import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import PlusIcon from 'vue-material-design-icons/Plus.vue'
 
 import HomeSvg from '@mdi/svg/svg/home.svg?raw'
-import ListViewIcon from 'vue-material-design-icons/FormatListBulletedSquare.vue'
-import ViewGridIcon from 'vue-material-design-icons/ViewGrid.vue'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
-import UploadIcon from 'vue-material-design-icons/Upload.vue'
+import ListViewIcon from 'vue-material-design-icons/FormatListBulletedSquare.vue'
 import LinkIcon from 'vue-material-design-icons/Link.vue'
+import PlusIcon from 'vue-material-design-icons/Plus.vue'
+import UploadIcon from 'vue-material-design-icons/Upload.vue'
+import ViewGridIcon from 'vue-material-design-icons/ViewGrid.vue'
+
+import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
+import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
+import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
 import NcBreadcrumb from '@nextcloud/vue/dist/Components/NcBreadcrumb.js'
 import NcBreadcrumbs from '@nextcloud/vue/dist/Components/NcBreadcrumbs.js'
-import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
-import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
-import NcIconSvgWrapper from '@nextcloud/vue/dist/Components/NcIconSvgWrapper.js'
-import FilesListVirtual from './FilesListVirtual.vue'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
+import NcIconSvgWrapper from '@nextcloud/vue/dist/Components/NcIconSvgWrapper.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+
+import FilesListVirtual from './FilesListVirtual.vue'
+
 import { useFilesStore } from '../../store/files.js'
+import { useUserConfigStore } from '../../store/userconfig.js'
 
 export default {
 	name: 'FilesList',
@@ -115,15 +120,16 @@ export default {
 	},
 	setup() {
 		const filesStore = useFilesStore()
-		return { filesStore }
+		const userConfigStore = useUserConfigStore()
+		return {
+			filesStore,
+			userConfigStore,
+		}
 	},
 	data() {
 		return {
 			isUploading: false,
 			loading: false,
-			userConfig: {
-				grid_view: false,
-			},
 			dirContentsFiltered: [],
 		}
 	},
@@ -132,7 +138,7 @@ export default {
 			return HomeSvg
 		},
 		gridViewButtonLabel() {
-			return this.userConfig.grid_view
+			return this.userConfigStore.grid_view
 				? t('libresign', 'Switch to list view')
 				: t('libresign', 'Switch to grid view')
 		},
@@ -158,9 +164,7 @@ export default {
 			console.log('Need to implement refresh')
 		},
 		toggleGridView() {
-			this.userConfig.grid_view = !this.userConfig.grid_view
-			console.log('Need to implement toggle')
-			// this.userConfigStore.update('grid_view', !this.userConfig.grid_view)
+			this.userConfigStore.update('grid_view', !this.userConfigStore.grid_view)
 		},
 		filterDirContent() {
 			const nodes = this.filesStore.files

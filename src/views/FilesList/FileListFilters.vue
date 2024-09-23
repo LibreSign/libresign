@@ -25,10 +25,12 @@
 </template>
 
 <script>
-import NcChip from '@nextcloud/vue/dist/Components/NcChip.js'
 import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
+import NcChip from '@nextcloud/vue/dist/Components/NcChip.js'
+
 import FileListFilterModified from './FileListFilter/FileListFilterModified.vue'
 import FileListFilterStatus from './FileListFilter/FileListFilterStatus.vue'
+
 import { useFiltersStore } from '../../store/filters.js'
 
 export default {
