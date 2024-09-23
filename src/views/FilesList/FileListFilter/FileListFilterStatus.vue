@@ -21,15 +21,17 @@
 
 <script>
 import { mdiListStatus } from '@mdi/js'
+import svgDelete from '@mdi/svg/svg/delete.svg?raw'
+import svgFile from '@mdi/svg/svg/file.svg?raw'
+import svgFractionOneHalf from '@mdi/svg/svg/fraction-one-half.svg?raw'
+import svgSignatureFreehand from '@mdi/svg/svg/signature-freehand.svg?raw'
+import svgSignature from '@mdi/svg/svg/signature.svg?raw'
 
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcIconSvgWrapper from '@nextcloud/vue/dist/Components/NcIconSvgWrapper.js'
-import svgFile from '@mdi/svg/svg/file.svg?raw'
-import svgSignature from '@mdi/svg/svg/signature.svg?raw'
-import svgFractionOneHalf from '@mdi/svg/svg/fraction-one-half.svg?raw'
-import svgSignatureFreehand from '@mdi/svg/svg/signature-freehand.svg?raw'
-import svgDelete from '@mdi/svg/svg/delete.svg?raw'
+
 import FileListFilter from './FileListFilter.vue'
+
 import { useFiltersStore } from '../../../store/filters.js'
 
 const colorize = (svg, color) => {
