@@ -33,10 +33,13 @@
 </template>
 
 <script>
-import File from '../../Components/File/File.vue'
-import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
+
+import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
+
+import File from '../../Components/File/File.vue'
 import TopBar from '../../Components/TopBar/TopBar.vue'
+
 import { useFilesStore } from '../../store/files.js'
 
 export default {

@@ -21,11 +21,13 @@
  *
  */
 
-import { generateFilePath } from '@nextcloud/router'
-import { getRequestToken } from '@nextcloud/auth'
 import Vue from 'vue'
 
+import { getRequestToken } from '@nextcloud/auth'
+import { generateFilePath } from '@nextcloud/router'
+
 import Validation from './views/Validation.vue'
+
 import router from './router/router.js'
 import store from './store/index.js'
 

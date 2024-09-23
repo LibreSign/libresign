@@ -20,7 +20,9 @@
 
 <script>
 import FileIcon from 'vue-material-design-icons/File.vue'
+
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
+
 import { useFilesStore } from '../../store/files.js'
 
 export default {
