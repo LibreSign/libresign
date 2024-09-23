@@ -21,17 +21,18 @@
  *
  */
 
-import { generateFilePath } from '@nextcloud/router'
-import { getRequestToken } from '@nextcloud/auth'
-import Vue from 'vue'
 import { createPinia, PiniaVuePlugin } from 'pinia'
+import Vue from 'vue'
+
+import { getRequestToken } from '@nextcloud/auth'
+import { generateFilePath } from '@nextcloud/router'
 
 import App from './App.vue'
+
+import './init.js'
+import './plugins/vuelidate.js'
 import router from './router/router.js'
 import store from './store/index.js'
-
-import './plugins/vuelidate.js'
-import './init.js'
 
 import './assets/styles/main.scss'
 

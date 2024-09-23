@@ -41,13 +41,15 @@
 </template>
 
 <script>
-import { translate as t } from '@nextcloud/l10n'
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
-import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
-import { confirmPassword } from '@nextcloud/password-confirmation'
-import '@nextcloud/password-confirmation/dist/style.css'
 import axios from '@nextcloud/axios'
+import { translate as t } from '@nextcloud/l10n'
+import { confirmPassword } from '@nextcloud/password-confirmation'
 import { generateOcsUrl } from '@nextcloud/router'
+
+import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+
+import '@nextcloud/password-confirmation/dist/style.css'
 
 export default {
 	name: 'AllowedGroups',

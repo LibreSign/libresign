@@ -9,6 +9,7 @@
 
 <script>
 import RequestSignatureTab from '../RightSidebar/RequestSignatureTab.vue'
+
 import { useFilesStore } from '../../store/files.js'
 
 export default {

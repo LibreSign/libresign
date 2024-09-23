@@ -66,24 +66,28 @@
 	</div>
 </template>
 <script>
+import Delete from 'vue-material-design-icons/Delete.vue'
+
+import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
+import { loadState } from '@nextcloud/initial-state'
+import { generateOcsUrl } from '@nextcloud/router'
+
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
-import { getCurrentUser } from '@nextcloud/auth'
-import Delete from 'vue-material-design-icons/Delete.vue'
-import { showError, showSuccess } from '@nextcloud/dialogs'
-import Signers from '../Signers/Signers.vue'
+
 import IdentifySigner from '../Request/IdentifySigner.vue'
 import VisibleElements from '../Request/VisibleElements.vue'
-import { loadState } from '@nextcloud/initial-state'
-import { useFilesStore } from '../../store/files.js'
-import { useSignStore } from '../../store/sign.js'
-import { useSidebarStore } from '../../store/sidebar.js'
+import Signers from '../Signers/Signers.vue'
+
 import router from '../../router/router.js'
+import { useFilesStore } from '../../store/files.js'
+import { useSidebarStore } from '../../store/sidebar.js'
+import { useSignStore } from '../../store/sign.js'
 
 export default {
 	name: 'RequestSignatureTab',

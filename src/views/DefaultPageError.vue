@@ -40,9 +40,10 @@
 </template>
 
 <script>
-import { translate as t } from '@nextcloud/l10n'
-import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import { loadState } from '@nextcloud/initial-state'
+import { translate as t } from '@nextcloud/l10n'
+
+import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 
 export default {
 	name: 'DefaultPageError',
