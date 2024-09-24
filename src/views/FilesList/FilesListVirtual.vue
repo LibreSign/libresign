@@ -313,6 +313,48 @@ export default {
 			overflow: hidden;
 			// Take as much space as possible
 			flex: 1 1 auto;
+
+			button.files-list__row-name-link {
+				display: flex;
+				align-items: center;
+				text-align: start;
+				// Fill cell height and width
+				width: 100%;
+				height: 100%;
+				// Necessary for flex grow to work
+				min-width: 0;
+				margin: 0;
+				padding: 0;
+
+				// Already added to the inner text, see rule below
+				&:focus-visible {
+					outline: none !important;
+				}
+
+				// Keyboard indicator a11y
+				&:focus .files-list__row-name-text {
+					outline: var(--border-width-input-focused) solid var(--color-main-text) !important;
+					border-radius: var(--border-radius-element);
+				}
+				&:focus:not(:focus-visible) .files-list__row-name-text {
+					outline: none !important;
+				}
+			}
+
+			.files-list__row-name-text {
+				color: var(--color-main-text);
+				// Make some space for the outline
+				padding: var(--default-grid-baseline) calc(2 * var(--default-grid-baseline));
+				padding-inline-start: -10px;
+				// Align two name and ext
+				display: inline-flex;
+			}
+
+			.files-list__row-name-ext {
+				color: var(--color-text-maxcontrast);
+				// always show the extension
+				overflow: visible;
+			}
 		}
 
 		.files-list__row-actions {
