@@ -4,7 +4,7 @@
  */
 
 import { defineStore } from 'pinia'
-import Vue from 'vue'
+import { set } from 'vue'
 
 export const useUserConfigStore = defineStore('userconfig', {
 	state: () => ({
@@ -12,7 +12,7 @@ export const useUserConfigStore = defineStore('userconfig', {
 	}),
 	actions: {
 		async update(key, value) {
-			Vue.set(this, key, value)
+			set(this, key, value)
 		},
 	},
 })
