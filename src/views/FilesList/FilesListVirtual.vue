@@ -1,5 +1,6 @@
 <template>
-	<VirtualList :data-component="userConfigStore.grid_view ? FileEntryGrid : FileEntry">
+	<VirtualList :data-component="userConfigStore.grid_view ? FileEntryGrid : FileEntry"
+		:loading="loading">
 		<template #filters>
 			<FileListFilters />
 		</template>
@@ -12,7 +13,9 @@
 </template>
 
 <script>
+// eslint-disable-next-line vue/no-unused-components
 import FileEntry from './FileEntry/FileEntry.vue'
+// eslint-disable-next-line vue/no-unused-components
 import FileEntryGrid from './FileEntry/FileEntryGrid.vue'
 import FileListFilters from './FileListFilters.vue'
 import FilesListTableHeader from './FilesListTableHeader.vue'
@@ -33,6 +36,10 @@ export default {
 	props: {
 		nodes: {
 			type: Array,
+			required: true,
+		},
+		loading: {
+			type: Boolean,
 			required: true,
 		},
 	},
