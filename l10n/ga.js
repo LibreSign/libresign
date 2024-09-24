@@ -156,7 +156,6 @@ OC.L10N.register(
     "Enter your Full Name or Initials to create Signature" : "Cuir isteach d’Ainm Iomlán nó d’Eolairí chun Síniú a chruthú",
     "Request" : "Iarratas",
     "Files" : "Comhaid",
-    "New files" : "Comhaid nua",
     "Validate" : "Bailíochtaigh",
     "Documents Validation" : "Bailíochtú Doiciméid",
     "Settings" : "Socruithe",
