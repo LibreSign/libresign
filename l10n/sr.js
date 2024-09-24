@@ -156,7 +156,6 @@ OC.L10N.register(
     "Enter your Full Name or Initials to create Signature" : "Унесите Пуно име или Иницијале да креирате Потпис",
     "Request" : "Захтев",
     "Files" : "Фајлови",
-    "New files" : "Нови фајлови",
     "Validate" : "Потврди",
     "Documents Validation" : "Потврђивање докумената",
     "Settings" : "Поставке",

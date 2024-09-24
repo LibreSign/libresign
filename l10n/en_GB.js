@@ -156,7 +156,6 @@ OC.L10N.register(
     "Enter your Full Name or Initials to create Signature" : "Enter your Full Name or Initials to create Signature",
     "Request" : "Request",
     "Files" : "Files",
-    "New files" : "New files",
     "Validate" : "Validate",
     "Documents Validation" : "Documents Validation",
     "Settings" : "Settings",
