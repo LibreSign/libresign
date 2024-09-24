@@ -17,17 +17,30 @@
 			class="files-list__row-mtime">
 			<NcDateTime v-if="source.request_date" :timestamp="mtime" :ignore-seconds="true" />
 		</td>
+
+		<!-- Actions -->
+		<FileEntryActions ref="actions"
+			:class="`files-list__row-actions-${source.nodeId}`"
+			:opened.sync="openedMenu"
+			:source="source"
+			:loading="loading" />
 	</tr>
 </template>
 
 <script>
 import NcDateTime from '@nextcloud/vue/dist/Components/NcDateTime.js'
+
+import FileEntryActions from './FileEntryActions.vue'
 import FileEntryName from './FileEntryName.vue'
 import FileEntryPreview from './FileEntryPreview.vue'
+
+import { useActionsMenuStore } from '../../../store/actionsmenu.js'
+
 export default {
 	name: 'FileEntryGrid',
 	components: {
 		NcDateTime,
+		FileEntryActions,
 		FileEntryName,
 		FileEntryPreview,
 	},
@@ -36,11 +49,29 @@ export default {
 			type: Object,
 			required: true,
 		},
+		loading: {
+			type: Boolean,
+			required: true,
+		},
+	},
+	setup() {
+		const actionsMenuStore = useActionsMenuStore()
+		return { actionsMenuStore }
 	},
 	computed: {
 		mtime() {
 			return Date.parse(this?.source?.request_date)
 		},
+
+		openedMenu: {
+			get() {
+				return this.actionsMenuStore.opened === this.source.nodeId
+			},
+			set(opened) {
+				this.actionsMenuStore.opened = opened ? this.source.nodeId : null
+			},
+		},
+
 		mtimeOpacity() {
 			const maxOpacityTime = 31 * 24 * 60 * 60 * 1000 // 31 days
 
@@ -58,6 +89,6 @@ export default {
 				color: `color-mix(in srgb, var(--color-main-text) ${ratio}%, var(--color-text-maxcontrast))`,
 			}
 		},
-	}
+	},
 }
 </script>
