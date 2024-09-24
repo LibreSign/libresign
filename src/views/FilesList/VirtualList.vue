@@ -16,7 +16,8 @@
 				<component :is="dataComponent"
 					v-for="item in filesStore.files"
 					:key="item.nodeId"
-					:source="item" />
+					:source="item"
+					:loading="loading" />
 			</tbody>
 		</table>
 	</div>
@@ -31,6 +32,10 @@ export default {
 	props: {
 		dataComponent: {
 			type: [Object, Function],
+			required: true,
+		},
+		loading: {
+			type: Boolean,
 			required: true,
 		},
 	},
