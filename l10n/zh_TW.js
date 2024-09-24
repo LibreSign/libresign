@@ -156,7 +156,6 @@ OC.L10N.register(
     "Enter your Full Name or Initials to create Signature" : "輸入您的全名或是姓名首字母以建立簽名",
     "Request" : "請求",
     "Files" : "檔案",
-    "New files" : "新檔案",
     "Validate" : "驗證",
     "Documents Validation" : "文件驗證",
     "Settings" : "設定",
