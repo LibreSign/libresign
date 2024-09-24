@@ -41,19 +41,20 @@
 
 <script>
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+
+import AllowedGroups from './AllowedGroups.vue'
 import CertificateEngine from './CertificateEngine.vue'
-import DownloadBinaries from './DownloadBinaries.vue'
+import CollectMetadata from './CollectMetadata.vue'
 import ConfigureCheck from './ConfigureCheck.vue'
+import DefaultUserFolder from './DefaultUserFolder.vue'
+import DownloadBinaries from './DownloadBinaries.vue'
+import ExpirationRules from './ExpirationRules.vue'
+import IdentificationDocuments from './IdentificationDocuments.vue'
+import IdentificationFactors from './IdentificationFactors.vue'
+import LegalInformation from './LegalInformation.vue'
 import RootCertificateCfssl from './RootCertificateCfssl.vue'
 import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
-import ExpirationRules from './ExpirationRules.vue'
 import Validation from './Validation.vue'
-import AllowedGroups from './AllowedGroups.vue'
-import LegalInformation from './LegalInformation.vue'
-import IdentificationDocuments from './IdentificationDocuments.vue'
-import CollectMetadata from './CollectMetadata.vue'
-import DefaultUserFolder from './DefaultUserFolder.vue'
-import IdentificationFactors from './IdentificationFactors.vue'
 
 export default {
 	name: 'Settings',

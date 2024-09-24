@@ -25,10 +25,11 @@
 
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
-import UserImage from './partials/UserImage.vue'
-import Signatures from './partials/Signatures.vue'
+
 import Documents from './partials/Documents.vue'
 import ManagePassword from './partials/ManagePassword.vue'
+import Signatures from './partials/Signatures.vue'
+import UserImage from './partials/UserImage.vue'
 
 export default {
 	name: 'Account',

@@ -35,13 +35,15 @@
 </template>
 
 <script>
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
-import { loadState } from '@nextcloud/initial-state'
 import ArrowRight from 'vue-material-design-icons/ArrowRight.vue'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+
 import axios from '@nextcloud/axios'
+import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
+
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 
 export default {
 	name: 'RenewEmail',

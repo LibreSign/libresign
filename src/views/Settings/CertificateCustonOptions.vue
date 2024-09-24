@@ -50,13 +50,14 @@
 </template>
 
 <script>
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
-import NcPopover from '@nextcloud/vue/dist/Components/NcPopover.js'
-import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
+import Delete from 'vue-material-design-icons/Delete.vue'
+
 import { emit } from '@nextcloud/event-bus'
 
-import Delete from 'vue-material-design-icons/Delete.vue'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
+import NcPopover from '@nextcloud/vue/dist/Components/NcPopover.js'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 
 import { options, selectCustonOption } from '../../helpers/certification.js'
 

@@ -43,11 +43,12 @@
 </template>
 
 <script>
-import { SIGN_STATUS } from '../../domains/sign/enum.js'
 import Chip from '../../Components/Chip.vue'
 import Sign from '../../views/SignPDF/_partials/Sign.vue'
-import { useSignStore } from '../../store/sign.js'
+
+import { SIGN_STATUS } from '../../domains/sign/enum.js'
 import { useSidebarStore } from '../../store/sidebar.js'
+import { useSignStore } from '../../store/sign.js'
 
 export default {
 	name: 'SignTab',

@@ -73,20 +73,23 @@
 </template>
 
 <script>
+import JSConfetti from 'js-confetti'
+
 import axios from '@nextcloud/axios'
-import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+import { showError, showSuccess } from '@nextcloud/dialogs'
+import { loadState } from '@nextcloud/initial-state'
+import { translate as t } from '@nextcloud/l10n'
+import { generateUrl, generateOcsUrl } from '@nextcloud/router'
+
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
-import NcRichText from '@nextcloud/vue/dist/Components/NcRichText.js'
 import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
-import JSConfetti from 'js-confetti'
-import { loadState } from '@nextcloud/initial-state'
-import BackgroundImage from '../../img/logo-gray.svg'
-import iconA from '../../img/info-circle-solid.svg'
+import NcRichText from '@nextcloud/vue/dist/Components/NcRichText.js'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+
 import iconB from '../../img/file-signature-solid.svg'
-import { generateUrl, generateOcsUrl } from '@nextcloud/router'
-import { showError, showSuccess } from '@nextcloud/dialogs'
-import { translate as t } from '@nextcloud/l10n'
+import iconA from '../../img/info-circle-solid.svg'
+import BackgroundImage from '../../img/logo-gray.svg'
 import logger from '../logger.js'
 
 export default {

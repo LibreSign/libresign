@@ -1,5 +1,6 @@
-import { loadState } from '@nextcloud/initial-state'
 import { defaults } from 'lodash-es'
+
+import { loadState } from '@nextcloud/initial-state'
 
 const libresignState = loadState('libresign', 'config', {})
 

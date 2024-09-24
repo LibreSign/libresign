@@ -56,13 +56,17 @@
 </template>
 
 <script>
-import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
-import NcColorPicker from '@nextcloud/vue/dist/Components/NcColorPicker.js'
-import PaletteIcon from 'vue-material-design-icons/Palette.vue'
-import DeleteIcon from 'vue-material-design-icons/Delete.vue'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
 import { VPerfectSignature } from 'v-perfect-signature'
+
+import DeleteIcon from 'vue-material-design-icons/Delete.vue'
+import PaletteIcon from 'vue-material-design-icons/Palette.vue'
+
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcColorPicker from '@nextcloud/vue/dist/Components/NcColorPicker.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
+
+import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
+
 import { SignatureImageDimensions } from './options.js'
 
 export default {

@@ -25,10 +25,12 @@
 	</div>
 </template>
 <script>
-import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
+import AlertCircle from 'vue-material-design-icons/AlertCircleOutline.vue'
+
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
-import AlertCircle from 'vue-material-design-icons/AlertCircleOutline.vue'
+
+import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
 
 export default {
 	name: 'AccountOrEmail',
