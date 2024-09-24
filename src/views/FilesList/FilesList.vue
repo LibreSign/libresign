@@ -68,7 +68,8 @@
 			</template>
 		</NcEmptyContent>
 		<FilesListVirtual v-else
-			:nodes="dirContentsSorted" />
+			:nodes="dirContentsSorted"
+			:loading="loading" />
 	</NcAppContent>
 </template>
 
