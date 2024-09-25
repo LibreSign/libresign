@@ -382,12 +382,34 @@ export default {
 			}
 		}
 
+		.files-list__row-mtime,
+		.files-list__row-status {
+			color: var(--color-text-maxcontrast);
+		}
+		.files-list__row-status {
+			width: calc(var(--row-height) * 1.5);
+			// Right align content/text
+			justify-content: flex-end;
+		}
+
+		.files-list__row-mtime {
+			width: calc(var(--row-height) * 2);
+		}
+
 		.files-list__row-column-custom {
 			width: calc(var(--row-height) * 2);
 		}
 	}
 
 }
+
+@media screen and (max-width: 512px) {
+	.files-list :deep(.files-list__filters) {
+		// Reduce padding on mobile
+		padding-inline: var(--default-grid-baseline, 4px);
+	}
+}
+
 </style>
 
 <style lang="scss">
@@ -411,6 +433,7 @@ tbody.files-list__tbody.files-list__tbody--grid {
 	justify-items: center;
 
 	tr {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		width: var(--row-width);
@@ -475,6 +498,14 @@ tbody.files-list__tbody.files-list__tbody--grid {
 			margin-inline-start: -4px;
 			padding: 0px 4px;
 		}
+	}
+
+	.files-list__row-status {
+		position: absolute;
+		top: var(--item-padding);
+		inset-inline-end: var(--item-padding);
+		width: var(--clickable-area);
+		height: var(--clickable-area);
 	}
 
 	.files-list__row-mtime {
