@@ -63,23 +63,7 @@ export default {
 	data() {
 		return {
 			openedSubmenu: null,
-			enabledMenuActions: [
-				{
-					id: 'id-teste0',
-					title: 'title 0',
-					iconSvgInline: svgFile,
-				},
-				{
-					id: 'id-teste1',
-					title: 'title 1',
-					iconSvgInline: svgFile,
-				},
-				{
-					id: 'id-teste2',
-					title: 'title 2',
-					iconSvgInline: svgFile,
-				},
-			],
+			enabledMenuActions: [],
 		}
 	},
 	computed: {
@@ -90,6 +74,28 @@ export default {
 			set(opened) {
 				this.actionsMenuStore.opened = opened ? this.source.nodeId : null
 			},
+		},
+	},
+	mounted() {
+		this.registerAction({
+			id: 'id-teste0',
+			title: 'Validate',
+			iconSvgInline: svgFile,
+		})
+		this.registerAction({
+			id: 'id-teste1',
+			title: 'Sign',
+			iconSvgInline: svgFile,
+		})
+		this.registerAction({
+			id: 'id-teste2',
+			title: 'Delete',
+			iconSvgInline: svgFile,
+		})
+	},
+	methods: {
+		registerAction(action) {
+			this.enabledMenuActions = [...this.enabledMenuActions, action]
 		},
 	},
 }

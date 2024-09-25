@@ -4,7 +4,9 @@
 -->
 
 <template>
-	<tr>
+	<tr
+		class="files-list__row"
+		@contextmenu="onRightClick">
 		<td class="files-list__row-name">
 			<FileEntryPreview :source="source" />
 			<FileEntryName ref="name"
@@ -90,5 +92,25 @@ export default {
 			}
 		},
 	},
+	methods: {
+		// Open the actions menu on right click
+		onRightClick(event) {
+			// If already opened, fallback to default browser
+			if (this.openedMenu) {
+				return
+			}
+
+			// Reset any right menu position potentially set
+			const root = this.$el?.closest('main.app-content')
+			root.style.removeProperty('--mouse-pos-x')
+			root.style.removeProperty('--mouse-pos-y')
+
+			this.actionsMenuStore.opened = this.source.nodeId
+
+			// Prevent any browser defaults
+			event.preventDefault()
+			event.stopPropagation()
+		},
+	}
 }
 </script>
