@@ -13,9 +13,7 @@
 </template>
 
 <script>
-// eslint-disable-next-line vue/no-unused-components
 import FileEntry from './FileEntry/FileEntry.vue'
-// eslint-disable-next-line vue/no-unused-components
 import FileEntryGrid from './FileEntry/FileEntryGrid.vue'
 import FileListFilters from './FileListFilters.vue'
 import FilesListTableHeader from './FilesListTableHeader.vue'
@@ -30,7 +28,9 @@ export default {
 		VirtualList,
 		FileListFilters,
 		FilesListTableHeader,
+		// eslint-disable-next-line vue/no-unused-components
 		FileEntry,
+		// eslint-disable-next-line vue/no-unused-components
 		FileEntryGrid,
 	},
 	props: {
