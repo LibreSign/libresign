@@ -4,14 +4,11 @@
 -->
 <template>
 	<tr class="files-list__row-head">
-		<th class="files-list__column files-list__row-checkbox">
-			<NcCheckboxRadioSwitch />
-		</th>
-
 		<!-- Columns display -->
 
 		<!-- Link to file -->
-		<th class="files-list__column files-list__row-name files-list__column--sortable">
+		<th class="files-list__column files-list__row-name files-list__column--sortable"
+			:aria-sort="ariaSortForMode('basename')">
 			<!-- Icon or preview -->
 			<span class="files-list__row-icon" />
 
@@ -36,8 +33,6 @@
 </template>
 
 <script>
-import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
-
 import FilesListTableHeaderButton from './FilesListTableHeaderButton.vue'
 
 export default {
@@ -45,7 +40,6 @@ export default {
 
 	components: {
 		FilesListTableHeaderButton,
-		NcCheckboxRadioSwitch,
 	},
 
 	props: {
