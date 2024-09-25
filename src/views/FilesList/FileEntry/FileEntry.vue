@@ -13,6 +13,12 @@
 				:extension="'.pdf'" />
 		</td>
 
+		<!-- Status -->
+		<td class="files-list__row-status">
+			<FileEntryStatus :status="source.status"
+				:status-text="source.statusText" />
+		</td>
+
 		<!-- Mtime -->
 		<td :style="mtimeOpacity"
 			class="files-list__row-mtime">
@@ -34,6 +40,7 @@ import NcDateTime from '@nextcloud/vue/dist/Components/NcDateTime.js'
 import FileEntryActions from './FileEntryActions.vue'
 import FileEntryName from './FileEntryName.vue'
 import FileEntryPreview from './FileEntryPreview.vue'
+import FileEntryStatus from './FileEntryStatus.vue'
 
 import FileEntryMixin from './FileEntryMixin.js'
 import { useActionsMenuStore } from '../../../store/actionsmenu.js'
@@ -45,6 +52,7 @@ export default {
 		FileEntryActions,
 		FileEntryName,
 		FileEntryPreview,
+		FileEntryStatus,
 	},
 	mixins: [
 		FileEntryMixin,
