@@ -3,10 +3,15 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcButton :alignment="mode === 'size' ? 'end' : 'start-reverse'"
-		type="tertiary">
+	<NcButton :class="['files-list__column-sort-button', {
+			'files-list__column-sort-button--active': filesSortingStore.sortingMode === mode,
+			'files-list__column-sort-button--size': filesSortingStore.sortingMode === 'size',
+		}]"
+		:alignment="mode === 'size' ? 'end' : 'start-reverse'"
+		type="tertiary"
+		@click="filesSortingStore.toggleSortBy(mode)">
 		<template #icon>
-			<MenuUp v-if="true" class="files-list__column-sort-button-icon" />
+			<MenuUp v-if="filesSortingStore.sortingMode !== mode || filesSortingStore.sortingDirection === 'asc'" class="files-list__column-sort-button-icon" />
 			<MenuDown v-else class="files-list__column-sort-button-icon" />
 		</template>
 		<span class="files-list__column-sort-button-text">{{ name }}</span>
@@ -19,6 +24,8 @@ import MenuDown from 'vue-material-design-icons/MenuDown.vue'
 import MenuUp from 'vue-material-design-icons/MenuUp.vue'
 
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+
+import { useFilesSortingStore } from '../../store/filesSorting.js'
 
 export default {
 	name: 'FilesListTableHeaderButton',
@@ -38,6 +45,13 @@ export default {
 			type: String,
 			required: true,
 		},
+	},
+
+	setup() {
+		const filesSortingStore = useFilesSortingStore()
+		return {
+			filesSortingStore,
+		}
 	},
 }
 </script>
