@@ -4,8 +4,7 @@
 -->
 
 <template>
-	<tr
-		class="files-list__row"
+	<tr class="files-list__row"
 		@contextmenu="onRightClick">
 		<td class="files-list__row-name">
 			<FileEntryPreview :source="source" />
@@ -36,8 +35,8 @@ import FileEntryActions from './FileEntryActions.vue'
 import FileEntryName from './FileEntryName.vue'
 import FileEntryPreview from './FileEntryPreview.vue'
 
-import { useActionsMenuStore } from '../../../store/actionsmenu.js'
 import FileEntryMixin from './FileEntryMixin.js'
+import { useActionsMenuStore } from '../../../store/actionsmenu.js'
 
 export default {
 	name: 'FileEntry',
