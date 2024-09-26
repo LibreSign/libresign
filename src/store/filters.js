@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { emit } from '@nextcloud/event-bus'
 import { defineStore } from 'pinia'
 
 import logger from '../helpers/logger.js'
@@ -21,7 +22,7 @@ export const useFiltersStore = defineStore('filter', {
 	actions: {
 		onFilterUpdateChips(event) {
 			this.chips = { ...this.chips, [event.id]: [...event.detail] }
-
+			emit('libresign:filters:update')
 			logger.debug('File list filter chips updated', { chips: event.detail })
 		},
 	},
