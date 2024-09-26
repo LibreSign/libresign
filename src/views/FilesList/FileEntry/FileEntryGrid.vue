@@ -6,7 +6,8 @@
 <template>
 	<tr class="files-list__row"
 		@contextmenu="onRightClick">
-		<td class="files-list__row-name">
+		<td class="files-list__row-name"
+			@click="openDetailsIfAvailable">
 			<FileEntryPreview :source="source" />
 			<FileEntryName ref="name"
 				:basename="source.name"
@@ -14,14 +15,16 @@
 		</td>
 
 		<!-- Status -->
-		<td class="files-list__row-status">
+		<td class="files-list__row-status"
+			@click="openDetailsIfAvailable">
 			<FileEntryStatus :status="source.status"
 				:status-text="source.statusText" />
 		</td>
 
 		<!-- Mtime -->
 		<td :style="mtimeOpacity"
-			class="files-list__row-mtime">
+			class="files-list__row-mtime"
+			@click="openDetailsIfAvailable">
 			<NcDateTime v-if="source.request_date" :timestamp="mtime" :ignore-seconds="true" />
 		</td>
 
@@ -44,6 +47,7 @@ import FileEntryStatus from './FileEntryStatus.vue'
 
 import FileEntryMixin from './FileEntryMixin.js'
 import { useActionsMenuStore } from '../../../store/actionsmenu.js'
+import { useFilesStore } from '../../../store/files.js'
 
 export default {
 	name: 'FileEntryGrid',
@@ -59,7 +63,11 @@ export default {
 	],
 	setup() {
 		const actionsMenuStore = useActionsMenuStore()
-		return { actionsMenuStore }
+		const filesStore = useFilesStore()
+		return {
+			actionsMenuStore,
+			filesStore,
+		}
 	},
 }
 </script>
