@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { emit } from '@nextcloud/event-bus'
 import { defineStore } from 'pinia'
 
 const DEFAULT_SORTING_DIRECTION = 'asc'
@@ -16,6 +17,7 @@ export const useFilesSortingStore = defineStore('filesSorting', {
 	actions: {
 		toggleSortingDirection() {
 			this.sortingDirection = this.sortingDirection === 'asc' ? 'desc' : 'asc'
+			emit('libresign:sorting:update')
 		},
 
 		toggleSortBy(key) {
@@ -27,6 +29,7 @@ export const useFilesSortingStore = defineStore('filesSorting', {
 			// else sort ASC by this new key
 			this.sortingMode = key
 			this.sortingDirection = DEFAULT_SORTING_DIRECTION
+			emit('libresign:sorting:update')
 		},
 	},
 })
