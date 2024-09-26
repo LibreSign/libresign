@@ -60,5 +60,11 @@ export default {
 			event.preventDefault()
 			event.stopPropagation()
 		},
+
+		openDetailsIfAvailable(event) {
+			event.preventDefault()
+			event.stopPropagation()
+			this.filesStore.selectFile(this.source.nodeId)
+		},
 	},
 }
