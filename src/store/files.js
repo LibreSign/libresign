@@ -4,17 +4,17 @@
  */
 
 import { defineStore } from 'pinia'
-import { subscribe } from '@nextcloud/event-bus'
 import { set } from 'vue'
 
 import axios from '@nextcloud/axios'
+import { subscribe } from '@nextcloud/event-bus'
 import Moment from '@nextcloud/moment'
 import { generateOcsUrl } from '@nextcloud/router'
 
+import { useFilesSortingStore } from './filesSorting.js'
+import { useFiltersStore } from './filters.js'
 import { useSidebarStore } from './sidebar.js'
 import { useSignStore } from './sign.js'
-import { useFiltersStore } from './filters.js'
-import { useFilesSortingStore } from './filesSorting.js'
 
 export const useFilesStore = function(...args) {
 	const store = defineStore('files', {
@@ -161,8 +161,18 @@ export const useFilesStore = function(...args) {
 				)
 			},
 			async getAllFiles(filter) {
+				if (!filter) filter = {}
 				const { chips } = useFiltersStore()
+				if (chips?.status?.length) {
+					filter.status = chips.status.map(c => c.id)
+				}
+				if (chips?.modified?.length) {
+					const { start, end } = chips.modified[0]
+					filter.start = Math.floor(start / 1000)
+					filter.end = Math.floor(end / 1000)
+				}
 				const { sortingMode, sortingDirection } = useFilesSortingStore()
+				// TODO: pass sortingMode and sortingDirection to API call
 				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'), { params: filter })
 				this.files = {}
 				response.data.ocs.data.data.forEach(file => {
