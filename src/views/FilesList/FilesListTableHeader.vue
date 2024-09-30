@@ -13,7 +13,7 @@
 			<span class="files-list__row-icon" />
 
 			<!-- Name -->
-			<FilesListTableHeaderButton :name="t('files', 'Name')" mode="basename" />
+			<FilesListTableHeaderButton :name="t('files', 'Name')" mode="name" />
 		</th>
 
 		<!-- Actions -->
@@ -59,8 +59,8 @@ export default {
 					sort: true,
 				},
 				{
-					title: t('libresign', 'Modified'),
-					id: 'modified',
+					title: t('libresign', 'Created at'),
+					id: 'created_at',
 					sort: true,
 				},
 			],

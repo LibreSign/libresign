@@ -11,7 +11,7 @@ const DEFAULT_SORTING_DIRECTION = 'asc'
 
 export const useFilesSortingStore = defineStore('filesSorting', {
 	state: () => ({
-		sortingMode: 'basename',
+		sortingMode: 'name',
 		sortingDirection: DEFAULT_SORTING_DIRECTION,
 	}),
 
