@@ -153,6 +153,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/index.php/apps/libresign/p/sign/{uuid}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sign page to authenticated signer
+         * @description The path is used only by frontend
+         */
+        get: operations["page-sign-pdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/index.php/apps/libresign/p/sign/{uuid}": {
         parameters: {
             query?: never;
@@ -1273,6 +1293,29 @@ export interface operations {
             };
         };
     };
+    "page-sign-pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Sign request uuid */
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+        };
+    };
     "page-sign": {
         parameters: {
             query?: never;
@@ -2307,8 +2350,12 @@ export interface operations {
                 signer_uuid?: string | null;
                 /** @description The nodeId (also called fileId). Is the id of a file at Nextcloud */
                 nodeId?: string | null;
-                /** @description Status could be one of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted. */
-                status?: number | null;
+                /** @description Status could be none or many of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted. */
+                "status[]"?: number[] | null;
+                /** @description Start date of signature request (UNIX timestamp) */
+                start?: number | null;
+                /** @description End date of signature request (UNIX timestamp) */
+                end?: number | null;
             };
             header: {
                 /** @description Required to be true for the API request to pass */
