@@ -505,7 +505,17 @@ class SignRequestMapper extends QBMapper {
 			}
 			if (!empty($filter['status'])) {
 				$qb->andWhere(
-					$qb->expr()->eq('f.status', $qb->createNamedParameter($filter['status'], IQueryBuilder::PARAM_INT))
+					$qb->expr()->in('f.status', $qb->createNamedParameter($filter['status'], IQueryBuilder::PARAM_INT_ARRAY))
+				);
+			}
+			if (!empty($filter['start'])) {
+				$qb->andWhere(
+					$qb->expr()->gte('f.created_at', $qb->createNamedParameter($filter['start'], IQueryBuilder::PARAM_INT))
+				);
+			}
+			if (!empty($filter['end'])) {
+				$qb->andWhere(
+					$qb->expr()->lte('f.created_at', $qb->createNamedParameter($filter['end'], IQueryBuilder::PARAM_INT))
 				);
 			}
 			if (isset($filter['length']) && isset($filter['page'])) {
