@@ -197,6 +197,8 @@ class FileController extends AEnvironmentAwareController {
 	 * @param int|null $length Total of elements to return
 	 * @param int|null $start Start date of signature request (UNIX timestamp)
 	 * @param int|null $end End date of signature request (UNIX timestamp)
+	 * @param string|null $sortBy Name of the column to sort by
+	 * @param string|null $sortDirection Ascending or descending order
 	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>
 	 *
 	 * 200: OK
@@ -212,6 +214,8 @@ class FileController extends AEnvironmentAwareController {
 		?array $status = null,
 		?int $start = null,
 		?int $end = null,
+		?string $sortBy = null,
+		?string $sortDirection = null,
 	): DataResponse {
 		$filter = array_filter([
 			'signer_uuid' => $signer_uuid,
@@ -220,9 +224,13 @@ class FileController extends AEnvironmentAwareController {
 			'start' => $start,
 			'end' => $end,
 		], static function ($var) { return $var !== null; });
+		$sort = [
+			'sortBy' => $sortBy,
+			'sortDirection' => $sortDirection,
+		];
 		$return = $this->fileService
 			->setMe($this->userSession->getUser())
-			->listAssociatedFilesOfSignFlow($page, $length, $filter);
+			->listAssociatedFilesOfSignFlow($page, $length, $filter, $sort);
 		return new DataResponse($return, Http::STATUS_OK);
 	}
 

@@ -150,7 +150,7 @@ export default {
 			return this.dirContentsFiltered
 		},
 		isEmptyDir() {
-			return this.filesStore.files.length === 0
+			return this.filesStore.files.size === 0
 		},
 		isRefreshing() {
 			return !this.isEmptyDir
