@@ -448,7 +448,12 @@ class FileService {
 	 *
 	 * @psalm-return array{data: array, pagination: array}
 	 */
-	public function listAssociatedFilesOfSignFlow($page = null, $length = null, array $filter = []): array {
+	public function listAssociatedFilesOfSignFlow(
+		$page = null,
+		$length = null,
+		array $filter = [],
+		array $sort = [],
+	): array {
 		$page = $page ?? 1;
 		$length = $length ?? (int)$this->appConfig->getAppValue('length_of_page', '100');
 
@@ -457,6 +462,7 @@ class FileService {
 			$filter,
 			$page,
 			$length,
+			$sort,
 		);
 
 		$signers = $this->signRequestMapper->getByMultipleFileId(array_column($return['data'], 'id'));

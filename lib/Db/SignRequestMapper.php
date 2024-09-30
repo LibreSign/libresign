@@ -362,11 +362,12 @@ class SignRequestMapper extends QBMapper {
 		array $filter,
 		?int $page = null,
 		?int $length = null,
+		?array $sort = [],
 	): array {
 		$filter['email'] = $user->getEMailAddress();
 		$filter['length'] = $length;
 		$filter['page'] = $page;
-		$pagination = $this->getFilesAssociatedFilesWithMeStmt($user->getUID(), $filter);
+		$pagination = $this->getFilesAssociatedFilesWithMeStmt($user->getUID(), $filter, $sort);
 		$pagination->setMaxPerPage($length);
 		$pagination->setCurrentPage($page);
 		$currentPageResults = $pagination->getCurrentPageResults();
@@ -526,7 +527,11 @@ class SignRequestMapper extends QBMapper {
 		return $qb;
 	}
 
-	private function getFilesAssociatedFilesWithMeStmt(string $userId, ?array $filter = []): Pagination {
+	private function getFilesAssociatedFilesWithMeStmt(
+		string $userId,
+		?array $filter = [],
+		?array $sort = [],
+	): Pagination {
 		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder($userId, $filter);
 		$qb->select(
 			'f.id',
@@ -537,6 +542,12 @@ class SignRequestMapper extends QBMapper {
 			'f.status',
 			'f.metadata',
 		);
+		if (!empty($sort) && in_array($sort['sortBy'], ['name', 'status', 'created_at'])) {
+			$qb->orderBy(
+				$qb->func()->lower('f.' . $sort['sortBy']),
+				$sort['sortDirection'] == 'asc' ? 'asc' : 'desc'
+			);
+		}
 		$qb->selectAlias('f.created_at', 'request_date');
 
 		$countQueryBuilderModifier = function (IQueryBuilder $qb): int {
