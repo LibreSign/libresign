@@ -28,6 +28,7 @@ import FileListFilter from './FileListFilter.vue'
 import { useFiltersStore } from '../../../store/filters.js'
 
 const startOfToday = () => (new Date()).setHours(0, 0, 0, 0)
+const endOfToday = () => (new Date()).setHours(23, 59, 59, 999)
 
 export default {
 	name: 'FileListFilterModified',
@@ -47,43 +48,36 @@ export default {
 	data() {
 		return {
 			selectedOption: null,
-			timeRangeEnd: null,
-			timeRangeStart: null,
 			timePresets: [
 				{
 					id: 'today',
 					label: t('libresign', 'Today'),
-					start: '',
-					end: '',
-					filter: (time) => time > startOfToday(),
+					start: startOfToday(),
+					end: endOfToday(),
 				},
 				{
 					id: 'last-7',
 					label: t('libresign', 'Last 7 days'),
-					start: '',
-					end: '',
-					filter: (time) => time > (startOfToday() - (7 * 24 * 60 * 60 * 1000)),
+					start: startOfToday() - (7 * 24 * 60 * 60 * 1000),
+					end: endOfToday(),
 				},
 				{
 					id: 'last-30',
 					label: t('libresign', 'Last 30 days'),
-					start: '',
-					end: '',
-					filter: (time) => time > (startOfToday() - (30 * 24 * 60 * 60 * 1000)),
+					start: startOfToday() - (30 * 24 * 60 * 60 * 1000),
+					end: endOfToday(),
 				},
 				{
 					id: 'this-year',
 					label: t('libresign', 'This year ({year})', { year: (new Date()).getFullYear() }),
-					start: '',
-					end: '',
-					filter: (time) => time > (new Date(startOfToday())).setMonth(0, 1),
+					start: (new Date(startOfToday())).setMonth(0, 1),
+					end: endOfToday(),
 				},
 				{
 					id: 'last-year',
-					start: '',
-					end: '',
 					label: t('libresign', 'Last year ({year})', { year: (new Date()).getFullYear() - 1 }),
-					filter: (time) => (time > (new Date(startOfToday())).setFullYear((new Date()).getFullYear() - 1, 0, 1)) && (time < (new Date(startOfToday())).setMonth(0, 1)),
+					start: (new Date(startOfToday())).setFullYear((new Date()).getFullYear() - 1, 0, 1),
+					end: (new Date(startOfToday())).setMonth(0, 1),
 				},
 			],
 		}
@@ -112,6 +106,8 @@ export default {
 			const chips = []
 			if (preset) {
 				chips.push({
+					start: preset.start,
+					end: preset.end,
 					icon: calendarSvg,
 					text: preset.label,
 					onclick: () => this.setPreset(),

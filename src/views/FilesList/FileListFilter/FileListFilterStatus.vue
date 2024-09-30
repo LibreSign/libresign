@@ -104,6 +104,7 @@ export default {
 			if (presets && presets.length > 0) {
 				for (const preset of presets) {
 					chips.push({
+						id: preset.id,
 						icon: preset.icon,
 						text: preset.label,
 						onclick: () => this.setPreset(presets.filter(({ id }) => id !== preset.id)),
