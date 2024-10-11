@@ -131,15 +131,14 @@ OC.L10N.register(
     "Document already signed" : "تم التوقيع على الوثيقة بالفعل",
     "Failure to generate certificate" : "حدث خطأ أثناء توليد شهادة المصادقة",
     "Empty root certificate data" : "إمح بيانات شهادة المصادقة الجذرية root certificate",
-    "Invalid data to generate certificate" : "البيانات اللازمة لتوليد شهادة المصادقة غير صحيحة",
-    "Failure on generate certificate" : "إخفاق في توليد شهادة المصادقة",
+    "Invalid data to generate certificate" : "البيانات مطلوبة لتوليد شهادة المصادقة غير صحيحة",
+    "Failure on generate certificate" : "فشل في توليد شهادة المصادقة",
     "Sending authorization code not enabled." : "لم يتم تمكين إرسال رمز التفويض.",
     "File already signed by you" : "الملف موقع بالفعل من جانبك",
     "The admin hasn't set up LibreSign yet, please wait." : "لم يقم المشرف بتنصيب نظام التوقيع الالكتروني \"ليبر ساين\" Libresign حتى الآن. يرجى الانتظار. ",
     "Invalid PDF" : "PDF غير صالح",
     "LibreSign" : "تطبيق التوقيع الإلكتروني LibreSign",
     "✍️ Self-hosted document signer using digital certificate" : "✍️ توقيع المستندات المستضاف ذاتيًا باستعمال الشهادات الرقمية",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ **Sign PDF** documents using digital certificates\n* 🔄 **Hybrid signatures**: You can choose between personal or system-generated digital certificates\n* 👥 **Multiple signers**: Request signature on a document for as many people as you need\n* 📸 **QR Code**: Document validation by QR Code\n* 🔒 **Privacy**: Fully self-hosted document signer\n* 📲 **Connect to your software**: Easily integrate [LibreSign](https://libresign.coop) into your service with our full-fledged\n* 🙋 **Get involved**! We have lots of stuff planned. More informations at [LibreSign](https://github.com/libresign/libresign) repository.\n\n🌍 Help us translate this application on [Transifex](https://app.transifex.com/nextcloud/nextcloud/libresign/)\n\nIf you enjoy this app and want to help maintain its development or want enterprise support, please contact us:\n\n[https://libresign.coop](https://libresign.coop)\n\n## Donation\n\nDeveloped with ❤️ by [LibreCode](https://librecode.coop). Help us transform people and businesses through cooperativism.\n\n* [Donate with GitHub Sponsor: ![Donate using GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/libresign)" : "**هذا هو تطبيق مجاني من نكست كلاود لتوقيع ملفات PDF ** \n\n* ✍️ **توقيع مستندات PDF** باستعمال الشهادات الرقمية \n* 🔄 **التوقيعات المختلطة**: يمكنك الاختيار بين الشهادات الرقمية الشخصية أو الشهادات الرقمية التي يُنشئها النظام \n* 👥 **الموقعون المتعددون**: اطلب التوقيع على المستند لأي عدد تريده من الأشخاص \n* 📸 **رمز الاستجابة السريعة**: التحقق من صحة المستند عن طريق رمز الاستجابة السريعة \n* 🔒 **الخصوصية**: تطبيق توقيع المستندات مستضاف ذاتيًا بالكامل \n* 📲 **اتصل ببرنامجك**: قم بدمج [LibreSign] (https://libresign.coop) بأكمله سهولة في خدمتك \n* 🙋 ** شارك **! لدينا الكثير من الأشياء المخططة. مزيد من المعلومات في مستودع [LibreSign] (https://github.com/libresign/libresign). \n🌍 ساعدنا في ترجمة هذا التطبيق على [Transifex] (https://app.transifex.com/nextcloud/nextcloud/libresign/) \n\nإذا كنت تستمتع بهذا التطبيق وترغب في المساعدة في الحفاظ على تطويره أو تريد دعمًا مؤسسيًا، فيرجى الاتصال بنا: [https://libresign.coop] (https://libresign.coop) ## \n\nآلية التبرع تم تطويرها مع فائق المحبة ❤️ بواسطة [LibreCode] (https://librecode.coop). \n\nساعدونا في تطوير الأشخاص و الأعمال من خلال تعاونكم. \n\n* [التبرع عن طريق GitHub Sponsonr: ![تبرّع عبر GitHub Sponsor] (https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/libresign)",
     "LibreSign, digital signature app for Nextcloud." : "تطبيق LibreSign، تطبيق التوقيع الرقمي لنكست كلود.",
     "Customize your signatures" : "تخصيص التوقيعات الخاصة بك",
     "Draw" : "إرسم",
@@ -210,8 +209,8 @@ OC.L10N.register(
     "Profile picture" : "صورة الملف الشخصي",
     "Create account" : "إنشاء حساب",
     "You need to create an account with the same email address you received the invitation from." : "يلزمك إنشاء حساب بنفس عنوان البريد الإلكتروني الذي وصلك في نموذج الدعوة.",
-    "Password" : "كلمة السر",
-    "Confirm password" : "تأكيد كلمتك السرية",
+    "Password" : "كلمة المرور",
+    "Confirm password" : "تأكيد كلمة المرور",
     "This is not a valid email" : "هذا البريد إلكتروني غير صالح",
     "The email entered is not the same as the email in the invitation" : "البريد الإلكتروني الذي تم إدخاله ليس هو نفسه البريد الإلكتروني الوارد في الدعوة",
     "Your password must be greater than 4 digits" : "يجب أن تكون كلمة المرور الخاصة بك أكبر من 4 أرقام",
@@ -238,8 +237,8 @@ OC.L10N.register(
     "Password reset" : "إعادة تعيين كلمة مرور",
     "Enter new password and then repeat it" : "أدخل كلمة المرور الجديدة ثم كررها",
     "Current password" : "كلمة المرور الحالية",
-    "New password" : "الكلمة السرية الجديدة",
-    "Repeat password" : "أعد كتابة الكلمة السرية",
+    "New password" : "كلمة المرور الجديدة",
+    "Repeat password" : "أعد كتابة كلمة المرور",
     "Allow request to sign" : "السماح بطلب التوقيع",
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "حدِّد المجموعات المُصرَّح لها بطلب توقيع المستندات. مجموعة المسئولين هي المجموعة الافتراضية ولا تحتاج إلى تعيين.",
     "Optional attributes" : "صفات attributes اختيارية",
@@ -269,9 +268,9 @@ OC.L10N.register(
     "Renewal interval" : "فترة التجديد",
     "Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link." : "فترة التجديد بالثواني لطلب الاشتراك. عند الدخول على الرابط، سيُطلب منك تجديد الرابط.",
     "Expiration rules" : "قواعد انتهاء الصلاحية",
-    "Enable identification documents flow" : "تمكين أتمتة إجراء وثائق الهوية",
+    "Enable identification documents flow" : "تمكين أتمتة سير العمل الخاص بوثائق الهوية",
     "Identification documents" : "وثائق الهوية",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "أتمتة إجراء وثائق الهوية سيجعلها إلزامية لأي شخص يلزم قيامه بالتوقيع على ملف، ويرسل وثائق الهوية ليتم اعتمادها من قبل بعض أعضاء مجموعة الاعتماد. ويمكن للمستخدم إنشاء الشهادة فقط بعد الموافقة على وثائق الهوية.",
+    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "أتمتة سير العمل الخاص بوثائق الهوية سيجعلها إلزامية لأي شخص يلزم قيامه بالتوقيع على ملف، ويرسل وثائق الهوية ليتم اعتمادها من قبل بعض أعضاء مجموعة الاعتماد. ويمكن للمستخدم إنشاء الشهادة فقط بعد الموافقة على وثائق الهوية.",
     "Request to create account when the user does not have an account" : "أُطلُب إنشاء حساب في حال  كان المستخدِم لا يمتلك حساباً",
     "Make this method required" : "إجعَل هذا الإجراء إلزامياً",
     "Signature methods" : "طُرُق التوقيع",
@@ -318,7 +317,7 @@ OC.L10N.register(
     "Define your signature." : "تعيين توقيعك.",
     "Unable to sign." : "غير قادر على التوقيع.",
     "Subscription password." : "كلمة مرور الاشتراك.",
-    "Forgot password?" : "هل نسيت كلمة السر ؟",
+    "Forgot password?" : "نسيت كلمة المرور؟",
     "All Files" : "كل الملفات",
     "Pending" : "معلّق",
     "Signed" : "مُوقع",
