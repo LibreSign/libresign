@@ -1523,12 +1523,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-deps/ocp.git",
-                "reference": "33613eff1783461a6d7438f13c5caf0dc3a2a899"
+                "reference": "b83c3e45851c4249f42fe088991f66d4af1ceb55"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/33613eff1783461a6d7438f13c5caf0dc3a2a899",
-                "reference": "33613eff1783461a6d7438f13c5caf0dc3a2a899",
+                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/b83c3e45851c4249f42fe088991f66d4af1ceb55",
+                "reference": "b83c3e45851c4249f42fe088991f66d4af1ceb55",
                 "shasum": ""
             },
             "require": {
@@ -1560,7 +1560,7 @@
                 "issues": "https://github.com/nextcloud-deps/ocp/issues",
                 "source": "https://github.com/nextcloud-deps/ocp/tree/master"
             },
-            "time": "2024-10-09T00:42:28+00:00"
+            "time": "2024-10-12T00:41:45+00:00"
         },
         {
             "name": "psr/clock",
@@ -1719,12 +1719,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "6fc16d8c05a872bf86eb0a1684d89b9bcb93d636"
+                "reference": "c3c55a0f6643119fa8699577cc83ca6256d98ab5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/6fc16d8c05a872bf86eb0a1684d89b9bcb93d636",
-                "reference": "6fc16d8c05a872bf86eb0a1684d89b9bcb93d636",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/c3c55a0f6643119fa8699577cc83ca6256d98ab5",
+                "reference": "c3c55a0f6643119fa8699577cc83ca6256d98ab5",
                 "shasum": ""
             },
             "conflict": {
@@ -2061,7 +2061,7 @@
                 "lms/routes": "<2.1.1",
                 "localizationteam/l10nmgr": "<7.4|>=8,<8.7|>=9,<9.2",
                 "luyadev/yii-helpers": "<1.2.1",
-                "magento/community-edition": "<2.4.5|==2.4.5|>=2.4.5.0-patch1,<2.4.5.0-patch9|==2.4.6|>=2.4.6.0-patch1,<2.4.6.0-patch7|==2.4.7|>=2.4.7.0-patch1,<2.4.7.0-patch2",
+                "magento/community-edition": "<2.4.5|==2.4.5|>=2.4.5.0-patch1,<2.4.5.0-patch10|==2.4.6|>=2.4.6.0-patch1,<2.4.6.0-patch8|>=2.4.7.0-beta1,<2.4.7.0-patch3",
                 "magento/core": "<=1.9.4.5",
                 "magento/magento1ce": "<1.9.4.3-dev",
                 "magento/magento1ee": ">=1,<1.14.4.3-dev",
@@ -2294,7 +2294,7 @@
                 "slim/slim": "<2.6",
                 "slub/slub-events": "<3.0.3",
                 "smarty/smarty": "<4.5.3|>=5,<5.1.1",
-                "snipe/snipe-it": "<6.4.2",
+                "snipe/snipe-it": "<7.0.10",
                 "socalnick/scn-social-auth": "<1.15.2",
                 "socialiteproviders/steam": "<1.1",
                 "spatie/browsershot": "<3.57.4",
@@ -2543,7 +2543,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-10-10T00:18:21+00:00"
+            "time": "2024-10-11T18:06:00+00:00"
         }
     ],
     "aliases": [],
