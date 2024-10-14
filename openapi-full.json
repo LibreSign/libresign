@@ -1128,6 +1128,48 @@
                 }
             }
         },
+        "/index.php/apps/libresign/p/sign/{uuid}/pdf": {
+            "get": {
+                "operationId": "page-sign-pdf",
+                "summary": "Sign page to authenticated signer",
+                "description": "The path is used only by frontend",
+                "tags": [
+                    "page"
+                ],
+                "security": [
+                    {},
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "Sign request uuid",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/html": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/index.php/apps/libresign/p/sign/{uuid}": {
             "get": {
                 "operationId": "page-sign",
@@ -3695,9 +3737,32 @@
                         }
                     },
                     {
-                        "name": "status",
+                        "name": "status[]",
                         "in": "query",
-                        "description": "Status could be one of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted.",
+                        "description": "Status could be none or many of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted.",
+                        "schema": {
+                            "type": "array",
+                            "nullable": true,
+                            "items": {
+                                "type": "integer",
+                                "format": "int64"
+                            }
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "in": "query",
+                        "description": "Start date of signature request (UNIX timestamp)",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "end",
+                        "in": "query",
+                        "description": "End date of signature request (UNIX timestamp)",
                         "schema": {
                             "type": "integer",
                             "format": "int64",
