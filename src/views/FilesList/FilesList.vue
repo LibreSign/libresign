@@ -16,23 +16,24 @@
 					</template>
 				</NcBreadcrumb>
 				<template #actions>
-					<NcActions :menu-name="t('libresign', 'Request')">
+					<NcActions :menu-name="t('libresign', 'Request')"
+						:open.sync="openedMenu">
 						<template #icon>
 							<PlusIcon :size="20" />
 						</template>
-						<NcActionButton>
+						<NcActionButton @click="showModalUploadFromUrl()">
 							<template #icon>
 								<LinkIcon :size="20" />
 							</template>
 							{{ t('libresign', 'Upload from URL') }}
 						</NcActionButton>
-						<NcActionButton>
+						<NcActionButton @click="showFilePicker = true">
 							<template #icon>
 								<FolderIcon :size="20" />
 							</template>
 							{{ t('libresign', 'Choose from Files') }}
 						</NcActionButton>
-						<NcActionButton>
+						<NcActionButton @click="uploadFile">
 							<template #icon>
 								<NcLoadingIcon v-if="isUploading" :size="20" />
 								<UploadIcon v-else :size="20" />
@@ -70,6 +71,37 @@
 		<FilesListVirtual v-else
 			:nodes="dirContentsSorted"
 			:loading="loading" />
+		<FilePicker v-if="showFilePicker"
+			:name="t('libresign', 'Select your file')"
+			:multiselect="false"
+			:buttons="filePickerButtons"
+			:mimetype-filter="['application/pdf']"
+			@close="showFilePicker = false" />
+		<NcDialog v-if="modalUploadFromUrl"
+			:name="t('libresign', 'URL of a PDF file')"
+			:can-close="!loading"
+			@closing="closeModalUploadFromUrl">
+			<NcNoteCard v-for="message in uploadUrlErrors"
+				:key="message"
+				type="error">
+				{{ message }}
+			</NcNoteCard>
+			<NcTextField :label="t('libresign', 'URL of a PDF file')"
+				:value.sync="pdfUrl">
+				<LinkIcon :size="20" />
+			</NcTextField>
+			<template #actions>
+				<NcButton :disabled="!canUploadFronUrl"
+					type="primary"
+					@click="uploadUrl">
+					{{ t('libresign', 'Send') }}
+					<template #icon>
+						<NcLoadingIcon v-if="loading" :size="20" />
+						<CloudUploadIcon v-else :size="20" />
+					</template>
+				</NcButton>
+			</template>
+		</NcDialog>
 	</NcAppContent>
 </template>
 
@@ -77,6 +109,7 @@
 
 import HomeSvg from '@mdi/svg/svg/home.svg?raw'
 
+import CloudUploadIcon from 'vue-material-design-icons/CloudUpload.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
 import ListViewIcon from 'vue-material-design-icons/FormatListBulletedSquare.vue'
 import LinkIcon from 'vue-material-design-icons/Link.vue'
@@ -84,24 +117,50 @@ import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import UploadIcon from 'vue-material-design-icons/Upload.vue'
 import ViewGridIcon from 'vue-material-design-icons/ViewGrid.vue'
 
+import axios from '@nextcloud/axios'
+import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
+import { subscribe, unsubscribe } from '@nextcloud/event-bus'
+import { generateOcsUrl } from '@nextcloud/router'
+
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
 import NcBreadcrumb from '@nextcloud/vue/dist/Components/NcBreadcrumb.js'
 import NcBreadcrumbs from '@nextcloud/vue/dist/Components/NcBreadcrumbs.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import NcIconSvgWrapper from '@nextcloud/vue/dist/Components/NcIconSvgWrapper.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 
 import FilesListVirtual from './FilesListVirtual.vue'
 
+import { filesService } from '../../domains/files/index.js'
+import { useActionsMenuStore } from '../../store/actionsmenu.js'
 import { useFilesStore } from '../../store/files.js'
+import { useSidebarStore } from '../../store/sidebar.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 
+const PDF_MIME_TYPE = 'application/pdf'
+
+const loadFileToBase64 = file => {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader()
+		reader.readAsDataURL(file)
+		reader.onload = () => resolve(reader.result)
+		reader.onerror = (error) => reject(error)
+	})
+}
 export default {
 	name: 'FilesList',
 	components: {
+		FilePicker,
+		NcDialog,
+		NcNoteCard,
+		NcTextField,
+		CloudUploadIcon,
 		NcAppContent,
 		NcButton,
 		PlusIcon,
@@ -120,21 +179,73 @@ export default {
 		NcEmptyContent,
 	},
 	setup() {
+		const actionsMenuStore = useActionsMenuStore()
 		const filesStore = useFilesStore()
+		const sidebarStore = useSidebarStore()
 		const userConfigStore = useUserConfigStore()
 		return {
+			actionsMenuStore,
 			filesStore,
+			sidebarStore,
 			userConfigStore,
 		}
 	},
 	data() {
 		return {
+			modalUploadFromUrl: false,
+			showingFilePicker: false,
+			pdfUrl: '',
+			file: {},
+			signers: [],
+			uploadUrlErrors: [],
+			errors: [],
 			isUploading: false,
 			loading: false,
 			dirContentsFiltered: [],
 		}
 	},
 	computed: {
+		filePickerButtons() {
+			return [{
+				label: t('libresign', 'Choose'),
+				callback: (nodes) => this.handleFileChoose(nodes),
+				type: 'primary',
+			}]
+		},
+		canRequest() {
+			return this.signers.length > 0
+		},
+		canUploadFronUrl() {
+			if (this.loading) {
+				return false
+			}
+			try {
+				// eslint-disable-next-line no-new
+				new URL(this.pdfUrl)
+				return true
+			} catch (e) {
+				return false
+			}
+		},
+		openedMenu: {
+			get() {
+				return this.actionsMenuStore.opened === 'global'
+			},
+			set(opened) {
+				this.actionsMenuStore.opened = opened ? 'global' : null
+			},
+		},
+		showFilePicker: {
+			get() {
+				return this.showingFilePicker
+			},
+			set(state) {
+				this.showingFilePicker = state
+				if (state) {
+					this.openedMenu = false
+				}
+			},
+		},
 		viewIcon() {
 			return HomeSvg
 		},
@@ -160,6 +271,14 @@ export default {
 	async created() {
 		await this.filesStore.getAllFiles()
 	},
+	async mounted() {
+		subscribe('libresign:visible-elements-saved', this.closeSidebar)
+		this.filesStore.disableIdentifySigner()
+	},
+	beforeUnmount() {
+		unsubscribe('libresign:visible-elements-saved')
+		this.filesStore.selectFile()
+	},
 	methods: {
 		refresh() {
 			console.log('Need to implement refresh')
@@ -171,6 +290,106 @@ export default {
 			const nodes = this.filesStore.files
 			console.log('Implement filter here')
 			this.dirContentsFiltered = nodes
+		},
+		closeSidebar() {
+			this.filesStore.selectFile()
+		},
+		showModalUploadFromUrl() {
+			this.actionsMenuStore.opened = false
+			this.modalUploadFromUrl = true
+		},
+		closeModalUploadFromUrl() {
+			this.cleanErrors()
+			this.modalUploadFromUrl = false
+		},
+		cleanErrors() {
+			this.uploadUrlErrors = []
+			this.errors = []
+		},
+		async uploadUrl() {
+			this.loading = true
+			this.cleanErrors()
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
+				file: {
+					url: this.pdfUrl,
+				},
+			})
+				.then(({ data }) => {
+					this.filesStore.addFile({
+						nodeId: data.ocs.data.id,
+						name: data.ocs.data.name,
+					})
+					this.filesStore.selectFile(data.ocs.data.id)
+					this.closeModalUploadFromUrl()
+				})
+				.catch(({ response }) => {
+					this.uploadUrlErrors = [response.data.ocs.data.message]
+				})
+			this.loading = false
+		},
+		async upload(file) {
+			try {
+				const { name: original } = file
+
+				const name = original.split('.').slice(0, -1).join('.')
+
+				const data = await loadFileToBase64(file)
+
+				const res = await filesService.uploadFile({ name, file: data })
+
+				this.filesStore.addFile({
+					nodeId: res.id,
+					name: res.name,
+				})
+				this.filesStore.selectFile(res.id)
+				this.cleanErrors()
+			} catch (err) {
+				this.errors = [err.response.data.ocs.data.message]
+			}
+		},
+		uploadFile() {
+			this.loading = true
+			const input = document.createElement('input')
+			input.accept = PDF_MIME_TYPE
+			input.type = 'file'
+
+			input.onchange = async (ev) => {
+				const file = ev.target.files[0]
+
+				if (file) {
+					this.upload(file)
+				}
+
+				input.remove()
+			}
+
+			input.click()
+			this.loading = false
+		},
+		async handleFileChoose(nodes) {
+			const path = nodes[0]?.path
+			if (!path) {
+				return
+			}
+
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
+				file: {
+					path,
+				},
+				name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
+			})
+				.then(({ data }) => {
+					this.filesStore.addFile({
+						nodeId: data.ocs.data.id,
+						name: data.ocs.data.name,
+					})
+					this.filesStore.selectFile(data.ocs.data.id)
+					this.cleanErrors()
+				})
+				.catch(({ response }) => {
+					this.errors = [response.data.ocs.data.message]
+					this.loading = false
+				})
 		},
 	},
 }
