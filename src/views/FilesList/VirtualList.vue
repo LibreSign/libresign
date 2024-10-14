@@ -14,7 +14,7 @@
 				:class="userConfigStore.grid_view ? 'files-list__tbody--grid' : 'files-list__tbody--list'"
 				data-cy-files-list-tbody>
 				<component :is="dataComponent"
-					v-for="item in filesStore.files.values()"
+					v-for="item in filesStore.files"
 					:key="item.nodeId"
 					:source="item"
 					:loading="loading" />
