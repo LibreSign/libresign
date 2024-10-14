@@ -22,8 +22,10 @@
 import { defineStore } from 'pinia'
 import { set } from 'vue'
 
+import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { subscribe } from '@nextcloud/event-bus'
+import { loadState } from '@nextcloud/initial-state'
 import Moment from '@nextcloud/moment'
 import { generateOcsUrl } from '@nextcloud/router'
 
@@ -41,6 +43,7 @@ export const useFilesStore = function(...args) {
 				identifyingSigner: false,
 				loading: false,
 				filterActive: 'all',
+				canRequestSign: loadState('libresign', 'can_request_sign', false),
 			}
 		},
 
@@ -74,6 +77,9 @@ export const useFilesStore = function(...args) {
 			disableIdentifySigner() {
 				this.identifyingSigner = false
 			},
+			signers() {
+				return this.getFile()?.signers ?? []
+			},
 			hasSigners() {
 				if (this.selectedNodeId === 0) {
 					return false
@@ -103,6 +109,43 @@ export const useFilesStore = function(...args) {
 				return this.files[this.selectedNodeId].signers.length > 0
 					&& this.files[this.selectedNodeId].signers
 						.filter(signer => signer.signed?.length > 0).length === this.files[this.selectedNodeId].signers.length
+			},
+			canSign() {
+				return !this.isFullSigned()
+				&& this.getFile().status > 0
+				&& this.getFile()?.signers?.filter(signer => signer.me).length > 0
+				&& this.getFile()?.signers?.filter(signer => signer.me)
+					.filter(signer => signer.signed?.length > 0).length === 0
+			},
+			canValidate() {
+				return this.isPartialSigned()
+					|| this.isFullSigned()
+			},
+			canDelete() {
+				return this.canRequestSign
+					&& (
+						!Object.hasOwn(this.getFile(), 'requested_by')
+						|| this.getFile().requested_by.userId === getCurrentUser().uid
+					)
+			},
+			canAddSigner() {
+				return this.canRequestSign
+					&& (
+						!Object.hasOwn(this.getFile(), 'requested_by')
+						|| this.getFile().requested_by.userId === getCurrentUser().uid
+					)
+					&& !this.isPartialSigned()
+					&& !this.isFullSigned()
+			},
+			canSave() {
+				return this.canRequestSign
+					&& (
+						!Object.hasOwn(this.getFile(), 'requested_by')
+						|| this.getFile().requested_by.userId === getCurrentUser().uid
+					)
+					&& !this.isPartialSigned()
+					&& !this.isFullSigned()
+					&& this.getFile()?.signers?.length > 0
 			},
 			getSubtitle() {
 				if (this.selectedNodeId === 0) {
@@ -195,7 +238,7 @@ export const useFilesStore = function(...args) {
 					filter.sortDirection = sortingDirection
 				}
 				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'), { params: filter })
-				this.files = []
+				this.files = {}
 				response.data.ocs.data.data.forEach(file => {
 					this.addFile(file)
 				})
