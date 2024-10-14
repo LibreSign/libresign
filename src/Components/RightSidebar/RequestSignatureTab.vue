@@ -10,7 +10,7 @@
 			@click="addSigner">
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
-		<Signers :signers="dataSigners"
+		<Signers :signers="filesStore.signers()"
 			event="libresign:edit-signer">
 			<template #actions="{signer}">
 				<NcActionButton v-if="canSave && !signer.signed"
@@ -22,7 +22,7 @@
 					</template>
 					{{ t('libresign', 'Delete') }}
 				</NcActionButton>
-				<NcActionButton v-if="canRequestSign && !signer.signed && signer.signRequestId && !signer.me"
+				<NcActionButton v-if="filesStore.canRequestSign && !signer.signed && signer.signRequestId && !signer.me"
 					icon="icon-comment"
 					:close-after-click="true"
 					@click="sendNotify(signer)">
@@ -32,7 +32,7 @@
 		</Signers>
 		<div class="action-buttons">
 			<NcButton v-if="canSave"
-				:type="canSign ? 'secondary' : 'primary'"
+				:type="filesStore.canSign() ? 'secondary' : 'primary'"
 				:disabled="hasLoading"
 				@click="save()">
 				<template #icon>
@@ -40,7 +40,7 @@
 				</template>
 				{{ t('libresign', 'Next') }}
 			</NcButton>
-			<NcButton v-if="canSign"
+			<NcButton v-if="filesStore.canSign()"
 				type="primary"
 				:disabled="hasLoading"
 				@click="sign()">
@@ -49,7 +49,7 @@
 				</template>
 				{{ t('libresign', 'Sign') }}
 			</NcButton>
-			<NcButton v-if="canValidate"
+			<NcButton v-if="filesStore.canValidate()"
 				type="primary"
 				@click="validationFile()">
 				{{ t('libresign', 'Validate') }}
@@ -68,11 +68,9 @@
 <script>
 import Delete from 'vue-material-design-icons/Delete.vue'
 
-import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
-import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
@@ -118,43 +116,9 @@ export default {
 			hasLoading: false,
 			signerToEdit: {},
 			modalSrc: '',
-			canRequestSign: loadState('libresign', 'can_request_sign', false),
 		}
 	},
 	computed: {
-		canAddSigner() {
-			return this.canRequestSign
-				&& (
-					!Object.hasOwn(this.filesStore.getFile(), 'requested_by')
-					|| this.filesStore.getFile().requested_by.userId === getCurrentUser().uid
-				)
-				&& !this.filesStore.isPartialSigned()
-				&& !this.filesStore.isFullSigned()
-		},
-		canSave() {
-			return this.canRequestSign
-				&& (
-					!Object.hasOwn(this.filesStore.getFile(), 'requested_by')
-					|| this.filesStore.getFile().requested_by.userId === getCurrentUser().uid
-				)
-				&& !this.filesStore.isPartialSigned()
-				&& !this.filesStore.isFullSigned()
-				&& this.filesStore.getFile()?.signers?.length > 0
-		},
-		canSign() {
-			return !this.filesStore.isFullSigned()
-				&& this.filesStore.getFile().status > 0
-				&& this.filesStore.getFile()?.signers?.filter(signer => signer.me).length > 0
-				&& this.filesStore.getFile()?.signers?.filter(signer => signer.me)
-					.filter(signer => signer.signed?.length > 0).length === 0
-		},
-		canValidate() {
-			return this.filesStore.isPartialSigned()
-				|| this.filesStore.isFullSigned()
-		},
-		dataSigners() {
-			return this.filesStore.getFile()?.signers ?? []
-		},
 		hasSigners() {
 			return this.filesStore.hasSigners()
 		},
@@ -237,7 +201,7 @@ export default {
 					users: [],
 				},
 			}
-			this.dataSigners.forEach(signer => {
+			this.filesStore.signers().forEach(signer => {
 				const user = {
 					displayName: signer.displayName,
 					identify: {},

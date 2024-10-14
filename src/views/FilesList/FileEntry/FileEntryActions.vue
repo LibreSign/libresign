@@ -80,17 +80,17 @@ export default {
 	mounted() {
 		this.registerAction({
 			id: 'id-teste0',
-			title: 'Validate',
+			title: t('libresign', 'Validate'),
 			iconSvgInline: svgFile,
 		})
 		this.registerAction({
 			id: 'id-teste1',
-			title: 'Sign',
+			title: t('libresign', 'Sign'),
 			iconSvgInline: svgFile,
 		})
 		this.registerAction({
 			id: 'id-teste2',
-			title: 'Delete',
+			title: t('libresign', 'Delete'),
 			iconSvgInline: svgFile,
 		})
 	},
