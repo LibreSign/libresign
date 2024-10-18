@@ -2,7 +2,7 @@ OC.L10N.register(
     "libresign",
     {
     "You have a <strong>file to sign</strong>" : "لديك<strong>ملفات لتوقيعها</strong>",
-    "Other activities" : "حركات أخرى",
+    "Other activities" : "أنشطة أخرى",
     "{from} requested your signature on {file}" : "{from} طلب توقيعك على {file}",
     "{from} made changes on {file}" : "{from} قام بإحداث تغييرات على {file}",
     "Success" : "نجاح",
