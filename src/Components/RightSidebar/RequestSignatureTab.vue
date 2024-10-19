@@ -9,15 +9,15 @@
 	</div>
 	<div v-else
 		id="request-signature-tab">
-		<NcButton v-if="canAddSigner"
+		<NcButton v-if="filesStore.canAddSigner()"
 			:type="hasSigners ? 'secondary' : 'primary'"
 			@click="addSigner">
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
-		<Signers :signers="filesStore.signers()"
+		<Signers :signers="filesStore.signers"
 			event="libresign:edit-signer">
 			<template #actions="{signer}">
-				<NcActionButton v-if="canSave && !signer.signed"
+				<NcActionButton v-if="filesStore.canSave() && !signer.signed"
 					aria-label="Delete"
 					:close-after-click="true"
 					@click="filesStore.deleteSigner(signer)">
@@ -35,7 +35,7 @@
 			</template>
 		</Signers>
 		<div class="action-buttons">
-			<NcButton v-if="canSave"
+			<NcButton v-if="filesStore.canSave()"
 				:type="filesStore.canSign() ? 'secondary' : 'primary'"
 				:disabled="hasLoading"
 				@click="save()">
@@ -124,7 +124,7 @@ export default {
 	},
 	computed: {
 		hasSigners() {
-			return this.filesStore.hasSigners()
+			return this.filesStore.hasSigners(this.filesStore.getFile())
 		},
 		fileName() {
 			return this.filesStore.getFile()?.name ?? ''
@@ -205,7 +205,7 @@ export default {
 					users: [],
 				},
 			}
-			this.filesStore.signers().forEach(signer => {
+			(this.filesStore.getFile()?.signers ?? []).forEach(signer => {
 				const user = {
 					displayName: signer.displayName,
 					identify: {},
