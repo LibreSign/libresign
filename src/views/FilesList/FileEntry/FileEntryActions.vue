@@ -38,6 +38,7 @@ import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 
 import { useActionsMenuStore } from '../../../store/actionsmenu.js'
 import { useFilesStore } from '../../../store/files.js'
+import { useSidebarStore } from '../../../store/sidebar.js'
 import { useSignStore } from '../../../store/sign.js'
 
 export default {
@@ -65,10 +66,12 @@ export default {
 	setup() {
 		const actionsMenuStore = useActionsMenuStore()
 		const filesStore = useFilesStore()
+		const sidebarStore = useSidebarStore()
 		const signStore = useSignStore()
 		return {
 			actionsMenuStore,
 			filesStore,
+			sidebarStore,
 			signStore,
 		}
 	},
@@ -112,9 +115,11 @@ export default {
 	},
 	methods: {
 		async onActionClick(action) {
+			const uuid = this.source.uuid
+			this.openedMenu = null
+			this.sidebarStore.hideSidebar()
 			if (action.id === 'sign') {
-				this.openedMenu = null
-				const uuid = this.source.signers
+				this.source.signers
 					.reduce((accumulator, signer) => {
 						if (signer.me) {
 							return signer.sign_uuid
@@ -124,6 +129,8 @@ export default {
 				this.signStore.setDocumentToSign(this.source)
 				this.$router.push({ name: 'SignPDF', params: { uuid } })
 				this.filesStore.selectFile(this.source.nodeId)
+			} else if (action.id === 'validate') {
+				this.$router.push({ name: 'ValidationFile', params: { uuid } })
 			}
 		},
 		registerAction(action) {
