@@ -46,7 +46,10 @@ export const useFilesStore = function(...args) {
 				const sidebarStore = useSidebarStore()
 				sidebarStore.activeRequestSignatureTab()
 			},
-			getFile() {
+			getFile(file) {
+				if (typeof file === 'object') {
+					return file
+				}
 				return this.files[this.selectedNodeId] ?? {}
 			},
 			async flushSelectedFile() {
@@ -61,81 +64,86 @@ export const useFilesStore = function(...args) {
 			disableIdentifySigner() {
 				this.identifyingSigner = false
 			},
-			signers() {
-				return this.getFile()?.signers ?? []
-			},
-			hasSigners() {
+			hasSigners(file) {
+				file = this.getFile(file)
 				if (this.selectedNodeId === 0) {
 					return false
 				}
-				if (!Object.hasOwn(this.getFile(), 'signers')) {
+				if (!Object.hasOwn(file, 'signers')) {
 					return false
 				}
-				return this.files[this.selectedNodeId].signers.length > 0
+				return file.signers.length > 0
 			},
-			isPartialSigned() {
+			isPartialSigned(file) {
+				file = this.getFile(file)
 				if (this.selectedNodeId === 0) {
 					return false
 				}
-				if (!Object.hasOwn(this.getFile(), 'signers')) {
+				if (!Object.hasOwn(file, 'signers')) {
 					return false
 				}
-				return this.files[this.selectedNodeId].signers
+				return file.signers
 					.filter(signer => signer.signed?.length > 0).length > 0
 			},
-			isFullSigned() {
+			isFullSigned(file) {
+				file = this.getFile(file)
 				if (this.selectedNodeId === 0) {
 					return false
 				}
-				if (!Object.hasOwn(this.getFile(), 'signers')) {
+				if (!Object.hasOwn(file, 'signers')) {
 					return false
 				}
-				return this.files[this.selectedNodeId].signers.length > 0
-					&& this.files[this.selectedNodeId].signers
-						.filter(signer => signer.signed?.length > 0).length === this.files[this.selectedNodeId].signers.length
+				return file.signers.length > 0
+					&& file.signers
+						.filter(signer => signer.signed?.length > 0).length === file.signers.length
 			},
-			canSign() {
-				return !this.isFullSigned()
-				&& this.getFile().status > 0
-				&& this.getFile()?.signers?.filter(signer => signer.me).length > 0
-				&& this.getFile()?.signers?.filter(signer => signer.me)
+			canSign(file) {
+				file = this.getFile(file)
+				return !this.isFullSigned(file)
+				&& file.status > 0
+				&& file?.signers?.filter(signer => signer.me).length > 0
+				&& file?.signers?.filter(signer => signer.me)
 					.filter(signer => signer.signed?.length > 0).length === 0
 			},
-			canValidate() {
-				return this.isPartialSigned()
-					|| this.isFullSigned()
+			canValidate(file) {
+				file = this.getFile(file)
+				return this.isPartialSigned(file)
+					|| this.isFullSigned(file)
 			},
-			canDelete() {
+			canDelete(file) {
+				file = this.getFile(file)
 				return this.canRequestSign
 					&& (
-						!Object.hasOwn(this.getFile(), 'requested_by')
-						|| this.getFile().requested_by.userId === getCurrentUser().uid
+						!Object.hasOwn(file, 'requested_by')
+						|| file.requested_by.userId === getCurrentUser().uid
 					)
 			},
-			canAddSigner() {
+			canAddSigner(file) {
+				file = this.getFile(file)
 				return this.canRequestSign
 					&& (
-						!Object.hasOwn(this.getFile(), 'requested_by')
-						|| this.getFile().requested_by.userId === getCurrentUser().uid
+						!Object.hasOwn(file, 'requested_by')
+						|| file.requested_by.userId === getCurrentUser().uid
 					)
-					&& !this.isPartialSigned()
-					&& !this.isFullSigned()
+					&& !this.isPartialSigned(file)
+					&& !this.isFullSigned(file)
 			},
-			canSave() {
+			canSave(file) {
+				file = this.getFile(file)
 				return this.canRequestSign
 					&& (
-						!Object.hasOwn(this.getFile(), 'requested_by')
-						|| this.getFile().requested_by.userId === getCurrentUser().uid
+						!Object.hasOwn(file, 'requested_by')
+						|| file.requested_by.userId === getCurrentUser().uid
 					)
-					&& !this.isPartialSigned()
-					&& !this.isFullSigned()
-					&& this.getFile()?.signers?.length > 0
+					&& !this.isPartialSigned(file)
+					&& !this.isFullSigned(file)
+					&& file?.signers?.length > 0
 			},
 			getSubtitle() {
 				if (this.selectedNodeId === 0) {
 					return ''
 				}
-				const file = this.files[this.selectedNodeId]
+				const file = this.getFile()
 				if ((file?.requested_by?.userId ?? '').length === 0 || file?.request_date.length === 0) {
 					return ''
 				}
@@ -177,17 +185,17 @@ export const useFilesStore = function(...args) {
 			signerUpdate(signer) {
 				this.addIdentifierToSigner(signer)
 				// Remove if already exists
-				for (let i = this.files[this.selectedNodeId].signers.length - 1; i >= 0; i--) {
-					if (this.files[this.selectedNodeId].signers[i].identify === signer.identify) {
-						this.files[this.selectedNodeId].signers.splice(i, 1)
+				for (let i = this.getFile().signers.length - 1; i >= 0; i--) {
+					if (this.getFile().signers[i].identify === signer.identify) {
+						this.getFile().signers.splice(i, 1)
 						break
 					}
-					if (this.files[this.selectedNodeId].signers[i].signRequestId === signer.identify) {
-						this.files[this.selectedNodeId].signers.splice(i, 1)
+					if (this.getFile().signers[i].signRequestId === signer.identify) {
+						this.getFile().signers.splice(i, 1)
 						break
 					}
 				}
-				this.files[this.selectedNodeId].signers.push(signer)
+				this.getFile().signers.push(signer)
 			},
 			async deleteSigner(signer) {
 				if (!isNaN(signer.signRequestId)) {
