@@ -5,7 +5,7 @@
 			:force-name="true"
 			type="tertiary"
 			:open.sync="openedMenu"
-			@close="openedSubmenu = null">
+			@close="openedMenu = null">
 			<!-- Default actions list-->
 			<NcActionButton v-for="action in enabledMenuActions"
 				:key="action.id"
@@ -14,7 +14,8 @@
 					[`files-list__row-action-${action.id}`]: true,
 				}"
 				:aria-label="action.title"
-				:title="action.title">
+				:title="action.title"
+				@click="onActionClick(action)">
 				<template #icon>
 					<NcLoadingIcon v-if="loading === action.id" :size="18" />
 					<NcIconSvgWrapper v-else :svg="action.iconSvgInline" />
@@ -27,6 +28,8 @@
 
 <script>
 import svgFile from '@mdi/svg/svg/file.svg?raw'
+import svgSignature from '@mdi/svg/svg/signature.svg?raw'
+import svgTextBoxCheck from '@mdi/svg/svg/text-box-check.svg?raw'
 
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
@@ -34,6 +37,8 @@ import NcIconSvgWrapper from '@nextcloud/vue/dist/Components/NcIconSvgWrapper.js
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 
 import { useActionsMenuStore } from '../../../store/actionsmenu.js'
+import { useFilesStore } from '../../../store/files.js'
+import { useSignStore } from '../../../store/sign.js'
 
 export default {
 	name: 'FileEntryActions',
@@ -59,11 +64,16 @@ export default {
 	},
 	setup() {
 		const actionsMenuStore = useActionsMenuStore()
-		return { actionsMenuStore }
+		const filesStore = useFilesStore()
+		const signStore = useSignStore()
+		return {
+			actionsMenuStore,
+			filesStore,
+			signStore,
+		}
 	},
 	data() {
 		return {
-			openedSubmenu: null,
 			enabledMenuActions: [],
 		}
 	},
@@ -78,23 +88,44 @@ export default {
 		},
 	},
 	mounted() {
-		this.registerAction({
-			id: 'id-teste0',
-			title: t('libresign', 'Validate'),
-			iconSvgInline: svgFile,
-		})
-		this.registerAction({
-			id: 'id-teste1',
-			title: t('libresign', 'Sign'),
-			iconSvgInline: svgFile,
-		})
-		this.registerAction({
-			id: 'id-teste2',
-			title: t('libresign', 'Delete'),
-			iconSvgInline: svgFile,
-		})
+		if (this.filesStore.getFile(this.filesStore.files[this.source.nodeId])) {
+			this.registerAction({
+				id: 'validate',
+				title: t('libresign', 'Validate'),
+				iconSvgInline: svgTextBoxCheck,
+			})
+		}
+		if (this.filesStore.canSign(this.filesStore.files[this.source.nodeId])) {
+			this.registerAction({
+				id: 'sign',
+				title: t('libresign', 'Sign'),
+				iconSvgInline: svgSignature,
+			})
+		}
+		if (this.filesStore.canDelete(this.filesStore.files[this.source.nodeId])) {
+			this.registerAction({
+				id: 'delete',
+				title: t('libresign', 'Delete'),
+				iconSvgInline: svgFile,
+			})
+		}
 	},
 	methods: {
+		async onActionClick(action) {
+			if (action.id === 'sign') {
+				this.openedMenu = null
+				const uuid = this.source.signers
+					.reduce((accumulator, signer) => {
+						if (signer.me) {
+							return signer.sign_uuid
+						}
+						return accumulator
+					}, '')
+				this.signStore.setDocumentToSign(this.source)
+				this.$router.push({ name: 'SignPDF', params: { uuid } })
+				this.filesStore.selectFile(this.source.nodeId)
+			}
+		},
 		registerAction(action) {
 			this.enabledMenuActions = [...this.enabledMenuActions, action]
 		},
