@@ -198,4 +198,52 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->setPassword('password')
 			->sign();
 	}
+
+	/**
+	 * @dataProvider dataSignWithSuccess
+	 */
+	public function testSignWithSuccess(string $mimetype, string $filename, string $extension):void {
+		$this->createAccount('username', 'password');
+
+		$file = new \OCA\Libresign\Db\File();
+		$file->setUserId('username');
+
+		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
+		$nextcloudFile->method('getMimeType')->willReturn($mimetype);
+		$nextcloudFile->method('getExtension')->willReturn($extension);
+		$nextcloudFile->method('getPath')->willReturn($filename);
+		$nextcloudFile->method('getContent')->willReturn('fake content');
+		$nextcloudFile->method('getId')->willReturn(171);
+
+		$this->root->method('getById')->willReturn([$nextcloudFile]);
+		$this->root->method('newFile')->willReturn($nextcloudFile);
+		$this->userMountCache->method('getMountsForFileId')->wilLReturn([]);
+
+		$this->pkcs12Handler->method('setInputFile')->willReturn($this->pkcs12Handler);
+		$this->pkcs12Handler->method('setCertificate')->willReturn($this->pkcs12Handler);
+		$this->pkcs12Handler->method('setVisibleElements')->willReturn($this->pkcs12Handler);
+		$this->pkcs12Handler->method('setPassword')->willReturn($this->pkcs12Handler);
+		$this->pkcs12Handler->method('sign')->willReturn($nextcloudFile);
+
+		$this->pkcs7Handler->method('setInputFile')->willReturn($this->pkcs12Handler);
+		$this->pkcs7Handler->method('setCertificate')->willReturn($this->pkcs12Handler);
+		$this->pkcs7Handler->method('setPassword')->willReturn($this->pkcs12Handler);
+		$this->pkcs7Handler->method('sign')->willReturn($nextcloudFile);
+
+		$signRequest = new \OCA\Libresign\Db\SignRequest();
+		$signRequest->setFileId(171);
+		$this->getService()
+			->setLibreSignFile($file)
+			->setSignRequest($signRequest)
+			->setPassword('password')
+			->sign();
+		$this->assertTrue(true);
+	}
+
+	public static function dataSignWithSuccess(): array {
+		return [
+			['application/pdf', 'file.PDF', 'PDF'],
+			['application/pdf', 'file.pdf', 'pdf'],
+		];
+	}
 }
