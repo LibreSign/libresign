@@ -20,7 +20,7 @@
  */
 
 import { defineStore } from 'pinia'
-import { set } from 'vue'
+import { del, set } from 'vue'
 
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
@@ -226,6 +226,13 @@ export const useFilesStore = function(...args) {
 					'signers',
 					this.files[this.selectedNodeId].signers.filter((i) => i.identify !== signer.identify),
 				)
+			},
+			async delete(file) {
+				file = this.getFile(file)
+				const response = await axios.delete(generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}', {
+					fileId: file.nodeId
+				}))
+				del(this.files, file.nodeId)
 			},
 			async getAllFiles(filter) {
 				if (!filter) filter = {}
