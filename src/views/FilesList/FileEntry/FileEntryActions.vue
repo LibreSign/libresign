@@ -131,6 +131,8 @@ export default {
 				this.filesStore.selectFile(this.source.nodeId)
 			} else if (action.id === 'validate') {
 				this.$router.push({ name: 'ValidationFile', params: { uuid } })
+			} else if (action.id === 'delete') {
+				this.filesStore.delete(this.source)
 			}
 		},
 		registerAction(action) {
