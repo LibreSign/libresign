@@ -12,9 +12,9 @@ use BaconQrCode\Encoder\Encoder;
 use Endroid\QrCode\Bacon\ErrorCorrectionLevelConverter;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelLow;
 use Endroid\QrCode\QrCode;
-use Endroid\QrCode\RoundBlockSizeMode;
+use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
 use Endroid\QrCode\Writer\PngWriter;
 use Mpdf\Mpdf;
 use OCA\Libresign\Db\File as FileEntity;
@@ -171,9 +171,9 @@ class FooterHandler {
 	private function getQrCodeImageBase64(string $text): string {
 		$this->qrCode = QrCode::create($text)
 			->setEncoding(new Encoding('UTF-8'))
-			->setErrorCorrectionLevel(ErrorCorrectionLevel::Low)
+			->setErrorCorrectionLevel(new ErrorCorrectionLevelLow())
 			->setMargin(4)
-			->setRoundBlockSizeMode(RoundBlockSizeMode::Margin)
+			->setRoundBlockSizeMode(new RoundBlockSizeModeMargin())
 			->setForegroundColor(new Color(0, 0, 0))
 			->setBackgroundColor(new Color(255, 255, 255));
 		$this->setQrCodeSize();
