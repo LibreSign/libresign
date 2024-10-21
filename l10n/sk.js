@@ -72,7 +72,7 @@ OC.L10N.register(
     "File already signed." : "Súbor už je podpísaný.",
     "Invalid file type." : "Neplatný typ súboru.",
     "You are not allowed to approve user profile documents." : "Nemáte povolené schvaľovať dokumenty užívateľského profilu.",
-    "File sharing" : "Sprístupnenie súborov",
+    "File sharing" : "Zdieľanie súborov",
     "View" : "Zobrazenie",
     "Dismiss notification" : "Zatvoriť upozornenie",
     "UUID not found" : "UUID nenájdené",
