@@ -281,7 +281,7 @@ class SignFileService {
 	public function sign(): File {
 		$fileToSign = $this->getFileToSing($this->libreSignFile);
 		$pfxFileContent = $this->getPfxFile();
-		switch ($fileToSign->getExtension()) {
+		switch (strtolower($fileToSign->getExtension())) {
 			case 'pdf':
 				$signedFile = $this->pkcs12Handler
 					->setInputFile($fileToSign)
@@ -419,7 +419,7 @@ class SignFileService {
 			}
 			$originalFile = current($originalFile);
 		}
-		if ($originalFile->getExtension() === 'pdf') {
+		if (strtolower($originalFile->getExtension()) === 'pdf') {
 			return $this->getPdfToSign($libresignFile, $originalFile);
 		}
 		return $originalFile;
