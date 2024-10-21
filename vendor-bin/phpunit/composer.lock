@@ -1018,12 +1018,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "857d98630470c48a353f673060dec98e8c0686b2"
+                "reference": "fcd1efebc9510d2e1cff8fcf1b13ad2a7827d675"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/857d98630470c48a353f673060dec98e8c0686b2",
-                "reference": "857d98630470c48a353f673060dec98e8c0686b2",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/fcd1efebc9510d2e1cff8fcf1b13ad2a7827d675",
+                "reference": "fcd1efebc9510d2e1cff8fcf1b13ad2a7827d675",
                 "shasum": ""
             },
             "require": {
@@ -1113,7 +1113,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-10-08T05:58:25+00:00"
+            "time": "2024-10-19T09:36:22+00:00"
         },
         {
             "name": "psr/http-client",
@@ -2343,12 +2343,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/deprecation-contracts.git",
-                "reference": "d36279a5a4bc7f3ca2c412839f10d7c0aa2c1a02"
+                "reference": "605389f2a7e5625f273b53960dc46aeaf9c62918"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/deprecation-contracts/zipball/d36279a5a4bc7f3ca2c412839f10d7c0aa2c1a02",
-                "reference": "d36279a5a4bc7f3ca2c412839f10d7c0aa2c1a02",
+                "url": "https://api.github.com/repos/symfony/deprecation-contracts/zipball/605389f2a7e5625f273b53960dc46aeaf9c62918",
+                "reference": "605389f2a7e5625f273b53960dc46aeaf9c62918",
                 "shasum": ""
             },
             "require": {
@@ -2402,7 +2402,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-04-18T08:26:06+00:00"
+            "time": "2024-09-25T14:11:13+00:00"
         },
         {
             "name": "symfony/polyfill-ctype",
