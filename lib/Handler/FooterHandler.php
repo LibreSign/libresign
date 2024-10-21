@@ -31,7 +31,6 @@ use Twig\Loader\FilesystemLoader;
 
 class FooterHandler {
 	private QrCode $qrCode;
-	private Environment $twigEnvironment;
 	private File $file;
 	private FileEntity $fileEntity;
 	private const MIN_QRCODE_SIZE = 100;
@@ -45,9 +44,6 @@ class FooterHandler {
 		private IL10N $l10n,
 		private ITempManager $tempManager,
 	) {
-		$this->twigEnvironment = new Environment(
-			new FilesystemLoader(),
-		);
 	}
 
 	public function getFooter(File $file, FileEntity $fileEntity): string {
@@ -102,7 +98,10 @@ class FooterHandler {
 
 	private function getRenderedHtmlFooter(): string {
 		try {
-			return $this->twigEnvironment
+			$twigEnvironment = new Environment(
+				new FilesystemLoader(),
+			);
+			return $twigEnvironment
 				->createTemplate($this->getTemplate())
 				->render($this->getTemplateVars());
 		} catch (SyntaxError $e) {
