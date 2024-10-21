@@ -11,10 +11,6 @@
          displayDetailsOnTestsThatTriggerWarnings="true"
          beStrictAboutCoverageMetadata="true">
   <testsuites>
-    <testsuite name="default">
-      <directory suffix="Test.php">tests/Api</directory>
-      <directory suffix="Test.php">tests/Unit</directory>
-    </testsuite>
     <testsuite name="api">
       <directory suffix="Test.php">tests/Api</directory>
     </testsuite>
