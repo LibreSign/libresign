@@ -50,11 +50,11 @@ class IdentifyMethod extends Entity {
 
 	public function __construct() {
 		$this->addType('signRequestId', 'integer');
-		$this->addType('mandatory', 'int');
+		$this->addType('mandatory', 'integer');
 		$this->addType('code', 'string');
 		$this->addType('identifierKey', 'string');
 		$this->addType('identifierValue', 'string');
-		$this->addType('attempts', 'int');
+		$this->addType('attempts', 'integer');
 		$this->addType('identifiedAtDate', 'datetime');
 		$this->addType('lastAttemptDate', 'datetime');
 		$this->addType('metadata', Types::JSON);
