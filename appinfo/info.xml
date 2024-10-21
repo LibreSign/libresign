@@ -10,7 +10,7 @@
 * 👥 **Multiple signers**: Request signature on a document for as many people as you need
 * 📸 **QR Code**: Document validation by QR Code
 * 🔒 **Privacy**: Fully self-hosted document signer
-* 📲 **Connect to your software**: Easily integrate [LibreSign](https://libresign.coop) into your service with our full-fledged
+* 📲 **Connect to your software**: Easily integrate [LibreSign](https://libresign.coop) into your service with our full-fledged [REST-API](https://libresign.coop/posts/libresign-api-guide/).
 * 🙋 **Get involved**! We have lots of stuff planned. More information at [LibreSign](https://github.com/libresign/libresign) repository.
 
 🌍 Help us translate this application on [Transifex](https://app.transifex.com/nextcloud/nextcloud/libresign/)
