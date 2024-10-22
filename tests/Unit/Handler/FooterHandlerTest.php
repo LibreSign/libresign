@@ -69,19 +69,20 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'footer_validate_in' => 'Validate in %s.',
 					'footer_template' => <<<'HTML'
 						<div style="font-size:8px;">
-						qrcodeSize:{{ qrcodeSize }}<br />
-						signedBy:{{ signedBy }}<br />
-						validateIn:{{ validateIn }}<br />
-						test:{{ test }}<br />
-						qrcode:{{ qrcode }}
+						qrcodeSize:<?= $qrcodeSize ?><br />
+						signedBy:<?= $signedBy ?><br />
+						validateIn:<?= $validateIn ?><br />
+						test:<?= $test ?><br />
+						qrcode:<?= $qrcode ?>
 						</div>
 						HTML,
 					default => '',
 				};
 			});
-		$this->tempManager
-			->method('getTempBaseDir')
-			->willReturn(sys_get_temp_dir());
+		$this->tempManager->method('getTempBaseDir')->willReturn(sys_get_temp_dir());
+		$tempName = sys_get_temp_dir() . '/' . mt_rand() . '.php';
+		touch($tempName);
+		$this->tempManager->method('getTemporaryFile')->willReturn($tempName);
 
 		$file = $this->createMock(\OCP\Files\File::class);
 		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
