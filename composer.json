@@ -2,12 +2,12 @@
 	"require": {
 		"endroid/qr-code": "^5.0",
 		"jsignpdf/jsignpdf-php": "^1.2",
+		"league/plates": "^3.5",
 		"libresign/whatosami": "^0.0.1",
 		"mikehaertl/php-pdftk": "^0.13.0",
 		"mpdf/mpdf": "^8.2",
 		"pagerfanta/pagerfanta": "^4.5",
 		"smalot/pdfparser": "^2.4",
-		"twig/twig": "^3.9",
 		"wobeto/email-blur": "^1.0"
 	},
 	"require-dev": {
@@ -33,14 +33,11 @@
 		"cs:check": "php-cs-fixer fix --dry-run --diff",
 		"cs:fix": "php-cs-fixer fix",
 		"openapi": "generate-spec --verbose && (npm run typescript:generate || echo 'Please manually regenerate the typescript OpenAPI models')",
-		"psalm": "psalm --threads=1",
-		"psalm:update-baseline": "psalm --threads=1 --update-baseline --set-baseline=tests/psalm-baseline.xml",
+		"psalm": "psalm --threads=$(nproc)",
+		"psalm:update-baseline": "psalm --threads=$(nproc) --update-baseline --set-baseline=tests/psalm-baseline.xml",
 		"psalm:clear": "psalm --clear-cache && psalm --clear-global-cache",
 		"post-install-cmd": [
 			"@composer bin all install --ansi",
-			"composer dump-autoload"
-		],
-		"post-update-cmd": [
 			"composer dump-autoload"
 		],
 		"test:unit": "vendor/bin/phpunit --no-coverage",
