@@ -16,22 +16,18 @@ use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\RoundBlockSizeMode;
 use Endroid\QrCode\Writer\PngWriter;
+use League\Plates\Engine;
 use Mpdf\Mpdf;
 use OCA\Libresign\Db\File as FileEntity;
-use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\PdfParserService;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\File;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
-use Twig\Environment;
-use Twig\Error\SyntaxError;
-use Twig\Loader\FilesystemLoader;
 
 class FooterHandler {
 	private QrCode $qrCode;
-	private Environment $twigEnvironment;
 	private File $file;
 	private FileEntity $fileEntity;
 	private const MIN_QRCODE_SIZE = 100;
@@ -45,9 +41,6 @@ class FooterHandler {
 		private IL10N $l10n,
 		private ITempManager $tempManager,
 	) {
-		$this->twigEnvironment = new Environment(
-			new FilesystemLoader(),
-		);
 	}
 
 	public function getFooter(File $file, FileEntity $fileEntity): string {
@@ -101,13 +94,10 @@ class FooterHandler {
 	}
 
 	private function getRenderedHtmlFooter(): string {
-		try {
-			return $this->twigEnvironment
-				->createTemplate($this->getTemplate())
-				->render($this->getTemplateVars());
-		} catch (SyntaxError $e) {
-			throw new LibresignException($e->getMessage());
-		}
+		$tempFile = $this->tempManager->getTemporaryFile('.php');
+		file_put_contents($tempFile, $this->getTemplate());
+		$templates = new Engine($this->tempManager->getTempBaseDir());
+		return $templates->render(pathinfo($tempFile, PATHINFO_FILENAME), $this->getTemplateVars());
 	}
 
 	public function setTemplateVar(string $name, mixed $value): self {
@@ -144,28 +134,7 @@ class FooterHandler {
 	}
 
 	private function getTemplate(): string {
-		return $this->appConfig->getAppValue('footer_template', <<<'HTML'
-			<table style="width:100%;border:0;font-size:8px;">
-				<tr>
-					{% if qrcode %}
-						<td width="{{ qrcodeSize }}px">
-							<img src="data:image/png;base64,{{ qrcode }}" style="width:{{ qrcodeSize }}px"/>
-						</td>
-					{% endif %}
-					<td style="vertical-align: bottom;padding: 0px 0px 15px 0px;line-height:1.5em;">
-						<a href="{{ linkToSite }}" style="text-decoration: none;color:unset;">{{ signedBy }}</a>
-						{% if validateIn %}
-							<br>
-							<a href="{{ validationSite }}"
-								style="text-decoration: none;color:unset;">
-								{{ validateIn|replace({'%s': validationSite}) }}
-							</a>
-						{% endif %}
-					</td>
-				</tr>
-			</table>
-			HTML
-		);
+		return $this->appConfig->getAppValue('footer_template', file_get_contents(__DIR__ . '/Templates/footer.php'));
 	}
 
 	private function getQrCodeImageBase64(string $text): string {
