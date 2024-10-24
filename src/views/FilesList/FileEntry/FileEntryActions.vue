@@ -147,7 +147,7 @@ export default {
 			this.openedMenu = null
 			this.sidebarStore.hideSidebar()
 			if (action.id === 'sign') {
-				const signer = this.source.signers
+				const sign_uuid = this.source.signers
 					.reduce((accumulator, signer) => {
 						if (signer.me) {
 							return signer.sign_uuid
@@ -156,7 +156,7 @@ export default {
 					}, '')
 				this.signStore.setDocumentToSign(this.source)
 				this.$router.push({ name: 'SignPDF', params: {
-					uuid: signer.sign_uui
+					uuid: sign_uuid
 				}})
 				this.filesStore.selectFile(this.source.nodeId)
 			} else if (action.id === 'validate') {
