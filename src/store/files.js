@@ -28,6 +28,7 @@ export const useFilesStore = function(...args) {
 				loading: false,
 				filterActive: 'all',
 				canRequestSign: loadState('libresign', 'can_request_sign', false),
+				ordered: [],
 			}
 		},
 
@@ -35,6 +36,7 @@ export const useFilesStore = function(...args) {
 			addFile(file) {
 				set(this.files, file.nodeId, file)
 				this.hydrateFile(file.nodeId)
+				this.ordered.push(file.nodeId)
 			},
 			selectFile(nodeId) {
 				this.selectedNodeId = nodeId ?? 0
@@ -213,6 +215,11 @@ export const useFilesStore = function(...args) {
 					}))
 				}
 				del(this.files, file.nodeId)
+
+				const index = this.ordered.indexOf(file.nodeId)
+				if (index > -1) {
+					this.ordered.splice(index, 1)
+				}
 			},
 			async getAllFiles(filter) {
 				if (!filter) filter = {}
@@ -234,10 +241,14 @@ export const useFilesStore = function(...args) {
 				}
 				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'), { params: filter })
 				this.files = {}
+				this.ordered = []
 				response.data.ocs.data.data.forEach(file => {
 					this.addFile(file)
 				})
 				return this.files
+			},
+			filesSorted() {
+				return this.ordered.map(key => this.files[key])
 			},
 			filter(type) {
 				this.filterActive = type
