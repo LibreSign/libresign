@@ -76,9 +76,6 @@ export const useFilesStore = function(...args) {
 			},
 			isPartialSigned(file) {
 				file = this.getFile(file)
-				if (this.selectedNodeId === 0) {
-					return false
-				}
 				if (!Object.hasOwn(file, 'signers')) {
 					return false
 				}
@@ -87,9 +84,6 @@ export const useFilesStore = function(...args) {
 			},
 			isFullSigned(file) {
 				file = this.getFile(file)
-				if (this.selectedNodeId === 0) {
-					return false
-				}
 				if (!Object.hasOwn(file, 'signers')) {
 					return false
 				}

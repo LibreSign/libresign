@@ -110,7 +110,7 @@ export default {
 			},
 		},
 		visibleMenu() {
-			return this.enabledMenuActions.filter(action => this.visibleIf(action.id))
+			return this.enabledMenuActions.filter(action => this.visibleIf(action))
 		},
 	},
 	mounted() {
@@ -131,24 +131,23 @@ export default {
 		})
 	},
 	methods: {
-		visibleIf(id) {
+		visibleIf(action) {
 			const file = this.filesStore.files[this.source.nodeId]
 			let visible = false
-			if (id === 'sign') {
+			if (action.id === 'sign') {
 				visible = this.filesStore.canSign(file)
-			} else if (id === 'validate') {
+			} else if (action.id === 'validate') {
 				visible = this.filesStore.canValidate(file)
-			} else if (id === 'delete') {
+			} else if (action.id === 'delete') {
 				visible = this.filesStore.canDelete(file)
 			}
 			return visible
 		},
-		async onActionClick(id) {
-			const uuid = this.source.uuid
+		async onActionClick(action) {
 			this.openedMenu = null
 			this.sidebarStore.hideSidebar()
-			if (id === 'sign') {
-				this.source.signers
+			if (action.id === 'sign') {
+				const signer = this.source.signers
 					.reduce((accumulator, signer) => {
 						if (signer.me) {
 							return signer.sign_uuid
@@ -156,11 +155,15 @@ export default {
 						return accumulator
 					}, '')
 				this.signStore.setDocumentToSign(this.source)
-				this.$router.push({ name: 'SignPDF', params: { uuid } })
+				this.$router.push({ name: 'SignPDF', params: {
+					uuid: signer.sign_uui
+				}})
 				this.filesStore.selectFile(this.source.nodeId)
-			} else if (id === 'validate') {
-				this.$router.push({ name: 'ValidationFile', params: { uuid } })
-			} else if (id === 'delete') {
+			} else if (action.id === 'validate') {
+				this.$router.push({ name: 'ValidationFile', params: {
+					uuid: this.source.uuid,
+				} })
+			} else if (action.id === 'delete') {
 				this.confirmDelete = true
 			}
 		},
