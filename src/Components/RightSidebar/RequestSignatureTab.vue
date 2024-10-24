@@ -204,7 +204,7 @@ export default {
 					name: this.filesStore.getFile()?.name,
 					users: [],
 				},
-			}
+			};
 			(this.filesStore.getFile()?.signers ?? []).forEach(signer => {
 				const user = {
 					displayName: signer.displayName,
