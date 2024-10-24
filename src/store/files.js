@@ -223,9 +223,11 @@ export const useFilesStore = function(...args) {
 			},
 			async delete(file) {
 				file = this.getFile(file)
-				const response = await axios.delete(generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}', {
-					fileId: file.nodeId,
-				}))
+				if (file?.uuid !== undefined) {
+					const response = await axios.delete(generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}', {
+						fileId: file.nodeId,
+					}))
+				}
 				del(this.files, file.nodeId)
 			},
 			async getAllFiles(filter) {
