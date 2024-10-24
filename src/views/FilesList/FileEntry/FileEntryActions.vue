@@ -7,7 +7,7 @@
 			:open.sync="openedMenu"
 			@close="openedMenu = null">
 			<!-- Default actions list-->
-			<NcActionButton v-for="action in enabledMenuActions"
+			<NcActionButton v-for="action in visibleMenu"
 				:key="action.id"
 				:ref="`action-${action.id}`"
 				:class="{
@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import svgFile from '@mdi/svg/svg/file.svg?raw'
+import svgDelete from '@mdi/svg/svg/delete.svg?raw'
 import svgSignature from '@mdi/svg/svg/signature.svg?raw'
 import svgTextBoxCheck from '@mdi/svg/svg/text-box-check.svg?raw'
 
@@ -109,36 +109,45 @@ export default {
 				this.actionsMenuStore.opened = opened ? this.source.nodeId : null
 			},
 		},
+		visibleMenu() {
+			return this.enabledMenuActions.filter(action => this.visibleIf(action.id))
+		},
 	},
 	mounted() {
-		if (this.filesStore.getFile(this.filesStore.files[this.source.nodeId])) {
-			this.registerAction({
-				id: 'validate',
-				title: t('libresign', 'Validate'),
-				iconSvgInline: svgTextBoxCheck,
-			})
-		}
-		if (this.filesStore.canSign(this.filesStore.files[this.source.nodeId])) {
-			this.registerAction({
-				id: 'sign',
-				title: t('libresign', 'Sign'),
-				iconSvgInline: svgSignature,
-			})
-		}
-		if (this.filesStore.canDelete(this.filesStore.files[this.source.nodeId])) {
-			this.registerAction({
-				id: 'delete',
-				title: t('libresign', 'Delete'),
-				iconSvgInline: svgFile,
-			})
-		}
+		this.registerAction({
+			id: 'validate',
+			title: t('libresign', 'Validate'),
+			iconSvgInline: svgTextBoxCheck,
+		})
+		this.registerAction({
+			id: 'sign',
+			title: t('libresign', 'Sign'),
+			iconSvgInline: svgSignature,
+		})
+		this.registerAction({
+			id: 'delete',
+			title: t('libresign', 'Delete'),
+			iconSvgInline: svgDelete,
+		})
 	},
 	methods: {
-		async onActionClick(action) {
+		visibleIf(id) {
+			const file = this.filesStore.files[this.source.nodeId]
+			let visible = false
+			if (id === 'sign') {
+				visible = this.filesStore.canSign(file)
+			} else if (id === 'validate') {
+				visible = this.filesStore.canValidate(file)
+			} else if (id === 'delete') {
+				visible = this.filesStore.canDelete(file)
+			}
+			return visible
+		},
+		async onActionClick(id) {
 			const uuid = this.source.uuid
 			this.openedMenu = null
 			this.sidebarStore.hideSidebar()
-			if (action.id === 'sign') {
+			if (id === 'sign') {
 				this.source.signers
 					.reduce((accumulator, signer) => {
 						if (signer.me) {
@@ -149,9 +158,9 @@ export default {
 				this.signStore.setDocumentToSign(this.source)
 				this.$router.push({ name: 'SignPDF', params: { uuid } })
 				this.filesStore.selectFile(this.source.nodeId)
-			} else if (action.id === 'validate') {
+			} else if (id === 'validate') {
 				this.$router.push({ name: 'ValidationFile', params: { uuid } })
-			} else if (action.id === 'delete') {
+			} else if (id === 'delete') {
 				this.confirmDelete = true
 			}
 		},
