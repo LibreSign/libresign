@@ -100,10 +100,10 @@ export const useFilesStore = function(...args) {
 			canSign(file) {
 				file = this.getFile(file)
 				return !this.isFullSigned(file)
-				&& file.status > 0
-				&& file?.signers?.filter(signer => signer.me).length > 0
-				&& file?.signers?.filter(signer => signer.me)
-					.filter(signer => signer.signed?.length > 0).length === 0
+					&& file.status > 0
+					&& file?.signers?.filter(signer => signer.me).length > 0
+					&& file?.signers?.filter(signer => signer.me)
+						.filter(signer => signer.signed?.length > 0).length === 0
 			},
 			canValidate(file) {
 				file = this.getFile(file)
