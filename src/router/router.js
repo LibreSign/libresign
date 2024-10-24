@@ -159,6 +159,11 @@ const router = new Router({
 			component: () => import('../views/Timeline/Timeline.vue'),
 		},
 		{
+			path: '/f/filelist/sign',
+			name: 'fileslist',
+			component: () => import('../views/FilesList/FilesList.vue'),
+		},
+		{
 			path: '/f/request',
 			name: 'requestFiles',
 			beforeEnter: (to, from, next) => {
