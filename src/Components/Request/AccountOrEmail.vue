@@ -1,3 +1,7 @@
+<!--
+  - SPDX-FileCopyrightText: 2024 LibreCode coop and LibreCode contributors
+  - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
 <template>
 	<div id="account-or-email">
 		<label for="account-or-email-input">{{ t('libresign', 'Search signer') }}</label>
