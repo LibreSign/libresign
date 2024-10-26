@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+apis:
+    openapi@v1:
+        root: ./openapi.json
+        x-openapi-ts:
+            output: ./src/types/openapi/openapi.ts
+    openapi-administration@v1:
+        root: ./openapi-administration.json
+        x-openapi-ts:
+            output: ./src/types/openapi/openapi-administration.ts
+    openapi-full@v1:
+        root: ./openapi-full.json
+        x-openapi-ts:
+            output: ./src/types/openapi/openapi-full.ts
