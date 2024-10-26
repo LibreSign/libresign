@@ -1,3 +1,7 @@
+<!--
+  - SPDX-FileCopyrightText: 2024 LibreCode coop and LibreCode contributors
+  - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
 <template>
 	<div v-if="enabledFlow" class="documents">
 		<h1>{{ t('libresign', 'Your profile documents') }}</h1>
