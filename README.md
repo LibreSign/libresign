@@ -1,5 +1,11 @@
+<!--
+ - SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
 ![Test Status](https://github.com/LibreSign/libresign/actions/workflows/behat.yml/badge.svg?branch=stable29)
+![Total Downloads](https://img.shields.io/github/downloads/libresign/libresign/total)
 [![Coverage Status](https://coveralls.io/repos/github/LibreSign/libresign/badge.svg?branch=stable29)](https://coveralls.io/github/LibreSign/libresign?branch=stable29)
+[![REUSE status](https://api.reuse.software/badge/github.com/LibreSign/libresign)](https://api.reuse.software/info/github.com/LibreSign/libresign)
 [![Start contributing](https://img.shields.io/github/issues/LibreSign/libresign/good%20first%20issue?color=7057ff&label=Contribute)](https://github.com/LibreSign/libresign/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+issue%22)
 
 Nextcloud app to sign PDF documents.
