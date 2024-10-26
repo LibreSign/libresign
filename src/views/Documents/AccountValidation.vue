@@ -1,3 +1,7 @@
+<!--
+  - SPDX-FileCopyrightText: 2024 LibreCode coop and LibreCode contributors
+  - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
 <template>
 	<ProgressBar v-if="loading" infinity />
 	<div v-else class="is-fullwidth container-account-docs-to-validate with-sidebar--full">
