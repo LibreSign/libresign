@@ -63,6 +63,10 @@ module.exports = merge(nextcloudWebpackConfig, {
 				resourceQuery: /raw/,
 				type: 'asset/source',
 			},
+			{
+				test: /pdf\.worker(\.min)?\.mjs$/,
+				type: 'asset/resource'
+			},
 		],
 	},
 	cache: true,
