@@ -1,3 +1,7 @@
+<!--
+ - SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
 ---
 name: Bug report
 about: Create a report to help us improve

@@ -1,7 +1,12 @@
 #!/bin/bash
+#
+# SPDX-FileCopyrightText: 2024 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
 
 (
     . /var/www/scripts/entrypoint.sh && php-fpm --daemonize
+
 )
 
 git config --global --add safe.directory /var/www/html
