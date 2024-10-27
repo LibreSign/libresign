@@ -179,7 +179,7 @@ OC.L10N.register(
     "Add signer" : "أضِف صاحب توقيع",
     "Send reminder" : "إرسال تذكير",
     "Enter who will receive the request" : "أدخِل من سيستلم الطلب",
-    "Loading …" : "جاري التحميل …",
+    "Loading …" : "التحميل جارٍ ...",
     "Document not available for signature." : "الوثيقة ليست متاحة للتوقيع.",
     "signed at {date}" : "تمّ توقيعه بتاريخ: {date}",
     "pending" : "مُعلّق قيد الانتظار",
