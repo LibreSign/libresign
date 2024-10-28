@@ -2603,13 +2603,13 @@
     "minimum-stability": "dev",
     "stability-flags": {
         "byjg/swagger-test": 20,
-        "smalot/pdfparser": 20,
-        "phpunit/phpunit": 20
+        "phpunit/phpunit": 20,
+        "smalot/pdfparser": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
-    "platform-dev": [],
+    "platform": {},
+    "platform-dev": {},
     "platform-overrides": {
         "php": "8.1"
     },
