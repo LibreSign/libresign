@@ -47,5 +47,30 @@ export default {
 			userConfigStore,
 		}
 	},
+	data() {
+		return {
+			observer: null,
+		}
+	},
+	mounted() {
+		this.observer = new IntersectionObserver(([entry]) => {
+			if (entry && entry.isIntersecting) {
+				this.filesStore.getAllFiles()
+			}
+		})
+		// Is there a better way to target the last tr element? Maybe something like useRef?
+		if (this.$el.querySelector('table tbody tr:last-child')) {
+			this.observer.observe(this.$el.querySelector('table tbody tr:last-child'))
+		}
+	},
+	beforeDestroy() {
+		if (this.observer) this.observer.disconnect()
+	},
+	updated() {
+		if (this.observer) {
+			this.observer.disconnect()
+			this.observer.observe(this.$el.querySelector('table tbody tr:last-child'))
+		}
+	},
 }
 </script>
