@@ -290,6 +290,7 @@ OC.L10N.register(
     "Full name of the main company or main user of this instance" : "Nom complet de l'organisation ou de l'utilisateur principal de cette instance",
     "Define custom values to use {engine}" : "Définir des valeurs personnalisés pour utiliser {engine}",
     "Not mandatory, don't fill to use default value." : "Facultatif, ne pas remplir pour utiliser les valeurs par défaut.",
+    "Root certificate data" : "Certificat de données racine",
     "To generate new signatures, you must first generate the root certificate." : "Pour générer de nouvelles signatures, vous devez d'abord générer le certificat racine.",
     "Generate root certificate" : "Générer un certificat racine",
     "Generating certificate." : "Génération du certificat. ",
