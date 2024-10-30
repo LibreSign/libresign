@@ -13,8 +13,6 @@
 </template>
 
 <script>
-import { size } from 'lodash-es'
-
 import NcCounterBubble from '@nextcloud/vue/dist/Components/NcCounterBubble.js'
 
 export default {
@@ -36,7 +34,7 @@ export default {
 	},
 	computed: {
 		size() {
-			return size(this.pages)
+			return this.pages.length
 		},
 		actual() {
 			return this.value
