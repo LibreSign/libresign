@@ -88,6 +88,7 @@ import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
+// eslint-disable-next-line import/no-named-as-default
 import NcRichText from '@nextcloud/vue/dist/Components/NcRichText.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 
