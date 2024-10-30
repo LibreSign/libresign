@@ -37,9 +37,8 @@
 </template>
 
 <script>
+// eslint-disable-next-line import/default
 import VuePdfEditor from '@libresign/vue-pdf-editor'
-import { GlobalWorkerOptions } from 'pdfjs-dist'
-import pdfWorkerCode from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs'
 
 import Signature from './Signature.vue'
 
@@ -59,9 +58,6 @@ export default {
 			type: Boolean,
 			default: false,
 		},
-	},
-	async mounted() {
-		GlobalWorkerOptions.workerSrc = pdfWorkerCode
 	},
 	methods: {
 		endInit(event) {
