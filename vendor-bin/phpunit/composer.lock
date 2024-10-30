@@ -13,18 +13,18 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-swagger-test.git",
-                "reference": "30190f22f21e9d178f127361629edfae73ab9b8c"
+                "reference": "1aaeb108c0e0ec17a81ae4d7c073f0fc765ded11"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/30190f22f21e9d178f127361629edfae73ab9b8c",
-                "reference": "30190f22f21e9d178f127361629edfae73ab9b8c",
+                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/1aaeb108c0e0ec17a81ae4d7c073f0fc765ded11",
+                "reference": "1aaeb108c0e0ec17a81ae4d7c073f0fc765ded11",
                 "shasum": ""
             },
             "require": {
                 "byjg/webrequest": "^5.0",
                 "ext-json": "*",
-                "php": ">=8.1"
+                "php": ">=8.1 <8.4"
             },
             "require-dev": {
                 "byjg/restserver": "^5.0",
@@ -52,7 +52,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-09-16T15:24:20+00:00"
+            "time": "2024-10-29T22:42:31+00:00"
         },
         {
             "name": "byjg/uri",
@@ -60,16 +60,16 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-uri.git",
-                "reference": "e20609241487a41816f510c1c6af1a56f570852d"
+                "reference": "75a5d090a12e1e274acfed44109cdebe9d5b66d7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-uri/zipball/e20609241487a41816f510c1c6af1a56f570852d",
-                "reference": "e20609241487a41816f510c1c6af1a56f570852d",
+                "url": "https://api.github.com/repos/byjg/php-uri/zipball/75a5d090a12e1e274acfed44109cdebe9d5b66d7",
+                "reference": "75a5d090a12e1e274acfed44109cdebe9d5b66d7",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.1",
+                "php": ">=8.1 <8.4",
                 "psr/http-message": "^1.0|^1.1|^2.0"
             },
             "provide": {
@@ -100,7 +100,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-09-20T13:26:50+00:00"
+            "time": "2024-10-27T15:10:57+00:00"
         },
         {
             "name": "byjg/webrequest",
@@ -108,19 +108,19 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-webrequest.git",
-                "reference": "4b65cc127da2b921322eba0256fa5e5ccbc51bda"
+                "reference": "76952bc36cfd0341b8bc15fed64a220581529be1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-webrequest/zipball/4b65cc127da2b921322eba0256fa5e5ccbc51bda",
-                "reference": "4b65cc127da2b921322eba0256fa5e5ccbc51bda",
+                "url": "https://api.github.com/repos/byjg/php-webrequest/zipball/76952bc36cfd0341b8bc15fed64a220581529be1",
+                "reference": "76952bc36cfd0341b8bc15fed64a220581529be1",
                 "shasum": ""
             },
             "require": {
                 "byjg/uri": "^5.0",
                 "ext-curl": "*",
                 "ext-json": "*",
-                "php": ">=8.1",
+                "php": ">=8.1 <8.4",
                 "psr/http-client": "^1.0",
                 "psr/http-message": "^1.0|^2.0"
             },
@@ -154,7 +154,7 @@
                 "issues": "https://github.com/byjg/php-webrequest/issues",
                 "source": "https://github.com/byjg/php-webrequest/tree/5.0"
             },
-            "time": "2024-09-16T14:43:58+00:00"
+            "time": "2024-10-27T15:15:07+00:00"
         },
         {
             "name": "donatj/mock-webserver",
@@ -968,12 +968,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "9145fbca37aaeee778323370c87a16ebf43d90f6"
+                "reference": "a86773b9e887a67bc53efa9da9ad6e3f2498c132"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/9145fbca37aaeee778323370c87a16ebf43d90f6",
-                "reference": "9145fbca37aaeee778323370c87a16ebf43d90f6",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/a86773b9e887a67bc53efa9da9ad6e3f2498c132",
+                "reference": "a86773b9e887a67bc53efa9da9ad6e3f2498c132",
                 "shasum": ""
             },
             "require": {
@@ -1045,7 +1045,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/10.5"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/10.5.38"
             },
             "funding": [
                 {
@@ -1061,7 +1061,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-10-21T13:07:34+00:00"
+            "time": "2024-10-28T13:06:21+00:00"
         },
         {
             "name": "psr/http-client",
@@ -2198,12 +2198,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/smalot/pdfparser.git",
-                "reference": "15da82a06b4060688612c44bab329d41c79ab32b"
+                "reference": "f8ae4b42b407b8808a9822407ce5bd078bfd3758"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smalot/pdfparser/zipball/15da82a06b4060688612c44bab329d41c79ab32b",
-                "reference": "15da82a06b4060688612c44bab329d41c79ab32b",
+                "url": "https://api.github.com/repos/smalot/pdfparser/zipball/f8ae4b42b407b8808a9822407ce5bd078bfd3758",
+                "reference": "f8ae4b42b407b8808a9822407ce5bd078bfd3758",
                 "shasum": ""
             },
             "require": {
@@ -2242,7 +2242,7 @@
                 "issues": "https://github.com/smalot/pdfparser/issues",
                 "source": "https://github.com/smalot/pdfparser/tree/master"
             },
-            "time": "2024-09-26T08:12:52+00:00"
+            "time": "2024-10-24T12:00:58+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
