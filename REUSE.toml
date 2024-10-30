@@ -1,0 +1,65 @@
+# SPDX-FileCopyrightText: 2024 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+version = 1
+SPDX-PackageName = "libresign"
+SPDX-PackageSupplier = "LibreCode <contact@librecode.coop>"
+SPDX-PackageDownloadLocation = "https://github.com/LibreSign/libresign/"
+
+default-license = "AGPL-3.0-or-later"
+default-copyright = "2020-2024 LibreCode coop and contributors"
+
+[[annotations]]
+path = ".github/CODEOWNERS"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "none"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = [
+    ".devcontainer/devcontainer.json",
+    "appinfo/info.xml",
+    "composer.json",
+    "composer.lock",
+    ".github/ISSUE_TEMPLATE/2_feature_request.md",
+    ".github/ISSUE_TEMPLATE/feature_request.md",
+    ".github/pull_request_template.md",
+    ".prettierrc",
+    ".tx/config",
+    "img/*.png",
+    "img/*.svg",
+    "img/screenshot/*",
+    "jsconfig.json",
+    "l10n/*.js",
+    "l10n/*.json",
+    "Makefile",
+    "openapi-administration.json",
+    "openapi-full.json",
+    "openapi.json",
+    "package-lock.json",
+    "package.json",
+    "phpunit.xml",
+    "psalm.xml",
+    "src/types/openapi/openapi-administration.ts",
+    "src/types/openapi/openapi-full.ts",
+    "src/types/openapi/openapi.ts",
+    "tests/Unit/Handler/mock/cert.json",
+    "tests/fixtures/cfssl/newcert-with-success.json",
+    "tests/fixtures/small_valid-signed.pdf",
+    "tests/fixtures/small_valid.pdf",
+    "tests/integration/composer.json",
+    "tests/integration/composer.lock",
+    "tests/integration/features/**/*.feature",
+    "tests/psalm-baseline.xml",
+    "tsconfig.json",
+    "vendor-bin/**/composer.json",
+    "vendor-bin/**/composer.lock"
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2020-2024 LibreCode coop and contributors"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+[[annotations]]
+path = "src/assets/fonts/DancingScript/DancingScript.ttf"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2012-2024 Google LLC"
+SPDX-License-Identifier = "OFL-1.1"
