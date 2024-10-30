@@ -1,5 +1,4 @@
 /* eslint-disable valid-jsdoc */
-import { isEmpty } from 'lodash-es'
 
 import axios from '@nextcloud/axios'
 import { confirmPassword } from '@nextcloud/password-confirmation'
@@ -26,7 +25,7 @@ const buildService = (http) => ({
 
 		const { data: { data } } = await http.put(url, { phone })
 
-		return { data, success: !isEmpty(data.phone) }
+		return { data, success: !!data.phone }
 	},
 })
 
