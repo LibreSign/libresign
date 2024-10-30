@@ -33,6 +33,7 @@
 </template>
 
 <script>
+// eslint-disable-next-line import/default
 import VuePdfEditor from '@libresign/vue-pdf-editor'
 
 import Signature from './Signature.vue'
