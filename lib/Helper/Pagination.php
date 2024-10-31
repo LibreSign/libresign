@@ -31,25 +31,17 @@ class Pagination extends Pagerfanta {
 		return $this;
 	}
 
-	public function getPagination(?int $page, ?int $length, array $filter = []): array {
+	public function getPagination(int $page, int $length, array $filter = []): array {
 		$this->setMaxPerPage($length);
 		$total = $this->count();
 		if ($total > $length) {
 			return [
 				'total' => $total,
-				'current' => $this->linkToRoute($page, $length, $filter),
-				'next' => $this->hasNextPage()
-					? $this->linkToRoute($this->getNextPage(), $length, $filter)
-					: null,
-				'prev' => $this->hasPreviousPage()
-					? $this->linkToRoute($this->getPreviousPage(), $length, $filter)
-					: null,
-				'last' => $this->hasNextPage()
-					? $this->linkToRoute($this->getNbPages(), $length, $filter)
-					: null,
-				'first' => $this->hasPreviousPage()
-					? $this->linkToRoute(1, $length, $filter)
-					: null,
+				'current' => $this->linkToRoute(true, $page, $length, $filter),
+				'next' => $this->linkToRoute($this->hasNextPage(), 'getNextPage', $length, $filter),
+				'prev' => $this->linkToRoute($this->hasPreviousPage(), 'getPreviousPage', $length, $filter),
+				'last' => $this->linkToRoute($this->hasNextPage(), 'getNbPages', $length, $filter),
+				'first' => $this->linkToRoute($this->hasPreviousPage(), 1, $length, $filter),
 			];
 		}
 		return [
@@ -62,10 +54,17 @@ class Pagination extends Pagerfanta {
 		];
 	}
 
-	private function linkToRoute(int $page, int $length, array $filter): string {
-		return $this->urlGenerator->linkToRouteAbsolute(
+	private function linkToRoute(bool $condition, int|string $page, int $length, array $filter): ?string {
+		if (!$condition) {
+			return null;
+		}
+		if (is_string($page)) {
+			$page = $this->$page();
+		}
+		$url = $this->urlGenerator->linkToRouteAbsolute(
 			$this->routeName,
 			array_merge(['page' => $page, 'length' => $length, 'apiVersion' => 'v1'], $filter)
 		);
+		return $url;
 	}
 }
