@@ -137,11 +137,6 @@ const router = new Router({
 			props: true,
 		},
 		{
-			path: '/f/timeline/sign',
-			name: 'timeline',
-			component: () => import('../views/Timeline/Timeline.vue'),
-		},
-		{
 			path: '/f/filelist/sign',
 			name: 'fileslist',
 			component: () => import('../views/FilesList/FilesList.vue'),
