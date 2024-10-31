@@ -33,29 +33,33 @@ class Pagination extends Pagerfanta {
 
 	public function getPagination(?int $page, ?int $length, array $filter = []): array {
 		$this->setMaxPerPage($length);
-		$pagination['total'] = $this->count();
-		if ($pagination['total'] > $length) {
-			$pagination['current'] = $this->linkToRoute($page, $length, $filter);
-			$pagination['next'] = $this->hasNextPage()
-				? $this->linkToRoute($this->getNextPage(), $length, $filter)
-				: null;
-			$pagination['prev'] = $this->hasPreviousPage()
-				? $this->linkToRoute($this->getPreviousPage(), $length, $filter)
-				: null;
-			$pagination['last'] = $this->hasNextPage()
-				? $this->linkToRoute($this->getNbPages(), $length, $filter)
-				: null;
-			$pagination['first'] = $this->hasPreviousPage()
-				? $this->linkToRoute(1, $length, $filter)
-				: null;
-		} else {
-			$pagination['current'] = null;
-			$pagination['next'] = null;
-			$pagination['prev'] = null;
-			$pagination['last'] = null;
-			$pagination['first'] = null;
+		$total = $this->count();
+		if ($total > $length) {
+			return [
+				'total' => $total,
+				'current' => $this->linkToRoute($page, $length, $filter),
+				'next' => $this->hasNextPage()
+					? $this->linkToRoute($this->getNextPage(), $length, $filter)
+					: null,
+				'prev' => $this->hasPreviousPage()
+					? $this->linkToRoute($this->getPreviousPage(), $length, $filter)
+					: null,
+				'last' => $this->hasNextPage()
+					? $this->linkToRoute($this->getNbPages(), $length, $filter)
+					: null,
+				'first' => $this->hasPreviousPage()
+					? $this->linkToRoute(1, $length, $filter)
+					: null,
+			];
 		}
-		return $pagination;
+		return [
+			'total' => $total,
+			'current' => null,
+			'next' => null,
+			'prev' => null,
+			'last' => null,
+			'first' => null,
+		];
 	}
 
 	private function linkToRoute(int $page, int $length, array $filter): string {
