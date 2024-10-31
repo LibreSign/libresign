@@ -160,6 +160,7 @@ OC.L10N.register(
     "Impossible to get file entry" : "Nie można uzyskać wpisu do pliku",
     "File was sent." : "Plik został wysłany.",
     "File was deleted." : "Plik został usunięty.",
+    "Upload certificate" : "Prześlij certyfikat",
     "Your signatures" : "Twoje podpisy",
     "Signature" : "Podpis",
     "No signature, click here to create a new" : "Brak podpisu, kliknij tutaj, aby utworzyć nowy",
