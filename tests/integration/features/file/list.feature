@@ -92,7 +92,7 @@ Feature: file-list
       | (jq).ocs.data.pagination.last    | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?length=2&page=3 |
       | (jq).ocs.data.pagination.first   | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?page=1&length=2 |
     # last page
-    When sending "get" to ocs "/apps/libresign/api/v1/file/list?length=2&page=3"
+    When sending "get" to ocs "/apps/libresign/api/v1/file/list?page=3&length=2"
     Then the response should be a JSON array with the following mandatory values
       | key                              | value                      |
       | (jq).ocs.data.data[0].name       | document                   |
