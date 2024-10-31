@@ -49,10 +49,10 @@ class AccountFileService {
 		$page = $page ?? 1;
 		$length = $length ?? (int)$this->appConfig->getAppValue('length_of_page', '100');
 		$data = $this->accountFileMapper->accountFileList($filter, $page, $length);
-		$data['pagination']->setRootPath('/file/list');
+		$data['pagination']->setRouteName('ocs.libresign.File.list');
 		return [
 			'data' => $data['data'],
-			'pagination' => $data['pagination']->getPagination($page, $length)
+			'pagination' => $data['pagination']->getPagination($page, $length, $filter)
 		];
 	}
 }

@@ -151,7 +151,7 @@ class AccountFileMapper extends QBMapper {
 			$qb->setMaxResults($filter['length']);
 		}
 
-		$pagination = new Pagination($qb);
+		$pagination = new Pagination($qb, $this->urlGenerator);
 		return $pagination;
 	}
 

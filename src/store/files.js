@@ -29,9 +29,9 @@ export const useFilesStore = function(...args) {
 				filterActive: 'all',
 				canRequestSign: loadState('libresign', 'can_request_sign', false),
 				ordered: [],
-				paginationCurrent: '',
-				paginationNext: '',
-				paginationLast: '',
+				paginationCurrentUrl: '',
+				paginationNextUrl: '',
+				paginationLastUrl: '',
 				paginationLength: '',
 			}
 		},
@@ -245,16 +245,12 @@ export const useFilesStore = function(...args) {
 					filter.sortDirection = sortingDirection
 				}
 
-				// Build pagination params object
-				const pagination = {}
-				if (this.paginationNext) pagination.page = this.paginationNext
-				if (this.paginationLength) pagination.length = this.paginationNext
-
 				// Call API
-				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'), { params: {...filter, ...pagination} })
-
+				const response = this.paginationNextUrl
+					? await axios.get(this.paginationNextUrl)
+					: await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'), { params: filter })
 				// Update state according to API response
-				if (!this.paginationCurrent) {
+				if (!this.paginationCurrentUrl) {
 					this.files = {}
 					this.ordered = []
 				}
