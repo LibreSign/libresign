@@ -45,10 +45,8 @@ export const useFilesStore = function(...args) {
 				filterActive: 'all',
 				canRequestSign: loadState('libresign', 'can_request_sign', false),
 				ordered: [],
-				paginationCurrentUrl: '',
 				paginationNextUrl: '',
-				paginationLastUrl: '',
-				paginationLength: '',
+				loadedAll: false,
 			}
 		},
 
@@ -242,43 +240,56 @@ export const useFilesStore = function(...args) {
 				}
 			},
 			async getAllFiles(filter) {
-				// Build filter params object
-				if (!filter) filter = {}
+				if (this.loading || this.loadedAll) {
+					return this.files
+				}
+				this.loading = true
+				const url = !this.paginationNextUrl
+					? generateOcsUrl('/apps/libresign/api/v1/file/list')
+					: this.paginationNextUrl
+
+				const urlObj = new URL(url)
+				const params = new URLSearchParams(urlObj.search)
+
+				if (filter) {
+					for (const [key, value] of Object.entries(filter)) {
+						params.set(key, value)
+					}
+				}
 				const { chips } = useFiltersStore()
 				if (chips?.status?.length) {
-					filter.status = chips.status.map(c => c.id)
+					params.set('status', chips.status.map(c => c.id))
 				}
 				if (chips?.modified?.length) {
 					const { start, end } = chips.modified[0]
-					filter.start = Math.floor(start / 1000)
-					filter.end = Math.floor(end / 1000)
+					params.set('start', Math.floor(start / 1000))
+					params.set('end', Math.floor(end / 1000))
 				}
 				const { sortingMode, sortingDirection } = useFilesSortingStore()
 				if (sortingMode) {
-					filter.sortBy = sortingMode
+					params.set('sortBy', sortingMode)
 				}
 				if (sortingDirection) {
-					filter.sortDirection = sortingDirection
+					params.set('sortDirection', sortingDirection)
 				}
 
-				// Call API
-				const response = this.paginationNextUrl
-					? await axios.get(this.paginationNextUrl)
-					: await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'), { params: filter })
-				// Update state according to API response
-				if (!this.paginationCurrentUrl) {
-					this.files = {}
-					this.ordered = []
-				}
+				urlObj.search = params.toString()
+
+				const response = await axios.get(urlObj.toString())
+				this.paginationNextUrl = response.data.ocs.data.pagination.next
+				this.loadedAll = !this.paginationNextUrl
+				this.files = {}
+				this.ordered = []
 				response.data.ocs.data.data.forEach(file => {
 					this.addFile(file)
 				})
-				const currentPaginationParams = new URLSearchParams(response.data.ocs.data.pagination.current.split('?')[1])
-				this.paginationCurrent = currentPaginationParams.get('page')
-				this.paginationLength = currentPaginationParams.get('length')
-				this.paginationNext = new URLSearchParams(response.data.ocs.data.pagination.next.split('?')[1]).get('page')
-				this.paginationLast = new URLSearchParams(response.data.ocs.data.pagination.last.split('?')[1]).get('page')
+				this.loading = false
 				return this.files
+			},
+			async updateAllFiles() {
+				this.paginationNext = null
+				this.loadedAll = false
+				return this.getAllFiles()
 			},
 			filesSorted() {
 				return this.ordered.map(key => this.files[key])
@@ -307,8 +318,8 @@ export const useFilesStore = function(...args) {
 
 	// Make sure we only register the listeners once
 	if (!filesStore._initialized) {
-		subscribe('libresign:filters:update', filesStore.getAllFiles)
-		subscribe('libresign:sorting:update', filesStore.getAllFiles)
+		subscribe('libresign:filters:update', filesStore.updateAllFiles)
+		subscribe('libresign:sorting:update', filesStore.updateAllFiles)
 		filesStore._initialized = true
 	}
 
