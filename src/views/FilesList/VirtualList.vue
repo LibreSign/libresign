@@ -23,11 +23,16 @@
 					:source="item"
 					:loading="loading" />
 			</tbody>
+			<tfoot ref="endOfList" />
 		</table>
 	</div>
 </template>
 
 <script>
+import debounce from 'debounce'
+
+import { subscribe, unsubscribe } from '@nextcloud/event-bus'
+
 import { useFilesStore } from '../../store/files.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 
@@ -57,24 +62,31 @@ export default {
 		}
 	},
 	mounted() {
-		this.observer = new IntersectionObserver(([entry]) => {
+		this.observer = new IntersectionObserver(debounce(([entry]) => {
 			if (entry && entry.isIntersecting) {
-				this.filesStore.getAllFiles()
+				this.getFilesIfNotLoading()
 			}
-		})
-		// Is there a better way to target the last tr element? Maybe something like useRef?
-		if (this.$el.querySelector('table tbody tr:last-child')) {
-			this.observer.observe(this.$el.querySelector('table tbody tr:last-child'))
-		}
+		}, 100, false))
+		subscribe('libresign:files:updated', this.updateObserver)
 	},
 	beforeDestroy() {
-		if (this.observer) this.observer.disconnect()
+		this.observer.disconnect()
+		unsubscribe('libresign:files:updated')
 	},
-	updated() {
-		if (this.observer) {
+	methods: {
+		getFilesIfNotLoading() {
+			if (this.filesStore.loading) {
+				setTimeout(this.getFilesIfNotLoading, 100)
+			} else {
+				this.filesStore.getAllFiles()
+			}
+		},
+		updateObserver() {
+			const endOfListElement = this.$refs?.endOfList
+			if (!endOfListElement) return
 			this.observer.disconnect()
-			this.observer.observe(this.$el.querySelector('table tbody tr:last-child'))
-		}
+			this.observer.observe(endOfListElement)
+		},
 	},
 }
 </script>
