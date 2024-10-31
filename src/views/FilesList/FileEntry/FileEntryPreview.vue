@@ -1,3 +1,7 @@
+<!--
+  - SPDX-FileCopyrightText: 2024 LibreCode coop and LibreCode contributors
+  - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
 <template>
 	<span class="files-list__row-icon">
 		<!-- Decorative images, should not be aria documented -->
