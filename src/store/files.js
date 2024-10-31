@@ -24,7 +24,7 @@ import { del, set } from 'vue'
 
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
-import { subscribe } from '@nextcloud/event-bus'
+import { emit, subscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import Moment from '@nextcloud/moment'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -258,8 +258,10 @@ export const useFilesStore = function(...args) {
 					}
 				}
 				const { chips } = useFiltersStore()
-				if (chips?.status?.length) {
-					params.set('status', chips.status.map(c => c.id))
+				if (chips?.status) {
+					chips.status.forEach(status => {
+						params.append('status[]', status.id)
+					})
 				}
 				if (chips?.modified?.length) {
 					const { start, end } = chips.modified[0]
@@ -277,18 +279,22 @@ export const useFilesStore = function(...args) {
 				urlObj.search = params.toString()
 
 				const response = await axios.get(urlObj.toString())
+
+				if (!this.paginationNextUrl) {
+					this.files = {}
+					this.ordered = []
+				}
 				this.paginationNextUrl = response.data.ocs.data.pagination.next
 				this.loadedAll = !this.paginationNextUrl
-				this.files = {}
-				this.ordered = []
-				response.data.ocs.data.data.forEach(file => {
+				response.data.ocs.data.data.forEach((file) => {
 					this.addFile(file)
 				})
 				this.loading = false
+				emit('libresign:files:updated')
 				return this.files
 			},
 			async updateAllFiles() {
-				this.paginationNext = null
+				this.paginationNextUrl = null
 				this.loadedAll = false
 				return this.getAllFiles()
 			},
