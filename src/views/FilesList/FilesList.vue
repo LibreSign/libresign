@@ -285,15 +285,10 @@ export default {
 	},
 	methods: {
 		refresh() {
-			console.log('Need to implement refresh')
+			this.filesStore.updateAllFiles()
 		},
 		toggleGridView() {
 			this.userConfigStore.update('grid_view', !this.userConfigStore.grid_view)
-		},
-		filterDirContent() {
-			const nodes = this.filesStore.files
-			console.log('Implement filter here')
-			this.dirContentsFiltered = nodes
 		},
 		closeSidebar() {
 			this.filesStore.selectFile()

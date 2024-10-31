@@ -59,7 +59,7 @@ class Pagination extends Pagerfanta {
 	}
 
 	private function linkToRoute(int $page, int $length, array $filter): string {
-		return $this->urlGenerator->linkToRoute(
+		return $this->urlGenerator->linkToRouteAbsolute(
 			$this->routeName,
 			array_merge(['page' => $page, 'length' => $length, 'apiVersion' => 'v1'], $filter)
 		);
