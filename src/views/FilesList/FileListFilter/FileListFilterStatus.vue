@@ -25,7 +25,6 @@
 
 <script>
 import { mdiListStatus } from '@mdi/js'
-import svgDelete from '@mdi/svg/svg/delete.svg?raw'
 import svgFile from '@mdi/svg/svg/file.svg?raw'
 import svgFractionOneHalf from '@mdi/svg/svg/fraction-one-half.svg?raw'
 import svgSignatureFreehand from '@mdi/svg/svg/signature-freehand.svg?raw'
@@ -79,11 +78,6 @@ export default {
 					id: 3,
 					icon: colorize(svgSignatureFreehand, '#A0C4FF'),
 					label: t('libresign', 'signed'),
-				},
-				{
-					id: 4,
-					icon: colorize(svgDelete, '#FFB2B2'),
-					label: t('libresign', 'deleted'),
 				},
 			],
 		}
