@@ -53,7 +53,9 @@ export const useFilesStore = function(...args) {
 			addFile(file) {
 				set(this.files, file.nodeId, file)
 				this.hydrateFile(file.nodeId)
-				this.ordered.push(file.nodeId)
+				if (!this.ordered.includes(file.nodeId)) {
+					this.ordered.push(file.nodeId)
+				}
 			},
 			selectFile(nodeId) {
 				this.selectedNodeId = nodeId ?? 0
