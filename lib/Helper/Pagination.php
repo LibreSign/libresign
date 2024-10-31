@@ -25,14 +25,15 @@ declare(strict_types=1);
 namespace OCA\Libresign\Helper;
 
 use OCA\Libresign\Db\PagerFantaQueryAdapter;
+use OCP\IURLGenerator;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use Pagerfanta\Pagerfanta;
 
 class Pagination extends Pagerfanta {
-	/** @var string */
-	private $rootPath;
+	private string $routeName;
 	public function __construct(
 		IQueryBuilder $queryBuilder,
+		private IURLGenerator $urlGenerator,
 	) {
 		$adapter = new PagerFantaQueryAdapter($queryBuilder);
 		parent::__construct($adapter);
@@ -41,20 +42,28 @@ class Pagination extends Pagerfanta {
 	/**
 	 * @return static
 	 */
-	public function setRootPath(string $rootPath = ''): self {
-		$this->rootPath = $rootPath;
+	public function setRouteName(string $routeName = ''): self {
+		$this->routeName = $routeName;
 		return $this;
 	}
 
-	public function getPagination(?int $page, ?int $length): array {
+	public function getPagination(?int $page, ?int $length, array $filter = []): array {
 		$this->setMaxPerPage($length);
 		$pagination['total'] = $this->count();
 		if ($pagination['total'] > $length) {
-			$pagination['current'] = $this->rootPath . '?page=' . $page . '&length=' . $length;
-			$pagination['next'] = $this->hasNextPage()      ? $this->rootPath . '?page=' . $this->getNextPage() . '&length=' . $length : null;
-			$pagination['prev'] = $this->hasPreviousPage()  ? $this->rootPath . '?page=' . $this->getPreviousPage() . '&length=' . $length : null;
-			$pagination['last'] = $this->hasNextPage()      ? $this->rootPath . '?page=' . $this->getNbPages() . '&length=' . $length : null;
-			$pagination['first'] = $this->hasPreviousPage() ? $this->rootPath . '?page=1&length=' . $length : null;
+			$pagination['current'] = $this->linkToRoute($page, $length, $filter);
+			$pagination['next'] = $this->hasNextPage()
+				? $this->linkToRoute($this->getNextPage(), $length, $filter)
+				: null;
+			$pagination['prev'] = $this->hasPreviousPage()
+				? $this->linkToRoute($this->getPreviousPage(), $length, $filter)
+				: null;
+			$pagination['last'] = $this->hasNextPage()
+				? $this->linkToRoute($this->getNbPages(), $length, $filter)
+				: null;
+			$pagination['first'] = $this->hasPreviousPage()
+				? $this->linkToRoute(1, $length, $filter)
+				: null;
 		} else {
 			$pagination['current'] = null;
 			$pagination['next'] = null;
@@ -63,5 +72,12 @@ class Pagination extends Pagerfanta {
 			$pagination['first'] = null;
 		}
 		return $pagination;
+	}
+
+	private function linkToRoute(int $page, int $length, array $filter): string {
+		return $this->urlGenerator->linkToRoute(
+			$this->routeName,
+			array_merge(['page' => $page, 'length' => $length, 'apiVersion' => 'v1'], $filter)
+		);
 	}
 }

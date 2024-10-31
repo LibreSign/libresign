@@ -559,7 +559,7 @@ class SignRequestMapper extends QBMapper {
 			return (int)$qb->executeQuery()->fetchOne();
 		};
 
-		$pagination = new Pagination($qb);
+		$pagination = new Pagination($qb, $this->urlGenerator);
 		return $pagination;
 	}
 

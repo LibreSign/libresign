@@ -470,10 +470,10 @@ class FileService {
 		$visibleElements = $this->signRequestMapper->getVisibleElementsFromSigners($signers);
 		$return['data'] = $this->associateAllAndFormat($this->me, $return['data'], $signers, $identifyMethods, $visibleElements);
 
-		$return['pagination']->setRootPath('/file/list');
+		$return['pagination']->setRouteName('ocs.libresign.File.list');
 		return [
 			'data' => $return['data'],
-			'pagination' => $return['pagination']->getPagination($page, $length)
+			'pagination' => $return['pagination']->getPagination($page, $length, $filter)
 		];
 	}
 
