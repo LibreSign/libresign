@@ -25,8 +25,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Helper;
 
 use OCA\Libresign\Db\PagerFantaQueryAdapter;
-use OCP\IURLGenerator;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\IURLGenerator;
 use Pagerfanta\Pagerfanta;
 
 class Pagination extends Pagerfanta {
