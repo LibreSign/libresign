@@ -26,7 +26,6 @@ export const useFilesStore = function(...args) {
 				selectedNodeId: 0,
 				identifyingSigner: false,
 				loading: false,
-				filterActive: 'all',
 				canRequestSign: loadState('libresign', 'can_request_sign', false),
 				ordered: [],
 				paginationNextUrl: '',
@@ -277,23 +276,6 @@ export const useFilesStore = function(...args) {
 			},
 			filesSorted() {
 				return this.ordered.map(key => this.files[key])
-			},
-			filter(type) {
-				this.filterActive = type
-				if (type === 'pending') {
-					return Object.values(this.files).filter(
-						(a) => (a.status === 1 || a.status === 2)).sort(
-						(a, b) => (a.request_date < b.request_date) ? 1 : -1)
-				}
-				if (type === 'signed') {
-					return Object.values(this.files).filter(
-						(a) => (a.status === 3)).sort(
-						(a, b) => (a.request_date < b.request_date) ? 1 : -1)
-				}
-				if (type === 'all') {
-					this.filterActive = 'all'
-					return Object.values(this.files).sort((a, b) => (a.request_date < b.request_date) ? 1 : -1)
-				}
 			},
 		},
 	})
