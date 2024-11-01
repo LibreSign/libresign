@@ -58,7 +58,6 @@
 </template>
 
 <script>
-import { isEmpty } from 'lodash-es'
 import { Cropper } from 'vue-advanced-cropper'
 
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
@@ -89,7 +88,7 @@ export default {
 	},
 	computed: {
 		hasImage() {
-			return !isEmpty(this.image)
+			return !!this.image
 		},
 	},
 	methods: {
