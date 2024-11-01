@@ -75,8 +75,8 @@ Feature: file-list
       | key                              | value                      |
       | (jq).ocs.data.data[0].name       | document                   |
       | (jq).ocs.data.pagination.total   | 5                          |
-      | (jq).ocs.data.pagination.current | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?page=1&length=2 |
-      | (jq).ocs.data.pagination.next    | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?page=2&length=2 |
+      | (jq).ocs.data.pagination.current | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?length=2&page=1 |
+      | (jq).ocs.data.pagination.next    | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?length=2&page=2 |
       | (jq).ocs.data.pagination.prev    | null                       |
       | (jq).ocs.data.pagination.last    | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?length=2&page=3 |
       | (jq).ocs.data.pagination.first   | null                       |
@@ -86,11 +86,11 @@ Feature: file-list
       | key                              | value                      |
       | (jq).ocs.data.data[0].name       | document                   |
       | (jq).ocs.data.pagination.total   | 5                          |
-      | (jq).ocs.data.pagination.current | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?page=2&length=2 |
+      | (jq).ocs.data.pagination.current | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?length=2&page=2 |
       | (jq).ocs.data.pagination.next    | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?length=2&page=3 |
-      | (jq).ocs.data.pagination.prev    | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?page=1&length=2 |
+      | (jq).ocs.data.pagination.prev    | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?length=2&page=1 |
       | (jq).ocs.data.pagination.last    | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?length=2&page=3 |
-      | (jq).ocs.data.pagination.first   | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?page=1&length=2 |
+      | (jq).ocs.data.pagination.first   | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?length=2&page=1 |
     # last page
     When sending "get" to ocs "/apps/libresign/api/v1/file/list?page=3&length=2"
     Then the response should be a JSON array with the following mandatory values
@@ -99,6 +99,6 @@ Feature: file-list
       | (jq).ocs.data.pagination.total   | 5                          |
       | (jq).ocs.data.pagination.current | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?length=2&page=3 |
       | (jq).ocs.data.pagination.next    | null                       |
-      | (jq).ocs.data.pagination.prev    | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?page=2&length=2 |
+      | (jq).ocs.data.pagination.prev    | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?length=2&page=2 |
       | (jq).ocs.data.pagination.last    | null                       |
-      | (jq).ocs.data.pagination.first   | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?page=1&length=2 |
+      | (jq).ocs.data.pagination.first   | <BASE_URL>/ocsapp/apps/libresign/api/v1/file/list?length=2&page=1 |
