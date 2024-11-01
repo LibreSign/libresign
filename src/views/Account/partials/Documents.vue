@@ -54,8 +54,6 @@
 </template>
 
 <script>
-import { find, get } from 'lodash-es'
-
 import axios from '@nextcloud/axios'
 import { showError, showWarning, showSuccess } from '@nextcloud/dialogs'
 import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
@@ -73,7 +71,7 @@ const FILE_TYPE_INFO = {
 }
 
 const findDocumentByType = (list, type) => {
-	return find(list, row => get(row, ['file_type', 'type']) === type) || {
+	return list.find(row => row?.file_type?.type === type) || {
 		nodeId: 0,
 		uuid: '',
 		status: -1,
