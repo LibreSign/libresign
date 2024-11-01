@@ -1,5 +1,3 @@
-import { deburr } from 'lodash-es'
-
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 
@@ -7,8 +5,10 @@ import { generateOcsUrl } from '@nextcloud/router'
 import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
 
 // from https://gist.github.com/codeguy/6684588
-const slugfy = val =>
-	deburr(val)
+const slugfy = (val) =>
+	val
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
 		.toLowerCase()
 		.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
 		.replace(/\s+/g, '-') // collapse whitespace and replace by -
