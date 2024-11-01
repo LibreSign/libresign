@@ -81,6 +81,20 @@ class Pagination extends Pagerfanta {
 			$this->routeName,
 			array_merge(['page' => $page, 'length' => $length, 'apiVersion' => 'v1'], $filter)
 		);
+		$url = $this->sortParameters($url);
+		return $url;
+	}
+
+	/**
+	 * This is necessary to fix problem at integration tests because the method linkToRoute change the order of parameters
+	 */
+	private function sortParameters(?string $url): ?string {
+		if (!$url) {
+			return $url;
+		}
+		parse_str(parse_url($url, PHP_URL_QUERY), $query);
+		ksort($query);
+		$url = strtok($url, '?') . '?' . http_build_query($query);
 		return $url;
 	}
 }
