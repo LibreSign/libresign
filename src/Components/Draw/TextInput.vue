@@ -41,7 +41,6 @@
 
 <script>
 import '@fontsource/dancing-script'
-import { isEmpty } from 'lodash-es'
 
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
@@ -66,7 +65,7 @@ export default {
 	}),
 	computed: {
 		isValid() {
-			return !isEmpty(this.value)
+			return !!this.value
 		},
 	},
 	watch: {
