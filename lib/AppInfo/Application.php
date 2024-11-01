@@ -9,11 +9,13 @@ declare(strict_types=1);
 namespace OCA\Libresign\AppInfo;
 
 use OCA\Files\Event\LoadSidebar;
+use OCA\Intros\Events\FetchIntrosEvent;
 use OCA\Libresign\Activity\Listener as ActivityListener;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Files\TemplateLoader as FilesTemplateLoader;
 use OCA\Libresign\Listener\BeforeNodeDeletedListener;
+use OCA\Libresign\Listener\FetchIntrosListener;
 use OCA\Libresign\Listener\LoadSidebarListener;
 use OCA\Libresign\Listener\MailNotifyListener;
 use OCA\Libresign\Listener\NotificationListener;
@@ -69,5 +71,7 @@ class Application extends App implements IBootstrap {
 		$context->registerEventListener(SendSignNotificationEvent::class, MailNotifyListener::class);
 
 		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
+
+		$context->registerEventListener(FetchIntrosEvent::class, FetchIntrosListener::class);
 	}
 }
