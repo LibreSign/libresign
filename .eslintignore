@@ -1,4 +1,6 @@
 # SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 /node_modules/*
+/src/types/openapi/*
+/src/assets/fonts/*
 /src/__test__/coverage
