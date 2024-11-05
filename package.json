@@ -25,7 +25,7 @@
     "@marionebl/option": "^1.0.8",
     "@nextcloud/auth": "^2.4.0",
     "@nextcloud/axios": "^2.5.1",
-    "@nextcloud/dialogs": "^5.3.7",
+    "@nextcloud/dialogs": "^6.0.1",
     "@nextcloud/event-bus": "^3.3.1",
     "@nextcloud/files": "^3.9.1",
     "@nextcloud/initial-state": "^2.2.0",
