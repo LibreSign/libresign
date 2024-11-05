@@ -56,11 +56,6 @@
       <code><![CDATA[QueryBuilder]]></code>
     </UndefinedClass>
   </file>
-  <file src="lib/Db/SignRequestMapper.php">
-    <UndefinedClass>
-      <code><![CDATA[PostgreSQLPlatform]]></code>
-    </UndefinedClass>
-  </file>
   <file src="lib/Files/TemplateLoader.php">
     <InvalidArgument>
       <code><![CDATA[addServiceListener]]></code>
