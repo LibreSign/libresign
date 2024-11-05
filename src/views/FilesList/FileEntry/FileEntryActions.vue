@@ -29,16 +29,23 @@
 		</NcActions>
 		<NcDialog v-if="confirmDelete"
 			:name="t('libresign', 'Confirm')"
-			@closing="confirmDelete = false">
+			:can-close="!deleting"
+			:open.sync="confirmDelete">
 			{{ t('libresign', 'The signature request will be deleted. Do you confirm this action?') }}
+			<NcCheckboxRadioSwitch :checked.sync="deleteFile" type="switch">
+				{{ t('libresign', 'Also delete the file.') }}
+			</NcCheckboxRadioSwitch>
 			<template #actions>
-				<NcButton type="error"
-					@click="doDelete()">
-					{{ t('libresign', 'Yes') }}
-				</NcButton>
 				<NcButton type="primary"
+					@click="doDelete()">
+					<template #icon>
+						<NcLoadingIcon v-if="deleting" :size="20" />
+					</template>
+					{{ t('libresign', 'Ok') }}
+				</NcButton>
+				<NcButton type="secondary"
 					@click="confirmDelete = false">
-					{{ t('libresign', 'No') }}
+					{{ t('libresign', 'Cancel') }}
 				</NcButton>
 			</template>
 		</NcDialog>
@@ -53,6 +60,7 @@ import svgTextBoxCheck from '@mdi/svg/svg/text-box-check.svg?raw'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
 import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcIconSvgWrapper from '@nextcloud/vue/dist/Components/NcIconSvgWrapper.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
@@ -68,6 +76,7 @@ export default {
 		NcActionButton,
 		NcActions,
 		NcButton,
+		NcCheckboxRadioSwitch,
 		NcDialog,
 		NcIconSvgWrapper,
 		NcLoadingIcon,
@@ -102,6 +111,8 @@ export default {
 		return {
 			enabledMenuActions: [],
 			confirmDelete: false,
+			deleteFile: true,
+			deleting: false,
 		}
 	},
 	computed: {
@@ -180,8 +191,10 @@ export default {
 		registerAction(action) {
 			this.enabledMenuActions = [...this.enabledMenuActions, action]
 		},
-		doDelete() {
-			this.filesStore.delete(this.source)
+		async doDelete() {
+			this.deleting = true
+			await this.filesStore.delete(this.source, this.deleteFile)
+			this.deleting = false
 		},
 	},
 }
