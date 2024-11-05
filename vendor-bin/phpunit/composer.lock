@@ -699,12 +699,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-code-coverage.git",
-                "reference": "85402a822d1ecf1db1096959413d35e1c37cf1a5"
+                "reference": "0448d60087a382392a1b2a1abe434466e03dcc87"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/85402a822d1ecf1db1096959413d35e1c37cf1a5",
-                "reference": "85402a822d1ecf1db1096959413d35e1c37cf1a5",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/0448d60087a382392a1b2a1abe434466e03dcc87",
+                "reference": "0448d60087a382392a1b2a1abe434466e03dcc87",
                 "shasum": ""
             },
             "require": {
@@ -761,7 +761,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/php-code-coverage/issues",
                 "security": "https://github.com/sebastianbergmann/php-code-coverage/security/policy",
-                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/9.2.32"
+                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/9.2"
             },
             "funding": [
                 {
@@ -769,7 +769,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-08-22T04:23:01+00:00"
+            "time": "2024-10-31T05:58:25+00:00"
         },
         {
             "name": "phpunit/php-file-iterator",
@@ -1018,12 +1018,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "fcd1efebc9510d2e1cff8fcf1b13ad2a7827d675"
+                "reference": "7e5a1cc50d52a8019af1d0bf90f0980f16ea9f8a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/fcd1efebc9510d2e1cff8fcf1b13ad2a7827d675",
-                "reference": "fcd1efebc9510d2e1cff8fcf1b13ad2a7827d675",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/7e5a1cc50d52a8019af1d0bf90f0980f16ea9f8a",
+                "reference": "7e5a1cc50d52a8019af1d0bf90f0980f16ea9f8a",
                 "shasum": ""
             },
             "require": {
@@ -1113,7 +1113,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-10-19T09:36:22+00:00"
+            "time": "2024-10-31T05:51:17+00:00"
         },
         {
             "name": "psr/http-client",
@@ -2291,12 +2291,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/smalot/pdfparser.git",
-                "reference": "15da82a06b4060688612c44bab329d41c79ab32b"
+                "reference": "1e38ca9a3110829291da2f874ee08ad568029a5a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smalot/pdfparser/zipball/15da82a06b4060688612c44bab329d41c79ab32b",
-                "reference": "15da82a06b4060688612c44bab329d41c79ab32b",
+                "url": "https://api.github.com/repos/smalot/pdfparser/zipball/1e38ca9a3110829291da2f874ee08ad568029a5a",
+                "reference": "1e38ca9a3110829291da2f874ee08ad568029a5a",
                 "shasum": ""
             },
             "require": {
@@ -2335,7 +2335,7 @@
                 "issues": "https://github.com/smalot/pdfparser/issues",
                 "source": "https://github.com/smalot/pdfparser/tree/master"
             },
-            "time": "2024-09-26T08:12:52+00:00"
+            "time": "2024-11-05T08:03:53+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -2699,8 +2699,8 @@
     },
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
-    "platform-dev": [],
+    "platform": {},
+    "platform-dev": {},
     "platform-overrides": {
         "php": "8.0"
     },
