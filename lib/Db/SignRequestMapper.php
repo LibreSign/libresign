@@ -329,11 +329,12 @@ class SignRequestMapper extends QBMapper {
 		array $filter,
 		?int $page = null,
 		?int $length = null,
+		?array $sort = [],
 	): array {
 		$filter['email'] = $user->getEMailAddress();
 		$filter['length'] = $length;
 		$filter['page'] = $page;
-		$pagination = $this->getFilesAssociatedFilesWithMeStmt($user->getUID(), $filter);
+		$pagination = $this->getFilesAssociatedFilesWithMeStmt($user->getUID(), $filter, $sort);
 		$pagination->setMaxPerPage($length);
 		$pagination->setCurrentPage($page);
 		$currentPageResults = $pagination->getCurrentPageResults();
@@ -472,7 +473,17 @@ class SignRequestMapper extends QBMapper {
 			}
 			if (!empty($filter['status'])) {
 				$qb->andWhere(
-					$qb->expr()->eq('f.status', $qb->createNamedParameter($filter['status'], IQueryBuilder::PARAM_INT))
+					$qb->expr()->in('f.status', $qb->createNamedParameter($filter['status'], IQueryBuilder::PARAM_INT_ARRAY))
+				);
+			}
+			if (!empty($filter['start'])) {
+				$qb->andWhere(
+					$qb->expr()->gte('f.created_at', $qb->createNamedParameter($filter['start'], IQueryBuilder::PARAM_INT))
+				);
+			}
+			if (!empty($filter['end'])) {
+				$qb->andWhere(
+					$qb->expr()->lte('f.created_at', $qb->createNamedParameter($filter['end'], IQueryBuilder::PARAM_INT))
 				);
 			}
 			if (isset($filter['length']) && isset($filter['page'])) {
@@ -483,7 +494,11 @@ class SignRequestMapper extends QBMapper {
 		return $qb;
 	}
 
-	private function getFilesAssociatedFilesWithMeStmt(string $userId, ?array $filter = []): Pagination {
+	private function getFilesAssociatedFilesWithMeStmt(
+		string $userId,
+		?array $filter = [],
+		?array $sort = [],
+	): Pagination {
 		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder($userId, $filter);
 		$qb->select(
 			'f.id',
@@ -494,6 +509,12 @@ class SignRequestMapper extends QBMapper {
 			'f.status',
 			'f.metadata',
 		);
+		if (!empty($sort) && in_array($sort['sortBy'], ['name', 'status', 'created_at'])) {
+			$qb->orderBy(
+				$qb->func()->lower('f.' . $sort['sortBy']),
+				$sort['sortDirection'] == 'asc' ? 'asc' : 'desc'
+			);
+		}
 		$qb->selectAlias('f.created_at', 'request_date');
 
 		$countQueryBuilderModifier = function (IQueryBuilder $qb): int {
@@ -505,7 +526,7 @@ class SignRequestMapper extends QBMapper {
 			return (int)$qb->executeQuery()->fetchOne();
 		};
 
-		$pagination = new Pagination($qb);
+		$pagination = new Pagination($qb, $this->urlGenerator);
 		return $pagination;
 	}
 
