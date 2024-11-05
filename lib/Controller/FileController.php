@@ -26,6 +26,7 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Files_Sharing\SharedStorage;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
@@ -35,6 +36,7 @@ use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -75,6 +77,7 @@ class FileController extends AEnvironmentAwareController {
 		private SessionService $sessionService,
 		private SignRequestMapper $signRequestMapper,
 		private IdentifyMethodService $identifyMethodService,
+		private RequestSignatureService $requestSignatureService,
 		private AccountService $accountService,
 		private IRootFolder $root,
 		private IPreview $preview,
@@ -386,6 +389,15 @@ class FileController extends AEnvironmentAwareController {
 				'file' => $file,
 				'settings' => $settings
 			]);
+			$data = [
+				'file' => [
+					'fileNode' => $node,
+				],
+				'name' => $name,
+				'userManager' => $this->userSession->getUser(),
+				'status' => FileEntity::STATUS_DRAFT,
+			];
+			$file = $this->requestSignatureService->save($data);
 
 			return new DataResponse(
 				[
