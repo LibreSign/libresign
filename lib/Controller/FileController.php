@@ -391,4 +391,46 @@ class FileController extends AEnvironmentAwareController {
 			);
 		}
 	}
+
+	/**
+	 * Delete File
+	 *
+	 * This will delete the file and all data
+	 *
+	 * @param integer $fileId Node id of a Nextcloud file
+	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: string[]}, array{}>
+	 *
+	 * 200: OK
+	 * 401: Failed
+	 * 422: Failed
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[RequireManager]
+	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/file/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
+	public function deleteAllRequestSignatureUsingFileId(int $fileId): DataResponse {
+		try {
+			$data = [
+				'userManager' => $this->userSession->getUser(),
+				'file' => [
+					'fileId' => $fileId
+				]
+			];
+			$this->validateHelper->validateExistingFile($data);
+			$this->fileService->delete($fileId);
+		} catch (\Throwable $th) {
+			return new DataResponse(
+				[
+					'message' => $th->getMessage(),
+				],
+				Http::STATUS_UNAUTHORIZED
+			);
+		}
+		return new DataResponse(
+			[
+				'message' => $this->l10n->t('Success')
+			],
+			Http::STATUS_OK
+		);
+	}
 }
