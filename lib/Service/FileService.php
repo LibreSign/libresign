@@ -607,4 +607,20 @@ class FileService {
 			],
 		);
 	}
+
+	public function delete(int $fileId): void {
+		$file = $this->fileMapper->getByFileId($fileId);
+		$this->fileElementService->deleteVisibleElements($file->getId());
+		$list = $this->signRequestMapper->getByFileId($file->getId());
+		foreach ($list as $signRequest) {
+			$this->signRequestMapper->delete($signRequest);
+		}
+		$this->fileMapper->delete($file);
+		if ($file->getSignedNodeId()) {
+			$signedNextcloudFile = $this->folderService->getFileById($file->getSignedNodeId());
+			$signedNextcloudFile->delete();
+		}
+		$nextcloudFile = $this->folderService->getFileById($fileId);
+		$nextcloudFile->delete();
+	}
 }
