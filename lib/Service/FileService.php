@@ -432,7 +432,12 @@ class FileService {
 	 *
 	 * @psalm-return array{data: array, pagination: array}
 	 */
-	public function listAssociatedFilesOfSignFlow($page = null, $length = null, array $filter = []): array {
+	public function listAssociatedFilesOfSignFlow(
+		$page = null,
+		$length = null,
+		array $filter = [],
+		array $sort = [],
+	): array {
 		$page = $page ?? 1;
 		$length = $length ?? (int)$this->appConfig->getAppValue('length_of_page', '100');
 
@@ -441,6 +446,7 @@ class FileService {
 			$filter,
 			$page,
 			$length,
+			$sort,
 		);
 
 		$signers = $this->signRequestMapper->getByMultipleFileId(array_column($return['data'], 'id'));
@@ -448,10 +454,10 @@ class FileService {
 		$visibleElements = $this->signRequestMapper->getVisibleElementsFromSigners($signers);
 		$return['data'] = $this->associateAllAndFormat($this->me, $return['data'], $signers, $identifyMethods, $visibleElements);
 
-		$return['pagination']->setRootPath('/file/list');
+		$return['pagination']->setRouteName('ocs.libresign.File.list');
 		return [
 			'data' => $return['data'],
-			'pagination' => $return['pagination']->getPagination($page, $length)
+			'pagination' => $return['pagination']->getPagination($page, $length, $filter)
 		];
 	}
 
@@ -584,5 +590,21 @@ class FileService {
 				'nodeId' => $nodeId,
 			],
 		);
+	}
+
+	public function delete(int $fileId): void {
+		$file = $this->fileMapper->getByFileId($fileId);
+		$this->fileElementService->deleteVisibleElements($file->getId());
+		$list = $this->signRequestMapper->getByFileId($file->getId());
+		foreach ($list as $signRequest) {
+			$this->signRequestMapper->delete($signRequest);
+		}
+		$this->fileMapper->delete($file);
+		if ($file->getSignedNodeId()) {
+			$signedNextcloudFile = $this->folderService->getFileById($file->getSignedNodeId());
+			$signedNextcloudFile->delete();
+		}
+		$nextcloudFile = $this->folderService->getFileById($fileId);
+		$nextcloudFile->delete();
 	}
 }
