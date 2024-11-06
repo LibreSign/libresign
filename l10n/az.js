@@ -34,7 +34,7 @@ OC.L10N.register(
     "New password" : "Yeni şifrə",
     "Yes" : "Yes",
     "No" : "No",
-    "Pending" : "Gözləmə",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "Gözləmə"
 },
 "nplurals=2; plural=(n != 1);");

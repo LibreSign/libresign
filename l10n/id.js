@@ -40,7 +40,12 @@ OC.L10N.register(
     "Confirm password" : "Konfirmasi kata sandi",
     "Enter a password" : "Masukkan kata sandi",
     "Page not found" : "Halaman tidak ditemukan",
+    "Ok" : "Oke",
+    "Clear filter" : "Bersihkan filter",
+    "Modified" : "Dimodifikasi",
+    "Today" : "Hari ini",
     "Send" : "Kirim",
+    "Created at" : "Dibuat saat",
     "Password reset" : "Setel ulang kata sandi",
     "Current password" : "Kata sandi saat ini",
     "New password" : "Kata sandi baru",
@@ -48,7 +53,7 @@ OC.L10N.register(
     "Dependencies" : "Ketergantungan",
     "Yes" : "Ya",
     "No" : "Tidak",
-    "Pending" : "Tunggu",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "Tunggu"
 },
 "nplurals=1; plural=0;");

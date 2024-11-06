@@ -19,12 +19,15 @@ OC.L10N.register(
     "Create account" : "បង្កើតគណនី",
     "Password" : "ពាក្យសម្ងាត់",
     "Enter a password" : "Enter a password",
+    "Ok" : "ព្រម",
+    "Modified" : "បាន​កែ​ប្រែ",
+    "Today" : "ថ្ងៃ​នេះ",
     "Send" : "ផ្ញើ",
     "Current password" : "ពាក្យសម្ងាត់​បច្ចុប្បន្ន",
     "New password" : "ពាក្យ​សម្ងាត់​ថ្មី",
     "Yes" : "Yes",
     "No" : "No",
-    "Pending" : "កំពុង​រង់ចាំ",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "កំពុង​រង់ចាំ"
 },
 "nplurals=1; plural=0;");

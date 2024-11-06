@@ -49,7 +49,17 @@ OC.L10N.register(
     "Confirm password" : "Staðfestu lykilorðið",
     "Enter a password" : "Settu inn lykilorð",
     "Page not found" : "Síða fannst ekki",
+    "Ok" : "Í lagi",
+    "Clear filter" : "Hreinsa síu",
+    "Modified" : "Breytt",
+    "Today" : "Í dag",
+    "Last 7 days" : "Síðustu 7 daga",
+    "Last 30 days" : "Síðustu 30 daga",
+    "Active filters" : "Virkar síur",
     "Send" : "Senda",
+    "Switch to list view" : "Skipta yfir í listasýn",
+    "Switch to grid view" : "Skipta yfir í reitasýn",
+    "Created at" : "Búið til",
     "Password reset" : "Endurstilling lykilorðs",
     "Current password" : "Núverandi lykilorð",
     "New password" : "Nýtt lykilorð",
@@ -59,7 +69,7 @@ OC.L10N.register(
     "Dependencies" : "Kerfiskröfur",
     "Yes" : "Já",
     "No" : "Nei",
-    "Pending" : "Í bið",
-    "No date" : "Engin dagsetning"
+    "No date" : "Engin dagsetning",
+    "Pending" : "Í bið"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

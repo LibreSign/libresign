@@ -39,7 +39,11 @@ OC.L10N.register(
     "Confirm password" : "Kinnita salasõna",
     "Enter a password" : "Enter a password",
     "Page not found" : "Lehekülge ei leitud",
+    "Ok" : "Ok",
+    "Modified" : "Muudetud",
+    "Today" : "Täna",
     "Send" : "Saada",
+    "Created at" : "Loodud",
     "Password reset" : "Parooli taastamine ",
     "Current password" : "Praegune parool",
     "New password" : "Uus parool",
@@ -49,7 +53,7 @@ OC.L10N.register(
     "Yes" : "Jah",
     "No" : "Ei",
     "Forgot password?" : "Unustasid parooli?",
-    "Pending" : "Ootel",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "Ootel"
 },
 "nplurals=2; plural=(n != 1);");

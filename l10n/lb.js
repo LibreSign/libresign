@@ -20,13 +20,16 @@ OC.L10N.register(
     "Create account" : "Kont uleeën",
     "Password" : "Passwuert",
     "Enter a password" : "Enter a password",
+    "Ok" : "OK",
+    "Modified" : "Geännert",
+    "Today" : "Haut",
     "Send" : "Schécken",
     "Current password" : "Momentan 't Passwuert",
     "New password" : "Neit Passwuert",
     "Resource" : "Ressource",
     "Yes" : "Yes",
     "No" : "No",
-    "Pending" : "Ausstoend",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "Ausstoend"
 },
 "nplurals=2; plural=(n != 1);");

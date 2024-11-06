@@ -36,7 +36,11 @@ OC.L10N.register(
     "Confirm password" : "პაროლის დადასტურება",
     "Enter a password" : "შეიყვანეთ პაროლი",
     "Page not found" : "გვერდი არაა ნაპოვნი",
+    "Ok" : "კარგი",
+    "Modified" : "შეიცვალა",
+    "Today" : "დღეს",
     "Send" : "გაგზავნა",
+    "Created at" : "შეიქმნა",
     "Password reset" : "პაროლის აღდგენა",
     "Current password" : "ამჟამინდელი პაროლი",
     "New password" : "ახალი პაროლი",
@@ -46,7 +50,7 @@ OC.L10N.register(
     "Dependencies" : "დამოკიდებულებები",
     "Yes" : "კი",
     "No" : "არა",
-    "Pending" : "მოლოდინში",
-    "No date" : "თარიღი არაა"
+    "No date" : "თარიღი არაა",
+    "Pending" : "მოლოდინში"
 },
 "nplurals=2; plural=(n!=1);");
