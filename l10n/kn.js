@@ -16,12 +16,15 @@ OC.L10N.register(
     "Choose" : "﻿ಆಯ್ಕೆ",
     "Password" : "ಗುಪ್ತ ಪದ",
     "Enter a password" : "Enter a password",
+    "Ok" : "﻿ಸರಿ",
+    "Modified" : "﻿ಬದಲಾಯಿಸಿದ",
+    "Today" : "Today",
     "Send" : "﻿ಕಳುಹಿಸಿ",
     "Current password" : "ಪ್ರಸ್ತುತ ಗುಪ್ತಪದ",
     "New password" : "﻿ಹೊಸ ಗುಪ್ತಪದ",
     "Yes" : "Yes",
     "No" : "No",
-    "Pending" : "﻿ಬಾಕಿ ಇದೆ",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "﻿ಬಾಕಿ ಇದೆ"
 },
 "nplurals=2; plural=(n > 1);");

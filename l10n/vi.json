@@ -42,8 +42,19 @@
     "Confirm password" : "Xác nhận mật khẩu",
     "Enter a password" : "Nhập mật khẩu",
     "Page not found" : "Trang không tìm thấy",
+    "Ok" : "Đồng ý",
+    "Clear filter" : "Xóa bộ lọc",
+    "Modified" : "Đã thay đổi vào:",
+    "Today" : "Hôm nay",
+    "Last 7 days" : "7 ngày trước",
+    "Last 30 days" : "30 ngày trước",
+    "Active filters" : "Bộ lọc đang hoạt động",
+    "Remove filter" : "Xoá bộ lọc",
     "Choose from Files" : "Chọn từ Tệp",
     "Send" : "Gửi",
+    "Switch to list view" : "Chuyển sang chế độ xem danh sách",
+    "Switch to grid view" : "Chuyển sang chế độ xem dạng lưới",
+    "Created at" : "Được tạo ra vào lúc",
     "Password reset" : "Đặt lại mật khẩu",
     "Current password" : "Mật khẩu cũ",
     "New password" : "Mật khẩu mới",
@@ -52,7 +63,7 @@
     "Yes" : "Có",
     "No" : "Không",
     "Forgot password?" : "Quên mật khẩu sao?",
-    "Pending" : "Đang dừng",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "Đang dừng"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

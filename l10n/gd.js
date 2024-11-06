@@ -19,6 +19,7 @@ OC.L10N.register(
     "Choose" : "Tagh",
     "Password" : "Facal-faire",
     "Enter a password" : "Cuir a-steach facal-faire",
+    "Today" : "An-diugh",
     "Send" : "Cuir",
     "Password reset" : "Ath-shuidheachadh an fhacail-fhaire",
     "Yes" : "Tha",

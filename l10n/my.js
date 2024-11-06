@@ -14,6 +14,7 @@ OC.L10N.register(
     "Status" : "အခြေအနေ",
     "Password Creation" : "လျှို့ဝှက်ကုဒ် ဖန်တီးရန်",
     "Enter a password" : "စကားဝှက် ရိုက်ထည့်ပါ။",
+    "Today" : "ယနေ့",
     "Name (CN)" : "အမည် (CN)",
     "CFSSL API URI" : "CFSSL API URI",
     "Config path" : "ချိန်ညှိမှု path",

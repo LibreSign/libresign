@@ -34,7 +34,11 @@
     "Confirm password" : "პაროლის დადასტურება",
     "Enter a password" : "შეიყვანეთ პაროლი",
     "Page not found" : "გვერდი არაა ნაპოვნი",
+    "Ok" : "კარგი",
+    "Modified" : "შეიცვალა",
+    "Today" : "დღეს",
     "Send" : "გაგზავნა",
+    "Created at" : "შეიქმნა",
     "Password reset" : "პაროლის აღდგენა",
     "Current password" : "ამჟამინდელი პაროლი",
     "New password" : "ახალი პაროლი",
@@ -44,7 +48,7 @@
     "Dependencies" : "დამოკიდებულებები",
     "Yes" : "კი",
     "No" : "არა",
-    "Pending" : "მოლოდინში",
-    "No date" : "თარიღი არაა"
+    "No date" : "თარიღი არაა",
+    "Pending" : "მოლოდინში"
 },"pluralForm" :"nplurals=2; plural=(n!=1);"
 }

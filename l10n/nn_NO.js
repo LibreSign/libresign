@@ -29,14 +29,18 @@ OC.L10N.register(
     "Passwords does not match" : "Passorda samsvarar ikkje",
     "Enter a password" : "Skriv inn eit passord",
     "Page not found" : "Fann ikkje sida",
+    "Ok" : "Greitt",
+    "Modified" : "Endra",
+    "Today" : "I dag",
     "Send" : "Send",
+    "Created at" : "Skapt den",
     "Password reset" : "Passord omstilling",
     "Current password" : "Passord",
     "New password" : "Nytt passord",
     "Resource" : "Ressurs",
     "Yes" : "Ja",
     "No" : "Nei",
-    "Pending" : "Under vegs",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "Under vegs"
 },
 "nplurals=2; plural=(n != 1);");

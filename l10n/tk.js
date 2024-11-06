@@ -17,6 +17,7 @@ OC.L10N.register(
     "Choose" : "saýlamak",
     "Password" : "Açarsöz",
     "Enter a password" : "Paroly giriziň",
+    "Today" : "Şu gün",
     "Send" : "Iber",
     "Yes" : "Hawa",
     "No" : "Ýok",

@@ -44,6 +44,9 @@ OC.L10N.register(
     "Confirm password" : "Konfirmi pasvorton",
     "Enter a password" : "Entajpu pasvorton",
     "Page not found" : "Paĝo ne trovita",
+    "Ok" : "Bone",
+    "Last 7 days" : "Lastaj 7 tagoj",
+    "Last 30 days" : "Lastaj 30 tagoj",
     "Send" : "Sendi",
     "Password reset" : "Restarigi pasvorton",
     "Current password" : "Nuna pasvorto",
@@ -55,7 +58,7 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Forgot password?" : "Ĉu vi forgesis vian pasvorton?",
-    "Pending" : "Pritraktota",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "Pritraktota"
 },
 "nplurals=2; plural=(n != 1);");

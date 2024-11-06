@@ -42,7 +42,12 @@ OC.L10N.register(
     "Password Creation" : "Paroles izveidošana",
     "Enter a password" : "Jāievada parole",
     "Page not found" : "Lapa nav atrasta",
+    "Ok" : "Labi",
+    "Clear filter" : "Notīrīt atlasi",
+    "Modified" : "Mainīts",
+    "Today" : "Šodien",
     "Send" : "Sūtīt",
+    "Created at" : "Izveidots plkst.",
     "Password reset" : "Parole atiestatīta",
     "Current password" : "Pašreizējā parole",
     "New password" : "Jauna parole",
@@ -54,8 +59,8 @@ OC.L10N.register(
     "Yes" : "Jā",
     "No" : "Nē",
     "Forgot password?" : "Aizmirsta parole?",
-    "Pending" : "Gaida",
     "No date" : "No date",
-    "Requested by {name}, at {date}" : "Pieprasīja {name} {date}"
+    "Requested by {name}, at {date}" : "Pieprasīja {name} {date}",
+    "Pending" : "Gaida"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);");

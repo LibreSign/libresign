@@ -36,6 +36,7 @@ OC.L10N.register(
     "Confirm password" : "Confirmar contraseña",
     "Enter a password" : "Ingresa una contraseña",
     "Page not found" : "Página no encontrada",
+    "Ok" : "Ok",
     "Send" : "Enviar",
     "Password reset" : "Restablecer contraseña",
     "Current password" : "Contraseña actual",
@@ -47,7 +48,7 @@ OC.L10N.register(
     "Yes" : "Sí",
     "No" : "No",
     "Forgot password?" : "¿Olvidaste tu contraseña?",
-    "Pending" : "Pendiente",
-    "No date" : "Sin fecha"
+    "No date" : "Sin fecha",
+    "Pending" : "Pendiente"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

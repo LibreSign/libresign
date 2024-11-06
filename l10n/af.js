@@ -45,7 +45,7 @@ OC.L10N.register(
     "Yes" : "Ja",
     "No" : "Nee",
     "Forgot password?" : "Wagwoord vergeet?",
-    "Pending" : "Hangend",
-    "No date" : "Geen datum"
+    "No date" : "Geen datum",
+    "Pending" : "Hangend"
 },
 "nplurals=2; plural=(n != 1);");
