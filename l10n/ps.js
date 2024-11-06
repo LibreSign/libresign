@@ -13,6 +13,8 @@ OC.L10N.register(
     "Actions" : "کړنې",
     "Choose" : "غوره کړئ",
     "Password" : "پاسورډ",
+    "Modified" : "د بدلون نېټه",
+    "Today" : "نن",
     "Send" : "لېږل",
     "Password reset" : "پاسورډ نوي کول",
     "Yes" : "هو",

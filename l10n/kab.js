@@ -24,6 +24,8 @@ OC.L10N.register(
     "Password" : "Awal uffir",
     "Enter a password" : "Sekcem awal n uɛeddi",
     "Page not found" : "Ulac asebter",
+    "Modified" : "Yettwabeddel",
+    "Today" : "Ass-a",
     "Send" : "Tuzna",
     "Password reset" : "Awennez n wawal uffir",
     "New password" : "Awal uffir amaynut",

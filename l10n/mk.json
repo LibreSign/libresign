@@ -51,8 +51,19 @@
     "Confirm password" : "Потврди лозинка",
     "Enter a password" : "Внесете лозинка",
     "Page not found" : "Страницата не е пронајдена",
+    "Ok" : "Во ред",
+    "Clear filter" : "Исчисти филтри",
+    "Modified" : "Изменето",
+    "Today" : "Денес",
+    "Last 7 days" : "Предходни 7 дена",
+    "Last 30 days" : "Предходни 30 дена",
+    "This year ({year})" : "Оваа година ({year})",
+    "Last year ({year})" : "Минатата година ({year})",
     "Choose from Files" : "Избери од датотеките",
     "Send" : "Прати",
+    "Switch to list view" : "Прикажи поглед во листа",
+    "Switch to grid view" : "Прикажи поглед во мрежа",
+    "Created at" : "Создадена на",
     "Password reset" : "Ресетирај лозинка",
     "Current password" : "Моментална лозинка",
     "New password" : "Нова лозинка",
@@ -61,7 +72,7 @@
     "Yes" : "Да",
     "No" : "Не",
     "Forgot password?" : "Заборавена лозинка?",
-    "Pending" : "Чекање",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "Чекање"
 },"pluralForm" :"nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;"
 }

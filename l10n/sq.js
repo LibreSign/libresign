@@ -40,7 +40,11 @@ OC.L10N.register(
     "Confirm password" : "Konfrimo fjalëkalimin",
     "Enter a password" : "Fusni një fjalëkalim",
     "Page not found" : "Faqja nuk u gjet ",
+    "Ok" : "Në rregull",
+    "Modified" : "Modifikuar ",
+    "Today" : "Sot",
     "Send" : "Dërgo",
+    "Created at" : "U krijua në",
     "Password reset" : "Fjalkalimi u rivendos",
     "Current password" : "Fjalëkalimi aktual",
     "New password" : "Fjalëkalim i ri",
@@ -50,7 +54,7 @@ OC.L10N.register(
     "Dependencies" : "Varësitë",
     "Yes" : "Yes",
     "No" : "Jo",
-    "Pending" : "Në Pritje të Konfirmimit",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "Në Pritje të Konfirmimit"
 },
 "nplurals=2; plural=(n != 1);");

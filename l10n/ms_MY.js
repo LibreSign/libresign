@@ -16,12 +16,15 @@ OC.L10N.register(
     "Profile picture" : "Gambar profil",
     "Password" : "Kata laluan",
     "Enter a password" : "Enter a password",
+    "Ok" : "Ok",
+    "Modified" : "Dimodifikasi",
+    "Today" : "Hari ini",
     "Send" : "Hantar",
     "Current password" : "Kata laluan semasa",
     "New password" : "Kata laluan baru",
     "Yes" : "Yes",
     "No" : "No",
-    "Pending" : "Dalam proses",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "Dalam proses"
 },
 "nplurals=1; plural=0;");

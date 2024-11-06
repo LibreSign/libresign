@@ -72,8 +72,13 @@ OC.L10N.register(
     "Password Creation" : "Δημιουργία συνθηματικού",
     "Enter a password" : "Εισάγετε συνθηματικό",
     "Page not found" : "Δεν βρέθηκε η σελίδα",
+    "Ok" : "ΟΚ",
+    "Last 7 days" : "Τελευταίες 7 ημέρες",
+    "This year ({year})" : "Αυτό το έτος ({year})",
+    "Active filters" : "Ενεργά φίλτρα",
     "Choose from Files" : "Επιλέξτε από τα Αρχεία",
     "Send" : "Αποστολή",
+    "Switch to grid view" : "Εναλλαγή σε προβολή πλέγματος",
     "Password reset" : "Επαναφορά κωδικού",
     "Enter new password and then repeat it" : "Εισάγετε νέο συνθηματικό και μετά επαναλάβετέ το",
     "Current password" : "Τρέχον συνθηματικό",
@@ -89,10 +94,10 @@ OC.L10N.register(
     "Validation URL" : "URL επικύρωσης",
     "Sign the document." : "Υπογραφή του εγγράφου.",
     "Forgot password?" : "Ξεχάσατε το συνθηματικό;",
-    "All Files" : "Όλα τα αρχεία",
-    "Pending" : "Σε αναμονή",
     "Return" : "Επιστροφή",
     "Validation" : "Επικύρωση",
-    "No date" : "Καμία ημερομηνία"
+    "No date" : "Καμία ημερομηνία",
+    "All Files" : "Όλα τα αρχεία",
+    "Pending" : "Σε αναμονή"
 },
 "nplurals=2; plural=(n != 1);");

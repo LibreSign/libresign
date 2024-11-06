@@ -48,6 +48,9 @@ OC.L10N.register(
     "Confirm password" : "Bekræft kodeord",
     "Enter a password" : "Enter a password",
     "Page not found" : "Siden blev ikke fundet",
+    "Ok" : "OK",
+    "Last 7 days" : "Sidste 7 dage",
+    "This year ({year})" : "Dette år ({year})",
     "Choose from Files" : "Vælg fra Filer",
     "Send" : "Send",
     "Password reset" : "Nulstil adgangskode",
@@ -60,7 +63,7 @@ OC.L10N.register(
     "Yes" : "Ja",
     "No" : "Nej",
     "Forgot password?" : "Glemt adgangskode?",
-    "Pending" : "Afventer",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "Afventer"
 },
 "nplurals=2; plural=(n != 1);");

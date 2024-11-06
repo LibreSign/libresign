@@ -48,7 +48,17 @@ OC.L10N.register(
     "Confirm password" : "Confirmați parola",
     "Enter a password" : "Enter a password",
     "Page not found" : "Pagina nu a fost găsită",
+    "Ok" : "Ok",
+    "Clear filter" : "Șterge filtrul",
+    "Modified" : "Modificat",
+    "Today" : "Azi",
+    "Last 7 days" : "Ultimele 7 zile",
+    "Last 30 days" : "Ultimele 30 de zile",
+    "Active filters" : "Filtre active",
     "Send" : "Trimite",
+    "Switch to list view" : "Comuta la organizarea tip listă",
+    "Switch to grid view" : "Comută la organizare tip grilă",
+    "Created at" : "Creat la",
     "Password reset" : "Resetare parolă",
     "Current password" : "Parola curentă",
     "New password" : "Noua parolă",
@@ -57,7 +67,7 @@ OC.L10N.register(
     "Dependencies" : "Dependențe",
     "Yes" : "a",
     "No" : "Nu",
-    "Pending" : "În așteptare",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "În așteptare"
 },
 "nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));");

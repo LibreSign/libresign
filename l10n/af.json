@@ -43,7 +43,7 @@
     "Yes" : "Ja",
     "No" : "Nee",
     "Forgot password?" : "Wagwoord vergeet?",
-    "Pending" : "Hangend",
-    "No date" : "Geen datum"
+    "No date" : "Geen datum",
+    "Pending" : "Hangend"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
