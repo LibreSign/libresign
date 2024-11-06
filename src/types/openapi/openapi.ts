@@ -592,6 +592,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/file_id/{fileId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete File
+         * @description This will delete the file and all data
+         */
+        delete: operations["file-delete-all-request-signature-using-file-id"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/file-element/{uuid}": {
         parameters: {
             query?: never;
@@ -2356,6 +2376,10 @@ export interface operations {
                 start?: number | null;
                 /** @description End date of signature request (UNIX timestamp) */
                 end?: number | null;
+                /** @description Name of the column to sort by */
+                sortBy?: string | null;
+                /** @description Ascending or descending order */
+                sortDirection?: string | null;
             };
             header: {
                 /** @description Required to be true for the API request to pass */
@@ -2533,6 +2557,74 @@ export interface operations {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
                                 message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "file-delete-all-request-signature-using-file-id": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Node id of a Nextcloud file */
+                fileId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** Format: int64 */
+                                action: number;
+                                errors: string[];
                             };
                         };
                     };
