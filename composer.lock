@@ -1549,12 +1549,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "e3b44e38648ef5386687032582759f9c616c8d19"
+                "reference": "d759d7741c71be821730c489871ba89a93534869"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/e3b44e38648ef5386687032582759f9c616c8d19",
-                "reference": "e3b44e38648ef5386687032582759f9c616c8d19",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/d759d7741c71be821730c489871ba89a93534869",
+                "reference": "d759d7741c71be821730c489871ba89a93534869",
                 "shasum": ""
             },
             "conflict": {
@@ -1907,6 +1907,7 @@
                 "matyhtf/framework": "<3.0.6",
                 "mautic/core": "<4.4.13|>=5,<5.1.1",
                 "mautic/core-lib": ">=1.0.0.0-beta,<4.4.13|>=5.0.0.0-alpha,<5.1.1",
+                "maximebf/debugbar": "<1.19",
                 "mdanter/ecc": "<2",
                 "mediawiki/cargo": "<3.6.1",
                 "mediawiki/core": "<1.39.5|==1.40",
@@ -2376,7 +2377,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-10-31T18:06:19+00:00"
+            "time": "2024-11-05T21:04:54+00:00"
         }
     ],
     "aliases": [],
