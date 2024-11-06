@@ -26,13 +26,14 @@ namespace OCA\Libresign\Helper;
 
 use OCA\Libresign\Db\PagerFantaQueryAdapter;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\IURLGenerator;
 use Pagerfanta\Pagerfanta;
 
 class Pagination extends Pagerfanta {
-	/** @var string */
-	private $rootPath;
+	private string $routeName;
 	public function __construct(
 		IQueryBuilder $queryBuilder,
+		private IURLGenerator $urlGenerator,
 	) {
 		$adapter = new PagerFantaQueryAdapter($queryBuilder);
 		parent::__construct($adapter);
@@ -41,27 +42,59 @@ class Pagination extends Pagerfanta {
 	/**
 	 * @return static
 	 */
-	public function setRootPath(string $rootPath = ''): self {
-		$this->rootPath = $rootPath;
+	public function setRouteName(string $routeName = ''): self {
+		$this->routeName = $routeName;
 		return $this;
 	}
 
-	public function getPagination(?int $page, ?int $length): array {
+	public function getPagination(int $page, int $length, array $filter = []): array {
 		$this->setMaxPerPage($length);
-		$pagination['total'] = $this->count();
-		if ($pagination['total'] > $length) {
-			$pagination['current'] = $this->rootPath . '?page=' . $page . '&length=' . $length;
-			$pagination['next'] = $this->hasNextPage()      ? $this->rootPath . '?page=' . $this->getNextPage() . '&length=' . $length : null;
-			$pagination['prev'] = $this->hasPreviousPage()  ? $this->rootPath . '?page=' . $this->getPreviousPage() . '&length=' . $length : null;
-			$pagination['last'] = $this->hasNextPage()      ? $this->rootPath . '?page=' . $this->getNbPages() . '&length=' . $length : null;
-			$pagination['first'] = $this->hasPreviousPage() ? $this->rootPath . '?page=1&length=' . $length : null;
-		} else {
-			$pagination['current'] = null;
-			$pagination['next'] = null;
-			$pagination['prev'] = null;
-			$pagination['last'] = null;
-			$pagination['first'] = null;
+		$total = $this->count();
+		if ($total > $length) {
+			return [
+				'total' => $total,
+				'current' => $this->linkToRoute(true, $page, $length, $filter),
+				'next' => $this->linkToRoute($this->hasNextPage(), 'getNextPage', $length, $filter),
+				'prev' => $this->linkToRoute($this->hasPreviousPage(), 'getPreviousPage', $length, $filter),
+				'last' => $this->linkToRoute($this->hasNextPage(), 'getNbPages', $length, $filter),
+				'first' => $this->linkToRoute($this->hasPreviousPage(), 1, $length, $filter),
+			];
 		}
-		return $pagination;
+		return [
+			'total' => $total,
+			'current' => null,
+			'next' => null,
+			'prev' => null,
+			'last' => null,
+			'first' => null,
+		];
+	}
+
+	private function linkToRoute(bool $condition, int|string $page, int $length, array $filter): ?string {
+		if (!$condition) {
+			return null;
+		}
+		if (is_string($page)) {
+			$page = $this->$page();
+		}
+		$url = $this->urlGenerator->linkToRouteAbsolute(
+			$this->routeName,
+			array_merge(['page' => $page, 'length' => $length, 'apiVersion' => 'v1'], $filter)
+		);
+		$url = $this->sortParameters($url);
+		return $url;
+	}
+
+	/**
+	 * This is necessary to fix problem at integration tests because the method linkToRoute change the order of parameters
+	 */
+	private function sortParameters(?string $url): ?string {
+		if (!$url) {
+			return $url;
+		}
+		parse_str(parse_url($url, PHP_URL_QUERY), $query);
+		ksort($query);
+		$url = strtok($url, '?') . '?' . http_build_query($query);
+		return $url;
 	}
 }

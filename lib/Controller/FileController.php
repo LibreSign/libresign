@@ -26,6 +26,7 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Files_Sharing\SharedStorage;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
@@ -35,6 +36,7 @@ use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -75,6 +77,7 @@ class FileController extends AEnvironmentAwareController {
 		private SessionService $sessionService,
 		private SignRequestMapper $signRequestMapper,
 		private IdentifyMethodService $identifyMethodService,
+		private RequestSignatureService $requestSignatureService,
 		private AccountService $accountService,
 		private IRootFolder $root,
 		private IPreview $preview,
@@ -208,9 +211,13 @@ class FileController extends AEnvironmentAwareController {
 	 *
 	 * @param string|null $signer_uuid Signer UUID
 	 * @param string|null $nodeId The nodeId (also called fileId). Is the id of a file at Nextcloud
-	 * @param int|null $status Status could be one of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted.
+	 * @param list<int>|null $status Status could be none or many of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted.
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
+	 * @param int|null $start Start date of signature request (UNIX timestamp)
+	 * @param int|null $end End date of signature request (UNIX timestamp)
+	 * @param string|null $sortBy Name of the column to sort by
+	 * @param string|null $sortDirection Ascending or descending order
 	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>
 	 *
 	 * 200: OK
@@ -223,16 +230,26 @@ class FileController extends AEnvironmentAwareController {
 		?int $length = null,
 		?string $signer_uuid = null,
 		?string $nodeId = null,
-		?int $status = null,
+		?array $status = null,
+		?int $start = null,
+		?int $end = null,
+		?string $sortBy = null,
+		?string $sortDirection = null,
 	): DataResponse {
 		$filter = array_filter([
 			'signer_uuid' => $signer_uuid,
 			'nodeId' => $nodeId,
 			'status' => $status,
+			'start' => $start,
+			'end' => $end,
 		], static function ($var) { return $var !== null; });
+		$sort = [
+			'sortBy' => $sortBy,
+			'sortDirection' => $sortDirection,
+		];
 		$return = $this->fileService
 			->setMe($this->userSession->getUser())
-			->listAssociatedFilesOfSignFlow($page, $length, $filter);
+			->listAssociatedFilesOfSignFlow($page, $length, $filter, $sort);
 		return new DataResponse($return, Http::STATUS_OK);
 	}
 
@@ -372,6 +389,15 @@ class FileController extends AEnvironmentAwareController {
 				'file' => $file,
 				'settings' => $settings
 			]);
+			$data = [
+				'file' => [
+					'fileNode' => $node,
+				],
+				'name' => $name,
+				'userManager' => $this->userSession->getUser(),
+				'status' => FileEntity::STATUS_DRAFT,
+			];
+			$file = $this->requestSignatureService->save($data);
 
 			return new DataResponse(
 				[
@@ -392,5 +418,47 @@ class FileController extends AEnvironmentAwareController {
 				Http::STATUS_UNPROCESSABLE_ENTITY,
 			);
 		}
+	}
+
+	/**
+	 * Delete File
+	 *
+	 * This will delete the file and all data
+	 *
+	 * @param integer $fileId Node id of a Nextcloud file
+	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: string[]}, array{}>
+	 *
+	 * 200: OK
+	 * 401: Failed
+	 * 422: Failed
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[RequireManager]
+	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/file/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
+	public function deleteAllRequestSignatureUsingFileId(int $fileId): DataResponse {
+		try {
+			$data = [
+				'userManager' => $this->userSession->getUser(),
+				'file' => [
+					'fileId' => $fileId
+				]
+			];
+			$this->validateHelper->validateExistingFile($data);
+			$this->fileService->delete($fileId);
+		} catch (\Throwable $th) {
+			return new DataResponse(
+				[
+					'message' => $th->getMessage(),
+				],
+				Http::STATUS_UNAUTHORIZED
+			);
+		}
+		return new DataResponse(
+			[
+				'message' => $this->l10n->t('Success')
+			],
+			Http::STATUS_OK
+		);
 	}
 }
