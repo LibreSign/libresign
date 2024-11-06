@@ -26,7 +26,7 @@ OC.L10N.register(
     "New password" : "নতুন কূটশব্দ",
     "Yes" : "Yes",
     "No" : "No",
-    "Pending" : "মুলতুবি",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "মুলতুবি"
 },
 "nplurals=2; plural=(n != 1);");

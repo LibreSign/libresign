@@ -49,7 +49,20 @@
     "Confirm password" : "Підтвердити пароль",
     "Enter a password" : "Enter a password",
     "Page not found" : "Сторінку не знайдено",
+    "Ok" : "Гаразд",
+    "Clear filter" : "Очистити фільтр",
+    "Modified" : "Змінено",
+    "Today" : "Сьогодні",
+    "Last 7 days" : "За останні 7 днів",
+    "Last 30 days" : "За останні 30 днів",
+    "This year ({year})" : "Цього року ({year})",
+    "Last year ({year})" : "Останнього року ({year})",
+    "Active filters" : "Активні фільтри",
+    "Remove filter" : "Вилучити фільтр",
     "Send" : "Надіслати",
+    "Switch to list view" : "У вигляді списку",
+    "Switch to grid view" : "У вигляді сітки",
+    "Created at" : "Коли створено",
     "Password reset" : "Відновлення пароля",
     "Current password" : "Поточний пароль",
     "New password" : "Новий пароль",
@@ -60,7 +73,7 @@
     "Yes" : "Так",
     "No" : "Ні",
     "Forgot password?" : "Забули пароль?",
-    "Pending" : "Очікування",
-    "No date" : "Без дати"
+    "No date" : "Без дати",
+    "Pending" : "Очікування"
 },"pluralForm" :"nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);"
 }

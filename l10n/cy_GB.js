@@ -29,6 +29,7 @@ OC.L10N.register(
     "Confirm password" : "Cadarnhau'r cyfrinair",
     "Enter a password" : "Enter a password",
     "Page not found" : "Heb ganfod y dudalen",
+    "Ok" : "Iawn",
     "Send" : "Anfon",
     "New password" : "Cyfrinair newydd",
     "Resource" : "Adnodd",
@@ -36,7 +37,7 @@ OC.L10N.register(
     "Yes" : "Iawn",
     "No" : "No",
     "Forgot password?" : "Anghofio cyfrinair?",
-    "Pending" : "I ddod",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "I ddod"
 },
 "nplurals=4; plural=(n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != 11) ? 2 : 3;");

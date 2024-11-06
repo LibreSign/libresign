@@ -30,15 +30,19 @@ OC.L10N.register(
     "Create account" : "Аккаунт үүсгэх",
     "Password" : "Нууц үг",
     "Enter a password" : "Enter a password",
+    "Ok" : "За",
+    "Modified" : "Өөрчлөгдсөн",
+    "Today" : "өнөөдөр",
     "Choose from Files" : "Файлаас сонгох",
     "Send" : "илгээх",
+    "Created at" : "үүсгэгдсэн",
     "Password reset" : "Нууц үг солих",
     "Current password" : "одоогийн нууц үг",
     "New password" : "шинэ нууц үг",
     "Resource" : "Нөөц",
     "Yes" : "Тийм",
     "No" : "Үгүй",
-    "Pending" : "Хүлээгдэж байгаа",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "Хүлээгдэж байгаа"
 },
 "nplurals=2; plural=(n != 1);");

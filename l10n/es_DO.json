@@ -34,6 +34,7 @@
     "Confirm password" : "Confirmar contraseña",
     "Enter a password" : "Ingresa una contraseña",
     "Page not found" : "Página no encontrada",
+    "Ok" : "Ok",
     "Send" : "Enviar",
     "Password reset" : "Restablecer contraseña",
     "Current password" : "Contraseña actual",
@@ -44,7 +45,7 @@
     "Dependencies" : "Dependencias",
     "Yes" : "Sí",
     "No" : "No",
-    "Pending" : "Pendiente",
-    "No date" : "Sin fecha"
+    "No date" : "Sin fecha",
+    "Pending" : "Pendiente"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

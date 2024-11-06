@@ -46,8 +46,13 @@ OC.L10N.register(
     "Confirm password" : "אישור הססמה",
     "Enter a password" : "נא להקליד ססמה",
     "Page not found" : "העמוד לא נמצא",
+    "Ok" : "אישור",
+    "Clear filter" : "מחיקת מסנן",
+    "Modified" : "מועד שינוי",
+    "Today" : "היום",
     "Choose from Files" : "בחר מתוך קבצים",
     "Send" : "שליחה",
+    "Created at" : "נוצר ב־",
     "Password reset" : "איפוס ססמה",
     "Current password" : "ססמה נוכחית",
     "New password" : "ססמה חדשה",
@@ -58,7 +63,7 @@ OC.L10N.register(
     "Yes" : "כן",
     "No" : "לא",
     "Forgot password?" : "שכחת ססמה?",
-    "Pending" : "בהמתנה",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "בהמתנה"
 },
 "nplurals=3; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: 2;");

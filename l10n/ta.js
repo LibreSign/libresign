@@ -20,11 +20,14 @@ OC.L10N.register(
     "Create account" : "கணக்கை உருவாக்குக",
     "Password" : "கடவுச்சொல்",
     "Enter a password" : "Enter a password",
+    "Ok" : "Ok",
+    "Modified" : "மாற்றப்பட்டது",
+    "Today" : "இன்று",
     "Current password" : "தற்போதைய கடவுச்சொல்",
     "New password" : "புதிய கடவுச்சொல்",
     "Yes" : "Yes",
     "No" : "No",
-    "Pending" : "நிலுவையிலுள்ள",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Pending" : "நிலுவையிலுள்ள"
 },
 "nplurals=2; plural=(n != 1);");

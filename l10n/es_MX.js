@@ -47,7 +47,15 @@ OC.L10N.register(
     "Confirm password" : "Confirmar contraseña",
     "Enter a password" : "Ingresa una contraseña",
     "Page not found" : "Página no encontrada",
+    "Modified" : "Modificado",
+    "Last 7 days" : "Últimos 7 días",
+    "Last 30 days" : "Últimos 30 días",
+    "This year ({year})" : "Este año ({year})",
+    "Last year ({year})" : "El año pasado ({year})",
+    "Active filters" : "Filtros activos",
     "Send" : "Enviar",
+    "Switch to grid view" : "Cambiar a la vista de cuadrícula",
+    "Created at" : "Creado en",
     "Password reset" : "Restablecer contraseña",
     "Current password" : "Contraseña actual",
     "New password" : "Nueva contraseña",
@@ -58,7 +66,7 @@ OC.L10N.register(
     "Dependencies" : "Dependencias",
     "Yes" : "Sí",
     "No" : "No",
-    "Pending" : "Pendiente",
-    "No date" : "Sin fecha"
+    "No date" : "Sin fecha",
+    "Pending" : "Pendiente"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

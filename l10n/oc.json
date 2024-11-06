@@ -85,7 +85,10 @@
     "Password Creation" : "Creacion del senhal",
     "Enter a password" : "Picatz un senhal",
     "Page not found" : "Pagina pas trobada",
+    "Modified" : "Modificat",
+    "Today" : "Uèi",
     "Send" : "Enviar",
+    "Created at" : "Creat lo",
     "Password reset" : "Reïnicializacion de senhal",
     "Current password" : "Senhal actual",
     "New password" : "Senhal novèl",
@@ -97,9 +100,9 @@
     "Generated certificate!" : "Certificat generat !",
     "Sign the document." : "Signar aqueste document.",
     "Forgot password?" : "Senhal oblidat ?",
-    "Pending" : "En espèra",
     "Return" : "Tornar",
     "No date" : "Cap de data",
-    "This document is valid" : "Aqueste document es valid"
+    "This document is valid" : "Aqueste document es valid",
+    "Pending" : "En espèra"
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }

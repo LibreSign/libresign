@@ -41,14 +41,20 @@ OC.L10N.register(
     "Password" : "รหัสผ่าน",
     "Enter a password" : "ใส่รหัสผ่าน",
     "Page not found" : "ไม่พบหน้า",
+    "Ok" : "ตกลง",
+    "Modified" : "แก้ไขเมื่อ",
+    "Today" : "วันนี้",
+    "Last 7 days" : "ภายใน 7 วัน",
+    "Last 30 days" : "ภายใน 30 วัน",
     "Send" : "ส่ง",
+    "Created at" : "สร้างเมื่อ",
     "Password reset" : "ตั้งรหัสผ่านใหม่",
     "Current password" : "รหัสผ่านปัจจุบัน",
     "New password" : "รหัสผ่านใหม่",
     "Resource" : "ทรัพยากร",
     "Yes" : "ใช่",
     "No" : "ไม่",
-    "Pending" : "รอดำเนินการ",
-    "No date" : "ไม่มีวันที่"
+    "No date" : "ไม่มีวันที่",
+    "Pending" : "รอดำเนินการ"
 },
 "nplurals=1; plural=0;");
