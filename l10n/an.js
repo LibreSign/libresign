@@ -14,6 +14,8 @@ OC.L10N.register(
     "Choose" : "Eslechir",
     "Change password" : "Cambiar clau",
     "Password" : "Clau",
+    "Modified" : "Modificau",
+    "Today" : "Hue",
     "Password reset" : "Restablimiento d'a clau",
     "New password" : "Nueva clau",
     "Yes" : "Si",

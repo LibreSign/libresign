@@ -220,6 +220,8 @@
     "Error creating new password, please contact the administrator" : "Produciuse un erro ao crear un novo contrasinal, póñase en contacto coa administración desta instancia",
     "Page not found" : "Non se atopou a páxina",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Desculpe, a páxina que busca non existe, foi retirada, movida ou non está dispoñíbel temporalmente.",
+    "The signature request will be deleted. Do you confirm this action?" : "Eliminarase a solicitude de sinatura. Confirma esta acción?",
+    "Also delete the file." : "Eliminar tamén o ficheiro.",
     "Ok" : "Aceptar",
     "Clear filter" : "Limpar o filtro",
     "Modified" : "Modificado",
