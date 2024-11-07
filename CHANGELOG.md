@@ -13,6 +13,26 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 9.4.0 - 2024-11-07
+### Fixes
+* fix: open notification as internal url https://github.com/LibreSign/libresign/pull/3712
+* fix: close button https://github.com/LibreSign/libresign/pull/3723
+* fix: typo https://github.com/LibreSign/libresign/pull/3734
+* fix: i18n; Fixed grammar https://github.com/LibreSign/libresign/pull/3784
+* fix: prevent don't match extension when the file have uppercase name https://github.com/LibreSign/libresign/pull/3820
+* fix: open settings together with cms_pico https://github.com/LibreSign/libresign/pull/3825
+
+### Changes
+* feat: use Viewer to open pdf https://github.com/LibreSign/libresign/pull/3726
+* feat: add documentation url https://github.com/LibreSign/libresign/pull/3816
+* feat: rewrite file list https://github.com/LibreSign/libresign/pull/3897
+* feat: add OWASP dependency check https://github.com/LibreSign/libresign/pull/3913
+
+### Chore
+* chore: remove unused packages and code
+* chore: convert indent size and apply updated linter rules
+* chore: update api documentation https://github.com/LibreSign/libresign/pull/3902
+
 ## 9.3.2 - 2024-09-14
 ### Fixes
 * fix: ajust condition to filter file list [3701](https://github.com/LibreSign/libresign/pull/3701)
