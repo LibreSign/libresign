@@ -17,6 +17,47 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 10.1.0 - 2024-11-07
+### Fixes
+* fix: open notification as internal url [3713](https://github.com/LibreSign/libresign/pull/3713)
+* fix: close button [3724](https://github.com/LibreSign/libresign/pull/3724)
+* fix: typo [3735](https://github.com/LibreSign/libresign/pull/3735)
+* fix: i18n; Fixed grammar [3785](https://github.com/LibreSign/libresign/pull/3785)
+* fix: prevent don't match extension when the file have uppercase name [3819](https://github.com/LibreSign/libresign/pull/3819)
+* fix: open settings together with cms_pico [3824](https://github.com/LibreSign/libresign/pull/3824)
+* fix: replace deprecated code [3899](https://github.com/LibreSign/libresign/pull/3899)
+
+### Changes
+* feat: use Viewer to open pdf [3727](https://github.com/LibreSign/libresign/pull/3727)
+* feat: add spdx headers https://github.com/LibreSign/libresign/pull/3877
+* feat: rewrite file list [3898](https://github.com/LibreSign/libresign/pull/3898)
+* feat: add OWASP dependency check [3914](https://github.com/LibreSign/libresign/pull/3914)
+
+### Chore
+* chore: remove unused packages and code
+* chore: convert indent size and apply updated linter rules
+* chore: update api documentation [3903](https://github.com/LibreSign/libresign/pull/3903)
+
+## 9.4.0 - 2024-11-07
+### Fixes
+* fix: open notification as internal url https://github.com/LibreSign/libresign/pull/3712
+* fix: close button https://github.com/LibreSign/libresign/pull/3723
+* fix: typo https://github.com/LibreSign/libresign/pull/3734
+* fix: i18n; Fixed grammar https://github.com/LibreSign/libresign/pull/3784
+* fix: prevent don't match extension when the file have uppercase name https://github.com/LibreSign/libresign/pull/3820
+* fix: open settings together with cms_pico https://github.com/LibreSign/libresign/pull/3825
+
+### Changes
+* feat: use Viewer to open pdf https://github.com/LibreSign/libresign/pull/3726
+* feat: add documentation url https://github.com/LibreSign/libresign/pull/3816
+* feat: rewrite file list https://github.com/LibreSign/libresign/pull/3897
+* feat: add OWASP dependency check https://github.com/LibreSign/libresign/pull/3913
+
+### Chore
+* chore: remove unused packages and code
+* chore: convert indent size and apply updated linter rules
+* chore: update api documentation https://github.com/LibreSign/libresign/pull/3902
+
 ## 10.0.2 - 2024-09-14
 ### Fixes
 * fix: ajust condition to filter file list[3702](https://github.com/LibreSign/libresign/pull/3702)
