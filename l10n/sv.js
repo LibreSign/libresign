@@ -220,6 +220,8 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "Det gick inte att skapa nytt lösenord, kontakta administratören",
     "Page not found" : "Sidan hittades inte",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Tyvärr, men sidan du letar efter finns inte, har tagits bort, flyttats eller är tillfälligt otillgänglig.",
+    "The signature request will be deleted. Do you confirm this action?" : "Signaturförfrågan kommer att raderas. Bekräftar du denna åtgärd?",
+    "Also delete the file." : "Ta även bort filen.",
     "Ok" : "Ok",
     "Clear filter" : "Rensa filter",
     "Modified" : "Ändrad",

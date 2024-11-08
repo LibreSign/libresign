@@ -222,6 +222,8 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "無法創建密碼，請聯絡管理員。",
     "Page not found" : "沒有找到頁面",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "抱歉，您要查找的頁面不存在，已被刪除，移動或暫時不可用。",
+    "The signature request will be deleted. Do you confirm this action?" : "將會刪除簽章請求。您確認要執行此動作嗎？",
+    "Also delete the file." : "也刪除檔案。",
     "Ok" : "Ok",
     "Clear filter" : "清空過濾器",
     "Modified" : "修改於",
