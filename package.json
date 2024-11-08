@@ -70,7 +70,7 @@
     "@vue/tsconfig": "^0.5.1",
     "babel-loader-exclude-node-modules-except": "^1.2.1",
     "esbuild-loader": "^4.2.2",
-    "openapi-typescript": "^7.4.2",
+    "openapi-typescript": "^7.4.3",
     "vue-template-compiler": "^2.7.16"
   }
 }
