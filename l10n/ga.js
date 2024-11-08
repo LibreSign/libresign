@@ -222,6 +222,8 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "Earráid agus pasfhocal nua á chruthú, déan teagmháil leis an riarthóir le do thoil",
     "Page not found" : "Ní bhfuarthas an leathanach",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Ár leithscéal ach níl an leathanach atá á lorg agat ann, tá sé bainte, bogtha nó níl sé ar fáil go sealadach.",
+    "The signature request will be deleted. Do you confirm this action?" : "Scriosfar an t-iarratas sínithe. An ndeimhníonn tú an gníomh seo?",
+    "Also delete the file." : "Scrios an comhad freisin.",
     "Ok" : "Ceart go leor",
     "Clear filter" : "Glan an scagaire",
     "Modified" : "Athraithe",
