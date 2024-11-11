@@ -173,6 +173,7 @@ OC.L10N.register(
     "Last 7 days" : "지난 7일",
     "Last 30 days" : "지난 30일",
     "Active filters" : "활성 필터",
+    "Remove filter" : "필터 삭제",
     "Choose from Files" : "파일에서 선택",
     "There are no documents" : "문서가 없습니다.",
     "Choose the file to request signatures." : "서명을 요청할 파일을 선택하십시오.",
