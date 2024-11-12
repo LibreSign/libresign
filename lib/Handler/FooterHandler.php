@@ -144,7 +144,9 @@ class FooterHandler {
 			$this->templateVars['validateIn'] = $this->l10n->t('Validate in %s.', ['%s']);
 		}
 
-		$this->templateVars['qrcode'] = $this->getQrCodeImageBase64($this->templateVars['validationSite']);
+		if ($this->appConfig->getAppValue('write_qrcode_on_footer', '1')) {
+			$this->templateVars['qrcode'] = $this->getQrCodeImageBase64($this->templateVars['validationSite']);
+		}
 
 		return $this->templateVars;
 	}
