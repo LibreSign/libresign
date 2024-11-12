@@ -191,7 +191,7 @@ export const useFilesStore = function(...args) {
 			addIdentifierToSigner(signer) {
 				// generate unique code to new signer to be possible delete or edit
 				if ((signer.identify === undefined || signer.identify === '') && signer.signRequestId === undefined) {
-					signer.identify = btoa(JSON.stringify(signer))
+					signer.identify = btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(signer))))
 				}
 				if (signer.signRequestId) {
 					signer.identify = signer.signRequestId
