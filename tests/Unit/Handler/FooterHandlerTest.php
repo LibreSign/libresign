@@ -12,6 +12,7 @@ use OCP\AppFramework\Services\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -55,29 +56,16 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertEmpty($actual);
 	}
 
-	public function testGetFooterWithSuccess(): void {
+	#[DataProvider('dataGetFooterWithSuccess')]
+	public function testGetFooterWithSuccess(array $settings, array $expected): void {
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->appConfig
 			->method('getAppValue')
-			->willReturnCallback(function ($key, $default):string {
-				return match ($key) {
-					'add_footer' => '1',
-					'validation_site' => 'http://test.coop',
-					'write_qrcode_on_footer' => '1',
-					'footer_link_to_site' => 'https://libresign.coop',
-					'footer_signed_by' => 'Digital signed by LibreSign.',
-					'footer_validate_in' => 'Validate in %s.',
-					'footer_template' => <<<'HTML'
-						<div style="font-size:8px;">
-						qrcodeSize:<?= $qrcodeSize ?><br />
-						signedBy:<?= $signedBy ?><br />
-						validateIn:<?= $validateIn ?><br />
-						test:<?= $test ?><br />
-						qrcode:<?= $qrcode ?>
-						</div>
-						HTML,
-					default => '',
-				};
+			->willReturnCallback(function ($key, $default) use ($settings):string {
+				if (array_key_exists($key, $settings)) {
+					return $settings[$key];
+				}
+				return '';
 			});
 		$this->tempManager->method('getTempBaseDir')->willReturn(sys_get_temp_dir());
 		$tempName = sys_get_temp_dir() . '/' . mt_rand() . '.php';
@@ -105,22 +93,72 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$pdf = $this->getClass()
 			->setTemplateVar('test', 'fake value')
 			->getFooter($file, $libresignFile);
-		$actual = $this->extractPdfContent($pdf, [
-			'qrcodeSize',
-			'signedBy',
-			'validateIn',
-			'test',
-			'qrcode',
-		]);
-		$expected = [
-			'qrcodeSize' => '108',
-			'signedBy' => 'Digital signed by LibreSign.',
-			'validateIn' => 'Validate in %s.',
-			'test' => 'fake value',
+		if ($settings['add_footer']) {
+			$actual = $this->extractPdfContent($pdf, array_keys($expected));
+			if ($settings['write_qrcode_on_footer']) {
+				$this->assertNotEmpty($actual['qrcode'], 'Invalid qrcode content');
+				unset($actual['qrcode'], $expected['qrcode']);
+			}
+			$this->assertEquals($expected, $actual);
+		} else {
+			$this->assertEmpty($pdf);
+		}
+	}
+
+	public static function dataGetFooterWithSuccess(): array {
+		return [
+			[
+				['add_footer' => '0',], []
+			],
+			[
+				[
+					'add_footer' => '1',
+					'validation_site' => 'http://test.coop',
+					'write_qrcode_on_footer' => '1',
+					'footer_link_to_site' => 'https://libresign.coop',
+					'footer_signed_by' => 'Digital signed by LibreSign.',
+					'footer_validate_in' => 'Validate in %s.',
+					'footer_template' => <<<'HTML'
+						<div style="font-size:8px;">
+						qrcodeSize:<?= $qrcodeSize ?><br />
+						signedBy:<?= $signedBy ?><br />
+						validateIn:<?= $validateIn ?><br />
+						test:<?= $test ?><br />
+						qrcode:<?= $qrcode ?>
+						</div>
+						HTML,
+				],
+				[
+					'qrcode' => 'dummy value',
+					'qrcodeSize' => '108',
+					'signedBy' => 'Digital signed by LibreSign.',
+					'validateIn' => 'Validate in %s.',
+					'test' => 'fake value',
+				]
+			],
+			[
+				[
+					'add_footer' => '1',
+					'validation_site' => 'http://test.coop',
+					'write_qrcode_on_footer' => '0',
+					'footer_link_to_site' => 'https://libresign.coop',
+					'footer_signed_by' => 'Digital signed by LibreSign.',
+					'footer_validate_in' => 'Validate in %s.',
+					'footer_template' => <<<'HTML'
+						<div style="font-size:8px;">
+						signedBy:<?= $signedBy ?><br />
+						validateIn:<?= $validateIn ?><br />
+						test:<?= $test ?>
+						</div>
+						HTML,
+				],
+				[
+					'signedBy' => 'Digital signed by LibreSign.',
+					'validateIn' => 'Validate in %s.',
+					'test' => 'fake value',
+				]
+			]
 		];
-		$this->assertArrayHasKey('qrcode', $actual);
-		unset($actual['qrcode']);
-		$this->assertEquals($expected, $actual);
 	}
 
 	private function extractPdfContent(string $content, array $keys): array {
