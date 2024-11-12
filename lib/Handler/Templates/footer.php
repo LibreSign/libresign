@@ -1,6 +1,6 @@
-<table style="width:100%;border:0;font-size:8px;">
+<table style="width:100%;border:0;<?php if (empty($qrcode)) { ?>padding-left:15px;<?php } ?>font-size:8px;">
 	<tr>
-		<?php if ($qrcode) { ?>
+		<?php if (!empty($qrcode)) { ?>
 			<td width="<?= $qrcodeSize; ?>px">
 				<img src="data:image/png;base64,<?= $qrcode; ?>" style="width:<?= $qrcodeSize; ?>px"/>
 			</td>
