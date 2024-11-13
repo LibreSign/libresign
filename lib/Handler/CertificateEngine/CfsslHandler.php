@@ -375,25 +375,52 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 					->setTip('Run occ libresign:install --cfssl'),
 			];
 		}
-		$return = [];
-		$version = str_replace("\n", ', ', trim(`$binary version`));
-		if (strpos($version, InstallService::CFSSL_VERSION) === false) {
+		$version = shell_exec("$binary version");
+		if (!is_string($version) || empty($version)) {
 			return [
 				(new ConfigureCheckHelper())
 					->setErrorMessage(sprintf(
-						'Invalid version. Expected: %s, actual: %s',
-						InstallService::CFSSL_VERSION,
-						$version
+						'Failed to run the command "%s" with user %s',
+						"$binary version",
+						get_current_user()
 					))
 					->setResource('cfssl')
 					->setTip('Run occ libresign:install --cfssl')
 			];
 		}
+		preg_match_all('/: (?<version>.*)/', $version, $matches);
+		if (!$matches || !isset($matches['version']) || count($matches['version']) !== 2) {
+			return [
+				(new ConfigureCheckHelper())
+					->setErrorMessage(sprintf(
+						'Failed to identify cfssl version with command %s',
+						"$binary version"
+					))
+					->setResource('cfssl')
+					->setTip('Run occ libresign:install --cfssl')
+			];
+		}
+		if (strpos($matches['version'][0], InstallService::CFSSL_VERSION) === false) {
+			return [
+				(new ConfigureCheckHelper())
+					->setErrorMessage(sprintf(
+						'Invalid version. Expected: %s, actual: %s',
+						InstallService::CFSSL_VERSION,
+						$matches['version'][0]
+					))
+					->setResource('cfssl')
+					->setTip('Run occ libresign:install --cfssl')
+			];
+		}
+		$return = [];
 		$return[] = (new ConfigureCheckHelper())
 			->setSuccessMessage('CFSSL binary path: ' . $binary)
 			->setResource('cfssl');
 		$return[] = (new ConfigureCheckHelper())
-			->setSuccessMessage('CFSSL: ' . $version)
+			->setSuccessMessage('CFSSL version: ' . $matches['version'][0])
+			->setResource('cfssl');
+		$return[] = (new ConfigureCheckHelper())
+			->setSuccessMessage('Runtime: ' . $matches['version'][1])
 			->setResource('cfssl');
 		return $return;
 	}
