@@ -11,6 +11,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = merge(nextcloudWebpackConfig, {
 	entry: {
+		init: path.resolve(path.join('src', 'init.js')),
 		tab: path.resolve(path.join('src', 'tab.js')),
 		settings: path.resolve(path.join('src', 'settings.js')),
 		external: path.resolve(path.join('src', 'external.js')),
