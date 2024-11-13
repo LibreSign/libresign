@@ -29,12 +29,16 @@ import { generateFilePath } from '@nextcloud/router'
 
 import App from './App.vue'
 
-import './init.js'
 import './plugins/vuelidate.js'
 import router from './router/router.js'
 import store from './store/index.js'
 
 import './assets/styles/main.scss'
+
+if (window.OCA && !window.OCA.LibreSign) {
+	Object.assign(window.OCA, { LibreSign: {} })
+	console.debug('OCA.LibreSign initialized')
+}
 
 // CSP config for webpack dynamic chunk loading
 // eslint-disable-next-line

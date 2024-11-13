@@ -84,6 +84,16 @@ class FolderService {
 	 */
 	public function getFileById(?int $nodeId = null): File {
 		if ($this->getUserId()) {
+			$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+			foreach ($mountsContainingFile as $fileInfo) {
+				$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+			}
+			$file = $this->root->getById($nodeId);
+			if ($file) {
+				/** @var File */
+				return $file[0];
+			}
+
 			$folder = $this->root->getUserFolder($this->getUserId());
 			$file = $folder->getById($nodeId);
 			if ($file) {
