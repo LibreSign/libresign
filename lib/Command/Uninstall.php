@@ -107,6 +107,7 @@ class Uninstall extends Base {
 			$output->writeln('<error>--help to check the available options</error>');
 			return 1;
 		}
+		$output->writeln('Finished with success.');
 		return 0;
 	}
 }
