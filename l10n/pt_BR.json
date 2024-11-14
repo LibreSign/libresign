@@ -220,6 +220,8 @@
     "Error creating new password, please contact the administrator" : "Erro ao criar nova senha, entre em contato com o administrador ",
     "Page not found" : "Página não encontrada",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Desculpe mas a página que você está procurando não existe, foi removida, movida ou está temporariamente indisponível.",
+    "The signature request will be deleted. Do you confirm this action?" : "A solicitação de assinatura será excluída. Você confirma esta ação?",
+    "Also delete the file." : "Exclua também o arquivo.",
     "Ok" : "Ok",
     "Clear filter" : "Limpar filtro",
     "Modified" : "Modificado",
