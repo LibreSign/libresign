@@ -24,7 +24,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
-use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use OCA\Libresign\Helper\Pagination;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -475,7 +474,7 @@ class SignRequestMapper extends QBMapper {
 		// when the database is PostgreSQL. The problem is that the command
 		// addGroupBy add quotes over all text send as argument. With
 		// PostgreSQL json columns don't have problem if not added to group by.
-		if (!$qb->getConnection()->getDatabasePlatform() instanceof PostgreSQLPlatform) {
+		if ($qb->getConnection()->getDatabaseProvider() !== IDBConnection::PLATFORM_POSTGRES) {
 			$qb->addGroupBy('f.metadata');
 		}
 
