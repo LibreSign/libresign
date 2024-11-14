@@ -106,6 +106,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetFileWithInvalidNodeId():void {
+		$this->userMountCache->method('getMountsForFileId')->wilLReturn([]);
 		$folder = $this->createMock(\OCP\Files\Folder::class);
 		$folder->method('isUpdateable')->willReturn(true);
 		$this->root->method('getUserFolder')->willReturn($folder);

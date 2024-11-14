@@ -2,25 +2,61 @@
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-// import store from './store'
 
-// Init LibreSign
-if (window.OCA && !window.OCA.LibreSign) {
-	Object.assign(window.OCA, { LibreSign: {} })
-	console.debug('OCA.LibreSign initialized')
-}
+import Vue from 'vue'
 
-// Enable NewFeature
-window.OCA.LibreSign.enableFeature = (feature) => {
-	// store.dispatch('featureController/ENABLE_FEATURE', feature)
-}
-window.OCA.LibreSign.disableFeature = (feature) => {
-	// store.dispatch('featureController/DISABLE_FEATURE', feature)
-}
-window.OCA.LibreSign.getFeatures = () => {
-	// console.debug('Features: ', store.state.featureController.features)
-	// console.debug('Enabled Features: ', store.state.featureController.enabledFeatures)
-}
-window.OCA.LibreSign.setFeature = (feature) => {
-	// store.dispatch('featureController/SET_NEW_FEATURE', feature)
-}
+import axios from '@nextcloud/axios'
+import { addNewFileMenuEntry, Permission } from '@nextcloud/files'
+import { translate, translatePlural } from '@nextcloud/l10n'
+import { generateOcsUrl } from '@nextcloud/router'
+import { getUploader } from '@nextcloud/upload'
+
+import logger from './logger.js'
+import LibreSignLogoSvg from '../img/app-colored.svg?raw'
+
+Vue.prototype.t = translate
+Vue.prototype.n = translatePlural
+Vue.prototype.OC = OC
+Vue.prototype.OCA = OCA
+
+addNewFileMenuEntry({
+	id: 'libresign-request',
+	displayName: t('libresign', 'New signature request'),
+	iconSvgInline: LibreSignLogoSvg,
+	uploadManager: getUploader(),
+	order: 1,
+	enabled() {
+		return Permission.CREATE !== 0
+	},
+	async handler(context, content) {
+		const input = document.createElement('input')
+		input.accept = 'application/pdf'
+		input.type = 'file'
+		input.onchange = async (ev) => {
+			const file = ev.target.files[0]
+			input.remove()
+			if (!file) {
+				return
+			}
+
+			this.uploadManager.addNotifier(async (upload) => {
+				const path = context.path + '/' + upload.file.name
+				await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
+					file: {
+						path,
+					},
+					name: upload.file.name,
+				})
+					.then(async ({ data }) => {
+						await window.OCA.Files.Sidebar.open(path)
+						OCA.Files.Sidebar.setActiveTab('libresign')
+					})
+			})
+			this.uploadManager
+				.upload(file.name, file)
+				.catch((error) => logger.debug('Error while uploading', { error }))
+		}
+
+		input.click()
+	},
+})

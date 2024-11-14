@@ -2,9 +2,13 @@
 <files psalm-version="5.26.1@d747f6500b38ac4f7dfc5edbcae6e4b637d7add0">
   <file src="lib/AppInfo/Application.php">
     <InvalidArgument>
+      <code><![CDATA[LoadAdditionalListener::class]]></code>
       <code><![CDATA[LoadSidebarListener::class]]></code>
       <code><![CDATA[registerEventListener]]></code>
     </InvalidArgument>
+    <UndefinedClass>
+      <code><![CDATA[LoadAdditionalScriptsEvent]]></code>
+    </UndefinedClass>
   </file>
   <file src="lib/Command/Configure/Cfssl.php">
     <MissingDependency>
@@ -65,6 +69,17 @@
     <MissingTemplateParam>
       <code><![CDATA[Pagination]]></code>
     </MissingTemplateParam>
+  </file>
+  <file src="lib/Listener/LoadAdditionalListener.php">
+    <InvalidTemplateParam>
+      <code><![CDATA[IEventListener]]></code>
+    </InvalidTemplateParam>
+    <UndefinedClass>
+      <code><![CDATA[LoadAdditionalScriptsEvent]]></code>
+    </UndefinedClass>
+    <UndefinedDocblockClass>
+      <code><![CDATA[LoadAdditionalListener]]></code>
+    </UndefinedDocblockClass>
   </file>
   <file src="lib/Listener/LoadSidebarListener.php">
     <InvalidTemplateParam>
