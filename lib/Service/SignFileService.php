@@ -587,6 +587,9 @@ class SignFileService {
 				$pdf->addFile($dest);
 				$buffer = $pdf->stamp($background)
 					->toString();
+				if (!is_string($buffer)) {
+					throw new LibresignException('Failed to merge the PDF with the footer. The PDF was not successfully created with the footer.');
+				}
 			} else {
 				$buffer = $originalFile->getContent();
 			}
