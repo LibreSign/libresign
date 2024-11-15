@@ -222,6 +222,8 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "Errore durante la creazione della nuova password, contattare l'amministratore",
     "Page not found" : "Pagina non trovata",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Spiacenti, ma la pagina che stai cercando non esiste, è stata rimossa, spostata o è temporaneamente non disponibile.",
+    "The signature request will be deleted. Do you confirm this action?" : "La richiesta di firma verrà eliminata. Confermi questa azione?",
+    "Also delete the file." : "Elimina anche il file.",
     "Ok" : "Ok",
     "Clear filter" : "Pulisci il filtro",
     "Modified" : "Modificato",

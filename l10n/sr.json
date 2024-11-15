@@ -220,6 +220,8 @@
     "Error creating new password, please contact the administrator" : "Грешка приликом креирања нове лозинке, молимо вас да се обратите администратору",
     "Page not found" : "Страна није нађена",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Жао нам је, изгледа да не постоји страница коју сте тражили, или је уклоњена, премештена или тренутно није доступна.",
+    "The signature request will be deleted. Do you confirm this action?" : "Обрисаће се захтев за потпис. Да ли потврђујете ову акцију?",
+    "Also delete the file." : "Такође обриши и фајл.",
     "Ok" : "У реду",
     "Clear filter" : "Очисти филтер",
     "Modified" : "измењено",

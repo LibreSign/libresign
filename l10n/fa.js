@@ -178,6 +178,7 @@ OC.L10N.register(
     "Page not found" : "صفحه یافت نشد",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable.",
     "Ok" : "قبول",
+    "Clear filter" : "پاک کردن پالایه",
     "Modified" : "تغییر یافته",
     "Today" : "امروز",
     "Last 7 days" : "۷ روز گذشته",
