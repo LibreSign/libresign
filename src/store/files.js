@@ -245,7 +245,21 @@ export const useFilesStore = function(...args) {
 			},
 			async getAllFiles(filter) {
 				if (this.loading || this.loadedAll) {
-					return this.files
+					if (!filter) {
+						return this.files
+					}
+					return Object.fromEntries(
+						Object.entries(this.files).filter(([key, value]) => {
+							if (filter.signer_uuid) {
+								// return true when found signer by signer_uuid
+								return value.signers.filter((signer) => {
+									// filter signers by signer_uuid
+									return signer.sign_uuid === filter.signer_uuid
+								}).length > 0
+							}
+							return false
+						}),
+					)
 				}
 				this.loading = true
 				const url = !this.paginationNextUrl
