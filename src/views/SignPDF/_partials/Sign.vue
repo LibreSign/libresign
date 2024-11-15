@@ -71,7 +71,7 @@
 			:name="t('libresign', 'Confirm your signature')"
 			@closing="onCloseConfirmPassword">
 			{{ t('libresign', 'Subscription password.') }}
-			<NcPasswordField :value.sync="signPassword" type="password" />
+			<NcPasswordField v-model="signPassword" type="password" />
 			<a id="lost-password" @click="toggleManagePassword">{{ t('libresign', 'Forgot password?') }}</a>
 			<ManagePassword v-if="showManagePassword" />
 			<template #actions>

@@ -48,7 +48,7 @@
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Name (CN)') }}</label>
 				<NcTextField id="commonName"
 					ref="commonName"
-					:value.sync="certificate.rootCert.commonName"
+					v-model="certificate.rootCert.commonName"
 					:helper-text="t('libresign', 'Full name of the main company or main user of this instance')"
 					:minlength="1"
 					:success="certificate.rootCert.commonName !== ''"
@@ -66,7 +66,7 @@
 			<div v-if="customData" class="form-group">
 				<label for="configPath">{{ t('libresign', 'Config path') }}</label>
 				<NcTextField id="configPath"
-					:value.sync="certificate.configPath"
+					v-model="certificate.configPath"
 					:label-outside="true"
 					:placeholder="t('libresign', 'Not mandatory, don\'t fill to use default value.')"
 					:disabled="formDisabled" />

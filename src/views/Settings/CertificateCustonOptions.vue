@@ -34,7 +34,7 @@
 				<div class="item">
 					<NcTextField v-if="certificate"
 						:id="certificate.id"
-						:value.sync="certificate.value"
+						v-model="certificate.value"
 						:success="typeof certificate.error === 'boolean' && !certificate.error"
 						:error="certificate.error"
 						:maxlength="certificate.max ? certificate.max : undefined"
