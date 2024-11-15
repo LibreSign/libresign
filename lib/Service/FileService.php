@@ -39,6 +39,7 @@ use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
+use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClientService;
 use OCP\IDateTimeFormatter;
 use OCP\IL10N;
@@ -620,7 +621,10 @@ class FileService {
 			$signedNextcloudFile = $this->folderService->getFileById($file->getSignedNodeId());
 			$signedNextcloudFile->delete();
 		}
-		$nextcloudFile = $this->folderService->getFileById($fileId);
-		$nextcloudFile->delete();
+		try {
+			$nextcloudFile = $this->folderService->getFileById($fileId);
+			$nextcloudFile->delete();
+		} catch (NotFoundException $e) {
+		}
 	}
 }
