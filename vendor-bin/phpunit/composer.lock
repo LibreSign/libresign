@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-swagger-test.git",
-                "reference": "8e550dd1af633caeb2e7eb25ed31ba62f918dafc"
+                "reference": "c00ca0fb280d6202485b56c28a3f37dd9d8b4e05"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/8e550dd1af633caeb2e7eb25ed31ba62f918dafc",
-                "reference": "8e550dd1af633caeb2e7eb25ed31ba62f918dafc",
+                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/c00ca0fb280d6202485b56c28a3f37dd9d8b4e05",
+                "reference": "c00ca0fb280d6202485b56c28a3f37dd9d8b4e05",
                 "shasum": ""
             },
             "require": {
@@ -52,7 +52,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-11-01T18:38:58+00:00"
+            "time": "2024-11-11T22:06:35+00:00"
         },
         {
             "name": "byjg/uri",
