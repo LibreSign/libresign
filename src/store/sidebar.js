@@ -33,9 +33,9 @@ export const useSidebarStore = defineStore('sidebar', {
 		setActiveTab(id) {
 			set(this, 'activeTab', id ?? '')
 			if (id) {
-				this.hideSidebar()
-			} else {
 				this.showSidebar()
+			} else {
+				this.hideSidebar()
 			}
 		},
 		hideSidebar() {
