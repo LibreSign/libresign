@@ -36,9 +36,9 @@
 				@keypress.enter="validationUrlEnter()">
 		</p>
 		<p v-if="addFooter && isExtraSettingsEnabled">
-			<NcTextArea label="Footer template"
+			<NcTextArea v-model="footerTemplate"
+				label="Footer template"
 				placeholder="A twig template to be used at footer of PDF. Will be rendered by mPDF."
-				:value.sync="footerTemplate"
 				@update:value="saveFooterTemplate" />
 		</p>
 	</NcSettingsSection>
