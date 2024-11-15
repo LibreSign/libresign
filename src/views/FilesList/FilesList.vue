@@ -90,8 +90,8 @@
 				type="error">
 				{{ message }}
 			</NcNoteCard>
-			<NcTextField :label="t('libresign', 'URL of a PDF file')"
-				:value.sync="pdfUrl">
+			<NcTextField v-model="pdfUrl"
+				:label="t('libresign', 'URL of a PDF file')">
 				<LinkIcon :size="20" />
 			</NcTextField>
 			<template #actions>

@@ -7,7 +7,6 @@
 		<div class="actions">
 			<NcColorPicker ref="colorPicker"
 				v-model="color"
-				:value.sync="color"
 				:palette="customPalette"
 				:palette-only="true"
 				@input="refresh">

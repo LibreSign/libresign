@@ -19,8 +19,8 @@
 				{{ errorMessage }}
 			</NcNoteCard>
 			<fieldset class="create-account__fieldset">
-				<NcTextField :label="t('libresign', 'Email')"
-					:value.sync="email"
+				<NcTextField v-model="email"
+					:label="t('libresign', 'Email')"
 					autocapitalize="none"
 					:spellchecking="false"
 					autocomplete="off"
@@ -30,7 +30,7 @@
 					required>
 					<EmailIcon :size="20" />
 				</NcTextField>
-				<NcPasswordField :value.sync="password"
+				<NcPasswordField v-model="password"
 					:label="t('libresign', 'Password')"
 					:spellchecking="false"
 					autocapitalize="none"
@@ -39,7 +39,7 @@
 					:helper-text="passwordError"
 					:error="passwordError.length > 0"
 					required />
-				<NcPasswordField :value.sync="passwordConfirm"
+				<NcPasswordField v-model="passwordConfirm"
 					:label="t('libresign', 'Confirm password')"
 					:spellchecking="false"
 					autocapitalize="none"
