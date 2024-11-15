@@ -8,9 +8,9 @@
 			@update:email="updateEmail"
 			@update:display-name="updateDisplayName" />
 		<label for="name-input">{{ t('libresign', 'Signer name') }}</label>
-		<NcTextField aria-describedby="name-input"
+		<NcTextField v-model="displayName"
+			aria-describedby="name-input"
 			autocapitalize="none"
-			:value.sync="displayName"
 			:label="t('libresign', 'Signer name')"
 			:required="true"
 			:error="nameHaveError"

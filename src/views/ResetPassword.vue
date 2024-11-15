@@ -7,15 +7,15 @@
 		<div class="container">
 			<div class="input-group">
 				<label for="new-password">{{ t('libresign', 'Current password') }}</label>
-				<NcPasswordField :value.sync="currentPassword" type="password" />
+				<NcPasswordField v-model="currentPassword" type="password" />
 			</div>
 			<div class="input-group">
 				<label for="new-password">{{ t('libresign', 'New password') }}</label>
-				<NcPasswordField :value.sync="newPassword" type="password" />
+				<NcPasswordField v-model="newPassword" type="password" />
 			</div>
 			<div class="input-group">
 				<label for="repeat-password">{{ t('libresign', 'Repeat password') }}</label>
-				<NcPasswordField :value.sync="rPassword" :has-error="!validNewPassord" type="password" />
+				<NcPasswordField v-model="rPassword" :has-error="!validNewPassord" type="password" />
 			</div>
 		</div>
 		<template #actions>

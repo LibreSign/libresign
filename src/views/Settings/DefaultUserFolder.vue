@@ -6,8 +6,8 @@
 				{{ t('libresign', 'Customize default user folder') }}
 			</NcCheckboxRadioSwitch>
 			<div v-if="customUserFolder">
-				<NcTextField :placeholder="t('libresign', 'Customize default user folder')"
-					:value.sync="value"
+				<NcTextField v-model="value"
+					:placeholder="t('libresign', 'Customize default user folder')"
 					@update:value="saveDefaultUserFolder" />
 			</div>
 		</div>
