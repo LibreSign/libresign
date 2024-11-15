@@ -12,7 +12,7 @@
 				<h1>{{ title }}</h1>
 				<NcTextField v-model="myUuid" :label="legend" />
 				<NcButton type="primary"
-					@click.prevent="validate(myUuid)">
+					@click.prevent="clickedValidate = true;validate(myUuid)">
 					<template #icon>
 						<NcLoadingIcon v-if="hasLoading" :size="20" />
 					</template>
@@ -67,7 +67,8 @@
 						</div>
 					</div>
 				</div>
-				<NcButton type="primary"
+				<NcButton v-if="clickedValidate"
+					type="primary"
 					@click.prevent="goBack">
 					{{ t('libresign', 'Return') }}
 				</NcButton>
@@ -125,6 +126,7 @@ export default {
 			document: fileInfo,
 			documentUuid: '',
 			legalInformation: '',
+			clickedValidate: false,
 		}
 	},
 	computed: {
