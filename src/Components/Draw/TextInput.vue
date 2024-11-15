@@ -12,8 +12,8 @@
 				:height="canvasHeight + 'px'" />
 			<NcTextField id="text"
 				ref="input"
-				:label="t('libresign', 'Enter your Full Name or Initials to create Signature')"
-				:value.sync="value" />
+				v-model="value"
+				:label="t('libresign', 'Enter your Full Name or Initials to create Signature')" />
 		</div>
 		<div class="action-buttons">
 			<NcButton :disabled="!isValid" type="primary" @click="confirmSignature">

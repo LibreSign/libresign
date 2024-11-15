@@ -12,8 +12,8 @@
 		</div>
 		<div v-if="signMethodsStore.settings.emailToken.hasConfirmCode">
 			{{ t('libresign', 'Enter the code you received') }}
-			<NcTextField maxlength="6"
-				:value.sync="token"
+			<NcTextField v-model="token"
+				maxlength="6"
 				:disabled="loading"
 				:label="t('libresign', 'Enter your code')"
 				:placeholder="t('libresign', 'Enter your code')"
@@ -23,12 +23,12 @@
 			</NcTextField>
 		</div>
 		<NcTextField v-else
+			v-model="sendTo"
 			:disabled="loading"
 			:label="t('libresign', 'Email')"
 			:placeholder="t('libresign', 'Email')"
 			:helper-text="errorMessage"
 			:error="errorMessage.length > 0"
-			:value.sync="sendTo"
 			@input="onChangeEmail">
 			<EmailIcon :size="20" />
 		</NcTextField>
