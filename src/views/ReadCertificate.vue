@@ -70,10 +70,10 @@
 		</table>
 		<div v-else class="container">
 			<div class="input-group">
-				<NcPasswordField :disabled="hasLoading"
+				<NcPasswordField v-model="password"
+					:disabled="hasLoading"
 					:label="t('libresign', 'Certificate password')"
-					:placeholder="t('libresign', 'Certificate password')"
-					:value.sync="password" />
+					:placeholder="t('libresign', 'Certificate password')" />
 			</div>
 		</div>
 		<template v-if="Object.keys(certificateData).length === 0" #actions>

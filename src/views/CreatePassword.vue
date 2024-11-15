@@ -3,10 +3,10 @@
 		:name="t('libresign', 'Password Creation')"
 		@closing="signMethodsStore.closeModal('createPassword')">
 		<p>{{ t('libresign', 'For security reasons, you must create a password to sign the documents. Enter your new password in the field below.') }}</p>
-		<NcPasswordField :disabled="hasLoading"
+		<NcPasswordField v-model="password"
+			:disabled="hasLoading"
 			:label="t('libresign', 'Enter a password')"
-			:placeholder="t('libresign', 'Enter a password')"
-			:value.sync="password" />
+			:placeholder="t('libresign', 'Enter a password')" />
 		<template #actions>
 			<NcButton :disabled="hasLoading" @click="send">
 				<template #icon>

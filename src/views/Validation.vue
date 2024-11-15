@@ -6,7 +6,7 @@
 		<div id="dataUUID">
 			<form v-show="!hasInfo" @submit="(e) => e.preventDefault()">
 				<h1>{{ title }}</h1>
-				<NcTextField :value.sync="myUuid" :label="legend" />
+				<NcTextField v-model="myUuid" :label="legend" />
 				<NcButton type="primary"
 					@click.prevent="validate(myUuid)">
 					<template #icon>
