@@ -182,6 +182,7 @@ OC.L10N.register(
     "Page not found" : "Orria ez da aurkitu",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Bilatzen ari zaren orria ez da existitzen, kendu egin da, mugitu egin da edo aldi baterako ez dago erabilgarri.",
     "Ok" : "Ados",
+    "Clear filter" : "Garbitu iragazkia",
     "Modified" : "Aldatua",
     "Today" : "Gaur",
     "Last 7 days" : "Azken 7 egunetan",
