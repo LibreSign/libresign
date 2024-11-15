@@ -36,6 +36,7 @@ OC.L10N.register(
     "Page not found" : "Página no encontrada",
     "Ok" : "Ok",
     "Modified" : "Modificado",
+    "Today" : "Hoy",
     "Send" : "Enviar",
     "Created at" : "Creado en",
     "Password reset" : "Restablecer contraseña",
