@@ -32,11 +32,14 @@
 			:can-close="!deleting"
 			:open.sync="confirmDelete">
 			{{ t('libresign', 'The signature request will be deleted. Do you confirm this action?') }}
-			<NcCheckboxRadioSwitch :checked.sync="deleteFile" type="switch">
+			<NcCheckboxRadioSwitch type="switch"
+				:checked.sync="deleteFile"
+				:disabled="deleting">
 				{{ t('libresign', 'Also delete the file.') }}
 			</NcCheckboxRadioSwitch>
 			<template #actions>
 				<NcButton type="primary"
+					:disabled="deleting"
 					@click="doDelete()">
 					<template #icon>
 						<NcLoadingIcon v-if="deleting" :size="20" />
@@ -44,6 +47,7 @@
 					{{ t('libresign', 'Ok') }}
 				</NcButton>
 				<NcButton type="secondary"
+					:disabled="deleting"
 					@click="confirmDelete = false">
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
