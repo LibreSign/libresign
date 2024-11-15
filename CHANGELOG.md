@@ -17,6 +17,50 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 10.2.0 - 2024-11-15
+### Fixes
+fix: only show return when come from validation button [3970](https://github.com/LibreSign/libresign/pull/3970)
+fix: go ahead if the file is not found [3972](https://github.com/LibreSign/libresign/pull/3972)
+fix: filter files by signer uuid [3963](https://github.com/LibreSign/libresign/pull/3963)
+fix: toggle sidebar [3959](https://github.com/LibreSign/libresign/pull/3959)
+fix: Use unicode signer name [3930](https://github.com/LibreSign/libresign/pull/3930)
+fix: add back the contition to write_qrcode_on_footer [3932](https://github.com/LibreSign/libresign/pull/3932)
+
+### Changes
+feat: request to sign from files [3947](https://github.com/LibreSign/libresign/pull/3947)
+feat: write success after end of configure [3934](https://github.com/LibreSign/libresign/pull/3934)
+Update translations
+
+### Chore
+Bump dependencies
+chore: feedback improvement [3975](https://github.com/LibreSign/libresign/pull/3975)
+chore: disable buttons when is processing the action [3966](https://github.com/LibreSign/libresign/pull/3966)
+chore: replace :value.sync by v-model [3954](https://github.com/LibreSign/libresign/pull/3954)
+chore: improve cfssl validation [3942](https://github.com/LibreSign/libresign/pull/3942)
+chore: Optimize svg image [3939](https://github.com/LibreSign/libresign/pull/3939)
+
+## 9.5.0 - 2024-11-15
+### Fixes
+fix: only show return when come from validation button [3969](https://github.com/LibreSign/libresign/pull/3969)
+fix: go ahead if the file is not found [3971](https://github.com/LibreSign/libresign/pull/3971)
+fix: filter files by signer uuid [3962](https://github.com/LibreSign/libresign/pull/3962)
+fix: toggle sidebar [3958](https://github.com/LibreSign/libresign/pull/3958)
+fix: add back the contition to write_qrcode_on_footer [3931](https://github.com/LibreSign/libresign/pull/3931)
+fix: Use unicode signer name [3929](https://github.com/LibreSign/libresign/pull/3929)
+
+### Changes
+feat: request to sign from files [3946](https://github.com/LibreSign/libresign/pull/3946)
+feat: write success after end of configure [3936](https://github.com/LibreSign/libresign/pull/3936)
+Update translations
+
+### Chore
+Bump dependencies
+chore: feedback improvement [3974](https://github.com/LibreSign/libresign/pull/3974)
+chore: disable buttons when is processing the action [3968](https://github.com/LibreSign/libresign/pull/3968)
+chore: replace :value.sync by v-model [3953](https://github.com/LibreSign/libresign/pull/3953)
+chore: improve cfssl validation [3943](https://github.com/LibreSign/libresign/pull/3943)
+chore: Optimize svg image [3938](https://github.com/LibreSign/libresign/pull/3938)
+
 ## 10.1.0 - 2024-11-07
 ### Fixes
 * fix: open notification as internal url [3713](https://github.com/LibreSign/libresign/pull/3713)
