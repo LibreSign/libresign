@@ -350,6 +350,7 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Nome dunha localidade ou lugar, como unha cidade, concello ou outra rexión xeográfica",
     "Name of an organization" : "Nome dunha organización",
     "Name of an organizational unit" : "Nome dunha unidade organizativa",
+    "New signature request" : "Nova solicitude de sinatura",
     "Requested by {name}, at {date}" : "Solicitado por {name}, o {date}",
     "All Files" : "Todos os ficheiros",
     "Pending" : "Pendente",
