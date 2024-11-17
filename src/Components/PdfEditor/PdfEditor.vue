@@ -19,7 +19,7 @@
 		:init-image-scale="1"
 		:seal-image-show="false"
 		@pdf-editor:end-init="endInit">
-		<template #custom="{ object, pagesScale }">
+		<template #custom="{ object, pagesScale, pageWidth, pageHeight }">
 			<Signature :x="object.x"
 				:y="object.y"
 				:fix-size="object.signer.readOnly"
@@ -30,6 +30,8 @@
 				:origin-width="object.originWidth"
 				:origin-height="object.originHeight"
 				:page-scale="pagesScale"
+				:page-width="pageWidth"
+				:page-height="pageHeight"
 				@onUpdate="$refs.vuePdfEditor.updateObject(object.id, $event)"
 				@onDelete="onDeleteSigner(object)" />
 		</template>
@@ -78,6 +80,8 @@ export default {
 				originHeight: signer.element.coordinates.height,
 				x: signer.element.coordinates.llx,
 				y: signer.element.coordinates.ury,
+				pageWidth: this.$refs.vuePdfEditor.pageSizes[this.$refs.vuePdfEditor.selectedPageIndex + 1].width,
+				pageHeight: this.$refs.vuePdfEditor.pageSizes[this.$refs.vuePdfEditor.selectedPageIndex + 1].height,
 			}
 			this.$refs.vuePdfEditor.allObjects = this.$refs.vuePdfEditor.allObjects.map((objects, pIndex) => {
 				if (pIndex === signer.element.coordinates.page - 1) {

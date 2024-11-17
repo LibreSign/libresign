@@ -7,7 +7,7 @@
 		:style="{
 			width: `${width + dw}px`,
 			height: `${Math.round((width + dw) / ratio)}px`,
-			transform: `translate(${x + dx}px, ${y + dy}px)`,
+			transform: translateCoordinates(),
 		}">
 		<div class="signature absolute w-full h-full"
 			:class="[
@@ -93,6 +93,14 @@ export default {
 			type: Number,
 			default: 1,
 		},
+		pageWidth: {
+			type: Number,
+			default: 0,
+		},
+		pageHeight: {
+			type: Number,
+			default: 0,
+		},
 		fixSize: {
 			type: Boolean,
 			default: false,
@@ -171,25 +179,26 @@ export default {
 		},
 
 		handlePanEnd(event) {
+			let coordinate
 			if (event.type === 'mouseup') {
-				this.handleMouseup(event)
+				coordinate = this.handleMouseup(event)
 			}
 			if (event.type === 'touchend') {
-				this.handleTouchend(event)
+				coordinate = this.handleTouchend(event)
 			}
 			if (this.operation === 'move') {
 			// eslint-disable-next-line vue/custom-event-name-casing
 				this.$emit('onUpdate', {
-					x: this.x + this.dx,
-					y: this.y + this.dy,
+					x: coordinate.detail.x,
+					y: coordinate.detail.y,
 				})
 				this.dx = 0
 				this.dy = 0
 			} else if (this.operation === 'scale') {
 			// eslint-disable-next-line vue/custom-event-name-casing
 				this.$emit('onUpdate', {
-					x: this.x + this.dx,
-					y: this.y + this.dy,
+					x: coordinate.detail.x,
+					y: coordinate.detail.y,
 					width: this.width + this.dw,
 					height: Math.round((this.width + this.dw) / this.ratio),
 				})
