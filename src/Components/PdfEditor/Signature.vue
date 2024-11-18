@@ -7,7 +7,7 @@
 		:style="{
 			width: `${width + dw}px`,
 			height: `${Math.round((width + dw) / ratio)}px`,
-			transform: `translate(${x + dx}px, ${y + dy}px)`,
+			transform: translateCoordinates(),
 		}">
 		<div class="signature absolute w-full h-full"
 			:class="[
@@ -90,6 +90,14 @@ export default {
 			default: 0,
 		},
 		pageScale: {
+			type: Number,
+			default: 1,
+		},
+		canvasWidth: {
+			type: Number,
+			default: 1,
+		},
+		canvasHeight: {
 			type: Number,
 			default: 1,
 		},

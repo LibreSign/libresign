@@ -3,26 +3,24 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div>
-		<NcListItem :name="signer.displayName"
-			:force-display-actions="true"
-			@click="signerClickAction">
-			<template #icon>
-				<NcAvatar :size="44" :display-name="signer.displayName" />
-			</template>
-			<template #subname>
-				<Bullet v-for="method in identifyMethodsNames" :key="method" :name="method" />
-			</template>
-			<NcActions>
-				<slot v-if="$slots.actions" slot="actions" name="actions" />
-			</NcActions>
-			<template #indicator>
-				<CheckboxBlankCircle :size="16"
-					:fill-color="statusColor"
-					:title="statusText" />
-			</template>
-		</NcListItem>
-	</div>
+	<NcListItem :name="signer.displayName"
+		:force-display-actions="true"
+		@click="signerClickAction">
+		<template #icon>
+			<NcAvatar :size="44" :display-name="signer.displayName" />
+		</template>
+		<template #subname>
+			<Bullet v-for="method in identifyMethodsNames" :key="method" :name="method" />
+		</template>
+		<NcActions>
+			<slot v-if="$slots.actions" slot="actions" name="actions" />
+		</NcActions>
+		<template #indicator>
+			<CheckboxBlankCircle :size="16"
+				:fill-color="statusColor"
+				:title="statusText" />
+		</template>
+	</NcListItem>
 </template>
 <script>
 import CheckboxBlankCircle from 'vue-material-design-icons/CheckboxBlankCircle.vue'
