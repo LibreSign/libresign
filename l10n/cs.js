@@ -349,6 +349,7 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Název lokality nebo místa, jako např. města, kraje nebo jiného geografického regionu",
     "Name of an organization" : "Název organizace",
     "Name of an organizational unit" : "Název organizační jednotky",
+    "New signature request" : "Nový požadavek na podepsání",
     "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}",
     "All Files" : "Všechny soubory",
     "Pending" : "Čeká",

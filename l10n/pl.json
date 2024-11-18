@@ -184,6 +184,8 @@
     "Today" : "Dzisiaj",
     "Last 7 days" : "Ostatnie 7 dni",
     "Last 30 days" : "Ostatnie 30 dni",
+    "This year ({year})" : "W tym roku ({year})",
+    "Last year ({year})" : "Ostatni rok ({year})",
     "Active filters" : "Aktywne filtry",
     "Remove filter" : "Usuń filtr",
     "Choose from Files" : "Wybierz z Plików",
