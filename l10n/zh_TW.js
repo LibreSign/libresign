@@ -350,6 +350,7 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "地點或地區的名稱，如城市、縣或其他地理區域",
     "Name of an organization" : "組織名稱",
     "Name of an organizational unit" : "組織單位名稱",
+    "New signature request" : "新簽章請求",
     "Requested by {name}, at {date}" : "由 {name} 請求於 {date}",
     "All Files" : "所有檔案",
     "Pending" : "擱置中",
