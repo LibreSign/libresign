@@ -16,15 +16,20 @@
 					{{ statusLabel }}
 				</Chip>
 			</h2>
-			<p>
-				<small>
-					{{ t('libresign', 'Click the page to add visible signature, then select a signer to set their signature position') }}
-				</small>
-			</p>
 			<ul class="view-sign-detail__sidebar">
+				<li v-if="signerSelected"
+					:class="{ tip: signerSelected }">
+					{{ t('libresign', 'Click on the place you want to add.') }}
+					<NcButton type="primary"
+						@click="stopAddSigner">
+						{{ t('libresign', 'Cancel') }}
+					</NcButton>
+				</li>
 				<Signer v-for="(signer, key) in document.signers"
 					:key="key"
+					:ref="'li-' + key"
 					:current-signer="key"
+					:class="{ disabled: signerSelected }"
 					:signer="signer"
 					event="libresign:visible-elements-select-signer">
 					<slot v-bind="{signer}" slot="actions" name="actions" />
@@ -33,6 +38,7 @@
 			<NcButton v-if="canSave"
 				:type="typeOfRequestButton"
 				:wide="true"
+				:class="{ disabled: signerSelected }"
 				@click="showConfirm = true">
 				{{ t('libresign', 'Request') }}
 			</NcButton>
@@ -122,6 +128,7 @@ export default {
 			showConfirm: false,
 			loading: false,
 			errorConfirmRequest: '',
+			signerSelected: null,
 		}
 	},
 	computed: {
@@ -207,16 +214,42 @@ export default {
 			this.filesStore.loading = false
 		},
 		onSelectSigner(signer) {
-			signer.element = {
+			this.signerSelected = signer
+			const canvasList = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs.pdfBody.querySelectorAll('canvas')
+			canvasList.forEach((canvas) => {
+				canvas.addEventListener('click', this.doSelectSigner)
+			})
+		},
+		doSelectSigner(event) {
+			const canvasList = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs.pdfBody.querySelectorAll('canvas')
+			const page = Array.from(canvasList).indexOf(event.target)
+			this.addSignerToPosition(event, page)
+			this.stopAddSigner()
+		},
+		addSignerToPosition(event, page) {
+			const measurement = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs['page' + page][0].getCanvasMeasurement()
+			const rect = event.target.getBoundingClientRect()
+			const x = event.clientX - rect.left
+			const y = event.clientY - rect.top
+			this.signerSelected.element = {
 				coordinates: {
-					page: this.$refs.pdfEditor.$refs.vuePdfEditor.selectedPageIndex + 1,
-					llx: 100,
-					ury: 100,
+					page: page + 1,
+					llx: x - SignatureImageDimensions.width / 2,
+					ury: y - SignatureImageDimensions.height / 2,
 					height: SignatureImageDimensions.height,
 					width: SignatureImageDimensions.width,
+					canvasWidth: measurement.canvasWidth,
+					canvasHeight: measurement.canvasHeight,
 				},
 			}
-			this.$refs.pdfEditor.addSigner(signer)
+			this.$refs.pdfEditor.addSigner(this.signerSelected)
+		},
+		stopAddSigner() {
+			const canvasList = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs.pdfBody.querySelectorAll('canvas')
+			canvasList.forEach((canvas) => {
+				canvas.removeEventListener('click', this.doSelectSigner)
+			})
+			this.signerSelected = null
 		},
 		async onDeleteSigner(object) {
 			if (!object.signer.element.elementId) {
@@ -313,6 +346,23 @@ export default {
 			li {
 				margin: 3px 3px 1em 3px;
 			}
+		}
+		.disabled {
+			pointer-events: none;
+			visibility: hidden;
+		}
+		.tip {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			margin-top: 1px;
+			margin-bottom: 1px;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
 		}
 	}
 }
