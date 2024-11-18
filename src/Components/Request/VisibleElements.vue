@@ -27,7 +27,6 @@
 				</li>
 				<Signer v-for="(signer, key) in document.signers"
 					:key="key"
-					:ref="'li-' + key"
 					:current-signer="key"
 					:class="{ disabled: signerSelected }"
 					:signer="signer"
