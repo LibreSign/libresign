@@ -170,7 +170,6 @@
     "Previous" : "Önceki",
     "Next" : "Sonraki",
     "Account not exist" : "Hesap bulunamadı.",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "Görünür imza eklemek için sayfaya tıklayın ve imza konumunu ayarlamak için bir imzalayan seçin",
     "Sign" : "İmzala",
     "Confirm" : "Onayla",
     "Request signatures?" : "İmza isteğinde bulunulsun mu?",
@@ -347,6 +346,7 @@
     "Name of an organization" : "Bir kuruluşun adı",
     "Name of an organizational unit" : "Bir kuruluş biriminin adı",
     "Requested by {name}, at {date}" : "{name} tarafından {date} tarihinde istendi",
+    "Click the page to add visible signature, then select a signer to set their signature position" : "Görünür imza eklemek için sayfaya tıklayın ve imza konumunu ayarlamak için bir imzalayan seçin",
     "All Files" : "Tüm dosyalar",
     "Pending" : "Bekleyen",
     "Signed" : "İmzalanmış"

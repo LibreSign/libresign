@@ -172,7 +172,6 @@ OC.L10N.register(
     "Previous" : "Precedente",
     "Next" : "Successivo",
     "Account not exist" : "L'account non esiste",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "Fare clic sulla pagina per aggiungere una firma visibile, quindi selezionare un firmatario per impostare la posizione della sua firma",
     "Sign" : "Firma",
     "Confirm" : "Conferma",
     "Request signatures?" : "Richiedi firme?",
@@ -352,6 +351,7 @@ OC.L10N.register(
     "Name of an organizational unit" : "Nome di un'unità organizzativa",
     "New signature request" : "Nuova richiesta di firma",
     "Requested by {name}, at {date}" : "Richiesta da {name}, il {date}",
+    "Click the page to add visible signature, then select a signer to set their signature position" : "Fare clic sulla pagina per aggiungere una firma visibile, quindi selezionare un firmatario per impostare la posizione della sua firma",
     "All Files" : "Tutti i file",
     "Pending" : "In attesa",
     "Signed" : "Firmato"

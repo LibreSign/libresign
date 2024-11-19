@@ -171,7 +171,6 @@ OC.L10N.register(
     "Previous" : "Forrige",
     "Next" : "Neste",
     "Account not exist" : "Konto finnes ikke",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "Klikk på siden for å legge til synlig signatur, og velg deretter en underskriver for å angi signaturposisjonen",
     "Sign" : "Skilt",
     "Confirm" : "Bekreft",
     "Request signatures?" : "Be om signaturer?",
@@ -348,6 +347,7 @@ OC.L10N.register(
     "Name of an organization" : "Navn på en organisasjon",
     "Name of an organizational unit" : "Navn på en organisatorisk enhet",
     "Requested by {name}, at {date}" : "Bedt av {name}, den {date}",
+    "Click the page to add visible signature, then select a signer to set their signature position" : "Klikk på siden for å legge til synlig signatur, og velg deretter en underskriver for å angi signaturposisjonen",
     "All Files" : "Alle filer",
     "Pending" : "Venter",
     "Signed" : "Signert"
