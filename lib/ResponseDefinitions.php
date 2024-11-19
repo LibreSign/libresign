@@ -153,6 +153,7 @@ namespace OCA\Libresign;
  *         type: 'info',
  *         message: string,
  *     }[],
+ *     visibleElements?: LibresignVisibleElement[],
  * }
  * @psalm-type LibresignFile = array{
  *     account: array{
