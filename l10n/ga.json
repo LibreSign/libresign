@@ -170,7 +170,6 @@
     "Previous" : "Roimhe Seo",
     "Next" : "Ar aghaidh",
     "Account not exist" : "Níl an cuntas ann",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "Cliceáil ar an leathanach chun síniú infheicthe a chur leis, ansin roghnaigh sínitheoir chun a suíomh sínithe a shocrú",
     "Sign" : "Comhartha",
     "Confirm" : "Deimhnigh",
     "Request signatures?" : "Iarr sínithe?",
@@ -350,6 +349,7 @@
     "Name of an organizational unit" : "Ainm aonaid eagraíochta",
     "New signature request" : "Iarratas sínithe nua",
     "Requested by {name}, at {date}" : "Arna iarraidh ag {name}, ag {date}",
+    "Click the page to add visible signature, then select a signer to set their signature position" : "Cliceáil ar an leathanach chun síniú infheicthe a chur leis, ansin roghnaigh sínitheoir chun a suíomh sínithe a shocrú",
     "All Files" : "Gach Comhad",
     "Pending" : "Ar feitheamh",
     "Signed" : "Sínithe"

@@ -172,7 +172,6 @@ OC.L10N.register(
     "Previous" : "السابق",
     "Next" : "التالي",
     "Account not exist" : "الحساب غير موجود",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "أنقُر على الصفحة لإضافة توقيع مرئي، ثم حدد اسم المُوقّع لوضع توقيعه  ",
     "Sign" : "وقع",
     "Confirm" : "تأكيد",
     "Request signatures?" : "طلب التوقيعات؟",
@@ -352,6 +351,7 @@ OC.L10N.register(
     "Name of an organizational unit" : "اسم الوحدة الإدارية",
     "New signature request" : "طلب جديد للتوقيع",
     "Requested by {name}, at {date}" : "مطلوب من قبل {name}، في {date}",
+    "Click the page to add visible signature, then select a signer to set their signature position" : "أنقُر على الصفحة لإضافة توقيع مرئي، ثم حدد اسم المُوقّع لوضع توقيعه  ",
     "All Files" : "كل الملفات",
     "Pending" : "معلّق",
     "Signed" : "مُوقع"

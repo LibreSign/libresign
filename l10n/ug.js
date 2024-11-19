@@ -172,7 +172,6 @@ OC.L10N.register(
     "Previous" : "ئالدىنقى",
     "Next" : "كېيىنكى",
     "Account not exist" : "ھېسابات مەۋجۇت ئەمەس",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "كۆرۈنگەن ئىمزا قوشۇش ئۈچۈن بەتنى چېكىڭ ، ئاندىن ئىمزا قويغۇچىنى تاللاڭ",
     "Sign" : "ئىمزا",
     "Confirm" : "جەزملەشتۈرۈڭ",
     "Request signatures?" : "ئىمزا تەلەپ قىلامسىز؟",
@@ -349,6 +348,7 @@ OC.L10N.register(
     "Name of an organization" : "بىر تەشكىلاتنىڭ ئىسمى",
     "Name of an organizational unit" : "تەشكىلىي ئورۇننىڭ ئىسمى",
     "Requested by {name}, at {date}" : "{Name} تەرىپىدىن تەلەپ قىلىنغان ، {چېسلا}",
+    "Click the page to add visible signature, then select a signer to set their signature position" : "كۆرۈنگەن ئىمزا قوشۇش ئۈچۈن بەتنى چېكىڭ ، ئاندىن ئىمزا قويغۇچىنى تاللاڭ",
     "All Files" : "بارلىق ھۆججەتلەر",
     "Pending" : "كۈتۈۋاتىدۇ",
     "Signed" : "ئىمزا قويدى"
