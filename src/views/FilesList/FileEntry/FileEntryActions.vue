@@ -173,7 +173,11 @@ export default {
 						}
 						return accumulator
 					}, '')
-				this.signStore.setDocumentToSign(this.source)
+				const files = await this.filesStore.getAllFiles({
+					signer_uuid: signUuid,
+					force_fetch: true,
+				})
+				this.signStore.setDocumentToSign(files[this.source.nodeId])
 				this.$router.push({
 					name: 'SignPDF',
 					params: {
