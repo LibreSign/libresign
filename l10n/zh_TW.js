@@ -172,7 +172,6 @@ OC.L10N.register(
     "Previous" : "前一個",
     "Next" : "下一步",
     "Account not exist" : "帳號不存在",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "點擊頁面以新增可見簽章，然後選擇一個簽署者並設定其簽章位置",
     "Sign" : "簽署",
     "Confirm" : "確認",
     "Request signatures?" : "請求簽署？",
@@ -352,6 +351,7 @@ OC.L10N.register(
     "Name of an organizational unit" : "組織單位名稱",
     "New signature request" : "新簽章請求",
     "Requested by {name}, at {date}" : "由 {name} 請求於 {date}",
+    "Click the page to add visible signature, then select a signer to set their signature position" : "點擊頁面以新增可見簽章，然後選擇一個簽署者並設定其簽章位置",
     "All Files" : "所有檔案",
     "Pending" : "擱置中",
     "Signed" : "已簽署"

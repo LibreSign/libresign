@@ -171,7 +171,6 @@ OC.L10N.register(
     "Previous" : "Predhodni",
     "Next" : "Naslednji",
     "Account not exist" : "Račun ne obstaja",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "Kliknite na stran za dodajanje vidnega predmeta podpisa, nato izberite podpisnika in določite mesto podpisa.",
     "Sign" : "Podpiši",
     "Confirm" : "Potrdi",
     "Request signatures?" : "Ali želite poslati dokument v podpisovanje?",
@@ -348,6 +347,7 @@ OC.L10N.register(
     "Name of an organization" : "Naziv organizacije",
     "Name of an organizational unit" : "Naziv organizacijske enote v podjetju",
     "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}",
+    "Click the page to add visible signature, then select a signer to set their signature position" : "Kliknite na stran za dodajanje vidnega predmeta podpisa, nato izberite podpisnika in določite mesto podpisa.",
     "All Files" : "Vse datoteke",
     "Pending" : "Na čakanju",
     "Signed" : "Podpisano"
