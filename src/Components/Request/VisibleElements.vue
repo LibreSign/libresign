@@ -199,7 +199,7 @@ export default {
 		updateSigners(data) {
 			this.document.signers.forEach(signer => {
 				if (this.document.visibleElements) {
-					this.document.visibleElements.forEach(element => {
+					Object.values(this.document.visibleElements).forEach(element => {
 						if (element.signRequestId === signer.signRequestId) {
 							const object = structuredClone(signer)
 							element.coordinates.ury = Math.round(data.measurement[element.coordinates.page].height)
@@ -226,7 +226,6 @@ export default {
 			this.stopAddSigner()
 		},
 		addSignerToPosition(event, page) {
-			const measurement = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs['page' + page][0].getCanvasMeasurement()
 			const rect = event.target.getBoundingClientRect()
 			const x = event.clientX - rect.left
 			const y = event.clientY - rect.top
@@ -237,8 +236,6 @@ export default {
 					ury: y - SignatureImageDimensions.height / 2,
 					height: SignatureImageDimensions.height,
 					width: SignatureImageDimensions.width,
-					canvasWidth: measurement.canvasWidth,
-					canvasHeight: measurement.canvasHeight,
 				},
 			}
 			this.$refs.pdfEditor.addSigner(this.signerSelected)
