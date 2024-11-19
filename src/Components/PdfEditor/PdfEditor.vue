@@ -26,8 +26,6 @@
 				:origin-width="object.originWidth"
 				:origin-height="object.originHeight"
 				:page-scale="pagesScale"
-				:canvas-width="object.canvasWidth"
-				:canvas-height="object.canvasHeight"
 				@onUpdate="$refs.vuePdfEditor.updateObject(object.id, $event)"
 				@onDelete="onDeleteSigner(object)" />
 		</template>
@@ -76,8 +74,6 @@ export default {
 				originHeight: signer.element.coordinates.height,
 				x: signer.element.coordinates.llx,
 				y: signer.element.coordinates.ury,
-				canvasWidth: signer.element.coordinates.canvasWidth,
-				canvasHeight: signer.element.coordinates.canvasHeight,
 			}
 			this.$refs.vuePdfEditor.allObjects = this.$refs.vuePdfEditor.allObjects.map((objects, pIndex) => {
 				if (pIndex === signer.element.coordinates.page - 1) {

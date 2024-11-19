@@ -89,14 +89,6 @@ export default {
 			type: Number,
 			default: 1,
 		},
-		canvasWidth: {
-			type: Number,
-			default: 1,
-		},
-		canvasHeight: {
-			type: Number,
-			default: 1,
-		},
 		fixSize: {
 			type: Boolean,
 			default: false,
