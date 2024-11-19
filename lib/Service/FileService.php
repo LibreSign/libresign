@@ -386,6 +386,19 @@ class FileService {
 			'displayName' => $this->userManager->get($this->file->getUserId())->getDisplayName(),
 		];
 		$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $this->file->getUuid()]);
+		if ($this->showVisibleElements) {
+			$signers = $this->signRequestMapper->getByMultipleFileId([$this->file->getId()]);
+			$return['visibleElements'] = [];
+			foreach ($this->signRequestMapper->getVisibleElementsFromSigners($signers) as $visibleElements) {
+				$return['visibleElements'] = array_merge(
+					$this->formatVisibleElementsToArray(
+						$visibleElements,
+						$this->file->getMetadata()
+					),
+					$return['visibleElements']
+				);
+			}
+		}
 		foreach ($this->getSigners() as $signer) {
 			if ($signer['me']) {
 				$return['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signer['sign_uuid']]);
@@ -520,29 +533,10 @@ class FileService {
 							}
 							return $carry;
 						}, false),
-						'visibleElements' => array_map(function (FileElement $visibleElement) use ($file) {
-							$element = [
-								'elementId' => $visibleElement->getId(),
-								'signRequestId' => $visibleElement->getSignRequestId(),
-								'type' => $visibleElement->getType(),
-								'coordinates' => [
-									'page' => $visibleElement->getPage(),
-									'urx' => $visibleElement->getUrx(),
-									'ury' => $visibleElement->getUry(),
-									'llx' => $visibleElement->getLlx(),
-									'lly' => $visibleElement->getLly()
-								]
-							];
-							$metadata = json_decode($file['metadata'], true);
-							$dimension = $metadata['d'][$element['coordinates']['page'] - 1];
-
-							$element['coordinates']['left'] = $element['coordinates']['llx'];
-							$element['coordinates']['height'] = abs($element['coordinates']['ury'] - $element['coordinates']['lly']);
-							$element['coordinates']['top'] = $dimension['h'] - $element['coordinates']['ury'];
-							$element['coordinates']['width'] = $element['coordinates']['urx'] - $element['coordinates']['llx'];
-
-							return $element;
-						}, $visibleElements[$signer->getId()] ?? []),
+						'visibleElements' => $this->formatVisibleElementsToArray(
+							$visibleElements[$signer->getId()] ?? [],
+							json_decode($file['metadata'], true)
+						),
 						'identifyMethods' => array_map(function (IdentifyMethod $identifyMethod) use ($signer): array {
 							return [
 								'method' => $identifyMethod->getIdentifierKey(),
@@ -597,6 +591,36 @@ class FileService {
 			ksort($files[$key]);
 		}
 		return $files;
+	}
+
+	/**
+	 * @param FileElement[] $visibleElements
+	 * @param array
+	 * @return array
+	 */
+	private function formatVisibleElementsToArray(array $visibleElements, array $metadata): array {
+		return array_map(function (FileElement $visibleElement) use ($metadata) {
+			$element = [
+				'elementId' => $visibleElement->getId(),
+				'signRequestId' => $visibleElement->getSignRequestId(),
+				'type' => $visibleElement->getType(),
+				'coordinates' => [
+					'page' => $visibleElement->getPage(),
+					'urx' => $visibleElement->getUrx(),
+					'ury' => $visibleElement->getUry(),
+					'llx' => $visibleElement->getLlx(),
+					'lly' => $visibleElement->getLly()
+				]
+			];
+			$dimension = $metadata['d'][$element['coordinates']['page'] - 1];
+
+			$element['coordinates']['left'] = $element['coordinates']['llx'];
+			$element['coordinates']['height'] = abs($element['coordinates']['ury'] - $element['coordinates']['lly']);
+			$element['coordinates']['top'] = $dimension['h'] - $element['coordinates']['ury'];
+			$element['coordinates']['width'] = $element['coordinates']['urx'] - $element['coordinates']['llx'];
+
+			return $element;
+		}, $visibleElements);
 	}
 
 	public function getMyLibresignFile(int $nodeId): File {
