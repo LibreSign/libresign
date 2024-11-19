@@ -272,10 +272,8 @@ export default {
 				&& this.loading
 		},
 	},
-	async created() {
-		await this.filesStore.getAllFiles()
-	},
 	async mounted() {
+		await this.filesStore.getAllFiles({ force_fetch: true })
 		subscribe('libresign:visible-elements-saved', this.closeSidebar)
 		this.filesStore.disableIdentifySigner()
 	},
