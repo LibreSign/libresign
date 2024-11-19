@@ -1262,6 +1262,7 @@ export type components = {
                 type: "info";
                 message: string;
             }[];
+            visibleElements?: components["schemas"]["VisibleElement"][];
         };
         VisibleElement: {
             /** Format: int64 */
