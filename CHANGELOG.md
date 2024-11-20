@@ -13,27 +13,39 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
-## 9.5.0 - 2024-11-15
+## 9.6.0 - 2024-11-20
 ### Fixes
-fix: only show return when come from validation button [3969](https://github.com/LibreSign/libresign/pull/3969)
-fix: go ahead if the file is not found [3971](https://github.com/LibreSign/libresign/pull/3971)
-fix: filter files by signer uuid [3962](https://github.com/LibreSign/libresign/pull/3962)
-fix: toggle sidebar [3958](https://github.com/LibreSign/libresign/pull/3958)
-fix: add back the contition to write_qrcode_on_footer [3931](https://github.com/LibreSign/libresign/pull/3931)
-fix: Use unicode signer name [3929](https://github.com/LibreSign/libresign/pull/3929)
+* fix: retrieve file when request to sign from file list [3997](https://github.com/LibreSign/libresign/pull/3997)
 
 ### Changes
-feat: request to sign from files [3946](https://github.com/LibreSign/libresign/pull/3946)
-feat: write success after end of configure [3936](https://github.com/LibreSign/libresign/pull/3936)
-Update translations
+* feat: make possible choose the page [3984](https://github.com/LibreSign/libresign/pull/3984)
+* Update translations
 
 ### Chore
-Bump dependencies
-chore: feedback improvement [3974](https://github.com/LibreSign/libresign/pull/3974)
-chore: disable buttons when is processing the action [3968](https://github.com/LibreSign/libresign/pull/3968)
-chore: replace :value.sync by v-model [3953](https://github.com/LibreSign/libresign/pull/3953)
-chore: improve cfssl validation [3943](https://github.com/LibreSign/libresign/pull/3943)
-chore: Optimize svg image [3938](https://github.com/LibreSign/libresign/pull/3938)
+* chore: bump dependencies at PHP and JS side
+* chore: refresh file list every when load view [4000](https://github.com/LibreSign/libresign/pull/4000)
+
+## 9.5.0 - 2024-11-15
+### Fixes
+* fix: only show return when come from validation button [3969](https://github.com/LibreSign/libresign/pull/3969)
+* fix: go ahead if the file is not found [3971](https://github.com/LibreSign/libresign/pull/3971)
+* fix: filter files by signer uuid [3962](https://github.com/LibreSign/libresign/pull/3962)
+* fix: toggle sidebar [3958](https://github.com/LibreSign/libresign/pull/3958)
+* fix: add back the contition to write_qrcode_on_footer [3931](https://github.com/LibreSign/libresign/pull/3931)
+* fix: Use unicode signer name [3929](https://github.com/LibreSign/libresign/pull/3929)
+
+### Changes
+* feat: request to sign from files [3946](https://github.com/LibreSign/libresign/pull/3946)
+* feat: write success after end of configure [3936](https://github.com/LibreSign/libresign/pull/3936)
+* Update translations
+
+### Chore
+* Bump dependencies
+* chore: feedback improvement [3974](https://github.com/LibreSign/libresign/pull/3974)
+* chore: disable buttons when is processing the action [3968](https://github.com/LibreSign/libresign/pull/3968)
+* chore: replace :value.sync by v-model [3953](https://github.com/LibreSign/libresign/pull/3953)
+* chore: improve cfssl validation [3943](https://github.com/LibreSign/libresign/pull/3943)
+* chore: Optimize svg image [3938](https://github.com/LibreSign/libresign/pull/3938)
 
 ## 9.4.0 - 2024-11-07
 ### Fixes
