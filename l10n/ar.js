@@ -172,6 +172,7 @@ OC.L10N.register(
     "Previous" : "السابق",
     "Next" : "التالي",
     "Account not exist" : "الحساب غير موجود",
+    "Click on the place you want to add." : "أنقُر على المكان الذي تريد إضافته",
     "Sign" : "وقع",
     "Confirm" : "تأكيد",
     "Request signatures?" : "طلب التوقيعات؟",
