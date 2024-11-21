@@ -11,8 +11,9 @@
 			@update:account="updateAccount"
 			@update:email="updateEmail"
 			@update:display-name="updateDisplayName" />
-		<label for="name-input">{{ t('libresign', 'Signer name') }}</label>
-		<NcTextField v-model="displayName"
+		<label v-if="signerSelected" for="name-input">{{ t('libresign', 'Signer name') }}</label>
+		<NcTextField v-if="signerSelected"
+			v-model="signerSelected"
 			aria-describedby="name-input"
 			autocapitalize="none"
 			:label="t('libresign', 'Signer name')"
@@ -25,7 +26,9 @@
 				<NcButton @click="filesStore.disableIdentifySigner()">
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
-				<NcButton type="primary" @click="saveSigner">
+				<NcButton type="primary"
+					:disabled="!signerSelected"
+					@click="saveSigner">
 					{{ saveButtonText }}
 				</NcButton>
 			</div>
@@ -104,6 +107,9 @@ export default {
 			} else {
 				return {}
 			}
+		},
+		signerSelected() {
+			return this.methods.account.value || this.methods.email.value
 		},
 		isNewSigner() {
 			return this.id === null || this.id === undefined
