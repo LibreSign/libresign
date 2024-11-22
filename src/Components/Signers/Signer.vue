@@ -8,9 +8,7 @@
 		<template #subname>
 			<Bullet v-for="method in identifyMethodsNames" :key="method" :name="method" />
 		</template>
-		<NcActions>
-			<slot v-if="$slots.actions" slot="actions" name="actions" />
-		</NcActions>
+		<slot slot="actions" name="actions" />
 		<template #indicator>
 			<CheckboxBlankCircle :size="16"
 				:fill-color="statusColor"
@@ -25,7 +23,6 @@ import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import Moment from '@nextcloud/moment'
 
-import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
 import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
 import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
 
@@ -36,7 +33,6 @@ import { useFilesStore } from '../../store/files.js'
 export default {
 	name: 'Signer',
 	components: {
-		NcActions,
 		NcListItem,
 		NcAvatar,
 		CheckboxBlankCircle,
