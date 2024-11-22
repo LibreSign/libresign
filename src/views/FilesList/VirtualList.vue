@@ -23,7 +23,11 @@
 					:source="item"
 					:loading="loading" />
 			</tbody>
-			<tfoot ref="endOfList" />
+			<tfoot ref="endOfList"
+				class="files-list__tfoot"
+				data-cy-files-list-tfoot>
+				<slot name="footer" />
+			</tfoot>
 		</table>
 	</div>
 </template>
