@@ -17,6 +17,32 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 10.4.0 - 2024-11-23
+### Fixes
+* fix: assure that all signers will have an unique id [4018](https://github.com/LibreSign/libresign/pull/4018)
+* fix: show actions at signer list [4015](https://github.com/LibreSign/libresign/pull/4015)
+
+### Changes
+* feat: add footer to file list [4021](https://github.com/LibreSign/libresign/pull/4021)
+* feat: only show name and allow save signer when have signer [4008](https://github.com/LibreSign/libresign/pull/4008)
+* Update translations
+
+### Chore
+* chore(deps): Bump @nextcloud/vue from 8.20.0 to 8.21.0 [4012](https://github.com/LibreSign/libresign/pull/4012)
+
+## 9.7.0 - 2024-11-23
+### Fixes
+* fix: assure that all signers will have an unique id [4017](https://github.com/LibreSign/libresign/pull/4017)
+* fix: show actions at signer list [4014](https://github.com/LibreSign/libresign/pull/4014)
+
+### Changes
+* feat: add footer to file list [4020](https://github.com/LibreSign/libresign/pull/4020)
+* feat: only show name and allow save signer when have signer [4009](https://github.com/LibreSign/libresign/pull/4009)
+* Update translations
+
+### Chore
+* chore(deps): Bump @nextcloud/vue from 8.20.0 to 8.21.0 [4013](https://github.com/LibreSign/libresign/pull/4013)
+
 ## 10.3.0 - 2024-11-20
 ### Fixes
 * fix: retrieve file when request to sign from file list [3998](https://github.com/LibreSign/libresign/pull/3998)
