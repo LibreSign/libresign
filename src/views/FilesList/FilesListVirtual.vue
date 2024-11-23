@@ -8,6 +8,10 @@
 		<template #filters>
 			<FileListFilters />
 		</template>
+		<template v-if="!isNoneSelected" #header-overlay>
+			<span class="files-list__selected">{{ n('libresign', '{count} selected', '{count} selected', selectionStore.selected.length, { count: selectionStore.selected.length }) }}</span>
+			<FilesListTableHeaderActions />
+		</template>
 		<template #header>
 			<!-- Table header and sort buttons -->
 			<FilesListTableHeader ref="thead"
@@ -25,9 +29,11 @@ import FileEntryGrid from './FileEntry/FileEntryGrid.vue'
 import FileListFilters from './FileListFilters.vue'
 import FilesListTableFooter from './FilesListTableFooter.vue'
 import FilesListTableHeader from './FilesListTableHeader.vue'
+import FilesListTableHeaderActions from './FilesListTableHeaderActions.vue'
 import VirtualList from './VirtualList.vue'
 
 import { useFilesStore } from '../../store/files.js'
+import { useSelectionStore } from '../../store/selection.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 
 export default {
@@ -36,6 +42,7 @@ export default {
 		VirtualList,
 		FileListFilters,
 		FilesListTableHeader,
+		FilesListTableHeaderActions,
 		FilesListTableFooter,
 		// eslint-disable-next-line vue/no-unused-components
 		FileEntry,
@@ -54,9 +61,11 @@ export default {
 	},
 	setup() {
 		const filesStore = useFilesStore()
+		const selectionStore = useSelectionStore()
 		const userConfigStore = useUserConfigStore()
 		return {
 			filesStore,
+			selectionStore,
 			userConfigStore,
 		}
 	},
@@ -65,6 +74,11 @@ export default {
 			FileEntry,
 			FileEntryGrid,
 		}
+	},
+	computed: {
+		isNoneSelected() {
+			return this.selectionStore.selected.length === 0
+		},
 	},
 }
 </script>
@@ -110,6 +124,11 @@ export default {
 			}
 		}
 
+		.files-list__selected {
+			padding-inline-end: 12px;
+			white-space: nowrap;
+		}
+
 		.files-list__table {
 			display: block;
 
@@ -130,6 +149,24 @@ export default {
 			padding-inline: var(--row-height) var(--default-grid-baseline, 4px);
 			height: var(--fixed-block-start-position);
 			width: 100%;
+		}
+
+		.files-list__thead-overlay {
+			// Pinned on top when scrolling
+			position: sticky;
+			top: var(--fixed-block-start-position);
+			// Save space for a row checkbox
+			margin-inline-start: var(--row-height);
+			// More than .files-list__thead
+			z-index: 20;
+
+			display: flex;
+			align-items: center;
+
+			// Reuse row styles
+			background-color: var(--color-main-background);
+			border-block-end: 1px solid var(--color-border);
+			height: var(--row-height);
 		}
 
 		.files-list__thead,

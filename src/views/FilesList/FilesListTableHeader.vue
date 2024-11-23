@@ -4,6 +4,11 @@
 -->
 <template>
 	<tr class="files-list__row-head">
+		<th class="files-list__column files-list__row-checkbox"
+			@keyup.esc.exact="resetSelection">
+			<NcCheckboxRadioSwitch v-bind="selectAllBind" @update:checked="onToggleAll" />
+		</th>
+
 		<!-- Columns display -->
 
 		<!-- Link to file -->
@@ -33,12 +38,19 @@
 </template>
 
 <script>
+import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
+
 import FilesListTableHeaderButton from './FilesListTableHeaderButton.vue'
+
+import logger from '../../logger.js'
+import { useFilesStore } from '../../store/files.js'
+import { useSelectionStore } from '../../store/selection.js'
 
 export default {
 	name: 'FilesListTableHeader',
 
 	components: {
+		NcCheckboxRadioSwitch,
 		FilesListTableHeaderButton,
 	},
 
@@ -47,6 +59,14 @@ export default {
 			type: Array,
 			required: true,
 		},
+	},
+	setup() {
+		const filesStore = useFilesStore()
+		const selectionStore = useSelectionStore()
+		return {
+			filesStore,
+			selectionStore,
+		}
 	},
 	data() {
 		return {
@@ -66,6 +86,29 @@ export default {
 			],
 		}
 	},
+	computed: {
+		selectAllBind() {
+			const label = t('libresign', 'Toggle selection for all files')
+			return {
+				'aria-label': label,
+				checked: this.isAllSelected,
+				indeterminate: this.isSomeSelected,
+				title: label,
+			}
+		},
+		selectedNodes() {
+			return this.selectionStore.selected
+		},
+		isAllSelected() {
+			return this.selectedNodes.length === this.filesStore.ordered.length
+		},
+		isNoneSelected() {
+			return this.selectedNodes.length === 0
+		},
+		isSomeSelected() {
+			return !this.isAllSelected && !this.isNoneSelected
+		},
+	},
 	methods: {
 		ariaSortForMode(mode) {
 			if (this.sortingMode === mode) {
@@ -80,6 +123,20 @@ export default {
 				'files-list__row-column-custom': true,
 				[`files-list__row-${column.id}`]: true,
 			}
+		},
+		onToggleAll(selected) {
+			if (selected) {
+				const selection = this.filesStore.ordered
+				logger.debug('Added all nodes to selection', { selection })
+				this.selectionStore.setLastIndex(null)
+				this.selectionStore.set(selection)
+			} else {
+				logger.debug('Cleared selection')
+				this.selectionStore.reset()
+			}
+		},
+		resetSelection() {
+			this.selectionStore.reset()
 		},
 	},
 }
