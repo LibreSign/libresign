@@ -13,6 +13,9 @@
 			<FilesListTableHeader ref="thead"
 				:nodes="nodes" />
 		</template>
+		<template #footer>
+			<FilesListTableFooter />
+		</template>
 	</VirtualList>
 </template>
 
@@ -20,6 +23,7 @@
 import FileEntry from './FileEntry/FileEntry.vue'
 import FileEntryGrid from './FileEntry/FileEntryGrid.vue'
 import FileListFilters from './FileListFilters.vue'
+import FilesListTableFooter from './FilesListTableFooter.vue'
 import FilesListTableHeader from './FilesListTableHeader.vue'
 import VirtualList from './VirtualList.vue'
 
@@ -32,6 +36,7 @@ export default {
 		VirtualList,
 		FileListFilters,
 		FilesListTableHeader,
+		FilesListTableFooter,
 		// eslint-disable-next-line vue/no-unused-components
 		FileEntry,
 		// eslint-disable-next-line vue/no-unused-components
