@@ -247,6 +247,15 @@ export const useFilesStore = function(...args) {
 					this.ordered.splice(index, 1)
 				}
 			},
+			changeStatus(files, status) {
+				Object.entries(files).filter(([key, file]) => {
+					set(
+						this.files[file.nodeId],
+						'status',
+						status,
+					)
+				})
+			},
 			async getAllFiles(filter) {
 				if (this.loading || this.loadedAll) {
 					if (!filter) {
