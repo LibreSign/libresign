@@ -168,6 +168,7 @@ export const useFilesStore = function(...args) {
 				})
 			},
 			async hydrateFile(nodeId) {
+				this.addUniqueIdentifierToAllSigners(this.files[nodeId].signers)
 				if (Object.hasOwn(this.files[nodeId], 'uuid')) {
 					return
 				}
@@ -189,6 +190,9 @@ export const useFilesStore = function(...args) {
 				signers.map(signer => this.addIdentifierToSigner(signer))
 			},
 			addIdentifierToSigner(signer) {
+				if (signer.identify) {
+					return
+				}
 				// generate unique code to new signer to be possible delete or edit
 				if ((signer.identify === undefined || signer.identify === '') && signer.signRequestId === undefined) {
 					signer.identify = btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(signer))))
