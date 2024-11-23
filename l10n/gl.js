@@ -172,6 +172,7 @@ OC.L10N.register(
     "Previous" : "Anterior",
     "Next" : "Seguinte",
     "Account not exist" : "A conta non existe",
+    "Click on the place you want to add." : "Prema no lugar que quere engadir.",
     "Sign" : "Asinar",
     "Confirm" : "Confirmar",
     "Request signatures?" : "Solicitar sinaturas?",
