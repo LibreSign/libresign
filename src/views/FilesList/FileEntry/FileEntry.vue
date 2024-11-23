@@ -13,6 +13,13 @@
 				:extension="'.pdf'" />
 		</td>
 
+		<!-- Actions -->
+		<FileEntryActions ref="actions"
+			:class="`files-list__row-actions-${source.nodeId}`"
+			:opened.sync="openedMenu"
+			:source="source"
+			:loading="loading" />
+
 		<!-- Status -->
 		<td class="files-list__row-status"
 			@click="openDetailsIfAvailable">
@@ -26,13 +33,6 @@
 			@click="openDetailsIfAvailable">
 			<NcDateTime v-if="source.request_date" :timestamp="mtime" :ignore-seconds="true" />
 		</td>
-
-		<!-- Actions -->
-		<FileEntryActions ref="actions"
-			:class="`files-list__row-actions-${source.nodeId}`"
-			:opened.sync="openedMenu"
-			:source="source"
-			:loading="loading" />
 	</tr>
 </template>
 
