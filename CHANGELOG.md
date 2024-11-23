@@ -13,6 +13,19 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 9.6.1 - 2024-11-23
+### Fixes
+* fix: assure that all signers will have an unique id [4017](https://github.com/LibreSign/libresign/pull/4017)
+* fix: show actions at signer list [4014](https://github.com/LibreSign/libresign/pull/4014)
+
+### Changes
+* feat: add footer to file list [4020](https://github.com/LibreSign/libresign/pull/4020)
+* feat: only show name and allow save signer when have signer [4009](https://github.com/LibreSign/libresign/pull/4009)
+* Update translations
+
+### Chore
+* chore(deps): Bump @nextcloud/vue from 8.20.0 to 8.21.0 [4013](https://github.com/LibreSign/libresign/pull/4013)
+
 ## 9.6.0 - 2024-11-20
 ### Fixes
 * fix: retrieve file when request to sign from file list [3997](https://github.com/LibreSign/libresign/pull/3997)
