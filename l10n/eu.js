@@ -197,6 +197,8 @@ OC.L10N.register(
     "Send" : "Bidali",
     "Switch to list view" : "Aldatu zerrenda ikuspegira",
     "Switch to grid view" : "Aldatu sareta ikuspegira",
+    "Total rows summary" : "Errenkaden guztirako laburpena",
+    "{fileCount} files" : "{fileCount} fitxategi",
     "Created at" : "Sortze data",
     "Request Signatures" : "Eskatu sinadurak",
     "Password reset" : "Pasahitza berezarri",

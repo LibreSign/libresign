@@ -239,6 +239,7 @@ OC.L10N.register(
     "Send" : "يوللا",
     "Switch to list view" : "تىزىملىك كۆرۈنۈشىگە ئالماشتۇرۇڭ",
     "Switch to grid view" : "كاتەكچە كۆرۈنۈشكە ئالماشتۇرۇڭ",
+    "Total rows summary" : "ئومۇمىي قۇر خۇلاسىسى",
     "Created at" : "قۇرۇلدى",
     "Welcome to LibreSign" : "LibreSign غا خۇش كەپسىز",
     "Finish the setup" : "تەڭشەشنى تاماملاڭ",

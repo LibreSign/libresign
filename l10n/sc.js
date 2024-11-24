@@ -118,6 +118,7 @@ OC.L10N.register(
     "Choose the file to request signatures." : "Sèbera s'archìviu pro rechèdere is firmas.",
     "Switch to list view" : "Càmbia a sa vista de s'elencu",
     "Switch to grid view" : "Càmbia a vista de mosàicu",
+    "{fileCount} files" : "{fileCount} archìvios",
     "Created at" : "Creadu su",
     "Request Signatures" : "Rechede firmas",
     "Password reset" : "Riprìstinu de sa crae",

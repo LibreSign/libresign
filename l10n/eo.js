@@ -50,6 +50,7 @@ OC.L10N.register(
     "Last 7 days" : "Lastaj 7 tagoj",
     "Last 30 days" : "Lastaj 30 tagoj",
     "Send" : "Sendi",
+    "1 file" : "1 dosiero",
     "Created at" : "Kreita je",
     "Password reset" : "Restarigi pasvorton",
     "Current password" : "Nuna pasvorto",
