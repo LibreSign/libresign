@@ -47,6 +47,7 @@ OC.L10N.register(
     "Modified" : "Mainīts",
     "Today" : "Šodien",
     "Send" : "Sūtīt",
+    "1 file" : "1 datne",
     "Created at" : "Izveidots plkst.",
     "Password reset" : "Parole atiestatīta",
     "Current password" : "Pašreizējā parole",

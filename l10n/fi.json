@@ -147,6 +147,8 @@
     "Send" : "Lähetä",
     "Switch to list view" : "Vaihda taulukkonäkymään",
     "Switch to grid view" : "Vaihda ruudukkonäkymään",
+    "1 file" : "1 tiedosto",
+    "{fileCount} files" : "{fileCount} tiedostoa",
     "Created at" : "Luotu",
     "Request Signatures" : "Pyydä allekirjoituksia",
     "Password reset" : "Salasanan palautus",

@@ -24,6 +24,7 @@ OC.L10N.register(
     "Modified" : "Geännert",
     "Today" : "Haut",
     "Send" : "Schécken",
+    "1 file" : "1 Fichier",
     "Current password" : "Momentan 't Passwuert",
     "New password" : "Neit Passwuert",
     "Resource" : "Ressource",

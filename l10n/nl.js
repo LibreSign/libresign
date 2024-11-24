@@ -188,6 +188,7 @@ OC.L10N.register(
     "Send" : "Verzenden",
     "Switch to list view" : "Omschakelen naar lijstoverzicht",
     "Switch to grid view" : "Omschakelen naar roosterweergave",
+    "1 file" : "1 bestand",
     "Created at" : "Gemaakt op",
     "Request Signatures" : "Aanvragen ondertekening",
     "Password reset" : "Wachtwoordherstel",

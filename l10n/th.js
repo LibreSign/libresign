@@ -47,6 +47,7 @@ OC.L10N.register(
     "Last 7 days" : "ภายใน 7 วัน",
     "Last 30 days" : "ภายใน 30 วัน",
     "Send" : "ส่ง",
+    "1 file" : "1 ไฟล์",
     "Created at" : "สร้างเมื่อ",
     "Password reset" : "ตั้งรหัสผ่านใหม่",
     "Current password" : "รหัสผ่านปัจจุบัน",

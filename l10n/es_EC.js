@@ -189,6 +189,7 @@ OC.L10N.register(
     "Choose the file to request signatures." : "Elige el archivo para solicitar firmas.",
     "Send" : "Enviar",
     "Switch to list view" : "Cambiar a vista de lista",
+    "Total rows summary" : "Resumen total de filas.",
     "Created at" : "Creado en",
     "Request Signatures" : "Solicitar firmas",
     "Password reset" : "Restablecer contraseña",

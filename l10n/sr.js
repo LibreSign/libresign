@@ -241,6 +241,8 @@ OC.L10N.register(
     "Send" : "Пошаљи",
     "Switch to list view" : "Пређи на поглед листе",
     "Switch to grid view" : "Пређи на поглед мреже",
+    "Total rows summary" : "Резиме укупног броја редова",
+    "{fileCount} files" : "{fileCount} фајла",
     "Created at" : "Направљено",
     "Welcome to LibreSign" : "Добродошли у LibreSign",
     "Finish the setup" : "Доврши подешавање",

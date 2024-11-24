@@ -56,6 +56,8 @@ OC.L10N.register(
     "Send" : "Gửi",
     "Switch to list view" : "Chuyển sang chế độ xem danh sách",
     "Switch to grid view" : "Chuyển sang chế độ xem dạng lưới",
+    "Total rows summary" : "Tổng số hàng",
+    "{fileCount} files" : "tệp {fileCount}",
     "Created at" : "Được tạo ra vào lúc",
     "Password reset" : "Đặt lại mật khẩu",
     "Current password" : "Mật khẩu cũ",
