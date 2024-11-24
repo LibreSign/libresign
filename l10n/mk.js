@@ -65,6 +65,8 @@ OC.L10N.register(
     "Send" : "Прати",
     "Switch to list view" : "Прикажи поглед во листа",
     "Switch to grid view" : "Прикажи поглед во мрежа",
+    "Total rows summary" : "Резиме на вкупно редови",
+    "{fileCount} files" : "{fileCount} датотеки",
     "Created at" : "Создадена на",
     "Password reset" : "Ресетирај лозинка",
     "Current password" : "Моментална лозинка",

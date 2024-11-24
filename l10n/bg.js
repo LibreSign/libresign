@@ -190,6 +190,8 @@ OC.L10N.register(
     "Choose the file to request signatures." : "Изберете файла, за да поискате подписи.",
     "Send" : "Изпращане",
     "Switch to list view" : "Превключване към изглед на списък",
+    "Total rows summary" : "Обобщение на общия брой редове",
+    "1 file" : "1 файл",
     "Created at" : "Създаден на",
     "Request Signatures" : "Искане на подписи",
     "Password reset" : "Възстановяване на парола",

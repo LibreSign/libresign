@@ -44,6 +44,7 @@ OC.L10N.register(
     "Modified" : "Modifikuar ",
     "Today" : "Sot",
     "Send" : "Dërgo",
+    "1 file" : "1 skedar",
     "Created at" : "U krijua në",
     "Password reset" : "Fjalkalimi u rivendos",
     "Current password" : "Fjalëkalimi aktual",

@@ -43,6 +43,7 @@ OC.L10N.register(
     "Modified" : "Muudetud",
     "Today" : "Täna",
     "Send" : "Saada",
+    "1 file" : "1 fail",
     "Created at" : "Loodud",
     "Password reset" : "Parooli taastamine ",
     "Current password" : "Praegune parool",

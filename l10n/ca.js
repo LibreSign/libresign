@@ -204,6 +204,8 @@ OC.L10N.register(
     "Send" : "Envia",
     "Switch to list view" : "Canvia a la visualització de llista",
     "Switch to grid view" : "Canvia a la visualització de quadrícula",
+    "1 file" : "1 fitxer",
+    "{fileCount} files" : "{fileCount} fitxers",
     "Created at" : "Data de creació",
     "Request Signatures" : "Demanar signatures",
     "Password reset" : "Restableix contrasenya",

@@ -58,6 +58,8 @@ OC.L10N.register(
     "Send" : "Send",
     "Switch to list view" : "Switch to list view",
     "Switch to grid view" : "Switch to grid view",
+    "Total rows summary" : "Total rows summary",
+    "{fileCount} files" : "{fileCount} files",
     "Created at" : "Created at",
     "Password reset" : "Password reset",
     "Current password" : "Current password",
