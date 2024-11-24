@@ -45,6 +45,7 @@ OC.L10N.register(
     "Modified" : "Dimodifikasi",
     "Today" : "Hari ini",
     "Send" : "Kirim",
+    "1 file" : "1 berkas",
     "Created at" : "Dibuat saat",
     "Password reset" : "Setel ulang kata sandi",
     "Current password" : "Kata sandi saat ini",

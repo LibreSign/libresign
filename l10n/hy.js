@@ -24,6 +24,7 @@ OC.L10N.register(
     "Modified" : "Փոփոխված",
     "Today" : "Այսօր",
     "Send" : "Ուղարկել",
+    "1 file" : "1 ֆայլ",
     "Password reset" : "Վերականգնել գաղտնաբառը",
     "New password" : "Նոր գաղտնաբառ",
     "Resource" : "Ռեսուրս",

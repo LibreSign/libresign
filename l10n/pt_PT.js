@@ -53,6 +53,8 @@ OC.L10N.register(
     "Remove filter" : "Remover filtro",
     "Choose from Files" : "Escolher a partir dos ficheiros",
     "Send" : "Enviar",
+    "Total rows summary" : "Resumo do total de linhas",
+    "1 file" : "1 ficheiro",
     "Created at" : "Criado em",
     "Password reset" : "Reposição da senha",
     "Current password" : "Palavra-passe atual",
