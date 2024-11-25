@@ -9,16 +9,16 @@
     "packages-dev": [
         {
             "name": "adhocore/cli",
-            "version": "v1.8.0",
+            "version": "v1.8.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/adhocore/php-cli.git",
-                "reference": "6092763ab212038de64c44545574cedb7ef86269"
+                "reference": "0945f82f564fb8296a358bec6f922c2dc473906c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/adhocore/php-cli/zipball/6092763ab212038de64c44545574cedb7ef86269",
-                "reference": "6092763ab212038de64c44545574cedb7ef86269",
+                "url": "https://api.github.com/repos/adhocore/php-cli/zipball/0945f82f564fb8296a358bec6f922c2dc473906c",
+                "reference": "0945f82f564fb8296a358bec6f922c2dc473906c",
                 "shasum": ""
             },
             "require": {
@@ -63,7 +63,7 @@
             ],
             "support": {
                 "issues": "https://github.com/adhocore/php-cli/issues",
-                "source": "https://github.com/adhocore/php-cli/tree/v1.8.0"
+                "source": "https://github.com/adhocore/php-cli/tree/v1.8.1"
             },
             "funding": [
                 {
@@ -75,7 +75,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-11-15T08:55:32+00:00"
+            "time": "2024-11-20T07:38:11+00:00"
         },
         {
             "name": "nextcloud/openapi-extractor",

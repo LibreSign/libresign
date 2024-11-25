@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-swagger-test.git",
-                "reference": "c00ca0fb280d6202485b56c28a3f37dd9d8b4e05"
+                "reference": "862b47a15dd2a892bae4e7c73e75642780da5790"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/c00ca0fb280d6202485b56c28a3f37dd9d8b4e05",
-                "reference": "c00ca0fb280d6202485b56c28a3f37dd9d8b4e05",
+                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/862b47a15dd2a892bae4e7c73e75642780da5790",
+                "reference": "862b47a15dd2a892bae4e7c73e75642780da5790",
                 "shasum": ""
             },
             "require": {
@@ -52,7 +52,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-11-11T22:06:35+00:00"
+            "time": "2024-11-23T03:00:00+00:00"
         },
         {
             "name": "byjg/uri",
@@ -968,12 +968,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "476c6c8e6fcc6107b578fdc6c899d4a183b5bf33"
+                "reference": "c5c350263fd23819f0f27ff41570c4fa191b60d1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/476c6c8e6fcc6107b578fdc6c899d4a183b5bf33",
-                "reference": "476c6c8e6fcc6107b578fdc6c899d4a183b5bf33",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/c5c350263fd23819f0f27ff41570c4fa191b60d1",
+                "reference": "c5c350263fd23819f0f27ff41570c4fa191b60d1",
                 "shasum": ""
             },
             "require": {
@@ -1061,7 +1061,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-11-16T08:11:02+00:00"
+            "time": "2024-11-25T11:48:48+00:00"
         },
         {
             "name": "psr/http-client",
