@@ -265,7 +265,7 @@ export default {
 			return this.dirContentsFiltered
 		},
 		isEmptyDir() {
-			return this.filesStore.files.size === 0
+			return Object.keys(this.filesStore.files).length === 0
 		},
 		isRefreshing() {
 			return !this.isEmptyDir
