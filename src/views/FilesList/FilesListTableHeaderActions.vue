@@ -21,6 +21,32 @@
 				{{ action.displayName(selectionStore.selected) }}
 			</NcActionButton>
 		</NcActions>
+		<NcDialog v-if="confirmDelete"
+			:name="t('libresign', 'Confirm')"
+			:can-close="!deleting"
+			:open.sync="confirmDelete">
+			{{ t('libresign', 'The signature request will be deleted. Do you confirm this action?') }}
+			<NcCheckboxRadioSwitch type="switch"
+				:checked.sync="deleteFile"
+				:disabled="deleting">
+				{{ t('libresign', 'Also delete the file.') }}
+			</NcCheckboxRadioSwitch>
+			<template #actions>
+				<NcButton type="primary"
+					:disabled="deleting"
+					@click="doDelete()">
+					<template #icon>
+						<NcLoadingIcon v-if="deleting" :size="20" />
+					</template>
+					{{ t('libresign', 'Ok') }}
+				</NcButton>
+				<NcButton type="secondary"
+					:disabled="deleting"
+					@click="confirmDelete = false">
+					{{ t('libresign', 'Cancel') }}
+				</NcButton>
+			</template>
+		</NcDialog>
 	</div>
 </template>
 
@@ -31,6 +57,9 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcIconSvgWrapper from '@nextcloud/vue/dist/Components/NcIconSvgWrapper.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 
@@ -44,6 +73,9 @@ export default {
 	components: {
 		NcActions,
 		NcActionButton,
+		NcButton,
+		NcCheckboxRadioSwitch,
+		NcDialog,
 		NcIconSvgWrapper,
 		NcLoadingIcon,
 	},
@@ -62,6 +94,10 @@ export default {
 		return {
 			enabledMenuActions: [],
 			loading: null,
+			toDelete: [],
+			confirmDelete: false,
+			deleteFile: true,
+			deleting: false,
 		}
 	},
 	computed: {
@@ -75,6 +111,9 @@ export default {
 			displayName: () => t('libresign', 'Delete'),
 			iconSvgInline: () => svgDelete,
 			execBatch: (files) => {
+				this.confirmDelete = true
+				this.toDelete = files
+				return files.map(() => (null))
 			},
 		})
 	},
@@ -82,13 +121,22 @@ export default {
 		registerAction(action) {
 			this.enabledMenuActions = [...this.enabledMenuActions, action]
 		},
+		doDelete() {
+			this.deleting = true
+			this.filesStore.deleteMultiple(this.toDelete, this.deleteFile)
+				.then(() => {
+					this.toDelete = []
+					this.selectionStore.reset()
+					this.deleting = false
+				})
+		},
 		async onActionClick(action) {
 			const displayName = action.displayName(this.selectionStore.selected)
 			const selectionSources = this.selectionStore.selected
 			try {
 				// Set loading markers
 				this.loading = action.id
-				this.changeStatusOfSelectedFiles('loading')
+				this.changeLoadingStatusOfSelectedFiles('loading')
 
 				// Dispatch action execution
 				const results = await action.execBatch(this.selectionStore.selected)
@@ -96,7 +144,6 @@ export default {
 				// Check if all actions returned null
 				if (!results.some(result => result !== null)) {
 					// If the actions returned null, we stay silent
-					this.selectionStore.reset()
 					return
 				}
 
@@ -126,12 +173,12 @@ export default {
 			} finally {
 				// Remove loading markers
 				this.loading = null
-				this.changeStatusOfSelectedFiles()
+				this.changeLoadingStatusOfSelectedFiles()
 			}
 		},
-		changeStatusOfSelectedFiles(status) {
+		changeLoadingStatusOfSelectedFiles(status) {
 			this.selectionStore.selected.forEach(nodeId => {
-				this.filesStore.files[nodeId].status = status
+				this.filesStore.files[nodeId].loading = status
 			})
 		},
 	},
