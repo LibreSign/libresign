@@ -13,6 +13,22 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+
+## 9.7.0 - 2024-11-25
+### Fixes
+* fix: JS error when upload file [4034](/LibreSign/libresign/pull/4034)
+* fix: show message when file list is empty [4032](/LibreSign/libresign/pull/4032)
+
+### Changes
+* Update translations
+* feat: delete multiple files [4027](/LibreSign/libresign/pull/4027)
+
+### Chore
+* chore: bump dependencies [4046](/LibreSign/libresign/pull/4046)
+* chore: show loading before finish load file list [4042](/LibreSign/libresign/pull/4042)
+* chore: disable Actions menu when click in an action [4040](/LibreSign/libresign/pull/4040)
+* chore: unify code into a new component [4036](/LibreSign/libresign/pull/4036)
+
 ## 9.6.1 - 2024-11-23
 ### Fixes
 * fix: assure that all signers will have an unique id [4017](https://github.com/LibreSign/libresign/pull/4017)
