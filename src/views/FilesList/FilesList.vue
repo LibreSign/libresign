@@ -104,7 +104,7 @@ export default {
 	},
 	data() {
 		return {
-			loading: false,
+			loading: true,
 			dirContentsFiltered: [],
 		}
 	},
@@ -133,6 +133,7 @@ export default {
 	},
 	async mounted() {
 		await this.filesStore.getAllFiles({ force_fetch: true })
+		this.loading = false
 		subscribe('libresign:visible-elements-saved', this.closeSidebar)
 		this.filesStore.disableIdentifySigner()
 	},
