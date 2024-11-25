@@ -44,6 +44,9 @@
 		<NcEmptyContent v-else-if="!loading && isEmptyDir"
 			:name="t('libresign', 'There are no documents')"
 			:description="t('libresign', 'Choose the file to request signatures.')">
+			<template #action>
+				<RequestPicker />
+			</template>
 			<template #icon>
 				<FolderIcon />
 			</template>
