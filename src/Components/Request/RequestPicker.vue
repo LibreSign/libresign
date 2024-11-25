@@ -12,25 +12,24 @@
 			<template #icon>
 				<PlusIcon :size="20" />
 			</template>
-			<NcActionButton @click="showModalUploadFromUrl()"
-				:wide="true">
+			<NcActionButton :wide="true"
+				@click="showModalUploadFromUrl()">
 				<template #icon>
 					<LinkIcon :size="20" />
 				</template>
 				{{ t('libresign', 'Upload from URL') }}
 			</NcActionButton>
-			<NcActionButton @click="showFilePicker = true"
-				:wide="true">
+			<NcActionButton :wide="true"
+				@click="showFilePicker = true">
 				<template #icon>
 					<FolderIcon :size="20" />
 				</template>
 				{{ t('libresign', 'Choose from Files') }}
 			</NcActionButton>
-			<NcActionButton @click="uploadFile"
-				:wide="true">
+			<NcActionButton :wide="true"
+				@click="uploadFile">
 				<template #icon>
-					<NcLoadingIcon v-if="isUploading" :size="20" />
-					<UploadIcon v-else :size="20" />
+					<UploadIcon :size="20" />
 				</template>
 				{{ t('libresign', 'Upload') }}
 			</NcActionButton>
@@ -136,9 +135,9 @@ export default {
 			modalUploadFromUrl: false,
 			uploadUrlErrors: [],
 			pdfUrl: '',
-			isUploading: false,
 			showingFilePicker: false,
 			loading: false,
+			openedMenu: false,
 		}
 	},
 	computed: {
@@ -161,14 +160,6 @@ export default {
 				return false
 			}
 		},
-		openedMenu: {
-			get() {
-				return this.actionsMenuStore.opened === 'global'
-			},
-			set(opened) {
-				this.actionsMenuStore.opened = opened ? 'global' : null
-			},
-		},
 		showFilePicker: {
 			get() {
 				return this.showingFilePicker
@@ -185,37 +176,37 @@ export default {
 		showModalUploadFromUrl() {
 			this.actionsMenuStore.opened = false
 			this.modalUploadFromUrl = true
+			this.openedMenu = false
+			this.loading = false
 		},
 		closeModalUploadFromUrl() {
-			this.cleanErrors()
+			this.uploadUrlErrors = []
 			this.pdfUrl = ''
 			this.modalUploadFromUrl = false
-		},
-		cleanErrors() {
-			this.uploadUrlErrors = []
+			this.loading = false
 		},
 		async upload(file) {
-			try {
-				const { name: original } = file
-
-				const name = original.split('.').slice(0, -1).join('.')
-
-				const data = await loadFileToBase64(file)
-
-				const res = await filesService.uploadFile({ name, file: data })
-
-				this.filesStore.addFile({
-					nodeId: res.id,
-					name: res.name,
+			const data = await loadFileToBase64(file)
+			await filesService.uploadFile({
+				name: file.name,
+				file: data,
+			})
+				.then((response) => {
+					this.filesStore.addFile({
+						nodeId: response.id,
+						name: response.name,
+					})
+					this.filesStore.selectFile(response.id)
+					this.loading = false
 				})
-				this.filesStore.selectFile(res.id)
-				this.cleanErrors()
-			} catch (err) {
-				showError(err.response.data.ocs.data.message)
-			}
+				.catch(({ response }) => {
+					showError(response.data.ocs.data.message)
+					this.loading = false
+				})
 		},
 		uploadFile() {
 			this.loading = true
+			this.openedMenu = false
 			const input = document.createElement('input')
 			input.accept = 'application/pdf'
 			input.type = 'file'
@@ -231,11 +222,9 @@ export default {
 			}
 
 			input.click()
-			this.loading = false
 		},
 		async uploadUrl() {
 			this.loading = true
-			this.cleanErrors()
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
 				file: {
 					url: this.pdfUrl,
@@ -251,8 +240,8 @@ export default {
 				})
 				.catch(({ response }) => {
 					this.uploadUrlErrors = [response.data.ocs.data.message]
+					this.loading = false
 				})
-			this.loading = false
 		},
 		async handleFileChoose(nodes) {
 			const path = nodes[0]?.path
@@ -272,11 +261,9 @@ export default {
 						name: data.ocs.data.name,
 					})
 					this.filesStore.selectFile(data.ocs.data.id)
-					this.cleanErrors()
 				})
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.message)
-					this.loading = false
 				})
 		},
 	},
