@@ -223,22 +223,24 @@ export const useFilesStore = function(...args) {
 					await axios.delete(generateOcsUrl(url, {
 						fileId: file.nodeId,
 					}))
+						.then(() => {
+							del(this.files, file.nodeId)
+							const index = this.ordered.indexOf(file.nodeId)
+							if (index > -1) {
+								this.ordered.splice(index, 1)
+							}
+						})
 				}
-				del(this.files, file.nodeId)
 
-				const index = this.ordered.indexOf(file.nodeId)
-				if (index > -1) {
-					this.ordered.splice(index, 1)
-				}
 			},
-			changeStatus(files, status) {
-				Object.entries(files).filter(([key, file]) => {
-					set(
-						this.files[file.nodeId],
-						'status',
-						status,
-					)
+			async deleteMultiple(nodeIds, deleteFile) {
+				this.loading = true
+				nodeIds.forEach(async nodeId => {
+					await this.delete(this.files[nodeId], deleteFile)
 				})
+				const toRemove = nodeIds.filter(nodeId => (!this.files[nodeId]?.uuid))
+				del(this.files, ...toRemove)
+				this.loading = false
 			},
 			async getAllFiles(filter) {
 				if (this.loading || this.loadedAll) {
