@@ -8,7 +8,11 @@
 			<slot name="filters" />
 		</div>
 
-		<table class="files-list__table">
+		<div v-if="!!$scopedSlots['header-overlay']" class="files-list__thead-overlay">
+			<slot name="header-overlay" />
+		</div>
+
+		<table class="files-list__table" :class="{ 'files-list__table--with-thead-overlay': !!$scopedSlots['header-overlay'] }">
 			<!-- Header -->
 			<thead ref="thead" class="files-list__thead">
 				<slot name="header" />

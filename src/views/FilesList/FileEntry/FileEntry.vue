@@ -5,6 +5,10 @@
 <template>
 	<tr class="files-list__row"
 		@contextmenu="onRightClick">
+		<!-- Checkbox -->
+		<FileEntryCheckbox :is-loading="filesStore.loading"
+			:source="source" />
+
 		<td class="files-list__row-name"
 			@click="openDetailsIfAvailable">
 			<FileEntryPreview :source="source" />
@@ -12,6 +16,13 @@
 				:basename="source.name"
 				:extension="'.pdf'" />
 		</td>
+
+		<!-- Actions -->
+		<FileEntryActions ref="actions"
+			:class="`files-list__row-actions-${source.nodeId}`"
+			:opened.sync="openedMenu"
+			:source="source"
+			:loading="loading" />
 
 		<!-- Status -->
 		<td class="files-list__row-status"
@@ -26,13 +37,6 @@
 			@click="openDetailsIfAvailable">
 			<NcDateTime v-if="source.request_date" :timestamp="mtime" :ignore-seconds="true" />
 		</td>
-
-		<!-- Actions -->
-		<FileEntryActions ref="actions"
-			:class="`files-list__row-actions-${source.nodeId}`"
-			:opened.sync="openedMenu"
-			:source="source"
-			:loading="loading" />
 	</tr>
 </template>
 
@@ -40,6 +44,7 @@
 import NcDateTime from '@nextcloud/vue/dist/Components/NcDateTime.js'
 
 import FileEntryActions from './FileEntryActions.vue'
+import FileEntryCheckbox from './FileEntryCheckbox.vue'
 import FileEntryName from './FileEntryName.vue'
 import FileEntryPreview from './FileEntryPreview.vue'
 import FileEntryStatus from './FileEntryStatus.vue'
@@ -53,6 +58,7 @@ export default {
 	components: {
 		NcDateTime,
 		FileEntryActions,
+		FileEntryCheckbox,
 		FileEntryName,
 		FileEntryPreview,
 		FileEntryStatus,
