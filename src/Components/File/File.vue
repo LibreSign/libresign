@@ -15,10 +15,10 @@
 			@load="backgroundFailed = false">
 		<FileIcon v-else v-once :size="128" />
 		<div class="enDot">
-			<div :class="filesStore.files.get(currentNodeId).statusText !== 'none' ? 'dot ' + statusToClass(filesStore.files.get(currentNodeId).status) : '' " />
-			<span>{{ filesStore.files.get(currentNodeId).statusText !== 'none' ? filesStore.files.get(currentNodeId).statusText : '' }}</span>
+			<div :class="filesStore.files[currentNodeId].statusText !== 'none' ? 'dot ' + statusToClass(filesStore.files[currentNodeId].status) : '' " />
+			<span>{{ filesStore.files[currentNodeId].statusText !== 'none' ? filesStore.files[currentNodeId].statusText : '' }}</span>
 		</div>
-		<h1>{{ filesStore.files.get(currentNodeId).name }}</h1>
+		<h1>{{ filesStore.files[currentNodeId].name }}</h1>
 	</div>
 </template>
 
@@ -64,7 +64,7 @@ export default {
 				return null
 			}
 			let previewUrl = ''
-			if (this.filesStore.files.get(this.currentNodeId)?.uuid?.length > 0) {
+			if (this.filesStore.files[this.currentNodeId]?.uuid?.length > 0) {
 				previewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
 					nodeId: this.currentNodeId,
 				})
