@@ -14,12 +14,13 @@ use OCA\Libresign\Service\RequestSignatureService;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\Files\Cache\CacheEntryRemovedEvent;
 use OCP\Files\Events\Node\BeforeNodeDeletedEvent;
 use OCP\Files\File;
 use OCP\IDBConnection;
 
 /**
- * @template-implements IEventListener<Event|BeforeNodeDeletedEvent>
+ * @template-implements IEventListener<Event|BeforeNodeDeletedEvent|CacheEntryRemovedEvent>
  */
 class BeforeNodeDeletedListener implements IEventListener {
 	public function __construct(
@@ -30,17 +31,25 @@ class BeforeNodeDeletedListener implements IEventListener {
 	}
 
 	public function handle(Event $event): void {
-		if (!$event instanceof BeforeNodeDeletedEvent) {
+		if ($event instanceof BeforeNodeDeletedEvent) {
+			$node = $event->getNode();
+			if (!$node instanceof File) {
+				return;
+			}
+			if (!in_array($node->getMimeType(), ValidateHelper::VALID_MIMETIPE)) {
+				return;
+			}
+			$nodeId = $node->getId();
+			$this->delete($nodeId);
 			return;
 		}
-		$node = $event->getNode();
-		if (!$node instanceof File) {
-			return;
+		if ($event instanceof CacheEntryRemovedEvent) {
+			$this->delete($event->getFileId());
 		}
-		if (!in_array($node->getMimeType(), ValidateHelper::VALID_MIMETIPE)) {
-			return;
-		}
-		$nodeId = $node->getId();
+		return;
+	}
+
+	private function delete(int $nodeId): void {
 		$type = $this->fileMapper->getFileType($nodeId);
 		if ($type === 'not_libresign_file') {
 			return;
@@ -53,24 +62,16 @@ class BeforeNodeDeletedListener implements IEventListener {
 				break;
 			case 'file':
 				$libresignFile = $this->fileMapper->getByFileId($nodeId);
-				if ($libresignFile->getStatus() === $libresignFile::STATUS_SIGNED) {
-					$libresignFile->setNodeId(null);
-					$this->fileMapper->update($libresignFile);
-					break;
-				}
 				$this->requestSignatureService->deleteRequestSignature(['file' => ['fileId' => $nodeId]]);
+				$this->fileMapper->delete($libresignFile);
 				break;
 			case 'user_element':
 			case 'file_element':
-				$this->deleteByType($nodeId, $type);
+				$field = $type === 'file' ? 'node_id' : 'file_id';
+				$qb = $this->db->getQueryBuilder();
+				$qb->delete('libresign_' . $type)
+					->where($qb->expr()->eq($field, $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)))
+					->executeStatement();
 		}
-	}
-
-	private function deleteByType(int $nodeId, string $type): void {
-		$field = $type === 'file' ? 'node_id' : 'file_id';
-		$qb = $this->db->getQueryBuilder();
-		$qb->delete('libresign_' . $type)
-			->where($qb->expr()->eq($field, $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)))
-			->executeStatement();
 	}
 }

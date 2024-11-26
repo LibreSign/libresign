@@ -97,10 +97,9 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 		$this->expectExceptionCode(404);
 		$this->expectExceptionMessage(json_encode([
 			'action' => 2000,
-			'errors' => ['File not found'],
+			'errors' => ['Invalid UUID'],
 		]));
 
-		$signers = $this->getSignersFromFileId($file->getId());
-		$this->controller->loadNextcloudFileFromSignRequestUuid($signers[0]->getUuid());
+		$this->controller->validateSignRequestUuid($file->getUuid());
 	}
 }
