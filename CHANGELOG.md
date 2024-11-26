@@ -17,36 +17,49 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 10.4.1 - 2024-11-26
+### Fixes
+* fix: Icon color att app files [4058](https://github.com/LibreSign/libresign/pull/4058)
+* fix: prevent error when click at signer to add to document [4056](https://github.com/LibreSign/libresign/pull/4056)
+* fix: toggle loading [4054](https://github.com/LibreSign/libresign/pull/4054)
+* fix: prevent don't delete file when folder is deleted [4061](https://github.com/LibreSign/libresign/pull/4061)
+
+## 9.7.1 - 2024-11-26
+### Fixes
+* fix: Icon color att app files [4057](https://github.com/LibreSign/libresign/pull/4057)
+* fix: prevent error when click at signer to add to document [4055](https://github.com/LibreSign/libresign/pull/4055)
+* fix: toggle loading [4053](https://github.com/LibreSign/libresign/pull/4053)
+* fix: prevent don't delete file when folder is deleted [4060](https://github.com/LibreSign/libresign/pull/4060)
 
 ## 10.4.0 - 2024-11-25
 ### Fixes
-* fix: JS error when upload file [4035](/LibreSign/libresign/pull/4035)
-* fix: show message when file list is empty [4033](/LibreSign/libresign/pull/4033)
+* fix: JS error when upload file [4035](https://github.com/LibreSign/libresign/pull/4035)
+* fix: show message when file list is empty [4033](https://github.com/LibreSign/libresign/pull/4033)
 
 ### Changes
 * Update translations
-* feat: delete multiple files [4028](/LibreSign/libresign/pull/4028)
+* feat: delete multiple files [4028](https://github.com/LibreSign/libresign/pull/4028)
 
 ### Chore
-* chore: bump dependencies [4045](/LibreSign/libresign/pull/4045)
-* chore: show loading before finish load file list [4043](/LibreSign/libresign/pull/4043)
-* chore: disable Actions menu when click in an action [4039](/LibreSign/libresign/pull/4039)
-* chore: unify code into a new component [4037](/LibreSign/libresign/pull/4037)
+* chore: bump dependencies [4045](https://github.com/LibreSign/libresign/pull/4045)
+* chore: show loading before finish load file list [4043](https://github.com/LibreSign/libresign/pull/4043)
+* chore: disable Actions menu when click in an action [4039](https://github.com/LibreSign/libresign/pull/4039)
+* chore: unify code into a new component [4037](https://github.com/LibreSign/libresign/pull/4037)
 
 ## 9.7.0 - 2024-11-25
 ### Fixes
-* fix: JS error when upload file [4034](/LibreSign/libresign/pull/4034)
-* fix: show message when file list is empty [4032](/LibreSign/libresign/pull/4032)
+* fix: JS error when upload file [4034](https://github.com/LibreSign/libresign/pull/4034)
+* fix: show message when file list is empty [4032](https://github.com/LibreSign/libresign/pull/4032)
 
 ### Changes
 * Update translations
-* feat: delete multiple files [4027](/LibreSign/libresign/pull/4027)
+* feat: delete multiple files [4027](https://github.com/LibreSign/libresign/pull/4027)
 
 ### Chore
-* chore: bump dependencies [4046](/LibreSign/libresign/pull/4046)
-* chore: show loading before finish load file list [4042](/LibreSign/libresign/pull/4042)
-* chore: disable Actions menu when click in an action [4040](/LibreSign/libresign/pull/4040)
-* chore: unify code into a new component [4036](/LibreSign/libresign/pull/4036)
+* chore: bump dependencies [4046](https://github.com/LibreSign/libresign/pull/4046)
+* chore: show loading before finish load file list [4042](https://github.com/LibreSign/libresign/pull/4042)
+* chore: disable Actions menu when click in an action [4040](https://github.com/LibreSign/libresign/pull/4040)
+* chore: unify code into a new component [4036](https://github.com/LibreSign/libresign/pull/4036)
 
 ## 10.3.1 - 2024-11-23
 ### Fixes
