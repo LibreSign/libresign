@@ -190,7 +190,7 @@ export default {
 		closeModal() {
 			this.errorConfirmRequest = ''
 			this.modal = false
-			this.filesStore.loading = true
+			this.filesStore.loading = false
 		},
 		updateSigners(data) {
 			this.document.signers.forEach(signer => {
