@@ -13,6 +13,8 @@ import { getUploader } from '@nextcloud/upload'
 
 import logger from './logger.js'
 import LibreSignLogoSvg from '../img/app-colored.svg?raw'
+import LibreSignLogoDarkSvg from '../img/app-dark.svg?raw'
+import { useIsDarkTheme } from './helpers/useIsDarkTheme.js'
 
 Vue.prototype.t = translate
 Vue.prototype.n = translatePlural
@@ -22,7 +24,7 @@ Vue.prototype.OCA = OCA
 addNewFileMenuEntry({
 	id: 'libresign-request',
 	displayName: t('libresign', 'New signature request'),
-	iconSvgInline: LibreSignLogoSvg,
+	iconSvgInline: useIsDarkTheme() ? LibreSignLogoDarkSvg : LibreSignLogoSvg,
 	uploadManager: getUploader(),
 	order: 1,
 	enabled() {
