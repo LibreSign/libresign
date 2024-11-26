@@ -213,6 +213,9 @@ export default {
 			this.filesStore.loading = false
 		},
 		onSelectSigner(signer) {
+			if (!this.$refs.pdfEditor) {
+				return
+			}
 			this.signerSelected = signer
 			const canvasList = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs.pdfBody.querySelectorAll('canvas')
 			canvasList.forEach((canvas) => {
