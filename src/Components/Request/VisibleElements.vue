@@ -260,8 +260,11 @@ export default {
 			}))
 		},
 		async goToSign() {
+			// after save, the document is no more acessible by this way,
+			// this is the reason to retain the UUID before save action
+			const uuid = this.document.settings.signerFileUuid
 			if (await this.save()) {
-				const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: this.document.settings.signerFileUuid } })
+				const route = this.$router.resolve({ name: 'SignPDF', params: { uuid } })
 				window.location.href = route.href
 			}
 		},
