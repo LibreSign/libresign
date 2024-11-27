@@ -194,6 +194,8 @@ OC.L10N.register(
     "1 file" : "1 файл",
     "Created at" : "Създаден на",
     "\"{displayName}\" failed on some elements " : "„{displayName}“ не успя да се изпълни за някои елементи ",
+    "\"{displayName}\" batch action executed successfully" : " Пакетното действие „{displayName}“ е изпълнено успешно",
+    "\"{displayName}\" action failed" : "Действието „{displayName}“ е неуспешно",
     "Request Signatures" : "Искане на подписи",
     "Password reset" : "Възстановяване на парола",
     "Enter new password and then repeat it" : "Въведете нова парола и след това я повторете",
