@@ -69,7 +69,7 @@
     "@nextcloud/eslint-config": "^8.4.1",
     "@nextcloud/stylelint-config": "^3.0.1",
     "@nextcloud/webpack-vue-config": "^6.0.1",
-    "@vue/tsconfig": "^0.5.1",
+    "@vue/tsconfig": "^0.7.0",
     "babel-loader-exclude-node-modules-except": "^1.2.1",
     "esbuild-loader": "^4.2.2",
     "openapi-typescript": "^7.4.3",
