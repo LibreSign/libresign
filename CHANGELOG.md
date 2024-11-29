@@ -17,6 +17,21 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 10.4.2 - 2024-11-29
+### Fixes
+* fix: list files from PostgreSQL [4076](https://github.com/LibreSign/libresign/pull/4076)
+
+### Changes
+* Update translations
+
+## 9.7.2 - 2024-11-29
+### Fixes
+* fix: list files from PostgreSQL [4075](https://github.com/LibreSign/libresign/pull/4075)
+
+### Changes
+* Update translations
+
+
 ## 10.4.1 - 2024-11-26
 ### Fixes
 * fix: Icon color att app files [4058](https://github.com/LibreSign/libresign/pull/4058)
