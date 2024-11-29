@@ -430,7 +430,6 @@ class SignRequestMapper extends QBMapper {
 			userId: $userId,
 			filter: $filter,
 		);
-		$qb->select('f.*');
 		$cursor = $qb->executeQuery();
 		$row = $cursor->fetch();
 		if (!$row) {
@@ -440,26 +439,46 @@ class SignRequestMapper extends QBMapper {
 		return $file->fromRow($row);
 	}
 
-	private function getFilesAssociatedFilesWithMeQueryBuilder(string $userId, ?array $filter = []): IQueryBuilder {
+	private function getFilesAssociatedFilesWithMeQueryBuilder(string $userId, array $filter = [], bool $count = false): IQueryBuilder {
 		$qb = $this->db->getQueryBuilder();
 		$qb->from('libresign_file', 'f')
 			->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id')
-			->leftJoin('f', 'libresign_identify_method', 'im', $qb->expr()->eq('sr.id', 'im.sign_request_id'))
-			->groupBy(
+			->leftJoin('f', 'libresign_identify_method', 'im', $qb->expr()->eq('sr.id', 'im.sign_request_id'));
+		if ($count) {
+			$qb->select($qb->func()->count())
+				->setFirstResult(0)
+				->setMaxResults(null);
+		} else {
+			$qb->select(
 				'f.id',
 				'f.node_id',
 				'f.user_id',
 				'f.uuid',
 				'f.name',
 				'f.status',
+				'f.metadata',
 				'f.created_at',
-			);
-		// metadata is a json column, the right way is to use f.metadata::text
-		// when the database is PostgreSQL. The problem is that the command
-		// addGroupBy add quotes over all text send as argument. With
-		// PostgreSQL json columns don't have problem if not added to group by.
-		if ($qb->getConnection()->getDatabaseProvider() !== IDBConnection::PLATFORM_POSTGRES) {
-			$qb->addGroupBy('f.metadata');
+			)
+				->groupBy(
+					'f.id',
+					'f.node_id',
+					'f.user_id',
+					'f.uuid',
+					'f.name',
+					'f.status',
+					'f.created_at',
+				);
+			// metadata is a json column, the right way is to use f.metadata::text
+			// when the database is PostgreSQL. The problem is that the command
+			// addGroupBy add quotes over all text send as argument. With
+			// PostgreSQL json columns don't have problem if not added to group by.
+			if ($qb->getConnection()->getDatabaseProvider() !== IDBConnection::PLATFORM_POSTGRES) {
+				$qb->addGroupBy('f.metadata');
+			}
+			if (isset($filter['length']) && isset($filter['page'])) {
+				$qb->setFirstResult($filter['length'] * ($filter['page'] - 1));
+				$qb->setMaxResults($filter['length']);
+			}
 		}
 
 		$or = [
@@ -502,10 +521,6 @@ class SignRequestMapper extends QBMapper {
 					$qb->expr()->lte('f.created_at', $qb->createNamedParameter($filter['end'], IQueryBuilder::PARAM_INT))
 				);
 			}
-			if (isset($filter['length']) && isset($filter['page'])) {
-				$qb->setFirstResult($filter['length'] * ($filter['page'] - 1));
-				$qb->setMaxResults($filter['length']);
-			}
 		}
 		return $qb;
 	}
@@ -516,33 +531,20 @@ class SignRequestMapper extends QBMapper {
 		?array $sort = [],
 	): Pagination {
 		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder($userId, $filter);
-		$qb->select(
-			'f.id',
-			'f.node_id',
-			'f.user_id',
-			'f.uuid',
-			'f.name',
-			'f.status',
-			'f.metadata',
-		);
 		if (!empty($sort) && in_array($sort['sortBy'], ['name', 'status', 'created_at'])) {
 			$qb->orderBy(
 				$qb->func()->lower('f.' . $sort['sortBy']),
 				$sort['sortDirection'] == 'asc' ? 'asc' : 'desc'
 			);
 		}
-		$qb->selectAlias('f.created_at', 'request_date');
 
-		$countQueryBuilderModifier = function (IQueryBuilder $qb): int {
-			$qb->resetQueryPart('select')
-				->resetQueryPart('groupBy')
-				->select($qb->func()->count())
-				->setFirstResult(0)
-				->setMaxResults(null);
-			return (int)$qb->executeQuery()->fetchOne();
-		};
+		$countQb = $this->getFilesAssociatedFilesWithMeQueryBuilder(
+			userId: $userId,
+			filter: $filter,
+			count: true,
+		);
 
-		$pagination = new Pagination($qb, $this->urlGenerator);
+		$pagination = new Pagination($qb, $this->urlGenerator, $countQb);
 		return $pagination;
 	}
 
@@ -555,8 +557,8 @@ class SignRequestMapper extends QBMapper {
 			'userId' => $row['user_id'],
 			'displayName' => $this->userManager->get($row['user_id'])?->getDisplayName(),
 		];
-		$row['request_date'] = (new \DateTime())
-			->setTimestamp((int)$row['request_date'])
+		$row['created_at'] = (new \DateTime())
+			->setTimestamp((int)$row['created_at'])
 			->format('Y-m-d H:i:s');
 		$row['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $row['uuid']]);
 		$row['nodeId'] = (int)$row['node_id'];
