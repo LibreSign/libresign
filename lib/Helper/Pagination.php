@@ -34,8 +34,9 @@ class Pagination extends Pagerfanta {
 	public function __construct(
 		IQueryBuilder $queryBuilder,
 		private IURLGenerator $urlGenerator,
+		private IQueryBuilder $countQueryBuilder,
 	) {
-		$adapter = new PagerFantaQueryAdapter($queryBuilder);
+		$adapter = new PagerFantaQueryAdapter($queryBuilder, $countQueryBuilder);
 		parent::__construct($adapter);
 	}
 

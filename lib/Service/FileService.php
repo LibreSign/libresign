@@ -375,7 +375,7 @@ class FileService {
 		$return['uuid'] = $this->file->getUuid();
 		$return['name'] = $this->file->getName();
 		$return['status'] = $this->file->getStatus();
-		$return['request_date'] = (new \DateTime())
+		$return['created_at'] = (new \DateTime())
 			->setTimestamp($this->file->getCreatedAt())
 			->format('Y-m-d H:i:s');
 		$return['statusText'] = $this->fileMapper->getTextOfStatus($this->file->getStatus());
@@ -535,7 +535,7 @@ class FileService {
 						}, false),
 						'visibleElements' => $this->formatVisibleElementsToArray(
 							$visibleElements[$signer->getId()] ?? [],
-							json_decode($file['metadata'], true)
+							!empty($file['metadata'])?json_decode($file['metadata'], true):[]
 						),
 						'identifyMethods' => array_map(function (IdentifyMethod $identifyMethod) use ($signer): array {
 							return [
