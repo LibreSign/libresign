@@ -28,7 +28,7 @@
 		<td :style="mtimeOpacity"
 			class="files-list__row-mtime"
 			@click="openDetailsIfAvailable">
-			<NcDateTime v-if="source.request_date" :timestamp="mtime" :ignore-seconds="true" />
+			<NcDateTime v-if="source.created_at" :timestamp="mtime" :ignore-seconds="true" />
 		</td>
 
 		<!-- Actions -->

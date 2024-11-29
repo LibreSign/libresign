@@ -143,12 +143,12 @@ export const useFilesStore = function(...args) {
 					return ''
 				}
 				const file = this.getFile()
-				if ((file?.requested_by?.userId ?? '').length === 0 || file?.request_date.length === 0) {
+				if ((file?.requested_by?.userId ?? '').length === 0 || file?.created_at.length === 0) {
 					return ''
 				}
 				return t('libresign', 'Requested by {name}, at {date}', {
 					name: file.requested_by.userId,
-					date: Moment(Date.parse(file.request_date)).format('LL LTS'),
+					date: Moment(Date.parse(file.created_at)).format('LL LTS'),
 				})
 			},
 			async hydrateFile(nodeId) {

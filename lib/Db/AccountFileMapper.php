@@ -99,36 +99,48 @@ class AccountFileMapper extends QBMapper {
 		return $return;
 	}
 
-	private function getUserAccountFile(array $filter = []): Pagination {
+	private function getQueryBuilder(array $filter = [], bool $count = false): IQueryBuilder {
 		$qb = $this->db->getQueryBuilder();
-		$qb->select(
-			'f.id',
-			'f.uuid',
-			'f.name',
-			'f.callback',
-			'f.status',
-			'f.node_id',
-			'af.file_type'
-		)
-			->selectAlias('u.uid_lower', 'account_uid')
-			->selectAlias('u.displayname', 'account_displayname')
-			->selectAlias('f.created_at', 'request_date')
+		if ($count) {
+			$qb->select($qb->func()->count())
+				->setFirstResult(0)
+				->setMaxResults(null);
+		} else {
+			$qb
+				->select(
+					'f.id',
+					'f.uuid',
+					'f.name',
+					'f.callback',
+					'f.status',
+					'f.node_id',
+					'af.file_type',
+					'f.created_at',
+				)
+				->selectAlias('u.uid_lower', 'account_uid')
+				->selectAlias('u.displayname', 'account_displayname')
+				->groupBy(
+					'f.id',
+					'f.uuid',
+					'f.name',
+					'f.callback',
+					'f.status',
+					'f.node_id',
+					'f.created_at',
+					'af.file_type',
+					'u.uid_lower',
+					'u.displayname'
+				);
+			if (isset($filter['length']) && isset($filter['page'])) {
+				$qb->setFirstResult($filter['length'] * ($filter['page'] - 1));
+				$qb->setMaxResults($filter['length']);
+			}
+		}
+		$qb
 			->from($this->getTableName(), 'af')
 			->join('af', 'libresign_file', 'f', 'f.id = af.file_id')
 			->join('af', 'users', 'u', 'af.user_id = u.uid')
-			->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id')
-			->groupBy(
-				'f.id',
-				'f.uuid',
-				'f.name',
-				'f.callback',
-				'f.status',
-				'f.node_id',
-				'f.created_at',
-				'af.file_type',
-				'u.uid_lower',
-				'u.displayname'
-			);
+			->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id');
 		if (!empty($filter['userId'])) {
 			$qb->where(
 				$qb->expr()->eq('af.user_id', $qb->createNamedParameter($filter['userId'])),
@@ -146,12 +158,19 @@ class AccountFileMapper extends QBMapper {
 				$qb->expr()->eq('af.user_id', $qb->createNamedParameter($filter['userId'])),
 			);
 		}
-		if (isset($filter['length']) && isset($filter['page'])) {
-			$qb->setFirstResult($filter['length'] * ($filter['page'] - 1));
-			$qb->setMaxResults($filter['length']);
-		}
+		return $qb;
+	}
 
-		$pagination = new Pagination($qb, $this->urlGenerator);
+	private function getUserAccountFile(array $filter = []): Pagination {
+		$qb = $this->getQueryBuilder(
+			filter: $filter,
+		);
+		$countQb = $this->getQueryBuilder(
+			filter: $filter,
+			count: true,
+		);
+
+		$pagination = new Pagination($qb, $this->urlGenerator, $countQb);
 		return $pagination;
 	}
 
@@ -165,14 +184,14 @@ class AccountFileMapper extends QBMapper {
 			'name' => $this->fileTypeMapper->getNameOfType($row['file_type']),
 			'description' => $this->fileTypeMapper->getDescriptionOfType($row['file_type']),
 		];
-		$row['request_date'] = (new \DateTime())
-			->setTimestamp((int)$row['request_date'])
+		$row['created_at'] = (new \DateTime())
+			->setTimestamp((int)$row['created_at'])
 			->format('Y-m-d H:i:s');
 		$row['file'] = [
 			'name' => $row['name'],
 			'status' => $row['status'],
 			'statusText' => $this->fileMapper->getTextOfStatus((int)$row['status']),
-			'request_date' => $row['request_date'],
+			'created_at' => $row['created_at'],
 			'file' => [
 				'type' => 'pdf',
 				'nodeId' => (int)$row['node_id'],
@@ -185,7 +204,7 @@ class AccountFileMapper extends QBMapper {
 			$row['node_id'],
 			$row['name'],
 			$row['status'],
-			$row['request_date'],
+			$row['created_at'],
 			$row['account_displayname'],
 			$row['account_uid'],
 			$row['callback'],
