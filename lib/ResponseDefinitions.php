@@ -140,7 +140,7 @@ namespace OCA\Libresign;
  *     status: 0|1|2|3|4,
  *     statusText: string,
  *     nodeId: non-negative-int,
- *     request_date: string,
+ *     created_at: string,
  *     requested_by: array{
  *         userId: string,
  *         displayName: string,
@@ -165,12 +165,12 @@ namespace OCA\Libresign;
  *         name: string,
  *         description: ?string,
  *     },
- *     request_date: string,
+ *     created_at: string,
  *     file: array{
  *         name: string,
  *         status: 0|1|2|3|4,
  *         statusText: string,
- *         request_date: string,
+ *         created_at: string,
  *         file: array{
  *             type: string,
  *             nodeId: non-negative-int,

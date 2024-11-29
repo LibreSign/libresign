@@ -23,6 +23,7 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 	 */
 	public function __construct(
 		private IQueryBuilder $queryBuilder,
+		private IQueryBuilder $countQueryBuilder,
 	) {
 		if ($queryBuilder->getType() !== QueryBuilder::SELECT) {
 			// @codeCoverageIgnoreStart
@@ -32,26 +33,7 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 	}
 
 	public function getNbResults(): int {
-		/**
-		 * The clone isn't working fine if we clone the property $this->queryBuilder
-		 * because the internal property "queryBuilder" of $this->queryBuilder is
-		 * a reference and the clone don't work with reference. To solve this
-		 * was used reflection.
-		 */
-		$reflect = new ReflectionClass($this->queryBuilder);
-		$reflectionProperty = $reflect->getProperty('queryBuilder');
-		$reflectionProperty->setAccessible(true);
-		$qb = $reflectionProperty->getValue($this->queryBuilder);
-		$originalQueryBuilder = clone $qb;
-
-		$this->queryBuilder->resetQueryPart('select')
-			->resetQueryPart('groupBy')
-			->select($this->queryBuilder->func()->count())
-			->setFirstResult(0)
-			->setMaxResults(null);
-		$total = $this->queryBuilder->executeQuery()->fetchOne();
-
-		$reflectionProperty->setValue($this->queryBuilder, $originalQueryBuilder);
+		$total = $this->countQueryBuilder->executeQuery()->fetchOne();
 
 		return abs((int)$total);
 	}
