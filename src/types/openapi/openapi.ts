@@ -963,7 +963,7 @@ export type components = {
                 name: string;
                 description: string | null;
             };
-            request_date: string;
+            created_at: string;
             file: {
                 name: string;
                 /**
@@ -972,7 +972,7 @@ export type components = {
                  */
                 status: 0 | 1 | 2 | 3 | 4;
                 statusText: string;
-                request_date: string;
+                created_at: string;
                 file: {
                     type: string;
                     /** Format: int64 */
@@ -1102,7 +1102,7 @@ export type components = {
             statusText: string;
             /** Format: int64 */
             nodeId: number;
-            request_date: string;
+            created_at: string;
             requested_by: {
                 userId: string;
                 displayName: string;

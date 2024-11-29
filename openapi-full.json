@@ -194,7 +194,7 @@
                 "required": [
                     "account",
                     "file_type",
-                    "request_date",
+                    "created_at",
                     "file"
                 ],
                 "properties": {
@@ -233,7 +233,7 @@
                             }
                         }
                     },
-                    "request_date": {
+                    "created_at": {
                         "type": "string"
                     },
                     "file": {
@@ -242,7 +242,7 @@
                             "name",
                             "status",
                             "statusText",
-                            "request_date",
+                            "created_at",
                             "file",
                             "callback",
                             "uuid",
@@ -266,7 +266,7 @@
                             "statusText": {
                                 "type": "string"
                             },
-                            "request_date": {
+                            "created_at": {
                                 "type": "string"
                             },
                             "file": {
@@ -711,7 +711,7 @@
                     "status",
                     "statusText",
                     "nodeId",
-                    "request_date",
+                    "created_at",
                     "requested_by",
                     "file"
                 ],
@@ -741,7 +741,7 @@
                         "format": "int64",
                         "minimum": 0
                     },
-                    "request_date": {
+                    "created_at": {
                         "type": "string"
                     },
                     "requested_by": {
