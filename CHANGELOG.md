@@ -17,6 +17,20 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 10.4.3 - 2024-11-30
+### Fixes
+* fix: prevent error when using PostgreSQL [4082](https://github.com/LibreSign/libresign/pull/4082)
+
+### Changes
+* Update translations
+
+## 9.7.3 - 2024-11-30
+### Fixes
+* fix: prevent error when using PostgreSQL [4081](https://github.com/LibreSign/libresign/pull/4081)
+
+### Changes
+* Update translations
+
 ## 10.4.2 - 2024-11-29
 ### Fixes
 * fix: list files from PostgreSQL [4076](https://github.com/LibreSign/libresign/pull/4076)
@@ -30,7 +44,6 @@ Types of changes:
 
 ### Changes
 * Update translations
-
 
 ## 10.4.1 - 2024-11-26
 ### Fixes
