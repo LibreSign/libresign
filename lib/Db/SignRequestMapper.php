@@ -531,11 +531,21 @@ class SignRequestMapper extends QBMapper {
 		?array $sort = [],
 	): Pagination {
 		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder($userId, $filter);
-		if (!empty($sort) && in_array($sort['sortBy'], ['name', 'status', 'created_at'])) {
-			$qb->orderBy(
-				$qb->func()->lower('f.' . $sort['sortBy']),
-				$sort['sortDirection'] == 'asc' ? 'asc' : 'desc'
-			);
+		if (!empty($sort['sortBy'])) {
+			switch ($sort['sortBy']) {
+				case 'name':
+				case 'status':
+					$qb->orderBy(
+						$qb->func()->lower('f.' . $sort['sortBy']),
+						$sort['sortDirection'] == 'asc' ? 'asc' : 'desc'
+					);
+					break;
+				case 'created_at':
+					$qb->orderBy(
+						'f.' . $sort['sortBy'],
+						$sort['sortDirection'] == 'asc' ? 'asc' : 'desc'
+					);
+			}
 		}
 
 		$countQb = $this->getFilesAssociatedFilesWithMeQueryBuilder(
