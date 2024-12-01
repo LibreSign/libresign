@@ -34,6 +34,18 @@ import { useFiltersStore } from './filters.js'
 import { useSidebarStore } from './sidebar.js'
 import { useSignStore } from './sign.js'
 
+// from https://gist.github.com/codeguy/6684588
+const slugfy = (val) =>
+	val
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.toLowerCase()
+		.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
+		.replace(/\s+/g, '-') // collapse whitespace and replace by -
+		.replace(/-+/g, '-') // collapse dashes
+		.replace(/^-+/, '') // trim - from start of text
+		.replace(/-+$/, '')
+
 export const useFilesStore = function(...args) {
 	const store = defineStore('files', {
 		state: () => {
@@ -257,6 +269,16 @@ export const useFilesStore = function(...args) {
 				const toRemove = nodeIds.filter(nodeId => (!this.files[nodeId]?.uuid))
 				del(this.files, ...toRemove)
 				this.loading = false
+			},
+			async upload({ file, name }) {
+				const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
+					file: { base64: file },
+					name,
+					settings: {
+						folderName: `requests/${Date.now().toString(16)}-${slugfy(name)}`,
+					},
+				})
+				return { ...data.ocs.data }
 			},
 			async getAllFiles(filter) {
 				if (this.loading || this.loadedAll) {
