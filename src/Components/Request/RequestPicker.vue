@@ -87,7 +87,6 @@ import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 
-import { filesService } from '../../domains/files/index.js'
 import { useActionsMenuStore } from '../../store/actionsmenu.js'
 import { useFilesStore } from '../../store/files.js'
 
@@ -187,7 +186,7 @@ export default {
 		},
 		async upload(file) {
 			const data = await loadFileToBase64(file)
-			await filesService.uploadFile({
+			await this.filesStore.upload({
 				name: file.name,
 				file: data,
 			})
