@@ -3,7 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<tr class="files-list__row-head">
+	<tr v-if="filesStore.ordered.length > 0"
+		class="files-list__row-head">
 		<th class="files-list__column files-list__row-checkbox"
 			@keyup.esc.exact="resetSelection">
 			<NcCheckboxRadioSwitch v-bind="selectAllBind" @update:checked="onToggleAll" />
@@ -101,6 +102,7 @@ export default {
 		},
 		isAllSelected() {
 			return this.selectedNodes.length === this.filesStore.ordered.length
+				&& this.filesStore.ordered.length > 0
 		},
 		isNoneSelected() {
 			return this.selectedNodes.length === 0
