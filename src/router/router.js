@@ -205,22 +205,24 @@ const router = new Router({
 })
 
 router.beforeEach((to, from, next) => {
+	const actionElement = document.querySelector('#initial-state-libresign-action')
+	let action
+	if (actionElement) {
+		action = selectAction(loadState('libresign', 'action', ''), to, from)
+		document.querySelector('#initial-state-libresign-action')?.remove()
+	}
 	if (Object.hasOwn(to, 'name') && typeof to.name === 'string' && !to.name.endsWith('External') && isExternal(to, from)) {
 		next({
 			name: to.name + 'External',
 			params: to.params,
 		})
+	} else if (action !== undefined) {
+		next({
+			name: action,
+			params: to.params,
+		})
 	} else {
-		const action = selectAction(loadState('libresign', 'action', ''), to, from)
-		if (action !== undefined) {
-			document.querySelector('#initial-state-libresign-action').remove()
-			next({
-				name: action,
-				params: to.params,
-			})
-		} else {
-			next()
-		}
+		next()
 	}
 })
 
