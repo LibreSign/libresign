@@ -25,15 +25,13 @@
 	<div class="container">
 		<div id="img" />
 		<div class="content">
-			<h1>{{ code || '404' }}</h1>
+			<h1>404</h1>
 			<h2>
-				{{ message || t('libresign', 'Page not found') }}
+				{{ t('libresign', 'Page not found') }}
 			</h2>
-			<p>{{ paragth }}</p>
-			<NcNoteCard v-if="errors.length > 0" type="error" heading="Error">
-				<p v-for="error in errors" :key="error">
-					{{ error }}
-				</p>
+			<p>{{ paragrath }}</p>
+			<NcNoteCard v-if="error" type="error" heading="Error">
+				{{ error }}
 			</NcNoteCard>
 		</div>
 	</div>
@@ -53,8 +51,8 @@ export default {
 
 	data() {
 		return {
-			paragth: t('libresign', 'Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable.'),
-			errors: loadState('libresign', 'errors', []),
+			paragrath: t('libresign', 'Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable.'),
+			error: loadState('libresign', 'error', {})?.message,
 		}
 	},
 
