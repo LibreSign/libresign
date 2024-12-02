@@ -260,6 +260,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[RequireSignRequestUuid]
 	#[FrontpageRoute(verb: 'GET', url: '/p/sign/{uuid}')]
 	public function sign(string $uuid): TemplateResponse {
+		$this->throwIfValidationPageNotAccessible();
 		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN);
 		$this->initialState->provideInitialState('config',
 			$this->accountService->getConfig($this->userSession->getUser())
