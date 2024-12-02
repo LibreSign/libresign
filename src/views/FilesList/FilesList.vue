@@ -41,7 +41,7 @@
 			class="files-list__loading-icon"
 			:size="38"
 			:name="t('libresign', 'Loading …')" />
-		<NcEmptyContent v-else-if="!loading && isEmptyDir"
+		<NcEmptyContent v-else-if="!loading && isEmptyDir && filtersStore.activeChips.length === 0"
 			:name="t('libresign', 'There are no documents')"
 			:description="t('libresign', 'Choose the file to request signatures.')">
 			<template #action>
@@ -79,6 +79,7 @@ import FilesListVirtual from './FilesListVirtual.vue'
 import RequestPicker from '../../Components/Request/RequestPicker.vue'
 
 import { useFilesStore } from '../../store/files.js'
+import { useFiltersStore } from '../../store/filters.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 
 export default {
@@ -99,9 +100,11 @@ export default {
 	},
 	setup() {
 		const filesStore = useFilesStore()
+		const filtersStore = useFiltersStore()
 		const userConfigStore = useUserConfigStore()
 		return {
 			filesStore,
+			filtersStore,
 			userConfigStore,
 		}
 	},

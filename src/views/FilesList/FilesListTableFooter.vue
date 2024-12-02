@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<tr v-show="haveFiles">
+	<tr v-show="haveFiles || filtersStore.activeChips.length > 0">
 		<th class="files-list__row-checkbox">
 			<!-- TRANSLATORS Label for a table footer which summarizes the columns of the table -->
 			<span class="hidden-visually">{{ t('libresign', 'Total rows summary') }}</span>
@@ -25,13 +25,16 @@
 
 <script>
 import { useFilesStore } from '../../store/files.js'
+import { useFiltersStore } from '../../store/filters.js'
 
 export default {
 	name: 'FilesListTableFooter',
 	setup() {
 		const filesStore = useFilesStore()
+		const filtersStore = useFiltersStore()
 		return {
 			filesStore,
+			filtersStore,
 		}
 	},
 	computed: {
