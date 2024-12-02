@@ -37,6 +37,9 @@ export const selectAction = (action, to, from) => {
 	case 5000: // ACTION_INCOMPLETE_SETUP
 		return 'Incomplete' + external
 	default:
+		if (loadState('libresign', 'error', false)) {
+			return 'DefaultPageError' + external
+		}
 		break
 	}
 }
