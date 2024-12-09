@@ -27,7 +27,7 @@ final class AccountControllerTest extends ApiTestCase {
 				'password' => 'secret',
 				'signPassword' => 'secretToSign'
 			])
-			->withPath('/account/create/1234564789')
+			->withPath('/api/v1/account/create/1234564789')
 			->assertResponseCode(422);
 
 		$response = $this->assertRequest();
@@ -80,7 +80,7 @@ final class AccountControllerTest extends ApiTestCase {
 				'password' => 'secret',
 				'signPassword' => 'secretToSign'
 			])
-			->withPath('/account/create/' . $signers[0]->getUuid());
+			->withPath('/api/v1/account/create/' . $signers[0]->getUuid());
 		$this->markUserExists('guest-user@test.coop');
 
 		$this->assertRequest();
@@ -108,7 +108,7 @@ final class AccountControllerTest extends ApiTestCase {
 					]
 				]
 			])
-			->withPath('/account/files')
+			->withPath('/api/v1/account/files')
 			->assertResponseCode(401);
 
 		$this->assertRequest();
@@ -136,7 +136,7 @@ final class AccountControllerTest extends ApiTestCase {
 					]
 				]
 			])
-			->withPath('/account/files');
+			->withPath('/api/v1/account/files');
 
 		$this->assertRequest();
 	}
@@ -146,7 +146,7 @@ final class AccountControllerTest extends ApiTestCase {
 	 */
 	public function testMeWithoutAuthenticatedUser() {
 		$this->request
-			->withPath('/account/me')
+			->withPath('/api/v1/account/me')
 			->assertResponseCode(404);
 
 		$this->assertRequest();
@@ -158,7 +158,7 @@ final class AccountControllerTest extends ApiTestCase {
 	public function testMeWithAuthenticatedUser() {
 		$this->createAccount('username', 'password');
 		$this->request
-			->withPath('/account/me')
+			->withPath('/api/v1/account/me')
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password')
 			]);
@@ -177,7 +177,7 @@ final class AccountControllerTest extends ApiTestCase {
 		]);
 
 		$this->request
-			->withPath('/account/files/approval/list')
+			->withPath('/api/v1/account/files/approval/list')
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('allowapprove:password')
 			]);

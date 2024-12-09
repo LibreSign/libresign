@@ -19,7 +19,7 @@ final class SettingControllerTest extends ApiTestCase {
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password')
 			])
-			->withPath('/setting/has-root-cert');
+			->withPath('/api/v1/setting/has-root-cert');
 
 		$this->assertRequest();
 	}

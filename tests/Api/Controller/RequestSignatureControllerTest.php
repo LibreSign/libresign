@@ -21,7 +21,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 		$this->createAccount('username', 'password');
 		$this->request
 			->withMethod('POST')
-			->withPath('/request-signature')
+			->withPath('/api/v1/request-signature')
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
@@ -51,7 +51,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 
 		$this->request
 			->withMethod('POST')
-			->withPath('/request-signature')
+			->withPath('/api/v1/request-signature')
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password'),
 				'Content-Type' => 'application/json'
@@ -82,7 +82,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 		$this->createAccount('username', 'password');
 		$this->request
 			->withMethod('PATCH')
-			->withPath('/request-signature')
+			->withPath('/api/v1/request-signature')
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
@@ -125,7 +125,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 
 		$this->request
 			->withMethod('PATCH')
-			->withPath('/request-signature')
+			->withPath('/api/v1/request-signature')
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password'),
 				'Content-Type' => 'application/json'
