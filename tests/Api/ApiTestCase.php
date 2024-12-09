@@ -40,7 +40,7 @@ class ApiTestCase extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 		$data = json_decode(file_get_contents('openapi-full.json'), true);
-		$data['servers'][] = ['url' => '/ocs/v2.php/ocsapp/apps/libresign/api/v1'];
+		$data['servers'][] = ['url' => '/ocs/v2.php/ocsapp/apps/libresign'];
 		$data = $this->removeBasePath($data);
 		/** @var OpenApiSchema */
 		$schema = \ByJG\ApiTools\Base\Schema::getInstance($data);
@@ -61,7 +61,7 @@ class ApiTestCase extends TestCase {
 	private function removeBasePath(array $data): array {
 		$cleaned = [];
 		foreach ($data['paths'] as $key => $value) {
-			$key = preg_replace('~^' . '/ocs/v2.php/apps/libresign/api/{apiVersion}' . '~', '', $key);
+			$key = preg_replace('~^/ocs/v2.php/apps/libresign~', '', $key);
 			$cleaned[$key] = $value;
 		}
 		$data['paths'] = $cleaned;
