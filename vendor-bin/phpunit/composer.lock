@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-swagger-test.git",
-                "reference": "862b47a15dd2a892bae4e7c73e75642780da5790"
+                "reference": "a21e9a084f093138eb82f84cc292121d2c1e93ee"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/862b47a15dd2a892bae4e7c73e75642780da5790",
-                "reference": "862b47a15dd2a892bae4e7c73e75642780da5790",
+                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/a21e9a084f093138eb82f84cc292121d2c1e93ee",
+                "reference": "a21e9a084f093138eb82f84cc292121d2c1e93ee",
                 "shasum": ""
             },
             "require": {
@@ -52,7 +52,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-11-23T03:00:00+00:00"
+            "time": "2024-11-30T21:41:19+00:00"
         },
         {
             "name": "byjg/uri",
@@ -60,16 +60,16 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-uri.git",
-                "reference": "75a5d090a12e1e274acfed44109cdebe9d5b66d7"
+                "reference": "fc3e8d3b50159fdc0abd4896ac8e8f68fa01732f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-uri/zipball/75a5d090a12e1e274acfed44109cdebe9d5b66d7",
-                "reference": "75a5d090a12e1e274acfed44109cdebe9d5b66d7",
+                "url": "https://api.github.com/repos/byjg/php-uri/zipball/fc3e8d3b50159fdc0abd4896ac8e8f68fa01732f",
+                "reference": "fc3e8d3b50159fdc0abd4896ac8e8f68fa01732f",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.1 <8.4",
+                "php": ">=8.1 <8.5",
                 "psr/http-message": "^1.0|^1.1|^2.0"
             },
             "provide": {
@@ -77,7 +77,7 @@
             },
             "require-dev": {
                 "phpunit/phpunit": "^9.6",
-                "vimeo/psalm": "^5.0"
+                "vimeo/psalm": "^6.0"
             },
             "type": "project",
             "autoload": {
@@ -100,7 +100,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-10-27T15:10:57+00:00"
+            "time": "2024-11-30T15:33:08+00:00"
         },
         {
             "name": "byjg/webrequest",
@@ -407,12 +407,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/myclabs/DeepCopy.git",
-                "reference": "123267b2c49fbf30d78a7b2d333f6be754b94845"
+                "reference": "4764e040f8743e92b86c36f488f32d0265dd1dae"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/123267b2c49fbf30d78a7b2d333f6be754b94845",
-                "reference": "123267b2c49fbf30d78a7b2d333f6be754b94845",
+                "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/4764e040f8743e92b86c36f488f32d0265dd1dae",
+                "reference": "4764e040f8743e92b86c36f488f32d0265dd1dae",
                 "shasum": ""
             },
             "require": {
@@ -452,7 +452,7 @@
             ],
             "support": {
                 "issues": "https://github.com/myclabs/DeepCopy/issues",
-                "source": "https://github.com/myclabs/DeepCopy/tree/1.12.1"
+                "source": "https://github.com/myclabs/DeepCopy/tree/1.x"
             },
             "funding": [
                 {
@@ -460,7 +460,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-11-08T17:47:46+00:00"
+            "time": "2024-11-26T13:04:49+00:00"
         },
         {
             "name": "nikic/php-parser",
@@ -645,12 +645,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-code-coverage.git",
-                "reference": "5a5c19843209812d6c8cb91d30478dfce3d8bdad"
+                "reference": "e656040b5bdab9d6ca046287327bbb47c62be886"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/5a5c19843209812d6c8cb91d30478dfce3d8bdad",
-                "reference": "5a5c19843209812d6c8cb91d30478dfce3d8bdad",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/e656040b5bdab9d6ca046287327bbb47c62be886",
+                "reference": "e656040b5bdab9d6ca046287327bbb47c62be886",
                 "shasum": ""
             },
             "require": {
@@ -715,7 +715,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-10-31T05:58:31+00:00"
+            "time": "2024-12-07T06:07:48+00:00"
         },
         {
             "name": "phpunit/php-file-iterator",
@@ -968,12 +968,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "c5c350263fd23819f0f27ff41570c4fa191b60d1"
+                "reference": "a770e0df716b20e92580f0f5ca9d4f7c948106fd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/c5c350263fd23819f0f27ff41570c4fa191b60d1",
-                "reference": "c5c350263fd23819f0f27ff41570c4fa191b60d1",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/a770e0df716b20e92580f0f5ca9d4f7c948106fd",
+                "reference": "a770e0df716b20e92580f0f5ca9d4f7c948106fd",
                 "shasum": ""
             },
             "require": {
@@ -1061,7 +1061,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-11-25T11:48:48+00:00"
+            "time": "2024-12-07T13:58:59+00:00"
         },
         {
             "name": "psr/http-client",
@@ -2198,12 +2198,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/smalot/pdfparser.git",
-                "reference": "1e38ca9a3110829291da2f874ee08ad568029a5a"
+                "reference": "f44ada017eac4f607ffeb1caca96a2347d48f38f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smalot/pdfparser/zipball/1e38ca9a3110829291da2f874ee08ad568029a5a",
-                "reference": "1e38ca9a3110829291da2f874ee08ad568029a5a",
+                "url": "https://api.github.com/repos/smalot/pdfparser/zipball/f44ada017eac4f607ffeb1caca96a2347d48f38f",
+                "reference": "f44ada017eac4f607ffeb1caca96a2347d48f38f",
                 "shasum": ""
             },
             "require": {
@@ -2242,7 +2242,7 @@
                 "issues": "https://github.com/smalot/pdfparser/issues",
                 "source": "https://github.com/smalot/pdfparser/tree/master"
             },
-            "time": "2024-11-05T08:03:53+00:00"
+            "time": "2024-12-03T12:01:10+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -2339,8 +2339,8 @@
             "type": "library",
             "extra": {
                 "thanks": {
-                    "name": "symfony/polyfill",
-                    "url": "https://github.com/symfony/polyfill"
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
                 }
             },
             "autoload": {
