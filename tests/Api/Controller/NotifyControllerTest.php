@@ -33,7 +33,7 @@ final class NotifyControllerTest extends ApiTestCase {
 					]
 				]
 			])
-			->withPath('/notify/signers')
+			->withPath('/api/v1/notify/signers')
 			->assertResponseCode(401);
 
 		$this->assertRequest();
@@ -74,7 +74,7 @@ final class NotifyControllerTest extends ApiTestCase {
 					]
 				]
 			])
-			->withPath('/notify/signers');
+			->withPath('/api/v1/notify/signers');
 
 		$this->assertRequest();
 	}
