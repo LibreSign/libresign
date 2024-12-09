@@ -18,7 +18,7 @@ final class FileControllerTest extends ApiTestCase {
 		$this->mockAppConfig([]);
 
 		$this->request
-			->withPath('/file/validate/uuid/invalid')
+			->withPath('/api/v1/file/validate/uuid/invalid')
 			->assertResponseCode(404);
 
 		$response = $this->assertRequest();
@@ -31,7 +31,7 @@ final class FileControllerTest extends ApiTestCase {
 	 */
 	public function testValidateUsignFileIdWithInvalidData() {
 		$this->request
-			->withPath('/file/validate/file_id/171')
+			->withPath('/api/v1/file/validate/file_id/171')
 			->assertResponseCode(404);
 
 		$response = $this->assertRequest();
@@ -60,7 +60,7 @@ final class FileControllerTest extends ApiTestCase {
 		]);
 
 		$this->request
-			->withPath('/file/validate/uuid/' . $file->getUuid());
+			->withPath('/api/v1/file/validate/uuid/' . $file->getUuid());
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
@@ -102,7 +102,7 @@ final class FileControllerTest extends ApiTestCase {
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password')
 			])
-			->withPath('/file/validate/uuid/' . $file->getUuid());
+			->withPath('/api/v1/file/validate/uuid/' . $file->getUuid());
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
@@ -120,7 +120,7 @@ final class FileControllerTest extends ApiTestCase {
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password')
 			])
-			->withPath('/file/list');
+			->withPath('/api/v1/file/list');
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
@@ -140,7 +140,7 @@ final class FileControllerTest extends ApiTestCase {
 				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password'),
 				'Content-Type' => 'application/json',
 			])
-			->withPath('/file')
+			->withPath('/api/v1/file')
 			->withMethod('POST')
 			->withRequestBody([
 				'name' => 'test',

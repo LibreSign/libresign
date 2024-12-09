@@ -27,7 +27,7 @@ final class SignFileControllerTest extends ApiTestCase {
 				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password'),
 				'Content-Type' => 'application/json'
 			])
-			->withPath('/sign/file_id/171')
+			->withPath('/api/v1/sign/file_id/171')
 			->withRequestBody([
 				'identifyValue' => 'secretPassword',
 				'method' => 'password',
@@ -50,7 +50,7 @@ final class SignFileControllerTest extends ApiTestCase {
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
 			])
-			->withPath('/sign/uuid/invalid')
+			->withPath('/api/v1/sign/uuid/invalid')
 			->withRequestBody([
 				'identifyValue' => 'secretPassword',
 				'method' => 'password',
@@ -92,7 +92,7 @@ final class SignFileControllerTest extends ApiTestCase {
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
 			])
-			->withPath('/sign/uuid/' . $signers[0]->getUuid())
+			->withPath('/api/v1/sign/uuid/' . $signers[0]->getUuid())
 			->withRequestBody([
 				'identifyValue' => 'secretPassword',
 				'method' => 'password',
@@ -135,7 +135,7 @@ final class SignFileControllerTest extends ApiTestCase {
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
 			])
-			->withPath('/sign/uuid/' . $signers[0]->getUuid())
+			->withPath('/api/v1/sign/uuid/' . $signers[0]->getUuid())
 			->withRequestBody([
 				'identifyValue' => 'secretPassword',
 				'method' => 'password',
@@ -175,7 +175,7 @@ final class SignFileControllerTest extends ApiTestCase {
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
 			])
-			->withPath('/sign/uuid/' . $signers[0]->getUuid())
+			->withPath('/api/v1/sign/uuid/' . $signers[0]->getUuid())
 			->withRequestBody([
 				'password' => ''
 			])
@@ -236,7 +236,7 @@ final class SignFileControllerTest extends ApiTestCase {
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
 			])
-			->withPath('/sign/uuid/' . $signers[0]->getUuid())
+			->withPath('/api/v1/sign/uuid/' . $signers[0]->getUuid())
 			->withRequestBody([
 				'password' => ''
 			])
@@ -304,7 +304,7 @@ final class SignFileControllerTest extends ApiTestCase {
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
 			])
-			->withPath('/sign/uuid/' . $signers[0]->getUuid())
+			->withPath('/api/v1/sign/uuid/' . $signers[0]->getUuid())
 			->withRequestBody([
 				'identifyValue' => 'secretPassword',
 				'method' => 'password',
@@ -350,7 +350,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			->withRequestBody([
 				'signPassword' => 'password'
 			])
-			->withPath('/account/signature');
+			->withPath('/api/v1/account/signature');
 
 		$home = $user->getHome();
 		$this->assertFileDoesNotExist($home . '/files/LibreSign/signature.pfx');
@@ -373,7 +373,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			->withRequestBody([
 				'signPassword' => ''
 			])
-			->withPath('/account/signature')
+			->withPath('/api/v1/account/signature')
 			->assertResponseCode(401);
 
 		$this->assertRequest();
@@ -407,7 +407,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password')
 			])
-			->withPath('/sign/file_id/' . $file->getNodeId() . '/' . $signers[0]->getId());
+			->withPath('/api/v1/sign/file_id/' . $file->getNodeId() . '/' . $signers[0]->getId());
 
 		$this->assertRequest();
 	}
@@ -423,7 +423,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password')
 			])
-			->withPath('/sign/file_id/171/171')
+			->withPath('/api/v1/sign/file_id/171/171')
 			->assertResponseCode(422);
 
 		$this->assertRequest();
@@ -456,7 +456,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password')
 			])
-			->withPath('/sign/file_id/' . $file->getNodeId());
+			->withPath('/api/v1/sign/file_id/' . $file->getNodeId());
 
 		$this->assertRequest();
 	}
@@ -472,7 +472,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password')
 			])
-			->withPath('/sign/file_id/171')
+			->withPath('/api/v1/sign/file_id/171')
 			->assertResponseCode(422);
 
 		$this->assertRequest();
