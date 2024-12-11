@@ -53,7 +53,7 @@
     "vue-material-design-icons": "^5.3.1",
     "vue-router": "^3.6.5",
     "vuelidate": "^0.7.7",
-    "vuex": "^3.6.2"
+    "vuex": "^4.1.0"
   },
   "browserslist": [
     "extends @nextcloud/browserslist-config"
