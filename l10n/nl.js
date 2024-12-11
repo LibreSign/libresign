@@ -147,6 +147,7 @@ OC.L10N.register(
     "Send reminder" : "Versturen herinnering",
     "Loading …" : "Laden …",
     "Document not available for signature." : "Document niet beschikbaar voor ondertekening.",
+    "pending" : "in behandeling",
     "Open sidebar" : "Open zijbalk",
     "Details" : "Details",
     "Certificate" : "Certificaat",
