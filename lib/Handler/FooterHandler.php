@@ -110,7 +110,7 @@ class FooterHandler {
 	}
 
 	private function getRenderedHtmlFooter(): string {
-		$tempFile = $this->tempManager->getTemporaryFile('.php');
+		$tempFile = $this->tempManager->getTemporaryFile('footerTemplate.php');
 		file_put_contents($tempFile, $this->getTemplate());
 		$templates = new Engine($this->tempManager->getTempBaseDir());
 		return $templates->render(pathinfo($tempFile, PATHINFO_FILENAME), $this->getTemplateVars());
