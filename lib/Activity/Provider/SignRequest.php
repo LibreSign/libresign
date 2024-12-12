@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Activity\Provider;
 
 use OCA\Libresign\AppInfo\Application;
+use OCP\Activity\Exceptions\UnknownActivityException;
 use OCP\Activity\IEvent;
 use OCP\Activity\IManager;
 use OCP\Activity\IProvider;
@@ -29,7 +30,7 @@ class SignRequest implements IProvider {
 
 	public function parse($language, IEvent $event, ?IEvent $previousEvent = null): IEvent {
 		if ($event->getApp() !== Application::APP_ID) {
-			throw new \InvalidArgumentException('Wrong app');
+			throw new UnknownActivityException('Wrong app');
 		}
 
 		$this->definitions->definitions['sign-request'] = [
