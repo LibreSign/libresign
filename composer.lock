@@ -184,16 +184,16 @@
         },
         {
             "name": "jsignpdf/jsignpdf-php",
-            "version": "v1.2.5",
+            "version": "v1.2.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/JSignPdf/jsignpdf-php.git",
-                "reference": "3596031ecebf2321ec94958ae4688dddc9c0fa6c"
+                "reference": "5e0a02873fad59e28f464261c11c69bfe5766304"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JSignPdf/jsignpdf-php/zipball/3596031ecebf2321ec94958ae4688dddc9c0fa6c",
-                "reference": "3596031ecebf2321ec94958ae4688dddc9c0fa6c",
+                "url": "https://api.github.com/repos/JSignPdf/jsignpdf-php/zipball/5e0a02873fad59e28f464261c11c69bfe5766304",
+                "reference": "5e0a02873fad59e28f464261c11c69bfe5766304",
                 "shasum": ""
             },
             "require": {
@@ -231,9 +231,9 @@
             ],
             "support": {
                 "issues": "https://github.com/JSignPdf/jsignpdf-php/issues",
-                "source": "https://github.com/JSignPdf/jsignpdf-php/tree/v1.2.5"
+                "source": "https://github.com/JSignPdf/jsignpdf-php/tree/v1.2.6"
             },
-            "time": "2024-04-24T17:19:52+00:00"
+            "time": "2024-12-12T16:47:19+00:00"
         },
         {
             "name": "league/plates",
@@ -980,16 +980,16 @@
         },
         {
             "name": "setasign/fpdi",
-            "version": "v2.6.1",
+            "version": "v2.6.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Setasign/FPDI.git",
-                "reference": "09a816004fcee9ed3405bd164147e3fdbb79a56f"
+                "reference": "9e013b376939c0d4029f54150d2a16f3c67a5797"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Setasign/FPDI/zipball/09a816004fcee9ed3405bd164147e3fdbb79a56f",
-                "reference": "09a816004fcee9ed3405bd164147e3fdbb79a56f",
+                "url": "https://api.github.com/repos/Setasign/FPDI/zipball/9e013b376939c0d4029f54150d2a16f3c67a5797",
+                "reference": "9e013b376939c0d4029f54150d2a16f3c67a5797",
                 "shasum": ""
             },
             "require": {
@@ -1040,7 +1040,7 @@
             ],
             "support": {
                 "issues": "https://github.com/Setasign/FPDI/issues",
-                "source": "https://github.com/Setasign/FPDI/tree/v2.6.1"
+                "source": "https://github.com/Setasign/FPDI/tree/v2.6.2"
             },
             "funding": [
                 {
@@ -1048,7 +1048,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-09-02T10:17:15+00:00"
+            "time": "2024-12-10T13:12:19+00:00"
         },
         {
             "name": "smalot/pdfparser",
@@ -1194,8 +1194,8 @@
             "type": "library",
             "extra": {
                 "thanks": {
-                    "name": "symfony/polyfill",
-                    "url": "https://github.com/symfony/polyfill"
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
                 }
             },
             "autoload": {
@@ -1353,12 +1353,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-deps/ocp.git",
-                "reference": "54e519f73544c0b41d85f0979089af91eae30aba"
+                "reference": "a953c9a7eecc888d747b53ce3f08aafb119e483f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/54e519f73544c0b41d85f0979089af91eae30aba",
-                "reference": "54e519f73544c0b41d85f0979089af91eae30aba",
+                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/a953c9a7eecc888d747b53ce3f08aafb119e483f",
+                "reference": "a953c9a7eecc888d747b53ce3f08aafb119e483f",
                 "shasum": ""
             },
             "require": {
@@ -1394,7 +1394,7 @@
                 "issues": "https://github.com/nextcloud-deps/ocp/issues",
                 "source": "https://github.com/nextcloud-deps/ocp/tree/master"
             },
-            "time": "2024-12-07T00:47:06+00:00"
+            "time": "2024-12-11T00:48:24+00:00"
         },
         {
             "name": "psr/clock",
@@ -1553,12 +1553,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "dcb2bdb48e1d9b0b5b1c333b61f49772aee879ff"
+                "reference": "1fd8b74024b8938b25df3a9971c7ad9d57d4f592"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/dcb2bdb48e1d9b0b5b1c333b61f49772aee879ff",
-                "reference": "dcb2bdb48e1d9b0b5b1c333b61f49772aee879ff",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/1fd8b74024b8938b25df3a9971c7ad9d57d4f592",
+                "reference": "1fd8b74024b8938b25df3a9971c7ad9d57d4f592",
                 "shasum": ""
             },
             "conflict": {
@@ -1699,9 +1699,9 @@
                 "dolibarr/dolibarr": "<19.0.2",
                 "dompdf/dompdf": "<2.0.4",
                 "doublethreedigital/guest-entries": "<3.1.2",
-                "drupal/core": ">=6,<6.38|>=7,<7.96|>=8,<10.2.10|>=10.3,<10.3.6|>=11,<11.0.5",
-                "drupal/core-recommended": ">=8,<10.2.9|>=10.3,<10.3.6|>=11,<11.0.5",
-                "drupal/drupal": ">=5,<5.11|>=6,<6.38|>=7,<7.80|>=8,<10.2.9|>=10.3,<10.3.6|>=11,<11.0.5",
+                "drupal/core": ">=6,<6.38|>=7,<7.102|>=8,<10.2.11|>=10.3,<10.3.9|>=11,<11.0.8",
+                "drupal/core-recommended": ">=7,<7.102|>=8,<10.2.11|>=10.3,<10.3.9|>=11,<11.0.8",
+                "drupal/drupal": ">=5,<5.11|>=6,<6.38|>=7,<7.102|>=8,<10.2.11|>=10.3,<10.3.9|>=11,<11.0.8",
                 "duncanmcclean/guest-entries": "<3.1.2",
                 "dweeves/magmi": "<=0.7.24",
                 "ec-cube/ec-cube": "<2.4.4|>=2.11,<=2.17.1|>=3,<=3.0.18.0-patch4|>=4,<=4.1.2",
@@ -1887,7 +1887,7 @@
                 "latte/latte": "<2.10.8",
                 "lavalite/cms": "<=9|==10.1",
                 "lcobucci/jwt": ">=3.4,<3.4.6|>=4,<4.0.4|>=4.1,<4.1.5",
-                "league/commonmark": "<0.18.3",
+                "league/commonmark": "<2.6",
                 "league/flysystem": "<1.1.4|>=2,<2.1.1",
                 "league/oauth2-server": ">=8.3.2,<8.4.2|>=8.5,<8.5.3",
                 "lexik/jwt-authentication-bundle": "<2.10.7|>=2.11,<2.11.3",
@@ -1962,6 +1962,7 @@
                 "neos/swiftmailer": "<5.4.5",
                 "netgen/tagsbundle": ">=3.4,<3.4.11|>=4,<4.0.15",
                 "nette/application": ">=2,<2.0.19|>=2.1,<2.1.13|>=2.2,<2.2.10|>=2.3,<2.3.14|>=2.4,<2.4.16|>=3,<3.0.6",
+                "nette/database": "<=3.2.4",
                 "nette/nette": ">=2,<2.0.19|>=2.1,<2.1.13",
                 "nilsteampassnet/teampass": "<3.0.10",
                 "nonfiction/nterchange": "<4.1.1",
@@ -2098,7 +2099,7 @@
                 "sensiolabs/connect": "<4.2.3",
                 "serluck/phpwhois": "<=4.2.6",
                 "sfroemken/url_redirect": "<=1.2.1",
-                "sheng/yiicms": "<=1.2",
+                "sheng/yiicms": "<1.2.1",
                 "shopware/core": "<=6.5.8.12|>=6.6,<=6.6.5",
                 "shopware/platform": "<=6.5.8.12|>=6.6,<=6.6.5",
                 "shopware/production": "<=6.3.5.2",
@@ -2288,6 +2289,7 @@
                 "wikimedia/parsoid": "<0.12.2",
                 "willdurand/js-translation-bundle": "<2.1.1",
                 "winter/wn-backend-module": "<1.2.4",
+                "winter/wn-cms-module": "<1.0.476|>=1.1,<1.1.11|>=1.2,<1.2.7",
                 "winter/wn-dusk-plugin": "<2.1",
                 "winter/wn-system-module": "<1.2.4",
                 "wintercms/winter": "<=1.2.3",
@@ -2394,7 +2396,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-12-06T23:05:03+00:00"
+            "time": "2024-12-10T21:04:50+00:00"
         }
     ],
     "aliases": [],
