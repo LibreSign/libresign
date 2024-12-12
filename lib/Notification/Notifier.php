@@ -11,6 +11,7 @@ namespace OCA\Libresign\Notification;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCP\Activity\Exceptions\UnknownActivityException;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\L10N\IFactory;
@@ -39,7 +40,7 @@ class Notifier implements INotifier {
 
 	public function prepare(INotification $notification, string $languageCode): INotification {
 		if ($notification->getApp() !== Application::APP_ID) {
-			throw new \InvalidArgumentException();
+			throw new UnknownActivityException();
 		}
 
 		$this->definitions->definitions['sign-request'] = [
@@ -69,7 +70,7 @@ class Notifier implements INotifier {
 			case 'update_sign_request':
 				return $this->parseSignRequest($notification, $l, true);
 			default:
-				throw new \InvalidArgumentException();
+				throw new UnknownActivityException();
 		}
 	}
 
