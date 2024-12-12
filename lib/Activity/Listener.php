@@ -15,6 +15,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCP\Activity\Exceptions\UnknownActivityException;
 use OCP\Activity\IManager;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -103,7 +104,7 @@ class Listener implements IEventListener {
 				],
 			]);
 			$this->activityManager->publish($event);
-		} catch (\InvalidArgumentException $e) {
+		} catch (UnknownActivityException $e) {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
 			return;
 		}
