@@ -47,7 +47,7 @@ class FooterHandler {
 	private File $file;
 	private FileEntity $fileEntity;
 	private const MIN_QRCODE_SIZE = 100;
-	private const PIXEL_TO_CENTIMETER = 0.264583333;
+	private const POINT_TO_MILIMETER = 0.3527777778;
 	private array $templateVars = [];
 
 	public function __construct(
@@ -67,13 +67,13 @@ class FooterHandler {
 			return '';
 		}
 
+		$htmlFooter = $this->getRenderedHtmlFooter();
 		$metadata = $this->getMetadata();
 		foreach ($metadata['d'] as $dimension) {
-			$orientation = $dimension['w'] > $dimension['h'] ? 'L' : 'P';
 			if (!isset($pdf)) {
 				$pdf = new Mpdf([
 					'tempDir' => $this->tempManager->getTempBaseDir(),
-					'orientation' => $orientation,
+					'orientation' => 'P',
 					'margin_left' => 0,
 					'margin_right' => 0,
 					'margin_top' => 0,
@@ -81,21 +81,20 @@ class FooterHandler {
 					'margin_header' => 0,
 					'margin_footer' => 0,
 					'format' => [
-						$dimension['w'] * self::PIXEL_TO_CENTIMETER,
-						$dimension['h'] * self::PIXEL_TO_CENTIMETER,
+						$dimension['w'] * self::POINT_TO_MILIMETER,
+						$dimension['h'] * self::POINT_TO_MILIMETER,
 					],
 				]);
-			} else {
-				$pdf->AddPage(
-					orientation: $orientation,
-					newformat: [
-						$dimension['w'] * self::PIXEL_TO_CENTIMETER,
-						$dimension['h'] * self::PIXEL_TO_CENTIMETER,
-					],
-				);
 			}
+			$pdf->AddPage(
+				orientation: 'P',
+				newformat: [
+					$dimension['w'] * self::POINT_TO_MILIMETER,
+					$dimension['h'] * self::POINT_TO_MILIMETER,
+				],
+			);
 
-			$pdf->SetHTMLFooter($this->getRenderedHtmlFooter());
+			$pdf->SetHTMLFooter($htmlFooter);
 		}
 
 		return $pdf->Output('', 'S');
@@ -110,7 +109,7 @@ class FooterHandler {
 	}
 
 	private function getRenderedHtmlFooter(): string {
-		$tempFile = $this->tempManager->getTemporaryFile('.php');
+		$tempFile = $this->tempManager->getTemporaryFile('footerTemplate.php');
 		file_put_contents($tempFile, $this->getTemplate());
 		$templates = new Engine($this->tempManager->getTempBaseDir());
 		return $templates->render(pathinfo($tempFile, PATHINFO_FILENAME), $this->getTemplateVars());
