@@ -13,6 +13,18 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 9.7.4 - 2024-12-13
+### Fixes
+* fix: load signature methods [4143](https://github.com/LibreSign/libresign/pull/4143)
+* fix: footer in pages with different sizes [4141](https://github.com/LibreSign/libresign/pull/4141)
+* fix: consider filter status to toggle components [4101](https://github.com/LibreSign/libresign/pull/4101)
+* fix: block access to route when isn't allowed by admin [4095](https://github.com/LibreSign/libresign/pull/4095)
+
+### Changes
+* Update translations
+* Bump dependencies
+* chore: clean code [4089](https://github.com/LibreSign/libresign/pull/4089)
+
 ## 9.7.3 - 2024-11-30
 ### Fixes
 * fix: prevent error when using PostgreSQL [4081](https://github.com/LibreSign/libresign/pull/4081)
