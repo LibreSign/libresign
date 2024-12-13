@@ -17,6 +17,31 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 10.4.4 - 2024-12-13
+### Fixes
+* fix: load signature methods [4144](https://github.com/LibreSign/libresign/pull/4144)
+* fix: footer in pages with different sizes [4142](https://github.com/LibreSign/libresign/pull/4142)
+* fix: change error class [4136](https://github.com/LibreSign/libresign/pull/4136)
+* fix: consider filter status to toggle components [4102](https://github.com/LibreSign/libresign/pull/4102)
+* fix: block access to route when isn't allowed by admin [4096](https://github.com/LibreSign/libresign/pull/4096)
+
+### Changes
+* Update translations
+* Bump dependencies
+* chore: clean code [4088](https://github.com/LibreSign/libresign/pull/4088)
+
+## 9.7.4 - 2024-12-13
+### Fixes
+* fix: load signature methods [4143](https://github.com/LibreSign/libresign/pull/4143)
+* fix: footer in pages with different sizes [4141](https://github.com/LibreSign/libresign/pull/4141)
+* fix: consider filter status to toggle components [4101](https://github.com/LibreSign/libresign/pull/4101)
+* fix: block access to route when isn't allowed by admin [4095](https://github.com/LibreSign/libresign/pull/4095)
+
+### Changes
+* Update translations
+* Bump dependencies
+* chore: clean code [4089](https://github.com/LibreSign/libresign/pull/4089)
+
 ## 10.4.3 - 2024-11-30
 ### Fixes
 * fix: prevent error when using PostgreSQL [4082](https://github.com/LibreSign/libresign/pull/4082)
