@@ -1205,6 +1205,16 @@ export type components = {
             needIdentificationDocuments?: boolean;
             identificationDocumentsWaitingApproval?: boolean;
         };
+        SignatureMethod: {
+            enabled: boolean;
+            label: string;
+            name: string;
+        };
+        SignatureMethods: {
+            clickToSign?: components["schemas"]["SignatureMethod"];
+            emailToken?: components["schemas"]["SignatureMethod"];
+            password?: components["schemas"]["SignatureMethod"];
+        };
         Signer: {
             description: string | null;
             displayName: string;
@@ -1219,6 +1229,7 @@ export type components = {
             signRequestId: number;
             identifyMethods?: components["schemas"]["IdentifyMethod"][];
             visibleElements?: components["schemas"]["VisibleElement"][];
+            signatureMethods?: components["schemas"]["SignatureMethods"][];
         };
         UserElement: {
             /** Format: int64 */
