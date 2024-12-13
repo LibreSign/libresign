@@ -120,6 +120,16 @@ namespace OCA\Libresign;
  *     type: string,
  *     coordinates: LibresignCoordinate,
  * }
+ * @psalm-type LibresignSignatureMethod = array{
+ *     enabled: bool,
+ *     label: string,
+ *     name: string,
+ * }
+ * @psalm-type LibresignSignatureMethods = array{
+ *     clickToSign?: LibresignSignatureMethod,
+ *     emailToken?: LibresignSignatureMethod,
+ *     password?: LibresignSignatureMethod,
+ * }
  * @psalm-type LibresignSigner = array{
  *     description: ?string,
  *     displayName: string,
@@ -133,6 +143,7 @@ namespace OCA\Libresign;
  *     signRequestId: non-negative-int,
  *     identifyMethods?: LibresignIdentifyMethod[],
  *     visibleElements?: LibresignVisibleElement[],
+ *     signatureMethods?: LibresignSignatureMethods[],
  * }
  * @psalm-type LibresignValidateFile = array{
  *     uuid: string,

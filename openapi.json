@@ -497,6 +497,39 @@
                     }
                 }
             },
+            "SignatureMethod": {
+                "type": "object",
+                "required": [
+                    "enabled",
+                    "label",
+                    "name"
+                ],
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "SignatureMethods": {
+                "type": "object",
+                "properties": {
+                    "clickToSign": {
+                        "$ref": "#/components/schemas/SignatureMethod"
+                    },
+                    "emailToken": {
+                        "$ref": "#/components/schemas/SignatureMethod"
+                    },
+                    "password": {
+                        "$ref": "#/components/schemas/SignatureMethod"
+                    }
+                }
+            },
             "Signer": {
                 "type": "object",
                 "required": [
@@ -553,6 +586,12 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/VisibleElement"
+                        }
+                    },
+                    "signatureMethods": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SignatureMethods"
                         }
                     }
                 }
