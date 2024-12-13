@@ -569,11 +569,11 @@ class SignFileService {
 				}, $this->getSigners()))
 				->getFooter($originalFile, $fileData);
 			if ($footer) {
-				$background = $this->tempManager->getTemporaryFile('signed.pdf');
-				file_put_contents($background, $footer);
+				$stamp = $this->tempManager->getTemporaryFile('stamp.pdf');
+				file_put_contents($stamp, $footer);
 
-				$dest = $this->tempManager->getTemporaryFile('signed.pdf');
-				file_put_contents($dest, $originalFile->getContent());
+				$input = $this->tempManager->getTemporaryFile('input.pdf');
+				file_put_contents($input, $originalFile->getContent());
 
 				$javaPath = $this->appConfig->getAppValue('java_path');
 				$pdftkPath = $this->appConfig->getAppValue('pdftk_path');
@@ -584,8 +584,8 @@ class SignFileService {
 				$command = new Command();
 				$command->setCommand($javaPath . ' -jar ' . $pdftkPath);
 				$pdf->setCommand($command);
-				$pdf->addFile($dest);
-				$buffer = $pdf->stamp($background)
+				$pdf->addFile($input);
+				$buffer = $pdf->multiStamp($stamp)
 					->toString();
 				if (!is_string($buffer)) {
 					throw new LibresignException('Failed to merge the PDF with the footer. The PDF was not successfully created with the footer.');
