@@ -11,6 +11,7 @@ OC.L10N.register(
     "Files" : "Faýllar",
     "Settings" : "Sazlamalar",
     "Name" : "Ady",
+    "Update" : "Täzelemek",
     "Send" : "Iber",
     "Choose" : "saýlamak",
     "Open sidebar" : "Gapdal paneli açyň",
