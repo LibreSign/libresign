@@ -14,6 +14,7 @@ use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngine;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCP\AppFramework\Services\IAppConfig;
+use Psr\Log\LoggerInterface;
 
 class ConfigureCheckService {
 	private string $architecture;
@@ -25,6 +26,7 @@ class ConfigureCheckService {
 		private JSignPdfHandler $jSignPdfHandler,
 		private CertificateEngine $certificateEngine,
 		private SignSetupService $signSetupService,
+		private LoggerInterface $logger,
 	) {
 		$this->architecture = php_uname('m');
 	}
@@ -243,6 +245,7 @@ class ConfigureCheckService {
 				];
 			}
 		}
+		$this->logger->error('Invalid hash of binaries files', ['result' => $result]);
 		return [
 			'Invalid hash of binaries files.',
 			'Run occ libresign:install --all',
