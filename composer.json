@@ -12,7 +12,7 @@
 	},
 	"require-dev": {
 		"bamarni/composer-bin-plugin": "^1.8",
-		"nextcloud/ocp": "dev-master",
+		"nextcloud/ocp": "dev-stable30",
 		"roave/security-advisories": "dev-latest"
 	},
 	"config": {
