@@ -1210,10 +1210,24 @@ export type components = {
             label: string;
             name: string;
         };
+        SignatureMethodEmailToken: {
+            label: string;
+            /** @enum {string} */
+            identifyMethod: "email" | "account";
+            needCode: boolean;
+            hasConfirmCode: boolean;
+            blurredEmail: string;
+            hashOfEmail: string;
+        };
+        SignatureMethodPassword: {
+            label: string;
+            name: string;
+            hasSignatureFile: boolean;
+        };
         SignatureMethods: {
             clickToSign?: components["schemas"]["SignatureMethod"];
-            emailToken?: components["schemas"]["SignatureMethod"];
-            password?: components["schemas"]["SignatureMethod"];
+            emailToken?: components["schemas"]["SignatureMethodEmailToken"];
+            password?: components["schemas"]["SignatureMethodPassword"];
         };
         Signer: {
             description: string | null;
@@ -1229,7 +1243,7 @@ export type components = {
             signRequestId: number;
             identifyMethods?: components["schemas"]["IdentifyMethod"][];
             visibleElements?: components["schemas"]["VisibleElement"][];
-            signatureMethods?: components["schemas"]["SignatureMethods"][];
+            signatureMethods?: components["schemas"]["SignatureMethods"];
         };
         UserElement: {
             /** Format: int64 */
