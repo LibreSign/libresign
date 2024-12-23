@@ -125,10 +125,23 @@ namespace OCA\Libresign;
  *     label: string,
  *     name: string,
  * }
+ * @psalm-type LibresignSignatureMethodEmailToken = array{
+ *     label: string,
+ *     identifyMethod: "email"|"account",
+ *     needCode: bool,
+ *     hasConfirmCode: bool,
+ *     blurredEmail: string,
+ *     hashOfEmail: string,
+ * }
+ * @psalm-type LibresignSignatureMethodPassword = array{
+ *     label: string,
+ *     name: string,
+ *     hasSignatureFile: bool,
+ * }
  * @psalm-type LibresignSignatureMethods = array{
  *     clickToSign?: LibresignSignatureMethod,
- *     emailToken?: LibresignSignatureMethod,
- *     password?: LibresignSignatureMethod,
+ *     emailToken?: LibresignSignatureMethodEmailToken,
+ *     password?: LibresignSignatureMethodPassword,
  * }
  * @psalm-type LibresignSigner = array{
  *     description: ?string,
@@ -143,7 +156,7 @@ namespace OCA\Libresign;
  *     signRequestId: non-negative-int,
  *     identifyMethods?: LibresignIdentifyMethod[],
  *     visibleElements?: LibresignVisibleElement[],
- *     signatureMethods?: LibresignSignatureMethods[],
+ *     signatureMethods?: LibresignSignatureMethods,
  * }
  * @psalm-type LibresignValidateFile = array{
  *     uuid: string,
