@@ -187,7 +187,7 @@ export default {
 		async upload(file) {
 			const data = await loadFileToBase64(file)
 			await this.filesStore.upload({
-				name: file.name,
+				name: file.name.replace(/\.pdf$/i, ''),
 				file: data,
 			})
 				.then((response) => {
