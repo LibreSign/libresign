@@ -54,6 +54,10 @@ class JSignPdfHandler extends SignEngineHandler {
 				->setjSignPdfJarPath(
 					$this->appConfig->getAppValue('jsignpdf_jar_path', '/opt/jsignpdf-' . self::VERSION . '/JSignPdf.jar')
 				);
+			$parameters = $this->jSignParam->getJSignParameters();
+			$parameters .= ' --hash-algorithm ' . $this->getHashAlgorithm();
+			$parameters = trim($parameters);
+			$this->jSignParam->setJSignParameters($parameters);
 			if (!empty($javaPath)) {
 				if (!file_exists($javaPath)) {
 					throw new \Exception('Invalid Java binary. Run occ libresign:install --java');
@@ -62,6 +66,29 @@ class JSignPdfHandler extends SignEngineHandler {
 			}
 		}
 		return $this->jSignParam;
+	}
+
+	private function getHashAlgorithm(): string {
+		/**
+		 * Need to respect the follow code:
+		 * https://github.com/intoolswetrust/jsignpdf/blob/JSignPdf_2_2_2/jsignpdf/src/main/java/net/sf/jsignpdf/types/HashAlgorithm.java#L46-L47
+		 */
+		preg_match('/^%PDF-(?<version>\d+(\.\d+)?)/', $this->getInputFile()->getContent(), $match);
+		if (isset($match['version'])) {
+			$version = (float)$match['version'];
+			if ($version < 1.6) {
+				return 'SHA1';
+			}
+			if ($version < 1.7) {
+				return 'SHA256';
+			}
+		}
+
+		$hashAlgorithm = $this->appConfig->getAppValue('signature_hash_algorithm', 'SHA256');
+		if (in_array($hashAlgorithm, ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'])) {
+			return $hashAlgorithm;
+		}
+		return 'SHA256';
 	}
 
 	/**
