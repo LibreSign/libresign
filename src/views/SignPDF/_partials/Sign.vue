@@ -283,9 +283,12 @@ export default {
 					}
 				})
 				.catch((err) => {
-					err.response.data.ocs.data.errors.forEach(err => {
-						showError(err)
-					})
+					const errors = err.response?.data?.ocs?.data?.errors;
+					if (errors) {
+						errors.forEach(error => {
+							showError(error);
+						});
+					}
 				})
 			this.loading = false
 		},
