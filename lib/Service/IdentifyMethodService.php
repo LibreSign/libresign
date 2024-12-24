@@ -194,9 +194,6 @@ class IdentifyMethodService {
 		$return = [];
 		foreach ($matrix as $identifyMethods) {
 			foreach ($identifyMethods as $identifyMethod) {
-				if (empty($identifyMethod->getEntity()->getIdentifiedAtDate())) {
-					continue;
-				}
 				$signatureMethods = $identifyMethod->getSignatureMethods();
 				foreach ($signatureMethods as $signatureMethod) {
 					if (!$signatureMethod->isEnabled()) {
