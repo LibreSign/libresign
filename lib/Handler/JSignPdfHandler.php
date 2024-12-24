@@ -70,10 +70,6 @@ class JSignPdfHandler extends SignEngineHandler {
 				->setjSignPdfJarPath(
 					$this->appConfig->getAppValue('jsignpdf_jar_path', '/opt/jsignpdf-' . self::VERSION . '/JSignPdf.jar')
 				);
-			$parameters = $this->jSignParam->getJSignParameters();
-			$parameters .= ' --hash-algorithm ' . $this->getHashAlgorithm();
-			$parameters = trim($parameters);
-			$this->jSignParam->setJSignParameters($parameters);
 			if (!empty($javaPath)) {
 				if (!file_exists($javaPath)) {
 					throw new \Exception('Invalid Java binary. Run occ libresign:install --java');
@@ -159,6 +155,13 @@ class JSignPdfHandler extends SignEngineHandler {
 
 	private function signWrapper(JSignPDF $jSignPDF): string {
 		try {
+			$param = $this->getJSignParam();
+			$param
+				->setJSignParameters(
+					$this->jSignParam->getJSignParameters() .
+					' --hash-algorithm ' . $this->getHashAlgorithm()
+				);
+			$jSignPDF->setParam($param);
 			return $jSignPDF->sign();
 		} catch (\Throwable $th) {
 			$rows = str_getcsv($th->getMessage());
