@@ -64,6 +64,33 @@ class JSignPdfHandler extends SignEngineHandler {
 		return $this->jSignParam;
 	}
 
+	private function getHashAlgorithm(): string {
+		/**
+		 * Need to respect the follow code:
+		 * https://github.com/intoolswetrust/jsignpdf/blob/JSignPdf_2_2_2/jsignpdf/src/main/java/net/sf/jsignpdf/types/HashAlgorithm.java#L46-L47
+		 */
+		$content = $this->getInputFile()->getContent();
+		if (!$content) {
+			return 'SHA1';
+		}
+		preg_match('/^%PDF-(?<version>\d+(\.\d+)?)/', $content, $match);
+		if (isset($match['version'])) {
+			$version = (float)$match['version'];
+			if ($version < 1.6) {
+				return 'SHA1';
+			}
+			if ($version < 1.7) {
+				return 'SHA256';
+			}
+		}
+
+		$hashAlgorithm = $this->appConfig->getAppValue('signature_hash_algorithm', 'SHA256');
+		if (in_array($hashAlgorithm, ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'])) {
+			return $hashAlgorithm;
+		}
+		return 'SHA256';
+	}
+
 	/**
 	 * @psalm-suppress MixedReturnStatement
 	 */
@@ -112,6 +139,13 @@ class JSignPdfHandler extends SignEngineHandler {
 
 	private function signWrapper(JSignPDF $jSignPDF): string {
 		try {
+			$param = $this->getJSignParam();
+			$param
+				->setJSignParameters(
+					$this->jSignParam->getJSignParameters() .
+					' --hash-algorithm ' . $this->getHashAlgorithm()
+				);
+			$jSignPDF->setParam($param);
 			return $jSignPDF->sign();
 		} catch (\Throwable $th) {
 			$rows = str_getcsv($th->getMessage());
