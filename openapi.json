@@ -516,6 +516,60 @@
                     }
                 }
             },
+            "SignatureMethodEmailToken": {
+                "type": "object",
+                "required": [
+                    "label",
+                    "identifyMethod",
+                    "needCode",
+                    "hasConfirmCode",
+                    "blurredEmail",
+                    "hashOfEmail"
+                ],
+                "properties": {
+                    "label": {
+                        "type": "string"
+                    },
+                    "identifyMethod": {
+                        "type": "string",
+                        "enum": [
+                            "email",
+                            "account"
+                        ]
+                    },
+                    "needCode": {
+                        "type": "boolean"
+                    },
+                    "hasConfirmCode": {
+                        "type": "boolean"
+                    },
+                    "blurredEmail": {
+                        "type": "string"
+                    },
+                    "hashOfEmail": {
+                        "type": "string"
+                    }
+                }
+            },
+            "SignatureMethodPassword": {
+                "type": "object",
+                "required": [
+                    "label",
+                    "name",
+                    "hasSignatureFile"
+                ],
+                "properties": {
+                    "label": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "hasSignatureFile": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "SignatureMethods": {
                 "type": "object",
                 "properties": {
@@ -523,10 +577,10 @@
                         "$ref": "#/components/schemas/SignatureMethod"
                     },
                     "emailToken": {
-                        "$ref": "#/components/schemas/SignatureMethod"
+                        "$ref": "#/components/schemas/SignatureMethodEmailToken"
                     },
                     "password": {
-                        "$ref": "#/components/schemas/SignatureMethod"
+                        "$ref": "#/components/schemas/SignatureMethodPassword"
                     }
                 }
             },
@@ -589,10 +643,7 @@
                         }
                     },
                     "signatureMethods": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/SignatureMethods"
-                        }
+                        "$ref": "#/components/schemas/SignatureMethods"
                     }
                 }
             },
