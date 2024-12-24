@@ -279,11 +279,11 @@ export default {
 					}
 				})
 				.catch((err) => {
-					const errors = err.response?.data?.ocs?.data?.errors;
+					const errors = err.response?.data?.ocs?.data?.errors
 					if (errors) {
 						errors.forEach(error => {
-							showError(error);
-						});
+							showError(error)
+						})
 					}
 				})
 			this.loading = false

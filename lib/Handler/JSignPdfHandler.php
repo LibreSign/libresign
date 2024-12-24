@@ -89,7 +89,11 @@ class JSignPdfHandler extends SignEngineHandler {
 		 * Need to respect the follow code:
 		 * https://github.com/intoolswetrust/jsignpdf/blob/JSignPdf_2_2_2/jsignpdf/src/main/java/net/sf/jsignpdf/types/HashAlgorithm.java#L46-L47
 		 */
-		preg_match('/^%PDF-(?<version>\d+(\.\d+)?)/', $this->getInputFile()->getContent(), $match);
+		$content = $this->getInputFile()->getContent();
+		if (!$content) {
+			return 'SHA1';
+		}
+		preg_match('/^%PDF-(?<version>\d+(\.\d+)?)/', $content, $match);
 		if (isset($match['version'])) {
 			$version = (float)$match['version'];
 			if ($version < 1.6) {
