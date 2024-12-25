@@ -176,6 +176,8 @@ OC.L10N.register(
     "Today" : "오늘",
     "Last 7 days" : "지난 7일",
     "Last 30 days" : "지난 30일",
+    "This year ({year})" : "올해 ({year})",
+    "Last year ({year})" : "작년 ({year})",
     "Active filters" : "활성 필터",
     "Remove filter" : "필터 삭제",
     "There are no documents" : "문서가 없습니다.",
