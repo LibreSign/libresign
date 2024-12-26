@@ -321,6 +321,8 @@
     "Generating certificate." : "Erstelle Zertifikat.",
     "Could not generate certificate." : "Zertifikat konnte nicht erstellt werden.",
     "Generated certificate!" : "Zertifikat wurde erstellt",
+    "Signature hash algorithm" : "Signatur-Hash-Algorithmus",
+    "Hash algorithm used for signature." : "Zur Signatur verwendeter Hash-Algorithmus.",
     "Make validation URL acessible only by authenticated users" : "Machen Sie die Validierungs-URL nur für authentifizierte Benutzer zugänglich",
     "Add visible footer with signature details" : "Sichtbare Fußzeile mit Unterschriftsdetails hinzufügen",
     "Write QR code on footer with validation URL" : "QR-Code mit Validierungs-URL in die Fußzeile schreiben",

@@ -321,6 +321,8 @@
     "Generating certificate." : "Deimhniú a ghiniúint.",
     "Could not generate certificate." : "Níorbh fhéidir teastas a ghiniúint.",
     "Generated certificate!" : "Teastas ginte!",
+    "Signature hash algorithm" : "Síniú algartam hash",
+    "Hash algorithm used for signature." : "Algartam hash a úsáidtear le haghaidh síniú.",
     "Make validation URL acessible only by authenticated users" : "Bíodh URL bailíochtaithe inrochtana ag úsáideoirí fíordheimhnithe amháin",
     "Add visible footer with signature details" : "Cuir buntásc infheicthe leis le sonraí sínithe",
     "Write QR code on footer with validation URL" : "Scríobh cód QR ar an mbuntásc le URL bailíochtaithe",
