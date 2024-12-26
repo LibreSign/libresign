@@ -323,6 +323,8 @@ OC.L10N.register(
     "Generating certificate." : "توليد الشهادة.",
     "Could not generate certificate." : "تعذّر توليد الشهادة.",
     "Generated certificate!" : "شهادة مُكوّنة",
+    "Signature hash algorithm" : "خوارزمية اختزال التوقيع",
+    "Hash algorithm used for signature." : "خوارزمية الاختزال المستخدمة في التوقيع",
     "Make validation URL acessible only by authenticated users" : "اجعَل عنوان URL للتحقق متاحًا فقط للمستخدِمين المعتمدين",
     "Add visible footer with signature details" : "أضِف تذييلاً مرئيّاً مع تفاصيل التوقيع",
     "Write QR code on footer with validation URL" : "أكتُب رمز الاستجابة السريعة QR في التذييل مع عنوان URL للتحقُّق",
