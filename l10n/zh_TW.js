@@ -323,6 +323,8 @@ OC.L10N.register(
     "Generating certificate." : "正在產生憑證。",
     "Could not generate certificate." : "無法產生憑證。",
     "Generated certificate!" : "已產生憑證！",
+    "Signature hash algorithm" : "簽章雜湊演算法",
+    "Hash algorithm used for signature." : "用於簽章的雜湊演算法。",
     "Make validation URL acessible only by authenticated users" : "讓驗證 URL 僅可由經過身份驗證的使用者存取",
     "Add visible footer with signature details" : "新增包含簽章詳細資訊的可見頁尾",
     "Write QR code on footer with validation URL" : "使用驗證 URL 在頁尾編寫 QR code",
