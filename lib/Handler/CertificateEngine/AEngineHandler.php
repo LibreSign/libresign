@@ -299,6 +299,7 @@ class AEngineHandler {
 	public function toArray(): array {
 		$return = [
 			'configPath' => $this->getConfigPath(),
+			'generated' => $this->isSetupOk(),
 			'rootCert' => [
 				'commonName' => $this->getCommonName(),
 				'names' => [],
