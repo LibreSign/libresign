@@ -323,6 +323,8 @@ OC.L10N.register(
     "Generating certificate." : "Generating certificate.",
     "Could not generate certificate." : "Could not generate certificate.",
     "Generated certificate!" : "Generated certificate!",
+    "Signature hash algorithm" : "Signature hash algorithm",
+    "Hash algorithm used for signature." : "Hash algorithm used for signature.",
     "Make validation URL acessible only by authenticated users" : "Make validation URL acessible only by authenticated users",
     "Add visible footer with signature details" : "Add visible footer with signature details",
     "Write QR code on footer with validation URL" : "Write QR code on footer with validation URL",

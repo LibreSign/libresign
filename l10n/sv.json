@@ -319,6 +319,8 @@
     "Generating certificate." : "Genererar certifikat.",
     "Could not generate certificate." : "Kunde inte generera certifikat.",
     "Generated certificate!" : "Genererat certifikat!",
+    "Signature hash algorithm" : "Signaturalgoritm för hash",
+    "Hash algorithm used for signature." : "Hash-algoritm som används för signatur.",
     "Make validation URL acessible only by authenticated users" : "Gör validerings-URL tillgänglig endast för autentiserade användare",
     "Add visible footer with signature details" : "Lägg till synlig sidfot med signaturdetaljer",
     "Write QR code on footer with validation URL" : "Skriv QR-kod på sidfoten med validerings-URL",
