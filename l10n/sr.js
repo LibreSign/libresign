@@ -323,6 +323,8 @@ OC.L10N.register(
     "Generating certificate." : "Сертификат се генерише.",
     "Could not generate certificate." : "Није могао да се генерише сертификат.",
     "Generated certificate!" : "Сертификат је генерисан!",
+    "Signature hash algorithm" : "Алгоритам хеширања потписа",
+    "Hash algorithm used for signature." : "Алгоритам хеширања који се користи за потпис.",
     "Make validation URL acessible only by authenticated users" : "Нека само пријављени корисници могу да приступе URL адреси за валидацију",
     "Add visible footer with signature details" : "Додај видљиво подножје са детаљима потписа",
     "Write QR code on footer with validation URL" : "Пиши QR кôд у подножју са URL адресом за проверу",
