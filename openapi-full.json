@@ -465,6 +465,27 @@
                     }
                 }
             },
+            "Notify": {
+                "type": "object",
+                "required": [
+                    "date",
+                    "method"
+                ],
+                "properties": {
+                    "date": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "method": {
+                        "type": "string",
+                        "enum": [
+                            "activity",
+                            "notify",
+                            "mail"
+                        ]
+                    }
+                }
+            },
             "OCSMeta": {
                 "type": "object",
                 "required": [
@@ -703,6 +724,18 @@
                     },
                     "email": {
                         "type": "string"
+                    },
+                    "remote_address": {
+                        "type": "string"
+                    },
+                    "user_agent": {
+                        "type": "string"
+                    },
+                    "notify": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Notify"
+                        }
                     },
                     "userId": {
                         "type": "string"
