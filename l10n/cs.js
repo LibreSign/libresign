@@ -322,6 +322,8 @@ OC.L10N.register(
     "Generating certificate." : "Vytváření certifikátu.",
     "Could not generate certificate." : "Certifikát se nedaří vytvořit.",
     "Generated certificate!" : "Certifikát vytvořen!",
+    "Signature hash algorithm" : "Algoritmus vytváření otisku (hash) pro podpis",
+    "Hash algorithm used for signature." : "Algoritmus otisku (hash) použitý pro podpis.",
     "Make validation URL acessible only by authenticated users" : "Zpřístupnit URL ověřování pouze přihlášeným uživatelům",
     "Add visible footer with signature details" : "Přidat viditelné zápatí s podrobnostmi o podpisu",
     "Write QR code on footer with validation URL" : "Do zápatí umístit QR kód s URL pro ověření platnosti",
