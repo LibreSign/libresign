@@ -210,6 +210,9 @@ class FileService {
 			if (!empty($metadata['user-agent'])) {
 				$signatureToShow['user_agent'] = $metadata['user-agent'];
 			}
+			if (!empty($metadata['notify'])) {
+				$signatureToShow['notify'] = $metadata['notify'];
+			}
 			if ($signer->getSigned()) {
 				$data['sign_date'] = (new \DateTime())
 					->setTimestamp($signer->getSigned())
