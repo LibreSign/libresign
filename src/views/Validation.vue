@@ -52,8 +52,8 @@
 						<h1>{{ t('libresign', 'Signatories:') }}</h1>
 					</div>
 					<ul>
-						<span v-for="(signer, index) in document.signers"
-							:key="index">
+						<span v-for="(signer, signerIndex) in document.signers"
+							:key="signerIndex">
 							<NcListItem :name="getName(signer)"
 								:active="signer.opened"
 								@click="toggleDetail(signer)">
@@ -91,7 +91,7 @@
 								:name="t('libresign', 'Requested on:')">
 								<template #name>
 									<strong>{{ t('libresign', 'Requested on:')}}</strong>
-									{{ formatDate(signer.request_sign_date) }}
+									{{ dateFromSqlAnsi(signer.request_sign_date) }}
 								</template>
 							</NcListItem>
 							<NcListItem v-if="signer.opened && signer.remote_address"
@@ -110,6 +110,22 @@
 								<template #name>
 									<strong>{{ t('libresign', 'User agent:')}}</strong>
 									{{ signer.user_agent }}
+								</template>
+							</NcListItem>
+							<NcListItem v-if="signer.opened && signer.notify"
+								class="extra"
+								compact
+								:name="t('libresign', 'Notifications:')">
+								<template #name>
+									<strong>{{ t('libresign', 'Notifications:')}}</strong>
+								</template>
+								<template #subname>
+									<ul>
+										<li v-for="(notify, notifyIndex) in signer.notify"
+											:key="notifyIndex">
+											<strong>{{ notify.method }}</strong>: {{ dateFromUnixTimestamp(notify.date) }}
+										</li>
+									</ul>
 								</template>
 							</NcListItem>
 						</span>
@@ -207,8 +223,11 @@ export default {
 		}
 	},
 	methods: {
-		formatDate(date) {
+		dateFromSqlAnsi(date) {
 			return Moment(Date.parse(date)).format('LL LTS')
+		},
+		dateFromUnixTimestamp(date) {
+			return Moment(date * 1000).format('LL LTS')
 		},
 		toggleDetail(signer) {
 			this.$set(signer, 'opened', !signer.opened)
