@@ -143,11 +143,18 @@ namespace OCA\Libresign;
  *     emailToken?: LibresignSignatureMethodEmailToken,
  *     password?: LibresignSignatureMethodPassword,
  * }
+ * @psalm-type LibresignNotify = array{
+ *     date: int,
+ *     method: "activity"|"notify"|"mail",
+ * }
  * @psalm-type LibresignSigner = array{
  *     description: ?string,
  *     displayName: string,
  *     request_sign_date: string,
  *     email?: string,
+ *     remote_address?: string,
+ *     user_agent?: string,
+ *     notify?: LibresignNotify[],
  *     userId?: string,
  *     signed: ?string,
  *     sign_date?: ?string,
