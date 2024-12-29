@@ -58,7 +58,7 @@
 		</template>
 		<template #footer>
 			<NcAppNavigationSettings :title="t('libresign', 'Settings')">
-				<CroppedLayoutSettings />
+				<Settings />
 			</NcAppNavigationSettings>
 		</template>
 	</NcAppNavigation>
@@ -77,7 +77,7 @@ import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation.js'
 import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem.js'
 import NcAppNavigationSettings from '@nextcloud/vue/dist/Components/NcAppNavigationSettings.js'
 
-import CroppedLayoutSettings from '../Settings/CroppedLayoutSettings.vue'
+import Settings from '../Settings/Settings.vue'
 
 import { useFilesStore } from '../../store/files.js'
 
@@ -91,7 +91,7 @@ export default {
 		FileCheckIcon,
 		FolderIcon,
 		FileSignIcon,
-		CroppedLayoutSettings,
+		Settings,
 	},
 	setup() {
 		const filesStore = useFilesStore()
