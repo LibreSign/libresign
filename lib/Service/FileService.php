@@ -431,7 +431,7 @@ class FileService {
 	/**
 	 * @return LibresignValidateFile
 	 */
-	public function formatFile(): array {
+	public function toArray(): array {
 		$return = $this->getFile();
 		if ($this->showSettings) {
 			$return['settings'] = $this->getSettings();

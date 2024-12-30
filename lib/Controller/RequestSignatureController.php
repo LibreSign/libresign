@@ -82,7 +82,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				->showSigners()
 				->showSettings()
 				->showMessages()
-				->formatFile();
+				->toArray();
 			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Success'),
@@ -143,7 +143,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				->showSigners()
 				->showSettings()
 				->showMessages()
-				->formatFile();
+				->toArray();
 			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Success'),
