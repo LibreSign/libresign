@@ -48,7 +48,6 @@ use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\Files\File;
-use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\IL10N;
@@ -79,7 +78,6 @@ class FileController extends AEnvironmentAwareController {
 		private IdentifyMethodService $identifyMethodService,
 		private RequestSignatureService $requestSignatureService,
 		private AccountService $accountService,
-		private IRootFolder $root,
 		private IPreview $preview,
 		private IMimeIconProvider $mimeIconProvider,
 		private FileService $fileService,
