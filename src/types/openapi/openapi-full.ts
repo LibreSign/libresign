@@ -1172,6 +1172,12 @@ export type components = {
             path: string;
             type: string;
         };
+        Notify: {
+            /** Format: int64 */
+            date: number;
+            /** @enum {string} */
+            method: "activity" | "notify" | "mail";
+        };
         OCSMeta: {
             status: string;
             statuscode: number;
@@ -1234,6 +1240,9 @@ export type components = {
             displayName: string;
             request_sign_date: string;
             email?: string;
+            remote_address?: string;
+            user_agent?: string;
+            notify?: components["schemas"]["Notify"][];
             userId?: string;
             signed: string | null;
             sign_date?: string | null;

@@ -187,6 +187,16 @@ class FileService {
 					->setTimestamp($signer->getCreatedAt())
 					->format('Y-m-d H:i:s'),
 			];
+			$metadata = $signer->getMetadata();
+			if (!empty($metadata['remote-address'])) {
+				$signatureToShow['remote_address'] = $metadata['remote-address'];
+			}
+			if (!empty($metadata['user-agent'])) {
+				$signatureToShow['user_agent'] = $metadata['user-agent'];
+			}
+			if (!empty($metadata['notify'])) {
+				$signatureToShow['notify'] = $metadata['notify'];
+			}
 			if ($signer->getSigned()) {
 				$data['sign_date'] = (new \DateTime())
 					->setTimestamp($signer->getSigned())
