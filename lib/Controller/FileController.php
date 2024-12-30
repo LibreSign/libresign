@@ -200,7 +200,7 @@ class FileController extends AEnvironmentAwareController {
 				->showSigners()
 				->showSettings()
 				->showMessages()
-				->formatFile()
+				->toArray()
 		);
 
 		return new DataResponse($return, $statusCode);
