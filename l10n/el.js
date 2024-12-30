@@ -109,9 +109,9 @@ OC.L10N.register(
     "Validation URL" : "URL επικύρωσης",
     "Sign the document." : "Υπογραφή του εγγράφου.",
     "Forgot password?" : "Ξεχάσατε το συνθηματικό;",
-    "Return" : "Επιστροφή",
     "Validation" : "Επικύρωση",
     "No date" : "Καμία ημερομηνία",
+    "Return" : "Επιστροφή",
     "All Files" : "Όλα τα αρχεία",
     "Pending" : "Σε αναμονή"
 },
