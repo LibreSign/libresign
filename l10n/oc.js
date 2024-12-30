@@ -103,8 +103,8 @@ OC.L10N.register(
     "Generated certificate!" : "Certificat generat !",
     "Sign the document." : "Signar aqueste document.",
     "Forgot password?" : "Senhal oblidat ?",
-    "Return" : "Tornar",
     "No date" : "Cap de data",
+    "Return" : "Tornar",
     "This document is valid" : "Aqueste document es valid",
     "Pending" : "En espèra"
 },
