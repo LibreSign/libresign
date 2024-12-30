@@ -22,7 +22,6 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\IMimeTypeDetector;
-use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClientService;
 use OCP\IDateTimeFormatter;
@@ -81,7 +80,6 @@ class FileService {
 		protected IClientService $client,
 		private IDateTimeFormatter $dateTimeFormatter,
 		private IAppConfig $appConfig,
-		private IRootFolder $rootFolder,
 		private IURLGenerator $urlGenerator,
 		protected IMimeTypeDetector $mimeTypeDetector,
 		protected LoggerInterface $logger,
