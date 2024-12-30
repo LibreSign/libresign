@@ -110,7 +110,7 @@ class PageController extends AEnvironmentPageAwareController {
 		}
 
 		$this->provideSignerSignatues();
-		$this->initialState->provideInitialState('file_info', $this->fileService->formatFile());
+		$this->initialState->provideInitialState('file_info', $this->fileService->toArray());
 		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
 
@@ -289,7 +289,7 @@ class PageController extends AEnvironmentPageAwareController {
 			->setSignRequest($this->getSignRequestEntity())
 			->showVisibleElements()
 			->showSigners()
-			->formatFile();
+			->toArray();
 		$this->initialState->provideInitialState('status', $file['status']);
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
 		$this->initialState->provideInitialState('signers', $file['signers']);
@@ -365,7 +365,7 @@ class PageController extends AEnvironmentPageAwareController {
 			->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
 			->showVisibleElements()
 			->showSigners()
-			->formatFile();
+			->toArray();
 		$this->initialState->provideInitialState('fileId', $file['nodeId']);
 		$this->initialState->provideInitialState('status', $file['status']);
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
@@ -572,7 +572,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
 
 		$this->fileService->showSigners();
-		$this->initialState->provideInitialState('file_info', $this->fileService->formatFile());
+		$this->initialState->provideInitialState('file_info', $this->fileService->toArray());
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
 		if (class_exists(LoadViewer::class)) {
