@@ -39,24 +39,16 @@ use Psr\Log\LoggerInterface;
 class FileService {
 	use TFile;
 
-	/** @var bool */
-	private $showSigners = false;
-	/** @var bool */
-	private $showSettings = false;
-	/** @var bool */
-	private $showVisibleElements = false;
-	/** @var bool */
-	private $showMessages = false;
-	/** @var File|null */
-	private $file;
+	private bool $showSigners = false;
+	private bool $showSettings = false;
+	private bool $showVisibleElements = false;
+	private bool $showMessages = false;
+	private ?File $file = null;
 	private ?SignRequest $signRequest = null;
-	/** @var IUser|null */
-	private $me;
+	private ?IUser $me = null;
 	private ?int $identifyMethodId = null;
-	/** @var array */
-	private $signers = [];
-	/** @var array */
-	private $settings = [
+	private array $signers = [];
+	private array $settings = [
 		'canSign' => false,
 		'canRequestSign' => false,
 		'signerFileUuid' => null,
