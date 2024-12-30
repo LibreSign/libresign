@@ -184,13 +184,6 @@ class SignFileService {
 		return $this;
 	}
 
-	public function setLibreSignFileFromNode(Node $node): self {
-		$libreSignFile = $this->getLibresignFile($node->getId());
-		$this->setLibreSignFile($libreSignFile);
-		$this->setFileToSign($node);
-		return $this;
-	}
-
 	public function setUserUniqueIdentifier(string $identifier): self {
 		$this->userUniqueIdentifier = $identifier;
 		return $this;
@@ -394,31 +387,23 @@ class SignFileService {
 		return $this->pkcs12Handler->getPfx();
 	}
 
-	private function setFileToSign(Node $file): void {
-		$this->fileToSign = $file;
-	}
-
 	/**
 	 * Get file to sign
 	 *
 	 * @throws LibresignException
 	 */
 	public function getFileToSing(FileEntity $libresignFile): \OCP\Files\Node {
-		if ($this->fileToSign) {
-			$originalFile = $this->fileToSign;
-		} else {
-			$nodeId = $libresignFile->getNodeId();
+		$nodeId = $libresignFile->getNodeId();
 
-			$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
-			foreach ($mountsContainingFile as $fileInfo) {
-				$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
-			}
-			$originalFile = $this->root->getById($nodeId);
-			if (count($originalFile) < 1) {
-				throw new LibresignException($this->l10n->t('File not found'));
-			}
-			$originalFile = current($originalFile);
+		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+		foreach ($mountsContainingFile as $fileInfo) {
+			$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
 		}
+		$originalFile = $this->root->getById($nodeId);
+		if (count($originalFile) < 1) {
+			throw new LibresignException($this->l10n->t('File not found'));
+		}
+		$originalFile = current($originalFile);
 		if (strtolower($originalFile->getExtension()) === 'pdf') {
 			return $this->getPdfToSign($libresignFile, $originalFile);
 		}
