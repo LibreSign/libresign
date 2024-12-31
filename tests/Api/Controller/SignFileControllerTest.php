@@ -222,6 +222,7 @@ final class SignFileControllerTest extends ApiTestCase {
 		$certificate = $pkcs12Handler->generateCertificate(
 			[
 				'host' => 'person@test.coop',
+				'uid' => 'email:person@test.coop',
 				'name' => 'John Doe',
 			],
 			'secretPassword',
@@ -282,6 +283,7 @@ final class SignFileControllerTest extends ApiTestCase {
 		$certificate = $pkcs12Handler->generateCertificate(
 			[
 				'host' => 'person@test.coop',
+				'uid' => 'email:person@test.coop',
 				'name' => 'John Doe',
 			],
 			'secretPassword',

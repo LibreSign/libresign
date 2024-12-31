@@ -58,6 +58,8 @@ use ReflectionClass;
  * @method string getOrganization()
  * @method IEngineHandler setOrganizationalUnit(string $organizationalUnit)
  * @method string getOrganizationalUnit()
+ * @method IEngineHandler setUID(string $UID)
+ * @method string getUID()
  * @method string getName()
  */
 class AEngineHandler {
@@ -71,6 +73,7 @@ class AEngineHandler {
 	protected string $locality = '';
 	protected string $organization = '';
 	protected string $organizationalUnit = '';
+	protected string $UID = '';
 	protected string $password = '';
 	protected string $configPath = '';
 	protected string $engine = '';
@@ -194,6 +197,8 @@ class AEngineHandler {
 				return 'Organization';
 			case 'OU':
 				return 'OrganizationalUnit';
+			case 'UID':
+				return 'UserIdentifier';
 		}
 		return '';
 	}
@@ -298,6 +303,9 @@ class AEngineHandler {
 			'O' => $this->getOrganization(),
 			'OU' => $this->getOrganizationalUnit(),
 		];
+		if ($uid = $this->getUID()) {
+			$names['UID'] = $uid;
+		}
 		$names = array_filter($names, function ($v) {
 			return !empty($v);
 		});

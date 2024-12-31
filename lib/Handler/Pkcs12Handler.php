@@ -168,6 +168,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			->setHosts([$user['host']])
 			->setCommonName($user['name'])
 			->setFriendlyName($friendlyName)
+			->setUID($user['uid'])
 			->setPassword($signPassword)
 			->generateCertificate();
 		if (!$content) {
