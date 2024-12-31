@@ -15,6 +15,7 @@ use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\IL10N;
+use OCP\ITempManager;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -26,6 +27,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N&MockObject $l10n;
 	private JSignPdfHandler&MockObject $jSignPdfHandler;
 	private FooterHandler&MockObject $footerHandler;
+	private ITempManager&MockObject $tempManager;
 	private CertificateEngineHandler&MockObject $certificateEngineHandler;
 	private array $cfsslHandlerBuffer = [];
 
@@ -40,6 +42,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->will($this->returnArgument(0));
 		$this->jSignPdfHandler = $this->createMock(JSignPdfHandler::class);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
+		$this->tempManager = $this->createMock(ITempManager::class);
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
 			$this->appConfig,
@@ -48,6 +51,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->jSignPdfHandler,
 			$this->footerHandler,
+			$this->tempManager,
 		);
 	}
 
