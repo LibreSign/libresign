@@ -15,7 +15,10 @@ trait MagicGetterSetterTrait {
 		}
 		$property = lcfirst($matches['property']);
 		if (!property_exists($this, $property)) {
-			throw new \LogicException(sprintf('Cannot set non existing property %s->%s = %s.', \get_class($this), $name, var_export($arguments, true)));
+			$property = $matches['property'];
+			if (!property_exists($this, $property)) {
+				throw new \LogicException(sprintf('Cannot set non existing property %s->%s = %s.', \get_class($this), $name, var_export($arguments, true)));
+			}
 		}
 		if ($matches['type'] === 'get') {
 			return $this->$property;
