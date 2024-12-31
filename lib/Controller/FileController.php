@@ -182,6 +182,7 @@ class FileController extends AEnvironmentAwareController {
 				->showSigners()
 				->showSettings()
 				->showMessages()
+				->showValidateFile()
 				->toArray()
 		);
 
