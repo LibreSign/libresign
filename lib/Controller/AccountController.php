@@ -161,6 +161,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 			$data = [
 				'user' => [
 					'host' => $identify,
+					'uid' => 'account:' . $this->userSession->getUser()->getUID(),
 					'name' => $this->userSession->getUser()->getDisplayName(),
 				],
 				'signPassword' => $signPassword,
