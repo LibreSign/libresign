@@ -75,13 +75,14 @@ Feature: account/signature
       | (jq).ocs.data.issuer.L                         | City Name                                             |
       | (jq).ocs.data.issuer.O                         | Organization                                          |
       | (jq).ocs.data.issuer.OU                        | Organization Unit                                     |
-      | (jq).ocs.data.subject\|length                  | 6                                                     |
+      | (jq).ocs.data.subject\|length                  | 7                                                     |
       | (jq).ocs.data.subject.CN                       | signer1-displayname                                   |
       | (jq).ocs.data.subject.C                        | BR                                                    |
       | (jq).ocs.data.subject.ST                       | State of Company                                      |
       | (jq).ocs.data.subject.L                        | City Name                                             |
       | (jq).ocs.data.subject.O                        | Organization                                          |
       | (jq).ocs.data.subject.OU                       | Organization Unit                                     |
+      | (jq).ocs.data.subject.uid                      | account:signer1                                       |
       | (jq).ocs.data.extensions.basicConstraints      | CA:FALSE                                              |
       | (jq).ocs.data.extensions.subjectAltName        | email:signer@domain.test                              |
       | (jq).ocs.data.extensions.keyUsage              | Digital Signature, Key Encipherment, Certificate Sign |
