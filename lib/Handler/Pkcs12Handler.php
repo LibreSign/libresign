@@ -16,6 +16,7 @@ use OCA\Libresign\Service\FolderService;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\File;
 use OCP\IL10N;
+use OCP\ITempManager;
 use TypeError;
 
 class Pkcs12Handler extends SignEngineHandler {
@@ -30,6 +31,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		private IL10N $l10n,
 		private JSignPdfHandler $jSignPdfHandler,
 		private FooterHandler $footerHandler,
+		private ITempManager $tempManager,
 	) {
 	}
 
@@ -77,6 +79,37 @@ class Pkcs12Handler extends SignEngineHandler {
 			$pfx,
 			$privateKey
 		);
+	}
+
+	/**
+	 * @param resource $resource
+	 * @return array
+	 */
+	public function validatePdfContent($resource): array {
+		$content = stream_get_contents($resource);
+		preg_match_all('/ByteRange\s*\[(\d+) (?<start>\d+) (?<end>\d+) (\d+)?/', $content, $bytes);
+		if (empty($bytes['start']) || empty($bytes['end'])) {
+			throw new LibresignException($this->l10n->t('Unsigned file.'));
+		}
+
+		$parsed = [];
+		for ($i = 0; $i < count($bytes['start']); $i++) {
+			rewind($resource);
+			$signature = stream_get_contents(
+				$resource,
+				$bytes['end'][$i] - $bytes['start'][$i] - 2,
+				$bytes['start'][$i] + 1
+			);
+			$pfxCertificate = hex2bin($signature);
+			if (empty($tempFile)) {
+				$tempFile = $this->tempManager->getTemporaryFile('cert.pfx');
+			}
+			file_put_contents($tempFile, $pfxCertificate);
+			$output = shell_exec("openssl pkcs7 -in {$tempFile} -inform DER -print_certs");
+			$parsed[] = openssl_x509_parse($output);
+		}
+		$this->tempManager->clean();
+		return $parsed;
 	}
 
 	public function setPfxContent(string $content): void {
