@@ -86,7 +86,7 @@
 								compact
 								:name="t('libresign', 'Requested on:')">
 								<template #name>
-									<strong>{{ t('libresign', 'Requested on:')}}</strong>
+									<strong>{{ t('libresign', 'Requested on:') }}</strong>
 									{{ dateFromSqlAnsi(signer.request_sign_date) }}
 								</template>
 							</NcListItem>
@@ -95,7 +95,7 @@
 								compact
 								:name="t('libresign', 'Remote address:')">
 								<template #name>
-									<strong>{{ t('libresign', 'Remote address:')}}</strong>
+									<strong>{{ t('libresign', 'Remote address:') }}</strong>
 									{{ signer.remote_address }}
 								</template>
 							</NcListItem>
@@ -104,7 +104,7 @@
 								compact
 								:name="t('libresign', 'User agent:')">
 								<template #name>
-									<strong>{{ t('libresign', 'User agent:')}}</strong>
+									<strong>{{ t('libresign', 'User agent:') }}</strong>
 									{{ signer.user_agent }}
 								</template>
 							</NcListItem>
@@ -113,7 +113,7 @@
 								compact
 								:name="t('libresign', 'Notifications:')">
 								<template #name>
-									<strong>{{ t('libresign', 'Notifications:')}}</strong>
+									<strong>{{ t('libresign', 'Notifications:') }}</strong>
 								</template>
 								<template #subname>
 									<ul>
