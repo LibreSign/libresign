@@ -36,17 +36,20 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	protected $client;
 	protected $cfsslUri;
 	private string $binary = '';
+	private CfsslServerHandler $cfsslServerHandler;
 
 	public function __construct(
 		protected IConfig $config,
 		protected IAppConfig $appConfig,
 		private SystemConfig $systemConfig,
-		private CfsslServerHandler $cfsslServerHandler,
 		protected IAppDataFactory $appDataFactory,
 		protected IDateTimeFormatter $dateTimeFormatter,
 		protected ITempManager $tempManager,
 	) {
 		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager);
+		$this->cfsslServerHandler = new CfsslServerHandler(
+			$this->getConfigPath(),
+		);
 	}
 
 	public function generateRootCert(
@@ -55,12 +58,11 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	): string {
 		$key = bin2hex(random_bytes(16));
 
-		$configPath = $this->getConfigPath();
 		$this->cfsslServerHandler->createConfigServer(
 			$commonName,
 			$names,
 			$key,
-			$configPath
+			$this->expirity()
 		);
 
 		$this->genkey();
@@ -235,6 +237,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		if (!$configPath) {
 			throw new LibresignException('CFSSL not configured.');
 		}
+		$this->cfsslServerHandler->updateExpirity($this->expirity());
 		$cmd = 'nohup ' . $binary . ' serve -address=127.0.0.1 ' .
 			'-ca-key ' . $configPath . DIRECTORY_SEPARATOR . 'ca-key.pem ' .
 			'-ca ' . $configPath . DIRECTORY_SEPARATOR . 'ca.pem ' .

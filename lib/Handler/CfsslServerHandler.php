@@ -11,26 +11,32 @@ namespace OCA\Libresign\Handler;
 use OCA\Libresign\Exception\LibresignException;
 
 class CfsslServerHandler {
+	private string $csrServerFile;
+	private string $configServerFile;
+	private string $configServerFileHash;
+	public function __construct(string $configPath) {
+		$this->csrServerFile = $configPath . DIRECTORY_SEPARATOR . 'csr_server.json';
+		$this->configServerFile = $configPath . DIRECTORY_SEPARATOR . 'config_server.json';
+		$this->configServerFileHash = $configPath . DIRECTORY_SEPARATOR . 'hashes.sha256';
+	}
+
 	public function createConfigServer(
 		string $commonName,
 		array $names,
 		string $key,
-		string $configPath,
+		int $expirity,
 	): void {
 		$this->putCsrServer(
 			$commonName,
 			$names,
-			$configPath
 		);
-		$this->putConfigServer($key, $configPath);
+		$this->saveNewConfig($key, $expirity);
 	}
 
 	private function putCsrServer(
 		string $commonName,
 		array $names,
-		string $configPath,
 	): void {
-		$filename = $configPath . DIRECTORY_SEPARATOR . 'csr_server.json';
 		$content = [
 			'CN' => $commonName,
 			'key' => [
@@ -41,7 +47,7 @@ class CfsslServerHandler {
 		foreach ($names as $id => $name) {
 			$content['names'][0][$id] = $name['value'];
 		}
-		$response = file_put_contents($filename, json_encode($content));
+		$response = file_put_contents($this->csrServerFile, json_encode($content));
 		if ($response === false) {
 			throw new LibresignException(
 				"Error while writing CSR server file.\n" .
@@ -51,14 +57,13 @@ class CfsslServerHandler {
 		}
 	}
 
-	private function putConfigServer(string $key, string $configPath): void {
-		$filename = $configPath . DIRECTORY_SEPARATOR . 'config_server.json';
-		$content = [
+	private function saveNewConfig(string $key, int $expirity): void {
+		$config = [
 			'signing' => [
 				'profiles' => [
 					'CA' => [
 						'auth_key' => 'key1',
-						'expiry' => '8760h',
+						'expiry' => ($expirity * 24) . 'h',
 						'usages' => [
 							'signing',
 							'digital signature',
@@ -77,10 +82,34 @@ class CfsslServerHandler {
 				],
 			],
 		];
+		$this->saveConfig($config);
+	}
 
-		$response = file_put_contents($filename, json_encode($content));
+	private function saveConfig(array $config): void {
+		$jsonConfig = json_encode($config);
+		$response = file_put_contents($this->configServerFile, $jsonConfig);
 		if ($response === false) {
 			throw new LibresignException('Error while writing config server file!', 500);
 		}
+		$hash = hash('sha256', $jsonConfig) . ' config_server.json';
+		file_put_contents($this->configServerFileHash, $hash);
+	}
+
+	public function updateExpirity(int $expirity): void {
+		if (file_exists($this->configServerFileHash)) {
+			$hashes = file_get_contents($this->configServerFileHash);
+			preg_match('/(?<hash>\w*) +config_server.json/', $hashes, $matches);
+			$savedHash = $matches['hash'];
+		} else {
+			$savedHash = '';
+		}
+		$jsonConfig = file_get_contents($this->configServerFile);
+		$currentHash = hash('sha256', $jsonConfig);
+		if ($currentHash === $savedHash) {
+			return;
+		}
+		$config = json_decode($jsonConfig, true);
+		$config['signing']['profiles']['CA']['expiry'] = ($expirity * 24) . 'h';
+		$this->saveConfig($config);
 	}
 }
