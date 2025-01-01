@@ -304,6 +304,14 @@ class AEngineHandler {
 		return $names;
 	}
 
+	public function expirity(): int {
+		$expirity = $this->appConfig->getAppValueInt('expiry_in_days', 365);
+		if ($expirity < 0) {
+			return 365;
+		}
+		return $expirity;
+	}
+
 	public function isSetupOk(): bool {
 		return $this->appConfig->getAppValue('authkey') ? true : false;
 	}
