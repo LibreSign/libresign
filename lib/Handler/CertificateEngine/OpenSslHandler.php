@@ -82,7 +82,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			# certificatePolicies = <policyOID> CPS: http://url/with/policy/informations.pdf
 			CONFIG);
 		$csr = openssl_csr_new($this->getCsrNames(), $privateKey);
-		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, 365, [
+		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, $this->expirity(), [
 			'config' => $temporaryFile,
 			// This will set "basicConstraints" to CA:FALSE, the default is CA:TRUE
 			// The signer certificate is not a Certificate Authority
