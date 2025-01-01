@@ -130,7 +130,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 				continue;
 			}
 			if ($name === 'UID') {
-				$distinguishedNames['uid'] = $value;
+				$distinguishedNames['UID'] = $value;
 				continue;
 			}
 			$longName = $this->translateToLong($name);
