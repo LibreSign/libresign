@@ -12,7 +12,7 @@
 			@update:checked="saveMaximumValidity">
 			{{ t('libresign', 'Maximum validity') }}
 		</NcCheckboxRadioSwitch>
-		<fieldset v-show="enableMaximumValidity" id="settings-sharing-remote-api-expiration" class="sharing__sub-section">
+		<fieldset v-show="enableMaximumValidity" id="settings-maximum_validity" class="sharing__sub-section">
 			{{ t('libresign', 'Maximum validity in seconds of a request to sign.') }}
 			<NcTextField v-model="maximumValidity"
 				type="number"
@@ -26,7 +26,7 @@
 			@update:checked="saveRenewalInterval">
 			{{ t('libresign', 'Renewal interval') }}
 		</NcCheckboxRadioSwitch>
-		<fieldset v-show="enableRenewalInterval" id="settings-sharing-remote-api-expiration" class="sharing__sub-section">
+		<fieldset v-show="enableRenewalInterval" id="settings-renewal-interval" class="sharing__sub-section">
 			{{ t('libresign', 'Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link.') }}
 			<NcTextField v-model="renewalInterval"
 				type="number"
@@ -34,6 +34,15 @@
 				:label="t('libresign', 'Renewal interval')"
 				:placeholder="t('libresign', 'Renewal interval')"
 				@update:value="saveRenewalInterval" />
+		</fieldset>
+		<fieldset id="settings-certificate-validity" class="sharing__sub-section">
+			{{ t('libresign', 'The length of time for which the generated certificate will be valid, in days.') }}
+			<NcTextField v-model="expiryInDays"
+				type="number"
+				class="sharing__input"
+				:label="t('libresign', 'Expiration in days')"
+				:placeholder="t('libresign', 'Expiration in days')"
+				@update:value="saveExpiryInDays" />
 		</fieldset>
 	</NcSettingsSection>
 </template>
@@ -61,6 +70,7 @@ export default {
 			maximumValidity: '0',
 			enableRenewalInterval: false,
 			renewalInterval: '0',
+			expiryInDays: 0,
 			url: null,
 		}
 	},
@@ -71,6 +81,7 @@ export default {
 		async getData() {
 			this.getMaximumValidity()
 			this.getRenewalInterval()
+			this.getExpiryInDays()
 		},
 		async getMaximumValidity() {
 			const response = await axios.get(
@@ -97,6 +108,21 @@ export default {
 				this.renewalInterval = '0'
 			}
 			OCP.AppConfig.setValue('libresign', 'renewal_interval', Number(this.renewalInterval))
+		},
+		async getExpiryInDays() {
+			const response = await axios.get(
+				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/expiry_in_days'),
+			)
+			this.expiryInDays = Number(response.data.ocs.data.data).toString()
+			if (this.expiryInDays === 0) {
+				this.expiryInDays = 365
+			}
+		},
+		async saveExpiryInDays() {
+			if (!this.expiryInDays) {
+				this.expiryInDays = 365
+			}
+			OCP.AppConfig.setValue('libresign', 'expiry_in_days', Number(this.expiryInDays))
 		},
 	},
 }
