@@ -11,9 +11,6 @@ namespace OCA\Libresign\Handler;
 use OCA\Libresign\Exception\LibresignException;
 
 class CfsslServerHandler {
-	public const CSR_FILE = 'csr_server.json';
-	public const CONFIG_FILE = 'config_server.json';
-
 	public function createConfigServer(
 		string $commonName,
 		array $names,
@@ -33,7 +30,7 @@ class CfsslServerHandler {
 		array $names,
 		string $configPath,
 	): void {
-		$filename = $configPath . DIRECTORY_SEPARATOR . self::CSR_FILE;
+		$filename = $configPath . DIRECTORY_SEPARATOR . 'csr_server.json';
 		$content = [
 			'CN' => $commonName,
 			'key' => [
@@ -55,7 +52,7 @@ class CfsslServerHandler {
 	}
 
 	private function putConfigServer(string $key, string $configPath): void {
-		$filename = $configPath . DIRECTORY_SEPARATOR . self::CONFIG_FILE;
+		$filename = $configPath . DIRECTORY_SEPARATOR . 'config_server.json';
 		$content = [
 			'signing' => [
 				'profiles' => [
