@@ -168,7 +168,7 @@ export default {
 			return this.configureCheckStore.isConfigureOk('cfssl')
 		},
 		isCertificateGenerated() {
-			return this.certificate.rootCert.names.length > 0
+			return this.certificate.generated
 		},
 		loaded() {
 			return this.configureCheckStore.items.length > 0
