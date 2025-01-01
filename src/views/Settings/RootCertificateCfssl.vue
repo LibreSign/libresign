@@ -219,29 +219,28 @@ export default {
 		async generateCertificate() {
 			this.formDisabled = true
 			this.submitLabel = t('libresign', 'Generating certificate.')
-			try {
-				const response = await axios.post(
-					generateOcsUrl('/apps/libresign/api/v1/admin/certificate/cfssl'),
-					this.getDataToSave(),
-				)
-
-				if (!response.data.ocs.data || response.data.ocs.data.message) {
-					throw new Error(response.data.ocs.data)
-				}
-				this.certificate = response.data.ocs.data.data
-				this.afterCertificateGenerated()
-				this.configureCheckStore.checkSetup()
-				return
-			} catch (e) {
-				console.error(e)
-				if (e.response.data.ocs.data.message) {
-					showError(t('libresign', 'Could not generate certificate.') + '\n' + e.response.data.ocs.data.message)
-				} else {
-					showError(t('libresign', 'Could not generate certificate.'))
-				}
-				this.submitLabel = t('libresign', 'Generate root certificate')
-
-			}
+			await axios.post(
+				generateOcsUrl('/apps/libresign/api/v1/admin/certificate/cfssl'),
+				this.getDataToSave(),
+			)
+				.then(({ data }) => {
+					if (!data.ocs.data || data.ocs.data.message) {
+						throw new Error(data.ocs.data)
+					}
+					this.certificate = data.ocs.data.data
+					this.afterCertificateGenerated()
+					this.configureCheckStore.checkSetup()
+				})
+				.catch(({ response }) => {
+					if (response?.data?.ocs?.data?.message?.length > 0) {
+						showError(t('libresign', 'Could not generate certificate.') + '\n' + response.data.ocs.data.message)
+					} else if (response.length) {
+						showError(t('libresign', 'Could not generate certificate.') + '\n' + response)
+					} else {
+						showError(t('libresign', 'Could not generate certificate.'))
+					}
+					this.submitLabel = t('libresign', 'Generate root certificate')
+				})
 			this.formDisabled = false
 		},
 		getDataToSave() {
