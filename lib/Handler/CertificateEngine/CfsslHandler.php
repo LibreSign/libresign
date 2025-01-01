@@ -130,6 +130,11 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		return $return;
 	}
 
+	public function getCommonName(): string {
+		$uid = $this->getUID();
+		return $uid . ', ' . $this->commonName;
+	}
+
 	private function newCert(): array {
 		$json = [
 			'json' => [
