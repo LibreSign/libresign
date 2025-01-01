@@ -209,8 +209,17 @@ class FileService {
 					foreach ($signatureToShow['identifyMethods'] as $methods) {
 						foreach ($methods as $identifyMethod) {
 							$entity = $identifyMethod->getEntity();
-							if ($data['subject']['uid'] === $entity->getIdentifierKey() . ':' . $entity->getIdentifierValue()) {
-								return true;
+							if (array_key_exists('uid', $data['subject'])) {
+								if ($data['subject']['uid'] === $entity->getIdentifierKey() . ':' . $entity->getIdentifierValue()) {
+									return true;
+								}
+							} else {
+								preg_match('/(?<key>.*):(?<value>.*), /', $data['subject']['CN'], $matches);
+								if ($matches) {
+									if ($matches['key'] === $entity->getIdentifierKey() && $matches['value'] === $entity->getIdentifierValue()) {
+										return true;
+									}
+								}
 							}
 						}
 					}
