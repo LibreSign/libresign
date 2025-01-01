@@ -148,6 +148,9 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 
 	public function getCommonName(): string {
 		$uid = $this->getUID();
+		if (!$uid) {
+			return $this->commonName;
+		}
 		return $uid . ', ' . $this->commonName;
 	}
 
