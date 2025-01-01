@@ -43,7 +43,6 @@ use ReflectionClass;
  * @method IEngineHandler setOrganizationalUnit(string $organizationalUnit)
  * @method string getOrganizationalUnit()
  * @method IEngineHandler setUID(string $UID)
- * @method string getUID()
  * @method string getName()
  */
 class AEngineHandler {
@@ -294,6 +293,10 @@ class AEngineHandler {
 			return !empty($v);
 		});
 		return $names;
+	}
+
+	public function getUID(): string {
+		return str_replace(' ', '+', $this->UID);
 	}
 
 	public function expirity(): int {
