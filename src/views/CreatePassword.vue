@@ -5,6 +5,8 @@
 <template>
 	<NcDialog v-if="signMethodsStore.modal.createPassword"
 		:name="t('libresign', 'Password Creation')"
+		is-form
+		@submit.prevent="send()"
 		@closing="signMethodsStore.closeModal('createPassword')">
 		<p>{{ t('libresign', 'For security reasons, you must create a password to sign the documents. Enter your new password in the field below.') }}</p>
 		<NcPasswordField v-model="password"
@@ -12,7 +14,9 @@
 			:label="t('libresign', 'Enter a password')"
 			:placeholder="t('libresign', 'Enter a password')" />
 		<template #actions>
-			<NcButton :disabled="hasLoading" @click="send">
+			<NcButton :disabled="hasLoading"
+				native-type="submit"
+				type="primary">
 				<template #icon>
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
 				</template>
