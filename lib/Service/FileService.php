@@ -16,12 +16,15 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
+use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClientService;
 use OCP\IDateTimeFormatter;
@@ -42,10 +45,12 @@ class FileService {
 	private bool $showSettings = false;
 	private bool $showVisibleElements = false;
 	private bool $showMessages = false;
+	private bool $validateFile = false;
 	private ?File $file = null;
 	private ?SignRequest $signRequest = null;
 	private ?IUser $me = null;
 	private ?int $identifyMethodId = null;
+	private array $certData = [];
 	private array $signers = [];
 	private array $settings = [
 		'canSign' => false,
@@ -74,6 +79,9 @@ class FileService {
 		private IAppConfig $appConfig,
 		private IURLGenerator $urlGenerator,
 		protected IMimeTypeDetector $mimeTypeDetector,
+		protected Pkcs12Handler $pkcs12Handler,
+		private IUserMountCache $userMountCache,
+		private IRootFolder $root,
 		protected LoggerInterface $logger,
 		protected IL10N $l10n,
 	) {
@@ -137,6 +145,11 @@ class FileService {
 		return $this;
 	}
 
+	public function showValidateFile(bool $validateFile = true): self {
+		$this->validateFile = $validateFile;
+		return $this;
+	}
+
 	/**
 	 * @return static
 	 */
@@ -162,6 +175,7 @@ class FileService {
 			return $this->signers;
 		}
 		$signers = $this->signRequestMapper->getByFileId($this->file->getId());
+		$certData = $this->getCertData();
 		foreach ($signers as $signer) {
 			$signatureToShow = [
 				'signed' => $signer->getSigned() ?
@@ -191,6 +205,38 @@ class FileService {
 				$data['sign_date'] = (new \DateTime())
 					->setTimestamp($signer->getSigned())
 					->format('Y-m-d H:i:s');
+				$mySignature = array_filter($certData, function ($data) use ($signatureToShow) {
+					foreach ($signatureToShow['identifyMethods'] as $methods) {
+						foreach ($methods as $identifyMethod) {
+							$entity = $identifyMethod->getEntity();
+							if (array_key_exists('uid', $data['subject'])) {
+								if ($data['subject']['uid'] === $entity->getIdentifierKey() . ':' . $entity->getIdentifierValue()) {
+									return true;
+								}
+							} else {
+								preg_match('/(?<key>.*):(?<value>.*), /', $data['subject']['CN'], $matches);
+								if ($matches) {
+									if ($matches['key'] === $entity->getIdentifierKey() && $matches['value'] === $entity->getIdentifierValue()) {
+										return true;
+									}
+								}
+							}
+						}
+					}
+				});
+				if ($mySignature) {
+					$mySignature = current($mySignature);
+					$signatureToShow['subject'] = implode(
+						', ',
+						array_map(
+							fn (string $key, string $value) => "$key: $value",
+							array_keys($mySignature['subject']),
+							$mySignature['subject']
+						)
+					);
+					$signatureToShow['valid_from'] = $mySignature['validFrom_time_t'];
+					$signatureToShow['valid_to'] = $mySignature['validTo_time_t'];
+				}
 			}
 			// @todo refactor this code
 			if ($this->me || $this->identifyMethodId) {
@@ -394,6 +440,27 @@ class FileService {
 		}
 		ksort($return);
 		return $return;
+	}
+
+	private function getCertData(): array {
+		if (!empty($this->certData) || !$this->validateFile || !$this->file->getSignedNodeId()) {
+			return $this->certData;
+		}
+		$mountsContainingFile = $this->userMountCache->getMountsForFileId($this->file->getSignedNodeId());
+		foreach ($mountsContainingFile as $fileInfo) {
+			$this->root->getByIdInPath($this->file->getSignedNodeId(), $fileInfo->getMountPoint());
+		}
+		$fileToValidate = $this->root->getById($this->file->getSignedNodeId());
+		if (!count($fileToValidate)) {
+			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
+		}
+		/** @var \OCP\Files\File */
+		$file = current($fileToValidate);
+
+		$resource = $file->fopen('rb');
+		$this->certData = $this->pkcs12Handler->validatePdfContent($resource);
+		fclose($resource);
+		return $this->certData;
 	}
 
 	/**
