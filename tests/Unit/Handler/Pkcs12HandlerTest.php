@@ -23,6 +23,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N|MockObject $l10n;
 	private JSignPdfHandler|MockObject $jSignPdfHandler;
 	private FooterHandler|MockObject $footerHandler;
+	private ITempManager|MockObject $tempManager;
 	private CertificateEngineHandler|MockObject $certificateEngineHandler;
 	private array $cfsslHandlerBuffer = [];
 
