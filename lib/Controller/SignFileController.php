@@ -134,7 +134,11 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			$this->signFileService
 				->setLibreSignFile($libreSignFile)
 				->setSignRequest($signRequest)
-				->setUserUniqueIdentifier($identifyMethod->getEntity()->getIdentifierValue())
+				->setUserUniqueIdentifier(
+					$identifyMethod->getEntity()->getIdentifierKey() .
+					':' .
+					$identifyMethod->getEntity()->getIdentifierValue()
+				)
 				->setFriendlyName($signRequest->getDisplayName())
 				->storeUserMetadata([
 					'user-agent' => $this->request->getHeader('User-Agent'),

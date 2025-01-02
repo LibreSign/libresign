@@ -367,6 +367,7 @@ class SignFileService {
 				$certificate = $this->pkcs12Handler->generateCertificate(
 					[
 						'host' => $this->userUniqueIdentifier,
+						'uid' => $this->userUniqueIdentifier,
 						'name' => $this->friendlyName,
 					],
 					$tempPassword,
