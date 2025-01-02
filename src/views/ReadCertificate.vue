@@ -2,6 +2,8 @@
 	<NcDialog v-if="signMethodsStore.modal.readCertificate"
 		:name="t('libresign', 'Certificate data')"
 		:size="size"
+		is-form
+		@submit.prevent="send()"
 		@closing="onClose">
 		<NcNoteCard v-if="error" type="error">
 			<p>{{ error }}</p>
@@ -77,7 +79,9 @@
 			</div>
 		</div>
 		<template v-if="Object.keys(certificateData).length === 0" #actions>
-			<NcButton :disabled="hasLoading" @click="send()">
+			<NcButton :disabled="hasLoading"
+				native-type="submit"
+				type="primary">
 				<template #icon>
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
 				</template>

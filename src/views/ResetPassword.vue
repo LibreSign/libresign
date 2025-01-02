@@ -2,26 +2,23 @@
 <template>
 	<NcDialog v-if="signMethodsStore.modal.resetPassword"
 		:name="t('libresign', 'Password reset')"
+		class="container"
+		is-form
+		@submit.prevent="send()"
 		@closing="signMethodsStore.closeModal('resetPassword')">
 		<p>{{ t('libresign', 'Enter new password and then repeat it') }}</p>
-		<div class="container">
-			<div class="input-group">
-				<label for="new-password">{{ t('libresign', 'Current password') }}</label>
-				<NcPasswordField v-model="currentPassword" type="password" />
-			</div>
-			<div class="input-group">
-				<label for="new-password">{{ t('libresign', 'New password') }}</label>
-				<NcPasswordField v-model="newPassword" type="password" />
-			</div>
-			<div class="input-group">
-				<label for="repeat-password">{{ t('libresign', 'Repeat password') }}</label>
-				<NcPasswordField v-model="rPassword" :has-error="!validNewPassord" type="password" />
-			</div>
-		</div>
+		<NcPasswordField v-model="currentPassword"
+			:label="t('libresign', 'Current password')" />
+		<NcPasswordField v-model="newPassword"
+			:label="t('libresign', 'New password')" />
+		<NcPasswordField v-model="rPassword"
+			:has-error="!validNewPassord"
+			:label="t('libresign', 'Repeat password')" />
 		<template #actions>
 			<NcButton :disabled="!canSave"
 				:class="hasLoading ? 'btn-load loading primary btn-confirm' : 'primary btn-confirm'"
-				@click="send">
+				native-type="submit"
+				type="primary">
 				<template #icon>
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
 				</template>
@@ -74,51 +71,25 @@ export default {
 	methods: {
 		async send() {
 			this.hasLoading = true
-			try {
-				const response = await axios.patch(generateOcsUrl('/apps/libresign/api/v1/account/pfx'), {
-					current: this.currentPassword,
-					new: this.newPassword,
+			await axios.patch(generateOcsUrl('/apps/libresign/api/v1/account/pfx'), {
+				current: this.currentPassword,
+				new: this.newPassword,
+			})
+				.then(({ data }) => {
+					showSuccess(data.ocs.data.message)
+					this.hasLoading = false
+					this.signMethodsStore.closeModal('resetPassword')
+					this.$emit('close', true)
 				})
-				showSuccess(response.data.ocs.data.message)
-				this.hasLoading = false
-				this.signMethodsStore.closeModal('resetPassword')
-				this.$emit('close', true)
-			} catch (err) {
-				if (err.response.data.ocs.data.message) {
-					showError(err.response.data.ocs.data.message)
-				} else {
-					showError(t('libresign', 'Error creating new password, please contact the administrator'))
-				}
-				this.hasLoading = false
-			}
+				.catch(({ response }) => {
+					if (response.data.ocs.data.message) {
+						showError(response.data.ocs.data.message)
+					} else {
+						showError(t('libresign', 'Error creating new password, please contact the administrator'))
+					}
+				})
+			this.hasLoading = false
 		},
 	},
 }
 </script>
-<style lang="scss" scoped>
-	.container {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-
-		width: 100%;
-		max-width: 420px;
-
-		text-align: start;
-	}
-
-	.input-group{
-		display: flex;
-		flex-direction: column;
-		margin: 10px;
-		width: 100%;
-		label:first-child{
-			opacity: 0.7;
-		}
-		input{
-			width: 100%;
-			max-width: 370px;
-		}
-	}
-</style>
