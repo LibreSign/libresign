@@ -128,6 +128,33 @@
 									</ul>
 								</template>
 							</NcListItem>
+							<NcListItem v-if="signer.opened && signer.valid_from"
+								class="extra"
+								compact
+								:name="t('libresign', 'Certificate valid from:')">
+								<template #name>
+									<strong>{{ t('libresign', 'Certificate valid from:')}}</strong>
+									{{ dateFromUnixTimestamp(signer.valid_from) }}
+								</template>
+							</NcListItem>
+							<NcListItem v-if="signer.opened && signer.valid_to"
+								class="extra"
+								compact
+								:name="t('libresign', 'Certificate valid to:')">
+								<template #name>
+									<strong>{{ t('libresign', 'Certificate valid to:')}}</strong>
+									{{ dateFromUnixTimestamp(signer.valid_to) }}
+								</template>
+							</NcListItem>
+							<NcListItem v-if="signer.opened && signer.subject"
+								class="extra"
+								compact
+								:name="t('libresign', 'Subject:')">
+								<template #name>
+									<strong>{{ t('libresign', 'Subject:')}}</strong>
+									{{ signer.subject }}
+								</template>
+							</NcListItem>
 						</span>
 					</ul>
 				</div>

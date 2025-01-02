@@ -27,6 +27,8 @@ namespace OCA\Libresign\Handler\CertificateEngine;
  * @method string getOrganization()
  * @method IEngineHandler setOrganizationalUnit(string $organizationalUnit)
  * @method string getOrganizationalUnit()
+ * @method IEngineHandler setUID(string $UID)
+ * @method string getUID()
  * @method string getName()
  */
 interface IEngineHandler {

@@ -217,6 +217,7 @@ class AccountService {
 			$certificate = $this->pkcs12Handler->generateCertificate(
 				[
 					'host' => $newUser->getPrimaryEMailAddress(),
+					'uid' => 'account:' . $newUser->getUID(),
 					'name' => $newUser->getDisplayName()
 				],
 				$signPassword,
