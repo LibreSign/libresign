@@ -18,7 +18,8 @@
 				:label="t('libresign', 'Enter your code')"
 				:placeholder="t('libresign', 'Enter your code')"
 				name="code"
-				type="text">
+				type="text"
+				@keyup.enter="sendCode">
 				<FormTextboxPasswordIcon :size="20" />
 			</NcTextField>
 		</div>
@@ -29,11 +30,15 @@
 			:placeholder="t('libresign', 'Email')"
 			:helper-text="errorMessage"
 			:error="errorMessage.length > 0"
+			@keyup.enter="requestCode"
 			@input="onChangeEmail">
 			<EmailIcon :size="20" />
 		</NcTextField>
 		<template #actions>
-			<NcButton v-if="signMethodsStore.settings.emailToken.hasConfirmCode" :disabled="loading && !canRequestCode" @click="requestNewCode">
+			<NcButton v-if="signMethodsStore.settings.emailToken.hasConfirmCode"
+				:disabled="loading && !canRequestCode"
+				native-type="submit"
+				@click="requestNewCode">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 				</template>
@@ -41,6 +46,7 @@
 			</NcButton>
 			<NcButton v-if="!signMethodsStore.settings.emailToken.hasConfirmCode"
 				:disabled="loading || !canRequestCode"
+				native-type="submit"
 				type="primary"
 				@click="requestCode">
 				<template #icon>
@@ -50,6 +56,7 @@
 			</NcButton>
 			<NcButton v-if="signMethodsStore.settings.emailToken.hasConfirmCode"
 				:disabled="!canSendCode"
+				native-type="submit"
 				type="primary"
 				@click="sendCode">
 				<template #icon>
