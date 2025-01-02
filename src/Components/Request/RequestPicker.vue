@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<form>
+	<div>
 		<NcActions :menu-name="t('libresign', 'Request')"
 			:inline="inline ? 3 : 0"
 			:force-name="inline"
@@ -43,6 +43,8 @@
 		<NcDialog v-if="modalUploadFromUrl"
 			:name="t('libresign', 'URL of a PDF file')"
 			:can-close="!loading"
+			is-form
+			@submit.prevent="uploadUrl()"
 			@closing="closeModalUploadFromUrl">
 			<NcNoteCard v-for="message in uploadUrlErrors"
 				:key="message"
@@ -56,7 +58,7 @@
 			<template #actions>
 				<NcButton :disabled="!canUploadFronUrl"
 					type="primary"
-					@click="uploadUrl">
+					native-type="submit">
 					{{ t('libresign', 'Send') }}
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
@@ -65,7 +67,7 @@
 				</NcButton>
 			</template>
 		</NcDialog>
-	</form>
+	</div>
 </template>
 <script>
 import CloudUploadIcon from 'vue-material-design-icons/CloudUpload.vue'

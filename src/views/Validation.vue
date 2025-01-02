@@ -133,7 +133,7 @@
 								compact
 								:name="t('libresign', 'Certificate valid from:')">
 								<template #name>
-									<strong>{{ t('libresign', 'Certificate valid from:')}}</strong>
+									<strong>{{ t('libresign', 'Certificate valid from:') }}</strong>
 									{{ dateFromUnixTimestamp(signer.valid_from) }}
 								</template>
 							</NcListItem>
@@ -142,7 +142,7 @@
 								compact
 								:name="t('libresign', 'Certificate valid to:')">
 								<template #name>
-									<strong>{{ t('libresign', 'Certificate valid to:')}}</strong>
+									<strong>{{ t('libresign', 'Certificate valid to:') }}</strong>
 									{{ dateFromUnixTimestamp(signer.valid_to) }}
 								</template>
 							</NcListItem>
@@ -151,7 +151,7 @@
 								compact
 								:name="t('libresign', 'Subject:')">
 								<template #name>
-									<strong>{{ t('libresign', 'Subject:')}}</strong>
+									<strong>{{ t('libresign', 'Subject:') }}</strong>
 									{{ signer.subject }}
 								</template>
 							</NcListItem>

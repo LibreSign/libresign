@@ -71,11 +71,15 @@
 			:name="t('libresign', 'Confirm your signature')"
 			@closing="onCloseConfirmPassword">
 			{{ t('libresign', 'Subscription password.') }}
-			<NcPasswordField v-model="signPassword" type="password" />
+			<form @submit.prevent="signWithPassword()">
+				<NcPasswordField v-model="signPassword" type="password" />
+			</form>
 			<a id="lost-password" @click="toggleManagePassword">{{ t('libresign', 'Forgot password?') }}</a>
 			<ManagePassword v-if="showManagePassword" />
 			<template #actions>
-				<NcButton type="primary" :disabled="signPassword.length < 3 || loading" @click="signWithPassword()">
+				<NcButton type="primary"
+					:disabled="signPassword.length < 3 || loading"
+					native-type="submit">
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 					</template>
