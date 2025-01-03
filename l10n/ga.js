@@ -296,6 +296,8 @@ OC.L10N.register(
     "Maximum validity in seconds of a request to sign." : "Bailíocht uasta i soicindí d'iarratas síniú.",
     "Renewal interval" : "Eatramh athnuachana",
     "Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link." : "Eatramh athnuachana i soicindí d'iarratas síntiús. Agus an nasc á rochtain agat, iarrfar ort an nasc a athnuachan.",
+    "The length of time for which the generated certificate will be valid, in days." : "An fad ama a bheidh an deimhniú ginte bailí, i laethanta.",
+    "Expiration in days" : "Dul in éag i laethanta",
     "Expiration rules" : "Rialacha éaga",
     "Enable identification documents flow" : "Cumasaigh sreabhadh doiciméad aitheantais",
     "Identification documents" : "Doiciméid aitheantais",

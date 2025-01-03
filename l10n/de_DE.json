@@ -294,6 +294,8 @@
     "Maximum validity in seconds of a request to sign." : "Maximale Gültigkeitsdauer in Sekunden einer Aufforderung zum Signieren.",
     "Renewal interval" : "Erneuerungsintervall",
     "Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link." : "Erneuerungsintervall in Sekunden einer Abonnementanfrage. Beim Zugriff auf den Link werden Sie aufgefordert, den Link zu erneuern",
+    "The length of time for which the generated certificate will be valid, in days." : "Die Dauer der Gültigkeit des generierten Zertifikats in Tagen.",
+    "Expiration in days" : "Ablaufzeitpunkt in Tagen",
     "Expiration rules" : "Ablaufregeln",
     "Enable identification documents flow" : "Ablauf der Ausweisdokumente ermöglichen",
     "Identification documents" : "Ausweisdokumente",

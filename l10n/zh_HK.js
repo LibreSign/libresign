@@ -296,6 +296,8 @@ OC.L10N.register(
     "Maximum validity in seconds of a request to sign." : "最高有效的秒數要求簽署。",
     "Renewal interval" : "更新間距",
     "Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link." : "訂閱請求的更新間距（秒）。當存取連結時，您將被要求更新連結。",
+    "The length of time for which the generated certificate will be valid, in days." : "産生的證書有效的時間長度，以天為單位。",
+    "Expiration in days" : "到期天數",
     "Expiration rules" : "失效規則",
     "Enable identification documents flow" : "啟用身份證明文件流程",
     "Identification documents" : "身份證明文件",

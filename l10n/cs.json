@@ -293,6 +293,8 @@
     "Maximum validity in seconds of a request to sign." : "Nejdelší umožněná doba platnosti (v sekundách) žádosti o podpis.",
     "Renewal interval" : "Interval obnovy",
     "Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link." : "Interval obnovování (v sekundách) požadavků k odběru. Při přístupu k odkazu budete požádáni o obnovení odkazu.",
+    "The length of time for which the generated certificate will be valid, in days." : "Doba po kterou bude vytvořený certifikát platný (dny).",
+    "Expiration in days" : "Skončení platnosti (dny)",
     "Expiration rules" : "Pravidla skončení platnosti",
     "Enable identification documents flow" : "Zapnout tok identifikačních dokladů",
     "Identification documents" : "Identifikační doklady",

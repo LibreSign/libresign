@@ -294,6 +294,8 @@
     "Maximum validity in seconds of a request to sign." : "Maximum validity in seconds of a request to sign.",
     "Renewal interval" : "Renewal interval",
     "Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link." : "Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link.",
+    "The length of time for which the generated certificate will be valid, in days." : "The length of time for which the generated certificate will be valid, in days.",
+    "Expiration in days" : "Expiration in days",
     "Expiration rules" : "Expiration rules",
     "Enable identification documents flow" : "Enable identification documents flow",
     "Identification documents" : "Identification documents",
