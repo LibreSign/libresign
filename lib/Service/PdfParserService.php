@@ -104,4 +104,9 @@ class PdfParserService {
 		}
 		return $output;
 	}
+
+	public function getPdfVersion(): string {
+		preg_match('/^%PDF-(?<version>\d+(\.\d+)?)/', $this->content, $match);
+		return $match['version'];
+	}
 }

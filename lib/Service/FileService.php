@@ -265,6 +265,7 @@ class FileService {
 		$dimensions = $pdfParserService->getPageDimensions();
 		$return['totalPages'] = $dimensions['p'];
 		$return['size'] = strlen($content);
+		$return['pdfVersion'] = $pdfParserService->getPdfVersion();
 		return $return;
 	}
 
