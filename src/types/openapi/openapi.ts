@@ -531,7 +531,11 @@ export type paths = {
          */
         get: operations["file-validate"];
         put?: never;
-        post?: never;
+        /**
+         * Validate a binary file
+         * @description Validate a binary file returning file data. Use field 'file' for the file upload
+         */
+        post: operations["file-validate-binary"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2366,6 +2370,82 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["ValidateFile"];
+                        };
+                    };
+                };
+            };
+            /** @description Request failed */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** Format: int64 */
+                                action: number;
+                                errors: string[];
+                                settings: components["schemas"]["Settings"];
+                                messages?: {
+                                    type: string;
+                                    message: string;
+                                }[];
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "file-validate-binary": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ValidateFile"];
+                        };
+                    };
+                };
+            };
+            /** @description Request failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** Format: int64 */
+                                action: number;
+                                errors: string[];
+                                settings: components["schemas"]["Settings"];
+                                messages?: {
+                                    type: string;
+                                    message: string;
+                                }[];
+                            };
                         };
                     };
                 };
