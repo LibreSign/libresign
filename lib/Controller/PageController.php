@@ -181,6 +181,7 @@ class PageController extends AEnvironmentPageAwareController {
 		if (preg_match('/validation\/(?<uuid>[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/', $path, $matches)) {
 			$this->initialState->provideInitialState('file_info',
 				$this->fileService
+					->setFileByType('uuid', $matches['uuid'])
 					->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
 					->setMe($this->userSession->getUser())
 					->showVisibleElements()
