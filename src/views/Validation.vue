@@ -290,16 +290,14 @@ export default {
 		},
 	},
 	created() {
-		if (this.uuidToValidate.length > 0) {
+		this.$set(this, 'document', loadState('libresign', 'file_info', {}))
+		this.hasInfo = Object.keys(this.document).length > 0
+		if (this.hasInfo) {
+			this.document.signers.forEach(signer => {
+				this.$set(signer, 'opened', false)
+			})
+		} else if (this.uuidToValidate.length > 0) {
 			this.validate(this.uuidToValidate)
-		} else {
-			this.$set(this, 'document', loadState('libresign', 'file_info', {}))
-			this.hasInfo = Object.keys(this.document).length > 0
-			if (this.hasInfo) {
-				this.document.signers.forEach(signer => {
-					this.$set(signer, 'opened', false)
-				})
-			}
 		}
 	},
 	methods: {
