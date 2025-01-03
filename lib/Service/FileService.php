@@ -232,7 +232,11 @@ class FileService {
 		if ($this->fileContent) {
 			return $this->fileContent;
 		} elseif ($this->file) {
-			return $this->getFile()->getContent();
+			try {
+				return $this->getFile()->getContent();
+			} catch (\Throwable $th) {
+				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
+			}
 		}
 		return '';
 	}
