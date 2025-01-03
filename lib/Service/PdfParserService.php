@@ -61,7 +61,7 @@ class PdfParserService {
 		try {
 			$output = $this->parsePdfOnlyWithPhp();
 		} catch (LibresignException $e) {
-			$this->logger->error('Impossible get metadata from this file: ' . $th->getMessage());
+			$this->logger->error('Impossible get metadata from this file: ' . $e->getMessage());
 			throw new LibresignException('Impossible get metadata from this file.');
 		} catch (\Throwable $th) {
 			if ($th->getMessage() === 'Secured pdf file are currently not supported.') {
