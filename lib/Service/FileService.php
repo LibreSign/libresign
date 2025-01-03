@@ -524,16 +524,17 @@ class FileService {
 
 	private function getFileMetadata(): array {
 		if ($this->fileContent) {
-			return $this->pdfParserService
-				->setFile($this->fileContent)
-				->toArray();
+			$content = $this->fileContent;
+		} elseif ($this->file) {
+			$content = $this->getFile()->getContent();
 		}
-		if ($this->file) {
-			return $this->pdfParserService
-				->setFile($this->getFile())
-				->toArray();
+		if (empty($content)) {
+			return [];
 		}
-		return [];
+		$metadata = $this->pdfParserService
+			->setFile($content)
+			->toArray();
+		return $metadata;
 	}
 
 	private function getBinaryFileToArray(): array {
