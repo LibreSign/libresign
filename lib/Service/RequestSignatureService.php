@@ -115,7 +115,12 @@ class RequestSignatureService {
 				'extension' => $extension,
 			];
 			if ($metadata['extension'] === 'pdf') {
-				$metadata = array_merge($metadata, $this->pdfParserService->getMetadata($node));
+				$metadata = array_merge(
+					$metadata,
+					$this->pdfParserService
+						->setFile($node)
+						->toArray()
+				);
 			}
 		}
 		return $metadata;
