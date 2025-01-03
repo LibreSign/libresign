@@ -139,7 +139,7 @@ class FileController extends AEnvironmentAwareController {
 				->showMessages()
 				->showValidateFile()
 				->toArray();
-				$statusCode = Http::STATUS_OK;
+			$statusCode = Http::STATUS_OK;
 		} catch (InvalidArgumentException $e) {
 			$message = $this->l10n->t($e->getMessage());
 			$return = [
