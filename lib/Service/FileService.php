@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use InvalidArgumentException;
+use OC\Files\Filesystem;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
@@ -21,6 +23,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\Accounts\IAccountManager;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
@@ -46,6 +49,7 @@ class FileService {
 	private bool $showVisibleElements = false;
 	private bool $showMessages = false;
 	private bool $validateFile = false;
+	private string $fileContent = '';
 	private ?File $file = null;
 	private ?SignRequest $signRequest = null;
 	private ?IUser $me = null;
@@ -137,6 +141,42 @@ class FileService {
 	 */
 	public function setFile(File $file): self {
 		$this->file = $file;
+		return $this;
+	}
+
+	public function setFileFromRequest(?array $file): self {
+		if ($file === null) {
+			throw new InvalidArgumentException($this->l10n->t('No file provided'));
+		}
+		if (
+			$file['error'] !== 0 ||
+			!is_uploaded_file($file['tmp_name']) ||
+			Filesystem::isFileBlacklisted($file['tmp_name'])
+		) {
+			throw new InvalidArgumentException($this->l10n->t('Invalid file provided'));
+		}
+		if ($file['size'] > \OCP\Util::uploadLimit()) {
+			throw new InvalidArgumentException($this->l10n->t('File is too big'));
+		}
+
+		$this->fileContent = file_get_contents($file['tmp_name']);
+		$mimeType = $this->mimeTypeDetector->detectString($this->fileContent);
+		if ($mimeType !== 'application/pdf') {
+			$this->fileContent = '';
+			unlink($file['tmp_name']);
+			throw new InvalidArgumentException($this->l10n->t('Invalid file provided'));
+		}
+
+		$memoryFile = fopen($file['tmp_name'], 'rb');
+		$this->certData = $this->pkcs12Handler->validatePdfContent($memoryFile);
+		fclose($memoryFile);
+		unlink($file['tmp_name']);
+		$hash = hash('sha256', $this->fileContent);
+		try {
+			$libresignFile = $this->fileMapper->getBySignedHash($hash);
+			$this->setFile($libresignFile);
+		} catch (DoesNotExistException $e) {
+		}
 		return $this;
 	}
 

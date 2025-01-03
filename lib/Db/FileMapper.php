@@ -59,6 +59,37 @@ class FileMapper extends QBMapper {
 	}
 
 	/**
+	 * Return LibreSign file by signed hash
+	 *
+	 * @throws DoesNotExistException
+	 * @return File Row of table libresign_file
+	 */
+	public function getBySignedHash(string $hash): File {
+		foreach ($this->file as $file) {
+			if ($file->getSignedHash() === $hash) {
+				return $file;
+			}
+		}
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('f.*')
+			->from($this->getTableName(), 'f')
+			->join('f', 'libresign_sign_request', 'sr', $qb->expr()->eq('f.id', 'sr.file_id'))
+			->where(
+				$qb->expr()->orX(
+					$qb->expr()->eq('f.signed_hash', $qb->createNamedParameter($hash)),
+					$qb->expr()->eq('sr.signed_hash', $qb->createNamedParameter($hash))
+				)
+			)
+			->setMaxResults(1);
+
+		/** @var File */
+		$file = $this->findEntity($qb);
+		$this->file[] = $file;
+		return $file;
+	}
+
+	/**
 	 * Return LibreSign file by file UUID
 	 */
 	public function getByUuid(?string $uuid = null): File {
