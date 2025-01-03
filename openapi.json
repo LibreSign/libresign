@@ -740,6 +740,7 @@
                     "nodeId",
                     "totalPages",
                     "size",
+                    "pdfVersion",
                     "created_at",
                     "requested_by",
                     "file"
@@ -779,6 +780,9 @@
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0
+                    },
+                    "pdfVersion": {
+                        "type": "string"
                     },
                     "created_at": {
                         "type": "string"
