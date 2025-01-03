@@ -82,7 +82,7 @@
 						<NcIconSvgWrapper :path="mdiSignatureFreehand" :size="30" />
 						<h1>{{ t('libresign', 'Signatories:') }}</h1>
 					</div>
-					<ul>
+					<ul class="signers">
 						<span v-for="(signer, signerIndex) in document.signers"
 							:key="signerIndex">
 							<NcListItem :name="getName(signer)"
@@ -539,6 +539,15 @@ export default {
 					font-size: 1.5rem;
 				}
 
+				.extra {
+					:deep(.list-item-content__name) {
+						white-space: unset;
+					}
+					:deep(.list-item__anchor) {
+						height: unset;
+					}
+				}
+
 				.info-document {
 					color: var(--color-main-text);
 					display: flex;
@@ -556,16 +565,13 @@ export default {
 					}
 				}
 
-				.extra {
-					margin-left: 44px;
-					padding-right: 44px;
-					:deep(.list-item-content__name) {
-						white-space: unset;
-					}
-					:deep(.list-item__anchor) {
-						height: unset;
+				.signers {
+					.extra {
+						margin-left: 44px;
+						padding-right: 44px;
 					}
 				}
+
 			}
 		}
 	}
