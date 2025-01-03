@@ -244,6 +244,21 @@ class FileService {
 		return current($fileToValidate);
 	}
 
+	private function getFileMetadata(): array {
+		if ($this->fileContent) {
+			$content = $this->fileContent;
+		} elseif ($this->file) {
+			$content = $this->getFile()->getContent();
+		}
+		if (empty($content)) {
+			return [];
+		}
+		$metadata = $this->pdfParserService
+			->setFile($content)
+			->toArray();
+		return $metadata;
+	}
+
 	private function getCertData(): array {
 		if (!empty($this->certData) || !$this->validateFile || !$this->file->getSignedNodeId()) {
 			return $this->certData;
@@ -536,21 +551,6 @@ class FileService {
 		}
 		ksort($return);
 		return $return;
-	}
-
-	private function getFileMetadata(): array {
-		if ($this->fileContent) {
-			$content = $this->fileContent;
-		} elseif ($this->file) {
-			$content = $this->getFile()->getContent();
-		}
-		if (empty($content)) {
-			return [];
-		}
-		$metadata = $this->pdfParserService
-			->setFile($content)
-			->toArray();
-		return $metadata;
 	}
 
 	private function getBinaryFileToArray(): array {
