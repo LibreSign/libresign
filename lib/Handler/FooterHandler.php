@@ -89,7 +89,7 @@ class FooterHandler {
 		if (!is_array($metadata) || !isset($metadata['d'])) {
 			$metadata = $this->pdfParserService
 				->setFile($this->file)
-				->toArray();
+				->getPageDimensions();
 		}
 		return $metadata;
 	}

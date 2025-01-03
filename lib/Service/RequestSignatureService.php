@@ -119,7 +119,7 @@ class RequestSignatureService {
 					$metadata,
 					$this->pdfParserService
 						->setFile($node)
-						->toArray()
+						->getPageDimensions()
 				);
 			}
 		}
