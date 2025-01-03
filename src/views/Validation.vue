@@ -65,6 +65,14 @@
 								{{ document.name }}
 							</template>
 						</NcListItem>
+						<NcListItem class="extra"
+							compact
+							:name="t('libresign', 'Total pages:')">
+							<template #name>
+								<strong>{{ t('libresign', 'Total pages:') }}</strong>
+								{{ document.totalPages }}
+							</template>
+						</NcListItem>
 					</ul>
 					<div class="info-document">
 						<NcRichText class="legal-information"
