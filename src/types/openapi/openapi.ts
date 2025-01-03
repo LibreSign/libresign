@@ -1142,6 +1142,8 @@ export type components = {
             nodeId: number;
             /** Format: int64 */
             totalPages: number;
+            /** Format: int64 */
+            size: number;
             created_at: string;
             requested_by: {
                 userId: string;
