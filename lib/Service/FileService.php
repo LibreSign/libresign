@@ -73,6 +73,7 @@ class FileService {
 		protected FileElementService $fileElementService,
 		protected FolderService $folderService,
 		protected ValidateHelper $validateHelper,
+		protected PdfParserService $pdfParserService,
 		private AccountService $accountService,
 		private IdentifyMethodService $identifyMethodService,
 		private IUserSession $userSession,
@@ -210,20 +211,28 @@ class FileService {
 		return $this;
 	}
 
-	private function getCertData(): array {
-		if (!empty($this->certData) || !$this->validateFile || !$this->file->getSignedNodeId()) {
-			return $this->certData;
+	private function getFile(): \OCP\Files\File {
+		$nodeId = $this->file->getSignedNodeId();
+		if (!$nodeId) {
+			$nodeId = $this->file->getNodeId();
 		}
-		$mountsContainingFile = $this->userMountCache->getMountsForFileId($this->file->getSignedNodeId());
+		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
 		foreach ($mountsContainingFile as $fileInfo) {
-			$this->root->getByIdInPath($this->file->getSignedNodeId(), $fileInfo->getMountPoint());
+			$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
 		}
-		$fileToValidate = $this->root->getById($this->file->getSignedNodeId());
+		$fileToValidate = $this->root->getById($nodeId);
 		if (!count($fileToValidate)) {
 			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 		}
 		/** @var \OCP\Files\File */
-		$file = current($fileToValidate);
+		return current($fileToValidate);
+	}
+
+	private function getCertData(): array {
+		if (!empty($this->certData) || !$this->validateFile || !$this->file->getSignedNodeId()) {
+			return $this->certData;
+		}
+		$file = $this->getFile();
 
 		$resource = $file->fopen('rb');
 		$this->certData = $this->pkcs12Handler->validatePdfContent($resource);
@@ -463,6 +472,16 @@ class FileService {
 		if ($this->fileContent) {
 			return $this->getBinaryFileToArray();
 		}
+		if (!$metadata = $this->getFileMetadata()) {
+			return $return;
+		}
+		$return['totalPages'] = $metadata['p'];
+		if (!$this->file) {
+			return array_merge(
+				$return,
+				$this->getBinaryFileToArray(),
+			);
+		}
 		$return['uuid'] = $this->file->getUuid();
 		$return['name'] = $this->file->getName();
 		$return['status'] = $this->file->getStatus();
@@ -503,11 +522,27 @@ class FileService {
 		return $return;
 	}
 
+	private function getFileMetadata(): array {
+		if ($this->fileContent) {
+			return $this->pdfParserService
+				->setFile($this->fileContent)
+				->toArray();
+		}
+		if ($this->file) {
+			return $this->pdfParserService
+				->setFile($this->getFile())
+				->toArray();
+		}
+		return [];
+	}
+
 	private function getBinaryFileToArray(): array {
 		if (!$this->fileContent) {
 			return [];
 		}
+		$return = [];
 		$return['status'] = $this->certData ? File::STATUS_SIGNED : File::STATUS_NOT_LIBRESIGN_FILE;
+		return $return;
 	}
 
 	/**
