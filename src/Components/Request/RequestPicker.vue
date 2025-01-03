@@ -187,6 +187,7 @@ export default {
 			this.loading = false
 		},
 		async upload(file) {
+			this.loading = true
 			const data = await loadFileToBase64(file)
 			await this.filesStore.upload({
 				name: file.name.replace(/\.pdf$/i, ''),
@@ -198,15 +199,13 @@ export default {
 						name: response.name,
 					})
 					this.filesStore.selectFile(response.id)
-					this.loading = false
 				})
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.message)
-					this.loading = false
 				})
+			this.loading = false
 		},
 		uploadFile() {
-			this.loading = true
 			this.openedMenu = false
 			const input = document.createElement('input')
 			input.accept = 'application/pdf'
