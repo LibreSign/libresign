@@ -98,7 +98,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'main')]
 	#[FrontpageRoute(verb: 'GET', url: '/')]
-	public function index(): TemplateResponse {
+	public function index(?string $path = null): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig($this->userSession->getUser()));
 		$this->initialState->provideInitialState('certificate_engine', $this->accountService->getCertificateEngineName());
 
@@ -110,7 +110,6 @@ class PageController extends AEnvironmentPageAwareController {
 		}
 
 		$this->provideSignerSignatues();
-		$this->initialState->provideInitialState('file_info', $this->fileService->toArray());
 		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
 
@@ -194,8 +193,11 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'main')]
 	#[FrontpageRoute(verb: 'GET', url: '/f/{path}', requirements: ['path' => '.+'])]
-	public function indexFPath(): TemplateResponse {
-		return $this->index();
+	public function indexFPath(string $path): TemplateResponse {
+		if (preg_match('/validation\/(?<uuid>[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/', $path, $matches)) {
+			return $this->validationFilePublic($matches['uuid']);
+		}
+		return $this->index($path);
 	}
 
 
@@ -530,7 +532,7 @@ class PageController extends AEnvironmentPageAwareController {
 	}
 
 	/**
-	 * Show validation page for a specific file UUID
+	 * Public page to show validation for a specific file UUID
 	 *
 	 * @param string $uuid File uuid
 	 * @return TemplateResponse<Http::STATUS_OK, array{}>
@@ -544,7 +546,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[PublicPage]
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[FrontpageRoute(verb: 'GET', url: '/p/validation/{uuid}')]
-	public function validationFile(string $uuid): TemplateResponse {
+	public function validationFilePublic(string $uuid): TemplateResponse {
 		$this->throwIfValidationPageNotAccessible();
 		try {
 			$this->signFileService->getFileByUuid($uuid);
@@ -563,6 +565,7 @@ class PageController extends AEnvironmentPageAwareController {
 			$this->initialState->provideInitialState('config',
 				$this->accountService->getConfig($this->userSession->getUser())
 			);
+			$this->fileService->setMe($this->userSession->getUser());
 		} else {
 			$this->initialState->provideInitialState('config',
 				$this->accountService->getConfig()
@@ -571,8 +574,16 @@ class PageController extends AEnvironmentPageAwareController {
 
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
 
-		$this->fileService->showSigners();
-		$this->initialState->provideInitialState('file_info', $this->fileService->toArray());
+		$this->initialState->provideInitialState('file_info',
+			$this->fileService
+				->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
+				->showVisibleElements()
+				->showSigners()
+				->showSettings()
+				->showMessages()
+				->showValidateFile()
+				->toArray()
+		);
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
 		if (class_exists(LoadViewer::class)) {
