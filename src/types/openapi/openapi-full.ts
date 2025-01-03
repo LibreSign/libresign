@@ -322,8 +322,8 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /** Show validation page for a specific file UUID */
-        get: operations["page-validation-file"];
+        /** Public page to show validation for a specific file UUID */
+        get: operations["page-validation-file-public"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1430,6 +1430,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description The path that was sent from frontend */
                 path: string;
             };
             cookie?: never;
@@ -1703,7 +1704,7 @@ export interface operations {
             };
         };
     };
-    "page-validation-file": {
+    "page-validation-file-public": {
         parameters: {
             query?: never;
             header?: never;
