@@ -98,7 +98,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'main')]
 	#[FrontpageRoute(verb: 'GET', url: '/')]
-	public function index(?string $path = null): TemplateResponse {
+	public function index(): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig($this->userSession->getUser()));
 		$this->initialState->provideInitialState('certificate_engine', $this->accountService->getCertificateEngineName());
 
@@ -184,7 +184,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 *
 	 * The path is used only by frontend
 	 *
-	 * @param string $uuid Sign request uuid
+	 * @param string $path The path that was sent from frontend
 	 * @return TemplateResponse<Http::STATUS_OK, array{}>
 	 *
 	 * 200: OK
@@ -197,7 +197,7 @@ class PageController extends AEnvironmentPageAwareController {
 		if (preg_match('/validation\/(?<uuid>[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/', $path, $matches)) {
 			return $this->validationFilePublic($matches['uuid']);
 		}
-		return $this->index($path);
+		return $this->index();
 	}
 
 
