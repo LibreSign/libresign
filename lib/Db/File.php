@@ -68,6 +68,7 @@ class File extends Entity {
 	/** @var string */
 	protected $metadata;
 
+	public const STATUS_NOT_LIBRESIGN_FILE = -1;
 	public const STATUS_DRAFT = 0;
 	public const STATUS_ABLE_TO_SIGN = 1;
 	public const STATUS_PARTIAL_SIGNED = 2;
