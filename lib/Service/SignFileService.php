@@ -274,8 +274,10 @@ class SignFileService {
 					->setPassword($this->password)
 					->sign();
 		}
+		$hash = hash('sha256', $signedFile->getContent());
 
 		$this->signRequest->setSigned(time());
+		$this->signRequest->setSignedHash($hash);
 		if ($this->signRequest->getId()) {
 			$this->signRequestMapper->update($this->signRequest);
 		} else {
@@ -283,6 +285,7 @@ class SignFileService {
 		}
 
 		$this->libreSignFile->setSignedNodeId($signedFile->getId());
+		$this->libreSignFile->setSignedHash($hash);
 		$allSigned = $this->updateStatus();
 		$this->fileMapper->update($this->libreSignFile);
 
