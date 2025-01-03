@@ -460,7 +460,7 @@ class FileService {
 
 	private function getFileToArray(): array {
 		$return = [];
-		if (!$this->fileContent) {
+		if ($this->fileContent) {
 			return $this->getBinaryFileToArray();
 		}
 		$return['uuid'] = $this->file->getUuid();
