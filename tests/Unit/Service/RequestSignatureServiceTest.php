@@ -211,7 +211,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			->method('setFile')
 			->willReturn($this->pdfParserService);
 		$this->pdfParserService
-			->method('toArray')
+			->method('getPageDimensions')
 			->willReturn(['isValid' => true]);
 		$actual = self::invokePrivate($this->getService(), 'getFileMetadata', [$inputFile]);
 		$this->assertEquals($expected, $actual);

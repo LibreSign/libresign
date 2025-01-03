@@ -87,7 +87,7 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 			if (count($file) >= 1) {
 				$data = $this->pdfParserService
 					->setFile($file[0])
-					->toArray();
+					->getPageDimensions();
 				$json = json_encode($data);
 				$query = $this->connection->getQueryBuilder();
 				$query
