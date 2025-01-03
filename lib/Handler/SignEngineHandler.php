@@ -28,13 +28,11 @@ use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCP\Files\File;
 
 abstract class SignEngineHandler implements ISignEngineHandler {
-	/** @var File */
-	private $inputFile;
+	private File $inputFile;
 	private string $certificate;
-	/** @var string */
-	private $password = '';
+	private string $password = '';
 	/** @var VisibleElementAssoc[] */
-	private $visibleElements = [];
+	private array $visibleElements = [];
 
 	/**
 	 * @return static
