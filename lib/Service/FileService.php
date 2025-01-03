@@ -144,6 +144,36 @@ class FileService {
 		return $this;
 	}
 
+	public function setSignRequest(SignRequest $signRequest): self {
+		$this->signRequest = $signRequest;
+		return $this;
+	}
+
+	public function showValidateFile(bool $validateFile = true): self {
+		$this->validateFile = $validateFile;
+		return $this;
+	}
+
+	/**
+	 * @return static
+	 */
+	public function setFileByType(string $type, $identifier): self {
+		try {
+			/** @var File */
+			$file = call_user_func(
+				[$this->fileMapper, 'getBy' . $type],
+				$identifier
+			);
+		} catch (\Throwable $th) {
+			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
+		}
+		if (!$file) {
+			throw new LibresignException($this->l10n->t('Invalid file identifier'), 404);
+		}
+		$this->setFile($file);
+		return $this;
+	}
+
 	public function setFileFromRequest(?array $file): self {
 		if ($file === null) {
 			throw new InvalidArgumentException($this->l10n->t('No file provided'));
@@ -180,34 +210,25 @@ class FileService {
 		return $this;
 	}
 
-	public function setSignRequest(SignRequest $signRequest): self {
-		$this->signRequest = $signRequest;
-		return $this;
-	}
-
-	public function showValidateFile(bool $validateFile = true): self {
-		$this->validateFile = $validateFile;
-		return $this;
-	}
-
-	/**
-	 * @return static
-	 */
-	public function setFileByType(string $type, $identifier): self {
-		try {
-			/** @var File */
-			$file = call_user_func(
-				[$this->fileMapper, 'getBy' . $type],
-				$identifier
-			);
-		} catch (\Throwable $th) {
+	private function getCertData(): array {
+		if (!empty($this->certData) || !$this->validateFile || !$this->file->getSignedNodeId()) {
+			return $this->certData;
+		}
+		$mountsContainingFile = $this->userMountCache->getMountsForFileId($this->file->getSignedNodeId());
+		foreach ($mountsContainingFile as $fileInfo) {
+			$this->root->getByIdInPath($this->file->getSignedNodeId(), $fileInfo->getMountPoint());
+		}
+		$fileToValidate = $this->root->getById($this->file->getSignedNodeId());
+		if (!count($fileToValidate)) {
 			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 		}
-		if (!$file) {
-			throw new LibresignException($this->l10n->t('Invalid file identifier'), 404);
-		}
-		$this->setFile($file);
-		return $this;
+		/** @var \OCP\Files\File */
+		$file = current($fileToValidate);
+
+		$resource = $file->fopen('rb');
+		$this->certData = $this->pkcs12Handler->validatePdfContent($resource);
+		fclose($resource);
+		return $this->certData;
 	}
 
 	private function getSigners(): array {
@@ -437,10 +458,10 @@ class FileService {
 		return self::IDENTIFICATION_DOCUMENTS_APPROVED;
 	}
 
-	private function getFile(): array {
+	private function getFileToArray(): array {
 		$return = [];
-		if (!$this->file) {
-			return $return;
+		if (!$this->fileContent) {
+			return $this->getBinaryFileToArray();
 		}
 		$return['uuid'] = $this->file->getUuid();
 		$return['name'] = $this->file->getName();
@@ -482,25 +503,11 @@ class FileService {
 		return $return;
 	}
 
-	private function getCertData(): array {
-		if (!empty($this->certData) || !$this->validateFile || !$this->file->getSignedNodeId()) {
-			return $this->certData;
+	private function getBinaryFileToArray(): array {
+		if (!$this->fileContent) {
+			return [];
 		}
-		$mountsContainingFile = $this->userMountCache->getMountsForFileId($this->file->getSignedNodeId());
-		foreach ($mountsContainingFile as $fileInfo) {
-			$this->root->getByIdInPath($this->file->getSignedNodeId(), $fileInfo->getMountPoint());
-		}
-		$fileToValidate = $this->root->getById($this->file->getSignedNodeId());
-		if (!count($fileToValidate)) {
-			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
-		}
-		/** @var \OCP\Files\File */
-		$file = current($fileToValidate);
-
-		$resource = $file->fopen('rb');
-		$this->certData = $this->pkcs12Handler->validatePdfContent($resource);
-		fclose($resource);
-		return $this->certData;
+		$return['status'] = $this->certData ? File::STATUS_SIGNED : File::STATUS_NOT_LIBRESIGN_FILE;
 	}
 
 	/**
@@ -529,7 +536,7 @@ class FileService {
 	 * @return LibresignValidateFile
 	 */
 	public function toArray(): array {
-		$return = $this->getFile();
+		$return = $this->getFileToArray();
 		if ($this->showSettings) {
 			$return['settings'] = $this->getSettings();
 		}
