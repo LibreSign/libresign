@@ -243,7 +243,7 @@ class FileService {
 		}
 		$metadata = $this->pdfParserService
 			->setFile($content)
-			->toArray();
+			->getPageDimensions();
 		$metadata['size'] = strlen($content);
 		return $metadata;
 	}
