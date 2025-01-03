@@ -260,6 +260,7 @@ class FileService {
 		$metadata = $this->pdfParserService
 			->setFile($content)
 			->toArray();
+		$metadata['size'] = strlen($content);
 		return $metadata;
 	}
 
@@ -511,6 +512,7 @@ class FileService {
 			return $return;
 		}
 		$return['totalPages'] = $metadata['p'];
+		$return['size'] = $metadata['size'];
 		if (!$this->file) {
 			return array_merge(
 				$return,
