@@ -203,7 +203,16 @@ class FileController extends AEnvironmentAwareController {
 					$this->request->getParam('uuid')
 				);
 			}
-			$return = [];
+
+			$return = $this->fileService
+				->setMe($this->userSession->getUser())
+				->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
+				->showVisibleElements()
+				->showSigners()
+				->showSettings()
+				->showMessages()
+				->showValidateFile()
+				->toArray();
 			$statusCode = Http::STATUS_OK;
 		} catch (LibresignException $e) {
 			$message = $this->l10n->t($e->getMessage());
@@ -221,18 +230,6 @@ class FileController extends AEnvironmentAwareController {
 			];
 			$statusCode = Http::STATUS_NOT_FOUND;
 		}
-
-		$return = array_merge($return,
-			$this->fileService
-				->setMe($this->userSession->getUser())
-				->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
-				->showVisibleElements()
-				->showSigners()
-				->showSettings()
-				->showMessages()
-				->showValidateFile()
-				->toArray()
-		);
 
 		return new DataResponse($return, $statusCode);
 	}
