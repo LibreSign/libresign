@@ -53,13 +53,20 @@
 						<NcIconSvgWrapper :path="mdiInformationSlabCircle" :size="30" />
 						<h1>{{ t('libresign', 'Document informations') }}</h1>
 					</div>
+					<NcNoteCard v-if="isAfterSigned" type="success">
+						{{ t('libresign', 'Congratulations you have digitally signed a document using LibreSign') }}
+					</NcNoteCard>
+					<ul>
+						<NcListItem class="extra"
+							compact
+							:name="t('libresign', 'Name:')">
+							<template #name>
+								<strong>{{ t('libresign', 'Name:') }}</strong>
+								{{ document.name }}
+							</template>
+						</NcListItem>
+					</ul>
 					<div class="info-document">
-						<NcNoteCard v-if="isAfterSigned" type="success">
-							{{ t('libresign', 'Congratulations you have digitally signed a document using LibreSign') }}
-						</NcNoteCard>
-						<p>
-							<b>{{ document.name }}</b>
-						</p>
 						<NcRichText class="legal-information"
 							:text="legalInformation"
 							:use-markdown="true" />
