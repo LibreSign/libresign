@@ -172,6 +172,7 @@ namespace OCA\Libresign;
  *     statusText: string,
  *     nodeId: non-negative-int,
  *     totalPages: non-negative-int,
+ *     size: non-negative-int,
  *     created_at: string,
  *     requested_by: array{
  *         userId: string,

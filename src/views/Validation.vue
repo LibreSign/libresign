@@ -231,6 +231,7 @@ import JSConfetti from 'js-confetti'
 
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
+import { formatFileSize } from '@nextcloud/files'
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
 import Moment from '@nextcloud/moment'
@@ -241,7 +242,6 @@ import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
 import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
-import { formatFileSize } from '@nextcloud/files'
 import NcIconSvgWrapper from '@nextcloud/vue/dist/Components/NcIconSvgWrapper.js'
 import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
@@ -308,8 +308,8 @@ export default {
 			return ''
 		},
 		size() {
-			return formatFileSize( this.document.size)
-		}
+			return formatFileSize(this.document.size)
+		},
 	},
 	watch: {
 		'$route.params.uuid'(uuid) {
