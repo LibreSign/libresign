@@ -1048,6 +1048,7 @@
                     {
                         "name": "path",
                         "in": "path",
+                        "description": "The path that was sent from frontend",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -1529,8 +1530,8 @@
         },
         "/index.php/apps/libresign/p/validation/{uuid}": {
             "get": {
-                "operationId": "page-validation-file",
-                "summary": "Show validation page for a specific file UUID",
+                "operationId": "page-validation-file-public",
+                "summary": "Public page to show validation for a specific file UUID",
                 "tags": [
                     "page"
                 ],
