@@ -241,11 +241,11 @@ class FileService {
 		if (!$content = $this->getFileContent()) {
 			return [];
 		}
-		$metadata = $this->pdfParserService
-			->setFile($content)
-			->getPageDimensions();
-		$metadata['size'] = strlen($content);
-		return $metadata;
+		$pdfParserService = $this->pdfParserService->setFile($content);
+		$dimensions = $pdfParserService->getPageDimensions();
+		$return['totalPages'] = $dimensions['p'];
+		$return['size'] = strlen($content);
+		return $return;
 	}
 
 	private function getCertData(): array {
@@ -492,11 +492,9 @@ class FileService {
 		if ($this->fileContent) {
 			return $this->getBinaryFileToArray();
 		}
-		if (!$metadata = $this->getFileMetadata()) {
-			return $return;
+		if (!$return = $this->getFileMetadata()) {
+			return [];
 		}
-		$return['totalPages'] = $metadata['p'];
-		$return['size'] = $metadata['size'];
 		if (!$this->file) {
 			return array_merge(
 				$return,
