@@ -315,6 +315,8 @@ export default {
 			this.document.signers.forEach(signer => {
 				this.$set(signer, 'opened', false)
 			})
+		} else if (this.uuidToValidate.length > 0) {
+			this.validate(this.uuidToValidate)
 		}
 	},
 	methods: {
