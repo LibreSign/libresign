@@ -372,9 +372,7 @@ export default {
 			if (id === this.document?.uuid) {
 				showSuccess(t('libresign', 'This document is valid'))
 				this.hasInfo = true
-				return
-			}
-			if (id.length === 36) {
+			} else if (id.length === 36) {
 				this.validateByUUID(id)
 			} else {
 				this.validateByNodeID(id)
