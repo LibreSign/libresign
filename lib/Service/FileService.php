@@ -228,13 +228,17 @@ class FileService {
 		return current($fileToValidate);
 	}
 
-	private function getFileMetadata(): array {
+	private function getFileContent(): string {
 		if ($this->fileContent) {
-			$content = $this->fileContent;
+			return $this->fileContent;
 		} elseif ($this->file) {
-			$content = $this->getFile()->getContent();
+			return $this->getFile()->getContent();
 		}
-		if (empty($content)) {
+		return '';
+	}
+
+	private function getFileMetadata(): array {
+		if (!$content = $this->getFileContent()) {
 			return [];
 		}
 		$metadata = $this->pdfParserService
