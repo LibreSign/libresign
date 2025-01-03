@@ -1290,6 +1290,7 @@ export type components = {
             totalPages: number;
             /** Format: int64 */
             size: number;
+            pdfVersion: string;
             created_at: string;
             requested_by: {
                 userId: string;

@@ -85,6 +85,14 @@
 								{{ size }}
 							</template>
 						</NcListItem>
+						<NcListItem class="extra"
+							compact
+							:name="t('libresign', 'PDF version:')">
+							<template #name>
+								<strong>{{ t('libresign', 'PDF version:') }}</strong>
+								{{ document.pdfVersion }}
+							</template>
+						</NcListItem>
 					</ul>
 					<div class="info-document">
 						<NcRichText class="legal-information"
