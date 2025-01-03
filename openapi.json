@@ -738,6 +738,7 @@
                     "status",
                     "statusText",
                     "nodeId",
+                    "totalPages",
                     "created_at",
                     "requested_by",
                     "file"
@@ -764,6 +765,11 @@
                         "type": "string"
                     },
                     "nodeId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "totalPages": {
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0

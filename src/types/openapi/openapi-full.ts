@@ -1286,6 +1286,8 @@ export type components = {
             statusText: string;
             /** Format: int64 */
             nodeId: number;
+            /** Format: int64 */
+            totalPages: number;
             created_at: string;
             requested_by: {
                 userId: string;
