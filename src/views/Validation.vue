@@ -4,18 +4,49 @@
 			<img :src="logo" draggable="false">
 		</div>
 		<div id="dataUUID">
-			<form v-show="!hasInfo" @submit="(e) => e.preventDefault()">
-				<h1>{{ t('libresign', 'Validate signature') }}</h1>
-				<NcTextField v-model="uuidToValidate" :label="t('libresign', 'Enter the ID or UUID of the document to validate.')" />
-				<NcButton type="primary"
-					:disabled="loading"
-					@click.prevent="clickedValidate = true;validate(uuidToValidate)">
-					<template #icon>
-						<NcLoadingIcon v-if="loading" :size="20" />
-					</template>
-					{{ t('libresign', 'Validation') }}
-				</NcButton>
-			</form>
+			<div v-show="!hasInfo" class="infor-container">
+				<div class="section">
+					<h1>{{ t('libresign', 'Validate signature') }}</h1>
+					<NcActions :menu-name="t('libresign', 'Validate signature')"
+						:inline="3"
+						:force-name="true">
+						<NcActionButton :wide="true"
+							@click="getUUID = true">
+							{{ t('libresign', 'From UUID') }}
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiKey" />
+							</template>
+						</NcActionButton>
+						<NcActionButton :wide="true"
+							@click="uploadFile">
+							{{ t('libresign', 'Upload') }}
+							<template #icon>
+								<NcIconSvgWrapper :path="mdiUpload" />
+							</template>
+						</NcActionButton>
+					</NcActions>
+					<NcDialog v-if="getUUID"
+						:name="t('libresign', 'Validate signature')"
+						is-form
+						@closing="getUUID = false">
+						<h1>{{ t('libresign', 'Validate signature') }}</h1>
+						<NcTextField v-model="uuidToValidate"
+							:label="t('libresign', 'Enter the ID or UUID of the document to validate.')"
+							:helper-text="helperTextValidation"
+							:error="uuidToValidate.length > 0 && !canValidate" />
+						<template #actions>
+							<NcButton type="primary"
+								:disabled="loading || !canValidate"
+								@click.prevent="clickedValidate = true;validate(uuidToValidate)">
+								<template #icon>
+									<NcLoadingIcon v-if="loading" :size="20" />
+								</template>
+								{{ t('libresign', 'Validation') }}
+							</NcButton>
+						</template>
+					</NcDialog>
+				</div>
+			</div>
 			<div v-if="hasInfo" class="infor-container">
 				<div class="section">
 					<div class="header">
@@ -167,9 +198,11 @@
 <script>
 import {
 	mdiInformationSlabCircle,
+	mdiKey,
 	mdiSignatureFreehand,
-	mdiUnfoldMoreHorizontal,
 	mdiUnfoldLessHorizontal,
+	mdiUnfoldMoreHorizontal,
+	mdiUpload,
 } from '@mdi/js'
 import JSConfetti from 'js-confetti'
 
@@ -180,8 +213,11 @@ import { translate as t } from '@nextcloud/l10n'
 import Moment from '@nextcloud/moment'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 
+import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
+import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
 import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcIconSvgWrapper from '@nextcloud/vue/dist/Components/NcIconSvgWrapper.js'
 import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
@@ -197,34 +233,55 @@ export default {
 	name: 'Validation',
 
 	components: {
-		NcTextField,
-		NcRichText,
-		NcButton,
-		NcLoadingIcon,
-		NcListItem,
+		NcActionButton,
+		NcActions,
 		NcAvatar,
+		NcButton,
+		NcDialog,
 		NcIconSvgWrapper,
+		NcListItem,
+		NcLoadingIcon,
 		NcNoteCard,
+		NcRichText,
+		NcTextField,
 	},
-
+	setup() {
+		return {
+			mdiInformationSlabCircle,
+			mdiKey,
+			mdiSignatureFreehand,
+			mdiUnfoldLessHorizontal,
+			mdiUnfoldMoreHorizontal,
+			mdiUpload,
+		}
+	},
 	data() {
 		return {
 			logo: logoGray,
-			mdiUnfoldMoreHorizontal,
-			mdiInformationSlabCircle,
-			mdiUnfoldLessHorizontal,
-			mdiSignatureFreehand,
 			uuidToValidate: this.$route.params?.uuid ?? '',
 			hasInfo: false,
 			loading: false,
 			document: {},
 			legalInformation: loadState('libresign', 'legal_information', ''),
 			clickedValidate: false,
+			getUUID: false,
+			getUploadedFile: false,
+			urlQrCode: '',
 		}
 	},
 	computed: {
 		isAfterSigned() {
 			return this.$route.params.isAfterSigned ?? false
+		},
+		canValidate() {
+			const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+			return this.uuidToValidate.length === 36 && uuidRegex.test(this.uuidToValidate)
+		},
+		helperTextValidation() {
+			if (this.uuidToValidate.length > 0 && !this.canValidate) {
+				return t('libresign', 'Invalid UUID')
+			}
+			return ''
 		},
 	},
 	watch: {
@@ -246,6 +303,49 @@ export default {
 		}
 	},
 	methods: {
+		async upload(file) {
+			this.loading = true
+			const formData = new FormData()
+			formData.append('file', file)
+			await axios.postForm(generateOcsUrl('/apps/libresign/api/v1/file/validate'), formData, {
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+			})
+				.then(({ data }) => {
+					showSuccess(t('libresign', 'This document is valid'))
+					this.$set(this, 'document', data.ocs.data)
+					this.document.signers.forEach(signer => {
+						this.$set(signer, 'opened', false)
+					})
+					this.hasInfo = true
+					if (this.isAfterSigned) {
+						const jsConfetti = new JSConfetti()
+						jsConfetti.addConfetti()
+					}
+				})
+				.catch(({ response }) => {
+					showError(response.data.ocs.data.errors[0])
+				})
+			this.loading = false
+		},
+		uploadFile() {
+			const input = document.createElement('input')
+			input.accept = 'application/pdf'
+			input.type = 'file'
+
+			input.onchange = async (ev) => {
+				const file = ev.target.files[0]
+
+				if (file) {
+					this.upload(file)
+				}
+
+				input.remove()
+			}
+
+			input.click()
+		},
 		dateFromSqlAnsi(date) {
 			return Moment(Date.parse(date)).format('LL LTS')
 		},
@@ -285,7 +385,7 @@ export default {
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.errors[0])
 				})
-				this.loading = false
+			this.loading = false
 		},
 		async validateByNodeID(nodeId) {
 			this.loading = true
@@ -305,7 +405,7 @@ export default {
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.errors[0])
 				})
-				this.loading = false
+			this.loading = false
 		},
 		getName(user) {
 			if (user.displayName) {
@@ -372,7 +472,6 @@ export default {
 			display: none;
 			width: 0%;
 		}
-
 	}
 	#dataUUID {
 		width: 100%;
@@ -416,13 +515,21 @@ export default {
 		}
 		.infor-container {
 			width: 100%;
-			margin-right: 20px;
+			margin: 20px;
 			.section {
 				background-color: var(--color-main-background);
 				padding: 20px;
 				border-radius: 8px;
 				box-shadow: 0 0 6px 0 var(--color-box-shadow);
 				margin-bottom: 10px;
+				width: 100%;
+				@media screen and (max-width: 900px) {
+					max-width: 100%;
+				}
+				.action-items {
+					gap: 12px;
+					flex-direction: column;
+				}
 
 				.header {
 					display: flex;
