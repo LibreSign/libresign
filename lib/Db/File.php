@@ -34,6 +34,8 @@ use OCP\DB\Types;
  * @method int getNodeId()
  * @method void setSignedNodeId(int $nodeId)
  * @method int getSignedNodeId()
+ * @method void setSignedHash(string $hash)
+ * @method string getSignedHash()
  * @method void setUserId(string $userId)
  * @method void setUuid(string $uuid)
  * @method string getUuid()
@@ -57,6 +59,9 @@ class File extends Entity {
 
 	/** @var integer */
 	protected $signedNodeId;
+
+	/** @var string */
+	protected $signedHash;
 
 	/** @var string */
 	protected $userId;
@@ -89,6 +94,7 @@ class File extends Entity {
 		$this->addType('id', 'integer');
 		$this->addType('nodeId', 'integer');
 		$this->addType('signedNodeId', 'integer');
+		$this->addType('signedHash', 'string');
 		$this->addType('userId', 'string');
 		$this->addType('uuid', 'string');
 		$this->addType('createdAt', 'integer');
