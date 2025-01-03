@@ -77,6 +77,14 @@
 								{{ document.totalPages }}
 							</template>
 						</NcListItem>
+						<NcListItem class="extra"
+							compact
+							:name="t('libresign', 'File size:')">
+							<template #name>
+								<strong>{{ t('libresign', 'File size:') }}</strong>
+								{{ size }}
+							</template>
+						</NcListItem>
 					</ul>
 					<div class="info-document">
 						<NcRichText class="legal-information"
@@ -237,6 +245,7 @@ import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
 import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
+import { formatFileSize } from '@nextcloud/files'
 import NcIconSvgWrapper from '@nextcloud/vue/dist/Components/NcIconSvgWrapper.js'
 import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
@@ -302,6 +311,9 @@ export default {
 			}
 			return ''
 		},
+		size() {
+			return formatFileSize( this.document.size)
+		}
 	},
 	watch: {
 		'$route.params.uuid'(uuid) {
