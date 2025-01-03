@@ -273,40 +273,43 @@ export default {
 		},
 		async validateByUUID(uuid) {
 			this.loading = true
-			try {
-				const response = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${uuid}`))
-				showSuccess(t('libresign', 'This document is valid'))
-				this.$set(this, 'document', response.data.ocs.data)
-				this.document.signers.forEach(signer => {
-					this.$set(signer, 'opened', false)
+			await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${uuid}`))
+				.then(({ data }) => {
+					showSuccess(t('libresign', 'This document is valid'))
+					this.$set(this, 'document', data.ocs.data)
+					this.document.signers.forEach(signer => {
+						this.$set(signer, 'opened', false)
+					})
+					this.hasInfo = true
+					if (this.isAfterSigned) {
+						const jsConfetti = new JSConfetti()
+						jsConfetti.addConfetti()
+					}
 				})
-				this.hasInfo = true
+				.catch(({ response }) => {
+					showError(response.data.ocs.data.errors[0])
+				})
 				this.loading = false
-				if (this.isAfterSigned) {
-					const jsConfetti = new JSConfetti()
-					jsConfetti.addConfetti()
-				}
-			} catch (err) {
-				this.loading = false
-				showError(err.response.data.ocs.data.errors[0])
-			}
 		},
 		async validateByNodeID(nodeId) {
 			this.loading = true
-			try {
-				const response = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${nodeId}`))
-				showSuccess(t('libresign', 'This document is valid'))
-				this.$set(this, 'document', response.data.ocs.data)
-				this.hasInfo = true
+			await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${nodeId}`))
+				.then(({ data }) => {
+					showSuccess(t('libresign', 'This document is valid'))
+					this.$set(this, 'document', data.ocs.data)
+					this.document.signers.forEach(signer => {
+						this.$set(signer, 'opened', false)
+					})
+					this.hasInfo = true
+					if (this.isAfterSigned) {
+						const jsConfetti = new JSConfetti()
+						jsConfetti.addConfetti()
+					}
+				})
+				.catch(({ response }) => {
+					showError(response.data.ocs.data.errors[0])
+				})
 				this.loading = false
-				if (this.isAfterSigned) {
-					const jsConfetti = new JSConfetti()
-					jsConfetti.addConfetti()
-				}
-			} catch (err) {
-				this.loading = false
-				showError(err.response.data.ocs.data.errors[0])
-			}
 		},
 		getName(user) {
 			if (user.displayName) {
