@@ -3352,8 +3352,7 @@
                                                     "type": "object",
                                                     "required": [
                                                         "action",
-                                                        "errors",
-                                                        "settings"
+                                                        "errors"
                                                     ],
                                                     "properties": {
                                                         "action": {
@@ -3505,8 +3504,7 @@
                                                     "type": "object",
                                                     "required": [
                                                         "action",
-                                                        "errors",
-                                                        "settings"
+                                                        "errors"
                                                     ],
                                                     "properties": {
                                                         "action": {
@@ -3648,8 +3646,7 @@
                                                     "type": "object",
                                                     "required": [
                                                         "action",
-                                                        "errors",
-                                                        "settings"
+                                                        "errors"
                                                     ],
                                                     "properties": {
                                                         "action": {
@@ -3716,8 +3713,7 @@
                                                     "type": "object",
                                                     "required": [
                                                         "action",
-                                                        "errors",
-                                                        "settings"
+                                                        "errors"
                                                     ],
                                                     "properties": {
                                                         "action": {
@@ -3882,8 +3878,7 @@
                                                     "type": "object",
                                                     "required": [
                                                         "action",
-                                                        "errors",
-                                                        "settings"
+                                                        "errors"
                                                     ],
                                                     "properties": {
                                                         "action": {
