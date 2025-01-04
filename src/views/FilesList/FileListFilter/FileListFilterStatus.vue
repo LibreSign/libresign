@@ -51,7 +51,6 @@ export default {
 	data() {
 		return {
 			selectedOptions: [],
-			fileStatus,
 		}
 	},
 	computed: {
