@@ -348,7 +348,7 @@ export default {
 				.then(({ data }) => {
 					showSuccess(t('libresign', 'This document is valid'))
 					this.$set(this, 'document', data.ocs.data)
-					this.document.signers.forEach(signer => {
+					this.document.signers?.forEach(signer => {
 						this.$set(signer, 'opened', false)
 					})
 					this.hasInfo = true
