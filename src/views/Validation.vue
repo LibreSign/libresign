@@ -104,7 +104,7 @@
 						</NcButton>
 					</div>
 				</div>
-				<div class="section" v-if="document.signers">
+				<div v-if="document.signers" class="section">
 					<div class="header">
 						<NcIconSvgWrapper :path="mdiSignatureFreehand" :size="30" />
 						<h1>{{ t('libresign', 'Signatories:') }}</h1>
