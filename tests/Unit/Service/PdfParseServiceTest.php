@@ -45,7 +45,7 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 		$this->getService()
 			->setFile($file)
-			->toArray($file);
+			->getPageDimensions($file);
 	}
 
 	public function dataGetMetadataWithFail(): array {
@@ -65,7 +65,7 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn(file_get_contents($path));
 		$actual = $this->getService()
 			->setFile($file)
-			->toArray();
+			->getPageDimensions();
 		$this->assertEquals($expected, $actual);
 	}
 
