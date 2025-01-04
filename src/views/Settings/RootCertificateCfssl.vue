@@ -126,6 +126,7 @@ import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import CertificateCustonOptions from './CertificateCustonOptions.vue'
 
 import { selectCustonOption } from '../../helpers/certification.js'
+import logger from '../../logger.js'
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
 export default {
@@ -255,23 +256,20 @@ export default {
 				return
 			}
 			this.formDisabled = true
-			try {
-				const response = await axios.get(
-					generateOcsUrl('/apps/libresign/api/v1/admin/certificate'),
-				)
-				if (!response.data.ocs.data || response.data.ocs.data.message) {
-					throw new Error(response.data.ocs.data)
-				}
-				this.certificate = response.data.ocs.data
-				this.customData = loadState('libresign', 'config_path').length > 0
-					&& (this.certificate?.cfsslUri?.length > 0 || this.certificate.configPath.length > 0)
-				if (this.certificate.generated) {
-					this.afterCertificateGenerated()
-					return
-				}
-			} catch (e) {
-				console.error(e)
-			}
+			await axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/certificate'))
+				.then(({ data }) => {
+					if (!data.ocs.data || data.ocs.data.message) {
+						throw new Error(data.ocs.data)
+					}
+					this.$set(this, 'certificate', data.ocs.data)
+					this.customData = loadState('libresign', 'config_path').length > 0
+						&& (this.certificate?.cfsslUri?.length > 0 || this.certificate.configPath.length > 0)
+					if (this.certificate.generated) {
+						this.afterCertificateGenerated()
+
+					}
+				})
+				.catch((error) => logger.debug('Error when generate certificate', { error }))
 			this.formDisabled = false
 		},
 
