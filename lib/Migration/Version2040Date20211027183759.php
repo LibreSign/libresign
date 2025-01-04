@@ -24,15 +24,15 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 	/** @var IRootFolder */
 	private $root;
 	/** @var PdfParserService */
-	private $PdfParserService;
+	private $pdfParserService;
 	/** @var array */
 	private $rows;
 	public function __construct(IDBConnection $connection,
 		IRootFolder $root,
-		PdfParserService $PdfParserService) {
+		PdfParserService $pdfParserService) {
 		$this->connection = $connection;
 		$this->root = $root;
-		$this->PdfParserService = $PdfParserService;
+		$this->pdfParserService = $pdfParserService;
 	}
 
 	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
@@ -69,7 +69,9 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 			/** @var File[] */
 			$file = $userFolder->getById($row['node_id']);
 			if (count($file) >= 1) {
-				$data = $this->PdfParserService->getMetadata($file[0]);
+				$data = $this->pdfParserService
+					->setFile($file[0])
+					->getPageDimensions();
 				$json = json_encode($data);
 				$query = $this->connection->getQueryBuilder();
 				$query

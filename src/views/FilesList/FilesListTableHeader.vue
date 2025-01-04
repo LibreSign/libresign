@@ -19,7 +19,7 @@
 			<span class="files-list__row-icon" />
 
 			<!-- Name -->
-			<FilesListTableHeaderButton :name="t('files', 'Name')" mode="name" />
+			<FilesListTableHeaderButton :name="t('libresign', 'Name')" mode="name" />
 		</th>
 
 		<!-- Actions -->

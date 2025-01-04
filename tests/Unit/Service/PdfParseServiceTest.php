@@ -41,12 +41,15 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGetMetadataWithFail(string $path, string $errorMessage): void {
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessageMatches($errorMessage);
+		/** @var File|MockObject */
 		$file = $this->createMock(File::class);
 		if (file_exists($path)) {
 			$file->method('getContent')
 				->willReturn(file_get_contents($path));
 		}
-		$this->getService()->getMetadata($file);
+		$this->getService()
+			->setFile($file)
+			->toArray($file);
 	}
 
 	public static function dataGetMetadataWithFail(): array {
@@ -60,10 +63,13 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 * @dataProvider providerGetMetadataWithSuccess
 	 */
 	public function testGetMetadataWithSuccess(string $path, array $expected): void {
+		/** @var File|MockObject */
 		$file = $this->createMock(File::class);
 		$file->method('getContent')
 			->willReturn(file_get_contents($path));
-		$actual = $this->getService()->getMetadata($file);
+		$actual = $this->getService()
+			->setFile($file)
+			->toArray();
 		$this->assertEquals($expected, $actual);
 	}
 

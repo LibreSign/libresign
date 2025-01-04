@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use InvalidArgumentException;
+use OC\Files\Filesystem;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
@@ -21,6 +23,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\Accounts\IAccountManager;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
@@ -46,6 +49,7 @@ class FileService {
 	private bool $showVisibleElements = false;
 	private bool $showMessages = false;
 	private bool $validateFile = false;
+	private string $fileContent = '';
 	private ?File $file = null;
 	private ?SignRequest $signRequest = null;
 	private ?IUser $me = null;
@@ -69,6 +73,7 @@ class FileService {
 		protected FileElementService $fileElementService,
 		protected FolderService $folderService,
 		protected ValidateHelper $validateHelper,
+		protected PdfParserService $pdfParserService,
 		private AccountService $accountService,
 		private IdentifyMethodService $identifyMethodService,
 		private IUserSession $userSession,
@@ -170,6 +175,96 @@ class FileService {
 		return $this;
 	}
 
+	public function setFileFromRequest(?array $file): self {
+		if ($file === null) {
+			throw new InvalidArgumentException($this->l10n->t('No file provided'));
+		}
+		if (
+			$file['error'] !== 0 ||
+			!is_uploaded_file($file['tmp_name']) ||
+			Filesystem::isFileBlacklisted($file['tmp_name'])
+		) {
+			throw new InvalidArgumentException($this->l10n->t('Invalid file provided'));
+		}
+		if ($file['size'] > \OCP\Util::uploadLimit()) {
+			throw new InvalidArgumentException($this->l10n->t('File is too big'));
+		}
+
+		$this->fileContent = file_get_contents($file['tmp_name']);
+		$mimeType = $this->mimeTypeDetector->detectString($this->fileContent);
+		if ($mimeType !== 'application/pdf') {
+			$this->fileContent = '';
+			unlink($file['tmp_name']);
+			throw new InvalidArgumentException($this->l10n->t('Invalid file provided'));
+		}
+
+		$memoryFile = fopen($file['tmp_name'], 'rb');
+		$this->certData = $this->pkcs12Handler->validatePdfContent($memoryFile);
+		fclose($memoryFile);
+		unlink($file['tmp_name']);
+		$hash = hash('sha256', $this->fileContent);
+		try {
+			$libresignFile = $this->fileMapper->getBySignedHash($hash);
+			$this->setFile($libresignFile);
+		} catch (DoesNotExistException $e) {
+		}
+		return $this;
+	}
+
+	private function getFile(): \OCP\Files\File {
+		$nodeId = $this->file->getSignedNodeId();
+		if (!$nodeId) {
+			$nodeId = $this->file->getNodeId();
+		}
+		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+		foreach ($mountsContainingFile as $fileInfo) {
+			$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+		}
+		$fileToValidate = $this->root->getById($nodeId);
+		if (!count($fileToValidate)) {
+			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
+		}
+		/** @var \OCP\Files\File */
+		return current($fileToValidate);
+	}
+
+	private function getFileContent(): string {
+		if ($this->fileContent) {
+			return $this->fileContent;
+		} elseif ($this->file) {
+			try {
+				return $this->getFile()->getContent();
+			} catch (\Throwable $th) {
+				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
+			}
+		}
+		return '';
+	}
+
+	private function getFileMetadata(): array {
+		if (!$content = $this->getFileContent()) {
+			return [];
+		}
+		$pdfParserService = $this->pdfParserService->setFile($content);
+		$dimensions = $pdfParserService->getPageDimensions();
+		$return['totalPages'] = $dimensions['p'];
+		$return['size'] = strlen($content);
+		$return['pdfVersion'] = $pdfParserService->getPdfVersion();
+		return $return;
+	}
+
+	private function getCertData(): array {
+		if (!empty($this->certData) || !$this->validateFile || !$this->file->getSignedNodeId()) {
+			return $this->certData;
+		}
+		$file = $this->getFile();
+
+		$resource = $file->fopen('rb');
+		$this->certData = $this->pkcs12Handler->validatePdfContent($resource);
+		fclose($resource);
+		return $this->certData;
+	}
+
 	private function getSigners(): array {
 		if ($this->signers) {
 			return $this->signers;
@@ -209,8 +304,8 @@ class FileService {
 					foreach ($signatureToShow['identifyMethods'] as $methods) {
 						foreach ($methods as $identifyMethod) {
 							$entity = $identifyMethod->getEntity();
-							if (array_key_exists('uid', $data['subject'])) {
-								if ($data['subject']['uid'] === $entity->getIdentifierKey() . ':' . $entity->getIdentifierValue()) {
+							if (array_key_exists('UID', $data['subject'])) {
+								if ($data['subject']['UID'] === $entity->getIdentifierKey() . ':' . $entity->getIdentifierValue()) {
 									return true;
 								}
 							} else {
@@ -397,10 +492,19 @@ class FileService {
 		return self::IDENTIFICATION_DOCUMENTS_APPROVED;
 	}
 
-	private function getFile(): array {
+	private function getFileToArray(): array {
 		$return = [];
+		if ($this->fileContent) {
+			return $this->getBinaryFileToArray();
+		}
+		if (!$return = $this->getFileMetadata()) {
+			return [];
+		}
 		if (!$this->file) {
-			return $return;
+			return array_merge(
+				$return,
+				$this->getBinaryFileToArray(),
+			);
 		}
 		$return['uuid'] = $this->file->getUuid();
 		$return['name'] = $this->file->getName();
@@ -442,25 +546,13 @@ class FileService {
 		return $return;
 	}
 
-	private function getCertData(): array {
-		if (!empty($this->certData) || !$this->validateFile || !$this->file->getSignedNodeId()) {
-			return $this->certData;
+	private function getBinaryFileToArray(): array {
+		if (!$this->fileContent) {
+			return [];
 		}
-		$mountsContainingFile = $this->userMountCache->getMountsForFileId($this->file->getSignedNodeId());
-		foreach ($mountsContainingFile as $fileInfo) {
-			$this->root->getByIdInPath($this->file->getSignedNodeId(), $fileInfo->getMountPoint());
-		}
-		$fileToValidate = $this->root->getById($this->file->getSignedNodeId());
-		if (!count($fileToValidate)) {
-			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
-		}
-		/** @var \OCP\Files\File */
-		$file = current($fileToValidate);
-
-		$resource = $file->fopen('rb');
-		$this->certData = $this->pkcs12Handler->validatePdfContent($resource);
-		fclose($resource);
-		return $this->certData;
+		$return = [];
+		$return['status'] = $this->certData ? File::STATUS_SIGNED : File::STATUS_NOT_LIBRESIGN_FILE;
+		return $return;
 	}
 
 	/**
@@ -489,7 +581,7 @@ class FileService {
 	 * @return LibresignValidateFile
 	 */
 	public function toArray(): array {
-		$return = $this->getFile();
+		$return = $this->getFileToArray();
 		if ($this->showSettings) {
 			$return['settings'] = $this->getSettings();
 		}
