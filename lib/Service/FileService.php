@@ -415,7 +415,7 @@ class FileService {
 		return $return;
 	}
 
-	private function loadSigners(): void{
+	private function loadSigners(): void {
 		$this->fileData->signers = $this->getLibreSignSigners();
 		$fileSigners = $this->getFileSigners();
 	}

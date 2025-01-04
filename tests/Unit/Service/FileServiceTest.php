@@ -213,8 +213,10 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				},
 				[
 					'status' => File::STATUS_NOT_LIBRESIGN_FILE,
-					'size' => 0,
+					'size' => filesize(__DIR__ . '/../../fixtures/small_valid.pdf'),
 					'hash' => hash_file('sha256', __DIR__ . '/../../fixtures/small_valid.pdf'),
+					'pdfVersion' => '1.6',
+					'totalPages' => 1,
 				]
 			],
 			'signed file outside LibreSign' => [
@@ -226,8 +228,10 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				},
 				[
 					'status' => File::STATUS_NOT_LIBRESIGN_FILE,
-					'size' => 0,
+					'size' => filesize(__DIR__ . '/../../fixtures/small_valid-signed.pdf'),
 					'hash' => hash_file('sha256', __DIR__ . '/../../fixtures/small_valid-signed.pdf'),
+					'pdfVersion' => '1.6',
+					'totalPages' => 1,
 				]
 			],
 		];
