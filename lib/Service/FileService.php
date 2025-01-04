@@ -223,7 +223,7 @@ class FileService {
 		try {
 			$this->certData = $this->pkcs12Handler->validatePdfContent($memoryFile);
 			$this->fileData['status'] = File::STATUS_SIGNED;
-		// Ignore when isnt a signed file
+			// Ignore when isnt a signed file
 		} catch (LibresignException $e) {
 			$this->fileData['status'] = File::STATUS_DRAFT;
 		}

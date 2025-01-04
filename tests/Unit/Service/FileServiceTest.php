@@ -10,7 +10,7 @@ namespace OCA\Libresign\Service;
 
 /**
  * Overwrite is_uploaded_file in the OCA\Libresign\Service namespace.
-*/
+ */
 function is_uploaded_file($filename) {
 	return file_exists($filename);
 }
@@ -152,9 +152,9 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public static function dataToArray(): array {
 		return [
-			'empty' => [fn()=> null, []],
+			'empty' => [fn () => null, []],
 			'No file provided' => [
-				function(self $self, FileService $service) {
+				function (self $self, FileService $service) {
 					$self->expectException(InvalidArgumentException::class);
 					$self->expectExceptionMessage('No file provided');
 					$service
@@ -163,7 +163,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[]
 			],
 			'error when upload' => [
-				function(self $self, FileService $service) {
+				function (self $self, FileService $service) {
 					$self->expectException(InvalidArgumentException::class);
 					$self->expectExceptionMessage('Invalid file provided');
 					$service
@@ -172,7 +172,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[]
 			],
 			'blacklisted file' => [
-				function(self $self, FileService $service) {
+				function (self $self, FileService $service) {
 					$path = 'vfs://uploaded/.htaccess';
 					file_put_contents($path, '');
 					$self->expectException(InvalidArgumentException::class);
@@ -183,7 +183,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[]
 			],
 			'File is too big' => [
-				function(self $self, FileService $service) {
+				function (self $self, FileService $service) {
 					$path = 'vfs://uploaded/file.pdf';
 					file_put_contents($path, '');
 					$self->expectException(InvalidArgumentException::class);
@@ -194,7 +194,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[]
 			],
 			'Invalid file provided' => [
-				function(self $self, FileService $service) {
+				function (self $self, FileService $service) {
 					$path = 'vfs://uploaded/file.php';
 					file_put_contents($path, '');
 					$self->expectException(InvalidArgumentException::class);
@@ -205,7 +205,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[]
 			],
 			'not signed file' => [
-				function(self $self, FileService $service) {
+				function (self $self, FileService $service) {
 					$notSigned = tempnam(sys_get_temp_dir(), 'not_signed');
 					copy(realpath(__DIR__ . '/../../fixtures/small_valid.pdf'), $notSigned);
 					$service
@@ -218,7 +218,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				]
 			],
 			'signed file outside LibreSign' => [
-				function(self $self, FileService $service) {
+				function (self $self, FileService $service) {
 					$notSigned = tempnam(sys_get_temp_dir(), 'not_signed');
 					copy(realpath(__DIR__ . '/../../fixtures/small_valid-signed.pdf'), $notSigned);
 					$service
