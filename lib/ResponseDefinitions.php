@@ -151,6 +151,8 @@ namespace OCA\Libresign;
  *     description: ?string,
  *     displayName: string,
  *     request_sign_date: string,
+ *     valid_from?: non-negative-int,
+ *     valid_to?: non-negative-int,
  *     email?: string,
  *     remote_address?: string,
  *     user_agent?: string,

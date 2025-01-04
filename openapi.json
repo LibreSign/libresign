@@ -626,6 +626,16 @@
                     "request_sign_date": {
                         "type": "string"
                     },
+                    "valid_from": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "valid_to": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
                     "email": {
                         "type": "string"
                     },
@@ -3365,9 +3375,6 @@
                                                                 "type": "string"
                                                             }
                                                         },
-                                                        "settings": {
-                                                            "$ref": "#/components/schemas/Settings"
-                                                        },
                                                         "messages": {
                                                             "type": "array",
                                                             "items": {
@@ -3517,9 +3524,6 @@
                                                                 "type": "string"
                                                             }
                                                         },
-                                                        "settings": {
-                                                            "$ref": "#/components/schemas/Settings"
-                                                        },
                                                         "messages": {
                                                             "type": "array",
                                                             "items": {
@@ -3659,9 +3663,6 @@
                                                                 "type": "string"
                                                             }
                                                         },
-                                                        "settings": {
-                                                            "$ref": "#/components/schemas/Settings"
-                                                        },
                                                         "messages": {
                                                             "type": "array",
                                                             "items": {
@@ -3725,9 +3726,6 @@
                                                             "items": {
                                                                 "type": "string"
                                                             }
-                                                        },
-                                                        "settings": {
-                                                            "$ref": "#/components/schemas/Settings"
                                                         },
                                                         "messages": {
                                                             "type": "array",
@@ -3890,9 +3888,6 @@
                                                             "items": {
                                                                 "type": "string"
                                                             }
-                                                        },
-                                                        "settings": {
-                                                            "$ref": "#/components/schemas/Settings"
                                                         },
                                                         "messages": {
                                                             "type": "array",

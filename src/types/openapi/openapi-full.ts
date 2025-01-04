@@ -1243,6 +1243,10 @@ export type components = {
             description: string | null;
             displayName: string;
             request_sign_date: string;
+            /** Format: int64 */
+            valid_from?: number;
+            /** Format: int64 */
+            valid_to?: number;
             email?: string;
             remote_address?: string;
             user_agent?: string;
@@ -2425,7 +2429,6 @@ export interface operations {
                                 /** Format: int64 */
                                 action: number;
                                 errors: string[];
-                                settings?: components["schemas"]["Settings"];
                                 messages?: {
                                     type: string;
                                     message: string;
@@ -2480,7 +2483,6 @@ export interface operations {
                                 /** Format: int64 */
                                 action: number;
                                 errors: string[];
-                                settings?: components["schemas"]["Settings"];
                                 messages?: {
                                     type: string;
                                     message: string;
@@ -2538,7 +2540,6 @@ export interface operations {
                                 /** Format: int64 */
                                 action: number;
                                 errors: string[];
-                                settings?: components["schemas"]["Settings"];
                                 messages?: {
                                     type: string;
                                     message: string;
@@ -2591,7 +2592,6 @@ export interface operations {
                                 /** Format: int64 */
                                 action: number;
                                 errors: string[];
-                                settings?: components["schemas"]["Settings"];
                                 messages?: {
                                     type: string;
                                     message: string;
@@ -2614,7 +2614,6 @@ export interface operations {
                                 /** Format: int64 */
                                 action: number;
                                 errors: string[];
-                                settings?: components["schemas"]["Settings"];
                                 messages?: {
                                     type: string;
                                     message: string;
