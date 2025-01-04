@@ -54,6 +54,7 @@ use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
+use stdClass;
 
 /**
  * @psalm-import-type LibresignValidateFile from ResponseDefinitions
@@ -73,7 +74,7 @@ class FileService {
 	private ?int $identifyMethodId = null;
 	private array $certData = [];
 	private array $signers = [];
-	private array $fileData = [];
+	private stdClass $fileData;
 	private array $settings = [
 		'canSign' => false,
 		'canRequestSign' => false,
@@ -108,6 +109,7 @@ class FileService {
 		protected LoggerInterface $logger,
 		protected IL10N $l10n,
 	) {
+		$this->fileData = new stdClass();
 	}
 
 	/**
@@ -217,24 +219,24 @@ class FileService {
 			unlink($file['tmp_name']);
 			throw new InvalidArgumentException($this->l10n->t('Invalid file provided'));
 		}
-		$this->fileData['size'] = $file['size'];
+		$this->fileData->size = $file['size'];
 
 		$memoryFile = fopen($file['tmp_name'], 'rb');
 		try {
 			$this->certData = $this->pkcs12Handler->validatePdfContent($memoryFile);
-			$this->fileData['status'] = File::STATUS_SIGNED;
+			$this->fileData->status = File::STATUS_SIGNED;
 			// Ignore when isnt a signed file
 		} catch (LibresignException $e) {
-			$this->fileData['status'] = File::STATUS_DRAFT;
+			$this->fileData->status = File::STATUS_DRAFT;
 		}
 		fclose($memoryFile);
 		unlink($file['tmp_name']);
-		$this->fileData['hash'] = hash('sha256', $this->fileContent);
+		$this->fileData->hash = hash('sha256', $this->fileContent);
 		try {
-			$libresignFile = $this->fileMapper->getBySignedHash($this->fileData['hash']);
+			$libresignFile = $this->fileMapper->getBySignedHash($this->fileData->hash);
 			$this->setFile($libresignFile);
 		} catch (DoesNotExistException $e) {
-			$this->fileData['status'] = File::STATUS_NOT_LIBRESIGN_FILE;
+			$this->fileData->status = File::STATUS_NOT_LIBRESIGN_FILE;
 		}
 		return $this;
 	}
@@ -269,16 +271,15 @@ class FileService {
 		return '';
 	}
 
-	private function getFileMetadata(): array {
+	private function loadFileMetadata(): void {
 		if (!$content = $this->getFileContent()) {
-			return [];
+			return;
 		}
 		$pdfParserService = $this->pdfParserService->setFile($content);
 		$dimensions = $pdfParserService->getPageDimensions();
-		$return['totalPages'] = $dimensions['p'];
-		$return['size'] = strlen($content);
-		$return['pdfVersion'] = $pdfParserService->getPdfVersion();
-		return $return;
+		$this->fileData->totalPages = $dimensions['p'];
+		$this->fileData->size = strlen($content);
+		$this->fileData->pdfVersion = $pdfParserService->getPdfVersion();
 	}
 
 	private function getCertData(): array {
@@ -293,9 +294,12 @@ class FileService {
 		return $this->certData;
 	}
 
-	private function getSigners(): array {
+	private function getLibreSignSigners(): array {
 		if ($this->signers) {
 			return $this->signers;
+		}
+		if (!$this->file) {
+			return [];
 		}
 		$signers = $this->signRequestMapper->getByFileId($this->file->getId());
 		$certData = $this->getCertData();
@@ -415,6 +419,23 @@ class FileService {
 		return $this->signers;
 	}
 
+	private function getFileSigners(): array {
+		$return = [];
+		foreach ($this->certData as $signer) {
+			$return[] = [
+				'displayName' => $signer['name'],
+				'valid_from' => $signer['validFrom_time_t'],
+				'valid_to' => $signer['validTo_time_t'],
+			];
+		}
+		return $return;
+	}
+
+	private function loadSigners(): void{
+		$this->fileData->signers = $this->getLibreSignSigners();
+		$fileSigners = $this->getFileSigners();
+	}
+
 	/**
 	 * @return (mixed|string)[][]
 	 *
@@ -476,7 +497,7 @@ class FileService {
 		return $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
 	}
 
-	private function getSettings(): array {
+	private function loadSettings(): array {
 		if ($this->me) {
 			$this->settings = array_merge($this->settings, $this->accountService->getSettings($this->me));
 			$this->settings['phoneNumber'] = $this->getPhoneNumber();
@@ -489,6 +510,7 @@ class FileService {
 				$this->settings['identificationDocumentsWaitingApproval'] = true;
 			}
 		}
+		$this->fileData->settings = $this->settings;
 		return $this->settings;
 	}
 
@@ -520,76 +542,58 @@ class FileService {
 		return self::IDENTIFICATION_DOCUMENTS_APPROVED;
 	}
 
-	private function getFileToArray(): array {
+	private function loadLibreSignData(): void {
 		if ($this->fileContent) {
-			return $this->getBinaryFileToArray();
-		}
-		if (!$return = $this->getFileMetadata()) {
-			return $return;
+			return;
 		}
 		if (!$this->file) {
-			return array_merge(
-				$return,
-				$this->getBinaryFileToArray(),
-			);
+			return;
 		}
-		$return['uuid'] = $this->file->getUuid();
-		$return['name'] = $this->file->getName();
-		$return['status'] = $this->file->getStatus();
-		$return['created_at'] = (new \DateTime())
+		$this->fileData->uuid = $this->file->getUuid();
+		$this->fileData->name = $this->file->getName();
+		$this->fileData->status = $this->file->getStatus();
+		$this->fileData->created_at = (new \DateTime())
 			->setTimestamp($this->file->getCreatedAt())
 			->format('Y-m-d H:i:s');
-		$return['statusText'] = $this->fileMapper->getTextOfStatus($this->file->getStatus());
-		$return['nodeId'] = $this->file->getNodeId();
+		$this->fileData->statusText = $this->fileMapper->getTextOfStatus($this->file->getStatus());
+		$this->fileData->nodeId = $this->file->getNodeId();
 
-		$return['requested_by'] = [
+		$this->fileData->requested_by = [
 			'userId' => $this->file->getUserId(),
 			'displayName' => $this->userManager->get($this->file->getUserId())->getDisplayName(),
 		];
-		$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $this->file->getUuid()]);
+		$this->fileData->file = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $this->file->getUuid()]);
 		if ($this->showVisibleElements) {
 			$signers = $this->signRequestMapper->getByMultipleFileId([$this->file->getId()]);
-			$return['visibleElements'] = [];
+			$this->fileData->visibleElements = [];
 			foreach ($this->signRequestMapper->getVisibleElementsFromSigners($signers) as $visibleElements) {
-				$return['visibleElements'] = array_merge(
+				$this->fileData->visibleElements = array_merge(
 					$this->formatVisibleElementsToArray(
 						$visibleElements,
 						$this->file->getMetadata()
 					),
-					$return['visibleElements']
+					$this->fileData->visibleElements
 				);
 			}
 		}
-		foreach ($this->getSigners() as $signer) {
+		foreach ($this->getLibreSignSigners() as $signer) {
 			if ($signer['me']) {
-				$return['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signer['sign_uuid']]);
+				$this->fileData->url = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signer['sign_uuid']]);
 				break;
 			}
 		}
-		if ($this->showSigners) {
-			$return['signers'] = $this->getSigners();
-		}
-		ksort($return);
-		return $return;
 	}
 
-	private function getBinaryFileToArray(): array {
+	private function loadBinaryFileStatus(): void {
 		if (!$this->fileContent) {
-			return [];
+			return;
 		}
-		$return = $this->fileData;
-		if (!isset($return['status'])) {
-			$return['status'] = $this->certData ? File::STATUS_SIGNED : File::STATUS_NOT_LIBRESIGN_FILE;
+		if (!isset($this->fileData->status)) {
+			$this->fileData->status = $this->certData ? File::STATUS_SIGNED : File::STATUS_NOT_LIBRESIGN_FILE;
 		}
-		return $return;
 	}
 
-	/**
-	 * @return string[][]
-	 *
-	 * @psalm-return list<array{type: 'info', message: string}>
-	 */
-	private function getMessages(): array {
+	private function loadMessages(): void {
 		$messages = [];
 		if ($this->settings['canSign']) {
 			$messages[] = [
@@ -603,23 +607,29 @@ class FileService {
 				'message' => $this->l10n->t('You cannot request signature for this document, please contact your administrator')
 			];
 		}
-		return $messages;
+		if ($messages) {
+			$this->fileData->messages = $messages;
+		}
 	}
 
 	/**
 	 * @return LibresignValidateFile
 	 */
 	public function toArray(): array {
-		$return = $this->getFileToArray();
+		$this->loadLibreSignData();
+		$this->loadBinaryFileStatus();
+		$this->loadFileMetadata();
 		if ($this->showSettings) {
-			$return['settings'] = $this->getSettings();
+			$this->loadSettings();
 		}
 		if ($this->showMessages) {
-			$messages = $this->getMessages();
-			if ($messages) {
-				$return['messages'] = $messages;
-			}
+			$this->loadMessages();
 		}
+		if ($this->showSigners) {
+			$this->loadSigners();
+		}
+		$return = json_decode(json_encode($this->fileData), true);
+		ksort($return);
 		return $return;
 	}
 
