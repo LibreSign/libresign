@@ -204,14 +204,14 @@ export default {
 			this.modal = false
 		},
 		clearAndShowForm() {
-			this.certificate = {
+			this.$set(this, 'certificate', {
 				rootCert: {
 					commonName: '',
 					names: [],
 				},
 				cfsslUri: '',
 				configPath: '',
-			}
+			})
 			this.customData = false
 			this.formDisabled = false
 			this.modal = false
@@ -228,7 +228,7 @@ export default {
 					if (!data.ocs.data || data.ocs.data.message) {
 						throw new Error(data.ocs.data)
 					}
-					this.certificate = data.ocs.data.data
+					this.$set(this, 'certificate', data.ocs.data.data)
 					this.afterCertificateGenerated()
 					this.configureCheckStore.checkSetup()
 				})
