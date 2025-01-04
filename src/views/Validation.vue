@@ -65,6 +65,14 @@
 								{{ document.name }}
 							</template>
 						</NcListItem>
+						<NcListItem class="extra" v-if="document.status"
+							compact
+							:name="t('libresign', 'Status:')">
+							<template #name>
+								<strong>{{ t('libresign', 'Status:') }}</strong>
+								{{ documentStatus }}
+							</template>
+						</NcListItem>
 						<NcListItem class="extra"
 							compact
 							:name="t('libresign', 'Total pages:')">
@@ -258,6 +266,7 @@ import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import NcRichText from '@nextcloud/vue/dist/Components/NcRichText.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 
+import { fileStatus } from '../helpers/fileStatus.js'
 import logoGray from '../../img/logo-gray.svg'
 import logger from '../logger.js'
 
@@ -317,6 +326,13 @@ export default {
 		},
 		size() {
 			return formatFileSize(this.document.size)
+		},
+		documentStatus() {
+			const actual = fileStatus.find(item => item.id === this.document.status)
+			if (actual === undefined) {
+				return fileStatus.find(item => item.id === -1).label
+			}
+			return actual.label
 		},
 	},
 	watch: {
