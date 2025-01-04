@@ -83,6 +83,7 @@ class Pkcs12Handler extends SignEngineHandler {
 
 	/**
 	 * @param resource $resource
+	 * @throws LibresignException When is not a signed file
 	 * @return array
 	 */
 	public function validatePdfContent($resource): array {
