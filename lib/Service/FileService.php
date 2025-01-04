@@ -26,6 +26,7 @@ namespace OCA\Libresign\Service;
 
 use InvalidArgumentException;
 use OC\Files\Filesystem;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
@@ -40,12 +41,12 @@ use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClientService;
+use OCP\IAppConfig;
 use OCP\IDateTimeFormatter;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -201,9 +202,11 @@ class FileService {
 			!is_uploaded_file($file['tmp_name']) ||
 			Filesystem::isFileBlacklisted($file['tmp_name'])
 		) {
+			unlink($file['tmp_name']);
 			throw new InvalidArgumentException($this->l10n->t('Invalid file provided'));
 		}
 		if ($file['size'] > \OCP\Util::uploadLimit()) {
+			unlink($file['tmp_name']);
 			throw new InvalidArgumentException($this->l10n->t('File is too big'));
 		}
 
@@ -490,7 +493,7 @@ class FileService {
 	}
 
 	public function getIdentificationDocumentsStatus(?string $userId): int {
-		if (!$this->appConfig->getAppValue('identification_documents', '')) {
+		if (!$this->appConfig->getValueBool(Application::APP_ID, 'identification_documents', false)) {
 			return self::IDENTIFICATION_DOCUMENTS_DISABLED;
 		}
 
@@ -518,12 +521,11 @@ class FileService {
 	}
 
 	private function getFileToArray(): array {
-		$return = [];
 		if ($this->fileContent) {
 			return $this->getBinaryFileToArray();
 		}
 		if (!$return = $this->getFileMetadata()) {
-			return [];
+			return $return;
 		}
 		if (!$this->file) {
 			return array_merge(
@@ -639,7 +641,7 @@ class FileService {
 		array $sort = [],
 	): array {
 		$page = $page ?? 1;
-		$length = $length ?? (int)$this->appConfig->getAppValue('length_of_page', '100');
+		$length = $length ?? (int)$this->appConfig->getValueInt(Application::APP_ID, 'length_of_page', 100);
 
 		$return = $this->signRequestMapper->getFilesAssociatedFilesWithMeFormatted(
 			$this->me,
