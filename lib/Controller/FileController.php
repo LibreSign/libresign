@@ -77,7 +77,7 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a file returning file data.
 	 *
 	 * @param string $uuid The UUID of the LibreSign file
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], messages?: array{type: string, message: string}[]}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
@@ -97,7 +97,7 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a file returning file data.
 	 *
 	 * @param int $fileId The identifier value of the LibreSign file
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], messages?: array{type: string, message: string}[]}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
@@ -117,7 +117,7 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a binary file returning file data.
 	 * Use field 'file' for the file upload
 	 *
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST, array{action: int, errors: string[], messages?: array{type: string, message: string}[]}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
@@ -165,7 +165,7 @@ class FileController extends AEnvironmentAwareController {
 	 *
 	 * @param string|null $type The type of identifier could be Uuid or FileId
 	 * @param string|int $identifier The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], messages?: array{type: string, message: string}[]}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
