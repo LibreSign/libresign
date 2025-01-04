@@ -89,7 +89,7 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[
 					'p' => 1,
 					'd' => [
-						['w' => 595.276, 'h' => 841.89],
+						['w' => 595.275590551181, 'h' => 841.889763779528],
 					],
 				]
 			],
