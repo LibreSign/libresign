@@ -147,6 +147,7 @@ export default {
 	.item {
 		display: grid;
 		grid-template-columns: auto 54px;
+		align-items: center;
 		input[type='text'] {
 			width: 100%;
 		}
