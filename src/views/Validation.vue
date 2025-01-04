@@ -65,7 +65,8 @@
 								{{ document.name }}
 							</template>
 						</NcListItem>
-						<NcListItem class="extra" v-if="document.status"
+						<NcListItem v-if="document.status"
+							class="extra"
 							compact
 							:name="t('libresign', 'Status:')">
 							<template #name>
@@ -266,8 +267,8 @@ import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import NcRichText from '@nextcloud/vue/dist/Components/NcRichText.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 
-import { fileStatus } from '../helpers/fileStatus.js'
 import logoGray from '../../img/logo-gray.svg'
+import { fileStatus } from '../helpers/fileStatus.js'
 import logger from '../logger.js'
 
 export default {
