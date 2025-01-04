@@ -217,6 +217,19 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'hash' => hash_file('sha256', __DIR__ . '/../../fixtures/small_valid.pdf'),
 				]
 			],
+			'signed file outside LibreSign' => [
+				function(self $self, FileService $service) {
+					$notSigned = tempnam(sys_get_temp_dir(), 'not_signed');
+					copy(realpath(__DIR__ . '/../../fixtures/small_valid-signed.pdf'), $notSigned);
+					$service
+						->setFileFromRequest(['tmp_name' => $notSigned, 'error' => 0, 'size' => 0]);
+				},
+				[
+					'status' => File::STATUS_NOT_LIBRESIGN_FILE,
+					'size' => 0,
+					'hash' => hash_file('sha256', __DIR__ . '/../../fixtures/small_valid-signed.pdf'),
+				]
+			],
 		];
 	}
 }
