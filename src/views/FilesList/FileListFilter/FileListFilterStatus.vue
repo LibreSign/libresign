@@ -59,8 +59,8 @@ export default {
 			return this.selectedOptions.length > 0
 		},
 		fileStatus() {
-			return fileStatus.filter(item => [0,1,2,3].includes(item.id));
-		}
+			return fileStatus.filter(item => [0, 1, 2, 3].includes(item.id))
+		},
 	},
 	watch: {
 		selectedOptions(newValue, oldValue) {

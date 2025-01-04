@@ -346,7 +346,7 @@ export default {
 				},
 			})
 				.then(({ data }) => {
-					this.clickedValidate = true;
+					this.clickedValidate = true
 					showSuccess(t('libresign', 'This document is valid'))
 					this.$set(this, 'document', data.ocs.data)
 					this.document.signers?.forEach(signer => {
