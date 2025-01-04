@@ -72,6 +72,7 @@ class FileService {
 	private ?int $identifyMethodId = null;
 	private array $certData = [];
 	private array $signers = [];
+	private array $fileData = [];
 	private array $settings = [
 		'canSign' => false,
 		'canRequestSign' => false,
@@ -213,16 +214,24 @@ class FileService {
 			unlink($file['tmp_name']);
 			throw new InvalidArgumentException($this->l10n->t('Invalid file provided'));
 		}
+		$this->fileData['size'] = $file['size'];
 
 		$memoryFile = fopen($file['tmp_name'], 'rb');
-		$this->certData = $this->pkcs12Handler->validatePdfContent($memoryFile);
+		try {
+			$this->certData = $this->pkcs12Handler->validatePdfContent($memoryFile);
+			$this->fileData['status'] = File::STATUS_SIGNED;
+		// Ignore when isnt a signed file
+		} catch (LibresignException $e) {
+			$this->fileData['status'] = File::STATUS_DRAFT;
+		}
 		fclose($memoryFile);
 		unlink($file['tmp_name']);
-		$hash = hash('sha256', $this->fileContent);
+		$this->fileData['hash'] = hash('sha256', $this->fileContent);
 		try {
-			$libresignFile = $this->fileMapper->getBySignedHash($hash);
+			$libresignFile = $this->fileMapper->getBySignedHash($this->fileData['hash']);
 			$this->setFile($libresignFile);
 		} catch (DoesNotExistException $e) {
+			$this->fileData['status'] = File::STATUS_NOT_LIBRESIGN_FILE;
 		}
 		return $this;
 	}
@@ -566,8 +575,10 @@ class FileService {
 		if (!$this->fileContent) {
 			return [];
 		}
-		$return = [];
-		$return['status'] = $this->certData ? File::STATUS_SIGNED : File::STATUS_NOT_LIBRESIGN_FILE;
+		$return = $this->fileData;
+		if (!isset($return['status'])) {
+			$return['status'] = $this->certData ? File::STATUS_SIGNED : File::STATUS_NOT_LIBRESIGN_FILE;
+		}
 		return $return;
 	}
 
