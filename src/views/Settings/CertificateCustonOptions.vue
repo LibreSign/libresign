@@ -28,18 +28,15 @@
 			<div v-for="certificate in certificateList"
 				:key="certificate.id"
 				class="customNames">
-				<label :for="certificate.id" class="form-heading--required">
-					{{ certificate.label }}
-				</label>
 				<div class="item">
 					<NcTextField v-if="certificate"
 						:id="certificate.id"
 						v-model="certificate.value"
 						:success="typeof certificate.error === 'boolean' && !certificate.error"
 						:error="certificate.error"
-						:maxlength="certificate.max ? certificate.max : undefined"
-						:label="certificate.label"
-						:helper-text="certificate.helperText"
+						:maxlength="getOptionProperty(certificate.id, 'max')"
+						:label="getOptionProperty(certificate.id, 'label')"
+						:helper-text="getOptionProperty(certificate.id, 'helperText')"
 						@update:value="validate(certificate.id)" />
 					<NcButton :aria-label="t('settings', 'Remove custom name entry from root certificate')"
 						@click="removeOptionalAttribute(certificate.id)">
@@ -82,12 +79,26 @@ export default {
 	},
 	data() {
 		return {
-			customNamesOptions: options,
 			certificateList: [],
 			options,
 		}
 	},
+	computed: {
+		customNamesOptions() {
+			return this.options.filter(itemA =>
+				!this.certificateList.some(itemB => itemB.id === itemA.id),
+			)
+		},
+	},
+	watch: {
+		names(values) {
+			this.certificateList = values
+		},
+	},
 	methods: {
+		getOptionProperty(id, property) {
+			return this.options.find(option => option.id === id)[property]
+		},
 		validateMin(item) {
 			return item.value.length >= item.min
 		},
@@ -122,14 +133,12 @@ export default {
 				}
 				const list = this.certificateList.filter(item => item.id !== itemSelected.id)
 				this.certificateList = list
-				this.customNamesOptions = [...this.customNamesOptions, itemSelected]
 			}
 		},
 		async onOptionalAttributeSelect(selected) {
 			const custonOption = selectCustonOption(selected.id)
 			if (custonOption.isSome()) {
 				this.certificateList = [custonOption.unwrap(), ...this.certificateList]
-				this.customNamesOptions = this.customNamesOptions.filter(item => item.id !== selected.id)
 			}
 		},
 
@@ -151,6 +160,7 @@ export default {
 	.item {
 		display: grid;
 		grid-template-columns: auto 54px;
+		align-items: center;
 		input[type='text'] {
 			width: 100%;
 		}
