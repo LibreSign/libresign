@@ -277,7 +277,14 @@ class FileService {
 			return;
 		}
 		$pdfParserService = $this->pdfParserService->setFile($content);
-		$dimensions = $pdfParserService->getPageDimensions();
+		if ($this->file) {
+			$metadata = $this->file->getMetadata();
+		}
+		if (isset($metadata) && isset($metadata['p'])) {
+			$dimensions = $metadata;
+		} else {
+			$dimensions = $pdfParserService->getPageDimensions();
+		}
 		$this->fileData->totalPages = $dimensions['p'];
 		$this->fileData->size = strlen($content);
 		$this->fileData->pdfVersion = $pdfParserService->getPdfVersion();
