@@ -117,11 +117,11 @@ class Pkcs12Handler extends SignEngineHandler {
 				$bytes['end'][$i] - $bytes['start'][$i] - 2,
 				$bytes['start'][$i] + 1
 			);
-			$pfxCertificate = hex2bin($signature);
+			$binaryData = hex2bin($signature);
 			if (empty($tempFile)) {
 				$tempFile = $this->tempManager->getTemporaryFile('cert.pfx');
 			}
-			file_put_contents($tempFile, $pfxCertificate);
+			file_put_contents($tempFile, $binaryData);
 			$output = shell_exec("openssl pkcs7 -in {$tempFile} -inform DER -print_certs");
 			$parsed[] = openssl_x509_parse($output);
 		}
