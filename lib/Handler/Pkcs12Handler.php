@@ -98,18 +98,15 @@ class Pkcs12Handler extends SignEngineHandler {
 	}
 
 	/**
-	 * @param resource $resource
 	 * @throws LibresignException When is not a signed file
-	 * @return array
 	 */
-	public function validatePdfContent($resource): array {
+	private function getSignatures($resource): iterable {
 		$content = stream_get_contents($resource);
 		preg_match_all('/ByteRange\s*\[(\d+) (?<start>\d+) (?<end>\d+) (\d+)?/', $content, $bytes);
 		if (empty($bytes['start']) || empty($bytes['end'])) {
 			throw new LibresignException($this->l10n->t('Unsigned file.'));
 		}
 
-		$parsed = [];
 		for ($i = 0; $i < count($bytes['start']); $i++) {
 			rewind($resource);
 			$signature = stream_get_contents(
@@ -117,16 +114,69 @@ class Pkcs12Handler extends SignEngineHandler {
 				$bytes['end'][$i] - $bytes['start'][$i] - 2,
 				$bytes['start'][$i] + 1
 			);
-			$binaryData = hex2bin($signature);
-			if (empty($tempFile)) {
-				$tempFile = $this->tempManager->getTemporaryFile('cert.pfx');
-			}
-			file_put_contents($tempFile, $binaryData);
-			$output = shell_exec("openssl pkcs7 -in {$tempFile} -inform DER -print_certs");
-			$parsed[] = openssl_x509_parse($output);
+			yield hex2bin($signature);
 		}
 		$this->tempManager->clean();
-		return $parsed;
+	}
+
+	/**
+	 * @param resource $resource
+	 * @throws LibresignException When is not a signed file
+	 * @return array
+	 */
+	public function getCertificateChain($resource): array {
+		$signerCounter = 0;
+		$certificates = [];
+		foreach ($this->getSignatures($resource) as $signature) {
+			$pkcs7PemSignature = $this->der2pem($signature);
+			if (openssl_pkcs7_read($pkcs7PemSignature, $pemCertificates)) {
+				foreach ($pemCertificates as $pemCertificate) {
+					$certificates[$signerCounter][] = openssl_x509_parse($pemCertificate);
+				}
+			};
+			$certificates[$signerCounter] = $this->orderList($certificates[$signerCounter]);
+			$signerCounter++;
+		}
+		return $certificates;
+	}
+
+	private function orderList(array $certificates): array {
+		$ordered = [];
+		$map = [];
+
+		$tree = current($certificates);
+		foreach ($certificates as $cert) {
+			if ($tree['subject'] === $cert['issuer']) {
+				$tree = $cert;
+			}
+			$map[$cert['name']] = $cert;
+		}
+
+		if (!$tree) {
+			return $certificates;
+		}
+		unset($map[$tree['name']]);
+		$ordered[] = $tree;
+
+		$current = $tree;
+		while (!empty($map)) {
+			if ($current['subject'] === $tree['issuer']) {
+				$ordered[] = $current;
+				$tree = $current;
+				unset($map[$current['name']]);
+				$current = reset($map);
+				continue;
+			}
+			$current = next($map);
+		}
+
+		return $ordered;
+	}
+
+	private function der2pem($derData) {
+		$pem = chunk_split(base64_encode($derData), 64, "\n");
+		$pem = "-----BEGIN CERTIFICATE-----\n" . $pem . "-----END CERTIFICATE-----\n";
+		return $pem;
 	}
 
 	public function setPfxContent(string $content): void {

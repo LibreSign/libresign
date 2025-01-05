@@ -162,6 +162,7 @@ class FileService {
 	 */
 	public function setFile(File $file): self {
 		$this->file = $file;
+		$this->fileData->status = $this->file->getStatus();
 		return $this;
 	}
 
@@ -223,7 +224,7 @@ class FileService {
 
 		$memoryFile = fopen($file['tmp_name'], 'rb');
 		try {
-			$this->certData = $this->pkcs12Handler->validatePdfContent($memoryFile);
+			$this->certData = $this->pkcs12Handler->getCertificateChain($memoryFile);
 			$this->fileData->status = File::STATUS_SIGNED;
 			// Ignore when isnt a signed file
 		} catch (LibresignException $e) {
@@ -282,14 +283,14 @@ class FileService {
 		$this->fileData->pdfVersion = $pdfParserService->getPdfVersion();
 	}
 
-	private function getCertData(): array {
+	private function getCertDataFromLibreSignFile(): array {
 		if (!empty($this->certData) || !$this->validateFile || !$this->file->getSignedNodeId()) {
 			return $this->certData;
 		}
 		$file = $this->getFile();
 
 		$resource = $file->fopen('rb');
-		$this->certData = $this->pkcs12Handler->validatePdfContent($resource);
+		$this->certData = $this->pkcs12Handler->getCertificateChain($resource);
 		fclose($resource);
 		return $this->certData;
 	}
@@ -302,7 +303,7 @@ class FileService {
 			return [];
 		}
 		$signers = $this->signRequestMapper->getByFileId($this->file->getId());
-		$certData = $this->getCertData();
+		$certData = $this->getCertDataFromLibreSignFile();
 		foreach ($signers as $signer) {
 			$signatureToShow = [
 				'signed' => $signer->getSigned() ?
@@ -332,16 +333,16 @@ class FileService {
 				$data['sign_date'] = (new \DateTime())
 					->setTimestamp($signer->getSigned())
 					->format('Y-m-d H:i:s');
-				$mySignature = array_filter($certData, function ($data) use ($signatureToShow) {
+				$mySignature = array_filter($certData, function ($certChain) use ($signatureToShow) {
 					foreach ($signatureToShow['identifyMethods'] as $methods) {
 						foreach ($methods as $identifyMethod) {
 							$entity = $identifyMethod->getEntity();
-							if (array_key_exists('UID', $data['subject'])) {
-								if ($data['subject']['UID'] === $entity->getIdentifierKey() . ':' . $entity->getIdentifierValue()) {
+							if (array_key_exists('UID', $certChain[0]['subject'])) {
+								if ($certChain[0]['subject']['UID'] === $entity->getIdentifierKey() . ':' . $entity->getIdentifierValue()) {
 									return true;
 								}
 							} else {
-								preg_match('/(?<key>.*):(?<value>.*), /', $data['subject']['CN'], $matches);
+								preg_match('/(?<key>.*):(?<value>.*), /', $certChain[0]['subject']['CN'], $matches);
 								if ($matches) {
 									if ($matches['key'] === $entity->getIdentifierKey() && $matches['value'] === $entity->getIdentifierValue()) {
 										return true;
@@ -421,11 +422,11 @@ class FileService {
 
 	private function getFileSigners(): array {
 		$return = [];
-		foreach ($this->certData as $signer) {
+		foreach ($this->certData as $certChain) {
 			$return[] = [
-				'displayName' => $signer['name'],
-				'valid_from' => $signer['validFrom_time_t'],
-				'valid_to' => $signer['validTo_time_t'],
+				'displayName' => $certChain[0]['name'],
+				'valid_from' => $certChain[0]['validFrom_time_t'],
+				'valid_to' => $certChain[0]['validTo_time_t'],
 			];
 		}
 		return $return;
@@ -584,15 +585,6 @@ class FileService {
 		}
 	}
 
-	private function loadBinaryFileStatus(): void {
-		if (!$this->fileContent) {
-			return;
-		}
-		if (!isset($this->fileData->status)) {
-			$this->fileData->status = $this->certData ? File::STATUS_SIGNED : File::STATUS_NOT_LIBRESIGN_FILE;
-		}
-	}
-
 	private function loadMessages(): void {
 		$messages = [];
 		if ($this->settings['canSign']) {
@@ -617,7 +609,6 @@ class FileService {
 	 */
 	public function toArray(): array {
 		$this->loadLibreSignData();
-		$this->loadBinaryFileStatus();
 		$this->loadFileMetadata();
 		if ($this->showSettings) {
 			$this->loadSettings();
