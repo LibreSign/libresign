@@ -54,23 +54,25 @@ class PdfParserService {
 		if (!$this->content) {
 			throw new LibresignException('Empty file.');
 		}
-
-		try {
-			$parser = new \Smalot\PdfParser\Parser();
-			$this->document = $parser->parseContent($this->content);
-		} catch (\Throwable $th) {
-			if ($th->getMessage() === 'Secured pdf file are currently not supported.') {
-				throw new LibresignException('Secured pdf file are currently not supported.');
-			}
-			$this->logger->error('Impossible get metadata from this file: ' . $th->getMessage());
-			throw new LibresignException('Impossible get metadata from this file.');
-		}
 		return $this;
 	}
 
 	private function getDocument(): Document {
 		if (!$this->document) {
-			throw new LibresignException('File not defined to be parsed.');
+			if (!$this->content) {
+				throw new LibresignException('File not defined to be parsed.');
+			}
+			try {
+				$parser = new \Smalot\PdfParser\Parser();
+				$this->document = $parser->parseContent($this->content);
+				return $this->document;
+			} catch (\Throwable $th) {
+				if ($th->getMessage() === 'Secured pdf file are currently not supported.') {
+					throw new LibresignException('Secured pdf file are currently not supported.');
+				}
+				$this->logger->error('Impossible get metadata from this file: ' . $th->getMessage());
+				throw new LibresignException('Impossible get metadata from this file.');
+			}
 		}
 		return $this->document;
 	}
