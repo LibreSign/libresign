@@ -1256,6 +1256,7 @@ export type components = {
             signed: string | null;
             sign_date?: string | null;
             sign_uuid?: string;
+            hash_algorithm?: string;
             me: boolean;
             /** Format: int64 */
             signRequestId: number;

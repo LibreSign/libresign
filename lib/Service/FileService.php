@@ -415,6 +415,7 @@ class FileService {
 				'valid_to' => $signer['chain'][0]['validTo_time_t'],
 				'signed' => $signer['signingTime']
 					->format('Y-m-d H:i:s'),
+				'hash_algorithm' => $signer['chain'][0]['signatureTypeSN'],
 			];
 			if (!empty($signer['chain'][0]['subject']['UID'])) {
 				$this->fileData->signers[$index]['uid'] = $signer['chain'][0]['subject']['UID'];
