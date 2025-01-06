@@ -7,6 +7,7 @@
 		"mikehaertl/php-pdftk": "^0.13.0",
 		"mpdf/mpdf": "^8.2",
 		"pagerfanta/pagerfanta": "^3.6",
+		"phpseclib/phpseclib": "^3.0",
 		"smalot/pdfparser": "^2.4",
 		"wobeto/email-blur": "^1.0"
 	},

@@ -33,6 +33,7 @@ use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\File;
 use OCP\IL10N;
 use OCP\ITempManager;
+use phpseclib3\File\ASN1;
 use TypeError;
 
 class Pkcs12Handler extends SignEngineHandler {
@@ -128,13 +129,23 @@ class Pkcs12Handler extends SignEngineHandler {
 		$signerCounter = 0;
 		$certificates = [];
 		foreach ($this->getSignatures($resource) as $signature) {
+			$decoded = ASN1::decodeBER($signature);
+
+			// Probably the best way to do this would be:
+			// ASN1::asn1map($decoded[0], Maps\TheMapName::MAP);
+			// But, what's the MAP to use?
+			//
+			// With maps also could be possible read all certificate data and
+			// maybe discart openssl at  this pint
+			$certificates[$signerCounter]['signingTime'] = $decoded[0]['content'][1]['content'][0]['content'][4]['content'][0]['content'][3]['content'][1]['content'][1]['content'][0]['content'];
+
 			$pkcs7PemSignature = $this->der2pem($signature);
 			if (openssl_pkcs7_read($pkcs7PemSignature, $pemCertificates)) {
 				foreach ($pemCertificates as $pemCertificate) {
-					$certificates[$signerCounter][] = openssl_x509_parse($pemCertificate);
+					$certificates[$signerCounter]['chain'][] = openssl_x509_parse($pemCertificate);
 				}
 			};
-			$certificates[$signerCounter] = $this->orderList($certificates[$signerCounter]);
+			$certificates[$signerCounter]['chain'] = $this->orderList($certificates[$signerCounter]['chain']);
 			$signerCounter++;
 		}
 		return $certificates;
