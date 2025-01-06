@@ -517,7 +517,7 @@ class FileService {
 		return $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
 	}
 
-	private function loadSettings(): array {
+	private function loadSettings(): void {
 		if (!$this->showSettings) {
 			return;
 		}
@@ -534,7 +534,6 @@ class FileService {
 			}
 		}
 		$this->fileData->settings = $this->settings;
-		return $this->settings;
 	}
 
 	public function getIdentificationDocumentsStatus(?string $userId): int {
