@@ -103,20 +103,33 @@ class Pkcs12Handler extends SignEngineHandler {
 	 */
 	private function getSignatures($resource): iterable {
 		$content = stream_get_contents($resource);
-		preg_match_all('/ByteRange\s*\[(\d+) (?<start>\d+) (?<end>\d+) (\d+)?/', $content, $bytes);
-		if (empty($bytes['start']) || empty($bytes['end'])) {
+		preg_match_all(
+			'/ByteRange\s*\[\s*(?<offset1>\d+)\s+(?<length1>\d+)\s+(?<offset2>\d+)\s+(?<length2>\d+)\s*\]/',
+			$content,
+			$bytes
+		);
+		if (empty($bytes['offset1']) || empty($bytes['length1']) || empty($bytes['offset2']) || empty($bytes['length2'])) {
 			throw new LibresignException($this->l10n->t('Unsigned file.'));
 		}
 
-		for ($i = 0; $i < count($bytes['start']); $i++) {
+		for ($i = 0; $i < count($bytes['offset1']); $i++) {
+			// Starting position (in bytes) of the first part of the PDF that will be included in the validation.
+			$offset1 = (int)$bytes['offset1'][$i];
+			// Length (in bytes) of the first part.
+			$length1 = (int)$bytes['length1'][$i];
+			// Starting position (in bytes) of the second part, immediately after the signature.
+			$offset2 = (int)$bytes['offset2'][$i];
+
+			$signatureStart = $offset1 + $length1 + 1;
+			$signatureLength = $offset2 - $signatureStart - 1;
+
 			rewind($resource);
-			$signature = stream_get_contents(
-				$resource,
-				$bytes['end'][$i] - $bytes['start'][$i] - 2,
-				$bytes['start'][$i] + 1
-			);
+
+			$signature = stream_get_contents($resource, $signatureLength, $signatureStart);
+
 			yield hex2bin($signature);
 		}
+
 		$this->tempManager->clean();
 	}
 
@@ -129,10 +142,10 @@ class Pkcs12Handler extends SignEngineHandler {
 		$signerCounter = 0;
 		$certificates = [];
 		foreach ($this->getSignatures($resource) as $signature) {
+			// The signature could be invalid
 			if (!$signature) {
 				continue;
 			}
-			$decoded = ASN1::decodeBER($signature);
 
 			// Probably the best way to do this would be:
 			// ASN1::asn1map($decoded[0], Maps\TheMapName::MAP);
@@ -141,6 +154,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			// With maps also could be possible read all certificate data and
 			// maybe discart openssl at  this pint
 			try {
+				$decoded = ASN1::decodeBER($signature);
 				$certificates[$signerCounter]['signingTime'] = $decoded[0]['content'][1]['content'][0]['content'][4]['content'][0]['content'][3]['content'][1]['content'][1]['content'][0]['content'];
 			} catch (\Throwable $th) {
 			}
