@@ -137,7 +137,10 @@ class Pkcs12Handler extends SignEngineHandler {
 			//
 			// With maps also could be possible read all certificate data and
 			// maybe discart openssl at  this pint
-			$certificates[$signerCounter]['signingTime'] = $decoded[0]['content'][1]['content'][0]['content'][4]['content'][0]['content'][3]['content'][1]['content'][1]['content'][0]['content'];
+			try {
+				$certificates[$signerCounter]['signingTime'] = $decoded[0]['content'][1]['content'][0]['content'][4]['content'][0]['content'][3]['content'][1]['content'][1]['content'][0]['content'];
+			} catch (\Throwable $th) {
+			}
 
 			$pkcs7PemSignature = $this->der2pem($signature);
 			if (openssl_pkcs7_read($pkcs7PemSignature, $pemCertificates)) {
