@@ -346,8 +346,8 @@ class FileService {
 			if (!empty($metadata['notify'])) {
 				$this->fileData->signers[$index]['notify'] = $metadata['notify'];
 			}
-			if ($signer->getSigned() && empty($this->fileData->signers[$index]['sign_date'])) {
-				$this->fileData->signers[$index]['sign_date'] = (new \DateTime())
+			if ($signer->getSigned() && empty($this->fileData->signers[$index]['signed'])) {
+				$this->fileData->signers[$index]['signed'] = (new \DateTime())
 					->setTimestamp($signer->getSigned())
 					->format('Y-m-d H:i:s');
 			}
@@ -413,7 +413,7 @@ class FileService {
 				'displayName' => $signer['chain'][0]['subject']['CN'],
 				'valid_from' => $signer['chain'][0]['validFrom_time_t'],
 				'valid_to' => $signer['chain'][0]['validTo_time_t'],
-				'sign_date' => $signer['signingTime']
+				'signed' => $signer['signingTime']
 					->format('Y-m-d H:i:s'),
 			];
 			if (!empty($signer['chain'][0]['subject']['UID'])) {
