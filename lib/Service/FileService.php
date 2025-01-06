@@ -409,6 +409,7 @@ class FileService {
 				}
 			}
 			if ($signatureToShow['me']) {
+				$this->fileData->url = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signer['sign_uuid']]);
 				$signatureToShow['signatureMethods'] = $this->identifyMethodService->getSignMethodsOfIdentifiedFactors($signer->getId());
 			}
 			$signatureToShow['identifyMethods'] = array_reduce($signatureToShow['identifyMethods'], function ($carry, $list) {
@@ -596,12 +597,6 @@ class FileService {
 					),
 					$this->fileData->visibleElements
 				);
-			}
-		}
-		foreach ($this->getLibreSignSigners() as $signer) {
-			if ($signer['me']) {
-				$this->fileData->url = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signer['sign_uuid']]);
-				break;
 			}
 		}
 	}
