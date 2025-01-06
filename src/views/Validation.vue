@@ -213,6 +213,15 @@
 									{{ dateFromUnixTimestamp(signer.valid_to) }}
 								</template>
 							</NcListItem>
+							<NcListItem v-if="signer.opened && signer.hash_algorithm"
+								class="extra"
+								compact
+								:name="t('libresign', 'Hash algorithm:')">
+								<template #name>
+									<strong>{{ t('libresign', 'Hash algorithm:') }}</strong>
+									{{ signer.hash_algorithm }}
+								</template>
+							</NcListItem>
 							<NcListItem v-if="signer.opened && signer.subject"
 								class="extra"
 								compact

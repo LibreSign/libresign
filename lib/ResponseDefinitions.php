@@ -162,6 +162,7 @@ namespace OCA\Libresign;
  *     signed: ?string,
  *     sign_date?: ?string,
  *     sign_uuid?: string,
+ *     hash_algorithm?: string,
  *     me: bool,
  *     signRequestId: non-negative-int,
  *     identifyMethods?: LibresignIdentifyMethod[],

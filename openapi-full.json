@@ -764,6 +764,9 @@
                     "sign_uuid": {
                         "type": "string"
                     },
+                    "hash_algorithm": {
+                        "type": "string"
+                    },
                     "me": {
                         "type": "boolean"
                     },
