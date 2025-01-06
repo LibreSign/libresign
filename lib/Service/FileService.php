@@ -439,7 +439,7 @@ class FileService {
 			}
 			for ($i = 1; $i < count($signer['chain']); $i++) {
 				$this->fileData->signers[$index]['chain'][] = [
-					'displayName' => $signer['chain'][0]['name'],
+					'displayName' => $signer['chain'][$i]['name'],
 				];
 			}
 		}

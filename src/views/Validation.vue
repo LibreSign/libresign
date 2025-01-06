@@ -222,6 +222,18 @@
 									{{ signer.subject }}
 								</template>
 							</NcListItem>
+							<div v-if="signer.opened">
+								<NcListItem v-for="(issuer, issuerIndex) in signer.chain"
+									:key="issuerIndex"
+									class="extra"
+									compact
+									:name="t('libresign', 'Issuer:')">
+									<template #name>
+										<strong>{{ t('libresign', 'Issuer:') }}</strong>
+										{{ issuer.displayName }}
+									</template>
+								</NcListItem>
+							</div>
 						</span>
 					</ul>
 				</div>
