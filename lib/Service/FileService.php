@@ -227,6 +227,7 @@ class FileService {
 		} catch (DoesNotExistException $e) {
 			$this->fileData->status = File::STATUS_NOT_LIBRESIGN_FILE;
 		}
+		$this->fileData->name = $file['name'];
 		return $this;
 	}
 
