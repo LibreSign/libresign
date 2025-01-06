@@ -113,6 +113,9 @@ class Pkcs12Handler extends SignEngineHandler {
 		$signerCounter = 0;
 		$certificates = [];
 		foreach ($this->getSignatures($resource) as $signature) {
+			if (!$signature) {
+				continue;
+			}
 			$decoded = ASN1::decodeBER($signature);
 
 			// Probably the best way to do this would be:
