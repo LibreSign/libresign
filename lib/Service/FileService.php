@@ -628,8 +628,8 @@ class FileService {
 		$this->loadLibreSignData();
 		$this->loadFileMetadata();
 		$this->loadSettings();
-		$this->loadMessages();
 		$this->loadSigners();
+		$this->loadMessages();
 		$return = json_decode(json_encode($this->fileData), true);
 		ksort($return);
 		return $return;
