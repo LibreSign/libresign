@@ -545,9 +545,6 @@ class FileService {
 	}
 
 	private function loadLibreSignData(): void {
-		if ($this->fileContent) {
-			return;
-		}
 		if (!$this->file) {
 			return;
 		}
