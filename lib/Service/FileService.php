@@ -431,7 +431,7 @@ class FileService {
 	private function loadFileSigners(): void {
 		foreach ($this->certData as $index => $signer) {
 			$this->fileData->signers[$index] = [
-				'displayName' => $signer['chain'][0]['name'],
+				'displayName' => $signer['chain'][0]['subject']['CN'],
 				'valid_from' => $signer['chain'][0]['validFrom_time_t'],
 				'valid_to' => $signer['chain'][0]['validTo_time_t'],
 				'sign_date' => $signer['signingTime']
