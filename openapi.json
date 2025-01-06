@@ -623,6 +623,9 @@
                     "displayName": {
                         "type": "string"
                     },
+                    "subject": {
+                        "type": "string"
+                    },
                     "request_sign_date": {
                         "type": "string"
                     },
