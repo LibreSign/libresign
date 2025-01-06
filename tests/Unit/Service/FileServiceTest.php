@@ -234,6 +234,31 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'totalPages' => 1,
 				]
 			],
+			'signed file outside LibreSign and display signers' => [
+				function (self $self, FileService $service) {
+					$notSigned = tempnam(sys_get_temp_dir(), 'not_signed');
+					copy(realpath(__DIR__ . '/../../fixtures/small_valid-signed.pdf'), $notSigned);
+					$service
+						->setFileFromRequest(['tmp_name' => $notSigned, 'error' => 0, 'size' => 0])
+						->showSigners();
+				},
+				[
+					'status' => File::STATUS_NOT_LIBRESIGN_FILE,
+					'size' => filesize(__DIR__ . '/../../fixtures/small_valid-signed.pdf'),
+					'hash' => hash_file('sha256', __DIR__ . '/../../fixtures/small_valid-signed.pdf'),
+					'pdfVersion' => '1.6',
+					'totalPages' => 1,
+					'signers' => [
+						[
+							'displayName' => '/C=BR/ST=State of Company/L=City Name/O=Organization/OU=Organization Unit/UID=account:admin/CN=admin',
+							'valid_from' => 1736024940,
+							'valid_to' => 1767560940,
+							'sign_date' => '2025-01-04 21:09:02',
+							'uid' => 'account:admin',
+						],
+					],
+				]
+			],
 		];
 	}
 }
