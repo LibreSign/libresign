@@ -411,22 +411,29 @@ class FileService {
 		return $this->signers;
 	}
 
-	private function getFileSigners(): array {
-		$return = [];
-		foreach ($this->certData as $signer) {
-			$return[] = [
+	private function loadFileSigners(): void {
+		foreach ($this->certData as $index => $signer) {
+			$this->fileData->signers[$index] = [
 				'displayName' => $signer['chain'][0]['name'],
 				'valid_from' => $signer['chain'][0]['validFrom_time_t'],
 				'valid_to' => $signer['chain'][0]['validTo_time_t'],
-				'signingTime' => $signer['signingTime']->getTimestamp(),
+				'sign_date' => $signer['signingTime']
+					->format('Y-m-d H:i:s'),
 			];
+			if (!empty($signer['chain'][0]['subject']['UID'])) {
+				$this->fileData->signers[$index]['uid'] = $signer['chain'][0]['subject']['UID'];
+			}
+			for ($i = 1; $i < count($signer['chain']); $i++) {
+				$this->fileData->signers[$index]['chain'][] = [
+					'displayName' => $signer['chain'][0]['name'],
+				];
+			}
 		}
-		return $return;
 	}
 
 	private function loadSigners(): void {
-		$this->fileData->signers = $this->getLibreSignSigners();
-		$fileSigners = $this->getFileSigners();
+		$this->loadFileSigners();
+		$this->getLibreSignSigners();
 	}
 
 	/**
