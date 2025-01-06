@@ -75,12 +75,6 @@ class FileService {
 	private ?int $identifyMethodId = null;
 	private array $certData = [];
 	private stdClass $fileData;
-	private array $settings = [
-		'canSign' => false,
-		'canRequestSign' => false,
-		'signerFileUuid' => null,
-		'phoneNumber' => '',
-	];
 	public const IDENTIFICATION_DOCUMENTS_DISABLED = 0;
 	public const IDENTIFICATION_DOCUMENTS_NEED_SEND = 1;
 	public const IDENTIFICATION_DOCUMENTS_NEED_APPROVAL = 2;
@@ -125,6 +119,16 @@ class FileService {
 	 */
 	public function showSettings(bool $show = true): self {
 		$this->showSettings = $show;
+		if ($show) {
+			$this->fileData->settings = [
+				'canSign' => false,
+				'canRequestSign' => false,
+				'signerFileUuid' => null,
+				'phoneNumber' => '',
+			];
+		} else {
+			unset($this->fileData->settings);
+		}
 		return $this;
 	}
 
@@ -390,8 +394,8 @@ class FileService {
 						) {
 							$this->fileData->signers[$index]['me'] = true;
 							if (!$signer->getSigned()) {
-								$this->settings['canSign'] = true;
-								$this->settings['signerFileUuid'] = $signer->getUuid();
+								$this->fileData->settings['canSign'] = true;
+								$this->fileData->settings['signerFileUuid'] = $signer->getUuid();
 							}
 						}
 					}
@@ -514,18 +518,17 @@ class FileService {
 			return;
 		}
 		if ($this->me) {
-			$this->settings = array_merge($this->settings, $this->accountService->getSettings($this->me));
-			$this->settings['phoneNumber'] = $this->getPhoneNumber();
+			$this->fileData->settings = array_merge($this->fileData->settings, $this->accountService->getSettings($this->me));
+			$this->fileData->settings['phoneNumber'] = $this->getPhoneNumber();
 			$status = $this->getIdentificationDocumentsStatus($this->me->getUID());
 			if ($status === self::IDENTIFICATION_DOCUMENTS_NEED_SEND) {
-				$this->settings['needIdentificationDocuments'] = true;
-				$this->settings['identificationDocumentsWaitingApproval'] = false;
+				$this->fileData->settings['needIdentificationDocuments'] = true;
+				$this->fileData->settings['identificationDocumentsWaitingApproval'] = false;
 			} elseif ($status === self::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL) {
-				$this->settings['needIdentificationDocuments'] = true;
-				$this->settings['identificationDocumentsWaitingApproval'] = true;
+				$this->fileData->settings['needIdentificationDocuments'] = true;
+				$this->fileData->settings['identificationDocumentsWaitingApproval'] = true;
 			}
 		}
-		$this->fileData->settings = $this->settings;
 	}
 
 	public function getIdentificationDocumentsStatus(?string $userId): int {
@@ -597,13 +600,13 @@ class FileService {
 			return;
 		}
 		$messages = [];
-		if ($this->settings['canSign']) {
+		if ($this->fileData->settings['canSign']) {
 			$messages[] = [
 				'type' => 'info',
 				'message' => $this->l10n->t('You need to sign this document')
 			];
 		}
-		if (!$this->settings['canRequestSign']) {
+		if ($this->fileData->settings['canRequestSign']) {
 			$this->loadLibreSignSigners();
 			if (empty($this->fileData->signers)) {
 				$messages[] = [
