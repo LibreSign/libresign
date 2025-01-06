@@ -324,7 +324,7 @@ class FileService {
 				$data['sign_date'] = (new \DateTime())
 					->setTimestamp($signer->getSigned())
 					->format('Y-m-d H:i:s');
-				$mySignature = array_filter($certData, function ($certChain) use ($signatureToShow) {
+				$mySignature = array_filter($certData['chain'], function ($certChain) use ($signatureToShow) {
 					foreach ($signatureToShow['identifyMethods'] as $methods) {
 						foreach ($methods as $identifyMethod) {
 							$entity = $identifyMethod->getEntity();
@@ -413,11 +413,12 @@ class FileService {
 
 	private function getFileSigners(): array {
 		$return = [];
-		foreach ($this->certData as $certChain) {
+		foreach ($this->certData as $signer) {
 			$return[] = [
-				'displayName' => $certChain[0]['name'],
-				'valid_from' => $certChain[0]['validFrom_time_t'],
-				'valid_to' => $certChain[0]['validTo_time_t'],
+				'displayName' => $signer['chain'][0]['name'],
+				'valid_from' => $signer['chain'][0]['validFrom_time_t'],
+				'valid_to' => $signer['chain'][0]['validTo_time_t'],
+				'signingTime' => $signer['signingTime']->getTimestamp(),
 			];
 		}
 		return $return;
