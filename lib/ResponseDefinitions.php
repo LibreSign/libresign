@@ -150,6 +150,7 @@ namespace OCA\Libresign;
  * @psalm-type LibresignSigner = array{
  *     description: ?string,
  *     displayName: string,
+ *     subject?: string,
  *     request_sign_date: string,
  *     valid_from?: non-negative-int,
  *     valid_to?: non-negative-int,
