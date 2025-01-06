@@ -152,7 +152,7 @@
 									</NcButton>
 								</template>
 							</NcListItem>
-							<NcListItem v-if="signer.opened"
+							<NcListItem v-if="signer.opened && signer.request_sign_date"
 								class="extra"
 								compact
 								:name="t('libresign', 'Requested on:')">
