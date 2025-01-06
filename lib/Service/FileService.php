@@ -253,7 +253,7 @@ class FileService {
 			return $this->fileContent;
 		} elseif ($this->file) {
 			try {
-				return $this->getFile()->getContent();
+				return $this->fileContent = $this->getFile()->getContent();
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 			}
