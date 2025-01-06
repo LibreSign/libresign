@@ -434,7 +434,7 @@ class FileService {
 			];
 			if (!empty($signer['chain'][0]['subject']['UID'])) {
 				$this->fileData->signers[$index]['uid'] = $signer['chain'][0]['subject']['UID'];
-			} elseif (preg_match('/^(?<key>.*):(?<value>.*), /', $signer['chain'][0]['CN'], $matches)) {
+			} elseif (preg_match('/^(?<key>.*):(?<value>.*), /', $signer['chain'][0]['subject']['CN'], $matches)) {
 				$signatureToShow['uid'] = $matches['key'] . ':' . $matches['value'];
 			}
 			for ($i = 1; $i < count($signer['chain']); $i++) {
