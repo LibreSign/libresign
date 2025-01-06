@@ -119,7 +119,7 @@
     "LibreSign: Changes into a file for you to sign" : "LibreSign: Ändringar i en fil för dig att signera",
     "File to sign" : "Fil att signera",
     "Changes have been made in a file that you have to sign. Access the link below:" : "Ändringar har gjorts i en fil som du måste signera. Gå till länken nedan:",
-    "Sign »%s«" : "Signera »%s«",
+    "Sign »%s«" : "Signera \"%s\"",
     "LibreSign: There is a file for you to sign" : "LibreSign: Det finns en fil för dig att signera",
     "There is a document for you to sign. Access the link below:" : "Det finns ett dokument för dig att signera. Gå till länken nedan:",
     "LibreSign: Code to sign file" : "LibreSign: Kod för att signera fil",
