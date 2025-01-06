@@ -448,6 +448,9 @@ class FileService {
 	}
 
 	private function loadSigners(): void {
+		if (!$this->showSigners) {
+			return;
+		}
 		$this->loadFileSigners();
 		$this->getLibreSignSigners();
 	}
@@ -514,6 +517,9 @@ class FileService {
 	}
 
 	private function loadSettings(): array {
+		if (!$this->showSettings) {
+			return;
+		}
 		if ($this->me) {
 			$this->settings = array_merge($this->settings, $this->accountService->getSettings($this->me));
 			$this->settings['phoneNumber'] = $this->getPhoneNumber();
@@ -601,6 +607,9 @@ class FileService {
 	}
 
 	private function loadMessages(): void {
+		if (!$this->showMessages) {
+			return;
+		}
 		$messages = [];
 		if ($this->settings['canSign']) {
 			$messages[] = [
@@ -625,15 +634,9 @@ class FileService {
 	public function toArray(): array {
 		$this->loadLibreSignData();
 		$this->loadFileMetadata();
-		if ($this->showSettings) {
-			$this->loadSettings();
-		}
-		if ($this->showMessages) {
-			$this->loadMessages();
-		}
-		if ($this->showSigners) {
-			$this->loadSigners();
-		}
+		$this->loadSettings();
+		$this->loadMessages();
+		$this->loadSigners();
 		$return = json_decode(json_encode($this->fileData), true);
 		ksort($return);
 		return $return;
