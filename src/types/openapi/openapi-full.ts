@@ -1242,6 +1242,7 @@ export type components = {
         Signer: {
             description: string | null;
             displayName: string;
+            subject?: string;
             request_sign_date: string;
             /** Format: int64 */
             valid_from?: number;
