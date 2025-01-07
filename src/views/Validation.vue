@@ -422,7 +422,7 @@ export default {
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.errors[0])
 				})
-				this.loading = false
+			this.loading = false
 		},
 		uploadFile() {
 			this.loading = true
