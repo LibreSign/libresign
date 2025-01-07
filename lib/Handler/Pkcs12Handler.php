@@ -148,6 +148,10 @@ class Pkcs12Handler extends SignEngineHandler {
 				$decoded = ASN1::decodeBER($signature);
 				$certificates[$signerCounter]['signingTime'] = $decoded[0]['content'][1]['content'][0]['content'][4]['content'][0]['content'][3]['content'][1]['content'][1]['content'][0]['content'];
 			} catch (\Throwable $th) {
+				$fromFallback = $this->popplerUtilsPdfSignFallback($resource, $signerCounter);
+				if ($fromFallback) {
+					$certificates[$signerCounter]['signingTime'] = $fromFallback['signingTime'];
+				}
 			}
 
 			$pkcs7PemSignature = $this->der2pem($signature);
