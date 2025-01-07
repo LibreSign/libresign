@@ -129,11 +129,11 @@ class Pkcs12Handler extends SignEngineHandler {
 		$certificates = [];
 		foreach ($this->getSignatures($resource) as $signature) {
 			// The signature could be invalid
+			$fromFallback = $this->popplerUtilsPdfSignFallback($resource, $signerCounter);
+			if ($fromFallback) {
+				$certificates[$signerCounter] = $fromFallback;
+			}
 			if (!$signature) {
-				$fromFallback = $this->popplerUtilsPdfSignFallback($resource, $signerCounter);
-				if ($fromFallback) {
-					$certificates[$signerCounter] = $fromFallback;
-				}
 				$signerCounter++;
 				continue;
 			}
@@ -148,7 +148,6 @@ class Pkcs12Handler extends SignEngineHandler {
 				$decoded = ASN1::decodeBER($signature);
 				$certificates[$signerCounter]['signingTime'] = $decoded[0]['content'][1]['content'][0]['content'][4]['content'][0]['content'][3]['content'][1]['content'][1]['content'][0]['content'];
 			} catch (\Throwable $th) {
-				$fromFallback = $this->popplerUtilsPdfSignFallback($resource, $signerCounter);
 				if ($fromFallback) {
 					$certificates[$signerCounter]['signingTime'] = $fromFallback['signingTime'];
 				}
@@ -158,7 +157,12 @@ class Pkcs12Handler extends SignEngineHandler {
 			if (openssl_pkcs7_read($pkcs7PemSignature, $pemCertificates)) {
 				foreach ($pemCertificates as $key => $pemCertificate) {
 					$certificates[$signerCounter]['chain'][$key] = openssl_x509_parse($pemCertificate);
-					$certificates[$signerCounter]['chain'][$key]['is_valid'] = 1;
+					if (empty($certificates[$signerCounter]['chain'][$key]['signature_validation'])) {
+						$certificates[$signerCounter]['chain'][$key]['signature_validation'] = [
+							'id' => 1,
+							'label' => $this->l10n->t('Certificate is Trusted.'),
+						];
+					}
 				}
 			};
 			$certificates[$signerCounter]['chain'] = $this->orderList($certificates[$signerCounter]['chain']);
@@ -198,7 +202,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			$match = [];
 			$isSecondLevel = preg_match('/^\s+-\s(?<key>.+):\s(?<value>.*)/', $item, $match);
 			if ($isSecondLevel) {
-				switch ($match['key']) {
+				switch ((string)$match['key']) {
 					case 'Signing Time':
 						$this->signaturesFromPoppler[$lastSignature]['signingTime'] = DateTime::createFromFormat('M d Y H:i:s', $match['value']);
 						break;
@@ -209,8 +213,11 @@ class Pkcs12Handler extends SignEngineHandler {
 					case 'Signing Hash Algorithm':
 						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['signatureTypeSN'] = $match['value'];
 						break;
+					case 'Signature Validation':
+						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['signature_validation'] = $this->getReadableSigState($match['value']);
+						break;
 					case 'Certificate Validation':
-						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['is_valid'] = $match['value'] === 'Signature is valid.' ? 1 : 0;
+						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['certificate_validation'] = $this->getReadableCertState($match['value']);
 						break;
 					case 'Signed Ranges':
 						preg_match('/\[(\d+) - (\d+)\], \[(\d+) - (\d+)\]/', $match['value'], $ranges);
@@ -238,6 +245,83 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 		return [];
 	}
+
+	private function getReadableSigState(string $status) {
+		switch ($status) {
+			case 'Signature is Valid.':
+				return [
+					'id' => 1,
+					'label' => $this->l10n->t('Signature is valid.'),
+				];
+			case 'Signature is Invalid.':
+				return [
+					'id' => 2,
+					'label' => $this->l10n->t('Signature is invalid.'),
+				];
+			case 'Digest Mismatch.':
+				return [
+					'id' => 3,
+					'label' => $this->l10n->t('Digest mismatch.'),
+				];
+			case "Document isn't signed or corrupted data.":
+				return [
+					'id' => 4,
+					'label' => $this->l10n->t("Document isn't signed or corrupted data."),
+				];
+			case 'Signature has not yet been verified.':
+				return [
+					'id' => 5,
+					'label' => $this->l10n->t('Signature has not yet been verified.'),
+				];
+			default:
+				return [
+					'id' => 6,
+					'label' => $this->l10n->t('Unknown validation failure.'),
+				];
+		}
+	}
+
+
+	private function getReadableCertState(string $status) {
+		switch ($status) {
+			case 'Certificate is Trusted.':
+				return [
+					'id' => 1,
+					'label' => $this->l10n->t('Certificate is trusted.'),
+				];
+			case "Certificate issuer isn't Trusted.":
+				return [
+					'id' => 2,
+					'label' => $this->l10n->t("Certificate issuer isn't trusted."),
+				];
+			case 'Certificate issuer is unknown.':
+				return [
+					'id' => 3,
+					'label' => $this->l10n->t('Certificate issuer is unknown.'),
+				];
+			case 'Certificate has been Revoked.':
+				return [
+					'id' => 4,
+					'label' => $this->l10n->t('Certificate has been revoked.'),
+				];
+			case 'Certificate has Expired':
+				return [
+					'id' => 5,
+					'label' => $this->l10n->t('Certificate has expired'),
+				];
+			case 'Certificate has not yet been verified.':
+				return [
+					'id' => 6,
+					'label' => $this->l10n->t('Certificate has not yet been verified.'),
+				];
+			default:
+				return [
+					'id' => 7,
+					'label' => $this->l10n->t('Unknown issue with Certificate or corrupted data.')
+				];
+		}
+	}
+
 
 	private function parseDistinguishedNameWithMultipleValues(string $dn): array {
 		$result = [];
