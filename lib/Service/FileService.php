@@ -408,15 +408,17 @@ class FileService {
 	private function loadSignersFromCertData(): void {
 		$this->loadCertDataFromLibreSignFile();
 		foreach ($this->certData as $index => $signer) {
-			$this->fileData->signers[$index] = [
-				'subject' => $signer['chain'][0]['name'],
-				'displayName' => $signer['chain'][0]['subject']['CN'],
-				'valid_from' => $signer['chain'][0]['validFrom_time_t'],
-				'valid_to' => $signer['chain'][0]['validTo_time_t'],
-				'signed' => $signer['signingTime']
-					->format('Y-m-d H:i:s'),
-				'hash_algorithm' => $signer['chain'][0]['signatureTypeSN'],
-			];
+			$this->fileData->signers[$index]['subject'] = $signer['chain'][0]['name'];
+			$this->fileData->signers[$index]['displayName'] = $signer['chain'][0]['subject']['CN'];
+			if (!empty($signer['chain'][0]['validFrom_time_t'])) {
+				$this->fileData->signers[$index]['valid_from'] = $signer['chain'][0]['validFrom_time_t'];
+			}
+			if (!empty($signer['chain'][0]['validTo_time_t'])) {
+				$this->fileData->signers[$index]['valid_to'] = $signer['chain'][0]['validTo_time_t'];
+			}
+			$this->fileData->signers[$index]['signed'] = $signer['signingTime']->format('Y-m-d H:i:s');
+			$this->fileData->signers[$index]['is_valid'] = $signer['chain'][0]['is_valid'];
+			$this->fileData->signers[$index]['hash_algorithm'] = $signer['chain'][0]['signatureTypeSN'];
 			if (!empty($signer['chain'][0]['subject']['UID'])) {
 				$this->fileData->signers[$index]['uid'] = $signer['chain'][0]['subject']['UID'];
 			} elseif (preg_match('/^(?<key>.*):(?<value>.*), /', $signer['chain'][0]['subject']['CN'], $matches)) {
