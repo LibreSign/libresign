@@ -58,4 +58,7 @@ table {
 .error {
 	color: red;
 }
+.info {
+	color: orange;
+}
 </style>

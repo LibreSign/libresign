@@ -66,10 +66,12 @@ class Check extends Base {
 
 		if (count($result)) {
 			$table = new Table($output);
+			$table->setColumnMaxWidth(3, 40);
 			foreach ($result as $row) {
 				$table->addRow([
 					new TableCell($row->getStatus(), ['style' => new TableCellStyle([
-						'bg' => $row->getStatus() === 'success' ? 'green' : 'red',
+						'bg' => $this->getStatusColor($row->getStatus()),
+						'fg' => 'black',
 						'align' => 'center',
 					])]),
 					$row->getResource(),
@@ -88,5 +90,14 @@ class Check extends Base {
 				->render();
 		}
 		return 0;
+	}
+
+	private function getStatusColor($status): string {
+		return match ($status) {
+			'success' => 'green',
+			'error' => 'red',
+			'info' => 'bright-yellow',
+			default => 'red',
+		};
 	}
 }
