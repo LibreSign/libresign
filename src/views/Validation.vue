@@ -11,17 +11,21 @@
 						:inline="3"
 						:force-name="true">
 						<NcActionButton :wide="true"
+							:disabled="loading"
 							@click="getUUID = true">
 							{{ t('libresign', 'From UUID') }}
 							<template #icon>
-								<NcIconSvgWrapper :path="mdiKey" />
+								<NcLoadingIcon v-if="loading" :size="20" />
+								<NcIconSvgWrapper v-else :path="mdiKey" />
 							</template>
 						</NcActionButton>
 						<NcActionButton :wide="true"
+							:disabled="loading"
 							@click="uploadFile">
 							{{ t('libresign', 'Upload') }}
 							<template #icon>
-								<NcIconSvgWrapper :path="mdiUpload" />
+								<NcLoadingIcon v-if="loading" :size="20" />
+								<NcIconSvgWrapper v-else :path="mdiUpload" />
 							</template>
 						</NcActionButton>
 					</NcActions>
@@ -418,9 +422,9 @@ export default {
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.errors[0])
 				})
-			this.loading = false
 		},
 		uploadFile() {
+			this.loading = true
 			const input = document.createElement('input')
 			input.accept = 'application/pdf'
 			input.type = 'file'
@@ -433,6 +437,7 @@ export default {
 				}
 
 				input.remove()
+				this.loading = false
 			}
 
 			input.click()
