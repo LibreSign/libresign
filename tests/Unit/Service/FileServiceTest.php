@@ -50,8 +50,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
-use function PHPSTORM_META\map;
-
 /**
  * @internal
  */
