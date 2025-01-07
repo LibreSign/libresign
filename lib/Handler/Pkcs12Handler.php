@@ -185,7 +185,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		foreach ($lines as $item) {
 			$isFirstLevel = preg_match('/^Signature\s#(\d)/', $item, $match);
 			if ($isFirstLevel) {
-				$lastSignature = (int) $match[1] - 1;
+				$lastSignature = (int)$match[1] - 1;
 				$this->signaturesFromPoppler[$lastSignature] = [];
 				continue;
 			}
