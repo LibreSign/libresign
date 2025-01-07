@@ -280,7 +280,7 @@ class FileService {
 	}
 
 	private function loadCertDataFromLibreSignFile(): void {
-		if (!empty($this->certData) || !$this->validateFile || !$this->file->getSignedNodeId()) {
+		if (!empty($this->certData) || !$this->validateFile || !$this->file || !$this->file->getSignedNodeId()) {
 			return;
 		}
 		$file = $this->getFile();
