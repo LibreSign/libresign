@@ -257,16 +257,16 @@
 							<NcListItem v-if="signer.opened && signer.subject"
 								class="extra"
 								compact
-								:name="t('libresign', 'Subject:')">
+								:name="t('libresign', 'Certificate chain:')">
 								<template #name>
-									<strong>{{ t('libresign', 'Subject:') }}</strong>
+									<strong>{{ t('libresign', 'Certificate chain:') }}</strong>
 									{{ signer.subject }}
 								</template>
 							</NcListItem>
 							<div v-if="signer.opened">
 								<NcListItem v-for="(issuer, issuerIndex) in signer.chain"
 									:key="issuerIndex"
-									class="extra"
+									class="extra-chain"
 									compact
 									:name="t('libresign', 'Issuer:')">
 									<template #name>
@@ -653,7 +653,7 @@ export default {
 					font-size: 1.5rem;
 				}
 
-				.extra {
+				.extra, .extra-chain {
 					:deep(.list-item-content__name) {
 						white-space: unset;
 					}
@@ -683,6 +683,10 @@ export default {
 					.extra {
 						margin-left: 44px;
 						padding-right: 44px;
+					}
+					.extra-chain {
+						margin-left: 88px;
+						padding-right: 88px;
 					}
 				}
 
