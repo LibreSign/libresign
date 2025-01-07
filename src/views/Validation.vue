@@ -422,6 +422,7 @@ export default {
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.errors[0])
 				})
+				this.loading = false
 		},
 		uploadFile() {
 			this.loading = true
@@ -434,10 +435,11 @@ export default {
 
 				if (file) {
 					this.upload(file)
+				} else {
+					this.loading = false
 				}
 
 				input.remove()
-				this.loading = false
 			}
 
 			input.click()
