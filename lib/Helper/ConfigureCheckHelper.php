@@ -21,20 +21,30 @@ use JsonSerializable;
  * @method string getTip()
  */
 class ConfigureCheckHelper implements JsonSerializable {
-	use MagicGetterSetterTrait;
+	use MagicGetterSetterTrait {
+		MagicGetterSetterTrait::__call as __getSet;
+	}
 	private string $status = '';
 	private string $message = '';
 	private string $resource = '';
 	private string $tip = '';
 
-	public function setErrorMessage(string $message): ConfigureCheckHelper {
-		$this->setStatus('error');
-		$this->setMessage($message);
-		return $this;
-	}
-
-	public function setSuccessMessage(string $message): ConfigureCheckHelper {
-		$this->setStatus('success');
+	public function __call($name, $arguments) {
+		if (!preg_match('/^set(?<status>.+)Message/', $name, $matches)) {
+			return $this->__getSet($name, $arguments);
+		}
+		$status = strtolower($matches['status']);
+		if (!in_array($status, ['error', 'success', 'info'])) {
+			throw new \LogicException(sprintf('Cannot set non existing message status %s.', $status));
+		}
+		$message = $arguments[0] ?? null;
+		if (!is_string($message)) {
+			throw new \LogicException(sprintf('Invalid error message %s.', var_export($arguments, true)));
+		}
+		if (count($arguments) > 1) {
+			throw new \LogicException(sprintf('Need to have only an argument %s.', var_export($arguments, true)));
+		}
+		$this->setStatus($status);
 		$this->setMessage($message);
 		return $this;
 	}

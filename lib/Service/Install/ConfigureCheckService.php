@@ -60,7 +60,43 @@ class ConfigureCheckService {
 		$return = array_merge($return, $this->checkJava());
 		$return = array_merge($return, $this->checkPdftk());
 		$return = array_merge($return, $this->checkJSignPdf());
+		$return = array_merge($return, $this->checkPoppler());
 		return $return;
+	}
+
+	public function checkPoppler(): array {
+		if (shell_exec('which pdfsigf') === null) {
+			return [
+				(new ConfigureCheckHelper())
+					->setInfoMessage('Poppler utils not installed')
+					->setResource('poppler-utils')
+					->setTip('Install the package poppler-utils at your operational system to be possible get more details about validation of signatures.'),
+			];
+		}
+		// The output of this command go to STDERR and shell_exec get the STDOUT
+		// With 2>&1 the STRERR is redirected to STDOUT
+		$version = shell_exec('pdfsig -v 2>&1');
+		if (!$version) {
+			return [
+				(new ConfigureCheckHelper())
+					->setInfoMessage('Fail to retrieve pdfsig version')
+					->setResource('poppler-utils')
+					->setTip("The command <pdfsig -v> executed by PHP haven't any output."),
+			];
+		}
+		$version = preg_match('/pdfsig version (?<version>.*)/', $version, $matches);
+		if (!$version) {
+			return [
+				(new ConfigureCheckHelper())
+					->setInfoMessage('Fail to retrieve pdfsig version')
+					->setResource('poppler-utils')
+					->setTip("This is a poppler-utils dependency and wasn't possible to parse the output of command pdfsig -v"),
+			];
+		}
+		return [(new ConfigureCheckHelper())
+			->setSuccessMessage('pdfsig version: ' . $matches['version'])
+			->setResource('pdfsig')
+		];
 	}
 
 	/**
