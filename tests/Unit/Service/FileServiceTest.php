@@ -50,6 +50,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
+use function PHPSTORM_META\map;
+
 /**
  * @internal
  */
@@ -200,7 +202,11 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$self->expectException(InvalidArgumentException::class);
 					$self->expectExceptionMessage('Invalid file provided');
 					$service
-						->setFileFromRequest(['tmp_name' => $path, 'error' => 0, 'size' => 0]);
+						->setFileFromRequest([
+							'tmp_name' => $path,
+							'error' => 0,
+							'size' => 0,
+						]);
 				},
 				[]
 			],
@@ -209,7 +215,12 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$notSigned = tempnam(sys_get_temp_dir(), 'not_signed');
 					copy(realpath(__DIR__ . '/../../fixtures/small_valid.pdf'), $notSigned);
 					$service
-						->setFileFromRequest(['tmp_name' => $notSigned, 'error' => 0, 'size' => 0]);
+						->setFileFromRequest([
+							'tmp_name' => $notSigned,
+							'error' => 0,
+							'size' => 0,
+							'name' => 'small_valid.pdf',
+						]);
 				},
 				[
 					'status' => File::STATUS_NOT_LIBRESIGN_FILE,
@@ -217,6 +228,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'hash' => hash_file('sha256', __DIR__ . '/../../fixtures/small_valid.pdf'),
 					'pdfVersion' => '1.6',
 					'totalPages' => 1,
+					'name' => 'small_valid.pdf',
 				]
 			],
 			'signed file outside LibreSign' => [
@@ -224,7 +236,12 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$notSigned = tempnam(sys_get_temp_dir(), 'not_signed');
 					copy(realpath(__DIR__ . '/../../fixtures/small_valid-signed.pdf'), $notSigned);
 					$service
-						->setFileFromRequest(['tmp_name' => $notSigned, 'error' => 0, 'size' => 0]);
+						->setFileFromRequest([
+							'tmp_name' => $notSigned,
+							'error' => 0,
+							'size' => 0,
+							'name' => 'small_valid.pdf',
+						]);
 				},
 				[
 					'status' => File::STATUS_NOT_LIBRESIGN_FILE,
@@ -232,6 +249,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'hash' => hash_file('sha256', __DIR__ . '/../../fixtures/small_valid-signed.pdf'),
 					'pdfVersion' => '1.6',
 					'totalPages' => 1,
+					'name' => 'small_valid.pdf',
 				]
 			],
 			'signed file outside LibreSign and display signers' => [
@@ -239,7 +257,12 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$notSigned = tempnam(sys_get_temp_dir(), 'not_signed');
 					copy(realpath(__DIR__ . '/../../fixtures/small_valid-signed.pdf'), $notSigned);
 					$service
-						->setFileFromRequest(['tmp_name' => $notSigned, 'error' => 0, 'size' => 0])
+						->setFileFromRequest([
+							'tmp_name' => $notSigned,
+							'error' => 0,
+							'size' => 0,
+							'name' => 'small_valid.pdf',
+						])
 						->showSigners();
 				},
 				[
@@ -248,14 +271,17 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'hash' => hash_file('sha256', __DIR__ . '/../../fixtures/small_valid-signed.pdf'),
 					'pdfVersion' => '1.6',
 					'totalPages' => 1,
+					'name' => 'small_valid.pdf',
 					'signers' => [
 						[
 							'displayName' => 'admin',
 							'subject' => '/C=BR/ST=State of Company/L=City Name/O=Organization/OU=Organization Unit/UID=account:admin/CN=admin',
 							'valid_from' => 1736024940,
 							'valid_to' => 1767560940,
-							'sign_date' => '2025-01-04 21:09:02',
+							'signed' => '2025-01-04 21:09:02',
 							'uid' => 'account:admin',
+							'is_valid' => 1,
+							'hash_algorithm' => 'RSA-SHA1',
 						],
 					],
 				]
