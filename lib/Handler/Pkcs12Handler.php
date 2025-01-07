@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler;
 
+use DateTime;
 use OC\SystemConfig;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
@@ -39,6 +40,7 @@ use TypeError;
 class Pkcs12Handler extends SignEngineHandler {
 	private string $pfxFilename = 'signature.pfx';
 	private string $pfxContent = '';
+	private array $signaturesFromPoppler = [];
 
 	public function __construct(
 		private FolderService $folderService,
@@ -144,6 +146,11 @@ class Pkcs12Handler extends SignEngineHandler {
 		foreach ($this->getSignatures($resource) as $signature) {
 			// The signature could be invalid
 			if (!$signature) {
+				$fromFallback = $this->popplerUtilsPdfSignFallback($resource, $signerCounter);
+				if ($fromFallback) {
+					$certificates[$signerCounter] = $fromFallback;
+				}
+				$signerCounter++;
 				continue;
 			}
 
@@ -161,14 +168,109 @@ class Pkcs12Handler extends SignEngineHandler {
 
 			$pkcs7PemSignature = $this->der2pem($signature);
 			if (openssl_pkcs7_read($pkcs7PemSignature, $pemCertificates)) {
-				foreach ($pemCertificates as $pemCertificate) {
-					$certificates[$signerCounter]['chain'][] = openssl_x509_parse($pemCertificate);
+				foreach ($pemCertificates as $key => $pemCertificate) {
+					$certificates[$signerCounter]['chain'][$key] = openssl_x509_parse($pemCertificate);
+					$certificates[$signerCounter]['chain'][$key]['is_valid'] = 1;
 				}
 			};
 			$certificates[$signerCounter]['chain'] = $this->orderList($certificates[$signerCounter]['chain']);
 			$signerCounter++;
 		}
 		return $certificates;
+	}
+
+	private function popplerUtilsPdfSignFallback($resource, int $signerCounter): array {
+		if (shell_exec('which pdfsig') === null) {
+			return [];
+		}
+		if (!empty($this->signaturesFromPoppler)) {
+			if (isset($this->signaturesFromPoppler[$signerCounter])) {
+				return $this->signaturesFromPoppler[$signerCounter];
+			}
+			return [];
+		}
+		rewind($resource);
+		$content = stream_get_contents($resource);
+		$tempFile = $this->tempManager->getTemporaryFile('file.pdf');
+		file_put_contents($tempFile, $content);
+
+		$content = shell_exec('pdfsig ' . $tempFile);
+		$lines = explode("\n", $content);
+
+		$lastSignature = 0;
+		foreach ($lines as $item) {
+			$isFirstLevel = preg_match('/^Signature\s#(\d)/', $item, $match);
+			if ($isFirstLevel) {
+				$lastSignature = (int) $match[1] - 1;
+				$this->signaturesFromPoppler[$lastSignature] = [];
+				continue;
+			}
+
+
+			$match = [];
+			$isSecondLevel = preg_match('/^\s+-\s(?<key>.+):\s(?<value>.*)/', $item, $match);
+			if ($isSecondLevel) {
+				switch ($match['key']) {
+					case 'Signing Time':
+						$this->signaturesFromPoppler[$lastSignature]['signingTime'] = DateTime::createFromFormat('M d Y H:i:s', $match['value']);
+						break;
+					case 'Signer full Distinguished Name':
+						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['subject'] = $this->parseDistinguishedNameWithMultipleValues($match['value']);
+						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['name'] = $match['value'];
+						break;
+					case 'Signing Hash Algorithm':
+						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['signatureTypeSN'] = $match['value'];
+						break;
+					case 'Certificate Validation':
+						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['is_valid'] = $match['value'] === 'Signature is valid.' ? 1 : 0;
+						break;
+					case 'Signed Ranges':
+						preg_match('/\[(\d+) - (\d+)\], \[(\d+) - (\d+)\]/', $match['value'], $ranges);
+						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['range'] = [
+							'offset1' => (int)$ranges[1],
+							'length1' => (int)$ranges[2],
+							'offset2' => (int)$ranges[3],
+							'length2' => (int)$ranges[4],
+						];
+						break;
+					case 'Signature Field Name':
+						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['field'] = $match['value'];
+						break;
+					case 'Signature Validation':
+					case 'Signature Type':
+					case 'Total document signed':
+					case 'Not total document signed':
+					default:
+						break;
+				}
+			}
+		}
+		if (isset($this->signaturesFromPoppler[$signerCounter])) {
+			return $this->signaturesFromPoppler[$signerCounter];
+		}
+		return [];
+	}
+
+	private function parseDistinguishedNameWithMultipleValues(string $dn): array {
+		$result = [];
+		$pairs = explode(',', $dn);
+
+		foreach ($pairs as $pair) {
+			[$key, $value] = explode('=', $pair, 2);
+			$key = trim($key);
+			$value = trim($value);
+
+			if (!isset($result[$key])) {
+				$result[$key] = $value;
+			} else {
+				if (!is_array($result[$key])) {
+					$result[$key] = [$result[$key]];
+				}
+				$result[$key][] = $value;
+			}
+		}
+
+		return $result;
 	}
 
 	private function orderList(array $certificates): array {

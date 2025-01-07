@@ -132,7 +132,7 @@
 										:display-name="getName(signer)" />
 								</template>
 								<template #subname>
-									<strong>{{ t('LibreSign', 'Date signed:') }}</strong>
+									<strong>{{ t('libresign', 'Date signed:') }}</strong>
 									<span v-if="signer.signed" class="data-signed">
 										{{ signer.signed }}
 									</span>
@@ -151,6 +151,12 @@
 										</template>
 									</NcButton>
 								</template>
+								<template #indicator>
+									<NcIconSvgWrapper :name="signer.is_valid === 1? t('libresign', 'valid') : t('libresign', 'invalid')"
+										:path="getIconValidityPath(signer)"
+										:style="{color: signer.is_valid === 1? 'green' : 'red'}"
+										:size="20" />
+								</template>
 							</NcListItem>
 							<NcListItem v-if="signer.opened && signer.request_sign_date"
 								class="extra"
@@ -159,6 +165,15 @@
 								<template #name>
 									<strong>{{ t('libresign', 'Requested on:') }}</strong>
 									{{ dateFromSqlAnsi(signer.request_sign_date) }}
+								</template>
+							</NcListItem>
+							<NcListItem v-if="signer.opened"
+								class="extra"
+								compact
+								:name="t('libresign', 'Signature validity:')">
+								<template #name>
+									<strong>{{ t('libresign', 'Signature validity:') }}</strong>
+									{{ signer.is_valid === 1? t('libresign', 'valid') : t('libresign', 'invalid') }}
 								</template>
 							</NcListItem>
 							<NcListItem v-if="signer.opened && signer.remote_address"
@@ -258,6 +273,8 @@
 
 <script>
 import {
+	mdiAlertCircle,
+	mdiCheckboxMarkedCircle,
 	mdiInformationSlabCircle,
 	mdiKey,
 	mdiSignatureFreehand,
@@ -310,6 +327,8 @@ export default {
 	},
 	setup() {
 		return {
+			mdiAlertCircle,
+			mdiCheckboxMarkedCircle,
 			mdiInformationSlabCircle,
 			mdiKey,
 			mdiSignatureFreehand,
@@ -477,14 +496,20 @@ export default {
 				})
 			this.loading = false
 		},
-		getName(user) {
-			if (user.displayName) {
-				return user.displayName
-			} else if (user.email) {
-				return user.email
+		getName(signer) {
+			if (signer.displayName) {
+				return signer.displayName
+			} else if (signer.email) {
+				return signer.email
 			}
 
 			return 'None'
+		},
+		getIconValidityPath(signer) {
+			if (signer.is_valid) {
+				return mdiCheckboxMarkedCircle
+			}
+			return mdiAlertCircle
 		},
 		viewDocument() {
 			if (OCA?.Viewer !== undefined) {
