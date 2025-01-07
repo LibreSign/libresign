@@ -278,7 +278,10 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							'valid_to' => 1767560940,
 							'signed' => '2025-01-04 21:09:02',
 							'uid' => 'account:admin',
-							'is_valid' => 1,
+							'signature_validation' => [
+								'id' => 1,
+								'label' => 'Signature is valid.',
+							],
 							'hash_algorithm' => 'RSA-SHA1',
 						],
 					],

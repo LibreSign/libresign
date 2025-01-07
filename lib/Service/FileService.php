@@ -433,7 +433,10 @@ class FileService {
 				$this->fileData->signers[$index]['valid_to'] = $signer['chain'][0]['validTo_time_t'];
 			}
 			$this->fileData->signers[$index]['signed'] = $signer['signingTime']->format('Y-m-d H:i:s');
-			$this->fileData->signers[$index]['is_valid'] = $signer['chain'][0]['is_valid'];
+			$this->fileData->signers[$index]['signature_validation'] = $signer['chain'][0]['signature_validation'];
+			if (!empty($signer['chain'][0]['certificate_validation'])) {
+				$this->fileData->signers[$index]['certificate_validation'] = $signer['chain'][0]['certificate_validation'];
+			}
 			$this->fileData->signers[$index]['hash_algorithm'] = $signer['chain'][0]['signatureTypeSN'];
 			if (!empty($signer['chain'][0]['subject']['UID'])) {
 				$this->fileData->signers[$index]['uid'] = $signer['chain'][0]['subject']['UID'];

@@ -156,9 +156,9 @@
 									</NcButton>
 								</template>
 								<template #indicator>
-									<NcIconSvgWrapper :name="signer.is_valid === 1? t('libresign', 'valid') : t('libresign', 'invalid')"
+									<NcIconSvgWrapper :name="signer.signature_validation.label"
 										:path="getIconValidityPath(signer)"
-										:style="{color: signer.is_valid === 1? 'green' : 'red'}"
+										:style="{color: signer.signature_validation.id === 1? 'green' : 'red'}"
 										:size="20" />
 								</template>
 							</NcListItem>
@@ -174,10 +174,19 @@
 							<NcListItem v-if="signer.opened"
 								class="extra"
 								compact
-								:name="t('libresign', 'Signature validity:')">
+								:name="t('libresign', 'Signature validation:')">
 								<template #name>
-									<strong>{{ t('libresign', 'Signature validity:') }}</strong>
-									{{ signer.is_valid === 1? t('libresign', 'valid') : t('libresign', 'invalid') }}
+									<strong>{{ t('libresign', 'Signature validation:') }}</strong>
+									{{ signer.signature_validation.label }}
+								</template>
+							</NcListItem>
+							<NcListItem v-if="signer.opened && signer.certificate_validation"
+								class="extra"
+								compact
+								:name="t('libresign', 'Certificate validation:')">
+								<template #name>
+									<strong>{{ t('libresign', 'Certificate validation:') }}</strong>
+									{{ signer.certificate_validation.label }}
 								</template>
 							</NcListItem>
 							<NcListItem v-if="signer.opened && signer.remote_address"
@@ -398,7 +407,6 @@ export default {
 	},
 	methods: {
 		async upload(file) {
-			this.loading = true
 			const formData = new FormData()
 			formData.append('file', file)
 			await axios.postForm(generateOcsUrl('/apps/libresign/api/v1/file/validate'), formData, {
@@ -422,9 +430,8 @@ export default {
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.errors[0])
 				})
-			this.loading = false
 		},
-		uploadFile() {
+		async uploadFile() {
 			this.loading = true
 			const input = document.createElement('input')
 			input.accept = 'application/pdf'
@@ -434,10 +441,9 @@ export default {
 				const file = ev.target.files[0]
 
 				if (file) {
-					this.upload(file)
-				} else {
-					this.loading = false
+					await this.upload(file)
 				}
+				this.loading = false
 
 				input.remove()
 			}
@@ -499,7 +505,9 @@ export default {
 					}
 				})
 				.catch(({ response }) => {
-					showError(response.data.ocs.data.errors[0])
+					if (response?.data?.ocs?.data?.errors?.length > 0) {
+						showError(response.data.ocs.data.errors[0])
+					}
 				})
 			this.loading = false
 		},
