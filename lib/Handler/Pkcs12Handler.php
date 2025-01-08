@@ -138,27 +138,35 @@ class Pkcs12Handler extends SignEngineHandler {
 				continue;
 			}
 
-			// Probably the best way to do this would be:
-			// ASN1::asn1map($decoded[0], Maps\TheMapName::MAP);
-			// But, what's the MAP to use?
-			//
-			// With maps also could be possible read all certificate data and
-			// maybe discart openssl at  this pint
-			try {
-				$decoded = ASN1::decodeBER($signature);
-				$certificates[$signerCounter]['signingTime'] = $decoded[0]['content'][1]['content'][0]['content'][4]['content'][0]['content'][3]['content'][1]['content'][1]['content'][0]['content'];
-			} catch (\Throwable $th) {
-				if ($fromFallback) {
-					$certificates[$signerCounter]['signingTime'] = $fromFallback['signingTime'];
+			if (!isset($fromFallback['signingTime'])) {
+				// Probably the best way to do this would be:
+				// ASN1::asn1map($decoded[0], Maps\TheMapName::MAP);
+				// But, what's the MAP to use?
+				//
+				// With maps also could be possible read all certificate data and
+				// maybe discart openssl at  this pint
+				try {
+					$decoded = ASN1::decodeBER($signature);
+					$certificates[$signerCounter]['signingTime'] = $decoded[0]['content'][1]['content'][0]['content'][4]['content'][0]['content'][3]['content'][1]['content'][1]['content'][0]['content'];
+				} catch (\Throwable $th) {
 				}
 			}
 
 			$pkcs7PemSignature = $this->der2pem($signature);
 			if (openssl_pkcs7_read($pkcs7PemSignature, $pemCertificates)) {
-				foreach ($pemCertificates as $key => $pemCertificate) {
-					$certificates[$signerCounter]['chain'][$key] = openssl_x509_parse($pemCertificate);
-					if (empty($certificates[$signerCounter]['chain'][$key]['signature_validation'])) {
-						$certificates[$signerCounter]['chain'][$key]['signature_validation'] = [
+				foreach ($pemCertificates as $certificateIndex => $pemCertificate) {
+					$parsed = openssl_x509_parse($pemCertificate);
+					foreach ($parsed as $key => $value) {
+						if (!isset($certificates[$signerCounter]['chain'][$certificateIndex][$key])) {
+							$certificates[$signerCounter]['chain'][$certificateIndex][$key] = $value;
+						} elseif ($key === 'name') {
+							$certificates[$signerCounter]['chain'][$certificateIndex][$key] = $value;
+						} elseif ($key === 'signatureTypeSN' && $certificates[$signerCounter]['chain'][$certificateIndex][$key] !== $value) {
+							$certificates[$signerCounter]['chain'][$certificateIndex][$key] = $value;
+						}
+					}
+					if (empty($certificates[$signerCounter]['chain'][$certificateIndex]['signature_validation'])) {
+						$certificates[$signerCounter]['chain'][$certificateIndex]['signature_validation'] = [
 							'id' => 1,
 							'label' => $this->l10n->t('Certificate is Trusted.'),
 						];
