@@ -282,6 +282,10 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 								'id' => 1,
 								'label' => 'Signature is valid.',
 							],
+							'certificate_validation' => [
+								'id' => 3,
+								'label' => 'Certificate issuer is unknown.',
+							],
 							'hash_algorithm' => 'RSA-SHA1',
 						],
 					],
