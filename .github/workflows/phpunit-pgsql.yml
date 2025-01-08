@@ -88,6 +88,9 @@ jobs:
           # Split and keep last
           echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
 
+      - name: Install system dependencies
+        run: sudo apt install texlive poppler-utils
+
       - name: Checkout server
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
