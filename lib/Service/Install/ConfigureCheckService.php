@@ -65,7 +65,7 @@ class ConfigureCheckService {
 	}
 
 	public function checkPoppler(): array {
-		if (shell_exec('which pdfsigf') === null) {
+		if (shell_exec('which pdfsig') === null) {
 			return [
 				(new ConfigureCheckHelper())
 					->setInfoMessage('Poppler utils not installed')
