@@ -10,7 +10,7 @@
 		<template #icon>
 			<NcIconSvgWrapper :path="mdiListStatus" />
 		</template>
-		<NcActionButton v-for="status of statusPresets"
+		<NcActionButton v-for="status of fileStatus"
 			:key="status.id"
 			type="checkbox"
 			:model-value="selectedOptions.includes(status)"
@@ -25,21 +25,14 @@
 
 <script>
 import { mdiListStatus } from '@mdi/js'
-import svgFile from '@mdi/svg/svg/file.svg?raw'
-import svgFractionOneHalf from '@mdi/svg/svg/fraction-one-half.svg?raw'
-import svgSignatureFreehand from '@mdi/svg/svg/signature-freehand.svg?raw'
-import svgSignature from '@mdi/svg/svg/signature.svg?raw'
 
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcIconSvgWrapper from '@nextcloud/vue/dist/Components/NcIconSvgWrapper.js'
 
 import FileListFilter from './FileListFilter.vue'
 
+import { fileStatus } from '../../../helpers/fileStatus.js'
 import { useFiltersStore } from '../../../store/filters.js'
-
-const colorize = (svg, color) => {
-	return svg.replace('<path ', `<path fill="${color}" `)
-}
 
 export default {
 	name: 'FileListFilterStatus',
@@ -58,33 +51,14 @@ export default {
 	data() {
 		return {
 			selectedOptions: [],
-			statusPresets: [
-				{
-					id: 0,
-					icon: colorize(svgFile, '#E0E0E0'),
-					label: t('libresign', 'draft'),
-				},
-				{
-					id: 1,
-					icon: colorize(svgSignature, '#B2E0B2'),
-					label: t('libresign', 'available for signature'),
-				},
-				{
-					id: 2,
-					icon: colorize(svgFractionOneHalf, '#F0E68C'),
-					label: t('libresign', 'partially signed'),
-				},
-				{
-					id: 3,
-					icon: colorize(svgSignatureFreehand, '#A0C4FF'),
-					label: t('libresign', 'signed'),
-				},
-			],
 		}
 	},
 	computed: {
 		isActive() {
 			return this.selectedOptions.length > 0
+		},
+		fileStatus() {
+			return fileStatus.filter(item => [0, 1, 2, 3].includes(item.id))
 		},
 	},
 	watch: {

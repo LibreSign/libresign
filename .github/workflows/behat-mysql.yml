@@ -86,6 +86,9 @@ jobs:
           # Split and keep last
           echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
 
+      - name: Install system dependencies
+        run: sudo apt install poppler-utils
+
       - name: Checkout server
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
