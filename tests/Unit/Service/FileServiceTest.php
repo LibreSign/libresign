@@ -141,6 +141,10 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[DataProvider('dataToArray')]
 	public function testToArray(callable $arguments, array $expected): void {
+		if (shell_exec('which pdfsig') === null) {
+			$this->markTestSkipped();
+			return;
+		}
 		$service = $this->getService();
 		if (is_callable($arguments)) {
 			$arguments = $arguments($this, $service);
