@@ -24,7 +24,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCP\AppFramework\Services\IAppConfig;
+use OCA\Libresign\AppInfo\Application;
+use OCP\IAppConfig;
 use OCP\ISession;
 
 class SessionService {
@@ -55,7 +56,7 @@ class SessionService {
 	}
 
 	public function resetDurationOfSignPage(): void {
-		$renewalInterval = (int)$this->appConfig->getAppValue('renewal_interval', (string)self::NO_RENEWAL_INTERVAL);
+		$renewalInterval = $this->appConfig->setValueInt(Application::APP_ID, 'renewal_interval', self::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= self::NO_RENEWAL_INTERVAL) {
 			return;
 		}

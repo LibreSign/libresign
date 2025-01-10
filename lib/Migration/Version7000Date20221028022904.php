@@ -25,7 +25,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Migration;
 
-use OCP\AppFramework\Services\IAppConfig;
+use OCA\Libresign\AppInfo\Application;
+use OCP\IAppConfig;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
@@ -43,8 +44,7 @@ class Version7000Date20221028022904 extends SimpleMigrationStep {
 	 * {"commonName":"Test Company","names":[{"id":"C","value":"BR"},{"id":"O","value":"Organization"},{"id":"OU","value":"Organization Unit"}]}
 	 */
 	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
-		$rootCert = $this->appConfig->getAppValue('rootCert');
-		$rootCert = json_decode($rootCert, true);
+		$rootCert = $this->appConfig->getValueArray(Application::APP_ID, 'rootCert');
 		if (is_array($rootCert) && array_key_exists('names', $rootCert)) {
 			$names = [];
 			foreach ($rootCert['names'] as $key => $value) {
@@ -57,7 +57,7 @@ class Version7000Date20221028022904 extends SimpleMigrationStep {
 			}
 			if (count($names)) {
 				$rootCert['names'] = $names;
-				$this->appConfig->setAppValue('rootCert', json_encode($rootCert));
+				$this->appConfig->setValueArray(Application::APP_ID, 'rootCert', $rootCert);
 			}
 		}
 	}

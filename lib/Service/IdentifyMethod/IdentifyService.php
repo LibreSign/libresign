@@ -24,16 +24,17 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\SessionService;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
+use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
@@ -99,12 +100,7 @@ class IdentifyService {
 		if (!empty($this->savedSettings)) {
 			return $this->savedSettings;
 		}
-		$config = $this->getAppConfig()->getAppValue('identify_methods', '[]');
-		$config = json_decode($config, true);
-		if (is_array($config)) {
-			$this->savedSettings = $config;
-		}
-		return $this->savedSettings;
+		return $this->getAppConfig()->getValueArray(Application::APP_ID, 'identify_methods', []);
 	}
 
 	public function getEventDispatcher(): IEventDispatcher {

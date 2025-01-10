@@ -52,9 +52,9 @@ use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -111,7 +111,7 @@ class PageController extends AEnvironmentPageAwareController {
 
 		$this->provideSignerSignatues();
 		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
-		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
+		$this->initialState->provideInitialState('legal_information', $this->appConfig->getValueString(Application::APP_ID, 'legal_information'));
 
 		Util::addScript(Application::APP_ID, 'libresign-main');
 
@@ -591,7 +591,7 @@ class PageController extends AEnvironmentPageAwareController {
 			);
 		}
 
-		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
+		$this->initialState->provideInitialState('legal_information', $this->appConfig->getValueString(Application::APP_ID, 'legal_information'));
 
 		$this->initialState->provideInitialState('file_info',
 			$this->fileService
@@ -614,7 +614,7 @@ class PageController extends AEnvironmentPageAwareController {
 	}
 
 	private function throwIfValidationPageNotAccessible(): void {
-		$isValidationUrlPrivate = (bool)$this->appConfig->getAppValue('make_validation_url_private', '0');
+		$isValidationUrlPrivate = (bool)$this->appConfig->getValueBool(Application::APP_ID, 'make_validation_url_private', false);
 		if ($this->userSession->isLoggedIn()) {
 			return;
 		}

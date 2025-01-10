@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Service\PdfParserService;
-use OCP\AppFramework\Services\IAppConfig;
+use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
@@ -43,7 +43,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGetFooterWithoutValidationSite(): void {
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->appConfig
-			->method('getAppValue')
+			->method('getValueString')
 			->willReturn('');
 		$file = $this->createMock(\OCP\Files\File::class);
 		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
@@ -57,7 +57,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGetFooterWithSuccess(array $settings, array $expected): void {
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->appConfig
-			->method('getAppValue')
+			->method('getValueString')
 			->willReturnCallback(function ($key, $default) use ($settings):string {
 				if (array_key_exists($key, $settings)) {
 					return $settings[$key];
@@ -105,13 +105,13 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public static function dataGetFooterWithSuccess(): array {
 		return [
 			[
-				['add_footer' => '0',], []
+				['add_footer' => false,], []
 			],
 			[
 				[
-					'add_footer' => '1',
+					'add_footer' => true,
 					'validation_site' => 'http://test.coop',
-					'write_qrcode_on_footer' => '1',
+					'write_qrcode_on_footer' => true,
 					'footer_link_to_site' => 'https://libresign.coop',
 					'footer_signed_by' => 'Digital signed by LibreSign.',
 					'footer_validate_in' => 'Validate in %s.',
@@ -135,7 +135,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			[
 				[
-					'add_footer' => '1',
+					'add_footer' => true,
 					'validation_site' => 'http://test.coop',
 					'write_qrcode_on_footer' => '0',
 					'footer_link_to_site' => 'https://libresign.coop',

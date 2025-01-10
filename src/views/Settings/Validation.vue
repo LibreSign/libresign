@@ -92,7 +92,7 @@ export default {
 			const response = await axios.get(
 				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/make_validation_url_private'),
 			)
-			this.makeValidationUrlPrivate = response.data.ocs.data.data === '1'
+			this.makeValidationUrlPrivate = response.data.ocs.data.data === true
 		},
 		async getAddFooterData() {
 			const response = await axios.get(
@@ -122,7 +122,7 @@ export default {
 			OCP.AppConfig.setValue('libresign', 'validation_site', this.$refs.urlInput.value.trim())
 		},
 		async toggleSetting(setting, value) {
-			OCP.AppConfig.setValue('libresign', setting, value ? 1 : 0)
+			OCP.AppConfig.setValue('libresign', setting, value ? true : false)
 		},
 		placeHolderValidationUrl(data) {
 			if (data !== '') {
