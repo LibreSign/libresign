@@ -89,4 +89,17 @@ class AppConfigOverwrite extends AppConfig {
 
 		return parent::getValueBool($app, $key, $default);
 	}
+
+	public function getValueString(string $app, string $key, string $default = '', bool $lazy = false): string {
+		if (isset($this->overWrite[$app]) && isset($this->overWrite[$app][$key])) {
+			return $this->overWrite[$app][$key];
+		}
+
+		return parent::getValueString($app, $key, $default);
+	}
+
+	public function setValueString(string $app, string $key, string $value, bool $lazy = false, bool $sensitive = false): bool {
+		$this->overWrite[$app][$key] = $value;
+		return true;
+	}
 }

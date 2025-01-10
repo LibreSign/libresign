@@ -13,7 +13,6 @@ use OC\IntegrityCheck\Helpers\EnvironmentHelper;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Install\SignSetupService;
-use OCA\Libresign\Tests\lib\AppConfigOverwrite;
 use OCP\App\IAppManager;
 use OCP\IAppConfig;
 use OCP\IConfig;
@@ -34,11 +33,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileAccessHelper = new FileAccessHelper();
 		$this->appManager = $this->createMock(IAppManager::class);
 		$this->config = $this->createMock(IConfig::class);
-		$this->appConfig = new AppConfigOverwrite(
-			\OCP\Server::get(\OCP\IDBConnection::class),
-			\OCP\Server::get(\Psr\Log\LoggerInterface::class),
-			\OCP\Server::get(\OCP\Security\ICrypto::class),
-		);
+		$this->appConfig = $this->getMockAppConfig();
 	}
 
 	/**
@@ -93,14 +88,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->environmentHelper->method('getServerRoot')
 			->willReturn('vfs://home');
 
-		$this->appConfig
-			->method('getValueString')
-			->willReturnCallback(function ($key, $default) use ($architecture):string {
-				return match ($key) {
-					'java_path' => 'vfs://home/data/appdata_1/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/bin/java',
-					default => '',
-				};
-			});
+		$this->appConfig->setValueString(Application::APP_ID, 'java_path', 'vfs://home/data/appdata_1/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/bin/java');
 		$signSetupService = $this->getInstance([
 			'getAppInfoDirectory',
 		]);

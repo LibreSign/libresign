@@ -22,7 +22,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig = $this->getMockAppConfig();
 		$this->pdfParserService = $this->createMock(PdfParserService::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
-		$this->tempManager = $this->createMock(ITempManager::class);
+		$this->tempManager = \OCP\Server::get(ITempManager::class);
 
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
@@ -42,7 +42,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetFooterWithoutValidationSite(): void {
-		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', true);
+		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', false);
 		$file = $this->createMock(\OCP\Files\File::class);
 		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 		$actual = $this->getClass()->getFooter($file, $libresignFile);
@@ -63,10 +63,6 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					break;
 			}
 		}
-		$this->tempManager->method('getTempBaseDir')->willReturn(sys_get_temp_dir());
-		$tempName = sys_get_temp_dir() . '/' . mt_rand() . '.php';
-		touch($tempName);
-		$this->tempManager->method('getTemporaryFile')->willReturn($tempName);
 
 		$file = $this->createMock(\OCP\Files\File::class);
 		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
@@ -136,7 +132,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[
 					'add_footer' => true,
 					'validation_site' => 'http://test.coop',
-					'write_qrcode_on_footer' => '0',
+					'write_qrcode_on_footer' => false,
 					'footer_link_to_site' => 'https://libresign.coop',
 					'footer_signed_by' => 'Digital signed by LibreSign.',
 					'footer_validate_in' => 'Validate in %s.',

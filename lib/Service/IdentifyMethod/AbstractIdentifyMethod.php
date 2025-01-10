@@ -174,7 +174,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function throwIfMaximumValidityExpired(): void {
-		$maximumValidity = (int)$this->identifyService->getAppConfig()->setValueInt(Application::APP_ID, 'maximum_validity', SessionService::NO_MAXIMUM_VALIDITY);
+		$maximumValidity = (int)$this->identifyService->getAppConfig()->getValueInt(Application::APP_ID, 'maximum_validity', SessionService::NO_MAXIMUM_VALIDITY);
 		if ($maximumValidity <= 0) {
 			return;
 		}
