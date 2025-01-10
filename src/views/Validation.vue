@@ -8,31 +8,106 @@
 			<img :src="logo" draggable="false">
 		</div>
 		<div id="dataUUID">
-			<form v-show="!hasInfo" @submit="(e) => e.preventDefault()">
-				<h1>{{ t('libresign', 'Validate signature') }}</h1>
-				<NcTextField v-model="uuidToValidate" :label="t('libresign', 'Enter the ID or UUID of the document to validate.')" />
-				<NcButton type="primary"
-					:disabled="loading"
-					@click.prevent="clickedValidate = true;validate(uuidToValidate)">
-					<template #icon>
-						<NcLoadingIcon v-if="loading" :size="20" />
-					</template>
-					{{ t('libresign', 'Validation') }}
-				</NcButton>
-			</form>
+			<div v-show="!hasInfo" class="infor-container">
+				<div class="section">
+					<h1>{{ t('libresign', 'Validate signature') }}</h1>
+					<NcActions :menu-name="t('libresign', 'Validate signature')"
+						:inline="3"
+						:force-name="true">
+						<NcActionButton :wide="true"
+							:disabled="loading"
+							@click="getUUID = true">
+							{{ t('libresign', 'From UUID') }}
+							<template #icon>
+								<NcLoadingIcon v-if="loading" :size="20" />
+								<NcIconSvgWrapper v-else :path="mdiKey" />
+							</template>
+						</NcActionButton>
+						<NcActionButton :wide="true"
+							:disabled="loading"
+							@click="uploadFile">
+							{{ t('libresign', 'Upload') }}
+							<template #icon>
+								<NcLoadingIcon v-if="loading" :size="20" />
+								<NcIconSvgWrapper v-else :path="mdiUpload" />
+							</template>
+						</NcActionButton>
+					</NcActions>
+					<NcDialog v-if="getUUID"
+						:name="t('libresign', 'Validate signature')"
+						is-form
+						@closing="getUUID = false">
+						<h1>{{ t('libresign', 'Validate signature') }}</h1>
+						<NcTextField v-model="uuidToValidate"
+							:label="t('libresign', 'Enter the ID or UUID of the document to validate.')"
+							:helper-text="helperTextValidation"
+							:error="uuidToValidate.length > 0 && !canValidate" />
+						<template #actions>
+							<NcButton type="primary"
+								:disabled="loading || !canValidate"
+								@click.prevent="clickedValidate = true;validate(uuidToValidate)">
+								<template #icon>
+									<NcLoadingIcon v-if="loading" :size="20" />
+								</template>
+								{{ t('libresign', 'Validation') }}
+							</NcButton>
+						</template>
+					</NcDialog>
+				</div>
+			</div>
 			<div v-if="hasInfo" class="infor-container">
 				<div class="section">
 					<div class="header">
 						<NcIconSvgWrapper :path="mdiInformationSlabCircle" :size="30" />
 						<h1>{{ t('libresign', 'Document informations') }}</h1>
 					</div>
+					<NcNoteCard v-if="isAfterSigned" type="success">
+						{{ t('libresign', 'Congratulations you have digitally signed a document using LibreSign') }}
+					</NcNoteCard>
+					<ul>
+						<NcListItem class="extra"
+							compact
+							:name="t('libresign', 'Name:')">
+							<template #name>
+								<strong>{{ t('libresign', 'Name:') }}</strong>
+								{{ document.name }}
+							</template>
+						</NcListItem>
+						<NcListItem v-if="document.status"
+							class="extra"
+							compact
+							:name="t('libresign', 'Status:')">
+							<template #name>
+								<strong>{{ t('libresign', 'Status:') }}</strong>
+								{{ documentStatus }}
+							</template>
+						</NcListItem>
+						<NcListItem class="extra"
+							compact
+							:name="t('libresign', 'Total pages:')">
+							<template #name>
+								<strong>{{ t('libresign', 'Total pages:') }}</strong>
+								{{ document.totalPages }}
+							</template>
+						</NcListItem>
+						<NcListItem class="extra"
+							compact
+							:name="t('libresign', 'File size:')">
+							<template #name>
+								<strong>{{ t('libresign', 'File size:') }}</strong>
+								{{ size }}
+							</template>
+						</NcListItem>
+						<NcListItem class="extra"
+							compact
+							:name="t('libresign', 'PDF version:')">
+							<template #name>
+								<strong>{{ t('libresign', 'PDF version:') }}</strong>
+								{{ document.pdfVersion }}
+							</template>
+						</NcListItem>
+					</ul>
 					<div class="info-document">
-						<NcNoteCard v-if="isAfterSigned" type="success">
-							{{ t('libresign', 'Congratulations you have digitally signed a document using LibreSign') }}
-						</NcNoteCard>
-						<p>
-							<b>{{ document.name }}</b>
-						</p>
 						<NcRichText class="legal-information"
 							:text="legalInformation"
 							:use-markdown="true" />
@@ -46,12 +121,12 @@
 						</NcButton>
 					</div>
 				</div>
-				<div class="section">
+				<div v-if="document.signers" class="section">
 					<div class="header">
 						<NcIconSvgWrapper :path="mdiSignatureFreehand" :size="30" />
 						<h1>{{ t('libresign', 'Signatories:') }}</h1>
 					</div>
-					<ul>
+					<ul class="signers">
 						<span v-for="(signer, signerIndex) in document.signers"
 							:key="signerIndex">
 							<NcListItem :name="getName(signer)"
@@ -65,7 +140,7 @@
 										:display-name="getName(signer)" />
 								</template>
 								<template #subname>
-									<strong>{{ t('LibreSign', 'Date signed:') }}</strong>
+									<strong>{{ t('libresign', 'Date signed:') }}</strong>
 									<span v-if="signer.signed" class="data-signed">
 										{{ signer.signed }}
 									</span>
@@ -84,14 +159,38 @@
 										</template>
 									</NcButton>
 								</template>
+								<template #indicator>
+									<NcIconSvgWrapper :name="signer.signature_validation.label"
+										:path="getIconValidityPath(signer)"
+										:style="{color: signer.signature_validation.id === 1? 'green' : 'red'}"
+										:size="20" />
+								</template>
 							</NcListItem>
-							<NcListItem v-if="signer.opened"
+							<NcListItem v-if="signer.opened && signer.request_sign_date"
 								class="extra"
 								compact
 								:name="t('libresign', 'Requested on:')">
 								<template #name>
 									<strong>{{ t('libresign', 'Requested on:') }}</strong>
 									{{ dateFromSqlAnsi(signer.request_sign_date) }}
+								</template>
+							</NcListItem>
+							<NcListItem v-if="signer.opened"
+								class="extra"
+								compact
+								:name="t('libresign', 'Signature validation:')">
+								<template #name>
+									<strong>{{ t('libresign', 'Signature validation:') }}</strong>
+									{{ signer.signature_validation.label }}
+								</template>
+							</NcListItem>
+							<NcListItem v-if="signer.opened && signer.certificate_validation"
+								class="extra"
+								compact
+								:name="t('libresign', 'Certificate validation:')">
+								<template #name>
+									<strong>{{ t('libresign', 'Certificate validation:') }}</strong>
+									{{ signer.certificate_validation.label }}
 								</template>
 							</NcListItem>
 							<NcListItem v-if="signer.opened && signer.remote_address"
@@ -146,15 +245,36 @@
 									{{ dateFromUnixTimestamp(signer.valid_to) }}
 								</template>
 							</NcListItem>
+							<NcListItem v-if="signer.opened && signer.hash_algorithm"
+								class="extra"
+								compact
+								:name="t('libresign', 'Hash algorithm:')">
+								<template #name>
+									<strong>{{ t('libresign', 'Hash algorithm:') }}</strong>
+									{{ signer.hash_algorithm }}
+								</template>
+							</NcListItem>
 							<NcListItem v-if="signer.opened && signer.subject"
 								class="extra"
 								compact
-								:name="t('libresign', 'Subject:')">
+								:name="t('libresign', 'Certificate chain:')">
 								<template #name>
-									<strong>{{ t('libresign', 'Subject:') }}</strong>
+									<strong>{{ t('libresign', 'Certificate chain:') }}</strong>
 									{{ signer.subject }}
 								</template>
 							</NcListItem>
+							<div v-if="signer.opened">
+								<NcListItem v-for="(issuer, issuerIndex) in signer.chain"
+									:key="issuerIndex"
+									class="extra-chain"
+									compact
+									:name="t('libresign', 'Issuer:')">
+									<template #name>
+										<strong>{{ t('libresign', 'Issuer:') }}</strong>
+										{{ issuer.displayName }}
+									</template>
+								</NcListItem>
+							</div>
 						</span>
 					</ul>
 				</div>
@@ -170,22 +290,30 @@
 
 <script>
 import {
+	mdiAlertCircle,
+	mdiCheckboxMarkedCircle,
 	mdiInformationSlabCircle,
+	mdiKey,
 	mdiSignatureFreehand,
-	mdiUnfoldMoreHorizontal,
 	mdiUnfoldLessHorizontal,
+	mdiUnfoldMoreHorizontal,
+	mdiUpload,
 } from '@mdi/js'
 import JSConfetti from 'js-confetti'
 
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
+import { formatFileSize } from '@nextcloud/files'
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
 import Moment from '@nextcloud/moment'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 
+import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
+import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
 import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcIconSvgWrapper from '@nextcloud/vue/dist/Components/NcIconSvgWrapper.js'
 import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
@@ -195,40 +323,74 @@ import NcRichText from '@nextcloud/vue/dist/Components/NcRichText.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 
 import logoGray from '../../img/logo-gray.svg'
+import { fileStatus } from '../helpers/fileStatus.js'
 import logger from '../logger.js'
 
 export default {
 	name: 'Validation',
 
 	components: {
-		NcTextField,
-		NcRichText,
-		NcButton,
-		NcLoadingIcon,
-		NcListItem,
+		NcActionButton,
+		NcActions,
 		NcAvatar,
+		NcButton,
+		NcDialog,
 		NcIconSvgWrapper,
+		NcListItem,
+		NcLoadingIcon,
 		NcNoteCard,
+		NcRichText,
+		NcTextField,
 	},
-
+	setup() {
+		return {
+			mdiAlertCircle,
+			mdiCheckboxMarkedCircle,
+			mdiInformationSlabCircle,
+			mdiKey,
+			mdiSignatureFreehand,
+			mdiUnfoldLessHorizontal,
+			mdiUnfoldMoreHorizontal,
+			mdiUpload,
+		}
+	},
 	data() {
 		return {
 			logo: logoGray,
-			mdiUnfoldMoreHorizontal,
-			mdiInformationSlabCircle,
-			mdiUnfoldLessHorizontal,
-			mdiSignatureFreehand,
 			uuidToValidate: this.$route.params?.uuid ?? '',
 			hasInfo: false,
 			loading: false,
 			document: {},
 			legalInformation: loadState('libresign', 'legal_information', ''),
 			clickedValidate: false,
+			getUUID: false,
+			getUploadedFile: false,
+			urlQrCode: '',
 		}
 	},
 	computed: {
 		isAfterSigned() {
 			return this.$route.params.isAfterSigned ?? false
+		},
+		canValidate() {
+			const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+			return this.uuidToValidate.length === 36 && uuidRegex.test(this.uuidToValidate)
+		},
+		helperTextValidation() {
+			if (this.uuidToValidate.length > 0 && !this.canValidate) {
+				return t('libresign', 'Invalid UUID')
+			}
+			return ''
+		},
+		size() {
+			return formatFileSize(this.document.size)
+		},
+		documentStatus() {
+			const actual = fileStatus.find(item => item.id === this.document.status)
+			if (actual === undefined) {
+				return fileStatus.find(item => item.id === -1).label
+			}
+			return actual.label
 		},
 	},
 	watch: {
@@ -237,19 +399,61 @@ export default {
 		},
 	},
 	created() {
-		if (this.uuidToValidate.length > 0) {
+		this.$set(this, 'document', loadState('libresign', 'file_info', {}))
+		this.hasInfo = Object.keys(this.document).length > 0
+		if (this.hasInfo) {
+			this.document.signers.forEach(signer => {
+				this.$set(signer, 'opened', false)
+			})
+		} else if (this.uuidToValidate.length > 0) {
 			this.validate(this.uuidToValidate)
-		} else {
-			this.$set(this, 'document', loadState('libresign', 'file_info', {}))
-			this.hasInfo = Object.keys(this.document).length > 0
-			if (this.hasInfo) {
-				this.document.signers.forEach(signer => {
-					this.$set(signer, 'opened', false)
-				})
-			}
 		}
 	},
 	methods: {
+		async upload(file) {
+			const formData = new FormData()
+			formData.append('file', file)
+			await axios.postForm(generateOcsUrl('/apps/libresign/api/v1/file/validate'), formData, {
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+			})
+				.then(({ data }) => {
+					this.clickedValidate = true
+					showSuccess(t('libresign', 'This document is valid'))
+					this.$set(this, 'document', data.ocs.data)
+					this.document.signers?.forEach(signer => {
+						this.$set(signer, 'opened', false)
+					})
+					this.hasInfo = true
+					if (this.isAfterSigned) {
+						const jsConfetti = new JSConfetti()
+						jsConfetti.addConfetti()
+					}
+				})
+				.catch(({ response }) => {
+					showError(response.data.ocs.data.errors[0])
+				})
+		},
+		async uploadFile() {
+			this.loading = true
+			const input = document.createElement('input')
+			input.accept = 'application/pdf'
+			input.type = 'file'
+
+			input.onchange = async (ev) => {
+				const file = ev.target.files[0]
+
+				if (file) {
+					await this.upload(file)
+				}
+				this.loading = false
+
+				input.remove()
+			}
+
+			input.click()
+		},
 		dateFromSqlAnsi(date) {
 			return Moment(Date.parse(date)).format('LL LTS')
 		},
@@ -263,9 +467,7 @@ export default {
 			if (id === this.document?.uuid) {
 				showSuccess(t('libresign', 'This document is valid'))
 				this.hasInfo = true
-				return
-			}
-			if (id.length === 36) {
+			} else if (id.length === 36) {
 				this.validateByUUID(id)
 			} else {
 				this.validateByNodeID(id)
@@ -273,49 +475,60 @@ export default {
 		},
 		async validateByUUID(uuid) {
 			this.loading = true
-			try {
-				const response = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${uuid}`))
-				showSuccess(t('libresign', 'This document is valid'))
-				this.$set(this, 'document', response.data.ocs.data)
-				this.document.signers.forEach(signer => {
-					this.$set(signer, 'opened', false)
+			await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${uuid}`))
+				.then(({ data }) => {
+					showSuccess(t('libresign', 'This document is valid'))
+					this.$set(this, 'document', data.ocs.data)
+					this.document.signers.forEach(signer => {
+						this.$set(signer, 'opened', false)
+					})
+					this.hasInfo = true
+					if (this.isAfterSigned) {
+						const jsConfetti = new JSConfetti()
+						jsConfetti.addConfetti()
+					}
 				})
-				this.hasInfo = true
-				this.loading = false
-				if (this.isAfterSigned) {
-					const jsConfetti = new JSConfetti()
-					jsConfetti.addConfetti()
-				}
-			} catch (err) {
-				this.loading = false
-				showError(err.response.data.ocs.data.errors[0])
-			}
+				.catch(({ response }) => {
+					showError(response.data.ocs.data.errors[0])
+				})
+			this.loading = false
 		},
 		async validateByNodeID(nodeId) {
 			this.loading = true
-			try {
-				const response = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${nodeId}`))
-				showSuccess(t('libresign', 'This document is valid'))
-				this.$set(this, 'document', response.data.ocs.data)
-				this.hasInfo = true
-				this.loading = false
-				if (this.isAfterSigned) {
-					const jsConfetti = new JSConfetti()
-					jsConfetti.addConfetti()
-				}
-			} catch (err) {
-				this.loading = false
-				showError(err.response.data.ocs.data.errors[0])
-			}
+			await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${nodeId}`))
+				.then(({ data }) => {
+					showSuccess(t('libresign', 'This document is valid'))
+					this.$set(this, 'document', data.ocs.data)
+					this.document.signers.forEach(signer => {
+						this.$set(signer, 'opened', false)
+					})
+					this.hasInfo = true
+					if (this.isAfterSigned) {
+						const jsConfetti = new JSConfetti()
+						jsConfetti.addConfetti()
+					}
+				})
+				.catch(({ response }) => {
+					if (response?.data?.ocs?.data?.errors?.length > 0) {
+						showError(response.data.ocs.data.errors[0])
+					}
+				})
+			this.loading = false
 		},
-		getName(user) {
-			if (user.displayName) {
-				return user.displayName
-			} else if (user.email) {
-				return user.email
+		getName(signer) {
+			if (signer.displayName) {
+				return signer.displayName
+			} else if (signer.email) {
+				return signer.email
 			}
 
 			return 'None'
+		},
+		getIconValidityPath(signer) {
+			if (signer.is_valid) {
+				return mdiCheckboxMarkedCircle
+			}
+			return mdiAlertCircle
 		},
 		viewDocument() {
 			if (OCA?.Viewer !== undefined) {
@@ -373,7 +586,6 @@ export default {
 			display: none;
 			width: 0%;
 		}
-
 	}
 	#dataUUID {
 		width: 100%;
@@ -417,13 +629,21 @@ export default {
 		}
 		.infor-container {
 			width: 100%;
-			margin-right: 20px;
+			margin: 20px;
 			.section {
 				background-color: var(--color-main-background);
 				padding: 20px;
 				border-radius: 8px;
 				box-shadow: 0 0 6px 0 var(--color-box-shadow);
 				margin-bottom: 10px;
+				width: 100%;
+				@media screen and (max-width: 900px) {
+					max-width: 100%;
+				}
+				.action-items {
+					gap: 12px;
+					flex-direction: column;
+				}
 
 				.header {
 					display: flex;
@@ -431,6 +651,15 @@ export default {
 				}
 				h1 {
 					font-size: 1.5rem;
+				}
+
+				.extra, .extra-chain {
+					:deep(.list-item-content__name) {
+						white-space: unset;
+					}
+					:deep(.list-item__anchor) {
+						height: unset;
+					}
 				}
 
 				.info-document {
@@ -450,16 +679,17 @@ export default {
 					}
 				}
 
-				.extra {
-					margin-left: 44px;
-					padding-right: 44px;
-					:deep(.list-item-content__name) {
-						white-space: unset;
+				.signers {
+					.extra {
+						margin-left: 44px;
+						padding-right: 44px;
 					}
-					:deep(.list-item__anchor) {
-						height: unset;
+					.extra-chain {
+						margin-left: 88px;
+						padding-right: 88px;
 					}
 				}
+
 			}
 		}
 	}

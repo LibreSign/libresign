@@ -531,7 +531,11 @@ export type paths = {
          */
         get: operations["file-validate"];
         put?: never;
-        post?: never;
+        /**
+         * Validate a binary file
+         * @description Validate a binary file returning file data. Use field 'file' for the file upload
+         */
+        post: operations["file-validate-binary"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1092,7 +1096,12 @@ export type components = {
         Signer: {
             description: string | null;
             displayName: string;
+            subject?: string;
             request_sign_date: string;
+            /** Format: int64 */
+            valid_from?: number;
+            /** Format: int64 */
+            valid_to?: number;
             email?: string;
             remote_address?: string;
             user_agent?: string;
@@ -1101,6 +1110,7 @@ export type components = {
             signed: string | null;
             sign_date?: string | null;
             sign_uuid?: string;
+            hash_algorithm?: string;
             me: boolean;
             /** Format: int64 */
             signRequestId: number;
@@ -1136,6 +1146,11 @@ export type components = {
             statusText: string;
             /** Format: int64 */
             nodeId: number;
+            /** Format: int64 */
+            totalPages: number;
+            /** Format: int64 */
+            size: number;
+            pdfVersion: string;
             created_at: string;
             requested_by: {
                 userId: string;
@@ -2270,7 +2285,6 @@ export interface operations {
                                 /** Format: int64 */
                                 action: number;
                                 errors: string[];
-                                settings: components["schemas"]["Settings"];
                                 messages?: {
                                     type: string;
                                     message: string;
@@ -2325,7 +2339,6 @@ export interface operations {
                                 /** Format: int64 */
                                 action: number;
                                 errors: string[];
-                                settings: components["schemas"]["Settings"];
                                 messages?: {
                                     type: string;
                                     message: string;
@@ -2383,7 +2396,80 @@ export interface operations {
                                 /** Format: int64 */
                                 action: number;
                                 errors: string[];
-                                settings: components["schemas"]["Settings"];
+                                messages?: {
+                                    type: string;
+                                    message: string;
+                                }[];
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "file-validate-binary": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ValidateFile"];
+                        };
+                    };
+                };
+            };
+            /** @description Request failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** Format: int64 */
+                                action: number;
+                                errors: string[];
+                                messages?: {
+                                    type: string;
+                                    message: string;
+                                }[];
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Request failed */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** Format: int64 */
+                                action: number;
+                                errors: string[];
                                 messages?: {
                                     type: string;
                                     message: string;

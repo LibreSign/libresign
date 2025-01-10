@@ -24,6 +24,8 @@ use OCP\DB\Types;
  * @method int getCreatedAt()
  * @method void setSigned(int $signed)
  * @method int getSigned()
+ * @method void setSignedHash(string $hash)
+ * @method string getSignedHash()
  * @method void setDisplayName(string $displayName)
  * @method string getDisplayName()
  * @method void setMetadata(array $metadata)
@@ -56,6 +58,9 @@ class SignRequest extends Entity {
 	protected $signed;
 
 	/** @var string */
+	protected $signedHash;
+
+	/** @var string */
 	protected $metadata;
 
 	public function __construct() {
@@ -66,6 +71,7 @@ class SignRequest extends Entity {
 		$this->addType('description', 'string');
 		$this->addType('createdAt', 'integer');
 		$this->addType('signed', 'integer');
+		$this->addType('signedHash', 'string');
 		$this->addType('metadata', Types::JSON);
 	}
 }
