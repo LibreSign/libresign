@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "File is too big" : "Նիշքը չափազանց մեծ է",
     "File not found" : "Ֆայլը չգտնվեց",
+    "Invalid file provided" : "Անվավեր նիշք",
     "Email" : "Էլ․փոստ",
     "Upload" : "Բեռնել",
     "Delete" : "հեռացնել",

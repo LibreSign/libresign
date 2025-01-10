@@ -9,6 +9,7 @@ OC.L10N.register(
     "View" : "Ver",
     "Dismiss notification" : "Eliminar notificación",
     "File not found" : "Archivo no encontrado",
+    "Invalid file provided" : "Archivo proporcionado inválido",
     "Account" : "Cuenta",
     "Invalid user" : "Usuario inválido",
     "Email" : "Correo electrónico",

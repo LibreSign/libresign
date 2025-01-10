@@ -10,6 +10,7 @@ OC.L10N.register(
     "Dismiss notification" : "Noraidīt paziņojumu",
     "File not found" : "Datne nav atrasta",
     "File already exists" : "Datne jau pastāv",
+    "Invalid file provided" : "Norādīt nederīgs fails",
     "Account" : "Konts",
     "Invalid user" : "Nepareizs lietotājs",
     "Email" : "E-pasts",
@@ -60,6 +61,7 @@ OC.L10N.register(
     "Yes" : "Jā",
     "No" : "Nē",
     "Forgot password?" : "Aizmirsta parole?",
+    "Status:" : "Statuss:",
     "No date" : "No date",
     "Requested by {name}, at {date}" : "Pieprasīja {name} {date}",
     "Pending" : "Gaida"

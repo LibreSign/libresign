@@ -8,6 +8,7 @@ OC.L10N.register(
     "File sharing" : "ფაილების გაზიარება",
     "File not found" : "ფაილი ვერ იქნა ნაპოვნი",
     "File already exists" : "ფაილი უკვე არსებობს",
+    "Invalid file provided" : "არასწორი ფაილი",
     "Account" : "ანგარიში",
     "Invalid user" : "არასწორი მომხმარებელი",
     "Email" : "ელ-ფოსტა",

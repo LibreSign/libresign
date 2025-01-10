@@ -4,6 +4,7 @@ OC.L10N.register(
     "Invalid password" : "Feil passord",
     "File is too big" : "Fila er for stor",
     "File not found" : "Fann ikkje fila",
+    "Invalid file provided" : "Ugyldig fil",
     "Email" : "Epost",
     "Upload" : "Last opp",
     "Delete" : "Slett",

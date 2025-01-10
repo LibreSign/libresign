@@ -10,6 +10,7 @@
     "File not found" : "Archivo no encontrado",
     "File already exists" : "El archivo ya existe",
     "Empty file" : "Archivo vacío",
+    "Invalid file provided" : "Se proporcionó un archivo invalido",
     "Account" : "Cuenta",
     "Invalid user" : "Usuario inválido",
     "Email" : "Correo electrónico",
@@ -77,6 +78,8 @@
     "Dependencies" : "Dependencias",
     "Yes" : "Sí",
     "No" : "No",
+    "Name:" : "Nombre:",
+    "Status:" : "Estado:",
     "No date" : "Sin fecha",
     "Pending" : "Pendiente"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"

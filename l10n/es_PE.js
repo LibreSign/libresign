@@ -7,6 +7,7 @@ OC.L10N.register(
     "File is too big" : "El archivo es demasiado grande.",
     "File not found" : "Archivo no encontrado",
     "File already exists" : "El archivo ya existe",
+    "Invalid file provided" : "Archivo proporcionado inválido",
     "Account" : "Cuenta",
     "Invalid user" : "Usuario inválido",
     "Email" : "Correo electrónico",
