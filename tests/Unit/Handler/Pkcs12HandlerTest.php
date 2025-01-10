@@ -92,21 +92,4 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$actual = $this->pkcs12Handler->getPfx('userId');
 		$this->assertEquals('valid pfx content', $actual);
 	}
-
-	public function cfsslHandlerCallbackToGetSetArguments($functionName, $value = null):bool {
-		if (strpos($functionName, 'set') === 0) {
-			$this->cfsslHandlerBuffer[substr($functionName, 3)] = $value;
-		}
-		return true;
-	}
-
-	public function cfsslHandlerCallbackToGetSetReturn($functionName):CfsslHandler|MockObject|null {
-		if (strpos($functionName, 'set') === 0) {
-			return $this->cfsslHandler;
-		}
-		if (isset($this->cfsslHandlerBuffer[substr($functionName, 3)])) {
-			return $this->cfsslHandlerBuffer[substr($functionName, 3)];
-		}
-		return null;
-	}
 }
