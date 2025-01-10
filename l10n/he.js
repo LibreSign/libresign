@@ -12,6 +12,7 @@ OC.L10N.register(
     "Dismiss notification" : "התעלמות מהתראה",
     "File not found" : "קובץ לא נמצא",
     "File already exists" : "הקובץ כבר קיים",
+    "Invalid file provided" : "הקובץ שסופק שגוי",
     "Account" : "חשבון",
     "Invalid user" : "משתמש שגוי",
     "Email" : "דוא״ל",
@@ -64,6 +65,7 @@ OC.L10N.register(
     "Yes" : "כן",
     "No" : "לא",
     "Forgot password?" : "שכחת ססמה?",
+    "Name:" : "שם:",
     "No date" : "No date",
     "Pending" : "בהמתנה"
 },

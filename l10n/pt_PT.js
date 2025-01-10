@@ -13,6 +13,7 @@ OC.L10N.register(
     "File not found" : "Ficheiro não encontrado",
     "File already exists" : "O ficheiro já existe",
     "Empty file" : "Ficheiro vazio",
+    "Invalid file provided" : "Fornecido ficheiro inválido",
     "Account" : "Conta",
     "Invalid user" : "Utilizador inválido",
     "Email" : "E-mail",
@@ -71,6 +72,7 @@ OC.L10N.register(
     "Yes" : "Sim",
     "No" : "Não",
     "Forgot password?" : "Senha esquecida?",
+    "Name:" : "Nome:",
     "No date" : "Sem data",
     "Pending" : "Pendente"
 },

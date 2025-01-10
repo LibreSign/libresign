@@ -10,6 +10,7 @@
     "File not found" : "Fișierul nu a fost găsit",
     "File already exists" : "Fișierul există deja",
     "Empty file" : "Fișier gol",
+    "Invalid file provided" : "Numele fișierului pe care l-ai oferit este invalid",
     "Account" : "Cont",
     "Invalid user" : "Utilizator invalid",
     "Email" : "E-mail",
@@ -71,6 +72,7 @@
     "Dependencies" : "Dependențe",
     "Yes" : "a",
     "No" : "Nu",
+    "Name:" : "Nume:",
     "No date" : "No date",
     "Pending" : "În așteptare"
 },"pluralForm" :"nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));"

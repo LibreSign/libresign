@@ -5,6 +5,7 @@ OC.L10N.register(
     "Settings saved" : "Settings saved",
     "File is too big" : "File is too big",
     "File not found" : "File not found",
+    "Invalid file provided" : "Invalid file provided",
     "Upload" : "Upload",
     "Delete" : "Delete",
     "Save" : "Save",
