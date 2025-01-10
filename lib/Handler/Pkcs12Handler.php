@@ -14,9 +14,9 @@ use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\FolderService;
-use OCP\IAppConfig;
-
 use OCP\Files\File;
+
+use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use phpseclib3\File\ASN1;

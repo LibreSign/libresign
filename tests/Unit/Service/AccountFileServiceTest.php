@@ -11,7 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Service\AccountFileService;
-use OCP\AppFramework\Services\IAppConfig;
+use OCP\IAppConfig;
 use OCP\IUser;
 use PHPUnit\Framework\MockObject\MockObject;
 

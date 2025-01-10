@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service;
 use InvalidArgumentException;
 use mikehaertl\pdftk\Command;
 use OC\AppFramework\Http as AppFrameworkHttp;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\AccountFile;
 use OCA\Libresign\Db\AccountFileMapper;
@@ -34,7 +35,6 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Config\IUserMountCache;
@@ -43,6 +43,7 @@ use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use OCP\Files\NotPermittedException;
 use OCP\Http\Client\IClientService;
+use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
@@ -135,7 +136,7 @@ class SignFileService {
 	public function notifyCallback(File $file): void {
 		$uri = $this->libreSignFile->getCallback();
 		if (!$uri) {
-			$uri = $this->appConfig->getAppValue('webhook_sign_url');
+			$uri = $this->appConfig->getValueString(Application::APP_ID, 'webhook_sign_url');
 			if (!$uri) {
 				return;
 			}
@@ -295,7 +296,7 @@ class SignFileService {
 	}
 
 	public function storeUserMetadata(array $metadata = []): self {
-		$collectMetadata = $this->appConfig->getAppValue('collect_metadata') ? true : false;
+		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
 		if (!$collectMetadata || !$metadata) {
 			return $this;
 		}
@@ -548,8 +549,8 @@ class SignFileService {
 				$input = $this->tempManager->getTemporaryFile('input.pdf');
 				file_put_contents($input, $originalFile->getContent());
 
-				$javaPath = $this->appConfig->getAppValue('java_path');
-				$pdftkPath = $this->appConfig->getAppValue('pdftk_path');
+				$javaPath = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
+				$pdftkPath = $this->appConfig->getValueString(Application::APP_ID, 'pdftk_path');
 				if (!file_exists($javaPath) || !file_exists($pdftkPath)) {
 					throw new LibresignException($this->l10n->t('The admin hasn\'t set up LibreSign yet, please wait.'));
 				}

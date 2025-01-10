@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Command;
 
 use OCA\Libresign\Service\Install\InstallService;
-use OCP\AppFramework\Services\IAppConfig;
+use OCP\IAppConfig;
 use OCP\IConfig;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Input\InputInterface;
@@ -121,7 +121,7 @@ class Install extends Base {
 				$ok = true;
 			}
 			if ($input->getOption('cfssl') || $all) {
-				$currentEngine = $this->appConfig->getAppValue('certificate_engine', 'openssl');
+				$currentEngine = $this->appConfig->getValueString('certificate_engine', 'openssl');
 				$this->installService->installCfssl();
 				if ($currentEngine !== 'cfssl') {
 					$output->writeln('<comment>To use CFSSL, set the engine to cfssl with:</comment> config:app:set libresign certificate_engine --value cfssl');

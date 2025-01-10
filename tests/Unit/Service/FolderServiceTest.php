@@ -10,7 +10,6 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use Exception;
 use OCA\Libresign\Service\FolderService;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\Folder;
@@ -18,6 +17,7 @@ use OCP\Files\IAppData;
 use OCP\Files\IRootFolder;
 use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\Files\SimpleFS\ISimpleFolder;
+use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use PHPUnit\Framework\MockObject\MockObject;
