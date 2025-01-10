@@ -623,8 +623,21 @@
                     "displayName": {
                         "type": "string"
                     },
+                    "subject": {
+                        "type": "string"
+                    },
                     "request_sign_date": {
                         "type": "string"
+                    },
+                    "valid_from": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "valid_to": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "email": {
                         "type": "string"
@@ -653,6 +666,9 @@
                         "nullable": true
                     },
                     "sign_uuid": {
+                        "type": "string"
+                    },
+                    "hash_algorithm": {
                         "type": "string"
                     },
                     "me": {
@@ -738,6 +754,9 @@
                     "status",
                     "statusText",
                     "nodeId",
+                    "totalPages",
+                    "size",
+                    "pdfVersion",
                     "created_at",
                     "requested_by",
                     "file"
@@ -767,6 +786,19 @@
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0
+                    },
+                    "totalPages": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "pdfVersion": {
+                        "type": "string"
                     },
                     "created_at": {
                         "type": "string"
@@ -3336,8 +3368,7 @@
                                                     "type": "object",
                                                     "required": [
                                                         "action",
-                                                        "errors",
-                                                        "settings"
+                                                        "errors"
                                                     ],
                                                     "properties": {
                                                         "action": {
@@ -3349,9 +3380,6 @@
                                                             "items": {
                                                                 "type": "string"
                                                             }
-                                                        },
-                                                        "settings": {
-                                                            "$ref": "#/components/schemas/Settings"
                                                         },
                                                         "messages": {
                                                             "type": "array",
@@ -3489,8 +3517,7 @@
                                                     "type": "object",
                                                     "required": [
                                                         "action",
-                                                        "errors",
-                                                        "settings"
+                                                        "errors"
                                                     ],
                                                     "properties": {
                                                         "action": {
@@ -3502,9 +3529,6 @@
                                                             "items": {
                                                                 "type": "string"
                                                             }
-                                                        },
-                                                        "settings": {
-                                                            "$ref": "#/components/schemas/Settings"
                                                         },
                                                         "messages": {
                                                             "type": "array",
@@ -3537,6 +3561,207 @@
             }
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/validate": {
+            "post": {
+                "operationId": "file-validate-binary",
+                "summary": "Validate a binary file",
+                "description": "Validate a binary file returning file data. Use field 'file' for the file upload",
+                "tags": [
+                    "file"
+                ],
+                "security": [
+                    {},
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ValidateFile"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Request failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "action",
+                                                        "errors"
+                                                    ],
+                                                    "properties": {
+                                                        "action": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        },
+                                                        "errors": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "messages": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "required": [
+                                                                    "type",
+                                                                    "message"
+                                                                ],
+                                                                "properties": {
+                                                                    "type": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "message": {
+                                                                        "type": "string"
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Request failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "action",
+                                                        "errors"
+                                                    ],
+                                                    "properties": {
+                                                        "action": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        },
+                                                        "errors": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "messages": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "required": [
+                                                                    "type",
+                                                                    "message"
+                                                                ],
+                                                                "properties": {
+                                                                    "type": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "message": {
+                                                                        "type": "string"
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             "get": {
                 "operationId": "file-validate",
                 "summary": "Validate a file",
@@ -3657,8 +3882,7 @@
                                                     "type": "object",
                                                     "required": [
                                                         "action",
-                                                        "errors",
-                                                        "settings"
+                                                        "errors"
                                                     ],
                                                     "properties": {
                                                         "action": {
@@ -3670,9 +3894,6 @@
                                                             "items": {
                                                                 "type": "string"
                                                             }
-                                                        },
-                                                        "settings": {
-                                                            "$ref": "#/components/schemas/Settings"
                                                         },
                                                         "messages": {
                                                             "type": "array",

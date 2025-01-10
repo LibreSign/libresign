@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Controller;
 
+use InvalidArgumentException;
 use OCA\Files_Sharing\SharedStorage;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
@@ -92,7 +93,7 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a file returning file data.
 	 *
 	 * @param string $uuid The UUID of the LibreSign file
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], messages?: array{type: string, message: string}[]}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
@@ -112,7 +113,7 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a file returning file data.
 	 *
 	 * @param int $fileId The identifier value of the LibreSign file
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], messages?: array{type: string, message: string}[]}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
@@ -127,13 +128,60 @@ class FileController extends AEnvironmentAwareController {
 	}
 
 	/**
+	 * Validate a binary file
+	 *
+	 * Validate a binary file returning file data.
+	 * Use field 'file' for the file upload
+	 *
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST, array{action: int, errors: string[], messages?: array{type: string, message: string}[]}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Request failed
+	 * 400: Request failed
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[PublicPage]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file/validate/', requirements: ['apiVersion' => '(v1)'])]
+	public function validateBinary(): DataResponse {
+		try {
+			$file = $this->request->getUploadedFile('file');
+			$return = $this->fileService
+				->setMe($this->userSession->getUser())
+				->setFileFromRequest($file)
+				->showVisibleElements()
+				->showSigners()
+				->showSettings()
+				->showMessages()
+				->showValidateFile()
+				->toArray();
+			$statusCode = Http::STATUS_OK;
+		} catch (InvalidArgumentException $e) {
+			$message = $this->l10n->t($e->getMessage());
+			$return = [
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$message]
+			];
+			$statusCode = Http::STATUS_NOT_FOUND;
+		} catch (\Exception $e) {
+			$this->logger->error('Failed to post file to validate', [
+				'exception' => $e,
+			]);
+
+			$return = ['message' => $this->l10n->t('Internal error. Contact admin.')];
+			$statusCode = Http::STATUS_BAD_REQUEST;
+		}
+		return new DataResponse($return, $statusCode);
+	}
+
+	/**
 	 * Validate a file
 	 *
 	 * Validate a file returning file data.
 	 *
 	 * @param string|null $type The type of identifier could be Uuid or FileId
 	 * @param string|int $identifier The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer
-	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], messages?: array{type: string, message: string}[]}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Request failed
@@ -171,7 +219,16 @@ class FileController extends AEnvironmentAwareController {
 					$this->request->getParam('uuid')
 				);
 			}
-			$return = [];
+
+			$return = $this->fileService
+				->setMe($this->userSession->getUser())
+				->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
+				->showVisibleElements()
+				->showSigners()
+				->showSettings()
+				->showMessages()
+				->showValidateFile()
+				->toArray();
 			$statusCode = Http::STATUS_OK;
 		} catch (LibresignException $e) {
 			$message = $this->l10n->t($e->getMessage());
@@ -189,18 +246,6 @@ class FileController extends AEnvironmentAwareController {
 			];
 			$statusCode = Http::STATUS_NOT_FOUND;
 		}
-
-		$return = array_merge($return,
-			$this->fileService
-				->setMe($this->userSession->getUser())
-				->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
-				->showVisibleElements()
-				->showSigners()
-				->showSettings()
-				->showMessages()
-				->showValidateFile()
-				->toArray()
-		);
 
 		return new DataResponse($return, $statusCode);
 	}

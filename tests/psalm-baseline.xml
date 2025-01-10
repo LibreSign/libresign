@@ -39,6 +39,12 @@
     </MoreSpecificReturnType>
   </file>
   <file src="lib/Controller/FileController.php">
+    <InvalidReturnStatement>
+      <code><![CDATA[new DataResponse($return, $statusCode)]]></code>
+    </InvalidReturnStatement>
+    <InvalidReturnType>
+      <code><![CDATA[DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST, array{action: int, errors: string[], messages?: array{type: string, message: string}[]}, array{}>]]></code>
+    </InvalidReturnType>
     <UndefinedClass>
       <code><![CDATA[SharedStorage]]></code>
     </UndefinedClass>

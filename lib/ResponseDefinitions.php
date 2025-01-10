@@ -150,7 +150,10 @@ namespace OCA\Libresign;
  * @psalm-type LibresignSigner = array{
  *     description: ?string,
  *     displayName: string,
+ *     subject?: string,
  *     request_sign_date: string,
+ *     valid_from?: non-negative-int,
+ *     valid_to?: non-negative-int,
  *     email?: string,
  *     remote_address?: string,
  *     user_agent?: string,
@@ -159,6 +162,7 @@ namespace OCA\Libresign;
  *     signed: ?string,
  *     sign_date?: ?string,
  *     sign_uuid?: string,
+ *     hash_algorithm?: string,
  *     me: bool,
  *     signRequestId: non-negative-int,
  *     identifyMethods?: LibresignIdentifyMethod[],
@@ -171,6 +175,9 @@ namespace OCA\Libresign;
  *     status: 0|1|2|3|4,
  *     statusText: string,
  *     nodeId: non-negative-int,
+ *     totalPages: non-negative-int,
+ *     size: non-negative-int,
+ *     pdfVersion: string,
  *     created_at: string,
  *     requested_by: array{
  *         userId: string,

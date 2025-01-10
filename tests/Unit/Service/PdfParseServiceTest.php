@@ -37,12 +37,15 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGetMetadataWithFail(string $path, string $errorMessage): void {
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessageMatches($errorMessage);
+		/** @var File|MockObject */
 		$file = $this->createMock(File::class);
 		if (file_exists($path)) {
 			$file->method('getContent')
 				->willReturn(file_get_contents($path));
 		}
-		$this->getService()->getMetadata($file);
+		$this->getService()
+			->setFile($file)
+			->getPageDimensions($file);
 	}
 
 	public function dataGetMetadataWithFail(): array {
@@ -56,10 +59,13 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 * @dataProvider providerGetMetadataWithSuccess
 	 */
 	public function testGetMetadataWithSuccess(string $path, array $expected): void {
+		/** @var File|MockObject */
 		$file = $this->createMock(File::class);
 		$file->method('getContent')
 			->willReturn(file_get_contents($path));
-		$actual = $this->getService()->getMetadata($file);
+		$actual = $this->getService()
+			->setFile($file)
+			->getPageDimensions();
 		$this->assertEquals($expected, $actual);
 	}
 
@@ -79,7 +85,7 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[
 					'p' => 1,
 					'd' => [
-						['w' => 595.276, 'h' => 841.89],
+						['w' => 595.275590551181, 'h' => 841.889763779528],
 					],
 				]
 			],

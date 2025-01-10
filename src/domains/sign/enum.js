@@ -1,4 +1,5 @@
 const SIGN_STATUS = Object.freeze({
+	NOT_LIBRESIGN_FILE: -1,
 	DRAFT: 0,
 	ABLE_TO_SIGN: 1,
 	PARTIAL_SIGNED: 2,
