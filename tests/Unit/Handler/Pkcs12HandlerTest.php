@@ -23,13 +23,11 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected FolderService&MockObject $folderService;
 	private IAppConfig&MockObject $appConfig;
 	private SystemConfig $systemConfig;
-	private CfsslHandler&MockObject $cfsslHandler;
 	private IL10N&MockObject $l10n;
 	private JSignPdfHandler&MockObject $jSignPdfHandler;
 	private FooterHandler&MockObject $footerHandler;
 	private ITempManager&MockObject $tempManager;
 	private CertificateEngineHandler&MockObject $certificateEngineHandler;
-	private array $cfsslHandlerBuffer = [];
 
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
@@ -95,22 +93,5 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folderService->method('getFolder')->will($this->returnValue($folder));
 		$actual = $this->pkcs12Handler->getPfx('userId');
 		$this->assertEquals('valid pfx content', $actual);
-	}
-
-	public function cfsslHandlerCallbackToGetSetArguments($functionName, $value = null):bool {
-		if (strpos($functionName, 'set') === 0) {
-			$this->cfsslHandlerBuffer[substr($functionName, 3)] = $value;
-		}
-		return true;
-	}
-
-	public function cfsslHandlerCallbackToGetSetReturn($functionName):CfsslHandler|MockObject|null {
-		if (strpos($functionName, 'set') === 0) {
-			return $this->cfsslHandler;
-		}
-		if (isset($this->cfsslHandlerBuffer[substr($functionName, 3)])) {
-			return $this->cfsslHandlerBuffer[substr($functionName, 3)];
-		}
-		return null;
 	}
 }
