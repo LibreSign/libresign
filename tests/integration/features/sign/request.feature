@@ -392,26 +392,26 @@ Feature: request-signature
     And follow the link on opened email
     And the response should have a status code 200
     Then the response should contain the initial state "libresign-signers" json that match with:
-      | key                                                 | value                            |
-      | (jq).[0].signatureMethods.emailToken.label          | Email token                      |
-      | (jq).[0].signatureMethods.emailToken.identifyMethod | email                            |
-      | (jq).[0].signatureMethods.emailToken.needCode       | true                             |
-      | (jq).[0].signatureMethods.emailToken.hasConfirmCode | false                            |
-      | (jq).[0].signatureMethods.emailToken.blurredEmail   | 111***@***.test                  |
-      | (jq).[0].signatureMethods.emailToken.hashOfEmail    | c8cb84220c4cf19b723390f29b83a0f8 |
+      | key                                                                                         | value                            |
+      | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.label          | Email token                      |
+      | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.identifyMethod | email                            |
+      | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.needCode       | true                             |
+      | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.hasConfirmCode | false                            |
+      | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.blurredEmail   | 111***@***.test                  |
+      | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.hashOfEmail    | c8cb84220c4cf19b723390f29b83a0f8 |
     When I open the latest email to "22222@domain.test" with subject "LibreSign: There is a file for you to sign"
     And I fetch the signer UUID from opened email
     And as user ""
     And follow the link on opened email
     And the response should have a status code 200
     Then the response should contain the initial state "libresign-signers" json that match with:
-      | key                                                 | value                            |
-      | (jq).[1].signatureMethods.emailToken.label          | Email token                      |
-      | (jq).[1].signatureMethods.emailToken.identifyMethod | email                            |
-      | (jq).[1].signatureMethods.emailToken.needCode       | true                             |
-      | (jq).[1].signatureMethods.emailToken.hasConfirmCode | false                            |
-      | (jq).[1].signatureMethods.emailToken.blurredEmail   | 222***@***.test                  |
-      | (jq).[1].signatureMethods.emailToken.hashOfEmail    | d3ab1426f412df8b8bbb9cb2405fb39d |
+      | key                                                                                         | value                            |
+      | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.label          | Email token                      |
+      | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.identifyMethod | email                            |
+      | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.needCode       | true                             |
+      | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.hasConfirmCode | false                            |
+      | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.blurredEmail   | 222***@***.test                  |
+      | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.hashOfEmail    | d3ab1426f412df8b8bbb9cb2405fb39d |
 
   Scenario: CRUD of identify methods
     Given run the command "libresign:configure:openssl --cn test" with result code 0
