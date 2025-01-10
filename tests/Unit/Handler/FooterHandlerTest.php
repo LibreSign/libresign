@@ -6,6 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Service\PdfParserService;
 use OCP\IAppConfig;
@@ -16,14 +17,14 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	private IAppConfig&MockObject $appConfig;
+	private IAppConfig $appConfig;
 	private PdfParserService&MockObject $pdfParserService;
 	private IURLGenerator&MockObject $urlGenerator;
 	private IL10N&MockObject $l10n;
 	private ITempManager&MockObject $tempManager;
 	private FooterHandler $footerHandler;
 	public function setUp(): void {
-		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->appConfig = $this->getMockAppConfig();
 		$this->pdfParserService = $this->createMock(PdfParserService::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
@@ -46,10 +47,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetFooterWithoutValidationSite(): void {
-		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->appConfig
-			->method('getValueString')
-			->willReturn('');
+		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', true);
 		$file = $this->createMock(\OCP\Files\File::class);
 		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 		$actual = $this->getClass()->getFooter($file, $libresignFile);
@@ -58,15 +56,16 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[DataProvider('dataGetFooterWithSuccess')]
 	public function testGetFooterWithSuccess(array $settings, array $expected): void {
-		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->appConfig
-			->method('getValueString')
-			->willReturnCallback(function ($key, $default) use ($settings):string {
-				if (array_key_exists($key, $settings)) {
-					return $settings[$key];
-				}
-				return '';
-			});
+		foreach ($settings as $key => $value) {
+			switch (gettype($value)) {
+				case 'boolean':
+					$this->appConfig->setValueBool(Application::APP_ID, $key, $value);
+					break;
+				case 'string':
+					$this->appConfig->setValueString(Application::APP_ID, $key, $value);
+					break;
+			}
+		}
 		$this->tempManager->method('getTempBaseDir')->willReturn(sys_get_temp_dir());
 		$tempName = sys_get_temp_dir() . '/' . mt_rand() . '.php';
 		touch($tempName);
