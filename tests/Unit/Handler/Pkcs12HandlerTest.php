@@ -3,15 +3,17 @@
 declare(strict_types=1);
 
 use OC\SystemConfig;
-use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
-use OCP\AppFramework\Services\IAppConfig;
+use OCA\Libresign\Tests\lib\AppConfigOverwrite;
+use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
+use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -29,16 +31,17 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
-		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->appConfig = new AppConfigOverwrite(
+			\OCP\Server::get(\OCP\IDBConnection::class),
+			\OCP\Server::get(\Psr\Log\LoggerInterface::class),
+			\OCP\Server::get(\OCP\Security\ICrypto::class),
+		);
 		$this->systemConfig = $this->createMock(SystemConfig::class);
 		$this->certificateEngineHandler = $this->createMock(CertificateEngineHandler::class);
-		$this->l10n = $this->createMock(IL10N::class);
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
+		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->jSignPdfHandler = $this->createMock(JSignPdfHandler::class);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
-		$this->tempManager = $this->createMock(ITempManager::class);
+		$this->tempManager = \OCP\Server::get(ITempManager::class);
 	}
 
 	private function getHandler(): Pkcs12Handler {
