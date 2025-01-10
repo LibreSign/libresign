@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Api\Controller;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 
 /**
@@ -44,10 +45,9 @@ final class NotifyControllerTest extends ApiTestCase {
 	 */
 	public function testNotifySignersWithSuccess():void {
 		$user = $this->createAccount('allowrequestsign', 'password', 'testGroup');
-		$this->mockAppConfig([
-			'groups_request_sign' => '["admin","testGroup"]',
-			'notifyUnsignedUser' => 0,
-		]);
+		$appConfig = $this->getMockAppConfig();
+		$appConfig->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin','testGroup']);
+		$appConfig->setValueBool(Application::APP_ID, 'notifyUnsignedUser', true);
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
 			'name' => 'test',
