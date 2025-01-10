@@ -199,7 +199,7 @@ class AEngineHandler {
 
 	public function populateInstance(array $rootCert): self {
 		if (empty($rootCert)) {
-			$rootCert = $this->appConfig->getValueString(Application::APP_ID, 'root_cert');
+			$rootCert = $this->appConfig->getValueArray(Application::APP_ID, 'root_cert');
 		}
 		if (!$rootCert) {
 			return $this;
@@ -308,7 +308,7 @@ class AEngineHandler {
 	}
 
 	public function isSetupOk(): bool {
-		return $this->appConfig->getValueBool(Application::APP_ID, 'authkey', false);
+		return strlen($this->appConfig->getValueString(Application::APP_ID, 'authkey', '')) > 0;
 	}
 
 	public function configureCheck(): array {

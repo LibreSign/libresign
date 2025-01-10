@@ -109,7 +109,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			});
 		$this->appConfig
 			->method('getValueBool')
-			->will($this->retruenValue('1'));
+			->will($this->returnValue('1'));
 		$actual = $this->service->notifyUnsignedUser($signRequest, 'a@b.coop');
 		$this->assertNull($actual);
 	}
