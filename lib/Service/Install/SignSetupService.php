@@ -16,8 +16,8 @@ use OCA\Libresign\Exception\EmptySignatureDataException;
 use OCA\Libresign\Exception\InvalidSignatureException;
 use OCA\Libresign\Exception\SignatureDataNotFoundException;
 use OCP\App\IAppManager;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\NotFoundException;
+use OCP\IAppConfig;
 use OCP\IConfig;
 use phpseclib\Crypt\RSA;
 use phpseclib\File\X509;
@@ -139,7 +139,7 @@ class SignSetupService {
 	public function getInstallPath(): string {
 		switch ($this->resource) {
 			case 'java':
-				$path = $this->appConfig->getAppValue('java_path');
+				$path = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
 				$installPath = substr($path, 0, -strlen('/bin/java'));
 				$distro = $this->getLinuxDistributionToDownloadJava();
 				$expected = "{$this->instanceId}/libresign/{$this->architecture}/{$distro}/java";
@@ -152,15 +152,15 @@ class SignSetupService {
 				}
 				break;
 			case 'jsignpdf':
-				$path = $this->appConfig->getAppValue('jsignpdf_jar_path');
+				$path = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path');
 				$installPath = substr($path, 0, strrpos($path, '/', -strlen('_/JSignPdf.jar')));
 				break;
 			case 'pdftk':
-				$path = $this->appConfig->getAppValue('pdftk_path');
+				$path = $this->appConfig->getValueString(Application::APP_ID, 'pdftk_path');
 				$installPath = substr($path, 0, -strlen('/pdftk.jar'));
 				break;
 			case 'cfssl':
-				$path = $this->appConfig->getAppValue('cfssl_bin');
+				$path = $this->appConfig->getValueString(Application::APP_ID, 'cfssl_bin');
 				$installPath = substr($path, 0, -strlen('/cfssl'));
 				break;
 			default:

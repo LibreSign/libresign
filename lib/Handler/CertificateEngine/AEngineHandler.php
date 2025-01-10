@@ -8,14 +8,15 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\CertificateEngine;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\SimpleFS\ISimpleFolder;
+use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
@@ -187,19 +188,18 @@ class AEngineHandler {
 	}
 
 	public function setEngine(string $engine): void {
-		$this->appConfig->setAppValue('certificate_engine', $engine);
+		$this->appConfig->setValueString(Application::APP_ID, 'certificate_engine', $engine);
 		$this->engine = $engine;
 	}
 
 	public function getEngine(): string {
-		$this->engine = $this->appConfig->getAppValue('certificate_engine', 'openssl');
+		$this->engine = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', 'openssl');
 		return $this->engine;
 	}
 
 	public function populateInstance(array $rootCert): self {
 		if (empty($rootCert)) {
-			$rootCert = $this->appConfig->getAppValue('root_cert');
-			$rootCert = json_decode($rootCert, true);
+			$rootCert = $this->appConfig->getValueString(Application::APP_ID, 'root_cert');
 		}
 		if (!$rootCert) {
 			return $this;
@@ -224,7 +224,7 @@ class AEngineHandler {
 		if ($this->configPath) {
 			return $this->configPath;
 		}
-		$this->configPath = $this->appConfig->getAppValue('config_path');
+		$this->configPath = $this->appConfig->getValueString(Application::APP_ID, 'config_path');
 		if ($this->configPath && str_ends_with($this->configPath, $this->getName() . '_config')) {
 			return $this->configPath;
 		}
@@ -264,9 +264,9 @@ class AEngineHandler {
 
 	public function setConfigPath(string $configPath): void {
 		if (!$configPath) {
-			$this->appConfig->deleteAppValue('config_path');
+			$this->appConfig->deleteKey(Application::APP_ID, 'config_path');
 		} else {
-			$this->appConfig->setAppValue('config_path', $configPath);
+			$this->appConfig->setValueString(Application::APP_ID, 'config_path', $configPath);
 		}
 		$this->configPath = $configPath;
 	}
@@ -300,7 +300,7 @@ class AEngineHandler {
 	}
 
 	public function expirity(): int {
-		$expirity = $this->appConfig->getAppValueInt('expiry_in_days', 365);
+		$expirity = $this->appConfig->getValueInt(Application::APP_ID, 'expiry_in_days', 365);
 		if ($expirity < 0) {
 			return 365;
 		}
@@ -308,7 +308,7 @@ class AEngineHandler {
 	}
 
 	public function isSetupOk(): bool {
-		return $this->appConfig->getAppValue('authkey') ? true : false;
+		return $this->appConfig->getValueBool(Application::APP_ID, 'authkey', false);
 	}
 
 	public function configureCheck(): array {

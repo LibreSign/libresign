@@ -12,12 +12,13 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use OC\SystemConfig;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslServerHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Service\Install\InstallService;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
+use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
@@ -125,7 +126,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	public function toArray(): array {
 		$return = parent::toArray();
 		if (!empty($return['configPath'])) {
-			$return['cfsslUri'] = $this->appConfig->getAppValue('cfssl_uri');
+			$return['cfsslUri'] = $this->appConfig->getValueString(Application::APP_ID, 'cfssl_uri');
 		}
 		return $return;
 	}
@@ -316,7 +317,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		$appKeys = $this->appConfig->getAppKeys();
 		$binary = '';
 		if (in_array('cfssl_bin', $appKeys)) {
-			$binary = $this->appConfig->getAppValue('cfssl_bin');
+			$binary = $this->appConfig->getValueString(Application::APP_ID, 'cfssl_bin');
 			if (!file_exists($binary)) {
 				$this->appConfig->deleteAppValue('cfssl_bin');
 			}
@@ -340,7 +341,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 
 		$appKeys = $this->appConfig->getAppKeys();
 		if (in_array('cfssl_uri', $appKeys)) {
-			if ($uri = $this->appConfig->getAppValue('cfssl_uri')) {
+			if ($uri = $this->appConfig->getValueString(Application::APP_ID, 'cfssl_uri')) {
 				return $uri;
 			}
 			// In case config is an empty string
@@ -368,7 +369,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 					->setResource('cfssl'),
 			];
 		}
-		$binary = $this->appConfig->getAppValue('cfssl_bin');
+		$binary = $this->appConfig->getValueString(Application::APP_ID, 'cfssl_bin');
 		if (!$binary) {
 			return [
 				(new ConfigureCheckHelper())

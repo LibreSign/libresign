@@ -28,11 +28,11 @@ use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
+use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -354,7 +354,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signRequestMapper->method('getByUuid')->will($this->returnValue($signRequest));
 		$userToSign = $this->createMock(\OCP\IUser::class);
 		$this->userManager->method('createUser')->will($this->returnValue($userToSign));
-		$this->config->method('getAppValue')->will($this->returnValue('yes'));
+		$this->config->method('getValueBool')->will($this->returnValue(true));
 		$template = $this->createMock(\OCP\Mail\IEMailTemplate::class);
 		$this->newUserMail->method('generateTemplate')->will($this->returnValue($template));
 		$this->newUserMail->method('sendMail')->will($this->returnCallback(function ():void {
@@ -405,7 +405,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testCanRequestSignWithoutGroups():void {
 		$this->appConfig
-			->method('getAppValue')
+			->method('getValueString')
 			->willReturn('');
 		$user = $this->createMock(\OCP\IUser::class);
 		$actual = $this->getService()->canRequestSign($user);
@@ -414,8 +414,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testCanRequestSignWithUserOutOfAuthorizedGroups():void {
 		$this->appConfig
-			->method('getAppValue')
-			->willReturn('["admin"]');
+			->method('getValueArray')
+			->willReturn(['admin']);
 		$this->groupManager
 			->method('getUserGroupIds')
 			->willReturn([]);
@@ -426,8 +426,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testCanRequestSignWithSuccess():void {
 		$this->appConfig
-			->method('getAppValue')
-			->willReturn('["admin"]');
+			->method('getValueArray')
+			->willReturn(['admin']);
 		$this->groupManager
 			->method('getUserGroupIds')
 			->willReturn(['admin']);

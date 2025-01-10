@@ -134,7 +134,7 @@ class FolderService {
 		$path = $this->appConfig->getUserValue($this->userId, 'folder');
 
 		if (empty($path)) {
-			$defaultFolder = $this->appConfig->getAppValue('default_user_folder', 'LibreSign');
+			$defaultFolder = $this->appConfig->getAppValueString('default_user_folder', 'LibreSign');
 			$path = '/' . $defaultFolder;
 			$this->appConfig->setUserValue($this->userId, 'folder', $path);
 		}

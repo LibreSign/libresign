@@ -10,10 +10,11 @@ namespace OCA\Libresign\Service\Install;
 
 use OC\AppConfig;
 use OC\SystemConfig;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngine;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
-use OCP\AppFramework\Services\IAppConfig;
+use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
 
 class ConfigureCheckService {
@@ -105,7 +106,7 @@ class ConfigureCheckService {
 	 * @return ConfigureCheckHelper[]
 	 */
 	public function checkJSignPdf(): array {
-		$jsignpdJarPath = $this->appConfig->getAppValue('jsignpdf_jar_path');
+		$jsignpdJarPath = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path');
 		if ($jsignpdJarPath) {
 			$resultOfVerify = $this->verify('jsignpdf');
 			if (count($resultOfVerify)) {
@@ -175,7 +176,7 @@ class ConfigureCheckService {
 	 * @return ConfigureCheckHelper[]
 	 */
 	public function checkPdftk(): array {
-		$pdftkPath = $this->appConfig->getAppValue('pdftk_path');
+		$pdftkPath = $this->appConfig->getValueString(Application::APP_ID, 'pdftk_path');
 		if ($pdftkPath) {
 			$resultOfVerify = $this->verify('pdftk');
 			if (count($resultOfVerify)) {
@@ -196,7 +197,7 @@ class ConfigureCheckService {
 							->setTip('Run occ libresign:install --java'),
 					];
 				}
-				$javaPath = $this->appConfig->getAppValue('java_path');
+				$javaPath = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
 				$version = [];
 				\exec($javaPath . ' -jar ' . $pdftkPath . ' --version 2>&1', $version, $resultCode);
 				if ($resultCode !== 0) {
@@ -294,7 +295,7 @@ class ConfigureCheckService {
 	 * @return ConfigureCheckHelper[]
 	 */
 	private function checkJava(): array {
-		$javaPath = $this->appConfig->getAppValue('java_path');
+		$javaPath = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
 		if ($javaPath) {
 			$resultOfVerify = $this->verify('java');
 			if (count($resultOfVerify)) {
