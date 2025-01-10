@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "File is too big" : "د فایل وزن ډېر دی",
     "File not found" : "فایل نشته",
+    "Invalid file provided" : "فایل روغ نه دی",
     "Delete" : "ړنګول",
     "Save" : "ساتل",
     "Cancel" : "پرېښول",

@@ -6,6 +6,7 @@ OC.L10N.register(
     "File is too big" : "ຟາຍໃຫຍ່ໂພດ",
     "Dismiss notification" : "ຍົກເລີກການເເຈ້ງເຕືອນ",
     "File not found" : " ບໍ່ພົບຟາຍ",
+    "Invalid file provided" : "ຟາຍບໍ່ຖືກຕ້ອງ",
     "Email" : "ອິເມວ",
     "Upload" : "ອັບໂຫຼດ",
     "Delete" : "ລຶບ",

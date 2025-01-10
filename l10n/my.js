@@ -3,9 +3,9 @@ OC.L10N.register(
     {
     "Success" : "အောင်မြင်သည်",
     "Invalid user or password" : "အသုံးပြုသူ သို့မဟုတ် လျှို့ဝှက်ကုဒ် မှားယွင်းနေသည်",
+    "Internal error. Contact admin." : "အတွင်းပြဿနာပေါ်ပေါက်ခဲ့သည်။ အက်ဒမင်နှင့်ဆက်သွယ်ရန်။",
     "Notification sent with success." : "အသိပေးချက် ပေးပို့မှု အောင်မြင်သည်။",
     "File signed" : "ဖိုင်အား အမှတ်အသားရေးထိုးပြီး",
-    "Internal error. Contact admin." : "အတွင်းပြဿနာပေါ်ပေါက်ခဲ့သည်။ အက်ဒမင်နှင့်ဆက်သွယ်ရန်။",
     "Invalid data to sign file" : "ဖိုင်အား အမှတ်အသားပြုရန် အချက်အလက် မှားယွင်းနေသည်",
     "View" : "ကြည့်ရန်",
     "Empty file" : "ဗလာဖိုင်",

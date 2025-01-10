@@ -11,6 +11,7 @@ OC.L10N.register(
     "File not found" : "ไม่พบไฟล์",
     "File already exists" : "มีไฟล์นี้อยู่แล้ว",
     "Empty file" : "ไฟล์ว่าง",
+    "Invalid file provided" : "ไฟล์ที่ระบุไม่ถูกต้อง",
     "Account" : "บัญชี",
     "Invalid user" : "ผู้ใช้ไม่ถูกต้อง",
     "Email" : "อีเมล",

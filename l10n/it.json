@@ -11,11 +11,11 @@
     "Certificate file saved with success." : "Il file del certificato è stato salvato correttamente.",
     "New password to sign documents has been created" : "È stata creata una nuova password per firmare i documenti",
     "Could not download binaries." : "Impossibile scaricare i file binari.",
+    "Internal error. Contact admin." : "Errore interno. Contatta l'amministratore.",
     "Name is mandatory" : "Il nome è obbligatorio",
     "Invalid UUID" : "UUID non valido",
     "Notification sent with success." : "Notifica inviata correttamente.",
     "File signed" : "File firmato",
-    "Internal error. Contact admin." : "Errore interno. Contatta l'amministratore.",
     "Renewed with success. Access the link again." : "Rinnovato con successo. Accedi nuovamente al link.",
     "Invalid data to sign file" : "Dati per firmare il file non validi",
     "The code to sign file was successfully requested." : "Il codice per firmare il file è stato richiesto correttamente.",
@@ -99,6 +99,7 @@
     "Empty file" : "File vuoto",
     "Invalid file provided. Need to be a .pfx file." : "Il file fornito non è valido. Deve essere un file .pfx.",
     "Invalid file identifier" : "Identificatore file non valido",
+    "Invalid file provided" : "File fornito non valido",
     "You need to sign this document" : "È necessario firmare questo documento",
     "You cannot request signature for this document, please contact your administrator" : "Non è possibile richiedere una firma per questo documento, si prega di contattare l'amministratore.",
     "no signers" : "nessun firmatario",
@@ -355,6 +356,8 @@
     "Validation" : "Convalida",
     "Document informations" : "Informazioni sul documento",
     "Congratulations you have digitally signed a document using LibreSign" : "Congratulazioni per aver firmato digitalmente un documento utilizzando LibreSign",
+    "Name:" : "Nome:",
+    "Status:" : "Stato:",
     "Signatories:" : "Firmatari:",
     "Date signed:" : "Data della firma:",
     "No date" : "Nessuna data",
@@ -364,7 +367,6 @@
     "Notifications:" : "Notifiche:",
     "Certificate valid from:" : "Certificato valido dal:",
     "Certificate valid to:" : "Certificato valido al:",
-    "Subject:" : "Soggetto",
     "Return" : "Torna",
     "This document is valid" : "Questo documento è valido",
     "Open in LibreSign" : "Apri in LibreSign",
@@ -378,6 +380,7 @@
     "Click the page to add visible signature, then select a signer to set their signature position" : "Fare clic sulla pagina per aggiungere una firma visibile, quindi selezionare un firmatario per impostare la posizione della sua firma",
     "All Files" : "Tutti i file",
     "Pending" : "In attesa",
-    "Signed" : "Firmato"
+    "Signed" : "Firmato",
+    "Subject:" : "Soggetto"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

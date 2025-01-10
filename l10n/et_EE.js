@@ -9,6 +9,7 @@ OC.L10N.register(
     "File not found" : "Faili ei leitud",
     "File already exists" : "Fail on juba olemas",
     "Empty file" : "Tühi fail",
+    "Invalid file provided" : "Vigane fail",
     "Account" : "Konto",
     "Invalid user" : "Vigane kasutaja",
     "Email" : "Epost",
@@ -54,6 +55,7 @@ OC.L10N.register(
     "Yes" : "Jah",
     "No" : "Ei",
     "Forgot password?" : "Unustasid parooli?",
+    "Status:" : "Seisund:",
     "No date" : "No date",
     "Pending" : "Ootel"
 },

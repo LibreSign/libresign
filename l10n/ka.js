@@ -12,6 +12,7 @@ OC.L10N.register(
     "File not found" : "File not found",
     "File already exists" : "File already exists",
     "Empty file" : "Empty file",
+    "Invalid file provided" : "მითითებულია არასწორი ფაილი",
     "Account" : "Account",
     "Invalid user" : "Invalid user",
     "Email" : "Email",
@@ -73,6 +74,8 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Forgot password?" : "Forgot password?",
+    "Name:" : "Name:",
+    "Status:" : "Status:",
     "Pending" : "Pending"
 },
 "nplurals=2; plural=(n!=1);");

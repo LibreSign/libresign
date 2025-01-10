@@ -14,6 +14,7 @@ OC.L10N.register(
     "File not found" : "Skrá finnst ekki",
     "File already exists" : "Skrá er þegar til",
     "Empty file" : "Tóm skrá",
+    "Invalid file provided" : "Ógild skrá gefin",
     "Account" : "Aðgangur",
     "Invalid user" : "Ógildur notandi",
     "Email" : "Tölvupóstur",
@@ -75,6 +76,7 @@ OC.L10N.register(
     "Dependencies" : "Kerfiskröfur",
     "Yes" : "Já",
     "No" : "Nei",
+    "Name:" : "Nafn:",
     "No date" : "Engin dagsetning",
     "Pending" : "Í bið"
 },

@@ -8,6 +8,7 @@
     "Dismiss notification" : "Hiq lajmërimin",
     "File not found" : "Skedari nuk u gjet",
     "File already exists" : "Skedari ekziston tashmë",
+    "Invalid file provided" : "U dha kartelë e pavlefshme",
     "Account" : "Llogari",
     "Invalid user" : "Përdorues i pavlefshëm",
     "Email" : "Emaili",
@@ -53,6 +54,7 @@
     "Dependencies" : "Varësitë",
     "Yes" : "Yes",
     "No" : "Jo",
+    "Name:" : "Emri",
     "No date" : "No date",
     "Pending" : "Në Pritje të Konfirmimit"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

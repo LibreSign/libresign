@@ -5,6 +5,7 @@ OC.L10N.register(
     "File is too big" : "Tha am faidhle ro mhòr",
     "Dismiss notification" : "Leig seachad am brath",
     "File not found" : "Cha deach am faidhle a lorg",
+    "Invalid file provided" : "Chaidh faidhle mì-dhligheach a thoirt seachad",
     "Email" : "Post-d",
     "Upload" : "Luchdaich suas",
     "Delete" : "Sguab às",

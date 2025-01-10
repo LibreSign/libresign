@@ -10,6 +10,7 @@ OC.L10N.register(
     "Dismiss notification" : "Hiq lajmërimin",
     "File not found" : "Skedari nuk u gjet",
     "File already exists" : "Skedari ekziston tashmë",
+    "Invalid file provided" : "U dha kartelë e pavlefshme",
     "Account" : "Llogari",
     "Invalid user" : "Përdorues i pavlefshëm",
     "Email" : "Emaili",
@@ -55,6 +56,7 @@ OC.L10N.register(
     "Dependencies" : "Varësitë",
     "Yes" : "Yes",
     "No" : "Jo",
+    "Name:" : "Emri",
     "No date" : "No date",
     "Pending" : "Në Pritje të Konfirmimit"
 },
