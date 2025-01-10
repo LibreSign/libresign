@@ -13,11 +13,11 @@ OC.L10N.register(
     "Certificate file saved with success." : "تمّ بنجاح حفظ ملف شهادة المصادقة",
     "New password to sign documents has been created" : "تم إنشاء كلمة مرور جديدة لتوقيع المستندات",
     "Could not download binaries." : "تعذّر تنزيل الملفات التنفيذية",
+    "Internal error. Contact admin." : "خطأ داخلي. اتصل بالمسؤول.",
     "Name is mandatory" : "الاسم إلزامي",
     "Invalid UUID" : "UUID غير صالح",
     "Notification sent with success." : "تم إرسال الإخطار بنجاح.",
     "File signed" : "الملف موقّع",
-    "Internal error. Contact admin." : "خطأ داخلي. اتصل بالمسؤول.",
     "Renewed with success. Access the link again." : "تمّ التجديد بنحاحٍ. عاوِد الدخول على الرابط.",
     "Invalid data to sign file" : "بيانات غير صالحة للتوقيع على الملف",
     "The code to sign file was successfully requested." : "تم طلب كود توقيع الملف بنجاح.",
@@ -366,7 +366,6 @@ OC.L10N.register(
     "Notifications:" : "تنبيهات:",
     "Certificate valid from:" : "الشهادة صالحة بداية من:",
     "Certificate valid to:" : "الشهادة صالحة إلى:",
-    "Subject:" : "الموضوع:",
     "Return" : "أعد",
     "This document is valid" : "هذه الوثيقة صالحة",
     "Open in LibreSign" : "فتح فى تطبيق التوقيع الرقمي LibreSign",
@@ -380,6 +379,7 @@ OC.L10N.register(
     "Click the page to add visible signature, then select a signer to set their signature position" : "أنقُر على الصفحة لإضافة توقيع مرئي، ثم حدد اسم المُوقّع لوضع توقيعه  ",
     "All Files" : "كل الملفات",
     "Pending" : "معلّق",
-    "Signed" : "مُوقع"
+    "Signed" : "مُوقع",
+    "Subject:" : "الموضوع:"
 },
 "nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;");

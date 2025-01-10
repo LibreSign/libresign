@@ -11,11 +11,11 @@
     "Certificate file saved with success." : "Certificate file saved with success.",
     "New password to sign documents has been created" : "New password to sign documents has been created",
     "Could not download binaries." : "Could not download binaries.",
+    "Internal error. Contact admin." : "Internal error. Contact admin.",
     "Name is mandatory" : "Name is mandatory",
     "Invalid UUID" : "Invalid UUID",
     "Notification sent with success." : "Notification sent with success.",
     "File signed" : "File signed",
-    "Internal error. Contact admin." : "Internal error. Contact admin.",
     "Renewed with success. Access the link again." : "Renewed with success. Access the link again.",
     "Invalid data to sign file" : "Invalid data to sign file",
     "The code to sign file was successfully requested." : "The code to sign file was successfully requested.",
@@ -99,6 +99,7 @@
     "Empty file" : "Empty file",
     "Invalid file provided. Need to be a .pfx file." : "Invalid file provided. Need to be a .pfx file.",
     "Invalid file identifier" : "Invalid file identifier",
+    "Invalid file provided" : "Invalid file provided",
     "You need to sign this document" : "You need to sign this document",
     "You cannot request signature for this document, please contact your administrator" : "You cannot request signature for this document, please contact your administrator",
     "no signers" : "no signers",
@@ -355,6 +356,8 @@
     "Validation" : "Validation",
     "Document informations" : "Document informations",
     "Congratulations you have digitally signed a document using LibreSign" : "Congratulations you have digitally signed a document using LibreSign",
+    "Name:" : "Name:",
+    "Status:" : "Status:",
     "Signatories:" : "Signatories:",
     "Date signed:" : "Date signed:",
     "No date" : "No date",
@@ -364,7 +367,6 @@
     "Notifications:" : "Notifications:",
     "Certificate valid from:" : "Certificate valid from:",
     "Certificate valid to:" : "Certificate valid to:",
-    "Subject:" : "Subject:",
     "Return" : "Return",
     "This document is valid" : "This document is valid",
     "Open in LibreSign" : "Open in LibreSign",
@@ -378,6 +380,7 @@
     "Click the page to add visible signature, then select a signer to set their signature position" : "Click the page to add visible signature, then select a signer to set their signature position",
     "All Files" : "All Files",
     "Pending" : "Pending",
-    "Signed" : "Signed"
+    "Signed" : "Signed",
+    "Subject:" : "Subject:"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

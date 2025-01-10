@@ -5,6 +5,7 @@ OC.L10N.register(
     "deleted" : "Устгагдсан",
     "File is too big" : "Файлын хэмжээ хэт их байна",
     "File not found" : "Файл олдсонгүй",
+    "Invalid file provided" : "Буруу файл байна",
     "Account" : "аккаунт",
     "Invalid user" : "Буруу хэрэглэгч",
     "Email" : "Цахим шуудан",

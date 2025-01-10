@@ -11,6 +11,7 @@
     "File not found" : "Ficheiro não encontrado",
     "File already exists" : "O ficheiro já existe",
     "Empty file" : "Ficheiro vazio",
+    "Invalid file provided" : "Fornecido ficheiro inválido",
     "Account" : "Conta",
     "Invalid user" : "Utilizador inválido",
     "Email" : "E-mail",
@@ -69,6 +70,7 @@
     "Yes" : "Sim",
     "No" : "Não",
     "Forgot password?" : "Senha esquecida?",
+    "Name:" : "Nome:",
     "No date" : "Sem data",
     "Pending" : "Pendente"
 },"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"

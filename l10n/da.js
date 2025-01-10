@@ -13,6 +13,7 @@ OC.L10N.register(
     "File not found" : "Fil ikke fundet",
     "File already exists" : "Filen findes allerede",
     "Empty file" : "Tom fil",
+    "Invalid file provided" : "Der er angivet en ugyldig fil",
     "Account" : "Konto",
     "Invalid user" : "Ugyldig bruger",
     "Email" : "E-mail",
@@ -83,6 +84,7 @@ OC.L10N.register(
     "Yes" : "Ja",
     "No" : "Nej",
     "Forgot password?" : "Glemt adgangskode?",
+    "Name:" : "Navn:",
     "No date" : "No date",
     "Pending" : "Afventer"
 },

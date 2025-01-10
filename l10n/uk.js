@@ -14,6 +14,7 @@ OC.L10N.register(
     "File not found" : "Файл не знайдено",
     "File already exists" : "Файл вже існує",
     "Empty file" : "Порожній файл",
+    "Invalid file provided" : "Надано помилковий файл",
     "Account" : "Обліковий запис",
     "Invalid user" : "Неправильний користувач",
     "Email" : "Електронна пошта",
@@ -84,6 +85,8 @@ OC.L10N.register(
     "Yes" : "Так",
     "No" : "Ні",
     "Forgot password?" : "Забули пароль?",
+    "Name:" : "Ім'я:",
+    "Status:" : "Стан:",
     "No date" : "Без дати",
     "Pending" : "Очікування"
 },

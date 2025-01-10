@@ -15,6 +15,7 @@ OC.L10N.register(
     "File not found" : "Датотеката не е пронајдена",
     "File already exists" : "Датотека веќе постои",
     "Empty file" : "Празна датотека",
+    "Invalid file provided" : "Доставена е невалидна датотека",
     "Account" : "Сметка",
     "Invalid user" : "Неправилен корисник",
     "Email" : "Е-пошта",
@@ -79,6 +80,8 @@ OC.L10N.register(
     "Yes" : "Да",
     "No" : "Не",
     "Forgot password?" : "Заборавена лозинка?",
+    "Name:" : "Име:",
+    "Status:" : "Статус:",
     "No date" : "No date",
     "Pending" : "Чекање"
 },

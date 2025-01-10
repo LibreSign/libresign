@@ -11,11 +11,11 @@
     "Certificate file saved with success." : "成功保存憑證檔案。",
     "New password to sign documents has been created" : "已創建用於簽署文件的新密碼",
     "Could not download binaries." : "無法下載二進製檔案",
+    "Internal error. Contact admin." : "內部錯誤。聯絡管理員。",
     "Name is mandatory" : "必須有名字",
     "Invalid UUID" : "無效的 UUID",
     "Notification sent with success." : "通告發送成功。",
     "File signed" : "檔案已被簽署",
-    "Internal error. Contact admin." : "內部錯誤。聯絡管理員。",
     "Renewed with success. Access the link again." : "更新成功。請再次存取連結。",
     "Invalid data to sign file" : "簽署文件的數據無效",
     "The code to sign file was successfully requested." : "已成功請求籤名文件的代碼。",
@@ -99,6 +99,7 @@
     "Empty file" : "空檔案",
     "Invalid file provided. Need to be a .pfx file." : "提供了無效的檔案。必須為 .pfx 檔案。",
     "Invalid file identifier" : "無效的檔案識別碼",
+    "Invalid file provided" : "提供的檔案無效",
     "You need to sign this document" : "你需要簽署這份文件",
     "You cannot request signature for this document, please contact your administrator" : "您無法為此文件請求簽名，請聯絡管理員",
     "no signers" : "沒有簽署人",
@@ -355,6 +356,8 @@
     "Validation" : "驗證",
     "Document informations" : "文件資料",
     "Congratulations you have digitally signed a document using LibreSign" : "恭喜您已使用 LibreSign 對文件進行數字簽署",
+    "Name:" : "姓名：",
+    "Status:" : "狀態：",
     "Signatories:" : "簽署人：",
     "Date signed:" : "簽署日期：",
     "No date" : "沒有日期",
@@ -364,7 +367,6 @@
     "Notifications:" : "通知：",
     "Certificate valid from:" : "證書有效期自：",
     "Certificate valid to:" : "證書有效期至：",
-    "Subject:" : "主題：",
     "Return" : "返回",
     "This document is valid" : "此文件有效",
     "Open in LibreSign" : "在 LibreSign 中打開",
@@ -378,6 +380,7 @@
     "Click the page to add visible signature, then select a signer to set their signature position" : "點擊頁面以添加可見簽名，然後選擇一個簽署者並設置其簽名位置。",
     "All Files" : "所有檔案",
     "Pending" : "待定的",
-    "Signed" : "已簽署"
+    "Signed" : "已簽署",
+    "Subject:" : "主題："
 },"pluralForm" :"nplurals=1; plural=0;"
 }

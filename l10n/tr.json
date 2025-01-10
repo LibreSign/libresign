@@ -11,11 +11,11 @@
     "Certificate file saved with success." : "Sertifika dosyası kaydedildi.",
     "New password to sign documents has been created" : "Belgeleri imzalamak için yeni parola oluşturuldu",
     "Could not download binaries." : "Binary dosyaları indirilemedi.",
+    "Internal error. Contact admin." : "Bir iç sorun çıktı. BT yöneticiniz ile görüşün.",
     "Name is mandatory" : "Adın yazılması zorunludur",
     "Invalid UUID" : "UUID geçersiz",
     "Notification sent with success." : "Bildirim gönderildi.",
     "File signed" : "Dosya imzalanmış",
-    "Internal error. Contact admin." : "Bir iç sorun çıktı. BT yöneticiniz ile görüşün.",
     "Renewed with success. Access the link again." : "Yenilendi. Bağlantıya yeniden erişin.",
     "Invalid data to sign file" : "Dosyayı imzalamak için veriler geçersiz",
     "The code to sign file was successfully requested." : "Dosyayı imzalama kodu istendi.",
@@ -99,6 +99,7 @@
     "Empty file" : "Dosya boş",
     "Invalid file provided. Need to be a .pfx file." : "Belirtilen dosya geçersiz. Bir .pfx dosyası belirtilmeli.",
     "Invalid file identifier" : "Dosya belirteci geçersiz",
+    "Invalid file provided" : "Belirtilen dosya geçersiz",
     "You need to sign this document" : "Bu belgeyi imzalamanız gerekiyor",
     "You cannot request signature for this document, please contact your administrator" : "Bu belge için imzalama isteğinde bulunamazsınız, lütfen sistem yöneticiniz ile görüşün",
     "no signers" : "Herhangi bir imzalayan yok",
@@ -355,6 +356,8 @@
     "Validation" : "Doğrulama",
     "Document informations" : "Belge bilgileri",
     "Congratulations you have digitally signed a document using LibreSign" : "Tebrikler, LibreSign kullanarak bir belgeyi imzaladınız",
+    "Name:" : "Ad:",
+    "Status:" : "Durum:",
     "Signatories:" : "İmzalayanlar:",
     "Date signed:" : "İmzalanma tarihi:",
     "No date" : "Tarih yok",
@@ -364,7 +367,6 @@
     "Notifications:" : "Bildirimler:",
     "Certificate valid from:" : "Sertifika geçerlilik başlangıcı:",
     "Certificate valid to:" : "Sertifika geçerlilik bitişi:",
-    "Subject:" : "Konu:",
     "Return" : "Geri dön",
     "This document is valid" : "Bu belge geçerli",
     "Open in LibreSign" : "LibreSign ile aç",
@@ -378,6 +380,7 @@
     "Click the page to add visible signature, then select a signer to set their signature position" : "Görünür imza eklemek için sayfaya tıklayın ve imza konumunu ayarlamak için bir imzalayan seçin",
     "All Files" : "Tüm dosyalar",
     "Pending" : "Bekleyen",
-    "Signed" : "İmzalanmış"
+    "Signed" : "İmzalanmış",
+    "Subject:" : "Konu:"
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }
