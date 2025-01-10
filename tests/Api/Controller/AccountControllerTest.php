@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Api\Controller;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 
 /**
@@ -40,16 +41,15 @@ final class AccountControllerTest extends ApiTestCase {
 	 */
 	public function testAccountCreateWithSuccess() {
 		$this->markTestSkipped('Need to reimplement this test, stated to failure after add multiple certificate engine');
-		$this->mockAppConfig([
-			'cfssl_bin' => '',
-			'rootCert' => json_encode([
-				'commonName' => 'LibreCode',
-				'names' => [
-					'C' => ['value' => 'BR'],
-				]
-			]),
-			'certificate_engine' => 'openssl',
+		$appConfig = $this->getMockAppConfig();
+		$appConfig->setValueString(Application::APP_ID, 'cfssl_bin', '');
+		$appConfig->setValueArray(Application::APP_ID, 'rootCert', [
+			'commonName' => 'LibreCode',
+			'names' => [
+				'C' => ['value' => 'BR'],
+			]
 		]);
+		$appConfig->setValueString(Application::APP_ID, 'certificate_engine', 'openssl');
 
 		$user = $this->createAccount('username', 'password');
 
@@ -172,9 +172,7 @@ final class AccountControllerTest extends ApiTestCase {
 	public function testApprovalListWithSuccess() {
 		$this->createAccount('allowapprove', 'password', 'testGroup');
 
-		$this->mockAppConfig([
-			'approval_group' => '["testGroup"]'
-		]);
+		$this->getMockAppConfig()->setValueArray(Application::APP_ID, 'approval_group', ['testGroup']);
 
 		$this->request
 			->withPath('/api/v1/account/files/approval/list')

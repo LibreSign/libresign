@@ -80,10 +80,9 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function setUp(): void {
 		$this->tempFolder = vfsStream::setup('uploaded');
-		$this->mockAppConfig([
-			'length_of_page' => 100,
-			'identification_documents' => false,
-		]);
+		$appConfig = $this->getMockAppConfig();
+		$appConfig->setValueInt(Application::APP_ID, 'length_of_page', 100);
+		$appConfig->setValueBool(Application::APP_ID, 'identification_documents', false);
 	}
 
 	private function getService(): FileService {
