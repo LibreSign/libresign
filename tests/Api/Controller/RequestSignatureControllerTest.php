@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Api\Controller;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 
 /**
@@ -44,10 +45,9 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 	public function testPostRegisterWithSuccess():void {
 		$this->createAccount('allowrequestsign', 'password', 'testGroup');
 
-		$this->mockAppConfig([
-			'groups_request_sign' => '["admin","testGroup"]',
-			'notifyUnsignedUser' => 0,
-		]);
+		$appConfig = $this->getMockAppConfig();
+		$appConfig->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin','testGroup']);
+		$appConfig->setValueBool(Application::APP_ID, 'notifyUnsignedUser', false);
 
 		$this->request
 			->withMethod('POST')
@@ -104,10 +104,9 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 	public function testPatchRegisterWithSuccess():void {
 		$user = $this->createAccount('allowrequestsign', 'password', 'testGroup');
 
-		$this->mockAppConfig([
-			'groups_request_sign' => '["admin","testGroup"]',
-			'notifyUnsignedUser' => 0,
-		]);
+		$appConfig = $this->getMockAppConfig();
+		$appConfig->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin','testGroup']);
+		$appConfig->setValueBool(Application::APP_ID, 'notifyUnsignedUser', false);
 
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([

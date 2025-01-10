@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Api\Controller;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 
 /**
@@ -19,8 +20,7 @@ final class FileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testValidateUsignUuidWithInvalidData():void {
-		$this->mockAppConfig([]);
-
+		$this->getMockAppConfig();
 		$this->request
 			->withPath('/api/v1/file/validate/uuid/invalid')
 			->assertResponseCode(404);
@@ -79,12 +79,11 @@ final class FileControllerTest extends ApiTestCase {
 	public function testValidateWithSuccessUsingSigner():void {
 		$user = $this->createAccount('username', 'password');
 		$user->setEMailAddress('person@test.coop');
-		$this->mockAppConfig([
-			'identify_methods' => [
-				[
-					'name' => 'email',
-					'enabled' => 1,
-				],
+		$appConfig = $this->getMockAppConfig();
+		$appConfig->setValueArray(Application::APP_ID, 'identify_methods', [
+			[
+				'name' => 'email',
+				'enabled' => 1,
 			],
 		]);
 
@@ -136,9 +135,7 @@ final class FileControllerTest extends ApiTestCase {
 	 */
 	public function testSendNewFile():void {
 		$this->createAccount('allowrequestsign', 'password');
-		$this->mockAppConfig([
-			'groups_request_sign' => '["admin","testGroup"]',
-		]);
+		$this->getMockAppConfig()->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin','testGroup']);
 		$this->request
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password'),
