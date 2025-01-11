@@ -95,6 +95,8 @@ class InstallService {
 			$folder = $this->appData->getFolder('/');
 			if (!$path) {
 				$path = $this->architecture;
+			} elseif ($path === 'java') {
+				$path = $this->architecture . '/' . $this->getLinuxDistributionToDownloadJava() . '/' . $path;
 			} else {
 				$path = $this->architecture . '/' . $path;
 			}
