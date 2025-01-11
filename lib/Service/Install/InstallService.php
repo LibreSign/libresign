@@ -93,7 +93,7 @@ class InstallService {
 			if (!$path) {
 				$path = $this->architecture;
 			} elseif ($path === 'java') {
-				$path = $this->architecture . '/' . $this->getLinuxDistributionToDownloadJava() . '/' . $path;
+				$path = $this->architecture . '/' . $this->getLinuxDistributionToDownloadJava() . '/java';
 			} else {
 				$path = $this->architecture . '/' . $path;
 			}
