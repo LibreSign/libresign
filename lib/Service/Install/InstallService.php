@@ -478,9 +478,11 @@ class InstallService {
 		$operatingSystem = new OperatingSystem();
 		$distribution = $operatingSystem->getLinuxDistribution();
 		if (strtolower($distribution) === 'alpine') {
-			return 'alpine-linux';
+			$this->setDistro('alpine-linux');
+		} else {
+			$this->setDistro('linux');
 		}
-		return 'linux';
+		return $this->distro;
 	}
 
 	public function uninstallJava(): void {
