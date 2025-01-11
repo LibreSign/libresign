@@ -450,24 +450,6 @@ class InstallService {
 		$this->distro = $distro;
 	}
 
-	public function getInstallPath(): string {
-		switch ($this->resource) {
-			case 'java':
-				$path = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
-				return substr($path, 0, -strlen('/bin/java'));
-			case 'jsignpdf':
-				$path = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path');
-				return substr($path, 0, -strlen('/JSignPdf.jar'));
-			case 'pdftk':
-				$path = $this->appConfig->getValueString(Application::APP_ID, 'pdftk_path');
-				return substr($path, 0, -strlen('/pdftk.jar'));
-			case 'cfssl':
-				$path = $this->appConfig->getValueString(Application::APP_ID, 'cfssl_bin');
-				return substr($path, 0, -strlen('/cfssl'));
-		}
-		return '';
-	}
-
 	/**
 	 * Return linux or alpine-linux
 	 */
