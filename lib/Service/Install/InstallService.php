@@ -64,12 +64,9 @@ class InstallService {
 	 * When update, verify the hash of all architectures
 	 */
 	public const CFSSL_VERSION = '1.6.4';
-	/** @var ICache */
-	private $cache;
-	/** @var OutputInterface */
-	private $output;
-	/** @var string */
-	private $resource = '';
+	private ICache $cache;
+	private ?OutputInterface $output = null;
+	private string $resource = '';
 	protected IAppData $appData;
 	private array $availableResources = [
 		'java',
