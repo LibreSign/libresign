@@ -244,11 +244,15 @@ class SignSetupService {
 		if (!empty($this->signatureData)) {
 			return $this->signatureData;
 		}
-		$content = $this->fileAccessHelper->file_get_contents($this->getFileName());
-		$signatureData = null;
-
+		$filename = $this->getFileName();
+		if (!file_exists($filename)) {
+			throw new SignatureDataNotFoundException('Signature data not found.');
+		}
+		$content = $this->fileAccessHelper->file_get_contents($filename);
 		if (\is_string($content)) {
 			$signatureData = json_decode($content, true);
+		} else {
+			$signatureData = null;
 		}
 		if (!\is_array($signatureData)) {
 			throw new SignatureDataNotFoundException('Signature data not found.');
