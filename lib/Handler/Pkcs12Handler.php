@@ -484,9 +484,8 @@ class Pkcs12Handler extends SignEngineHandler {
 	 * @param array $user Example: ['host' => '', 'name' => '']
 	 * @param string $signPassword Password of signature
 	 * @param string $friendlyName Friendly name
-	 * @param bool $isTempFile
 	 */
-	public function generateCertificate(array $user, string $signPassword, string $friendlyName, bool $isTempFile = false): string {
+	public function generateCertificate(array $user, string $signPassword, string $friendlyName): string {
 		$content = $this->certificateEngineHandler->getEngine()
 			->setHosts([$user['host']])
 			->setCommonName($user['name'])
@@ -496,9 +495,6 @@ class Pkcs12Handler extends SignEngineHandler {
 			->generateCertificate();
 		if (!$content) {
 			throw new TypeError();
-		}
-		if ($isTempFile) {
-			return $content;
 		}
 		return $content;
 	}

@@ -376,7 +376,6 @@ class SignFileService {
 					],
 					$tempPassword,
 					$this->friendlyName,
-					true
 				);
 				$this->pkcs12Handler->setPfxContent($certificate);
 			} catch (TypeError $e) {
