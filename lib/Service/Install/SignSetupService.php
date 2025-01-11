@@ -140,6 +140,9 @@ class SignSetupService {
 		switch ($this->resource) {
 			case 'java':
 				$path = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
+				if (!$path) {
+					throw new InvalidSignatureException('Java path not found at app config.');
+				}
 				$installPath = substr($path, 0, -strlen('/bin/java'));
 				$distro = $this->getLinuxDistributionToDownloadJava();
 				$expected = "{$this->instanceId}/libresign/{$this->architecture}/{$distro}/java";
@@ -153,14 +156,23 @@ class SignSetupService {
 				break;
 			case 'jsignpdf':
 				$path = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path');
+				if (!$path) {
+					throw new InvalidSignatureException('JSignPdf path not found at app config.');
+				}
 				$installPath = substr($path, 0, strrpos($path, '/', -strlen('_/JSignPdf.jar')));
 				break;
 			case 'pdftk':
 				$path = $this->appConfig->getValueString(Application::APP_ID, 'pdftk_path');
+				if (!$path) {
+					throw new InvalidSignatureException('pdftk path not found at app config.');
+				}
 				$installPath = substr($path, 0, -strlen('/pdftk.jar'));
 				break;
 			case 'cfssl':
 				$path = $this->appConfig->getValueString(Application::APP_ID, 'cfssl_bin');
+				if (!$path) {
+					throw new InvalidSignatureException('cfssl path not found at app config.');
+				}
 				$installPath = substr($path, 0, -strlen('/cfssl'));
 				break;
 			default:
