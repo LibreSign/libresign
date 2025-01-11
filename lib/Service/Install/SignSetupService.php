@@ -16,7 +16,10 @@ use OCA\Libresign\Exception\EmptySignatureDataException;
 use OCA\Libresign\Exception\InvalidSignatureException;
 use OCA\Libresign\Exception\SignatureDataNotFoundException;
 use OCP\App\IAppManager;
+use OCP\Files\AppData\IAppDataFactory;
+use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
+use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use phpseclib\Crypt\RSA;
@@ -36,14 +39,17 @@ class SignSetupService {
 	private ?X509 $x509 = null;
 	private ?RSA $rsa = null;
 	private string $instanceId;
+	private IAppData $appData;
 	public function __construct(
 		private EnvironmentHelper $environmentHelper,
 		private FileAccessHelper $fileAccessHelper,
 		private IConfig $config,
 		private IAppConfig $appConfig,
 		private IAppManager $appManager,
+		private IAppDataFactory $appDataFactory,
 	) {
 		$this->instanceId = $this->config->getSystemValue('instanceid');
+		$this->appData = $appDataFactory->get('libresign');
 	}
 
 	public function setArchitecture(string $architecture): self {
@@ -141,7 +147,19 @@ class SignSetupService {
 			case 'java':
 				$path = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
 				if (!$path) {
-					throw new InvalidSignatureException('Java path not found at app config.');
+					// fallback
+					try {
+						$folder = $this->appData->getFolder('/');
+						$path = $this->architecture . '/' . $this->getLinuxDistributionToDownloadJava() . '/java';
+						$folder = $folder->getFolder($path, $folder);
+						$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
+						if (is_dir($path)) {
+							return $path;
+						}
+						throw new InvalidSignatureException('Java path not found at app config.');
+					} catch (\Throwable $th) {
+						throw new InvalidSignatureException('Java path not found at app config.');
+					}
 				}
 				$installPath = substr($path, 0, -strlen('/bin/java'));
 				$distro = $this->getLinuxDistributionToDownloadJava();
@@ -157,21 +175,57 @@ class SignSetupService {
 			case 'jsignpdf':
 				$path = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path');
 				if (!$path) {
-					throw new InvalidSignatureException('JSignPdf path not found at app config.');
+					// fallback
+					try {
+						$folder = $this->appData->getFolder('/');
+						$path = $this->architecture . '/jsignpdf';
+						$folder = $folder->getFolder($path, $folder);
+						$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
+						if (is_dir($path)) {
+							return $path;
+						}
+						throw new InvalidSignatureException('JSignPdf path not found at app config.');
+					} catch (\Throwable $th) {
+						throw new InvalidSignatureException('JSignPdf path not found at app config.');
+					}
 				}
 				$installPath = substr($path, 0, strrpos($path, '/', -strlen('_/JSignPdf.jar')));
 				break;
 			case 'pdftk':
 				$path = $this->appConfig->getValueString(Application::APP_ID, 'pdftk_path');
 				if (!$path) {
-					throw new InvalidSignatureException('pdftk path not found at app config.');
+					// fallback
+					try {
+						$folder = $this->appData->getFolder('/');
+						$path = $this->architecture . '/pdftk';
+						$folder = $folder->getFolder($path, $folder);
+						$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
+						if (is_dir($path)) {
+							return $path;
+						}
+						throw new InvalidSignatureException('pdftk path not found at app config.');
+					} catch (\Throwable $th) {
+						throw new InvalidSignatureException('pdftk path not found at app config.');
+					}
 				}
 				$installPath = substr($path, 0, -strlen('/pdftk.jar'));
 				break;
 			case 'cfssl':
 				$path = $this->appConfig->getValueString(Application::APP_ID, 'cfssl_bin');
 				if (!$path) {
-					throw new InvalidSignatureException('cfssl path not found at app config.');
+					// fallback
+					try {
+						$folder = $this->appData->getFolder('/');
+						$path = $this->architecture . '/cfssl';
+						$folder = $folder->getFolder($path, $folder);
+						$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
+						if (is_dir($path)) {
+							return $path;
+						}
+						throw new InvalidSignatureException('cfssl path not found at app config.');
+					} catch (\Throwable $th) {
+						throw new InvalidSignatureException('cfssl path not found at app config.');
+					}
 				}
 				$installPath = substr($path, 0, -strlen('/cfssl'));
 				break;
@@ -186,6 +240,23 @@ class SignSetupService {
 			);
 		}
 		return $installPath;
+	}
+
+	private function getDataDir(): string {
+		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
+		return $dataDir;
+	}
+
+	/**
+	 * @todo check a best solution to don't use reflection
+	 */
+	private function getInternalPathOfFolder(ISimpleFolder $node): string {
+		$reflection = new \ReflectionClass($node);
+		$reflectionProperty = $reflection->getProperty('folder');
+		$reflectionProperty->setAccessible(true);
+		$folder = $reflectionProperty->getValue($node);
+		$path = $folder->getInternalPath();
+		return $path;
 	}
 
 	private function getFileName(): string {
