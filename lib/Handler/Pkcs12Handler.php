@@ -15,7 +15,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
-
+use OCP\Files\GenericFileException;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
@@ -47,7 +47,11 @@ class Pkcs12Handler extends SignEngineHandler {
 			if (!$file instanceof File) {
 				throw new LibresignException("path {$this->pfxFilename} already exists and is not a file!", 400);
 			}
-			$file->putContent($content);
+			try {
+				$file->putContent($content);
+			} catch (GenericFileException $e) {
+				throw new LibresignException("path {$file->getPath()} does not exists!", 400);
+			}
 			return $content;
 		}
 
@@ -409,9 +413,14 @@ class Pkcs12Handler extends SignEngineHandler {
 		if (!$folder->nodeExists($this->pfxFilename)) {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		}
-		/** @var \OCP\Files\File */
-		$node = $folder->get($this->pfxFilename);
-		$this->pfxContent = $node->getContent();
+		try {
+			/** @var \OCP\Files\File */
+			$node = $folder->get($this->pfxFilename);
+			$this->pfxContent = $node->getContent();
+		} catch (GenericFileException $e) {
+			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
+		} catch (\Throwable $th) {
+		}
 		if (empty($this->pfxContent)) {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		}
