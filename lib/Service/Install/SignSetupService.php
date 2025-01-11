@@ -482,7 +482,19 @@ class SignSetupService {
 		$csrNames = ['commonName' => 'libresign'];
 
 		$csr = openssl_csr_new($csrNames, $privateKey, ['digest_alg' => 'sha256']);
-		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365, ['digest_alg' => 'sha256']);
+		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365, [
+			'digest_alg' => 'sha256',
+			'x509_extensions' => [
+				'authorityInfoAccess' => [
+					[
+						'accessMethod' => '1.3.6.1.5.5.7.1.1',
+						'accessLocation' => [
+							'uniformResourceIdentifier' => 'https://apps.nextcloud.com/apps/libresign',
+						],
+					],
+				],
+			]
+		]);
 
 		openssl_x509_export($x509, $rootCertificate);
 		openssl_pkey_export($privateKey, $privateKeyCert);
