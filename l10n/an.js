@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "File is too big" : "O fichero ye masiau gran",
     "File not found" : "Fichero no trobau",
+    "Invalid file provided" : "Fichero proporzionau no valiu",
     "Email" : "Correu electronico",
     "Delete" : "Borrar",
     "Cancel" : "Canzelar",

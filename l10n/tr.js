@@ -382,7 +382,6 @@ OC.L10N.register(
     "Click the page to add visible signature, then select a signer to set their signature position" : "Görünür imza eklemek için sayfaya tıklayın ve imza konumunu ayarlamak için bir imzalayan seçin",
     "All Files" : "Tüm dosyalar",
     "Pending" : "Bekleyen",
-    "Signed" : "İmzalanmış",
-    "Subject:" : "Konu:"
+    "Signed" : "İmzalanmış"
 },
 "nplurals=2; plural=(n > 1);");

@@ -382,7 +382,6 @@ OC.L10N.register(
     "Click the page to add visible signature, then select a signer to set their signature position" : "Click the page to add visible signature, then select a signer to set their signature position",
     "All Files" : "All Files",
     "Pending" : "Pending",
-    "Signed" : "Signed",
-    "Subject:" : "Subject:"
+    "Signed" : "Signed"
 },
 "nplurals=2; plural=(n != 1);");
