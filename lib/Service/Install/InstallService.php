@@ -561,6 +561,7 @@ class InstallService {
 			$hash = '59a28bed53b428595d165d52988bf4cf';
 
 			$this->download($url, 'pdftk', $fullPath, $hash);
+			$downloadOk = true;
 		}
 
 		$this->appConfig->setValueString(Application::APP_ID, 'pdftk_path', $fullPath);
