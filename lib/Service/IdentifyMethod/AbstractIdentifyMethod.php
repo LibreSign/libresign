@@ -241,22 +241,25 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		]);
 		if ($lastActionDate + $renewalInterval < $now) {
 			$this->identifyService->getLogger()->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Exception');
-			$blur = new Blur($this->getEntity()->getIdentifierValue());
-			throw new LibresignException(json_encode([
-				'action' => $this->getRenewAction(),
-				// TRANSLATORS title that is displayed at screen to notify the signer that the link to sign the document expired
-				'title' => $this->identifyService->getL10n()->t('Link expired'),
-				'body' => $this->identifyService->getL10n()->t(<<<'BODY'
-					The link to sign the document has expired.
-					We will send a new link to the email %1$s.
-					Click below to receive the new link and be able to sign the document.
-					BODY,
-					[$blur->make()]
-				),
-				'uuid' => $signRequest->getUuid(),
-				// TRANSLATORS Button to renew the link to sign the document. Renew is the action to generate a new sign link when the link expired.
-				'renewButton' => $this->identifyService->getL10n()->t('Renew'),
-			]));
+			if ($this->getName() === 'email') {
+				$blur = new Blur($this->getEntity()->getIdentifierValue());
+				throw new LibresignException(json_encode([
+					'action' => $this->getRenewAction(),
+					// TRANSLATORS title that is displayed at screen to notify the signer that the link to sign the document expired
+					'title' => $this->identifyService->getL10n()->t('Link expired'),
+					'body' => $this->identifyService->getL10n()->t(<<<'BODY'
+						The link to sign the document has expired.
+						We will send a new link to the email %1$s.
+						Click below to receive the new link and be able to sign the document.
+						BODY,
+						[$blur->make()]
+					),
+					'uuid' => $signRequest->getUuid(),
+					// TRANSLATORS Button to renew the link to sign the document. Renew is the action to generate a new sign link when the link expired.
+					'renewButton' => $this->identifyService->getL10n()->t('Renew'),
+				]));
+			}
+			$this->validateToRenew($this->user);
 		}
 	}
 
