@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Settings saved" : "Parametrlər yaddaşa verildi",
     "File is too big" : "Fayl çox böyükdür",
+    "Invalid file provided" : "Yanlış fayl təqdim edilib",
     "Account" : "Hesab",
     "Invalid user" : "İstifadəçi adı yalnışdır",
     "Email" : "Email",
@@ -37,6 +38,7 @@ OC.L10N.register(
     "New password" : "Yeni şifrə",
     "Yes" : "Yes",
     "No" : "No",
+    "Name:" : "Ad:",
     "No date" : "No date",
     "Pending" : "Gözləmə"
 },
