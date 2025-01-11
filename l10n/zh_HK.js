@@ -382,7 +382,6 @@ OC.L10N.register(
     "Click the page to add visible signature, then select a signer to set their signature position" : "點擊頁面以添加可見簽名，然後選擇一個簽署者並設置其簽名位置。",
     "All Files" : "所有檔案",
     "Pending" : "待定的",
-    "Signed" : "已簽署",
-    "Subject:" : "主題："
+    "Signed" : "已簽署"
 },
 "nplurals=1; plural=0;");

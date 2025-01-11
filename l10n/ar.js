@@ -101,6 +101,7 @@ OC.L10N.register(
     "Empty file" : "ملفٌ فارغٌ",
     "Invalid file provided. Need to be a .pfx file." : "الملف المُعطَى غير صحيح. يجب أن يكون امتداد الملف .pfx.",
     "Invalid file identifier" : "معرّف الملف غير صالح",
+    "Invalid file provided" : "تمّ تقديم ملف غير صالح",
     "You need to sign this document" : "تحتاج إلى توقيع هذه الوثيقة",
     "You cannot request signature for this document, please contact your administrator" : "لا يمكنك طلب التوقيع على هذه الوثيقة، الرجاء الاتصال بالمسؤول",
     "no signers" : "لا يوجد مُوقِّعون",
@@ -357,6 +358,8 @@ OC.L10N.register(
     "Validation" : "التصديق",
     "Document informations" : "معلومات المستند",
     "Congratulations you have digitally signed a document using LibreSign" : "تهانينا، لقد قمت بالتوقيع على مستند رقميًا باستخدام تطبيق LibreSign",
+    "Name:" : "الاسم:",
+    "Status:" : "الحالة status:",
     "Signatories:" : "الموقعون:",
     "Date signed:" : "تاريخ التوقيع:",
     "No date" : "لا يوجد تاريخ",
@@ -379,7 +382,6 @@ OC.L10N.register(
     "Click the page to add visible signature, then select a signer to set their signature position" : "أنقُر على الصفحة لإضافة توقيع مرئي، ثم حدد اسم المُوقّع لوضع توقيعه  ",
     "All Files" : "كل الملفات",
     "Pending" : "معلّق",
-    "Signed" : "مُوقع",
-    "Subject:" : "الموضوع:"
+    "Signed" : "مُوقع"
 },
 "nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;");

@@ -380,7 +380,6 @@ OC.L10N.register(
     "Click the page to add visible signature, then select a signer to set their signature position" : "Klicka på sidan för att lägga till en synlig signatur och välj sedan en undertecknare för att ange sin signaturposition",
     "All Files" : "Alla filer",
     "Pending" : "Väntande",
-    "Signed" : "Signerad",
-    "Subject:" : "Ämne:"
+    "Signed" : "Signerad"
 },
 "nplurals=2; plural=(n != 1);");

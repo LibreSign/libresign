@@ -9,6 +9,7 @@ OC.L10N.register(
     "View" : "Gwell",
     "Dismiss notification" : "Arrest ar gemenadennoù",
     "File not found" : "N'eo ket bet kavet ar restr",
+    "Invalid file provided" : "Ar restr roet n'eo ket unan aotreet",
     "Account" : "Kont",
     "Email" : "Postel",
     "Upload" : "Pellkas",

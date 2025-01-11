@@ -1,6 +1,7 @@
 { "translations": {
     "Settings saved" : "Parametrlər yaddaşa verildi",
     "File is too big" : "Fayl çox böyükdür",
+    "Invalid file provided" : "Yanlış fayl təqdim edilib",
     "Account" : "Hesab",
     "Invalid user" : "İstifadəçi adı yalnışdır",
     "Email" : "Email",
@@ -35,6 +36,7 @@
     "New password" : "Yeni şifrə",
     "Yes" : "Yes",
     "No" : "No",
+    "Name:" : "Ad:",
     "No date" : "No date",
     "Pending" : "Gözləmə"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
