@@ -14,6 +14,7 @@ OC.L10N.register(
     "File not found" : "Nun s'atopó'l ficheru",
     "File already exists" : "El ficheru yá esiste",
     "Empty file" : "Ficheru baleru",
+    "Invalid file provided" : "Fornióse un ficheru inválidu",
     "You cannot request signature for this document, please contact your administrator" : "Nun pues solicitar la firma d'esti documentu. Ponte en contautu cola alministración",
     "Account" : "Cuenta",
     "Invalid user" : "L'usuariu ye inválidu",
@@ -80,6 +81,8 @@ OC.L10N.register(
     "Yes" : "Sí",
     "No" : "Non",
     "Forgot password?" : "¿Escaeciesti la contraseña?",
+    "Name:" : "Nome:",
+    "Status:" : "Estáu:",
     "All Files" : "Tolos ficheros",
     "Pending" : "Pendiente"
 },
