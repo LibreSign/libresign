@@ -26,6 +26,7 @@ namespace OCA\Libresign\Handler;
 
 use DateTime;
 use OC\SystemConfig;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
@@ -451,7 +452,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	}
 
 	private function getHandler(): SignEngineHandler {
-		$sign_engine = $this->appConfig->getValueString('sign_engine', 'JSignPdf');
+		$sign_engine = $this->appConfig->getValueString(Application::APP_ID, 'sign_engine', 'JSignPdf');
 		$property = lcfirst($sign_engine) . 'Handler';
 		if (!property_exists($this, $property)) {
 			throw new LibresignException($this->l10n->t('Invalid Sign engine.'), 400);
