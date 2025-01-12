@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Api\Controller;
 
 use bovigo\vfs\vfsStream;
 use donatj\MockWebServer\Response;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 
 /**
@@ -41,21 +42,19 @@ final class AdminControllerTest extends ApiTestCase {
 		self::$server->setResponseOfPath('/api/v1/cfssl/health', new Response(
 			'{"success":true,"result":{"healthy":true},"errors":[],"messages":[]}'
 		));
-		$cfsslConfig = [
-			'rootCert' => json_encode([
-				'commonName' => 'LibreCode',
-				'names' => [
-					'C' => ['value' => 'BR'],
-					'ST' => ['value' => 'RJ'],
-					'L' => ['value' => 'Rio de Janeiro'],
-					'O' => ['value' => 'LibreCode Coop'],
-					'OU' => ['value' => 'LibreSign'],
-				],
-			]),
-			'cfssl_uri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
-			'config_path' => 'vfs://home/'
-		];
-		$this->mockAppConfig($cfsslConfig);
+		$appConfig = $this->getMockAppConfig();
+		$appConfig->setValueArray(Application::APP_ID, 'rootCert', [
+			'commonName' => 'LibreCode',
+			'names' => [
+				'C' => ['value' => 'BR'],
+				'ST' => ['value' => 'RJ'],
+				'L' => ['value' => 'Rio de Janeiro'],
+				'O' => ['value' => 'LibreCode Coop'],
+				'OU' => ['value' => 'LibreSign'],
+			],
+		]);
+		$appConfig->setValueString(Application::APP_ID, 'cfssl_uri', self::$server->getServerRoot() . '/api/v1/cfssl/');
+		$appConfig->setValueString(Application::APP_ID, 'config_path', 'vfs://home/');
 		$cfsslConfig['rootCert'] = json_decode($cfsslConfig['rootCert'], true);
 
 		// Configure request

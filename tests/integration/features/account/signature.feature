@@ -19,7 +19,7 @@ Feature: account/signature
 
   Scenario: Create root certificate with CFSSL engine using API
     Given as user "admin"
-    And run the command "config:app:set libresign certificate_engine --value cfssl" with result code 0
+    And run the command "config:app:set libresign certificate_engine --value=cfssl" with result code 0
     And run the command "libresign:install --use-local-cert --cfssl" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/cfssl"
       | rootCert | {"commonName":"Common Name","names":{"C":{"id":"C","value":"BR"},"ST":{"id":"ST","value":"State of Company"},"L":{"id":"L","value":"City name"},"O":{"id":"O","value":"Organization"},"OU":{"id":"OU","value":"Organizational Unit"}}} |
@@ -41,7 +41,7 @@ Feature: account/signature
     Given user "signer1" exists
     And as user "signer1"
     And set the email of user "signer1" to "signer@domain.test"
-    And run the command "config:app:set libresign certificate_engine --value cfssl" with result code 0
+    And run the command "config:app:set libresign certificate_engine --value=cfssl" with result code 0
     And run the command "libresign:install --use-local-cert --cfssl" with result code 0
     And run the command "libresign:configure:cfssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
     When sending "delete" to ocs "/apps/libresign/api/v1/account/pfx"
@@ -188,7 +188,7 @@ Feature: account/signature
 
   Scenario: Create password to guest
     Given guest "guest@test.coop" exists
-    And run the command "config:app:set guests whitelist --value libresign" with result code 0
+    And run the command "config:app:set guests whitelist --value=libresign" with result code 0
     And as user "guest@test.coop"
     And sending "post" to ocs "/apps/libresign/api/v1/account/signature"
       | signPassword | password |
@@ -196,7 +196,7 @@ Feature: account/signature
 
   Scenario: CRUD of signature element to guest
     Given guest "guest@test.coop" exists
-    And run the command "config:app:set guests whitelist --value libresign" with result code 0
+    And run the command "config:app:set guests whitelist --value=libresign" with result code 0
     And as user "guest@test.coop"
     When sending "post" to ocs "/apps/libresign/api/v1/signature/elements"
       | elements | [{"type":"signature","file":{"base64":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="}}] |
@@ -211,7 +211,7 @@ Feature: account/signature
     Then the response should have a status code 200
 
   Scenario: CRUD of signature element to signer by email without account
-    Given run the command "config:app:set guests whitelist --value libresign" with result code 0
+    Given run the command "config:app:set guests whitelist --value=libresign" with result code 0
     And run the command "libresign:configure:openssl --cn test" with result code 0
     And as user "admin"
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"

@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Api\Controller;
 
 use donatj\MockWebServer\Response;
 use Jeidison\JSignPDF\JSignPDF;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 
 /**
@@ -21,10 +22,10 @@ final class SignFileControllerTest extends ApiTestCase {
 	 */
 	public function testSignUsingFileIdWithInvalidFileToSign():void {
 		$this->createAccount('allowrequestsign', 'password', 'testGroup');
-		$this->mockAppConfig([
-			'groups_request_sign' => '["admin","testGroup"]',
-			'notifyUnsignedUser' => 0,
-		]);
+
+		$appConfig = $this->getMockAppConfig();
+		$appConfig->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin','testGroup']);
+		$appConfig->setValueBool(Application::APP_ID, 'notifyUnsignedUser', false);
 		$this->request
 			->withMethod('POST')
 			->withRequestHeader([
@@ -196,15 +197,14 @@ final class SignFileControllerTest extends ApiTestCase {
 	 */
 	public function testSignUsingFileIdWithEmptyCertificatePassword():void {
 		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
-		$this->mockAppConfig([
-			'cfssl_bin' => '',
-			'java_path' => __FILE__,
-			'rootCert' => json_encode([
-				'commonName' => 'LibreCode',
-				'names' => [
-					'C' => ['value' => 'BR'],
-				]
-			]),
+		$appConfig = $this->getMockAppConfig();
+		$appConfig->setValueString(Application::APP_ID, 'cfssl_bin', '');
+		$appConfig->setValueString(Application::APP_ID, 'java_path', __FILE__);
+		$appConfig->setValueArray(Application::APP_ID, 'rootCert', [
+			'commonName' => 'LibreCode',
+			'names' => [
+				'C' => ['value' => 'BR'],
+			],
 		]);
 
 		$user = $this->createAccount('username', 'password');
@@ -257,15 +257,14 @@ final class SignFileControllerTest extends ApiTestCase {
 	 */
 	public function testSignUsingFileIdWithSuccess():void {
 		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
-		$this->mockAppConfig([
-			'cfssl_bin' => '',
-			'java_path' => __FILE__,
-			'rootCert' => json_encode([
-				'commonName' => 'LibreCode',
-				'names' => [
-					'C' => ['value' => 'BR'],
-				]
-			]),
+		$appConfig = $this->getMockAppConfig();
+		$appConfig->setValueString(Application::APP_ID, 'cfssl_bin', '');
+		$appConfig->setValueString(Application::APP_ID, 'java_path', __FILE__);
+		$appConfig->setValueArray(Application::APP_ID, 'rootCert', [
+			'commonName' => 'LibreCode',
+			'names' => [
+				'C' => ['value' => 'BR'],
+			],
 		]);
 
 		$user = $this->createAccount('username', 'password');
@@ -331,20 +330,19 @@ final class SignFileControllerTest extends ApiTestCase {
 			file_get_contents(__DIR__ . '/../../fixtures/cfssl/newcert-with-success.json')
 		));
 
-		$this->mockAppConfig([
-			'notifyUnsignedUser' => 0,
-			'rootCert' => json_encode([
-				'commonName' => 'LibreCode',
-				'names' => [
-					'C' => ['value' => 'BR'],
-					'ST' => ['value' => 'RJ'],
-					'L' => ['value' => 'Rio de Janeiro'],
-					'O' => ['value' => 'LibreCode Coop'],
-					'OU' => ['value' => 'LibreSign']
-				]
-			]),
-			'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
-			'cfssl_bin' => '',
+		$appConfig = $this->getMockAppConfig();
+		$appConfig->setValueBool(Application::APP_ID, 'notifyUnsignedUser', false);
+		$appConfig->setValueString(Application::APP_ID, 'cfsslUri', self::$server->getServerRoot() . '/api/v1/cfssl/');
+		$appConfig->setValueString(Application::APP_ID, 'cfssl_bin', '');
+		$appConfig->setValueArray(Application::APP_ID, 'rootCert', [
+			'commonName' => 'LibreCode',
+			'names' => [
+				'C' => ['value' => 'BR'],
+				'ST' => ['value' => 'RJ'],
+				'L' => ['value' => 'Rio de Janeiro'],
+				'O' => ['value' => 'LibreCode Coop'],
+				'OU' => ['value' => 'LibreSign']
+			]
 		]);
 
 		$this->request
@@ -403,9 +401,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			'userManager' => $user,
 		]);
 
-		$this->mockAppConfig([
-			'groups_request_sign' => '["admin","testGroup"]',
-		]);
+		$this->getMockAppConfig()->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin','testGroup']);
 
 		$signers = $this->getSignersFromFileId($file->getId());
 		$this->request
@@ -453,9 +449,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			'userManager' => $user,
 		]);
 
-		$this->mockAppConfig([
-			'groups_request_sign' => '["admin","testGroup"]',
-		]);
+		$this->getMockAppConfig()->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin','testGroup']);
 
 		$this->request
 			->withMethod('DELETE')

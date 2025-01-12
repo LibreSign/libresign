@@ -10,7 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use Jeidison\JSignPDF\JSignPDF;
 use OCA\Libresign\Handler\JSignPdfHandler;
-use OCP\AppFramework\Services\IAppConfig;
+use OCP\IAppConfig;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 

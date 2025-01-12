@@ -10,8 +10,8 @@ namespace OCA\Libresign\Handler\CertificateEngine;
 
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
+use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;

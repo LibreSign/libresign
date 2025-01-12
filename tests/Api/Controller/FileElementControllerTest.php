@@ -36,7 +36,7 @@ final class FileElementControllerTest extends ApiTestCase {
 		$signers = $this->getSignersFromFileId($file->getId());
 		$signers[0]->setSigned(time());
 
-		$this->mockAppConfig([]);
+		$this->getMockAppConfig();
 		$this->request
 			->withPath('/api/v1/file-element/' . $file->getUuid())
 			->withMethod('POST')

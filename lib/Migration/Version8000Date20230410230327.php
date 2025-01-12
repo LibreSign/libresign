@@ -8,10 +8,11 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Migration;
 
-use OCP\AppFramework\Services\IAppConfig;
+use OCA\Libresign\AppInfo\Application;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
+use OCP\IAppConfig;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
@@ -26,7 +27,7 @@ class Version8000Date20230410230327 extends SimpleMigrationStep {
 	}
 
 	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
-		$libresignCliPath = $this->appConfig->getAppValue('libresign_cli_path');
+		$libresignCliPath = $this->appConfig->getValueString(Application::APP_ID, 'libresign_cli_path');
 		if (!$libresignCliPath) {
 			return;
 		}
@@ -36,6 +37,6 @@ class Version8000Date20230410230327 extends SimpleMigrationStep {
 			$folder->delete();
 		} catch (NotFoundException $e) {
 		}
-		$this->appConfig->deleteAppValue('libresign_cli_path');
+		$this->appConfig->deleteKey(Application::APP_ID, 'libresign_cli_path');
 	}
 }

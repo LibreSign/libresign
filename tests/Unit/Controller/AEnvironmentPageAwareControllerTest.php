@@ -35,12 +35,10 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 
 	public function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
-		$this->mockAppConfig([
-			'identify_methods' => [
-				[
-					'name' => 'email',
-					'enabled' => 1,
-				],
+		$this->getMockAppConfig()->setValueArray(Application::APP_ID, 'identify_methods', [
+			[
+				'name' => 'email',
+				'enabled' => 1,
 			],
 		]);
 		$this->signFileService = \OCP\Server::get(SignFileService::class);
