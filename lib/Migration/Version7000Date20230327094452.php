@@ -45,7 +45,8 @@ class Version7000Date20230327094452 extends SimpleMigrationStep {
 	 * {"commonName":"Test Company","names":{"C":"BR","O":"Organization","OU":"Organization Unit"}}
 	 */
 	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
-		$rootCert = $this->appConfig->getValueArray(Application::APP_ID, 'rootCert');
+		$rootCert = $this->appConfig->getValueString(Application::APP_ID, 'rootCert');
+		$rootCert = json_decode($rootCert, true);
 		if (is_array($rootCert) && array_key_exists('names', $rootCert)) {
 			$names = [];
 			foreach ($rootCert['names'] as $value) {
