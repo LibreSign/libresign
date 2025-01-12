@@ -10,6 +10,7 @@ namespace OCA\Libresign\Service;
 
 use InvalidArgumentException;
 use OC\Files\Filesystem;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
@@ -26,7 +27,6 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\Config\IUserMountCache;
@@ -36,6 +36,7 @@ use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClientService;
+use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -235,7 +236,7 @@ class AccountService {
 	 * @return array[]
 	 */
 	public function getConfig(?IUser $user = null): array {
-		$info['identificationDocumentsFlow'] = $this->appConfig->getAppValue('identification_documents') ? true : false;
+		$info['identificationDocumentsFlow'] = $this->appConfig->getValueBool(Application::APP_ID, 'identification_documents', false);
 		$info['hasSignatureFile'] = $this->hasSignatureFile($user);
 		$info['phoneNumber'] = $this->getPhoneNumber($user);
 		$info['isApprover'] = $this->validateHelper->userCanApproveValidationDocuments($user, false);
@@ -312,7 +313,7 @@ class AccountService {
 		if (!$user) {
 			return false;
 		}
-		$authorized = json_decode($this->appConfig->getAppValue('groups_request_sign', '["admin"]'));
+		$authorized = $this->appConfig->getValueArray(Application::APP_ID, 'groups_request_sign', ['admin']);
 		if (empty($authorized)) {
 			return false;
 		}

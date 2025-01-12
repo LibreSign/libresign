@@ -12,7 +12,7 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Service\MailService;
-use OCP\AppFramework\Services\IAppConfig;
+use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\Mail\IMailer;
@@ -74,8 +74,8 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getById')
 			->will($this->returnValue($file));
 		$this->appConfig
-			->method('getAppValue')
-			->willReturn('1');
+			->method('getValueBool')
+			->willReturn(true);
 		$actual = $this->service->notifyUnsignedUser($signRequest, 'a@b.coop');
 		$this->assertNull($actual);
 	}
@@ -108,8 +108,8 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				throw new \Exception('Error Processing Request', 1);
 			});
 		$this->appConfig
-			->method('getAppValue')
-			->will($this->returnValue('1'));
+			->method('getValueBool')
+			->will($this->returnValue(true));
 		$actual = $this->service->notifyUnsignedUser($signRequest, 'a@b.coop');
 		$this->assertNull($actual);
 	}

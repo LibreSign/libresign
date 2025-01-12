@@ -11,9 +11,11 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use bovigo\vfs\vfsStream;
 use OC\IntegrityCheck\Helpers\EnvironmentHelper;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCP\App\IAppManager;
-use OCP\AppFramework\Services\IAppConfig;
+use OCP\Files\AppData\IAppDataFactory;
+use OCP\IAppConfig;
 use OCP\IConfig;
 use phpseclib\Crypt\RSA;
 use phpseclib\File\X509;
@@ -24,15 +26,17 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private EnvironmentHelper&MockObject $environmentHelper;
 	private FileAccessHelper $fileAccessHelper;
 	private IConfig&MockObject $config;
-	private IAppConfig&MockObject $appConfig;
+	private IAppConfig $appConfig;
 	private IAppManager&MockObject $appManager;
+	private IAppDataFactory $appDataFactory;
 
 	public function setUp(): void {
 		$this->environmentHelper = $this->createMock(EnvironmentHelper::class);
 		$this->fileAccessHelper = new FileAccessHelper();
 		$this->appManager = $this->createMock(IAppManager::class);
 		$this->config = $this->createMock(IConfig::class);
-		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->appConfig = $this->getMockAppConfig();
+		$this->appDataFactory = \OCP\Server::get(IAppDataFactory::class);
 	}
 
 	/**
@@ -53,6 +57,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->config,
 				$this->appConfig,
 				$this->appManager,
+				$this->appDataFactory,
 			])
 			->onlyMethods($methods)
 			->getMock();
@@ -87,14 +92,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->environmentHelper->method('getServerRoot')
 			->willReturn('vfs://home');
 
-		$this->appConfig
-			->method('getAppValue')
-			->willReturnCallback(function ($key, $default) use ($architecture):string {
-				return match ($key) {
-					'java_path' => 'vfs://home/data/appdata_1/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/bin/java',
-					default => '',
-				};
-			});
+		$this->appConfig->setValueString(Application::APP_ID, 'java_path', 'vfs://home/data/appdata_1/libresign/' . $architecture . '/linux/java/jdk-21.0.2+13-jre/bin/java');
 		$signSetupService = $this->getInstance([
 			'getAppInfoDirectory',
 		]);
@@ -205,17 +203,10 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[DataProvider('dataGetInstallPath')]
 	public function testGetInstallPath(string $architecture, string $resource, string $distro, string $expected): void {
-		$this->appConfig
-			->method('getAppValue')
-			->willReturnCallback(function ($key, $default): string {
-				return match ($key) {
-					'java_path' => 'vfs://home/data/appdata_1/libresign/x86_64/linux/java/jdk-21.0.2+13-jre/bin/java',
-					'jsignpdf_jar_path' => 'vfs://home/data/appdata_1/libresign/x86_64/jsignpdf/jsignpdf-2.2.2/JSignPdf.jar',
-					'pdftk_path' => 'vfs://home/data/appdata_1/libresign/x86_64/pdftk/pdftk.jar',
-					'cfssl_bin' => 'vfs://home/data/appdata_1/libresign/x86_64/cfssl/cfssl',
-					default => '',
-				};
-			});
+		$this->appConfig->setValueString(Application::APP_ID, 'java_path', 'vfs://home/data/appdata_1/libresign/x86_64/linux/java/jdk-21.0.2+13-jre/bin/java');
+		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_jar_path', 'vfs://home/data/appdata_1/libresign/x86_64/jsignpdf/jsignpdf-2.2.2/JSignPdf.jar');
+		$this->appConfig->setValueString(Application::APP_ID, 'pdftk_path', 'vfs://home/data/appdata_1/libresign/x86_64/pdftk/pdftk.jar');
+		$this->appConfig->setValueString(Application::APP_ID, 'cfssl_bin', 'vfs://home/data/appdata_1/libresign/x86_64/cfssl/cfssl');
 		$actual = $this->getInstance()
 			->setArchitecture($architecture)
 			->setDistro($distro)

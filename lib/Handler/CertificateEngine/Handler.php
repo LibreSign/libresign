@@ -8,8 +8,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\CertificateEngine;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
-use OCP\AppFramework\Services\IAppConfig;
+use OCP\IAppConfig;
 
 class Handler {
 	public function __construct(
@@ -25,7 +26,7 @@ class Handler {
 	 */
 	public function getEngine(string $engineName = '', array $rootCert = []): AEngineHandler {
 		if (!$engineName) {
-			$engineName = $this->appConfig->getAppValue('certificate_engine', 'openssl');
+			$engineName = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', 'openssl');
 		}
 		if ($engineName === 'openssl') {
 			$engine = $this->openSslHandler;

@@ -12,8 +12,8 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Settings\Admin;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Services\IInitialState;
+use OCP\IAppConfig;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
