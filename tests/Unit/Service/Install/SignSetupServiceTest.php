@@ -14,6 +14,7 @@ use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCP\App\IAppManager;
+use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use phpseclib\Crypt\RSA;
@@ -34,6 +35,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appManager = $this->createMock(IAppManager::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->appConfig = $this->getMockAppConfig();
+		$this->appDataFactory = \OCP\Server::get(IAppDataFactory::class);
 	}
 
 	/**
@@ -54,6 +56,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->config,
 				$this->appConfig,
 				$this->appManager,
+				$this->appDataFactory,
 			])
 			->onlyMethods($methods)
 			->getMock();
