@@ -199,7 +199,7 @@ class AEngineHandler {
 
 	public function populateInstance(array $rootCert): self {
 		if (empty($rootCert)) {
-			$rootCert = $this->appConfig->getValueArray(Application::APP_ID, 'root_cert');
+			$rootCert = $this->appConfig->getValueArray(Application::APP_ID, 'rootCert');
 		}
 		if (!$rootCert) {
 			return $this;

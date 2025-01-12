@@ -745,7 +745,7 @@ class InstallService {
 			$names
 		);
 
-		$this->appConfig->setValueArray(Application::APP_ID, 'root_cert', $rootCert);
+		$this->appConfig->setValueArray(Application::APP_ID, 'rootCert', $rootCert);
 		$this->appConfig->setValueString(Application::APP_ID, 'authkey', $privateKey);
 		/** @var AEngineHandler $engine */
 		if ($engine->getEngine() === 'cfssl') {
