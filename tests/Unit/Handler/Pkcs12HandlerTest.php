@@ -19,15 +19,13 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected Pkcs12Handler $pkcs12Handler;
 	protected FolderService|MockObject $folderService;
-	private IAppConfig|MockObject $appConfig;
+	private IAppConfig $appConfig;
 	private SystemConfig $systemConfig;
-	private CfsslHandler|MockObject $cfsslHandler;
-	private IL10N|MockObject $l10n;
+	private IL10N $l10n;
 	private JSignPdfHandler|MockObject $jSignPdfHandler;
 	private FooterHandler|MockObject $footerHandler;
-	private ITempManager|MockObject $tempManager;
+	private ITempManager $tempManager;
 	private CertificateEngineHandler|MockObject $certificateEngineHandler;
-	private array $cfsslHandlerBuffer = [];
 
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);

@@ -23,11 +23,11 @@ class TestCase extends \Test\TestCase {
 	private signRequestMapper $signRequestMapper;
 	private array $users = [];
 
-	public function mockAppConfig($config) {
+	public function getMockAppConfig(): IAppConfig {
 		\OC::$server->registerParameter('appName', 'libresign');
 		$service = \OCP\Server::get(\OCP\IAppConfig::class);
 		if (!$service instanceof AppConfigOverwrite) {
-			\OC::$server->registerService(\OCP\IAppConfig::class, function () {
+			\OC::$server->registerService(\OCP\IAppConfig::class, function ():AppConfigOverwrite {
 				return new AppConfigOverwrite(
 					\OCP\Server::get(\OCP\IDBConnection::class),
 					\OCP\Server::get(\Psr\Log\LoggerInterface::class),
@@ -39,10 +39,10 @@ class TestCase extends \Test\TestCase {
 		return $service;
 	}
 
-	public function mockConfig($config) {
-		$service = \OC::$server->get(\OCP\IConfig::class);
+	public function mockConfig($config):void {
+		$service = \OCP\Server::get(\OCP\IConfig::class);
 		if (!$service instanceof AllConfigOverwrite) {
-			\OC::$server->registerService(\OCP\IConfig::class, function () {
+			\OC::$server->registerService(\OCP\IConfig::class, function ():AllConfigOverwrite {
 				$configOverwrite = new ConfigOverwrite(\OC::$configDir);
 				$systemConfig = new SystemConfig($configOverwrite);
 				return new AllConfigOverwrite($systemConfig);
@@ -137,12 +137,8 @@ class TestCase extends \Test\TestCase {
 
 	/**
 	 * Create user
-	 *
-	 * @param string $username
-	 * @param string $password
-	 * @return \OC\User\User
 	 */
-	public function createAccount($username, $password, $groupName = 'testGroup') {
+	public function createAccount(string $username, string $password, string $groupName = 'testGroup'):\OC\User\User {
 		$this->users[] = $username;
 		$this->mockConfig([
 			'core' => [

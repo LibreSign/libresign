@@ -16,7 +16,7 @@ final class FileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testValidateUsignUuidWithInvalidData() {
-		$this->mockAppConfig([]);
+		$this->getMockAppConfig([]);
 
 		$this->request
 			->withPath('/api/v1/file/validate/uuid/invalid')

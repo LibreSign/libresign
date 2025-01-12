@@ -12,7 +12,7 @@ use OCP\IURLGenerator;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	private IAppConfig|MockObject $appConfig;
+	private IAppConfig $appConfig;
 	private PdfParserService|MockObject $pdfParserService;
 	private IURLGenerator|MockObject $urlGenerator;
 	private IL10N|MockObject $l10n;

@@ -26,8 +26,9 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private EnvironmentHelper|MockObject $environmentHelper;
 	private FileAccessHelper $fileAccessHelper;
 	private IConfig|MockObject $config;
-	private IAppConfig|MockObject $appConfig;
+	private IAppConfig $appConfig;
 	private IAppManager|MockObject $appManager;
+	private IAppDataFactory $appDataFactory;
 
 	public function setUp(): void {
 		$this->environmentHelper = $this->createMock(EnvironmentHelper::class);
