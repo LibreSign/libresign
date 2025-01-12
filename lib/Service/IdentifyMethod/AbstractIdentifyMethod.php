@@ -201,7 +201,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function throwIfRenewalIntervalExpired(): void {
-		$renewalInterval = (int)$this->identifyService->getAppConfig()->setValueInt(Application::APP_ID, 'renewal_interval', SessionService::NO_RENEWAL_INTERVAL);
+		$renewalInterval = (int)$this->identifyService->getAppConfig()->getValueInt(Application::APP_ID, 'renewal_interval', SessionService::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= 0) {
 			return;
 		}
