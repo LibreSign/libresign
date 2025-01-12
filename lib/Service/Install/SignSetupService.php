@@ -16,8 +16,11 @@ use OCA\Libresign\Exception\EmptySignatureDataException;
 use OCA\Libresign\Exception\InvalidSignatureException;
 use OCA\Libresign\Exception\SignatureDataNotFoundException;
 use OCP\App\IAppManager;
-use OCP\AppFramework\Services\IAppConfig;
+use OCP\Files\AppData\IAppDataFactory;
+use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
+use OCP\Files\SimpleFS\ISimpleFolder;
+use OCP\IAppConfig;
 use OCP\IConfig;
 use phpseclib\Crypt\RSA;
 use phpseclib\File\X509;
@@ -36,14 +39,17 @@ class SignSetupService {
 	private ?X509 $x509 = null;
 	private ?RSA $rsa = null;
 	private string $instanceId;
+	private IAppData $appData;
 	public function __construct(
 		private EnvironmentHelper $environmentHelper,
 		private FileAccessHelper $fileAccessHelper,
 		private IConfig $config,
 		private IAppConfig $appConfig,
 		private IAppManager $appManager,
+		private IAppDataFactory $appDataFactory,
 	) {
 		$this->instanceId = $this->config->getSystemValue('instanceid');
+		$this->appData = $appDataFactory->get('libresign');
 	}
 
 	public function setArchitecture(string $architecture): self {
@@ -139,7 +145,22 @@ class SignSetupService {
 	public function getInstallPath(): string {
 		switch ($this->resource) {
 			case 'java':
-				$path = $this->appConfig->getAppValue('java_path');
+				$path = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
+				if (!$path) {
+					// fallback
+					try {
+						$folder = $this->appData->getFolder('/');
+						$path = $this->architecture . '/' . $this->getLinuxDistributionToDownloadJava() . '/java';
+						$folder = $folder->getFolder($path, $folder);
+						$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
+						if (is_dir($path)) {
+							return $path;
+						}
+						throw new InvalidSignatureException('Java path not found at app config.');
+					} catch (\Throwable $th) {
+						throw new InvalidSignatureException('Java path not found at app config.');
+					}
+				}
 				$installPath = substr($path, 0, -strlen('/bin/java'));
 				$distro = $this->getLinuxDistributionToDownloadJava();
 				$expected = "{$this->instanceId}/libresign/{$this->architecture}/{$distro}/java";
@@ -152,15 +173,60 @@ class SignSetupService {
 				}
 				break;
 			case 'jsignpdf':
-				$path = $this->appConfig->getAppValue('jsignpdf_jar_path');
+				$path = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path');
+				if (!$path) {
+					// fallback
+					try {
+						$folder = $this->appData->getFolder('/');
+						$path = $this->architecture . '/jsignpdf';
+						$folder = $folder->getFolder($path, $folder);
+						$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
+						if (is_dir($path)) {
+							return $path;
+						}
+						throw new InvalidSignatureException('JSignPdf path not found at app config.');
+					} catch (\Throwable $th) {
+						throw new InvalidSignatureException('JSignPdf path not found at app config.');
+					}
+				}
 				$installPath = substr($path, 0, strrpos($path, '/', -strlen('_/JSignPdf.jar')));
 				break;
 			case 'pdftk':
-				$path = $this->appConfig->getAppValue('pdftk_path');
+				$path = $this->appConfig->getValueString(Application::APP_ID, 'pdftk_path');
+				if (!$path) {
+					// fallback
+					try {
+						$folder = $this->appData->getFolder('/');
+						$path = $this->architecture . '/pdftk';
+						$folder = $folder->getFolder($path, $folder);
+						$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
+						if (is_dir($path)) {
+							return $path;
+						}
+						throw new InvalidSignatureException('pdftk path not found at app config.');
+					} catch (\Throwable $th) {
+						throw new InvalidSignatureException('pdftk path not found at app config.');
+					}
+				}
 				$installPath = substr($path, 0, -strlen('/pdftk.jar'));
 				break;
 			case 'cfssl':
-				$path = $this->appConfig->getAppValue('cfssl_bin');
+				$path = $this->appConfig->getValueString(Application::APP_ID, 'cfssl_bin');
+				if (!$path) {
+					// fallback
+					try {
+						$folder = $this->appData->getFolder('/');
+						$path = $this->architecture . '/cfssl';
+						$folder = $folder->getFolder($path, $folder);
+						$path = $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
+						if (is_dir($path)) {
+							return $path;
+						}
+						throw new InvalidSignatureException('cfssl path not found at app config.');
+					} catch (\Throwable $th) {
+						throw new InvalidSignatureException('cfssl path not found at app config.');
+					}
+				}
 				$installPath = substr($path, 0, -strlen('/cfssl'));
 				break;
 			default:
@@ -174,6 +240,23 @@ class SignSetupService {
 			);
 		}
 		return $installPath;
+	}
+
+	private function getDataDir(): string {
+		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
+		return $dataDir;
+	}
+
+	/**
+	 * @todo check a best solution to don't use reflection
+	 */
+	private function getInternalPathOfFolder(ISimpleFolder $node): string {
+		$reflection = new \ReflectionClass($node);
+		$reflectionProperty = $reflection->getProperty('folder');
+		$reflectionProperty->setAccessible(true);
+		$folder = $reflectionProperty->getValue($node);
+		$path = $folder->getInternalPath();
+		return $path;
 	}
 
 	private function getFileName(): string {
@@ -232,11 +315,15 @@ class SignSetupService {
 		if (!empty($this->signatureData)) {
 			return $this->signatureData;
 		}
-		$content = $this->fileAccessHelper->file_get_contents($this->getFileName());
-		$signatureData = null;
-
+		$filename = $this->getFileName();
+		if (!file_exists($filename)) {
+			throw new SignatureDataNotFoundException('Signature data not found.');
+		}
+		$content = $this->fileAccessHelper->file_get_contents($filename);
 		if (\is_string($content)) {
 			$signatureData = json_decode($content, true);
+		} else {
+			$signatureData = null;
 		}
 		if (!\is_array($signatureData)) {
 			throw new SignatureDataNotFoundException('Signature data not found.');
@@ -466,7 +553,19 @@ class SignSetupService {
 		$csrNames = ['commonName' => 'libresign'];
 
 		$csr = openssl_csr_new($csrNames, $privateKey, ['digest_alg' => 'sha256']);
-		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365, ['digest_alg' => 'sha256']);
+		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365, [
+			'digest_alg' => 'sha256',
+			'x509_extensions' => [
+				'authorityInfoAccess' => [
+					[
+						'accessMethod' => '1.3.6.1.5.5.7.1.1',
+						'accessLocation' => [
+							'uniformResourceIdentifier' => 'https://apps.nextcloud.com/apps/libresign',
+						],
+					],
+				],
+			]
+		]);
 
 		openssl_x509_export($x509, $rootCertificate);
 		openssl_pkey_export($privateKey, $privateKeyCert);

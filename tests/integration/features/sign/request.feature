@@ -97,7 +97,7 @@ Feature: request-signature
     Given as user "admin"
     And my inbox is empty
     And run the command "libresign:configure:openssl --cn test" with result code 0
-    And run the command "config:app:set libresign maximum_validity --value 1" with result code 0
+    And run the command "config:app:set libresign maximum_validity --value=1 --type=integer" with result code 0
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | users | [{"identify":{"email":"signer2@domain.test"}}] |
@@ -130,8 +130,8 @@ Feature: request-signature
     And I open the latest email to "signer2@domain.test" with subject "LibreSign: There is a file for you to sign"
     And I fetch the signer UUID from opened email
     And as user ""
-    And run the command "config:app:set libresign maximum_validity --value 300" with result code 0
-    And run the command "config:app:set libresign renewal_interval --value 1" with result code 0
+    And run the command "config:app:set libresign maximum_validity --value=300 --type=integer" with result code 0
+    And run the command "config:app:set libresign renewal_interval --value=1 --type=integer" with result code 0
     Given wait for 2 second
     When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     Then the response should have a status code 422
@@ -152,7 +152,7 @@ Feature: request-signature
     # setting the renewal interval to 2 and making 3 requests, one by second,
     # the 3rd don't will fail because on each valid request, the renewal
     # interval is renewed.
-    And run the command "config:app:set libresign renewal_interval --value 2" with result code 0
+    And run the command "config:app:set libresign renewal_interval --value=2 --type=integer" with result code 0
     Given wait for 1 second
     When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     And the response should have a status code 200
@@ -321,8 +321,8 @@ Feature: request-signature
     And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
     And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
-    And run the command "config:app:set libresign add_footer --value=1" with result code 0
-    And run the command "config:app:set libresign write_qrcode_on_footer --value=1" with result code 0
+    And run the command "config:app:set libresign add_footer --value=true --type=boolean" with result code 0
+    And run the command "config:app:set libresign write_qrcode_on_footer --value=true --type=boolean" with result code 0
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"password":{"name":"password","enabled":true}},"signatureMethodEnabled":"password"}] |
     And the response should have a status code 200

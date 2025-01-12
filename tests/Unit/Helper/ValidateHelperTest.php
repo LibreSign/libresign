@@ -15,10 +15,10 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
+use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
@@ -214,7 +214,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 
 		$this->appConfig
-			->method('getAppValue')
+			->method('getValueString')
 			->willReturn('');
 		$user = $this->createMock(\OCP\IUser::class);
 		$this->getValidateHelper()->canRequestSign($user);
@@ -225,7 +225,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->appConfig
-			->method('getAppValue')
+			->method('getValueString')
 			->willReturn('["admin"]');
 		$this->groupManager
 			->method('getUserGroupIds')

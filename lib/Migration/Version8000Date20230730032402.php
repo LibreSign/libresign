@@ -26,8 +26,9 @@ declare(strict_types=1);
 namespace OCA\Libresign\Migration;
 
 use Closure;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Install\InstallService;
-use OCP\AppFramework\Services\IAppConfig;
+use OCP\IAppConfig;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
@@ -40,13 +41,13 @@ class Version8000Date20230730032402 extends SimpleMigrationStep {
 
 	public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		$this->installService->installPdftk();
-		if ($rootCert = $this->appConfig->getAppValue('rootCert')) {
-			$this->appConfig->deleteAppValue('rootCert');
-			$this->appConfig->setAppValue('root_cert', $rootCert);
+		if ($rootCert = $this->appConfig->getValueArray(Application::APP_ID, 'rootCert')) {
+			$this->appConfig->deleteKey(Application::APP_ID, 'rootCert');
+			$this->appConfig->setValueArray(Application::APP_ID, 'root_cert', $rootCert);
 		}
-		if ($notifyUnsignedUser = $this->appConfig->getAppValue('notifyUnsignedUser', '')) {
-			$this->appConfig->setAppValue('notify_unsigned_user', $notifyUnsignedUser);
+		if ($notifyUnsignedUser = $this->appConfig->getValueString(Application::APP_ID, 'notifyUnsignedUser', '')) {
+			$this->appConfig->setValueString(Application::APP_ID, 'notify_unsigned_user', $notifyUnsignedUser);
 		}
-		$this->appConfig->deleteAppValue('notifyUnsignedUser');
+		$this->appConfig->deleteKey(Application::APP_ID, 'notifyUnsignedUser');
 	}
 }

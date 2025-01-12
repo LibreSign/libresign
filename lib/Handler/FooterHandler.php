@@ -34,10 +34,11 @@ use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
 use Endroid\QrCode\Writer\PngWriter;
 use League\Plates\Engine;
 use Mpdf\Mpdf;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Service\PdfParserService;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\File;
+use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
@@ -62,7 +63,7 @@ class FooterHandler {
 	public function getFooter(File $file, FileEntity $fileEntity): string {
 		$this->file = $file;
 		$this->fileEntity = $fileEntity;
-		$add_footer = (bool)$this->appConfig->getAppValue('add_footer', '1');
+		$add_footer = (bool)$this->appConfig->getValueBool(Application::APP_ID, 'add_footer', true);
 		if (!$add_footer) {
 			return '';
 		}
@@ -126,12 +127,12 @@ class FooterHandler {
 		$this->templateVars['signedBy'] = iconv(
 			'UTF-8',
 			'windows-1252',
-			$this->appConfig->getAppValue('footer_signed_by', $this->l10n->t('Digital signed by LibreSign.'))
+			$this->appConfig->getValueString(Application::APP_ID, 'footer_signed_by', $this->l10n->t('Digital signed by LibreSign.'))
 		);
 
-		$this->templateVars['linkToSite'] = $this->appConfig->getAppValue('footer_link_to_site', 'https://libresign.coop');
+		$this->templateVars['linkToSite'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_link_to_site', 'https://libresign.coop');
 
-		$this->templateVars['validationSite'] = $this->appConfig->getAppValue('validation_site');
+		$this->templateVars['validationSite'] = $this->appConfig->getValueString(Application::APP_ID, 'validation_site');
 		if ($this->templateVars['validationSite']) {
 			$this->templateVars['validationSite'] = rtrim($this->templateVars['validationSite'], '/') . '/' . $this->fileEntity->getUuid();
 		} else {
@@ -140,12 +141,12 @@ class FooterHandler {
 			]);
 		}
 
-		$this->templateVars['validateIn'] = $this->appConfig->getAppValue('footer_validate_in', 'Validate in %s.');
+		$this->templateVars['validateIn'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_validate_in', 'Validate in %s.');
 		if ($this->templateVars['validateIn'] === 'Validate in %s.') {
 			$this->templateVars['validateIn'] = $this->l10n->t('Validate in %s.', ['%s']);
 		}
 
-		if ($this->appConfig->getAppValue('write_qrcode_on_footer', '1')) {
+		if ($this->appConfig->getValueBool(Application::APP_ID, 'write_qrcode_on_footer', true)) {
 			$this->templateVars['qrcode'] = $this->getQrCodeImageBase64($this->templateVars['validationSite']);
 		}
 
@@ -153,7 +154,7 @@ class FooterHandler {
 	}
 
 	private function getTemplate(): string {
-		return $this->appConfig->getAppValue('footer_template', file_get_contents(__DIR__ . '/Templates/footer.php'));
+		return $this->appConfig->getValueString(Application::APP_ID, 'footer_template', file_get_contents(__DIR__ . '/Templates/footer.php'));
 	}
 
 	private function getQrCodeImageBase64(string $text): string {

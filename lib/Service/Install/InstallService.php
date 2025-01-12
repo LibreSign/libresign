@@ -37,7 +37,6 @@ use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Handler\JSignPdfHandler;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\IRootFolder;
@@ -46,6 +45,7 @@ use OCP\Files\NotPermittedException;
 use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\Http\Client\IClientService;
+use OCP\IAppConfig;
 use OCP\ICache;
 use OCP\ICacheFactory;
 use OCP\IConfig;
@@ -64,12 +64,9 @@ class InstallService {
 	 * When update, verify the hash of all architectures
 	 */
 	public const CFSSL_VERSION = '1.6.4';
-	/** @var ICache */
-	private $cache;
-	/** @var OutputInterface */
-	private $output;
-	/** @var string */
-	private $resource = '';
+	private ICache $cache;
+	private ?OutputInterface $output = null;
+	private string $resource = '';
 	protected IAppData $appData;
 	private array $availableResources = [
 		'java',
@@ -111,6 +108,8 @@ class InstallService {
 			$folder = $this->appData->getFolder('/');
 			if (!$path) {
 				$path = $this->architecture;
+			} elseif ($path === 'java') {
+				$path = $this->architecture . '/' . $this->getLinuxDistributionToDownloadJava() . '/java';
 			} else {
 				$path = $this->architecture . '/' . $path;
 			}
@@ -437,7 +436,7 @@ class InstallService {
 			$downloadOk = true;
 		}
 
-		$this->appConfig->setAppValue('java_path', $extractDir . '/jdk-' . self::JAVA_URL_PATH_NAME . '-jre/bin/java');
+		$this->appConfig->setValueString(Application::APP_ID, 'java_path', $extractDir . '/jdk-' . self::JAVA_URL_PATH_NAME . '-jre/bin/java');
 		if ($downloadOk) {
 			$this->writeAppSignature();
 		}
@@ -446,24 +445,6 @@ class InstallService {
 
 	public function setDistro(string $distro): void {
 		$this->distro = $distro;
-	}
-
-	public function getInstallPath(): string {
-		switch ($this->resource) {
-			case 'java':
-				$path = $this->appConfig->getAppValue('java_path');
-				return substr($path, 0, -strlen('/bin/java'));
-			case 'jsignpdf':
-				$path = $this->appConfig->getAppValue('jsignpdf_jar_path');
-				return substr($path, 0, -strlen('/JSignPdf.jar'));
-			case 'pdftk':
-				$path = $this->appConfig->getAppValue('pdftk_path');
-				return substr($path, 0, -strlen('/pdftk.jar'));
-			case 'cfssl':
-				$path = $this->appConfig->getAppValue('cfssl_bin');
-				return substr($path, 0, -strlen('/cfssl'));
-		}
-		return '';
 	}
 
 	/**
@@ -476,13 +457,15 @@ class InstallService {
 		$operatingSystem = new OperatingSystem();
 		$distribution = $operatingSystem->getLinuxDistribution();
 		if (strtolower($distribution) === 'alpine') {
-			return 'alpine-linux';
+			$this->setDistro('alpine-linux');
+		} else {
+			$this->setDistro('linux');
 		}
-		return 'linux';
+		return $this->distro;
 	}
 
 	public function uninstallJava(): void {
-		$javaPath = $this->appConfig->getAppValue('java_path');
+		$javaPath = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
 		if (!$javaPath) {
 			return;
 		}
@@ -492,7 +475,7 @@ class InstallService {
 			$folder->delete();
 		} catch (NotFoundException $th) {
 		}
-		$this->appConfig->deleteAppValue('java_path');
+		$this->appConfig->deleteKey(Application::APP_ID, 'java_path');
 	}
 
 	public function installJSignPdf(?bool $async = false): void {
@@ -529,7 +512,7 @@ class InstallService {
 		}
 
 		$fullPath = $extractDir . '/jsignpdf-' . JSignPdfHandler::VERSION . '/JSignPdf.jar';
-		$this->appConfig->setAppValue('jsignpdf_jar_path', $fullPath);
+		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_jar_path', $fullPath);
 		if ($downloadOk) {
 			$this->writeAppSignature();
 		}
@@ -537,7 +520,7 @@ class InstallService {
 	}
 
 	public function uninstallJSignPdf(): void {
-		$jsignpdJarPath = $this->appConfig->getAppValue('jsignpdf_jar_path');
+		$jsignpdJarPath = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path');
 		if (!$jsignpdJarPath) {
 			return;
 		}
@@ -547,7 +530,7 @@ class InstallService {
 			$folder->delete();
 		} catch (NotFoundException $e) {
 		}
-		$this->appConfig->deleteAppValue('jsignpdf_jar_path');
+		$this->appConfig->deleteKey(Application::APP_ID, 'jsignpdf_jar_path');
 	}
 
 	public function installPdftk(?bool $async = false): void {
@@ -575,9 +558,10 @@ class InstallService {
 			$hash = '59a28bed53b428595d165d52988bf4cf';
 
 			$this->download($url, 'pdftk', $fullPath, $hash);
+			$downloadOk = true;
 		}
 
-		$this->appConfig->setAppValue('pdftk_path', $fullPath);
+		$this->appConfig->setValueString(Application::APP_ID, 'pdftk_path', $fullPath);
 		if ($downloadOk) {
 			$this->writeAppSignature();
 		}
@@ -585,7 +569,7 @@ class InstallService {
 	}
 
 	public function uninstallPdftk(): void {
-		$jsignpdJarPath = $this->appConfig->getAppValue('pdftk_path');
+		$jsignpdJarPath = $this->appConfig->getValueString(Application::APP_ID, 'pdftk_path');
 		if (!$jsignpdJarPath) {
 			return;
 		}
@@ -595,7 +579,7 @@ class InstallService {
 			$folder->delete();
 		} catch (NotFoundException $e) {
 		}
-		$this->appConfig->deleteAppValue('pdftk_path');
+		$this->appConfig->deleteKey(Application::APP_ID, 'pdftk_path');
 	}
 
 	public function installCfssl(?bool $async = false): void {
@@ -651,14 +635,14 @@ class InstallService {
 
 		$cfsslBinPath = $this->getDataDir() . '/' .
 			$this->getInternalPathOfFolder($folder) . '/cfssl';
-		$this->appConfig->setAppValue('cfssl_bin', $cfsslBinPath);
+		$this->appConfig->setValueString(Application::APP_ID, 'cfssl_bin', $cfsslBinPath);
 		if ($downloadOk) {
 			$this->writeAppSignature();
 		}
 	}
 
 	public function uninstallCfssl(): void {
-		$cfsslPath = $this->appConfig->getAppValue('cfssl_bin');
+		$cfsslPath = $this->appConfig->getValueString(Application::APP_ID, 'cfssl_bin');
 		if (!$cfsslPath) {
 			return;
 		}
@@ -668,11 +652,11 @@ class InstallService {
 			$folder->delete();
 		} catch (NotFoundException $e) {
 		}
-		$this->appConfig->deleteAppValue('cfssl_bin');
+		$this->appConfig->deleteKey(Application::APP_ID, 'cfssl_bin');
 	}
 
 	public function isCfsslBinInstalled(): bool {
-		if ($this->appConfig->getAppValue('cfssl_bin')) {
+		if ($this->appConfig->getValueString(Application::APP_ID, 'cfssl_bin')) {
 			return true;
 		}
 		return false;
@@ -777,12 +761,12 @@ class InstallService {
 			$names
 		);
 
-		$this->appConfig->setAppValue('root_cert', json_encode($rootCert));
-		$this->appConfig->setAppValue('authkey', $privateKey);
+		$this->appConfig->setValueArray(Application::APP_ID, 'rootCert', $rootCert);
+		$this->appConfig->setValueString(Application::APP_ID, 'authkey', $privateKey);
 		/** @var AEngineHandler $engine */
 		if ($engine->getEngine() === 'cfssl') {
-			$this->appConfig->setAppValue('config_path', $engine->getConfigPath());
+			$this->appConfig->setValueString(Application::APP_ID, 'config_path', $engine->getConfigPath());
 		}
-		$this->appConfig->setAppValue('notify_unsigned_user', '1');
+		$this->appConfig->setValueBool(Application::APP_ID, 'notify_unsigned_user', true);
 	}
 }

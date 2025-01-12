@@ -26,12 +26,14 @@ namespace OCA\Libresign\Handler;
 
 use DateTime;
 use OC\SystemConfig;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\FolderService;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\File;
+use OCP\Files\GenericFileException;
+use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use phpseclib3\File\ASN1;
@@ -62,7 +64,11 @@ class Pkcs12Handler extends SignEngineHandler {
 			if (!$file instanceof File) {
 				throw new LibresignException("path {$this->pfxFilename} already exists and is not a file!", 400);
 			}
-			$file->putContent($content);
+			try {
+				$file->putContent($content);
+			} catch (GenericFileException $e) {
+				throw new LibresignException("path {$file->getPath()} does not exists!", 400);
+			}
 			return $content;
 		}
 
@@ -424,9 +430,14 @@ class Pkcs12Handler extends SignEngineHandler {
 		if (!$folder->nodeExists($this->pfxFilename)) {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		}
-		/** @var \OCP\Files\File */
-		$node = $folder->get($this->pfxFilename);
-		$this->pfxContent = $node->getContent();
+		try {
+			/** @var \OCP\Files\File */
+			$node = $folder->get($this->pfxFilename);
+			$this->pfxContent = $node->getContent();
+		} catch (GenericFileException $e) {
+			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
+		} catch (\Throwable $th) {
+		}
 		if (empty($this->pfxContent)) {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		}
@@ -441,7 +452,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	}
 
 	private function getHandler(): SignEngineHandler {
-		$sign_engine = $this->appConfig->getAppValue('sign_engine', 'JSignPdf');
+		$sign_engine = $this->appConfig->getValueString(Application::APP_ID, 'sign_engine', 'JSignPdf');
 		$property = lcfirst($sign_engine) . 'Handler';
 		if (!property_exists($this, $property)) {
 			throw new LibresignException($this->l10n->t('Invalid Sign engine.'), 400);
@@ -474,9 +485,8 @@ class Pkcs12Handler extends SignEngineHandler {
 	 * @param array $user Example: ['host' => '', 'name' => '']
 	 * @param string $signPassword Password of signature
 	 * @param string $friendlyName Friendly name
-	 * @param bool $isTempFile
 	 */
-	public function generateCertificate(array $user, string $signPassword, string $friendlyName, bool $isTempFile = false): string {
+	public function generateCertificate(array $user, string $signPassword, string $friendlyName): string {
 		$content = $this->certificateEngineHandler->getEngine()
 			->setHosts([$user['host']])
 			->setCommonName($user['name'])
@@ -486,9 +496,6 @@ class Pkcs12Handler extends SignEngineHandler {
 			->generateCertificate();
 		if (!$content) {
 			throw new TypeError();
-		}
-		if ($isTempFile) {
-			return $content;
 		}
 		return $content;
 	}

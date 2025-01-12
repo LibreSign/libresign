@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\IdentifyMethod;
 
 use InvalidArgumentException;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Events\SendSignNotificationEvent;
@@ -173,7 +174,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function throwIfMaximumValidityExpired(): void {
-		$maximumValidity = (int)$this->identifyService->getAppConfig()->getAppValue('maximum_validity', (string)SessionService::NO_MAXIMUM_VALIDITY);
+		$maximumValidity = (int)$this->identifyService->getAppConfig()->getValueInt(Application::APP_ID, 'maximum_validity', SessionService::NO_MAXIMUM_VALIDITY);
 		if ($maximumValidity <= 0) {
 			return;
 		}
@@ -198,7 +199,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 	protected function renewSession(): void {
 		$this->identifyService->getSessionService()->setIdentifyMethodId($this->getEntity()->getId());
-		$renewalInterval = (int)$this->identifyService->getAppConfig()->getAppValue('renewal_interval', (string)SessionService::NO_RENEWAL_INTERVAL);
+		$renewalInterval = (int)$this->identifyService->getAppConfig()->setValueInt(Application::APP_ID, 'renewal_interval', SessionService::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= 0) {
 			return;
 		}
@@ -216,7 +217,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function throwIfRenewalIntervalExpired(): void {
-		$renewalInterval = (int)$this->identifyService->getAppConfig()->getAppValue('renewal_interval', (string)SessionService::NO_RENEWAL_INTERVAL);
+		$renewalInterval = (int)$this->identifyService->getAppConfig()->getValueInt(Application::APP_ID, 'renewal_interval', SessionService::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= 0) {
 			return;
 		}
@@ -240,22 +241,25 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		]);
 		if ($lastActionDate + $renewalInterval < $now) {
 			$this->identifyService->getLogger()->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Exception');
-			$blur = new Blur($this->getEntity()->getIdentifierValue());
-			throw new LibresignException(json_encode([
-				'action' => $this->getRenewAction(),
-				// TRANSLATORS title that is displayed at screen to notify the signer that the link to sign the document expired
-				'title' => $this->identifyService->getL10n()->t('Link expired'),
-				'body' => $this->identifyService->getL10n()->t(<<<'BODY'
-					The link to sign the document has expired.
-					We will send a new link to the email %1$s.
-					Click below to receive the new link and be able to sign the document.
-					BODY,
-					[$blur->make()]
-				),
-				'uuid' => $signRequest->getUuid(),
-				// TRANSLATORS Button to renew the link to sign the document. Renew is the action to generate a new sign link when the link expired.
-				'renewButton' => $this->identifyService->getL10n()->t('Renew'),
-			]));
+			if ($this->getName() === 'email') {
+				$blur = new Blur($this->getEntity()->getIdentifierValue());
+				throw new LibresignException(json_encode([
+					'action' => $this->getRenewAction(),
+					// TRANSLATORS title that is displayed at screen to notify the signer that the link to sign the document expired
+					'title' => $this->identifyService->getL10n()->t('Link expired'),
+					'body' => $this->identifyService->getL10n()->t(<<<'BODY'
+						The link to sign the document has expired.
+						We will send a new link to the email %1$s.
+						Click below to receive the new link and be able to sign the document.
+						BODY,
+						[$blur->make()]
+					),
+					'uuid' => $signRequest->getUuid(),
+					// TRANSLATORS Button to renew the link to sign the document. Renew is the action to generate a new sign link when the link expired.
+					'renewButton' => $this->identifyService->getL10n()->t('Renew'),
+				]));
+			}
+			$this->validateToRenew($this->user);
 		}
 	}
 

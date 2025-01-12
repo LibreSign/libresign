@@ -7,12 +7,14 @@ namespace OCA\Libresign\Tests\Unit;
 use donatj\MockWebServer\MockWebServer;
 use donatj\MockWebServer\Response as MockWebServerResponse;
 use OC\SystemConfig;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\signRequestMapper;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Tests\lib\AllConfigOverwrite;
 use OCA\Libresign\Tests\lib\AppConfigOverwrite;
 use OCA\Libresign\Tests\lib\ConfigOverwrite;
+use OCP\IAppConfig;
 use OCP\IConfig;
 
 class TestCase extends \Test\TestCase {
@@ -21,11 +23,11 @@ class TestCase extends \Test\TestCase {
 	private signRequestMapper $signRequestMapper;
 	private array $users = [];
 
-	public function mockAppConfig($config) {
+	public function getMockAppConfig(): IAppConfig {
 		\OC::$server->registerParameter('appName', 'libresign');
 		$service = \OCP\Server::get(\OCP\IAppConfig::class);
 		if (!$service instanceof AppConfigOverwrite) {
-			\OC::$server->registerService(\OCP\IAppConfig::class, function () {
+			\OC::$server->registerService(\OCP\IAppConfig::class, function ():AppConfigOverwrite {
 				return new AppConfigOverwrite(
 					\OCP\Server::get(\OCP\IDBConnection::class),
 					\OCP\Server::get(\Psr\Log\LoggerInterface::class),
@@ -34,21 +36,13 @@ class TestCase extends \Test\TestCase {
 			});
 			$service = \OCP\Server::get(\OCP\IAppConfig::class);
 		}
-		if (is_subclass_of($service, \OCP\IAppConfig::class)) {
-			foreach ($config as $key => $value) {
-				if (is_array($value) || is_object($value)) {
-					$value = json_encode($value);
-				}
-				$service->setValueMixed('libresign', $key, (string)$value);
-			}
-			return;
-		}
+		return $service;
 	}
 
-	public function mockConfig($config) {
-		$service = \OC::$server->get(\OCP\IConfig::class);
+	public function mockConfig($config):void {
+		$service = \OCP\Server::get(\OCP\IConfig::class);
 		if (!$service instanceof AllConfigOverwrite) {
-			\OC::$server->registerService(\OCP\IConfig::class, function () {
+			\OC::$server->registerService(\OCP\IConfig::class, function ():AllConfigOverwrite {
 				$configOverwrite = new ConfigOverwrite(\OC::$configDir);
 				$systemConfig = new SystemConfig($configOverwrite);
 				return new AllConfigOverwrite($systemConfig);
@@ -103,7 +97,7 @@ class TestCase extends \Test\TestCase {
 	}
 
 	public function setUp(): void {
-		$this->mockAppConfig([]);
+		$this->getMockAppConfig();
 		$this->getBinariesFromCache();
 		if ($this->iDependOnOthers() || !$this->IsDatabaseAccessAllowed()) {
 			return;
@@ -143,12 +137,8 @@ class TestCase extends \Test\TestCase {
 
 	/**
 	 * Create user
-	 *
-	 * @param string $username
-	 * @param string $password
-	 * @return \OC\User\User
 	 */
-	public function createAccount($username, $password, $groupName = 'testGroup') {
+	public function createAccount(string $username, string $password, string $groupName = 'testGroup'):\OC\User\User {
 		$this->users[] = $username;
 		$this->mockConfig([
 			'core' => [
@@ -258,20 +248,13 @@ class TestCase extends \Test\TestCase {
 			file_get_contents(__DIR__ . '/../fixtures/cfssl/newcert-with-success.json')
 		));
 
-		$this->mockAppConfig([
-			'identify_methods' => [
-				[
-					'name' => 'email',
-					'enabled' => 1,
-				],
-			],
-			'notifyUnsignedUser' => 0,
-			'commonName' => 'CommonName',
-			'country' => 'Brazil',
-			'organization' => 'Organization',
-			'organizationalUnit' => 'organizationalUnit',
-			'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/'
-		]);
+		$appConfig = $this->getMockAppConfig();
+		$appConfig->setValueBool(Application::APP_ID, 'notifyUnsignedUser', false);
+		$appConfig->setValueString(Application::APP_ID, 'commonName', 'CommonName');
+		$appConfig->setValueString(Application::APP_ID, 'country', 'Brazil');
+		$appConfig->setValueString(Application::APP_ID, 'organization', 'Organization');
+		$appConfig->setValueString(Application::APP_ID, 'organizationalUnit', 'organizationalUnit');
+		$appConfig->setValueString(Application::APP_ID, 'cfsslUri', self::$server->getServerRoot() . '/api/v1/cfssl/');
 
 		if (!isset($data['settings'])) {
 			$data['settings']['separator'] = '_';

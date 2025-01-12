@@ -24,11 +24,11 @@ use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
+use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -406,7 +406,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testCanRequestSignWithoutGroups() {
 		$this->appConfig
-			->method('getAppValue')
+			->method('getValueString')
 			->willReturn('');
 		$user = $this->createMock(\OCP\IUser::class);
 		$actual = $this->getService()->canRequestSign($user);
@@ -415,8 +415,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testCanRequestSignWithUserOutOfAuthorizedGroups() {
 		$this->appConfig
-			->method('getAppValue')
-			->willReturn('["admin"]');
+			->method('getValueArray')
+			->willReturn(['admin']);
 		$this->groupManager
 			->method('getUserGroupIds')
 			->willReturn([]);
@@ -427,8 +427,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testCanRequestSignWithSuccess() {
 		$this->appConfig
-			->method('getAppValue')
-			->willReturn('["admin"]');
+			->method('getValueArray')
+			->willReturn(['admin']);
 		$this->groupManager
 			->method('getUserGroupIds')
 			->willReturn(['admin']);

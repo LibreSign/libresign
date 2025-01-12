@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use bovigo\vfs\vfsStream;
 use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
+use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;

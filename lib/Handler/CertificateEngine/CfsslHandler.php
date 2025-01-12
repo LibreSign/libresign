@@ -28,12 +28,13 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use OC\SystemConfig;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslServerHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Service\Install\InstallService;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
+use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
@@ -141,7 +142,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	public function toArray(): array {
 		$return = parent::toArray();
 		if (!empty($return['configPath'])) {
-			$return['cfsslUri'] = $this->appConfig->getAppValue('cfssl_uri');
+			$return['cfsslUri'] = $this->appConfig->getValueString(Application::APP_ID, 'cfssl_uri');
 		}
 		return $return;
 	}
@@ -329,24 +330,18 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			return $this->binary;
 		}
 
-		$appKeys = $this->appConfig->getAppKeys();
-		$binary = '';
-		if (in_array('cfssl_bin', $appKeys)) {
-			$binary = $this->appConfig->getAppValue('cfssl_bin');
-			if (!file_exists($binary)) {
-				$this->appConfig->deleteAppValue('cfssl_bin');
-			}
-		}
-
-		if (!$binary) {
-			throw new LibresignException('Binary of CFSSL not found. Install binaries.');
-		}
-
 		if (PHP_OS_FAMILY === 'Windows') {
 			throw new LibresignException('Incompatible with Windows');
 		}
 
-		return $binary;
+		if ($this->appConfig->hasKey(Application::APP_ID, 'cfssl_bin')) {
+			$binary = $this->appConfig->getValueString(Application::APP_ID, 'cfssl_bin');
+			if (!file_exists($binary)) {
+				$this->appConfig->deleteKey(Application::APP_ID, 'cfssl_bin');
+			}
+			return $binary;
+		}
+		throw new LibresignException('Binary of CFSSL not found. Install binaries.');
 	}
 
 	private function getCfsslUri(): string {
@@ -354,14 +349,11 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			return $this->cfsslUri;
 		}
 
-		$appKeys = $this->appConfig->getAppKeys();
-		if (in_array('cfssl_uri', $appKeys)) {
-			if ($uri = $this->appConfig->getAppValue('cfssl_uri')) {
-				return $uri;
-			}
-			// In case config is an empty string
-			$this->appConfig->deleteAppValue('cfssl_uri');
+		if ($uri = $this->appConfig->getValueString(Application::APP_ID, 'cfssl_uri')) {
+			return $uri;
 		}
+		// In case config is an empty string
+		$this->appConfig->deleteKey(Application::APP_ID, 'cfssl_uri');
 
 		$this->cfsslUri = self::CFSSL_URI;
 		return $this->cfsslUri;
@@ -369,9 +361,9 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 
 	public function setCfsslUri($uri): void {
 		if ($uri) {
-			$this->appConfig->setAppValue('cfssl_uri', $uri);
+			$this->appConfig->setValueString(Application::APP_ID, 'cfssl_uri', $uri);
 		} else {
-			$this->appConfig->deleteAppValue('cfssl_uri');
+			$this->appConfig->deleteKey(Application::APP_ID, 'cfssl_uri');
 		}
 		$this->cfsslUri = $uri;
 	}
@@ -384,7 +376,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 					->setResource('cfssl'),
 			];
 		}
-		$binary = $this->appConfig->getAppValue('cfssl_bin');
+		$binary = $this->appConfig->getValueString(Application::APP_ID, 'cfssl_bin');
 		if (!$binary) {
 			return [
 				(new ConfigureCheckHelper())

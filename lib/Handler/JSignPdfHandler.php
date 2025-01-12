@@ -26,8 +26,9 @@ namespace OCA\Libresign\Handler;
 
 use Jeidison\JSignPDF\JSignPDF;
 use Jeidison\JSignPDF\Sign\JSignParam;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
-use OCP\AppFramework\Services\IAppConfig;
+use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
 
 class JSignPdfHandler extends SignEngineHandler {
@@ -61,14 +62,14 @@ class JSignPdfHandler extends SignEngineHandler {
 	 */
 	public function getJSignParam(): JSignParam {
 		if (!$this->jSignParam) {
-			$javaPath = $this->appConfig->getAppValue('java_path');
+			$javaPath = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
 			$this->jSignParam = (new JSignParam())
 				->setTempPath(
-					$this->appConfig->getAppValue('jsignpdf_temp_path', sys_get_temp_dir() . DIRECTORY_SEPARATOR)
+					$this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_temp_path', sys_get_temp_dir() . DIRECTORY_SEPARATOR)
 				)
 				->setIsUseJavaInstalled(empty($javaPath))
 				->setjSignPdfJarPath(
-					$this->appConfig->getAppValue('jsignpdf_jar_path', '/opt/jsignpdf-' . self::VERSION . '/JSignPdf.jar')
+					$this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path', '/opt/jsignpdf-' . self::VERSION . '/JSignPdf.jar')
 				);
 			if (!empty($javaPath)) {
 				if (!file_exists($javaPath)) {
@@ -100,7 +101,7 @@ class JSignPdfHandler extends SignEngineHandler {
 			}
 		}
 
-		$hashAlgorithm = $this->appConfig->getAppValue('signature_hash_algorithm', 'SHA256');
+		$hashAlgorithm = $this->appConfig->getValueString(Application::APP_ID, 'signature_hash_algorithm', 'SHA256');
 		if (in_array($hashAlgorithm, ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'])) {
 			return $hashAlgorithm;
 		}
