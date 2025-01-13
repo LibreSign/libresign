@@ -68,7 +68,7 @@ export default {
 		},
 		onSigned(data) {
 			this.$router.push({
-				name: 'ValidationFile',
+				name: this.$route.path.startsWith('/p/') ? 'ValidationFileExternal' : 'ValidationFile',
 				params: {
 					uuid: data.file.uuid,
 					isAfterSigned: true,
