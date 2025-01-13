@@ -100,8 +100,9 @@ body {
 <style lang="scss" scoped>
 .wrapper {
 	width: 100%;
-	max-width: 500px;
 	margin-block: 10vh auto;
+	display: grid;
+	justify-content: center;
 }
 
 .header {
