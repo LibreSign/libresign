@@ -1290,10 +1290,10 @@
                 }
             }
         },
-        "/index.php/apps/libresign/p/sign/{uuid}/pdf": {
+        "/index.php/apps/libresign/p/sign/{uuid}/{path}": {
             "get": {
-                "operationId": "page-sign-pdf",
-                "summary": "Sign page to authenticated signer",
+                "operationId": "page-signp-path",
+                "summary": "Sign page to unauthenticated signer",
                 "description": "The path is used only by frontend",
                 "tags": [
                     "page"
@@ -1316,6 +1316,15 @@
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "name": "path",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^.+$"
+                        }
                     }
                 ],
                 "responses": {
@@ -1335,7 +1344,7 @@
         "/index.php/apps/libresign/p/sign/{uuid}": {
             "get": {
                 "operationId": "page-sign",
-                "summary": "Sign page to authenticated signer",
+                "summary": "Sign page to unauthenticated signer",
                 "description": "The path is used only by frontend",
                 "tags": [
                     "page"
