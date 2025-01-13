@@ -424,24 +424,34 @@ class FileService {
 	private function loadSignersFromCertData(): void {
 		$this->loadCertDataFromLibreSignFile();
 		foreach ($this->certData as $index => $signer) {
-			$this->fileData->signers[$index]['subject'] = $signer['chain'][0]['name'];
-			$this->fileData->signers[$index]['displayName'] = $signer['chain'][0]['subject']['CN'];
+			if (!empty($signer['chain'][0]['name'])) {
+				$this->fileData->signers[$index]['subject'] = $signer['chain'][0]['name'];
+			}
+			if (!empty($signer['chain'][0]['subject']['CN'])) {
+				$this->fileData->signers[$index]['displayName'] = $signer['chain'][0]['subject']['CN'];
+			}
 			if (!empty($signer['chain'][0]['validFrom_time_t'])) {
 				$this->fileData->signers[$index]['valid_from'] = $signer['chain'][0]['validFrom_time_t'];
 			}
 			if (!empty($signer['chain'][0]['validTo_time_t'])) {
 				$this->fileData->signers[$index]['valid_to'] = $signer['chain'][0]['validTo_time_t'];
 			}
-			$this->fileData->signers[$index]['signed'] = $signer['signingTime']->format('Y-m-d H:i:s');
+			if (!empty($signer['signingTime'])) {
+				$this->fileData->signers[$index]['signed'] = $signer['signingTime']->format('Y-m-d H:i:s');
+			}
 			$this->fileData->signers[$index]['signature_validation'] = $signer['chain'][0]['signature_validation'];
 			if (!empty($signer['chain'][0]['certificate_validation'])) {
 				$this->fileData->signers[$index]['certificate_validation'] = $signer['chain'][0]['certificate_validation'];
 			}
-			$this->fileData->signers[$index]['hash_algorithm'] = $signer['chain'][0]['signatureTypeSN'];
+			if (!empty($signer['chain'][0]['signatureTypeSN'])) {
+				$this->fileData->signers[$index]['hash_algorithm'] = $signer['chain'][0]['signatureTypeSN'];
+			}
 			if (!empty($signer['chain'][0]['subject']['UID'])) {
 				$this->fileData->signers[$index]['uid'] = $signer['chain'][0]['subject']['UID'];
-			} elseif (preg_match('/^(?<key>.*):(?<value>.*), /', $signer['chain'][0]['subject']['CN'], $matches)) {
-				$signatureToShow['uid'] = $matches['key'] . ':' . $matches['value'];
+			} elseif (!empty($signer['chain'][0]['subject']['CN'])) {
+				if (preg_match('/^(?<key>.*):(?<value>.*), /', $signer['chain'][0]['subject']['CN'], $matches)) {
+					$signatureToShow['uid'] = $matches['key'] . ':' . $matches['value'];
+				}
 			}
 			for ($i = 1; $i < count($signer['chain']); $i++) {
 				$this->fileData->signers[$index]['chain'][] = [
