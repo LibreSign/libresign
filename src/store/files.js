@@ -199,6 +199,9 @@ export const useFilesStore = function(...args) {
 			},
 			signerUpdate(signer) {
 				this.addIdentifierToSigner(signer)
+				if (!this.getFile().signers?.length) {
+					this.getFile().signers = []
+				}
 				// Remove if already exists
 				for (let i = this.getFile().signers.length - 1; i >= 0; i--) {
 					if (this.getFile().signers[i].identify === signer.identify) {
