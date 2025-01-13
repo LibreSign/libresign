@@ -64,6 +64,7 @@ class MailService {
 	 */
 	public function notifySignDataUpdated(SignRequest $data, string $email): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
+		// TRANSLATORS The subject of the email that is sent after changes are made to the signature request that may affect something for the signer who will sign the document. Some possible reasons: URL for signature changed (when the URL expires), the person who requested the signature sent a notification
 		$emailTemplate->setSubject($this->l10n->t('LibreSign: Changes into a file for you to sign'));
 		$emailTemplate->addHeader();
 		$emailTemplate->addHeading($this->l10n->t('File to sign'), false);
