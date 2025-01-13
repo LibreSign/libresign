@@ -17,7 +17,6 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\MailService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
-use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
@@ -50,10 +49,6 @@ class MailNotifyListener implements IEventListener {
 		FileEntity $libreSignFile,
 		IIdentifyMethod $identifyMethod,
 	): void {
-		$actor = $this->userSession->getUser();
-		if (!$actor instanceof IUser) {
-			return;
-		}
 		try {
 			if ($identifyMethod->getEntity()->isDeletedAccount()) {
 				return;
