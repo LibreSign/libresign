@@ -56,14 +56,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 
 class InstallService {
-	public const JAVA_VERSION = 'openjdk version "21.0.2" 2024-01-16 LTS';
-	private const JAVA_PARTIAL_VERSION = '21.0.2_13';
-	private const JAVA_URL_PATH_NAME = '21.0.2+13';
+	public const JAVA_VERSION = 'openjdk version "21.0.5" 2024-10-15 LTS';
+	private const JAVA_URL_PATH_NAME = '21.0.5+11';
 	public const PDFTK_VERSION = '3.3.3';
 	/**
 	 * When update, verify the hash of all architectures
 	 */
-	public const CFSSL_VERSION = '1.6.4';
+	public const CFSSL_VERSION = '1.6.5';
 	private ICache $cache;
 	private ?OutputInterface $output = null;
 	private string $resource = '';
@@ -411,11 +410,12 @@ class InstallService {
 			 * URL used to get the MD5 and URL to download:
 			 * https://jdk.java.net/java-se-ri/8-MR3
 			 */
+			$slugfyVersionNumber = str_replace('+', '_', self::JAVA_URL_PATH_NAME);
 			if ($this->architecture === 'x86_64') {
-				$compressedFileName = 'OpenJDK21U-jre_x64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
+				$compressedFileName = 'OpenJDK21U-jre_x64_' . $linuxDistribution . '_hotspot_' . $slugfyVersionNumber . '.tar.gz';
 				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
 			} elseif ($this->architecture === 'aarch64') {
-				$compressedFileName = 'OpenJDK21U-jre_aarch64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
+				$compressedFileName = 'OpenJDK21U-jre_aarch64_' . $linuxDistribution . '_hotspot_' . $slugfyVersionNumber . '.tar.gz';
 				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
 			}
 			$checksumUrl = $url . '.sha256.txt';
@@ -501,7 +501,7 @@ class InstallService {
 			$comporessedInternalFileName = $this->getDataDir() . '/' . $this->getInternalPathOfFile($compressedFile);
 			$url = 'https://github.com/intoolswetrust/jsignpdf/releases/download/JSignPdf_' . str_replace('.', '_', JSignPdfHandler::VERSION) . '/jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
 			/** WHEN UPDATE version: generate this hash handmade and update here */
-			$hash = '7c66f5a9f5e7e35b601725414491a867';
+			$hash = 'd239658ea50a39eb35169d8392feaffb';
 
 			$this->download($url, 'JSignPdf', $comporessedInternalFileName, $hash);
 
