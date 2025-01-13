@@ -153,7 +153,7 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/index.php/apps/libresign/p/sign/{uuid}/pdf": {
+    "/index.php/apps/libresign/p/sign/{uuid}/{path}": {
         parameters: {
             query?: never;
             header?: never;
@@ -161,10 +161,10 @@ export type paths = {
             cookie?: never;
         };
         /**
-         * Sign page to authenticated signer
+         * Sign page to unauthenticated signer
          * @description The path is used only by frontend
          */
-        get: operations["page-sign-pdf"];
+        get: operations["page-signp-path"];
         put?: never;
         post?: never;
         delete?: never;
@@ -181,7 +181,7 @@ export type paths = {
             cookie?: never;
         };
         /**
-         * Sign page to authenticated signer
+         * Sign page to unauthenticated signer
          * @description The path is used only by frontend
          */
         get: operations["page-sign"];
@@ -1510,13 +1510,14 @@ export interface operations {
             };
         };
     };
-    "page-sign-pdf": {
+    "page-signp-path": {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 /** @description Sign request uuid */
                 uuid: string;
+                path: string;
             };
             cookie?: never;
         };

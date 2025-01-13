@@ -261,7 +261,7 @@ class PageController extends AEnvironmentPageAwareController {
 	}
 
 	/**
-	 * Sign page to authenticated signer
+	 * Sign page to unauthenticated signer
 	 *
 	 * The path is used only by frontend
 	 *
@@ -275,13 +275,13 @@ class PageController extends AEnvironmentPageAwareController {
 	#[RequireSetupOk]
 	#[PublicPage]
 	#[RequireSignRequestUuid]
-	#[FrontpageRoute(verb: 'GET', url: '/p/sign/{uuid}/pdf')]
-	public function signPdf(string $uuid): TemplateResponse {
+	#[FrontpageRoute(verb: 'GET', url: '/p/sign/{uuid}/{path}', requirements: ['path' => '.+'])]
+	public function signPPath(string $uuid): TemplateResponse {
 		return $this->sign($uuid);
 	}
 
 	/**
-	 * Sign page to authenticated signer
+	 * Sign page to unauthenticated signer
 	 *
 	 * The path is used only by frontend
 	 *
