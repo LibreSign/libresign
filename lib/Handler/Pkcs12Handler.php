@@ -156,6 +156,7 @@ class Pkcs12Handler extends SignEngineHandler {
 				$certificates[$signerCounter] = $fromFallback;
 			}
 			if (!$signature) {
+				$certificates[$signerCounter]['chain'][0]['signature_validation'] = $this->getReadableSigState('Digest Mismatch.');
 				$signerCounter++;
 				continue;
 			}

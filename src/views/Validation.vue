@@ -518,7 +518,7 @@ export default {
 				return signer.email
 			}
 
-			return 'None'
+			return signer.signature_validation.label
 		},
 		getIconValidityPath(signer) {
 			if (signer.is_valid) {
