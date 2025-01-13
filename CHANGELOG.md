@@ -17,6 +17,62 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 10.5.0 - 2025-01-13
+### Changes
+- Update translations
+- Bump dependencies
+- feat: validate from uploaded file [#4253](https://github.com/LibreSign/libresign/pull/4253)
+- feat: validate pdf [#4234](https://github.com/LibreSign/libresign/pull/4234)
+- feat: change expirity [#4232](https://github.com/LibreSign/libresign/pull/4232)
+- feat: rewrite validation page [#4204](https://github.com/LibreSign/libresign/pull/4204)
+- feat: add rate LibreSign [#4203](https://github.com/LibreSign/libresign/pull/4203)
+- feat: allow to change signature hash algorithm [#4190](https://github.com/LibreSign/libresign/pull/4190)
+- chore: display signature issue when haven't proppler [#4297](https://github.com/LibreSign/libresign/pull/4297)
+- chore: make possible press enter to submit some forms [#4237](https://github.com/LibreSign/libresign/pull/4237)
+
+### Fixes
+- fix: prevent error when add new signer [#4295](https://github.com/LibreSign/libresign/pull/4295)
+- fix: prevent js error [#4290](https://github.com/LibreSign/libresign/pull/4290)
+- fix: notify by email when is not authenticated [#4280](https://github.com/LibreSign/libresign/pull/4280)
+- fix: method name [#4278](https://github.com/LibreSign/libresign/pull/4278)
+- fix: center component [#4274](https://github.com/LibreSign/libresign/pull/4274)
+- fix: method name [#4271](https://github.com/LibreSign/libresign/pull/4271)
+- fix: path of renew url [#4269](https://github.com/LibreSign/libresign/pull/4269)
+- fix: ignore order of array [#4257](https://github.com/LibreSign/libresign/pull/4257)
+- fix: load cert custom options [#4245](https://github.com/LibreSign/libresign/pull/4245)
+- fix: display cfssl settings [#4229](https://github.com/LibreSign/libresign/pull/4229)
+- fix: display certificate data after regenerate certificate [#4197](https://github.com/LibreSign/libresign/pull/4197)
+- fix: fetch signature methods [#4188](https://github.com/LibreSign/libresign/pull/4188)
+- fix: remove extension from filename [#4187](https://github.com/LibreSign/libresign/pull/4187)
+
+## 9.8.0 - 2025-01-13
+### Changes
+- Update translations
+- Bump dependencies
+- feat: validate from uploaded file [#4254](https://github.com/LibreSign/libresign/pull/4254)
+- feat: validate pdf [#4233](https://github.com/LibreSign/libresign/pull/4233)
+- feat: change expirity [#4231](https://github.com/LibreSign/libresign/pull/4231)
+- feat: rewrite validation page [#4205](https://github.com/LibreSign/libresign/pull/4205)
+- feat: add rate LibreSign [#4202](https://github.com/LibreSign/libresign/pull/4202)
+- feat: allow to change signature hash algorithm [#4191](https://github.com/LibreSign/libresign/pull/4191)
+- chore: display signature issue when haven't proppler [#4298](https://github.com/LibreSign/libresign/pull/4298)
+- chore: make possible press enter to submit some forms [#4236](https://github.com/LibreSign/libresign/pull/4236)
+
+### Fixes
+- fix: prevent error when add new signer [#4294](https://github.com/LibreSign/libresign/pull/4294)
+- fix: prevent js error [#4289](https://github.com/LibreSign/libresign/pull/4289)
+- fix: notify by email when is not authenticated [#4279](https://github.com/LibreSign/libresign/pull/4279)
+- fix: method name [#4277](https://github.com/LibreSign/libresign/pull/4277)
+- fix: center component [#4273](https://github.com/LibreSign/libresign/pull/4273)
+- fix: method name [#4270](https://github.com/LibreSign/libresign/pull/4270)
+- fix: path of renew url [#4268](https://github.com/LibreSign/libresign/pull/4268)
+- fix: ignore order of array [#4256](https://github.com/LibreSign/libresign/pull/4256)
+- fix: load cert custom options [#4244](https://github.com/LibreSign/libresign/pull/4244)
+- fix: display cfssl settings [#4228](https://github.com/LibreSign/libresign/pull/4228)
+- fix: display certificate data after regenerate certificate [#4196](https://github.com/LibreSign/libresign/pull/4196)
+- fix: fetch signature methods [#4189](https://github.com/LibreSign/libresign/pull/4189)
+- fix: remove extension from filename [#4186](https://github.com/LibreSign/libresign/pull/4186)
+
 ## 10.4.4 - 2024-12-13
 ### Fixes
 * fix: load signature methods [4144](https://github.com/LibreSign/libresign/pull/4144)
