@@ -149,6 +149,7 @@ class FileController extends AEnvironmentAwareController {
 			$return = $this->fileService
 				->setMe($this->userSession->getUser())
 				->setFileFromRequest($file)
+				->setHost($this->request->getServerHost())
 				->showVisibleElements()
 				->showSigners()
 				->showSettings()
@@ -223,6 +224,7 @@ class FileController extends AEnvironmentAwareController {
 			$return = $this->fileService
 				->setMe($this->userSession->getUser())
 				->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
+				->setHost($this->request->getServerHost())
 				->showVisibleElements()
 				->showSigners()
 				->showSettings()

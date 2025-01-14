@@ -69,6 +69,7 @@ class FileService {
 	private bool $validateFile = false;
 	private bool $signersLibreSignLoaded = false;
 	private string $fileContent = '';
+	private string $host = '';
 	private ?File $file = null;
 	private ?SignRequest $signRequest = null;
 	private ?IUser $me = null;
@@ -158,6 +159,11 @@ class FileService {
 
 	public function setIdentifyMethodId(?int $id): self {
 		$this->identifyMethodId = $id;
+		return $this;
+	}
+
+	public function setHost(string $host): self {
+		$this->host = $host;
 		return $this;
 	}
 
@@ -427,9 +433,6 @@ class FileService {
 			if (!empty($signer['chain'][0]['name'])) {
 				$this->fileData->signers[$index]['subject'] = $signer['chain'][0]['name'];
 			}
-			if (!empty($signer['chain'][0]['subject']['CN'])) {
-				$this->fileData->signers[$index]['displayName'] = $signer['chain'][0]['subject']['CN'];
-			}
 			if (!empty($signer['chain'][0]['validFrom_time_t'])) {
 				$this->fileData->signers[$index]['valid_from'] = $signer['chain'][0]['validFrom_time_t'];
 			}
@@ -448,10 +451,42 @@ class FileService {
 			}
 			if (!empty($signer['chain'][0]['subject']['UID'])) {
 				$this->fileData->signers[$index]['uid'] = $signer['chain'][0]['subject']['UID'];
-			} elseif (!empty($signer['chain'][0]['subject']['CN'])) {
-				if (preg_match('/^(?<key>.*):(?<value>.*), /', $signer['chain'][0]['subject']['CN'], $matches)) {
-					$signatureToShow['uid'] = $matches['key'] . ':' . $matches['value'];
+			} elseif (!empty($signer['chain'][0]['subject']['CN']) && preg_match('/^(?<key>.*):(?<value>.*), /', $signer['chain'][0]['subject']['CN'], $matches)) {
+				// Used by CFSSL
+				$this->fileData->signers[$index]['uid'] = $matches['key'] . ':' . $matches['value'];
+			} elseif (!empty($signer['chain'][0]['extensions']['subjectAltName'])) {
+				// Used by old certs of LibreSign
+				preg_match('/^(?<key>(email|account)):(?<value>.*)$/', $signer['chain'][0]['extensions']['subjectAltName'], $matches);
+				if ($matches) {
+					if (str_ends_with($matches['value'], $this->host)) {
+						$uid = str_replace('@' . $this->host, '', $matches['value']);
+						$userFound = $this->userManager->get($uid);
+						if ($userFound) {
+							$this->fileData->signers[$index]['uid'] = 'account:' . $uid;
+						} else {
+							$userFound = $this->userManager->getByEmail($matches['value']);
+							if ($userFound) {
+								$userFound = current($userFound);
+								$this->fileData->signers[$index]['uid'] = 'account:' . $userFound->getUID();
+							} else {
+								$this->fileData->signers[$index]['uid'] = 'email:' . $matches['value'];
+							}
+						}
+					} else {
+						$userFound = $this->userManager->getByEmail($matches['value']);
+						if ($userFound) {
+							$userFound = current($userFound);
+							$this->fileData->signers[$index]['uid'] = 'account:' . $userFound->getUID();
+						} else {
+							$this->fileData->signers[$index]['uid'] = $matches['key'] . ':' . $matches['value'];
+						}
+					}
 				}
+			}
+			if (!empty($signer['chain'][0]['subject']['CN'])) {
+				$this->fileData->signers[$index]['displayName'] = $signer['chain'][0]['subject']['CN'];
+			} elseif (!empty($this->fileData->signers[$index]['uid'])) {
+				$this->fileData->signers[$index]['displayName'] = $this->fileData->signers[$index]['uid'];
 			}
 			for ($i = 1; $i < count($signer['chain']); $i++) {
 				$this->fileData->signers[$index]['chain'][] = [
