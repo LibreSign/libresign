@@ -525,7 +525,7 @@ export default {
 			return signer.signature_validation.label
 		},
 		getIconValidityPath(signer) {
-			if (signer.is_valid) {
+			if (signer.signature_validation.id === 1) {
 				return mdiCheckboxMarkedCircle
 			}
 			return mdiAlertCircle
