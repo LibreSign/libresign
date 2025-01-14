@@ -77,6 +77,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			$file = $this->requestSignatureService->save($data);
 			$return = $this->fileService
 				->setFile($file)
+				->setHost($this->request->getServerHost())
 				->setMe($data['userManager'])
 				->showVisibleElements()
 				->showSigners()
@@ -138,6 +139,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			$file = $this->requestSignatureService->save($data);
 			$return = $this->fileService
 				->setFile($file)
+				->setHost($this->request->getServerHost())
 				->setMe($data['userManager'])
 				->showVisibleElements()
 				->showSigners()

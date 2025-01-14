@@ -185,6 +185,7 @@ class PageController extends AEnvironmentPageAwareController {
 					$this->fileService
 						->setFileByType('uuid', $matches['uuid'])
 						->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
+						->setHost($this->request->getServerHost())
 						->setMe($this->userSession->getUser())
 						->showVisibleElements()
 						->showSigners()
@@ -289,6 +290,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('filename', $this->getFileEntity()->getName());
 		$file = $this->fileService
 			->setFile($this->getFileEntity())
+			->setHost($this->request->getServerHost())
 			->setMe($this->userSession->getUser())
 			->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
 			->setSignRequest($this->getSignRequestEntity())
@@ -366,6 +368,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('filename', $fileEntity->getName());
 		$file = $this->fileService
 			->setFile($fileEntity)
+			->setHost($this->request->getServerHost())
 			->setMe($this->userSession->getUser())
 			->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
 			->showVisibleElements()
@@ -580,6 +583,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('file_info',
 			$this->fileService
 				->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
+				->setHost($this->request->getServerHost())
 				->showVisibleElements()
 				->showSigners()
 				->showSettings()
