@@ -478,7 +478,12 @@ class FileService {
 							$userFound = current($userFound);
 							$this->fileData->signers[$index]['uid'] = 'account:' . $userFound->getUID();
 						} else {
-							$this->fileData->signers[$index]['uid'] = $matches['key'] . ':' . $matches['value'];
+							$userFound = $this->userManager->get($matches['value']);
+							if ($userFound) {
+								$this->fileData->signers[$index]['uid'] = 'account:' . $userFound->getUID();
+							} else {
+								$this->fileData->signers[$index]['uid'] = $matches['key'] . ':' . $matches['value'];
+							}
 						}
 					}
 				}
