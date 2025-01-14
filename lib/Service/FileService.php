@@ -322,7 +322,14 @@ class FileService {
 				if (!empty($found)) {
 					$index = key($found);
 				} else {
-					$index = count($this->fileData->signers);
+					$totalSigners = count($signers);
+					$totalCert = count($this->certData);
+					// When only have a signature, consider that who signed is who need to sign
+					if ($totalCert === 1 && $totalSigners === $totalCert) {
+						$index = 0;
+					} else {
+						$index = count($this->fileData->signers);
+					}
 				}
 			} else {
 				$index = 0;
