@@ -264,7 +264,7 @@ class FileService {
 		}
 		$fileToValidate = $this->root->getById($nodeId);
 		if (!count($fileToValidate)) {
-			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
+			throw new LibresignException($this->l10n->t('File not found'), 404);
 		}
 		/** @var \OCP\Files\File */
 		return current($fileToValidate);
@@ -276,6 +276,8 @@ class FileService {
 		} elseif ($this->file) {
 			try {
 				return $this->fileContent = $this->getFile()->getContent();
+			} catch (LibresignException $e) {
+				throw new LibresignException($e->getMessage(), 404);
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 			}
