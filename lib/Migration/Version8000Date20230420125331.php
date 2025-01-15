@@ -119,7 +119,7 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 		while ($row = $result->fetch()) {
 			$insert
 				->values([
-					'file_user_id' => $insert->createNamedParameter($row['file_id'], IQueryBuilder::PARAM_INT),
+					'file_user_id' => $insert->createNamedParameter($row['id'], IQueryBuilder::PARAM_INT),
 					'mandatory' => $insert->createNamedParameter(1, IQueryBuilder::PARAM_INT),
 					'identifier_key' => $insert->createNamedParameter('account'),
 					'identifier_value' => $insert->createNamedParameter($row['user_id']),
@@ -142,7 +142,7 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 		while ($row = $result->fetch()) {
 			$insert
 				->values([
-					'file_user_id' => $insert->createNamedParameter($row['file_id'], IQueryBuilder::PARAM_INT),
+					'file_user_id' => $insert->createNamedParameter($row['id'], IQueryBuilder::PARAM_INT),
 					'mandatory' => $insert->createNamedParameter(1, IQueryBuilder::PARAM_INT),
 					'identifier_key' => $insert->createNamedParameter('email'),
 					'identifier_value' => $insert->createNamedParameter($row['email']),
