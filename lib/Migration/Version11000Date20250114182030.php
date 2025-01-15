@@ -30,45 +30,6 @@ class Version11000Date20250114182030 extends SimpleMigrationStep {
 	 * @param array $options
 	 */
 	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
-		// // reset table
-		// $delete1 = $this->connection->getQueryBuilder();
-		// $delete1
-		// 	->delete('libresign_identify_method');
-		// $delete1->executeStatement();
-		// $identifyMethods = [];
-		// if (($handle = fopen('backup.csv', 'r')) !== FALSE) {
-		// 	$keys = fgetcsv($handle);
-		// 	while (($values = fgetcsv($handle)) !== FALSE) {
-		// 		$identifyMethods[] = array_combine($keys, $values);
-		// 	}
-		// 	fclose($handle);
-		// }
-		// $insert1 = $this->connection->getQueryBuilder();
-		// $exists = [];
-		// foreach ($identifyMethods as $key => $row) {
-		// 	if (in_array($row['id'], $exists)) {
-		// 		continue;
-		// 	}
-		// 	$exists[] = $row['id'];
-		// 	$insert1
-		// 		->insert('libresign_identify_method')
-		// 		->values([
-		// 			'id' => $insert1->createNamedParameter($row['id'], IQueryBuilder::PARAM_INT),
-		// 			'mandatory' => $insert1->createNamedParameter($row['mandatory'], IQueryBuilder::PARAM_INT),
-		// 			'code' => $insert1->createNamedParameter(!empty($row['code']) ? $row['code'] : null),
-		// 			'identifier_key' => $insert1->createNamedParameter($row['identifier_key']),
-		// 			'identifier_value' => $insert1->createNamedParameter($row['identifier_value']),
-		// 			'attempts' => $insert1->createNamedParameter($row['attempts'], IQueryBuilder::PARAM_INT),
-		// 			'identified_at_date' => $insert1->createNamedParameter(!empty($row['identified_at_date']) ? $row['identified_at_date'] : null),
-		// 			'last_attempt_date' => $insert1->createNamedParameter(!empty($row['last_attempt_date']) ? $row['last_attempt_date'] : null),
-		// 			'sign_request_id' => $insert1->createNamedParameter($row['sign_request_id'], IQueryBuilder::PARAM_INT),
-		// 			'metadata' => $insert1->createNamedParameter(!empty($row['metadata']) ? $row['metadata'] : null, IQueryBuilder::PARAM_JSON),
-		// 		])
-		// 		->executeStatement();
-		// }
-		// $backup = 'backup.csv';
-		// $maxId = 130;
-
 		// BACKUP BEGIN
 		$qb1 = $this->connection->getQueryBuilder();
 		$qb1
