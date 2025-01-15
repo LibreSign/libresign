@@ -78,11 +78,13 @@ class Version11000Date20250114182030 extends SimpleMigrationStep {
 		$insert1 = $this->connection->getQueryBuilder();
 		$fixedConstraints = [];
 		$fixedIds = [];
+		$fixedSignRequestIds = [];
 		foreach ($identifyMethods as $key => $row) {
 			if (!$row['fixed_id'] || $row['id'] > $maxId || in_array($row['id'], $fixedIds)) {
 				continue;
 			}
 			$fixedIds[] = $row['id'];
+			$fixedSignRequestIds[] = $row['fixed_id'];
 			$constraint = $row['fixed_id'] . ',' . $row['identifier_key'] . ',' . $row['identifier_value'];
 			$fixedConstraints[] = $constraint;
 			$insert1
@@ -106,7 +108,7 @@ class Version11000Date20250114182030 extends SimpleMigrationStep {
 		// Insert non fixed rows
 		$insertedNonFixed = [];
 		foreach ($identifyMethods as $key => $row) {
-			if ($row['fixed_id'] || $row['id'] > $maxId || in_array($row['id'], $fixedIds)) {
+			if ($row['fixed_id'] || $row['id'] > $maxId || in_array($row['id'], $fixedIds) || in_array($row['sign_request_id'], $fixedSignRequestIds)) {
 				continue;
 			}
 			$constraint = $row['sign_request_id'] . ',' . $row['identifier_key'] . ',' . $row['identifier_value'];
