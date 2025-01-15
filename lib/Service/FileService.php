@@ -304,7 +304,9 @@ class FileService {
 		}
 		$signers = $this->signRequestMapper->getByFileId($this->file->getId());
 		foreach ($signers as $signer) {
-			$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signer->getId());
+			$identifyMethods = $this->identifyMethodService
+				->setIsRequest(false)
+				->getIdentifyMethodsFromSignRequestId($signer->getId());
 			if (!empty($this->fileData->signers)) {
 				$found = array_filter($this->fileData->signers, function ($found) use ($identifyMethods) {
 					if (!isset($found['uid'])) {
