@@ -341,7 +341,6 @@ class FileService {
 			$this->fileData->signers[$index]['me'] = false;
 			$this->fileData->signers[$index]['signRequestId'] = $signer->getId();
 			$this->fileData->signers[$index]['description'] = $signer->getDescription();
-			$this->fileData->signers[$index]['identifyMethods'] = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signer->getId());
 			$this->fileData->signers[$index]['visibleElements'] = $this->getVisibleElements($signer->getId());
 			$this->fileData->signers[$index]['request_sign_date'] = (new \DateTime())
 				->setTimestamp($signer->getCreatedAt())
@@ -369,10 +368,9 @@ class FileService {
 			// @todo refactor this code
 			if ($this->me || $this->identifyMethodId) {
 				$this->fileData->signers[$index]['sign_uuid'] = $signer->getUuid();
-				$identifyMethodServices = $this->fileData->signers[$index]['identifyMethods'];
 				// Identifi if I'm file owner
 				if ($this->me?->getUID() === $this->file->getUserId()) {
-					$email = array_reduce($identifyMethodServices[IdentifyMethodService::IDENTIFY_EMAIL] ?? [], function (?string $carry, IIdentifyMethod $identifyMethod): ?string {
+					$email = array_reduce($identifyMethods[IdentifyMethodService::IDENTIFY_EMAIL] ?? [], function (?string $carry, IIdentifyMethod $identifyMethod): ?string {
 						if ($identifyMethod->getEntity()->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
 							$carry = $identifyMethod->getEntity()->getIdentifierValue();
 						}
@@ -385,7 +383,7 @@ class FileService {
 					}
 				}
 				// Identify if I'm signer
-				foreach ($identifyMethodServices as $methods) {
+				foreach ($identifyMethods as $methods) {
 					foreach ($methods as $identifyMethod) {
 						$entity = $identifyMethod->getEntity();
 						if ($this->identifyMethodId === $entity->getId()
