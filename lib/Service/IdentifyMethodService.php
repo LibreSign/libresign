@@ -51,6 +51,7 @@ class IdentifyMethodService {
 		self::IDENTIFY_PASSWORD,
 		self::IDENTIFY_CLICK_TO_SIGN,
 	];
+	private bool $isRequest = true;
 	private ?IdentifyMethod $currentIdentifyMethod = null;
 	private array $identifyMethodsSettings = [];
 	/**
@@ -65,6 +66,11 @@ class IdentifyMethodService {
 		private Account $account,
 		private Email $email,
 	) {
+	}
+
+	public function setIsRequest(bool $isRequest): self {
+		$this->isRequest = $isRequest;
+		return $this;
 	}
 
 	public function getInstanceOfIdentifyMethod(string $name, ?string $identifyValue = null): IIdentifyMethod {
@@ -83,7 +89,7 @@ class IdentifyMethodService {
 			$entity->setIdentifierValue($identifyValue);
 			$entity->setMandatory($this->isMandatoryMethod($name) ? 1 : 0);
 		}
-		if ($identifyValue) {
+		if ($identifyValue && $this->isRequest) {
 			$identifyMethod->validateToRequest();
 		}
 
