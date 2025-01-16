@@ -13,6 +13,14 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 9.8.2 - 2025-01-16
+### fixes
+- fix: handle settings after backend upgrade [#4371](https://github.com/LibreSign/libresign/pull/4371)
+- fix: prevent error when is empty files [#4370](https://github.com/LibreSign/libresign/pull/4370)
+- fix: validation url [#4363](https://github.com/LibreSign/libresign/pull/4363)
+- fix: prevent error when get timeout from api [#4358](https://github.com/LibreSign/libresign/pull/4358)
+- fix: close dialog after submit [#4355](https://github.com/LibreSign/libresign/pull/4355)
+
 ## 9.8.1 - 2025-01-16
 ### fixes
 - fix: submit on click [#4342](https://github.com/LibreSign/libresign/pull/4342)
