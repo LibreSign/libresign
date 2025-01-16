@@ -19,7 +19,6 @@ module.exports = merge(nextcloudWebpackConfig, {
 	},
 	optimization: {
 		splitChunks: {
-			chunks: 'all',
 			cacheGroups: {
 				defaultVendors: {
 					reuseExistingChunk: true,
