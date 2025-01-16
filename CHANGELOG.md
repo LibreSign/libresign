@@ -17,6 +17,23 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 10.5.2 - 2025-01-16
+### fixes
+- fix: handle settings after backend upgrade [#4372](https://github.com/LibreSign/libresign/pull/4372)
+- fix: prevent error when is empty files [#4369](https://github.com/LibreSign/libresign/pull/4369)
+- fix: validation url [#4364](https://github.com/LibreSign/libresign/pull/4364)
+- chore: add more details to pdf viewer [#4362](https://github.com/LibreSign/libresign/pull/4362)
+- fix: prevent error when get timeout from api [#4359](https://github.com/LibreSign/libresign/pull/4359)
+- fix: close dialog after submit [#4356](https://github.com/LibreSign/libresign/pull/4356)
+
+## 9.8.2 - 2025-01-16
+### fixes
+- fix: handle settings after backend upgrade [#4371](https://github.com/LibreSign/libresign/pull/4371)
+- fix: prevent error when is empty files [#4370](https://github.com/LibreSign/libresign/pull/4370)
+- fix: validation url [#4363](https://github.com/LibreSign/libresign/pull/4363)
+- fix: prevent error when get timeout from api [#4358](https://github.com/LibreSign/libresign/pull/4358)
+- fix: close dialog after submit [#4355](https://github.com/LibreSign/libresign/pull/4355)
+
 ## 10.5.1 - 2025-01-16
 ### fixes
 - fix: submit on click [#4343](https://github.com/LibreSign/libresign/pull/4343)
