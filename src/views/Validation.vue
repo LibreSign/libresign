@@ -472,6 +472,7 @@ export default {
 			} else {
 				this.validateByNodeID(id)
 			}
+			this.getUUID = false
 		},
 		async validateByUUID(uuid) {
 			this.loading = true
