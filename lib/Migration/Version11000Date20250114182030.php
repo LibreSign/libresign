@@ -12,16 +12,19 @@ namespace OCA\Libresign\Migration;
 use Closure;
 use OCP\DB\ISchemaWrapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\Files\AppData\IAppDataFactory;
+use OCP\Files\IAppData;
 use OCP\IDBConnection;
-use OCP\ITempManager;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 class Version11000Date20250114182030 extends SimpleMigrationStep {
+	protected IAppData $appData;
 	public function __construct(
 		private IDBConnection $connection,
-		private ITempManager $tempManager,
+		private IAppDataFactory $appDataFactory,
 	) {
+		$this->appData = $appDataFactory->get('libresign');
 	}
 
 	/**
@@ -47,9 +50,10 @@ class Version11000Date20250114182030 extends SimpleMigrationStep {
 			->orderBy('lim.id');
 		$result = $qb1->executeQuery();
 		$identifyMethods = [];
-		$backup = $this->tempManager->getTemporaryFile('.csv');
+		$folder = $this->appData->getFolder('/');
+		$file = $folder->newFile('backup-table-libresign_identify_method.csv');
 		$maxId = 0;
-		$fp = fopen($backup, 'w');
+		$fp = $file->write();
 		$row = $result->fetch();
 		$identifyMethods[] = $row;
 		fputcsv($fp, array_keys($row));
@@ -65,6 +69,10 @@ class Version11000Date20250114182030 extends SimpleMigrationStep {
 		}
 		fclose($fp);
 		$result->closeCursor();
+		if ($maxId === 0) {
+			$file->delete();
+			return;
+		}
 		// BACKUP END
 
 		// Delete bad rows
