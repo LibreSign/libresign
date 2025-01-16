@@ -18,6 +18,7 @@
 			<NcButton :disabled="!canSave"
 				:class="hasLoading ? 'btn-load loading primary btn-confirm' : 'primary btn-confirm'"
 				native-type="submit"
+				@click="send()"
 				type="primary">
 				<template #icon>
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
