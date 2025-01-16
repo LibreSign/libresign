@@ -13,6 +13,17 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 9.8.1 - 2025-01-16
+### fixes
+- fix: submit on click [#4342](https://github.com/LibreSign/libresign/pull/4342)
+- fix: prevent error when have not identify method [#4338](https://github.com/LibreSign/libresign/pull/4338)
+- fix: validate with success when signer account was deleted [#4333](https://github.com/LibreSign/libresign/pull/4333)
+- fix: When only have a signature, consider that who signed is who need… [#4319](https://github.com/LibreSign/libresign/pull/4319)
+- fix: show that file not found when validate file [#4318](https://github.com/LibreSign/libresign/pull/4318)
+- fix: match signature from file with libresign [#4310](https://github.com/LibreSign/libresign/pull/4310)
+- fix: load success icon when cert is valid [#4307](https://github.com/LibreSign/libresign/pull/4307)
+- fix: match signers from cert with signers from LibreSign [#4306](https://github.com/LibreSign/libresign/pull/4306)
+
 ## 9.8.0 - 2025-01-13
 ### Changes
 - Update translations
