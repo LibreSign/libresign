@@ -49,12 +49,14 @@ class Version11000Date20250114182030 extends SimpleMigrationStep {
 			)
 			->orderBy('lim.id');
 		$result = $qb1->executeQuery();
-		$identifyMethods = [];
+		$row = $result->fetch();
+		if (!$row) {
+			return;
+		}
 		$folder = $this->appData->getFolder('/');
 		$file = $folder->newFile('backup-table-libresign_identify_method.csv');
 		$maxId = 0;
 		$fp = $file->write();
-		$row = $result->fetch();
 		$identifyMethods[] = $row;
 		fputcsv($fp, array_keys($row));
 		fputcsv($fp, $row);
