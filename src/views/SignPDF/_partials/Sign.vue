@@ -79,7 +79,8 @@
 			<template #actions>
 				<NcButton type="primary"
 					:disabled="signPassword.length < 3 || loading"
-					native-type="submit">
+					native-type="submit"
+					@click="signWithPassword()">
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 					</template>
