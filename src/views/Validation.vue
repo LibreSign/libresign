@@ -534,6 +534,7 @@ export default {
 						source: this.document.file,
 						basename: this.document.name,
 						mime: 'application/pdf',
+						fileId: this.document.nodeId,
 					},
 				})
 			} else {
