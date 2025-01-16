@@ -236,9 +236,9 @@ export default {
 					emit('libresign:show-visible-elements')
 				})
 				.catch(({ response }) => {
-					if (response.data.ocs.data.message) {
+					if (response?.data?.ocs?.data?.message) {
 						showError(response.data.ocs.data.message)
-					} else if (response.data.ocs.data.errors) {
+					} else if (response?.data?.ocs?.data?.errors) {
 						response.data.ocs.data.errors.forEach(error => showError(error))
 					}
 				})
