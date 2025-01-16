@@ -210,6 +210,9 @@ class RequestSignatureService {
 
 	private function associateToSigner(array $identifyMethods, string $displayName, string $description, bool $notify, int $fileId): SignRequestEntity {
 		$identifyMethodsIncances = $this->identifyMethod->getByUserData($identifyMethods);
+		if (empty($identifyMethodsIncances)) {
+			throw new \Exception($this->l10n->t('Invalid identification method'));
+		}
 		$signRequest = $this->getSignRequestByIdentifyMethod(
 			current($identifyMethodsIncances),
 			$fileId
