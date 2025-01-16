@@ -51,6 +51,7 @@ use OCP\AppFramework\Http\RedirectResponse;
 use OCP\Files\File;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
+use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IPreview;
 use OCP\IRequest;
@@ -80,6 +81,7 @@ class FileController extends AEnvironmentAwareController {
 		private RequestSignatureService $requestSignatureService,
 		private AccountService $accountService,
 		private IPreview $preview,
+		private IAppConfig $appConfig,
 		private IMimeIconProvider $mimeIconProvider,
 		private FileService $fileService,
 		private ValidateHelper $validateHelper,
@@ -194,6 +196,10 @@ class FileController extends AEnvironmentAwareController {
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/validate/', requirements: ['apiVersion' => '(v1)'])]
 	public function validate(?string $type = null, $identifier = null): DataResponse {
 		try {
+			$isValidationUrlPrivate = (bool)$this->appConfig->getValueBool(Application::APP_ID, 'make_validation_url_private', false);
+			if ($isValidationUrlPrivate) {
+				throw new LibresignException($this->l10n->t('You are not logged in. Please log in.'));
+			}
 			if ($type === 'Uuid' && !empty($identifier)) {
 				try {
 					$this->fileService
