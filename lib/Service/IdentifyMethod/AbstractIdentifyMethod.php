@@ -265,7 +265,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 				'action' => JSActions::ACTION_REDIRECT,
 				'errors' => [$this->identifyService->getL10n()->t('File already signed.')],
 				'redirect' => $this->identifyService->getUrlGenerator()->linkToRoute(
-					'libresign.page.validationFile',
+					'libresign.page.validationFilePublic',
 					['uuid' => $signRequest->getUuid()]
 				),
 			]));
