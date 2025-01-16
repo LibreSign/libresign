@@ -85,6 +85,7 @@
 		<template v-if="Object.keys(certificateData).length === 0" #actions>
 			<NcButton :disabled="hasLoading"
 				native-type="submit"
+				@click="send()"
 				type="primary">
 				<template #icon>
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
