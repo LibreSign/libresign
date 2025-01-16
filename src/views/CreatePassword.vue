@@ -16,6 +16,7 @@
 		<template #actions>
 			<NcButton :disabled="hasLoading"
 				native-type="submit"
+				@click="send()"
 				type="primary">
 				<template #icon>
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
