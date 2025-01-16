@@ -509,7 +509,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[FrontpageRoute(verb: 'GET', url: '/validation/{uuid}')]
 	public function validationFileWithShortUrl(): RedirectResponse {
 		$this->throwIfValidationPageNotAccessible();
-		return new RedirectResponse($this->url->linkToRoute('libresign.page.validationFile', ['uuid' => $this->request->getParam('uuid')]));
+		return new RedirectResponse($this->url->linkToRoute('libresign.page.validationFilePublic', ['uuid' => $this->request->getParam('uuid')]));
 	}
 
 	/**
