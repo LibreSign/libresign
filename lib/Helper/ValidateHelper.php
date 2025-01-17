@@ -370,7 +370,6 @@ class ValidateHelper {
 		}
 		try {
 			$file = $this->root->getById($nodeId);
-			$file = $file[0] ?? null;
 		} catch (\Throwable $th) {
 			throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
 		}
