@@ -779,10 +779,12 @@ class FileService {
 					if ($data['me']) {
 						$temp = array_map(function (IdentifyMethod $identifyMethodEntity) use ($signer): array {
 							$this->identifyMethodService->setCurrentIdentifyMethod($identifyMethodEntity);
-							$identifyMethod = $this->identifyMethodService->getInstanceOfIdentifyMethod(
-								$identifyMethodEntity->getIdentifierKey(),
-								$identifyMethodEntity->getIdentifierValue(),
-							);
+							$identifyMethod = $this->identifyMethodService
+								->setIsRequest(false)
+								->getInstanceOfIdentifyMethod(
+									$identifyMethodEntity->getIdentifierKey(),
+									$identifyMethodEntity->getIdentifierValue(),
+								);
 							$signatureMethods = $identifyMethod->getSignatureMethods();
 							$return = [];
 							foreach ($signatureMethods as $signatureMethod) {
