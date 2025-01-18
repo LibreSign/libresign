@@ -533,13 +533,15 @@ export default {
 		},
 		viewDocument() {
 			if (OCA?.Viewer !== undefined) {
+				const fileInfo = {
+					source: this.document.file,
+					basename: this.document.name,
+					mime: 'application/pdf',
+					fileid: this.document.nodeId,
+				}
 				OCA.Viewer.open({
-					fileInfo: {
-						source: this.document.file,
-						basename: this.document.name,
-						mime: 'application/pdf',
-						fileId: this.document.nodeId,
-					},
+					fileInfo,
+					list: [fileInfo],
 				})
 			} else {
 				window.open(`${this.document.file}?_t=${Date.now()}`)
