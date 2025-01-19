@@ -112,10 +112,10 @@ class FooterHandler {
 	}
 
 	private function getRenderedHtmlFooter(): string {
-		$tempFile = $this->tempManager->getTemporaryFile('footerTemplate.php');
-		file_put_contents($tempFile, $this->getTemplate());
-		$templates = new Engine($this->tempManager->getTempBaseDir());
-		return $templates->render(pathinfo($tempFile, PATHINFO_FILENAME), $this->getTemplateVars());
+		$templateFile = $this->getTemplateFile();
+		$pathInfo = pathinfo($templateFile);
+		$templates = new Engine($pathInfo['dirname']);
+		return $templates->render($pathInfo['filename'], $this->getTemplateVars());
 	}
 
 	public function setTemplateVar(string $name, mixed $value): self {
@@ -153,8 +153,14 @@ class FooterHandler {
 		return $this->templateVars;
 	}
 
-	private function getTemplate(): string {
-		return $this->appConfig->getValueString(Application::APP_ID, 'footer_template', file_get_contents(__DIR__ . '/Templates/footer.php'));
+	private function getTemplateFile(): string {
+		$footerTemplate = $this->appConfig->getValueString(Application::APP_ID, 'footer_template', '');
+		if ($footerTemplate) {
+			$tempFile = $this->tempManager->getTemporaryFile('footerTemplate.php');
+			file_put_contents($tempFile, $footerTemplate);
+			return $tempFile;
+		}
+		return __DIR__ . '/Templates/footer.php';
 	}
 
 	private function getQrCodeImageBase64(string $text): string {
