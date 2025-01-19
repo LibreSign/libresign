@@ -13,6 +13,15 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 9.8.3 - 2025-01-19
+### Changes
+- chore: prevent generate unecessary temp file [#4392](https://github.com/LibreSign/libresign/pull/4392)
+- chore: bump dependencies [#4381](https://github.com/LibreSign/libresign/pull/4381)
+
+### fixes
+- fix: view pdf at validation page [#4390](https://github.com/LibreSign/libresign/pull/4390)
+- fix: list files with deleted signer [#4384](https://github.com/LibreSign/libresign/pull/4384)
+
 ## 9.8.2 - 2025-01-16
 ### fixes
 - fix: handle settings after backend upgrade [#4371](https://github.com/LibreSign/libresign/pull/4371)
