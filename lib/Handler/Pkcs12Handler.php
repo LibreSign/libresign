@@ -191,7 +191,7 @@ class Pkcs12Handler extends SignEngineHandler {
 					if (empty($certificates[$signerCounter]['chain'][$certificateIndex]['signature_validation'])) {
 						$certificates[$signerCounter]['chain'][$certificateIndex]['signature_validation'] = [
 							'id' => 1,
-							'label' => $this->l10n->t('Certificate is Trusted.'),
+							'label' => $this->l10n->t('Signature is valid.'),
 						];
 					}
 				}
