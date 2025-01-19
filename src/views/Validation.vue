@@ -259,7 +259,7 @@
 									{{ signer.subject }}
 								</template>
 							</NcListItem>
-							<div v-if="signer.opened">
+							<div v-if="signer.opened && signer.chain">
 								<NcListItem v-for="(issuer, issuerIndex) in signer.chain"
 									:key="issuerIndex"
 									class="extra-chain"
