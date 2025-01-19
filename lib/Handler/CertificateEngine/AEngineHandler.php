@@ -114,12 +114,18 @@ class AEngineHandler {
 			throw new EmptyCertificateException();
 		}
 		$certContent = $this->opensslPkcs12Read($certificate, $privateKey);
-		$parsed = openssl_x509_parse(openssl_x509_read($certContent['cert']));
 
-		$return['name'] = $parsed['name'];
-		$return['subject'] = $parsed['subject'];
-		$return['issuer'] = $parsed['issuer'];
-		$return['extensions'] = $parsed['extensions'];
+		$return = $this->parseX509($certContent['cert']);
+		foreach ($certContent['extracerts'] as $extraCert) {
+			$return['extracerts'][] = $this->parseX509($extraCert);
+		}
+		return $return;
+	}
+
+	private function parseX509(string $x509): array {
+		$parsed = openssl_x509_parse(openssl_x509_read($x509));
+
+		$return = $parsed;
 		$return['validate'] = [
 			'from' => $this->dateTimeFormatter->formatDateTime($parsed['validFrom_time_t']),
 			'to' => $this->dateTimeFormatter->formatDateTime($parsed['validTo_time_t']),
