@@ -6,7 +6,6 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Handler\FooterHandler;
@@ -24,7 +23,6 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected Pkcs12Handler $pkcs12Handler;
 	protected FolderService&MockObject $folderService;
 	private IAppConfig $appConfig;
-	private SystemConfig $systemConfig;
 	private IL10N $l10n;
 	private JSignPdfHandler&MockObject $jSignPdfHandler;
 	private FooterHandler&MockObject $footerHandler;
@@ -38,7 +36,6 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			\OCP\Server::get(\Psr\Log\LoggerInterface::class),
 			\OCP\Server::get(\OCP\Security\ICrypto::class),
 		);
-		$this->systemConfig = $this->createMock(SystemConfig::class);
 		$this->certificateEngineHandler = $this->createMock(CertificateEngineHandler::class);
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->jSignPdfHandler = $this->createMock(JSignPdfHandler::class);
@@ -50,7 +47,6 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return new Pkcs12Handler(
 			$this->folderService,
 			$this->appConfig,
-			$this->systemConfig,
 			$this->certificateEngineHandler,
 			$this->l10n,
 			$this->jSignPdfHandler,
