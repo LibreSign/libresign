@@ -4,6 +4,7 @@ Feature: validate
     And run the command "libresign:install --use-local-cert --java" with result code 0
     And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
+    And run the command "config:app:set libresign certificate_engine --value=openssl" with result code 0
     And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}}}] |
@@ -34,5 +35,5 @@ Feature: validate
       | (jq).ocs.data.signers[0].me                   | false                                                                                                                |
       | (jq).ocs.data.signers[0].uid                  | account:signer1                                                                                                      |
       | (jq).ocs.data.signers[0].subject              | /C=BR/ST=State of Company/L=City Name/O=Organization/OU=Organization Unit/UID=account:signer1/CN=signer1-displayname |
-      | (jq).ocs.data.signers[0].signature_validation | {"id":1,"label":"Certificate is Trusted."}                                                                           |
+      | (jq).ocs.data.signers[0].signature_validation | {"id":1,"label":"Signature is valid."}                                                                           |
       | (jq).ocs.data.signers[0].hash_algorithm       | RSA-SHA1                                                                                                             |
