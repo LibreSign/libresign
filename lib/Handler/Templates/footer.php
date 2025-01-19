@@ -16,10 +16,7 @@
 			<a href="<?= $linkToSite; ?>" style="text-decoration: none;color:unset;"><?= $signedBy; ?></a>
 			<?php if ($validateIn) { ?>
 				<br>
-				<a href="<?=$validationSite; ?>"
-					style="text-decoration: none;color:unset;">
-					<?= str_replace('%s', $validationSite, $validateIn); ?>
-				</a>
+				<a href="<?=$validationSite; ?>" style="text-decoration: none;color:unset;"><?= str_replace('%s', $validationSite, $validateIn); ?></a>
 			<?php } ?>
 		</td>
 	</tr>
