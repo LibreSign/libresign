@@ -117,20 +117,25 @@ export default {
 			input.click()
 		},
 		async doUpload(file) {
-			try {
-				const formData = new FormData()
-				formData.append('file', file)
-				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/pfx'), formData)
-				showSuccess(response.data.ocs.data.message)
-				this.signMethodsStore.setHasSignatureFile(true)
-			} catch (err) {
-				showError(err.response.data.message)
-			}
+			const formData = new FormData()
+			formData.append('file', file)
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/pfx'), formData)
+				.then(({ data }) => {
+					showSuccess(data.ocs.data.message)
+					this.signMethodsStore.setHasSignatureFile(true)
+				})
+				.catch(({ response }) => {
+					if (response?.data?.ocs?.data?.message) {
+						showError(response.data.ocs.data.message)
+					}
+				})
 		},
 		async deleteCertificate() {
-			const response = await axios.delete(generateOcsUrl('/apps/libresign/api/v1/account/pfx'))
-			showSuccess(response.data.ocs.data.message)
-			this.signMethodsStore.setHasSignatureFile(false)
+			await axios.delete(generateOcsUrl('/apps/libresign/api/v1/account/pfx'))
+				.then(({ data }) => {
+					showSuccess(data.ocs.data.message)
+					this.signMethodsStore.setHasSignatureFile(false)
+				})
 		},
 	},
 }
