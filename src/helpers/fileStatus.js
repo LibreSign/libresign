@@ -17,7 +17,7 @@ const colorize = (svg, color) => {
 export const fileStatus = [
 	{
 		id: -1,
-		label: t('libresign', 'not LibreSign file'),
+		label: t('libresign', 'not a LibreSign file'),
 	},
 	{
 		id: 0,
