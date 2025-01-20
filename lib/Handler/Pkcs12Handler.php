@@ -25,7 +25,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler;
 
 use DateTime;
-use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
@@ -47,7 +46,6 @@ class Pkcs12Handler extends SignEngineHandler {
 	public function __construct(
 		private FolderService $folderService,
 		private IAppConfig $appConfig,
-		private SystemConfig $systemConfig,
 		private CertificateEngineHandler $certificateEngineHandler,
 		private IL10N $l10n,
 		private JSignPdfHandler $jSignPdfHandler,
