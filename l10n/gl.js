@@ -38,7 +38,6 @@ OC.L10N.register(
     "Digital signed by LibreSign." : "Asinado dixitalmente por LibreSign.",
     "Validate in %s." : "Validar en %s.",
     "Unsigned file." : "Ficheiro sen asinar.",
-    "Certificate is Trusted." : "O Certificado é de Confianza.",
     "Signature is valid." : "A sinatura é válida.",
     "Signature is invalid." : "A sinatura non é válida.",
     "Digest mismatch." : "Desaxuste no resumo.",

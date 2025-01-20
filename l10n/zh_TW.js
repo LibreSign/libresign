@@ -38,7 +38,6 @@ OC.L10N.register(
     "Digital signed by LibreSign." : "透過 LibreSign 進行數位簽署。",
     "Validate in %s." : "驗證於 %s。",
     "Unsigned file." : "未簽署的檔案。",
-    "Certificate is Trusted." : "憑證可信任。",
     "Signature is valid." : "簽章有效。",
     "Signature is invalid." : "簽章無效。",
     "Digest mismatch." : "摘要不相符。",
