@@ -98,7 +98,13 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 
 	public function generateCertificate(): string {
 		$certKeys = $this->newCert();
-		return parent::exportToPkcs12($certKeys['certificate'], $certKeys['private_key']);
+		return parent::exportToPkcs12(
+			$certKeys['certificate'],
+			$certKeys['private_key'],
+			[
+				'friendly_name' => $this->getFriendlyName(),
+			],
+		);
 	}
 
 	public function isSetupOk(): bool {
