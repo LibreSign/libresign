@@ -22,17 +22,11 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ITempManager $tempManager;
 	private OpenSslHandler $openSslHandler;
 	public function setUp(): void {
-		$this->config = $this->createMock(IConfig::class);
-		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->appDataFactory = $this->createMock(IAppDataFactory::class);
-		$this->dateTimeFormatter = $this->createMock(IDateTimeFormatter::class);
-		$this->dateTimeFormatter
-			->method('formatDateTime')
-			->willReturn('fake date');
-		$this->tempManager = $this->createMock(ITempManager::class);
-		$this->tempManager
-			->method('getTemporaryFile')
-			->willReturn(tempnam(sys_get_temp_dir(), 'temp'));
+		$this->config = \OCP\Server::get(IConfig::class);
+		$this->appConfig = \OCP\Server::get(IAppConfig::class);
+		$this->appDataFactory = \OCP\Server::get(IAppDataFactory::class);
+		$this->dateTimeFormatter = \OCP\Server::get(IDateTimeFormatter::class);
+		$this->tempManager = \OCP\Server::get(ITempManager::class);
 		$this->openSslHandler = new OpenSslHandler(
 			$this->config,
 			$this->appConfig,
@@ -47,7 +41,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/**
 	 * @dataProvider dataReadCertificate
 	 */
-	public function testReadCertificate(string $commonName, array $hosts, string $password, array $csrNames): void {
+	public function testReadCertificate(string $commonName, string $signerName, array $hosts, string $password, array $csrNames): void {
 		if (isset($csrNames['C'])) {
 			$this->openSslHandler->setCountry($csrNames['C']);
 		}
@@ -64,18 +58,32 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->openSslHandler->setHosts($hosts);
 		$this->openSslHandler->setPassword($password);
+		$this->openSslHandler->setFriendlyName($signerName);
 		$certificateContent = $this->openSslHandler->generateCertificate();
 		$parsed = $this->openSslHandler->readCertificate($certificateContent, $password);
+
+		$name = $this->csrArrayToString($csrNames);
+		$this->assertEquals($parsed['name'], $name);
+
 		$this->assertJsonStringEqualsJsonString(
 			json_encode($csrNames),
 			json_encode($parsed['subject'])
 		);
 	}
 
+	private function csrArrayToString(array $csr): string {
+		$return = '';
+		foreach ($csr as $key => $value) {
+			$return .= "/$key=$value";
+		}
+		return $return;
+	}
+
 	public static function dataReadCertificate(): array {
 		return [
 			[
 				'common name',
+				'Signer Name',
 				['user@domain.tld'],
 				'password',
 				[
@@ -86,6 +94,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			[
 				'common name',
+				'Signer Name',
 				['user@domain.tld'],
 				'password',
 				[

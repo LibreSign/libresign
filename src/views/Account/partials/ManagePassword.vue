@@ -64,7 +64,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 
 import CreatePassword from '../../CreatePassword.vue'
-import ReadCertificate from '../../ReadCertificate.vue'
+import ReadCertificate from '../../ReadCertificate/ReadCertificate.vue'
 import ResetPassword from '../../ResetPassword.vue'
 
 import { useSignMethodsStore } from '../../../store/signMethods.js'

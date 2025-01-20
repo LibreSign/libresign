@@ -48,6 +48,7 @@ use ReflectionClass;
  */
 class AEngineHandler {
 	use MagicGetterSetterTrait;
+	use OrderCertificatesTrait;
 
 	protected string $commonName = '';
 	protected array $hosts = [];
@@ -76,6 +77,7 @@ class AEngineHandler {
 	protected function exportToPkcs12(
 		OpenSSLCertificate|string $certificate,
 		OpenSSLAsymmetricKey|OpenSSLCertificate|string $privateKey,
+		array $options = [],
 	): string {
 		if (empty($certificate) || empty($privateKey)) {
 			throw new EmptyCertificateException();
@@ -87,7 +89,7 @@ class AEngineHandler {
 				$certContent,
 				$privateKey,
 				$this->getPassword(),
-				['friendly_name' => $this->getFriendlyName()],
+				$options,
 			);
 			if (!$certContent) {
 				throw new \Exception();
@@ -114,17 +116,36 @@ class AEngineHandler {
 			throw new EmptyCertificateException();
 		}
 		$certContent = $this->opensslPkcs12Read($certificate, $privateKey);
-		$parsed = openssl_x509_parse(openssl_x509_read($certContent['cert']));
 
-		$return['name'] = $parsed['name'];
-		$return['subject'] = $parsed['subject'];
-		$return['issuer'] = $parsed['issuer'];
-		$return['extensions'] = $parsed['extensions'];
-		$return['validate'] = [
-			'from' => $this->dateTimeFormatter->formatDateTime($parsed['validFrom_time_t']),
-			'to' => $this->dateTimeFormatter->formatDateTime($parsed['validTo_time_t']),
-		];
+		$return = $this->parseX509($certContent['cert']);
+		if (isset($return['extracerts'])) {
+			foreach ($certContent['extracerts'] as $extraCert) {
+				$return['extracerts'][] = $this->parseX509($extraCert);
+			}
+			$return['extracerts'] = $this->orderCertificates($return['extracerts']);
+		}
 		return $return;
+	}
+
+	private function parseX509(string $x509): array {
+		$parsed = openssl_x509_parse(openssl_x509_read($x509));
+
+		$return = self::convertArrayToUtf8($parsed);
+
+		$return['valid_from'] = $this->dateTimeFormatter->formatDateTime($parsed['validFrom_time_t']);
+		$return['valid_to'] = $this->dateTimeFormatter->formatDateTime($parsed['validTo_time_t']);
+		return $return;
+	}
+
+	private static function convertArrayToUtf8($array) {
+		foreach ($array as $key => $value) {
+			if (is_array($value)) {
+				$array[$key] = self::convertArrayToUtf8($value);
+			} elseif (is_string($value)) {
+				$array[$key] = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+			}
+		}
+		return $array;
 	}
 
 	public function opensslPkcs12Read(string &$certificate, string $privateKey): array {

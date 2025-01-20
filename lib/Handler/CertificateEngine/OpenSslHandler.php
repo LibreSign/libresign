@@ -88,7 +88,13 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			// The signer certificate is not a Certificate Authority
 			'x509_extensions' => 'v3_req',
 		]);
-		return parent::exportToPkcs12($x509, $privateKey);
+		return parent::exportToPkcs12(
+			$x509,
+			$privateKey,
+			[
+				'friendly_name' => $this->getFriendlyName(),
+			],
+		);
 	}
 
 	private function getSubjectAltNames(): string {
