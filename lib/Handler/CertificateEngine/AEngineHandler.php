@@ -118,7 +118,7 @@ class AEngineHandler {
 		$certContent = $this->opensslPkcs12Read($certificate, $privateKey);
 
 		$return = $this->parseX509($certContent['cert']);
-		if (isset($return['extracerts'])) {
+		if (isset($certContent['extracerts'])) {
 			foreach ($certContent['extracerts'] as $extraCert) {
 				$return['extracerts'][] = $this->parseX509($extraCert);
 			}
