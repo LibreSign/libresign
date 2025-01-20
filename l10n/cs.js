@@ -38,7 +38,6 @@ OC.L10N.register(
     "Digital signed by LibreSign." : "Digitálně podepsáno pomocí LibreSign.",
     "Validate in %s." : "Ověřit v %s.",
     "Unsigned file." : "Nepodepsaný soubor.",
-    "Certificate is Trusted." : "Certifikát je důvěryhodný.",
     "Signature is valid." : "Podpis je platný.",
     "Signature is invalid." : "Podpis není platný.",
     "Digest mismatch." : "Neshoda ve výtahu (digest).",
