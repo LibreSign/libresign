@@ -38,7 +38,6 @@ OC.L10N.register(
     "Digital signed by LibreSign." : "موقّع رقميا بواسطة تطبيق LibreSign.",
     "Validate in %s." : "تم التحقق في %s.",
     "Unsigned file." : "ملف غير مُوقَّع",
-    "Certificate is Trusted." : "شهادة المصادقة موثوقة.",
     "Signature is valid." : "التوقيع صحيح.",
     "Signature is invalid." : "التوقيع غير صحيح.",
     "Digest mismatch." : "الاختزال غير مُطابِق.",

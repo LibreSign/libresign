@@ -21,7 +21,6 @@ OC.L10N.register(
     "signed" : "pasirašytas",
     "deleted" : "ištrintas",
     "Unsigned file." : "Nepasirašytas failas.",
-    "Certificate is Trusted." : "Liudijimas yra patikimas.",
     "Certificate is trusted." : "Liudijimas yra patikimas.",
     "Certificate has expired" : "Liudijimas nebegalioja",
     "Invalid password" : "Neteisingas slaptažodis",
