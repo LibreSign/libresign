@@ -12,68 +12,8 @@
 		<NcNoteCard v-if="error" type="error">
 			<p>{{ error }}</p>
 		</NcNoteCard>
-		<table v-if="Object.keys(certificateData).length">
-			<thead>
-				<tr>
-					<th colspan="2">
-						{{ t('libresign', 'Issuer of certificate') }}
-					</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-for="(value, customName) in certificateData.issuer" :key="customName">
-					<td>{{ getLabelFromId(customName) }}</td>
-					<td>{{ value }}</td>
-				</tr>
-			</tbody>
-			<thead>
-				<tr>
-					<th colspan="2">
-						{{ t('libresign', 'Owner of certificate') }}
-					</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-for="(value, customName) in certificateData.subject" :key="customName">
-					<td>{{ getLabelFromId(customName) }}</td>
-					<td>{{ value }}</td>
-				</tr>
-			</tbody>
-			<thead>
-				<tr>
-					<th colspan="2">
-						{{ t('libresign', 'Validate') }}
-					</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td>From</td>
-					<td>{{ certificateData.validate.from }}</td>
-				</tr>
-				<tr>
-					<td>To</td>
-					<td>{{ certificateData.validate.to }}</td>
-				</tr>
-			</tbody>
-			<thead>
-				<tr>
-					<th colspan="2">
-						{{ t('libresign', 'Extra information') }}
-					</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td>Name</td>
-					<td>{{ certificateData.name }}</td>
-				</tr>
-				<tr v-for="(value, name) in certificateData.extensions" :key="name">
-					<td>{{ name }}</td>
-					<td>{{ value }}</td>
-				</tr>
-			</tbody>
-		</table>
+		<CertificateContent v-if="Object.keys(certificate).length"
+			:certificate="certificate" />
 		<div v-else class="container">
 			<div class="input-group">
 				<NcPasswordField v-model="password"
@@ -82,7 +22,7 @@
 					:placeholder="t('libresign', 'Certificate password')" />
 			</div>
 		</div>
-		<template v-if="Object.keys(certificateData).length === 0" #actions>
+		<template v-if="Object.keys(certificate).length === 0" #actions>
 			<NcButton :disabled="hasLoading"
 				native-type="submit"
 				type="primary"
@@ -106,12 +46,14 @@ import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
 
-import { selectCustonOption } from '../helpers/certification.js'
-import { useSignMethodsStore } from '../store/signMethods.js'
+import CertificateContent from './CertificateContent.vue'
+
+import { useSignMethodsStore } from '../../store/signMethods.js'
 
 export default {
 	name: 'ReadCertificate',
 	components: {
+		CertificateContent,
 		NcDialog,
 		NcPasswordField,
 		NcButton,
@@ -126,7 +68,7 @@ export default {
 		return {
 			hasLoading: false,
 			password: '',
-			certificateData: [],
+			certificate: {},
 			error: '',
 			size: 'small',
 		}
@@ -137,17 +79,9 @@ export default {
 	methods: {
 		reset() {
 			this.password = ''
-			this.certificateData = []
+			this.certificate = {}
 			this.error = ''
 			this.size = 'small'
-		},
-		getLabelFromId(id) {
-			try {
-				const item = selectCustonOption(id).unwrap()
-				return item.label
-			} catch (error) {
-				return id
-			}
 		},
 		async send() {
 			this.hasLoading = true
@@ -155,7 +89,7 @@ export default {
 				password: this.password,
 			})
 				.then(({ data }) => {
-					this.certificateData = data.ocs.data
+					this.certificate = data.ocs.data
 					this.size = 'large'
 					this.error = ''
 				})
@@ -207,31 +141,5 @@ form{
 	display: flex;
 	flex-direction: column;
 	width: 100%;
-}
-
-table {
-	width: 100%;
-	white-space: unset;
-}
-
-td {
-	padding: 5px;
-	border-bottom: 1px solid var(--color-border);
-}
-
-td:nth-child(2) {
-	word-break: break-all;
-}
-
-th {
-	font-weight: bold;
-}
-
-tr:last-child td {
-	border-bottom: none;
-}
-
-tr :first-child {
-	opacity: .5;
 }
 </style>
