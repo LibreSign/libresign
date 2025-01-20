@@ -30,6 +30,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
+use OCA\Libresign\Handler\CertificateEngine\OrderCertificatesTrait;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
 use OCP\Files\GenericFileException;
@@ -40,6 +41,7 @@ use phpseclib3\File\ASN1;
 use TypeError;
 
 class Pkcs12Handler extends SignEngineHandler {
+	use OrderCertificatesTrait;
 	private string $pfxFilename = 'signature.pfx';
 	private string $pfxContent = '';
 	private array $signaturesFromPoppler = [];
@@ -196,7 +198,7 @@ class Pkcs12Handler extends SignEngineHandler {
 					}
 				}
 			};
-			$certificates[$signerCounter]['chain'] = $this->orderList($certificates[$signerCounter]['chain']);
+			$certificates[$signerCounter]['chain'] = $this->orderCertificates($certificates[$signerCounter]['chain']);
 			$signerCounter++;
 		}
 		return $certificates;
@@ -374,39 +376,6 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 
 		return $result;
-	}
-
-	private function orderList(array $certificates): array {
-		$ordered = [];
-		$map = [];
-
-		$tree = current($certificates);
-		foreach ($certificates as $cert) {
-			if ($tree['subject'] === $cert['issuer']) {
-				$tree = $cert;
-			}
-			$map[$cert['name']] = $cert;
-		}
-
-		if (!$tree) {
-			return $certificates;
-		}
-		unset($map[$tree['name']]);
-		$ordered[] = $tree;
-
-		$current = $tree;
-		while (!empty($map)) {
-			if ($current['subject'] === $tree['issuer']) {
-				$ordered[] = $current;
-				$tree = $current;
-				unset($map[$current['name']]);
-				$current = reset($map);
-				continue;
-			}
-			$current = next($map);
-		}
-
-		return $ordered;
 	}
 
 	private function der2pem($derData) {

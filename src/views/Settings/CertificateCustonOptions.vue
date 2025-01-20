@@ -76,7 +76,6 @@ export default {
 	data() {
 		return {
 			certificateList: [],
-			options,
 		}
 	},
 	computed: {
@@ -84,6 +83,9 @@ export default {
 			return this.options.filter(itemA =>
 				!this.certificateList.some(itemB => itemB.id === itemA.id),
 			)
+		},
+		options() {
+			return options.filter(option => option.id !== 'CN')
 		},
 	},
 	watch: {
