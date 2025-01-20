@@ -38,7 +38,6 @@ OC.L10N.register(
     "Digital signed by LibreSign." : "Digiteach sínithe ag LibreSign.",
     "Validate in %s." : "Bailíochtaigh i %s.",
     "Unsigned file." : "Comhad gan síniú.",
-    "Certificate is Trusted." : "Teastas Iontaofa.",
     "Signature is valid." : "Tá an síniú bailí.",
     "Signature is invalid." : "Tá an síniú neamhbhailí.",
     "Digest mismatch." : "Achoimre neamhréir.",

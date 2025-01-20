@@ -38,7 +38,6 @@ OC.L10N.register(
     "Digital signed by LibreSign." : "Digital signerad av LibreSign.",
     "Validate in %s." : "Validera om %s.",
     "Unsigned file." : "Osignerad fil.",
-    "Certificate is Trusted." : "Certifikatet är pålitligt.",
     "Signature is valid." : "Signaturen är giltig.",
     "Signature is invalid." : "Signaturen är ogiltig.",
     "Digest mismatch." : "Kontrollsumman stämmer inte.",
