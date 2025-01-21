@@ -7,6 +7,8 @@ declare(strict_types=1);
  */
 
 use bovigo\vfs\vfsStream;
+use OCA\Libresign\Exception\EmptyCertificateException;
+use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
@@ -27,6 +29,13 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appDataFactory = \OCP\Server::get(IAppDataFactory::class);
 		$this->dateTimeFormatter = \OCP\Server::get(IDateTimeFormatter::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
+
+		// The storage can't be modified when create a new instance to
+		// don't lost the root cert
+		vfsStream::setup('certificate');
+	}
+
+	private function getInstance(): OpenSslHandler {
 		$this->openSslHandler = new OpenSslHandler(
 			$this->config,
 			$this->appConfig,
@@ -34,41 +43,109 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->dateTimeFormatter,
 			$this->tempManager,
 		);
-		vfsStream::setup('certificate');
 		$this->openSslHandler->setConfigPath('vfs://certificate/');
+		return $this->openSslHandler;
+	}
+
+	public function testEmptyCertificate(): void {
+		$signerInstance = $this->getInstance();
+
+		// Test invalid password
+		$this->expectException(EmptyCertificateException::class);
+		$signerInstance->readCertificate('', '');
+	}
+
+	public function testInvalidPassword(): void {
+		// Create root cert
+		$rootInstance = $this->getInstance();
+		$rootInstance->generateRootCert('', []);
+
+		// Create signer cert
+		$signerInstance = $this->getInstance();
+		$signerInstance->setHosts(['user@email.tld']);
+		$signerInstance->setPassword('right password');
+		$certificateContent = $signerInstance->generateCertificate();
+
+		// Test invalid password
+		$this->expectException(InvalidPasswordException::class);
+		$signerInstance->readCertificate($certificateContent, 'invalid password');
 	}
 
 	/**
 	 * @dataProvider dataReadCertificate
 	 */
-	public function testReadCertificate(string $commonName, string $signerName, array $hosts, string $password, array $csrNames): void {
+	public function testReadCertificate(
+		string $commonName,
+		string $signerName,
+		array $hosts,
+		string $password,
+		array $csrNames,
+		array $root,
+	): void {
+		// Create root cert
+		$rootInstance = $this->getInstance();
+		if (isset($root['CN'])) {
+			$rootInstance->setCommonName($root['CN']);
+		}
+		if (isset($root['C'])) {
+			$rootInstance->setCountry($root['C']);
+		}
+		if (isset($root['ST'])) {
+			$rootInstance->setState($root['ST']);
+		}
+		if (isset($root['O'])) {
+			$rootInstance->setOrganization($root['O']);
+		}
+		if (isset($root['OU'])) {
+			$rootInstance->setOrganizationalUnit($root['OU']);
+		}
+		$rootInstance->generateRootCert($commonName, $root);
+
+		// Create signer cert
+		$signerInstance = $this->getInstance();
+		$signerInstance->setHosts($hosts);
+		$signerInstance->setPassword($password);
+		$signerInstance->setFriendlyName($signerName);
+		if (isset($csrNames['CN'])) {
+			$signerInstance->setCommonName($csrNames['CN']);
+		}
 		if (isset($csrNames['C'])) {
-			$this->openSslHandler->setCountry($csrNames['C']);
+			$signerInstance->setCountry($csrNames['C']);
 		}
 		if (isset($csrNames['ST'])) {
-			$this->openSslHandler->setState($csrNames['ST']);
+			$signerInstance->setState($csrNames['ST']);
 		}
 		if (isset($csrNames['O'])) {
-			$this->openSslHandler->setOrganization($csrNames['O']);
+			$signerInstance->setOrganization($csrNames['O']);
 		}
 		if (isset($csrNames['OU'])) {
-			$this->openSslHandler->setOrganizationalUnit($csrNames['OU']);
+			$signerInstance->setOrganizationalUnit($csrNames['OU']);
 		}
-		$this->openSslHandler->generateRootCert($commonName, $csrNames);
+		$certificateContent = $signerInstance->generateCertificate();
 
-		$this->openSslHandler->setHosts($hosts);
-		$this->openSslHandler->setPassword($password);
-		$this->openSslHandler->setFriendlyName($signerName);
-		$certificateContent = $this->openSslHandler->generateCertificate();
-		$parsed = $this->openSslHandler->readCertificate($certificateContent, $password);
+		// Parse signer cert
+		$parsed = $signerInstance->readCertificate($certificateContent, $password);
 
+		// Test total elements of extracerts
+		// The correct content is: cert signer, intermediate certs (if have), root cert
+		$this->assertArrayHasKey('extracerts', $parsed);
+		$this->assertCount(2, $parsed['extracerts']);
+
+		// Test name
 		$name = $this->csrArrayToString($csrNames);
 		$this->assertEquals($parsed['name'], $name);
-
 		$this->assertJsonStringEqualsJsonString(
 			json_encode($csrNames),
 			json_encode($parsed['subject'])
 		);
+
+		// Test subject
+		$this->assertEquals($csrNames, $parsed['subject']);
+
+		// Test issuer ony if was defined root distinguished names
+		if (count($root) === count($parsed['issuer'])) {
+			$this->assertEquals($root, $parsed['issuer']);
+		}
 	}
 
 	private function csrArrayToString(array $csr): string {
@@ -91,6 +168,28 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'ST' => 'Some-State',
 					'O' => 'Organization Name',
 				],
+				[],
+			],
+			[
+				'common name',
+				'Signer Name',
+				['account:test'],
+				'password',
+				[
+					'C' => 'CT',
+					'ST' => 'Some-State',
+					'O' => 'Organization Name',
+					'OU' => 'Organization Unit',
+					'CN' => 'Common Name',
+				],
+				[
+					'C' => 'RT',
+					'ST' => 'Root-State',
+					'O' => 'Root Organization Name',
+					'OU' => 'Root Organization Unit',
+					'CN' => 'Root Common Name',
+					'UID' => 'account:test'
+				],
 			],
 			[
 				'common name',
@@ -102,6 +201,15 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'ST' => 'Some-State',
 					'O' => 'Organization Name',
 					'OU' => 'Organization Unit',
+					'CN' => 'Common Name',
+				],
+				[
+					'C' => 'RT',
+					'ST' => 'Root-State',
+					'O' => 'Root Organization Name',
+					'OU' => 'Root Organization Unit',
+					'CN' => 'Root Common Name',
+					'UID' => 'email:user@domain.tld'
 				],
 			],
 		];
