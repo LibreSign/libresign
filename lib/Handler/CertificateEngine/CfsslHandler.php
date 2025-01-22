@@ -103,6 +103,10 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			$certKeys['private_key'],
 			[
 				'friendly_name' => $this->getFriendlyName(),
+				'extracerts' => [
+					$certKeys['certificate'],
+					$certKeys['certificate_request'],
+				],
 			],
 		);
 	}

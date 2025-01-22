@@ -85,21 +85,11 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			'private_key_bits' => 2048,
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
 		]);
-		$temporaryFile = $this->tempManager->getTemporaryFile('.cfg');
-		// More information about x509v3: https://www.openssl.org/docs/manmaster/man5/x509v3_config.html
-		file_put_contents($temporaryFile, <<<CONFIG
-			[ v3_req ]
-			basicConstraints = CA:FALSE
-			keyUsage = digitalSignature, keyEncipherment, keyCertSign
-			extendedKeyUsage = clientAuth, emailProtection
-			subjectAltName = {$this->getSubjectAltNames()}
-			authorityKeyIdentifier = keyid
-			subjectKeyIdentifier = hash
-			# certificatePolicies = <policyOID> CPS: http://url/with/policy/informations.pdf
-			CONFIG);
+
 		$csr = openssl_csr_new($this->getCsrNames(), $privateKey);
+
 		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, $this->expirity(), [
-			'config' => $temporaryFile,
+			'config' => $this->getFilenameToLeafCert(),
 			// This will set "basicConstraints" to CA:FALSE, the default is CA:TRUE
 			// The signer certificate is not a Certificate Authority
 			'x509_extensions' => 'v3_req',
@@ -109,15 +99,56 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			$privateKey,
 			[
 				'friendly_name' => $this->getFriendlyName(),
+				'extracerts' => [
+					$x509,
+					$rootCertificate,
+				],
 			],
 		);
+	}
+
+	private function getFilenameToLeafCert(): string {
+		$temporaryFile = $this->tempManager->getTemporaryFile('.cfg');
+		// More information about x509v3: https://www.openssl.org/docs/manmaster/man5/x509v3_config.html
+		$config = [
+			'v3_req' => [
+				'basicConstraints' => 'CA:FALSE',
+				'keyUsage' => 'digitalSignature, keyEncipherment, keyCertSign',
+				'extendedKeyUsage' => 'clientAuth, emailProtection',
+				'subjectAltName' => $this->getSubjectAltNames(),
+				'authorityKeyIdentifier' => 'keyid',
+				'subjectKeyIdentifier' => 'hash',
+				// @todo Implement a feature to define this PDF at Administration Settings
+				// 'certificatePolicies' => '<policyOID> CPS: http://url/with/policy/informations.pdf',
+			]
+		];
+		if (empty($config['v3_req']['subjectAltName'])) {
+			unset($config['v3_req']['subjectAltName']);
+		}
+		$config = $this->arrayToIni($config);
+		file_put_contents($temporaryFile, $config);
+		return $temporaryFile;
+	}
+
+	private function arrayToIni(array $config) {
+		$fileContent = '';
+		foreach ($config as $i => $v) {
+			if (is_array($v)) {
+				$fileContent .= "\n[$i]\n" . $this->arrayToIni($v);
+			} else {
+				$fileContent .= "$i = " . (str_contains($v, "\n") ? '"' . $v . '"' : $v) . "\n";
+			}
+		}
+		return $fileContent;
 	}
 
 	private function getSubjectAltNames(): string {
 		$hosts = $this->getHosts();
 		$altNames = [];
-		foreach ($hosts as $email) {
-			$altNames[] = 'email:' . $email;
+		foreach ($hosts as $host) {
+			if (filter_var($host, FILTER_VALIDATE_EMAIL)) {
+				$altNames[] = 'email:' . $host;
+			}
 		}
 		return implode(', ', $altNames);
 	}
