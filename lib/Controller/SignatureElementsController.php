@@ -231,7 +231,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[PublicPage]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
-	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/signature/elements/preview/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
+	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/signature/elements/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function patchSignatureElement(int $nodeId, string $type = '', array $file = []): DataResponse {
 		try {
 			$element['nodeId'] = $nodeId;
