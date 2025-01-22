@@ -117,29 +117,29 @@ Feature: account/signature
       | key      | value    |
       | password | password |
     Then the response should be a JSON array with the following mandatory values
-      | key                                            | value                                                 |
+      | key                                            | value                                                                                                                |
       | (jq).ocs.data.name                             | /C=BR/ST=State of Company/L=City Name/O=Organization/OU=Organization Unit/UID=account:signer1/CN=signer1-displayname |
-      | (jq).ocs.data.issuer\|length                   | 6                                                     |
-      | (jq).ocs.data.issuer.CN                        | Common Name                                           |
-      | (jq).ocs.data.issuer.C                         | BR                                                    |
-      | (jq).ocs.data.issuer.ST                        | State of Company                                      |
-      | (jq).ocs.data.issuer.L                         | City Name                                             |
-      | (jq).ocs.data.issuer.O                         | Organization                                          |
-      | (jq).ocs.data.issuer.OU                        | Organization Unit                                     |
-      | (jq).ocs.data.subject\|length                  | 7                                                     |
-      | (jq).ocs.data.subject.CN                       | signer1-displayname                                   |
-      | (jq).ocs.data.subject.C                        | BR                                                    |
-      | (jq).ocs.data.subject.ST                       | State of Company                                      |
-      | (jq).ocs.data.subject.L                        | City Name                                             |
-      | (jq).ocs.data.subject.O                        | Organization                                          |
-      | (jq).ocs.data.subject.OU                       | Organization Unit                                     |
-      | (jq).ocs.data.subject.UID                      | account:signer1                                       |
-      | (jq).ocs.data.extensions.basicConstraints      | CA:FALSE                                              |
-      | (jq).ocs.data.extensions.subjectAltName        | email:signer@domain.test                              |
-      | (jq).ocs.data.extensions.keyUsage              | Digital Signature, Key Encipherment, Certificate Sign |
-      | (jq).ocs.data.extensions.extendedKeyUsage      | TLS Web Client Authentication, E-mail Protection      |
-      | (jq).ocs.data.extensions                       | (jq).authorityKeyIdentifier \| test("([0-9A-F]{2}:)+[0-9A-F]{2}") |
-      | (jq).ocs.data.extensions                       | (jq).subjectKeyIdentifier != ""                       |
+      | (jq).ocs.data.issuer\|length                   | 6                                                                                                                    |
+      | (jq).ocs.data.issuer.CN                        | Common Name                                                                                                          |
+      | (jq).ocs.data.issuer.C                         | BR                                                                                                                   |
+      | (jq).ocs.data.issuer.ST                        | State of Company                                                                                                     |
+      | (jq).ocs.data.issuer.L                         | City Name                                                                                                            |
+      | (jq).ocs.data.issuer.O                         | Organization                                                                                                         |
+      | (jq).ocs.data.issuer.OU                        | Organization Unit                                                                                                    |
+      | (jq).ocs.data.subject\|length                  | 7                                                                                                                    |
+      | (jq).ocs.data.subject.CN                       | signer1-displayname                                                                                                  |
+      | (jq).ocs.data.subject.C                        | BR                                                                                                                   |
+      | (jq).ocs.data.subject.ST                       | State of Company                                                                                                     |
+      | (jq).ocs.data.subject.L                        | City Name                                                                                                            |
+      | (jq).ocs.data.subject.O                        | Organization                                                                                                         |
+      | (jq).ocs.data.subject.OU                       | Organization Unit                                                                                                    |
+      | (jq).ocs.data.subject.UID                      | account:signer1                                                                                                      |
+      | (jq).ocs.data.extensions.basicConstraints      | CA:FALSE                                                                                                             |
+      | (jq).ocs.data.extensions.subjectAltName        | email:signer@domain.test                                                                                             |
+      | (jq).ocs.data.extensions.keyUsage              | Digital Signature, Key Encipherment, Certificate Sign, Code Signing                                                  |
+      | (jq).ocs.data.extensions.extendedKeyUsage      | TLS Web Client Authentication, E-mail Protection                                                                     |
+      | (jq).ocs.data.extensions                       | (jq).authorityKeyIdentifier \| test("([0-9A-F]{2}:)+[0-9A-F]{2}")                                                    |
+      | (jq).ocs.data.extensions                       | (jq).subjectKeyIdentifier != ""                                                                                      |
 
   Scenario: Upload PFX file with error
     Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name" with result code 0
