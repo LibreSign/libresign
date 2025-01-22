@@ -45,6 +45,52 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 	}
 
 	/**
+	 * @dataProvider dataIncompleteCertificateChain
+	 */
+	public function testIncompleteCertificateChain($certList): void {
+		$this->expectExceptionMessage('Certificate chain is incomplete or invalid.');
+		$this->orderCertificates->orderCertificates($certList);
+	}
+
+	public static function dataIncompleteCertificateChain(): array {
+		return [
+			[
+				[
+					[
+						'name' => '/CN=Leaf',
+						'subject' => ['CN' => 'Leaf'],
+						'issuer' => ['CN' => 'Invalid'],
+					],
+					[
+						'name' => '/CN=Root',
+						'subject' => ['CN' => 'Root'],
+						'issuer' => ['CN' => 'Root'],
+					],
+				],
+			],
+			[
+				[
+					[
+						'name' => '/CN=Leaf',
+						'subject' => ['CN' => 'Leaf'],
+						'issuer' => ['CN' => 'Intermediate'],
+					],
+					[
+						'name' => '/CN=Intermediate',
+						'subject' => ['CN' => 'Intermediate'],
+						'issuer' => ['CN' => 'Invalid'],
+					],
+					[
+						'name' => '/CN=Root',
+						'subject' => ['CN' => 'Root'],
+						'issuer' => ['CN' => 'Root'],
+					],
+				],
+			],
+		];
+	}
+
+	/**
 	 * @dataProvider dataOrderCertificates
 	 */
 	public function testOrderCertificates(array $unordered, array $expected): void {
