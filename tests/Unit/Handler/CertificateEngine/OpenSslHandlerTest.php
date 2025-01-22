@@ -1,0 +1,217 @@
+<?php
+
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+use bovigo\vfs\vfsStream;
+use OCA\Libresign\Exception\EmptyCertificateException;
+use OCA\Libresign\Exception\InvalidPasswordException;
+use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
+use OCP\Files\AppData\IAppDataFactory;
+use OCP\IAppConfig;
+use OCP\IConfig;
+use OCP\IDateTimeFormatter;
+use OCP\ITempManager;
+
+final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
+	private IConfig $config;
+	private IAppConfig $appConfig;
+	private IAppDataFactory $appDataFactory;
+	private IDateTimeFormatter $dateTimeFormatter;
+	private ITempManager $tempManager;
+	private OpenSslHandler $openSslHandler;
+	public function setUp(): void {
+		$this->config = \OCP\Server::get(IConfig::class);
+		$this->appConfig = \OCP\Server::get(IAppConfig::class);
+		$this->appDataFactory = \OCP\Server::get(IAppDataFactory::class);
+		$this->dateTimeFormatter = \OCP\Server::get(IDateTimeFormatter::class);
+		$this->tempManager = \OCP\Server::get(ITempManager::class);
+
+		// The storage can't be modified when create a new instance to
+		// don't lost the root cert
+		vfsStream::setup('certificate');
+	}
+
+	private function getInstance(): OpenSslHandler {
+		$this->openSslHandler = new OpenSslHandler(
+			$this->config,
+			$this->appConfig,
+			$this->appDataFactory,
+			$this->dateTimeFormatter,
+			$this->tempManager,
+		);
+		$this->openSslHandler->setConfigPath('vfs://certificate/');
+		return $this->openSslHandler;
+	}
+
+	public function testEmptyCertificate(): void {
+		$signerInstance = $this->getInstance();
+
+		// Test invalid password
+		$this->expectException(EmptyCertificateException::class);
+		$signerInstance->readCertificate('', '');
+	}
+
+	public function testInvalidPassword(): void {
+		// Create root cert
+		$rootInstance = $this->getInstance();
+		$rootInstance->generateRootCert('', []);
+
+		// Create signer cert
+		$signerInstance = $this->getInstance();
+		$signerInstance->setHosts(['user@email.tld']);
+		$signerInstance->setPassword('right password');
+		$certificateContent = $signerInstance->generateCertificate();
+
+		// Test invalid password
+		$this->expectException(InvalidPasswordException::class);
+		$signerInstance->readCertificate($certificateContent, 'invalid password');
+	}
+
+	/**
+	 * @dataProvider dataReadCertificate
+	 */
+	public function testReadCertificate(
+		string $commonName,
+		string $signerName,
+		array $hosts,
+		string $password,
+		array $csrNames,
+		array $root,
+	): void {
+		// Create root cert
+		$rootInstance = $this->getInstance();
+		if (isset($root['CN'])) {
+			$rootInstance->setCommonName($root['CN']);
+		}
+		if (isset($root['C'])) {
+			$rootInstance->setCountry($root['C']);
+		}
+		if (isset($root['ST'])) {
+			$rootInstance->setState($root['ST']);
+		}
+		if (isset($root['O'])) {
+			$rootInstance->setOrganization($root['O']);
+		}
+		if (isset($root['OU'])) {
+			$rootInstance->setOrganizationalUnit($root['OU']);
+		}
+		$rootInstance->generateRootCert($commonName, $root);
+
+		// Create signer cert
+		$signerInstance = $this->getInstance();
+		$signerInstance->setHosts($hosts);
+		$signerInstance->setPassword($password);
+		$signerInstance->setFriendlyName($signerName);
+		if (isset($csrNames['CN'])) {
+			$signerInstance->setCommonName($csrNames['CN']);
+		}
+		if (isset($csrNames['C'])) {
+			$signerInstance->setCountry($csrNames['C']);
+		}
+		if (isset($csrNames['ST'])) {
+			$signerInstance->setState($csrNames['ST']);
+		}
+		if (isset($csrNames['O'])) {
+			$signerInstance->setOrganization($csrNames['O']);
+		}
+		if (isset($csrNames['OU'])) {
+			$signerInstance->setOrganizationalUnit($csrNames['OU']);
+		}
+		$certificateContent = $signerInstance->generateCertificate();
+
+		// Parse signer cert
+		$parsed = $signerInstance->readCertificate($certificateContent, $password);
+
+		// Test total elements of extracerts
+		// The correct content is: cert signer, intermediate certs (if have), root cert
+		$this->assertArrayHasKey('extracerts', $parsed);
+		$this->assertCount(2, $parsed['extracerts']);
+
+		// Test name
+		$name = $this->csrArrayToString($csrNames);
+		$this->assertEquals($parsed['name'], $name);
+		$this->assertJsonStringEqualsJsonString(
+			json_encode($csrNames),
+			json_encode($parsed['subject'])
+		);
+
+		// Test subject
+		$this->assertEquals($csrNames, $parsed['subject']);
+
+		// Test issuer ony if was defined root distinguished names
+		if (count($root) === count($parsed['issuer'])) {
+			$this->assertEquals($root, $parsed['issuer']);
+		}
+	}
+
+	private function csrArrayToString(array $csr): string {
+		$return = '';
+		foreach ($csr as $key => $value) {
+			$return .= "/$key=$value";
+		}
+		return $return;
+	}
+
+	public static function dataReadCertificate(): array {
+		return [
+			[
+				'common name',
+				'Signer Name',
+				['user@domain.tld'],
+				'password',
+				[
+					'C' => 'CT',
+					'ST' => 'Some-State',
+					'O' => 'Organization Name',
+				],
+				[],
+			],
+			[
+				'common name',
+				'Signer Name',
+				['account:test'],
+				'password',
+				[
+					'C' => 'CT',
+					'ST' => 'Some-State',
+					'O' => 'Organization Name',
+					'OU' => 'Organization Unit',
+					'CN' => 'Common Name',
+				],
+				[
+					'C' => 'RT',
+					'ST' => 'Root-State',
+					'O' => 'Root Organization Name',
+					'OU' => 'Root Organization Unit',
+					'CN' => 'Root Common Name',
+					'UID' => 'account:test'
+				],
+			],
+			[
+				'common name',
+				'Signer Name',
+				['user@domain.tld'],
+				'password',
+				[
+					'C' => 'CT',
+					'ST' => 'Some-State',
+					'O' => 'Organization Name',
+					'OU' => 'Organization Unit',
+					'CN' => 'Common Name',
+				],
+				[
+					'C' => 'RT',
+					'ST' => 'Root-State',
+					'O' => 'Root Organization Name',
+					'OU' => 'Root Organization Unit',
+					'CN' => 'Root Common Name',
+					'UID' => 'email:user@domain.tld'
+				],
+			],
+		];
+	}
+}
