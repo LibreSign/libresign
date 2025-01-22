@@ -8,37 +8,70 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\CertificateEngine;
 
+use InvalidArgumentException;
+
 trait OrderCertificatesTrait {
 	public function orderCertificates(array $certificates): array {
-		$ordered = [];
-		$map = [];
+		$this->validateCertificateStructure($certificates);
+		$remainingCerts = [];
 
-		$tree = current($certificates);
+		// Add the root cert at ordered list and collect the remaining certs
 		foreach ($certificates as $cert) {
-			if ($tree['subject'] === $cert['issuer']) {
-				$tree = $cert;
-			}
-			$map[$cert['name']] = $cert;
-		}
-
-		if (!$tree) {
-			return $certificates;
-		}
-		unset($map[$tree['name']]);
-		$ordered[] = $tree;
-
-		$current = $tree;
-		while (!empty($map) && $current) {
-			if ($current['subject'] === $tree['issuer']) {
-				$ordered[] = $current;
-				$tree = $current;
-				unset($map[$current['name']]);
-				$current = reset($map);
+			if (!$this->arrayDiffCanonicalized($cert['subject'], $cert['issuer'])) {
+				$ordered = [$cert];
 				continue;
 			}
-			$current = next($map);
+			$remainingCerts[$cert['name']] = $cert;
+		}
+
+		if (!isset($ordered)) {
+			return $certificates;
+		}
+
+
+		while (!empty($remainingCerts)) {
+			$found = false;
+			foreach ($remainingCerts as $name => $cert) {
+				$first = reset($ordered);
+				if (!$this->arrayDiffCanonicalized($first['subject'], $cert['issuer'])) {
+					array_unshift($ordered, $cert);
+					unset($remainingCerts[$name]);
+					$found = true;
+					break;
+				}
+			}
+
+			if (!$found) {
+				throw new InvalidArgumentException('Certificate chain is incomplete or invalid.');
+			}
 		}
 
 		return $ordered;
+	}
+
+	private function validateCertificateStructure(array $certificates): void {
+		if (empty($certificates)) {
+			throw new InvalidArgumentException('Certificate list cannot be empty');
+		}
+
+		foreach ($certificates as $cert) {
+			if (!isset($cert['subject'], $cert['issuer'], $cert['name'])) {
+				throw new InvalidArgumentException(
+					'Invalid certificate structure. Certificate must have "subject", "issuer", and "name".'
+				);
+			}
+		}
+
+		$names = array_column($certificates, 'name');
+		if (count($names) !== count(array_unique($names))) {
+			throw new InvalidArgumentException('Duplicate certificate names detected');
+		}
+	}
+
+	private function arrayDiffCanonicalized(array $array1, array $array2): array {
+		sort($array1);
+		sort($array2);
+
+		return array_diff($array1, $array2);
 	}
 }
