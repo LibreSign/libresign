@@ -69,6 +69,29 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			'private_key_bits' => 2048,
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
 		]);
+
+		$csr = openssl_csr_new($this->getCsrNames(), $privateKey);
+
+		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, $this->expirity(), [
+			'config' => $this->getFilenameToLeafCert(),
+			// This will set "basicConstraints" to CA:FALSE, the default is CA:TRUE
+			// The signer certificate is not a Certificate Authority
+			'x509_extensions' => 'v3_req',
+		]);
+		return parent::exportToPkcs12(
+			$x509,
+			$privateKey,
+			[
+				'friendly_name' => $this->getFriendlyName(),
+				'extracerts' => [
+					$x509,
+					$rootCertificate,
+				],
+			],
+		);
+	}
+
+	private function getFilenameToLeafCert(): string {
 		$temporaryFile = $this->tempManager->getTemporaryFile('.cfg');
 		// More information about x509v3: https://www.openssl.org/docs/manmaster/man5/x509v3_config.html
 		$config = [
@@ -88,24 +111,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		}
 		$config = $this->arrayToIni($config);
 		file_put_contents($temporaryFile, $config);
-		$csr = openssl_csr_new($this->getCsrNames(), $privateKey);
-		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, $this->expirity(), [
-			'config' => $temporaryFile,
-			// This will set "basicConstraints" to CA:FALSE, the default is CA:TRUE
-			// The signer certificate is not a Certificate Authority
-			'x509_extensions' => 'v3_req',
-		]);
-		return parent::exportToPkcs12(
-			$x509,
-			$privateKey,
-			[
-				'friendly_name' => $this->getFriendlyName(),
-				'extracerts' => [
-					$x509,
-					$rootCertificate,
-				],
-			],
-		);
+		return $temporaryFile;
 	}
 
 	private function arrayToIni(array $config) {
