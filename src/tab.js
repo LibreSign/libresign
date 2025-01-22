@@ -23,7 +23,6 @@
 
 import { createPinia, PiniaVuePlugin } from 'pinia'
 import Vue from 'vue'
-import Vuex from 'vuex'
 
 import { loadState } from '@nextcloud/initial-state'
 import { translate, translatePlural } from '@nextcloud/l10n'
@@ -37,7 +36,6 @@ import './style/icons.scss'
 
 Vue.prototype.t = translate
 Vue.prototype.n = translatePlural
-Vue.use(Vuex)
 
 if (!window.OCA.Libresign) {
 	window.OCA.Libresign = {}

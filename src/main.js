@@ -32,7 +32,6 @@ import App from './App.vue'
 
 import './plugins/vuelidate.js'
 import router from './router/router.js'
-import store from './store/index.js'
 
 import './assets/styles/main.scss'
 import 'vue-advanced-cropper/dist/style.css'
@@ -66,7 +65,6 @@ export default new Vue({
 	el: '#content',
 	name: 'LibresignApp',
 	router,
-	store,
 	pinia,
 	render: h => h(App),
 })

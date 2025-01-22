@@ -52,8 +52,7 @@
     "vue-drag-resize": "^1.5.4",
     "vue-material-design-icons": "^5.3.1",
     "vue-router": "^3.6.5",
-    "vuelidate": "^0.7.7",
-    "vuex": "^3.6.2"
+    "vuelidate": "^0.7.7"
   },
   "browserslist": [
     "extends @nextcloud/browserslist-config"
