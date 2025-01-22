@@ -399,6 +399,7 @@
     "Name of a locality or place, such as a city, county, or other geographic region" : "地點或地區的名稱，如城市、縣或其他地理區域",
     "Name of an organization" : "組織名稱",
     "Name of an organizational unit" : "組織單位名稱",
+    "not a LibreSign file" : "非 LibreSign 檔案",
     "New signature request" : "新簽章請求",
     "Requested by {name}, at {date}" : "由 {name} 請求於 {date}",
     "Click the page to add visible signature, then select a signer to set their signature position" : "點擊頁面以新增可見簽章，然後選擇一個簽署者並設定其簽章位置",

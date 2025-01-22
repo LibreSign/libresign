@@ -400,6 +400,7 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Namn på en ort eller plats, till exempel en stad, län eller annan geografisk region",
     "Name of an organization" : "Namn på en organisation",
     "Name of an organizational unit" : "Namn på en organisationsenhet",
+    "not a LibreSign file" : "inte en LibreSign-fil",
     "New signature request" : "Ny signaturförfrågan",
     "Requested by {name}, at {date}" : "Begärd av {name}, den {date}",
     "Click the page to add visible signature, then select a signer to set their signature position" : "Klicka på sidan för att lägga till en synlig signatur och välj sedan en undertecknare för att ange sin signaturposition",
