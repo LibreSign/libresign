@@ -896,8 +896,7 @@ export type paths = {
         delete?: never;
         options?: never;
         head?: never;
-        /** Update signature element */
-        patch: operations["signature_elements-patch-signature-element"];
+        patch?: never;
         trace?: never;
     };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/signature/elements/{nodeId}": {
@@ -915,7 +914,8 @@ export type paths = {
         delete: operations["signature_elements-delete-signature-element"];
         options?: never;
         head?: never;
-        patch?: never;
+        /** Update signature element */
+        patch: operations["signature_elements-patch-signature-element"];
         trace?: never;
     };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/certificate/cfssl": {
@@ -4060,74 +4060,6 @@ export interface operations {
             };
         };
     };
-    "signature_elements-patch-signature-element": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-                /** @description Node id of a Nextcloud file */
-                nodeId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /**
-                     * @description The type of signature element
-                     * @default
-                     */
-                    type?: string;
-                    /**
-                     * @description Element object
-                     * @default {}
-                     */
-                    file?: {
-                        [key: string]: Record<string, never>;
-                    };
-                };
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                elements: components["schemas"]["UserElement"][];
-                                message: string;
-                            };
-                        };
-                    };
-                };
-            };
-            /** @description Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-    };
     "signature_elements-get-signature-element": {
         parameters: {
             query?: never;
@@ -4210,6 +4142,74 @@ export interface operations {
             };
             /** @description Not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "signature_elements-patch-signature-element": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description Node id of a Nextcloud file */
+                nodeId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description The type of signature element
+                     * @default
+                     */
+                    type?: string;
+                    /**
+                     * @description Element object
+                     * @default {}
+                     */
+                    file?: {
+                        [key: string]: Record<string, never>;
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                elements: components["schemas"]["UserElement"][];
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
