@@ -93,21 +93,21 @@ export default {
 				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/make_validation_url_private'),
 			)
 			const value = response?.data?.ocs?.data.data
-			this.makeValidationUrlPrivate = value === true || value === 'true'
+			this.makeValidationUrlPrivate = ['true', true, '1', 1].includes(value)
 		},
 		async getAddFooterData() {
 			const response = await axios.get(
 				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/add_footer'),
 			)
 			const value = response?.data?.ocs?.data.data
-			this.addFooter = value === true || value === 'true'
+			this.addFooter = ['true', true, '1', 1].includes(value)
 		},
 		async getWriteQrcodeOnFooter() {
 			const response = await axios.get(
 				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/write_qrcode_on_footer'),
 			)
 			const value = response?.data?.ocs?.data.data
-			this.writeQrcodeOnFooter = value === true || value === 'true'
+			this.writeQrcodeOnFooter = ['true', true, '1', 1].includes(value)
 		},
 		async getValidationUrlData() {
 			const response = await axios.get(
