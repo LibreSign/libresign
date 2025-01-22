@@ -399,6 +399,7 @@
     "Name of a locality or place, such as a city, county, or other geographic region" : "Nome dunha localidade ou lugar, como unha cidade, concello ou outra rexión xeográfica",
     "Name of an organization" : "Nome dunha organización",
     "Name of an organizational unit" : "Nome dunha unidade organizativa",
+    "not a LibreSign file" : "non é un ficheiro LibreSign",
     "New signature request" : "Nova solicitude de sinatura",
     "Requested by {name}, at {date}" : "Solicitado por {name}, o {date}",
     "Click the page to add visible signature, then select a signer to set their signature position" : "Prema na páxina para engadir a sinatura visíbel e, a seguir, seleccione un asinante para definir a súa posición",
