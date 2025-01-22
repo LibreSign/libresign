@@ -15,19 +15,16 @@ trait OrderCertificatesTrait {
 		$this->validateCertificateStructure($certificates);
 		$remainingCerts = [];
 
-		// Get the root certificate.
-		$rootCert = null;
+		// Add the root cert at ordered list and collect the remaining certs
 		foreach ($certificates as $cert) {
 			if (!$this->arrayDiffCanonicalized($cert['subject'], $cert['issuer'])) {
-				$rootCert = $cert;
+				$ordered = [$cert];
+				continue;
 			}
 			$remainingCerts[$cert['name']] = $cert;
 		}
 
-		if ($rootCert) {
-			unset($remainingCerts[$rootCert['name']]);
-			$ordered = [$rootCert];
-		} else {
+		if (!isset($ordered)) {
 			return $certificates;
 		}
 
@@ -35,9 +32,9 @@ trait OrderCertificatesTrait {
 		while (!empty($remainingCerts)) {
 			$found = false;
 			foreach ($remainingCerts as $name => $cert) {
-				$last = end($ordered);
-				if (!$this->arrayDiffCanonicalized($last['subject'], $cert['issuer'])) {
-					$ordered[] = $cert;
+				$first = reset($ordered);
+				if (!$this->arrayDiffCanonicalized($first['subject'], $cert['issuer'])) {
+					array_unshift($ordered, $cert);
 					unset($remainingCerts[$name]);
 					$found = true;
 					break;
@@ -45,7 +42,7 @@ trait OrderCertificatesTrait {
 			}
 
 			if (!$found) {
-				throw new InvalidArgumentException('Certificate chain is incomplete or invalid. Certificates: ' . json_encode($certificates));
+				throw new InvalidArgumentException('Certificate chain is incomplete or invalid.');
 			}
 		}
 
