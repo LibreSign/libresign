@@ -129,7 +129,7 @@ export default {
 			OCP.AppConfig.setValue('libresign', 'validation_site', this.$refs.urlInput.value.trim())
 		},
 		async toggleSetting(setting, value) {
-			OCP.AppConfig.setValue('libresign', setting, !!value ? 1 : 0)
+			OCP.AppConfig.setValue('libresign', setting, value ? 1 : 0)
 		},
 		placeHolderValidationUrl(data) {
 			if (data !== '') {
