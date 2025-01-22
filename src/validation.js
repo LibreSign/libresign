@@ -29,7 +29,6 @@ import { generateFilePath } from '@nextcloud/router'
 import Validation from './views/Validation.vue'
 
 import router from './router/router.js'
-import store from './store/index.js'
 
 // CSP config for webpack dynamic chunk loading
 // eslint-disable-next-line
@@ -53,6 +52,5 @@ export default new Vue({
 	// eslint-disable-next-line vue/match-component-file-name
 	name: 'Validation',
 	router,
-	store,
 	render: (h) => h(Validation),
 })

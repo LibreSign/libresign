@@ -31,7 +31,6 @@ import App from './App.vue'
 
 import './plugins/vuelidate.js'
 import router from './router/router.js'
-import store from './store/index.js'
 
 import './assets/styles/main.scss'
 
@@ -64,7 +63,6 @@ const pinia = createPinia()
 export default new Vue({
 	el: '#content',
 	router,
-	store,
 	pinia,
 	render: h => h(App),
 })
