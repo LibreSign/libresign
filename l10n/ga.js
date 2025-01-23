@@ -401,6 +401,7 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Ainm áite nó áite, amhail cathair, contae, nó réigiún geografach eile",
     "Name of an organization" : "Ainm eagraíochta",
     "Name of an organizational unit" : "Ainm aonaid eagraíochta",
+    "not a LibreSign file" : "ní comhad LibreSign é",
     "New signature request" : "Iarratas sínithe nua",
     "Requested by {name}, at {date}" : "Arna iarraidh ag {name}, ag {date}",
     "Click the page to add visible signature, then select a signer to set their signature position" : "Cliceáil ar an leathanach chun síniú infheicthe a chur leis, ansin roghnaigh sínitheoir chun a suíomh sínithe a shocrú",
