@@ -52,7 +52,6 @@ OC.L10N.register(
     "Dependencies" : "Dependencias",
     "Yes" : "Sí",
     "No" : "No",
-    "No date" : "Sin fecha",
-    "Pending" : "Pendiente"
+    "No date" : "Sin fecha"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

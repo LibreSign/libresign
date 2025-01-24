@@ -355,10 +355,6 @@
     "Name of a locality or place, such as a city, county, or other geographic region" : "Ime kraja, mesta, okrožja, države ali druge geografske regije.",
     "Name of an organization" : "Naziv organizacije",
     "Name of an organizational unit" : "Naziv organizacijske enote v podjetju",
-    "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "Kliknite na stran za dodajanje vidnega predmeta podpisa, nato izberite podpisnika in določite mesto podpisa.",
-    "All Files" : "Vse datoteke",
-    "Pending" : "Na čakanju",
-    "Signed" : "Podpisano"
+    "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}"
 },"pluralForm" :"nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);"
 }

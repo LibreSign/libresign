@@ -24,7 +24,6 @@ OC.L10N.register(
     "New password" : "Kata laluan baru",
     "Yes" : "Yes",
     "No" : "No",
-    "No date" : "No date",
-    "Pending" : "Dalam proses"
+    "No date" : "No date"
 },
 "nplurals=1; plural=0;");

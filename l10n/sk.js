@@ -335,9 +335,6 @@ OC.L10N.register(
     "Name of an organization" : "Názov organizácie",
     "Name of an organizational unit" : "Názov organizačnej jednotky",
     "New signature request" : "Nová žiadosť o podpis",
-    "Requested by {name}, at {date}" : "Vyžiadané od {name}, o {date}",
-    "All Files" : "Všetky súbory",
-    "Pending" : "Čakajúce",
-    "Signed" : "Podpísané"
+    "Requested by {name}, at {date}" : "Vyžiadané od {name}, o {date}"
 },
 "nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);");

@@ -32,7 +32,6 @@ OC.L10N.register(
     "New password" : "ລະຫັດຜ່ານໃຫມ່",
     "Yes" : "ແມ່ນແລ້ວ",
     "No" : "ບໍ່",
-    "No date" : "ບໍ່ມີວັນທີ",
-    "Pending" : "ທີ່ກໍາລັງລໍຖ້າ"
+    "No date" : "ບໍ່ມີວັນທີ"
 },
 "nplurals=1; plural=0;");

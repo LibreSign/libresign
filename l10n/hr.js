@@ -199,9 +199,6 @@ OC.L10N.register(
     "Return" : "Natrag",
     "This document is valid" : "Ovaj dokument je važeći",
     "Open in LibreSign" : "Otvori u sustavu LibreSign",
-    "Requested by {name}, at {date}" : "Zatražio {name} na dan {date}",
-    "All Files" : "Sve datoteke",
-    "Pending" : "Na čekanju",
-    "Signed" : "Potpisao"
+    "Requested by {name}, at {date}" : "Zatražio {name} na dan {date}"
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");

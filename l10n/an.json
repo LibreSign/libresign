@@ -18,7 +18,6 @@
     "Password reset" : "Restablimiento d'a clau",
     "New password" : "Nueva clau",
     "Yes" : "Si",
-    "No" : "No",
-    "Pending" : "Pendién"
+    "No" : "No"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

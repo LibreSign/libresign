@@ -27,7 +27,6 @@ OC.L10N.register(
     "New password" : "புதிய கடவுச்சொல்",
     "Yes" : "Yes",
     "No" : "No",
-    "No date" : "No date",
-    "Pending" : "நிலுவையிலுள்ள"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

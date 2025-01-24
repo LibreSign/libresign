@@ -356,10 +356,6 @@
     "Name of a locality or place, such as a city, county, or other geographic region" : "Navn på en lokalitet eller et sted, for eksempel en by, et fylke eller et annet geografisk område",
     "Name of an organization" : "Navn på en organisasjon",
     "Name of an organizational unit" : "Navn på en organisatorisk enhet",
-    "Requested by {name}, at {date}" : "Bedt av {name}, den {date}",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "Klikk på siden for å legge til synlig signatur, og velg deretter en underskriver for å angi signaturposisjonen",
-    "All Files" : "Alle filer",
-    "Pending" : "Venter",
-    "Signed" : "Signert"
+    "Requested by {name}, at {date}" : "Bedt av {name}, den {date}"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -51,7 +51,6 @@ OC.L10N.register(
     "Dependencies" : "დამოკიდებულებები",
     "Yes" : "კი",
     "No" : "არა",
-    "No date" : "თარიღი არაა",
-    "Pending" : "მოლოდინში"
+    "No date" : "თარიღი არაა"
 },
 "nplurals=2; plural=(n!=1);");

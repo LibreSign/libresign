@@ -28,7 +28,6 @@ OC.L10N.register(
     "Current password" : "Current password",
     "New password" : "New password",
     "Yes" : "Yes",
-    "No" : "No",
-    "Pending" : "Pending"
+    "No" : "No"
 },
 "nplurals=1; plural=0;");

@@ -32,7 +32,6 @@ OC.L10N.register(
     "Message" : "Izen",
     "Yes" : "Oui",
     "No" : "Uhu",
-    "Forgot password?" : "Tettud awal uffir?",
-    "Pending" : "Yegguni"
+    "Forgot password?" : "Tettud awal uffir?"
 },
 "nplurals=2; plural=(n != 1);");

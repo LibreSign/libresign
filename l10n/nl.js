@@ -247,9 +247,6 @@ OC.L10N.register(
     "Return" : "Terug",
     "This document is valid" : "Dit document is geldig",
     "Open in LibreSign" : "Openen in LibreSign",
-    "Requested by {name}, at {date}" : "Aangevraagd door {name}, op {date}",
-    "All Files" : "Alle bestanden",
-    "Pending" : "In behandeling",
-    "Signed" : "Getekend"
+    "Requested by {name}, at {date}" : "Aangevraagd door {name}, op {date}"
 },
 "nplurals=2; plural=(n != 1);");

@@ -363,10 +363,6 @@
     "Name of an organization" : "Name of an organization",
     "Name of an organizational unit" : "Name of an organizational unit",
     "New signature request" : "Nova solicitação de assinatura",
-    "Requested by {name}, at {date}" : "Solicitado por {name}, em {date} ",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "Clique na página para adicionar uma assinatura visível e selecione um signatário para definir a posição da assinatura",
-    "All Files" : "Todos os arquivos ",
-    "Pending" : "Pendente ",
-    "Signed" : "Assinado"
+    "Requested by {name}, at {date}" : "Solicitado por {name}, em {date} "
 },"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

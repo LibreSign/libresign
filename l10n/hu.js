@@ -301,9 +301,6 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Egy terület vagy helység neve, például város, megye vagy más földrajzi régió",
     "Name of an organization" : "Egy szervezet neve",
     "Name of an organizational unit" : "Egy szervezeti egység neve",
-    "Requested by {name}, at {date}" : "{name} kérte, ekkor: {date}",
-    "All Files" : "Összes fájl",
-    "Pending" : "Függőben",
-    "Signed" : "Aláírva"
+    "Requested by {name}, at {date}" : "{name} kérte, ekkor: {date}"
 },
 "nplurals=2; plural=(n != 1);");

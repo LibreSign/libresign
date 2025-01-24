@@ -293,9 +293,6 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Nom d'una localitat o lloc, com ara una ciutat, un comtat o una altra regió geogràfica",
     "Name of an organization" : "Nom d'una organització",
     "Name of an organizational unit" : "Nom d'una unitat organitzativa",
-    "Requested by {name}, at {date}" : "Sol·licitat per {name}, a {date}",
-    "All Files" : "Tots els fitxers",
-    "Pending" : "Pendent",
-    "Signed" : "Signat"
+    "Requested by {name}, at {date}" : "Sol·licitat per {name}, a {date}"
 },
 "nplurals=2; plural=(n != 1);");

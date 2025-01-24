@@ -63,7 +63,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Forgot password?" : "Ĉu vi forgesis vian pasvorton?",
-    "No date" : "No date",
-    "Pending" : "Pritraktota"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

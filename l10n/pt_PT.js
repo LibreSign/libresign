@@ -73,7 +73,6 @@ OC.L10N.register(
     "No" : "Não",
     "Forgot password?" : "Senha esquecida?",
     "Name:" : "Nome:",
-    "No date" : "Sem data",
-    "Pending" : "Pendente"
+    "No date" : "Sem data"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

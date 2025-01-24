@@ -307,9 +307,6 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Hiri, herri, eskualde edo antzeko eremu geografiko baten izena",
     "Name of an organization" : "Erakunde baten izena",
     "Name of an organizational unit" : "Erakunde bateko sail baten izena",
-    "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean",
-    "All Files" : "Fitxategi guztiak",
-    "Pending" : "Zain",
-    "Signed" : "Sinatuta"
+    "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean"
 },
 "nplurals=2; plural=(n != 1);");

@@ -114,8 +114,6 @@ OC.L10N.register(
     "Name:" : "Όνομα:",
     "Status:" : "Κατάσταση:",
     "No date" : "Καμία ημερομηνία",
-    "Return" : "Επιστροφή",
-    "All Files" : "Όλα τα αρχεία",
-    "Pending" : "Σε αναμονή"
+    "Return" : "Επιστροφή"
 },
 "nplurals=2; plural=(n != 1);");

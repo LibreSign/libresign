@@ -402,10 +402,6 @@ OC.L10N.register(
     "Name of an organization" : "Name of an organization",
     "Name of an organizational unit" : "Name of an organizational unit",
     "New signature request" : "New signature request",
-    "Requested by {name}, at {date}" : "Requested by {name}, at {date}",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "Click the page to add visible signature, then select a signer to set their signature position",
-    "All Files" : "All Files",
-    "Pending" : "Pending",
-    "Signed" : "Signed"
+    "Requested by {name}, at {date}" : "Requested by {name}, at {date}"
 },
 "nplurals=2; plural=(n != 1);");

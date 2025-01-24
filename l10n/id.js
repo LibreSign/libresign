@@ -86,7 +86,6 @@ OC.L10N.register(
     "Dependencies" : "Ketergantungan",
     "Yes" : "Ya",
     "No" : "Tidak",
-    "No date" : "No date",
-    "Pending" : "Tunggu"
+    "No date" : "No date"
 },
 "nplurals=1; plural=0;");

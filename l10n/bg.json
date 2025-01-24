@@ -273,9 +273,6 @@
     "Name of a locality or place, such as a city, county, or other geographic region" : "Име на населено място или местност, като град, окръг или друг географски регион",
     "Name of an organization" : "Име на организация",
     "Name of an organizational unit" : "Име на организационна единица",
-    "Requested by {name}, at {date}" : "Поискано от {name}, на {date}",
-    "All Files" : "Всички файлове",
-    "Pending" : "Чакащ",
-    "Signed" : "Подписан"
+    "Requested by {name}, at {date}" : "Поискано от {name}, на {date}"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
