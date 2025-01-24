@@ -75,7 +75,6 @@ OC.L10N.register(
     "No" : "Không",
     "Forgot password?" : "Quên mật khẩu sao?",
     "Name:" : "Tên:",
-    "No date" : "No date",
-    "Pending" : "Đang dừng"
+    "No date" : "No date"
 },
 "nplurals=1; plural=0;");

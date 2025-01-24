@@ -112,8 +112,6 @@
     "Name:" : "Όνομα:",
     "Status:" : "Κατάσταση:",
     "No date" : "Καμία ημερομηνία",
-    "Return" : "Επιστροφή",
-    "All Files" : "Όλα τα αρχεία",
-    "Pending" : "Σε αναμονή"
+    "Return" : "Επιστροφή"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

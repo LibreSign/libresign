@@ -27,7 +27,6 @@ OC.L10N.register(
     "New password" : "ពាក្យ​សម្ងាត់​ថ្មី",
     "Yes" : "Yes",
     "No" : "No",
-    "No date" : "No date",
-    "Pending" : "កំពុង​រង់ចាំ"
+    "No date" : "No date"
 },
 "nplurals=1; plural=0;");

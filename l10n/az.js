@@ -39,7 +39,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Name:" : "Ad:",
-    "No date" : "No date",
-    "Pending" : "Gözləmə"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

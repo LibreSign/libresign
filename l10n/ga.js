@@ -403,10 +403,6 @@ OC.L10N.register(
     "Name of an organizational unit" : "Ainm aonaid eagraíochta",
     "not a LibreSign file" : "ní comhad LibreSign é",
     "New signature request" : "Iarratas sínithe nua",
-    "Requested by {name}, at {date}" : "Arna iarraidh ag {name}, ag {date}",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "Cliceáil ar an leathanach chun síniú infheicthe a chur leis, ansin roghnaigh sínitheoir chun a suíomh sínithe a shocrú",
-    "All Files" : "Gach Comhad",
-    "Pending" : "Ar feitheamh",
-    "Signed" : "Sínithe"
+    "Requested by {name}, at {date}" : "Arna iarraidh ag {name}, ag {date}"
 },
 "nplurals=5; plural=(n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n<11 ? 3 : 4);");

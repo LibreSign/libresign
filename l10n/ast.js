@@ -82,8 +82,6 @@ OC.L10N.register(
     "No" : "Non",
     "Forgot password?" : "¿Escaeciesti la contraseña?",
     "Name:" : "Nome:",
-    "Status:" : "Estáu:",
-    "All Files" : "Tolos ficheros",
-    "Pending" : "Pendiente"
+    "Status:" : "Estáu:"
 },
 "nplurals=2; plural=(n != 1);");

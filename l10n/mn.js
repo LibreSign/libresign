@@ -43,7 +43,6 @@ OC.L10N.register(
     "Resource" : "Нөөц",
     "Yes" : "Тийм",
     "No" : "Үгүй",
-    "No date" : "No date",
-    "Pending" : "Хүлээгдэж байгаа"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

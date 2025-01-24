@@ -56,7 +56,6 @@ OC.L10N.register(
     "No" : "Ei",
     "Forgot password?" : "Unustasid parooli?",
     "Status:" : "Seisund:",
-    "No date" : "No date",
-    "Pending" : "Ootel"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

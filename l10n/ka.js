@@ -75,7 +75,6 @@ OC.L10N.register(
     "No" : "No",
     "Forgot password?" : "Forgot password?",
     "Name:" : "Name:",
-    "Status:" : "Status:",
-    "Pending" : "Pending"
+    "Status:" : "Status:"
 },
 "nplurals=2; plural=(n!=1);");

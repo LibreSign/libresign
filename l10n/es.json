@@ -400,10 +400,6 @@
     "Name of an organization" : "Nombre de una organización",
     "Name of an organizational unit" : "Nombre de una unidad organizacional",
     "New signature request" : "Nueva solicitud de firma",
-    "Requested by {name}, at {date}" : "Pedido por {name}, el {date}",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "Haga clic en la página para añadir una firma visible, luego seleccione a un firmante para establecer la posición de su firma",
-    "All Files" : "Todos los archivos",
-    "Pending" : "Pendiente",
-    "Signed" : "Firmado"
+    "Requested by {name}, at {date}" : "Pedido por {name}, el {date}"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

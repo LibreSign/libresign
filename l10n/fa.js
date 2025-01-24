@@ -275,9 +275,6 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Name of a locality or place, such as a city, county, or other geographic region",
     "Name of an organization" : "Name of an organization",
     "Name of an organizational unit" : "Name of an organizational unit",
-    "Requested by {name}, at {date}" : "Requested by {name}, at {date}",
-    "All Files" : "All Files",
-    "Pending" : "در انتظار",
-    "Signed" : "Signed"
+    "Requested by {name}, at {date}" : "Requested by {name}, at {date}"
 },
 "nplurals=2; plural=(n > 1);");
