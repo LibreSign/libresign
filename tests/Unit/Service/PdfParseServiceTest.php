@@ -6,6 +6,18 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+namespace OCA\Libresign\Service;
+
+/**
+ * Overwrite shell_exec in the OCA\Libresign\Service namespace.
+ */
+function shell_exec($command) {
+	if (\OCA\Libresign\Tests\Unit\Service\PdfParseServiceTest::$disablePdfInfo) {
+		return null;
+	}
+	return \shell_exec($command);
+}
+
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Exception\LibresignException;
@@ -21,6 +33,7 @@ use Psr\Log\LoggerInterface;
 final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ITempManager $tempManager;
 	private LoggerInterface&MockObject $loggerInterface;
+	public static $disablePdfInfo = false;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -62,7 +75,8 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/**
 	 * @dataProvider providerGetMetadataWithSuccess
 	 */
-	public function testGetMetadataWithSuccess(string $path, array $expected): void {
+	public function testGetMetadataWithSuccess(bool $disablePdfInfo, string $path, array $expected): void {
+		self::$disablePdfInfo = $disablePdfInfo;
 		/** @var File|MockObject */
 		$file = $this->createMock(File::class);
 		$file->method('getContent')
@@ -76,6 +90,7 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public static function providerGetMetadataWithSuccess(): array {
 		return [
 			[
+				'disablePdfInfo' => true,
 				'tests/fixtures/small_valid.pdf',
 				[
 					'p' => 1,
@@ -85,11 +100,32 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				]
 			],
 			[
+				'disablePdfInfo' => true,
 				'tests/fixtures/small_valid-signed.pdf',
 				[
 					'p' => 1,
 					'd' => [
 						['w' => 595.275590551181, 'h' => 841.889763779528],
+					],
+				]
+			],
+			[
+				'disablePdfInfo' => false,
+				'tests/fixtures/small_valid.pdf',
+				[
+					'p' => 1,
+					'd' => [
+						['w' => 595.276, 'h' => 841.89],
+					],
+				]
+			],
+			[
+				'disablePdfInfo' => false,
+				'tests/fixtures/small_valid-signed.pdf',
+				[
+					'p' => 1,
+					'd' => [
+						['w' => 595.276, 'h' => 841.89],
 					],
 				]
 			],
