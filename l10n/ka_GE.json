@@ -49,7 +49,6 @@
     "Dependencies" : "დამოკიდებულებები",
     "Yes" : "კი",
     "No" : "არა",
-    "No date" : "თარიღი არაა",
-    "Pending" : "მოლოდინში"
+    "No date" : "თარიღი არაა"
 },"pluralForm" :"nplurals=2; plural=(n!=1);"
 }

@@ -401,10 +401,6 @@
     "Name of an organizational unit" : "Nome dunha unidade organizativa",
     "not a LibreSign file" : "non é un ficheiro LibreSign",
     "New signature request" : "Nova solicitude de sinatura",
-    "Requested by {name}, at {date}" : "Solicitado por {name}, o {date}",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "Prema na páxina para engadir a sinatura visíbel e, a seguir, seleccione un asinante para definir a súa posición",
-    "All Files" : "Todos os ficheiros",
-    "Pending" : "Pendente",
-    "Signed" : "Asinado"
+    "Requested by {name}, at {date}" : "Solicitado por {name}, o {date}"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

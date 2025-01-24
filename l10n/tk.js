@@ -21,7 +21,6 @@ OC.L10N.register(
     "Enter a password" : "Paroly giriziň",
     "Today" : "Şu gün",
     "Yes" : "Hawa",
-    "No" : "Ýok",
-    "Pending" : "Garaşylýar"
+    "No" : "Ýok"
 },
 "nplurals=2; plural=(n != 1);");

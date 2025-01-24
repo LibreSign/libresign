@@ -187,9 +187,6 @@ OC.L10N.register(
     "Return" : "Palaa",
     "This document is valid" : "Asiakirja on kelvollinen",
     "Open in LibreSign" : "Avaa LibreSignissa",
-    "Requested by {name}, at {date}" : "Pyytänyt {name} {date}",
-    "All Files" : "Kaikki tiedostot",
-    "Pending" : "Odottaa",
-    "Signed" : "Allekirjoitettu"
+    "Requested by {name}, at {date}" : "Pyytänyt {name} {date}"
 },
 "nplurals=2; plural=(n != 1);");

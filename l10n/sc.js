@@ -155,9 +155,6 @@ OC.L10N.register(
     "Return" : "Torra",
     "This document is valid" : "Custu documentu est bàlidu",
     "Open in LibreSign" : "Aberi in LibreSign",
-    "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}",
-    "All Files" : "Totu is archìvios",
-    "Pending" : "In suspesu",
-    "Signed" : "Firmadu"
+    "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}"
 },
 "nplurals=2; plural=(n != 1);");

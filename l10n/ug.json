@@ -355,10 +355,6 @@
     "Name of a locality or place, such as a city, county, or other geographic region" : "شەھەر ، ناھىيە ياكى باشقا جۇغراپىيىلىك رايونغا ئوخشاش جاي ياكى جاينىڭ ئىسمى",
     "Name of an organization" : "بىر تەشكىلاتنىڭ ئىسمى",
     "Name of an organizational unit" : "تەشكىلىي ئورۇننىڭ ئىسمى",
-    "Requested by {name}, at {date}" : "{name} تەرىپىدىن تەلەپ قىلىنغان ، {date}",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "كۆرۈنگەن ئىمزا قوشۇش ئۈچۈن بەتنى چېكىڭ ، ئاندىن ئىمزا قويغۇچىنى تاللاڭ",
-    "All Files" : "بارلىق ھۆججەتلەر",
-    "Pending" : "كۈتۈۋاتىدۇ",
-    "Signed" : "ئىمزا قويدى"
+    "Requested by {name}, at {date}" : "{name} تەرىپىدىن تەلەپ قىلىنغان ، {date}"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

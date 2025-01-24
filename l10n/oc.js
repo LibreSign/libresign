@@ -106,7 +106,6 @@ OC.L10N.register(
     "Forgot password?" : "Senhal oblidat ?",
     "No date" : "Cap de data",
     "Return" : "Tornar",
-    "This document is valid" : "Aqueste document es valid",
-    "Pending" : "En espèra"
+    "This document is valid" : "Aqueste document es valid"
 },
 "nplurals=2; plural=(n > 1);");

@@ -57,7 +57,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "Jo",
     "Name:" : "Emri",
-    "No date" : "No date",
-    "Pending" : "Në Pritje të Konfirmimit"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

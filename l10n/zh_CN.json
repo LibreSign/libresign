@@ -239,9 +239,6 @@
     "Return" : "返回",
     "This document is valid" : "该文档有效",
     "Open in LibreSign" : "在 LibreSign 中打开",
-    "Requested by {name}, at {date}" : "{name} 请求于 {date}",
-    "All Files" : "所有文件",
-    "Pending" : "挂起",
-    "Signed" : "已签名 "
+    "Requested by {name}, at {date}" : "{name} 请求于 {date}"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

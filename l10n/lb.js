@@ -30,7 +30,6 @@ OC.L10N.register(
     "Resource" : "Ressource",
     "Yes" : "Yes",
     "No" : "No",
-    "No date" : "No date",
-    "Pending" : "Ausstoend"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

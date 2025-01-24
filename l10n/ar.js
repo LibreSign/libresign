@@ -402,10 +402,6 @@ OC.L10N.register(
     "Name of an organization" : "اسم المؤسسة",
     "Name of an organizational unit" : "اسم الوحدة الإدارية",
     "New signature request" : "طلب جديد للتوقيع",
-    "Requested by {name}, at {date}" : "مطلوب من قبل {name}، في {date}",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "أنقُر على الصفحة لإضافة توقيع مرئي، ثم حدد اسم المُوقّع لوضع توقيعه  ",
-    "All Files" : "كل الملفات",
-    "Pending" : "معلّق",
-    "Signed" : "مُوقع"
+    "Requested by {name}, at {date}" : "مطلوب من قبل {name}، في {date}"
 },
 "nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;");

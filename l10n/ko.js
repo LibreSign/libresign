@@ -237,9 +237,6 @@ OC.L10N.register(
     "Return" : "반환",
     "This document is valid" : "이 문서는 유효합니다.",
     "Open in LibreSign" : "LibreSign으로 열기",
-    "Requested by {name}, at {date}" : "{날짜}에 {이름}에 의해 요청됨",
-    "All Files" : "모든 파일",
-    "Pending" : "보류 중",
-    "Signed" : "서명됨"
+    "Requested by {name}, at {date}" : "{날짜}에 {이름}에 의해 요청됨"
 },
 "nplurals=1; plural=0;");

@@ -401,10 +401,6 @@ OC.L10N.register(
     "Name of an organization" : "Název organizace",
     "Name of an organizational unit" : "Název organizační jednotky",
     "New signature request" : "Nový požadavek na podepsání",
-    "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "Kliknutím na stránku přidáte viditelný podpis, poté vyberte podepisujícího a nastavte umístění jeho podpisu",
-    "All Files" : "Všechny soubory",
-    "Pending" : "Čeká",
-    "Signed" : "Podepsáno"
+    "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

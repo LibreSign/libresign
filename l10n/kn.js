@@ -24,7 +24,6 @@ OC.L10N.register(
     "New password" : "﻿ಹೊಸ ಗುಪ್ತಪದ",
     "Yes" : "Yes",
     "No" : "No",
-    "No date" : "No date",
-    "Pending" : "﻿ಬಾಕಿ ಇದೆ"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n > 1);");

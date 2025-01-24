@@ -403,10 +403,6 @@ OC.L10N.register(
     "Name of an organizational unit" : "Name einer Organisationseinheit",
     "not a LibreSign file" : "Keine LibreSign-Datei",
     "New signature request" : "Neue Signaturanfrage",
-    "Requested by {name}, at {date}" : "Angefordert von {name}, am {date}",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "Klicken Sie auf die Seite, um eine sichtbare Signatur hinzuzufügen- Wählen Sie dann einen Unterzeichner aus, um seine Signaturposition festzulegen.",
-    "All Files" : "Alle Dateien",
-    "Pending" : "Ausstehend",
-    "Signed" : "Signiert"
+    "Requested by {name}, at {date}" : "Angefordert von {name}, am {date}"
 },
 "nplurals=2; plural=(n != 1);");

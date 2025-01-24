@@ -359,10 +359,6 @@
     "Name of a locality or place, such as a city, county, or other geographic region" : "Name eines Ortes oder eines Platzes, z. B. einer Stadt, eines Landkreises oder einer anderen geografischen Region",
     "Name of an organization" : "Name einer Organisation",
     "Name of an organizational unit" : "Name einer Organisationseinheit",
-    "Requested by {name}, at {date}" : "Angefordert von {name}, am {date}",
-    "Click the page to add visible signature, then select a signer to set their signature position" : "Klicke auf die Seite, um eine sichtbare Signatur hinzuzufügen- Wähle dann einen Unterzeichner aus, um deren Signaturposition festzulegen.",
-    "All Files" : "Alle Dateien",
-    "Pending" : "Ausstehend",
-    "Signed" : "Signiert"
+    "Requested by {name}, at {date}" : "Angefordert von {name}, am {date}"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

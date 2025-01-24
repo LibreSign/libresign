@@ -269,9 +269,6 @@
     "Name of a locality or place, such as a city, county, or other geographic region" : "Nombre de una localidad o lugar, como una ciudad, condado u otra región geográfica",
     "Name of an organization" : "Nombre de una organización",
     "Name of an organizational unit" : "Nombre de una unidad organizativa",
-    "Requested by {name}, at {date}" : "Solicitado por {nombre}, el {fecha}",
-    "All Files" : "Todos los archivos",
-    "Pending" : "Pendiente",
-    "Signed" : "Firmado"
+    "Requested by {name}, at {date}" : "Solicitado por {nombre}, el {fecha}"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

@@ -63,7 +63,6 @@ OC.L10N.register(
     "Forgot password?" : "Aizmirsta parole?",
     "Status:" : "Statuss:",
     "No date" : "No date",
-    "Requested by {name}, at {date}" : "Pieprasīja {name} {date}",
-    "Pending" : "Gaida"
+    "Requested by {name}, at {date}" : "Pieprasīja {name} {date}"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);");
