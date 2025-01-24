@@ -82,11 +82,17 @@ class ConfigureCheckService {
 	}
 
 	public function checkPoppler(): array {
+		$return = $this->checkPdfSig();
+		$return = array_merge($return, $this->checkPdfinfo());
+		return $return;
+	}
+
+	public function checkPdfSig(): array {
 		if (shell_exec('which pdfsig') === null) {
 			return [
 				(new ConfigureCheckHelper())
 					->setInfoMessage('Poppler utils not installed')
-					->setResource('poppler-utils')
+					->setResource('pdfsig')
 					->setTip('Install the package poppler-utils at your operational system to be possible get more details about validation of signatures.'),
 			];
 		}
@@ -96,8 +102,8 @@ class ConfigureCheckService {
 		if (!$version) {
 			return [
 				(new ConfigureCheckHelper())
-					->setInfoMessage('Fail to retrieve pdfsig version')
-					->setResource('poppler-utils')
+					->setErrorMessage('Fail to retrieve pdfsig version')
+					->setResource('pdfsig')
 					->setTip("The command <pdfsig -v> executed by PHP haven't any output."),
 			];
 		}
@@ -105,14 +111,49 @@ class ConfigureCheckService {
 		if (!$version) {
 			return [
 				(new ConfigureCheckHelper())
-					->setInfoMessage('Fail to retrieve pdfsig version')
-					->setResource('poppler-utils')
+					->setErrorMessage('Fail to retrieve pdfsig version')
+					->setResource('pdfsig')
 					->setTip("This is a poppler-utils dependency and wasn't possible to parse the output of command pdfsig -v"),
 			];
 		}
 		return [(new ConfigureCheckHelper())
 			->setSuccessMessage('pdfsig version: ' . $matches['version'])
 			->setResource('pdfsig')
+		];
+	}
+
+	public function checkPdfinfo(): array {
+		if (shell_exec('which pdfinfo') === null) {
+			return [
+				(new ConfigureCheckHelper())
+					->setInfoMessage('Poppler utils not installed')
+					->setResource('pdfinfo')
+					->setTip('Install the package poppler-utils at your operational system have a fallback to fetch page dimensions.'),
+			];
+		}
+		// The output of this command go to STDERR and shell_exec get the STDOUT
+		// With 2>&1 the STRERR is redirected to STDOUT
+		$version = shell_exec('pdfinfo -v 2>&1');
+		if (!$version) {
+			return [
+				(new ConfigureCheckHelper())
+					->setErrorMessage('Fail to retrieve pdfinfo version')
+					->setResource('pdfinfo')
+					->setTip("The command <pdfinfo -v> executed by PHP haven't any output."),
+			];
+		}
+		$version = preg_match('/pdfinfo version (?<version>.*)/', $version, $matches);
+		if (!$version) {
+			return [
+				(new ConfigureCheckHelper())
+					->setErrorMessage('Fail to retrieve pdfinfo version')
+					->setResource('pdfinfo')
+					->setTip("This is a poppler-utils dependency and wasn't possible to parse the output of command pdfinfo -v"),
+			];
+		}
+		return [(new ConfigureCheckHelper())
+			->setSuccessMessage('pdfinfo version: ' . $matches['version'])
+			->setResource('pdfinfo')
 		];
 	}
 
