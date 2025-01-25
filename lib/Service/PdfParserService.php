@@ -41,14 +41,19 @@ class PdfParserService {
 		return $this;
 	}
 
+	private function getContent(): string {
+		if (!$this->content) {
+			throw new LibresignException('File not defined to be parsed.');
+		}
+		return $this->content;
+	}
+
 	private function getDocument(): Document {
 		if (!$this->document) {
-			if (!$this->content) {
-				throw new LibresignException('File not defined to be parsed.');
-			}
+			$content = $this->getContent();
 			try {
 				$parser = new \Smalot\PdfParser\Parser();
-				$this->document = $parser->parseContent($this->content);
+				$this->document = $parser->parseContent($content);
 				return $this->document;
 			} catch (\Throwable $th) {
 				if ($th->getMessage() === 'Secured pdf file are currently not supported.') {
@@ -67,6 +72,13 @@ class PdfParserService {
 	 * @psalm-return array{p: int, d?: non-empty-list<array{w: mixed, h: mixed}>}
 	 */
 	public function getPageDimensions(): array {
+		if ($return = $this->getPageDimensionsWithPdfInfo()) {
+			return $return;
+		}
+		return $this->getPageDimensionsWithSmalotPdfParser();
+	}
+
+	private function getPageDimensionsWithSmalotPdfParser(): array {
 		$document = $this->getDocument();
 		$pages = $document->getPages();
 		$output = [
@@ -78,15 +90,49 @@ class PdfParserService {
 				$pages = $document->getObjectsByType('Pages');
 				$details = reset($pages)->getHeader()->getDetails();
 			}
-			$widthAndHeight = [
-				'w' => $details['MediaBox'][2],
-				'h' => $details['MediaBox'][3]
-			];
-			if (!is_numeric($widthAndHeight['w']) || !is_numeric($widthAndHeight['h'])) {
+			if (!isset($details['MediaBox']) || !is_numeric($details['MediaBox'][2]) || !is_numeric($details['MediaBox'][3])) {
 				$this->logger->error('Impossible get metadata from this file: Error to get page width and height. If possible, open an issue at github.com/libresign/libresign with the file that you used.');
 				throw new LibresignException('Impossible get metadata from this file.');
 			}
-			$output['d'][] = $widthAndHeight;
+			$output['d'][] = [
+				'w' => $details['MediaBox'][2],
+				'h' => $details['MediaBox'][3],
+			];
+		}
+		$pending = $output['p'] - count($output['d']);
+		if ($pending) {
+			for ($i = 0; $i < $pending; $i++) {
+				$output['d'][] = $output['d'][0];
+			}
+		}
+		return $output;
+	}
+
+	private function getPageDimensionsWithPdfInfo(): array {
+		if (shell_exec('which pdfinfo') === null) {
+			return [];
+		}
+		$content = $this->getContent();
+		$filename = $this->tempManager->getTemporaryFile('.pdf');
+		file_put_contents($filename, $content);
+
+		// The output of this command go to STDERR and shell_exec get the STDOUT
+		// With 2>&1 the STRERR is redirected to STDOUT
+		$pdfinfo = shell_exec('pdfinfo ' . $filename . ' -l -1 2>&1');
+		if (!$pdfinfo) {
+			return [];
+		}
+		if (!preg_match_all('/Page +\d+ +size: +(\d+\.?\d*) x (\d+\.?\d*)/', $pdfinfo, $pages)) {
+			return [];
+		}
+		$output = [
+			'p' => count($pages[1]),
+		];
+		foreach ($pages[1] as $page => $width) {
+			$output['d'][] = [
+				'w' => (float)$width,
+				'h' => (float)$pages[2][$page],
+			];
 		}
 		return $output;
 	}
