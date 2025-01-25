@@ -401,6 +401,7 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "地點或地點的名稱，例如城市、縣或其他地理區域",
     "Name of an organization" : "組織名稱",
     "Name of an organizational unit" : "組織單位名稱",
+    "not a LibreSign file" : "非 LibreSign 檔案",
     "New signature request" : "新簽名請求",
     "Requested by {name}, at {date}" : "由 {name} 於 {date} 提出請求"
 },
