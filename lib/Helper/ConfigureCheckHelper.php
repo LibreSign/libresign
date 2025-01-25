@@ -27,6 +27,9 @@ namespace OCA\Libresign\Helper;
 use JsonSerializable;
 
 /**
+ * @method ConfigureCheckHelper setSuccessMessage(string $value)
+ * @method ConfigureCheckHelper setInfoMessage(string $value)
+ * @method ConfigureCheckHelper setErrorMessage(string $value)
  * @method ConfigureCheckHelper setStatus(string $value)
  * @method string getStatus()
  * @method ConfigureCheckHelper setMessage(string $value)
