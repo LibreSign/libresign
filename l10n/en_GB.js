@@ -401,6 +401,7 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Name of a locality or place, such as a city, county, or other geographic region",
     "Name of an organization" : "Name of an organization",
     "Name of an organizational unit" : "Name of an organizational unit",
+    "not a LibreSign file" : "not a LibreSign file",
     "New signature request" : "New signature request",
     "Requested by {name}, at {date}" : "Requested by {name}, at {date}"
 },
