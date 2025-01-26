@@ -401,6 +401,7 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "اسم المكان، مثل المدينة أو المحافظة أو المنطقة أو الولاية",
     "Name of an organization" : "اسم المؤسسة",
     "Name of an organizational unit" : "اسم الوحدة الإدارية",
+    "not a LibreSign file" : "ليس ملف LibreSign",
     "New signature request" : "طلب جديد للتوقيع",
     "Requested by {name}, at {date}" : "مطلوب من قبل {name}، في {date}"
 },
