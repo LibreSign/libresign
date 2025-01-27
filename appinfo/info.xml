@@ -43,7 +43,7 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
     <screenshot>https://raw.githubusercontent.com/LibreSign/libresign/main/img/screenshot/presentation.gif</screenshot>
     <dependencies>
         <lib>openssl</lib>
-        <nextcloud min-version="31" max-version="31"/>
+        <nextcloud min-version="32" max-version="32"/>
         <architecture>x86_64</architecture>
         <architecture>aarch64</architecture>
     </dependencies>
