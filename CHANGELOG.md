@@ -17,6 +17,10 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 11.0.0 - 2025-01-27
+## Feature
+- Say hello to Nexcloud 31
+
 ## 10.6.0 - 2025-01-27
 ### Features
 - feat: add extracerts to generated cert [#4427](https://github.com/LibreSign/libresign/pull/4427)
