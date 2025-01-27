@@ -15,54 +15,32 @@ use OCP\DB\Types;
  * @method void setId(int $uid)
  * @method int getId()
  * @method void setFileId(int $fileId)
- * @method int getFileId()
+ * @method int|null getFileId()
  * @method void setUuid(string $uuid)
  * @method string getUuid()
  * @method void setDescription(string $description)
- * @method string getDescription()
+ * @method string|null getDescription()
  * @method void setCreatedAt(int $createdAt)
  * @method int getCreatedAt()
  * @method void setSigned(int $signed)
- * @method int getSigned()
+ * @method int|null getSigned()
  * @method void setSignedHash(string $hash)
- * @method string getSignedHash()
+ * @method string|null getSignedHash()
  * @method void setDisplayName(string $displayName)
  * @method string getDisplayName()
  * @method void setMetadata(array $metadata)
- * @method array getMetadata()
+ * @method array|null getMetadata()
  */
 class SignRequest extends Entity {
-	/** @var integer */
-	public $id;
-
-	/** @var integer */
-	protected $fileId;
-
-	/** @var string */
-
-	/** @var string */
-	protected $uuid;
-
-	/** @var string */
-
-	/** @var string */
-	protected $displayName;
-
-	/** @var string */
-	protected $description;
-
-	/** @var int */
-	protected $createdAt;
-
-	/** @var int */
-	protected $signed;
-
-	/** @var string */
-	protected $signedHash;
-
-	/** @var string */
-	protected $metadata;
-
+	public int $id;
+	protected ?int $fileId;
+	protected string $uuid;
+	protected string $displayName;
+	protected ?string $description;
+	protected int $createdAt;
+	protected ?int $signed;
+	protected ?string $signedHash;
+	protected ?string $metadata;
 	public function __construct() {
 		$this->addType('id', 'integer');
 		$this->addType('fileId', 'integer');
