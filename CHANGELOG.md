@@ -13,6 +13,27 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 9.9.0 - 2025-01-27
+### Features
+- feat: add extracerts to generated cert [#4426](https://github.com/LibreSign/libresign/pull/4426)
+- feat: parse extracerts content [#4414](https://github.com/LibreSign/libresign/pull/4414)
+
+### Changes
+- Update translations
+- Bump dependencies
+- chore: use fallback to get page dimension [#4461](https://github.com/LibreSign/libresign/pull/4461)
+- chore: remove vuex [#4431](https://github.com/LibreSign/libresign/pull/4431)
+- chore(i18n): Fixed grammar [#4412](https://github.com/LibreSign/libresign/pull/4412)
+- chore: remove unused property [#4408](https://github.com/LibreSign/libresign/pull/4408)
+- chore: validate signer of signed pdf file [#4405](https://github.com/LibreSign/libresign/pull/4405)
+- chore: ignore warning of Nextcloud [#4402](https://github.com/LibreSign/libresign/pull/4402)
+- chore: only display div of chains if chain exists [#4399](https://github.com/LibreSign/libresign/pull/4399)
+
+### Fixes
+- fix: save as 0 or 1 [#4450](https://github.com/LibreSign/libresign/pull/4450)
+- fix: consider different values of settings [#4447](https://github.com/LibreSign/libresign/pull/4447)
+- fix: path of url [#4439](https://github.com/LibreSign/libresign/pull/4439)
+
 ## 9.8.3 - 2025-01-19
 ### Changes
 - chore: prevent generate unecessary temp file [#4392](https://github.com/LibreSign/libresign/pull/4392)
