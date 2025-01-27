@@ -340,12 +340,13 @@ class Pkcs12Handler extends SignEngineHandler {
 
 	private function parseDistinguishedNameWithMultipleValues(string $dn): array {
 		$result = [];
-		$pairs = explode(',', $dn);
+		$pairs = preg_split('/,(?=(?:[^"]*"[^"]*")*[^"]*$)/', $dn);
 
 		foreach ($pairs as $pair) {
 			[$key, $value] = explode('=', $pair, 2);
 			$key = trim($key);
 			$value = trim($value);
+			$value = trim($value, '"');
 
 			if (!isset($result[$key])) {
 				$result[$key] = $value;
