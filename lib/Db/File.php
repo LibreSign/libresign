@@ -17,10 +17,11 @@ use OCP\DB\Types;
  * @method void setNodeId(?int $nodeId)
  * @method int getNodeId()
  * @method void setSignedNodeId(int $nodeId)
- * @method int getSignedNodeId()
+ * @method int|null getSignedNodeId()
  * @method void setSignedHash(string $hash)
- * @method string getSignedHash()
+ * @method string|null getSignedHash()
  * @method void setUserId(string $userId)
+ * @method int|null getUserId()
  * @method void setUuid(string $uuid)
  * @method string getUuid()
  * @method void setCreatedAt(int $createdAt)
@@ -28,46 +29,24 @@ use OCP\DB\Types;
  * @method void setName(string $name)
  * @method string getName()
  * @method void setCallback(string $callback)
- * @method string getCallback()
+ * @method string|null getCallback()
  * @method void setStatus(int $status)
  * @method int getStatus()
  * @method void setMetadata(array $metadata)
- * @method array getMetadata()
+ * @method array|null getMetadata()
  */
 class File extends Entity {
-	/** @var integer */
-	public $id;
-
-	/** @var integer */
-	protected $nodeId;
-
-	/** @var integer */
-	protected $signedNodeId;
-
-	/** @var string */
-	protected $signedHash;
-
-	/** @var string */
-	protected $userId;
-
-	/** @var string */
-	protected $uuid;
-
-	/** @var integer */
-	protected $createdAt;
-
-	/** @var string */
-	protected $name;
-
-	/** @var string */
-	protected $callback;
-
-	/** @var integer */
-	protected $status;
-
-	/** @var string */
-	protected $metadata;
-
+	public int $id;
+	protected int $nodeId;
+	protected string $uuid;
+	protected int $createdAt;
+	protected string $name;
+	protected int $status;
+	protected ?string $userId;
+	protected ?int $signedNodeId;
+	protected ?string $signedHash;
+	protected ?string $callback;
+	protected ?string $metadata;
 	public const STATUS_NOT_LIBRESIGN_FILE = -1;
 	public const STATUS_DRAFT = 0;
 	public const STATUS_ABLE_TO_SIGN = 1;
@@ -76,16 +55,16 @@ class File extends Entity {
 	public const STATUS_DELETED = 4;
 
 	public function __construct() {
-		$this->addType('id', 'integer');
-		$this->addType('nodeId', 'integer');
-		$this->addType('signedNodeId', 'integer');
-		$this->addType('signedHash', 'string');
-		$this->addType('userId', 'string');
-		$this->addType('uuid', 'string');
-		$this->addType('createdAt', 'integer');
-		$this->addType('name', 'string');
-		$this->addType('callback', 'string');
-		$this->addType('status', 'integer');
+		$this->addType('id', Types::INTEGER);
+		$this->addType('nodeId', Types::INTEGER);
+		$this->addType('signedNodeId', Types::INTEGER);
+		$this->addType('signedHash', Types::STRING);
+		$this->addType('userId', Types::STRING);
+		$this->addType('uuid', Types::STRING);
+		$this->addType('createdAt', Types::INTEGER);
+		$this->addType('name', Types::STRING);
+		$this->addType('callback', Types::STRING);
+		$this->addType('status', Types::INTEGER);
 		$this->addType('metadata', Types::JSON);
 	}
 
