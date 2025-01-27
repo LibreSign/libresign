@@ -17,6 +17,48 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 10.6.0 - 2025-01-27
+### Features
+- feat: add extracerts to generated cert [#4427](https://github.com/LibreSign/libresign/pull/4427)
+- feat: parse extracerts content [#4415](https://github.com/LibreSign/libresign/pull/4415)
+
+### Changes
+- Update translations
+- Bump dependencies
+- chore: use fallback to get page dimension [#4462](https://github.com/LibreSign/libresign/pull/4462)
+- chore: remove vuex [#4429](https://github.com/LibreSign/libresign/pull/4429)
+- chore(i18n): Fixed grammar [#4411](https://github.com/LibreSign/libresign/pull/4411)
+- chore: remove unused property [#4407](https://github.com/LibreSign/libresign/pull/4407)
+- chore: validate signer of signed pdf file [#4404](https://github.com/LibreSign/libresign/pull/4404)
+- chore: ignore warning of Nextcloud [#4403](https://github.com/LibreSign/libresign/pull/4403)
+- chore: only display div of chains if chain exists [#4400](https://github.com/LibreSign/libresign/pull/4400)
+
+### Fixes
+- fix: save as 0 or 1 [#4451](https://github.com/LibreSign/libresign/pull/4451)
+- fix: consider different values of settings [#4448](https://github.com/LibreSign/libresign/pull/4448)
+- fix: path of url [#4438](https://github.com/LibreSign/libresign/pull/4438)
+
+## 9.9.0 - 2025-01-27
+### Features
+- feat: add extracerts to generated cert [#4426](https://github.com/LibreSign/libresign/pull/4426)
+- feat: parse extracerts content [#4414](https://github.com/LibreSign/libresign/pull/4414)
+
+### Changes
+- Update translations
+- Bump dependencies
+- chore: use fallback to get page dimension [#4461](https://github.com/LibreSign/libresign/pull/4461)
+- chore: remove vuex [#4431](https://github.com/LibreSign/libresign/pull/4431)
+- chore(i18n): Fixed grammar [#4412](https://github.com/LibreSign/libresign/pull/4412)
+- chore: remove unused property [#4408](https://github.com/LibreSign/libresign/pull/4408)
+- chore: validate signer of signed pdf file [#4405](https://github.com/LibreSign/libresign/pull/4405)
+- chore: ignore warning of Nextcloud [#4402](https://github.com/LibreSign/libresign/pull/4402)
+- chore: only display div of chains if chain exists [#4399](https://github.com/LibreSign/libresign/pull/4399)
+
+### Fixes
+- fix: save as 0 or 1 [#4450](https://github.com/LibreSign/libresign/pull/4450)
+- fix: consider different values of settings [#4447](https://github.com/LibreSign/libresign/pull/4447)
+- fix: path of url [#4439](https://github.com/LibreSign/libresign/pull/4439)
+
 ## 10.5.3 - 2025-01-19
 ### Changes
 - chore: bump dependencies
