@@ -36,7 +36,7 @@ use OCP\DB\Types;
  * @method void setSignRequestId(int $signRequestId)
  * @method string getType()
  * @method void setType(string $type)
- * @method array getMetadata()
+ * @method array|null getMetadata()
  * @method void setMetadata(array $metadata)
  * @method int getPage()
  * @method void setPage(int $page)
@@ -44,57 +44,35 @@ use OCP\DB\Types;
  * @method void setUrx(int $urx)
  * @method int getUry()
  * @method void setUry(int $ury)
- * @method int getLlx()
+ * @method int|null getLlx()
  * @method void setLlx(int $llx)
- * @method int getLly()
+ * @method int|null getLly()
  * @method void setLly(int $lly)
  * @method \DateTime getCreatedAt()
  */
 class FileElement extends Entity {
-	/** @var integer */
-	public $id;
-
-	/** @var integer */
-	protected $fileId;
-
-	/** @var int */
-	protected $signRequestId;
-
-	/** @var string */
-	protected $type;
-
-	/** @var string */
-	protected $metadata;
-
-	/** @var integer */
-	protected $page;
-
-	/** @var integer */
-	protected $urx;
-
-	/** @var integer */
-	protected $ury;
-
-	/** @var integer */
-	protected $llx;
-
-	/** @var integer */
-	protected $lly;
-
-	/** @var \DateTime */
-	protected $createdAt;
-
+	public int $id;
+	protected int $fileId;
+	protected int $signRequestId;
+	protected string $type;
+	protected ?string $metadata;
+	protected int $page;
+	protected int $urx;
+	protected int $ury;
+	protected ?int $llx;
+	protected ?int $lly;
+	protected \DateTime $createdAt;
 	public function __construct() {
-		$this->addType('id', 'integer');
-		$this->addType('fileId', 'integer');
-		$this->addType('signRequestId', 'integer');
-		$this->addType('type', 'string');
+		$this->addType('id', Types::INTEGER);
+		$this->addType('fileId', Types::INTEGER);
+		$this->addType('signRequestId', Types::INTEGER);
+		$this->addType('type', Types::STRING);
 		$this->addType('metadata', Types::JSON);
-		$this->addType('page', 'integer');
-		$this->addType('urx', 'integer');
-		$this->addType('ury', 'integer');
-		$this->addType('llx', 'integer');
-		$this->addType('lly', 'integer');
+		$this->addType('page', Types::INTEGER);
+		$this->addType('urx', Types::INTEGER);
+		$this->addType('ury', Types::INTEGER);
+		$this->addType('llx', Types::INTEGER);
+		$this->addType('lly', Types::INTEGER);
 		$this->addType('createdAt', 'datetime');
 	}
 
