@@ -100,7 +100,6 @@ appstore:
 		templates \
 		vendor \
 		CHANGELOG.md \
-		LICENSE \
 		openapi*.json \
 		$(appstore_sign_dir)/$(app_name)
 	rm $(appstore_sign_dir)/$(app_name)/vendor/endroid/qr-code/assets/*
