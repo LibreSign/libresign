@@ -89,9 +89,9 @@ Feature: request-signature
     When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
-      | key    | value                                  |
-      | action | 1000                                   |
-      | errors | ["User already exists. Please login."] |
+      | key    | value                                                          |
+      | action | 1000                                                           |
+      | errors | ["User already exists. Please login.","This is not your file"] |
 
   Scenario: Request to sign with error when the link was expired
     Given as user "admin"
