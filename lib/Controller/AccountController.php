@@ -91,7 +91,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 * @param string $email email to the new account
 	 * @param string $password the password to then new account
 	 * @param string|null $signPassword The password to create certificate
-	 * @return DataResponse<Http::STATUS_OK, array{message: string,action: int, pdf: array{url: string},filename: string,description: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string,action: int}, array{}>
+	 * @return DataResponse<Http::STATUS_OK|Http::STATUS_UNPROCESSABLE_ENTITY, array{action: 2000|2500, description?: null|string, filename?: string, message: string, pdf?: array{url: string}}|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string,action: int}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Validation page not accessible if unauthenticated
