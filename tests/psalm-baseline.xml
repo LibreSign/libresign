@@ -53,11 +53,6 @@
       <code><![CDATA[$storage]]></code>
     </UndefinedDocblockClass>
   </file>
-  <file src="lib/Controller/PageController.php">
-    <InvalidThrow>
-      <code><![CDATA[throw new NotLoggedInException();]]></code>
-    </InvalidThrow>
-  </file>
   <file src="lib/Db/PagerFantaQueryAdapter.php">
     <MissingTemplateParam>
       <code><![CDATA[AdapterInterface]]></code>

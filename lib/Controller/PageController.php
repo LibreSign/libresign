@@ -24,7 +24,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Controller;
 
-use OC\AppFramework\Middleware\Security\Exceptions\NotLoggedInException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
@@ -50,7 +49,6 @@ use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
-use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -77,7 +75,7 @@ class PageController extends AEnvironmentPageAwareController {
 		private FileService $fileService,
 		private ValidateHelper $validateHelper,
 		private IEventDispatcher $eventDispatcher,
-		private IURLGenerator $url,
+		private IURLGenerator $urlGenerator,
 	) {
 		parent::__construct(
 			request: $request,
@@ -512,7 +510,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 * The path is used only by frontend
 	 *
 	 * @param string $uuid Sign request uuid
-	 * @return RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
 	 *
 	 * 303: Redirected to validation page
 	 * 401: Validation page not accessible if unauthenticated
@@ -523,9 +521,9 @@ class PageController extends AEnvironmentPageAwareController {
 	#[PublicPage]
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[FrontpageRoute(verb: 'GET', url: '/validation/{uuid}')]
-	public function validationFileWithShortUrl(): RedirectResponse {
+	public function validationFileWithShortUrl(): TemplateResponse {
 		$this->throwIfValidationPageNotAccessible();
-		return new RedirectResponse($this->url->linkToRoute('libresign.page.validationFilePublic', ['uuid' => $this->request->getParam('uuid')]));
+		return $this->validationFilePublic($this->request->getParam('uuid'));
 	}
 
 	/**
@@ -623,7 +621,24 @@ class PageController extends AEnvironmentPageAwareController {
 			return;
 		}
 		if ($isValidationUrlPrivate) {
-			throw new NotLoggedInException();
+			if ($uuid = $this->request->getParam('uuid')) {
+				$redirectUrl = $this->urlGenerator->linkToRoute(
+					'libresign.page.validationFilePublic',
+					['uuid' => $uuid]
+				);
+			} else {
+				$redirectUrl = $this->urlGenerator->linkToRoute(
+					'libresign.page.validation',
+				);
+			}
+
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_REDIRECT,
+				'errors' => [$this->l10n->t('You are not logged in. Please log in.')],
+				'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
+					'redirect_url' => $redirectUrl,
+				]),
+			]), Http::STATUS_UNAUTHORIZED);
 		}
 	}
 }

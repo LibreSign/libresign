@@ -15,11 +15,13 @@ use OCA\Libresign\Middleware\InjectionMiddleware;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IServerContainer;
+use OCP\ISession;
 use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
@@ -47,6 +49,7 @@ use Psr\Log\LoggerInterface;
 
 final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IRequest|MockObject $request;
+	private ISession|MockObject $session;
 	private IUserSession|MockObject $userSession;
 	private ValidateHelper|MockObject $validateHelper;
 	private SignRequestMapper|MockObject $signRequestMapper;
@@ -61,6 +64,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
+		$this->session = $this->createMock(ISession::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->validateHelper = $this->createMock(ValidateHelper::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
@@ -81,6 +85,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function getInjectionMiddleware(): InjectionMiddleware {
 		return new InjectionMiddleware(
 			$this->request,
+			$this->session,
 			$this->userSession,
 			$this->validateHelper,
 			$this->signRequestMapper,
@@ -200,6 +205,27 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					);
 					$self->assertEquals(
 						$code,
+						$actual->getStatus(),
+						'Invalid response status code'
+					);
+				},
+			],
+			[
+				json_encode(['action' => 1000, 'redirect' => 'http://fake.url']), 1, PageException::class,
+				function (self $self, $message, int $code, $actual):void {
+					/** @var RedirectResponse $actual */
+					$self->assertInstanceOf(
+						RedirectResponse::class,
+						$actual,
+						'The response need to be RedirectResponse'
+					);
+					$self->assertEquals(
+						'http://fake.url',
+						$actual->getRedirectURL(),
+						'Invalid redirect URL'
+					);
+					$self->assertEquals(
+						303,
 						$actual->getStatus(),
 						'Invalid response status code'
 					);
