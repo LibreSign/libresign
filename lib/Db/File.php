@@ -21,7 +21,7 @@ use OCP\DB\Types;
  * @method void setSignedHash(string $hash)
  * @method string|null getSignedHash()
  * @method void setUserId(string $userId)
- * @method int|null getUserId()
+ * @method string|null getUserId()
  * @method void setUuid(string $uuid)
  * @method string getUuid()
  * @method void setCreatedAt(int $createdAt)
@@ -36,7 +36,6 @@ use OCP\DB\Types;
  * @method array|null getMetadata()
  */
 class File extends Entity {
-	public int $id;
 	protected int $nodeId;
 	protected string $uuid;
 	protected int $createdAt;
@@ -78,6 +77,6 @@ class File extends Entity {
 		if (isset($metadata['deleted_account']['account'])) {
 			return $metadata['deleted_account']['account'];
 		}
-		return $this->userId;
+		return $this->userId ?? '';
 	}
 }

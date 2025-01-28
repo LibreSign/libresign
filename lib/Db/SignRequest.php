@@ -32,7 +32,6 @@ use OCP\DB\Types;
  * @method array|null getMetadata()
  */
 class SignRequest extends Entity {
-	public int $id;
 	protected ?int $fileId;
 	protected string $uuid;
 	protected string $displayName;
