@@ -36,7 +36,7 @@ use OCP\DB\Types;
  * @method void setSignRequestId(int $signRequestId)
  * @method string getType()
  * @method void setType(string $type)
- * @method array|null getMetadata()
+ * @method ?array getMetadata()
  * @method void setMetadata(array $metadata)
  * @method int getPage()
  * @method void setPage(int $page)
@@ -44,11 +44,11 @@ use OCP\DB\Types;
  * @method void setUrx(int $urx)
  * @method int getUry()
  * @method void setUry(int $ury)
- * @method int|null getLlx()
+ * @method ?int getLlx()
  * @method void setLlx(int $llx)
- * @method int|null getLly()
+ * @method ?int getLly()
  * @method void setLly(int $lly)
- * @method \DateTime|null getCreatedAt()
+ * @method ?\DateTime getCreatedAt()
  */
 class FileElement extends Entity {
 	protected int $fileId = 0;
