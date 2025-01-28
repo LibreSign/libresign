@@ -22,19 +22,19 @@ use OCP\DB\Types;
  * @method void setStarred(int $starred)
  * @method int getStarred()
  * @method void setCreatedAt(\DateTime $createdAt)
- * @method \DateTime getCreatedAt()
+ * @method ?\DateTime getCreatedAt()
  * @method void setMetadata(array $metadata)
- * @method array|null getMetadata()
+ * @method ?array getMetadata()
  */
 class UserElement extends Entity {
 	public string $type = '';
 	protected int $fileId = 0;
 	protected string $userId = '';
 	public bool $starred = false;
-	public \DateTime $createdAt;
+	public ?\DateTime $createdAt = null;
 	protected ?array $metadata = null;
-	/** @var array{url: string, nodeId: non-negative-int}|null */
-	public $file;
+	/** @var ?array{url: string, nodeId: non-negative-int} */
+	public ?array $file = null;
 	public function __construct() {
 		$this->addType('id', Types::INTEGER);
 		$this->addType('type', Types::STRING);
