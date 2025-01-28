@@ -17,11 +17,11 @@ use OCP\DB\Types;
  * @method void setNodeId(?int $nodeId)
  * @method int getNodeId()
  * @method void setSignedNodeId(int $nodeId)
- * @method int|null getSignedNodeId()
+ * @method ?int getSignedNodeId()
  * @method void setSignedHash(string $hash)
- * @method string|null getSignedHash()
+ * @method ?string getSignedHash()
  * @method void setUserId(string $userId)
- * @method string|null getUserId()
+ * @method ?string getUserId()
  * @method void setUuid(string $uuid)
  * @method string getUuid()
  * @method void setCreatedAt(int $createdAt)
@@ -29,11 +29,11 @@ use OCP\DB\Types;
  * @method void setName(string $name)
  * @method string getName()
  * @method void setCallback(string $callback)
- * @method string|null getCallback()
+ * @method ?string getCallback()
  * @method void setStatus(int $status)
  * @method int getStatus()
  * @method void setMetadata(array $metadata)
- * @method array|null getMetadata()
+ * @method ?array getMetadata()
  */
 class File extends Entity {
 	protected int $nodeId = 0;
