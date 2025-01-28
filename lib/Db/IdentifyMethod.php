@@ -22,41 +22,32 @@ use OCP\DB\Types;
  * @method string getIdentifierKey()
  * @method void setIdentifierValue(string $identifierValue)
  * @method void setCode(string $code)
- * @method string getCode()
+ * @method ?string getCode()
  * @method ?\DateTime getIdentifiedAtDate()
  * @method ?\DateTime getLastAttemptDate()
  * @method void setMetadata(array $metadata)
  * @method array getMetadata()
  */
 class IdentifyMethod extends Entity {
-	/** @var integer */
-	public $signRequestId;
-	/** @var int */
-	public $mandatory;
-	/** @var string */
-	public $code;
-	/** @var string */
-	public $identifierKey;
-	/** @var string */
-	public $identifierValue;
-	/** @var int */
-	public $attempts;
-	/** @var ?\DateTime */
-	public $identifiedAtDate;
-	/** @var ?\DateTime */
-	public $lastAttemptDate;
-	/** @var string */
-	protected $metadata;
+	public int $signRequestId = 0;
+	public int $mandatory = 0;
+	public string $identifierKey = '';
+	public string $identifierValue = '';
+	public int $attempts = 0;
+	public ?string $code = '';
+	public ?\DateTime $identifiedAtDate;
+	public ?\DateTime $lastAttemptDate;
+	protected array $metadata = [];
 
 	public function __construct() {
-		$this->addType('signRequestId', 'integer');
-		$this->addType('mandatory', 'integer');
-		$this->addType('code', 'string');
-		$this->addType('identifierKey', 'string');
-		$this->addType('identifierValue', 'string');
-		$this->addType('attempts', 'integer');
-		$this->addType('identifiedAtDate', 'datetime');
-		$this->addType('lastAttemptDate', 'datetime');
+		$this->addType('signRequestId', Types::INTEGER);
+		$this->addType('mandatory', Types::INTEGER);
+		$this->addType('code', Types::STRING);
+		$this->addType('identifierKey', Types::STRING);
+		$this->addType('identifierValue', Types::STRING);
+		$this->addType('attempts', Types::INTEGER);
+		$this->addType('identifiedAtDate', Types::DATETIME);
+		$this->addType('lastAttemptDate', Types::DATETIME);
 		$this->addType('metadata', Types::JSON);
 	}
 
