@@ -433,7 +433,7 @@ class FileController extends AEnvironmentAwareController {
 				'userManager' => $this->userSession->getUser(),
 				'status' => FileEntity::STATUS_DRAFT,
 			];
-			$file = $this->requestSignatureService->save($data);
+			$this->requestSignatureService->save($data);
 
 			return new DataResponse(
 				[
