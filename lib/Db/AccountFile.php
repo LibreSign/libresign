@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\Entity;
+use OCP\DB\Types;
 
 /**
  * @method void setFileType(string $fileType)
@@ -19,18 +20,13 @@ use OCP\AppFramework\Db\Entity;
  * @method int getFileId()
  */
 class AccountFile extends Entity {
-	/** @var string */
-	public $fileType;
-
-	/** @var string */
-	protected $userId;
-
-	/** @var integer */
-	protected $fileId;
+	public string $fileType = '';
+	protected string $userId = '';
+	protected int $fileId = 0;
 
 	public function __construct() {
-		$this->addType('fileType', 'string');
-		$this->addType('userId', 'string');
-		$this->addType('fileId', 'integer');
+		$this->addType('fileType', Types::STRING);
+		$this->addType('userId', Types::STRING);
+		$this->addType('fileId', Types::INTEGER);
 	}
 }
