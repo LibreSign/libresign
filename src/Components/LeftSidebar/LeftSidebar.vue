@@ -94,11 +94,13 @@ export default {
 		showLeftSidebar() {
 			if (this.$route.name === 'Incomplete'
 				|| this.$route.name === 'IncompleteExternal'
+				|| !getCurrentUser()
+				|| this.$route.path.startsWith('/p/')
+				|| this.$route.path.startsWith('/validation/') // short validation url
 			) {
 				return false
 			}
-			return getCurrentUser()
-				|| !this.$route.path.startsWith('/p/')
+			return true
 		},
 	},
 	methods: {
