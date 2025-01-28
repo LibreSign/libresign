@@ -31,6 +31,8 @@ import { generateOcsUrl } from '@nextcloud/router'
 import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
 
+import logger from '../../logger.js'
+
 import '@nextcloud/password-confirmation/dist/style.css'
 
 export default {
@@ -49,23 +51,27 @@ export default {
 		idKey: 0,
 	}),
 
-	mounted() {
-		this.searchGroup('')
-		this.getData()
+	async created() {
+		await this.searchGroup('')
+		await this.getData()
 	},
 
 	methods: {
 		async getData() {
 			this.loadingGroups = true
-			const response = await axios.get(
+			await axios.get(
 				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/groups_request_sign'),
 			)
-			if (response.data.ocs.data.data !== '') {
-				const groupsSelected = JSON.parse(response.data.ocs.data.data)
-				this.groupsSelected = this.groups.filter(group => {
-					return groupsSelected.indexOf(group.id) !== -1
+				.then(({ data }) => {
+					const groupsSelected = JSON.parse(data.ocs.data.data)
+					if (!groupsSelected) {
+						return
+					}
+					this.groupsSelected = this.groups.filter(group => {
+						return groupsSelected.indexOf(group.id) !== -1
+					})
 				})
-			}
+				.catch((error) => logger.debug('Could not fetch groups_request_sign', { error }))
 			this.loadingGroups = false
 		},
 
