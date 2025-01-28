@@ -48,7 +48,7 @@ use OCP\DB\Types;
  * @method void setLlx(int $llx)
  * @method int|null getLly()
  * @method void setLly(int $lly)
- * @method \DateTime getCreatedAt()
+ * @method \DateTime|null getCreatedAt()
  */
 class FileElement extends Entity {
 	protected int $fileId = 0;
@@ -60,7 +60,7 @@ class FileElement extends Entity {
 	protected int $ury = 0;
 	protected ?int $llx = null;
 	protected ?int $lly = null;
-	protected \DateTime $createdAt;
+	protected ?\DateTime $createdAt = null;
 	public function __construct() {
 		$this->addType('id', Types::INTEGER);
 		$this->addType('fileId', Types::INTEGER);
