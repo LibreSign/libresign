@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\Entity;
+use OCP\DB\Types;
 
 /**
  * @method string getType()
@@ -19,18 +20,12 @@ use OCP\AppFramework\Db\Entity;
  * @method void setDescription(string $description)
  */
 class FileType extends Entity {
-	/** @var string */
-	public $type;
-
-	/** @var string */
-	protected $name;
-
-	/** @var string */
-	protected $description;
-
+	public string $type = '';
+	protected string $name = '';
+	protected string $description = '';
 	public function __construct() {
-		$this->addType('type', 'string');
-		$this->addType('name', 'string');
-		$this->addType('description', 'string');
+		$this->addType('type', Types::STRING);
+		$this->addType('name', Types::STRING);
+		$this->addType('description', Types::STRING);
 	}
 }

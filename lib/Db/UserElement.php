@@ -22,34 +22,26 @@ use OCP\DB\Types;
  * @method void setStarred(int $starred)
  * @method int getStarred()
  * @method void setCreatedAt(\DateTime $createdAt)
- * @method \DateTime getCreatedAt()
+ * @method ?\DateTime getCreatedAt()
  * @method void setMetadata(array $metadata)
- * @method array getMetadata()
+ * @method ?array getMetadata()
  */
 class UserElement extends Entity {
-	/** @var integer */
-	public $id;
-	/** @var string */
-	public $type;
-	/** @var integer */
-	protected $fileId;
-	/** @var string */
-	protected $userId;
-	/** @var bool */
-	public $starred;
-	/** @var \DateTime */
-	public $createdAt;
-	/** @var string */
-	protected $metadata;
-	/** @var array{url: string, nodeId: non-negative-int}|null */
-	public $file;
+	public string $type = '';
+	protected int $fileId = 0;
+	protected string $userId = '';
+	public bool $starred = false;
+	public ?\DateTime $createdAt = null;
+	protected ?array $metadata = null;
+	/** @var ?array{url: string, nodeId: non-negative-int} */
+	public ?array $file = null;
 	public function __construct() {
-		$this->addType('id', 'integer');
-		$this->addType('type', 'string');
-		$this->addType('fileId', 'integer');
-		$this->addType('userId', 'string');
-		$this->addType('starred', 'integer');
-		$this->addType('createdAt', 'datetime');
+		$this->addType('id', Types::INTEGER);
+		$this->addType('type', Types::STRING);
+		$this->addType('fileId', Types::INTEGER);
+		$this->addType('userId', Types::STRING);
+		$this->addType('starred', Types::INTEGER);
+		$this->addType('createdAt', Types::DATETIME);
 		$this->addType('metadata', Types::JSON);
 	}
 
