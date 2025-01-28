@@ -34,6 +34,8 @@ import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadi
 import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
 
+import logger from '../../logger.js'
+
 export default {
 	name: 'IdentificationDocuments',
 	components: {
@@ -63,12 +65,19 @@ export default {
 					this.identificationDocumentsFlowEnabled = ['true', true, '1', 1].includes(data.ocs.data.data)
 				})
 
-			const responseApprovalGroups = await axios.get(
+			await axios.get(
 				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/approval_group'),
 			)
-			if (responseApprovalGroups.data.ocs.data.data !== '') {
-				this.approvalGroups = JSON.parse(responseApprovalGroups.data.ocs.data.data)
-			}
+				.then(({ data }) => {
+					const approvalGroups = JSON.parse(data.ocs.data.data)
+					if (!approvalGroups) {
+						return
+					}
+					this.approvalGroups = this.groups.filter(group => {
+						return approvalGroups.indexOf(group.id) !== -1
+					})
+				})
+				.catch((error) => logger.debug('Could not fetch groups_request_sign', { error }))
 		},
 		saveIdentificationDocumentsStatus() {
 			OCP.AppConfig.setValue('libresign', 'identification_documents', this.identificationDocumentsFlowEnabled ? 1 : 0)
@@ -86,20 +95,18 @@ export default {
 		},
 		async searchGroup(query) {
 			this.loadingGroups = true
-			try {
-				const response = await axios.get(generateOcsUrl('cloud/groups/details'), {
-					search: query,
-					limit: 20,
-					offset: 0,
+			await axios.get(generateOcsUrl('cloud/groups/details'), {
+				search: query,
+				limit: 20,
+				offset: 0,
+			})
+				.then(({ data }) => {
+					this.groups = data.ocs.data.groups.sort(function(a, b) {
+						return a.displayname.localeCompare(b.displayname)
+					})
 				})
-				this.groups = response.data.ocs.data.groups.sort(function(a, b) {
-					return a.displayname.localeCompare(b.displayname)
-				})
-			} catch (err) {
-				console.error('Could not fetch groups', err)
-			} finally {
-				this.loadingGroups = false
-			}
+				.catch((error) => logger.debug('Could not search by groups', { error }))
+			this.loadingGroups = false
 		},
 	},
 }
