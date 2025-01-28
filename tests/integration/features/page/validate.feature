@@ -1,6 +1,7 @@
 Feature: page/validate
   Background: Make setup ok
     Given run the command "config:app:set libresign authkey --value=dummy" with result code 0
+    And run the command "libresign:configure:openssl --cn test" with result code 0
 
   Scenario: Unauthenticated user can see sign page
     Given as user "admin"
