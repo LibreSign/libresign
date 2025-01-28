@@ -35,15 +35,15 @@ use OCP\DB\Types;
  * @method \DateTime getCreatedAt()
  */
 class FileElement extends Entity {
-	protected int $fileId;
-	protected int $signRequestId;
-	protected string $type;
-	protected ?string $metadata;
-	protected int $page;
-	protected int $urx;
-	protected int $ury;
-	protected ?int $llx;
-	protected ?int $lly;
+	protected int $fileId = 0;
+	protected int $signRequestId = 0;
+	protected string $type = '';
+	protected ?array $metadata = null;
+	protected int $page = 0;
+	protected int $urx = 0;
+	protected int $ury = 0;
+	protected ?int $llx = null;
+	protected ?int $lly = null;
 	protected \DateTime $createdAt;
 	public function __construct() {
 		$this->addType('id', Types::INTEGER);

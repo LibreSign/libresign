@@ -20,9 +20,9 @@ use OCP\DB\Types;
  * @method void setDescription(string $description)
  */
 class FileType extends Entity {
-	public string $type;
-	protected string $name;
-	protected string $description;
+	public string $type = '';
+	protected string $name = '';
+	protected string $description = '';
 	public function __construct() {
 		$this->addType('type', Types::STRING);
 		$this->addType('name', Types::STRING);

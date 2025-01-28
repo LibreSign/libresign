@@ -20,9 +20,9 @@ use OCP\DB\Types;
  * @method int getFileId()
  */
 class AccountFile extends Entity {
-	public string $fileType;
-	protected string $userId;
-	protected int $fileId;
+	public string $fileType = '';
+	protected string $userId = '';
+	protected int $fileId = 0;
 
 	public function __construct() {
 		$this->addType('fileType', Types::STRING);
