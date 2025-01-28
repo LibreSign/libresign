@@ -80,7 +80,7 @@ const router = new Router({
 			props: true,
 		},
 		{
-			path: '/p/sign/:uuid/error',
+			path: '/p/error',
 			name: 'DefaultPageErrorExternal',
 			component: () => import('../views/DefaultPageError.vue'),
 			props: true,
@@ -93,6 +93,12 @@ const router = new Router({
 		{
 			path: '/p/validation/:uuid',
 			name: 'ValidationFileExternal',
+			component: () => import('../views/Validation.vue'),
+			props: true,
+		},
+		{
+			path: '/validation/:uuid',
+			name: 'ValidationFileShortUrl',
 			component: () => import('../views/Validation.vue'),
 			props: true,
 		},
@@ -208,7 +214,8 @@ router.beforeEach((to, from, next) => {
 	const actionElement = document.querySelector('#initial-state-libresign-action')
 	let action
 	if (actionElement) {
-		action = selectAction(loadState('libresign', 'action', ''), to, from)
+		to.params.action = loadState('libresign', 'action', '')
+		action = selectAction(to.params.action, to, from)
 		document.querySelector('#initial-state-libresign-action')?.remove()
 	}
 	if (Object.hasOwn(to, 'name') && typeof to.name === 'string' && !to.name.endsWith('External') && isExternal(to, from)) {
