@@ -97,9 +97,14 @@ class Email extends AbstractIdentifyMethod {
 			]));
 		}
 		$signRequest = $this->identifyService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
+		$errors = [$this->identifyService->getL10n()->t('User already exists. Please login.')];
+		if ($this->userSession->isLoggedIn()) {
+			$errors[] = $this->identifyService->getL10n()->t('This is not your file');
+			$this->userSession->logout();
+		}
 		throw new LibresignException(json_encode([
 			'action' => JSActions::ACTION_REDIRECT,
-			'errors' => [$this->identifyService->getL10n()->t('User already exists. Please login.')],
+			'errors' => $errors,
 			'redirect' => $this->identifyService->getUrlGenerator()->linkToRoute('core.login.showLoginForm', [
 				'redirect_url' => $this->identifyService->getUrlGenerator()->linkToRoute(
 					'libresign.page.sign',
@@ -142,9 +147,14 @@ class Email extends AbstractIdentifyMethod {
 			}
 		}
 		$signRequest = $this->identifyService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
+		$errors = [$this->identifyService->getL10n()->t('User already exists. Please login.')];
+		if ($this->userSession->isLoggedIn()) {
+			$errors[] = $this->identifyService->getL10n()->t('This is not your file');
+			$this->userSession->logout();
+		}
 		throw new LibresignException(json_encode([
 			'action' => JSActions::ACTION_REDIRECT,
-			'errors' => [$this->identifyService->getL10n()->t('User already exists. Please login.')],
+			'errors' => $errors,
 			'redirect' => $this->identifyService->getUrlGenerator()->linkToRoute('core.login.showLoginForm', [
 				'redirect_url' => $this->identifyService->getUrlGenerator()->linkToRoute(
 					'libresign.page.sign',
