@@ -40,8 +40,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 
 class InstallService {
-	public const JAVA_VERSION = 'openjdk version "21.0.5" 2024-10-15 LTS';
-	private const JAVA_URL_PATH_NAME = '21.0.5+11';
+	public const JAVA_VERSION = 'openjdk version "21.0.6" 2025-01-21 LTS';
+	private const JAVA_URL_PATH_NAME = '21.0.6+7';
 	public const PDFTK_VERSION = '3.3.3';
 	/**
 	 * When update, verify the hash of all architectures
