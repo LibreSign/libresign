@@ -56,9 +56,9 @@ export default {
 			idApprovalGroupsKey: 0,
 		}
 	},
-	created() {
-		this.searchGroup('')
-		this.getData()
+	async created() {
+		await this.searchGroup('')
+		await this.getData()
 	},
 	methods: {
 		async getData() {
