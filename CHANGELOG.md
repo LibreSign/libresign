@@ -13,6 +13,25 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 9.9.1 - 2025-01-28
+### Changes
+- Update translations
+- Bump dependencies
+- chore: bump java [#4531](https://github.com/LibreSign/libresign/pull/4531)
+- refactor: convert to promisse [#4529](https://github.com/LibreSign/libresign/pull/4529)
+- refactor: force typing [#4504](https://github.com/LibreSign/libresign/pull/4504)
+
+### Fixes
+- fix: prevent error when enpty data from backend [#4528](https://github.com/LibreSign/libresign/pull/4528)
+- fix: use async await [#4521](https://github.com/LibreSign/libresign/pull/4521)
+- fix: retrieve saved data [#4516](https://github.com/LibreSign/libresign/pull/4516)
+- fix: display errors at error page [#4512](https://github.com/LibreSign/libresign/pull/4512)
+- fix: display error at same route [#4508](https://github.com/LibreSign/libresign/pull/4508)
+- fix: hide sidebar when is not necessary [#4501](https://github.com/LibreSign/libresign/pull/4501)
+- fix: redirect to login when validation page is not public [#4497](https://github.com/LibreSign/libresign/pull/4497)
+- fix: logout if is using different account [#4494](https://github.com/LibreSign/libresign/pull/4494)
+- fix: prevent error when validate signed file using cfssl cert [#4476](https://github.com/LibreSign/libresign/pull/4476)
+
 ## 9.9.0 - 2025-01-27
 ### Features
 - feat: add extracerts to generated cert [#4426](https://github.com/LibreSign/libresign/pull/4426)
