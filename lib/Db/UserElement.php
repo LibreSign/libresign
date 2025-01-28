@@ -43,7 +43,6 @@ use OCP\DB\Types;
  * @method array|null getMetadata()
  */
 class UserElement extends Entity {
-	public int $id;
 	public string $type;
 	protected int $fileId;
 	protected string $userId;

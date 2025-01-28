@@ -51,7 +51,6 @@ use OCP\DB\Types;
  * @method \DateTime getCreatedAt()
  */
 class FileElement extends Entity {
-	public int $id;
 	protected int $fileId;
 	protected int $signRequestId;
 	protected string $type;
