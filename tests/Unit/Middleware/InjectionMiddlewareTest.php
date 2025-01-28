@@ -49,6 +49,7 @@ use Psr\Log\LoggerInterface;
 
 final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IRequest|MockObject $request;
+	private ISession|MockObject $session;
 	private IUserSession|MockObject $userSession;
 	private ValidateHelper|MockObject $validateHelper;
 	private SignRequestMapper|MockObject $signRequestMapper;
