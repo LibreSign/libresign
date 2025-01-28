@@ -605,14 +605,22 @@ class PageController extends AEnvironmentPageAwareController {
 			return;
 		}
 		if ($isValidationUrlPrivate) {
+			if ($uuid = $this->request->getParam('uuid')) {
+				$redirectUrl = $this->urlGenerator->linkToRoute(
+					'libresign.page.validationFilePublic',
+					['uuid' => $uuid]
+				);
+			} else {
+				$redirectUrl = $this->urlGenerator->linkToRoute(
+					'libresign.page.validation',
+				);
+			}
+
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_REDIRECT,
 				'errors' => [$this->l10n->t('You are not logged in. Please log in.')],
 				'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
-					'redirect_url' => $this->urlGenerator->linkToRoute(
-						'libresign.page.validationFilePublic',
-						['uuid' => $this->request->getParam('uuid')]
-					),
+					'redirect_url' => $redirectUrl,
 				]),
 			]), Http::STATUS_UNAUTHORIZED);
 		}

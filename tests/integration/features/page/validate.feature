@@ -1,6 +1,7 @@
 Feature: page/validate
   Background: Make setup ok
     Given run the command "config:app:set libresign authkey --value=dummy" with result code 0
+    And run the command "libresign:configure:openssl --cn test" with result code 0
 
   Scenario: Unauthenticated user can see sign page
     Given as user "admin"
@@ -16,5 +17,7 @@ Feature: page/validate
     And as user ""
     When sending "get" to "/apps/libresign/p/validation"
     And the response should be a JSON array with the following mandatory values
-      | key     | value                         |
-      | message | Current user is not logged in |
+      | key      | value                                                                |
+      | errors   | ["You are not logged in. Please log in."]                            |
+      | action   | 1000                                                                 |
+      | redirect | /index.php/login?redirect_url=/index.php/apps/libresign/p/validation |
