@@ -43,12 +43,12 @@ use OCP\DB\Types;
  * @method array|null getMetadata()
  */
 class UserElement extends Entity {
-	public string $type;
-	protected int $fileId;
-	protected string $userId;
-	public bool $starred;
+	public string $type = '';
+	protected int $fileId = 0;
+	protected string $userId = '';
+	public bool $starred = false;
 	public \DateTime $createdAt;
-	protected ?string $metadata;
+	protected ?array $metadata = null;
 	/** @var array{url: string, nodeId: non-negative-int}|null */
 	public $file;
 	public function __construct() {

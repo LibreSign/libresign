@@ -52,16 +52,16 @@ use OCP\DB\Types;
  * @method array|null getMetadata()
  */
 class File extends Entity {
-	protected int $nodeId;
-	protected string $uuid;
-	protected int $createdAt;
-	protected string $name;
-	protected int $status;
-	protected ?string $userId;
-	protected ?int $signedNodeId;
-	protected ?string $signedHash;
-	protected ?string $callback;
-	protected ?string $metadata;
+	protected int $nodeId = 0;
+	protected string $uuid = '';
+	protected int $createdAt = 0;
+	protected string $name = '';
+	protected ?int $status = null;
+	protected ?string $userId = null;
+	protected ?int $signedNodeId = null;
+	protected ?string $signedHash = null;
+	protected ?string $callback = null;
+	protected ?array $metadata = null;
 	public const STATUS_NOT_LIBRESIGN_FILE = -1;
 	public const STATUS_DRAFT = 0;
 	public const STATUS_ABLE_TO_SIGN = 1;
