@@ -34,10 +34,10 @@ class IdentifyMethod extends Entity {
 	public string $identifierKey = '';
 	public string $identifierValue = '';
 	public int $attempts = 0;
-	public ?string $code = '';
-	public ?\DateTime $identifiedAtDate;
-	public ?\DateTime $lastAttemptDate;
-	protected array $metadata = [];
+	public ?string $code = null;
+	public ?\DateTime $identifiedAtDate = null;
+	public ?\DateTime $lastAttemptDate = null;
+	protected ?array $metadata = null;
 
 	public function __construct() {
 		$this->addType('signRequestId', Types::INTEGER);
