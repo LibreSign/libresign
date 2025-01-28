@@ -58,8 +58,10 @@ export default {
 	},
 	methods: {
 		async getData() {
-			const responseIdentificationDocuments = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/identification_documents'))
-			this.identificationDocumentsFlowEnabled = !!responseIdentificationDocuments.data.ocs.data.data
+			await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/identification_documents'))
+				.then(({ data }) => {
+					this.identificationDocumentsFlowEnabled = ['true', true, '1', 1].includes(data.ocs.data.data)
+				})
 
 			const responseApprovalGroups = await axios.get(
 				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/approval_group'),

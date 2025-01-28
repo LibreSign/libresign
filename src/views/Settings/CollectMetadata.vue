@@ -35,7 +35,7 @@ export default {
 		async getData() {
 			const responseCollectMetadata = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/collect_metadata'))
 			const value = responseCollectMetadata?.data?.ocs?.data?.data
-			this.collectMetadataEnabled = value === true || value === 'true'
+			this.collectMetadataEnabled = ['true', true, '1', 1].includes(value)
 		},
 		saveCollectMetadata() {
 			OCP.AppConfig.setValue('libresign', 'collect_metadata', this.collectMetadataEnabled ? 1 : 0)
