@@ -46,12 +46,14 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Middleware;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\ISession;
 use OCP\IUser;
 use OCP\IUserSession;
 use OCP\Util;
@@ -61,6 +63,7 @@ class InjectionMiddleware extends Middleware {
 
 	public function __construct(
 		private IRequest $request,
+		private ISession $session,
 		private IUserSession $userSession,
 		private ValidateHelper $validateHelper,
 		private SignRequestMapper $signRequestMapper,
@@ -189,7 +192,16 @@ class InjectionMiddleware extends Middleware {
 		if (str_contains($this->request->getHeader('Accept'), 'html')) {
 			$template = 'external';
 			if ($this->isJson($exception->getMessage())) {
-				foreach (json_decode($exception->getMessage(), true) as $key => $value) {
+				$settings = json_decode($exception->getMessage(), true);
+				if (isset($settings['action']) && $settings['action'] === JSActions::ACTION_REDIRECT && isset($settings['redirect'])) {
+					if (isset($settings['errors'])) {
+						$this->session->set('loginMessages', [
+							[], $settings['errors'],
+						]);
+					}
+					return new RedirectResponse($settings['redirect']);
+				}
+				foreach ($settings as $key => $value) {
 					if ($key === 'template') {
 						$template = $value;
 						continue;
