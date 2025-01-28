@@ -32,14 +32,14 @@ use OCP\DB\Types;
  * @method array|null getMetadata()
  */
 class SignRequest extends Entity {
-	protected ?int $fileId;
-	protected string $uuid;
-	protected string $displayName;
-	protected ?string $description;
-	protected int $createdAt;
-	protected ?int $signed;
-	protected ?string $signedHash;
-	protected ?string $metadata;
+	protected ?int $fileId = null;
+	protected string $uuid = '';
+	protected string $displayName = '';
+	protected ?string $description = null;
+	protected int $createdAt = 0;
+	protected ?int $signed = null;
+	protected ?string $signedHash = null;
+	protected ?array $metadata = null;
 	public function __construct() {
 		$this->addType('id', 'integer');
 		$this->addType('fileId', 'integer');
