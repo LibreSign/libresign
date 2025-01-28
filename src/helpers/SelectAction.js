@@ -37,7 +37,7 @@ export const selectAction = (action, to, from) => {
 	case 1500: // ACTION_CREATE_ACCOUNT
 		return 'CreateAccount' + external
 	case 2000: // ACTION_DO_NOTHING
-		return 'DefaultPageError' + external
+		return to.name
 	case 2500: // ACTION_SIGN
 		return 'SignPDF' + external
 	case 2625: // ACTION_SIGN_INTERNAL

@@ -25,7 +25,8 @@
 	<NcContent app-name="libresign" :class="{'sign-external-page': isSignExternalPage}">
 		<LeftSidebar />
 		<NcAppContent :class="{'icon-loading' : loading }">
-			<router-view v-if="!loading" :key="$route.name " :loading.sync="loading" />
+			<DefaultPageError v-if="isDoNothingError" />
+			<router-view v-else-if="!loading" :key="$route.name " :loading.sync="loading" />
 			<NcEmptyContent v-if="isRoot" :description="t('libresign', 'LibreSign, digital signature app for Nextcloud.')">
 				<template #icon>
 					<img :src="LogoLibreSign">
@@ -43,6 +44,7 @@ import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 
 import LeftSidebar from './Components/LeftSidebar/LeftSidebar.vue'
 import RightSidebar from './Components/RightSidebar/RightSidebar.vue'
+import DefaultPageError from './views/DefaultPageError.vue'
 
 import LogoLibreSign from './../img/logo-gray.svg'
 
@@ -54,6 +56,7 @@ export default {
 		NcEmptyContent,
 		LeftSidebar,
 		RightSidebar,
+		DefaultPageError,
 	},
 	data() {
 		return {
@@ -67,6 +70,9 @@ export default {
 		},
 		isSignExternalPage() {
 			return this.$route.path.startsWith('/p/')
+		},
+		isDoNothingError() {
+			return this.$route.params?.action === 2000
 		},
 	},
 }
