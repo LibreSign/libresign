@@ -90,20 +90,18 @@ export default {
 
 		async searchGroup(query) {
 			this.loadingGroups = true
-			try {
-				const response = await axios.get(generateOcsUrl('cloud/groups/details'), {
-					search: query,
-					limit: 20,
-					offset: 0,
+			await axios.get(generateOcsUrl('cloud/groups/details'), {
+				search: query,
+				limit: 20,
+				offset: 0,
+			})
+				.then(({ data }) => {
+					this.groups = data.ocs.data.groups.sort(function(a, b) {
+						return a.displayname.localeCompare(b.displayname)
+					})
 				})
-				this.groups = response.data.ocs.data.groups.sort(function(a, b) {
-					return a.displayname.localeCompare(b.displayname)
-				})
-			} catch (err) {
-				console.error('Could not fetch groups', err)
-			} finally {
-				this.loadingGroups = false
-			}
+				.catch((error) => logger.debug('Could not search by groups', { error }))
+			this.loadingGroups = false
 		},
 	},
 
