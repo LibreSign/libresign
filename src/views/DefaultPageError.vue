@@ -30,7 +30,10 @@
 				{{ t('libresign', 'Page not found') }}
 			</h2>
 			<p>{{ paragrath }}</p>
-			<NcNoteCard v-if="error" type="error" heading="Error">
+			<NcNoteCard v-for="(error, index) in errors"
+				:key="index"
+				type="error"
+				heading="Error">
 				{{ error }}
 			</NcNoteCard>
 		</div>
@@ -52,8 +55,20 @@ export default {
 	data() {
 		return {
 			paragrath: t('libresign', 'Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable.'),
-			error: loadState('libresign', 'error', {})?.message,
 		}
+	},
+	computed: {
+		errors() {
+			const errors = loadState('libresign', 'errors', [])
+			if (errors.length) {
+				return errors
+			}
+			const errorMessage = loadState('libresign', 'error', {})?.message
+			if (errorMessage) {
+				return [errorMessage]
+			}
+			return []
+		},
 	},
 
 }
