@@ -51,7 +51,7 @@ export default {
 		idKey: 0,
 	}),
 
-	async mounted() {
+	async created() {
 		await this.searchGroup('')
 		await this.getData()
 	},
@@ -64,6 +64,9 @@ export default {
 			)
 				.then(({ data }) => {
 					const groupsSelected = JSON.parse(data.ocs.data.data)
+					if (!groupsSelected) {
+						return
+					}
 					this.groupsSelected = this.groups.filter(group => {
 						return groupsSelected.indexOf(group.id) !== -1
 					})
