@@ -17,8 +17,67 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 11.0.1 - 2025-01-28
+### Changes
+- Update translations
+- Bump dependencies
+- chore: bump java [#4533](https://github.com/LibreSign/libresign/pull/4533)
+- refactor: convert to promisse [#4525](https://github.com/LibreSign/libresign/pull/4525)
+- refactor: force typing [#4506](https://github.com/LibreSign/libresign/pull/4506)
+
+### Fixes
+- fix: prevent error when enpty data from backend [#4526](https://github.com/LibreSign/libresign/pull/4526)
+- fix: use async await [#4522](https://github.com/LibreSign/libresign/pull/4522)
+- fix: retrieve saved data [#4517](https://github.com/LibreSign/libresign/pull/4517)
+- fix: display errors at error page [#4514](https://github.com/LibreSign/libresign/pull/4514)
+- fix: display error at same route [#4510](https://github.com/LibreSign/libresign/pull/4510)
+- fix: hide sidebar when is not necessary [#4503](https://github.com/LibreSign/libresign/pull/4503)
+- fix: redirect to login when validation page is not public [#4499](https://github.com/LibreSign/libresign/pull/4499)
+- fix: logout if is using different account [#4496](https://github.com/LibreSign/libresign/pull/4496)
+- fix: prevent error when validate signed file using cfssl cert [#4478](https://github.com/LibreSign/libresign/pull/4478)
+- fix: remove licence file [#4474](https://github.com/LibreSign/libresign/pull/4474)
+
+## 10.6.1 - 2025-01-28
+### Changes
+- Update translations
+- Bump dependencies
+- chore: bump java [#4532](https://github.com/LibreSign/libresign/pull/4532)
+- refactor: convert to promisse [#4524](https://github.com/LibreSign/libresign/pull/4524)
+- refactor: force typing [#4505](https://github.com/LibreSign/libresign/pull/4505)
+
+### Fixes
+- fix: prevent error when enpty data from backend [#4527](https://github.com/LibreSign/libresign/pull/4527)
+- fix: use async await [#4523](https://github.com/LibreSign/libresign/pull/4523)
+- fix: retrieve saved data [#4534](https://github.com/LibreSign/libresign/pull/4534)
+- fix: display errors at error page [#4513](https://github.com/LibreSign/libresign/pull/4513)
+- fix: display error at same route [#4509](https://github.com/LibreSign/libresign/pull/4509)
+- fix: hide sidebar when is not necessary [#4502](https://github.com/LibreSign/libresign/pull/4502)
+- fix: redirect to login when validation page is not public [#4498](https://github.com/LibreSign/libresign/pull/4498)
+- fix: logout if is using different account [#4495](https://github.com/LibreSign/libresign/pull/4495)
+- fix: prevent error when validate signed file using cfssl cert [#4477](https://github.com/LibreSign/libresign/pull/4477)
+- fix: remove licence file [#4473](https://github.com/LibreSign/libresign/pull/4473)
+
+## 9.9.1 - 2025-01-28
+### Changes
+- Update translations
+- Bump dependencies
+- chore: bump java [#4531](https://github.com/LibreSign/libresign/pull/4531)
+- refactor: convert to promisse [#4529](https://github.com/LibreSign/libresign/pull/4529)
+- refactor: force typing [#4504](https://github.com/LibreSign/libresign/pull/4504)
+
+### Fixes
+- fix: prevent error when enpty data from backend [#4528](https://github.com/LibreSign/libresign/pull/4528)
+- fix: use async await [#4521](https://github.com/LibreSign/libresign/pull/4521)
+- fix: retrieve saved data [#4516](https://github.com/LibreSign/libresign/pull/4516)
+- fix: display errors at error page [#4512](https://github.com/LibreSign/libresign/pull/4512)
+- fix: display error at same route [#4508](https://github.com/LibreSign/libresign/pull/4508)
+- fix: hide sidebar when is not necessary [#4501](https://github.com/LibreSign/libresign/pull/4501)
+- fix: redirect to login when validation page is not public [#4497](https://github.com/LibreSign/libresign/pull/4497)
+- fix: logout if is using different account [#4494](https://github.com/LibreSign/libresign/pull/4494)
+- fix: prevent error when validate signed file using cfssl cert [#4476](https://github.com/LibreSign/libresign/pull/4476)
+
 ## 11.0.0 - 2025-01-27
-## Feature
+### Feature
 - Say hello to Nexcloud 31
 
 ## 10.6.0 - 2025-01-27
