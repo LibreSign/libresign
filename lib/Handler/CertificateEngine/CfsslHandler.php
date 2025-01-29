@@ -272,15 +272,13 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	private function portOpen(): bool {
 		$host = parse_url($this->getCfsslUri(), PHP_URL_HOST);
 		$port = parse_url($this->getCfsslUri(), PHP_URL_PORT);
-		try {
-			$socket = fsockopen($host, $port, $errno, $errstr, 0.1);
-		} catch (\Throwable $th) {
+		$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+		if (!$socket) {
+			return false;
 		}
-		if (isset($socket) && is_resource($socket)) {
-			fclose($socket);
-			return true;
-		}
-		return false;
+		socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 0, 'usec' => 100000]); // 100ms
+		socket_set_option($socket, SOL_SOCKET, SO_SNDTIMEO, ['sec' => 0, 'usec' => 100000]);
+		return @socket_connect($socket, $host, $port);
 	}
 
 	private function getServerPid(): int {
