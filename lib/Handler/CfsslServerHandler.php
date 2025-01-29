@@ -8,16 +8,31 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler;
 
+use Closure;
 use OCA\Libresign\Exception\LibresignException;
 
 class CfsslServerHandler {
-	private string $csrServerFile;
-	private string $configServerFile;
-	private string $configServerFileHash;
-	public function __construct(string $configPath) {
-		$this->csrServerFile = $configPath . DIRECTORY_SEPARATOR . 'csr_server.json';
-		$this->configServerFile = $configPath . DIRECTORY_SEPARATOR . 'config_server.json';
-		$this->configServerFileHash = $configPath . DIRECTORY_SEPARATOR . 'hashes.sha256';
+	private string $csrServerFile = '';
+	private string $configServerFile = '';
+	private string $configServerFileHash = '';
+	private Closure $getConfigPath;
+
+	/**
+	 * Create a callback to get config path not at the constructor because
+	 * getting at constructor, every time that the class is instantiated, will
+	 * try to create the config path if not exists.
+	 */
+	public function configCallback(Closure $callback): void {
+		$this->getConfigPath = $callback;
+		$this->getConfigPath = function () use ($callback) {
+			if ($this->csrServerFile) {
+				return;
+			}
+			$configPath = $callback();
+			$this->csrServerFile = $configPath . DIRECTORY_SEPARATOR . 'csr_server.json';
+			$this->configServerFile = $configPath . DIRECTORY_SEPARATOR . 'config_server.json';
+			$this->configServerFileHash = $configPath . DIRECTORY_SEPARATOR . 'hashes.sha256';
+		};
 	}
 
 	public function createConfigServer(
@@ -47,6 +62,7 @@ class CfsslServerHandler {
 		foreach ($names as $id => $name) {
 			$content['names'][0][$id] = $name['value'];
 		}
+		($this->getConfigPath)();
 		$response = file_put_contents($this->csrServerFile, json_encode($content));
 		if ($response === false) {
 			throw new LibresignException(
@@ -87,6 +103,7 @@ class CfsslServerHandler {
 
 	private function saveConfig(array $config): void {
 		$jsonConfig = json_encode($config);
+		($this->getConfigPath)();
 		$response = file_put_contents($this->configServerFile, $jsonConfig);
 		if ($response === false) {
 			throw new LibresignException('Error while writing config server file!', 500);
@@ -96,6 +113,7 @@ class CfsslServerHandler {
 	}
 
 	public function updateExpirity(int $expirity): void {
+		($this->getConfigPath)();
 		if (file_exists($this->configServerFileHash)) {
 			$hashes = file_get_contents($this->configServerFileHash);
 			preg_match('/(?<hash>\w*) +config_server.json/', $hashes, $matches);
