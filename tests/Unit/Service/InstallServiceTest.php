@@ -160,18 +160,29 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 * @dataProvider providerGetFolder
 	 * @runInSeparateProcess
 	 */
-	public function testGetFolder(string $path): void {
+	public function testGetFolder(string $architecture, string $path, string $expectedFolderName): void {
 		$install = \OCP\Server::get(\OCA\Libresign\Service\Install\InstallService::class);
-		self::invokePrivate($install, 'getFolder', [$path]);
-		$this->expectNotToPerformAssertions();
+		if (!empty($architecture)) {
+			$install->setArchitecture($architecture);
+		}
+		$folder = self::invokePrivate($install, 'getFolder', [$path]);
+		$this->assertEquals($folder->getName(), $expectedFolderName);
 	}
 
 	public static function providerGetFolder(): array {
 		return [
-			[''],
-			['test'],
-			['test/folder1'],
-			['test/folder1/folder2'],
+			['', '', php_uname('m')],
+			['', 'test', 'test'],
+			['', 'test/folder1', 'folder1'],
+			['', 'test/folder1/folder2', 'folder2'],
+			['aarch64', '', 'aarch64'],
+			['aarch64', 'test', 'test'],
+			['aarch64', 'test/folder1', 'folder1'],
+			['aarch64', 'test/folder1/folder2', 'folder2'],
+			['x86_64', '', 'x86_64'],
+			['x86_64', 'test', 'test'],
+			['x86_64', 'test/folder1', 'folder1'],
+			['x86_64', 'test/folder1/folder2', 'folder2'],
 		];
 	}
 }
