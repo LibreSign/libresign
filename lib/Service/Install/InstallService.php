@@ -372,7 +372,15 @@ class InstallService {
 			throw new RuntimeException(sprintf('OS_FAMILY %s is incompatible with LibreSign.', PHP_OS_FAMILY));
 		}
 
-		if (!$this->isDownloadedFilesOk()) {
+		if ($this->isDownloadedFilesOk()) {
+			// The binaries files could exists but not saved at database
+			if (!$this->appConfig->getValueString(Application::APP_ID, 'java_path')) {
+				$linuxDistribution = $this->getLinuxDistributionToDownloadJava();
+				$folder = $this->getFolder('/' . $linuxDistribution . '/' . $this->resource);
+				$extractDir = $this->getInternalPathOfFolder($folder);
+				$this->appConfig->setValueString(Application::APP_ID, 'java_path', $extractDir . '/jdk-' . self::JAVA_URL_PATH_NAME . '-jre/bin/java');
+			}
+		} else {
 			/**
 			 * Steps to update:
 			 *     Check the compatible version of Java to use JSignPdf
@@ -458,7 +466,15 @@ class InstallService {
 			return;
 		}
 
-		if (!$this->isDownloadedFilesOk()) {
+		if ($this->isDownloadedFilesOk()) {
+			// The binaries files could exists but not saved at database
+			if (!$this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path')) {
+				$folder = $this->getFolder($this->resource);
+				$extractDir = $this->getInternalPathOfFolder($folder);
+				$fullPath = $extractDir . '/jsignpdf-' . JSignPdfHandler::VERSION . '/JSignPdf.jar';
+				$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_jar_path', $fullPath);
+			}
+		} else {
 			$folder = $this->getFolder($this->resource);
 			$compressedFileName = 'jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
 			try {
@@ -506,7 +522,15 @@ class InstallService {
 			return;
 		}
 
-		if (!$this->isDownloadedFilesOk()) {
+		if ($this->isDownloadedFilesOk()) {
+			// The binaries files could exists but not saved at database
+			if (!$this->appConfig->getValueString(Application::APP_ID, 'pdftk_path')) {
+				$folder = $this->getFolder($this->resource);
+				$file = $folder->getFile('pdftk.jar');
+				$fullPath = $this->getInternalPathOfFile($file);
+				$this->appConfig->setValueString(Application::APP_ID, 'pdftk_path', $fullPath);
+			}
+		} else {
 			$folder = $this->getFolder($this->resource);
 			try {
 				$file = $folder->getFile('pdftk.jar');
@@ -560,6 +584,12 @@ class InstallService {
 
 	private function installCfsslByArchitecture(string $architecture): void {
 		if ($this->isDownloadedFilesOk()) {
+			// The binaries files could exists but not saved at database
+			if (!$this->isCfsslBinInstalled()) {
+				$folder = $this->getFolder($this->resource);
+				$cfsslBinPath = $this->getInternalPathOfFolder($folder) . '/cfssl';
+				$this->appConfig->setValueString(Application::APP_ID, 'cfssl_bin', $cfsslBinPath);
+			}
 			return;
 		}
 		$folder = $this->getFolder($this->resource);
