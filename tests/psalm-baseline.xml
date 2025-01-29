@@ -66,6 +66,11 @@
       <code><![CDATA[addServiceListener]]></code>
     </InvalidArgument>
   </file>
+  <file src="lib/Handler/CertificateEngine/CfsslHandler.php">
+    <InvalidArgument>
+      <code><![CDATA[function () { }]]></code>
+    </InvalidArgument>
+  </file>
   <file src="lib/Helper/Pagination.php">
     <MissingTemplateParam>
       <code><![CDATA[Pagination]]></code>
