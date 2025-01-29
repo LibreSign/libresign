@@ -241,7 +241,7 @@ class TestCase extends \Test\TestCase {
 			mkdir($path, 0777, true);
 			$user = fileowner(__FILE__);
 			chown($path, $user);
-			chgrp($path, $user);
+			@chgrp($path, $user);
 		}
 		return realpath($path);
 	}
