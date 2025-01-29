@@ -6,6 +6,42 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+namespace Test;
+
+/**
+ * Overwrite opendir in the Test namespace.
+ */
+
+function testCaseWillIgnore(string $node): bool {
+	$libresignPath = current(glob(\OC::$SERVERROOT . '/data/appdata_*/libresign'));
+	$knownEntries = [
+		$libresignPath . '/aarch',
+		$libresignPath . '/arm64',
+		$libresignPath . '/cfssl_config',
+		$libresignPath . '/x86_64',
+	];
+	foreach ($knownEntries as $ignored) {
+		if (str_starts_with($node, $ignored)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function rmdir($dir) {
+	if (testCaseWillIgnore($dir)) {
+		return false;
+	}
+	return \rmdir($dir);
+}
+
+function unlink($file) {
+	if (testCaseWillIgnore($file)) {
+		return false;
+	}
+	return \unlink($file);
+}
+
 namespace OCA\Libresign\Tests\Unit;
 
 use donatj\MockWebServer\MockWebServer;
@@ -204,11 +240,14 @@ class TestCase extends \Test\TestCase {
 	}
 
 	private function getFullLiresignAppFolder(): string {
-		$libresignPath = glob('../../data/appdata_*/libresign');
-		if (empty($libresignPath)) {
-			return '';
+		$path = '../../data/appdata_' . \OC_Util::getInstanceId() . '/libresign';
+		if (!is_dir($path)) {
+			mkdir($path, 0777, true);
+			$user = fileowner(__FILE__);
+			chown($path, $user);
+			chgrp($path, $user);
 		}
-		return realpath(current($libresignPath));
+		return realpath($path);
 	}
 
 	private function backupBinaries(): void {
