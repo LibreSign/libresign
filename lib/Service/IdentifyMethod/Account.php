@@ -133,7 +133,7 @@ class Account extends AbstractIdentifyMethod {
 		}
 
 		// Remove not enabled
-		$config = array_filter($config, fn ($i) => $i['enabled']);
+		$config = array_filter($config, fn ($i) => isset($i['enabled']) && $i['enabled'] ? true : false);
 
 		$current = array_reduce($config, function ($carry, $config) {
 			if ($config['name'] === $this->name) {
