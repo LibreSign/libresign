@@ -57,12 +57,12 @@ use Symfony\Component\Process\Process;
 class InstallService {
 	public const JAVA_VERSION = 'openjdk version "21.0.6" 2025-01-21 LTS';
 	private const JAVA_URL_PATH_NAME = '21.0.6+7';
-	public const PDFTK_VERSION = '3.3.3';
-	public const JSIGNPDF_VERSION = '2.3.0';
-	/**
-	 * When update, verify the hash of all architectures
-	 */
+	public const PDFTK_VERSION = '3.3.3'; /** @todo When update, verify the hash **/
+	private const PDFTK_HASH = '59a28bed53b428595d165d52988bf4cf';
+	public const JSIGNPDF_VERSION = '2.3.0'; /** @todo When update, verify the hash **/
+	private const JSIGNPDF_HASH = 'd239658ea50a39eb35169d8392feaffb';
 	public const CFSSL_VERSION = '1.6.5';
+
 	private ICache $cache;
 	private ?OutputInterface $output = null;
 	private string $resource = '';
@@ -500,10 +500,8 @@ class InstallService {
 			}
 			$comporessedInternalFileName = $this->getInternalPathOfFile($compressedFile);
 			$url = 'https://github.com/intoolswetrust/jsignpdf/releases/download/JSignPdf_' . str_replace('.', '_', InstallService::JSIGNPDF_VERSION) . '/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '.zip';
-			/** WHEN UPDATE version: generate this hash handmade and update here */
-			$hash = 'd239658ea50a39eb35169d8392feaffb';
 
-			$this->download($url, 'JSignPdf', $comporessedInternalFileName, $hash);
+			$this->download($url, 'JSignPdf', $comporessedInternalFileName, self::JSIGNPDF_HASH);
 
 			$extractDir = $this->getInternalPathOfFolder($folder);
 			$zip = new ZIP($extractDir . '/' . $compressedFileName);
@@ -555,10 +553,8 @@ class InstallService {
 			}
 			$fullPath = $this->getInternalPathOfFile($file);
 			$url = 'https://gitlab.com/api/v4/projects/5024297/packages/generic/pdftk-java/v' . self::PDFTK_VERSION . '/pdftk-all.jar';
-			/** @todo WHEN UPDATE version: generate this hash handmade and update here */
-			$hash = '59a28bed53b428595d165d52988bf4cf';
 
-			$this->download($url, 'pdftk', $fullPath, $hash);
+			$this->download($url, 'pdftk', $fullPath, self::PDFTK_HASH);
 			$this->appConfig->setValueString(Application::APP_ID, 'pdftk_path', $fullPath);
 			$this->writeAppSignature();
 		}
