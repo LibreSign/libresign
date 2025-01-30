@@ -12,6 +12,7 @@ use Jeidison\JSignPDF\JSignPDF;
 use Jeidison\JSignPDF\Sign\JSignParam;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\Install\InstallService;
 use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
 
@@ -20,7 +21,6 @@ class JSignPdfHandler extends SignEngineHandler {
 	private $jSignPdf;
 	/** @var JSignParam */
 	private $jSignParam;
-	public const VERSION = '2.3.0';
 
 	public function __construct(
 		private IAppConfig $appConfig,
@@ -53,7 +53,7 @@ class JSignPdfHandler extends SignEngineHandler {
 				)
 				->setIsUseJavaInstalled(empty($javaPath))
 				->setjSignPdfJarPath(
-					$this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path', '/opt/jsignpdf-' . self::VERSION . '/JSignPdf.jar')
+					$this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path', '/opt/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '/JSignPdf.jar')
 				);
 			if (!empty($javaPath)) {
 				if (!file_exists($javaPath)) {
