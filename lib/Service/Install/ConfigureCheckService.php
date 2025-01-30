@@ -171,20 +171,20 @@ class ConfigureCheckService {
 				$jsignPdf = $this->jSignPdfHandler->getJSignPdf();
 				$jsignPdf->setParam($this->jSignPdfHandler->getJSignParam());
 				$currentVersion = $jsignPdf->getVersion();
-				if ($currentVersion < JSignPdfHandler::VERSION) {
+				if ($currentVersion < InstallService::JSIGNPDF_VERSION) {
 					if (!$currentVersion) {
-						$message = 'Necessary install the version ' . JSignPdfHandler::VERSION;
+						$message = 'Necessary install the version ' . InstallService::JSIGNPDF_VERSION;
 					} else {
-						$message = 'Necessary bump JSignPdf versin from ' . $currentVersion . ' to ' . JSignPdfHandler::VERSION;
+						$message = 'Necessary bump JSignPdf versin from ' . $currentVersion . ' to ' . InstallService::JSIGNPDF_VERSION;
 					}
 					$return[] = (new ConfigureCheckHelper())
 						->setErrorMessage($message)
 						->setResource('jsignpdf')
 						->setTip('Run occ libresign:install --jsignpdf');
 				}
-				if ($currentVersion > JSignPdfHandler::VERSION) {
+				if ($currentVersion > InstallService::JSIGNPDF_VERSION) {
 					$return[] = (new ConfigureCheckHelper())
-						->setErrorMessage('Necessary downgrade JSignPdf versin from ' . $currentVersion . ' to ' . JSignPdfHandler::VERSION)
+						->setErrorMessage('Necessary downgrade JSignPdf versin from ' . $currentVersion . ' to ' . InstallService::JSIGNPDF_VERSION)
 						->setResource('jsignpdf')
 						->setTip('Run occ libresign:install --jsignpdf');
 				}
