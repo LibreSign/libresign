@@ -36,7 +36,6 @@ use OCA\Libresign\Handler\CertificateEngine\AEngineHandler;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
-use OCA\Libresign\Handler\JSignPdfHandler;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\IRootFolder;
@@ -59,6 +58,7 @@ class InstallService {
 	public const JAVA_VERSION = 'openjdk version "21.0.6" 2025-01-21 LTS';
 	private const JAVA_URL_PATH_NAME = '21.0.6+7';
 	public const PDFTK_VERSION = '3.3.3';
+	public const JSIGNPDF_VERSION = '2.3.0';
 	/**
 	 * When update, verify the hash of all architectures
 	 */
@@ -487,19 +487,19 @@ class InstallService {
 			if (!$this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path')) {
 				$folder = $this->getFolder($this->resource);
 				$extractDir = $this->getInternalPathOfFolder($folder);
-				$fullPath = $extractDir . '/jsignpdf-' . JSignPdfHandler::VERSION . '/JSignPdf.jar';
+				$fullPath = $extractDir . '/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '/JSignPdf.jar';
 				$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_jar_path', $fullPath);
 			}
 		} else {
 			$folder = $this->getFolder($this->resource);
-			$compressedFileName = 'jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
+			$compressedFileName = 'jsignpdf-' . InstallService::JSIGNPDF_VERSION . '.zip';
 			try {
 				$compressedFile = $folder->getFile($compressedFileName);
 			} catch (\Throwable $th) {
 				$compressedFile = $folder->newFile($compressedFileName);
 			}
 			$comporessedInternalFileName = $this->getInternalPathOfFile($compressedFile);
-			$url = 'https://github.com/intoolswetrust/jsignpdf/releases/download/JSignPdf_' . str_replace('.', '_', JSignPdfHandler::VERSION) . '/jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
+			$url = 'https://github.com/intoolswetrust/jsignpdf/releases/download/JSignPdf_' . str_replace('.', '_', InstallService::JSIGNPDF_VERSION) . '/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '.zip';
 			/** WHEN UPDATE version: generate this hash handmade and update here */
 			$hash = 'd239658ea50a39eb35169d8392feaffb';
 
@@ -509,7 +509,7 @@ class InstallService {
 			$zip = new ZIP($extractDir . '/' . $compressedFileName);
 			$zip->extract($extractDir);
 			unlink($extractDir . '/' . $compressedFileName);
-			$fullPath = $extractDir . '/jsignpdf-' . JSignPdfHandler::VERSION . '/JSignPdf.jar';
+			$fullPath = $extractDir . '/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '/JSignPdf.jar';
 			$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_jar_path', $fullPath);
 			$this->writeAppSignature();
 		}
