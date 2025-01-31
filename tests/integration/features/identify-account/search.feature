@@ -70,6 +70,7 @@ Feature: search
   Scenario: Search account by herself with permission to identify by account
     Given as user "admin"
     And set the email of user "admin" to "admin@email.tld"
+    And set the display name of user "admin" to "admin"
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"account","enabled":true}] |
     When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=admin"
