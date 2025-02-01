@@ -48,9 +48,9 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		protected ITempManager $tempManager,
 	) {
 		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager);
-		$this->cfsslServerHandler = new CfsslServerHandler(
-			$this->getConfigPath(),
-		);
+
+		$this->cfsslServerHandler = new CfsslServerHandler();
+		$this->cfsslServerHandler->configCallback(fn () => $this->getConfigPath());
 	}
 
 	public function generateRootCert(
