@@ -266,6 +266,9 @@ class SignFileService {
 					->setCertificate($pfxFileContent)
 					->setVisibleElements($this->elements)
 					->setPassword($this->password)
+					->setReason($this->l10n->t('Signed by %s with LibreSign.coop', [
+						$this->signRequest->getDisplayName() . ' <' . $this->userUniqueIdentifier . '>'
+					]))
 					->sign();
 				break;
 			default:
