@@ -85,7 +85,7 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	 *
 	 * @psalm-return array<VisibleElementAssoc>
 	 */
-	public function getvisibleElements(): array {
+	public function getVisibleElements(): array {
 		return $this->visibleElements;
 	}
 }
