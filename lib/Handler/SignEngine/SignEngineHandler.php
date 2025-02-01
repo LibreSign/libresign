@@ -16,6 +16,7 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	private File $inputFile;
 	protected string $certificate;
 	private string $password = '';
+	private string $reason = '';
 	/** @var VisibleElementAssoc[] */
 	private array $visibleElements = [];
 	private array $signatureParams = [];
@@ -57,6 +58,15 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 
 	public function getPassword(): string {
 		return $this->password;
+	}
+
+	public function setReason(string $reason): self {
+		$this->reason = $reason;
+		return $this;
+	}
+
+	public function getReason(): string {
+		return $this->reason;
 	}
 
 	/**
