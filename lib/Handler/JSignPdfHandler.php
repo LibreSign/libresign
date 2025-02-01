@@ -111,7 +111,7 @@ class JSignPdfHandler extends SignEngineHandler {
 	}
 
 	private function signUsingVisibleElements(): string {
-		$visibleElements = $this->getvisibleElements();
+		$visibleElements = $this->getVisibleElements();
 		if ($visibleElements) {
 			$jSignPdf = $this->getJSignPdf();
 			$param = $this->getJSignParam();
