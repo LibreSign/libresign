@@ -144,7 +144,12 @@ class JSignPdfHandler extends SignEngineHandler {
 			$param
 				->setJSignParameters(
 					$this->jSignParam->getJSignParameters() .
-					' --hash-algorithm ' . $this->getHashAlgorithm()
+					' --hash-algorithm ' . $this->getHashAlgorithm() .
+					(
+						$this->getReason()
+							? ' --reason "' . $this->getReason() . '"'
+							: ''
+					)
 				);
 			$jSignPDF->setParam($param);
 			return $jSignPDF->sign();
