@@ -224,6 +224,8 @@ class SignFileService {
 				} else {
 					throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 				}
+			} elseif (!$this->user instanceof IUser) {
+				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 			} else {
 				$userElement = $this->userElementMapper->findOne([
 					'user_id' => $this->user->getUID(),
@@ -467,6 +469,7 @@ class SignFileService {
 					$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 					$found = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($user) {
 						if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL
+							&& $user
 							&& (
 								$identifyMethod->getIdentifierValue() === $user->getUID()
 								|| $identifyMethod->getIdentifierValue() === $user->getEMailAddress()
@@ -475,6 +478,7 @@ class SignFileService {
 							return true;
 						}
 						if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT
+							&& $user
 							&& $identifyMethod->getIdentifierValue() === $user->getUID()
 						) {
 							return true;
