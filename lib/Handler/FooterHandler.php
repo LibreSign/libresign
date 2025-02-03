@@ -54,6 +54,7 @@ class FooterHandler {
 
 		$htmlFooter = $this->getRenderedHtmlFooter();
 		$metadata = $this->getMetadata();
+		$this->loadLibreSignFirst();
 		foreach ($metadata['d'] as $dimension) {
 			if (!isset($pdf)) {
 				$pdf = new Mpdf([
@@ -83,6 +84,30 @@ class FooterHandler {
 		}
 
 		return $pdf->Output('', 'S');
+	}
+
+	private function loadLibreSignFirst(): void {
+		$loaders = \Composer\Autoload\ClassLoader::getRegisteredLoaders();
+		$systemConfig = \OC::$server->getSystemConfig();
+		$appsPaths = $systemConfig->getValue('apps_paths');
+		if (empty($appsPaths)) {
+			return;
+		}
+		foreach ($appsPaths as $path) {
+			$paths[] = $path['path'];
+		}
+		foreach ($loaders as $loader) {
+			$reflection = new \ReflectionClass($loader);
+			$propriedade = $reflection->getProperty('vendorDir');
+			$propriedade->setAccessible(true);
+			$vendorDir = $propriedade->getValue($loader);
+			foreach ($paths as $path) {
+				if (str_starts_with($vendorDir, $path) && !str_contains($vendorDir, 'libresign')) {
+					$loader->unregister();
+					$loader->register();
+				}
+			}
+		}
 	}
 
 	private function getMetadata(): array {
