@@ -30,9 +30,6 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		return $this->inputFile;
 	}
 
-	/**
-	 * @return static
-	 */
 	public function setCertificate(string $certificate): self {
 		$this->certificate = $certificate;
 		return $this;
@@ -42,9 +39,6 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		return $this->certificate;
 	}
 
-	/**
-	 * @return static
-	 */
 	public function setPassword(string $password): self {
 		$this->password = $password;
 		return $this;
@@ -71,5 +65,9 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	 */
 	public function getVisibleElements(): array {
 		return $this->visibleElements;
+	}
+
+	public function getSignedContent(): string {
+		return $this->sign()->getContent();
 	}
 }
