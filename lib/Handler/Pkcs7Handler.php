@@ -25,19 +25,11 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler;
 
 use OCP\Files\File;
-use OCP\Files\Node;
 
 /**
  * @codeCoverageIgnore
  */
 class Pkcs7Handler extends SignEngineHandler {
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 *
-	 * @param Node $fileToSign
-	 * @param Node $certificate
-	 * @param string $passphrase
-	 */
 	public function sign(): File {
 		$p7sFile = $this->getP7sFile();
 		openssl_pkcs12_read($this->getCertificate(), $certificateData, $this->getPassword());
@@ -50,6 +42,10 @@ class Pkcs7Handler extends SignEngineHandler {
 			PKCS7_DETACHED
 		);
 		return $p7sFile;
+	}
+
+	public function getSignedContent(): string {
+		return $this->sign()->getContent();
 	}
 
 	public function getP7sFile(): File {

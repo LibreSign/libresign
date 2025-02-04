@@ -29,6 +29,7 @@ use Jeidison\JSignPDF\Sign\JSignParam;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Install\InstallService;
+use OCP\Files\File;
 use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
 
@@ -108,10 +109,13 @@ class JSignPdfHandler extends SignEngineHandler {
 		return 'SHA256';
 	}
 
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 */
-	public function sign(): string {
+	public function sign(): File {
+		$signedContent = $this->getSignedContent();
+		$this->getInputFile()->putContent($signedContent);
+		return $this->getInputFile();
+	}
+
+	public function getSignedContent(): string {
 		$param = $this->getJSignParam()
 			->setCertificate($this->getCertificate())
 			->setPdf($this->getInputFile()->getContent())
