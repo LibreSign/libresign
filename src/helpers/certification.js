@@ -11,10 +11,14 @@ export function selectCustonOption(id) {
 	return Option.from(options.find(item => item.id === id))
 }
 
+/**
+ * More informations: https://www.ietf.org/rfc/rfc5280.txt
+ */
 export const options = [
 	{
 		id: 'CN',
 		label: t('libresign', 'Name (CN)'),
+		max: 64,
 		value: '',
 		helperText: t('libresign', 'Name (CN)'),
 	},
@@ -30,6 +34,7 @@ export const options = [
 		id: 'ST',
 		label: 'State',
 		min: 1,
+		max: 128,
 		value: '',
 		helperText: t('libresign', 'Full name of states or provinces'),
 	},
@@ -37,6 +42,7 @@ export const options = [
 		id: 'L',
 		label: 'Locality',
 		min: 1,
+		max: 128,
 		value: '',
 		helperText: t('libresign', 'Name of a locality or place, such as a city, county, or other geographic region'),
 	},
@@ -44,6 +50,7 @@ export const options = [
 		id: 'O',
 		label: 'Organization',
 		min: 1,
+		max: 64,
 		value: '',
 		helperText: t('libresign', 'Name of an organization'),
 	},
@@ -51,6 +58,7 @@ export const options = [
 		id: 'OU',
 		label: 'OrganizationalUnit',
 		min: 1,
+		max: 64,
 		value: '',
 		helperText: t('libresign', 'Name of an organizational unit'),
 	},
