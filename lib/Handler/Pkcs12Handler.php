@@ -439,7 +439,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			->setInputFile($this->getInputFile())
 			->setPassword($this->getPassword())
 			->setVisibleElements($this->getVisibleElements())
-			->sign();
+			->getSignedContent();
 		$this->getInputFile()->putContent($signedContent);
 		return $this->getInputFile();
 	}

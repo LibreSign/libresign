@@ -82,4 +82,8 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	public function getVisibleElements(): array {
 		return $this->visibleElements;
 	}
+
+	public function getSignedContent(): string {
+		return $this->sign()->getContent();
+	}
 }
