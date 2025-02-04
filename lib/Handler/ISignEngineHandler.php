@@ -17,10 +17,6 @@ interface ISignEngineHandler {
 	public function getCertificate(): string;
 	public function setPassword(string $password): self;
 	public function getPassword(): string;
-	/**
-	 * Sign a file
-	 *
-	 * @return string|\OCP\Files\Node string of signed file or Node of signed file
-	 */
-	public function sign();
+	public function sign(): File;
+	public function getSignedContent(): string;
 }
