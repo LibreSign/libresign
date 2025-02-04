@@ -38,7 +38,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->class->setInputFile($inputFile);
 		$this->class->setCertificate('');
 		$this->class->setPassword('password');
-		$actual = $this->class->sign();
+		$actual = $this->class->getSignedContent();
 		$this->assertEquals('content', $actual);
 	}
 }
