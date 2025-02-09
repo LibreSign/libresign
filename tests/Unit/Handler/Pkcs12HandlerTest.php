@@ -25,9 +25,9 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;
 	private IL10N $l10n;
 	private JSignPdfHandler&MockObject $jSignPdfHandler;
-	private FooterHandler&MockObject $footerHandler;
+	private FooterHandler $footerHandler;
 	private ITempManager $tempManager;
-	private CertificateEngineHandler&MockObject $certificateEngineHandler;
+	private CertificateEngineHandler $certificateEngineHandler;
 
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
@@ -36,10 +36,10 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			\OCP\Server::get(\Psr\Log\LoggerInterface::class),
 			\OCP\Server::get(\OCP\Security\ICrypto::class),
 		);
-		$this->certificateEngineHandler = $this->createMock(CertificateEngineHandler::class);
+		$this->certificateEngineHandler = \OCP\Server::get(CertificateEngineHandler::class);
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->jSignPdfHandler = $this->createMock(JSignPdfHandler::class);
-		$this->footerHandler = $this->createMock(FooterHandler::class);
+		$this->footerHandler = \OCP\Server::get(FooterHandler::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
 	}
 
@@ -56,7 +56,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testSavePfxWhenPfxFileIsAFolder():void {
-		$node = $this->createMock(\OCP\Files\Folder::class);
+		$node = \OCP\Server::get(\OCP\Files\Folder::class);
 		$node->method('nodeExists')->will($this->returnValue(true));
 		$node->method('get')->will($this->returnValue($node));
 		$this->folderService->method('getFolder')->will($this->returnValue($node));
