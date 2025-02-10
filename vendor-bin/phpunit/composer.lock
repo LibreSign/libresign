@@ -114,12 +114,10 @@
                 "ext-json": "*",
                 "php": ">=7.4",
                 "psr/http-client": "^1.0",
-                "psr/http-factory": "^1.0|^1.1",
                 "psr/http-message": "^1.0|^2.0"
             },
             "provide": {
                 "psr/http-client-implementation": "1.0",
-                "psr/http-factory-implementation": "1.0",
                 "psr/http-message-implementation": "1.0"
             },
             "require-dev": {
@@ -1020,12 +1018,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "2f41cde26ef95a3ee44ae112a65b54893258cd26"
+                "reference": "ef7f9eecb0042f842b1ee755a48bef81ebcc6623"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/2f41cde26ef95a3ee44ae112a65b54893258cd26",
-                "reference": "2f41cde26ef95a3ee44ae112a65b54893258cd26",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/ef7f9eecb0042f842b1ee755a48bef81ebcc6623",
+                "reference": "ef7f9eecb0042f842b1ee755a48bef81ebcc6623",
                 "shasum": ""
             },
             "require": {
@@ -1115,7 +1113,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-01-13T07:14:15+00:00"
+            "time": "2025-02-08T09:10:46+00:00"
         },
         {
             "name": "psr/http-client",
