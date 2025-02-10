@@ -1530,12 +1530,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-deps/ocp.git",
-                "reference": "8f9f1452b564a514938d0e7361479bb9afacab27"
+                "reference": "850819a2bd061dca3c6a839d44bb6f22f188febc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/8f9f1452b564a514938d0e7361479bb9afacab27",
-                "reference": "8f9f1452b564a514938d0e7361479bb9afacab27",
+                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/850819a2bd061dca3c6a839d44bb6f22f188febc",
+                "reference": "850819a2bd061dca3c6a839d44bb6f22f188febc",
                 "shasum": ""
             },
             "require": {
@@ -1566,7 +1566,7 @@
                 "issues": "https://github.com/nextcloud-deps/ocp/issues",
                 "source": "https://github.com/nextcloud-deps/ocp/tree/stable30"
             },
-            "time": "2025-01-08T10:49:45+00:00"
+            "time": "2025-01-27T08:38:56+00:00"
         },
         {
             "name": "psr/clock",
@@ -1725,12 +1725,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "24296413a9838930e7c039f5eaf985ccec766103"
+                "reference": "aef299e472b10cd299fed7d258fd1dc585e87443"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/24296413a9838930e7c039f5eaf985ccec766103",
-                "reference": "24296413a9838930e7c039f5eaf985ccec766103",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/aef299e472b10cd299fed7d258fd1dc585e87443",
+                "reference": "aef299e472b10cd299fed7d258fd1dc585e87443",
                 "shasum": ""
             },
             "conflict": {
@@ -2265,7 +2265,7 @@
                 "rap2hpoutre/laravel-log-viewer": "<0.13",
                 "react/http": ">=0.7,<1.9",
                 "really-simple-plugins/complianz-gdpr": "<6.4.2",
-                "redaxo/source": "<5.18",
+                "redaxo/source": "<=5.18.1",
                 "remdex/livehelperchat": "<4.29",
                 "reportico-web/reportico": "<=8.1",
                 "rhukster/dom-sanitizer": "<1.0.7",
@@ -2591,7 +2591,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-02-07T21:04:27+00:00"
+            "time": "2025-02-10T19:04:46+00:00"
         }
     ],
     "aliases": [],
