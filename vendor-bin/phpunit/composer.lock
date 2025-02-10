@@ -114,10 +114,12 @@
                 "ext-json": "*",
                 "php": ">=7.4",
                 "psr/http-client": "^1.0",
+                "psr/http-factory": "^1.0|^1.1",
                 "psr/http-message": "^1.0|^2.0"
             },
             "provide": {
                 "psr/http-client-implementation": "1.0",
+                "psr/http-factory-implementation": "1.0",
                 "psr/http-message-implementation": "1.0"
             },
             "require-dev": {
@@ -292,12 +294,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "a70f5c95fb43bc83f07c9c948baa0dc1829bf201"
+                "reference": "ca06f23f35cf0b70a6f56d3d95c51bbc1062fade"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/a70f5c95fb43bc83f07c9c948baa0dc1829bf201",
-                "reference": "a70f5c95fb43bc83f07c9c948baa0dc1829bf201",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/ca06f23f35cf0b70a6f56d3d95c51bbc1062fade",
+                "reference": "ca06f23f35cf0b70a6f56d3d95c51bbc1062fade",
                 "shasum": ""
             },
             "require": {
@@ -385,7 +387,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/2.7.0"
+                "source": "https://github.com/guzzle/psr7/tree/2.7"
             },
             "funding": [
                 {
@@ -401,7 +403,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-07-18T11:15:46+00:00"
+            "time": "2025-02-03T10:49:42+00:00"
         },
         {
             "name": "mikey179/vfsstream",
@@ -2291,12 +2293,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/smalot/pdfparser.git",
-                "reference": "f44ada017eac4f607ffeb1caca96a2347d48f38f"
+                "reference": "0ddcc54910411a5189f109dc9739318308cd2f86"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smalot/pdfparser/zipball/f44ada017eac4f607ffeb1caca96a2347d48f38f",
-                "reference": "f44ada017eac4f607ffeb1caca96a2347d48f38f",
+                "url": "https://api.github.com/repos/smalot/pdfparser/zipball/0ddcc54910411a5189f109dc9739318308cd2f86",
+                "reference": "0ddcc54910411a5189f109dc9739318308cd2f86",
                 "shasum": ""
             },
             "require": {
@@ -2335,7 +2337,7 @@
                 "issues": "https://github.com/smalot/pdfparser/issues",
                 "source": "https://github.com/smalot/pdfparser/tree/master"
             },
-            "time": "2024-12-03T12:01:10+00:00"
+            "time": "2025-02-05T16:29:27+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
