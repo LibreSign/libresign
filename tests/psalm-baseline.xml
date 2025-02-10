@@ -181,8 +181,5 @@
     <UndefinedDocblockClass>
       <code><![CDATA[PdfTypeException]]></code>
     </UndefinedDocblockClass>
-    <UndefinedInterfaceMethod>
-      <code><![CDATA[getAllMappings]]></code>
-    </UndefinedInterfaceMethod>
   </file>
 </files>
