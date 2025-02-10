@@ -31,12 +31,12 @@
     </MissingDependency>
   </file>
   <file src="lib/Controller/DevelopController.php">
-    <LessSpecificReturnStatement>
+    <InvalidReturnStatement>
       <code><![CDATA[$response]]></code>
-    </LessSpecificReturnStatement>
-    <MoreSpecificReturnType>
+    </InvalidReturnStatement>
+    <InvalidReturnType>
       <code><![CDATA[FileDisplayResponse<Http::STATUS_OK, array{Content-Type: 'application/pdf',Content-Disposition: 'inline; filename="file.pdf"'}>|DataResponse<Http::STATUS_NOT_FOUND, array<empty>, array{}>]]></code>
-    </MoreSpecificReturnType>
+    </InvalidReturnType>
   </file>
   <file src="lib/Controller/FileController.php">
     <InvalidReturnStatement>
