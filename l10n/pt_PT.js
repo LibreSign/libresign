@@ -40,7 +40,7 @@ OC.L10N.register(
     "Certificate" : "Certificado",
     "Type" : "Tipo",
     "Status" : "Estado",
-    "Actions" : "Acções",
+    "Actions" : "Ações",
     "Signature" : "Assinatura",
     "Profile picture" : "Imagem do perfil",
     "Create account" : "Criar conta",
