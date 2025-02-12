@@ -43,7 +43,7 @@
 			:name="t('libresign', 'Loading …')" />
 		<NcEmptyContent v-else-if="!loading && isEmptyDir && filtersStore.activeChips.length === 0"
 			:name="t('libresign', 'There are no documents')"
-			:description="t('libresign', 'Choose the file to request signatures.')">
+			:description="canRequestSign ? t('libresign', 'Choose the file to request signatures.') : ''">
 			<template #action>
 				<RequestPicker />
 			</template>
@@ -66,6 +66,7 @@ import ListViewIcon from 'vue-material-design-icons/FormatListBulletedSquare.vue
 import ViewGridIcon from 'vue-material-design-icons/ViewGrid.vue'
 
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
+import { loadState } from '@nextcloud/initial-state'
 
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
 import NcBreadcrumb from '@nextcloud/vue/dist/Components/NcBreadcrumb.js'
@@ -112,6 +113,7 @@ export default {
 		return {
 			loading: true,
 			dirContentsFiltered: [],
+			canRequestSign: loadState('libresign', 'can_request_sign', false),
 		}
 	},
 	computed: {
