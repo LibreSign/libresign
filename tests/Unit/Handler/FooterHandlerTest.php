@@ -90,7 +90,6 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->l10n = $this->l10nFactory->get(Application::APP_ID, $language);
 
 		$pdf = $this->getClass()
-			->setTemplateVar('test', 'fake value')
 			->getFooter($file, $libresignFile);
 		if ($settings['add_footer']) {
 			$actual = $this->extractPdfContent(
@@ -128,7 +127,6 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						qrcodeSize:<?= $qrcodeSize ?><br />
 						signedBy:<?= $signedBy ?><br />
 						validateIn:<?= $validateIn ?><br />
-						test:<?= $test ?><br />
 						qrcode:<?= $qrcode ?>
 						</div>
 						HTML,
@@ -138,7 +136,6 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'qrcodeSize' => '108',
 					'signedBy' => 'Digital signed by LibreSign.',
 					'validateIn' => 'Validate in %s.',
-					'test' => 'fake value',
 				]
 			],
 			'en' => [
@@ -154,16 +151,54 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						<div style="font-size:8px;" dir="<?= $direction ?>">
 						signedBy:<?= $signedBy ?><br />
 						validateIn:<?= $validateIn ?><br />
-						test:<?= $test ?>
 						</div>
 						HTML,
 				],
 				[
 					'signedBy' => 'Digital signed by LibreSign.',
 					'validateIn' => 'Validate in %s.',
-					'test' => 'fake value',
 				]
-			]
+			],
+			[
+				[
+					'add_footer' => true,
+					'validation_site' => 'http://test.coop',
+					'write_qrcode_on_footer' => false,
+					'footer_link_to_site' => 'https://libresign.coop',
+					'footer_signed_by' => 'Signé numériquement avec LibreSign.',
+					'footer_validate_in' => 'Validate in %s',
+					'footer_template' => <<<'HTML'
+						<div style="font-size:8px;">
+						signedBy:<?= $signedBy ?><br />
+						validateIn:<?= $validateIn ?><br />
+						</div>
+						HTML,
+				],
+				[
+					'signedBy' => 'Signé numériquement avec LibreSign.',
+					'validateIn' => 'Validate in %s',
+				]
+			],
+			[
+				[
+					'add_footer' => true,
+					'validation_site' => 'http://test.coop',
+					'write_qrcode_on_footer' => false,
+					'footer_link_to_site' => 'https://libresign.coop',
+					'footer_signed_by' => 'Το αρχείο υπάρχει',
+					'footer_validate_in' => 'Validate in %s.',
+					'footer_template' => <<<'HTML'
+						<div style="font-size:8px;">
+						signedBy:<?= $signedBy ?><br />
+						validateIn:<?= $validateIn ?><br />
+						</div>
+						HTML,
+				],
+				[
+					'signedBy' => 'Το αρχείο υπάρχει',
+					'validateIn' => 'Validate in %s.',
+				]
+			],
 		];
 
 		// LTR langages was ignored at CI because the returned text is flipped by MPDF
