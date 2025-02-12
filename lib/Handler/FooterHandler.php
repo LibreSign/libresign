@@ -26,6 +26,7 @@ use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
+use OCP\L10N\IFactory;
 
 class FooterHandler {
 	private QrCode $qrCode;
@@ -40,6 +41,7 @@ class FooterHandler {
 		private PdfParserService $pdfParserService,
 		private IURLGenerator $urlGenerator,
 		private IL10N $l10n,
+		private IFactory $l10nFactory,
 		private ITempManager $tempManager,
 	) {
 	}
@@ -70,6 +72,7 @@ class FooterHandler {
 						$dimension['h'] * self::POINT_TO_MILIMETER,
 					],
 				]);
+				$pdf->SetDirectionality($this->templateVars['direction']);
 			}
 			$pdf->AddPage(
 				orientation: 'P',
@@ -113,6 +116,8 @@ class FooterHandler {
 			'windows-1252',
 			$this->appConfig->getValueString(Application::APP_ID, 'footer_signed_by', $this->l10n->t('Digital signed by LibreSign.'))
 		);
+
+		$this->templateVars['direction'] = $this->l10nFactory->getLanguageDirection($this->l10n->getLanguageCode());
 
 		$this->templateVars['linkToSite'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_link_to_site', 'https://libresign.coop');
 
