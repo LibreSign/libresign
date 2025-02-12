@@ -68,13 +68,14 @@ export default {
 				.then(response => {
 					const buffer = Buffer.from(response.data, 'binary').toString('base64')
 					this.imageData = 'data:application/pdf;base64,' + buffer
-					this.onImageLoad()
+					this.onImageLoad(true)
 				})
+				.catch(() => this.onImageLoad(false))
 		},
-		onImageLoad() {
+		onImageLoad(status) {
 			this.loading = false
 			this.isLoaded = true
-			this.$emit('loaded')
+			this.$emit('loaded', status)
 		},
 	},
 }
