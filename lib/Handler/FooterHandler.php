@@ -108,11 +108,7 @@ class FooterHandler {
 	}
 
 	private function getTemplateVars(): array {
-		$this->templateVars['signedBy'] = iconv(
-			'UTF-8',
-			'windows-1252',
-			$this->appConfig->getValueString(Application::APP_ID, 'footer_signed_by', $this->l10n->t('Digital signed by LibreSign.'))
-		);
+		$this->templateVars['signedBy'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_signed_by', $this->l10n->t('Digital signed by LibreSign.'));
 
 		$this->templateVars['linkToSite'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_link_to_site', 'https://libresign.coop');
 
@@ -128,6 +124,10 @@ class FooterHandler {
 		$this->templateVars['validateIn'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_validate_in', 'Validate in %s.');
 		if ($this->templateVars['validateIn'] === 'Validate in %s.') {
 			$this->templateVars['validateIn'] = $this->l10n->t('Validate in %s.', ['%s']);
+		}
+
+		foreach ($this->templateVars as $key => $value) {
+			$this->templateVars[$key] = mb_convert_encoding($value, 'HTML-ENTITIES', 'UTF-8');
 		}
 
 		if ($this->appConfig->getValueBool(Application::APP_ID, 'write_qrcode_on_footer', true)) {
