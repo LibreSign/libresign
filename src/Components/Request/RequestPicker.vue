@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div>
+	<div v-if="canRequestSign">
 		<NcActions :menu-name="t('libresign', 'Request')"
 			:inline="inline ? 3 : 0"
 			:force-name="inline"
@@ -80,6 +80,7 @@ import UploadIcon from 'vue-material-design-icons/Upload.vue'
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
+import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
@@ -140,6 +141,7 @@ export default {
 			showingFilePicker: false,
 			loading: false,
 			openedMenu: false,
+			canRequestSign: loadState('libresign', 'can_request_sign', false),
 		}
 	},
 	computed: {
