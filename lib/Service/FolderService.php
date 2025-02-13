@@ -88,16 +88,22 @@ class FolderService {
 			foreach ($mountsContainingFile as $fileInfo) {
 				$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
 			}
+			/** @var File[] */
 			$file = $this->root->getById($nodeId);
 			if ($file) {
-				/** @var File */
+				if (!$file[0]->fopen('r')) {
+					throw new NotFoundException('Invalid node');
+				}
 				return $file[0];
 			}
 
 			$folder = $this->root->getUserFolder($this->getUserId());
+			/** @var File[] */
 			$file = $folder->getById($nodeId);
 			if ($file) {
-				/** @var File */
+				if (!$file[0]->fopen('r')) {
+					throw new NotFoundException('Invalid node');
+				}
 				return current($file);
 			}
 		}
