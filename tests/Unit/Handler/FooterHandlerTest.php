@@ -95,7 +95,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$actual = $this->extractPdfContent(
 				$pdf,
 				array_keys($expected),
-				$this->l10nFactory->getLanguageDirection($language)
+				$this->getLanguageDirection($language)
 			);
 			if ($settings['write_qrcode_on_footer']) {
 				$this->assertNotEmpty($actual['qrcode'], 'Invalid qrcode content');
@@ -105,6 +105,22 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		} else {
 			$this->assertEmpty($pdf);
 		}
+	}
+
+	private function getLanguageDirection(string $language): string {
+		$rtlLanguages = [
+			'ar', // Arabic
+			'fa', // Persian
+			'he', // Hebrew
+			'ps', // Pashto,
+			'ug', // 'Uyghurche / Uyghur
+			'ur_PK', // Urdu
+		];
+		if (in_array($language, $rtlLanguages, true)) {
+			return 'rtl';
+		}
+
+		return 'ltr';
 	}
 
 	public static function dataGetFooterWithSuccess(): array {
@@ -159,7 +175,8 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'validateIn' => 'Validate in %s.',
 				]
 			],
-			[
+			'fr' => [
+				'fr',
 				[
 					'add_footer' => true,
 					'validation_site' => 'http://test.coop',
@@ -179,7 +196,8 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'validateIn' => 'Validate in %s',
 				]
 			],
-			[
+			'el' => [
+				'el',
 				[
 					'add_footer' => true,
 					'validation_site' => 'http://test.coop',
