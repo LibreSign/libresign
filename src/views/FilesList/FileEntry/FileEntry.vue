@@ -41,7 +41,7 @@
 </template>
 
 <script>
-import NcDateTime from '@nextcloud/vue/dist/Components/NcDateTime.js'
+import NcDateTime from '@nextcloud/vue/components/NcDateTime'
 
 import FileEntryActions from './FileEntryActions.vue'
 import FileEntryCheckbox from './FileEntryCheckbox.vue'

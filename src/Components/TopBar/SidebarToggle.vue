@@ -19,7 +19,7 @@
 <script>
 import MenuIcon from 'vue-material-design-icons/Menu.vue'
 
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcButton from '@nextcloud/vue/components/NcButton'
 
 import { useSidebarStore } from '../../store/sidebar.js'
 

@@ -29,7 +29,7 @@
 <script>
 import { translate as t } from '@nextcloud/l10n'
 
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
