@@ -34,7 +34,7 @@ import AlertCircle from 'vue-material-design-icons/AlertCircleOutline.vue'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 
-import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
+import NcSelect from '@nextcloud/vue/components/NcSelect'
 
 export default {
 	name: 'AccountOrEmail',

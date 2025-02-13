@@ -23,9 +23,9 @@
 </template>
 
 <script>
-import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
-import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
-import NcActionSeparator from '@nextcloud/vue/dist/Components/NcActionSeparator.js'
+import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import NcActions from '@nextcloud/vue/components/NcActions'
+import NcActionSeparator from '@nextcloud/vue/components/NcActionSeparator'
 
 export default {
 	name: 'FileListFilter',
