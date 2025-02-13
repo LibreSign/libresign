@@ -22,8 +22,8 @@
 import { emit } from '@nextcloud/event-bus'
 import Moment from '@nextcloud/moment'
 
-import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
-import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
+import NcAvatar from '@nextcloud/vue/components/NcAvatar'
+import NcListItem from '@nextcloud/vue/components/NcListItem'
 
 export default {
 	name: 'SignerRow',

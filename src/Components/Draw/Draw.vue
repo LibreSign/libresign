@@ -44,9 +44,9 @@ import DrawIcon from 'vue-material-design-icons/Draw.vue'
 import SignatureTextIcon from 'vue-material-design-icons/SignatureText.vue'
 import UploadIcon from 'vue-material-design-icons/Upload.vue'
 
-import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
-import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
-import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
+import NcAppSidebar from '@nextcloud/vue/components/NcAppSidebar'
+import NcAppSidebarTab from '@nextcloud/vue/components/NcAppSidebarTab'
+import NcDialog from '@nextcloud/vue/components/NcDialog'
 
 import Editor from './Editor.vue'
 import FileUpload from './FileUpload.vue'
