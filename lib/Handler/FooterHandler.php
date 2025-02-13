@@ -35,6 +35,14 @@ class FooterHandler {
 	private const MIN_QRCODE_SIZE = 100;
 	private const POINT_TO_MILIMETER = 0.3527777778;
 	private array $templateVars = [];
+	public const RTL_LANGUAGES = [
+		'ar', // Arabic
+		'fa', // Persian
+		'he', // Hebrew
+		'ps', // Pashto,
+		'ug', // 'Uyghurche / Uyghur
+		'ur_PK', // Urdu
+	];
 
 	public function __construct(
 		private IAppConfig $appConfig,
@@ -138,7 +146,7 @@ class FooterHandler {
 	private function getTemplateVars(): array {
 		$this->templateVars['signedBy'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_signed_by', $this->l10n->t('Digital signed by LibreSign.'));
 
-		$this->templateVars['direction'] = $this->l10nFactory->getLanguageDirection($this->l10n->getLanguageCode());
+		$this->templateVars['direction'] = $this->getLanguageDirection($this->l10n->getLanguageCode());
 
 		$this->templateVars['linkToSite'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_link_to_site', 'https://libresign.coop');
 
@@ -167,6 +175,14 @@ class FooterHandler {
 		}
 
 		return $this->templateVars;
+	}
+
+	private function getLanguageDirection(string $language): string {
+		if (in_array($language, self::RTL_LANGUAGES, true)) {
+			return 'rtl';
+		}
+
+		return 'ltr';
 	}
 
 	private function getTemplateFile(): string {
