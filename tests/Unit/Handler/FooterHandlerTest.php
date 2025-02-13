@@ -9,13 +9,15 @@ use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
+use OCP\L10N\IFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;
 	private PdfParserService|MockObject $pdfParserService;
 	private IURLGenerator|MockObject $urlGenerator;
-	private IL10N|MockObject $l10n;
+	private IL10N $l10n;
+	private IFactory $l10nFactory;
 	private ITempManager|MockObject $tempManager;
 	private FooterHandler $footerHandler;
 	public function setUp(): void {
@@ -51,7 +53,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/**
 	 * @dataProvider dataGetFooterWithSuccess
 	 */
-	public function testGetFooterWithSuccess(array $settings, array $expected): void {
+	public function testGetFooterWithSuccess(string $language, array $settings, array $expected): void {
 		foreach ($settings as $key => $value) {
 			switch (gettype($value)) {
 				case 'boolean':
@@ -90,7 +92,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$actual = $this->extractPdfContent(
 				$pdf,
 				array_keys($expected),
-				$this->l10nFactory->getLanguageDirection($language)
+				$this->getLanguageDirection($language)
 			);
 			if ($settings['write_qrcode_on_footer']) {
 				$this->assertNotEmpty($actual['qrcode'], 'Invalid qrcode content');
@@ -100,6 +102,22 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		} else {
 			$this->assertEmpty($pdf);
 		}
+	}
+
+	private function getLanguageDirection(string $language): string {
+		$rtlLanguages = [
+			'ar', // Arabic
+			'fa', // Persian
+			'he', // Hebrew
+			'ps', // Pashto,
+			'ug', // 'Uyghurche / Uyghur
+			'ur_PK', // Urdu
+		];
+		if (in_array($language, $rtlLanguages, true)) {
+			return 'rtl';
+		}
+
+		return 'ltr';
 	}
 
 	public static function dataGetFooterWithSuccess(): array {
@@ -154,7 +172,8 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'validateIn' => 'Validate in %s.',
 				]
 			],
-			[
+			'fr' => [
+				'fr',
 				[
 					'add_footer' => true,
 					'validation_site' => 'http://test.coop',
@@ -174,7 +193,8 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'validateIn' => 'Validate in %s',
 				]
 			],
-			[
+			'el' => [
+				'el',
 				[
 					'add_footer' => true,
 					'validation_site' => 'http://test.coop',
