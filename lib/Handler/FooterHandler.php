@@ -132,7 +132,9 @@ class FooterHandler {
 		}
 
 		foreach ($this->templateVars as $key => $value) {
-			$this->templateVars[$key] = mb_convert_encoding($value, 'HTML-ENTITIES', 'UTF-8');
+			if (is_string($value)) {
+				$this->templateVars[$key] = htmlentities($value, ENT_NOQUOTES | ENT_SUBSTITUTE | ENT_HTML401);
+			}
 		}
 
 		if ($this->appConfig->getValueBool(Application::APP_ID, 'write_qrcode_on_footer', true)) {
