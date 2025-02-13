@@ -78,10 +78,11 @@ export default {
 	data: () => ({
 		isEditing: false,
 		isSignatureLoaded: false,
+		signatureExists: true,
 	}),
 	computed: {
 		hasSignature() {
-			return this.signatureElementsStore.hasSignatureOfType(this.type)
+			return this.signatureElementsStore.hasSignatureOfType(this.type) && this.signatureExists
 		},
 		imgSrc() {
 			if (this.signatureElementsStore.signs[this.type]?.value?.startsWith('data:')) {
@@ -91,8 +92,9 @@ export default {
 		},
 	},
 	methods: {
-		signatureLoaded() {
-			this.isSignatureLoaded = true
+		signatureLoaded(success) {
+			this.isSignatureLoaded = success
+			this.signatureExists = success
 		},
 		edit() {
 			this.isEditing = true
