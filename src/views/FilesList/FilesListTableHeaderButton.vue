@@ -23,7 +23,7 @@
 import MenuDown from 'vue-material-design-icons/MenuDown.vue'
 import MenuUp from 'vue-material-design-icons/MenuUp.vue'
 
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcButton from '@nextcloud/vue/components/NcButton'
 
 import { useFilesSortingStore } from '../../store/filesSorting.js'
 

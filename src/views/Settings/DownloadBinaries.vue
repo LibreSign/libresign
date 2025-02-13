@@ -35,11 +35,11 @@ import { set } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
-import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
-import NcProgressBar from '@nextcloud/vue/dist/Components/NcProgressBar.js'
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
+import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
+import NcProgressBar from '@nextcloud/vue/components/NcProgressBar'
+import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
