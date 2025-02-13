@@ -159,7 +159,8 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'validateIn' => 'Validate in %s.',
 				]
 			],
-			[
+			'fr' => [
+				'fr',
 				[
 					'add_footer' => true,
 					'validation_site' => 'http://test.coop',
@@ -179,7 +180,8 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'validateIn' => 'Validate in %s',
 				]
 			],
-			[
+			'el' => [
+				'el',
 				[
 					'add_footer' => true,
 					'validation_site' => 'http://test.coop',
