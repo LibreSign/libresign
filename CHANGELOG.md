@@ -17,6 +17,83 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 11.0.2 - 2025-02-13
+### Changes
+- Update translations
+- Bump dependencies
+- chore: replace deprecated function [#4648](https://github.com/LibreSign/libresign/pull/4648)
+- chore: remove wrong annotation [#4604](https://github.com/LibreSign/libresign/pull/4604)
+- chore: check if user exists [#4601](https://github.com/LibreSign/libresign/pull/4601)
+- chore: prevent create cfssl config path every time [#4587](https://github.com/LibreSign/libresign/pull/4587)
+- chore: tests improvement [#4583](https://github.com/LibreSign/libresign/pull/4583)
+- chore: small tests improvement [#4580](https://github.com/LibreSign/libresign/pull/4580)
+- refactor: moved hashes to be close to version number [#4574](https://github.com/LibreSign/libresign/pull/4574)
+- refactor: moved version of JSignPdf to InstallService [#4570](https://github.com/LibreSign/libresign/pull/4570)
+
+### Fixes
+- fix: add pending code [#4654](https://github.com/LibreSign/libresign/pull/4654)
+- fix: prevent success when signature file dont exists [#4642](https://github.com/LibreSign/libresign/pull/4642)
+- fix: ltr language [#4632](https://github.com/LibreSign/libresign/pull/4632)
+- fix: use entities instead of char convertoing [#4629](https://github.com/LibreSign/libresign/pull/4629)
+- fix: hide request button to anauthorized account [#4623](https://github.com/LibreSign/libresign/pull/4623)
+- fix: add maxlength to names of cert [#4608](https://github.com/LibreSign/libresign/pull/4608)
+- fix: typo [#4591](https://github.com/LibreSign/libresign/pull/4591)
+- fix: prevent generate a path without existing folder [#4565](https://github.com/LibreSign/libresign/pull/4565)
+- fix: prevent warning when haven't names [#4562](https://github.com/LibreSign/libresign/pull/4562)
+- fix: prevent warning of fsockopen [#4554](https://github.com/LibreSign/libresign/pull/4554)
+- fix: prevent delete binary files when execute unit tests [#4544](https://github.com/LibreSign/libresign/pull/4544)
+
+## 10.6.2 - 2025-02-13
+### Changes
+- Update translations
+- Bump dependencies
+- chore: replace deprecated function [#4647](https://github.com/LibreSign/libresign/pull/4647)
+- chore: remove wrong annotation [#4603](https://github.com/LibreSign/libresign/pull/4603)
+- chore: check if user exists [#4600](https://github.com/LibreSign/libresign/pull/4600)
+- chore: prevent create cfssl config path every time [#4586](https://github.com/LibreSign/libresign/pull/4586)
+- chore: tests improvement [#4584](https://github.com/LibreSign/libresign/pull/4584)
+- chore: small tests improvement [#4579](https://github.com/LibreSign/libresign/pull/4579)
+- refactor: moved hashes to be close to version number [#4575](https://github.com/LibreSign/libresign/pull/4575)
+- refactor: moved version of JSignPdf to InstallService [#4568](https://github.com/LibreSign/libresign/pull/4568)
+
+### Fixes
+- fix: add function that only exists at nextcloud 32 [#4653](https://github.com/LibreSign/libresign/pull/4653)
+- fix: prevent success when signature file dont exists [#4641](https://github.com/LibreSign/libresign/pull/4641)
+- fix: ltr language [#4630](https://github.com/LibreSign/libresign/pull/4630)
+- fix: use entities instead of char convertoing [#4628](https://github.com/LibreSign/libresign/pull/4628)
+- fix: hide request button to anauthorized account [#4622](https://github.com/LibreSign/libresign/pull/4622)
+- fix: add maxlength to names of cert [#4607](https://github.com/LibreSign/libresign/pull/4607)
+- fix: prevent call other autoload before libresign [#4596](https://github.com/LibreSign/libresign/pull/4596)
+- fix: typo [#4590](https://github.com/LibreSign/libresign/pull/4590)
+- fix: prevent generate a path without existing folder [#4564](https://github.com/LibreSign/libresign/pull/4564)
+- fix: prevent warning when haven't names [#4561](https://github.com/LibreSign/libresign/pull/4561)
+- fix: prevent warning of fsockopen [#4553](https://github.com/LibreSign/libresign/pull/4553)
+- fix: prevent delete binary files when execute unit tests [#4543](https://github.com/LibreSign/libresign/pull/4543)
+
+## 9.9.2 - 2025-02-13
+### Changes
+- Update translations
+- Bump dependencies
+- chore: replace deprecated function [#4646](https://github.com/LibreSign/libresign/pull/4646)
+- chore: remove wrong annotation [#4602](https://github.com/LibreSign/libresign/pull/4602)
+- chore: check if user exists [#4599](https://github.com/LibreSign/libresign/pull/4599)
+- chore: prevent create cfssl config path every time [#4585](https://github.com/LibreSign/libresign/pull/4585)
+- chore: tests improvement [#4582](https://github.com/LibreSign/libresign/pull/4582)
+- refactor: moved hashes to be close to version number [#4573](https://github.com/LibreSign/libresign/pull/4573)
+- refactor: moved version of JSignPdf to InstallService [#4569](https://github.com/LibreSign/libresign/pull/4569)
+
+### Fixes
+- fix: prevent success when signature file dont exists [#4640](https://github.com/LibreSign/libresign/pull/4640)
+- fix: ltr language [#4631](https://github.com/LibreSign/libresign/pull/4631)
+- fix: use entities instead of char convertoing [#4627](https://github.com/LibreSign/libresign/pull/4627)
+- fix: hide request button to anauthorized account [#4621](https://github.com/LibreSign/libresign/pull/4621)
+- fix: add maxlength to names of cert [#4606](https://github.com/LibreSign/libresign/pull/4606)
+- fix: typo [#4589](https://github.com/LibreSign/libresign/pull/4589)
+- fix: prevent generate a path without existing folder [#4563](https://github.com/LibreSign/libresign/pull/4563)
+- fix: prevent warning when haven't names [#4560](https://github.com/LibreSign/libresign/pull/4560)
+- fix: prevent warning of fsockopen [#4552](https://github.com/LibreSign/libresign/pull/4552)
+- fix: prevent delete binary files when execute unit tests [#4545](https://github.com/LibreSign/libresign/pull/4545)
+
 ## 11.0.1 - 2025-01-28
 ### Changes
 - Update translations
