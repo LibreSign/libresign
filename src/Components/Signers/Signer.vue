@@ -23,8 +23,8 @@ import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import Moment from '@nextcloud/moment'
 
-import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
-import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
+import NcAvatar from '@nextcloud/vue/components/NcAvatar'
+import NcListItem from '@nextcloud/vue/components/NcListItem'
 
 import Bullet from '../Bullet/Bullet.vue'
 

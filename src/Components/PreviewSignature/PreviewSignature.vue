@@ -10,7 +10,7 @@
 <script>
 import axios from '@nextcloud/axios'
 
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 
 export default {
 	name: 'PreviewSignature',

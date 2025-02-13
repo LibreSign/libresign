@@ -34,8 +34,8 @@
 <script>
 import { loadState } from '@nextcloud/initial-state'
 
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import AccountOrEmail from './AccountOrEmail.vue'
 

@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import NcCounterBubble from '@nextcloud/vue/dist/Components/NcCounterBubble.js'
+import NcCounterBubble from '@nextcloud/vue/components/NcCounterBubble'
 
 export default {
 	name: 'PageNavigation',
