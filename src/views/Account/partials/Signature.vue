@@ -47,8 +47,8 @@ import DrawIcon from 'vue-material-design-icons/Draw.vue'
 
 import { showError, showSuccess } from '@nextcloud/dialogs'
 
-import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
-import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
+import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import NcActions from '@nextcloud/vue/components/NcActions'
 
 import Draw from '../../../Components/Draw/Draw.vue'
 import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'

@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 import AllowedGroups from './AllowedGroups.vue'
 import CertificateEngine from './CertificateEngine.vue'

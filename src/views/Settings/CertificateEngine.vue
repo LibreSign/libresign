@@ -19,8 +19,8 @@ import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
 
-import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+import NcSelect from '@nextcloud/vue/components/NcSelect'
+import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
 

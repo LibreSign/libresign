@@ -55,10 +55,10 @@ import Delete from 'vue-material-design-icons/Delete.vue'
 
 import { emit } from '@nextcloud/event-bus'
 
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
-import NcPopover from '@nextcloud/vue/dist/Components/NcPopover.js'
-import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import NcListItem from '@nextcloud/vue/components/NcListItem'
+import NcPopover from '@nextcloud/vue/components/NcPopover'
+import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import { options, selectCustonOption } from '../../helpers/certification.js'
 
