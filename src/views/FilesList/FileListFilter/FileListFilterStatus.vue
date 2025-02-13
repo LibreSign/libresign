@@ -26,8 +26,8 @@
 <script>
 import { mdiListStatus } from '@mdi/js'
 
-import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
-import NcIconSvgWrapper from '@nextcloud/vue/dist/Components/NcIconSvgWrapper.js'
+import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import FileListFilter from './FileListFilter.vue'
 

@@ -20,7 +20,7 @@
 <script>
 import StarIcon from 'vue-material-design-icons/Star.vue'
 
-import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem.js'
+import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
 
 export default {
 	name: 'Settings',

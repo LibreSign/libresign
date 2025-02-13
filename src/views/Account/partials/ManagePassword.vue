@@ -61,7 +61,7 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcButton from '@nextcloud/vue/components/NcButton'
 
 import CreatePassword from '../../CreatePassword.vue'
 import ReadCertificate from '../../ReadCertificate/ReadCertificate.vue'

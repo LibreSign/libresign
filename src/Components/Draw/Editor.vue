@@ -64,9 +64,9 @@ import { VPerfectSignature } from 'v-perfect-signature'
 import DeleteIcon from 'vue-material-design-icons/Delete.vue'
 import PaletteIcon from 'vue-material-design-icons/Palette.vue'
 
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcColorPicker from '@nextcloud/vue/dist/Components/NcColorPicker.js'
-import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import NcColorPicker from '@nextcloud/vue/components/NcColorPicker'
+import NcDialog from '@nextcloud/vue/components/NcDialog'
 
 import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
 

@@ -38,10 +38,10 @@ import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
 
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
-import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import NcDialog from '@nextcloud/vue/components/NcDialog'
+import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
+import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 
 import { useSignMethodsStore } from '../store/signMethods.js'
 
