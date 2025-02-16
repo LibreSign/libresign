@@ -18,6 +18,7 @@ OC.L10N.register(
     "Invalid user" : "Ugyldig bruger",
     "Email" : "E-mail",
     "User already exists" : "Brugeren eksisterer allerede",
+    "Draw" : "Tegn",
     "Text" : "Tekst",
     "Upload" : "Upload",
     "Change color" : "Skift farve",
