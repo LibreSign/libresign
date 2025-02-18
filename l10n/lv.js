@@ -26,7 +26,7 @@ OC.L10N.register(
     "Searching …" : "Meklē...",
     "Update" : "Atjaunināt",
     "Send" : "Sūtīt",
-    "Choose" : "Izvēlies",
+    "Choose" : "Izvēlēties",
     "Previous" : "Iepriekšējā",
     "Next" : "Nākamā",
     "Confirm" : "Apstiprināt",
