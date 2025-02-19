@@ -44,6 +44,7 @@ OC.L10N.register(
     "Type" : "Tegund",
     "Status" : "Staða",
     "Actions" : "Aðgerðir",
+    "Delete certificate" : "Eyða skilríki",
     "Signature" : "Undirskrift",
     "Profile picture" : "Einkennismynd",
     "Create account" : "Stofna aðgang",
