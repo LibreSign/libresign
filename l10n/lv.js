@@ -2,7 +2,7 @@ OC.L10N.register(
     "libresign",
     {
     "Settings saved" : "Iestatījumi saglabāti",
-    "deleted" : "dzēsts",
+    "deleted" : "izdzēsta",
     "Invalid password" : "Nederīga parole",
     "File is too big" : "Datne ir par lielu",
     "File sharing" : "Datņu koplietošana",
