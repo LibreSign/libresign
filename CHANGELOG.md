@@ -17,6 +17,33 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 10.6.2 - 2025-02-21
+### Changes
+- Update translations
+- Bump dependencies
+- chore: replace deprecated function [#4647](https://github.com/LibreSign/libresign/pull/4647)
+- chore: remove wrong annotation [#4603](https://github.com/LibreSign/libresign/pull/4603)
+- chore: check if user exists [#4600](https://github.com/LibreSign/libresign/pull/4600)
+- chore: prevent create cfssl config path every time [#4586](https://github.com/LibreSign/libresign/pull/4586)
+- chore: tests improvement [#4584](https://github.com/LibreSign/libresign/pull/4584)
+- chore: small tests improvement [#4579](https://github.com/LibreSign/libresign/pull/4579)
+- refactor: moved hashes to be close to version number [#4575](https://github.com/LibreSign/libresign/pull/4575)
+- refactor: moved version of JSignPdf to InstallService [#4568](https://github.com/LibreSign/libresign/pull/4568)
+
+### Fixes
+- fix: add function that only exists at nextcloud 32 [#4653](https://github.com/LibreSign/libresign/pull/4653)
+- fix: prevent success when signature file dont exists [#4641](https://github.com/LibreSign/libresign/pull/4641)
+- fix: ltr language [#4630](https://github.com/LibreSign/libresign/pull/4630)
+- fix: use entities instead of char convertoing [#4628](https://github.com/LibreSign/libresign/pull/4628)
+- fix: hide request button to anauthorized account [#4622](https://github.com/LibreSign/libresign/pull/4622)
+- fix: add maxlength to names of cert [#4607](https://github.com/LibreSign/libresign/pull/4607)
+- fix: prevent call other autoload before libresign [#4596](https://github.com/LibreSign/libresign/pull/4596)
+- fix: typo [#4590](https://github.com/LibreSign/libresign/pull/4590)
+- fix: prevent generate a path without existing folder [#4564](https://github.com/LibreSign/libresign/pull/4564)
+- fix: prevent warning when haven't names [#4561](https://github.com/LibreSign/libresign/pull/4561)
+- fix: prevent warning of fsockopen [#4553](https://github.com/LibreSign/libresign/pull/4553)
+- fix: prevent delete binary files when execute unit tests [#4543](https://github.com/LibreSign/libresign/pull/4543)
+
 ## 10.6.1 - 2025-01-28
 ### Changes
 - Update translations
