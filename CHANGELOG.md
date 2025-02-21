@@ -17,7 +17,7 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
-## 11.0.2 - 2025-02-13
+## 11.0.2 - 2025-02-21
 ### Changes
 - Update translations
 - Bump dependencies
@@ -43,7 +43,7 @@ Types of changes:
 - fix: prevent warning of fsockopen [#4554](https://github.com/LibreSign/libresign/pull/4554)
 - fix: prevent delete binary files when execute unit tests [#4544](https://github.com/LibreSign/libresign/pull/4544)
 
-## 10.6.2 - 2025-02-13
+## 10.6.2 - 2025-02-14
 ### Changes
 - Update translations
 - Bump dependencies
@@ -70,7 +70,7 @@ Types of changes:
 - fix: prevent warning of fsockopen [#4553](https://github.com/LibreSign/libresign/pull/4553)
 - fix: prevent delete binary files when execute unit tests [#4543](https://github.com/LibreSign/libresign/pull/4543)
 
-## 9.9.2 - 2025-02-13
+## 9.9.2 - 2025-02-14
 ### Changes
 - Update translations
 - Bump dependencies
