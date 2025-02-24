@@ -239,7 +239,7 @@ class SignSetupService {
 				$installPath
 			);
 		}
-		return $installPath;
+		return (string)$installPath;
 	}
 
 	private function getDataDir(): string {
@@ -294,7 +294,7 @@ class SignSetupService {
 	}
 
 	protected function getAppInfoDirectory(): string {
-		$appInfoDir = realpath(__DIR__ . '/../../../appinfo');
+		$appInfoDir = (string)realpath(__DIR__ . '/../../../appinfo');
 		$this->fileAccessHelper->assertDirectoryExists($appInfoDir);
 		return $appInfoDir;
 	}
@@ -538,7 +538,7 @@ class SignSetupService {
 		if ($this->willUseLocalCert) {
 			$localCert = __DIR__ . '/../../../build/tools/certificates/local/root.crt';
 			if (file_exists($localCert)) {
-				return file_get_contents($localCert);
+				return (string)file_get_contents($localCert);
 			}
 		}
 		return $this->fileAccessHelper->file_get_contents($this->environmentHelper->getServerRoot() . '/resources/codesigning/root.crt');

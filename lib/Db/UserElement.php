@@ -21,7 +21,6 @@ use OCP\DB\Types;
  * @method void setUserId(string $userId)
  * @method void setStarred(int $starred)
  * @method int getStarred()
- * @method void setCreatedAt(\DateTime $createdAt)
  * @method ?\DateTime getCreatedAt()
  * @method void setMetadata(array $metadata)
  * @method ?array getMetadata()
