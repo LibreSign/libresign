@@ -34,9 +34,8 @@
 		"cs:check": "php-cs-fixer fix --dry-run --diff",
 		"cs:fix": "php-cs-fixer fix",
 		"openapi": "generate-spec --verbose && (npm run typescript:generate || echo 'Please manually regenerate the typescript OpenAPI models')",
-		"psalm": "psalm --threads=$(nproc)",
+		"psalm": "psalm --no-cache --threads=$(nproc)",
 		"psalm:update-baseline": "psalm --threads=$(nproc) --update-baseline --set-baseline=tests/psalm-baseline.xml",
-		"psalm:clear": "psalm --clear-cache && psalm --clear-global-cache",
 		"post-install-cmd": [
 			"@composer bin all install --ansi",
 			"composer dump-autoload"
