@@ -4,18 +4,22 @@
 -->
 <template>
 	<NcDialog v-if="modal"
-		:name="document.name"
 		size="normal"
 		@closing="closeModal">
 		<div v-if="filesStore.loading">
 			<NcLoadingIcon :size="64" :name="t('libresign', 'Loading file')" />
 		</div>
 		<div v-else class="sign-details">
-			<h2>
+			<h2 class="modal_name">
 				<Chip :state="isDraft ? 'warning' : 'default'">
 					{{ statusLabel }}
 				</Chip>
+				<span class="name">{{ document.name }}</span>
 			</h2>
+			<p v-if="!signerSelected">
+				<NcNoteCard type="info"
+					:text="t('libresign', 'Select a signer to set their signature position')" />
+			</p>
 			<ul class="view-sign-detail__sidebar">
 				<li v-if="signerSelected"
 					:class="{ tip: signerSelected }">
@@ -328,7 +332,26 @@ export default {
 		all: unset;
 	}
 }
+:deep(.dialog__name) {
+	display: none;
+}
+:deep(.modal-container__close) {
+	z-index: 10 !important;
+}
+.modal_name {
+	display: flex;
+	align-items: center;
+	.name {
+		flex: auto;
+		text-align: center;
+		font-size: 21px;
+		overflow-wrap: break-word;
+	}
+}
 .modal-container {
+	.notecard--info {
+		margin: unset;
+	}
 	&--sidebar {
 		width: 300px;
 	}
@@ -339,7 +362,7 @@ export default {
 		margin: 4px;
 	}
 	.sign-details {
-		padding: 8px;
+		padding: 0 8px 8px;
 		position: sticky;
 		top: 0;
 		z-index: 9;
