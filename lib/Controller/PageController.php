@@ -290,11 +290,18 @@ class PageController extends AEnvironmentPageAwareController {
 			->setFile($this->getFileEntity())
 			->setHost($this->request->getServerHost())
 			->setMe($this->userSession->getUser())
+			->setSignerIdentified()
 			->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
 			->setSignRequest($this->getSignRequestEntity())
 			->showVisibleElements()
 			->showSigners()
+			->showSettings()
 			->toArray();
+		$this->initialState->provideInitialState('config', [
+			'identificationDocumentsFlow' => $file['settings']['needIdentificationDocuments'] ?? false,
+		]);
+		$this->initialState->provideInitialState('needIdentificationDocuments', $file['settings']['needIdentificationDocuments'] ?? false);
+		$this->initialState->provideInitialState('identificationDocumentsWaitingApproval', $file['settings']['identificationDocumentsWaitingApproval'] ?? false);
 		$this->initialState->provideInitialState('status', $file['status']);
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
 		$this->initialState->provideInitialState('signers', $file['signers']);

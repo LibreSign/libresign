@@ -366,25 +366,6 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/account/files": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List account files of authenticated account */
-        get: operations["account-account-file-list-to-owner"];
-        put?: never;
-        /** Add files to account profile */
-        post: operations["account-add-files"];
-        /** Delete file from account */
-        delete: operations["account-delete-file"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/account/me": {
         parameters: {
             query?: never;
@@ -397,23 +378,6 @@ export type paths = {
          * @description Validates API access data and returns the authenticated user's data.
          */
         get: operations["account-me"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/account/files/approval/list": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List account files that need to be approved */
-        get: operations["account-account-file-list-to-approval"];
         put?: never;
         post?: never;
         delete?: never;
@@ -658,6 +622,42 @@ export type paths = {
          * @description Update visible element of a specific file
          */
         patch: operations["file_element-patch"];
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/id-docs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List files of authenticated account */
+        get: operations["id_docs-list-to-owner"];
+        put?: never;
+        /** Add files to account profile */
+        post: operations["id_docs-add-files"];
+        /** Delete file from account */
+        delete: operations["id_docs-delete-file"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/id-docs/approval/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List files that need to be approved */
+        get: operations["id_docs-list-to-approval"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/identify-account/search": {
@@ -1045,11 +1045,6 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
-        AccountFile: {
-            file: components["schemas"]["NewFile"];
-            name?: string;
-            type?: string;
-        };
         CertificatePfxData: {
             name: string;
             subject: string;
@@ -1133,6 +1128,11 @@ export type components = {
                 name: string;
                 setting?: string;
             };
+        };
+        IdDocs: {
+            file: components["schemas"]["NewFile"];
+            name?: string;
+            type?: string;
         };
         IdentifyAccount: {
             /** Format: int64 */
@@ -1866,168 +1866,6 @@ export interface operations {
             };
         };
     };
-    "account-account-file-list-to-owner": {
-        parameters: {
-            query?: {
-                /** @description Filter params */
-                filter?: string | null;
-                /** @description the number of page to return */
-                page?: number | null;
-                /** @description Total of elements to return */
-                length?: number | null;
-            };
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Certificate saved with success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                pagination: components["schemas"]["Pagination"];
-                                data: components["schemas"]["File"][];
-                            };
-                        };
-                    };
-                };
-            };
-            /** @description No file provided or other problem with provided file */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "account-add-files": {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @description The list of files to add to profile */
-                    files: components["schemas"]["AccountFile"][];
-                };
-            };
-        };
-        responses: {
-            /** @description Certificate saved with success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: unknown;
-                        };
-                    };
-                };
-            };
-            /** @description No file provided or other problem with provided file */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** Format: int64 */
-                                file: number | null;
-                                /** @enum {string} */
-                                type: "info" | "warning" | "danger";
-                                message: string;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "account-delete-file": {
-        parameters: {
-            query: {
-                /** @description the nodeId of file to be delete */
-                nodeId: number;
-            };
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description File deleted with success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: unknown;
-                        };
-                    };
-                };
-            };
-            /** @description Failure to delete file from account */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                messages: string[];
-                            };
-                        };
-                    };
-                };
-            };
-        };
-    };
     "account-me": {
         parameters: {
             query?: never;
@@ -2067,62 +1905,6 @@ export interface operations {
                 };
             };
             /** @description Invalid user or password */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "account-account-file-list-to-approval": {
-        parameters: {
-            query?: {
-                /** @description Filter params */
-                filter?: string | null;
-                /** @description the number of page to return */
-                page?: number | null;
-                /** @description Total of elements to return */
-                length?: number | null;
-            };
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                pagination: components["schemas"]["Pagination"];
-                                data: components["schemas"]["File"][] | null;
-                            };
-                        };
-                    };
-                };
-            };
-            /** @description Account not found */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3103,6 +2885,224 @@ export interface operations {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
                                 errors: string[];
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "id_docs-list-to-owner": {
+        parameters: {
+            query?: {
+                /** @description Filter params */
+                filter?: string | null;
+                /** @description the number of page to return */
+                page?: number | null;
+                /** @description Total of elements to return */
+                length?: number | null;
+            };
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Certificate saved with success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                pagination: components["schemas"]["Pagination"];
+                                data: components["schemas"]["File"][];
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description No file provided or other problem with provided file */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "id_docs-add-files": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description The list of files to add to profile */
+                    files: components["schemas"]["IdDocs"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Certificate saved with success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description No file provided or other problem with provided file */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** Format: int64 */
+                                file: number | null;
+                                /** @enum {string} */
+                                type: "info" | "warning" | "danger";
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "id_docs-delete-file": {
+        parameters: {
+            query: {
+                /** @description the nodeId of file to be delete */
+                nodeId: number;
+            };
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description File deleted with success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Failure to delete file from account */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                messages: string[];
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "id_docs-list-to-approval": {
+        parameters: {
+            query?: {
+                /** @description Filter params */
+                filter?: string | null;
+                /** @description the number of page to return */
+                page?: number | null;
+                /** @description Total of elements to return */
+                length?: number | null;
+            };
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                pagination: components["schemas"]["Pagination"];
+                                data: components["schemas"]["File"][] | null;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Account not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
                             };
                         };
                     };

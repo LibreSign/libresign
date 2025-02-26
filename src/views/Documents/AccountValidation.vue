@@ -60,7 +60,7 @@ export default {
 	methods: {
 		async loadDocuments() {
 			this.loading = true
-			await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/files/approval/list'))
+			await axios.get(generateOcsUrl('/apps/libresign/api/v1/id-docs/approval/list'))
 				.then(({ data }) => {
 					this.documentList = data.ocs.data.data
 				})
