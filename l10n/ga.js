@@ -195,6 +195,7 @@ OC.L10N.register(
     "Previous" : "Roimhe Seo",
     "Next" : "Ar aghaidh",
     "Account not exist" : "Níl an cuntas ann",
+    "Select a signer to set their signature position" : "Roghnaigh sínitheoir chun a suíomh sínithe a shocrú",
     "Click on the place you want to add." : "Cliceáil ar an áit is mian leat a chur leis.",
     "Sign" : "Comhartha",
     "Confirm" : "Deimhnigh",
