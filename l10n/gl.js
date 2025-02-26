@@ -195,6 +195,7 @@ OC.L10N.register(
     "Previous" : "Anterior",
     "Next" : "Seguinte",
     "Account not exist" : "A conta non existe",
+    "Select a signer to set their signature position" : "Seleccione un asinante para definir a posición da súa sinatura",
     "Click on the place you want to add." : "Prema no lugar que quere engadir.",
     "Sign" : "Asinar",
     "Confirm" : "Confirmar",

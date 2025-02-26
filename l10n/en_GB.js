@@ -195,6 +195,7 @@ OC.L10N.register(
     "Previous" : "Previous",
     "Next" : "Next",
     "Account not exist" : "Account not exist",
+    "Select a signer to set their signature position" : "Select a signer to set their signature position",
     "Click on the place you want to add." : "Click on the place you want to add.",
     "Sign" : "Sign",
     "Confirm" : "Confirm",

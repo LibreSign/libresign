@@ -194,6 +194,7 @@ OC.L10N.register(
     "Previous" : "Föregående",
     "Next" : "Nästa",
     "Account not exist" : "Kontot finns inte",
+    "Select a signer to set their signature position" : "Välj en undertecknare för att ange deras signaturposition",
     "Click on the place you want to add." : "Klicka på den plats du vill lägga till.",
     "Sign" : "Signera",
     "Confirm" : "Bekräfta",
