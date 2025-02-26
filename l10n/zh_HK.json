@@ -193,6 +193,7 @@
     "Previous" : "上一步",
     "Next" : "下一個檔案",
     "Account not exist" : "帳戶不存在",
+    "Select a signer to set their signature position" : "選擇簽署者來設置他的簽名位置",
     "Click on the place you want to add." : "點選您想要新增的地點。",
     "Sign" : "簽署",
     "Confirm" : "確認",
