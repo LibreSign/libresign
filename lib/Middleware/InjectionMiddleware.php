@@ -91,9 +91,9 @@ class InjectionMiddleware extends Middleware {
 
 		$this->requireSetupOk($reflectionMethod);
 
-		$this->handleUuid($controller, $reflectionMethod);
-
 		$this->privateValidation($reflectionMethod);
+
+		$this->handleUuid($controller, $reflectionMethod);
 	}
 
 	private function privateValidation(\ReflectionMethod $reflectionMethod): void {
@@ -107,16 +107,7 @@ class InjectionMiddleware extends Middleware {
 		if (!$isValidationUrlPrivate) {
 			return;
 		}
-		if ($uuid = $this->request->getParam('uuid')) {
-			$redirectUrl = $this->urlGenerator->linkToRoute(
-				'libresign.page.validationFilePublic',
-				['uuid' => $uuid]
-			);
-		} else {
-			$redirectUrl = $this->urlGenerator->linkToRoute(
-				'libresign.page.validation',
-			);
-		}
+		$redirectUrl = $this->request->getRawPathInfo();
 
 		throw new LibresignException(json_encode([
 			'action' => JSActions::ACTION_REDIRECT,

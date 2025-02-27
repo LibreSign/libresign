@@ -37,3 +37,22 @@ Feature: validate
       | (jq).ocs.data.signers[0].subject              | /C=BR/ST=State of Company/L=City Name/O=Organization/OU=Organization Unit/UID=account:signer1/CN=signer1-displayname |
       | (jq).ocs.data.signers[0].signature_validation | {"id":1,"label":"Signature is valid."}                                                                               |
       | (jq).ocs.data.signers[0].hash_algorithm       | RSA-SHA1                                                                                                             |
+
+  Scenario Outline: Unauthenticated user can not fetch the validation ednpoint
+    Given as user "admin"
+    Given sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/make_validation_url_private"
+      | value | true |
+    And as user ""
+    When sending "<method>" to ocs "<url>"
+    Then the response should be a JSON array with the following mandatory values
+      | key                    | value                                     |
+      | (jq).ocs.data.errors   | ["You are not logged in. Please log in."] |
+      | (jq).ocs.data.action   | 1000                                      |
+      | (jq).ocs.data.redirect | /index.php/login?redirect_url=<url>       |
+
+    Examples:
+      | url                                                                            | method |
+      | /apps/libresign/api/v1/file/validate/uuid/fakeuuid-6037-47be-9d9e-3d90b9d0a3ea | get    |
+      | /apps/libresign/api/v1/file/validate/file_id/171                               | get    |
+      | /apps/libresign/api/v1/file/validate/                                          | post   |
+      | /apps/libresign/api/v1/file/validate/                                          | get    |
