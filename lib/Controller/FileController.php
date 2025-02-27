@@ -184,22 +184,11 @@ class FileController extends AEnvironmentAwareController {
 	/**
 	 * Validate a file
 	 *
-	 * Validate a file returning file data.
-	 *
 	 * @param string|null $type The type of identifier could be Uuid or FileId
 	 * @param string|int $identifier The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer
 	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], messages?: array{type: string, message: string}[]}, array{}>
-	 *
-	 * 200: OK
-	 * 404: Request failed
-	 * 422: Request failed
 	 */
-	#[PrivateValidation]
-	#[NoAdminRequired]
-	#[NoCSRFRequired]
-	#[PublicPage]
-	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/validate/', requirements: ['apiVersion' => '(v1)'])]
-	public function validate(?string $type = null, $identifier = null): DataResponse {
+	private function validate(?string $type = null, $identifier = null): DataResponse {
 		try {
 			$isValidationUrlPrivate = (bool)$this->appConfig->getValueBool(Application::APP_ID, 'make_validation_url_private', false);
 			if ($isValidationUrlPrivate) {
