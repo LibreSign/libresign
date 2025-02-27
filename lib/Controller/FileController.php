@@ -32,6 +32,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Middleware\Attribute\PrivateValidation;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\AccountService;
@@ -101,6 +102,7 @@ class FileController extends AEnvironmentAwareController {
 	 * 404: Request failed
 	 * 422: Request failed
 	 */
+	#[PrivateValidation]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
@@ -121,6 +123,7 @@ class FileController extends AEnvironmentAwareController {
 	 * 404: Request failed
 	 * 422: Request failed
 	 */
+	#[PrivateValidation]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
@@ -141,6 +144,7 @@ class FileController extends AEnvironmentAwareController {
 	 * 404: Request failed
 	 * 400: Request failed
 	 */
+	#[PrivateValidation]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
@@ -190,6 +194,7 @@ class FileController extends AEnvironmentAwareController {
 	 * 404: Request failed
 	 * 422: Request failed
 	 */
+	#[PrivateValidation]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
