@@ -41,7 +41,7 @@
     "@nextcloud/vue": "^8.23.1",
     "@vueuse/core": "^11.3.0",
     "blueimp-md5": "^2.19.0",
-    "copy-webpack-plugin": "^12.0.2",
+    "copy-webpack-plugin": "^13.0.0",
     "crypto-js": "^4.2.0",
     "debounce": "^2.2.0",
     "js-confetti": "^0.12.0",
