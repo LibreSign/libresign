@@ -17,6 +17,36 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+<!-- changelog-linker -->
+## 11.0.3 - 2025-02-28
+### Changes
+- Update translations
+- Bump dependencies
+- chore: update openapi [#4696](https://github.com/LibreSign/libresign/pull/4696)
+
+### Fixes
+- fix: restrict access to validation endpoints [#4703](https://github.com/LibreSign/libresign/pull/4703)
+- fix: add information note about visible signature [#4688](https://github.com/LibreSign/libresign/pull/4688)
+
+## 10.6.3 - 2025-02-28
+### Changes
+- Update translations
+- Bump dependencies
+- chore: update openapi [#4695](https://github.com/LibreSign/libresign/pull/4695)
+
+### Fixes
+- fix: restrict access to validation endpoints [#4701](https://github.com/LibreSign/libresign/pull/4701)
+- fix: add information note about visible signature [#4687](https://github.com/LibreSign/libresign/pull/4687)
+
+## 9.9.3 - 2025-02-28
+### Changes
+- Update translations
+- Bump dependencies
+
+### Fixes
+- fix: restrict access to validation endpoints [#4702](https://github.com/LibreSign/libresign/pull/4702)
+- fix: add information note about visible signature [#4686](https://github.com/LibreSign/libresign/pull/4686)
+
 ## 11.0.2 - 2025-02-21
 ### Changes
 - Update translations
@@ -43,7 +73,7 @@ Types of changes:
 - fix: prevent warning of fsockopen [#4554](https://github.com/LibreSign/libresign/pull/4554)
 - fix: prevent delete binary files when execute unit tests [#4544](https://github.com/LibreSign/libresign/pull/4544)
 
-## 10.6.2 - 2025-02-14
+## 10.6.2 - 2025-02-28
 ### Changes
 - Update translations
 - Bump dependencies
@@ -70,7 +100,7 @@ Types of changes:
 - fix: prevent warning of fsockopen [#4553](https://github.com/LibreSign/libresign/pull/4553)
 - fix: prevent delete binary files when execute unit tests [#4543](https://github.com/LibreSign/libresign/pull/4543)
 
-## 9.9.2 - 2025-02-14
+## 9.9.2 - 2025-02-28
 ### Changes
 - Update translations
 - Bump dependencies
