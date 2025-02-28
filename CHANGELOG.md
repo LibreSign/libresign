@@ -13,6 +13,15 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 9.9.3 - 2025-02-28
+### Changes
+- Update translations
+- Bump dependencies
+
+### Fixes
+- fix: restrict access to validation endpoints [#4702](https://github.com/LibreSign/libresign/pull/4702)
+- fix: add information note about visible signature [#4686](https://github.com/LibreSign/libresign/pull/4686)
+
 ## 9.9.2 - 2025-02-21
 ### Changes
 - Update translations
