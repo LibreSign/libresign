@@ -496,6 +496,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 * @param string $uuid Sign request uuid
 	 * @return TemplateResponse<Http::STATUS_OK, array{}>
 	 *
+	 * 200: OK
 	 * 303: Redirected to validation page
 	 * 401: Validation page not accessible if unauthenticated
 	 */
