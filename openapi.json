@@ -3772,6 +3772,168 @@
                         }
                     }
                 }
+            },
+            "get": {
+                "operationId": "file-validate",
+                "summary": "Validate a file",
+                "description": "Validate a file returning file data.",
+                "tags": [
+                    "file"
+                ],
+                "security": [
+                    {},
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "The type of identifier could be Uuid or FileId",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "identifier",
+                        "in": "query",
+                        "description": "The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer",
+                        "schema": {
+                            "oneOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer",
+                                    "format": "int64"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ValidateFile"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Request failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "action",
+                                                        "errors"
+                                                    ],
+                                                    "properties": {
+                                                        "action": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        },
+                                                        "errors": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "messages": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "required": [
+                                                                    "type",
+                                                                    "message"
+                                                                ],
+                                                                "properties": {
+                                                                    "type": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "message": {
+                                                                        "type": "string"
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/list": {
