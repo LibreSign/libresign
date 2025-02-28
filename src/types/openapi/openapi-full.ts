@@ -525,11 +525,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Validate a file
-         * @description Validate a file returning file data.
-         */
-        get: operations["file-validate"];
+        get?: never;
         put?: never;
         /**
          * Validate a binary file
@@ -2454,63 +2450,6 @@ export interface operations {
                 apiVersion: "v1";
                 /** @description The identifier value of the LibreSign file */
                 fileId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["ValidateFile"];
-                        };
-                    };
-                };
-            };
-            /** @description Request failed */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** Format: int64 */
-                                action: number;
-                                errors: string[];
-                                messages?: {
-                                    type: string;
-                                    message: string;
-                                }[];
-                            };
-                        };
-                    };
-                };
-            };
-        };
-    };
-    "file-validate": {
-        parameters: {
-            query?: {
-                /** @description The type of identifier could be Uuid or FileId */
-                type?: string | null;
-                /** @description The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer */
-                identifier?: string | number;
-            };
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
             };
             cookie?: never;
         };

@@ -60,6 +60,8 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IInitialState|MockObject $initialState;
 	private SignFileService|MockObject $signFileService;
 	private IL10N|MockObject $l10n;
+	private IAppConfig|MockObject $appConfig;
+	private IURLGenerator|MockObject $urlGenerator;
 	private ?string $userId;
 
 	private InitialStateService $initialStateService;
