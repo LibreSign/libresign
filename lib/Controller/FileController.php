@@ -174,10 +174,6 @@ class FileController extends AEnvironmentAwareController {
 	 */
 	private function validate(?string $type = null, $identifier = null): DataResponse {
 		try {
-			$isValidationUrlPrivate = (bool)$this->appConfig->getValueBool(Application::APP_ID, 'make_validation_url_private', false);
-			if ($isValidationUrlPrivate) {
-				throw new LibresignException($this->l10n->t('You are not logged in. Please log in.'));
-			}
 			if ($type === 'Uuid' && !empty($identifier)) {
 				try {
 					$this->fileService
