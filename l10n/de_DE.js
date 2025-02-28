@@ -290,7 +290,7 @@ OC.L10N.register(
     "New password" : "Neues Passwort",
     "Repeat password" : "Passwort wiederholen",
     "Allow request to sign" : "Anforderung zum Signieren zulassen",
-    "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Wählen Sie autorisierte Gruppen aus, die das Signieren von Dokumenten anfordern können. Die Admin-Gruppe ist die Standardgruppe und muss nicht definiert werden.",
+    "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Wählen Sie autorisierte Gruppen aus, die das Signieren von Dokumenten anfordern können. Die Administrationsgruppe ist die Standardgruppe und muss nicht definiert werden.",
     "Optional attributes" : "Optionale Attribute",
     "Select a custom name" : "Einen benutzerdefinierten Namen auswählen",
     "Remove custom name entry from root certificate" : "Entfernen des benutzerdefinierten Namenseintrags aus dem Root-Zertifikat",
