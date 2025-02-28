@@ -195,6 +195,7 @@ OC.L10N.register(
     "Previous" : "Önceki",
     "Next" : "Sonraki",
     "Account not exist" : "Hesap bulunamadı.",
+    "Select a signer to set their signature position" : "İmza konumunu belirlemek için bir imzalayan seçin",
     "Click on the place you want to add." : "Eklemek istediğiniz yere tıklayın.",
     "Sign" : "İmzala",
     "Confirm" : "Onayla",
