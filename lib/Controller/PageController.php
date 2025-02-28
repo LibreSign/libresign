@@ -28,6 +28,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Middleware\Attribute\PrivateValidation;
 use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\AccountService;
@@ -289,6 +290,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 *
 	 * 200: OK
 	 */
+	#[PrivateValidation]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
@@ -296,7 +298,6 @@ class PageController extends AEnvironmentPageAwareController {
 	#[RequireSignRequestUuid]
 	#[FrontpageRoute(verb: 'GET', url: '/p/sign/{uuid}')]
 	public function sign(string $uuid): TemplateResponse {
-		$this->throwIfValidationPageNotAccessible();
 		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN);
 		$this->initialState->provideInitialState('config',
 			$this->accountService->getConfig($this->userSession->getUser())
@@ -423,6 +424,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 * 401: Validation page not accessible if unauthenticated
 	 * 404: File not found
 	 */
+	#[PrivateValidation]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
@@ -430,7 +432,6 @@ class PageController extends AEnvironmentPageAwareController {
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[FrontpageRoute(verb: 'GET', url: '/p/pdf/{uuid}')]
 	public function getPdf($uuid) {
-		$this->throwIfValidationPageNotAccessible();
 		try {
 			$file = $this->accountService->getPdfByUuid($uuid);
 		} catch (DoesNotExistException $th) {
@@ -449,6 +450,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 * 200: OK
 	 * 401: Validation page not accessible if unauthenticated
 	 */
+	#[PrivateValidation]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid]
@@ -457,7 +459,6 @@ class PageController extends AEnvironmentPageAwareController {
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[FrontpageRoute(verb: 'GET', url: '/pdf/{uuid}')]
 	public function getPdfFile($uuid): FileDisplayResponse {
-		$this->throwIfValidationPageNotAccessible();
 		$file = $this->getNextcloudFile();
 		return new FileDisplayResponse($file, Http::STATUS_OK, ['Content-Type' => $file->getMimeType()]);
 	}
@@ -470,6 +471,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 * 200: OK
 	 * 401: Validation page not accessible if unauthenticated
 	 */
+	#[PrivateValidation]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'validation')]
@@ -477,7 +479,6 @@ class PageController extends AEnvironmentPageAwareController {
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[FrontpageRoute(verb: 'GET', url: '/p/validation')]
 	public function validation(): TemplateResponse {
-		$this->throwIfValidationPageNotAccessible();
 		if ($this->getFileEntity()) {
 			$this->initialState->provideInitialState('config',
 				$this->accountService->getConfig($this->userSession->getUser())
@@ -515,6 +516,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 * 303: Redirected to validation page
 	 * 401: Validation page not accessible if unauthenticated
 	 */
+	#[PrivateValidation]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
@@ -522,7 +524,6 @@ class PageController extends AEnvironmentPageAwareController {
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[FrontpageRoute(verb: 'GET', url: '/validation/{uuid}')]
 	public function validationFileWithShortUrl(): TemplateResponse {
-		$this->throwIfValidationPageNotAccessible();
 		return $this->validationFilePublic($this->request->getParam('uuid'));
 	}
 
@@ -560,6 +561,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 * 200: OK
 	 * 401: Validation page not accessible if unauthenticated
 	 */
+	#[PrivateValidation]
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'validation')]
@@ -567,7 +569,6 @@ class PageController extends AEnvironmentPageAwareController {
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[FrontpageRoute(verb: 'GET', url: '/p/validation/{uuid}')]
 	public function validationFilePublic(string $uuid): TemplateResponse {
-		$this->throwIfValidationPageNotAccessible();
 		try {
 			$this->signFileService->getFileByUuid($uuid);
 			$this->fileService->setFileByType('uuid', $uuid);
@@ -613,32 +614,5 @@ class PageController extends AEnvironmentPageAwareController {
 		$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
 
 		return $response;
-	}
-
-	private function throwIfValidationPageNotAccessible(): void {
-		$isValidationUrlPrivate = (bool)$this->appConfig->getValueBool(Application::APP_ID, 'make_validation_url_private', false);
-		if ($this->userSession->isLoggedIn()) {
-			return;
-		}
-		if ($isValidationUrlPrivate) {
-			if ($uuid = $this->request->getParam('uuid')) {
-				$redirectUrl = $this->urlGenerator->linkToRoute(
-					'libresign.page.validationFilePublic',
-					['uuid' => $uuid]
-				);
-			} else {
-				$redirectUrl = $this->urlGenerator->linkToRoute(
-					'libresign.page.validation',
-				);
-			}
-
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_REDIRECT,
-				'errors' => [$this->l10n->t('You are not logged in. Please log in.')],
-				'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
-					'redirect_url' => $redirectUrl,
-				]),
-			]), Http::STATUS_UNAUTHORIZED);
-		}
 	}
 }
