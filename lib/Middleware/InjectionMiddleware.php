@@ -20,6 +20,7 @@ use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
+use OCA\Libresign\Middleware\Attribute\PrivateValidation;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
@@ -35,9 +36,11 @@ use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Middleware;
 use OCP\AppFramework\Services\IInitialState;
+use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\ISession;
+use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserSession;
 use OCP\Util;
@@ -56,6 +59,8 @@ class InjectionMiddleware extends Middleware {
 		private IInitialState $initialState,
 		private SignFileService $signFileService,
 		private IL10N $l10n,
+		private IAppConfig $appConfig,
+		private IURLGenerator $urlGenerator,
 		?string $userId,
 	) {
 		$this->request = $request;
@@ -86,7 +91,31 @@ class InjectionMiddleware extends Middleware {
 
 		$this->requireSetupOk($reflectionMethod);
 
+		$this->privateValidation($reflectionMethod);
+
 		$this->handleUuid($controller, $reflectionMethod);
+	}
+
+	private function privateValidation(\ReflectionMethod $reflectionMethod): void {
+		if (empty($reflectionMethod->getAttributes(PrivateValidation::class))) {
+			return;
+		}
+		if ($this->userSession->isLoggedIn()) {
+			return;
+		}
+		$isValidationUrlPrivate = (bool)$this->appConfig->getValueBool(Application::APP_ID, 'make_validation_url_private', false);
+		if (!$isValidationUrlPrivate) {
+			return;
+		}
+		$redirectUrl = $this->request->getRawPathInfo();
+
+		throw new LibresignException(json_encode([
+			'action' => JSActions::ACTION_REDIRECT,
+			'errors' => [$this->l10n->t('You are not logged in. Please log in.')],
+			'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
+				'redirect_url' => $redirectUrl,
+			]),
+		]), Http::STATUS_UNAUTHORIZED);
 	}
 
 	private function handleUuid(Controller $controller, \ReflectionMethod $reflectionMethod): void {

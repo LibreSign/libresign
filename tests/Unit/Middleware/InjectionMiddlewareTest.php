@@ -18,10 +18,12 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
+use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IServerContainer;
 use OCP\ISession;
+use OCP\IURLGenerator;
 use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
@@ -42,6 +44,8 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IInitialState $initialState;
 	private SignFileService&MockObject $signFileService;
 	private IL10N&MockObject $l10n;
+	private IappConfig&MockObject $appConfig;
+	private IurlGenerator&MockObject $urlGenerator;
 	private ?string $userId;
 
 	private InitialStateService $initialStateService;
@@ -54,6 +58,8 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->certificateEngineHandler = $this->createMock(CertificateEngineHandler::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 
 		$this->initialStateService = new InitialStateService(
 			$this->createMock(LoggerInterface::class),
@@ -78,6 +84,8 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->initialState,
 			$this->signFileService,
 			$this->l10n,
+			$this->appConfig,
+			$this->urlGenerator,
 			$this->userId,
 		);
 	}
