@@ -17,6 +17,36 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+<!-- changelog-linker -->
+## 11.0.3 - 2025-02-28
+### Changes
+- Update translations
+- Bump dependencies
+- chore: update openapi [#4696](https://github.com/LibreSign/libresign/pull/4696)
+
+### Fixes
+- fix: restrict access to validation endpoints [#4703](https://github.com/LibreSign/libresign/pull/4703)
+- fix: add information note about visible signature [#4688](https://github.com/LibreSign/libresign/pull/4688)
+
+## 10.6.3 - 2025-02-28
+### Changes
+- Update translations
+- Bump dependencies
+- chore: update openapi [#4695](https://github.com/LibreSign/libresign/pull/4695)
+
+### Fixes
+- fix: restrict access to validation endpoints [#4701](https://github.com/LibreSign/libresign/pull/4701)
+- fix: add information note about visible signature [#4687](https://github.com/LibreSign/libresign/pull/4687)
+
+## 9.9.3 - 2025-02-28
+### Changes
+- Update translations
+- Bump dependencies
+
+### Fixes
+- fix: restrict access to validation endpoints [#4702](https://github.com/LibreSign/libresign/pull/4702)
+- fix: add information note about visible signature [#4686](https://github.com/LibreSign/libresign/pull/4686)
+
 ## 11.0.2 - 2025-02-21
 ### Changes
 - Update translations
