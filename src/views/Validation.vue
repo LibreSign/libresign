@@ -138,7 +138,7 @@
 								<template #subname>
 									<strong>{{ t('libresign', 'Date signed:') }}</strong>
 									<span v-if="signer.signed" class="data-signed">
-										{{ signer.signed }}
+										{{ dateFromUnixTimestampFormatted(signer.signed) }}
 									</span>
 									<span v-else>{{ t('libresign', 'No date') }}</span>
 								</template>
@@ -168,7 +168,7 @@
 								:name="t('libresign', 'Requested on:')">
 								<template #name>
 									<strong>{{ t('libresign', 'Requested on:') }}</strong>
-									{{ dateFromSqlAnsi(signer.request_sign_date) }}
+									{{ dateFromUnixTimestampFormatted(signer.request_sign_date) }}
 								</template>
 							</NcListItem>
 							<NcListItem v-if="signer.opened"
@@ -455,6 +455,9 @@ export default {
 		},
 		dateFromUnixTimestamp(date) {
 			return Moment(date * 1000).format('LL LTS')
+		},
+		dateFromUnixTimestampFormatted(date) {
+			return Moment(date * 1000).format('YYYY-MM-DD HH:mm:ss')
 		},
 		toggleDetail(signer) {
 			this.$set(signer, 'opened', !signer.opened)
