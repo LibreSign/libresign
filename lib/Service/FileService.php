@@ -345,13 +345,9 @@ class FileService {
 			$this->fileData->signers[$index]['description'] = $signer->getDescription();
 			$this->fileData->signers[$index]['identifyMethods'] = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signer->getId());
 			$this->fileData->signers[$index]['visibleElements'] = $this->getVisibleElements($signer->getId());
-			$this->fileData->signers[$index]['request_sign_date'] = (new \DateTime())
-				->setTimestamp($signer->getCreatedAt())
-				->format('Y-m-d H:i:s');
+			$this->fileData->signers[$index]['request_sign_date'] = $signer->getCreatedAt();
 			if (empty($this->fileData->signers[$index]['signed'])) {
-				$this->fileData->signers[$index]['signed'] = $signer->getSigned() ?
-					$this->dateTimeFormatter->formatDateTime($signer->getSigned())
-					: null;
+				$this->fileData->signers[$index]['signed'] = $signer->getSigned();
 			}
 			$metadata = $signer->getMetadata();
 			if (!empty($metadata['remote-address'])) {
@@ -364,9 +360,7 @@ class FileService {
 				$this->fileData->signers[$index]['notify'] = $metadata['notify'];
 			}
 			if ($signer->getSigned() && empty($this->fileData->signers[$index]['signed'])) {
-				$this->fileData->signers[$index]['signed'] = (new \DateTime())
-					->setTimestamp($signer->getSigned())
-					->format('Y-m-d H:i:s');
+				$this->fileData->signers[$index]['signed'] = $signer->getSigned();
 			}
 			// @todo refactor this code
 			if ($this->me || $this->identifyMethodId) {
@@ -435,7 +429,7 @@ class FileService {
 				$this->fileData->signers[$index]['valid_to'] = $signer['chain'][0]['validTo_time_t'];
 			}
 			if (!empty($signer['signingTime'])) {
-				$this->fileData->signers[$index]['signed'] = $signer['signingTime']->format('Y-m-d H:i:s');
+				$this->fileData->signers[$index]['signed'] = $signer['signingTime']->getTimestamp();
 			}
 			$this->fileData->signers[$index]['signature_validation'] = $signer['chain'][0]['signature_validation'];
 			if (!empty($signer['chain'][0]['certificate_validation'])) {
@@ -745,9 +739,7 @@ class FileService {
 								}
 								return $carry;
 							}, $signer->getDisplayName()),
-						'request_sign_date' => (new \DateTime())
-							->setTimestamp($signer->getCreatedAt())
-							->format('Y-m-d H:i:s'),
+						'request_sign_date' =>$signer->getCreatedAt(),
 						'signed' => null,
 						'signRequestId' => $signer->getId(),
 						'me' => array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
@@ -807,7 +799,7 @@ class FileService {
 					}
 
 					if ($signer->getSigned()) {
-						$data['signed'] = $this->dateTimeFormatter->formatDateTime($signer->getSigned());
+						$data['signed'] = $signer->getSigned();
 						$totalSigned++;
 					}
 					ksort($data);
