@@ -567,9 +567,7 @@ class SignRequestMapper extends QBMapper {
 			'userId' => $row['user_id'],
 			'displayName' => $this->userManager->get($row['user_id'])?->getDisplayName(),
 		];
-		$row['created_at'] = (new \DateTime())
-			->setTimestamp((int)$row['created_at'])
-			->format('Y-m-d H:i:s');
+		$row['created_at'] = $row['created_at'];
 		$row['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $row['uuid']]);
 		$row['nodeId'] = (int)$row['node_id'];
 		unset(

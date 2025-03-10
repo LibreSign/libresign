@@ -172,7 +172,7 @@
 								:name="t('libresign', 'Requested on:')">
 								<template #name>
 									<strong>{{ t('libresign', 'Requested on:') }}</strong>
-									{{ dateFromUnixTimestampFormatted(signer.request_sign_date) }}
+									{{ dateFromUnixTimestamp(signer.request_sign_date) }}
 								</template>
 							</NcListItem>
 							<NcListItem v-if="signer.opened"

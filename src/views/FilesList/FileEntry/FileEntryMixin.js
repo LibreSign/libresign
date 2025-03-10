@@ -16,7 +16,7 @@ export default {
 	},
 	computed: {
 		mtime() {
-			return Date.parse(this?.source?.created_at)
+			return this?.source?.created_at * 1000
 		},
 
 		openedMenu: {
