@@ -610,9 +610,7 @@ class FileService {
 		$this->fileData->uuid = $this->file->getUuid();
 		$this->fileData->name = $this->file->getName();
 		$this->fileData->status = $this->file->getStatus();
-		$this->fileData->created_at = (new \DateTime())
-			->setTimestamp($this->file->getCreatedAt())
-			->format('Y-m-d H:i:s');
+		$this->fileData->created_at = $this->file->getCreatedAt();
 		$this->fileData->statusText = $this->fileMapper->getTextOfStatus($this->file->getStatus());
 		$this->fileData->nodeId = $this->file->getNodeId();
 
