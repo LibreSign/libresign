@@ -6,6 +6,7 @@ OC.L10N.register(
     "File is too big" : "File is too big",
     "File not found" : "File not found",
     "Invalid file provided" : "Invalid file provided",
+    "Email" : "Email",
     "Upload" : "Upload",
     "Delete" : "Delete",
     "Save" : "Save",
