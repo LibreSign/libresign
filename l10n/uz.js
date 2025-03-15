@@ -14,8 +14,10 @@ OC.L10N.register(
     "Files" : "Files",
     "Settings" : "Settings",
     "Name" : "Name",
+    "Searching …" : "Qidirilmoqda …",
     "Update" : "Update",
     "Choose" : "Choose",
+    "Previous" : "Oldingi",
     "Confirm" : "Confirm",
     "Details" : "Details",
     "Status" : "Status",
@@ -23,12 +25,16 @@ OC.L10N.register(
     "Change password" : "Change password",
     "Profile picture" : "Profil rasmi",
     "Password" : "Password",
+    "Page not found" : "Sahifa topilmadi",
     "Today" : "Today",
+    "Last 7 days" : "Oxirgi 7 kun",
+    "Last 30 days" : "Oxirgi 30 kun",
     "Modified" : "Modified",
     "Password reset" : "Password reset",
     "Current password" : "Current password",
     "New password" : "New password",
     "Yes" : "Yes",
-    "No" : "No"
+    "No" : "No",
+    "Forgot password?" : "Parolni unutdingizmi?"
 },
 "nplurals=1; plural=0;");
