@@ -20,6 +20,7 @@ OC.L10N.register(
     "Previous" : "Oldingi",
     "Confirm" : "Confirm",
     "Details" : "Details",
+    "Type" : "Turi",
     "Status" : "Status",
     "Actions" : "Actions",
     "Change password" : "Change password",
