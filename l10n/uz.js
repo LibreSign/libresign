@@ -17,6 +17,7 @@ OC.L10N.register(
     "Searching …" : "Qidirilmoqda …",
     "Update" : "Update",
     "Choose" : "Choose",
+    "Send" : "Yuborish",
     "Previous" : "Oldingi",
     "Confirm" : "Confirm",
     "Details" : "Details",
