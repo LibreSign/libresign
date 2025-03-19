@@ -121,9 +121,68 @@ class JSignPdfHandler extends SignEngineHandler {
 			$param = $this->getJSignParam();
 			$originalParam = clone $param;
 			foreach ($visibleElements as $element) {
-				$param
-					->setJSignParameters(
-						$originalParam->getJSignParameters() .
+				
+				$imagePath = $element->getTempFile(); // Original signature background image
+				$newImagePath = "/tmp/modified_bg.png"; // Path for the modified image
+
+				$img = imagecreatefrompng($imagePath);
+				$width = imagesx($img);
+				$height = imagesy($img);
+
+				$newHeight = $height + 10;
+				$newImg = imagecreatetruecolor($width, $newHeight);
+
+				imagealphablending($newImg, true);
+				imagesavealpha($newImg, true);
+
+				$transparent = imagecolorallocatealpha($newImg, 255, 255, 255, 127);
+				imagefill($newImg, 0, 0, $transparent);
+
+				imagecopy($newImg, $img, 0, 0, 0, 0, $width, $height);
+
+				$nameParts = explode(' ', $GLOBALS["currentSigner"]->getDisplayName());
+				$lastName = strtoupper(array_pop($nameParts));
+				array_unshift($nameParts, $lastName);
+				$newName = implode(' ', $nameParts);
+
+				$datetime = new \DateTime('now', new \DateTimeZone('Europe/Berlin'));
+
+				$text = "Digitally signed by ".$newName."\nDN: cn=".$newName.",\nemail=".$GLOBALS["currentSigner"]->getEMailAddress()."\nDatum: " . $datetime->format('Y-m-d');
+				$fontSize = 7;
+				$angle = 0;
+
+				// Use a system-installed font OR a custom font file
+				$fontPath = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
+
+				$textColor = imagecolorallocate($newImg, 0, 0, 0);
+
+				$x = 15;
+				$y = $newHeight - 30;
+
+				// Get text bounding box to determine background size
+				$bbox = imagettfbbox($fontSize, $angle, $fontPath, $text);
+				$textWidth = abs($bbox[2] - $bbox[0]) + 10; 
+				$textHeight = abs($bbox[7] - $bbox[1]) + 20;
+
+				$rectX1 = $x - 5;
+				$rectY1 = $y - 10;
+				$rectX2 = $rectX1 + $textWidth;
+				$rectY2 = $rectY1 + $textHeight;
+
+				// Create a semi-transparent white background
+				$bgColor = imagecolorallocatealpha($newImg, 255, 255, 255, 64);
+				imagefilledrectangle($newImg, $rectX1, $rectY1, $rectX2, $rectY2, $bgColor);
+
+				// Add the text on top of the background
+				imagettftext($newImg, $fontSize, $angle, $x, $y, $textColor, $fontPath, $text);
+
+				imagepng($newImg, $newImagePath);
+
+				// Clean up
+				imagedestroy($img);
+				imagedestroy($newImg);
+				
+				$newParams = $originalParam->getJSignParameters() .
 						' -pg ' . $element->getFileElement()->getPage() .
 						' -llx ' . $element->getFileElement()->getLlx() .
 						' -lly ' . $element->getFileElement()->getLly() .
@@ -131,8 +190,9 @@ class JSignPdfHandler extends SignEngineHandler {
 						' -ury ' . $element->getFileElement()->getUry() .
 						' --l2-text ""' .
 						' -V' .
-						' --bg-path ' . $element->getTempFile()
-					);
+						' --bg-path ' . $newImagePath;
+					
+				$param->setJSignParameters($newParams);
 				$jSignPdf->setParam($param);
 				$signed = $this->signWrapper($jSignPdf);
 				$param->setPdf($signed);

@@ -105,6 +105,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				$user,
 				$this->fileService->getIdentificationDocumentsStatus($user?->getUID())
 			);
+			$GLOBALS["currentSigner"] = $user;
 			$libreSignFile = $this->signFileService->getLibresignFile($fileId, $signRequestUuid);
 			$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, $signRequestUuid, $user);
 			$this->validateHelper->validateVisibleElementsRelation($elements, $signRequest, $user);
