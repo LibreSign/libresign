@@ -18,6 +18,21 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 11.0.4 - 2025-03-20
+### Changes
+- Update translations
+- Bump dependencies
+
+## 10.6.4 - 2025-03-20
+### Changes
+- Update translations
+- Bump dependencies
+
+## 9.9.4 - 2025-03-20
+### Changes
+- Update translations
+- Bump dependencies
+
 ## 11.0.3 - 2025-02-28
 ### Changes
 - Update translations
