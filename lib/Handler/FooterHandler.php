@@ -36,6 +36,7 @@ use League\Plates\Engine;
 use Mpdf\Mpdf;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\PdfParserService;
 use OCP\Files\File;
 use OCP\IAppConfig;
@@ -180,6 +181,9 @@ class FooterHandler {
 		$footerTemplate = $this->appConfig->getValueString(Application::APP_ID, 'footer_template', '');
 		if ($footerTemplate) {
 			$tempFile = $this->tempManager->getTemporaryFile('footerTemplate.php');
+			if (!$tempFile) {
+				throw new LibresignException('Failure to create temporary file footerTemplate.php');
+			}
 			file_put_contents($tempFile, $footerTemplate);
 			return $tempFile;
 		}
