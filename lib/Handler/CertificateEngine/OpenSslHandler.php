@@ -93,6 +93,9 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 	private function getFilenameToLeafCert(): string {
 		$temporaryFile = $this->tempManager->getTemporaryFile('.cfg');
+		if (!$temporaryFile) {
+			throw new LibresignException('Failure to create temporary file to OpenSSL .cfg file');
+		}
 		// More information about x509v3: https://www.openssl.org/docs/manmaster/man5/x509v3_config.html
 		$config = [
 			'v3_req' => [
