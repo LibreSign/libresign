@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
+use DateTimeInterface;
 use InvalidArgumentException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
@@ -175,8 +176,10 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			return;
 		}
 		$signRequest = $this->identifyService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
-		$now = $this->identifyService->getTimeFactory()->getTime();
-		if ($signRequest->getCreatedAt() + $maximumValidity < $now) {
+		$now = $this->identifyService->getTimeFactory()->getDateTime();
+		$interval = new \DateInterval('PT' . $maximumValidity . 'S');
+		$expirationDate = $signRequest->getCreatedAt()->add($interval);
+		if ($expirationDate < $now) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$this->identifyService->getL10n()->t('Link expired.')],
@@ -226,7 +229,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			$createdAt,
 			$lastAttempt,
 		);
-		$now = $this->identifyService->getTimeFactory()->getTime();
+		$now = $this->identifyService->getTimeFactory()->getDateTime()->format(DateTimeInterface::ATOM);
 		$this->identifyService->getLogger()->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Times', [
 			'renewalInterval' => $renewalInterval,
 			'startTime' => $startTime,
