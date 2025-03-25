@@ -222,7 +222,9 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			'lastActionDate' => $lastActionDate,
 			'now' => $now,
 		]);
-		if ($lastActionDate + $renewalInterval < $now) {
+		$interval = new \DateInterval('PT' . $renewalInterval . 'S');
+		$endRenewal = $lastActionDate->add($interval);
+		if ($endRenewal < $now) {
 			$this->identifyService->getLogger()->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Exception');
 			if ($this->getName() === 'email') {
 				$blur = new Blur($this->getEntity()->getIdentifierValue());
