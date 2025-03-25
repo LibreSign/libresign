@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use DateTime;
 use DateTimeInterface;
 use InvalidArgumentException;
 use OC\Files\Filesystem;
@@ -343,7 +344,7 @@ class FileService {
 			$this->fileData->signers[$index]['visibleElements'] = $this->getVisibleElements($signer->getId());
 			$this->fileData->signers[$index]['request_sign_date'] = $signer->getCreatedAt()->format(DateTimeInterface::ATOM);
 			if (empty($this->fileData->signers[$index]['signed'])) {
-				$this->fileData->signers[$index]['signed'] = $signer->getSigned();
+				$this->fileData->signers[$index]['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
 			}
 			$metadata = $signer->getMetadata();
 			if (!empty($metadata['remote-address'])) {
@@ -356,7 +357,7 @@ class FileService {
 				$this->fileData->signers[$index]['notify'] = $metadata['notify'];
 			}
 			if ($signer->getSigned() && empty($this->fileData->signers[$index]['signed'])) {
-				$this->fileData->signers[$index]['signed'] = $signer->getSigned();
+				$this->fileData->signers[$index]['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
 			}
 			// @todo refactor this code
 			if ($this->me || $this->identifyMethodId) {
@@ -418,13 +419,13 @@ class FileService {
 				$this->fileData->signers[$index]['subject'] = $signer['chain'][0]['name'];
 			}
 			if (!empty($signer['chain'][0]['validFrom_time_t'])) {
-				$this->fileData->signers[$index]['valid_from'] = $signer['chain'][0]['validFrom_time_t'];
+				$this->fileData->signers[$index]['valid_from'] = (new DateTime('@' . $signer['chain'][0]['validFrom_time_t']))->format(DateTimeInterface::ATOM);
 			}
 			if (!empty($signer['chain'][0]['validTo_time_t'])) {
-				$this->fileData->signers[$index]['valid_to'] = $signer['chain'][0]['validTo_time_t'];
+				$this->fileData->signers[$index]['valid_to'] = (new DateTime('@' . $signer['chain'][0]['validTo_time_t']))->format(DateTimeInterface::ATOM);
 			}
 			if (!empty($signer['signingTime'])) {
-				$this->fileData->signers[$index]['signed'] = $signer['signingTime']->getTimestamp();
+				$this->fileData->signers[$index]['signed'] = $signer['signingTime']->format(DateTimeInterface::ATOM);
 			}
 			$this->fileData->signers[$index]['signature_validation'] = $signer['chain'][0]['signature_validation'];
 			if (!empty($signer['chain'][0]['certificate_validation'])) {
@@ -792,7 +793,7 @@ class FileService {
 					}
 
 					if ($signer->getSigned()) {
-						$data['signed'] = $signer->getSigned();
+						$data['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
 						$totalSigned++;
 					}
 					ksort($data);
