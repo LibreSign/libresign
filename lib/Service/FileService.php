@@ -348,7 +348,9 @@ class FileService {
 			$this->fileData->signers[$index]['visibleElements'] = $this->getVisibleElements($signer->getId());
 			$this->fileData->signers[$index]['request_sign_date'] = $signer->getCreatedAt()->format(DateTimeInterface::ATOM);
 			if (empty($this->fileData->signers[$index]['signed'])) {
-				$this->fileData->signers[$index]['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
+				if ($signer->getSigned()) {
+					$this->fileData->signers[$index]['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
+				}
 			}
 			$metadata = $signer->getMetadata();
 			if (!empty($metadata['remote-address'])) {
@@ -361,7 +363,9 @@ class FileService {
 				$this->fileData->signers[$index]['notify'] = $metadata['notify'];
 			}
 			if ($signer->getSigned() && empty($this->fileData->signers[$index]['signed'])) {
-				$this->fileData->signers[$index]['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
+				if ($signer->getSigned()) {
+					$this->fileData->signers[$index]['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
+				}
 			}
 			// @todo refactor this code
 			if ($this->me || $this->identifyMethodId) {
