@@ -41,14 +41,14 @@ class SignRequest extends Entity {
 	protected ?string $signedHash = null;
 	protected ?array $metadata = null;
 	public function __construct() {
-		$this->addType('id', 'integer');
-		$this->addType('fileId', 'integer');
-		$this->addType('uuid', 'string');
-		$this->addType('displayName', 'string');
-		$this->addType('description', 'string');
-		$this->addType('createdAt', 'integer');
-		$this->addType('signed', 'integer');
-		$this->addType('signedHash', 'string');
+		$this->addType('id', Types::INTEGER);
+		$this->addType('fileId', Types::INTEGER);
+		$this->addType('uuid', Types::STRING);
+		$this->addType('displayName', Types::STRING);
+		$this->addType('description', Types::STRING);
+		$this->addType('createdAt', Types::INTEGER);
+		$this->addType('signed', Types::INTEGER);
+		$this->addType('signedHash', Types::STRING);
 		$this->addType('metadata', Types::JSON);
 	}
 }
