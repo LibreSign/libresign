@@ -54,7 +54,7 @@ use OCP\DB\Types;
 class File extends Entity {
 	protected int $nodeId = 0;
 	protected string $uuid = '';
-	protected \DateTime $createdAt = 0;
+	protected ?\DateTime $createdAt = null;
 	protected string $name = '';
 	protected ?int $status = null;
 	protected ?string $userId = null;
