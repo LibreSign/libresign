@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use DateTimeInterface;
 use InvalidArgumentException;
 use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
@@ -345,7 +346,7 @@ class FileService {
 			$this->fileData->signers[$index]['description'] = $signer->getDescription();
 			$this->fileData->signers[$index]['identifyMethods'] = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signer->getId());
 			$this->fileData->signers[$index]['visibleElements'] = $this->getVisibleElements($signer->getId());
-			$this->fileData->signers[$index]['request_sign_date'] = $signer->getCreatedAt();
+			$this->fileData->signers[$index]['request_sign_date'] = $signer->getCreatedAt()->format(DateTimeInterface::ATOM);
 			if (empty($this->fileData->signers[$index]['signed'])) {
 				$this->fileData->signers[$index]['signed'] = $signer->getSigned();
 			}
@@ -612,7 +613,7 @@ class FileService {
 		$this->fileData->uuid = $this->file->getUuid();
 		$this->fileData->name = $this->file->getName();
 		$this->fileData->status = $this->file->getStatus();
-		$this->fileData->created_at = $this->file->getCreatedAt();
+		$this->fileData->created_at = $this->file->getCreatedAt()->format(DateTimeInterface::ATOM);
 		$this->fileData->statusText = $this->fileMapper->getTextOfStatus($this->file->getStatus());
 		$this->fileData->nodeId = $this->file->getNodeId();
 
@@ -737,7 +738,7 @@ class FileService {
 								}
 								return $carry;
 							}, $signer->getDisplayName()),
-						'request_sign_date' => $signer->getCreatedAt(),
+						'request_sign_date' => $signer->getCreatedAt()->format(DateTimeInterface::ATOM),
 						'signed' => null,
 						'signRequestId' => $signer->getId(),
 						'me' => array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
