@@ -351,6 +351,8 @@ class FileService {
 			if (empty($this->fileData->signers[$index]['signed'])) {
 				if ($signer->getSigned()) {
 					$this->fileData->signers[$index]['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
+				} else {
+					$this->fileData->signers[$index]['signed'] = null;
 				}
 			}
 			$metadata = $signer->getMetadata();
@@ -366,6 +368,8 @@ class FileService {
 			if ($signer->getSigned() && empty($this->fileData->signers[$index]['signed'])) {
 				if ($signer->getSigned()) {
 					$this->fileData->signers[$index]['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
+				} else {
+					$this->fileData->signers[$index]['signed'] = null;
 				}
 			}
 			// @todo refactor this code
