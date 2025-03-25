@@ -177,8 +177,8 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		}
 		$signRequest = $this->identifyService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
 		$now = $this->identifyService->getTimeFactory()->getDateTime();
-		$interval = new \DateInterval('PT' . $maximumValidity . 'S');
-		$expirationDate = $signRequest->getCreatedAt()->add($interval);
+		$expirationDate = (clone $signRequest->getCreatedAt())
+			->add(new \DateInterval('PT' . $maximumValidity . 'S'));
 		if ($expirationDate < $now) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
@@ -229,17 +229,17 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			$createdAt,
 			$lastAttempt,
 		);
-		$now = $this->identifyService->getTimeFactory()->getDateTime()->format(DateTimeInterface::ATOM);
+		$now = $this->identifyService->getTimeFactory()->getDateTime();
 		$this->identifyService->getLogger()->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Times', [
 			'renewalInterval' => $renewalInterval,
 			'startTime' => $startTime,
 			'createdAt' => $createdAt,
 			'lastAttempt' => $lastAttempt,
 			'lastActionDate' => $lastActionDate,
-			'now' => $now,
+			'now' => $now->format(DateTimeInterface::ATOM),
 		]);
-		$interval = new \DateInterval('PT' . $renewalInterval . 'S');
-		$endRenewal = $lastActionDate->add($interval);
+		$endRenewal = (clone $createdAt)
+			->add(new \DateInterval('PT' . $renewalInterval . 'S'));
 		if ($endRenewal < $now) {
 			$this->identifyService->getLogger()->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Exception');
 			if ($this->getName() === 'email') {
