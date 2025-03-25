@@ -36,7 +36,7 @@ class SignRequest extends Entity {
 	protected string $uuid = '';
 	protected string $displayName = '';
 	protected ?string $description = null;
-	protected \DateTime $createdAt = 0;
+	protected ?\DateTime $createdAt = null;
 	protected ?\DateTime $signed = null;
 	protected ?string $signedHash = null;
 	protected ?array $metadata = null;
