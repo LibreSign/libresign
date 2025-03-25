@@ -731,7 +731,7 @@ class FileService {
 								}
 								return $carry;
 							}, $signer->getDisplayName()),
-						'request_sign_date' =>$signer->getCreatedAt(),
+						'request_sign_date' => $signer->getCreatedAt(),
 						'signed' => null,
 						'signRequestId' => $signer->getId(),
 						'me' => array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
