@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
+use DateTimeInterface;
 use OCA\Libresign\Helper\Pagination;
 use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\QBMapper;
@@ -243,16 +244,12 @@ class AccountFileMapper extends QBMapper {
 					$data = [
 						'description' => $signer->getDescription(),
 						'displayName' => $signer->getDisplayName(),
-						'request_sign_date' => (new \DateTime())
-							->setTimestamp($signer->getCreatedAt())
-							->format('Y-m-d H:i:s'),
+						'request_sign_date' => $signer->getCreatedAt()->format(DateTimeInterface::ATOM),
 						'sign_date' => null,
 						'signRequestId' => $signer->getId(),
 					];
 					if ($signer->getSigned()) {
-						$data['sign_date'] = (new \DateTime())
-							->setTimestamp($signer->getSigned())
-							->format('Y-m-d H:i:s');
+						$data['sign_date'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
 						$totalSigned++;
 					}
 					$files[$key]['file']['signers'][] = $data;
