@@ -245,11 +245,11 @@ class AccountFileMapper extends QBMapper {
 						'description' => $signer->getDescription(),
 						'displayName' => $signer->getDisplayName(),
 						'request_sign_date' => $signer->getCreatedAt()->format(DateTimeInterface::ATOM),
-						'sign_date' => null,
+						'sign_date' => $signer->getSigned(),
 						'signRequestId' => $signer->getId(),
 					];
-					if ($signer->getSigned()) {
-						$data['sign_date'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
+					if ($data['sign_date']) {
+						$data['sign_date'] = $data['sign_date']->format(DateTimeInterface::ATOM);
 						$totalSigned++;
 					}
 					$files[$key]['file']['signers'][] = $data;
