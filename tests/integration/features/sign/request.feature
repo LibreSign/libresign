@@ -153,7 +153,6 @@ Feature: request-signature
     # the 3rd don't will fail because on each valid request, the renewal
     # interval is renewed.
     And run the command "config:app:set libresign renewal_interval --value=2 --type=integer" with result code 0
-    Given wait for 1 second
     When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     And the response should have a status code 200
     Given wait for 1 second

@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
+use DateTime;
 use DateTimeInterface;
 use InvalidArgumentException;
 use OCA\Libresign\AppInfo\Application;
@@ -210,8 +211,13 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		}
 		$signRequest = $this->identifyService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
 		$startTime = $this->identifyService->getSessionService()->getSignStartTime();
+		if ($startTime > 0) {
+			$startTime = new DateTime('@' . $startTime);
+		} else {
+			$startTime = null;
+		}
 		$createdAt = $signRequest->getCreatedAt();
-		$lastAttempt = (int)$this->getEntity()->getLastAttemptDate()?->format('U');
+		$lastAttempt = $this->getEntity()->getLastAttemptDate();
 		$lastActionDate = max(
 			$startTime,
 			$createdAt,
@@ -226,7 +232,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			'lastActionDate' => $lastActionDate,
 			'now' => $now->format(DateTimeInterface::ATOM),
 		]);
-		$endRenewal = (clone $createdAt)
+		$endRenewal = (clone $lastActionDate)
 			->add(new \DateInterval('PT' . $renewalInterval . 'S'));
 		if ($endRenewal < $now) {
 			$this->identifyService->getLogger()->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Exception');
