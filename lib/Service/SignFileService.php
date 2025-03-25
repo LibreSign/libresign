@@ -534,7 +534,9 @@ class SignFileService {
 				->setTemplateVar('signers', array_map(function (SignRequestEntity $signer) {
 					return [
 						'displayName' => $signer->getDisplayName(),
-						'signed' => $signer->getSigned()->format(DateTimeInterface::ATOM),
+						'signed' => $signer->getSigned()
+							? $signer->getSigned()->format(DateTimeInterface::ATOM)
+							: null,
 					];
 				}, $this->getSigners()))
 				->getFooter($originalFile, $fileData);
