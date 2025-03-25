@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use DateTimeInterface;
 use InvalidArgumentException;
 use mikehaertl\pdftk\Command;
 use OC\AppFramework\Http as AppFrameworkHttp;
@@ -541,7 +542,7 @@ class SignFileService {
 				->setTemplateVar('signers', array_map(function (SignRequestEntity $signer) {
 					return [
 						'displayName' => $signer->getDisplayName(),
-						'signed' => $signer->getSigned(),
+						'signed' => $signer->getSigned()->format(DateTimeInterface::ATOM),
 					];
 				}, $this->getSigners()))
 				->getFooter($originalFile, $fileData);
