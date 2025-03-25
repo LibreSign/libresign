@@ -40,8 +40,8 @@ use OCP\DB\Types;
  * @method ?string getUserId()
  * @method void setUuid(string $uuid)
  * @method string getUuid()
- * @method void setCreatedAt(int $createdAt)
- * @method int getCreatedAt()
+ * @method void setCreatedAt(\DateTime $createdAt)
+ * @method \DateTime getCreatedAt()
  * @method void setName(string $name)
  * @method string getName()
  * @method void setCallback(string $callback)
@@ -54,7 +54,7 @@ use OCP\DB\Types;
 class File extends Entity {
 	protected int $nodeId = 0;
 	protected string $uuid = '';
-	protected int $createdAt = 0;
+	protected \DateTime $createdAt = 0;
 	protected string $name = '';
 	protected ?int $status = null;
 	protected ?string $userId = null;
@@ -76,7 +76,7 @@ class File extends Entity {
 		$this->addType('signedHash', Types::STRING);
 		$this->addType('userId', Types::STRING);
 		$this->addType('uuid', Types::STRING);
-		$this->addType('createdAt', Types::INTEGER);
+		$this->addType('createdAt', Types::DATETIME);
 		$this->addType('name', Types::STRING);
 		$this->addType('callback', Types::STRING);
 		$this->addType('status', Types::INTEGER);

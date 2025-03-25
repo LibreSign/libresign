@@ -100,7 +100,7 @@ class RequestSignatureService {
 		$file->setNodeId($node->getId());
 		$file->setUserId($data['userManager']->getUID());
 		$file->setUuid(UUIDUtil::getUUID());
-		$file->setCreatedAt(time());
+		$file->setCreatedAt(new \DateTime());
 		$file->setName($data['name']);
 		$file->setMetadata($this->getFileMetadata($node));
 		if (!empty($data['callback'])) {
@@ -330,7 +330,7 @@ class RequestSignatureService {
 			$signRequest->setDescription($description);
 		}
 		if (!$signRequest->getId()) {
-			$signRequest->setCreatedAt(time());
+			$signRequest->setCreatedAt(new \DateTime());
 		}
 	}
 
