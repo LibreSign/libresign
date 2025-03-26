@@ -19,4 +19,6 @@ interface ISignEngineHandler {
 	public function getPassword(): string;
 	public function sign(): File;
 	public function getSignedContent(): string;
+	public function getSignatureText(): string;
+	public function setSignatureText(string $text): self;
 }

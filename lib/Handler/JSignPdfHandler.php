@@ -125,18 +125,20 @@ class JSignPdfHandler extends SignEngineHandler {
 			$param = $this->getJSignParam();
 			$originalParam = clone $param;
 			foreach ($visibleElements as $element) {
-				$param
-					->setJSignParameters(
-						$originalParam->getJSignParameters() .
-						' -pg ' . $element->getFileElement()->getPage() .
-						' -llx ' . $element->getFileElement()->getLlx() .
-						' -lly ' . $element->getFileElement()->getLly() .
-						' -urx ' . $element->getFileElement()->getUrx() .
-						' -ury ' . $element->getFileElement()->getUry() .
-						' --l2-text ""' .
-						' -V' .
-						' --bg-path ' . $element->getTempFile()
-					);
+				$params = [
+					'-pg' => $element->getFileElement()->getPage(),
+					'-llx' => $element->getFileElement()->getLlx(),
+					'-lly' => $element->getFileElement()->getLly(),
+					'-urx' => $element->getFileElement()->getUrx(),
+					'-ury' => $element->getFileElement()->getUry(),
+					'--l2-text' => $this->getSignatureText(),
+					'-V' => null,
+					'--bg-path' => $element->getTempFile(),
+				];
+				$param->setJSignParameters(
+					$originalParam->getJSignParameters() .
+					$this->listParamsToString($params)
+				);
 				$jSignPdf->setParam($param);
 				$signed = $this->signWrapper($jSignPdf);
 				$param->setPdf($signed);
@@ -144,6 +146,23 @@ class JSignPdfHandler extends SignEngineHandler {
 			return $signed;
 		}
 		return '';
+	}
+
+	public function getSignatureText(): string {
+		$signatureText = parent::getSignatureText();
+		$signatureText = '"' . str_replace('"', '\"', $signatureText) . '"';
+		return $signatureText;
+	}
+
+	private function listParamsToString(array $params): string {
+		$paramString = '';
+		foreach ($params as $flag => $value) {
+			$paramString .= ' ' . $flag;
+			if ($value !== null && $value !== '') {
+				$paramString .= ' ' . $value;
+			}
+		}
+		return $paramString;
 	}
 
 	private function signWrapper(JSignPDF $jSignPDF): string {
