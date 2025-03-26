@@ -1173,8 +1173,7 @@ export type components = {
             type: string;
         };
         Notify: {
-            /** Format: int64 */
-            date: number;
+            date: string;
             /** @enum {string} */
             method: "activity" | "notify" | "mail";
         };
