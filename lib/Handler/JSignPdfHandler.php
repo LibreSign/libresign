@@ -13,6 +13,7 @@ use Jeidison\JSignPDF\Sign\JSignParam;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\SignatureTextService;
 use OCP\Files\File;
 use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
@@ -26,6 +27,7 @@ class JSignPdfHandler extends SignEngineHandler {
 	public function __construct(
 		private IAppConfig $appConfig,
 		private LoggerInterface $logger,
+		private SignatureTextService $signatureTextService,
 	) {
 	}
 
@@ -146,7 +148,17 @@ class JSignPdfHandler extends SignEngineHandler {
 
 	public function getSignatureText(): string {
 		$signatureText = parent::getSignatureText();
-		$signatureText = '"' . str_replace('"', '\"', $signatureText) . '"';
+		$params = $this->getSignatureParams();
+		$params['SignerName'] = '${signer}';
+		$params['SignatureDate'] = '${timestamp}';
+		$this->signatureTextService->parse(context: $params);
+
+		$signatureText = '"' . str_replace(
+			['"', '$'],
+			['\"', '\$'],
+			$signatureText
+		) . '"';
+
 		return $signatureText;
 	}
 
