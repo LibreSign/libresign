@@ -178,9 +178,6 @@
     </UndefinedClass>
   </file>
   <file src="lib/Service/TFile.php">
-    <InvalidArrayAccess>
-      <code><![CDATA[$ext[0]]]></code>
-    </InvalidArrayAccess>
     <UndefinedDocblockClass>
       <code><![CDATA[PdfTypeException]]></code>
     </UndefinedDocblockClass>
