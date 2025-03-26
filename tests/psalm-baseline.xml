@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="5.26.1@d747f6500b38ac4f7dfc5edbcae6e4b637d7add0">
+<files psalm-version="6.5.0@38fc8444edf0cebc9205296ee6e30e906ade783b">
   <file src="lib/AppInfo/Application.php">
     <InvalidArgument>
       <code><![CDATA[LoadAdditionalListener::class]]></code>
@@ -174,6 +174,11 @@
   <file src="lib/Service/SignFileService.php">
     <UndefinedClass>
       <code><![CDATA[UUIDUtil]]></code>
+      <code><![CDATA[UUIDUtil]]></code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Service/SignatureTextService.php">
+    <UndefinedClass>
       <code><![CDATA[UUIDUtil]]></code>
     </UndefinedClass>
   </file>
