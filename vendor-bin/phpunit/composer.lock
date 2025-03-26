@@ -56,16 +56,16 @@
         },
         {
             "name": "byjg/uri",
-            "version": "5.0.x-dev",
+            "version": "5.1.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-uri.git",
-                "reference": "fc3e8d3b50159fdc0abd4896ac8e8f68fa01732f"
+                "reference": "bcc2f71873124f919d0f76b18333a91b2e7b5d96"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-uri/zipball/fc3e8d3b50159fdc0abd4896ac8e8f68fa01732f",
-                "reference": "fc3e8d3b50159fdc0abd4896ac8e8f68fa01732f",
+                "url": "https://api.github.com/repos/byjg/php-uri/zipball/bcc2f71873124f919d0f76b18333a91b2e7b5d96",
+                "reference": "bcc2f71873124f919d0f76b18333a91b2e7b5d96",
                 "shasum": ""
             },
             "require": {
@@ -76,8 +76,8 @@
                 "psr/http-message-implementation": "1.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "^9.6",
-                "vimeo/psalm": "^6.0"
+                "phpunit/phpunit": "^10.5|^11.5",
+                "vimeo/psalm": "^5.9|^6.2"
             },
             "type": "project",
             "autoload": {
@@ -92,7 +92,7 @@
             "description": "An implementation of PSR-7 Uri Interface ",
             "support": {
                 "issues": "https://github.com/byjg/php-uri/issues",
-                "source": "https://github.com/byjg/php-uri/tree/5.0"
+                "source": "https://github.com/byjg/php-uri/tree/5.1"
             },
             "funding": [
                 {
@@ -100,27 +100,27 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-11-30T15:33:08+00:00"
+            "time": "2025-03-20T18:56:56+00:00"
         },
         {
             "name": "byjg/webrequest",
-            "version": "5.0.x-dev",
+            "version": "5.1.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-webrequest.git",
-                "reference": "07bdfaca2fc410f1084c3b56aa5258f918d4ec0e"
+                "reference": "c216c5da143407d4a030a405b1c56b4eb36327c5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-webrequest/zipball/07bdfaca2fc410f1084c3b56aa5258f918d4ec0e",
-                "reference": "07bdfaca2fc410f1084c3b56aa5258f918d4ec0e",
+                "url": "https://api.github.com/repos/byjg/php-webrequest/zipball/c216c5da143407d4a030a405b1c56b4eb36327c5",
+                "reference": "c216c5da143407d4a030a405b1c56b4eb36327c5",
                 "shasum": ""
             },
             "require": {
-                "byjg/uri": "^5.0",
+                "byjg/uri": "^5.1",
                 "ext-curl": "*",
                 "ext-json": "*",
-                "php": ">=8.1 <8.4",
+                "php": ">=8.1 <8.5",
                 "psr/http-client": "^1.0",
                 "psr/http-factory": "^1.0|^1.1",
                 "psr/http-message": "^1.0|^2.0"
@@ -132,8 +132,8 @@
             },
             "require-dev": {
                 "ext-soap": "*",
-                "phpunit/phpunit": "^9.6",
-                "vimeo/psalm": "^5.9"
+                "phpunit/phpunit": "^10.5|^11.5",
+                "vimeo/psalm": "^5.9|^6.2"
             },
             "type": "library",
             "autoload": {
@@ -154,7 +154,7 @@
             "description": "A lightweight and highly customized CURL wrapper for making RESt calls using PSR7 implementation and a wrapper for call dynamically SOAP requests.",
             "support": {
                 "issues": "https://github.com/byjg/php-webrequest/issues",
-                "source": "https://github.com/byjg/php-webrequest/tree/5.0"
+                "source": "https://github.com/byjg/php-webrequest/tree/5.1"
             },
             "funding": [
                 {
@@ -162,7 +162,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-01-19T20:27:02+00:00"
+            "time": "2025-03-21T19:39:17+00:00"
         },
         {
             "name": "donatj/mock-webserver",
@@ -976,12 +976,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "967af31b165693b7810e3e89f607c3b620af8f58"
+                "reference": "dc189847bdaff029e45414cff15fb4ae09ce37e4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/967af31b165693b7810e3e89f607c3b620af8f58",
-                "reference": "967af31b165693b7810e3e89f607c3b620af8f58",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/dc189847bdaff029e45414cff15fb4ae09ce37e4",
+                "reference": "dc189847bdaff029e45414cff15fb4ae09ce37e4",
                 "shasum": ""
             },
             "require": {
@@ -1069,7 +1069,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-03-17T14:33:25+00:00"
+            "time": "2025-03-23T08:42:59+00:00"
         },
         {
             "name": "psr/http-client",
