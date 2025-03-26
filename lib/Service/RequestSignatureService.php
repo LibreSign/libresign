@@ -207,7 +207,7 @@ class RequestSignatureService {
 							displayName: $user['displayName'] ?? '',
 							description: $user['description'] ?? '',
 							// Only notify if wasn't notified iet
-							notify: $user['notify'] ? false : true,
+							notify: !empty($user['notify']) ? false : true,
 							fileId: $fileId,
 						);
 					}
@@ -217,7 +217,7 @@ class RequestSignatureService {
 						displayName: $user['displayName'] ?? '',
 						description: $user['description'] ?? '',
 						// Only notify if wasn't notified iet
-						notify: $user['notify'] ? false : true,
+						notify: !empty($user['notify']) ? false : true,
 						fileId: $fileId,
 					);
 				}
