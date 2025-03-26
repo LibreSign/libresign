@@ -277,9 +277,9 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						[
 							'displayName' => 'admin',
 							'subject' => '/C=BR/ST=State of Company/L=City Name/O=Organization/OU=Organization Unit/UID=account:admin/CN=admin',
-							'valid_from' => 1736024940,
-							'valid_to' => 1767560940,
-							'signed' => '2025-01-04 21:09:02',
+							'valid_from' => '2025-01-04T21:09:00+00:00',
+							'valid_to' => '2026-01-04T21:09:00+00:00',
+							'signed' => '2025-01-04T21:09:02+00:00',
 							'uid' => 'account:admin',
 							'signature_validation' => [
 								'id' => 1,

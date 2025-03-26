@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Api\Controller;
 
+use DateTime;
 use OCA\Libresign\Tests\Api\ApiTestCase;
 
 /**
@@ -34,7 +35,7 @@ final class FileElementControllerTest extends ApiTestCase {
 			'userManager' => $user,
 		]);
 		$signers = $this->getSignersFromFileId($file->getId());
-		$signers[0]->setSigned(time());
+		$signers[0]->setSigned(new DateTime());
 
 		$this->getMockAppConfig();
 		$this->request

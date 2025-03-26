@@ -97,7 +97,7 @@ export const useFilesStore = function(...args) {
 					return false
 				}
 				return file.signers
-					.filter(signer => signer.signed?.length > 0).length > 0
+					.filter(signer => signer.signed > 0).length > 0
 			},
 			isFullSigned(file) {
 				file = this.getFile(file)
@@ -106,7 +106,7 @@ export const useFilesStore = function(...args) {
 				}
 				return file.signers.length > 0
 					&& file.signers
-						.filter(signer => signer.signed?.length > 0).length === file.signers.length
+						.filter(signer => signer.signed > 0).length === file.signers.length
 			},
 			canSign(file) {
 				file = this.getFile(file)
@@ -114,7 +114,7 @@ export const useFilesStore = function(...args) {
 					&& file.status > 0
 					&& file?.signers?.filter(signer => signer.me).length > 0
 					&& file?.signers?.filter(signer => signer.me)
-						.filter(signer => signer.signed?.length > 0).length === 0
+						.filter(signer => signer.signed > 0).length === 0
 			},
 			canValidate(file) {
 				file = this.getFile(file)

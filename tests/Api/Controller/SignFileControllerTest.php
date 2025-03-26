@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Api\Controller;
 
+use DateTime;
 use donatj\MockWebServer\Response;
 use Jeidison\JSignPDF\JSignPDF;
 use OCA\Libresign\AppInfo\Application;
@@ -87,7 +88,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			'userManager' => $user,
 		]);
 		$signers = $this->getSignersFromFileId($file->getId());
-		$signers[0]->setSigned(time());
+		$signers[0]->setSigned(new DateTime());
 		$signRequest = \OCP\Server::get(\OCA\Libresign\Db\SignRequestMapper::class);
 		$signRequest->update($signers[0]);
 

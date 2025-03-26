@@ -84,7 +84,7 @@ class RequestSignatureService {
 		$file->setNodeId($node->getId());
 		$file->setUserId($data['userManager']->getUID());
 		$file->setUuid(UUIDUtil::getUUID());
-		$file->setCreatedAt(time());
+		$file->setCreatedAt(new \DateTime());
 		$file->setName($data['name']);
 		$file->setMetadata($this->getFileMetadata($node));
 		if (!empty($data['callback'])) {
@@ -190,7 +190,8 @@ class RequestSignatureService {
 							],
 							displayName: $user['displayName'] ?? '',
 							description: $user['description'] ?? '',
-							notify: $user['notify'] ?? true,
+							// Only notify if wasn't notified iet
+							notify: !empty($user['notify']) ? false : true,
 							fileId: $fileId,
 						);
 					}
@@ -199,7 +200,8 @@ class RequestSignatureService {
 						identifyMethods: $user['identify'],
 						displayName: $user['displayName'] ?? '',
 						description: $user['description'] ?? '',
-						notify: $user['notify'] ?? true,
+						// Only notify if wasn't notified iet
+						notify: !empty($user['notify']) ? false : true,
 						fileId: $fileId,
 					);
 				}
@@ -314,7 +316,7 @@ class RequestSignatureService {
 			$signRequest->setDescription($description);
 		}
 		if (!$signRequest->getId()) {
-			$signRequest->setCreatedAt(time());
+			$signRequest->setCreatedAt(new \DateTime());
 		}
 	}
 
