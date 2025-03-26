@@ -97,7 +97,6 @@ class SignFileService {
 		private ITempManager $tempManager,
 		private IdentifyMethodService $identifyMethodService,
 		private ITimeFactory $timeFactory,
-		private SignatureTextService $signatureTextService,
 	) {
 	}
 
@@ -270,12 +269,10 @@ class SignFileService {
 					->setCertificate($pfxFileContent)
 					->setVisibleElements($this->elements)
 					->setPassword($this->password)
-					->setSignatureText($this->signatureTextService->parse(context: [
-						'SignerName' => '\${signer}',
+					->setSignatureParams([
 						'DocumentUUID' => $this->libreSignFile->getUuid(),
 						'IssuerCommonName' => $pfxData['issuer']['CN'],
-						'SignatureDate' => '\${timestamp}',
-					]))
+					])
 					->sign();
 				break;
 			default:
