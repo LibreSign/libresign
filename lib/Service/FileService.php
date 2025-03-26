@@ -375,7 +375,12 @@ class FileService {
 				$this->fileData->signers[$index]['user_agent'] = $metadata['user-agent'];
 			}
 			if (!empty($metadata['notify'])) {
-				$this->fileData->signers[$index]['notify'] = $metadata['notify'];
+				foreach ($metadata['notify'] as $notify) {
+					$this->fileData->signers[$index]['notify'][] = [
+						'method' => $notify['method'],
+						'date' => (new \DateTime('@'. $notify['date']))->format(DateTimeInterface::ATOM),
+					];
+				}
 			}
 			if ($signer->getSigned() && empty($this->fileData->signers[$index]['signed'])) {
 				if ($signer->getSigned()) {

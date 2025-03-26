@@ -138,7 +138,7 @@
 								<template #subname>
 									<strong>{{ t('libresign', 'Date signed:') }}</strong>
 									<span v-if="signer.signed" class="data-signed">
-										{{ dateFromUnixTimestampFormatted(signer.signed) }}
+										{{ dateFromSqlAnsi(signer.signed) }}
 									</span>
 									<span v-else>{{ t('libresign', 'No date') }}</span>
 								</template>
@@ -168,7 +168,7 @@
 								:name="t('libresign', 'Requested on:')">
 								<template #name>
 									<strong>{{ t('libresign', 'Requested on:') }}</strong>
-									{{ dateFromUnixTimestamp(signer.request_sign_date) }}
+									{{ dateFromSqlAnsi(signer.request_sign_date) }}
 								</template>
 							</NcListItem>
 							<NcListItem v-if="signer.opened"
@@ -218,7 +218,7 @@
 									<ul>
 										<li v-for="(notify, notifyIndex) in signer.notify"
 											:key="notifyIndex">
-											<strong>{{ notify.method }}</strong>: {{ dateFromUnixTimestamp(notify.date) }}
+											<strong>{{ notify.method }}</strong>: {{ dateFromSqlAnsi(notify.date) }}
 										</li>
 									</ul>
 								</template>
@@ -229,7 +229,7 @@
 								:name="t('libresign', 'Certificate valid from:')">
 								<template #name>
 									<strong>{{ t('libresign', 'Certificate valid from:') }}</strong>
-									{{ dateFromUnixTimestamp(signer.valid_from) }}
+									{{ dateFromSqlAnsi(signer.valid_from) }}
 								</template>
 							</NcListItem>
 							<NcListItem v-if="signer.opened && signer.valid_to"
@@ -238,7 +238,7 @@
 								:name="t('libresign', 'Certificate valid to:')">
 								<template #name>
 									<strong>{{ t('libresign', 'Certificate valid to:') }}</strong>
-									{{ dateFromUnixTimestamp(signer.valid_to) }}
+									{{ dateFromSqlAnsi(signer.valid_to) }}
 								</template>
 							</NcListItem>
 							<NcListItem v-if="signer.opened && signer.hash_algorithm"
@@ -452,12 +452,6 @@ export default {
 		},
 		dateFromSqlAnsi(date) {
 			return Moment(Date.parse(date)).format('LL LTS')
-		},
-		dateFromUnixTimestamp(date) {
-			return Moment(date * 1000).format('LL LTS')
-		},
-		dateFromUnixTimestampFormatted(date) {
-			return Moment(date * 1000).format('YYYY-MM-DD HH:mm:ss')
 		},
 		toggleDetail(signer) {
 			this.$set(signer, 'opened', !signer.opened)
