@@ -1049,6 +1049,30 @@ export type paths = {
         patch: operations["admin-signature-background-reset"];
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-text": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get parsed signature text service
+         * @description This endpoint requires admin access
+         */
+        get: operations["admin-signature-text-get"];
+        put?: never;
+        /**
+         * Save signature text service
+         * @description This endpoint requires admin access
+         */
+        post: operations["admin-signature-text-save"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
         parameters: {
             query?: never;
@@ -4565,6 +4589,82 @@ export interface operations {
                             data: {
                                 /** @enum {string} */
                                 status: "success";
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-signature-text-get": {
+        parameters: {
+            query?: {
+                /** @description Template to signature text */
+                template?: string;
+                /** @description Context for parsing the template */
+                context?: string;
+            };
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                parsed: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-signature-text-save": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Template to signature text */
+                    template: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                parsed: string;
                             };
                         };
                     };
