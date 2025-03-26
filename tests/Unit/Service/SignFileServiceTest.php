@@ -222,12 +222,14 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->root->method('getUserFolder')->willReturn($this->root);
 		$this->root->method('getById')->willReturn([$nextcloudFile]);
 		$this->root->method('newFile')->willReturn($nextcloudFile);
-		$this->userMountCache->method('getMountsForFileId')->wilLReturn([]);
+		$this->userMountCache->method('getMountsForFileId')->willReturn([]);
 
 		$this->pkcs12Handler->method('setInputFile')->willReturn($this->pkcs12Handler);
 		$this->pkcs12Handler->method('setCertificate')->willReturn($this->pkcs12Handler);
 		$this->pkcs12Handler->method('setVisibleElements')->willReturn($this->pkcs12Handler);
+		$this->pkcs12Handler->method('setSignatureParams')->willReturn($this->pkcs12Handler);
 		$this->pkcs12Handler->method('setPassword')->willReturn($this->pkcs12Handler);
+		$this->pkcs12Handler->method('readCertificate')->willReturn(['issuer' => ['CN' => 'Acme Cooperative']]);
 		$this->pkcs12Handler->method('sign')->willReturn($nextcloudFile);
 
 		$this->pkcs7Handler->method('setInputFile')->willReturn($this->pkcs12Handler);
