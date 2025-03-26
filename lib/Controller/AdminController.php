@@ -17,6 +17,7 @@ use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\SignatureBackgroundService;
+use OCA\Libresign\Service\SignatureTextService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -45,6 +46,7 @@ class AdminController extends AEnvironmentAwareController {
 		private InstallService $installService,
 		private CertificateEngineHandler $certificateEngineHandler,
 		private IEventSourceFactory $eventSourceFactory,
+		private SignatureTextService $signatureTextService,
 		private IL10N $l10n,
 		protected ISession $session,
 		private SignatureBackgroundService $signatureBackgroundService,
@@ -378,6 +380,46 @@ class AdminController extends AEnvironmentAwareController {
 			[
 				'status' => 'success',
 			]
+		);
+	}
+
+	/**
+	 * Save signature text service
+	 *
+	 * @param string $template Template to signature text
+	 * @return DataResponse<Http::STATUS_OK, array{parsed: string}, array{}>
+	 *
+	 * 200: OK
+	 */
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-text', requirements: ['apiVersion' => '(v1)'])]
+	public function signatureTextSave(string $template): DataResponse {
+		$parsed = $this->signatureTextService->save($template);
+		return new DataResponse(
+			[
+				'parsed' => $parsed,
+			],
+			Http::STATUS_OK
+		);
+	}
+
+	/**
+	 * Get parsed signature text service
+	 *
+	 * @param string $template Template to signature text
+	 * @param string $context Context for parsing the template
+	 * @return DataResponse<Http::STATUS_OK, array{parsed: string}, array{}>
+	 *
+	 * 200: OK
+	 */
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/signature-text', requirements: ['apiVersion' => '(v1)'])]
+	public function signatureTextGet(string $template = '', string $context = ''): DataResponse {
+		$context = json_decode($context, true) ?? [];
+		$parsed = $this->signatureTextService->parse($template, $context);
+		return new DataResponse(
+			[
+				'parsed' => $parsed
+			],
+			Http::STATUS_OK
 		);
 	}
 }
