@@ -17,7 +17,7 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	private string $password = '';
 	/** @var VisibleElementAssoc[] */
 	private array $visibleElements = [];
-	private string $signatureText = '';
+	private array $signatureParams = [];
 
 	/**
 	 * @return static
@@ -72,12 +72,12 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		return $this->sign()->getContent();
 	}
 
-	public function getSignatureText(): string {
-		return $this->signatureText;
+	public function getSignatureParams(): array {
+		return $this->signatureParams;
 	}
 
-	public function setSignatureText(string $text): self {
-		$this->signatureText = $text;
+	public function setSignatureParams(array $params): self {
+		$this->signatureParams = $params;
 		return $this;
 	}
 }
