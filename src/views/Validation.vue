@@ -156,9 +156,10 @@
 									</NcButton>
 								</template>
 								<template #indicator>
-									<NcIconSvgWrapper :name="signer.signature_validation.label"
+									<NcIconSvgWrapper v-if="signer.signature_validation"
+										:name="signer.signature_validation.label"
 										:path="getIconValidityPath(signer)"
-										:style="{color: signer.signature_validation.id === 1? 'green' : 'red'}"
+										:style="{color: signer.signature_validation?.id === 1? 'green' : 'red'}"
 										:size="20" />
 								</template>
 							</NcListItem>
@@ -171,7 +172,7 @@
 									{{ dateFromSqlAnsi(signer.request_sign_date) }}
 								</template>
 							</NcListItem>
-							<NcListItem v-if="signer.opened"
+							<NcListItem v-if="signer.opened && signer.signature_validation"
 								class="extra"
 								compact
 								:name="t('libresign', 'Signature validation:')">
