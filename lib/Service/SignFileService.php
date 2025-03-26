@@ -97,6 +97,7 @@ class SignFileService {
 		private ITempManager $tempManager,
 		private IdentifyMethodService $identifyMethodService,
 		private ITimeFactory $timeFactory,
+		private SignatureTextService $signatureTextService,
 	) {
 	}
 
@@ -263,11 +264,18 @@ class SignFileService {
 		$pfxFileContent = $this->getPfxFile();
 		switch (strtolower($fileToSign->getExtension())) {
 			case 'pdf':
+				$pfxData = $this->getPfxData();
 				$signedFile = $this->pkcs12Handler
 					->setInputFile($fileToSign)
 					->setCertificate($pfxFileContent)
 					->setVisibleElements($this->elements)
 					->setPassword($this->password)
+					->setSignatureText($this->signatureTextService->parse(context: [
+						'SignerName' => '\${signer}',
+						'DocumentUUID' => $this->libreSignFile->getUuid(),
+						'IssuerCommonName' => $pfxData['issuer']['CN'],
+						'SignatureDate' => '\${timestamp}',
+					]))
 					->sign();
 				break;
 			default:
@@ -375,6 +383,10 @@ class SignFileService {
 			}
 		}
 		return $this->pkcs12Handler->getPfx();
+	}
+
+	private function getPfxData(): array {
+		return $this->pkcs12Handler->readCertificate(privateKey: $this->password);
 	}
 
 	/**

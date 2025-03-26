@@ -81,7 +81,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		return $this->savePfx($uid, $content);
 	}
 
-	public function readCertificate(string $uid, string $privateKey): array {
+	public function readCertificate(?string $uid = null, string $privateKey = ''): array {
 		$this->setPassword($privateKey);
 		$pfx = $this->getPfx($uid);
 		return $this->certificateEngineHandler->getEngine()->readCertificate(
@@ -422,6 +422,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			->setCertificate($this->getCertificate())
 			->setInputFile($this->getInputFile())
 			->setPassword($this->getPassword())
+			->setSignatureText($this->getSignatureText())
 			->setVisibleElements($this->getVisibleElements())
 			->getSignedContent();
 		$this->getInputFile()->putContent($signedContent);

@@ -25,7 +25,7 @@ class SignatureTextService {
 		return $this->parse($template);
 	}
 
-	public function parse(string $template, array $context = []): string {
+	public function parse(string $template = '', array $context = []): string {
 		if (empty($template)) {
 			$template = $this->appConfig->getAppValueString('signature_text_template');
 		}
@@ -33,7 +33,7 @@ class SignatureTextService {
 			$context = [
 				'SignerName' => 'John Doe',
 				'DocumentUUID' => UUIDUtil::getUUID(),
-				'CommonName' => 'Acme Cooperative',
+				'IssuerCommonName' => 'Acme Cooperative',
 				'SignatureDate' => (new \DateTime())->format(DateTimeInterface::ATOM)
 			];
 		}
@@ -45,7 +45,7 @@ class SignatureTextService {
 				->createTemplate($template)
 				->render($context);
 		} catch (SyntaxError $e) {
-			return (string) preg_replace('/in "[^"]+" at line \d+/', '', $e->getMessage());
+			return (string)preg_replace('/in "[^"]+" at line \d+/', '', $e->getMessage());
 		}
 	}
 }
