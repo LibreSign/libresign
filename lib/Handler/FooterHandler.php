@@ -191,7 +191,7 @@ class FooterHandler {
 		if ($footerTemplate) {
 			return $footerTemplate;
 		}
-		return (string) file_get_contents(__DIR__ . '/Templates/footer.teig');
+		return (string)file_get_contents(__DIR__ . '/Templates/footer.teig');
 	}
 
 	private function getQrCodeImageBase64(string $text): string {
