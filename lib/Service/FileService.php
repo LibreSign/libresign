@@ -366,7 +366,7 @@ class FileService {
 				foreach ($metadata['notify'] as $notify) {
 					$this->fileData->signers[$index]['notify'][] = [
 						'method' => $notify['method'],
-						'date' => (new \DateTime('@'. $notify['date']))->format(DateTimeInterface::ATOM),
+						'date' => (new \DateTime('@' . $notify['date']))->format(DateTimeInterface::ATOM),
 					];
 				}
 			}
