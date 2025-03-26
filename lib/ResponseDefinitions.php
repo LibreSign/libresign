@@ -144,7 +144,7 @@ namespace OCA\Libresign;
  *     password?: LibresignSignatureMethodPassword,
  * }
  * @psalm-type LibresignNotify = array{
- *     date: int,
+ *     date: string,
  *     method: "activity"|"notify"|"mail",
  * }
  * @psalm-type LibresignSigner = array{
