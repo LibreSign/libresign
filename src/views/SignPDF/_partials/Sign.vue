@@ -18,6 +18,18 @@
 				</template>
 				{{ t('libresign', 'Sign the document.') }}
 			</NcButton>
+			<div v-else-if="identificationDocumentStore.enabled">
+				<p>
+					{{ t('libresign', 'Identification documents') }}
+				</p>
+				<NcButton v-if="identificationDocumentStore.enabled"
+					:wide="true"
+					:disabled="loading"
+					type="primary"
+					@click="identificationDocumentStore.showModal()">
+					{{ t('libresign', 'Your profile documents') }}
+				</NcButton>
+			</div>
 			<div v-else-if="signMethodsStore.needCreatePassword()">
 				<p>
 					{{ t('libresign', 'Please define your sign password') }}
@@ -46,6 +58,13 @@
 				</p>
 			</div>
 		</div>
+		<NcDialog v-if="identificationDocumentStore.modal"
+			:can-close="!loading"
+			:name="t('libresign', 'Your profile documents')"
+			size="normal"
+			@closing="identificationDocumentStore.closeModal()">
+			<Documents :sign-request-uuid="signRequestUuid"/>
+		</NcDialog>
 		<NcDialog v-if="signMethodsStore.modal.clickToSign"
 			:can-close="!loading"
 			:name="t('libresign', 'Confirm')"
@@ -125,8 +144,10 @@ import SMSManager from './ModalSMSManager.vue'
 import Draw from '../../../Components/Draw/Draw.vue'
 import Signatures from '../../../views/Account/partials/Signatures.vue'
 import CreatePassword from '../../../views/CreatePassword.vue'
+import Documents from '../../Account/partials/Documents.vue'
 import ManagePassword from '../../Account/partials/ManagePassword.vue'
 
+import { useIdentificationDocumentStore } from '../../../store/identificationDocument.js'
 import { useSidebarStore } from '../../../store/sidebar.js'
 import { useSignStore } from '../../../store/sign.js'
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
@@ -140,6 +161,7 @@ export default {
 		NcLoadingIcon,
 		NcPasswordField,
 		CreatePassword,
+		Documents,
 		SMSManager,
 		EmailManager,
 		Signatures,
@@ -151,7 +173,8 @@ export default {
 		const signMethodsStore = useSignMethodsStore()
 		const signatureElementsStore = useSignatureElementsStore()
 		const sidebarStore = useSidebarStore()
-		return { signStore, signMethodsStore, signatureElementsStore, sidebarStore }
+		const identificationDocumentStore = useIdentificationDocumentStore()
+		return { signStore, signMethodsStore, signatureElementsStore, sidebarStore, identificationDocumentStore }
 	},
 	data() {
 		return {
@@ -190,6 +213,9 @@ export default {
 		},
 		ableToSign() {
 			if (this.signMethodsStore.needCreatePassword()) {
+				return false
+			}
+			if (this.identificationDocumentStore.needIdentificationDocument()) {
 				return false
 			}
 			if (this.needCreateSignature) {
