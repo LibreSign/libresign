@@ -20,6 +20,7 @@
 		<DefaultUserFolder />
 		<SignatureHashAlgorithm />
 		<SignatureBackground />
+		<SignatureTextTemplate />
 	</NcSettingsSection>
 </template>
 
@@ -40,6 +41,7 @@ import RootCertificateCfssl from './RootCertificateCfssl.vue'
 import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
 import SignatureBackground from './SignatureBackground.vue'
 import SignatureHashAlgorithm from './SignatureHashAlgorithm.vue'
+import SignatureTextTemplate from './SignatureTextTemplate.vue'
 import Validation from './Validation.vue'
 
 export default {
@@ -61,6 +63,7 @@ export default {
 		DefaultUserFolder,
 		SignatureHashAlgorithm,
 		SignatureBackground,
+		SignatureTextTemplate,
 	},
 	data() {
 		return {
