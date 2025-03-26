@@ -185,9 +185,7 @@ class AccountFileMapper extends QBMapper {
 			'name' => $this->fileTypeMapper->getNameOfType($row['file_type']),
 			'description' => $this->fileTypeMapper->getDescriptionOfType($row['file_type']),
 		];
-		$row['created_at'] = (new \DateTime())
-			->setTimestamp((int)$row['created_at'])
-			->format('Y-m-d H:i:s');
+		$row['created_at'] = $row['created_at']->format(DateTimeInterface::ATOM);
 		$row['file'] = [
 			'name' => $row['name'],
 			'status' => $row['status'],

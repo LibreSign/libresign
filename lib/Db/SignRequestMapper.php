@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
+use DateTimeInterface;
 use OCA\Libresign\Helper\Pagination;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -550,7 +551,7 @@ class SignRequestMapper extends QBMapper {
 			'userId' => $row['user_id'],
 			'displayName' => $this->userManager->get($row['user_id'])?->getDisplayName(),
 		];
-		$row['created_at'] = $row['created_at'];
+		$row['created_at'] = (new \DateTime($row['created_at']))->format(DateTimeInterface::ATOM);
 		$row['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $row['uuid']]);
 		$row['nodeId'] = (int)$row['node_id'];
 		unset(
