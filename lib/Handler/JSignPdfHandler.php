@@ -154,7 +154,7 @@ class JSignPdfHandler extends SignEngineHandler {
 	public function getSignatureText(): string {
 		$params = $this->getSignatureParams();
 		$params['SignerName'] = '${signer}';
-		$params['SignatureDate'] = '${timestamp}';
+		$params['ServerSignatureDate'] = '${timestamp}';
 		$data = $this->signatureTextService->parse(context: $params);
 
 		$signatureText = '"' . str_replace(
