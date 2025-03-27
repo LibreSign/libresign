@@ -78,11 +78,12 @@ export default {
 			fontSize: 6,
 			isRTLDirection: isRTL(),
 			availableVariables: {
-				'{{SignerName}}': t('libresign', 'Name of the person signing'),
 				'{{DocumentUUID}}': t('libresign', 'Unique identifier of the signed document'),
 				'{{IssuerCommonName}}': t('libresign', 'Name of the certificate issuer used for the signature'),
-				'{{LocalSignerSignatureDate}}': t('libresign', 'Date and time when the user initiated the signing process (in their local time zone)'),
+				'{{LocalSignerSignatureDate}}': t('libresign', 'Date and time when the signer send the request to sign (in their local time zone)'),
+				'{{LocalSignerTimezone}}': t('libresign', 'Time zone of signer when send the request to sign (in their local time zone)'),
 				'{{ServerSignatureDate}}': t('libresign', 'Date and time when the signature was applied on the server'),
+				'{{SignerName}}': t('libresign', 'Name of the person signing'),
 			},
 		}
 	},
