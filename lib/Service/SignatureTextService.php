@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use DateTimeInterface;
+use OCA\Libresign\Exception\LibresignException;
 use OCP\AppFramework\Services\IAppConfig;
 use Sabre\DAV\UUIDUtil;
 use Twig\Environment;
@@ -20,12 +21,22 @@ class SignatureTextService {
 		private IAppConfig $appConfig,
 	) {
 	}
-	public function save(string $template): string {
+
+	/**
+	 * @return array{parsed: string, fontSize: float}
+	 * @throws LibresignException
+	 */
+	public function save(string $template, float $fontSize = 6): array {
 		$this->appConfig->setAppValueString('signature_text_template', $template);
+		$this->appConfig->setAppValueFloat('signature_font_size', $fontSize);
 		return $this->parse($template);
 	}
 
-	public function parse(string $template = '', array $context = []): string {
+	/**
+	 * @return array{parsed: string, fontSize: float}
+	 * @throws LibresignException
+	 */
+	public function parse(string $template = '', array $context = []): array {
 		if (empty($template)) {
 			$template = $this->appConfig->getAppValueString('signature_text_template');
 		}
@@ -41,11 +52,16 @@ class SignatureTextService {
 			$twigEnvironment = new Environment(
 				new FilesystemLoader(),
 			);
-			return $twigEnvironment
+			$template = $twigEnvironment
 				->createTemplate($template)
 				->render($context);
+			$fontSize = $this->appConfig->getAppValueFloat('signature_font_size');
+			return [
+				'parsed' => $template,
+				'fontSize' => $fontSize,
+			];
 		} catch (SyntaxError $e) {
-			return (string)preg_replace('/in "[^"]+" at line \d+/', '', $e->getMessage());
+			throw new LibresignException((string)preg_replace('/in "[^"]+" at line \d+/', '', $e->getMessage()));
 		}
 	}
 }

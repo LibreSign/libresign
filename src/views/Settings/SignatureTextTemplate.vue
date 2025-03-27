@@ -6,11 +6,29 @@
 	<NcSettingsSection :name="name" :description="description">
 		<div class="content">
 			<NcTextArea :value.sync="inputValue"
+				:label="t('libresign', 'Signature text template')"
 				:placeholder="t('libresign', 'Signature text template')"
+				:spellcheck="false"
 				:success="showSuccess"
 				resize="vertical"
 				@keydown.enter="save"
 				@blur="save" />
+			<NcTextField :value.sync="fontSize"
+				:label="t('libresign', 'Font size')"
+				:placeholder="t('libresign', 'Font size')"
+				type="number"
+				:min="0"
+				:step="0.01"
+				:spellcheck="false"
+				:success="showSuccess"
+				@keydown.enter="save"
+				@blur="save">
+			</NcTextField>
+			<NcNoteCard v-if="errorMessage"
+					type="error"
+					:show-alert="true">
+					<p>{{ errorMessage }}</p>
+			</NcNoteCard>
 			<div class="text-pre-line">
 				{{ parsed }}
 			</div>
@@ -25,13 +43,17 @@ import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcTextArea from '@nextcloud/vue/components/NcTextArea'
+import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 export default {
 	name: 'SignatureTextTemplate',
 	components: {
 		NcSettingsSection,
+		NcNoteCard,
 		NcTextArea,
+		NcTextField,
 	},
 	data() {
 		return {
@@ -39,7 +61,9 @@ export default {
 			description: t('libresign', 'This template will be mixed to signature.'),
 			signatureTextTemplate: '',
 			showSuccess: false,
+			errorMessage: '',
 			parsed: '',
+			fontSize: 6,
 		}
 	},
 	computed: {
@@ -70,15 +94,33 @@ export default {
 				})
 				.then(({ data }) => {
 					this.parsed = data.ocs.data.parsed
+					if (data.ocs.data.fontSize !== this.fontSize) {
+						this.fontSize = data.ocs.data.fontSize
+					}
+				})
+				.catch(({ response }) => {
+					this.errorMessage = response.data.ocs.data.error
+					this.parsed = ''
 				})
 		},
 		async save() {
 			this.showSuccess = false
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-text'), { template: this.signatureTextTemplate })
+			this.errorMessage = ''
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-text'), {
+				template: this.signatureTextTemplate,
+				fontSize: this.fontSize,
+			})
 				.then(({ data }) => {
 					this.parsed = data.ocs.data.parsed
+					if (data.ocs.data.fontSize !== this.fontSize) {
+						this.fontSize = data.ocs.data.fontSize
+					}
 					this.showSuccess = true
 					setTimeout(() => { this.showSuccess = false }, 2000)
+				})
+				.catch(({ response }) => {
+					this.errorMessage = response.data.ocs.data.error
+					this.parsed = ''
 				})
 		},
 	},
