@@ -4,6 +4,15 @@
 -->
 <template>
 	<NcSettingsSection :name="name" :description="description">
+		{{ t('libresign', 'You can use the following variables in your signature text:') }}
+		<ul class="available-variables">
+			<li v-for="(availableDescription, availableName) in availableVariables"
+				:key="availableName"
+				:class="{rtl: isRTLDirection}">
+				<strong :class="{rtl: isRTLDirection}">{{ availableName }}:</strong>
+				<span>{{ availableDescription }}</span>
+			</li>
+		</ul>
 		<div class="content">
 			<NcTextArea :value.sync="inputValue"
 				:label="t('libresign', 'Signature text template')"
@@ -39,7 +48,7 @@
 import debounce from 'debounce'
 
 import axios from '@nextcloud/axios'
-import { translate as t } from '@nextcloud/l10n'
+import { translate as t, isRTL } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
@@ -64,6 +73,14 @@ export default {
 			errorMessage: '',
 			parsed: '',
 			fontSize: 6,
+			isRTLDirection: isRTL(),
+			availableVariables: {
+				'{{SignerName}}': t('libresign', 'Name of the person signing'),
+				'{{DocumentUUID}}': t('libresign', 'Unique identifier of the signed document'),
+				'{{IssuerCommonName}}': t('libresign', 'Name of the certificate issuer used for the signature'),
+				'{{LocalSignerSignatureDate}}': t('libresign', 'Date and time when the user initiated the signing process (in their local time zone)'),
+				'{{ServerSignatureDate}}': t('libresign', 'Date and time when the signature was applied on the server'),
+			},
 		}
 	},
 	computed: {
@@ -133,5 +150,14 @@ export default {
 }
 .text-pre-line {
 	white-space: pre-line;
+}
+
+.available-variables {
+	margin-bottom: 1em;
+}
+
+.rtl {
+	direction: rtl;
+	text-align: right;
 }
 </style>
