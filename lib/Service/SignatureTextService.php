@@ -36,6 +36,7 @@ class SignatureTextService {
 			// within the accepted range.
 			throw new LibresignException($this->l10n->t('Invalid font size. The value must be between %.1f and %.0f.', [0.1, 30]));
 		}
+		$template = trim($template);
 		$this->appConfig->setAppValueString('signature_text_template', $template);
 		$this->appConfig->setAppValueFloat('signature_font_size', $fontSize);
 		return $this->parse($template);
