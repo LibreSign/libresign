@@ -8620,16 +8620,6 @@
                                 }
                             }
                         }
-                    },
-                    "404": {
-                        "description": "Image not found",
-                        "content": {
-                            "text/html": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
                     }
                 }
             },

@@ -454,15 +454,6 @@ export interface operations {
                     "*/*": string;
                 };
             };
-            /** @description Image not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/html": string;
-                };
-            };
         };
     };
     "admin-signature-background-save": {
