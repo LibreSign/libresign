@@ -130,6 +130,7 @@ class JSignPdfHandler extends SignEngineHandler {
 					'-urx' => $element->getFileElement()->getUrx(),
 					'-ury' => $element->getFileElement()->getUry(),
 					'--l2-text' => $this->getSignatureText(),
+					'--font-size' => $this->signatureTextService->getFontSize(),
 					'-V' => null,
 					'--bg-path' => $element->getTempFile(),
 				];
@@ -150,12 +151,12 @@ class JSignPdfHandler extends SignEngineHandler {
 		$params = $this->getSignatureParams();
 		$params['SignerName'] = '${signer}';
 		$params['SignatureDate'] = '${timestamp}';
-		$signatureText = $this->signatureTextService->parse(context: $params);
+		$data = $this->signatureTextService->parse(context: $params);
 
 		$signatureText = '"' . str_replace(
 			['"', '$'],
 			['\"', '\$'],
-			$signatureText
+			$data['parsed']
 		) . '"';
 
 		return $signatureText;
