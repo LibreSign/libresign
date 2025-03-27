@@ -628,6 +628,24 @@ export interface operations {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
                                 parsed: string;
+                                /** Format: double */
+                                fontSize: number;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Bad request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                error: string;
                             };
                         };
                     };
@@ -652,6 +670,12 @@ export interface operations {
                 "application/json": {
                     /** @description Template to signature text */
                     template: string;
+                    /**
+                     * Format: double
+                     * @description Font size used when print the parsed text of this template at PDF file
+                     * @default 6
+                     */
+                    fontSize?: number;
                 };
             };
         };
@@ -667,6 +691,24 @@ export interface operations {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
                                 parsed: string;
+                                /** Format: double */
+                                fontSize: number;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Bad request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                error: string;
                             };
                         };
                     };
