@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Controller;
 
+use Imagick;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\AEngineHandler;
@@ -16,10 +17,16 @@ use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\SignatureBackgroundService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\AppFramework\Http\FileDisplayResponse;
+use OCP\AppFramework\Http\NotFoundResponse;
+use OCP\Files\NotFoundException;
+use OCP\Files\SimpleFS\InMemoryFile;
 use OCP\IAppConfig;
 use OCP\IEventSource;
 use OCP\IEventSourceFactory;
@@ -44,6 +51,7 @@ class AdminController extends AEnvironmentAwareController {
 		private IEventSourceFactory $eventSourceFactory,
 		private IL10N $l10n,
 		protected ISession $session,
+		private SignatureBackgroundService $signatureBackgroundService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->eventSource = $this->eventSourceFactory->create();
@@ -264,4 +272,125 @@ class AdminController extends AEnvironmentAwareController {
 		exit();
 	}
 
+	/**
+	 * Add custom background image
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{status: 'failure', message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 422: Error
+	 */
+	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-background', requirements: ['apiVersion' => '(v1)'])]
+	public function signatureBackgroundSave(): DataResponse {
+		$image = $this->request->getUploadedFile('image');
+		$phpFileUploadErrors = [
+			UPLOAD_ERR_OK => $this->l10n->t('The file was uploaded'),
+			UPLOAD_ERR_INI_SIZE => $this->l10n->t('The uploaded file exceeds the upload_max_filesize directive in php.ini'),
+			UPLOAD_ERR_FORM_SIZE => $this->l10n->t('The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form'),
+			UPLOAD_ERR_PARTIAL => $this->l10n->t('The file was only partially uploaded'),
+			UPLOAD_ERR_NO_FILE => $this->l10n->t('No file was uploaded'),
+			UPLOAD_ERR_NO_TMP_DIR => $this->l10n->t('Missing a temporary folder'),
+			UPLOAD_ERR_CANT_WRITE => $this->l10n->t('Could not write file to disk'),
+			UPLOAD_ERR_EXTENSION => $this->l10n->t('A PHP extension stopped the file upload'),
+		];
+		if (empty($image)) {
+			$error = $this->l10n->t('No file uploaded');
+		} elseif (!empty($image) && array_key_exists('error', $image) && $image['error'] !== UPLOAD_ERR_OK) {
+			$error = $phpFileUploadErrors[$image['error']];
+		}
+		if ($error !== null) {
+			return new DataResponse(
+				[
+					'message' => $error,
+					'status' => 'failure',
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+		try {
+			$this->signatureBackgroundService->updateImage($image['tmp_name']);
+		} catch (\Exception $e) {
+			return new DataResponse(
+				[
+					'message' => $e->getMessage(),
+					'status' => 'failure',
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+
+		return new DataResponse(
+			[
+				'status' => 'success',
+			]
+		);
+	}
+
+	/**
+	 * Get custom background image
+	 *
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{}>|NotFoundResponse<Http::STATUS_NOT_FOUND, array{}>
+	 *
+	 * 200: Image returned
+	 * 404: Image not found
+	 */
+	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/signature-background', requirements: ['apiVersion' => '(v1)'])]
+	public function signatureBackgroundGet(): FileDisplayResponse {
+		try {
+			$file = $this->signatureBackgroundService->getImage();
+		} catch (NotFoundException $e) {
+			$imagick = new Imagick();
+			$imagick->readImageBlob(file_get_contents(__DIR__ . '/../../img/logo-gray.svg'));
+			$imagick->setImageFormat('png32');
+			$file = new InMemoryFile('background.png', $imagick->getImageBlob());
+			$imagick->clear();
+			$imagick->destroy();
+		}
+
+		$response = new FileDisplayResponse($file);
+		$csp = new ContentSecurityPolicy();
+		$csp->allowInlineStyle();
+		$response->setContentSecurityPolicy($csp);
+		$response->cacheFor(3600);
+		$response->addHeader('Content-Type', 'image/png');
+		$response->addHeader('Content-Disposition', 'attachment; filename="background.png"');
+		$response->addHeader('Content-Type', 'image/png');
+		return $response;
+	}
+
+	/**
+	 * Get custom background image
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>
+	 *
+	 * 200: Image reseted to default
+	 */
+	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/admin/signature-background', requirements: ['apiVersion' => '(v1)'])]
+	public function signatureBackgroundReset(): DataResponse {
+		$this->signatureBackgroundService->reset();
+		return new DataResponse(
+			[
+				'status' => 'success',
+			]
+		);
+	}
+
+	/**
+	 * Delete background image
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>
+	 *
+	 * 200: Deleted with success
+	 */
+	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/admin/signature-background', requirements: ['apiVersion' => '(v1)'])]
+	public function signatureBackgroundDelete(): DataResponse {
+		$this->signatureBackgroundService->delete();
+		return new DataResponse(
+			[
+				'status' => 'success',
+			]
+		);
+	}
 }

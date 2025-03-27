@@ -51,7 +51,7 @@ export const useConfigureCheckStore = function(...args) {
 					generateOcsUrl('/apps/libresign/api/v1/admin/configure-check'),
 				)
 					.then(({ data }) => {
-						this.updateItems(data.ocs.data)
+						this.updateItems(data.ocs?.data || [])
 					})
 			},
 		},
