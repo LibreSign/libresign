@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Controller;
 
-use Imagick;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\AEngineHandler;
@@ -24,9 +23,6 @@ use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
-use OCP\AppFramework\Http\NotFoundResponse;
-use OCP\Files\NotFoundException;
-use OCP\Files\SimpleFS\InMemoryFile;
 use OCP\IAppConfig;
 use OCP\IEventSource;
 use OCP\IEventSourceFactory;
@@ -331,24 +327,14 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Get custom background image
 	 *
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{}>|NotFoundResponse<Http::STATUS_NOT_FOUND, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{}>
 	 *
 	 * 200: Image returned
-	 * 404: Image not found
 	 */
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/signature-background', requirements: ['apiVersion' => '(v1)'])]
 	public function signatureBackgroundGet(): FileDisplayResponse {
-		try {
-			$file = $this->signatureBackgroundService->getImage();
-		} catch (NotFoundException $e) {
-			$imagick = new Imagick();
-			$imagick->readImageBlob(file_get_contents(__DIR__ . '/../../img/logo-gray.svg'));
-			$imagick->setImageFormat('png32');
-			$file = new InMemoryFile('background.png', $imagick->getImageBlob());
-			$imagick->clear();
-			$imagick->destroy();
-		}
+		$file = $this->signatureBackgroundService->getImage();
 
 		$response = new FileDisplayResponse($file);
 		$csp = new ContentSecurityPolicy();
