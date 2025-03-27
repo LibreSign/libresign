@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use DateTime;
+use DateTimeInterface;
 use InvalidArgumentException;
 use mikehaertl\pdftk\Command;
 use OC\AppFramework\Http as AppFrameworkHttp;
@@ -44,6 +46,7 @@ use OCP\Files\Node;
 use OCP\Files\NotPermittedException;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
+use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
@@ -88,6 +91,7 @@ class SignFileService {
 		private SignerElementsService $signerElementsService,
 		private IRootFolder $root,
 		private IUserSession $userSession,
+		private IDateTimeZone $dateTimeZone,
 		private IUserMountCache $userMountCache,
 		private FileElementMapper $fileElementMapper,
 		private UserElementMapper $userElementMapper,
@@ -272,6 +276,8 @@ class SignFileService {
 					->setSignatureParams([
 						'DocumentUUID' => $this->libreSignFile->getUuid(),
 						'IssuerCommonName' => $pfxData['issuer']['CN'],
+						'LocalSignerSignatureDate' => (new DateTime('now', $this->dateTimeZone->getTimeZone()))
+							->format(DateTimeInterface::ATOM)
 					])
 					->sign();
 				break;
