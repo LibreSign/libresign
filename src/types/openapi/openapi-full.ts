@@ -1043,7 +1043,7 @@ export type paths = {
         options?: never;
         head?: never;
         /**
-         * Get custom background image
+         * Reset the background image to be the default of LibreSign
          * @description This endpoint requires admin access
          */
         patch: operations["admin-signature-background-reset"];

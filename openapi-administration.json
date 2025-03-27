@@ -899,7 +899,7 @@
             },
             "patch": {
                 "operationId": "admin-signature-background-reset",
-                "summary": "Get custom background image",
+                "summary": "Reset the background image to be the default of LibreSign",
                 "description": "This endpoint requires admin access",
                 "tags": [
                     "admin"
