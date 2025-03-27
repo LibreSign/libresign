@@ -8471,6 +8471,12 @@
                                     "template": {
                                         "type": "string",
                                         "description": "Template to signature text"
+                                    },
+                                    "fontSize": {
+                                        "type": "number",
+                                        "format": "double",
+                                        "default": 6,
+                                        "description": "Font size used when print the parsed text of this template at PDF file"
                                     }
                                 }
                             }
@@ -8525,10 +8531,53 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
-                                                        "parsed"
+                                                        "parsed",
+                                                        "fontSize"
                                                     ],
                                                     "properties": {
                                                         "parsed": {
+                                                            "type": "string"
+                                                        },
+                                                        "fontSize": {
+                                                            "type": "number",
+                                                            "format": "double"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "error"
+                                                    ],
+                                                    "properties": {
+                                                        "error": {
                                                             "type": "string"
                                                         }
                                                     }
@@ -8623,10 +8672,53 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
-                                                        "parsed"
+                                                        "parsed",
+                                                        "fontSize"
                                                     ],
                                                     "properties": {
                                                         "parsed": {
+                                                            "type": "string"
+                                                        },
+                                                        "fontSize": {
+                                                            "type": "number",
+                                                            "format": "double"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "error"
+                                                    ],
+                                                    "properties": {
+                                                        "error": {
                                                             "type": "string"
                                                         }
                                                     }
