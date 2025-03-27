@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use Imagick;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
@@ -35,9 +36,41 @@ class SignatureBackgroundService {
 		if (!in_array($detectedMimeType, ['image/png'], true)) {
 			throw new \Exception('Unsupported image type: ' . $detectedMimeType);
 		}
+
+		$content = $this->optmizeImage(file_get_contents($tmpFile));
+
 		$this->appConfig->setAppValueString('signature_background_type', 'custom');
 		$target = $folder->newFile('background.png');
-		$target->putContent(file_get_contents($tmpFile));
+		$target->putContent($content);
+	}
+
+	private function optmizeImage(string $content): string {
+		$image = new Imagick();
+		$image->readImageBlob($content);
+		$width = $image->getImageWidth();
+		$height = $image->getImageHeight();
+		$dimensions = $this->scaleDimensions($width, $height);
+		$image->setImageFormat('png');
+		$image->resizeImage($dimensions['width'], $dimensions['height'], Imagick::FILTER_LANCZOS, 1);
+		return $image->getImageBlob();
+	}
+
+	private function scaleDimensions(int $width, int $height): array {
+		if ($width <= SignerElementsService::ELEMENT_SIGN_WIDTH) {
+			if ($height <= SignerElementsService::ELEMENT_SIGN_HEIGHT) {
+				return ['width' => $width, 'height' => $height];
+			}
+		}
+
+		$widthRatio = SignerElementsService::ELEMENT_SIGN_WIDTH / $width;
+		$heightRatio = SignerElementsService::ELEMENT_SIGN_HEIGHT / $height;
+
+		$scale = min($widthRatio, $heightRatio);
+
+		$newWidth = (int)floor($width * $scale);
+		$newHeight = (int)floor($height * $scale);
+
+		return ['width' => $newWidth, 'height' => $newHeight];
 	}
 
 	public function delete(): void {
