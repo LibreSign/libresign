@@ -13,6 +13,7 @@ use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
+use OCP\Files\SimpleFS\InMemoryFile;
 use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\Files\SimpleFS\ISimpleFolder;
 
@@ -84,7 +85,7 @@ class SignatureBackgroundService {
 
 	public function delete(): void {
 		try {
-			$this->appConfig->deleteAppValue('signature_background_type');
+			$this->appConfig->setAppValueString('signature_background_type', 'deleted');
 			$file = $this->getRootFolder()->getFile('background.png');
 			$file->delete();
 		} catch (NotFoundException $e) {
@@ -94,7 +95,7 @@ class SignatureBackgroundService {
 
 	public function reset(): void {
 		try {
-			$this->appConfig->setAppValueString('signature_background_type', 'default');
+			$this->appConfig->deleteAppValue('signature_background_type');
 			$file = $this->getRootFolder()->getFile('background.png');
 			$file->delete();
 		} catch (NotFoundException $e) {
@@ -103,6 +104,20 @@ class SignatureBackgroundService {
 	}
 
 	public function getImage(): ISimpleFile {
-		return $this->getRootFolder()->getFile('background.png');
+		try {
+			$file = $this->getRootFolder()->getFile('background.png');
+		} catch (NotFoundException $e) {
+			$imagick = new Imagick();
+			$imagick->readImageBlob(file_get_contents(__DIR__ . '/../../img/logo-gray.svg'));
+			$width = $imagick->getImageWidth();
+			$height = $imagick->getImageHeight();
+			$dimensions = $this->scaleDimensions($width, $height);
+			$imagick->setImageFormat('png');
+			$imagick->resizeImage($dimensions['width'], $dimensions['height'], Imagick::FILTER_LANCZOS, 1);
+			$file = new InMemoryFile('background.png', $imagick->getImageBlob());
+			$imagick->clear();
+			$imagick->destroy();
+		}
+		return $file;
 	}
 }

@@ -86,7 +86,7 @@ export default {
 		return {
 			showLoading: false,
 			wasScalled: false,
-			backgroundType: '',
+			backgroundType: 'default',
 			acceptMime: ['image/png'],
 			errorMessage: '',
 			backgroundUrl: generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'),
@@ -115,6 +115,7 @@ export default {
 		reset() {
 			this.showSuccess = false
 			this.errorMessage = ''
+			this.wasScalled = false
 		},
 		handleSuccess() {
 			this.showSuccess = true
@@ -133,7 +134,6 @@ export default {
 			formData.append('image', file)
 
 			this.showLoading = true
-			this.wasScalled = false
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'), formData)
 				.then(({ data }) => {
 					this.showLoading = false
