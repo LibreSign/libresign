@@ -361,7 +361,7 @@ class AdminController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * Get custom background image
+	 * Reset the background image to be the default of LibreSign
 	 *
 	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>
 	 *
