@@ -55,7 +55,7 @@ class SignatureTextService {
 			$template = $twigEnvironment
 				->createTemplate($template)
 				->render($context);
-			$fontSize = $this->appConfig->getAppValueFloat('signature_font_size');
+			$fontSize = $this->appConfig->getAppValueFloat('signature_font_size', 6);
 			return [
 				'parsed' => $template,
 				'fontSize' => $fontSize,
@@ -63,5 +63,9 @@ class SignatureTextService {
 		} catch (SyntaxError $e) {
 			throw new LibresignException((string)preg_replace('/in "[^"]+" at line \d+/', '', $e->getMessage()));
 		}
+	}
+
+	public function getFontSize(): float {
+		return $this->appConfig->getAppValueFloat('signature_font_size', 6);
 	}
 }
