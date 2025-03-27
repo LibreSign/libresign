@@ -72,7 +72,7 @@ export default {
 				return this.signatureTextTemplate
 			},
 			set(value) {
-				this.signatureTextTemplate = value.trim()
+				this.signatureTextTemplate = value
 				this.debouncePropertyChange()
 			},
 		},
