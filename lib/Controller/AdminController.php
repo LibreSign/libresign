@@ -323,6 +323,7 @@ class AdminController extends AEnvironmentAwareController {
 		return new DataResponse(
 			[
 				'status' => 'success',
+				'wasScalled' => $this->signatureBackgroundService->wasBackgroundScaled(),
 			]
 		);
 	}
