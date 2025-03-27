@@ -189,9 +189,10 @@ input[type="file"] {
 	}
 	&__preview {
 		width: 350px;
-		height: 150px;
-		background-size: cover;
+		height: 100px;
+		background-size: initial;
 		background-position: center;
+		background-repeat: no-repeat;
 		text-align: center;
 		margin-top: 10px;
 	}
