@@ -26,6 +26,7 @@ use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
+use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
@@ -54,6 +55,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignerElementsService&MockObject $signerElementsService;
 	private IRootFolder&MockObject $root;
 	private IUserSession&MockObject $userSession;
+	private IDateTimeZone&MockObject $dateTimeZone;
 	private IUserMountCache&MockObject $userMountCache;
 	private FileElementMapper&MockObject $fileElementMapper;
 	private UserElementMapper&MockObject $userElementMapper;
@@ -85,6 +87,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
 		$this->userSession = $this->createMock(IUserSession::class);
+		$this->dateTimeZone = $this->createMock(IDateTimeZone::class);
 		$this->userMountCache = $this->createMock(IUserMountCache::class);
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
@@ -114,6 +117,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->signerElementsService,
 			$this->root,
 			$this->userSession,
+			$this->dateTimeZone,
 			$this->userMountCache,
 			$this->fileElementMapper,
 			$this->userElementMapper,
