@@ -387,19 +387,31 @@ class AdminController extends AEnvironmentAwareController {
 	 * Save signature text service
 	 *
 	 * @param string $template Template to signature text
-	 * @return DataResponse<Http::STATUS_OK, array{parsed: string}, array{}>
+	 * @param float $fontSize Font size used when print the parsed text of this template at PDF file
+	 * @return DataResponse<Http::STATUS_OK, array{parsed: string, fontSize: float}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
 	 *
 	 * 200: OK
+	 * 400: Bad request
 	 */
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-text', requirements: ['apiVersion' => '(v1)'])]
-	public function signatureTextSave(string $template): DataResponse {
-		$parsed = $this->signatureTextService->save($template);
-		return new DataResponse(
-			[
-				'parsed' => $parsed,
-			],
-			Http::STATUS_OK
-		);
+	public function signatureTextSave(string $template, float $fontSize = 6): DataResponse {
+		try {
+			$return = $this->signatureTextService->save(
+				$template,
+				$fontSize,
+			);
+			return new DataResponse(
+				$return,
+				Http::STATUS_OK
+			);
+		} catch (LibresignException $th) {
+			return new DataResponse(
+				[
+					'error' => $th->getMessage(),
+				],
+				Http::STATUS_BAD_REQUEST
+			);
+		}
 	}
 
 	/**
@@ -407,19 +419,27 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * @param string $template Template to signature text
 	 * @param string $context Context for parsing the template
-	 * @return DataResponse<Http::STATUS_OK, array{parsed: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{parsed: string, fontSize: float}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
 	 *
 	 * 200: OK
+	 * 400: Bad request
 	 */
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/signature-text', requirements: ['apiVersion' => '(v1)'])]
 	public function signatureTextGet(string $template = '', string $context = ''): DataResponse {
 		$context = json_decode($context, true) ?? [];
-		$parsed = $this->signatureTextService->parse($template, $context);
-		return new DataResponse(
-			[
-				'parsed' => $parsed
-			],
-			Http::STATUS_OK
-		);
+		try {
+			$return = $this->signatureTextService->parse($template, $context);
+			return new DataResponse(
+				$return,
+				Http::STATUS_OK
+			);
+		} catch (LibresignException $th) {
+			return new DataResponse(
+				[
+					'error' => $th->getMessage(),
+				],
+				Http::STATUS_BAD_REQUEST
+			);
+		}
 	}
 }
