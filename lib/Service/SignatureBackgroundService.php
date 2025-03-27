@@ -17,6 +17,7 @@ use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\Files\SimpleFS\ISimpleFolder;
 
 class SignatureBackgroundService {
+	private bool $wasBackgroundScaled = false;
 	public function __construct(
 		private IAppData $appData,
 		private IAppConfig $appConfig,
@@ -44,12 +45,20 @@ class SignatureBackgroundService {
 		$target->putContent($content);
 	}
 
+	public function wasBackgroundScaled(): bool {
+		return $this->wasBackgroundScaled;
+	}
+
 	private function optmizeImage(string $content): string {
 		$image = new Imagick();
 		$image->readImageBlob($content);
 		$width = $image->getImageWidth();
 		$height = $image->getImageHeight();
 		$dimensions = $this->scaleDimensions($width, $height);
+		if ($dimensions['width'] === $width && $dimensions['height'] === $height) {
+			return $content;
+		}
+		$this->wasBackgroundScaled = true;
 		$image->setImageFormat('png');
 		$image->resizeImage($dimensions['width'], $dimensions['height'], Imagick::FILTER_LANCZOS, 1);
 		return $image->getImageBlob();

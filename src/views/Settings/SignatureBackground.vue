@@ -35,16 +35,21 @@
 			<NcLoadingIcon v-if="showLoading"
 				class="field__loading-icon"
 				:size="20" />
-			<NcNoteCard v-if="errorMessage"
-				type="error"
-				:show-alert="true">
-				<p>{{ errorMessage }}</p>
-			</NcNoteCard>
 			<input ref="input"
 				:accept="acceptMime"
 				type="file"
 				@change="onChange">
 		</div>
+		<NcNoteCard v-if="errorMessage"
+			type="error"
+			:show-alert="true">
+			<p>{{ errorMessage }}</p>
+		</NcNoteCard>
+		<NcNoteCard v-if="wasScalled"
+			type="info"
+			:show-alert="true">
+			<p>{{ t('libresign', 'The signature background image was resized to fit within 350×100 pixels.') }}</p>
+		</NcNoteCard>
 		<div v-if="backgroundType"
 			class="field__preview"
 			:style="{
@@ -80,6 +85,7 @@ export default {
 	data() {
 		return {
 			showLoading: false,
+			wasScalled: false,
 			backgroundType: '',
 			acceptMime: ['image/png'],
 			errorMessage: '',
@@ -127,11 +133,13 @@ export default {
 			formData.append('image', file)
 
 			this.showLoading = true
+			this.wasScalled = false
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'), formData)
-				.then(() => {
+				.then(({ data }) => {
 					this.showLoading = false
 					this.backgroundType = 'custom'
 					this.backgroundUrl = generateOcsUrl('/apps/libresign/api/v1/admin/signature-background') + '?t=' + Date.now()
+					this.wasScalled = data.ocs.data.wasScalled
 					this.handleSuccess()
 				})
 				.catch(({ response }) => {
