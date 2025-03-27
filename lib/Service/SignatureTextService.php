@@ -54,7 +54,8 @@ class SignatureTextService {
 				'SignerName' => 'John Doe',
 				'DocumentUUID' => UUIDUtil::getUUID(),
 				'IssuerCommonName' => 'Acme Cooperative',
-				'SignatureDate' => (new \DateTime())->format(DateTimeInterface::ATOM)
+				'LocalSignerSignatureDate' => (new \DateTime())->format(DateTimeInterface::ATOM),
+				'ServerSignatureDate' => (new \DateTime())->format(DateTimeInterface::ATOM),
 			];
 		}
 		try {
