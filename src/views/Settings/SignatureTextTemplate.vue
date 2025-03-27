@@ -14,14 +14,17 @@
 			</li>
 		</ul>
 		<div class="content">
-			<NcTextArea :value.sync="inputValue"
+			<NcTextArea ref="textareaEditor"
+				:value.sync="inputValue"
 				:label="t('libresign', 'Signature text template')"
 				:placeholder="t('libresign', 'Signature text template')"
 				:spellcheck="false"
 				:success="showSuccess"
 				resize="vertical"
 				@keydown.enter="save"
-				@blur="save" />
+				@blur="save"
+				@mousemove="resizeHeight"
+				@keypress="resizeHeight" />
 			<NcTextField :value.sync="fontSize"
 				:label="t('libresign', 'Font size')"
 				:placeholder="t('libresign', 'Font size')"
@@ -99,10 +102,20 @@ export default {
 			}, 1000)
 		},
 	},
-	created() {
+	mounted() {
 		this.getData()
+		this.resizeHeight()
 	},
 	methods: {
+		resizeHeight: debounce(function() {
+			const wrapper = this.$refs.textareaEditor
+			if (!wrapper) return
+
+			const textarea = wrapper.$el.querySelector('textarea')
+
+			textarea.style.height = 'auto'
+			textarea.style.height = `${textarea.scrollHeight + 4}px`
+		}, 100),
 		async getData() {
 			await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/signature_text_template'))
 				.then(({ data }) => {
