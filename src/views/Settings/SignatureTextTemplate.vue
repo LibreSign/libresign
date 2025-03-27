@@ -22,12 +22,11 @@
 				:spellcheck="false"
 				:success="showSuccess"
 				@keydown.enter="save"
-				@blur="save">
-			</NcTextField>
+				@blur="save" />
 			<NcNoteCard v-if="errorMessage"
-					type="error"
-					:show-alert="true">
-					<p>{{ errorMessage }}</p>
+				type="error"
+				:show-alert="true">
+				<p>{{ errorMessage }}</p>
 			</NcNoteCard>
 			<div class="text-pre-line">
 				{{ parsed }}
@@ -42,8 +41,8 @@ import axios from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
-import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
+import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextArea from '@nextcloud/vue/components/NcTextArea'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
