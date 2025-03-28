@@ -50,6 +50,9 @@ class SignatureTextService {
 		if (empty($template)) {
 			$template = $this->appConfig->getAppValueString('signature_text_template');
 		}
+		if (empty($template)) {
+			return [];
+		}
 		if (empty($context)) {
 			$context = [
 				'SignerName' => 'John Doe',
