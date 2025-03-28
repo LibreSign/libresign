@@ -13,6 +13,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
+use OCP\IRequest;
 use Sabre\DAV\UUIDUtil;
 use Twig\Environment;
 use Twig\Error\SyntaxError;
@@ -23,6 +24,7 @@ class SignatureTextService {
 		private IAppConfig $appConfig,
 		private IL10N $l10n,
 		private IDateTimeZone $dateTimeZone,
+		private IRequest $request,
 	) {
 	}
 
@@ -62,12 +64,14 @@ class SignatureTextService {
 		}
 		if (empty($context)) {
 			$context = [
-				'SignerName' => 'John Doe',
 				'DocumentUUID' => UUIDUtil::getUUID(),
 				'IssuerCommonName' => 'Acme Cooperative',
-				'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
 				'LocalSignerSignatureDate' => (new \DateTime())->format(DateTimeInterface::ATOM),
+				'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
 				'ServerSignatureDate' => (new \DateTime())->format(DateTimeInterface::ATOM),
+				'SignerIP' => $this->request->getRemoteAddress(),
+				'SignerName' => 'John Doe',
+				'SignerUserAgent' => $this->request->getHeader('User-Agent'),
 			];
 		}
 		try {
@@ -88,7 +92,7 @@ class SignatureTextService {
 	}
 
 	public function getAvailableVariables(): array {
-		return [
+		$list = [
 			'{{DocumentUUID}}' => $this->l10n->t('Unique identifier of the signed document'),
 			'{{IssuerCommonName}}' => $this->l10n->t('Name of the certificate issuer used for the signature'),
 			'{{LocalSignerSignatureDate}}' => $this->l10n->t('Date and time when the signer send the request to sign (in their local time zone)'),
@@ -96,9 +100,26 @@ class SignatureTextService {
 			'{{ServerSignatureDate}}' => $this->l10n->t('Date and time when the signature was applied on the server'),
 			'{{SignerName}}' => $this->l10n->t('Name of the person signing'),
 		];
+		$collectMetadata = $this->appConfig->getAppValueBool('collect_metadata', false);
+		if ($collectMetadata) {
+			$list['{{SignerIP}}'] = $this->l10n->t('IP address of the person who signed the document.');
+			$list['{{SignerUserAgent}}'] = $this->l10n->t('Browser and device information of the person who signed the document.');
+		}
+		return $list;
 	}
 
 	public function getDefaultTemplate(): string {
+		$collectMetadata = $this->appConfig->getAppValueBool('collect_metadata', false);
+		if ($collectMetadata) {
+			return $this->l10n->t(<<<TEMPLATE
+				Signed with LibreSign
+				{{SignerName}}
+				Date: {{ServerSignatureDate}}
+				IP: {{SignerIP}}
+				User agent: {{SignerUserAgent}}
+				TEMPLATE
+			);
+		}
 		return $this->l10n->t(<<<TEMPLATE
 			Signed with LibreSign
 			{{SignerName}}
