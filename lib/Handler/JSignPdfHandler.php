@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler;
 
 use Imagick;
+use ImagickPixel;
 use Jeidison\JSignPDF\JSignPDF;
 use Jeidison\JSignPDF\Sign\JSignParam;
 use OCA\Libresign\AppInfo\Application;
@@ -16,6 +17,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
+use OCA\Libresign\Service\SignerElementsService;
 use OCP\Files\File;
 use OCP\IAppConfig;
 use OCP\ITempManager;
@@ -149,19 +151,19 @@ class JSignPdfHandler extends SignEngineHandler {
 				$params['-lly'] = $element->getFileElement()->getLly();
 				$params['-urx'] = $element->getFileElement()->getUrx();
 				$params['-ury'] = $element->getFileElement()->getUry();
-				$imagePath = $element->getTempFile();
+				$signatureImagePath = $element->getTempFile();
 				if ($backgroundType === 'deleted') {
-					$params['--bg-path'] = $imagePath;
+					$params['--bg-path'] = $signatureImagePath;
 				} elseif ($params['--l2-text'] === '""') {
 					if ($backgroundPath) {
-						$params['--bg-path'] = $this->mergeBackground($backgroundPath, $imagePath);
+						$params['--bg-path'] = $this->mergeBackgroundWithSignature($backgroundPath, $signatureImagePath);
 					} else {
-						$params['--bg-path'] = $imagePath;
+						$params['--bg-path'] = $signatureImagePath;
 					}
 				} else {
 					$params['--render-mode'] = 'GRAPHIC_AND_DESCRIPTION';
 					$params['--bg-path'] = $backgroundPath;
-					$params['--img-path'] = $imagePath;
+					$params['--img-path'] = $signatureImagePath;
 				}
 				$param->setJSignParameters(
 					$originalParam->getJSignParameters() .
@@ -176,38 +178,39 @@ class JSignPdfHandler extends SignEngineHandler {
 		return '';
 	}
 
-	private function mergeBackground(string $backgroundPath, string $signaturePath): string {
+	private function mergeBackgroundWithSignature(string $backgroundPath, string $signaturePath): string {
+		$canvasWidth = SignerElementsService::ELEMENT_SIGN_WIDTH;
+		$canvasHeight = SignerElementsService::ELEMENT_SIGN_HEIGHT;
+
 		$background = new Imagick($backgroundPath);
 		$signature = new Imagick($signaturePath);
 
 		$background->setImageFormat('png');
 		$signature->setImageFormat('png');
 
-		$background->setImageResolution(300, 300);
-		$background->resampleImage(300, 300, Imagick::FILTER_LANCZOS, 1);
-
-		$signature->setImageResolution(300, 300);
-		$signature->resampleImage(300, 300, Imagick::FILTER_LANCZOS, 1);
-
 		$background->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
 		$signature->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
 
-		$backgroundWidth = $background->getImageWidth();
-		$backgroundHeight = $background->getImageHeight();
-		$signatureWidth = $signature->getImageWidth();
-		$signatureHeight = $signature->getImageHeight();
+		$canvas = new Imagick();
+		$canvas->newImage($canvasWidth, $canvasHeight, new ImagickPixel('transparent'));
+		$canvas->setImageFormat('png32');
+		$canvas->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
 
-		$x = (int)(($backgroundWidth - $signatureWidth) / 2);
-		$y = (int)(($backgroundHeight - $signatureHeight) / 2);
+		$bgX = (int)(($canvasWidth - $background->getImageWidth()) / 2);
+		$bgY = (int)(($canvasHeight - $background->getImageHeight()) / 2);
+		$canvas->compositeImage($background, Imagick::COMPOSITE_OVER, $bgX, $bgY);
 
-		$background->compositeImage($signature, Imagick::COMPOSITE_OVER, $x, $y);
+		$sigX = (int)(($canvasWidth - $signature->getImageWidth()) / 2);
+		$sigY = (int)(($canvasHeight - $signature->getImageHeight()) / 2);
+		$canvas->compositeImage($signature, Imagick::COMPOSITE_OVER, $sigX, $sigY);
 
 		$tmpPath = $this->tempManager->getTemporaryFile('_merged.png');
 		if (!$tmpPath) {
-			throw new \Exception('Temporary file not acessible');
+			throw new \Exception('Temporary file not accessible');
 		}
-		$background->writeImage($tmpPath);
+		$canvas->writeImage($tmpPath);
 
+		$canvas->clear();
 		$background->clear();
 		$signature->clear();
 
