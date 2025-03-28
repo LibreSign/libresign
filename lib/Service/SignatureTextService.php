@@ -87,6 +87,17 @@ class SignatureTextService {
 		}
 	}
 
+	public function getAvailableVariables(): array {
+		return [
+			'{{DocumentUUID}}' => $this->l10n->t('Unique identifier of the signed document'),
+			'{{IssuerCommonName}}' => $this->l10n->t('Name of the certificate issuer used for the signature'),
+			'{{LocalSignerSignatureDate}}' => $this->l10n->t('Date and time when the signer send the request to sign (in their local time zone)'),
+			'{{LocalSignerTimezone}}' => $this->l10n->t('Time zone of signer when send the request to sign (in their local time zone)'),
+			'{{ServerSignatureDate}}' => $this->l10n->t('Date and time when the signature was applied on the server'),
+			'{{SignerName}}' => $this->l10n->t('Name of the person signing'),
+		];
+	}
+
 	public function getDefaultTemplate(): string {
 		return $this->l10n->t(<<<TEMPLATE
 			Signed with LibreSign

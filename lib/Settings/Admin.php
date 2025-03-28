@@ -62,6 +62,10 @@ class Admin implements ISettings {
 			'default_signature_font_size',
 			$this->signatureTextService->getDefaultFontSize(),
 		);
+		$this->initialState->provideInitialState(
+			'signature_available_variables',
+			$this->signatureTextService->getAvailableVariables()
+		);
 		return new TemplateResponse(Application::APP_ID, 'admin_settings');
 	}
 
