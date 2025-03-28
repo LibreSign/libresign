@@ -10,6 +10,7 @@ namespace OCA\Libresign\Service;
 
 use Exception;
 use Imagick;
+use ImagickPixel;
 use OCA\Libresign\Files\TSimpleFile;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\IAppData;
@@ -64,6 +65,7 @@ class SignatureBackgroundService {
 
 	private function optmizeImage(string $content): string {
 		$image = new Imagick();
+		$image->setBackgroundColor(new ImagickPixel('transparent'));
 		$image->readImageBlob($content);
 		$width = $image->getImageWidth();
 		$height = $image->getImageHeight();
@@ -72,6 +74,8 @@ class SignatureBackgroundService {
 			return $content;
 		}
 		$this->wasBackgroundScaled = true;
+		$image->setImageResolution(300, 300);
+		$image->resampleImage(300, 300, Imagick::FILTER_LANCZOS, 1);
 		$image->setImageFormat('png');
 		$image->resizeImage($dimensions['width'], $dimensions['height'], Imagick::FILTER_LANCZOS, 1);
 		return $image->getImageBlob();
@@ -119,16 +123,8 @@ class SignatureBackgroundService {
 		try {
 			$file = $this->getRootFolder()->getFile('background.png');
 		} catch (NotFoundException $e) {
-			$imagick = new Imagick();
-			$imagick->readImageBlob(file_get_contents(__DIR__ . '/../../img/logo-gray.svg'));
-			$width = $imagick->getImageWidth();
-			$height = $imagick->getImageHeight();
-			$dimensions = $this->scaleDimensions($width, $height);
-			$imagick->setImageFormat('png');
-			$imagick->resizeImage($dimensions['width'], $dimensions['height'], Imagick::FILTER_LANCZOS, 1);
-			$file = new InMemoryFile('background.png', $imagick->getImageBlob());
-			$imagick->clear();
-			$imagick->destroy();
+			$content = $this->optmizeImage(file_get_contents(__DIR__ . '/../../img/logo-gray.svg'));
+			$file = new InMemoryFile('background.png', $content);
 		}
 		return $file;
 	}
@@ -139,20 +135,12 @@ class SignatureBackgroundService {
 			$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
 			return $dataDir . '/' . $this->getInternalPathOfFile($filePath);
 		} catch (NotFoundException $e) {
-			$imagick = new Imagick();
-			$imagick->readImageBlob(file_get_contents(__DIR__ . '/../../img/logo-gray.svg'));
-			$width = $imagick->getImageWidth();
-			$height = $imagick->getImageHeight();
-			$dimensions = $this->scaleDimensions($width, $height);
-			$imagick->setImageFormat('png');
-			$imagick->resizeImage($dimensions['width'], $dimensions['height'], Imagick::FILTER_LANCZOS, 1);
+			$content = $this->optmizeImage(file_get_contents(__DIR__ . '/../../img/logo-gray.svg'));
 			$filePath = $this->tempManager->getTemporaryFile('.png');
 			if (!$filePath) {
 				throw new Exception('Imposible to write temporary file at temporary folder');
 			}
-			file_put_contents($filePath, $imagick->getImageBlob());
-			$imagick->clear();
-			$imagick->destroy();
+			file_put_contents($filePath, $content);
 		}
 		return $filePath;
 	}
