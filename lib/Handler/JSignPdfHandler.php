@@ -191,6 +191,9 @@ class JSignPdfHandler extends SignEngineHandler {
 		$background->compositeImage($signature, Imagick::COMPOSITE_OVER, $x, $y);
 
 		$tmpPath = $this->tempManager->getTemporaryFile('_merged.png');
+		if (!$tmpPath) {
+			throw new \Exception('Temporary file not acessible');
+		}
 		$background->writeImage($tmpPath);
 
 		$background->clear();
