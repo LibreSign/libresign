@@ -123,11 +123,11 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'footer_signed_by' => 'Digital signed by LibreSign.',
 					'footer_validate_in' => 'Validate in %s.',
 					'footer_template' => <<<'HTML'
-						<div style="font-size:8px;" dir="<?= $direction ?>">
-						qrcodeSize:<?= $qrcodeSize ?><br />
-						signedBy:<?= $signedBy ?><br />
-						validateIn:<?= $validateIn ?><br />
-						qrcode:<?= $qrcode ?>
+						<div style="font-size:8px;" dir="{{ direction }}">
+						qrcodeSize:{{ qrcodeSize }}<br />
+						signedBy:{{ signedBy|raw }}<br />
+						validateIn:{{ validateIn }}<br />
+						qrcode:{{ qrcode }}
 						</div>
 						HTML,
 				],
@@ -148,9 +148,9 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'footer_signed_by' => 'Digital signed by LibreSign.',
 					'footer_validate_in' => 'Validate in %s.',
 					'footer_template' => <<<'HTML'
-						<div style="font-size:8px;" dir="<?= $direction ?>">
-						signedBy:<?= $signedBy ?><br />
-						validateIn:<?= $validateIn ?><br />
+						<div style="font-size:8px;" dir="{{ direction }}">
+						signedBy:{{ signedBy|raw }}<br />
+						validateIn:{{ validateIn }}<br />
 						</div>
 						HTML,
 				],
@@ -169,9 +169,9 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'footer_signed_by' => 'Signé numériquement avec LibreSign.',
 					'footer_validate_in' => 'Validate in %s',
 					'footer_template' => <<<'HTML'
-						<div style="font-size:8px;" dir="<?= $direction ?>">
-						signedBy:<?= $signedBy ?><br />
-						validateIn:<?= $validateIn ?><br />
+						<div style="font-size:8px;" dir="{{ direction }}">
+						signedBy:{{ signedBy|raw }}<br />
+						validateIn:{{ validateIn }}<br />
 						</div>
 						HTML,
 				],
@@ -190,9 +190,9 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'footer_signed_by' => 'Το αρχείο υπάρχει',
 					'footer_validate_in' => 'Validate in %s.',
 					'footer_template' => <<<'HTML'
-						<div style="font-size:8px;" dir="<?= $direction ?>">
-						signedBy:<?= $signedBy ?><br />
-						validateIn:<?= $validateIn ?><br />
+						<div style="font-size:8px;" dir="{{ direction }}">
+						signedBy:{{ signedBy|raw }}<br />
+						validateIn:{{ validateIn }}<br />
 						</div>
 						HTML,
 				],
@@ -211,9 +211,9 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'footer_signed_by' => 'אין המלצות. נא להתחיל להקליד.',
 					'footer_validate_in' => 'אמת ב- %s.',
 					'footer_template' => <<<'HTML'
-						<div style="font-size:8px;" dir="<?= $direction ?>">
-						signedBy:<?= $signedBy ?><br />
-						validateIn:<?= $validateIn ?><br />
+						<div style="font-size:8px;" dir="{{ direction }}">
+						signedBy:{{ signedBy|raw }}<br />
+						validateIn:{{ validateIn }}<br />
 						</div>
 						HTML,
 				],

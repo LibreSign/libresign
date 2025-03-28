@@ -2,13 +2,13 @@
 	"require": {
 		"endroid/qr-code": "^5.0",
 		"jsignpdf/jsignpdf-php": "^1.2",
-		"league/plates": "^3.5",
 		"libresign/whatosami": "^0.0.2",
 		"mikehaertl/php-pdftk": "^0.13.0",
 		"mpdf/mpdf": "^8.2",
 		"pagerfanta/pagerfanta": "^4.5",
 		"phpseclib/phpseclib": "^3.0",
 		"smalot/pdfparser": "^2.4",
+		"twig/twig": "^3.20",
 		"wobeto/email-blur": "^1.0"
 	},
 	"require-dev": {
@@ -30,7 +30,7 @@
 	},
 	"scripts": {
 		"bin": "echo 'bin not installed'",
-		"lint": "find . -name \\*.php -not -path './vendor/*' -not -path './build/*' -print0 | xargs -0 -n1 php -l",
+		"lint": "find . -name \\*.php -not -path './vendor/*' -not -path './build/*' -not -path './tests/integration/vendor/*' -print0 | xargs -0 -n1 php -l",
 		"cs:check": "php-cs-fixer fix --dry-run --diff",
 		"cs:fix": "php-cs-fixer fix",
 		"openapi": "generate-spec --verbose && (npm run typescript:generate || echo 'Please manually regenerate the typescript OpenAPI models')",

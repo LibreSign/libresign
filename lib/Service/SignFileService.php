@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use DateTime;
+use DateTimeInterface;
 use InvalidArgumentException;
 use mikehaertl\pdftk\Command;
 use OC\AppFramework\Http as AppFrameworkHttp;
@@ -44,6 +46,7 @@ use OCP\Files\Node;
 use OCP\Files\NotPermittedException;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
+use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
@@ -88,6 +91,7 @@ class SignFileService {
 		private SignerElementsService $signerElementsService,
 		private IRootFolder $root,
 		private IUserSession $userSession,
+		private IDateTimeZone $dateTimeZone,
 		private IUserMountCache $userMountCache,
 		private FileElementMapper $fileElementMapper,
 		private UserElementMapper $userElementMapper,
@@ -263,11 +267,27 @@ class SignFileService {
 		$pfxFileContent = $this->getPfxFile();
 		switch (strtolower($fileToSign->getExtension())) {
 			case 'pdf':
+				$pfxData = $this->getPfxData();
+				$signatureParams = [
+					'DocumentUUID' => $this->libreSignFile->getUuid(),
+					'IssuerCommonName' => $pfxData['issuer']['CN'],
+					'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
+					'LocalSignerSignatureDateTime' => (new DateTime('now', $this->dateTimeZone->getTimeZone()))
+						->format(DateTimeInterface::ATOM)
+				];
+				$signReuestMetadata = $this->signRequest->getMetadata();
+				if (isset($signReuestMetadata['remote-address'])) {
+					$signatureParams['SignerIP'] = $signReuestMetadata['remote-address'];
+				}
+				if (isset($signReuestMetadata['remote-address'])) {
+					$signatureParams['SignerUserAgent'] = $signReuestMetadata['user-agent'];
+				}
 				$signedFile = $this->pkcs12Handler
 					->setInputFile($fileToSign)
 					->setCertificate($pfxFileContent)
 					->setVisibleElements($this->elements)
 					->setPassword($this->password)
+					->setSignatureParams($signatureParams)
 					->sign();
 				break;
 			default:
@@ -375,6 +395,10 @@ class SignFileService {
 			}
 		}
 		return $this->pkcs12Handler->getPfx();
+	}
+
+	private function getPfxData(): array {
+		return $this->pkcs12Handler->readCertificate(privateKey: $this->password);
 	}
 
 	/**
