@@ -159,6 +159,7 @@ class JSignPdfHandler extends SignEngineHandler {
 					}
 				} else {
 					$params['--render-mode'] = 'GRAPHIC_AND_DESCRIPTION';
+					$params['--bg-path'] = $backgroundPath;
 					$params['--img-path'] = $imagePath;
 				}
 				$param->setJSignParameters(
