@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Files;
 
 use OCP\Files\SimpleFS\ISimpleFile;
+use OCP\Files\SimpleFS\ISimpleFolder;
 
 trait TSimpleFile {
 	/**
@@ -28,5 +29,22 @@ trait TSimpleFile {
 			$path = $file->getPath();
 		}
 		return $this->getDataDir() . '/' . $path;
+	}
+
+	/**
+	 * @todo check a best solution to don't use reflection
+	 */
+	private function getInternalPathOfFolder(ISimpleFolder $node): string {
+		$reflection = new \ReflectionClass($node);
+		$reflectionProperty = $reflection->getProperty('folder');
+		$reflectionProperty->setAccessible(true);
+		$folder = $reflectionProperty->getValue($node);
+		$path = $folder->getInternalPath();
+		return $this->getDataDir() . '/' . $path;
+	}
+
+	private function getDataDir(): string {
+		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
+		return $dataDir;
 	}
 }
