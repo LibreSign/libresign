@@ -203,6 +203,7 @@ input[type="file"] {
 		background-repeat: no-repeat;
 		text-align: center;
 		margin-top: 10px;
+		border: var(--border-width-input, 2px) solid var(--color-border-maxcontrast);
 	}
 }
 </style>
