@@ -11,6 +11,7 @@ namespace OCA\Libresign\Settings;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignatureTextService;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IAppConfig;
@@ -23,6 +24,7 @@ class Admin implements ISettings {
 		private IdentifyMethodService $identifyMethodService,
 		private CertificateEngineHandler $certificateEngineHandler,
 		private IAppConfig $appConfig,
+		private SignatureTextService $signatureTextService,
 	) {
 	}
 	public function getForm(): TemplateResponse {
@@ -38,6 +40,27 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState(
 			'config_path',
 			$this->appConfig->getValueString(Application::APP_ID, 'config_path')
+		);
+		$signatureParsed = $this->signatureTextService->parse();
+		$this->initialState->provideInitialState(
+			'signature_text_template',
+			$signatureParsed['template'],
+		);
+		$this->initialState->provideInitialState(
+			'signature_text_parsed',
+			$signatureParsed['parsed'],
+		);
+		$this->initialState->provideInitialState(
+			'signature_font_size',
+			$signatureParsed['fontSize'],
+		);
+		$this->initialState->provideInitialState(
+			'default_signature_text_template',
+			$this->signatureTextService->getDefaultTemplate(),
+		);
+		$this->initialState->provideInitialState(
+			'default_signature_font_size',
+			$this->signatureTextService->getDefaultFontSize(),
 		);
 		return new TemplateResponse(Application::APP_ID, 'admin_settings');
 	}
