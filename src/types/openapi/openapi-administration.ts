@@ -627,6 +627,7 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
+                                template: string;
                                 parsed: string;
                                 /** Format: double */
                                 fontSize: number;
@@ -690,6 +691,7 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
+                                template: string;
                                 parsed: string;
                                 /** Format: double */
                                 fontSize: number;

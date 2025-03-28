@@ -8883,10 +8883,14 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
+                                                        "template",
                                                         "parsed",
                                                         "fontSize"
                                                     ],
                                                     "properties": {
+                                                        "template": {
+                                                            "type": "string"
+                                                        },
                                                         "parsed": {
                                                             "type": "string"
                                                         },
@@ -9024,10 +9028,14 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
+                                                        "template",
                                                         "parsed",
                                                         "fontSize"
                                                     ],
                                                     "properties": {
+                                                        "template": {
+                                                            "type": "string"
+                                                        },
                                                         "parsed": {
                                                             "type": "string"
                                                         },
