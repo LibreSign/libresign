@@ -14,28 +14,48 @@
 			</li>
 		</ul>
 		<div class="content">
-			<NcTextArea ref="textareaEditor"
-				:value.sync="inputValue"
-				:label="t('libresign', 'Signature text template')"
-				:placeholder="t('libresign', 'Signature text template')"
-				:spellcheck="false"
-				:success="showSuccess"
-				resize="vertical"
-				@keydown.enter="save"
-				@blur="save"
-				@mousemove="resizeHeight"
-				@keypress="resizeHeight" />
-			<NcTextField :value.sync="fontSize"
-				:label="t('libresign', 'Font size')"
-				:placeholder="t('libresign', 'Font size')"
-				type="number"
-				:min="0.1"
-				:max="30"
-				:step="0.01"
-				:spellcheck="false"
-				:success="showSuccess"
-				@keydown.enter="save"
-				@blur="save" />
+			<div class="content__row">
+				<NcTextArea ref="textareaEditor"
+					:value.sync="inputValue"
+					:label="t('libresign', 'Signature text template')"
+					:placeholder="t('libresign', 'Signature text template')"
+					:spellcheck="false"
+					:success="showSuccess"
+					resize="vertical"
+					@keydown.enter="save"
+					@blur="save"
+					@mousemove="resizeHeight"
+					@keypress="resizeHeight" />
+				<NcButton v-if="showResetTemplate"
+					type="tertiary"
+					:aria-label="t('libresign', 'Reset to default')"
+					@click="resetTemplate">
+					<template #icon>
+						<Undo :size="20" />
+					</template>
+				</NcButton>
+			</div>
+			<div class="content__row">
+				<NcTextField :value.sync="fontSize"
+					:label="t('libresign', 'Font size')"
+					:placeholder="t('libresign', 'Font size')"
+					type="number"
+					:min="0.1"
+					:max="30"
+					:step="0.01"
+					:spellcheck="false"
+					:success="showSuccess"
+					@keydown.enter="save"
+					@blur="save" />
+				<NcButton v-if="showResetFontSize"
+					type="tertiary"
+					:aria-label="t('libresign', 'Reset to default')"
+					@click="resetFontSize">
+					<template #icon>
+						<Undo :size="20" />
+					</template>
+				</NcButton>
+			</div>
 			<NcNoteCard v-if="errorMessage"
 				type="error"
 				:show-alert="true">
@@ -50,22 +70,33 @@
 <script>
 import debounce from 'debounce'
 
+import Undo from 'vue-material-design-icons/UndoVariant.vue'
+
 import axios from '@nextcloud/axios'
 import { translate as t, isRTL } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
+import NcButton from '@nextcloud/vue/components/NcButton'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextArea from '@nextcloud/vue/components/NcTextArea'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
+const signatureTextTemplate
+= t('libresign', `Digitally signed document
+{{SignerName}}
+Date: {{ServerSignatureDate}}
+ID: {{DocumentUUID}}`)
+
 export default {
 	name: 'SignatureTextTemplate',
 	components: {
-		NcSettingsSection,
+		NcButton,
 		NcNoteCard,
+		NcSettingsSection,
 		NcTextArea,
 		NcTextField,
+		Undo,
 	},
 	data() {
 		return {
@@ -97,6 +128,12 @@ export default {
 				this.debouncePropertyChange()
 			},
 		},
+		showResetTemplate() {
+			return this.signatureTextTemplate !== signatureTextTemplate
+		},
+		showResetFontSize() {
+			return this.fontSize !== 6
+		},
 		debouncePropertyChange() {
 			return debounce(async function() {
 				await this.save()
@@ -117,6 +154,14 @@ export default {
 			textarea.style.height = 'auto'
 			textarea.style.height = `${textarea.scrollHeight + 4}px`
 		}, 100),
+		async resetTemplate() {
+			this.signatureTextTemplate = signatureTextTemplate
+			this.save()
+		},
+		async resetFontSize() {
+			this.fontSize = 6
+			this.save()
+		},
 		async getData() {
 			await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/signature_text_template'))
 				.then(({ data }) => {
@@ -157,10 +202,14 @@ export default {
 	},
 }
 </script>
-<style scoped>
+<style lang="scss" scoped>
 .content{
 	display: flex;
 	flex-direction: column;
+	&__row {
+		display: flex;
+		gap: 0 4px;
+	}
 }
 .text-pre-line {
 	white-space: pre-line;
