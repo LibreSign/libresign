@@ -66,7 +66,8 @@ class SignatureTextService {
 			$context = [
 				'DocumentUUID' => UUIDUtil::getUUID(),
 				'IssuerCommonName' => 'Acme Cooperative',
-				'LocalSignerSignatureDate' => (new \DateTime())->format(DateTimeInterface::ATOM),
+				'LocalSignerSignatureDateOnly' => (new \DateTime())->format('Y-m-d'),
+				'LocalSignerSignatureDateTime' => (new \DateTime())->format(DateTimeInterface::ATOM),
 				'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
 				'ServerSignatureDate' => (new \DateTime())->format(DateTimeInterface::ATOM),
 				'SignerIP' => $this->request->getRemoteAddress(),
@@ -95,10 +96,12 @@ class SignatureTextService {
 		$list = [
 			'{{DocumentUUID}}' => $this->l10n->t('Unique identifier of the signed document'),
 			'{{IssuerCommonName}}' => $this->l10n->t('Name of the certificate issuer used for the signature'),
-			'{{LocalSignerSignatureDate}}' => $this->l10n->t('Date and time when the signer send the request to sign (in their local time zone)'),
+			'{{LocalSignerSignatureDateOnly}}' => $this->l10n->t('Date when the signer sent the request to sign (without time, in their local time zone)'),
+			'{{LocalSignerSignatureDateTime}}' => $this->l10n->t('Date and time when the signer send the request to sign (in their local time zone)'),
 			'{{LocalSignerTimezone}}' => $this->l10n->t('Time zone of signer when send the request to sign (in their local time zone)'),
 			'{{ServerSignatureDate}}' => $this->l10n->t('Date and time when the signature was applied on the server'),
 			'{{SignerName}}' => $this->l10n->t('Name of the person signing'),
+			'{{SignerIdentifier}}' => $this->l10n->t('Unique information used to identify the signer (such as email, phone number, or username).'),
 		];
 		$collectMetadata = $this->appConfig->getAppValueBool('collect_metadata', false);
 		if ($collectMetadata) {
@@ -114,6 +117,7 @@ class SignatureTextService {
 			return $this->l10n->t(<<<TEMPLATE
 				Signed with LibreSign
 				{{SignerName}}
+				Issuer: {{IssuerCommonName}}
 				Date: {{ServerSignatureDate}}
 				IP: {{SignerIP}}
 				User agent: {{SignerUserAgent}}
@@ -123,6 +127,7 @@ class SignatureTextService {
 		return $this->l10n->t(<<<TEMPLATE
 			Signed with LibreSign
 			{{SignerName}}
+			Issuer: {{IssuerCommonName}}
 			Date: {{ServerSignatureDate}}
 			TEMPLATE
 		);
