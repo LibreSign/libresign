@@ -56,7 +56,7 @@ class FileElement extends Entity {
 		$this->addType('ury', Types::INTEGER);
 		$this->addType('llx', Types::INTEGER);
 		$this->addType('lly', Types::INTEGER);
-		$this->addType('createdAt', 'datetime');
+		$this->addType('createdAt', Types::DATETIME);
 	}
 
 	/**
