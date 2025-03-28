@@ -11,6 +11,7 @@ namespace OCA\Libresign\Service;
 use DateTimeInterface;
 use OCA\Libresign\Exception\LibresignException;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\IDateTimeZone;
 use OCP\IL10N;
 use Sabre\DAV\UUIDUtil;
 use Twig\Environment;
@@ -21,6 +22,7 @@ class SignatureTextService {
 	public function __construct(
 		private IAppConfig $appConfig,
 		private IL10N $l10n,
+		private IDateTimeZone $dateTimeZone,
 	) {
 	}
 
@@ -62,6 +64,7 @@ class SignatureTextService {
 				'SignerName' => 'John Doe',
 				'DocumentUUID' => UUIDUtil::getUUID(),
 				'IssuerCommonName' => 'Acme Cooperative',
+				'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
 				'LocalSignerSignatureDate' => (new \DateTime())->format(DateTimeInterface::ATOM),
 				'ServerSignatureDate' => (new \DateTime())->format(DateTimeInterface::ATOM),
 			];
