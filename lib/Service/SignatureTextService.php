@@ -27,7 +27,7 @@ class SignatureTextService {
 	}
 
 	/**
-	 * @return array{parsed: string, fontSize: float}
+	 * @return array{template: string, parsed: string, fontSize: float}
 	 * @throws LibresignException
 	 */
 	public function save(string $template, float $fontSize = 6): array {
@@ -45,7 +45,7 @@ class SignatureTextService {
 	}
 
 	/**
-	 * @return array{parsed: string, fontSize: float}
+	 * @return array{template: string, parsed: string, fontSize: float}
 	 * @throws LibresignException
 	 */
 	public function parse(string $template = '', array $context = []): array {
@@ -89,15 +89,14 @@ class SignatureTextService {
 
 	public function getDefaultTemplate(): string {
 		return $this->l10n->t(<<<TEMPLATE
-			Digitally signed document
+			Signed with LibreSign
 			{{SignerName}}
 			Date: {{ServerSignatureDate}}
-			ID: {{DocumentUUID}}
 			TEMPLATE
 		);
 	}
 
 	public function getDefaultFontSize(): float {
-		return 6;
+		return 10;
 	}
 }
