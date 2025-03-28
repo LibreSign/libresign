@@ -272,7 +272,7 @@ class SignFileService {
 					'DocumentUUID' => $this->libreSignFile->getUuid(),
 					'IssuerCommonName' => $pfxData['issuer']['CN'],
 					'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
-					'LocalSignerSignatureDate' => (new DateTime('now', $this->dateTimeZone->getTimeZone()))
+					'LocalSignerSignatureDateTime' => (new DateTime('now', $this->dateTimeZone->getTimeZone()))
 						->format(DateTimeInterface::ATOM)
 				];
 				$signReuestMetadata = $this->signRequest->getMetadata();
