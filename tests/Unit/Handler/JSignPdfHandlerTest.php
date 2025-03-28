@@ -11,9 +11,11 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use Jeidison\JSignPDF\JSignPDF;
 use Jeidison\JSignPDF\Sign\JSignParam;
 use OCA\Libresign\Handler\JSignPdfHandler;
+use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
+use OCP\ITempManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
@@ -23,11 +25,15 @@ use Psr\Log\LoggerInterface;
 final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;
 	private LoggerInterface&MockObject $loggerInterface;
+	private ITempManager&MockObject $tempManager;
 	private SignatureTextService&MockObject $signatureTextService;
+	private SignatureBackgroundService&MockObject $signatureBackgroundService;
 	public function setUp(): void {
 		$this->appConfig = $this->getMockAppConfig();
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
+		$this->tempManager = $this->createMock(ITempManager::class);
 		$this->signatureTextService = $this->createMock(SignatureTextService::class);
+		$this->signatureBackgroundService = $this->createMock(SignatureBackgroundService::class);
 	}
 
 	private function getClass(): JSignPdfHandler {
@@ -35,6 +41,8 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->appConfig,
 			$this->loggerInterface,
 			$this->signatureTextService,
+			$this->tempManager,
+			$this->signatureBackgroundService,
 		);
 	}
 

@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use Imagick;
+use OCA\Libresign\Files\TSimpleFile;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
@@ -19,6 +20,8 @@ use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\ITempManager;
 
 class SignatureBackgroundService {
+	use TSimpleFile;
+
 	private bool $wasBackgroundScaled = false;
 	public function __construct(
 		private IAppData $appData,
@@ -130,6 +133,7 @@ class SignatureBackgroundService {
 	public function getImagePath(): string {
 		try {
 			$filePath = $this->getRootFolder()->getFile('background.png');
+			return $this->getInternalPathOfFile($filePath);
 		} catch (NotFoundException $e) {
 			$imagick = new Imagick();
 			$imagick->readImageBlob(file_get_contents(__DIR__ . '/../../img/logo-gray.svg'));

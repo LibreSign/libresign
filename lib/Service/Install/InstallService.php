@@ -16,6 +16,7 @@ use OC\Archive\ZIP;
 use OC\Memcache\NullCache;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Files\TSimpleFile;
 use OCA\Libresign\Handler\CertificateEngine\AEngineHandler;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
@@ -25,7 +26,6 @@ use OCP\Files\IAppData;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
-use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
@@ -39,6 +39,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 
 class InstallService {
+	use TSimpleFile;
+
 	public const JAVA_VERSION = 'openjdk version "21.0.6" 2025-01-21 LTS';
 	private const JAVA_URL_PATH_NAME = '21.0.6+7';
 	public const PDFTK_VERSION = '3.3.3'; /** @todo When update, verify the hash **/
@@ -133,25 +135,6 @@ class InstallService {
 		$reflectionProperty->setAccessible(true);
 		$folder = $reflectionProperty->getValue($node);
 		$path = $folder->getInternalPath();
-		return $this->getDataDir() . '/' . $path;
-	}
-
-	/**
-	 * @todo check a best solution to don't use reflection
-	 */
-	private function getInternalPathOfFile(ISimpleFile $node): string {
-		$reflection = new \ReflectionClass($node);
-		if ($reflection->hasProperty('parentFolder')) {
-			$reflectionProperty = $reflection->getProperty('parentFolder');
-			$reflectionProperty->setAccessible(true);
-			$folder = $reflectionProperty->getValue($node);
-			$path = $folder->getInternalPath() . '/' . $node->getName();
-		} elseif ($reflection->hasProperty('file')) {
-			$reflectionProperty = $reflection->getProperty('file');
-			$reflectionProperty->setAccessible(true);
-			$file = $reflectionProperty->getValue($node);
-			$path = $file->getPath();
-		}
 		return $this->getDataDir() . '/' . $path;
 	}
 
