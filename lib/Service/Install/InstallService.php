@@ -126,23 +126,6 @@ class InstallService {
 		return $folder;
 	}
 
-	/**
-	 * @todo check a best solution to don't use reflection
-	 */
-	private function getInternalPathOfFolder(ISimpleFolder $node): string {
-		$reflection = new \ReflectionClass($node);
-		$reflectionProperty = $reflection->getProperty('folder');
-		$reflectionProperty->setAccessible(true);
-		$folder = $reflectionProperty->getValue($node);
-		$path = $folder->getInternalPath();
-		return $this->getDataDir() . '/' . $path;
-	}
-
-	private function getDataDir(): string {
-		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
-		return $dataDir;
-	}
-
 	private function runAsync(): void {
 		$resource = $this->resource;
 		$process = new Process([OC::$SERVERROOT . '/occ', 'libresign:install', '--' . $resource]);

@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use Exception;
 use Imagick;
 use OCA\Libresign\Files\TSimpleFile;
 use OCP\AppFramework\Services\IAppConfig;
@@ -143,6 +144,9 @@ class SignatureBackgroundService {
 			$imagick->setImageFormat('png');
 			$imagick->resizeImage($dimensions['width'], $dimensions['height'], Imagick::FILTER_LANCZOS, 1);
 			$filePath = $this->tempManager->getTemporaryFile('.png');
+			if (!$filePath) {
+				throw new Exception('Imposible to write temporary file at temporary folder');
+			}
 			file_put_contents($filePath, $imagick->getImageBlob());
 			$imagick->clear();
 			$imagick->destroy();
