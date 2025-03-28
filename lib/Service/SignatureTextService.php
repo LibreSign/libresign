@@ -43,15 +43,19 @@ class SignatureTextService {
 	}
 
 	/**
-	 * @return array{?parsed: string, ?fontSize: float}
+	 * @return array{parsed: string, fontSize: float}
 	 * @throws LibresignException
 	 */
 	public function parse(string $template = '', array $context = []): array {
+		$fontSize = $this->appConfig->getAppValueFloat('signature_font_size', 6);
 		if (empty($template)) {
 			$template = $this->appConfig->getAppValueString('signature_text_template');
 		}
 		if (empty($template)) {
-			return [];
+			return [
+				'parsed' => '',
+				'fontSize' => $fontSize,
+			];
 		}
 		if (empty($context)) {
 			$context = [
@@ -69,7 +73,6 @@ class SignatureTextService {
 			$template = $twigEnvironment
 				->createTemplate($template)
 				->render($context);
-			$fontSize = $this->appConfig->getAppValueFloat('signature_font_size', 6);
 			return [
 				'parsed' => $template,
 				'fontSize' => $fontSize,
