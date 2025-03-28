@@ -133,7 +133,7 @@ class JSignPdfHandler extends SignEngineHandler {
 			$backgroundType = $this->signatureBackgroundService->getSignatureBackgroundType();
 			$params = [
 				'--l2-text' => $this->getSignatureText(),
-				'--font-size' => $this->signatureTextService->getFontSize(),
+				'--font-size' => $this->signatureTextService->getSignatureFontSize(),
 				'-V' => null,
 			];
 			if ($backgroundType !== 'deleted') {

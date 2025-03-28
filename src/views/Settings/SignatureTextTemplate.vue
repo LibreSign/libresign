@@ -76,17 +76,12 @@ import axios from '@nextcloud/axios'
 import { translate as t, isRTL } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
+import { loadState } from '@nextcloud/initial-state'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextArea from '@nextcloud/vue/components/NcTextArea'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
-
-const signatureTextTemplate
-= t('libresign', `Digitally signed document
-{{SignerName}}
-Date: {{ServerSignatureDate}}
-ID: {{DocumentUUID}}`)
 
 export default {
 	name: 'SignatureTextTemplate',
@@ -102,11 +97,13 @@ export default {
 		return {
 			name: t('libresign', 'Signature text template'),
 			description: t('libresign', 'This template will be mixed to signature.'),
-			signatureTextTemplate: '',
+			defaultSignatureTextTemplate: loadState('libresign', 'default_signature_text_template'),
+			defaultSignatureFontSize: loadState('libresign', 'default_signature_font_size'),
+			signatureTextTemplate: loadState('libresign', 'signature_text_template'),
+			fontSize: loadState('libresign', 'signature_font_size'),
 			showSuccess: false,
 			errorMessage: '',
-			parsed: '',
-			fontSize: 6,
+			parsed: loadState('libresign', 'signature_text_parsed'),
 			isRTLDirection: isRTL(),
 			availableVariables: {
 				'{{DocumentUUID}}': t('libresign', 'Unique identifier of the signed document'),
@@ -129,10 +126,10 @@ export default {
 			},
 		},
 		showResetTemplate() {
-			return this.signatureTextTemplate !== signatureTextTemplate
+			return this.signatureTextTemplate !== this.defaultSignatureTextTemplate
 		},
 		showResetFontSize() {
-			return this.fontSize !== 6
+			return this.fontSize !== this.defaultSignatureFontSize
 		},
 		debouncePropertyChange() {
 			return debounce(async function() {
@@ -141,7 +138,6 @@ export default {
 		},
 	},
 	mounted() {
-		this.getData()
 		this.resizeHeight()
 	},
 	methods: {
@@ -155,29 +151,12 @@ export default {
 			textarea.style.height = `${textarea.scrollHeight + 4}px`
 		}, 100),
 		async resetTemplate() {
-			this.signatureTextTemplate = signatureTextTemplate
+			this.signatureTextTemplate = this.defaultSignatureTextTemplate
 			this.save()
 		},
 		async resetFontSize() {
-			this.fontSize = 6
+			this.fontSize = this.defaultSignatureFontSize
 			this.save()
-		},
-		async getData() {
-			await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/signature_text_template'))
-				.then(({ data }) => {
-					this.signatureTextTemplate = data.ocs.data.data
-					return axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/signature-text'))
-				})
-				.then(({ data }) => {
-					this.parsed = data.ocs.data.parsed
-					if (data.ocs.data.fontSize !== this.fontSize) {
-						this.fontSize = data.ocs.data.fontSize
-					}
-				})
-				.catch(({ response }) => {
-					this.errorMessage = response.data.ocs.data.error
-					this.parsed = ''
-				})
 		},
 		async save() {
 			this.showSuccess = false

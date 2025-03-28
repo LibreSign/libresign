@@ -49,13 +49,14 @@ class SignatureTextService {
 	 * @throws LibresignException
 	 */
 	public function parse(string $template = '', array $context = []): array {
-		$fontSize = $this->appConfig->getAppValueFloat('signature_font_size', 6);
+		$fontSize = $this->appConfig->getAppValueFloat('signature_font_size', $this->getDefaultFontSize());
 		if (empty($template)) {
 			$template = $this->appConfig->getAppValueString('signature_text_template');
 		}
 		if (empty($template)) {
 			return [
 				'parsed' => '',
+				'template' => $template,
 				'fontSize' => $fontSize,
 			];
 		}
@@ -73,11 +74,12 @@ class SignatureTextService {
 			$twigEnvironment = new Environment(
 				new FilesystemLoader(),
 			);
-			$template = $twigEnvironment
+			$parsed = $twigEnvironment
 				->createTemplate($template)
 				->render($context);
 			return [
-				'parsed' => $template,
+				'parsed' => $parsed,
+				'template' => $template,
 				'fontSize' => $fontSize,
 			];
 		} catch (SyntaxError $e) {
@@ -85,7 +87,17 @@ class SignatureTextService {
 		}
 	}
 
-	public function getFontSize(): float {
-		return $this->appConfig->getAppValueFloat('signature_font_size', 6);
+	public function getDefaultTemplate(): string {
+		return $this->l10n->t(<<<TEMPLATE
+			Digitally signed document
+			{{SignerName}}
+			Date: {{ServerSignatureDate}}
+			ID: {{DocumentUUID}}
+			TEMPLATE
+		);
+	}
+
+	public function getDefaultFontSize(): float {
+		return 6;
 	}
 }
