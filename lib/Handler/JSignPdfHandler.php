@@ -26,6 +26,7 @@ class JSignPdfHandler extends SignEngineHandler {
 	private $jSignPdf;
 	/** @var JSignParam */
 	private $jSignParam;
+	private array $parsedSignatureText = [];
 
 	public function __construct(
 		private IAppConfig $appConfig,
@@ -129,7 +130,7 @@ class JSignPdfHandler extends SignEngineHandler {
 			$backgroundType = $this->signatureBackgroundService->getSignatureBackgroundType();
 			$params = [
 				'--l2-text' => $this->getSignatureText(),
-				'--font-size' => $this->signatureTextService->getSignatureFontSize(),
+				'--font-size' => $this->parseSignatureText()['fontSize'],
 				'-V' => null,
 			];
 			if ($backgroundType !== 'deleted') {
@@ -203,11 +204,19 @@ class JSignPdfHandler extends SignEngineHandler {
 		return $tmpPath;
 	}
 
+	private function parseSignatureText(): array
+	{
+		if (!$this->parsedSignatureText) {
+			$params = $this->getSignatureParams();
+			$params['SignerName'] = '${signer}';
+			$params['ServerSignatureDate'] = '${timestamp}';
+			$this->parsedSignatureText = $this->signatureTextService->parse(context: $params);
+		}
+		return $this->parsedSignatureText;
+	}
+
 	public function getSignatureText(): string {
-		$params = $this->getSignatureParams();
-		$params['SignerName'] = '${signer}';
-		$params['ServerSignatureDate'] = '${timestamp}';
-		$data = $this->signatureTextService->parse(context: $params);
+		$data = $this->parseSignatureText();
 		$signatureText = '"' . str_replace(
 			['"', '$'],
 			['\"', '\$'],
