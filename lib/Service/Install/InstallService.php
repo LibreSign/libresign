@@ -405,16 +405,16 @@ class InstallService {
 				$compressedFile = $folder->newFile($compressedFileName);
 			}
 
-			$comporessedInternalFileName = $this->getInternalPathOfFile($compressedFile);
+			$compressedInternalFileName = $this->getInternalPathOfFile($compressedFile);
 			$dependencyName = 'java ' . $this->architecture . ' ' . $linuxDistribution;
 			$checksumUrl = $url . '.sha256.txt';
 			$hash = $this->getHash($compressedFileName, $checksumUrl);
-			$this->download($url, $dependencyName, $comporessedInternalFileName, $hash, 'sha256');
+			$this->download($url, $dependencyName, $compressedInternalFileName, $hash, 'sha256');
 
-			$extractor = new TAR($comporessedInternalFileName);
+			$extractor = new TAR($compressedInternalFileName);
 			$extractDir = $this->getInternalPathOfFolder($folder);
 			$extractor->extract($extractDir);
-			unlink($comporessedInternalFileName);
+			unlink($compressedInternalFileName);
 			$this->appConfig->setValueString(Application::APP_ID, 'java_path', $extractDir . '/jdk-' . self::JAVA_URL_PATH_NAME . '-jre/bin/java');
 			$this->writeAppSignature();
 		}
@@ -482,10 +482,10 @@ class InstallService {
 			} catch (\Throwable $th) {
 				$compressedFile = $folder->newFile($compressedFileName);
 			}
-			$comporessedInternalFileName = $this->getInternalPathOfFile($compressedFile);
+			$compressedInternalFileName = $this->getInternalPathOfFile($compressedFile);
 			$url = 'https://github.com/intoolswetrust/jsignpdf/releases/download/JSignPdf_' . str_replace('.', '_', InstallService::JSIGNPDF_VERSION) . '/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '.zip';
 
-			$this->download($url, 'JSignPdf', $comporessedInternalFileName, self::JSIGNPDF_HASH);
+			$this->download($url, 'JSignPdf', $compressedInternalFileName, self::JSIGNPDF_HASH);
 
 			$extractDir = $this->getInternalPathOfFolder($folder);
 			$zip = new ZIP($extractDir . '/' . $compressedFileName);
