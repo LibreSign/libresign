@@ -16,12 +16,14 @@ use OCP\Files\NotPermittedException;
 use OCP\Files\SimpleFS\InMemoryFile;
 use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\Files\SimpleFS\ISimpleFolder;
+use OCP\ITempManager;
 
 class SignatureBackgroundService {
 	private bool $wasBackgroundScaled = false;
 	public function __construct(
 		private IAppData $appData,
 		private IAppConfig $appConfig,
+		private ITempManager $tempManager,
 	) {
 	}
 
@@ -44,6 +46,10 @@ class SignatureBackgroundService {
 		$this->appConfig->setAppValueString('signature_background_type', 'custom');
 		$target = $folder->newFile('background.png');
 		$target->putContent($content);
+	}
+
+	public function getSignatureBackgroundType(): string {
+		return $this->appConfig->getAppValueString('signature_background_type', 'default');
 	}
 
 	public function wasBackgroundScaled(): bool {
@@ -119,5 +125,24 @@ class SignatureBackgroundService {
 			$imagick->destroy();
 		}
 		return $file;
+	}
+
+	public function getImagePath(): string {
+		try {
+			$filePath = $this->getRootFolder()->getFile('background.png');
+		} catch (NotFoundException $e) {
+			$imagick = new Imagick();
+			$imagick->readImageBlob(file_get_contents(__DIR__ . '/../../img/logo-gray.svg'));
+			$width = $imagick->getImageWidth();
+			$height = $imagick->getImageHeight();
+			$dimensions = $this->scaleDimensions($width, $height);
+			$imagick->setImageFormat('png');
+			$imagick->resizeImage($dimensions['width'], $dimensions['height'], Imagick::FILTER_LANCZOS, 1);
+			$filePath = $this->tempManager->getTemporaryFile('.png');
+			file_put_contents($filePath, $imagick->getImageBlob());
+			$imagick->clear();
+			$imagick->destroy();
+		}
+		return $filePath;
 	}
 }
