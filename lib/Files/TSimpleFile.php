@@ -28,7 +28,7 @@ trait TSimpleFile {
 			$file = $reflectionProperty->getValue($node);
 			$path = $file->getPath();
 		}
-		return $this->getDataDir() . '/' . $path;
+		return $path;
 	}
 
 	/**
@@ -40,11 +40,6 @@ trait TSimpleFile {
 		$reflectionProperty->setAccessible(true);
 		$folder = $reflectionProperty->getValue($node);
 		$path = $folder->getInternalPath();
-		return $this->getDataDir() . '/' . $path;
-	}
-
-	private function getDataDir(): string {
-		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
-		return $dataDir;
+		return $path;
 	}
 }
