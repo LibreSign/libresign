@@ -43,7 +43,7 @@ class SignatureTextService {
 	}
 
 	/**
-	 * @return array{parsed: string, fontSize: float}
+	 * @return array{?parsed: string, ?fontSize: float}
 	 * @throws LibresignException
 	 */
 	public function parse(string $template = '', array $context = []): array {
