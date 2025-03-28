@@ -8506,7 +8506,8 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
-                                                        "status"
+                                                        "status",
+                                                        "wasScalled"
                                                     ],
                                                     "properties": {
                                                         "status": {
@@ -8514,6 +8515,9 @@
                                                             "enum": [
                                                                 "success"
                                                             ]
+                                                        },
+                                                        "wasScalled": {
+                                                            "type": "boolean"
                                                         }
                                                     }
                                                 }

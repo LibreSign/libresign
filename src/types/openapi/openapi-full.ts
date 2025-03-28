@@ -4481,6 +4481,7 @@ export interface operations {
                             data: {
                                 /** @enum {string} */
                                 status: "success";
+                                wasScalled: boolean;
                             };
                         };
                     };
