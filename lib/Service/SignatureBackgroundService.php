@@ -63,7 +63,7 @@ class SignatureBackgroundService {
 		return $this->wasBackgroundScaled;
 	}
 
-	private function optmizeImage(string $content): string {
+	private function optmizeImage(string $content, float $opacity = 1): string {
 		$image = new Imagick();
 		$image->setBackgroundColor(new ImagickPixel('transparent'));
 		$image->readImageBlob($content);
@@ -76,6 +76,8 @@ class SignatureBackgroundService {
 		$this->wasBackgroundScaled = true;
 		$image->setImageResolution(300, 300);
 		$image->resampleImage(300, 300, Imagick::FILTER_LANCZOS, 1);
+		$image->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
+		$image->evaluateImage(Imagick::EVALUATE_MULTIPLY, $opacity, Imagick::CHANNEL_ALPHA);
 		$image->setImageFormat('png');
 		$image->resizeImage($dimensions['width'], $dimensions['height'], Imagick::FILTER_LANCZOS, 1);
 		return $image->getImageBlob();
@@ -123,7 +125,7 @@ class SignatureBackgroundService {
 		try {
 			$file = $this->getRootFolder()->getFile('background.png');
 		} catch (NotFoundException $e) {
-			$content = $this->optmizeImage(file_get_contents(__DIR__ . '/../../img/logo-gray.svg'));
+			$content = $this->optmizeImage(file_get_contents(__DIR__ . '/../../img/logo-gray.svg'), 0.3);
 			$file = new InMemoryFile('background.png', $content);
 		}
 		return $file;
@@ -135,7 +137,7 @@ class SignatureBackgroundService {
 			$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
 			return $dataDir . '/' . $this->getInternalPathOfFile($filePath);
 		} catch (NotFoundException $e) {
-			$content = $this->optmizeImage(file_get_contents(__DIR__ . '/../../img/logo-gray.svg'));
+			$content = $this->optmizeImage(file_get_contents(__DIR__ . '/../../img/logo-gray.svg'), 0.3);
 			$filePath = $this->tempManager->getTemporaryFile('.png');
 			if (!$filePath) {
 				throw new Exception('Imposible to write temporary file at temporary folder');
