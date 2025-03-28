@@ -73,10 +73,10 @@ import debounce from 'debounce'
 import Undo from 'vue-material-design-icons/UndoVariant.vue'
 
 import axios from '@nextcloud/axios'
+import { loadState } from '@nextcloud/initial-state'
 import { translate as t, isRTL } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
-import { loadState } from '@nextcloud/initial-state'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
