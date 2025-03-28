@@ -18,6 +18,7 @@ use OCP\Files\NotPermittedException;
 use OCP\Files\SimpleFS\InMemoryFile;
 use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\Files\SimpleFS\ISimpleFolder;
+use OCP\IConfig;
 use OCP\ITempManager;
 
 class SignatureBackgroundService {
@@ -27,6 +28,7 @@ class SignatureBackgroundService {
 	public function __construct(
 		private IAppData $appData,
 		private IAppConfig $appConfig,
+		private IConfig $config,
 		private ITempManager $tempManager,
 	) {
 	}
@@ -134,7 +136,8 @@ class SignatureBackgroundService {
 	public function getImagePath(): string {
 		try {
 			$filePath = $this->getRootFolder()->getFile('background.png');
-			return $this->getInternalPathOfFile($filePath);
+			$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
+			return $dataDir . '/' . $this->getInternalPathOfFile($filePath);
 		} catch (NotFoundException $e) {
 			$imagick = new Imagick();
 			$imagick->readImageBlob(file_get_contents(__DIR__ . '/../../img/logo-gray.svg'));
