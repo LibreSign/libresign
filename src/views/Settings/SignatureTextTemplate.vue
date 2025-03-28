@@ -105,14 +105,7 @@ export default {
 			errorMessage: '',
 			parsed: loadState('libresign', 'signature_text_parsed'),
 			isRTLDirection: isRTL(),
-			availableVariables: {
-				'{{DocumentUUID}}': t('libresign', 'Unique identifier of the signed document'),
-				'{{IssuerCommonName}}': t('libresign', 'Name of the certificate issuer used for the signature'),
-				'{{LocalSignerSignatureDate}}': t('libresign', 'Date and time when the signer send the request to sign (in their local time zone)'),
-				'{{LocalSignerTimezone}}': t('libresign', 'Time zone of signer when send the request to sign (in their local time zone)'),
-				'{{ServerSignatureDate}}': t('libresign', 'Date and time when the signature was applied on the server'),
-				'{{SignerName}}': t('libresign', 'Name of the person signing'),
-			},
+			availableVariables: loadState('libresign', 'signature_available_variables'),
 		}
 	},
 	computed: {
