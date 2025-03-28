@@ -195,6 +195,7 @@ OC.L10N.register(
     "Previous" : "Predchádzajúce",
     "Next" : "Ďalšie",
     "Account not exist" : "Účet neexistuje",
+    "Select a signer to set their signature position" : "Vyberte podpisovateľa a definujte jeho podpisové pozície",
     "Click on the place you want to add." : "Kliknite na miesto, ktoré chcete pridať.",
     "Sign" : "Podpísať",
     "Confirm" : "Potvrdiť",
