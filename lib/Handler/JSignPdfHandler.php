@@ -179,6 +179,12 @@ class JSignPdfHandler extends SignEngineHandler {
 		$background->setImageFormat('png');
 		$signature->setImageFormat('png');
 
+		$background->setImageResolution(300, 300);
+		$background->resampleImage(300, 300, Imagick::FILTER_LANCZOS, 1);
+
+		$signature->setImageResolution(300, 300);
+		$signature->resampleImage(300, 300, Imagick::FILTER_LANCZOS, 1);
+
 		$background->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
 		$signature->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
 
@@ -204,8 +210,7 @@ class JSignPdfHandler extends SignEngineHandler {
 		return $tmpPath;
 	}
 
-	private function parseSignatureText(): array
-	{
+	private function parseSignatureText(): array {
 		if (!$this->parsedSignatureText) {
 			$params = $this->getSignatureParams();
 			$params['SignerName'] = '${signer}';
