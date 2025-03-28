@@ -7,6 +7,7 @@ OC.L10N.register(
     "File is too big" : "Fail on liiga suur",
     "File sharing" : "Faide jagamine",
     "View" : "Vaata",
+    "Dismiss notification" : "Sulge teavitus",
     "File not found" : "Faili ei leitud",
     "File already exists" : "Fail on juba olemas",
     "Empty file" : "Tühi fail",
