@@ -8,14 +8,17 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler;
 
+use Imagick;
 use Jeidison\JSignPDF\JSignPDF;
 use Jeidison\JSignPDF\Sign\JSignParam;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCP\Files\File;
 use OCP\IAppConfig;
+use OCP\ITempManager;
 use Psr\Log\LoggerInterface;
 
 class JSignPdfHandler extends SignEngineHandler {
@@ -28,6 +31,8 @@ class JSignPdfHandler extends SignEngineHandler {
 		private IAppConfig $appConfig,
 		private LoggerInterface $logger,
 		private SignatureTextService $signatureTextService,
+		private ITempManager $tempManager,
+		private SignatureBackgroundService $signatureBackgroundService,
 	) {
 	}
 
@@ -121,19 +126,37 @@ class JSignPdfHandler extends SignEngineHandler {
 		if ($visibleElements) {
 			$jSignPdf = $this->getJSignPdf();
 			$param = $this->getJSignParam();
+			$backgroundType = $this->signatureBackgroundService->getSignatureBackgroundType();
+			$params = [
+				'--l2-text' => $this->getSignatureText(),
+				'--font-size' => $this->signatureTextService->getFontSize(),
+				'-V' => null,
+			];
+			if ($backgroundType !== 'deleted') {
+				$backgroundPath = $this->signatureBackgroundService->getImagePath();
+			} else {
+				$backgroundPath = '';
+			}
 			$originalParam = clone $param;
 			foreach ($visibleElements as $element) {
-				$params = [
-					'-pg' => $element->getFileElement()->getPage(),
-					'-llx' => $element->getFileElement()->getLlx(),
-					'-lly' => $element->getFileElement()->getLly(),
-					'-urx' => $element->getFileElement()->getUrx(),
-					'-ury' => $element->getFileElement()->getUry(),
-					'--l2-text' => $this->getSignatureText(),
-					'--font-size' => $this->signatureTextService->getFontSize(),
-					'-V' => null,
-					'--bg-path' => $element->getTempFile(),
-				];
+				$params['-pg'] = $element->getFileElement()->getPage();
+				$params['-llx'] = $element->getFileElement()->getLlx();
+				$params['-lly'] = $element->getFileElement()->getLly();
+				$params['-urx'] = $element->getFileElement()->getUrx();
+				$params['-ury'] = $element->getFileElement()->getUry();
+				$imagePath = $element->getTempFile();
+				if ($backgroundType === 'deleted') {
+					$params['--bg-path'] = $imagePath;
+				} elseif ($params['--l2-text'] === '""') {
+					if ($backgroundPath) {
+						$params['--bg-path'] = $this->mergeBackground($backgroundPath, $imagePath);
+					} else {
+						$params['--bg-path'] = $imagePath;
+					}
+				} else {
+					$params['--render-mode'] = 'GRAPHIC_AND_DESCRIPTION';
+					$params['--img-path'] = $imagePath;
+				}
 				$param->setJSignParameters(
 					$originalParam->getJSignParameters() .
 					$this->listParamsToString($params)
@@ -147,11 +170,43 @@ class JSignPdfHandler extends SignEngineHandler {
 		return '';
 	}
 
+	private function mergeBackground(string $backgroundPath, string $signaturePath): string {
+		$background = new Imagick($backgroundPath);
+		$signature = new Imagick($signaturePath);
+
+		$background->setImageFormat('png');
+		$signature->setImageFormat('png');
+
+		$background->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
+		$signature->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
+
+		$backgroundWidth = $background->getImageWidth();
+		$backgroundHeight = $background->getImageHeight();
+		$signatureWidth = $signature->getImageWidth();
+		$signatureHeight = $signature->getImageHeight();
+
+		$x = (int)(($backgroundWidth - $signatureWidth) / 2);
+		$y = (int)(($backgroundHeight - $signatureHeight) / 2);
+
+		$background->compositeImage($signature, Imagick::COMPOSITE_OVER, $x, $y);
+
+		$tmpPath = $this->tempManager->getTemporaryFile('_merged.png');
+		$background->writeImage($tmpPath);
+
+		$background->clear();
+		$signature->clear();
+
+		return $tmpPath;
+	}
+
 	public function getSignatureText(): string {
 		$params = $this->getSignatureParams();
 		$params['SignerName'] = '${signer}';
 		$params['ServerSignatureDate'] = '${timestamp}';
 		$data = $this->signatureTextService->parse(context: $params);
+		if (!$data) {
+			return '""';
+		}
 
 		$signatureText = '"' . str_replace(
 			['"', '$'],
