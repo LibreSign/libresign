@@ -26,6 +26,7 @@ use OCP\Files\IAppData;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
+use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
@@ -39,7 +40,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 
 class InstallService {
-	use TSimpleFile;
+	use TSimpleFile {
+		getInternalPathOfFile as getInternalPathOfFileTrait;
+		getInternalPathOfFolder as getInternalPathOfFolderTrait;
+	}
 
 	public const JAVA_VERSION = 'openjdk version "21.0.6" 2025-01-21 LTS';
 	private const JAVA_URL_PATH_NAME = '21.0.6+7';
@@ -124,6 +128,19 @@ class InstallService {
 			}
 		}
 		return $folder;
+	}
+
+	private function getInternalPathOfFolder(ISimpleFolder $node): string {
+		return $this->getDataDir() . '/' . $this->getInternalPathOfFolderTrait($node);
+	}
+
+	private function getInternalPathOfFile(ISimpleFile $node): string {
+		return $this->getDataDir() . '/' . $this->getInternalPathOfFileTrait($node);
+	}
+
+	private function getDataDir(): string {
+		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
+		return $dataDir;
 	}
 
 	private function runAsync(): void {
