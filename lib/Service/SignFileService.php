@@ -268,18 +268,26 @@ class SignFileService {
 		switch (strtolower($fileToSign->getExtension())) {
 			case 'pdf':
 				$pfxData = $this->getPfxData();
+				$signatureParams = [
+					'DocumentUUID' => $this->libreSignFile->getUuid(),
+					'IssuerCommonName' => $pfxData['issuer']['CN'],
+					'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
+					'LocalSignerSignatureDate' => (new DateTime('now', $this->dateTimeZone->getTimeZone()))
+						->format(DateTimeInterface::ATOM)
+				];
+				$signReuestMetadata = $this->signRequest->getMetadata();
+				if (isset($signReuestMetadata['remote-address'])) {
+					$signatureParams['SignerIP'] = $signReuestMetadata['remote-address'];
+				}
+				if (isset($signReuestMetadata['remote-address'])) {
+					$signatureParams['SignerUserAgent'] = $signReuestMetadata['user-agent'];
+				}
 				$signedFile = $this->pkcs12Handler
 					->setInputFile($fileToSign)
 					->setCertificate($pfxFileContent)
 					->setVisibleElements($this->elements)
 					->setPassword($this->password)
-					->setSignatureParams([
-						'DocumentUUID' => $this->libreSignFile->getUuid(),
-						'IssuerCommonName' => $pfxData['issuer']['CN'],
-						'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
-						'LocalSignerSignatureDate' => (new DateTime('now', $this->dateTimeZone->getTimeZone()))
-							->format(DateTimeInterface::ATOM)
-					])
+					->setSignatureParams($signatureParams)
 					->sign();
 				break;
 			default:
