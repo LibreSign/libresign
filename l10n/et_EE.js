@@ -64,6 +64,8 @@ OC.L10N.register(
     "Today" : "Täna",
     "Last 7 days" : "Viimase 7 päeva jooksul",
     "Last 30 days" : "Viimase 30 päeva jooksul",
+    "This year ({year})" : "Sel aastal ({year})",
+    "Last year ({year})" : "Eelmisel aastal ({year})",
     "Modified" : "Muudetud",
     "Active filters" : "Aktiivsed filtrid",
     "Remove filter" : "Eemalda filter",
