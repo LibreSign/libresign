@@ -1229,16 +1229,16 @@
         },
         {
             "name": "smalot/pdfparser",
-            "version": "v2.11.0",
+            "version": "v2.12.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/smalot/pdfparser.git",
-                "reference": "ac8e6678b0940e4b2ccd5caadd3fb18e68093be6"
+                "reference": "8440edbf58c8596074e78ada38dcb0bd041a5948"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smalot/pdfparser/zipball/ac8e6678b0940e4b2ccd5caadd3fb18e68093be6",
-                "reference": "ac8e6678b0940e4b2ccd5caadd3fb18e68093be6",
+                "url": "https://api.github.com/repos/smalot/pdfparser/zipball/8440edbf58c8596074e78ada38dcb0bd041a5948",
+                "reference": "8440edbf58c8596074e78ada38dcb0bd041a5948",
                 "shasum": ""
             },
             "require": {
@@ -1274,9 +1274,9 @@
             ],
             "support": {
                 "issues": "https://github.com/smalot/pdfparser/issues",
-                "source": "https://github.com/smalot/pdfparser/tree/v2.11.0"
+                "source": "https://github.com/smalot/pdfparser/tree/v2.12.0"
             },
-            "time": "2024-08-16T06:48:03+00:00"
+            "time": "2025-03-31T13:16:09+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -2613,10 +2613,10 @@
     },
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": {},
-    "platform-dev": {},
+    "platform": [],
+    "platform-dev": [],
     "platform-overrides": {
         "php": "8.1"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.3.0"
 }
