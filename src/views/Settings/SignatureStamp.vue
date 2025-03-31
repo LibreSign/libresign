@@ -3,10 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="t('libresign', 'Signature background')"
-		:description="t('libresign', 'Signature background')"
-		class="field">
-		<div class="field__row">
+	<NcSettingsSection :name="name" :description="description">
+		<div class="settings-section__row">
 			<NcButton id="signature-background"
 				type="secondary"
 				:aria-label="t('libresign', 'Upload new background image')"
@@ -16,15 +14,15 @@
 				</template>
 				{{ t('libresign', 'Upload') }}
 			</NcButton>
-			<NcButton v-if="showReset"
+			<NcButton v-if="showResetBackground"
 				type="tertiary"
 				:aria-label="t('libresign', 'Reset to default')"
-				@click="undo">
+				@click="undoBackground">
 				<template #icon>
 					<Undo :size="20" />
 				</template>
 			</NcButton>
-			<NcButton v-if="showRemove"
+			<NcButton v-if="showRemoveBackground"
 				type="tertiary"
 				:aria-label="t('libresign', 'Remove background')"
 				@click="removeBackground">
@@ -32,38 +30,42 @@
 					<Delete :size="20" />
 				</template>
 			</NcButton>
-			<NcLoadingIcon v-if="showLoading"
-				class="field__loading-icon"
+			<NcLoadingIcon v-if="showLoadingBackground"
+				class="settings-section__loading-icon"
 				:size="20" />
 			<input ref="input"
 				:accept="acceptMime"
 				type="file"
-				@change="onChange">
+				@change="onChangeBackground">
 		</div>
-		<NcNoteCard v-if="errorMessage"
-			type="error"
-			:show-alert="true">
-			<p>{{ errorMessage }}</p>
-		</NcNoteCard>
-		<NcNoteCard v-if="wasScalled"
-			type="info"
-			:show-alert="true">
-			<p>{{ t('libresign', 'The signature background image was resized to fit within 350×100 pixels.') }}</p>
-		</NcNoteCard>
-		<div v-if="backgroundType"
-			class="field__preview"
-			:style="{
-				'background-image': 'url(' + backgroundUrl + ')',
-			}" />
+		<div class="settings-section__row">
+			<NcNoteCard v-if="errorMessageBackground"
+				type="error"
+				:show-alert="true">
+				<p>{{ errorMessageBackground }}</p>
+			</NcNoteCard>
+			<NcNoteCard v-if="wasScalled"
+				type="info"
+				:show-alert="true">
+				<p>{{ t('libresign', 'The signature background image was resized to fit within 350×100 pixels.') }}</p>
+			</NcNoteCard>
+		</div>
+		<div class="settings-section__row">
+			<div v-if="backgroundType !== 'deleted'"
+				class="settings-section__preview"
+				:style="{
+					'background-image': 'url(' + backgroundUrl + ')',
+				}" />
+		</div>
 	</NcSettingsSection>
 </template>
-
 <script>
 import Delete from 'vue-material-design-icons/Delete.vue'
 import Undo from 'vue-material-design-icons/UndoVariant.vue'
 import Upload from 'vue-material-design-icons/Upload.vue'
 
 import axios from '@nextcloud/axios'
+import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -71,8 +73,9 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
+
 export default {
-	name: 'SignatureBackground',
+	name: 'SignatureStamp',
 	components: {
 		Delete,
 		NcButton,
@@ -84,40 +87,34 @@ export default {
 	},
 	data() {
 		return {
-			showLoading: false,
+			name: t('libresign', 'Signature stamp'),
+			description: t('libresign', 'The signature stamp is the element '),
+			showLoadingBackground: false,
 			wasScalled: false,
-			backgroundType: 'default',
+			backgroundType: loadState('libresign', 'signature_background_type'),
 			acceptMime: ['image/png'],
-			errorMessage: '',
+			errorMessageBackground: '',
 			backgroundUrl: generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'),
 		}
 	},
 	computed: {
-		showReset() {
-			return this.backgroundType === 'custom' || !this.backgroundType
+		showResetBackground() {
+			return this.backgroundType === 'deleted' || !this.backgroundType
 		},
-		showRemove() {
+		showRemoveBackground() {
 			if (this.backgroundType === 'custom' || this.backgroundType === 'default') {
 				return true
 			}
 			return false
 		},
 	},
-	async mounted() {
-		await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/signature_background_type'))
-			.then(({ data }) => {
-				if (data.ocs.data.data) {
-					this.backgroundType = data.ocs.data.data
-				}
-			})
-	},
 	methods: {
 		reset() {
 			this.showSuccess = false
-			this.errorMessage = ''
+			this.errorMessageBackground = ''
 			this.wasScalled = false
 		},
-		handleSuccess() {
+		handleSuccessBackground() {
 			this.showSuccess = true
 			setTimeout(() => { this.showSuccess = false }, 2000)
 		},
@@ -127,41 +124,41 @@ export default {
 			this.$refs.input.value = null
 			this.$refs.input.click()
 		},
-		async onChange(e) {
+		async onChangeBackground(e) {
 			const file = e.target.files[0]
 
 			const formData = new FormData()
 			formData.append('image', file)
 
-			this.showLoading = true
+			this.showLoadingBackground = true
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'), formData)
 				.then(({ data }) => {
-					this.showLoading = false
+					this.showLoadingBackground = false
 					this.backgroundType = 'custom'
 					this.backgroundUrl = generateOcsUrl('/apps/libresign/api/v1/admin/signature-background') + '?t=' + Date.now()
 					this.wasScalled = data.ocs.data.wasScalled
-					this.handleSuccess()
+					this.handleSuccessBackground()
 				})
 				.catch(({ response }) => {
-					this.showLoading = false
-					this.errorMessage = response.data.ocs.data?.message
+					this.showLoadingBackground = false
+					this.errorMessageBackground = response.data.ocs.data?.message
 				})
 		},
-		async undo() {
+		async undoBackground() {
 			this.reset()
-			this.showLoading = true
+			this.showLoadingBackground = true
 			await axios.patch(generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'), {
 				setting: this.mimeName,
 			})
 				.then(() => {
-					this.showLoading = false
+					this.showLoadingBackground = false
 					this.backgroundType = 'default'
 					this.backgroundUrl = generateOcsUrl('/apps/libresign/api/v1/admin/signature-background') + '?t=' + Date.now()
-					this.handleSuccess()
+					this.handleSuccessBackground()
 				})
 				.catch(({ response }) => {
-					this.showLoading = false
-					this.errorMessage = response.data.ocs.data?.message
+					this.showLoadingBackground = false
+					this.errorMessageBackground = response.data.ocs.data?.message
 				})
 		},
 		async removeBackground() {
@@ -171,22 +168,25 @@ export default {
 				value: 'backgroundColor',
 			})
 				.then(() => {
-					this.backgroundType = ''
+					this.backgroundType = 'deleted'
 					this.backgroundUrl = ''
-					this.handleSuccess()
+					this.handleSuccessBackground()
 				})
 				.catch(({ response }) => {
-					this.errorMessage = response.data.ocs.data?.message
+					this.errorMessageBackground = response.data.ocs.data?.message
 				})
 		},
 	},
 }
 </script>
+
 <style lang="scss" scoped>
-input[type="file"] {
-	display: none;
-}
-.field {
+.settings-section{
+	display: flex;
+	flex-direction: column;
+	&:deep(.settings-section__name) {
+		justify-content: unset;
+	}
 	&__row {
 		display: flex;
 		gap: 0 4px;
@@ -204,6 +204,9 @@ input[type="file"] {
 		text-align: center;
 		margin-top: 10px;
 		border: var(--border-width-input, 2px) solid var(--color-border-maxcontrast);
+	}
+	input[type="file"] {
+		display: none;
 	}
 }
 </style>

@@ -11,6 +11,7 @@ namespace OCA\Libresign\Settings;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
@@ -25,6 +26,7 @@ class Admin implements ISettings {
 		private CertificateEngineHandler $certificateEngineHandler,
 		private IAppConfig $appConfig,
 		private SignatureTextService $signatureTextService,
+		private SignatureBackgroundService $signatureBackgroundService,
 	) {
 	}
 	public function getForm(): TemplateResponse {
@@ -64,7 +66,11 @@ class Admin implements ISettings {
 		);
 		$this->initialState->provideInitialState(
 			'signature_available_variables',
-			$this->signatureTextService->getAvailableVariables()
+			$this->signatureTextService->getAvailableVariables(),
+		);
+		$this->initialState->provideInitialState(
+			'signature_background_type',
+			$this->signatureBackgroundService->getSignatureBackgroundType(),
 		);
 		return new TemplateResponse(Application::APP_ID, 'admin_settings');
 	}
