@@ -41,6 +41,13 @@ class SignatureTextService {
 			throw new LibresignException($this->l10n->t('Invalid font size. The value must be between %.1f and %.0f.', [0.1, 30]));
 		}
 		$template = trim($template);
+		$template = preg_replace('/>\s+</', '><', $template);
+		$template = preg_replace('/<br\s*\/?>/i', "\n", $template);
+		$template = preg_replace('/<p[^>]*>/i', '', $template);
+		$template = preg_replace('/<\/p>/i', "\n", $template);
+		$template = strip_tags($template);
+		$template = trim($template);
+		$template = html_entity_decode($template);
 		$this->appConfig->setAppValueString('signature_text_template', $template);
 		$this->appConfig->setAppValueFloat('signature_font_size', $fontSize);
 		return $this->parse($template);
