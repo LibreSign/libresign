@@ -294,7 +294,7 @@
     "Maximum validity" : "Validité maximale",
     "Maximum validity in seconds of a request to sign." : "Validité maximale en secondes d'une requête à signer.",
     "Renewal interval" : "Intervalle de renouvellement",
-    "Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link." : "Intervalle  en secondes pour le renouvellement d'une demande d'abonnement. Lors de l'accès au lien, il vous sera demandé de renouveler le lien.",
+    "Renewal interval in seconds of a subscription request. When accessing the link, you will be asked to renew the link." : "Intervalle en secondes pour le renouvellement d'une demande d'abonnement. Lors de l'accès au lien, il vous sera demandé de renouveler le lien.",
     "Identification documents" : "Documents d'identification",
     "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Le flux des documents d'identification rendra obligatoire pour quiconque devant signer un document, d'envoyer des documents d'identification devant recevoir l'agrément d'un membre du groupe Approbation. L'utilisateur ne peut créer le certificat qu'après approbation de ses documents d'identification.",
     "Enable identification documents flow" : "Activer le flux des documents d'identification",
