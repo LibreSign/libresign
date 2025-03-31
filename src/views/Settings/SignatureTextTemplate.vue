@@ -15,7 +15,9 @@
 		</ul>
 		<div class="content">
 			<div class="content__row">
-				<NcTextArea ref="textareaEditor"
+				<TextEditor id="template"
+					v-model="inputValue" />
+				<!-- <NcTextArea ref="textareaEditor"
 					:value.sync="inputValue"
 					:label="t('libresign', 'Signature text template')"
 					:placeholder="t('libresign', 'Signature text template')"
@@ -25,7 +27,7 @@
 					@keydown.enter="save"
 					@blur="save"
 					@mousemove="resizeHeight"
-					@keypress="resizeHeight" />
+					@keypress="resizeHeight" /> -->
 				<NcButton v-if="showResetTemplate"
 					type="tertiary"
 					:aria-label="t('libresign', 'Reset to default')"
@@ -68,6 +70,7 @@
 	</NcSettingsSection>
 </template>
 <script>
+import TextEditor from '../../Components/TextEditor/TextEditor.vue'
 import debounce from 'debounce'
 
 import Undo from 'vue-material-design-icons/UndoVariant.vue'
@@ -86,6 +89,7 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 export default {
 	name: 'SignatureTextTemplate',
 	components: {
+		TextEditor,
 		NcButton,
 		NcNoteCard,
 		NcSettingsSection,
@@ -97,7 +101,7 @@ export default {
 		return {
 			name: t('libresign', 'Signature text template'),
 			description: t('libresign', 'This template will be mixed to signature.'),
-			defaultSignatureTextTemplate: loadState('libresign', 'default_signature_text_template'),
+			defaultSignatureTextTemplate: '<p>' + loadState('libresign', 'default_signature_text_template').replace(/\n/g, '<br>') + '</p>',
 			defaultSignatureFontSize: loadState('libresign', 'default_signature_font_size'),
 			signatureTextTemplate: loadState('libresign', 'signature_text_template'),
 			fontSize: loadState('libresign', 'signature_font_size'),
@@ -181,6 +185,18 @@ export default {
 	&__row {
 		display: flex;
 		gap: 0 4px;
+	}
+
+	#template {
+		width: 100%;
+		min-height: 100px;
+		border: 1px solid var(--color-border);
+
+		&:active,
+		&:focus,
+		&:hover {
+			border-color: var(--color-primary-element) !important;
+		}
 	}
 }
 .text-pre-line {

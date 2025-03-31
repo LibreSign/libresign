@@ -20,6 +20,16 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
+    "@ckeditor/ckeditor5-build-decoupled-document": "^44.3.0",
+    "@ckeditor/ckeditor5-dev-webpack-plugin": "^31.1.13",
+    "@ckeditor/ckeditor5-editor-decoupled": "^44.3.0",
+    "@ckeditor/ckeditor5-essentials": "^44.3.0",
+    "@ckeditor/ckeditor5-image": "^44.3.0",
+    "@ckeditor/ckeditor5-mention": "^44.3.0",
+    "@ckeditor/ckeditor5-paragraph": "^44.3.0",
+    "@ckeditor/ckeditor5-theme-lark": "^44.3.0",
+    "@ckeditor/ckeditor5-ui": "^44.3.0",
+    "@ckeditor/ckeditor5-vue2": "^3.0.1",
     "@fontsource/dancing-script": "^5.2.5",
     "@libresign/vue-pdf-editor": "^1.4.5",
     "@marionebl/option": "^1.0.8",
@@ -46,6 +56,9 @@
     "debounce": "^2.2.0",
     "js-confetti": "^0.12.0",
     "pinia": "^2.3.1",
+    "postcss": "^8.5.3",
+    "postcss-loader": "^8.1.1",
+    "raw-loader": "^4.0.2",
     "v-perfect-signature": "^1.4.0",
     "vue": "^2.7.16",
     "vue-advanced-cropper": "^1.11.7",
@@ -72,6 +85,7 @@
     "babel-loader-exclude-node-modules-except": "^1.2.1",
     "esbuild-loader": "^4.3.0",
     "openapi-typescript": "^7.6.1",
+    "svg-inline-loader": "^0.8.2",
     "vue-template-compiler": "^2.7.16"
   }
 }

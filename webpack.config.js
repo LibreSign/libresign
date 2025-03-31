@@ -4,10 +4,19 @@
  */
 const { merge } = require('webpack-merge')
 const path = require('path')
+const CKEditorWebpackPlugin = require('@ckeditor/ckeditor5-dev-webpack-plugin')
+const { styles } = require('@ckeditor/ckeditor5-dev-utils')
 const BabelLoaderExcludeNodeModulesExcept = require('babel-loader-exclude-node-modules-except')
 const { EsbuildPlugin } = require('esbuild-loader')
 const nextcloudWebpackConfig = require('@nextcloud/webpack-vue-config')
 const CopyPlugin = require('copy-webpack-plugin');
+
+function getPostCssConfig(ckEditorOpts) {
+	// CKEditor is not compatbile with postcss@8 and postcss-loader@4 despite stating so.
+	// Adapted from https://github.com/ckeditor/ckeditor5/issues/8112#issuecomment-960579351
+	const { plugins, ...rest } = styles.getPostCssConfig(ckEditorOpts);
+	return { postcssOptions: { plugins }, ...rest };
+};
 
 module.exports = merge(nextcloudWebpackConfig, {
 	entry: {
@@ -49,12 +58,14 @@ module.exports = merge(nextcloudWebpackConfig, {
 					target: 'es2020',
 				},
 				exclude: BabelLoaderExcludeNodeModulesExcept([
+					'@ckeditor',
 					'@nextcloud/event-bus',
 				]),
 			},
 			{
 				test: /\.(ttf|otf|eot|woff|woff2)$/,
 				type: 'asset/inline',
+				exclude: /ckeditor5-[^/\\]+[/\\]theme[/\\]icons[/\\][^/\\]+\.svg$/,
 			},
 			// Load raw SVGs to be able to inject them via v-html
 			{
@@ -69,10 +80,38 @@ module.exports = merge(nextcloudWebpackConfig, {
 				test: /pdf\.worker(\.min)?\.mjs$/,
 				type: 'asset/resource'
 			},
+			{
+				test: /ckeditor5-[^/\\]+[/\\]theme[/\\]icons[/\\][^/\\]+\.svg$/,
+				type: 'asset/source'
+			},
+			{
+				test: /\.(svg)$/i,
+				use: [
+					{
+						loader: 'svg-inline-loader',
+					},
+				],
+				exclude: path.join(__dirname, 'node_modules', '@ckeditor'),
+			},
+			{
+				test: /ckeditor5-[^/\\]+[/\\].+\.css$/,
+				loader: 'postcss-loader',
+				options: getPostCssConfig({
+					themeImporter: {
+						themePath: require.resolve('@ckeditor/ckeditor5-theme-lark'),
+					},
+					minify: true,
+				}),
+			},
 		],
 	},
 	cache: true,
 	plugins: [
+		// CKEditor needs its own plugin to be built using webpack.
+		new CKEditorWebpackPlugin({
+			// See https://ckeditor.com/docs/ckeditor5/latest/features/ui-language.html
+			language: 'en',
+		}),
 		new CopyPlugin({
 			patterns: [
 				{
