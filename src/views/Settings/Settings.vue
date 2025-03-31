@@ -5,7 +5,7 @@
 
 <template>
 	<NcSettingsSection :name="name">
-		<!-- <CertificateEngine />
+		<CertificateEngine />
 		<DownloadBinaries />
 		<ConfigureCheck />
 		<RootCertificateCfssl />
@@ -18,8 +18,7 @@
 		<IdentificationDocuments />
 		<CollectMetadata />
 		<DefaultUserFolder />
-		<SignatureHashAlgorithm /> -->
-		<SignatureTextTemplate />
+		<SignatureHashAlgorithm />
 		<SignatureStamp />
 	</NcSettingsSection>
 </template>
@@ -40,7 +39,6 @@ import LegalInformation from './LegalInformation.vue'
 import RootCertificateCfssl from './RootCertificateCfssl.vue'
 import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
 import SignatureHashAlgorithm from './SignatureHashAlgorithm.vue'
-import SignatureTextTemplate from './SignatureTextTemplate.vue'
 import SignatureStamp from './SignatureStamp.vue'
 import Validation from './Validation.vue'
 
@@ -62,7 +60,6 @@ export default {
 		CollectMetadata,
 		DefaultUserFolder,
 		SignatureHashAlgorithm,
-		SignatureTextTemplate,
 		SignatureStamp,
 	},
 	data() {

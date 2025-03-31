@@ -5,6 +5,70 @@
 <template>
 	<NcSettingsSection :name="name" :description="description">
 		<div class="settings-section__row">
+			<ul class="available-variables">
+				<li v-for="(availableDescription, availableName) in availableVariables"
+					:key="availableName"
+					:class="{rtl: isRTLDirection}">
+					<strong :class="{rtl: isRTLDirection}">{{ availableName }}:</strong>
+					<span>{{ availableDescription }}</span>
+				</li>
+			</ul>
+		</div>
+		<div class="settings-section__row">
+			<NcTextArea ref="textareaEditor"
+				:value.sync="inputValue"
+				:label="t('libresign', 'Signature text template')"
+				:placeholder="t('libresign', 'Signature text template')"
+				:spellcheck="false"
+				:success="showSuccessTemplate"
+				resize="vertical"
+				@keydown.enter="saveTemblate"
+				@blur="saveTemblate"
+				@mousemove="resizeHeight"
+				@keypress="resizeHeight" />
+			<NcButton v-if="showResetTemplate"
+				type="tertiary"
+				:aria-label="t('libresign', 'Reset to default')"
+				@click="resetTemplate">
+				<template #icon>
+					<Undo :size="20" />
+				</template>
+			</NcButton>
+		</div>
+		<div class="settings-section__row">
+			<NcTextField :value.sync="fontSize"
+				:label="t('libresign', 'Font size')"
+				:placeholder="t('libresign', 'Font size')"
+				type="number"
+				:min="0.1"
+				:max="30"
+				:step="0.01"
+				:spellcheck="false"
+				:success="showSuccessTemplate"
+				@keydown.enter="saveTemblate"
+				@blur="saveTemblate" />
+			<NcButton v-if="showResetFontSize"
+				type="tertiary"
+				:aria-label="t('libresign', 'Reset to default')"
+				@click="resetFontSize">
+				<template #icon>
+					<Undo :size="20" />
+				</template>
+			</NcButton>
+		</div>
+		<div class="settings-section__row">
+			<NcNoteCard v-if="errorMessageTemplate"
+				type="error"
+				:show-alert="true">
+				<p>{{ errorMessageTemplate }}</p>
+			</NcNoteCard>
+		</div>
+		<div class="settings-section__row">
+			<div class="text-pre-line">
+				{{ parsed }}
+			</div>
+		</div>
+		<div class="settings-section__row">
 			<NcButton id="signature-background"
 				type="secondary"
 				:aria-label="t('libresign', 'Upload new background image')"
@@ -60,18 +124,23 @@
 	</NcSettingsSection>
 </template>
 <script>
+import debounce from 'debounce'
+
 import Delete from 'vue-material-design-icons/Delete.vue'
 import Undo from 'vue-material-design-icons/UndoVariant.vue'
 import Upload from 'vue-material-design-icons/Upload.vue'
 
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
+import { translate as t, isRTL } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+import NcTextArea from '@nextcloud/vue/components/NcTextArea'
+import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 
 export default {
@@ -82,6 +151,8 @@ export default {
 		NcLoadingIcon,
 		NcNoteCard,
 		NcSettingsSection,
+		NcTextArea,
+		NcTextField,
 		Undo,
 		Upload,
 	},
@@ -95,6 +166,15 @@ export default {
 			acceptMime: ['image/png'],
 			errorMessageBackground: '',
 			backgroundUrl: generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'),
+			defaultSignatureTextTemplate: loadState('libresign', 'default_signature_text_template'),
+			defaultSignatureFontSize: loadState('libresign', 'default_signature_font_size'),
+			signatureTextTemplate: loadState('libresign', 'signature_text_template'),
+			fontSize: loadState('libresign', 'signature_font_size'),
+			showSuccessTemplate: false,
+			errorMessageTemplate: '',
+			parsed: loadState('libresign', 'signature_text_parsed'),
+			isRTLDirection: isRTL(),
+			availableVariables: loadState('libresign', 'signature_available_variables'),
 		}
 	},
 	computed: {
@@ -107,6 +187,29 @@ export default {
 			}
 			return false
 		},
+		inputValue: {
+			get() {
+				return this.signatureTextTemplate
+			},
+			set(value) {
+				this.signatureTextTemplate = value
+				this.debouncePropertyChange()
+			},
+		},
+		showResetTemplate() {
+			return this.signatureTextTemplate !== this.defaultSignatureTextTemplate
+		},
+		showResetFontSize() {
+			return this.fontSize !== this.defaultSignatureFontSize
+		},
+		debouncePropertyChange() {
+			return debounce(async function() {
+				await this.saveTemblate()
+			}, 1000)
+		},
+	},
+	mounted() {
+		this.resizeHeight()
 	},
 	methods: {
 		reset() {
@@ -176,6 +279,43 @@ export default {
 					this.errorMessageBackground = response.data.ocs.data?.message
 				})
 		},
+		resizeHeight: debounce(function() {
+			const wrapper = this.$refs.textareaEditor
+			if (!wrapper) return
+
+			const textarea = wrapper.$el.querySelector('textarea')
+
+			textarea.style.height = 'auto'
+			textarea.style.height = `${textarea.scrollHeight + 4}px`
+		}, 100),
+		async resetTemplate() {
+			this.signatureTextTemplate = this.defaultSignatureTextTemplate
+			this.saveTemblate()
+		},
+		async resetFontSize() {
+			this.fontSize = this.defaultSignatureFontSize
+			this.saveTemblate()
+		},
+		async saveTemblate() {
+			this.showSuccessTemplate = false
+			this.errorMessage = ''
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-text'), {
+				template: this.signatureTextTemplate,
+				fontSize: this.fontSize,
+			})
+				.then(({ data }) => {
+					this.parsed = data.ocs.data.parsed
+					if (data.ocs.data.fontSize !== this.fontSize) {
+						this.fontSize = data.ocs.data.fontSize
+					}
+					this.showSuccessTemplate = true
+					setTimeout(() => { this.showSuccessTemplate = false }, 2000)
+				})
+				.catch(({ response }) => {
+					this.errorMessage = response.data.ocs.data.error
+					this.parsed = ''
+				})
+		},
 	},
 }
 </script>
@@ -207,6 +347,16 @@ export default {
 	}
 	input[type="file"] {
 		display: none;
+	}
+	.text-pre-line {
+		white-space: pre-line;
+	}
+	.available-variables {
+		margin-bottom: 1em;
+	}
+	.rtl {
+		direction: rtl;
+		text-align: right;
 	}
 }
 </style>
