@@ -90,11 +90,11 @@
 				</NcButton>
 			</div>
 		</div>
-		<div class="settings-section__row">
-			<NcNoteCard v-if="errorMessageTemplate"
-				type="error"
+		<div class="settings-section__row" v-for="(error, key) in errorMessageTemplate"
+			:key="key">
+			<NcNoteCard type="error"
 				:show-alert="true">
-				<p>{{ errorMessageTemplate }}</p>
+				<p>{{ error }}</p>
 			</NcNoteCard>
 		</div>
 		<fieldset class="settings-section__row">
@@ -162,13 +162,13 @@
 					</div>
 				</div>
 				<!-- eslint-disable vue/no-v-html -->
-				<div class="right-column"
-					ref="rightColumn"
-					@resize="checkPreviewOverflow"
+				<div ref="rightColumn"
+					class="right-column"
 					:style="{
 						'font-size': (fontSize + 1) + 'pt',
 						display: renderMode === 'GRAPHIC_ONLY' ? 'none' : '',
 					}"
+					@resize="checkPreviewOverflow"
 					v-html="parsedWithLineBreak" />
 				<!-- eslint-enable vue/no-v-html -->
 			</div>
@@ -210,6 +210,8 @@ export default {
 		Upload,
 	},
 	data() {
+		const templateError = loadState('libresign', 'signature_text_template_error', '');
+		const errorMessageTemplate = templateError ? [templateError] : [];
 		return {
 			name: t('libresign', 'Signature stamp'),
 			description: t('libresign', 'The signature stamp is the element '),
@@ -227,7 +229,7 @@ export default {
 			fontSize: loadState('libresign', 'signature_font_size'),
 			renderMode: loadState('libresign', 'signature_render_mode'),
 			showSuccessTemplate: false,
-			errorMessageTemplate: '',
+			errorMessageTemplate: errorMessageTemplate,
 			parsed: loadState('libresign', 'signature_text_parsed'),
 			isRTLDirection: isRTL(),
 			availableVariables: loadState('libresign', 'signature_available_variables'),
@@ -341,8 +343,11 @@ export default {
 				})
 		},
 		checkPreviewOverflow() {
-			const rightColumn = this.$refs.rightColumn;
+			const rightColumn = this.$refs.rightColumn
 			this.isOverflowing = rightColumn.scrollHeight > rightColumn.clientHeight
+			if (this.isOverflowing) {
+				this.errorMessageTemplate.push(t('libresign', 'Signature template content is overflowing.'))
+			}
 		},
 		resizeHeight: debounce(function() {
 			const wrapper = this.$refs.textareaEditor
@@ -367,7 +372,7 @@ export default {
 		},
 		async saveTemplate() {
 			this.showSuccessTemplate = false
-			this.errorMessage = ''
+			this.errorMessageTemplate = []
 			this.resizeHeight()
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-text'), {
 				template: this.signatureTextTemplate,
@@ -384,7 +389,7 @@ export default {
 					setTimeout(() => { this.showSuccessTemplate = false }, 2000)
 				})
 				.catch(({ response }) => {
-					this.errorMessage = response.data.ocs.data.error
+					this.errorMessageTemplate.push(response.data.ocs.data.error)
 					this.parsed = ''
 					this.checkPreviewOverflow()
 				})
