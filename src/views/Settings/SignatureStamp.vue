@@ -64,11 +64,6 @@
 			</NcNoteCard>
 		</div>
 		<div class="settings-section__row">
-			<div class="text-pre-line">
-				{{ parsed }}
-			</div>
-		</div>
-		<div class="settings-section__row">
 			<NcButton id="signature-background"
 				type="secondary"
 				:aria-label="t('libresign', 'Upload new background image')"
@@ -115,11 +110,14 @@
 			</NcNoteCard>
 		</div>
 		<div class="settings-section__row">
-			<div v-if="backgroundType !== 'deleted'"
-				class="settings-section__preview"
+			<div class="settings-section__preview"
 				:style="{
 					'background-image': 'url(' + backgroundUrl + ')',
-				}" />
+				}">
+				<div class="left-column" />
+				<!-- eslint-disable-next-line vue/no-v-html -->
+				<div class="right-column" :style="{'font-size': (fontSize + 1) + 'pt'}" v-html="parsedWithLineBreak" />
+			</div>
 		</div>
 	</NcSettingsSection>
 </template>
@@ -141,7 +139,6 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextArea from '@nextcloud/vue/components/NcTextArea'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
-
 
 export default {
 	name: 'SignatureStamp',
@@ -165,7 +162,9 @@ export default {
 			backgroundType: loadState('libresign', 'signature_background_type'),
 			acceptMime: ['image/png'],
 			errorMessageBackground: '',
-			backgroundUrl: generateOcsUrl('/apps/libresign/api/v1/admin/signature-background'),
+			backgroundUrl: this.backgroundType !== 'default'
+				? generateOcsUrl('/apps/libresign/api/v1/admin/signature-background')
+				: '',
 			defaultSignatureTextTemplate: loadState('libresign', 'default_signature_text_template'),
 			defaultSignatureFontSize: loadState('libresign', 'default_signature_font_size'),
 			signatureTextTemplate: loadState('libresign', 'signature_text_template'),
@@ -179,13 +178,10 @@ export default {
 	},
 	computed: {
 		showResetBackground() {
-			return this.backgroundType === 'deleted' || !this.backgroundType
+			return this.backgroundType === 'custom' || this.backgroundType === 'deleted'
 		},
 		showRemoveBackground() {
-			if (this.backgroundType === 'custom' || this.backgroundType === 'default') {
-				return true
-			}
-			return false
+			return this.backgroundType === 'custom' || this.backgroundType === 'default'
 		},
 		inputValue: {
 			get() {
@@ -206,6 +202,9 @@ export default {
 			return debounce(async function() {
 				await this.saveTemblate()
 			}, 1000)
+		},
+		parsedWithLineBreak() {
+			return this.parsed.replace(/\n/g, '<br>')
 		},
 	},
 	mounted() {
@@ -341,15 +340,23 @@ export default {
 		background-size: initial;
 		background-position: center;
 		background-repeat: no-repeat;
+		justify-content: space-between;
+		display: flex;
 		text-align: center;
 		margin-top: 10px;
 		border: var(--border-width-input, 2px) solid var(--color-border-maxcontrast);
+		.left-column {
+			flex: 1;
+		}
+		.right-column {
+			flex: 1;
+			text-align: left;
+			line-height: 1;
+			word-wrap: anywhere;
+		}
 	}
 	input[type="file"] {
 		display: none;
-	}
-	.text-pre-line {
-		white-space: pre-line;
 	}
 	.available-variables {
 		margin-bottom: 1em;
