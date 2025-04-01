@@ -146,7 +146,8 @@
 			</NcNoteCard>
 		</div>
 		<div class="settings-section__row">
-			<div class="settings-section__preview"
+			<div v-if="showPreview"
+				class="settings-section__preview"
 				:style="{
 					'background-image': 'url(' + backgroundUrl + ')',
 					'border-color': isOverflowing ? 'var(--color-error) !important': '',
@@ -173,6 +174,11 @@
 					v-html="parsedWithLineBreak" />
 				<!-- eslint-enable vue/no-v-html -->
 			</div>
+			<NcNoteCard v-else
+				type="info"
+				:show-alert="true">
+				<p>{{ t('libresign', 'If no background image or signature template is provided, no visible signature will be added to the document.') }}</p>
+			</NcNoteCard>
 		</div>
 	</NcSettingsSection>
 </template>
@@ -212,15 +218,16 @@ export default {
 	},
 	data() {
 		const templateError = loadState('libresign', 'signature_text_template_error', '')
+		const backgroundType = loadState('libresign', 'signature_background_type')
 		return {
 			name: t('libresign', 'Signature stamp'),
 			description: t('libresign', 'The signature stamp is the element '),
 			showLoadingBackground: false,
 			wasScalled: false,
-			backgroundType: loadState('libresign', 'signature_background_type'),
+			backgroundType,
 			acceptMime: ['image/png'],
 			errorMessageBackground: '',
-			backgroundUrl: this.backgroundType !== 'default'
+			backgroundUrl: backgroundType !== 'deleted'
 				? generateOcsUrl('/apps/libresign/api/v1/admin/signature-background')
 				: '',
 			defaultSignatureTextTemplate: loadState('libresign', 'default_signature_text_template'),
@@ -242,6 +249,9 @@ export default {
 		},
 		showRemoveBackground() {
 			return this.backgroundType === 'custom' || this.backgroundType === 'default'
+		},
+		showPreview() {
+			return this.backgroundType !== 'deleted' || this.parsed
 		},
 		inputValue: {
 			get() {
@@ -337,6 +347,9 @@ export default {
 		},
 		checkPreviewOverflow() {
 			const rightColumn = this.$refs.rightColumn
+			if (!rightColumn) {
+				return
+			}
 			this.isOverflowing = rightColumn.scrollHeight > rightColumn.clientHeight
 			const overflowMessage = t('libresign', 'Signature template content is overflowing. Reduce the text.')
 			if (this.isOverflowing && !this.errorMessageTemplate.includes(overflowMessage)) {
