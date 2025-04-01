@@ -345,6 +345,9 @@ export default {
 		},
 		resizeHeight: debounce(function() {
 			const wrapper = this.$refs.textareaEditor
+			if (!wrapper) {
+				return
+			}
 			const textarea = wrapper.$el.querySelector('textarea')
 			textarea.style.height = 'auto'
 			textarea.style.height = `${textarea.scrollHeight + 4}px`
