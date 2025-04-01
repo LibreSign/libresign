@@ -104,7 +104,7 @@ class SignatureBackgroundService {
 
 	public function delete(): void {
 		try {
-			$this->appConfig->getValueString(Application::APP_ID, 'signature_background_type', 'deleted');
+			$this->appConfig->setValueString(Application::APP_ID, 'signature_background_type', 'deleted');
 			$file = $this->getRootFolder()->getFile('background.png');
 			$file->delete();
 		} catch (NotFoundException $e) {
