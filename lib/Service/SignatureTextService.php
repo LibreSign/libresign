@@ -9,8 +9,9 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use DateTimeInterface;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
-use OCP\AppFramework\Services\IAppConfig;
+use OCP\IAppConfig;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -20,6 +21,7 @@ use Twig\Error\SyntaxError;
 use Twig\Loader\FilesystemLoader;
 
 class SignatureTextService {
+	public const DEFAULT_FONT_SIZE = 10;
 	public function __construct(
 		private IAppConfig $appConfig,
 		private IL10N $l10n,
@@ -52,9 +54,9 @@ class SignatureTextService {
 		$template = strip_tags($template);
 		$template = trim($template);
 		$template = html_entity_decode($template);
-		$this->appConfig->setAppValueString('signature_text_template', $template);
-		$this->appConfig->setAppValueFloat('signature_font_size', $fontSize);
-		$this->appConfig->setAppValueString('signature_render_mode', $renderMode);
+		$this->appConfig->setValueString(Application::APP_ID, 'signature_text_template', $template);
+		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_font_size', $fontSize);
+		$this->appConfig->setValueString(Application::APP_ID, 'signature_render_mode', $renderMode);
 		return $this->parse($template);
 	}
 
@@ -63,7 +65,7 @@ class SignatureTextService {
 	 * @throws LibresignException
 	 */
 	public function parse(string $template = '', array $context = []): array {
-		$fontSize = $this->appConfig->getAppValueFloat('signature_font_size', $this->getDefaultFontSize());
+		$fontSize = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_font_size', self::DEFAULT_FONT_SIZE);
 		$renderMode = $this->getRenderMode();
 		if (empty($template)) {
 			$template = $this->getTemplate();
@@ -108,7 +110,7 @@ class SignatureTextService {
 	}
 
 	public function getTemplate(): string {
-		return $this->appConfig->getAppValueString('signature_text_template');
+		return $this->appConfig->getValueString(Application::APP_ID, 'signature_text_template');
 	}
 
 	public function getAvailableVariables(): array {
@@ -122,7 +124,7 @@ class SignatureTextService {
 			'{{SignerName}}' => $this->l10n->t('Name of the person signing'),
 			'{{SignerIdentifier}}' => $this->l10n->t('Unique information used to identify the signer (such as email, phone number, or username).'),
 		];
-		$collectMetadata = $this->appConfig->getAppValueBool('collect_metadata', false);
+		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
 		if ($collectMetadata) {
 			$list['{{SignerIP}}'] = $this->l10n->t('IP address of the person who signed the document.');
 			$list['{{SignerUserAgent}}'] = $this->l10n->t('Browser and device information of the person who signed the document.');
@@ -131,7 +133,7 @@ class SignatureTextService {
 	}
 
 	public function getDefaultTemplate(): string {
-		$collectMetadata = $this->appConfig->getAppValueBool('collect_metadata', false);
+		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
 		if ($collectMetadata) {
 			return $this->l10n->t(<<<TEMPLATE
 				Signed with LibreSign
@@ -153,10 +155,6 @@ class SignatureTextService {
 	}
 
 	public function getRenderMode(): string {
-		return $this->appConfig->getAppValueString('signature_render_mode', 'GRAPHIC_AND_DESCRIPTION');
-	}
-
-	public function getDefaultFontSize(): float {
-		return 10;
+		return $this->appConfig->getValueString(Application::APP_ID, 'signature_render_mode', 'GRAPHIC_AND_DESCRIPTION');
 	}
 }
