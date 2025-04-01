@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Settings;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignatureBackgroundService;
@@ -43,18 +44,29 @@ class Admin implements ISettings {
 			'config_path',
 			$this->appConfig->getValueString(Application::APP_ID, 'config_path')
 		);
-		$signatureParsed = $this->signatureTextService->parse();
+		try {
+			$signatureParsed = $this->signatureTextService->parse();
+			$this->initialState->provideInitialState(
+				'signature_text_parsed',
+				$signatureParsed['parsed'],
+			);
+		} catch (LibresignException $e) {
+			$this->initialState->provideInitialState(
+				'signature_text_parsed',
+				'',
+			);
+			$this->initialState->provideInitialState(
+				'signature_text_template_error',
+				$e->getMessage(),
+			);
+		}
 		$this->initialState->provideInitialState(
 			'signature_text_template',
-			$signatureParsed['template'],
-		);
-		$this->initialState->provideInitialState(
-			'signature_text_parsed',
-			$signatureParsed['parsed'],
+			$this->signatureTextService->getTemplate(),
 		);
 		$this->initialState->provideInitialState(
 			'signature_font_size',
-			$signatureParsed['fontSize'],
+			$this->signatureTextService->getDefaultFontSize(),
 		);
 		$this->initialState->provideInitialState(
 			'default_signature_text_template',

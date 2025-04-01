@@ -66,7 +66,7 @@ class SignatureTextService {
 		$fontSize = $this->appConfig->getAppValueFloat('signature_font_size', $this->getDefaultFontSize());
 		$renderMode = $this->getRenderMode();
 		if (empty($template)) {
-			$template = $this->appConfig->getAppValueString('signature_text_template');
+			$template = $this->getTemplate();
 		}
 		if (empty($template)) {
 			return [
@@ -105,6 +105,10 @@ class SignatureTextService {
 		} catch (SyntaxError $e) {
 			throw new LibresignException((string)preg_replace('/in "[^"]+" at line \d+/', '', $e->getMessage()));
 		}
+	}
+
+	public function getTemplate(): string {
+		return $this->appConfig->getAppValueString('signature_text_template');
 	}
 
 	public function getAvailableVariables(): array {
