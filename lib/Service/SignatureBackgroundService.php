@@ -11,14 +11,15 @@ namespace OCA\Libresign\Service;
 use Exception;
 use Imagick;
 use ImagickPixel;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Files\TSimpleFile;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\Files\SimpleFS\InMemoryFile;
 use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\Files\SimpleFS\ISimpleFolder;
+use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\ITempManager;
 
@@ -50,13 +51,13 @@ class SignatureBackgroundService {
 
 		$content = $this->optmizeImage(file_get_contents($tmpFile));
 
-		$this->appConfig->setAppValueString('signature_background_type', 'custom');
+		$this->appConfig->getValueString(Application::APP_ID, 'signature_background_type', 'custom');
 		$target = $folder->newFile('background.png');
 		$target->putContent($content);
 	}
 
 	public function getSignatureBackgroundType(): string {
-		return $this->appConfig->getAppValueString('signature_background_type', 'default');
+		return $this->appConfig->getValueString(Application::APP_ID, 'signature_background_type', 'default');
 	}
 
 	public function wasBackgroundScaled(): bool {
@@ -103,7 +104,7 @@ class SignatureBackgroundService {
 
 	public function delete(): void {
 		try {
-			$this->appConfig->setAppValueString('signature_background_type', 'deleted');
+			$this->appConfig->getValueString(Application::APP_ID, 'signature_background_type', 'deleted');
 			$file = $this->getRootFolder()->getFile('background.png');
 			$file->delete();
 		} catch (NotFoundException $e) {
@@ -113,7 +114,7 @@ class SignatureBackgroundService {
 
 	public function reset(): void {
 		try {
-			$this->appConfig->deleteAppValue('signature_background_type');
+			$this->appConfig->deleteKey(Application::APP_ID, 'signature_background_type');
 			$file = $this->getRootFolder()->getFile('background.png');
 			$file->delete();
 		} catch (NotFoundException $e) {

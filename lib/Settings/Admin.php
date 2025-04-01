@@ -66,7 +66,7 @@ class Admin implements ISettings {
 		);
 		$this->initialState->provideInitialState(
 			'signature_font_size',
-			$this->signatureTextService->getDefaultFontSize(),
+			SignatureTextService::DEFAULT_FONT_SIZE,
 		);
 		$this->initialState->provideInitialState(
 			'default_signature_text_template',
@@ -74,7 +74,7 @@ class Admin implements ISettings {
 		);
 		$this->initialState->provideInitialState(
 			'default_signature_font_size',
-			$this->signatureTextService->getDefaultFontSize(),
+			SignatureTextService::DEFAULT_FONT_SIZE,
 		);
 		$this->initialState->provideInitialState(
 			'signature_available_variables',
