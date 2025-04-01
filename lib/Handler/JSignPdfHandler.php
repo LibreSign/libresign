@@ -133,6 +133,7 @@ class JSignPdfHandler extends SignEngineHandler {
 		if ($visibleElements) {
 			$jSignPdf = $this->getJSignPdf();
 			$param = $this->getJSignParam();
+			$renderMode = $this->signatureTextService->getRenderMode();
 			$backgroundType = $this->signatureBackgroundService->getSignatureBackgroundType();
 			$params = [
 				'--l2-text' => $this->getSignatureText(),
@@ -161,9 +162,14 @@ class JSignPdfHandler extends SignEngineHandler {
 						$params['--bg-path'] = $signatureImagePath;
 					}
 				} else {
-					$params['--render-mode'] = 'GRAPHIC_AND_DESCRIPTION';
-					$params['--bg-path'] = $backgroundPath;
-					$params['--img-path'] = $signatureImagePath;
+					if ($renderMode === 'GRAPHIC_AND_DESCRIPTION') {
+						$params['--render-mode'] = 'GRAPHIC_AND_DESCRIPTION';
+						$params['--bg-path'] = $backgroundPath;
+						$params['--img-path'] = $signatureImagePath;
+					} else {
+						$params['--render-mode'] = 'DESCRIPTION_ONLY';
+						$params['--bg-path'] = $backgroundPath;
+					}
 				}
 				$param->setJSignParameters(
 					$originalParam->getJSignParameters() .
@@ -228,12 +234,17 @@ class JSignPdfHandler extends SignEngineHandler {
 	}
 
 	public function getSignatureText(): string {
-		$data = $this->parseSignatureText();
-		$signatureText = '"' . str_replace(
-			['"', '$'],
-			['\"', '\$'],
-			$data['parsed']
-		) . '"';
+		$renderMode = $this->signatureTextService->getRenderMode();
+		if ($renderMode !== 'GRAPHIC_ONLY') {
+			$data = $this->parseSignatureText();
+			$signatureText = '"' . str_replace(
+				['"', '$'],
+				['\"', '\$'],
+				$data['parsed']
+			) . '"';
+		} else {
+			$signatureText = '""';
+		}
 
 		return $signatureText;
 	}
