@@ -59,11 +59,12 @@ class SignatureTextService {
 	}
 
 	/**
-	 * @return array{template: string, parsed: string, fontSize: float}
+	 * @return array{template: string, parsed: string, fontSize: float, renderMode: string}
 	 * @throws LibresignException
 	 */
 	public function parse(string $template = '', array $context = []): array {
 		$fontSize = $this->appConfig->getAppValueFloat('signature_font_size', $this->getDefaultFontSize());
+		$renderMode = $this->getRenderMode();
 		if (empty($template)) {
 			$template = $this->appConfig->getAppValueString('signature_text_template');
 		}
@@ -72,6 +73,7 @@ class SignatureTextService {
 				'parsed' => '',
 				'template' => $template,
 				'fontSize' => $fontSize,
+				'renderMode' => $renderMode,
 			];
 		}
 		if (empty($context)) {
@@ -98,6 +100,7 @@ class SignatureTextService {
 				'parsed' => $parsed,
 				'template' => $template,
 				'fontSize' => $fontSize,
+				'renderMode' => $renderMode,
 			];
 		} catch (SyntaxError $e) {
 			throw new LibresignException((string)preg_replace('/in "[^"]+" at line \d+/', '', $e->getMessage()));

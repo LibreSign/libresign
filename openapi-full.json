@@ -8830,6 +8830,11 @@
                                         "format": "double",
                                         "default": 6,
                                         "description": "Font size used when print the parsed text of this template at PDF file"
+                                    },
+                                    "renderMode": {
+                                        "type": "string",
+                                        "default": "GRAPHIC_AND_DESCRIPTION",
+                                        "description": "Signature render mode"
                                     }
                                 }
                             }
@@ -8886,7 +8891,8 @@
                                                     "required": [
                                                         "template",
                                                         "parsed",
-                                                        "fontSize"
+                                                        "fontSize",
+                                                        "renderMode"
                                                     ],
                                                     "properties": {
                                                         "template": {
@@ -8898,6 +8904,9 @@
                                                         "fontSize": {
                                                             "type": "number",
                                                             "format": "double"
+                                                        },
+                                                        "renderMode": {
+                                                            "type": "string"
                                                         }
                                                     }
                                                 }
@@ -9031,7 +9040,8 @@
                                                     "required": [
                                                         "template",
                                                         "parsed",
-                                                        "fontSize"
+                                                        "fontSize",
+                                                        "renderMode"
                                                     ],
                                                     "properties": {
                                                         "template": {
@@ -9043,6 +9053,9 @@
                                                         "fontSize": {
                                                             "type": "number",
                                                             "format": "double"
+                                                        },
+                                                        "renderMode": {
+                                                            "type": "string"
                                                         }
                                                     }
                                                 }

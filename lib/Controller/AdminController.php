@@ -388,6 +388,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * @param string $template Template to signature text
 	 * @param float $fontSize Font size used when print the parsed text of this template at PDF file
+	 * @param string $renderMode Signature render mode
 	 * @return DataResponse<Http::STATUS_OK, array{template: string, parsed: string, fontSize: float, renderMode: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
 	 *
 	 * 200: OK
@@ -420,7 +421,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * @param string $template Template to signature text
 	 * @param string $context Context for parsing the template
-	 * @return DataResponse<Http::STATUS_OK, array{template: string,parsed: string, fontSize: float}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{template: string,parsed: string, fontSize: float, renderMode: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
 	 *
 	 * 200: OK
 	 * 400: Bad request

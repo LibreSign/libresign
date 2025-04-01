@@ -148,6 +148,7 @@
 			<div class="settings-section__preview"
 				:style="{
 					'background-image': 'url(' + backgroundUrl + ')',
+					'border-color': isOverflowing ? 'var(--color-error) !important': '',
 				}">
 				<div class="left-column" :style="{display: renderMode === 'DESCRIPTION_ONLY' ? 'none' : ''}">
 					<div class="left-column-content"
@@ -162,9 +163,11 @@
 				</div>
 				<!-- eslint-disable vue/no-v-html -->
 				<div class="right-column"
+					ref="rightColumn"
+					@resize="checkPreviewOverflow"
 					:style="{
 						'font-size': (fontSize + 1) + 'pt',
-						display: renderMode === 'GRAPHIC_ONLY' ? 'none' : ''
+						display: renderMode === 'GRAPHIC_ONLY' ? 'none' : '',
 					}"
 					v-html="parsedWithLineBreak" />
 				<!-- eslint-enable vue/no-v-html -->
@@ -228,6 +231,7 @@ export default {
 			parsed: loadState('libresign', 'signature_text_parsed'),
 			isRTLDirection: isRTL(),
 			availableVariables: loadState('libresign', 'signature_available_variables'),
+			isOverflowing: false,
 		}
 	},
 	computed: {
@@ -266,6 +270,7 @@ export default {
 	},
 	mounted() {
 		this.resizeHeight()
+		this.checkPreviewOverflow()
 	},
 	methods: {
 		reset() {
@@ -335,6 +340,10 @@ export default {
 					this.errorMessageBackground = response.data.ocs.data?.message
 				})
 		},
+		checkPreviewOverflow() {
+			const rightColumn = this.$refs.rightColumn;
+			this.isOverflowing = rightColumn.scrollHeight > rightColumn.clientHeight
+		},
 		resizeHeight: debounce(function() {
 			const wrapper = this.$refs.textareaEditor
 			if (!wrapper) return
@@ -367,6 +376,7 @@ export default {
 			})
 				.then(({ data }) => {
 					this.parsed = data.ocs.data.parsed
+					this.checkPreviewOverflow()
 					if (data.ocs.data.fontSize !== this.fontSize) {
 						this.fontSize = data.ocs.data.fontSize
 					}
@@ -376,6 +386,7 @@ export default {
 				.catch(({ response }) => {
 					this.errorMessage = response.data.ocs.data.error
 					this.parsed = ''
+					this.checkPreviewOverflow()
 				})
 		},
 	},
@@ -425,6 +436,7 @@ export default {
 			text-align: left;
 			line-height: 1;
 			word-wrap: anywhere;
+			overflow: hidden;
 		}
 	}
 	input[type="file"] {
