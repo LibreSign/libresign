@@ -90,8 +90,9 @@
 				</NcButton>
 			</div>
 		</div>
-		<div class="settings-section__row" v-for="(error, key) in errorMessageTemplate"
-			:key="key">
+		<div v-for="(error, key) in errorMessageTemplate"
+			:key="key"
+			class="settings-section__row">
 			<NcNoteCard type="error"
 				:show-alert="true">
 				<p>{{ error }}</p>
@@ -210,8 +211,8 @@ export default {
 		Upload,
 	},
 	data() {
-		const templateError = loadState('libresign', 'signature_text_template_error', '');
-		const errorMessageTemplate = templateError ? [templateError] : [];
+		const templateError = loadState('libresign', 'signature_text_template_error', '')
+		const errorMessageTemplate = templateError ? [templateError] : []
 		return {
 			name: t('libresign', 'Signature stamp'),
 			description: t('libresign', 'The signature stamp is the element '),
@@ -229,7 +230,7 @@ export default {
 			fontSize: loadState('libresign', 'signature_font_size'),
 			renderMode: loadState('libresign', 'signature_render_mode'),
 			showSuccessTemplate: false,
-			errorMessageTemplate: errorMessageTemplate,
+			errorMessageTemplate,
 			parsed: loadState('libresign', 'signature_text_parsed'),
 			isRTLDirection: isRTL(),
 			availableVariables: loadState('libresign', 'signature_available_variables'),
