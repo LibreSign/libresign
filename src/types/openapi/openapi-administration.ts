@@ -631,6 +631,7 @@ export interface operations {
                                 parsed: string;
                                 /** Format: double */
                                 fontSize: number;
+                                renderMode: string;
                             };
                         };
                     };
@@ -677,6 +678,11 @@ export interface operations {
                      * @default 6
                      */
                     fontSize?: number;
+                    /**
+                     * @description Signature render mode
+                     * @default GRAPHIC_AND_DESCRIPTION
+                     */
+                    renderMode?: string;
                 };
             };
         };
@@ -695,6 +701,7 @@ export interface operations {
                                 parsed: string;
                                 /** Format: double */
                                 fontSize: number;
+                                renderMode: string;
                             };
                         };
                     };

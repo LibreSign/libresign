@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Settings\Admin;
 use OCP\AppFramework\Services\IInitialState;
@@ -27,18 +28,21 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private CertificateEngineHandler&MockObject $certificateEngineHandler;
 	private IAppConfig&MockObject $appConfig;
 	private SignatureTextService&MockObject $signatureTextService;
+	private SignatureBackgroundService&MockObject $signatureBackgroundService;
 	public function setUp(): void {
 		$this->initialState = $this->createMock(IInitialState::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->certificateEngineHandler = $this->createMock(CertificateEngineHandler::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->signatureTextService = $this->createMock(SignatureTextService::class);
+		$this->signatureBackgroundService = $this->createMock(SignatureBackgroundService::class);
 		$this->admin = new Admin(
 			$this->initialState,
 			$this->identifyMethodService,
 			$this->certificateEngineHandler,
 			$this->appConfig,
 			$this->signatureTextService,
+			$this->signatureBackgroundService,
 		);
 	}
 
