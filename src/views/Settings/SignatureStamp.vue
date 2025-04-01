@@ -212,7 +212,6 @@ export default {
 	},
 	data() {
 		const templateError = loadState('libresign', 'signature_text_template_error', '')
-		const errorMessageTemplate = templateError ? [templateError] : []
 		return {
 			name: t('libresign', 'Signature stamp'),
 			description: t('libresign', 'The signature stamp is the element '),
@@ -230,7 +229,7 @@ export default {
 			fontSize: loadState('libresign', 'signature_font_size'),
 			renderMode: loadState('libresign', 'signature_render_mode'),
 			showSuccessTemplate: false,
-			errorMessageTemplate,
+			errorMessageTemplate: templateError ? [templateError] : [],
 			parsed: loadState('libresign', 'signature_text_parsed'),
 			isRTLDirection: isRTL(),
 			availableVariables: loadState('libresign', 'signature_available_variables'),
@@ -273,17 +272,13 @@ export default {
 	},
 	mounted() {
 		this.resizeHeight()
-		this.checkPreviewOverflow()
 	},
 	methods: {
 		reset() {
-			this.showSuccess = false
+			this.showSuccessTemplate = false
 			this.errorMessageBackground = ''
+			this.errorMessageTemplate = []
 			this.wasScalled = false
-		},
-		handleSuccessBackground() {
-			this.showSuccess = true
-			setTimeout(() => { this.showSuccess = false }, 2000)
 		},
 		activateLocalFilePicker() {
 			this.reset()
@@ -304,7 +299,6 @@ export default {
 					this.backgroundType = 'custom'
 					this.backgroundUrl = generateOcsUrl('/apps/libresign/api/v1/admin/signature-background') + '?t=' + Date.now()
 					this.wasScalled = data.ocs.data.wasScalled
-					this.handleSuccessBackground()
 				})
 				.catch(({ response }) => {
 					this.showLoadingBackground = false
@@ -321,7 +315,6 @@ export default {
 					this.showLoadingBackground = false
 					this.backgroundType = 'default'
 					this.backgroundUrl = generateOcsUrl('/apps/libresign/api/v1/admin/signature-background') + '?t=' + Date.now()
-					this.handleSuccessBackground()
 				})
 				.catch(({ response }) => {
 					this.showLoadingBackground = false
@@ -337,7 +330,6 @@ export default {
 				.then(() => {
 					this.backgroundType = 'deleted'
 					this.backgroundUrl = ''
-					this.handleSuccessBackground()
 				})
 				.catch(({ response }) => {
 					this.errorMessageBackground = response.data.ocs.data?.message
@@ -346,18 +338,17 @@ export default {
 		checkPreviewOverflow() {
 			const rightColumn = this.$refs.rightColumn
 			this.isOverflowing = rightColumn.scrollHeight > rightColumn.clientHeight
-			if (this.isOverflowing) {
-				this.errorMessageTemplate.push(t('libresign', 'Signature template content is overflowing.'))
+			const overflowMessage = t('libresign', 'Signature template content is overflowing. Reduce the text.')
+			if (this.isOverflowing && !this.errorMessageTemplate.includes(overflowMessage)) {
+				this.errorMessageTemplate.push(overflowMessage)
 			}
 		},
 		resizeHeight: debounce(function() {
 			const wrapper = this.$refs.textareaEditor
-			if (!wrapper) return
-
 			const textarea = wrapper.$el.querySelector('textarea')
-
 			textarea.style.height = 'auto'
 			textarea.style.height = `${textarea.scrollHeight + 4}px`
+			this.checkPreviewOverflow()
 		}, 100),
 		async resetRenderMode() {
 			this.renderMode = 'GRAPHIC_AND_DESCRIPTION'
@@ -421,7 +412,6 @@ export default {
 		background-position: center;
 		background-repeat: no-repeat;
 		justify-content: space-between;
-		// align-items: center;
 		display: flex;
 		text-align: center;
 		margin-top: 10px;
