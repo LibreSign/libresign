@@ -69,6 +69,10 @@ class Admin implements ISettings {
 			$this->signatureTextService->getAvailableVariables(),
 		);
 		$this->initialState->provideInitialState(
+			'signature_render_mode',
+			$this->signatureTextService->getRenderMode(),
+		);
+		$this->initialState->provideInitialState(
 			'signature_background_type',
 			$this->signatureBackgroundService->getSignatureBackgroundType(),
 		);

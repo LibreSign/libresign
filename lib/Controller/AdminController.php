@@ -388,17 +388,18 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * @param string $template Template to signature text
 	 * @param float $fontSize Font size used when print the parsed text of this template at PDF file
-	 * @return DataResponse<Http::STATUS_OK, array{template: string, parsed: string, fontSize: float}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{template: string, parsed: string, fontSize: float, renderMode: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
 	 *
 	 * 200: OK
 	 * 400: Bad request
 	 */
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-text', requirements: ['apiVersion' => '(v1)'])]
-	public function signatureTextSave(string $template, float $fontSize = 6): DataResponse {
+	public function signatureTextSave(string $template, float $fontSize = 6, string $renderMode = 'GRAPHIC_AND_DESCRIPTION'): DataResponse {
 		try {
 			$return = $this->signatureTextService->save(
 				$template,
 				$fontSize,
+				$renderMode,
 			);
 			return new DataResponse(
 				$return,
