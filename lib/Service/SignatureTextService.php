@@ -29,10 +29,14 @@ class SignatureTextService {
 	}
 
 	/**
-	 * @return array{template: string, parsed: string, fontSize: float}
+	 * @return array{template: string, parsed: string, fontSize: float, renderMode: string}
 	 * @throws LibresignException
 	 */
-	public function save(string $template, float $fontSize = 6): array {
+	public function save(
+		string $template,
+		float $fontSize = 6,
+		string $renderMode = 'GRAPHIC_AND_DESCRIPTION',
+	): array {
 		if ($fontSize > 30 || $fontSize < 0.1) {
 			// TRANSLATORS This message refers to the font size used in the text
 			// that is used together or to replace a person's handwritten
@@ -50,6 +54,7 @@ class SignatureTextService {
 		$template = html_entity_decode($template);
 		$this->appConfig->setAppValueString('signature_text_template', $template);
 		$this->appConfig->setAppValueFloat('signature_font_size', $fontSize);
+		$this->appConfig->setAppValueString('signature_render_mode', $renderMode);
 		return $this->parse($template);
 	}
 
@@ -138,6 +143,10 @@ class SignatureTextService {
 			Date: {{ServerSignatureDate}}
 			TEMPLATE
 		);
+	}
+
+	public function getRenderMode(): string {
+		return $this->appConfig->getAppValueString('signature_render_mode', 'GRAPHIC_AND_DESCRIPTION');
 	}
 
 	public function getDefaultFontSize(): float {
