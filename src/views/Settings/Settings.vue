@@ -17,9 +17,9 @@
 		<LegalInformation />
 		<IdentificationDocuments />
 		<CollectMetadata />
-		<DefaultUserFolder />
-		<SignatureHashAlgorithm />
 		<SignatureStamp />
+		<SignatureHashAlgorithm />
+		<DefaultUserFolder />
 	</NcSettingsSection>
 </template>
 
@@ -58,9 +58,9 @@ export default {
 		LegalInformation,
 		IdentificationDocuments,
 		CollectMetadata,
-		DefaultUserFolder,
-		SignatureHashAlgorithm,
 		SignatureStamp,
+		SignatureHashAlgorithm,
+		DefaultUserFolder,
 	},
 	data() {
 		return {
