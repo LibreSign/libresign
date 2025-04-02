@@ -251,7 +251,13 @@ export default {
 			return this.backgroundType === 'custom' || this.backgroundType === 'default'
 		},
 		showPreview() {
-			return this.backgroundType !== 'deleted' || this.parsed
+			if (this.backgroundType !== 'deleted') {
+				return true
+			}
+			if (this.renderMode === 'DESCRIPTION_ONLY' && !this.parsed) {
+				return false
+			}
+			return true
 		},
 		inputValue: {
 			get() {
