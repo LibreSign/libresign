@@ -174,4 +174,8 @@ class SignatureTextService {
 	public function getRenderMode(): string {
 		return $this->appConfig->getValueString(Application::APP_ID, 'signature_render_mode', 'GRAPHIC_AND_DESCRIPTION');
 	}
+
+	public function isEnabled(): bool {
+		return !empty($this->getTemplate());
+	}
 }

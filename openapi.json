@@ -37,6 +37,44 @@
                     }
                 }
             },
+            "Capabilities": {
+                "type": "object",
+                "required": [
+                    "features",
+                    "config",
+                    "version"
+                ],
+                "properties": {
+                    "features": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "config": {
+                        "type": "object",
+                        "required": [
+                            "sign-elements"
+                        ],
+                        "properties": {
+                            "sign-elements": {
+                                "type": "object",
+                                "required": [
+                                    "is-available"
+                                ],
+                                "properties": {
+                                    "is-available": {
+                                        "type": "boolean"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "version": {
+                        "type": "string"
+                    }
+                }
+            },
             "CertificatePfxData": {
                 "type": "object",
                 "required": [
@@ -481,6 +519,14 @@
                     "first": {
                         "type": "string",
                         "nullable": true
+                    }
+                }
+            },
+            "PublicCapabilities": {
+                "type": "object",
+                "properties": {
+                    "libresign": {
+                        "$ref": "#/components/schemas/Capabilities"
                     }
                 }
             },
