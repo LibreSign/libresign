@@ -230,6 +230,15 @@ namespace OCA\Libresign;
  *     starred: 0|1,
  *     createdAt: string,
  * }
+ * @psalm-type LibresignCapabilities = array{
+ *     features: list<string>,
+ *     config: array{
+ *         sign-elements: array{
+ *             is-available: bool,
+ *         },
+ *     },
+ *     version: string,
+ * }
  */
 class ResponseDefinitions {
 }

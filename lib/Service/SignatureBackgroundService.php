@@ -60,6 +60,10 @@ class SignatureBackgroundService {
 		return $this->appConfig->getValueString(Application::APP_ID, 'signature_background_type', 'default');
 	}
 
+	public function isEnabled(): bool {
+		return $this->getSignatureBackgroundType() !== 'deleted';
+	}
+
 	public function wasBackgroundScaled(): bool {
 		return $this->wasBackgroundScaled;
 	}
