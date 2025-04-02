@@ -90,6 +90,7 @@
 
 <script>
 import axios from '@nextcloud/axios'
+import { getCapabilities } from '@nextcloud/capabilities'
 import { showSuccess } from '@nextcloud/dialogs'
 import { subscribe, unsubscribe, emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
@@ -189,6 +190,9 @@ export default {
 	methods: {
 		showModal() {
 			if (!this.canRequestSign) {
+				return
+			}
+			if (getCapabilities()?.libresign?.config?.['sign-elements']?.['is-available'] === false) {
 				return
 			}
 			this.modal = true
