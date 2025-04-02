@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div class="signatures">
+	<div v-if="isSignaturesAvailable()" class="signatures">
 		<h1>{{ t('libresign', 'Your signatures') }}</h1>
 
 		<Signature type="signature">
@@ -29,12 +29,19 @@
 </template>
 
 <script>
+import { getCapabilities } from '@nextcloud/capabilities'
+
 import Signature from './Signature.vue'
 
 export default {
 	name: 'Signatures',
 	components: {
 		Signature,
+	},
+	methods: {
+		isSignaturesAvailable() {
+			return getCapabilities()?.libresign?.config?.['sign-elements']?.['is-available'] === true
+		},
 	},
 }
 </script>
