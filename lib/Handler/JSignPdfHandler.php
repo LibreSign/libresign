@@ -64,14 +64,18 @@ class JSignPdfHandler extends SignEngineHandler {
 	public function getJSignParam(): JSignParam {
 		if (!$this->jSignParam) {
 			$javaPath = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
+			$tempPath = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_temp_path', sys_get_temp_dir() . DIRECTORY_SEPARATOR);
+			if (!is_writable($tempPath)) {
+				throw new \Exception('The path ' . $tempPath . ' is not writtable. Fix this or change the LibreSign app setting jsignpdf_temp_path to a writtable path');
+			}
+			$jSignPdfJarPath = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path', '/opt/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '/JSignPdf.jar');
+			if (!file_exists($jSignPdfJarPath)) {
+				throw new \Exception('Invalid JSignPdf jar path. Run occ libresign:install --jsignpdf');
+			}
 			$this->jSignParam = (new JSignParam())
-				->setTempPath(
-					$this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_temp_path', sys_get_temp_dir() . DIRECTORY_SEPARATOR)
-				)
+				->setTempPath($tempPath)
 				->setIsUseJavaInstalled(empty($javaPath))
-				->setjSignPdfJarPath(
-					$this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path', '/opt/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '/JSignPdf.jar')
-				);
+				->setjSignPdfJarPath($jSignPdfJarPath);
 			if (!empty($javaPath)) {
 				if (!file_exists($javaPath)) {
 					throw new \Exception('Invalid Java binary. Run occ libresign:install --java');
