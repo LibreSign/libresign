@@ -31,6 +31,7 @@ use OCP\ITempManager;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
 use OCP\IUserSession;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
@@ -61,8 +62,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IURLGenerator&MockObject $urlGenerator;
 	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
 	private ITempManager&MockObject $tempManager;
-	private IdentifyMethodService $identifyMethodService;
-	private ITimeFactory $timeFactory;
+	private IdentifyMethodService&MockObject $identifyMethodService;
+	private ITimeFactory&MockObject $timeFactory;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -80,7 +81,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
-		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->appConfig = $this->getMockAppConfig();
 		$this->validateHelper = $this->createMock(\OCA\Libresign\Helper\ValidateHelper::class);
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
@@ -247,4 +248,45 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			['application/pdf', 'file.pdf', 'pdf'],
 		];
 	}
+
+	#[DataProvider('providerStoreUserMetadata')]
+	public function testStoreUserMetadata(bool $collectMetadata, ?array $previous, array $new, ?array $expected): void {
+		$signRequest = new \OCA\Libresign\Db\SignRequest();
+		$this->appConfig->setValueBool('libresign', 'collect_metadata', $collectMetadata);
+		$signRequest->setMetadata($previous);
+		$this->getService()
+			->setSignRequest($signRequest)
+			->storeUserMetadata($new);
+		$this->assertEquals(
+			$expected,
+			$signRequest->getMetadata()
+		);
+	}
+
+	public static function providerStoreUserMetadata(): array {
+		return [
+			// don't collect metadata
+			[false, null, [],                  null],
+			[false, null, ['b' => 2],          null],
+			[false, null, ['b' => null],       null],
+			[false, null, ['b' => []],         null],
+			[false, null, ['b' => ['']],       null],
+			[false, null, ['b' => ['b' => 1]], null],
+			// collect metadata without previous value
+			[true, null, [],                  null],
+			[true, null, ['b' => 2],          ['b' => 2]],
+			[true, null, ['b' => null],       ['b' => null]],
+			[true, null, ['b' => []],         ['b' => []]],
+			[true, null, ['b' => ['']],       ['b' => ['']]],
+			[true, null, ['b' => ['b' => 1]], ['b' => ['b' => 1]]],
+			// collect metadata with previous value
+			[true, ['a' => 1], ['a' => 2],          ['a' => 2]],
+			[true, ['a' => 1], ['a' => null],       ['a' => null]],
+			[true, ['a' => 1], ['a' => []],         ['a' => []]],
+			[true, ['a' => 1], ['a' => ['']],       ['a' => ['']]],
+			[true, ['a' => 1], ['a' => ['b' => 1]], ['a' => ['b' => 1]]],
+			[true, ['a' => 1], ['b' => 2],          ['a' => 1, 'b' => 2]],
+		];
+	}
+
 }
