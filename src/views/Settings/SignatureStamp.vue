@@ -167,7 +167,7 @@
 				<div ref="rightColumn"
 					class="right-column"
 					:style="{
-						'font-size': (fontSize  * 0.75) + 'pt',
+						'font-size': (fontSize * 0.75) + 'pt',
 						display: renderMode === 'GRAPHIC_ONLY' ? 'none' : '',
 					}"
 					@resize="checkPreviewOverflow"
