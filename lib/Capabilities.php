@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign;
 
-use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\App\IAppManager;
 use OCP\Capabilities\IPublicCapability;
