@@ -50,6 +50,7 @@ OC.L10N.register(
     "Type" : "Tüüp",
     "Status" : "Staatus",
     "Actions" : "Tegevused",
+    "Delete certificate" : "Kustuta sertifikaat",
     "Signature" : "Allkiri",
     "Profile picture" : "Profiili pilt",
     "Create account" : "Loo konto",
