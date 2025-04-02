@@ -187,6 +187,15 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
+        Capabilities: {
+            features: string[];
+            config: {
+                "sign-elements": {
+                    "is-available": boolean;
+                };
+            };
+            version: string;
+        };
         CetificateDataGenerated: components["schemas"]["EngineHandler"] & {
             generated: boolean;
         };
@@ -208,6 +217,9 @@ export type components = {
             message?: string;
             totalitems?: string;
             itemsperpage?: string;
+        };
+        PublicCapabilities: {
+            libresign?: components["schemas"]["Capabilities"];
         };
         RootCertificate: {
             commonName: string;

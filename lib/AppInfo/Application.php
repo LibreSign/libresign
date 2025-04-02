@@ -11,6 +11,7 @@ namespace OCA\Libresign\AppInfo;
 use OCA\Files\Event\LoadAdditionalScriptsEvent;
 use OCA\Files\Event\LoadSidebar;
 use OCA\Libresign\Activity\Listener as ActivityListener;
+use OCA\Libresign\Capabilities;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Files\TemplateLoader as FilesTemplateLoader;
@@ -55,6 +56,7 @@ class Application extends App implements IBootstrap {
 	public function register(IRegistrationContext $context): void {
 		$context->registerMiddleWare(GlobalInjectionMiddleware::class, true);
 		$context->registerMiddleWare(InjectionMiddleware::class);
+		$context->registerCapability(Capabilities::class);
 
 		$context->registerNotifierService(Notifier::class);
 

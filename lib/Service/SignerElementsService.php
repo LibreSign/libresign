@@ -27,6 +27,8 @@ class SignerElementsService {
 		private SessionService $sessionService,
 		private IURLGenerator $urlGenerator,
 		private UserElementMapper $userElementMapper,
+		private SignatureBackgroundService $signatureBackgroundService,
+		private SignatureTextService $signatureTextService,
 	) {
 	}
 
@@ -129,5 +131,9 @@ class SignerElementsService {
 			];
 		}
 		return $return;
+	}
+
+	public function isSignElementsAvailable(): bool {
+		return $this->signatureBackgroundService->isEnabled() || $this->signatureTextService->isEnabled();
 	}
 }
