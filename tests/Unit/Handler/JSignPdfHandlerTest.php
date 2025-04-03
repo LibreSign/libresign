@@ -14,8 +14,8 @@ use OCA\Libresign\Handler\JSignPdfHandler;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCP\IAppConfig;
-use PHPUnit\Framework\Attributes\DataProvider;
 use OCP\ITempManager;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
@@ -102,6 +102,32 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[sys_get_temp_dir(), 'b',      __FILE__, true],
 			[sys_get_temp_dir(), __FILE__, __FILE__, false],
 			[sys_get_temp_dir(), __FILE__, '',       true],
+		];
+	}
+
+	#[DataProvider('providerGetSignatureText')]
+	public function testGetSignatureText(string $renderMode, string $template, string $expected): void {
+		$this->signatureTextService->method('parse')
+			->willReturn(['parsed' => trim($template, '"')]);
+		$this->signatureTextService->method('getRenderMode')
+			->willReturn($renderMode);
+		$jSignPdfHandler = $this->getClass();
+		$actual = $jSignPdfHandler->getSignatureText();
+		$this->assertEquals($expected, $actual);
+	}
+
+	public static function providerGetSignatureText(): array {
+		return [
+			['FAKE_RENDER_MODE', '',     '""'],
+			['FAKE_RENDER_MODE', 'a',    '"a"'],
+			['FAKE_RENDER_MODE', "a\na", "\"a\na\""],
+			['FAKE_RENDER_MODE', 'a"a',  '"a\"a"'],
+			['FAKE_RENDER_MODE', 'a$a',  '"a\$a"'],
+			['GRAPHIC_ONLY',     '',     '""'],
+			['GRAPHIC_ONLY',     'a',    '""'],
+			['GRAPHIC_ONLY',     "a\na", '""'],
+			['GRAPHIC_ONLY',     'a"a',  '""'],
+			['GRAPHIC_ONLY',     'a$a',  '""'],
 		];
 	}
 }
