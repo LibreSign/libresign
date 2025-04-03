@@ -167,8 +167,9 @@ class JSignPdfHandler extends SignEngineHandler {
 						$params['--bg-path'] = $backgroundPath;
 						$params['--img-path'] = $signatureImagePath;
 					} else {
-						$params['--render-mode'] = 'DESCRIPTION_ONLY';
-						$params['--bg-path'] = $backgroundPath;
+						// --render-mode DESCRIPTION_ONLY, this is the default
+						// render-mode, because this, is unecessary to set here
+						$params['--bg-path'] = $this->mergeBackgroundWithSignature($backgroundPath, $signatureImagePath);
 					}
 				}
 				$param->setJSignParameters(
