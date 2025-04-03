@@ -132,20 +132,29 @@ class JSignPdfHandler extends SignEngineHandler {
 		$visibleElements = $this->getVisibleElements();
 		if ($visibleElements) {
 			$jSignPdf = $this->getJSignPdf();
-			$param = $this->getJSignParam();
+
 			$renderMode = $this->signatureTextService->getRenderMode();
-			$backgroundType = $this->signatureBackgroundService->getSignatureBackgroundType();
+
 			$params = [
 				'--l2-text' => $this->getSignatureText(),
-				'--font-size' => $this->parseSignatureText()['fontSize'],
 				'-V' => null,
 			];
+
+			$params['--font-size'] = $this->parseSignatureText()['fontSize'];
+			if ($params['--font-size'] === 10 || !$params['--font-size'] || $params['--l2-text'] === '""') {
+				unset($params['--font-size']);
+			}
+
+			$backgroundType = $this->signatureBackgroundService->getSignatureBackgroundType();
 			if ($backgroundType !== 'deleted') {
 				$backgroundPath = $this->signatureBackgroundService->getImagePath();
 			} else {
 				$backgroundPath = '';
 			}
+
+			$param = $this->getJSignParam();
 			$originalParam = clone $param;
+
 			foreach ($visibleElements as $element) {
 				$params['-pg'] = $element->getFileElement()->getPage();
 				if ($params['-pg'] <= 1) {

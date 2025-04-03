@@ -54,6 +54,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		string $template,
 		string $signatureBackgroundType,
 		string $renderMode,
+		int $fontSize,
 		string $pdfContent,
 		?string $hashAlgorithm,
 		string $params,
@@ -69,13 +70,13 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 
 		$this->signatureBackgroundService->method('getImagePath')->willReturn(
-			realpath(__DIR__ . '/../../../img/app-dark.png')
+			realpath(__DIR__ . '/../../../img/LibreSign.png')
 		);
 
 		$this->signatureTextService->method('parse')
 			->willReturn([
 				'parsed' => trim($template, '"'),
-				'fontSize' => 10,
+				'fontSize' => $fontSize,
 			]);
 
 		$this->signatureTextService->method('getRenderMode')->willReturn($renderMode);
@@ -97,26 +98,27 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$jSignParam = $jSignPdfHandler->getJSignParam();
 		$this->assertEquals('password', $jSignParam->getPassword());
 		$paramsAsOptions = $jSignParam->getJSignParameters();
-		$paramsAsOptions = preg_replace('/bg-path \/\S+_merged.png/', 'bg-path merged.png', $paramsAsOptions);
-		$paramsAsOptions = preg_replace('/bg-path \/\S+app-dark.png/', 'bg-path background.png', $paramsAsOptions);
-		$paramsAsOptions = preg_replace('/img-path \/\S+app-dark.png/', 'img-path signature.png', $paramsAsOptions);
+		$paramsAsOptions = preg_replace('/\\/\S+_merged.png/', 'merged.png', $paramsAsOptions);
+		$paramsAsOptions = preg_replace('/\\/\S+LibreSign.png/', 'background.png', $paramsAsOptions);
+		$paramsAsOptions = preg_replace('/\\/\S+app-dark.png/', 'signature.png', $paramsAsOptions);
 		$this->assertEquals($params, $paramsAsOptions);
 	}
 
 	public static function providerSignAffectedParams(): array {
 		return [
-			[[], '', '', '', '%PDF-1',   '',          '-a -kst PKCS12 --hash-algorithm SHA1'],
-			[[], '', '', '', '%PDF-1.5', 'SHA1',      '-a -kst PKCS12 --hash-algorithm SHA1'],
-			[[], '', '', '', '%PDF-1.5', 'SHA256',    '-a -kst PKCS12 --hash-algorithm SHA1'],
-			[[], '', '', '', '%PDF-1.6', 'SHA1',      '-a -kst PKCS12 --hash-algorithm SHA256'],
-			[[], '', '', '', '%PDF-1.6', 'SHA256',    '-a -kst PKCS12 --hash-algorithm SHA256'],
-			[[], '', '', '', '%PDF-1.6', 'SHA384',    '-a -kst PKCS12 --hash-algorithm SHA256'],
-			[[], '', '', '', '%PDF-1.6', 'SHA512',    '-a -kst PKCS12 --hash-algorithm SHA256'],
-			[[], '', '', '', '%PDF-1.7', 'SHA1',      '-a -kst PKCS12 --hash-algorithm SHA256'],
-			[[], '', '', '', '%PDF-1.7', 'SHA384',    '-a -kst PKCS12 --hash-algorithm SHA384'],
-			[[], '', '', '', '%PDF-1.7', 'SHA512',    '-a -kst PKCS12 --hash-algorithm SHA512'],
-			[[], '', '', '', '%PDF-1.7', 'RIPEMD160', '-a -kst PKCS12 --hash-algorithm RIPEMD160'],
-			[
+			// variations of hash algorithm
+			[[], '', '', '', 0, '%PDF-1',   '',          '-a -kst PKCS12 --hash-algorithm SHA1'],
+			[[], '', '', '', 0, '%PDF-1.5', 'SHA1',      '-a -kst PKCS12 --hash-algorithm SHA1'],
+			[[], '', '', '', 0, '%PDF-1.5', 'SHA256',    '-a -kst PKCS12 --hash-algorithm SHA1'],
+			[[], '', '', '', 0, '%PDF-1.6', 'SHA1',      '-a -kst PKCS12 --hash-algorithm SHA256'],
+			[[], '', '', '', 0, '%PDF-1.6', 'SHA256',    '-a -kst PKCS12 --hash-algorithm SHA256'],
+			[[], '', '', '', 0, '%PDF-1.6', 'SHA384',    '-a -kst PKCS12 --hash-algorithm SHA256'],
+			[[], '', '', '', 0, '%PDF-1.6', 'SHA512',    '-a -kst PKCS12 --hash-algorithm SHA256'],
+			[[], '', '', '', 0, '%PDF-1.7', 'SHA1',      '-a -kst PKCS12 --hash-algorithm SHA256'],
+			[[], '', '', '', 0, '%PDF-1.7', 'SHA384',    '-a -kst PKCS12 --hash-algorithm SHA384'],
+			[[], '', '', '', 0, '%PDF-1.7', 'SHA512',    '-a -kst PKCS12 --hash-algorithm SHA512'],
+			[[], '', '', '', 0, '%PDF-1.7', 'RIPEMD160', '-a -kst PKCS12 --hash-algorithm RIPEMD160'],
+			'page = 1 is default, do not will set the page' => [
 				[self::getElement([
 					'page' => 1,
 					'llx' => 0,
@@ -127,11 +129,12 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'',
 				'default',
 				'DESCRIPTION_ONLY',
+				10,
 				'%PDF-1.6',
 				'',
-				'-a -kst PKCS12 --l2-text "" --font-size 10 -V -llx 0 -lly 0 -urx 0 -ury 0 --bg-path merged.png --hash-algorithm SHA256'
+				'-a -kst PKCS12 --l2-text "" -V -llx 0 -lly 0 -urx 0 -ury 0 --bg-path merged.png --hash-algorithm SHA256'
 			],
-			[
+			'page != 1: will have pg; without template: l2-text empty' => [
 				[self::getElement([
 					'page' => 2,
 					'llx' => 10,
@@ -142,11 +145,12 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'',
 				'default',
 				'DESCRIPTION_ONLY',
+				10,
 				'%PDF-1.6',
 				'',
-				'-a -kst PKCS12 --l2-text "" --font-size 10 -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png --hash-algorithm SHA256'
+				'-a -kst PKCS12 --l2-text "" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png --hash-algorithm SHA256'
 			],
-			[
+			'with template we have the l2-text' => [
 				[self::getElement([
 					'page' => 2,
 					'llx' => 10,
@@ -157,11 +161,28 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'aaaaa',
 				'default',
 				'DESCRIPTION_ONLY',
+				10,
 				'%PDF-1.6',
 				'',
-				'-a -kst PKCS12 --l2-text "aaaaa" --font-size 10 -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png --hash-algorithm SHA256'
+				'-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png --hash-algorithm SHA256'
 			],
-			[
+			'font size != 10' => [
+				[self::getElement([
+					'page' => 2,
+					'llx' => 10,
+					'lly' => 20,
+					'urx' => 30,
+					'ury' => 40,
+				])],
+				'aaaaa',
+				'default',
+				'DESCRIPTION_ONLY',
+				11,
+				'%PDF-1.6',
+				'',
+				'-a -kst PKCS12 --l2-text "aaaaa" -V --font-size 11 -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png --hash-algorithm SHA256'
+			],
+			'background = deleted: bg-path = signature' => [
 				[self::getElement([
 					'page' => 2,
 					'llx' => 10,
@@ -172,11 +193,12 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'aaaaa',
 				'deleted',
 				'DESCRIPTION_ONLY',
+				10,
 				'%PDF-1.6',
 				'',
-				'-a -kst PKCS12 --l2-text "aaaaa" --font-size 10 -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path background.png --hash-algorithm SHA256'
+				'-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path signature.png --hash-algorithm SHA256'
 			],
-			[
+			'background and template, bg-path = background, img-path = signature' => [
 				[self::getElement([
 					'page' => 2,
 					'llx' => 10,
@@ -187,9 +209,26 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'aaaaa',
 				'default',
 				'GRAPHIC_AND_DESCRIPTION',
+				10,
 				'%PDF-1.6',
 				'',
-				'-a -kst PKCS12 --l2-text "aaaaa" --font-size 10 -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --bg-path background.png --img-path signature.png --hash-algorithm SHA256'
+				'-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --bg-path background.png --img-path signature.png --hash-algorithm SHA256'
+			],
+			'background without template: bg-path = merged with signature, without img-path' => [
+				[self::getElement([
+					'page' => 2,
+					'llx' => 10,
+					'lly' => 20,
+					'urx' => 30,
+					'ury' => 40,
+				])],
+				'',
+				'default',
+				'GRAPHIC_AND_DESCRIPTION',
+				10,
+				'%PDF-1.6',
+				'',
+				'-a -kst PKCS12 --l2-text "" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png --hash-algorithm SHA256'
 			],
 		];
 	}
