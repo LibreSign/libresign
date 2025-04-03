@@ -105,13 +105,17 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public static function providerSignAffectedParams(): array {
 		return [
-			[[], '', '', '', '%PDF-1',   '',       '-a -kst PKCS12 --hash-algorithm SHA1'],
-			[[], '', '', '', '%PDF-1.5', 'SHA1',   '-a -kst PKCS12 --hash-algorithm SHA1'],
-			[[], '', '', '', '%PDF-1.5', 'SHA256', '-a -kst PKCS12 --hash-algorithm SHA1'],
-			[[], '', '', '', '%PDF-1.6', 'SHA1',   '-a -kst PKCS12 --hash-algorithm SHA256'],
-			[[], '', '', '', '%PDF-1.6', 'SHA256', '-a -kst PKCS12 --hash-algorithm SHA256'],
-			[[], '', '', '', '%PDF-1.6', 'SHA512', '-a -kst PKCS12 --hash-algorithm SHA256'],
-			[[], '', '', '', '%PDF-1.7', 'SHA512', '-a -kst PKCS12 --hash-algorithm SHA512'],
+			[[], '', '', '', '%PDF-1',   '',          '-a -kst PKCS12 --hash-algorithm SHA1'],
+			[[], '', '', '', '%PDF-1.5', 'SHA1',      '-a -kst PKCS12 --hash-algorithm SHA1'],
+			[[], '', '', '', '%PDF-1.5', 'SHA256',    '-a -kst PKCS12 --hash-algorithm SHA1'],
+			[[], '', '', '', '%PDF-1.6', 'SHA1',      '-a -kst PKCS12 --hash-algorithm SHA256'],
+			[[], '', '', '', '%PDF-1.6', 'SHA256',    '-a -kst PKCS12 --hash-algorithm SHA256'],
+			[[], '', '', '', '%PDF-1.6', 'SHA384',    '-a -kst PKCS12 --hash-algorithm SHA256'],
+			[[], '', '', '', '%PDF-1.6', 'SHA512',    '-a -kst PKCS12 --hash-algorithm SHA256'],
+			[[], '', '', '', '%PDF-1.7', 'SHA1',      '-a -kst PKCS12 --hash-algorithm SHA256'],
+			[[], '', '', '', '%PDF-1.7', 'SHA384',    '-a -kst PKCS12 --hash-algorithm SHA384'],
+			[[], '', '', '', '%PDF-1.7', 'SHA512',    '-a -kst PKCS12 --hash-algorithm SHA512'],
+			[[], '', '', '', '%PDF-1.7', 'RIPEMD160', '-a -kst PKCS12 --hash-algorithm RIPEMD160'],
 			[
 				[self::getElement([
 					'page' => 1,
