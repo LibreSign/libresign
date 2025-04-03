@@ -9,8 +9,11 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use Jeidison\JSignPDF\JSignPDF;
+use Jeidison\JSignPDF\Sign\JSignParam;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCP\IAppConfig;
+use OCP\ITempManager;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
@@ -18,15 +21,20 @@ use Psr\Log\LoggerInterface;
  * @internal
  */
 final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	private JSignPdfHandler $class;
-	private IAppConfig&MockObject $appConfig;
+	private IAppConfig $appConfig;
 	private LoggerInterface&MockObject $loggerInterface;
+	private ITempManager&MockObject $tempManager;
 	public function setUp(): void {
-		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->appConfig = $this->getMockAppConfig();
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
-		$this->class = new JSignPdfHandler(
+		$this->tempManager = $this->createMock(ITempManager::class);
+	}
+
+	private function getClass(): JSignPdfHandler {
+		return new JSignPdfHandler(
 			$this->appConfig,
 			$this->loggerInterface,
+			$this->tempManager,
 		);
 	}
 
@@ -34,11 +42,58 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$inputFile = $this->createMock(\OC\Files\Node\File::class);
 		$mock = $this->createMock(JSignPDF::class);
 		$mock->method('sign')->willReturn('content');
-		$this->class->setJSignPdf($mock);
-		$this->class->setInputFile($inputFile);
-		$this->class->setCertificate('');
-		$this->class->setPassword('password');
-		$actual = $this->class->getSignedContent();
+
+		$this->appConfig->setValueString('libresign', 'java_path', __FILE__);
+		$this->appConfig->setValueString('libresign', 'jsignpdf_temp_path', sys_get_temp_dir());
+		$this->appConfig->setValueString('libresign', 'jsignpdf_jar_path', __FILE__);
+
+		$jSignPdfHandler = $this->getClass();
+		$jSignPdfHandler->setJSignPdf($mock);
+		$jSignPdfHandler->setInputFile($inputFile);
+		$jSignPdfHandler->setCertificate('');
+		$jSignPdfHandler->setPassword('password');
+		$actual = $jSignPdfHandler->getSignedContent();
 		$this->assertEquals('content', $actual);
+	}
+
+
+	#[DataProvider('providerGetJSignParam')]
+	public function testGetJSignParam(string $temp_path, string $java_path, string $jar_path, bool $throwException): void {
+		$expected = new JSignParam();
+
+		$this->appConfig->setValueString('libresign', 'java_path', $java_path);
+		$expected->setJavaPath($java_path);
+
+		$this->appConfig->setValueString('libresign', 'jsignpdf_temp_path', $temp_path);
+		$expected->setTempPath($temp_path);
+
+		$this->appConfig->setValueString('libresign', 'jsignpdf_jar_path', $jar_path);
+		$expected->setjSignPdfJarPath($jar_path);
+
+		$jSignPdfHandler = $this->getClass();
+		if ($throwException) {
+			$this->expectException(\Exception::class);
+			$jSignParam = $jSignPdfHandler->getJSignParam();
+		} else {
+			$jSignParam = $jSignPdfHandler->getJSignParam();
+			$this->assertEquals($expected->getPdf(), $jSignParam->getPdf());
+			$this->assertEquals($expected->getJavaPath(), $jSignParam->getJavaPath());
+			$this->assertEquals($expected->getTempPath(), $jSignParam->getTempPath());
+			$this->assertEquals($expected->getjSignPdfJarPath(), $jSignParam->getjSignPdfJarPath());
+			$this->assertEquals('-a -kst PKCS12', $jSignParam->getJSignParameters());
+		}
+	}
+
+	public static function providerGetJSignParam(): array {
+		return [
+			['',                 '',       __FILE__, true],
+			['invalid',          '',       __FILE__, true],
+			[sys_get_temp_dir(), '',       __FILE__, false],
+			[sys_get_temp_dir(), 'b',      __FILE__, true],
+			[sys_get_temp_dir(), __FILE__, __FILE__, false],
+			[sys_get_temp_dir(), 'b',      __FILE__, true],
+			[sys_get_temp_dir(), __FILE__, __FILE__, false],
+			[sys_get_temp_dir(), __FILE__, '',       true],
+		];
 	}
 }
