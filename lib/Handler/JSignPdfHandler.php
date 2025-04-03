@@ -145,6 +145,9 @@ class JSignPdfHandler extends SignEngineHandler {
 			$originalParam = clone $param;
 			foreach ($visibleElements as $element) {
 				$params['-pg'] = $element->getFileElement()->getPage();
+				if ($params['-pg'] <= 1) {
+					unset($params['-pg']);
+				}
 				$params['-llx'] = $element->getFileElement()->getLlx();
 				$params['-lly'] = $element->getFileElement()->getLly();
 				$params['-urx'] = $element->getFileElement()->getUrx();
