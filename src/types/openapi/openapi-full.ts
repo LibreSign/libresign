@@ -1017,6 +1017,62 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-background": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get custom background image
+         * @description This endpoint requires admin access
+         */
+        get: operations["admin-signature-background-get"];
+        put?: never;
+        /**
+         * Add custom background image
+         * @description This endpoint requires admin access
+         */
+        post: operations["admin-signature-background-save"];
+        /**
+         * Delete background image
+         * @description This endpoint requires admin access
+         */
+        delete: operations["admin-signature-background-delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Reset the background image to be the default of LibreSign
+         * @description This endpoint requires admin access
+         */
+        patch: operations["admin-signature-background-reset"];
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-text": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get parsed signature text service
+         * @description This endpoint requires admin access
+         */
+        get: operations["admin-signature-text-get"];
+        put?: never;
+        /**
+         * Save signature text service
+         * @description This endpoint requires admin access
+         */
+        post: operations["admin-signature-text-save"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
         parameters: {
             query?: never;
@@ -1045,6 +1101,15 @@ export type components = {
             file: components["schemas"]["NewFile"];
             name?: string;
             type?: string;
+        };
+        Capabilities: {
+            features: string[];
+            config: {
+                "sign-elements": {
+                    "is-available": boolean;
+                };
+            };
+            version: string;
         };
         CertificatePfxData: {
             name: string;
@@ -1193,6 +1258,9 @@ export type components = {
             prev: string | null;
             last: string | null;
             first: string | null;
+        };
+        PublicCapabilities: {
+            libresign?: components["schemas"]["Capabilities"];
         };
         RootCertificate: {
             commonName: string;
@@ -4392,6 +4460,276 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: unknown;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-signature-background-get": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Image returned */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+        };
+    };
+    "admin-signature-background-save": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** @enum {string} */
+                                status: "success";
+                                wasScalled: boolean;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** @enum {string} */
+                                status: "failure";
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-signature-background-delete": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted with success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** @enum {string} */
+                                status: "success";
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-signature-background-reset": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Image reseted to default */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** @enum {string} */
+                                status: "success";
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-signature-text-get": {
+        parameters: {
+            query?: {
+                /** @description Template to signature text */
+                template?: string;
+                /** @description Context for parsing the template */
+                context?: string;
+            };
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                template: string;
+                                parsed: string;
+                                /** Format: double */
+                                fontSize: number;
+                                renderMode: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Bad request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-signature-text-save": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Template to signature text */
+                    template: string;
+                    /**
+                     * Format: double
+                     * @description Font size used when print the parsed text of this template at PDF file
+                     * @default 6
+                     */
+                    fontSize?: number;
+                    /**
+                     * @description Signature render mode
+                     * @default GRAPHIC_AND_DESCRIPTION
+                     */
+                    renderMode?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                template: string;
+                                parsed: string;
+                                /** Format: double */
+                                fontSize: number;
+                                renderMode: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Bad request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                error: string;
+                            };
                         };
                     };
                 };

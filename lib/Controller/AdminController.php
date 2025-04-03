@@ -16,10 +16,14 @@ use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\SignatureBackgroundService;
+use OCA\Libresign\Service\SignatureTextService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\IAppConfig;
 use OCP\IEventSource;
 use OCP\IEventSourceFactory;
@@ -42,8 +46,10 @@ class AdminController extends AEnvironmentAwareController {
 		private InstallService $installService,
 		private CertificateEngineHandler $certificateEngineHandler,
 		private IEventSourceFactory $eventSourceFactory,
+		private SignatureTextService $signatureTextService,
 		private IL10N $l10n,
 		protected ISession $session,
+		private SignatureBackgroundService $signatureBackgroundService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->eventSource = $this->eventSourceFactory->create();
@@ -264,4 +270,178 @@ class AdminController extends AEnvironmentAwareController {
 		exit();
 	}
 
+	/**
+	 * Add custom background image
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{status: 'success', wasScalled: boolean}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{status: 'failure', message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 422: Error
+	 */
+	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-background', requirements: ['apiVersion' => '(v1)'])]
+	public function signatureBackgroundSave(): DataResponse {
+		$image = $this->request->getUploadedFile('image');
+		$phpFileUploadErrors = [
+			UPLOAD_ERR_OK => $this->l10n->t('The file was uploaded'),
+			UPLOAD_ERR_INI_SIZE => $this->l10n->t('The uploaded file exceeds the upload_max_filesize directive in php.ini'),
+			UPLOAD_ERR_FORM_SIZE => $this->l10n->t('The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form'),
+			UPLOAD_ERR_PARTIAL => $this->l10n->t('The file was only partially uploaded'),
+			UPLOAD_ERR_NO_FILE => $this->l10n->t('No file was uploaded'),
+			UPLOAD_ERR_NO_TMP_DIR => $this->l10n->t('Missing a temporary folder'),
+			UPLOAD_ERR_CANT_WRITE => $this->l10n->t('Could not write file to disk'),
+			UPLOAD_ERR_EXTENSION => $this->l10n->t('A PHP extension stopped the file upload'),
+		];
+		if (empty($image)) {
+			$error = $this->l10n->t('No file uploaded');
+		} elseif (!empty($image) && array_key_exists('error', $image) && $image['error'] !== UPLOAD_ERR_OK) {
+			$error = $phpFileUploadErrors[$image['error']];
+		}
+		if ($error !== null) {
+			return new DataResponse(
+				[
+					'message' => $error,
+					'status' => 'failure',
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+		try {
+			$this->signatureBackgroundService->updateImage($image['tmp_name']);
+		} catch (\Exception $e) {
+			return new DataResponse(
+				[
+					'message' => $e->getMessage(),
+					'status' => 'failure',
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+
+		return new DataResponse(
+			[
+				'status' => 'success',
+				'wasScalled' => $this->signatureBackgroundService->wasBackgroundScaled(),
+			]
+		);
+	}
+
+	/**
+	 * Get custom background image
+	 *
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: Image returned
+	 */
+	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/signature-background', requirements: ['apiVersion' => '(v1)'])]
+	public function signatureBackgroundGet(): FileDisplayResponse {
+		$file = $this->signatureBackgroundService->getImage();
+
+		$response = new FileDisplayResponse($file);
+		$csp = new ContentSecurityPolicy();
+		$csp->allowInlineStyle();
+		$response->setContentSecurityPolicy($csp);
+		$response->cacheFor(3600);
+		$response->addHeader('Content-Type', 'image/png');
+		$response->addHeader('Content-Disposition', 'attachment; filename="background.png"');
+		$response->addHeader('Content-Type', 'image/png');
+		return $response;
+	}
+
+	/**
+	 * Reset the background image to be the default of LibreSign
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>
+	 *
+	 * 200: Image reseted to default
+	 */
+	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/admin/signature-background', requirements: ['apiVersion' => '(v1)'])]
+	public function signatureBackgroundReset(): DataResponse {
+		$this->signatureBackgroundService->reset();
+		return new DataResponse(
+			[
+				'status' => 'success',
+			]
+		);
+	}
+
+	/**
+	 * Delete background image
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>
+	 *
+	 * 200: Deleted with success
+	 */
+	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/admin/signature-background', requirements: ['apiVersion' => '(v1)'])]
+	public function signatureBackgroundDelete(): DataResponse {
+		$this->signatureBackgroundService->delete();
+		return new DataResponse(
+			[
+				'status' => 'success',
+			]
+		);
+	}
+
+	/**
+	 * Save signature text service
+	 *
+	 * @param string $template Template to signature text
+	 * @param float $fontSize Font size used when print the parsed text of this template at PDF file
+	 * @param string $renderMode Signature render mode
+	 * @return DataResponse<Http::STATUS_OK, array{template: string, parsed: string, fontSize: float, renderMode: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 *
+	 * 200: OK
+	 * 400: Bad request
+	 */
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-text', requirements: ['apiVersion' => '(v1)'])]
+	public function signatureTextSave(string $template, float $fontSize = 6, string $renderMode = 'GRAPHIC_AND_DESCRIPTION'): DataResponse {
+		try {
+			$return = $this->signatureTextService->save(
+				$template,
+				$fontSize,
+				$renderMode,
+			);
+			return new DataResponse(
+				$return,
+				Http::STATUS_OK
+			);
+		} catch (LibresignException $th) {
+			return new DataResponse(
+				[
+					'error' => $th->getMessage(),
+				],
+				Http::STATUS_BAD_REQUEST
+			);
+		}
+	}
+
+	/**
+	 * Get parsed signature text service
+	 *
+	 * @param string $template Template to signature text
+	 * @param string $context Context for parsing the template
+	 * @return DataResponse<Http::STATUS_OK, array{template: string,parsed: string, fontSize: float, renderMode: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 *
+	 * 200: OK
+	 * 400: Bad request
+	 */
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/signature-text', requirements: ['apiVersion' => '(v1)'])]
+	public function signatureTextGet(string $template = '', string $context = ''): DataResponse {
+		$context = json_decode($context, true) ?? [];
+		try {
+			$return = $this->signatureTextService->parse($template, $context);
+			return new DataResponse(
+				$return,
+				Http::STATUS_OK
+			);
+		} catch (LibresignException $th) {
+			return new DataResponse(
+				[
+					'error' => $th->getMessage(),
+				],
+				Http::STATUS_BAD_REQUEST
+			);
+		}
+	}
 }

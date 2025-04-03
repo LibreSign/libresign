@@ -8,13 +8,19 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler;
 
+use Imagick;
+use ImagickPixel;
 use Jeidison\JSignPDF\JSignPDF;
 use Jeidison\JSignPDF\Sign\JSignParam;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\SignatureBackgroundService;
+use OCA\Libresign\Service\SignatureTextService;
+use OCA\Libresign\Service\SignerElementsService;
 use OCP\Files\File;
 use OCP\IAppConfig;
+use OCP\ITempManager;
 use Psr\Log\LoggerInterface;
 
 class JSignPdfHandler extends SignEngineHandler {
@@ -22,10 +28,14 @@ class JSignPdfHandler extends SignEngineHandler {
 	private $jSignPdf;
 	/** @var JSignParam */
 	private $jSignParam;
+	private array $parsedSignatureText = [];
 
 	public function __construct(
 		private IAppConfig $appConfig,
 		private LoggerInterface $logger,
+		private SignatureTextService $signatureTextService,
+		private ITempManager $tempManager,
+		private SignatureBackgroundService $signatureBackgroundService,
 	) {
 	}
 
@@ -71,14 +81,12 @@ class JSignPdfHandler extends SignEngineHandler {
 	}
 
 	private function getHashAlgorithm(): string {
+		$hashAlgorithm = $this->appConfig->getValueString(Application::APP_ID, 'signature_hash_algorithm', 'SHA256');
 		/**
 		 * Need to respect the follow code:
 		 * https://github.com/intoolswetrust/jsignpdf/blob/JSignPdf_2_2_2/jsignpdf/src/main/java/net/sf/jsignpdf/types/HashAlgorithm.java#L46-L47
 		 */
 		$content = $this->getInputFile()->getContent();
-		if (!$content) {
-			return 'SHA1';
-		}
 		preg_match('/^%PDF-(?<version>\d+(\.\d+)?)/', $content, $match);
 		if (isset($match['version'])) {
 			$version = (float)$match['version'];
@@ -88,9 +96,11 @@ class JSignPdfHandler extends SignEngineHandler {
 			if ($version < 1.7) {
 				return 'SHA256';
 			}
+			if ($version >= 1.7 && $hashAlgorithm === 'SHA1') {
+				return 'SHA256';
+			}
 		}
 
-		$hashAlgorithm = $this->appConfig->getValueString(Application::APP_ID, 'signature_hash_algorithm', 'SHA256');
 		if (in_array($hashAlgorithm, ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'])) {
 			return $hashAlgorithm;
 		}
@@ -122,21 +132,62 @@ class JSignPdfHandler extends SignEngineHandler {
 		$visibleElements = $this->getVisibleElements();
 		if ($visibleElements) {
 			$jSignPdf = $this->getJSignPdf();
+
+			$renderMode = $this->signatureTextService->getRenderMode();
+
+			$params = [
+				'--l2-text' => $this->getSignatureText(),
+				'-V' => null,
+			];
+
+			$params['--font-size'] = $this->parseSignatureText()['fontSize'];
+			if ($params['--font-size'] === 10 || !$params['--font-size'] || $params['--l2-text'] === '""') {
+				unset($params['--font-size']);
+			}
+
+			$backgroundType = $this->signatureBackgroundService->getSignatureBackgroundType();
+			if ($backgroundType !== 'deleted') {
+				$backgroundPath = $this->signatureBackgroundService->getImagePath();
+			} else {
+				$backgroundPath = '';
+			}
+
 			$param = $this->getJSignParam();
 			$originalParam = clone $param;
+
 			foreach ($visibleElements as $element) {
-				$param
-					->setJSignParameters(
-						$originalParam->getJSignParameters() .
-						' -pg ' . $element->getFileElement()->getPage() .
-						' -llx ' . $element->getFileElement()->getLlx() .
-						' -lly ' . $element->getFileElement()->getLly() .
-						' -urx ' . $element->getFileElement()->getUrx() .
-						' -ury ' . $element->getFileElement()->getUry() .
-						' --l2-text ""' .
-						' -V' .
-						' --bg-path ' . $element->getTempFile()
-					);
+				$params['-pg'] = $element->getFileElement()->getPage();
+				if ($params['-pg'] <= 1) {
+					unset($params['-pg']);
+				}
+				$params['-llx'] = $element->getFileElement()->getLlx();
+				$params['-lly'] = $element->getFileElement()->getLly();
+				$params['-urx'] = $element->getFileElement()->getUrx();
+				$params['-ury'] = $element->getFileElement()->getUry();
+				$signatureImagePath = $element->getTempFile();
+				if ($backgroundType === 'deleted') {
+					$params['--bg-path'] = $signatureImagePath;
+				} elseif ($params['--l2-text'] === '""') {
+					if ($backgroundPath) {
+						$params['--bg-path'] = $this->mergeBackgroundWithSignature($backgroundPath, $signatureImagePath);
+					} else {
+						$params['--bg-path'] = $signatureImagePath;
+					}
+				} else {
+					if ($renderMode === 'GRAPHIC_AND_DESCRIPTION') {
+						$params['--render-mode'] = 'GRAPHIC_AND_DESCRIPTION';
+						$params['--bg-path'] = $backgroundPath;
+						$params['--img-path'] = $signatureImagePath;
+					} else {
+						// --render-mode DESCRIPTION_ONLY, this is the default
+						// render-mode, because this, is unecessary to set here
+						$params['--bg-path'] = $this->mergeBackgroundWithSignature($backgroundPath, $signatureImagePath);
+					}
+				}
+				$param->setJSignParameters(
+					$originalParam->getJSignParameters() .
+					$this->listParamsToString($params)
+				);
 				$jSignPdf->setParam($param);
 				$signed = $this->signWrapper($jSignPdf);
 				$param->setPdf($signed);
@@ -144,6 +195,82 @@ class JSignPdfHandler extends SignEngineHandler {
 			return $signed;
 		}
 		return '';
+	}
+
+	private function mergeBackgroundWithSignature(string $backgroundPath, string $signaturePath): string {
+		$canvasWidth = SignerElementsService::ELEMENT_SIGN_WIDTH;
+		$canvasHeight = SignerElementsService::ELEMENT_SIGN_HEIGHT;
+
+		$background = new Imagick($backgroundPath);
+		$signature = new Imagick($signaturePath);
+
+		$background->setImageFormat('png');
+		$signature->setImageFormat('png');
+
+		$background->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
+		$signature->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
+
+		$canvas = new Imagick();
+		$canvas->newImage($canvasWidth, $canvasHeight, new ImagickPixel('transparent'));
+		$canvas->setImageFormat('png32');
+		$canvas->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
+
+		$bgX = (int)(($canvasWidth - $background->getImageWidth()) / 2);
+		$bgY = (int)(($canvasHeight - $background->getImageHeight()) / 2);
+		$canvas->compositeImage($background, Imagick::COMPOSITE_OVER, $bgX, $bgY);
+
+		$sigX = (int)(($canvasWidth - $signature->getImageWidth()) / 2);
+		$sigY = (int)(($canvasHeight - $signature->getImageHeight()) / 2);
+		$canvas->compositeImage($signature, Imagick::COMPOSITE_OVER, $sigX, $sigY);
+
+		$tmpPath = $this->tempManager->getTemporaryFile('_merged.png');
+		if (!$tmpPath) {
+			throw new \Exception('Temporary file not accessible');
+		}
+		$canvas->writeImage($tmpPath);
+
+		$canvas->clear();
+		$background->clear();
+		$signature->clear();
+
+		return $tmpPath;
+	}
+
+	private function parseSignatureText(): array {
+		if (!$this->parsedSignatureText) {
+			$params = $this->getSignatureParams();
+			$params['SignerName'] = '${signer}';
+			$params['ServerSignatureDate'] = '${timestamp}';
+			$this->parsedSignatureText = $this->signatureTextService->parse(context: $params);
+		}
+		return $this->parsedSignatureText;
+	}
+
+	public function getSignatureText(): string {
+		$renderMode = $this->signatureTextService->getRenderMode();
+		if ($renderMode !== 'GRAPHIC_ONLY') {
+			$data = $this->parseSignatureText();
+			$signatureText = '"' . str_replace(
+				['"', '$'],
+				['\"', '\$'],
+				$data['parsed']
+			) . '"';
+		} else {
+			$signatureText = '""';
+		}
+
+		return $signatureText;
+	}
+
+	private function listParamsToString(array $params): string {
+		$paramString = '';
+		foreach ($params as $flag => $value) {
+			$paramString .= ' ' . $flag;
+			if ($value !== null && $value !== '') {
+				$paramString .= ' ' . $value;
+			}
+		}
+		return $paramString;
 	}
 
 	private function signWrapper(JSignPDF $jSignPDF): string {

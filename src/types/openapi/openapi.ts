@@ -923,6 +923,15 @@ export type components = {
             name?: string;
             type?: string;
         };
+        Capabilities: {
+            features: string[];
+            config: {
+                "sign-elements": {
+                    "is-available": boolean;
+                };
+            };
+            version: string;
+        };
         CertificatePfxData: {
             name: string;
             subject: string;
@@ -1055,6 +1064,9 @@ export type components = {
             prev: string | null;
             last: string | null;
             first: string | null;
+        };
+        PublicCapabilities: {
+            libresign?: components["schemas"]["Capabilities"];
         };
         Settings: {
             canSign: boolean;
