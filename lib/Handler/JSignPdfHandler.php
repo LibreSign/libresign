@@ -81,6 +81,7 @@ class JSignPdfHandler extends SignEngineHandler {
 	}
 
 	private function getHashAlgorithm(): string {
+		$hashAlgorithm = $this->appConfig->getValueString(Application::APP_ID, 'signature_hash_algorithm', 'SHA256');
 		/**
 		 * Need to respect the follow code:
 		 * https://github.com/intoolswetrust/jsignpdf/blob/JSignPdf_2_2_2/jsignpdf/src/main/java/net/sf/jsignpdf/types/HashAlgorithm.java#L46-L47
@@ -95,9 +96,11 @@ class JSignPdfHandler extends SignEngineHandler {
 			if ($version < 1.7) {
 				return 'SHA256';
 			}
+			if ($version >= 1.7 && $hashAlgorithm === 'SHA1') {
+				return 'SHA256';
+			}
 		}
 
-		$hashAlgorithm = $this->appConfig->getValueString(Application::APP_ID, 'signature_hash_algorithm', 'SHA256');
 		if (in_array($hashAlgorithm, ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'])) {
 			return $hashAlgorithm;
 		}
