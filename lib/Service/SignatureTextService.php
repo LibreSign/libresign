@@ -21,7 +21,7 @@ use Twig\Error\SyntaxError;
 use Twig\Loader\FilesystemLoader;
 
 class SignatureTextService {
-	public const FONT_SIZE_DEFAULT = 10;
+	public const TEMPLATE_DEFAULT_FONT_SIZE = 10;
 	public const FONT_SIZE_MINIMUM = 0.1;
 	public const FRONT_SIZE_MAX = 30;
 	public function __construct(
@@ -33,15 +33,15 @@ class SignatureTextService {
 	}
 
 	/**
-	 * @return array{template: string, parsed: string, fontSize: float, renderMode: string}
+	 * @return array{template: string, parsed: string, templateFontSize: float, renderMode: string}
 	 * @throws LibresignException
 	 */
 	public function save(
 		string $template,
-		float $fontSize = 6,
+		float $templateFontSize = 6,
 		string $renderMode = 'GRAPHIC_AND_DESCRIPTION',
 	): array {
-		if ($fontSize > self::FRONT_SIZE_MAX || $fontSize < self::FONT_SIZE_MINIMUM) {
+		if ($templateFontSize > self::FRONT_SIZE_MAX || $templateFontSize < self::FONT_SIZE_MINIMUM) {
 			// TRANSLATORS This message refers to the font size used in the text
 			// that is used together or to replace a person's handwritten
 			// signature in the signed PDF. The user must enter a numeric value
@@ -68,17 +68,17 @@ class SignatureTextService {
 		$template = trim($template);
 		$template = html_entity_decode($template);
 		$this->appConfig->setValueString(Application::APP_ID, 'signature_text_template', $template);
-		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_font_size', $fontSize);
+		$this->appConfig->setValueFloat(Application::APP_ID, 'template_font_size', $templateFontSize);
 		$this->appConfig->setValueString(Application::APP_ID, 'signature_render_mode', $renderMode);
 		return $this->parse($template);
 	}
 
 	/**
-	 * @return array{template: string, parsed: string, fontSize: float, renderMode: string}
+	 * @return array{template: string, parsed: string, templateFontSize: float, renderMode: string}
 	 * @throws LibresignException
 	 */
 	public function parse(string $template = '', array $context = []): array {
-		$fontSize = $this->getFontSize();
+		$templateFontSize = $this->getTemplateFontSize();
 		$renderMode = $this->getRenderMode();
 		if (empty($template)) {
 			$template = $this->getTemplate();
@@ -87,7 +87,7 @@ class SignatureTextService {
 			return [
 				'parsed' => '',
 				'template' => $template,
-				'fontSize' => $fontSize,
+				'templateFontSize' => $templateFontSizeFontSize,
 				'renderMode' => $renderMode,
 			];
 		}
@@ -114,7 +114,7 @@ class SignatureTextService {
 			return [
 				'parsed' => $parsed,
 				'template' => $template,
-				'fontSize' => $fontSize,
+				'templateFontSize' => $templateFontSize,
 				'renderMode' => $renderMode,
 			];
 		} catch (SyntaxError $e) {
@@ -167,8 +167,8 @@ class SignatureTextService {
 		);
 	}
 
-	public function getFontSize(): float {
-		return $this->appConfig->getValueFloat(Application::APP_ID, 'signature_font_size', self::FONT_SIZE_DEFAULT);
+	public function getTemplateFontSize(): float {
+		return $this->appConfig->getValueFloat(Application::APP_ID, 'template_font_size', self::TEMPLATE_DEFAULT_FONT_SIZE);
 	}
 
 	public function getRenderMode(): string {
