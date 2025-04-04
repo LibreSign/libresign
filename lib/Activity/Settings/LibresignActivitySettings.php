@@ -10,7 +10,7 @@ namespace OCA\Libresign\Activity\Settings;
 
 use OCP\Activity\ActivitySettings;
 
-abstract class SignActivitySettings extends ActivitySettings {
+abstract class LibresignActivitySettings extends ActivitySettings {
 
 	/**
 	 * {@inheritdoc}
@@ -23,6 +23,6 @@ abstract class SignActivitySettings extends ActivitySettings {
 	 * {@inheritdoc}
 	 */
 	public function getGroupName() {
-		return 'Libresign';
+		return 'LibreSign';
 	}
 }
