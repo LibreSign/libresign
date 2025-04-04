@@ -4640,7 +4640,7 @@ export interface operations {
                                 template: string;
                                 parsed: string;
                                 /** Format: double */
-                                fontSize: number;
+                                templateFontSize: number;
                                 renderMode: string;
                             };
                         };
@@ -4687,7 +4687,7 @@ export interface operations {
                      * @description Font size used when print the parsed text of this template at PDF file
                      * @default 6
                      */
-                    fontSize?: number;
+                    templateFontSize?: number;
                     /**
                      * @description Signature render mode
                      * @default GRAPHIC_AND_DESCRIPTION
@@ -4710,7 +4710,7 @@ export interface operations {
                                 template: string;
                                 parsed: string;
                                 /** Format: double */
-                                fontSize: number;
+                                templateFontSize: number;
                                 renderMode: string;
                             };
                         };

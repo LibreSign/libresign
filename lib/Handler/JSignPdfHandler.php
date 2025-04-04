@@ -140,7 +140,7 @@ class JSignPdfHandler extends SignEngineHandler {
 				'-V' => null,
 			];
 
-			$params['--font-size'] = $this->parseSignatureText()['fontSize'];
+			$params['--font-size'] = $this->parseSignatureText()['templateFontSize'];
 			if ($params['--font-size'] === 10 || !$params['--font-size'] || $params['--l2-text'] === '""') {
 				unset($params['--font-size']);
 			}
