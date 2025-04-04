@@ -1134,7 +1134,7 @@
                                         "type": "string",
                                         "description": "Template to signature text"
                                     },
-                                    "fontSize": {
+                                    "templateFontSize": {
                                         "type": "number",
                                         "format": "double",
                                         "default": 6,
@@ -1200,7 +1200,7 @@
                                                     "required": [
                                                         "template",
                                                         "parsed",
-                                                        "fontSize",
+                                                        "templateFontSize",
                                                         "renderMode"
                                                     ],
                                                     "properties": {
@@ -1210,7 +1210,7 @@
                                                         "parsed": {
                                                             "type": "string"
                                                         },
-                                                        "fontSize": {
+                                                        "templateFontSize": {
                                                             "type": "number",
                                                             "format": "double"
                                                         },
@@ -1349,7 +1349,7 @@
                                                     "required": [
                                                         "template",
                                                         "parsed",
-                                                        "fontSize",
+                                                        "templateFontSize",
                                                         "renderMode"
                                                     ],
                                                     "properties": {
@@ -1359,7 +1359,7 @@
                                                         "parsed": {
                                                             "type": "string"
                                                         },
-                                                        "fontSize": {
+                                                        "templateFontSize": {
                                                             "type": "number",
                                                             "format": "double"
                                                         },

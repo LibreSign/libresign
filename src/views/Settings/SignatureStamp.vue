@@ -167,7 +167,7 @@
 				<div ref="rightColumn"
 					class="right-column"
 					:style="{
-						'font-size': (fontSize * 0.75) + 'pt',
+						'font-size': (templateFontSize * 0.75) + 'pt',
 						display: renderMode === 'GRAPHIC_ONLY' ? 'none' : '',
 					}"
 					@resize="checkPreviewOverflow"
@@ -231,9 +231,9 @@ export default {
 				? generateOcsUrl('/apps/libresign/api/v1/admin/signature-background')
 				: '',
 			defaultSignatureTextTemplate: loadState('libresign', 'default_signature_text_template'),
-			defaultSignatureFontSize: loadState('libresign', 'default_signature_font_size'),
+			defaultTemplateFontSize: loadState('libresign', 'default_template_font_size'),
 			signatureTextTemplate: loadState('libresign', 'signature_text_template'),
-			fontSize: loadState('libresign', 'signature_font_size'),
+			templateFontSize: loadState('libresign', 'template_font_size'),
 			renderMode: loadState('libresign', 'signature_render_mode'),
 			showSuccessTemplate: false,
 			errorMessageTemplate: templateError ? [templateError] : [],
@@ -274,8 +274,9 @@ export default {
 		showResetTemplate() {
 			return this.signatureTextTemplate !== this.defaultSignatureTextTemplate
 		},
-		showResetFontSize() {
-			return this.fontSize !== this.defaultSignatureFontSize
+		showResetTemplateFontSize() {
+			return this.templateFontSize !== this.defaultTemplateFontSize
+		},
 		},
 		debouncePropertyChange() {
 			return debounce(async function() {
@@ -380,8 +381,8 @@ export default {
 			this.signatureTextTemplate = this.defaultSignatureTextTemplate
 			this.saveTemplate()
 		},
-		async resetFontSize() {
-			this.fontSize = this.defaultSignatureFontSize
+		async resetTemplateFontSize() {
+			this.templateFontSize = this.defaultTemplateFontSize
 			this.saveTemplate()
 		},
 		async saveTemplate() {
@@ -390,14 +391,14 @@ export default {
 			this.resizeHeight()
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-text'), {
 				template: this.signatureTextTemplate,
-				fontSize: this.fontSize,
+				templateFontSize: this.templateFontSize,
 				renderMode: this.renderMode,
 			})
 				.then(({ data }) => {
 					this.parsed = data.ocs.data.parsed
 					this.checkPreviewOverflow()
-					if (data.ocs.data.fontSize !== this.fontSize) {
-						this.fontSize = data.ocs.data.fontSize
+					if (data.ocs.data.templateFontSize !== this.templateFontSize) {
+						this.templateFontSize = data.ocs.data.templateFontSize
 					}
 					this.showSuccessTemplate = true
 					setTimeout(() => { this.showSuccessTemplate = false }, 2000)
