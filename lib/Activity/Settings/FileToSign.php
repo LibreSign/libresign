@@ -2,16 +2,15 @@
 
 declare(strict_types=1);
 /**
- * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-FileCopyrightText: 2020-2025 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Activity;
+namespace OCA\Libresign\Activity\Settings;
 
-use OCP\Activity\ActivitySettings;
 use OCP\IL10N;
 
-class FileToSign extends ActivitySettings {
+class FileToSign extends SignActivitySettings {
 	public function __construct(
 		protected IL10N $l,
 	) {
@@ -31,20 +30,6 @@ class FileToSign extends ActivitySettings {
 	 */
 	public function getName(): string {
 		return $this->l->t('You have a <strong>file to sign</strong>');
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getGroupIdentifier(): string {
-		return 'other';
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getGroupName(): string {
-		return $this->l->t('Other activities');
 	}
 
 	/**
