@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler;
 
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCP\Files\File;
 
 abstract class SignEngineHandler implements ISignEngineHandler {

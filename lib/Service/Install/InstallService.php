@@ -18,8 +18,8 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Files\TSimpleFile;
 use OCA\Libresign\Handler\CertificateEngine\AEngineHandler;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
-use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
@@ -70,7 +70,7 @@ class InstallService {
 	public function __construct(
 		ICacheFactory $cacheFactory,
 		private IClientService $clientService,
-		private CertificateEngineHandler $certificateEngineHandler,
+		private CertificateEngineFactory $certificateEngineFactory,
 		private IConfig $config,
 		private IAppConfig $appConfig,
 		private IRootFolder $rootFolder,
@@ -706,7 +706,7 @@ class InstallService {
 			'commonName' => $commonName,
 			'names' => $names
 		];
-		$engine = $this->certificateEngineHandler->getEngine($properties['engine'] ?? '', $rootCert);
+		$engine = $this->certificateEngineFactory->getEngine($properties['engine'] ?? '', $rootCert);
 		if ($engine->getEngine() === 'cfssl') {
 			/** @var CfsslHandler $engine */
 			$engine->setCfsslUri($properties['cfsslUri']);

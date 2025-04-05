@@ -12,7 +12,7 @@ use DateTime;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\OrderCertificatesTrait;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
@@ -32,7 +32,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	public function __construct(
 		private FolderService $folderService,
 		private IAppConfig $appConfig,
-		private CertificateEngineHandler $certificateEngineHandler,
+		protected CertificateEngineFactory $certificateEngineFactory,
 		private IL10N $l10n,
 		private JSignPdfHandler $jSignPdfHandler,
 		private FooterHandler $footerHandler,
@@ -73,7 +73,7 @@ class Pkcs12Handler extends SignEngineHandler {
 
 	public function updatePassword(string $uid, string $currentPrivateKey, string $newPrivateKey): string {
 		$pfx = $this->getPfx($uid);
-		$content = $this->certificateEngineHandler->getEngine()->updatePassword(
+		$content = $this->certificateEngineFactory->getEngine()->updatePassword(
 			$pfx,
 			$currentPrivateKey,
 			$newPrivateKey
@@ -399,7 +399,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 		if ($this->getPassword()) {
 			try {
-				$this->certificateEngineHandler->getEngine()->opensslPkcs12Read($this->pfxContent, $this->getPassword());
+				$this->certificateEngineFactory->getEngine()->opensslPkcs12Read($this->pfxContent, $this->getPassword());
 			} catch (InvalidPasswordException $e) {
 				throw new LibresignException($this->l10n->t('Invalid password'));
 			}
@@ -433,7 +433,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	}
 
 	public function isHandlerOk(): bool {
-		return $this->certificateEngineHandler->getEngine()->isSetupOk();
+		return $this->certificateEngineFactory->getEngine()->isSetupOk();
 	}
 
 	/**
@@ -444,7 +444,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	 * @param string $friendlyName Friendly name
 	 */
 	public function generateCertificate(array $user, string $signPassword, string $friendlyName): string {
-		$content = $this->certificateEngineHandler->getEngine()
+		$content = $this->certificateEngineFactory->getEngine()
 			->setHosts([$user['host']])
 			->setCommonName($user['name'])
 			->setFriendlyName($friendlyName)
