@@ -14,7 +14,7 @@ use OCP\Files\File;
 
 abstract class SignEngineHandler implements ISignEngineHandler {
 	private File $inputFile;
-	private string $certificate;
+	protected string $certificate;
 	private string $password = '';
 	/** @var VisibleElementAssoc[] */
 	private array $visibleElements = [];
@@ -39,6 +39,15 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 
 	public function getCertificate(): string {
 		return $this->certificate;
+	}
+
+	public function readCertificate(): array {
+		return \OCP\Server::get(CertificateEngineFactory::class)
+			->getEngine()
+			->readCertificate(
+				$this->getCertificate(),
+				$this->getPassword()
+			);
 	}
 
 	public function setPassword(string $password): self {

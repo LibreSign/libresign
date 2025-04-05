@@ -46,7 +46,7 @@ use ReflectionClass;
  * @method IEngineHandler setUID(string $UID)
  * @method string getName()
  */
-class AEngineHandler {
+abstract class AEngineHandler implements IEngineHandler {
 	use MagicGetterSetterTrait;
 	use OrderCertificatesTrait;
 
@@ -62,6 +62,7 @@ class AEngineHandler {
 	protected string $password = '';
 	protected string $configPath = '';
 	protected string $engine = '';
+	protected string $certificate = '';
 	protected IAppData $appData;
 
 	public function __construct(
@@ -283,13 +284,14 @@ class AEngineHandler {
 		return $path;
 	}
 
-	public function setConfigPath(string $configPath): void {
+	public function setConfigPath(string $configPath): IEngineHandler {
 		if (!$configPath) {
 			$this->appConfig->deleteKey(Application::APP_ID, 'config_path');
 		} else {
 			$this->appConfig->setValueString(Application::APP_ID, 'config_path', $configPath);
 		}
 		$this->configPath = $configPath;
+		return $this;
 	}
 
 	public function getName(): string {

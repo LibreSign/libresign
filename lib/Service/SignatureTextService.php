@@ -9,6 +9,9 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use DateTimeInterface;
+use Imagick;
+use ImagickDraw;
+use ImagickPixel;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCP\IAppConfig;
@@ -22,6 +25,7 @@ use Twig\Loader\FilesystemLoader;
 
 class SignatureTextService {
 	public const TEMPLATE_DEFAULT_FONT_SIZE = 10;
+	public const SIGNATURE_DEFAULT_FONT_SIZE = 20;
 	public const FONT_SIZE_MINIMUM = 0.1;
 	public const FRONT_SIZE_MAX = 30;
 	public function __construct(
@@ -33,12 +37,13 @@ class SignatureTextService {
 	}
 
 	/**
-	 * @return array{template: string, parsed: string, templateFontSize: float, renderMode: string}
+	 * @return array{template: string, parsed: string, templateFontSize: float, signatureFontSize: float, renderMode: string}
 	 * @throws LibresignException
 	 */
 	public function save(
 		string $template,
-		float $templateFontSize = 6,
+		float $templateFontSize = self::TEMPLATE_DEFAULT_FONT_SIZE,
+		float $signatureFontSize = self::SIGNATURE_DEFAULT_FONT_SIZE,
 		string $renderMode = 'GRAPHIC_AND_DESCRIPTION',
 	): array {
 		if ($templateFontSize > self::FRONT_SIZE_MAX || $templateFontSize < self::FONT_SIZE_MINIMUM) {
@@ -46,7 +51,14 @@ class SignatureTextService {
 			// that is used together or to replace a person's handwritten
 			// signature in the signed PDF. The user must enter a numeric value
 			// within the accepted range.
-			throw new LibresignException($this->l10n->t('Invalid font size. The value must be between %.1f and %.0f.', [self::FONT_SIZE_MINIMUM, self::FRONT_SIZE_MAX]));
+			throw new LibresignException($this->l10n->t('Invalid template font size. The value must be between %.1f and %.0f.', [self::FONT_SIZE_MINIMUM, self::FRONT_SIZE_MAX]));
+		}
+		if ($signatureFontSize > self::FRONT_SIZE_MAX || $signatureFontSize < self::FONT_SIZE_MINIMUM) {
+			// TRANSLATORS This message refers to the font size used in the text
+			// that is used together or to replace a person's handwritten
+			// signature in the signed PDF. The user must enter a numeric value
+			// within the accepted range.
+			throw new LibresignException($this->l10n->t('Invalid signature font size. The value must be between %.1f and %.0f.', [self::FONT_SIZE_MINIMUM, self::FRONT_SIZE_MAX]));
 		}
 		$template = trim($template);
 		$template = preg_replace(
@@ -69,16 +81,18 @@ class SignatureTextService {
 		$template = html_entity_decode($template);
 		$this->appConfig->setValueString(Application::APP_ID, 'signature_text_template', $template);
 		$this->appConfig->setValueFloat(Application::APP_ID, 'template_font_size', $templateFontSize);
+		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_font_size', $signatureFontSize);
 		$this->appConfig->setValueString(Application::APP_ID, 'signature_render_mode', $renderMode);
 		return $this->parse($template);
 	}
 
 	/**
-	 * @return array{template: string, parsed: string, templateFontSize: float, renderMode: string}
+	 * @return array{template: string, parsed: string, templateFontSize: float, signatureFontSize: float, renderMode: string}
 	 * @throws LibresignException
 	 */
 	public function parse(string $template = '', array $context = []): array {
 		$templateFontSize = $this->getTemplateFontSize();
+		$signatureFontSize = $this->getSignatureFontSize();
 		$renderMode = $this->getRenderMode();
 		if (empty($template)) {
 			$template = $this->getTemplate();
@@ -87,7 +101,8 @@ class SignatureTextService {
 			return [
 				'parsed' => '',
 				'template' => $template,
-				'templateFontSize' => $templateFontSizeFontSize,
+				'templateFontSize' => $templateFontSize,
+				'signatureFontSize' => $signatureFontSize,
 				'renderMode' => $renderMode,
 			];
 		}
@@ -115,6 +130,7 @@ class SignatureTextService {
 				'parsed' => $parsed,
 				'template' => $template,
 				'templateFontSize' => $templateFontSize,
+				'signatureFontSize' => $signatureFontSize,
 				'renderMode' => $renderMode,
 			];
 		} catch (SyntaxError $e) {
@@ -145,6 +161,96 @@ class SignatureTextService {
 		return $list;
 	}
 
+	public function signerNameImage(
+		string $text,
+		int $width,
+		int $height,
+		string $align = 'center',
+		float $fontSize = 0,
+		bool $isDarkTheme = false,
+	): string {
+		$fonts = Imagick::queryFonts();
+		if (empty($fonts)) {
+			throw new LibresignException('No fonts available at system');
+		}
+
+		$image = new Imagick();
+		$image->newImage($width, $height, new ImagickPixel('transparent'));
+		$image->setImageFormat('png');
+
+		$draw = new ImagickDraw();
+		$draw->setFont($fonts[0]);
+		if (!$fontSize) {
+			$fontSize = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_font_size', SignatureTextService::SIGNATURE_DEFAULT_FONT_SIZE);
+		}
+		$draw->setFontSize($fontSize);
+		$draw->setFillColor(new ImagickPixel($isDarkTheme ? 'white' : 'black'));
+		$align = match ($align) {
+			'left' => Imagick::ALIGN_LEFT,
+			'center' => Imagick::ALIGN_CENTER,
+			'right' => Imagick::ALIGN_RIGHT,
+		};
+		$draw->setTextAlignment($align);
+
+		$maxCharsPerLine = $this->splitAndGetLongestHalfLength($text);
+		$wrappedText = wordwrap($text, $maxCharsPerLine, "\n", true);
+
+		$textMetrics = $image->queryFontMetrics($draw, $wrappedText);
+		$lineHeight = $textMetrics['textHeight'];
+		$lineCount = substr_count($wrappedText, "\n") + 1;
+		$totalTextHeight = $lineHeight * $lineCount;
+
+		$x = match ($align) {
+			Imagick::ALIGN_LEFT => 0,
+			Imagick::ALIGN_CENTER => $width / 2,
+			Imagick::ALIGN_RIGHT => $width,
+		};
+		$y = ($height / 2) - ($totalTextHeight / 2) + $lineHeight;
+
+		$image->annotateImage($draw, $x, $y, 0, $wrappedText);
+
+		$blob = $image->getImagesBlob();
+		$image->destroy();
+
+		return $blob;
+	}
+
+	private function splitAndGetLongestHalfLength(string $text): int {
+		$text = trim($text);
+		$length = mb_strlen($text);
+
+		if ($length === 0) {
+			return 0;
+		}
+
+		$middle = (int)($length / 2);
+		$results = [];
+
+		foreach (['backward' => -1, 'forward' => 1] as $directionName => $direction) {
+			$index = $middle;
+
+			while (
+				$index >= 0 &&
+				$index < $length &&
+				mb_substr($text, $index, 1) !== ' '
+			) {
+				$index += $direction;
+			}
+
+			if (
+				$index > 0 &&
+				$index < $length &&
+				mb_substr($text, $index, 1) === ' '
+			) {
+				$first = mb_substr($text, 0, $index);
+				$second = mb_substr($text, $index + 1);
+				$results[] = max(mb_strlen($first), mb_strlen($second));
+			}
+		}
+
+		return !empty($results) ? max($results) : $length;
+	}
+
 	public function getDefaultTemplate(): string {
 		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
 		if ($collectMetadata) {
@@ -169,6 +275,10 @@ class SignatureTextService {
 
 	public function getTemplateFontSize(): float {
 		return $this->appConfig->getValueFloat(Application::APP_ID, 'template_font_size', self::TEMPLATE_DEFAULT_FONT_SIZE);
+	}
+
+	public function getSignatureFontSize(): float {
+		return $this->appConfig->getValueFloat(Application::APP_ID, 'signature_font_size', self::SIGNATURE_DEFAULT_FONT_SIZE);
 	}
 
 	public function getRenderMode(): string {

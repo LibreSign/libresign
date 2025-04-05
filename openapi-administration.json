@@ -1137,8 +1137,14 @@
                                     "templateFontSize": {
                                         "type": "number",
                                         "format": "double",
-                                        "default": 6,
+                                        "default": 10,
                                         "description": "Font size used when print the parsed text of this template at PDF file"
+                                    },
+                                    "signatureFontSize": {
+                                        "type": "number",
+                                        "format": "double",
+                                        "default": 20,
+                                        "description": "Font size used when the signature mode is SIGNAME_AND_DESCRIPTION"
                                     },
                                     "renderMode": {
                                         "type": "string",
@@ -1201,6 +1207,7 @@
                                                         "template",
                                                         "parsed",
                                                         "templateFontSize",
+                                                        "signatureFontSize",
                                                         "renderMode"
                                                     ],
                                                     "properties": {
@@ -1211,6 +1218,10 @@
                                                             "type": "string"
                                                         },
                                                         "templateFontSize": {
+                                                            "type": "number",
+                                                            "format": "double"
+                                                        },
+                                                        "signatureFontSize": {
                                                             "type": "number",
                                                             "format": "double"
                                                         },
@@ -1350,6 +1361,7 @@
                                                         "template",
                                                         "parsed",
                                                         "templateFontSize",
+                                                        "signatureFontSize",
                                                         "renderMode"
                                                     ],
                                                     "properties": {
@@ -1363,6 +1375,10 @@
                                                             "type": "number",
                                                             "format": "double"
                                                         },
+                                                        "signatureFontSize": {
+                                                            "type": "number",
+                                                            "format": "double"
+                                                        },
                                                         "renderMode": {
                                                             "type": "string"
                                                         }
@@ -1371,6 +1387,170 @@
                                             }
                                         }
                                     }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "error"
+                                                    ],
+                                                    "properties": {
+                                                        "error": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signer-name": {
+            "get": {
+                "operationId": "admin-signer-name",
+                "summary": "Convert signer name as image",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "admin"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "width",
+                        "in": "query",
+                        "description": "Image width,",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "height",
+                        "in": "query",
+                        "description": "Image height",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "text",
+                        "in": "query",
+                        "description": "Text to be added to image",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fontSize",
+                        "in": "query",
+                        "description": "Font size of text",
+                        "required": true,
+                        "schema": {
+                            "type": "number",
+                            "format": "double"
+                        }
+                    },
+                    {
+                        "name": "isDarkTheme",
+                        "in": "query",
+                        "description": "Color of text, white if is tark theme and black if not",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "enum": [
+                                0,
+                                1
+                            ]
+                        }
+                    },
+                    {
+                        "name": "align",
+                        "in": "query",
+                        "description": "Align of text: left, center or right",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {
+                            "Content-Disposition": {
+                                "schema": {
+                                    "type": "string",
+                                    "enum": [
+                                        "inline; filename=\"signer-name.png\""
+                                    ]
+                                }
+                            }
+                        },
+                        "content": {
+                            "image/png": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
                                 }
                             }
                         }

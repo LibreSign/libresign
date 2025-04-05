@@ -398,7 +398,9 @@ class SignFileService {
 	}
 
 	private function getPfxData(): array {
-		return $this->pkcs12Handler->readCertificate(privateKey: $this->password);
+		return $this->pkcs12Handler
+			->setPassword($this->password)
+			->readCertificate();
 	}
 
 	/**

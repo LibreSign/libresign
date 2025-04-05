@@ -539,7 +539,10 @@ class AccountService {
 	 */
 	public function readPfxData(IUser $user, string $password): array {
 		try {
-			return $this->pkcs12Handler->readCertificate($user->getUID(), $password);
+			return $this->pkcs12Handler
+				->setPfxContent($this->pkcs12Handler->getPfx($user->getUID()))
+				->setPassword($password)
+				->readCertificate();
 		} catch (InvalidPasswordException $e) {
 			throw new LibresignException($this->l10n->t('Invalid user or password'));
 		}
