@@ -8,15 +8,21 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use bovigo\vfs\vfsStream;
 use Jeidison\JSignPDF\JSignPDF;
 use Jeidison\JSignPDF\Sign\JSignParam;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\FileElement;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCP\IAppConfig;
+use OCP\IDateTimeZone;
+use OCP\IRequest;
 use OCP\ITempManager;
+use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
@@ -28,23 +34,48 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;
 	private LoggerInterface&MockObject $loggerInterface;
 	private ITempManager $tempManager;
-	private SignatureTextService&MockObject $signatureTextService;
 	private SignatureBackgroundService&MockObject $signatureBackgroundService;
+	private static CertificateEngineFactory $certificateEngineFactory;
+	private static string $certificateContent = '';
+	public static function setUpBeforeClass(): void {
+		parent::setUpBeforeClass();
+
+		self::$certificateEngineFactory = \OCP\Server::get(CertificateEngineFactory::class);
+		// The storage can't be modified when create a new instance to
+		// don't lost the root cert
+		vfsStream::setup('certificate');
+		$certificateEngine = self::$certificateEngineFactory->getEngine();
+		$certificateEngine
+			->setConfigPath('vfs://certificate/')
+			->generateRootCert('', []);
+
+		self::$certificateContent = self::$certificateEngineFactory->getEngine()
+			->setHosts(['user@email.tld'])
+			->setCommonName('John Doe')
+			->setPassword('password')
+			->generateCertificate();
+	}
 	public function setUp(): void {
 		$this->appConfig = $this->getMockAppConfig();
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
-		$this->signatureTextService = $this->createMock(SignatureTextService::class);
 		$this->signatureBackgroundService = $this->createMock(SignatureBackgroundService::class);
 	}
 
 	private function getClass(): JSignPdfHandler {
+		$signatureTextService = new SignatureTextService(
+			$this->appConfig,
+			\OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID),
+			\OCP\Server::get(IDateTimeZone::class),
+			\OCP\Server::get(IRequest::class),
+		);
 		return new JSignPdfHandler(
 			$this->appConfig,
 			$this->loggerInterface,
-			$this->signatureTextService,
+			$signatureTextService,
 			$this->tempManager,
 			$this->signatureBackgroundService,
+			self::$certificateEngineFactory,
 		);
 	}
 
@@ -54,7 +85,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		string $template,
 		string $signatureBackgroundType,
 		string $renderMode,
-		int $fontSize,
+		float $templateFontSize,
 		string $pdfContent,
 		?string $hashAlgorithm,
 		string $params,
@@ -73,16 +104,10 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			realpath(__DIR__ . '/../../../img/LibreSign.png')
 		);
 
-		$this->signatureTextService->method('parse')
-			->willReturn([
-				'parsed' => trim($template, '"'),
-				'fontSize' => $fontSize,
-			]);
-
-		$this->signatureTextService->method('getRenderMode')->willReturn($renderMode);
-
+		$this->appConfig->setValueFloat('libresign', 'template_font_size', $templateFontSize);
+		$this->appConfig->setValueString('libresign', 'signature_render_mode', $renderMode);
+		$this->appConfig->setValueString('libresign', 'signature_text_template', $template);
 		$this->appConfig->setValueString('libresign', 'signature_hash_algorithm', $hashAlgorithm);
-
 		$this->appConfig->setValueString('libresign', 'java_path', __FILE__);
 		$this->appConfig->setValueString('libresign', 'jsignpdf_temp_path', sys_get_temp_dir());
 		$this->appConfig->setValueString('libresign', 'jsignpdf_jar_path', __FILE__);
@@ -91,7 +116,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$jSignPdfHandler->setVisibleElements($visibleElements);
 		$jSignPdfHandler->setJSignPdf($mock);
 		$jSignPdfHandler->setInputFile($inputFile);
-		$jSignPdfHandler->setCertificate('');
+		$jSignPdfHandler->setCertificate(self::$certificateContent);
 		$jSignPdfHandler->setPassword('password');
 		$actual = $jSignPdfHandler->getSignedContent();
 		$this->assertEquals('content', $actual);
@@ -99,6 +124,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertEquals('password', $jSignParam->getPassword());
 		$paramsAsOptions = $jSignParam->getJSignParameters();
 		$paramsAsOptions = preg_replace('/\\/\S+_merged.png/', 'merged.png', $paramsAsOptions);
+		$paramsAsOptions = preg_replace('/\\/\S+_text_image.png/', 'text_image.png', $paramsAsOptions);
 		$paramsAsOptions = preg_replace('/\\/\S+LibreSign.png/', 'background.png', $paramsAsOptions);
 		$paramsAsOptions = preg_replace('/\\/\S+app-dark.png/', 'signature.png', $paramsAsOptions);
 		$this->assertEquals($params, $paramsAsOptions);
@@ -125,7 +151,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 0,
 					'urx' => 0,
 					'ury' => 0,
-				])],
+				], realpath(__DIR__ . '/../../../img/app-dark.png'))],
 				'',
 				'default',
 				'DESCRIPTION_ONLY',
@@ -141,7 +167,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				])],
+				], realpath(__DIR__ . '/../../../img/app-dark.png'))],
 				'',
 				'default',
 				'DESCRIPTION_ONLY',
@@ -157,7 +183,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				])],
+				], realpath(__DIR__ . '/../../../img/app-dark.png'))],
 				'aaaaa',
 				'default',
 				'DESCRIPTION_ONLY',
@@ -173,7 +199,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				])],
+				], realpath(__DIR__ . '/../../../img/app-dark.png'))],
 				'aaaaa',
 				'default',
 				'DESCRIPTION_ONLY',
@@ -189,7 +215,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				])],
+				], realpath(__DIR__ . '/../../../img/app-dark.png'))],
 				'aaaaa',
 				'deleted',
 				'DESCRIPTION_ONLY',
@@ -205,7 +231,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				])],
+				], realpath(__DIR__ . '/../../../img/app-dark.png'))],
 				'aaaaa',
 				'default',
 				'GRAPHIC_AND_DESCRIPTION',
@@ -214,6 +240,54 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'',
 				'-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --bg-path background.png --img-path signature.png --hash-algorithm SHA256'
 			],
+			'background and template, render mode equals to SIGNAME_AND_DESCRIPTION: bg-path = background, img-path = text_image' => [
+				[self::getElement([
+					'page' => 2,
+					'llx' => 1,
+					'lly' => 100,
+					'urx' => 351,
+					'ury' => 200,
+				], realpath(__DIR__ . '/../../../img/app-dark.png'))],
+				'aaaaa',
+				'default',
+				'SIGNAME_AND_DESCRIPTION',
+				10,
+				'%PDF-1.6',
+				'',
+				'-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 1 -lly 100 -urx 351 -ury 200 --render-mode GRAPHIC_AND_DESCRIPTION --bg-path background.png --img-path text_image.png --hash-algorithm SHA256'
+			],
+			'template without background; with signature image; render-mode: SIGNAME_AND_DESCRIPTION' => [
+				[self::getElement([
+					'page' => 2,
+					'llx' => 10,
+					'lly' => 20,
+					'urx' => 30,
+					'ury' => 40,
+				], realpath(__DIR__ . '/../../../img/app-dark.png'))],
+				'aaaaa',
+				'deleted',
+				'SIGNAME_AND_DESCRIPTION',
+				10,
+				'%PDF-1.6',
+				'',
+				'-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --img-path text_image.png --hash-algorithm SHA256'
+			],
+			'template without background; without signature image; render-mode: SIGNAME_AND_DESCRIPTION' => [
+				[self::getElement([
+					'page' => 2,
+					'llx' => 10,
+					'lly' => 20,
+					'urx' => 30,
+					'ury' => 40,
+				], '')],
+				'aaaaa',
+				'deleted',
+				'SIGNAME_AND_DESCRIPTION',
+				10,
+				'%PDF-1.6',
+				'',
+				'-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --img-path text_image.png --hash-algorithm SHA256'
+			],
 			'background without template: bg-path = merged with signature, without img-path' => [
 				[self::getElement([
 					'page' => 2,
@@ -221,7 +295,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				])],
+				], realpath(__DIR__ . '/../../../img/app-dark.png'))],
 				'',
 				'default',
 				'GRAPHIC_AND_DESCRIPTION',
@@ -233,7 +307,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	private static function getElement(array $attributes = []): VisibleElementAssoc {
+	private static function getElement(array $attributes = [], ?string $imagePath = null): VisibleElementAssoc {
 		$element = new FileElement();
 		foreach ($attributes as $attribute => $value) {
 			$method = 'set' . ucfirst($attribute);
@@ -241,7 +315,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 		return new VisibleElementAssoc(
 			$element,
-			realpath(__DIR__ . '/../../../img/app-dark.png'),
+			$imagePath,
 		);
 	}
 
@@ -287,10 +361,8 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[DataProvider('providerGetSignatureText')]
 	public function testGetSignatureText(string $renderMode, string $template, string $expected): void {
-		$this->signatureTextService->method('parse')
-			->willReturn(['parsed' => trim($template, '"')]);
-		$this->signatureTextService->method('getRenderMode')
-			->willReturn($renderMode);
+		$this->appConfig->setValueString('libresign', 'signature_text_template', $template);
+		$this->appConfig->setValueString('libresign', 'signature_render_mode', $renderMode);
 		$jSignPdfHandler = $this->getClass();
 		$actual = $jSignPdfHandler->getSignatureText();
 		$this->assertEquals($expected, $actual);
