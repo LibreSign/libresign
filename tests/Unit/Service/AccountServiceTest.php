@@ -16,7 +16,7 @@ use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
-use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountFileService;
@@ -56,7 +56,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FileTypeMapper&MockObject $fileTypeMapper;
 	private AccountFileMapper&MockObject $accountFileMapper;
 	private SignFileService&MockObject $signFile;
-	private CertificateEngineHandler&MockObject $certificateEngineHandler;
+	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private IConfig&MockObject $config;
 	private IAppConfig&MockObject $appConfig;
 	private IMountProviderCollection&MockObject $mountProviderCollection;
@@ -91,7 +91,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
 		$this->signFile = $this->createMock(SignFileService::class);
 		$this->requestSignatureService = $this->createMock(RequestSignatureService::class);
-		$this->certificateEngineHandler = $this->createMock(CertificateEngineHandler::class);
+		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->mountProviderCollection = $this->createMock(IMountProviderCollection::class);
@@ -123,7 +123,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->accountFileMapper,
 			$this->signFile,
 			$this->requestSignatureService,
-			$this->certificateEngineHandler,
+			$this->certificateEngineFactory,
 			$this->config,
 			$this->appConfig,
 			$this->mountProviderCollection,

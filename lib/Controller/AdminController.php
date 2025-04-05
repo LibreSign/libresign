@@ -11,7 +11,7 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\AEngineHandler;
-use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
@@ -44,7 +44,7 @@ class AdminController extends AEnvironmentAwareController {
 		private IAppConfig $appConfig,
 		private ConfigureCheckService $configureCheckService,
 		private InstallService $installService,
-		private CertificateEngineHandler $certificateEngineHandler,
+		private CertificateEngineFactory $certificateEngineFactory,
 		private IEventSourceFactory $eventSourceFactory,
 		private SignatureTextService $signatureTextService,
 		private IL10N $l10n,
@@ -145,7 +145,7 @@ class AdminController extends AEnvironmentAwareController {
 			$properties,
 		);
 
-		return $this->certificateEngineHandler->getEngine();
+		return $this->certificateEngineFactory->getEngine();
 	}
 
 	/**
@@ -160,7 +160,7 @@ class AdminController extends AEnvironmentAwareController {
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/certificate', requirements: ['apiVersion' => '(v1)'])]
 	public function loadCertificate(): DataResponse {
-		$engine = $this->certificateEngineHandler->getEngine();
+		$engine = $this->certificateEngineFactory->getEngine();
 		/** @var LibresignEngineHandler */
 		$certificate = $engine->toArray();
 		$configureResult = $engine->configureCheck();

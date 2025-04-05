@@ -21,7 +21,7 @@ use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
@@ -64,7 +64,7 @@ class AccountService {
 		private AccountFileMapper $accountFileMapper,
 		private SignFileService $signFileService,
 		private RequestSignatureService $requestSignatureService,
-		private CertificateEngineHandler $certificateEngineHandler,
+		private CertificateEngineFactory $certificateEngineFactory,
 		private IConfig $config,
 		private IAppConfig $appConfig,
 		private IMountProviderCollection $mountProviderCollection,
@@ -225,7 +225,7 @@ class AccountService {
 	}
 
 	public function getCertificateEngineName(): string {
-		return $this->certificateEngineHandler->getEngine()->getName();
+		return $this->certificateEngineFactory->getEngine()->getName();
 	}
 
 	/**

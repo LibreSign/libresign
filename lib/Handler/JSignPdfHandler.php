@@ -14,6 +14,7 @@ use Jeidison\JSignPDF\JSignPDF;
 use Jeidison\JSignPDF\Sign\JSignParam;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
@@ -36,6 +37,7 @@ class JSignPdfHandler extends SignEngineHandler {
 		private SignatureTextService $signatureTextService,
 		private ITempManager $tempManager,
 		private SignatureBackgroundService $signatureBackgroundService,
+		protected CertificateEngineFactory $certificateEngineFactory,
 	) {
 	}
 

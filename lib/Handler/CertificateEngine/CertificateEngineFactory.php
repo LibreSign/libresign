@@ -12,28 +12,21 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCP\IAppConfig;
 
-class Handler {
-	public function __construct(
-		private CfsslHandler $cfsslHandler,
-		private OpenSslHandler $openSslHandler,
-		private NoneHandler $noneHandler,
-		private IAppConfig $appConfig,
-	) {
-	}
-
+class CertificateEngineFactory {
 	/**
 	 * @return CfsslHandler|OpenSslHandler|AEngineHandler
 	 */
 	public function getEngine(string $engineName = '', array $rootCert = []): AEngineHandler {
 		if (!$engineName) {
-			$engineName = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', 'openssl');
+			$appConfig = \OCP\Server::get(IAppConfig::class);
+			$engineName = $appConfig->getValueString(Application::APP_ID, 'certificate_engine', 'openssl');
 		}
 		if ($engineName === 'openssl') {
-			$engine = $this->openSslHandler;
+			$engine = \OCP\Server::get(OpenSslHandler::class);
 		} elseif ($engineName === 'cfssl') {
-			$engine = $this->cfsslHandler;
+			$engine = \OCP\Server::get(CfsslHandler::class);
 		} elseif ($engineName === 'none') {
-			$engine = $this->noneHandler;
+			$engine = \OCP\Server::get(NoneHandler::class);
 		} else {
 			throw new LibresignException('Certificate engine not found: ' . $engineName);
 		}

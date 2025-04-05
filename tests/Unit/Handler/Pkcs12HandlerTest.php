@@ -7,9 +7,8 @@ declare(strict_types=1);
  */
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\FooterHandler;
-use OCA\Libresign\Handler\JSignPdfHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Tests\lib\AppConfigOverwrite;
@@ -24,10 +23,9 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected FolderService&MockObject $folderService;
 	private IAppConfig $appConfig;
 	private IL10N $l10n;
-	private JSignPdfHandler&MockObject $jSignPdfHandler;
 	private FooterHandler&MockObject $footerHandler;
 	private ITempManager $tempManager;
-	private CertificateEngineHandler&MockObject $certificateEngineHandler;
+	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
@@ -36,9 +34,8 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			\OCP\Server::get(\Psr\Log\LoggerInterface::class),
 			\OCP\Server::get(\OCP\Security\ICrypto::class),
 		);
-		$this->certificateEngineHandler = $this->createMock(CertificateEngineHandler::class);
+		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
-		$this->jSignPdfHandler = $this->createMock(JSignPdfHandler::class);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
 	}
@@ -47,9 +44,8 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return new Pkcs12Handler(
 			$this->folderService,
 			$this->appConfig,
-			$this->certificateEngineHandler,
+			$this->certificateEngineFactory,
 			$this->l10n,
-			$this->jSignPdfHandler,
 			$this->footerHandler,
 			$this->tempManager,
 		);
