@@ -1073,6 +1073,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signer-name": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Convert signer name as image
+         * @description This endpoint requires admin access
+         */
+        get: operations["admin-signer-name"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
         parameters: {
             query?: never;
@@ -4641,6 +4661,8 @@ export interface operations {
                                 parsed: string;
                                 /** Format: double */
                                 templateFontSize: number;
+                                /** Format: double */
+                                signatureFontSize: number;
                                 renderMode: string;
                             };
                         };
@@ -4685,9 +4707,15 @@ export interface operations {
                     /**
                      * Format: double
                      * @description Font size used when print the parsed text of this template at PDF file
-                     * @default 6
+                     * @default 10
                      */
                     templateFontSize?: number;
+                    /**
+                     * Format: double
+                     * @description Font size used when the signature mode is SIGNAME_AND_DESCRIPTION
+                     * @default 20
+                     */
+                    signatureFontSize?: number;
                     /**
                      * @description Signature render mode
                      * @default GRAPHIC_AND_DESCRIPTION
@@ -4711,10 +4739,67 @@ export interface operations {
                                 parsed: string;
                                 /** Format: double */
                                 templateFontSize: number;
+                                /** Format: double */
+                                signatureFontSize: number;
                                 renderMode: string;
                             };
                         };
                     };
+                };
+            };
+            /** @description Bad request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-signer-name": {
+        parameters: {
+            query: {
+                /** @description Image width, */
+                width: number;
+                /** @description Image height */
+                height: number;
+                /** @description Text to be added to image */
+                text: string;
+                /** @description Font size of text */
+                fontSize: number;
+                /** @description Color of text, white if is tark theme and black if not */
+                isDarkTheme: 0 | 1;
+                /** @description Align of text: left, center or right */
+                align: string;
+            };
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "Content-Disposition"?: "inline; filename=\"signer-name.png\"";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": string;
                 };
             };
             /** @description Bad request */

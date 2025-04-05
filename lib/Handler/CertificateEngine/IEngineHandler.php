@@ -43,7 +43,7 @@ interface IEngineHandler {
 
 	public function isSetupOk(): bool;
 
-	public function setConfigPath(string $configPath): void;
+	public function setConfigPath(string $configPath): IEngineHandler;
 
 	public function expirity(): int;
 

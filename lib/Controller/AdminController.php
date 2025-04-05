@@ -24,6 +24,7 @@ use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
+use OCP\Files\SimpleFS\InMemoryFile;
 use OCP\IAppConfig;
 use OCP\IEventSource;
 use OCP\IEventSourceFactory;
@@ -388,18 +389,27 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * @param string $template Template to signature text
 	 * @param float $templateFontSize Font size used when print the parsed text of this template at PDF file
+	 * @param float $signatureFontSize Font size used when the signature mode is SIGNAME_AND_DESCRIPTION
 	 * @param string $renderMode Signature render mode
-	 * @return DataResponse<Http::STATUS_OK, array{template: string, parsed: string, templateFontSize: float, renderMode: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{template: string, parsed: string, templateFontSize: float, signatureFontSize: float, renderMode: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
 	 *
 	 * 200: OK
 	 * 400: Bad request
 	 */
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-text', requirements: ['apiVersion' => '(v1)'])]
-	public function signatureTextSave(string $template, float $templateFontSize = 6, string $renderMode = 'GRAPHIC_AND_DESCRIPTION'): DataResponse {
+	public function signatureTextSave(
+		string $template,
+		/** @todo openapi package don't evaluate SignatureTextService::TEMPLATE_DEFAULT_FONT_SIZE */
+		float $templateFontSize = 10,
+		/** @todo openapi package don't evaluate SignatureTextService::SIGNATURE_DEFAULT_FONT_SIZE */
+		float $signatureFontSize = 20,
+		string $renderMode = 'GRAPHIC_AND_DESCRIPTION',
+	): DataResponse {
 		try {
 			$return = $this->signatureTextService->save(
 				$template,
 				$templateFontSize,
+				$signatureFontSize,
 				$renderMode,
 			);
 			return new DataResponse(
@@ -421,7 +431,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * @param string $template Template to signature text
 	 * @param string $context Context for parsing the template
-	 * @return DataResponse<Http::STATUS_OK, array{template: string,parsed: string, templateFontSize: float, renderMode: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{template: string,parsed: string, templateFontSize: float, signatureFontSize: float, renderMode: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
 	 *
 	 * 200: OK
 	 * 400: Bad request
@@ -435,6 +445,55 @@ class AdminController extends AEnvironmentAwareController {
 				$return,
 				Http::STATUS_OK
 			);
+		} catch (LibresignException $th) {
+			return new DataResponse(
+				[
+					'error' => $th->getMessage(),
+				],
+				Http::STATUS_BAD_REQUEST
+			);
+		}
+	}
+
+	/**
+	 * Convert signer name as image
+	 *
+	 * @param int $width Image width,
+	 * @param int $height Image height
+	 * @param string $text Text to be added to image
+	 * @param float $fontSize Font size of text
+	 * @param bool $isDarkTheme Color of text, white if is tark theme and black if not
+	 * @param string $align Align of text: left, center or right
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Disposition: 'inline; filename="signer-name.png"', Content-Type: 'image/png'}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 *
+	 * 200: OK
+	 * 400: Bad request
+	 */
+	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/signer-name', requirements: ['apiVersion' => '(v1)'])]
+	public function signerName(
+		int $width,
+		int $height,
+		string $text,
+		float $fontSize,
+		bool $isDarkTheme,
+		string $align,
+	):  FileDisplayResponse|DataResponse {
+		try {
+			$blob = $this->signatureTextService->signerNameImage(
+				width: $width,
+				height: $height,
+				text: $text,
+				fontSize: $fontSize,
+				isDarkTheme: $isDarkTheme,
+				align: $align,
+			);
+			$file = new InMemoryFile('signer-name.png', $blob);
+			return new FileDisplayResponse($file, Http::STATUS_OK, [
+				'Content-Disposition' => 'inline; filename="signer-name.png"',
+				'Content-Type' => 'image/png',
+			]);
+			return $response;
 		} catch (LibresignException $th) {
 			return new DataResponse(
 				[

@@ -116,4 +116,70 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 			],
 		];
 	}
+
+	#[DataProvider('providerSplitAndGetLongestHalfLength')]
+	public function testSplitAndGetLongestHalfLength(string $text, int $expected): void {
+		$class = $this->getClass();
+		$actual = self::invokePrivate($class, 'splitAndGetLongestHalfLength', [$text]);
+		$this->assertEquals($expected, $actual);
+	}
+
+	public static function providerSplitAndGetLongestHalfLength(): array {
+		return [
+			'empty string' => ['', mb_strlen('')],
+			'single character' => ['A', mb_strlen('A')],
+			'no spaces' => ['Loremipsumdolorsitamet', mb_strlen('Loremipsumdolorsitamet')],
+			'space exactly in the middle' => ['Lorem ipsum', mb_strlen('Lorem')],
+			'space after middle' => ['Open source rocks', mb_strlen('source rocks')],
+			'space before middle' => ['Free software forever', mb_strlen('software forever')],
+			'spaces on edges' => [' Leading and trailing ', mb_strlen('and trailing')],
+			'unbalanced halves' => ['Short veryveryverylongword', mb_strlen('veryveryverylongword')],
+			'equal halves' => ['One Two', mb_strlen('One')],
+			'multiple words' => ['This is a longer string with more words', mb_strlen('This is a longer string')],
+			'no possible split (no spaces)' => ['ABCDEFGHIJK', mb_strlen('ABCDEFGHIJK')],
+			'only spaces' => ['     ', mb_strlen('')],
+			'space at beginning' => [' HelloWorld', mb_strlen('HelloWorld')],
+			'space at end' => ['HelloWorld ', mb_strlen('HelloWorld')],
+			'two short words' => ['a b', mb_strlen('a')],
+			'multibyte with accents' => ['João da Silva', mb_strlen('da Silva')],
+			'multibyte at split' => ['José Antônio', mb_strlen('Antônio')],
+			'multibyte no spaces' => ['Ñandúçara', mb_strlen('Ñandúçara')],
+			'emoji in middle' => ['Smile 😀 always', mb_strlen('Smile 😀')],
+			'emoji before space' => ['Good job 👍 team', mb_strlen('Good job 👍')],
+			'emoji after space' => ['Team 👏 effort', mb_strlen('Team 👏')],
+			'cjk characters with space' => ['漢字 漢字', mb_strlen('漢字')],
+			'arabic with space' => ['سلام عليكم', mb_strlen('عليكم')],
+			'emoji only' => ['😊 🙃', mb_strlen('😊')],
+			'mixed accented and emoji' => ['Renée 💡 Dubois', mb_strlen('Renée 💡')],
+			'greek with space' => ['Αθήνα Ελλάδα', mb_strlen('Ελλάδα')],
+		];
+	}
+
+	#[DataProvider('providerSignerNameImage')]
+	public function testSignerNameImageVariants(string $text, int $width, int $height, string $align, float $fontSize): void {
+		$class = $this->getClass();
+		$blob = $class->signerNameImage($text, $width, $height, $align, $fontSize);
+
+		$image = new Imagick();
+		$image->readImageBlob($blob);
+
+		$this->assertEquals($width, $image->getImageWidth());
+		$this->assertEquals($height, $image->getImageHeight());
+	}
+
+	public static function providerSignerNameImage(): array {
+		return [
+			'center 350x100' => ['LibreSign', 350, 100, 'center', 16],
+			'left 350x100' => ['Secure signature', 350, 100, 'left', 18],
+			'right 350x100' => ['Verified by LibreCode', 350, 100, 'right', 14],
+
+			'center 175x100' => ['Fast & Easy Signing', 175, 100, 'center', 12],
+			'left 175x100' => ['LibreSign Service', 175, 100, 'left', 10],
+			'right 175x100' => ['Electronic Docs', 175, 100, 'right', 12],
+
+			'center 175x50' => ['Secure ✔️', 175, 50, 'center', 10],
+			'left 175x50' => ['Sign now', 175, 50, 'left', 9],
+			'right 175x50' => ['Signed 🔐', 175, 50, 'right', 11],
+		];
+	}
 }

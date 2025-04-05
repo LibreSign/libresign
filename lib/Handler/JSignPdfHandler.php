@@ -24,7 +24,7 @@ use OCP\IAppConfig;
 use OCP\ITempManager;
 use Psr\Log\LoggerInterface;
 
-class JSignPdfHandler extends SignEngineHandler {
+class JSignPdfHandler extends Pkcs12Handler {
 	/** @var JSignPDF */
 	private $jSignPdf;
 	/** @var JSignParam */
@@ -143,7 +143,7 @@ class JSignPdfHandler extends SignEngineHandler {
 			];
 
 			$params['--font-size'] = $this->parseSignatureText()['templateFontSize'];
-			if ($params['--font-size'] === 10 || !$params['--font-size'] || $params['--l2-text'] === '""') {
+			if ($params['--font-size'] === 10.0 || !$params['--font-size'] || $params['--l2-text'] === '""') {
 				unset($params['--font-size']);
 			}
 
@@ -168,7 +168,15 @@ class JSignPdfHandler extends SignEngineHandler {
 				$params['-ury'] = $element->getFileElement()->getUry();
 				$signatureImagePath = $element->getTempFile();
 				if ($backgroundType === 'deleted') {
-					$params['--bg-path'] = $signatureImagePath;
+					if ($renderMode === 'SIGNAME_AND_DESCRIPTION') {
+						$params['--render-mode'] = 'GRAPHIC_AND_DESCRIPTION';
+						$params['--img-path'] = $this->createTextImage(
+							width: $params['-urx'] - $params['-llx'],
+							height: $params['-ury'] - $params['-lly'],
+						);
+					} elseif ($signatureImagePath) {
+						$params['--bg-path'] = $signatureImagePath;
+					}
 				} elseif ($params['--l2-text'] === '""') {
 					if ($backgroundPath) {
 						$params['--bg-path'] = $this->mergeBackgroundWithSignature($backgroundPath, $signatureImagePath);
@@ -180,6 +188,14 @@ class JSignPdfHandler extends SignEngineHandler {
 						$params['--render-mode'] = 'GRAPHIC_AND_DESCRIPTION';
 						$params['--bg-path'] = $backgroundPath;
 						$params['--img-path'] = $signatureImagePath;
+					} elseif ($renderMode === 'SIGNAME_AND_DESCRIPTION') {
+						$params['--render-mode'] = 'GRAPHIC_AND_DESCRIPTION';
+						$params['--bg-path'] = $backgroundPath;
+						$params['--img-path'] = $this->createTextImage(
+							width: $params['-urx'] - $params['-llx'],
+							height: $params['-ury'] - $params['-lly'],
+						);
+
 					} else {
 						// --render-mode DESCRIPTION_ONLY, this is the default
 						// render-mode, because this, is unecessary to set here
@@ -197,6 +213,31 @@ class JSignPdfHandler extends SignEngineHandler {
 			return $signed;
 		}
 		return '';
+	}
+
+	public function readCertificate(): array {
+		return $this->certificateEngineFactory
+			->getEngine()
+			->readCertificate(
+				$this->getCertificate(),
+				$this->getPassword()
+			);
+	}
+
+	private function createTextImage(int $width, int $height): string {
+		$certData = $this->readCertificate();
+		$content = $this->signatureTextService->signerNameImage(
+			width: $width,
+			height: $height,
+			text: $certData['subject']['CN'],
+		);
+
+		$tmpPath = $this->tempManager->getTemporaryFile('_text_image.png');
+		if (!$tmpPath) {
+			throw new \Exception('Temporary file not accessible');
+		}
+		file_put_contents($tmpPath, $content);
+		return $tmpPath;
 	}
 
 	private function mergeBackgroundWithSignature(string $backgroundPath, string $signaturePath): string {

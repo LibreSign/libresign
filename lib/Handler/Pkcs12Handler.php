@@ -34,7 +34,6 @@ class Pkcs12Handler extends SignEngineHandler {
 		private IAppConfig $appConfig,
 		protected CertificateEngineFactory $certificateEngineFactory,
 		private IL10N $l10n,
-		private JSignPdfHandler $jSignPdfHandler,
 		private FooterHandler $footerHandler,
 		private ITempManager $tempManager,
 	) {
@@ -79,15 +78,6 @@ class Pkcs12Handler extends SignEngineHandler {
 			$newPrivateKey
 		);
 		return $this->savePfx($uid, $content);
-	}
-
-	public function readCertificate(?string $uid = null, string $privateKey = ''): array {
-		$this->setPassword($privateKey);
-		$pfx = $this->getPfx($uid);
-		return $this->certificateEngineHandler->getEngine()->readCertificate(
-			$pfx,
-			$privateKey
-		);
 	}
 
 	/**
@@ -370,8 +360,9 @@ class Pkcs12Handler extends SignEngineHandler {
 		return $pem;
 	}
 
-	public function setPfxContent(string $content): void {
+	public function setPfxContent(string $content): self {
 		$this->pfxContent = $content;
+		return $this;
 	}
 
 	/**
