@@ -21,6 +21,13 @@
 				{{ t('libresign', 'Signature and description') }}
 			</NcCheckboxRadioSwitch>
 			<NcCheckboxRadioSwitch v-model="renderMode"
+				value="SIGNAME_AND_DESCRIPTION"
+				name="render_mode"
+				type="radio"
+				@update:modelValue="saveTemplate">
+				{{ t('libresign', 'Signer name and description') }}
+			</NcCheckboxRadioSwitch>
+			<NcCheckboxRadioSwitch v-model="renderMode"
 				value="GRAPHIC_ONLY"
 				name="render_mode"
 				type="radio"
@@ -69,25 +76,51 @@
 				</NcButton>
 			</div>
 			<div class="settings-section__row">
-				<NcTextField :value.sync="fontSize"
-					:label="t('libresign', 'Font size')"
-					:placeholder="t('libresign', 'Font size')"
-					type="number"
-					:min="0.1"
-					:max="30"
-					:step="0.01"
-					:spellcheck="false"
-					:success="showSuccessTemplate"
-					@keydown.enter="saveTemplate"
-					@blur="saveTemplate" />
-				<NcButton v-if="showResetFontSize"
-					type="tertiary"
-					:aria-label="t('libresign', 'Reset to default')"
-					@click="resetFontSize">
-					<template #icon>
-						<Undo :size="20" />
-					</template>
-				</NcButton>
+				<div v-if="renderMode === 'SIGNAME_AND_DESCRIPTION'" class="settings-section__row_signature">
+					<NcTextField :value.sync="signatureFontSize"
+						:label="t('libresign', 'Signature font size')"
+						:placeholder="t('libresign', 'Signature font size')"
+						type="number"
+						:min="0.1"
+						:max="30"
+						:step="0.01"
+						:spellcheck="false"
+						:success="showSuccessTemplate"
+						@keydown.enter="saveTemplate"
+						@blur="saveTemplate" />
+					<NcButton v-if="showResetSignatureFontSize"
+						type="tertiary"
+						:aria-label="t('libresign', 'Reset to default')"
+						@click="resetSignatureFontSize">
+						<template #icon>
+							<Undo :size="20" />
+						</template>
+					</NcButton>
+				</div>
+				<div :class="{
+					'settings-section__row_template': renderMode === 'SIGNAME_AND_DESCRIPTION',
+					'settings-section__row_template-only': renderMode !== 'SIGNAME_AND_DESCRIPTION',
+				}">
+					<NcTextField :value.sync="templateFontSize"
+						:label="t('libresign', 'Template font size')"
+						:placeholder="t('libresign', 'Template font size')"
+						type="number"
+						:min="0.1"
+						:max="30"
+						:step="0.01"
+						:spellcheck="false"
+						:success="showSuccessTemplate"
+						@keydown.enter="saveTemplate"
+						@blur="saveTemplate" />
+					<NcButton v-if="showResetTemplateFontSize"
+						type="tertiary"
+						:aria-label="t('libresign', 'Reset to default')"
+						@click="resetTemplateFontSize">
+						<template #icon>
+							<Undo :size="20" />
+						</template>
+					</NcButton>
+				</div>
 			</div>
 		</div>
 		<div v-for="(error, key) in errorMessageTemplate"
@@ -146,21 +179,25 @@
 			</NcNoteCard>
 		</div>
 		<div class="settings-section__row">
+			<div v-if="showPreview && !previewLoaded" class="settings-section__preview">
+				<NcLoadingIcon class="settings-section__preview__loading" :size="20" />
+			</div>
 			<div v-if="showPreview"
 				class="settings-section__preview"
 				:style="{
 					'background-image': 'url(' + backgroundUrl + ')',
 					'border-color': isOverflowing ? 'var(--color-error) !important': '',
+					visibility: previewLoaded ? 'visible' : 'hidden',
 				}">
 				<div class="left-column" :style="{display: renderMode === 'DESCRIPTION_ONLY' ? 'none' : ''}">
 					<div class="left-column-content"
 						:style="{
+							'border': renderMode === 'SIGNAME_AND_DESCRIPTION' ? 'unset' : '',
 							width: (renderMode === 'GRAPHIC_ONLY' || !parsedWithLineBreak ? '350' : '175') + 'px',
 							height: (renderMode === 'GRAPHIC_ONLY' || !parsedWithLineBreak ? '100' : '50') + 'px',
-							'justify-content': renderMode === 'GRAPHIC_ONLY' || !parsedWithLineBreak? 'center': 'right',
 						}">
-						<!-- TRANSLATORS Placeholder to indicate signature location in preview -->
-						{{ t('libresign', 'Signature here') }}
+						<img :src="signatureImageUrl"
+							@load="isSignatureImageLoaded = true">
 					</div>
 				</div>
 				<!-- eslint-disable vue/no-v-html -->
@@ -189,6 +226,7 @@ import Delete from 'vue-material-design-icons/Delete.vue'
 import Undo from 'vue-material-design-icons/UndoVariant.vue'
 import Upload from 'vue-material-design-icons/Upload.vue'
 
+import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t, isRTL } from '@nextcloud/l10n'
@@ -201,6 +239,7 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextArea from '@nextcloud/vue/components/NcTextArea'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
+import { useIsDarkTheme } from '@nextcloud/vue/composables/useIsDarkTheme'
 
 export default {
 	name: 'SignatureStamp',
@@ -215,6 +254,12 @@ export default {
 		NcTextField,
 		Undo,
 		Upload,
+	},
+	setup() {
+		const isDarkTheme = useIsDarkTheme()
+		return {
+			isDarkTheme,
+		}
 	},
 	data() {
 		const templateError = loadState('libresign', 'signature_text_template_error', '')
@@ -232,8 +277,12 @@ export default {
 				: '',
 			defaultSignatureTextTemplate: loadState('libresign', 'default_signature_text_template'),
 			defaultTemplateFontSize: loadState('libresign', 'default_template_font_size'),
+			defaultSignatureFontSize: loadState('libresign', 'default_signature_font_size'),
 			signatureTextTemplate: loadState('libresign', 'signature_text_template'),
+			signatureFontSize: loadState('libresign', 'signature_font_size'),
 			templateFontSize: loadState('libresign', 'template_font_size'),
+			isSignatureImageLoaded: false,
+			templateSaved: true,
 			renderMode: loadState('libresign', 'signature_render_mode'),
 			showSuccessTemplate: false,
 			errorMessageTemplate: templateError ? [templateError] : [],
@@ -277,6 +326,28 @@ export default {
 		showResetTemplateFontSize() {
 			return this.templateFontSize !== this.defaultTemplateFontSize
 		},
+		showResetSignatureFontSize() {
+			return this.signatureFontSize !== this.defaultSignatureFontSize
+		},
+		signatureImageUrl() {
+			const width = (this.renderMode === 'GRAPHIC_ONLY' || !this.parsedWithLineBreak) ? 350 : 175
+			const height = (this.renderMode === 'GRAPHIC_ONLY' || !this.parsedWithLineBreak || this.renderMode === 'SIGNAME_AND_DESCRIPTION') ? 100 : 50
+			const text = this.renderMode === 'SIGNAME_AND_DESCRIPTION'
+				? getCurrentUser()?.displayName ?? 'John Doe'
+				: t('libresign', 'Signature image here')
+			const align = this.renderMode === 'GRAPHIC_AND_DESCRIPTION' ? 'right' : 'center'
+			const isDarkTheme = this.isDarkTheme ? 1 : 0
+
+			return generateOcsUrl('/apps/libresign/api/v1/admin/signer-name')
+				+ `?width=${width}`
+				+ `&height=${height}`
+				+ `&text=${encodeURIComponent(text)}`
+				+ `&fontSize=${this.signatureFontSize}`
+				+ `&isDarkTheme=${isDarkTheme}`
+				+ `&align=${align}`
+		},
+		previewLoaded() {
+			return this.isSignatureImageLoaded && !this.showLoadingBackground && this.templateSaved
 		},
 		debouncePropertyChange() {
 			return debounce(async function() {
@@ -285,6 +356,11 @@ export default {
 		},
 		parsedWithLineBreak() {
 			return this.parsed.replace(/\n/g, '<br>')
+		},
+	},
+	watch: {
+		signatureImageUrl() {
+			this.isSignatureImageLoaded = false
 		},
 	},
 	mounted() {
@@ -385,13 +461,19 @@ export default {
 			this.templateFontSize = this.defaultTemplateFontSize
 			this.saveTemplate()
 		},
+		async resetSignatureFontSize() {
+			this.signatureFontSize = this.defaultSignatureFontSize
+			this.saveTemplate()
+		},
 		async saveTemplate() {
 			this.showSuccessTemplate = false
 			this.errorMessageTemplate = []
+			this.templateSaved = false
 			this.resizeHeight()
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-text'), {
 				template: this.signatureTextTemplate,
 				templateFontSize: this.templateFontSize,
+				signatureFontSize: this.signatureFontSize,
 				renderMode: this.renderMode,
 			})
 				.then(({ data }) => {
@@ -400,7 +482,11 @@ export default {
 					if (data.ocs.data.templateFontSize !== this.templateFontSize) {
 						this.templateFontSize = data.ocs.data.templateFontSize
 					}
+					if (data.ocs.data.signatureFontSize !== this.signatureFontSize) {
+						this.signatureFontSize = data.ocs.data.signatureFontSize
+					}
 					this.showSuccessTemplate = true
+					this.templateSaved = true
 					setTimeout(() => { this.showSuccessTemplate = false }, 2000)
 				})
 				.catch(({ response }) => {
@@ -423,6 +509,14 @@ export default {
 	&__row {
 		display: flex;
 		gap: 0 4px;
+		&_template-only {
+			width: 100%;
+			display: flex;
+		}
+		&_signature, &_template {
+			width: 50%;
+			display: flex;
+		}
 	}
 	&__loading-icon {
 		width: 44px;
@@ -439,6 +533,13 @@ export default {
 		text-align: center;
 		margin-top: 10px;
 		border: var(--border-width-input, 2px) solid var(--color-border-maxcontrast);
+		position: relative;
+		&__loading {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+		}
 		.left-column {
 			display: flex;
 			align-items: center;
@@ -446,8 +547,6 @@ export default {
 				border: var(--border-width-input, 2px) solid var(--color-border-maxcontrast);
 				border-radius: 10px;
 				display: flex;
-				align-items: center;
-				justify-content: right;
 			}
 		}
 		.right-column {
