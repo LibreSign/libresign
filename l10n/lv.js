@@ -10,7 +10,7 @@ OC.L10N.register(
     "Dismiss notification" : "Noraidīt paziņojumu",
     "File not found" : "Datne nav atrasta",
     "File already exists" : "Datne jau pastāv",
-    "Invalid file provided" : "Norādīt nederīgs fails",
+    "Invalid file provided" : "Norādīta nederīga datne",
     "Account" : "Konts",
     "Invalid user" : "Nepareizs lietotājs",
     "Email" : "E-pasts",
