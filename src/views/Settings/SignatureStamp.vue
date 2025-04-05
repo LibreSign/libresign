@@ -193,10 +193,12 @@
 					<div class="left-column-content"
 						:style="{
 							'border': renderMode === 'SIGNAME_AND_DESCRIPTION' ? 'unset' : '',
-							width: (renderMode === 'GRAPHIC_ONLY' || !parsedWithLineBreak ? '350' : '175') + 'px',
-							height: (renderMode === 'GRAPHIC_ONLY' || !parsedWithLineBreak ? '100' : '50') + 'px',
+							width: previewSignatureImageWidth + 'px',
+							height: previewSignatureImageHeight + 'px',
 						}">
 						<img :src="signatureImageUrl"
+							:width="previewSignatureImageWidth"
+							:height="previewSignatureImageHeight"
 							@load="isSignatureImageLoaded = true">
 					</div>
 				</div>
@@ -329,9 +331,13 @@ export default {
 		showResetSignatureFontSize() {
 			return this.signatureFontSize !== this.defaultSignatureFontSize
 		},
+		previewSignatureImageWidth()  {
+			return (this.renderMode === 'GRAPHIC_ONLY' || !this.parsedWithLineBreak) ? 350 : 175
+		},
+		previewSignatureImageHeight() {
+			return (this.renderMode === 'GRAPHIC_ONLY' || !this.parsedWithLineBreak || this.renderMode === 'SIGNAME_AND_DESCRIPTION') ? 100 : 50
+		},
 		signatureImageUrl() {
-			const width = (this.renderMode === 'GRAPHIC_ONLY' || !this.parsedWithLineBreak) ? 350 : 175
-			const height = (this.renderMode === 'GRAPHIC_ONLY' || !this.parsedWithLineBreak || this.renderMode === 'SIGNAME_AND_DESCRIPTION') ? 100 : 50
 			const text = this.renderMode === 'SIGNAME_AND_DESCRIPTION'
 				? getCurrentUser()?.displayName ?? 'John Doe'
 				: t('libresign', 'Signature image here')
@@ -339,8 +345,8 @@ export default {
 			const isDarkTheme = this.isDarkTheme ? 1 : 0
 
 			return generateOcsUrl('/apps/libresign/api/v1/admin/signer-name')
-				+ `?width=${width}`
-				+ `&height=${height}`
+				+ `?width=${this.previewSignatureImageWidth}`
+				+ `&height=${this.previewSignatureImageHeight}`
 				+ `&text=${encodeURIComponent(text)}`
 				+ `&fontSize=${this.signatureFontSize}`
 				+ `&isDarkTheme=${isDarkTheme}`
@@ -547,6 +553,7 @@ export default {
 				border: var(--border-width-input, 2px) solid var(--color-border-maxcontrast);
 				border-radius: 10px;
 				display: flex;
+				align-items: center;
 			}
 		}
 		.right-column {
