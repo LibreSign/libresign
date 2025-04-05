@@ -10,7 +10,7 @@ namespace OCA\Libresign\Settings;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
@@ -24,7 +24,7 @@ class Admin implements ISettings {
 	public function __construct(
 		private IInitialState $initialState,
 		private IdentifyMethodService $identifyMethodService,
-		private CertificateEngineHandler $certificateEngineHandler,
+		private CertificateEngineFactory $certificateEngineFactory,
 		private IAppConfig $appConfig,
 		private SignatureTextService $signatureTextService,
 		private SignatureBackgroundService $signatureBackgroundService,
@@ -38,7 +38,7 @@ class Admin implements ISettings {
 		);
 		$this->initialState->provideInitialState(
 			'certificate_engine',
-			$this->certificateEngineHandler->getEngine()->getName()
+			$this->certificateEngineFactory->getEngine()->getName()
 		);
 		$this->initialState->provideInitialState(
 			'config_path',

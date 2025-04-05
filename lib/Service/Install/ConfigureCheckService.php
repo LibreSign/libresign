@@ -11,7 +11,7 @@ namespace OCA\Libresign\Service\Install;
 use OC\AppConfig;
 use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngine;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCP\IAppConfig;
@@ -25,7 +25,7 @@ class ConfigureCheckService {
 		private SystemConfig $systemConfig,
 		private AppConfig $ocAppConfig,
 		private JSignPdfHandler $jSignPdfHandler,
-		private CertificateEngine $certificateEngine,
+		private CertificateEngineFactory $certificateEngineFactory,
 		private SignSetupService $signSetupService,
 		private LoggerInterface $logger,
 	) {
@@ -426,14 +426,14 @@ class ConfigureCheckService {
 	 */
 	public function checkCertificate(): array {
 		try {
-			$return = $this->certificateEngine->getEngine()->configureCheck();
+			$return = $this->certificateEngineFactory->getEngine()->configureCheck();
 		} catch (\Throwable $th) {
 			$return = [
 				(new ConfigureCheckHelper())
 					->setErrorMessage('Define the certificate engine to use')
 					->setResource('certificate-engine')
 					->setTip(sprintf('Run occ libresign:configure:%s --help',
-						$this->certificateEngine->getEngine()->getName()
+						$this->certificateEngineFactory->getEngine()->getName()
 					)),
 			];
 		}
