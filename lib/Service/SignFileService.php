@@ -280,6 +280,14 @@ class SignFileService {
 					'LocalSignerSignatureDateTime' => (new DateTime('now', $this->dateTimeZone->getTimeZone()))
 						->format(DateTimeInterface::ATOM)
 				];
+				if (isset($certificateData['extensions']['subjectAltName'])) {
+					preg_match('/^email:(?<email>.*)$/', $certificateData['extensions']['subjectAltName'], $matches);
+					if ($matches && filter_var($matches['email'], FILTER_VALIDATE_EMAIL)) {
+						$signatureParams['SignerEmail'] = $matches['email'];
+					} elseif (filter_var($certificateData['extensions']['subjectAltName'], FILTER_VALIDATE_EMAIL)) {
+						$signatureParams['SignerEmail'] = $certificateData['extensions']['subjectAltName'];
+					}
+				}
 				$signReuestMetadata = $this->signRequest->getMetadata();
 				if (isset($signReuestMetadata['remote-address'])) {
 					$signatureParams['SignerIP'] = $signReuestMetadata['remote-address'];
