@@ -61,11 +61,11 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected FolderService|MockObject $folderService;
 	protected ValidateHelper $validateHelper;
 	protected PdfParserService $pdfParserService;
-	private AccountService $accountService;
+	private AccountService&MockObject $accountService;
 	private IdentifyMethodService $identifyMethodService;
 	private IUserSession $userSession;
 	private IUserManager $userManager;
-	private IAccountManager $accountManager;
+	private IAccountManager&MockObject $accountManager;
 	protected IClientService $client;
 	private IDateTimeFormatter $dateTimeFormatter;
 	private IAppConfig $appConfig;
@@ -93,15 +93,15 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folderService = \OCP\Server::get(FolderService::class);
 		$this->validateHelper = \OCP\Server::get(ValidateHelper::class);
 		$this->pdfParserService = \OCP\Server::get(PdfParserService::class);
-		$this->accountService = \OCP\Server::get(AccountService::class);
+		$this->accountService = $this->createMock(AccountService::class);
 		$this->identifyMethodService = \OCP\Server::get(IdentifyMethodService::class);
 		$this->userSession = \OCP\Server::get(IUserSession::class);
 		$this->userManager = \OCP\Server::get(IUserManager::class);
-		$this->accountManager = \OCP\Server::get(IAccountManager::class);
+		$this->accountManager = $this->createMock(IAccountManager::class);
 		$this->client = \OCP\Server::get(IClientService::class);
 		$this->dateTimeFormatter = \OCP\Server::get(IDateTimeFormatter::class);
 		$this->appConfig = new AppConfigOverwrite(
-			\OCP\Server::get(\OCP\IDBConnection::class),
+			$this->createMock(\OCP\IDBConnection::class),
 			\OCP\Server::get(\Psr\Log\LoggerInterface::class),
 			\OCP\Server::get(\OCP\Security\ICrypto::class),
 		);
