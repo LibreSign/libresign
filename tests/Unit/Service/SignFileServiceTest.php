@@ -186,8 +186,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testSignWithFileNotFound():void {
 		$this->expectExceptionMessage('File not found');
 
-		$this->createAccount('username', 'password');
-
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUserId('username');
 
@@ -211,8 +209,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 * @dataProvider dataSignWithSuccess
 	 */
 	public function testSignWithSuccess(string $mimetype, string $filename, string $extension):void {
-		$this->createAccount('username', 'password');
-
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUserId('username');
 
