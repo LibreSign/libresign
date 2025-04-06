@@ -10,8 +10,8 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\CertificateEngine\AEngineHandler;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
@@ -130,7 +130,7 @@ class AdminController extends AEnvironmentAwareController {
 	private function generateCertificate(
 		array $rootCert,
 		array $properties = [],
-	): AEngineHandler {
+	): IEngineHandler {
 		$names = [];
 		if (isset($rootCert['names'])) {
 			foreach ($rootCert['names'] as $item) {

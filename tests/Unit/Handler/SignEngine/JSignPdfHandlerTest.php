@@ -15,7 +15,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
-use OCA\Libresign\Handler\JSignPdfHandler;
+use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCP\IAppConfig;
@@ -101,7 +101,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 
 		$this->signatureBackgroundService->method('getImagePath')->willReturn(
-			realpath(__DIR__ . '/../../../img/LibreSign.png')
+			realpath(__DIR__ . '/../../../../img/LibreSign.png')
 		);
 
 		$this->appConfig->setValueFloat('libresign', 'template_font_size', $templateFontSize);
@@ -151,7 +151,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 0,
 					'urx' => 0,
 					'ury' => 0,
-				], realpath(__DIR__ . '/../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
 				'',
 				'default',
 				'DESCRIPTION_ONLY',
@@ -167,7 +167,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
 				'',
 				'default',
 				'DESCRIPTION_ONLY',
@@ -183,7 +183,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
 				'aaaaa',
 				'default',
 				'DESCRIPTION_ONLY',
@@ -199,7 +199,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
 				'aaaaa',
 				'default',
 				'DESCRIPTION_ONLY',
@@ -215,7 +215,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
 				'aaaaa',
 				'deleted',
 				'DESCRIPTION_ONLY',
@@ -231,7 +231,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
 				'aaaaa',
 				'default',
 				'GRAPHIC_AND_DESCRIPTION',
@@ -247,7 +247,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 100,
 					'urx' => 351,
 					'ury' => 200,
-				], realpath(__DIR__ . '/../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
 				'aaaaa',
 				'default',
 				'SIGNAME_AND_DESCRIPTION',
@@ -263,7 +263,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
 				'aaaaa',
 				'deleted',
 				'SIGNAME_AND_DESCRIPTION',
@@ -295,7 +295,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
 				'',
 				'default',
 				'GRAPHIC_AND_DESCRIPTION',
@@ -307,7 +307,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	private static function getElement(array $attributes = [], ?string $imagePath = null): VisibleElementAssoc {
+	private static function getElement(array $attributes = [], string $imagePath = ''): VisibleElementAssoc {
 		$element = new FileElement();
 		foreach ($attributes as $attribute => $value) {
 			$method = 'set' . ucfirst($attribute);

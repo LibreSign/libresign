@@ -12,7 +12,7 @@ use OC\AppConfig;
 use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
-use OCA\Libresign\Handler\JSignPdfHandler;
+use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;

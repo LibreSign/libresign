@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\Pkcs12Handler;
+use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCP\IUserSession;
 
@@ -28,7 +28,7 @@ class Password extends AbstractSignatureMethod {
 
 	public function validateToIdentify(): void {
 		$this->pkcs12Handler->setPassword($this->codeSentByUser);
-		$pfx = $this->pkcs12Handler->getPfx($this->userSession->getUser()?->getUID());
+		$pfx = $this->pkcs12Handler->getPfxOfCurrentSigner($this->userSession->getUser()?->getUID());
 		if (empty($pfx)) {
 			throw new LibresignException($this->identifyService->getL10n()->t('Invalid password'));
 		}
@@ -42,7 +42,7 @@ class Password extends AbstractSignatureMethod {
 
 	private function hasSignatureFile(): bool {
 		try {
-			$this->pkcs12Handler->getPfx($this->userSession->getUser()?->getUID());
+			$this->pkcs12Handler->getPfxOfCurrentSigner($this->userSession->getUser()?->getUID());
 			return true;
 		} catch (\Throwable $th) {
 		}

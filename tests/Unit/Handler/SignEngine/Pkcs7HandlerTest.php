@@ -6,14 +6,14 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-use OCA\Libresign\Handler\Pkcs7Handler;
+use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class Pkcs7HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/**
 	 * @return MockObject|Pkcs7Handler
 	 */
-	protected function getInstance(array $methods = []): Pkcs7Handler {
+	protected function getInstance(array $methods = []): Pkcs7Handler|MockObject {
 		if (empty($methods)) {
 			return new Pkcs7Handler();
 		}
@@ -44,7 +44,7 @@ final class Pkcs7HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn($fileToSIgnTempNam);
 		$handler->setInputFile($fileToSign);
 
-		$certKeys = json_decode(file_get_contents(__DIR__ . '/../../fixtures/cfssl/newcert-with-success.json'), true);
+		$certKeys = json_decode(file_get_contents(__DIR__ . '/../../../fixtures/cfssl/newcert-with-success.json'), true);
 		$certKeys = $certKeys['result'];
 		openssl_pkcs12_export($certKeys['certificate'], $certContent, $certKeys['private_key'], 'password');
 		$handler->setCertificate($certContent);

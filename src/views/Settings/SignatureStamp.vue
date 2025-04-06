@@ -331,7 +331,7 @@ export default {
 		showResetSignatureFontSize() {
 			return this.signatureFontSize !== this.defaultSignatureFontSize
 		},
-		previewSignatureImageWidth()  {
+		previewSignatureImageWidth() {
 			return (this.renderMode === 'GRAPHIC_ONLY' || !this.parsedWithLineBreak) ? 350 : 175
 		},
 		previewSignatureImageHeight() {
