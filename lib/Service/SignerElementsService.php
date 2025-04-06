@@ -136,4 +136,14 @@ class SignerElementsService {
 	public function isSignElementsAvailable(): bool {
 		return $this->signatureBackgroundService->isEnabled() || $this->signatureTextService->isEnabled();
 	}
+
+	public function canCreateSignature(): bool {
+		return !in_array(
+			$this->signatureTextService->getRenderMode(),
+			[
+				'SIGNAME_AND_DESCRIPTION',
+				'DESCRIPTION_ONLY',
+			]
+			);
+	}
 }
