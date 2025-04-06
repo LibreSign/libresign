@@ -179,6 +179,7 @@ class SignatureTextService {
 		}
 
 		$image = new Imagick();
+		$image->setResolution(600, 600);
 		$image->newImage($width, $height, new ImagickPixel('transparent'));
 		$image->setImageFormat('png');
 
