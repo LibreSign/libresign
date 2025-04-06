@@ -288,7 +288,6 @@ class JSignPdfHandler extends Pkcs12Handler {
 	private function parseSignatureText(): array {
 		if (!$this->parsedSignatureText) {
 			$params = $this->getSignatureParams();
-			$params['SignerCommonName'] = '${signer}';
 			$params['ServerSignatureDate'] = '${timestamp}';
 			$this->parsedSignatureText = $this->signatureTextService->parse(context: $params);
 		}
