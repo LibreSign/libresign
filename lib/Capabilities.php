@@ -37,6 +37,7 @@ class Capabilities implements IPublicCapability {
 			'config' => [
 				'sign-elements' => [
 					'is-available' => $this->signerElementsService->isSignElementsAvailable(),
+					'can-create-signature' => $this->signerElementsService->canCreateSignature(),
 				],
 			],
 			'version' => $this->appManager->getAppVersion('libresign'),

@@ -112,6 +112,7 @@
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
+import { getCapabilities } from '@nextcloud/capabilities'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
 
@@ -187,6 +188,7 @@ export default {
 			return !!signer.signRequestId
 				&& signer.visibleElements.length > 0
 				&& !this.hasSignatures
+				&& getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true
 		},
 		ableToSign() {
 			if (this.signMethodsStore.needCreatePassword()) {
