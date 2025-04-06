@@ -235,7 +235,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler->method('setPassword')->willReturn($this->pkcs12Handler);
 		$this->pkcs12Handler->method('readCertificate')->willReturn([
 			'issuer' => ['CN' => 'Acme Cooperative'],
-			'signer' => ['CN' => 'John Doe'],
+			'subject' => ['CN' => 'John Doe'],
 		]);
 		$this->pkcs12Handler->method('sign')->willReturn($nextcloudFile);
 

@@ -275,7 +275,7 @@ class SignFileService {
 				$signatureParams = [
 					'DocumentUUID' => $this->libreSignFile->getUuid(),
 					'IssuerCommonName' => $certificateData['issuer']['CN'],
-					'SignerCommonName' => $certificateData['signer']['CN'],
+					'SignerCommonName' => $certificateData['subject']['CN'],
 					'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
 					'LocalSignerSignatureDateTime' => (new DateTime('now', $this->dateTimeZone->getTimeZone()))
 						->format(DateTimeInterface::ATOM)
