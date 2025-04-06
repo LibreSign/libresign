@@ -235,6 +235,7 @@ namespace OCA\Libresign;
  *     config: array{
  *         sign-elements: array{
  *             is-available: bool,
+ *             can-create-signature: bool,
  *         },
  *     },
  *     version: string,

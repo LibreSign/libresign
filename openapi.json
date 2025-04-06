@@ -60,10 +60,14 @@
                             "sign-elements": {
                                 "type": "object",
                                 "required": [
-                                    "is-available"
+                                    "is-available",
+                                    "can-create-signature"
                                 ],
                                 "properties": {
                                     "is-available": {
+                                        "type": "boolean"
+                                    },
+                                    "can-create-signature": {
                                         "type": "boolean"
                                     }
                                 }

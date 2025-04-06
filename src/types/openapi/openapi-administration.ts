@@ -212,6 +212,7 @@ export type components = {
             config: {
                 "sign-elements": {
                     "is-available": boolean;
+                    "can-create-signature": boolean;
                 };
             };
             version: string;

@@ -41,6 +41,7 @@ export default {
 	methods: {
 		isSignaturesAvailable() {
 			return getCapabilities()?.libresign?.config?.['sign-elements']?.['is-available'] === true
+				&& getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true
 		},
 	},
 }
