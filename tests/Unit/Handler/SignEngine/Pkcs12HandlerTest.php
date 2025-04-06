@@ -30,7 +30,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->appConfig = new AppConfigOverwrite(
-			\OCP\Server::get(\OCP\IDBConnection::class),
+			$this->createMock(\OCP\IDBConnection::class),
 			\OCP\Server::get(\Psr\Log\LoggerInterface::class),
 			\OCP\Server::get(\OCP\Security\ICrypto::class),
 		);
