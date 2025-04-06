@@ -144,6 +144,6 @@ class SignerElementsService {
 				'SIGNAME_AND_DESCRIPTION',
 				'DESCRIPTION_ONLY',
 			]
-			);
+		);
 	}
 }
