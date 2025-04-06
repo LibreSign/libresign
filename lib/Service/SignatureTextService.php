@@ -117,6 +117,7 @@ class SignatureTextService {
 				'ServerSignatureDate' => (new \DateTime())->format(DateTimeInterface::ATOM),
 				'SignerIP' => $this->request->getRemoteAddress(),
 				'SignerCommonName' => 'John Doe',
+				'SignerEmail' => 'john.doe@libresign.coop',
 				'SignerUserAgent' => $this->request->getHeader('User-Agent'),
 			];
 		}
@@ -155,6 +156,7 @@ class SignatureTextService {
 			'{{LocalSignerTimezone}}' => $this->l10n->t('Time zone of signer when send the request to sign (in their local time zone)'),
 			'{{ServerSignatureDate}}' => $this->l10n->t('Date and time when the signature was applied on the server'),
 			'{{SignerCommonName}}' => $this->l10n->t('Common Name (CN) used to identify the document signer.'),
+			'{{SignerEmail}}' => $this->l10n->t('The signer\'s email is optional and can be left blank.'),
 			'{{SignerIdentifier}}' => $this->l10n->t('Unique information used to identify the signer (such as email, phone number, or username).'),
 		];
 		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
