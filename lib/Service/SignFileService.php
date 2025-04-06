@@ -231,11 +231,16 @@ class SignFileService {
 			} elseif (!$this->user instanceof IUser) {
 				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 			} else {
-				$userElement = $this->userElementMapper->findOne([
-					'user_id' => $this->user->getUID(),
-					'type' => $fileElement->getType(),
-				]);
-				$nodeId = $userElement->getFileId();
+				if ($this->signerElementsService->canCreateSignature()) {
+					$userElement = $this->userElementMapper->findOne([
+						'user_id' => $this->user->getUID(),
+						'type' => $fileElement->getType(),
+					]);
+					$nodeId = $userElement->getFileId();
+				} else {
+					$this->elements[] = new VisibleElementAssoc($fileElement);
+					continue;
+				}
 			}
 			try {
 				if ($this->user instanceof IUser) {
@@ -253,11 +258,10 @@ class SignFileService {
 			}
 			$tempFile = $this->tempManager->getTemporaryFile('.png');
 			file_put_contents($tempFile, $node->getContent());
-			$visibleElements = new VisibleElementAssoc(
+			$this->elements[] = new VisibleElementAssoc(
 				$fileElement,
 				$tempFile
 			);
-			$this->elements[] = $visibleElements;
 		}
 		return $this;
 	}
