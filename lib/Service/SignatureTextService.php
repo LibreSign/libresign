@@ -140,7 +140,10 @@ class SignatureTextService {
 	}
 
 	public function getTemplate(): string {
-		return $this->appConfig->getValueString(Application::APP_ID, 'signature_text_template');
+		if ($this->appConfig->hasKey(Application::APP_ID, 'signature_text_template')) {
+			return $this->appConfig->getValueString(Application::APP_ID, 'signature_text_template');
+		}
+		return $this->getDefaultTemplate();
 	}
 
 	public function getAvailableVariables(): array {
