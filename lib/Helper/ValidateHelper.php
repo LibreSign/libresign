@@ -25,6 +25,7 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignerElementsService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
@@ -66,6 +67,7 @@ class ValidateHelper {
 		private UserElementMapper $userElementMapper,
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private IdentifyMethodService $identifyMethodService,
+		private SignerElementsService $signerElementsService,
 		private IMimeTypeDetector $mimeTypeDetector,
 		private IHasher $hasher,
 		private IAppConfig $appConfig,
@@ -277,15 +279,16 @@ class ValidateHelper {
 	}
 
 	public function validateVisibleElementsRelation(array $list, SignRequest $signRequest, ?IUser $user): void {
+		$canCreateSignature = $this->signerElementsService->canCreateSignature();
 		foreach ($list as $elements) {
 			if (!array_key_exists('documentElementId', $elements)) {
 				throw new LibresignException($this->l10n->t('Field %s not found', ['documentElementId']));
 			}
-			if (!array_key_exists('profileNodeId', $elements)) {
+			if ($canCreateSignature && !array_key_exists('profileNodeId', $elements)) {
 				throw new LibresignException($this->l10n->t('Field %s not found', ['profileNodeId']));
 			}
 			$this->validateSignerIsOwnerOfPdfVisibleElement($elements['documentElementId'], $signRequest);
-			if ($user instanceof IUser) {
+			if ($canCreateSignature && $user instanceof IUser) {
 				try {
 					$this->userElementMapper->findOne(['file_id' => $elements['profileNodeId'], 'user_id' => $user->getUID()]);
 				} catch (\Throwable $th) {

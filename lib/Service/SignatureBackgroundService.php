@@ -51,7 +51,7 @@ class SignatureBackgroundService {
 
 		$content = $this->optmizeImage(file_get_contents($tmpFile));
 
-		$this->appConfig->getValueString(Application::APP_ID, 'signature_background_type', 'custom');
+		$this->appConfig->setValueString(Application::APP_ID, 'signature_background_type', 'custom');
 		$target = $folder->newFile('background.png');
 		$target->putContent($content);
 	}

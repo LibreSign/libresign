@@ -217,11 +217,12 @@ class SignFileService {
 	 */
 	public function setVisibleElements(array $list): self {
 		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($this->signRequest->getFileId(), $this->signRequest->getId());
+		$canCreateSignature = $this->signerElementsService->canCreateSignature();
 		foreach ($fileElements as $fileElement) {
 			$element = array_filter($list, function (array $element) use ($fileElement): bool {
 				return $element['documentElementId'] === $fileElement->getId();
 			});
-			if ($element) {
+			if ($element && $canCreateSignature) {
 				$c = current($element);
 				if (!empty($c['profileNodeId'])) {
 					$nodeId = $c['profileNodeId'];
@@ -231,7 +232,7 @@ class SignFileService {
 			} elseif (!$this->user instanceof IUser) {
 				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 			} else {
-				if ($this->signerElementsService->canCreateSignature()) {
+				if ($canCreateSignature) {
 					$userElement = $this->userElementMapper->findOne([
 						'user_id' => $this->user->getUID(),
 						'type' => $fileElement->getType(),
