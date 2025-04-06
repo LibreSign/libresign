@@ -215,6 +215,9 @@ abstract class AEngineHandler implements IEngineHandler {
 	}
 
 	public function getEngine(): string {
+		if ($this->engine) {
+			return $this->engine;
+		}
 		$this->engine = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', 'openssl');
 		return $this->engine;
 	}
