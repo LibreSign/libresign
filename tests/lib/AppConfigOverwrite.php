@@ -49,8 +49,7 @@ class AppConfigOverwrite extends AppConfig {
 		return true;
 	}
 
-	public function hasKey(string $app, string $key, ?bool $lazy = false): bool
-	{
+	public function hasKey(string $app, string $key, ?bool $lazy = false): bool {
 		if (isset($this->overWrite[$app]) && isset($this->overWrite[$app][$key])) {
 			return true;
 		}
