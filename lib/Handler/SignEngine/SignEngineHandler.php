@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Handler;
+namespace OCA\Libresign\Handler\SignEngine;
 
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;

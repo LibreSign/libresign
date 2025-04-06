@@ -9,7 +9,7 @@ declare(strict_types=1);
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\FooterHandler;
-use OCA\Libresign\Handler\Pkcs12Handler;
+use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Tests\lib\AppConfigOverwrite;
 use OCP\IAppConfig;
@@ -72,16 +72,16 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertEquals('content', $actual);
 	}
 
-	public function testGetPfxWithInvalidPfx():void {
+	public function testGetPfxOfCurrentSignerWithInvalidPfx():void {
 		$node = $this->createMock(\OCP\Files\Folder::class);
 		$node->method('nodeExists')->will($this->returnValue(false));
 		$this->folderService->method('getFolder')->will($this->returnValue($node));
 		$this->expectExceptionMessage('Password to sign not defined. Create a password to sign');
 		$this->expectExceptionCode(400);
-		$this->getHandler()->getPfx('userId');
+		$this->getHandler()->getPfxOfCurrentSigner('userId');
 	}
 
-	public function testGetPfxOk():void {
+	public function testGetPfxOfCurrentSignerOk():void {
 		$folder = $this->createMock(\OCP\Files\Folder::class);
 		$folder->method('nodeExists')->will($this->returnValue(true));
 		$file = $this->createMock(\OCP\Files\File::class);
@@ -89,7 +89,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn('valid pfx content');
 		$folder->method('get')->will($this->returnValue($file));
 		$this->folderService->method('getFolder')->will($this->returnValue($folder));
-		$actual = $this->getHandler()->getPfx('userId');
+		$actual = $this->getHandler()->getPfxOfCurrentSigner('userId');
 		$this->assertEquals('valid pfx content', $actual);
 	}
 }

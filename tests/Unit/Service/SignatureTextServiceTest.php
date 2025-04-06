@@ -75,41 +75,41 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 			'empty' => ['', [], ''],
 			'without vars' => ['Just a static text.', [], 'Just a static text.',],
 			'plain text with vars' => [
-				'{{SignerName}} signed the document on {{ServerSignatureDate}}',
+				'{{SignerCommonName}} signed the document on {{ServerSignatureDate}}',
 				[
-					'SignerName' => 'John Doe',
+					'SignerCommonName' => 'John Doe',
 					'ServerSignatureDate' => '2025-03-31T23:53:47+00:00',
 				],
 				'John Doe signed the document on 2025-03-31T23:53:47+00:00',
 			],
 			'plain text with vars and line break' => [
-				"{{SignerName}}\nsigned the document on {{ServerSignatureDate}}",
+				"{{SignerCommonName}}\nsigned the document on {{ServerSignatureDate}}",
 				[
-					'SignerName' => 'John Doe',
+					'SignerCommonName' => 'John Doe',
 					'ServerSignatureDate' => '2025-03-31T23:53:47+00:00',
 				],
 				"John Doe\nsigned the document on 2025-03-31T23:53:47+00:00",
 			],
 			'b tag' => [
-				"<b>{{SignerName}}</b>\nsigned the document on {{ServerSignatureDate}}",
+				"<b>{{SignerCommonName}}</b>\nsigned the document on {{ServerSignatureDate}}",
 				[
-					'SignerName' => 'John Doe',
+					'SignerCommonName' => 'John Doe',
 					'ServerSignatureDate' => '2025-03-31T23:53:47+00:00',
 				],
 				"John Doe\nsigned the document on 2025-03-31T23:53:47+00:00",
 			],
 			'p tag' => [
-				'<p>{{SignerName}}</p><p>signed the document on {{ServerSignatureDate}}</p>',
+				'<p>{{SignerCommonName}}</p><p>signed the document on {{ServerSignatureDate}}</p>',
 				[
-					'SignerName' => 'John Doe',
+					'SignerCommonName' => 'John Doe',
 					'ServerSignatureDate' => '2025-03-31T23:53:47+00:00',
 				],
 				"John Doe\nsigned the document on 2025-03-31T23:53:47+00:00",
 			],
 			'br and p' => [
-				'<p>{{SignerName}}</p><br><p>signed the document on {{ServerSignatureDate}}</p>',
+				'<p>{{SignerCommonName}}</p><br><p>signed the document on {{ServerSignatureDate}}</p>',
 				[
-					'SignerName' => 'John Doe',
+					'SignerCommonName' => 'John Doe',
 					'ServerSignatureDate' => '2025-03-31T23:53:47+00:00',
 				],
 				"John Doe\n\nsigned the document on 2025-03-31T23:53:47+00:00",

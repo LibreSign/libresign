@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Handler;
+namespace OCA\Libresign\Handler\SignEngine;
 
 use Imagick;
 use ImagickPixel;
@@ -225,11 +225,17 @@ class JSignPdfHandler extends Pkcs12Handler {
 	}
 
 	private function createTextImage(int $width, int $height): string {
-		$certData = $this->readCertificate();
+		$params = $this->getSignatureParams();
+		if (!empty($params['SignerCommonName'])) {
+			$commonName = $params['SignerCommonName'];
+		} else {
+			$certificateData = $this->readCertificate();
+			$commonName = $certificateData['subject']['CN'];
+		}
 		$content = $this->signatureTextService->signerNameImage(
 			width: $width,
 			height: $height,
-			text: $certData['subject']['CN'],
+			text: $commonName,
 		);
 
 		$tmpPath = $this->tempManager->getTemporaryFile('_text_image.png');
@@ -282,7 +288,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 	private function parseSignatureText(): array {
 		if (!$this->parsedSignatureText) {
 			$params = $this->getSignatureParams();
-			$params['SignerName'] = '${signer}';
+			$params['SignerCommonName'] = '${signer}';
 			$params['ServerSignatureDate'] = '${timestamp}';
 			$this->parsedSignatureText = $this->signatureTextService->parse(context: $params);
 		}

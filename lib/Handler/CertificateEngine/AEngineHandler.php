@@ -219,7 +219,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $this->engine;
 	}
 
-	public function populateInstance(array $rootCert): self {
+	public function populateInstance(array $rootCert): IEngineHandler {
 		if (empty($rootCert)) {
 			$rootCert = $this->appConfig->getValueArray(Application::APP_ID, 'rootCert');
 		}
