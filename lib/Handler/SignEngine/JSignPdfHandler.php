@@ -192,7 +192,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 						$params['--render-mode'] = 'GRAPHIC_AND_DESCRIPTION';
 						$params['--bg-path'] = $backgroundPath;
 						$params['--img-path'] = $this->createTextImage(
-							width: (int) (($params['-urx'] - $params['-llx']) / 2),
+							width: (int)(($params['-urx'] - $params['-llx']) / 2),
 							height: $params['-ury'] - $params['-lly'],
 						);
 
