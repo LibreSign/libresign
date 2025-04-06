@@ -28,6 +28,7 @@ class SignatureTextService {
 	public const SIGNATURE_DEFAULT_FONT_SIZE = 20;
 	public const FONT_SIZE_MINIMUM = 0.1;
 	public const FRONT_SIZE_MAX = 30;
+	public const DEFAULT_RENDER_MODE = 'GRAPHIC_AND_DESCRIPTION';
 	public function __construct(
 		private IAppConfig $appConfig,
 		private IL10N $l10n,
@@ -44,7 +45,7 @@ class SignatureTextService {
 		string $template,
 		float $templateFontSize = self::TEMPLATE_DEFAULT_FONT_SIZE,
 		float $signatureFontSize = self::SIGNATURE_DEFAULT_FONT_SIZE,
-		string $renderMode = 'GRAPHIC_AND_DESCRIPTION',
+		string $renderMode = self::DEFAULT_RENDER_MODE,
 	): array {
 		if ($templateFontSize > self::FRONT_SIZE_MAX || $templateFontSize < self::FONT_SIZE_MINIMUM) {
 			// TRANSLATORS This message refers to the font size used in the text
@@ -282,7 +283,7 @@ class SignatureTextService {
 	}
 
 	public function getRenderMode(): string {
-		return $this->appConfig->getValueString(Application::APP_ID, 'signature_render_mode', 'GRAPHIC_AND_DESCRIPTION');
+		return $this->appConfig->getValueString(Application::APP_ID, 'signature_render_mode', self::DEFAULT_RENDER_MODE);
 	}
 
 	public function isEnabled(): bool {
