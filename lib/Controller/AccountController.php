@@ -14,7 +14,7 @@ use OC\Authentication\Login\LoginData;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\Pkcs12Handler;
+use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\ResponseDefinitions;

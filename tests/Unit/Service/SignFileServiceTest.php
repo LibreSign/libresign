@@ -13,8 +13,8 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Handler\FooterHandler;
-use OCA\Libresign\Handler\Pkcs12Handler;
-use OCA\Libresign\Handler\Pkcs7Handler;
+use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
+use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -233,7 +233,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler->method('setVisibleElements')->willReturn($this->pkcs12Handler);
 		$this->pkcs12Handler->method('setSignatureParams')->willReturn($this->pkcs12Handler);
 		$this->pkcs12Handler->method('setPassword')->willReturn($this->pkcs12Handler);
-		$this->pkcs12Handler->method('readCertificate')->willReturn(['issuer' => ['CN' => 'Acme Cooperative']]);
+		$this->pkcs12Handler->method('readCertificate')->willReturn([
+			'issuer' => ['CN' => 'Acme Cooperative'],
+			'signer' => ['CN' => 'John Doe'],
+		]);
 		$this->pkcs12Handler->method('sign')->willReturn($nextcloudFile);
 
 		$this->pkcs7Handler->method('setInputFile')->willReturn($this->pkcs12Handler);

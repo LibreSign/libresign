@@ -60,8 +60,8 @@ Feature: account/signature
       | password | invalid |
     And the response should have a status code 400
     Then the response should be a JSON array with the following mandatory values
-      | key                   | value            |
-      | (jq).ocs.data.message | Invalid password |
+      | key                   | value                    |
+      | (jq).ocs.data.message | Invalid user or password |
     When sending "post" to ocs "/apps/libresign/api/v1/account/pfx/read"
       | key      | value    |
       | password | password |
@@ -111,8 +111,8 @@ Feature: account/signature
       | password | invalid |
     And the response should have a status code 400
     Then the response should be a JSON array with the following mandatory values
-      | key                   | value            |
-      | (jq).ocs.data.message | Invalid password |
+      | key                   | value                    |
+      | (jq).ocs.data.message | Invalid user or password |
     When sending "post" to ocs "/apps/libresign/api/v1/account/pfx/read"
       | key      | value    |
       | password | password |

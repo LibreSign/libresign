@@ -30,8 +30,8 @@ use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\PdfTk\Pdf;
-use OCA\Libresign\Handler\Pkcs12Handler;
-use OCA\Libresign\Handler\Pkcs7Handler;
+use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
+use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -264,13 +264,14 @@ class SignFileService {
 
 	public function sign(): File {
 		$fileToSign = $this->getFileToSing($this->libreSignFile);
-		$pfxFileContent = $this->getPfxFile();
+		$pfxFileContent = $this->getPfxContent();
 		switch (strtolower($fileToSign->getExtension())) {
 			case 'pdf':
-				$pfxData = $this->getPfxData();
+				$certificateData = $this->readCertificate();
 				$signatureParams = [
 					'DocumentUUID' => $this->libreSignFile->getUuid(),
-					'IssuerCommonName' => $pfxData['issuer']['CN'],
+					'IssuerCommonName' => $certificateData['issuer']['CN'],
+					'SignerCommonName' => $certificateData['signer']['CN'],
 					'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
 					'LocalSignerSignatureDateTime' => (new DateTime('now', $this->dateTimeZone->getTimeZone()))
 						->format(DateTimeInterface::ATOM)
@@ -369,7 +370,10 @@ class SignFileService {
 		return false;
 	}
 
-	private function getPfxFile(): string {
+	private function getPfxContent(): string {
+		if ($certificate = $this->pkcs12Handler->getCertificate()) {
+			return $certificate;
+		}
 		if ($this->signWithoutPassword) {
 			$tempPassword = sha1((string)time());
 			$this->setPassword($tempPassword);
@@ -383,7 +387,7 @@ class SignFileService {
 					$tempPassword,
 					$this->friendlyName,
 				);
-				$this->pkcs12Handler->setPfxContent($certificate);
+				$this->pkcs12Handler->setCertificate($certificate);
 			} catch (TypeError $e) {
 				throw new LibresignException($this->l10n->t('Failure to generate certificate'));
 			} catch (EmptyCertificateException $e) {
@@ -394,12 +398,13 @@ class SignFileService {
 				throw new LibresignException($this->l10n->t('Failure on generate certificate'));
 			}
 		}
-		return $this->pkcs12Handler->getPfx();
+		return $this->pkcs12Handler->getPfxOfCurrentSigner();
 	}
 
-	private function getPfxData(): array {
+	private function readCertificate(): array {
 		return $this->pkcs12Handler
 			->setPassword($this->password)
+			->setCertificate($this->getPfxContent())
 			->readCertificate();
 	}
 
