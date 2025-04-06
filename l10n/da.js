@@ -86,6 +86,7 @@ OC.L10N.register(
     "No" : "Nej",
     "Forgot password?" : "Glemt adgangskode?",
     "Name:" : "Navn:",
-    "No date" : "Ingen dato"
+    "No date" : "Ingen dato",
+    "Return" : "Aflever"
 },
 "nplurals=2; plural=(n != 1);");
