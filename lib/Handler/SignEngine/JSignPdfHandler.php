@@ -259,7 +259,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 		$signature->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
 
 		$canvas = new Imagick();
-		$canvas->newImage((int) $canvasWidth, (int) $canvasHeight, new ImagickPixel('transparent'));
+		$canvas->newImage((int)$canvasWidth, (int)$canvasHeight, new ImagickPixel('transparent'));
 		$canvas->setImageFormat('png32');
 		$canvas->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
 
