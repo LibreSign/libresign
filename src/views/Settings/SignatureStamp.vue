@@ -131,7 +131,51 @@
 				<p>{{ error }}</p>
 			</NcNoteCard>
 		</div>
-		<fieldset class="settings-section__row">
+		<div v-if="showPreview" class="settings-section__row">
+			<div class="settings-section__row_dimension">
+				<NcTextField :value.sync="signatureWidth"
+					:label="t('libresign', 'Default signature width')"
+					:placeholder="t('libresign', 'Default signature width')"
+					type="number"
+					:min="0.1"
+					:max="800"
+					:step="0.01"
+					:spellcheck="false"
+					:success="showSuccessTemplate"
+					@keydown.enter="saveTemplate"
+					@blur="saveTemplate" />
+				<NcButton v-if="showResetSignatureWidth"
+					type="tertiary"
+					:aria-label="t('libresign', 'Reset to default')"
+					@click="resetSignatureWidth">
+					<template #icon>
+						<Undo :size="20" />
+					</template>
+				</NcButton>
+			</div>
+			<div class="settings-section__row_dimension">
+				<NcTextField :value.sync="signatureHeight"
+					:label="t('libresign', 'Default signature height')"
+					:placeholder="t('libresign', 'Default signature height')"
+					type="number"
+					:min="0.1"
+					:max="800"
+					:step="0.01"
+					:spellcheck="false"
+					:success="showSuccessTemplate"
+					@keydown.enter="saveTemplate"
+					@blur="saveTemplate" />
+				<NcButton v-if="showResetSignatureHeight"
+					type="tertiary"
+					:aria-label="t('libresign', 'Reset to default')"
+					@click="resetSignatureHeight">
+					<template #icon>
+						<Undo :size="20" />
+					</template>
+				</NcButton>
+			</div>
+		</div>
+		<fieldset class="settings-section__row settings-section__row_bar">
 			<legend>{{ t('libresign', 'Background image') }}</legend>
 			<NcButton id="signature-background"
 				type="secondary"
@@ -165,6 +209,28 @@
 				:accept="acceptMime"
 				type="file"
 				@change="onChangeBackground">
+			<div v-if="showPreview" class="settings-section__zoom">
+				<NcButton @click="changeZoomLevel(-10)">
+					<template #icon>
+						<MagnifyMinusOutline :size="20" />
+					</template>
+				</NcButton>
+				<NcButton @click="changeZoomLevel(+10)">
+					<template #icon>
+						<MagnifyPlusOutline :size="20" />
+					</template>
+				</NcButton>
+			</div>
+			<NcTextField v-if="showPreview"
+				:value.sync="zoomLevel"
+				class="settings-section__zoom_level"
+				:label="t('libresign', 'Zoom level')"
+				type="number"
+				:min="10"
+				:step="10"
+				:spellcheck="false"
+				@keydown.enter="saveZoomLevel"
+				@blur="saveZoomLevel" />
 		</fieldset>
 		<div class="settings-section__row">
 			<NcNoteCard v-if="errorMessageBackground"
@@ -175,16 +241,28 @@
 			<NcNoteCard v-if="wasScalled"
 				type="info"
 				:show-alert="true">
-				<p>{{ t('libresign', 'The signature background image was resized to fit within 350×100 pixels.') }}</p>
+				<p>
+					{{ t('libresign', 'The signature background image was resized to fit within {width}×{height} pixels.', {
+						width: signatureWidth,
+						height: signatureHeight,
+					}) }}
+				</p>
 			</NcNoteCard>
 		</div>
-		<div class="settings-section__row">
-			<div v-if="showPreview && !previewLoaded" class="settings-section__preview">
+		<div class="settings-section__row_preview">
+			<div v-if="showPreview && !previewLoaded"
+				class="settings-section__preview"
+				:style="{
+					width: ((signatureWidth * zoomLevel) / 100) + 'px',
+					height: ((signatureHeight * zoomLevel) / 100) + 'px',
+				}">
 				<NcLoadingIcon class="settings-section__preview__loading" :size="20" />
 			</div>
 			<div v-if="showPreview"
 				class="settings-section__preview"
 				:style="{
+					width: ((signatureWidth * zoomLevel) / 100) + 'px',
+					height: ((signatureHeight * zoomLevel) / 100) + 'px',
 					'background-image': 'url(' + backgroundUrl + ')',
 					'border-color': isOverflowing ? 'var(--color-error) !important': '',
 					visibility: previewLoaded ? 'visible' : 'hidden',
@@ -193,12 +271,12 @@
 					<div class="left-column-content"
 						:style="{
 							'border': renderMode === 'SIGNAME_AND_DESCRIPTION' ? 'unset' : '',
-							width: previewSignatureImageWidth + 'px',
-							height: previewSignatureImageHeight + 'px',
+							width: ((previewSignatureImageWidth * zoomLevel) / 100) + 'px',
+							height: ((previewSignatureImageHeight * zoomLevel) / 100) + 'px',
 						}">
 						<img :src="signatureImageUrl"
-							:width="previewSignatureImageWidth"
-							:height="previewSignatureImageHeight"
+							:width="((previewSignatureImageWidth * zoomLevel) / 100) + 'px'"
+							:height="((previewSignatureImageHeight * zoomLevel) / 100) + 'px'"
 							@load="isSignatureImageLoaded = true">
 					</div>
 				</div>
@@ -206,7 +284,7 @@
 				<div ref="rightColumn"
 					class="right-column"
 					:style="{
-						'font-size': (templateFontSize * 0.75) + 'pt',
+						'font-size': ((templateFontSize * 0.75 * zoomLevel) / 100) + 'px',
 						display: renderMode === 'GRAPHIC_ONLY' ? 'none' : '',
 					}"
 					@resize="checkPreviewOverflow"
@@ -227,6 +305,8 @@ import debounce from 'debounce'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import Undo from 'vue-material-design-icons/UndoVariant.vue'
 import Upload from 'vue-material-design-icons/Upload.vue'
+import MagnifyMinusOutline from 'vue-material-design-icons/MagnifyMinusOutline.vue'
+import MagnifyPlusOutline from 'vue-material-design-icons/MagnifyPlusOutline.vue'
 
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
@@ -247,6 +327,8 @@ export default {
 	name: 'SignatureStamp',
 	components: {
 		Delete,
+		MagnifyMinusOutline,
+		MagnifyPlusOutline,
 		NcButton,
 		NcCheckboxRadioSwitch,
 		NcLoadingIcon,
@@ -280,11 +362,16 @@ export default {
 			defaultSignatureTextTemplate: loadState('libresign', 'default_signature_text_template'),
 			defaultTemplateFontSize: loadState('libresign', 'default_template_font_size'),
 			defaultSignatureFontSize: loadState('libresign', 'default_signature_font_size'),
+			defaultSignatureWidth: loadState('libresign', 'default_signature_width'),
+			defaultSignatureHeight: loadState('libresign', 'default_signature_height'),
 			signatureTextTemplate: loadState('libresign', 'signature_text_template'),
+			signatureWidth: loadState('libresign', 'signature_width'),
+			signatureHeight: loadState('libresign', 'signature_height'),
 			signatureFontSize: loadState('libresign', 'signature_font_size'),
 			templateFontSize: loadState('libresign', 'template_font_size'),
 			isSignatureImageLoaded: false,
 			templateSaved: true,
+			zoomLevel: loadState('libresign', 'signature_preview_zoom_level'),
 			renderMode: loadState('libresign', 'signature_render_mode'),
 			showSuccessTemplate: false,
 			errorMessageTemplate: templateError ? [templateError] : [],
@@ -331,11 +418,17 @@ export default {
 		showResetSignatureFontSize() {
 			return this.signatureFontSize !== this.defaultSignatureFontSize
 		},
+		showResetSignatureWidth() {
+			return this.signatureWidth !== this.defaultSignatureWidth
+		},
+		showResetSignatureHeight() {
+			return this.signatureHeight !== this.defaultSignatureHeight
+		},
 		previewSignatureImageWidth() {
-			return (this.renderMode === 'GRAPHIC_ONLY' || !this.parsedWithLineBreak) ? 350 : 175
+			return (this.renderMode === 'GRAPHIC_ONLY' || !this.parsedWithLineBreak) ? this.signatureWidth : Math.floor(this.signatureWidth / 2)
 		},
 		previewSignatureImageHeight() {
-			return (this.renderMode === 'GRAPHIC_ONLY' || !this.parsedWithLineBreak || this.renderMode === 'SIGNAME_AND_DESCRIPTION') ? 100 : 50
+			return this.signatureHeight
 		},
 		signatureImageUrl() {
 			const text = this.renderMode === 'SIGNAME_AND_DESCRIPTION'
@@ -384,6 +477,13 @@ export default {
 			// Set to null so that selecting the same file will trigger the change event
 			this.$refs.input.value = null
 			this.$refs.input.click()
+		},
+		changeZoomLevel(zoom) {
+			this.zoomLevel += zoom
+			this.saveZoomLevel()
+		},
+		async saveZoomLevel() {
+			OCP.AppConfig.setValue('libresign', 'signature_preview_zoom_level', this.zoomLevel)
 		},
 		async onChangeBackground(e) {
 			const file = e.target.files[0]
@@ -457,29 +557,38 @@ export default {
 		}, 100),
 		async resetRenderMode() {
 			this.renderMode = 'GRAPHIC_AND_DESCRIPTION'
-			this.saveTemplate()
+			await this.saveTemplate()
 		},
 		async resetTemplate() {
 			this.signatureTextTemplate = this.defaultSignatureTextTemplate
-			this.saveTemplate()
+			await this.saveTemplate()
 		},
 		async resetTemplateFontSize() {
 			this.templateFontSize = this.defaultTemplateFontSize
-			this.saveTemplate()
+			await this.saveTemplate()
 		},
 		async resetSignatureFontSize() {
 			this.signatureFontSize = this.defaultSignatureFontSize
-			this.saveTemplate()
+			await this.saveTemplate()
+		},
+		async resetSignatureWidth() {
+			this.signatureWidth = this.defaultSignatureWidth
+			await this.saveTemplate()
+		},
+		async resetSignatureHeight() {
+			this.signatureHeight = this.defaultSignatureHeight
+			await this.saveTemplate()
 		},
 		async saveTemplate() {
-			this.showSuccessTemplate = false
-			this.errorMessageTemplate = []
+			this.reset()
 			this.templateSaved = false
 			this.resizeHeight()
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/signature-text'), {
 				template: this.signatureTextTemplate,
 				templateFontSize: this.templateFontSize,
 				signatureFontSize: this.signatureFontSize,
+				signatureWidth: this.signatureWidth,
+				signatureHeight: this.signatureHeight,
 				renderMode: this.renderMode,
 			})
 				.then(({ data }) => {
@@ -519,19 +628,29 @@ export default {
 			width: 100%;
 			display: flex;
 		}
-		&_signature, &_template {
+		&_signature, &_template, &_dimension {
 			width: 50%;
 			display: flex;
+		}
+		&_bar {
+			max-width: unset;
 		}
 	}
 	&__loading-icon {
 		width: 44px;
 		height: 44px;
 	}
+	&__zoom {
+		display: flex;
+		justify-content: center;
+		gap: 4px;
+	}
+	&__zoom_level {
+		display: flex;
+		width: unset !important;
+	}
 	&__preview {
-		width: 350px;
-		height: 100px;
-		background-size: initial;
+		background-size: contain;
 		background-position: center;
 		background-repeat: no-repeat;
 		justify-content: space-between;

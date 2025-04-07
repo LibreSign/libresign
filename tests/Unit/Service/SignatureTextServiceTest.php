@@ -12,6 +12,7 @@ use OCP\IAppConfig;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IUserSession;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -22,12 +23,14 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 	private IL10N $l10n;
 	private IDateTimeZone $dateTimeZone;
 	private IRequest&MockObject $request;
+	private IUserSession&MockObject $userSession;
 
 	public function setUp(): void {
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->appConfig = $this->getMockAppConfig();
 		$this->dateTimeZone = \OCP\Server::get(IDateTimeZone::class);
 		$this->request = $this->createMock(IRequest::class);
+		$this->userSession = $this->createMock(IUserSession::class);
 	}
 
 
@@ -37,6 +40,7 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 			$this->l10n,
 			$this->dateTimeZone,
 			$this->request,
+			$this->userSession,
 		);
 		return $this->service;
 	}
