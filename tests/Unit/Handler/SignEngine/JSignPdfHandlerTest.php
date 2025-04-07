@@ -22,6 +22,7 @@ use OCP\IAppConfig;
 use OCP\IDateTimeZone;
 use OCP\IRequest;
 use OCP\ITempManager;
+use OCP\IUserSession;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -68,6 +69,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			\OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID),
 			\OCP\Server::get(IDateTimeZone::class),
 			\OCP\Server::get(IRequest::class),
+			\OCP\Server::get(IUserSession::class),
 		);
 		return new JSignPdfHandler(
 			$this->appConfig,
