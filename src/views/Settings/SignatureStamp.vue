@@ -351,7 +351,7 @@ export default {
 		const backgroundType = loadState('libresign', 'signature_background_type')
 		return {
 			name: t('libresign', 'Signature stamp'),
-			description: t('libresign', 'The signature stamp is the element '),
+			description: t('libresign', 'Configure the content displayed with the signature. The text template uses Twig syntax.'),
 			showLoadingBackground: false,
 			wasScalled: false,
 			backgroundType,
