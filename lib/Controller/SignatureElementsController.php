@@ -15,6 +15,7 @@ use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\AccountFileService;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\SessionService;
+use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -45,6 +46,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		private AccountService $accountService,
 		private AccountFileService $accountFileService,
 		private SignerElementsService $signerElementsService,
+		protected SignatureTextService $signatureTextService,
 		protected IUserSession $userSession,
 		protected SessionService $sessionService,
 		protected SignFileService $signFileService,
@@ -165,8 +167,8 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 			if ($this->preview->isAvailable($node)) {
 				$preview = $this->preview->getPreview(
 					file: $node,
-					width: SignerElementsService::ELEMENT_SIGN_WIDTH,
-					height: SignerElementsService::ELEMENT_SIGN_HEIGHT,
+					width: $this->signatureTextService->getSignatureWidth(),
+					height: $this->signatureTextService->getSignatureHeight(),
 				);
 			} else {
 				// When the preview is disabled, use the icon image of mimetype

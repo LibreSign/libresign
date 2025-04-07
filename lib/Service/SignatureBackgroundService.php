@@ -89,14 +89,17 @@ class SignatureBackgroundService {
 	}
 
 	private function scaleDimensions(int $width, int $height): array {
-		if ($width <= SignerElementsService::ELEMENT_SIGN_WIDTH) {
-			if ($height <= SignerElementsService::ELEMENT_SIGN_HEIGHT) {
+		$signatureWidth = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_width', SignatureTextService::DEFAULT_SIGNATURE_WIDTH);
+		$signatureHeight = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_height', SignatureTextService::DEFAULT_SIGNATURE_HEIGHT);
+
+		if ($width <= $signatureWidth) {
+			if ($height <= $signatureHeight) {
 				return ['width' => $width, 'height' => $height];
 			}
 		}
 
-		$widthRatio = SignerElementsService::ELEMENT_SIGN_WIDTH / $width;
-		$heightRatio = SignerElementsService::ELEMENT_SIGN_HEIGHT / $height;
+		$widthRatio = $signatureWidth / $width;
+		$heightRatio = $signatureHeight / $height;
 
 		$scale = min($widthRatio, $heightRatio);
 

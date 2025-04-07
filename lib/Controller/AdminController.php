@@ -391,7 +391,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * @param float $templateFontSize Font size used when print the parsed text of this template at PDF file
 	 * @param float $signatureFontSize Font size used when the signature mode is SIGNAME_AND_DESCRIPTION
 	 * @param string $renderMode Signature render mode
-	 * @return DataResponse<Http::STATUS_OK, array{template: string, parsed: string, templateFontSize: float, signatureFontSize: float, renderMode: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{template: string, parsed: string, templateFontSize: float, signatureFontSize: float, signatureWidth: float, signatureHeight: float, renderMode: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
 	 *
 	 * 200: OK
 	 * 400: Bad request
@@ -403,6 +403,10 @@ class AdminController extends AEnvironmentAwareController {
 		float $templateFontSize = 10,
 		/** @todo openapi package don't evaluate SignatureTextService::SIGNATURE_DEFAULT_FONT_SIZE */
 		float $signatureFontSize = 20,
+		/** @todo openapi package don't evaluate SignatureTextService::DEFAULT_SIGNATURE_WIDTH */
+		float $signatureWidth = 350,
+		/** @todo openapi package don't evaluate SignatureTextService::DEFAULT_SIGNATURE_HEIGHT */
+		float $signatureHeight = 100,
 		string $renderMode = 'GRAPHIC_AND_DESCRIPTION',
 	): DataResponse {
 		try {
@@ -410,6 +414,8 @@ class AdminController extends AEnvironmentAwareController {
 				$template,
 				$templateFontSize,
 				$signatureFontSize,
+				$signatureWidth,
+				$signatureHeight,
 				$renderMode,
 			);
 			return new DataResponse(
@@ -431,7 +437,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * @param string $template Template to signature text
 	 * @param string $context Context for parsing the template
-	 * @return DataResponse<Http::STATUS_OK, array{template: string,parsed: string, templateFontSize: float, signatureFontSize: float, renderMode: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{template: string,parsed: string, templateFontSize: float, signatureFontSize: float, signatureWidth: float, signatureHeight: float, renderMode: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
 	 *
 	 * 200: OK
 	 * 400: Bad request

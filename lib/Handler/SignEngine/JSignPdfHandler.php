@@ -247,8 +247,8 @@ class JSignPdfHandler extends Pkcs12Handler {
 	}
 
 	private function mergeBackgroundWithSignature(string $backgroundPath, string $signaturePath): string {
-		$canvasWidth = SignerElementsService::ELEMENT_SIGN_WIDTH;
-		$canvasHeight = SignerElementsService::ELEMENT_SIGN_HEIGHT;
+		$canvasWidth = $this->signatureTextService->getSignatureWidth();
+		$canvasHeight = $this->signatureTextService->getSignatureHeight();
 
 		$background = new Imagick($backgroundPath);
 		$signature = new Imagick($signaturePath);

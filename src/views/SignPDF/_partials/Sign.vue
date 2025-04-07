@@ -188,7 +188,7 @@ export default {
 			return !!signer.signRequestId
 				&& signer.visibleElements.length > 0
 				&& !this.hasSignatures
-				&& canCreateSignature
+				&& this.canCreateSignature
 		},
 		canCreateSignature() {
 			return getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true

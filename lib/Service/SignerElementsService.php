@@ -19,9 +19,6 @@ use OCP\IURLGenerator;
  * @psalm-import-type LibresignUserElement from ResponseDefinitions
  */
 class SignerElementsService {
-	public const ELEMENT_SIGN_WIDTH = 350;
-	public const ELEMENT_SIGN_HEIGHT = 100;
-
 	public function __construct(
 		private FolderService $folderService,
 		private SessionService $sessionService,
