@@ -71,7 +71,7 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
     </settings>
     <activity>
         <settings>
-            <setting>OCA\Libresign\Activity\FileToSign</setting>
+            <setting>OCA\Libresign\Activity\Settings\FileToSign</setting>
         </settings>
         <filters>
             <filter>OCA\Libresign\Activity\Filter</filter>
