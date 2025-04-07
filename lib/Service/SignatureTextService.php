@@ -18,6 +18,7 @@ use OCP\IAppConfig;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IUserSession;
 use Sabre\DAV\UUIDUtil;
 use Twig\Environment;
 use Twig\Error\SyntaxError;
@@ -29,22 +30,27 @@ class SignatureTextService {
 	public const FONT_SIZE_MINIMUM = 0.1;
 	public const FRONT_SIZE_MAX = 30;
 	public const DEFAULT_RENDER_MODE = 'GRAPHIC_AND_DESCRIPTION';
+	public const DEFAULT_SIGNATURE_WIDTH = 350;
+	public const DEFAULT_SIGNATURE_HEIGHT = 100;
 	public function __construct(
 		private IAppConfig $appConfig,
 		private IL10N $l10n,
 		private IDateTimeZone $dateTimeZone,
 		private IRequest $request,
+		private IUserSession $userSession,
 	) {
 	}
 
 	/**
-	 * @return array{template: string, parsed: string, templateFontSize: float, signatureFontSize: float, renderMode: string}
+	 * @return array{template: string, parsed: string, templateFontSize: float, signatureFontSize: float, signatureWidth: int, signatureHeight: int, renderMode: string}
 	 * @throws LibresignException
 	 */
 	public function save(
 		string $template,
 		float $templateFontSize = self::TEMPLATE_DEFAULT_FONT_SIZE,
 		float $signatureFontSize = self::SIGNATURE_DEFAULT_FONT_SIZE,
+		float $signatureWidth = self::DEFAULT_SIGNATURE_WIDTH,
+		float $signatureHeight = self::DEFAULT_SIGNATURE_HEIGHT,
 		string $renderMode = self::DEFAULT_RENDER_MODE,
 	): array {
 		if ($templateFontSize > self::FRONT_SIZE_MAX || $templateFontSize < self::FONT_SIZE_MINIMUM) {
@@ -81,6 +87,8 @@ class SignatureTextService {
 		$template = trim($template);
 		$template = html_entity_decode($template);
 		$this->appConfig->setValueString(Application::APP_ID, 'signature_text_template', $template);
+		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_width', $signatureWidth);
+		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_height', $signatureHeight);
 		$this->appConfig->setValueFloat(Application::APP_ID, 'template_font_size', $templateFontSize);
 		$this->appConfig->setValueFloat(Application::APP_ID, 'signature_font_size', $signatureFontSize);
 		$this->appConfig->setValueString(Application::APP_ID, 'signature_render_mode', $renderMode);
@@ -88,12 +96,14 @@ class SignatureTextService {
 	}
 
 	/**
-	 * @return array{template: string, parsed: string, templateFontSize: float, signatureFontSize: float, renderMode: string}
+	 * @return array{template: string, parsed: string, templateFontSize: float, signatureFontSize: float, signatureWidth: int, signatureHeight: int, renderMode: string}
 	 * @throws LibresignException
 	 */
 	public function parse(string $template = '', array $context = []): array {
 		$templateFontSize = $this->getTemplateFontSize();
 		$signatureFontSize = $this->getSignatureFontSize();
+		$signatureWidth = $this->getSignatureWidth();
+		$signatureHeight = $this->getSignatureHeight();
 		$renderMode = $this->getRenderMode();
 		if (empty($template)) {
 			$template = $this->getTemplate();
@@ -104,6 +114,8 @@ class SignatureTextService {
 				'template' => $template,
 				'templateFontSize' => $templateFontSize,
 				'signatureFontSize' => $signatureFontSize,
+				'signatureWidth' => $signatureWidth,
+				'signatureHeight' => $signatureHeight,
 				'renderMode' => $renderMode,
 			];
 		}
@@ -116,8 +128,8 @@ class SignatureTextService {
 				'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
 				'ServerSignatureDate' => (new \DateTime())->format(DateTimeInterface::ATOM),
 				'SignerIP' => $this->request->getRemoteAddress(),
-				'SignerCommonName' => 'John Doe',
-				'SignerEmail' => 'john.doe@libresign.coop',
+				'SignerCommonName' => $this->userSession->getUser()->getDisplayName(),
+				'SignerEmail' => $this->userSession->getUser()->getEMailAddress() ?? 'john.doe@libresign.coop',
 				'SignerUserAgent' => $this->request->getHeader('User-Agent'),
 			];
 		}
@@ -133,6 +145,8 @@ class SignatureTextService {
 				'template' => $template,
 				'templateFontSize' => $templateFontSize,
 				'signatureFontSize' => $signatureFontSize,
+				'signatureWidth' => $signatureWidth,
+				'signatureHeight' => $signatureHeight,
 				'renderMode' => $renderMode,
 			];
 		} catch (SyntaxError $e) {
@@ -278,6 +292,14 @@ class SignatureTextService {
 			Date: {{ServerSignatureDate}}
 			TEMPLATE
 		);
+	}
+
+	public function getSignatureWidth(): float {
+		return $this->appConfig->getValueFloat(Application::APP_ID, 'signature_width', self::DEFAULT_SIGNATURE_WIDTH);
+	}
+
+	public function getSignatureHeight(): float {
+		return $this->appConfig->getValueFloat(Application::APP_ID, 'signature_height', self::DEFAULT_SIGNATURE_HEIGHT);
 	}
 
 	public function getTemplateFontSize(): float {
