@@ -390,6 +390,8 @@ class AdminController extends AEnvironmentAwareController {
 	 * @param string $template Template to signature text
 	 * @param float $templateFontSize Font size used when print the parsed text of this template at PDF file
 	 * @param float $signatureFontSize Font size used when the signature mode is SIGNAME_AND_DESCRIPTION
+	 * @param float $signatureWidth Signature width
+	 * @param float $signatureHeight Signature height
 	 * @param string $renderMode Signature render mode
 	 * @return DataResponse<Http::STATUS_OK, array{template: string, parsed: string, templateFontSize: float, signatureFontSize: float, signatureWidth: float, signatureHeight: float, renderMode: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
 	 *

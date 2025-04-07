@@ -236,6 +236,10 @@ namespace OCA\Libresign;
  *         sign-elements: array{
  *             is-available: bool,
  *             can-create-signature: bool,
+ *             full-signature-width: float,
+ *             full-signature-height: float,
+ *             signature-width: float,
+ *             signature-height: float,
  *         },
  *     },
  *     version: string,

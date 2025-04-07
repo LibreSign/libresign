@@ -213,6 +213,14 @@ export type components = {
                 "sign-elements": {
                     "is-available": boolean;
                     "can-create-signature": boolean;
+                    /** Format: double */
+                    "full-signature-width": number;
+                    /** Format: double */
+                    "full-signature-height": number;
+                    /** Format: double */
+                    "signature-width": number;
+                    /** Format: double */
+                    "signature-height": number;
                 };
             };
             version: string;
@@ -666,6 +674,10 @@ export interface operations {
                                 templateFontSize: number;
                                 /** Format: double */
                                 signatureFontSize: number;
+                                /** Format: double */
+                                signatureWidth: number;
+                                /** Format: double */
+                                signatureHeight: number;
                                 renderMode: string;
                             };
                         };
@@ -720,6 +732,18 @@ export interface operations {
                      */
                     signatureFontSize?: number;
                     /**
+                     * Format: double
+                     * @description Signature width
+                     * @default 350
+                     */
+                    signatureWidth?: number;
+                    /**
+                     * Format: double
+                     * @description Signature height
+                     * @default 100
+                     */
+                    signatureHeight?: number;
+                    /**
                      * @description Signature render mode
                      * @default GRAPHIC_AND_DESCRIPTION
                      */
@@ -744,6 +768,10 @@ export interface operations {
                                 templateFontSize: number;
                                 /** Format: double */
                                 signatureFontSize: number;
+                                /** Format: double */
+                                signatureWidth: number;
+                                /** Format: double */
+                                signatureHeight: number;
                                 renderMode: string;
                             };
                         };

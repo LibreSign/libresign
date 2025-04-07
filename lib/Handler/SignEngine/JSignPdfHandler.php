@@ -18,7 +18,6 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
-use OCA\Libresign\Service\SignerElementsService;
 use OCP\Files\File;
 use OCP\IAppConfig;
 use OCP\ITempManager;
@@ -247,8 +246,8 @@ class JSignPdfHandler extends Pkcs12Handler {
 	}
 
 	private function mergeBackgroundWithSignature(string $backgroundPath, string $signaturePath): string {
-		$canvasWidth = $this->signatureTextService->getSignatureWidth();
-		$canvasHeight = $this->signatureTextService->getSignatureHeight();
+		$canvasWidth = $this->signatureTextService->getFullSignatureWidth();
+		$canvasHeight = $this->signatureTextService->getFullSignatureHeight();
 
 		$background = new Imagick($backgroundPath);
 		$signature = new Imagick($signaturePath);
@@ -260,7 +259,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 		$signature->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
 
 		$canvas = new Imagick();
-		$canvas->newImage($canvasWidth, $canvasHeight, new ImagickPixel('transparent'));
+		$canvas->newImage((int) $canvasWidth, (int) $canvasHeight, new ImagickPixel('transparent'));
 		$canvas->setImageFormat('png32');
 		$canvas->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
 
