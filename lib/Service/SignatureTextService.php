@@ -128,8 +128,8 @@ class SignatureTextService {
 				'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
 				'ServerSignatureDate' => (new \DateTime())->format(DateTimeInterface::ATOM),
 				'SignerIP' => $this->request->getRemoteAddress(),
-				'SignerCommonName' => $this->userSession->getUser()->getDisplayName(),
-				'SignerEmail' => $this->userSession->getUser()->getEMailAddress() ?? 'john.doe@libresign.coop',
+				'SignerCommonName' => $this->userSession?->getUser()?->getDisplayName() ?? 'John Doe',
+				'SignerEmail' => $this->userSession?->getUser()?->getEMailAddress() ?? 'john.doe@libresign.coop',
 				'SignerUserAgent' => $this->request->getHeader('User-Agent'),
 			];
 		}
