@@ -4,15 +4,22 @@
 -->
 <template>
 	<div>
-		<NcLoadingIcon v-if="loading" :size="64" :name="t('libresign', 'Loading file')" />
-		<div v-show="isLoaded" class="modal-draw">
-			<img v-show="isLoaded" :src="imageData" @load="onImageLoad">
+		<NcLoadingIcon v-if="loading" :size="64" :name="t('libresign', 'Loading …')" />
+		<div v-show="isLoaded" class="wrapper">
+			<img v-show="isLoaded"
+				:src="imageData"
+				:style="{
+					width,
+					height,
+				}"
+				@load="onImageLoad">
 		</div>
 	</div>
 </template>
 
 <script>
 import axios from '@nextcloud/axios'
+import { getCapabilities } from '@nextcloud/capabilities'
 
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 
@@ -38,6 +45,8 @@ export default {
 			loading: true,
 			isLoaded: false,
 			imageData: '',
+			width: getCapabilities().libresign.config['sign-elements'].width,
+			height: getCapabilities().libresign.config['sign-elements'].height,
 		}
 	},
 	watch: {
@@ -82,15 +91,20 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.modal-draw{
-	background-color: #cecece;
-	border-radius: 10px;
-	margin-top: 10px;
-	margin-bottom: 10px;
-	min-width: 350px;
-	min-height: 95px;
+.wrapper{
 	display: flex;
-	align-items: center;
+	position: relative;
+	overflow: hidden;
+	width: 100%;
+	height: 100%;
 	justify-content: center;
+	align-items: center;
+	img{
+		max-width: 100%;
+		max-height: 100%;
+		position: block;
+		background-color: #cecece;
+		border-radius: 10px;
+	}
 }
 </style>

@@ -42,7 +42,7 @@ class SignatureTextService {
 	}
 
 	/**
-	 * @return array{template: string, parsed: string, templateFontSize: float, signatureFontSize: float, signatureWidth: int, signatureHeight: int, renderMode: string}
+	 * @return array{template: string, parsed: string, templateFontSize: float, signatureFontSize: float, signatureWidth: float, signatureHeight: float, renderMode: string}
 	 * @throws LibresignException
 	 */
 	public function save(
@@ -96,14 +96,14 @@ class SignatureTextService {
 	}
 
 	/**
-	 * @return array{template: string, parsed: string, templateFontSize: float, signatureFontSize: float, signatureWidth: int, signatureHeight: int, renderMode: string}
+	 * @return array{template: string, parsed: string, templateFontSize: float, signatureFontSize: float, signatureWidth: float, signatureHeight: float, renderMode: string}
 	 * @throws LibresignException
 	 */
 	public function parse(string $template = '', array $context = []): array {
 		$templateFontSize = $this->getTemplateFontSize();
 		$signatureFontSize = $this->getSignatureFontSize();
-		$signatureWidth = $this->getSignatureWidth();
-		$signatureHeight = $this->getSignatureHeight();
+		$signatureWidth = $this->getFullSignatureWidth();
+		$signatureHeight = $this->getFullSignatureHeight();
 		$renderMode = $this->getRenderMode();
 		if (empty($template)) {
 			$template = $this->getTemplate();
@@ -294,8 +294,20 @@ class SignatureTextService {
 		);
 	}
 
-	public function getSignatureWidth(): float {
+	public function getFullSignatureWidth(): float {
 		return $this->appConfig->getValueFloat(Application::APP_ID, 'signature_width', self::DEFAULT_SIGNATURE_WIDTH);
+	}
+
+	public function getFullSignatureHeight(): float {
+		return $this->appConfig->getValueFloat(Application::APP_ID, 'signature_height', self::DEFAULT_SIGNATURE_HEIGHT);
+	}
+
+	public function getSignatureWidth(): float {
+		$current = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_width', self::DEFAULT_SIGNATURE_WIDTH);
+		if ($this->getRenderMode() === 'GRAPHIC_ONLY' || !$this->getTemplate()) {
+			return $current;
+		}
+		return $current / 2;
 	}
 
 	public function getSignatureHeight(): float {

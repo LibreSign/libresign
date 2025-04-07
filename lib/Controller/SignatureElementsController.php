@@ -167,8 +167,8 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 			if ($this->preview->isAvailable($node)) {
 				$preview = $this->preview->getPreview(
 					file: $node,
-					width: $this->signatureTextService->getSignatureWidth(),
-					height: $this->signatureTextService->getSignatureHeight(),
+					width: (int) $this->signatureTextService->getSignatureWidth(),
+					height: (int) $this->signatureTextService->getSignatureHeight(),
 				);
 			} else {
 				// When the preview is disabled, use the icon image of mimetype
