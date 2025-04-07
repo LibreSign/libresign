@@ -1,50 +1,29 @@
 <?php
 
 declare(strict_types=1);
+
 /**
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-
-namespace OCA\Libresign\Activity;
+namespace OCA\Libresign\Activity\Settings;
 
 use OCP\Activity\ActivitySettings;
-use OCP\IL10N;
 
-class FileToSign extends ActivitySettings {
-	public function __construct(
-		protected IL10N $l,
-	) {
-	}
+abstract class LibresignActivitySettings extends ActivitySettings {
 
 	/**
-	 * @return string Lowercase a-z and underscore only identifier. The type of table activity
-	 * @since 20.0.0
+	 * {@inheritdoc}
 	 */
-	public function getIdentifier(): string {
-		return 'file_to_sign';
-	}
-
-	/**
-	 * @return string A translated string
-	 * @since 11.0.0
-	 */
-	public function getName(): string {
-		return $this->l->t('You have a <strong>file to sign</strong>');
+	public function getGroupIdentifier() {
+		return 'libresign';
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getGroupIdentifier(): string {
-		return 'other';
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getGroupName(): string {
-		return $this->l->t('Other activities');
+	public function getGroupName() {
+		return 'LibreSign';
 	}
 
 	/**
