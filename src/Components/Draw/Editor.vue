@@ -9,7 +9,7 @@
 				v-model="color"
 				:palette="customPalette"
 				:palette-only="true"
-				@input="refresh">
+				@input="updateColor">
 				<NcButton>
 					<template #icon>
 						<PaletteIcon :size="20" />
@@ -24,14 +24,12 @@
 				</template>
 			</NcButton>
 		</div>
-		<VPerfectSignature v-if="mounted"
-			ref="signaturePad"
-			class="canvas"
-			:width="canvasWidth + 'px'"
-			:height="canvasHeight + 'px'"
-			:pen-color="color"
-			:stroke-options="strokeOptions"
-			@onEnd="updateCanSave" />
+		<div ref="canvasWrapper" class="canvas-wrapper">
+			<canvas ref="canvas"
+				class="canvas"
+				width="10px"
+				height="10px" />
+		</div>
 		<div class="action-buttons">
 			<NcButton variant="primary"
 				:disabled="!canSave"
@@ -59,18 +57,19 @@
 </template>
 
 <script>
-import { VPerfectSignature } from 'v-perfect-signature'
+import debounce from 'debounce'
+import SignaturePad from 'signature_pad'
 
 import DeleteIcon from 'vue-material-design-icons/Delete.vue'
 import PaletteIcon from 'vue-material-design-icons/Palette.vue'
+
+import { getCapabilities } from '@nextcloud/capabilities'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcColorPicker from '@nextcloud/vue/components/NcColorPicker'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 
 import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
-
-import { SignatureImageDimensions } from './options.js'
 
 export default {
 	name: 'Editor',
@@ -82,12 +81,11 @@ export default {
 		DeleteIcon,
 		NcButton,
 		PreviewSignature,
-		VPerfectSignature,
 	},
 
 	data: () => ({
-		canvasWidth: SignatureImageDimensions.width,
-		canvasHeight: SignatureImageDimensions.height,
+		canvasWidth: getCapabilities().libresign.config['sign-elements']['signature-width'],
+		canvasHeight: getCapabilities().libresign.config['sign-elements']['signature-height'],
 		color: '#000000',
 		customPalette: [
 			'#000000',
@@ -99,53 +97,61 @@ export default {
 		modal: false,
 		mounted: false,
 		canSave: false,
-		strokeOptions: {
-			size: 7,
-			thinning: 0.75,
-			smoothing: 0.5,
-			streamline: 0.5,
-		},
+		scale: 1,
 	}),
 	mounted() {
 		this.mounted = true
 		this.$nextTick(() => {
-			const canvas = this.$refs.signaturePad.getCanvasElement()
-			const padding = 20
-			if (SignatureImageDimensions.width > window.innerWidth - padding) {
-				this.canvasWidth = window.innerWidth - padding
-			} else {
-				this.canvasWidth = SignatureImageDimensions.width
-			}
-			if (SignatureImageDimensions.height > window.innerHeight) {
-				this.canvasHeight = window.innerHeight
-			} else {
-				this.canvasHeight = SignatureImageDimensions.height
-			}
-			canvas.width = this.canvasWidth
-			canvas.height = this.canvasHeight
-			this.$refs.signaturePad.$forceUpdate()
+			this.$refs.canvas.signaturePad = new SignaturePad(this.$refs.canvas)
+			this.$refs.canvas.signaturePad.backgroundColor = '#cecece'
+			this.$refs.canvas.signaturePad.addEventListener('endStroke', () => {
+				this.canSave = !this.$refs.canvas.signaturePad.isEmpty()
+			})
+			this.observeResize()
 		})
+	},
+	beforeUnmount() {
+		this.resizeObserver?.disconnect()
 	},
 	beforeDestroy() {
 		this.mounted = false
-		this.$refs.signaturePad.clear()
+		this.$refs.canvas.signaturePad.clear()
 		this.imageData = null
 	},
 	methods: {
-		updateCanSave() {
-			this.canSave = !this.$refs.signaturePad.isEmpty()
-		},
-		refresh() {
-			this.$nextTick(() => {
-				this.$refs.signaturePad.inputPointsHandler()
+		observeResize() {
+			this.debounceScaleCanvasToFit = debounce(this.scaleCanvasToFit, 200)
+			this.resizeObserver = new ResizeObserver(() => {
+				this.debounceScaleCanvasToFit()
 			})
+			this.resizeObserver.observe(this.$refs.canvasWrapper)
+		},
+		scaleCanvasToFit() {
+			if (!this.$refs.canvasWrapper) {
+				return
+			}
+			const padding = 3
+			const maxWidth = this.$refs.canvasWrapper.offsetWidth - padding
+			const maxHeight = this.$refs.canvasWrapper.offsetHeight - padding
+
+			this.scale = Math.min(maxWidth / this.canvasWidth, maxHeight / this.canvasHeight)
+
+			const finalWidth = this.canvasWidth * this.scale
+			const finalHeight = this.canvasHeight * this.scale
+
+			this.$refs.canvas.width = finalWidth
+			this.$refs.canvas.height = finalHeight
+			this.$refs.canvas.signaturePad.clear()
+		},
+		updateColor() {
+			this.$refs.canvas.signaturePad.penColor = this.color
 		},
 		clear() {
-			this.$refs.signaturePad.clear()
+			this.$refs.canvas.signaturePad.clear()
 			this.canSave = false
 		},
 		createDataImage() {
-			this.imageData = this.$refs.signaturePad.toDataURL('image/png')
+			this.imageData = this.$refs.canvas.signaturePad.toDataURL('image/png')
 		},
 		confirmationDraw() {
 			this.createDataImage()
@@ -182,12 +188,21 @@ export default {
 			margin-right: 20px;
 		}
 	}
-	.canvas{
+	.canvas-wrapper{
+		display: flex;
 		position: relative;
-		border: 1px solid #dbdbdb;
-		background-color: #cecece;
-		border-radius: 10px;
-		margin-bottom: 5px;
+		overflow: hidden;
+		width: 100%;
+		height: 100%;
+		justify-content: center;
+		align-items: center;
+		.canvas{
+			max-width: 100%;
+			max-height: 100%;
+			position: block;
+			background-color: #cecece;
+			border-radius: 10px;
+		}
 	}
 	.action-buttons{
 		justify-content: end;

@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign;
 
+use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\App\IAppManager;
 use OCP\Capabilities\IPublicCapability;
@@ -22,6 +23,7 @@ class Capabilities implements IPublicCapability {
 
 	public function __construct(
 		protected SignerElementsService $signerElementsService,
+		protected SignatureTextService $signatureTextService,
 		protected IAppManager $appManager,
 	) {
 	}
@@ -38,6 +40,10 @@ class Capabilities implements IPublicCapability {
 				'sign-elements' => [
 					'is-available' => $this->signerElementsService->isSignElementsAvailable(),
 					'can-create-signature' => $this->signerElementsService->canCreateSignature(),
+					'full-signature-width' => $this->signatureTextService->getFullSignatureWidth(),
+					'full-signature-height' => $this->signatureTextService->getFullSignatureHeight(),
+					'signature-width' => $this->signatureTextService->getSignatureWidth(),
+					'signature-height' => $this->signatureTextService->getSignatureHeight(),
 				],
 			],
 			'version' => $this->appManager->getAppVersion('libresign'),

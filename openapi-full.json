@@ -61,7 +61,11 @@
                                 "type": "object",
                                 "required": [
                                     "is-available",
-                                    "can-create-signature"
+                                    "can-create-signature",
+                                    "full-signature-width",
+                                    "full-signature-height",
+                                    "signature-width",
+                                    "signature-height"
                                 ],
                                 "properties": {
                                     "is-available": {
@@ -69,6 +73,22 @@
                                     },
                                     "can-create-signature": {
                                         "type": "boolean"
+                                    },
+                                    "full-signature-width": {
+                                        "type": "number",
+                                        "format": "double"
+                                    },
+                                    "full-signature-height": {
+                                        "type": "number",
+                                        "format": "double"
+                                    },
+                                    "signature-width": {
+                                        "type": "number",
+                                        "format": "double"
+                                    },
+                                    "signature-height": {
+                                        "type": "number",
+                                        "format": "double"
                                     }
                                 }
                             }
@@ -8886,6 +8906,18 @@
                                         "default": 20,
                                         "description": "Font size used when the signature mode is SIGNAME_AND_DESCRIPTION"
                                     },
+                                    "signatureWidth": {
+                                        "type": "number",
+                                        "format": "double",
+                                        "default": 350,
+                                        "description": "Signature width"
+                                    },
+                                    "signatureHeight": {
+                                        "type": "number",
+                                        "format": "double",
+                                        "default": 100,
+                                        "description": "Signature height"
+                                    },
                                     "renderMode": {
                                         "type": "string",
                                         "default": "GRAPHIC_AND_DESCRIPTION",
@@ -8948,6 +8980,8 @@
                                                         "parsed",
                                                         "templateFontSize",
                                                         "signatureFontSize",
+                                                        "signatureWidth",
+                                                        "signatureHeight",
                                                         "renderMode"
                                                     ],
                                                     "properties": {
@@ -8962,6 +8996,14 @@
                                                             "format": "double"
                                                         },
                                                         "signatureFontSize": {
+                                                            "type": "number",
+                                                            "format": "double"
+                                                        },
+                                                        "signatureWidth": {
+                                                            "type": "number",
+                                                            "format": "double"
+                                                        },
+                                                        "signatureHeight": {
                                                             "type": "number",
                                                             "format": "double"
                                                         },
@@ -9102,6 +9144,8 @@
                                                         "parsed",
                                                         "templateFontSize",
                                                         "signatureFontSize",
+                                                        "signatureWidth",
+                                                        "signatureHeight",
                                                         "renderMode"
                                                     ],
                                                     "properties": {
@@ -9116,6 +9160,14 @@
                                                             "format": "double"
                                                         },
                                                         "signatureFontSize": {
+                                                            "type": "number",
+                                                            "format": "double"
+                                                        },
+                                                        "signatureWidth": {
+                                                            "type": "number",
+                                                            "format": "double"
+                                                        },
+                                                        "signatureHeight": {
                                                             "type": "number",
                                                             "format": "double"
                                                         },

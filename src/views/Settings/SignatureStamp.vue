@@ -266,6 +266,7 @@
 					'background-image': 'url(' + backgroundUrl + ')',
 					'border-color': isOverflowing ? 'var(--color-error) !important': '',
 					visibility: previewLoaded ? 'visible' : 'hidden',
+					position: previewLoaded ? '' : 'absolute',
 				}">
 				<div class="left-column" :style="{display: renderMode === 'DESCRIPTION_ONLY' ? 'none' : ''}">
 					<div class="left-column-content"
@@ -303,10 +304,10 @@
 import debounce from 'debounce'
 
 import Delete from 'vue-material-design-icons/Delete.vue'
-import Undo from 'vue-material-design-icons/UndoVariant.vue'
-import Upload from 'vue-material-design-icons/Upload.vue'
 import MagnifyMinusOutline from 'vue-material-design-icons/MagnifyMinusOutline.vue'
 import MagnifyPlusOutline from 'vue-material-design-icons/MagnifyPlusOutline.vue'
+import Undo from 'vue-material-design-icons/UndoVariant.vue'
+import Upload from 'vue-material-design-icons/Upload.vue'
 
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
@@ -425,7 +426,9 @@ export default {
 			return this.signatureHeight !== this.defaultSignatureHeight
 		},
 		previewSignatureImageWidth() {
-			return (this.renderMode === 'GRAPHIC_ONLY' || !this.parsedWithLineBreak) ? this.signatureWidth : Math.floor(this.signatureWidth / 2)
+			return (this.renderMode === 'GRAPHIC_ONLY' || !this.parsedWithLineBreak)
+				? this.signatureWidth
+				: Math.floor(this.signatureWidth / 2)
 		},
 		previewSignatureImageHeight() {
 			return this.signatureHeight

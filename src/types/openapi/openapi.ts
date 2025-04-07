@@ -929,6 +929,14 @@ export type components = {
                 "sign-elements": {
                     "is-available": boolean;
                     "can-create-signature": boolean;
+                    /** Format: double */
+                    "full-signature-width": number;
+                    /** Format: double */
+                    "full-signature-height": number;
+                    /** Format: double */
+                    "signature-width": number;
+                    /** Format: double */
+                    "signature-height": number;
                 };
             };
             version: string;

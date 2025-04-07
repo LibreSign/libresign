@@ -82,11 +82,11 @@ class Admin implements ISettings {
 		);
 		$this->initialState->provideInitialState(
 			'signature_width',
-			$this->signatureTextService->getSignatureWidth(),
+			$this->signatureTextService->getFullSignatureWidth(),
 		);
 		$this->initialState->provideInitialState(
 			'signature_height',
-			$this->signatureTextService->getSignatureHeight(),
+			$this->signatureTextService->getFullSignatureHeight(),
 		);
 		$this->initialState->provideInitialState(
 			'signature_preview_zoom_level',

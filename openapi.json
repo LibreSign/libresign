@@ -61,7 +61,11 @@
                                 "type": "object",
                                 "required": [
                                     "is-available",
-                                    "can-create-signature"
+                                    "can-create-signature",
+                                    "full-signature-width",
+                                    "full-signature-height",
+                                    "signature-width",
+                                    "signature-height"
                                 ],
                                 "properties": {
                                     "is-available": {
@@ -69,6 +73,22 @@
                                     },
                                     "can-create-signature": {
                                         "type": "boolean"
+                                    },
+                                    "full-signature-width": {
+                                        "type": "number",
+                                        "format": "double"
+                                    },
+                                    "full-signature-height": {
+                                        "type": "number",
+                                        "format": "double"
+                                    },
+                                    "signature-width": {
+                                        "type": "number",
+                                        "format": "double"
+                                    },
+                                    "signature-height": {
+                                        "type": "number",
+                                        "format": "double"
                                     }
                                 }
                             }
