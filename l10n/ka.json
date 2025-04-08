@@ -1,5 +1,4 @@
 { "translations": {
-    "Other activities" : "Other activities",
     "Settings saved" : "Settings saved",
     "deleted" : "deleted",
     "Invalid password" : "Invalid password",
@@ -73,6 +72,7 @@
     "No" : "No",
     "Forgot password?" : "Forgot password?",
     "Name:" : "Name:",
-    "Status:" : "Status:"
+    "Status:" : "Status:",
+    "Other activities" : "Other activities"
 },"pluralForm" :"nplurals=2; plural=(n!=1);"
 }

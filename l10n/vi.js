@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "Hoạt động khác",
     "Success" : "Thành công",
     "Settings saved" : "Cấu hình đã được lưu",
     "deleted" : "đã xóa",
@@ -75,6 +74,7 @@ OC.L10N.register(
     "No" : "Không",
     "Forgot password?" : "Quên mật khẩu sao?",
     "Name:" : "Tên:",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Other activities" : "Hoạt động khác"
 },
 "nplurals=1; plural=0;");

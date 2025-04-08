@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "Druge aktivnosti",
     "Success" : "Uspjeh",
     "Invalid user or password" : "Nevažeći korisnik ili zaporka",
     "Settings saved" : "Postavke spremljene",
@@ -199,6 +198,7 @@ OC.L10N.register(
     "No date" : "Nema datuma",
     "Return" : "Natrag",
     "Open in LibreSign" : "Otvori u sustavu LibreSign",
-    "Requested by {name}, at {date}" : "Zatražio {name} na dan {date}"
+    "Requested by {name}, at {date}" : "Zatražio {name} na dan {date}",
+    "Other activities" : "Druge aktivnosti"
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");

@@ -1,10 +1,9 @@
 OC.L10N.register(
     "libresign",
     {
-    "You have a <strong>file to sign</strong>" : "Постоји <strong>фајл који треба да потпишете</strong>",
-    "Other activities" : "Остале активности",
     "{from} requested your signature on {file}" : "{from} је затражио да потпишете {file}",
     "{from} made changes on {file}" : "{from} је направио измене у {file}",
+    "You have a <strong>file to sign</strong>" : "Постоји <strong>фајл који треба да потпишете</strong>",
     "Success" : "Успешно",
     "Invalid user or password" : "Неисправно корисничко име или лозинка",
     "Settings saved" : "Поставке сачуване",
@@ -404,6 +403,7 @@ OC.L10N.register(
     "Name of an organizational unit" : "Име организационе јединице",
     "not a LibreSign file" : "није LibreSign фајл",
     "New signature request" : "Нови захтев за потпис",
-    "Requested by {name}, at {date}" : "Захтевао {name}, дана {date}"
+    "Requested by {name}, at {date}" : "Захтевао {name}, дана {date}",
+    "Other activities" : "Остале активности"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");

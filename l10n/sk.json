@@ -1,8 +1,7 @@
 { "translations": {
-    "You have a <strong>file to sign</strong>" : "Máte <strong>súbor pre podpísanie</strong> ",
-    "Other activities" : "Iné aktivity",
     "{from} requested your signature on {file}" : "{from} požiadal o váš podpis pre {file}",
     "{from} made changes on {file}" : "{from} urobil zmeny v {file}",
+    "You have a <strong>file to sign</strong>" : "Máte <strong>súbor pre podpísanie</strong> ",
     "Success" : "Úspešné",
     "Invalid user or password" : "Neplatný používateľ alebo heslo",
     "Settings saved" : "Nastavenia uložené",
@@ -402,6 +401,7 @@
     "Name of an organizational unit" : "Názov organizačnej jednotky",
     "not a LibreSign file" : "toto nie je súbor LibreSign ",
     "New signature request" : "Nová žiadosť o podpis",
-    "Requested by {name}, at {date}" : "Vyžiadané od {name}, o {date}"
+    "Requested by {name}, at {date}" : "Vyžiadané od {name}, o {date}",
+    "Other activities" : "Iné aktivity"
 },"pluralForm" :"nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);"
 }

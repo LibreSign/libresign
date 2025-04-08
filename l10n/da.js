@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "Andre aktiviteter",
     "Success" : "Succes",
     "Settings saved" : "Indstillinger gemt",
     "deleted" : "Slettet",
@@ -87,6 +86,7 @@ OC.L10N.register(
     "Forgot password?" : "Glemt adgangskode?",
     "Name:" : "Navn:",
     "No date" : "Ingen dato",
-    "Return" : "Aflever"
+    "Return" : "Aflever",
+    "Other activities" : "Andre aktiviteter"
 },
 "nplurals=2; plural=(n != 1);");

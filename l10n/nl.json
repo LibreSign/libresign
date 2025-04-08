@@ -1,5 +1,4 @@
 { "translations": {
-    "Other activities" : "Andere activiteiten",
     "Success" : "Geslaagd",
     "Invalid user or password" : "Ongeldige gebruikersnaam of wachtwoord",
     "Settings saved" : "Instellingen opgeslagen",
@@ -245,6 +244,7 @@
     "No date" : "Geen datum",
     "Return" : "Terug",
     "Open in LibreSign" : "Openen in LibreSign",
-    "Requested by {name}, at {date}" : "Aangevraagd door {name}, op {date}"
+    "Requested by {name}, at {date}" : "Aangevraagd door {name}, op {date}",
+    "Other activities" : "Andere activiteiten"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -1,10 +1,9 @@
 OC.L10N.register(
     "libresign",
     {
-    "You have a <strong>file to sign</strong>" : "Tá <strong>chomhad agat le síniú</strong>",
-    "Other activities" : "Gníomhaíochtaí eile",
     "{from} requested your signature on {file}" : "D'iarr {from} do shíniú ar {file}",
     "{from} made changes on {file}" : "Rinne {from} athruithe ar {file}",
+    "You have a <strong>file to sign</strong>" : "Tá <strong>chomhad agat le síniú</strong>",
     "Success" : "Rath",
     "Invalid user or password" : "Úsáideoir nó pasfhocal neamhbhailí",
     "Settings saved" : "Socruithe sábháilte",
@@ -404,6 +403,7 @@ OC.L10N.register(
     "Name of an organizational unit" : "Ainm aonaid eagraíochta",
     "not a LibreSign file" : "ní comhad LibreSign é",
     "New signature request" : "Iarratas sínithe nua",
-    "Requested by {name}, at {date}" : "Arna iarraidh ag {name}, ag {date}"
+    "Requested by {name}, at {date}" : "Arna iarraidh ag {name}, ag {date}",
+    "Other activities" : "Gníomhaíochtaí eile"
 },
 "nplurals=5; plural=(n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n<11 ? 3 : 4);");

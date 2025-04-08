@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "වෙනත්  ක්‍රියාකාරකම්",
     "Success" : "සාර්ථකයි",
     "File is too big" : "ගොනුව ඉතා විශාලයි",
     "File not found" : "ගොනුව හමු නොවිණි",
@@ -33,6 +32,7 @@ OC.L10N.register(
     "New password" : "නව මුරපදය",
     "Message" : "පණිවිඩය",
     "Yes" : "ඔව්",
-    "No" : "නැහැ"
+    "No" : "නැහැ",
+    "Other activities" : "වෙනත්  ක්‍රියාකාරකම්"
 },
 "nplurals=2; plural=(n != 1);");

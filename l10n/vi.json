@@ -1,5 +1,4 @@
 { "translations": {
-    "Other activities" : "Hoạt động khác",
     "Success" : "Thành công",
     "Settings saved" : "Cấu hình đã được lưu",
     "deleted" : "đã xóa",
@@ -73,6 +72,7 @@
     "No" : "Không",
     "Forgot password?" : "Quên mật khẩu sao?",
     "Name:" : "Tên:",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Other activities" : "Hoạt động khác"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

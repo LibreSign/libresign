@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "其他活动",
     "Success" : "成功",
     "Invalid user or password" : "无效用户或密码",
     "Settings saved" : "已保存设置",
@@ -241,6 +240,7 @@ OC.L10N.register(
     "No date" : "无日期",
     "Return" : "返回",
     "Open in LibreSign" : "在 LibreSign 中打开",
-    "Requested by {name}, at {date}" : "{name} 请求于 {date}"
+    "Requested by {name}, at {date}" : "{name} 请求于 {date}",
+    "Other activities" : "其他活动"
 },
 "nplurals=1; plural=0;");

@@ -1,10 +1,9 @@
 OC.L10N.register(
     "libresign",
     {
-    "You have a <strong>file to sign</strong>" : "سىزدە <strong> ئىمزا قويۇش </ strong> ھۆججىتى بار",
-    "Other activities" : "باشقا پائالىيەتلەر",
     "{from} requested your signature on {file}" : "{دىن} ھۆججەتتىكى ئىمزاڭىزنى تەلەپ قىلدى",
     "{from} made changes on {file}" : "{دىن} ھۆججىتىگە ئۆزگەرتىش كىرگۈزدى",
+    "You have a <strong>file to sign</strong>" : "سىزدە <strong> ئىمزا قويۇش </ strong> ھۆججىتى بار",
     "Success" : "مۇۋەپپەقىيەت",
     "Invalid user or password" : "ئىشلەتكۈچى ياكى پارول ئىناۋەتسىز",
     "Settings saved" : "تەڭشەكلەر ساقلاندى",
@@ -357,6 +356,7 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "شەھەر ، ناھىيە ياكى باشقا جۇغراپىيىلىك رايونغا ئوخشاش جاي ياكى جاينىڭ ئىسمى",
     "Name of an organization" : "بىر تەشكىلاتنىڭ ئىسمى",
     "Name of an organizational unit" : "تەشكىلىي ئورۇننىڭ ئىسمى",
-    "Requested by {name}, at {date}" : "{name} تەرىپىدىن تەلەپ قىلىنغان ، {date}"
+    "Requested by {name}, at {date}" : "{name} تەرىپىدىن تەلەپ قىلىنغان ، {date}",
+    "Other activities" : "باشقا پائالىيەتلەر"
 },
 "nplurals=2; plural=(n != 1);");

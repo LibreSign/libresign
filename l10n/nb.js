@@ -1,10 +1,9 @@
 OC.L10N.register(
     "libresign",
     {
-    "You have a <strong>file to sign</strong>" : "Du har en <strong>fil å signere</strong>",
-    "Other activities" : "Andre aktiviteter",
     "{from} requested your signature on {file}" : "{from} ba om din signatur på {file}",
     "{from} made changes on {file}" : "{from} gjorde endringer på {file}",
+    "You have a <strong>file to sign</strong>" : "Du har en <strong>fil å signere</strong>",
     "Success" : "Vellykket",
     "Invalid user or password" : "Ugyldig bruker eller passord",
     "Settings saved" : "Innstillinger lagret",
@@ -358,6 +357,7 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Navn på en lokalitet eller et sted, for eksempel en by, et fylke eller et annet geografisk område",
     "Name of an organization" : "Navn på en organisasjon",
     "Name of an organizational unit" : "Navn på en organisatorisk enhet",
-    "Requested by {name}, at {date}" : "Bedt av {name}, den {date}"
+    "Requested by {name}, at {date}" : "Bedt av {name}, den {date}",
+    "Other activities" : "Andre aktiviteter"
 },
 "nplurals=2; plural=(n != 1);");
