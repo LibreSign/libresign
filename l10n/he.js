@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "פעילויות אחרות",
     "Success" : "הצלחה",
     "Settings saved" : "הגדרות נשמרו",
     "deleted" : "נמחק",
@@ -66,6 +65,7 @@ OC.L10N.register(
     "No" : "לא",
     "Forgot password?" : "שכחת ססמה?",
     "Name:" : "שם:",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Other activities" : "פעילויות אחרות"
 },
 "nplurals=3; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: 2;");

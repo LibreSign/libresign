@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "Egyéb tevékenységek",
     "Success" : "Sikeres",
     "Invalid user or password" : "Érvénytelen felhasználó vagy jelszó",
     "Settings saved" : "Beállítások mentve",
@@ -301,6 +300,7 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Egy terület vagy helység neve, például város, megye vagy más földrajzi régió",
     "Name of an organization" : "Egy szervezet neve",
     "Name of an organizational unit" : "Egy szervezeti egység neve",
-    "Requested by {name}, at {date}" : "{name} kérte, ekkor: {date}"
+    "Requested by {name}, at {date}" : "{name} kérte, ekkor: {date}",
+    "Other activities" : "Egyéb tevékenységek"
 },
 "nplurals=2; plural=(n != 1);");

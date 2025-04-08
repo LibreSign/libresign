@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "その他のアクティビティ",
     "Success" : "完了",
     "Settings saved" : "設定が保存されました",
     "draft" : "下書き",
@@ -98,6 +97,7 @@ OC.L10N.register(
     "Name:" : "名前: ",
     "Status:" : "ステータス:",
     "No date" : "日付なし",
-    "Open in LibreSign" : "LibreSignで開く"
+    "Open in LibreSign" : "LibreSignで開く",
+    "Other activities" : "その他のアクティビティ"
 },
 "nplurals=1; plural=0;");

@@ -1,5 +1,4 @@
 { "translations": {
-    "Other activities" : "Àteras atividades",
     "Success" : "In manera curreta",
     "Invalid user or password" : "Utente o crae non bàlidos",
     "Settings saved" : "Cunfiguratzione sarvada",
@@ -153,6 +152,7 @@
     "No date" : "Peruna data",
     "Return" : "Torra",
     "Open in LibreSign" : "Aberi in LibreSign",
-    "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}"
+    "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}",
+    "Other activities" : "Àteras atividades"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "Kitos veiklos",
     "{from} requested your signature on {file}" : "{from} paprašė, kad pasirašytumėte {file}",
     "Success" : "Pavyko",
     "Invalid user or password" : "Neteisingas naudotojas ar slaptažodis",
@@ -158,6 +157,7 @@ OC.L10N.register(
     "Forgot password?" : "Pamiršote slaptažodį?",
     "Name:" : "Pavadinimas:",
     "Status:" : "Būsena:",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Other activities" : "Kitos veiklos"
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");

@@ -1,10 +1,9 @@
 OC.L10N.register(
     "libresign",
     {
-    "You have a <strong>file to sign</strong>" : "V <strong>podpis</strong> ste prejeli datoteko.",
-    "Other activities" : "Druge dejavnosti",
     "{from} requested your signature on {file}" : "{from} prosi za podpis dokumenta {file}",
     "{from} made changes on {file}" : "{from} predlaga spremembe v dokumentu {file}",
+    "You have a <strong>file to sign</strong>" : "V <strong>podpis</strong> ste prejeli datoteko.",
     "Success" : "Uspešno končano",
     "Invalid user or password" : "Neveljaven uporabnik oziroma napačno geslo",
     "Settings saved" : "Nastavitve so shranjene",
@@ -357,6 +356,7 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Ime kraja, mesta, okrožja, države ali druge geografske regije.",
     "Name of an organization" : "Naziv organizacije",
     "Name of an organizational unit" : "Naziv organizacijske enote v podjetju",
-    "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}"
+    "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}",
+    "Other activities" : "Druge dejavnosti"
 },
 "nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);");

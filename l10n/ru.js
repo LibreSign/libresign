@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "Другие события",
     "{from} requested your signature on {file}" : "{from} запросил вашу подпись на {file}",
     "Success" : "Выполнено",
     "Invalid user or password" : "Неверное имя пользователя или пароль",
@@ -248,6 +247,7 @@ OC.L10N.register(
     "Return" : "Возврат",
     "Open in LibreSign" : "Открыть в LibreSign",
     "Name of a locality or place, such as a city, county, or other geographic region" : "Название местности или места, например города, округа или другого географического региона",
-    "Requested by {name}, at {date}" : "Запрошено у {name} {date}"
+    "Requested by {name}, at {date}" : "Запрошено у {name} {date}",
+    "Other activities" : "Другие события"
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");

@@ -1,5 +1,4 @@
 { "translations": {
-    "Other activities" : "වෙනත්  ක්‍රියාකාරකම්",
     "Success" : "සාර්ථකයි",
     "File is too big" : "ගොනුව ඉතා විශාලයි",
     "File not found" : "ගොනුව හමු නොවිණි",
@@ -31,6 +30,7 @@
     "New password" : "නව මුරපදය",
     "Message" : "පණිවිඩය",
     "Yes" : "ඔව්",
-    "No" : "නැහැ"
+    "No" : "නැහැ",
+    "Other activities" : "වෙනත්  ක්‍රියාකාරකම්"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

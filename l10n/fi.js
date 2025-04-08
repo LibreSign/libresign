@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "Muut tapahtumat",
     "Success" : "Onnistui",
     "Invalid user or password" : "Virheellinen käyttäjä tai salasana",
     "Settings saved" : "Asetukset tallennettu",
@@ -187,6 +186,7 @@ OC.L10N.register(
     "No date" : "Ei päiväystä",
     "Return" : "Palaa",
     "Open in LibreSign" : "Avaa LibreSignissa",
-    "Requested by {name}, at {date}" : "Pyytänyt {name} {date}"
+    "Requested by {name}, at {date}" : "Pyytänyt {name} {date}",
+    "Other activities" : "Muut tapahtumat"
 },
 "nplurals=2; plural=(n != 1);");
