@@ -383,6 +383,24 @@ class ConfigureCheckService {
 							->setTip('Run occ libresign:install --java'),
 					];
 				}
+				\exec($javaPath . ' -XshowSettings:properties -version 2>&1', $output, $resultCode);
+				preg_match('/native.encoding = (?<encoding>.*)\n/', implode("\n", $output), $matches);
+				if (!isset($matches['encoding'])) {
+					return [
+						(new ConfigureCheckHelper())
+							->setErrorMessage('Java encoding not found.')
+							->setResource('java')
+							->setTip(sprintf('The command %s need to have native.encoding', [$javaPath . ' -XshowSettings:properties -version'])),
+					];
+				}
+				if (!str_contains($matches['encoding'], 'UTF-8')) {
+					return [
+						(new ConfigureCheckHelper())
+							->setInfoMessage('Non-UTF-8 encoding detected. This may cause issues with accented or special characters')
+							->setResource('java')
+							->setTip(' Ensure the system encoding is UTF-8. You can check it using: locale charmap'),
+					];
+				}
 				return [
 					(new ConfigureCheckHelper())
 						->setSuccessMessage('Java version: ' . $javaVersion)
