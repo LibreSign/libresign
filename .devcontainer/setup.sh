@@ -16,7 +16,7 @@ if [[ ! -d "vendor" ]]; then
 	composer install
 fi
 occ app:enable libresign
-occ occ libresign:install --use-local-cert --java
+occ libresign:install --use-local-cert --java
 occ libresign:install --use-local-cert --pdftk
 occ libresign:install --use-local-cert --jsignpdf
 occ libresign:configure:openssl --cn=CommonName --c=BR --ou=OrganizationUnit --st=RioDeJaneiro --o=LibreSign --l=RioDeJaneiro
