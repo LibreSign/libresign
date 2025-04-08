@@ -39,19 +39,26 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 		return $this->service;
 	}
 
-	#[DataProvider('providerUpscaleDimensions')]
-	public function testUpscaleDimensions($inputWidth, $inputHeight, $configWidth, $configHeight, $expectedWidth, $expectedHeight) {
-		$this->appConfig->setValueString('libresign', 'signature_width', $configWidth);
-		$this->appConfig->setValueString('libresign', 'signature_height', $configHeight);
+	#[DataProvider('providerScaleDimensions')]
+	public function testScaleDimensions(
+		int $inputWidth,
+		int $inputHeight,
+		float $configWidth,
+		float $configHeight,
+		int $expectedWidth,
+		int $expectedHeight,
+	): void {
+		$this->appConfig->setValueFloat('libresign', 'signature_width', $configWidth);
+		$this->appConfig->setValueFloat('libresign', 'signature_height', $configHeight);
 		$class = $this->getClass();
-		$result = self::invokePrivate($class, 'upscaleDimensions', [$inputWidth, $inputHeight]);
+		$result = self::invokePrivate($class, 'scaleDimensions', [$inputWidth, $inputHeight]);
 		$this->assertSame(
 			['width' => $expectedWidth, 'height' => $expectedHeight],
 			$result
 		);
 	}
 
-	public static function providerUpscaleDimensions(): array {
+	public static function providerScaleDimensions(): array {
 		return [
 			'under limit => return equals' =>
 				[100, 50, 200, 100, 100, 50],
@@ -61,6 +68,8 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 				[1200, 800, 200, 100, 750, 500],
 			'width and height over upscale limit => reduce to scale limit' =>
 				[2000, 1600, 200, 100, 625, 500],
+			'every return integer' =>
+				[2000, 1600, 200.7, 100.5, 628, 502],
 		];
 	}
 }
