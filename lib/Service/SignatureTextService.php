@@ -221,16 +221,14 @@ class SignatureTextService {
 		$wrappedText = wordwrap($text, $maxCharsPerLine, "\n", true);
 
 		$textMetrics = $image->queryFontMetrics($draw, $wrappedText);
-		$lineHeight = $textMetrics['textHeight'];
 		$lineCount = substr_count($wrappedText, "\n") + 1;
-		$totalTextHeight = $lineHeight * $lineCount;
+		$y = $this->getCenteredBaselineY($height, $lineCount, $textMetrics['textHeight'], $textMetrics['ascender'], $textMetrics['descender']);
 
 		$x = match ($align) {
 			Imagick::ALIGN_LEFT => 0,
 			Imagick::ALIGN_CENTER => $width / 2,
 			Imagick::ALIGN_RIGHT => $width,
 		};
-		$y = ($height / 2) - ($totalTextHeight / 2) + $lineHeight;
 
 		$image->annotateImage($draw, $x, $y, 0, $wrappedText);
 
@@ -238,6 +236,20 @@ class SignatureTextService {
 		$image->destroy();
 
 		return $blob;
+	}
+
+	private function getCenteredBaselineY(
+		float $canvasHeight,
+		int $lineCount,
+		float $lineHeight,
+		float $ascender,
+		float $descender,
+	): float {
+		$centerY = $canvasHeight / 2;
+		$textBlockHeight = $lineHeight * $lineCount;
+		$visualCenterOffset = ($ascender + $descender) / 2;
+
+		return $centerY - ($textBlockHeight / 2) + $lineHeight - $visualCenterOffset;
 	}
 
 	private function splitAndGetLongestHalfLength(string $text): int {
