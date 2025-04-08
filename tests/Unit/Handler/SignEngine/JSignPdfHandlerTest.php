@@ -63,7 +63,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signatureBackgroundService = $this->createMock(SignatureBackgroundService::class);
 	}
 
-	private function getClass(): JSignPdfHandler {
+	private function getInstance(array $methods = []): JSignPdfHandler|MockObject {
 		$signatureTextService = new SignatureTextService(
 			$this->appConfig,
 			\OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID),
@@ -71,14 +71,57 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			\OCP\Server::get(IRequest::class),
 			\OCP\Server::get(IUserSession::class),
 		);
-		return new JSignPdfHandler(
-			$this->appConfig,
-			$this->loggerInterface,
-			$signatureTextService,
-			$this->tempManager,
-			$this->signatureBackgroundService,
-			self::$certificateEngineFactory,
-		);
+		if (empty($methods)) {
+			return new JSignPdfHandler(
+				$this->appConfig,
+				$this->loggerInterface,
+				$signatureTextService,
+				$this->tempManager,
+				$this->signatureBackgroundService,
+				self::$certificateEngineFactory,
+			);
+		}
+		return $this->getMockBuilder(JSignPdfHandler::class)
+			->setConstructorArgs([
+				$this->appConfig,
+				$this->loggerInterface,
+				$signatureTextService,
+				$this->tempManager,
+				$this->signatureBackgroundService,
+				self::$certificateEngineFactory,
+			])
+			->onlyMethods($methods)
+			->getMock();
+	}
+
+	#[DataProvider('providerGetHashAlgorithm')]
+	public function testGetHashAlgorithm(string $setting, string $content, string $expected): void {
+		$this->appConfig->setValueString('libresign', 'signature_hash_algorithm', $setting);
+		$instance = $this->getInstance(['getInputFile']);
+		$file = $this->createMock(\OCP\Files\File::class);
+		$file->method('getContent')->willReturn($content);
+		$instance->method('getInputFile')->willReturn($file);
+		$actual = self::invokePrivate($instance, 'getHashAlgorithm');
+		$this->assertEquals($expected, $actual);
+	}
+
+	public static function providerGetHashAlgorithm(): array {
+		return [
+			'empty setting, PDF 1.6' => ['', '%PDF-1.6', 'SHA256'],
+			'invalid PDF header' => ['', 'random data', 'SHA256'],
+			'invalid setting, fallback to SHA256 on PDF 1.7' => ['XYZ', '%PDF-1.7', 'SHA256'],
+			'null-like setting, PDF 1.5' => ['0', '%PDF-1.5', 'SHA1'],
+			'default with PDF 1.0' => ['', '%PDF-1', 'SHA1'],
+			'SHA1 with PDF 1.5' => ['', '%PDF-1.5', 'SHA1'],
+			'SHA1 with PDF 1.6' => ['', '%PDF-1.6', 'SHA256'],
+			'SHA1 with PDF 1.7' => ['', '%PDF-1.7', 'SHA256'],
+			'SHA1 with PDF 2.0' => ['', '%PDF-2.0', 'SHA256'],
+			'SHA384, PDF 1.6 (fallback)' => ['SHA384', '%PDF-1.6', 'SHA256'],
+			'SHA384, PDF 1.7' => ['SHA384', '%PDF-1.7', 'SHA384'],
+			'SHA512, PDF 1.6' => ['SHA512', '%PDF-1.6', 'SHA256'],
+			'RIPEMD160, PDF 1.6 (unsupported)' => ['RIPEMD160', '%PDF-1.6', 'SHA256'],
+			'RIPEMD160, PDF 1.7 (supported)' => ['RIPEMD160', '%PDF-1.7', 'RIPEMD160'],
+		];
 	}
 
 	#[DataProvider('providerSignAffectedParams')]
@@ -118,7 +161,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig->setValueFloat('libresign', 'signature_width', $signatureWidth);
 		$this->appConfig->setValueFloat('libresign', 'signature_height', $signatureHeight);
 
-		$jSignPdfHandler = $this->getClass();
+		$jSignPdfHandler = $this->getInstance();
 		$jSignPdfHandler->setVisibleElements($visibleElements);
 		$jSignPdfHandler->setJSignPdf($mock);
 		$jSignPdfHandler->setInputFile($inputFile);
@@ -138,197 +181,197 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public static function providerSignAffectedParams(): array {
 		return [
-			// variations of hash algorithm
-			[[], 100, 100, '', '', '', 0, '%PDF-1',   '',          '-a -kst PKCS12 --hash-algorithm SHA1'],
-			[[], 100, 100, '', '', '', 0, '%PDF-1.5', 'SHA1',      '-a -kst PKCS12 --hash-algorithm SHA1'],
-			[[], 100, 100, '', '', '', 0, '%PDF-1.5', 'SHA256',    '-a -kst PKCS12 --hash-algorithm SHA1'],
-			[[], 100, 100, '', '', '', 0, '%PDF-1.6', 'SHA1',      '-a -kst PKCS12 --hash-algorithm SHA256'],
-			[[], 100, 100, '', '', '', 0, '%PDF-1.6', 'SHA256',    '-a -kst PKCS12 --hash-algorithm SHA256'],
-			[[], 100, 100, '', '', '', 0, '%PDF-1.6', 'SHA384',    '-a -kst PKCS12 --hash-algorithm SHA256'],
-			[[], 100, 100, '', '', '', 0, '%PDF-1.6', 'SHA512',    '-a -kst PKCS12 --hash-algorithm SHA256'],
-			[[], 100, 100, '', '', '', 0, '%PDF-1.7', 'SHA1',      '-a -kst PKCS12 --hash-algorithm SHA256'],
-			[[], 100, 100, '', '', '', 0, '%PDF-1.7', 'SHA384',    '-a -kst PKCS12 --hash-algorithm SHA384'],
-			[[], 100, 100, '', '', '', 0, '%PDF-1.7', 'SHA512',    '-a -kst PKCS12 --hash-algorithm SHA512'],
-			[[], 100, 100, '', '', '', 0, '%PDF-1.7', 'RIPEMD160', '-a -kst PKCS12 --hash-algorithm RIPEMD160'],
+			'without visible elements' => [
+				'visibleElements' => [],
+				'signatureWidth' => 100,
+				'signatureHeight' => 100,
+				'template' => '',
+				'signatureBackgroundType' => '',
+				'renderMode' => '',
+				'templateFontSize' => 0,
+				'pdfContent' => '%PDF-1',
+				'hashAlgorithm' => '',
+				'params' => '-a -kst PKCS12 --hash-algorithm SHA1',
+			],
 			'page = 1 is default, do not will set the page' => [
-				[self::getElement([
+				'visibleElements' => [self::getElement([
 					'page' => 1,
 					'llx' => 0,
 					'lly' => 0,
 					'urx' => 0,
 					'ury' => 0,
 				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
-				100,
-				100,
-				'',
-				'default',
-				'DESCRIPTION_ONLY',
-				10,
-				'%PDF-1.6',
-				'',
-				'-a -kst PKCS12 --l2-text "" -V -llx 0 -lly 0 -urx 0 -ury 0 --bg-path merged.png --hash-algorithm SHA256'
+				'signatureWidth' => 100,
+				'signatureHeight' => 100,
+				'template' => '',
+				'signatureBackgroundType' => 'default',
+				'renderMode' => 'DESCRIPTION_ONLY',
+				'templateFontSize' => 10,
+				'pdfContent' => '%PDF-1.6',
+				'hashAlgorithm' => '',
+				'params' => '-a -kst PKCS12 --l2-text "" -V -llx 0 -lly 0 -urx 0 -ury 0 --bg-path merged.png --hash-algorithm SHA256'
 			],
 			'page != 1: will have pg; without template: l2-text empty' => [
-				[self::getElement([
+				'visibleElements' => [self::getElement([
 					'page' => 2,
 					'llx' => 10,
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
 				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
-				20,
-				20,
-				'',
-				'default',
-				'DESCRIPTION_ONLY',
-				10,
-				'%PDF-1.6',
-				'',
-				'-a -kst PKCS12 --l2-text "" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png --hash-algorithm SHA256'
+				'signatureWidth' => 20,
+				'signatureHeight' => 20,
+				'template' => '',
+				'signatureBackgroundType' => 'default',
+				'renderMode' => 'DESCRIPTION_ONLY',
+				'templateFontSize' => 10,
+				'pdfContent' => '%PDF-1.6',
+				'hashAlgorithm' => '',
+				'params' => '-a -kst PKCS12 --l2-text "" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png --hash-algorithm SHA256'
 			],
 			'with template we have the l2-text' => [
-				[self::getElement([
+				'visibleElements' => [self::getElement([
 					'page' => 2,
 					'llx' => 10,
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
 				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
-				20,
-				20,
-				'aaaaa',
-				'default',
-				'DESCRIPTION_ONLY',
-				10,
-				'%PDF-1.6',
-				'',
-				'-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png --hash-algorithm SHA256'
+				'signatureWidth' => 20,
+				'signatureHeight' => 20,
+				'template' => 'aaaaa',
+				'signatureBackgroundType' => 'default',
+				'renderMode' => 'DESCRIPTION_ONLY',
+				'templateFontSize' => 10,
+				'pdfContent' => '%PDF-1.6',
+				'hashAlgorithm' => '',
+				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png --hash-algorithm SHA256'
 			],
 			'font size != 10' => [
-				[self::getElement([
+				'visibleElements' => [self::getElement([
 					'page' => 2,
 					'llx' => 10,
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
 				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
-				20,
-				20,
-				'aaaaa',
-				'default',
-				'DESCRIPTION_ONLY',
-				11,
-				'%PDF-1.6',
-				'',
-				'-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --font-size 11 --bg-path merged.png --hash-algorithm SHA256'
+				'signatureWidth' => 20,
+				'signatureHeight' => 20,
+				'template' => 'aaaaa',
+				'signatureBackgroundType' => 'default',
+				'renderMode' => 'DESCRIPTION_ONLY',
+				'templateFontSize' => 11,
+				'pdfContent' => '%PDF-1.6',
+				'hashAlgorithm' => '',
+				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --font-size 11 --bg-path merged.png --hash-algorithm SHA256'
 			],
 			'background = deleted: bg-path = signature' => [
-				[self::getElement([
+				'visibleElements' => [self::getElement([
 					'page' => 2,
 					'llx' => 10,
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
 				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
-				20,
-				20,
-				'aaaaa',
-				'deleted',
-				'DESCRIPTION_ONLY',
-				10,
-				'%PDF-1.6',
-				'',
-				'-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path signature.png --hash-algorithm SHA256'
+				'signatureWidth' => 20,
+				'signatureHeight' => 20,
+				'template' => 'aaaaa',
+				'signatureBackgroundType' => 'deleted',
+				'renderMode' => 'DESCRIPTION_ONLY',
+				'templateFontSize' => 10,
+				'pdfContent' => '%PDF-1.6',
+				'hashAlgorithm' => '',
+				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path signature.png --hash-algorithm SHA256'
 			],
 			'background and template, bg-path = background, img-path = signature' => [
-				[self::getElement([
+				'visibleElements' => [self::getElement([
 					'page' => 2,
 					'llx' => 10,
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
 				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
-				20,
-				20,
-				'aaaaa',
-				'default',
-				'GRAPHIC_AND_DESCRIPTION',
-				10,
-				'%PDF-1.6',
-				'',
-				'-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --bg-path background.png --img-path signature.png --hash-algorithm SHA256'
+				'signatureWidth' => 20,
+				'signatureHeight' => 20,
+				'template' => 'aaaaa',
+				'signatureBackgroundType' => 'default',
+				'renderMode' => 'GRAPHIC_AND_DESCRIPTION',
+				'templateFontSize' => 10,
+				'pdfContent' => '%PDF-1.6',
+				'hashAlgorithm' => '',
+				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --bg-path background.png --img-path signature.png --hash-algorithm SHA256'
 			],
 			'background and template, render mode equals to SIGNAME_AND_DESCRIPTION: bg-path = background, img-path = text_image' => [
-				[self::getElement([
+				'visibleElements' => [self::getElement([
 					'page' => 2,
 					'llx' => 1,
 					'lly' => 100,
 					'urx' => 351,
 					'ury' => 200,
 				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
-				350,
-				100,
-				'aaaaa',
-				'default',
-				'SIGNAME_AND_DESCRIPTION',
-				10,
-				'%PDF-1.6',
-				'',
-				'-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 1 -lly 100 -urx 351 -ury 200 --render-mode GRAPHIC_AND_DESCRIPTION --bg-path background.png --img-path text_image.png --hash-algorithm SHA256'
+				'signatureWidth' => 350,
+				'signatureHeight' => 100,
+				'template' => 'aaaaa',
+				'signatureBackgroundType' => 'default',
+				'renderMode' => 'SIGNAME_AND_DESCRIPTION',
+				'templateFontSize' => 10,
+				'pdfContent' => '%PDF-1.6',
+				'hashAlgorithm' => '',
+				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 1 -lly 100 -urx 351 -ury 200 --render-mode GRAPHIC_AND_DESCRIPTION --bg-path background.png --img-path text_image.png --hash-algorithm SHA256'
 			],
 			'template without background; with signature image; render-mode: SIGNAME_AND_DESCRIPTION' => [
-				[self::getElement([
+				'visibleElements' => [self::getElement([
 					'page' => 2,
 					'llx' => 10,
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
 				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
-				20,
-				20,
-				'aaaaa',
-				'deleted',
-				'SIGNAME_AND_DESCRIPTION',
-				10,
-				'%PDF-1.6',
-				'',
-				'-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --img-path text_image.png --hash-algorithm SHA256'
+				'signatureWidth' => 20,
+				'signatureHeight' => 20,
+				'template' => 'aaaaa',
+				'signatureBackgroundType' => 'deleted',
+				'renderMode' => 'SIGNAME_AND_DESCRIPTION',
+				'templateFontSize' => 10,
+				'pdfContent' => '%PDF-1.6',
+				'hashAlgorithm' => '',
+				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --img-path text_image.png --hash-algorithm SHA256'
 			],
 			'template without background; without signature image; render-mode: SIGNAME_AND_DESCRIPTION' => [
-				[self::getElement([
+				'visibleElements' => [self::getElement([
 					'page' => 2,
 					'llx' => 10,
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
 				], '')],
-				20,
-				20,
-				'aaaaa',
-				'deleted',
-				'SIGNAME_AND_DESCRIPTION',
-				10,
-				'%PDF-1.6',
-				'',
-				'-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --img-path text_image.png --hash-algorithm SHA256'
+				'signatureWidth' => 20,
+				'signatureHeight' => 20,
+				'template' => 'aaaaa',
+				'signatureBackgroundType' => 'deleted',
+				'renderMode' => 'SIGNAME_AND_DESCRIPTION',
+				'templateFontSize' => 10,
+				'pdfContent' => '%PDF-1.6',
+				'hashAlgorithm' => '',
+				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --render-mode GRAPHIC_AND_DESCRIPTION --img-path text_image.png --hash-algorithm SHA256'
 			],
 			'background without template: bg-path = merged with signature, without img-path' => [
-				[self::getElement([
+				'visibleElements' => [self::getElement([
 					'page' => 2,
 					'llx' => 10,
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
 				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
-				20,
-				20,
-				'',
-				'default',
-				'GRAPHIC_AND_DESCRIPTION',
-				10,
-				'%PDF-1.6',
-				'',
-				'-a -kst PKCS12 --l2-text "" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png --hash-algorithm SHA256'
+				'signatureWidth' => 20,
+				'signatureHeight' => 20,
+				'template' => '',
+				'signatureBackgroundType' => 'default',
+				'renderMode' => 'GRAPHIC_AND_DESCRIPTION',
+				'templateFontSize' => 10,
+				'pdfContent' => '%PDF-1.6',
+				'hashAlgorithm' => '',
+				'params' => '-a -kst PKCS12 --l2-text "" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png --hash-algorithm SHA256'
 			],
 		];
 	}
@@ -358,7 +401,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig->setValueString('libresign', 'jsignpdf_jar_path', $jar_path);
 		$expected->setjSignPdfJarPath($jar_path);
 
-		$jSignPdfHandler = $this->getClass();
+		$jSignPdfHandler = $this->getInstance();
 		if ($throwException) {
 			$this->expectException(\Exception::class);
 			$jSignParam = $jSignPdfHandler->getJSignParam();
@@ -389,7 +432,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGetSignatureText(string $renderMode, string $template, string $expected): void {
 		$this->appConfig->setValueString('libresign', 'signature_text_template', $template);
 		$this->appConfig->setValueString('libresign', 'signature_render_mode', $renderMode);
-		$jSignPdfHandler = $this->getClass();
+		$jSignPdfHandler = $this->getInstance();
 		$actual = $jSignPdfHandler->getSignatureText();
 		$this->assertEquals($expected, $actual);
 	}
