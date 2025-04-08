@@ -202,7 +202,7 @@ class SignatureTextService {
 		$draw = new ImagickDraw();
 		$draw->setFont($fonts[0]);
 		if (!$fontSize) {
-			$fontSize = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_font_size', SignatureTextService::SIGNATURE_DEFAULT_FONT_SIZE);
+			$fontSize = $this->getSignatureFontSize();
 		}
 		$draw->setFontSize($fontSize);
 		$draw->setFillColor(new ImagickPixel($isDarkTheme ? 'white' : 'black'));
