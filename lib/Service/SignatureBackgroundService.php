@@ -86,21 +86,23 @@ class SignatureBackgroundService {
 		$signatureWidth = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_width', SignatureTextService::DEFAULT_SIGNATURE_WIDTH);
 		$signatureHeight = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_height', SignatureTextService::DEFAULT_SIGNATURE_HEIGHT);
 
-		if ($width <= $signatureWidth) {
-			if ($height <= $signatureHeight) {
-				return ['width' => $width, 'height' => $height];
-			}
+		$upscaleFactor = 5;
+
+		$maxWidth = $signatureWidth * $upscaleFactor;
+		$maxHeight = $signatureHeight * $upscaleFactor;
+
+		if ($width <= $maxWidth && $height <= $maxHeight) {
+			return ['width' => $width, 'height' => $height];
 		}
 
-		$widthRatio = $signatureWidth / $width;
-		$heightRatio = $signatureHeight / $height;
-
+		$widthRatio = $maxWidth / $width;
+		$heightRatio = $maxHeight / $height;
 		$scale = min($widthRatio, $heightRatio);
 
-		$newWidth = (int)floor($width * $scale);
-		$newHeight = (int)floor($height * $scale);
+		$returnWidth = (int)floor($width * $scale);
+		$returnHeight = (int)floor($height * $scale);
 
-		return ['width' => $newWidth, 'height' => $newHeight];
+		return ['width' => $returnWidth, 'height' => $returnHeight];
 	}
 
 	public function delete(): void {

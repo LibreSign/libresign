@@ -188,15 +188,18 @@ class SignatureTextService {
 		string $align = 'center',
 		float $fontSize = 0,
 		bool $isDarkTheme = false,
+		float $scale = 5,
 	): string {
 		$fonts = Imagick::queryFonts();
 		if (empty($fonts)) {
 			throw new LibresignException('No fonts available at system');
 		}
+		$width *= $scale;
+		$height *= $scale;
 
 		$image = new Imagick();
 		$image->setResolution(600, 600);
-		$image->newImage($width, $height, new ImagickPixel('transparent'));
+		$image->newImage((int)$width, (int)$height, new ImagickPixel('transparent'));
 		$image->setImageFormat('png');
 
 		$draw = new ImagickDraw();
@@ -204,6 +207,7 @@ class SignatureTextService {
 		if (!$fontSize) {
 			$fontSize = $this->getSignatureFontSize();
 		}
+		$fontSize *= $scale;
 		$draw->setFontSize($fontSize);
 		$draw->setFillColor(new ImagickPixel($isDarkTheme ? 'white' : 'black'));
 		$align = match ($align) {
