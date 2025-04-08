@@ -277,6 +277,7 @@
 					:style="{
 						'font-size': ((templateFontSize * 1.1 * zoomLevel) / 100) + 'px',
 						display: renderMode === 'GRAPHIC_ONLY' ? 'none' : '',
+						margin: (0.022 * zoomLevel) + 'px',
 					}"
 					@resize="checkPreviewOverflow"
 					v-html="parsedWithLineBreak" />
@@ -672,7 +673,6 @@ export default {
 			word-wrap: anywhere;
 			overflow: hidden;
 			font-family: sans-serif;
-			margin: 10px;
 			margin-left: 0;
 		}
 	}
