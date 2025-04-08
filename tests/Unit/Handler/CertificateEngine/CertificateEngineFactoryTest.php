@@ -11,16 +11,37 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Handler\CertificateEngine\NoneHandler;
 use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
+use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 
-class CertificateEngineFactoryTest extends TestCase {
+class CertificateEngineFactoryTest extends \OCA\Libresign\Tests\Unit\TestCase {
+	private IAppConfig $appConfig;
+	private OpenSslHandler&MockObject $openSslHandler;
+	private CfsslHandler&MockObject $cfsslHandler;
+	private NoneHandler&MockObject $noneHandler;
 
-	protected function tearDown(): void {
+	public function tearDown(): void {
 		$ref = new \ReflectionClass(CertificateEngineFactory::class);
 		$prop = $ref->getProperty('engine');
 		$prop->setAccessible(true);
 		$prop->setValue(null);
+	}
+
+	public function setUp(): void {
+		$this->appConfig = $this->getMockAppConfig();
+		$this->openSslHandler = $this->createMock(OpenSslHandler::class);
+		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
+		$this->noneHandler = $this->createMock(NoneHandler::class);
+	}
+
+	private function getInstance(): CertificateEngineFactory {
+		return new CertificateEngineFactory(
+			$this->appConfig,
+			$this->openSslHandler,
+			$this->cfsslHandler,
+			$this->noneHandler,
+		);
 	}
 
 	public static function providerGetEngineReturnsCorrectHandler(): array {
@@ -33,12 +54,16 @@ class CertificateEngineFactoryTest extends TestCase {
 
 	#[DataProvider('providerGetEngineReturnsCorrectHandler')]
 	public function testGetEngineReturnsCorrectHandler(string $engineName, string $handlerClass): void {
-		$mockHandler = $this->createMock($handlerClass);
+		$mockHandler = match ($handlerClass) {
+			OpenSslHandler::class => $this->openSslHandler,
+			CfsslHandler::class => $this->cfsslHandler,
+			NoneHandler::class => $this->noneHandler,
+		};
 		\OC::$server->registerService($handlerClass, function () use ($mockHandler) {
 			return $mockHandler;
 		});
 
-		$factory = new CertificateEngineFactory();
+		$factory = $this->getInstance();
 		$actual = $factory->getEngine($engineName, ['cert' => 'abc']);
 
 		$this->assertSame($mockHandler, $actual);
@@ -49,7 +74,7 @@ class CertificateEngineFactoryTest extends TestCase {
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionMessage('Certificate engine not found: ' . $invalidName);
 
-		$factory = new CertificateEngineFactory();
+		$factory = $this->getInstance();
 		$factory->getEngine($invalidName);
 	}
 
