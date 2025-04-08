@@ -34,10 +34,11 @@
 				value="GRAPHIC_ONLY"
 				name="render_mode"
 				type="radio"
+				:aria-label="t('libresign', 'Signature only')"
 				@update:modelValue="saveTemplate">
 				{{ t('libresign', 'Signature only') }}
 			</NcCheckboxRadioSwitch>
-			<NcButton v-if="showResetRenderMode"
+			<NcButton v-if="displayResetRenderMode"
 				type="tertiary"
 				:aria-label="t('libresign', 'Reset to default')"
 				@click="resetRenderMode">
@@ -63,13 +64,13 @@
 					:label="t('libresign', 'Signature text template')"
 					:placeholder="t('libresign', 'Signature text template')"
 					:spellcheck="false"
-					:success="showSuccessTemplate"
+					:success="dislaySuccessTemplate"
 					resize="vertical"
 					@keydown.enter="saveTemplate"
 					@blur="saveTemplate"
 					@mousemove="resizeHeight"
 					@keypress="resizeHeight" />
-				<NcButton v-if="showResetTemplate"
+				<NcButton v-if="displayResetTemplate"
 					type="tertiary"
 					:aria-label="t('libresign', 'Reset to default')"
 					@click="resetTemplate">
@@ -88,10 +89,10 @@
 						:max="30"
 						:step="0.01"
 						:spellcheck="false"
-						:success="showSuccessTemplate"
+						:success="dislaySuccessTemplate"
 						@keydown.enter="saveTemplate"
 						@blur="saveTemplate" />
-					<NcButton v-if="showResetSignatureFontSize"
+					<NcButton v-if="dislayResetSignatureFontSize"
 						type="tertiary"
 						:aria-label="t('libresign', 'Reset to default')"
 						@click="resetSignatureFontSize">
@@ -112,10 +113,10 @@
 						:max="30"
 						:step="0.01"
 						:spellcheck="false"
-						:success="showSuccessTemplate"
+						:success="dislaySuccessTemplate"
 						@keydown.enter="saveTemplate"
 						@blur="saveTemplate" />
-					<NcButton v-if="showResetTemplateFontSize"
+					<NcButton v-if="displayResetTemplateFontSize"
 						type="tertiary"
 						:aria-label="t('libresign', 'Reset to default')"
 						@click="resetTemplateFontSize">
@@ -134,7 +135,7 @@
 				<p>{{ error }}</p>
 			</NcNoteCard>
 		</div>
-		<div v-if="showPreview" class="settings-section__row">
+		<div v-if="displayPreview" class="settings-section__row">
 			<div class="settings-section__row_dimension">
 				<NcTextField :value.sync="signatureWidth"
 					:label="t('libresign', 'Default signature width')"
@@ -144,10 +145,10 @@
 					:max="800"
 					:step="0.01"
 					:spellcheck="false"
-					:success="showSuccessTemplate"
+					:success="dislaySuccessTemplate"
 					@keydown.enter="saveTemplate"
 					@blur="saveTemplate" />
-				<NcButton v-if="showResetSignatureWidth"
+				<NcButton v-if="displayResetSignatureWidth"
 					type="tertiary"
 					:aria-label="t('libresign', 'Reset to default')"
 					@click="resetSignatureWidth">
@@ -165,10 +166,10 @@
 					:max="800"
 					:step="0.01"
 					:spellcheck="false"
-					:success="showSuccessTemplate"
+					:success="dislaySuccessTemplate"
 					@keydown.enter="saveTemplate"
 					@blur="saveTemplate" />
-				<NcButton v-if="showResetSignatureHeight"
+				<NcButton v-if="displayResetSignatureHeight"
 					type="tertiary"
 					:aria-label="t('libresign', 'Reset to default')"
 					@click="resetSignatureHeight">
@@ -189,7 +190,7 @@
 				</template>
 				{{ t('libresign', 'Upload') }}
 			</NcButton>
-			<NcButton v-if="showResetBackground"
+			<NcButton v-if="displayResetBackground"
 				type="tertiary"
 				:aria-label="t('libresign', 'Reset to default')"
 				@click="undoBackground">
@@ -197,7 +198,7 @@
 					<Undo :size="20" />
 				</template>
 			</NcButton>
-			<NcButton v-if="showRemoveBackground"
+			<NcButton v-if="displayRemoveBackground"
 				type="tertiary"
 				:aria-label="t('libresign', 'Remove background')"
 				@click="removeBackground">
@@ -212,7 +213,7 @@
 				:accept="acceptMime"
 				type="file"
 				@change="onChangeBackground">
-			<div v-if="showPreview" class="settings-section__zoom">
+			<div v-if="displayPreview" class="settings-section__zoom">
 				<NcButton @click="changeZoomLevel(-10)">
 					<template #icon>
 						<MagnifyMinusOutline :size="20" />
@@ -224,7 +225,7 @@
 					</template>
 				</NcButton>
 			</div>
-			<NcTextField v-if="showPreview"
+			<NcTextField v-if="displayPreview"
 				:value.sync="zoomLevel"
 				class="settings-section__zoom_level"
 				:label="t('libresign', 'Zoom level')"
@@ -243,7 +244,7 @@
 			</NcNoteCard>
 		</div>
 		<div class="settings-section__row_preview">
-			<div v-if="showPreview && !previewLoaded"
+			<div v-if="displayPreview && !previewLoaded"
 				class="settings-section__preview"
 				:style="{
 					width: ((signatureWidth * zoomLevel) / 100) + 'px',
@@ -251,7 +252,7 @@
 				}">
 				<NcLoadingIcon class="settings-section__preview__loading" :size="20" />
 			</div>
-			<div v-if="showPreview"
+			<div v-if="displayPreview"
 				class="settings-section__preview"
 				:style="{
 					width: ((signatureWidth * zoomLevel) / 100) + 'px',
@@ -367,7 +368,7 @@ export default {
 			templateSaved: true,
 			zoomLevel: loadState('libresign', 'signature_preview_zoom_level'),
 			renderMode: loadState('libresign', 'signature_render_mode'),
-			showSuccessTemplate: false,
+			dislaySuccessTemplate: false,
 			errorMessageTemplate: templateError ? [templateError] : [],
 			parsed: loadState('libresign', 'signature_text_parsed'),
 			isRTLDirection: isRTL(),
@@ -376,13 +377,13 @@ export default {
 		}
 	},
 	computed: {
-		showResetBackground() {
+		displayResetBackground() {
 			return this.backgroundType === 'custom' || this.backgroundType === 'deleted'
 		},
-		showRemoveBackground() {
+		displayRemoveBackground() {
 			return this.backgroundType === 'custom' || this.backgroundType === 'default'
 		},
-		showPreview() {
+		displayPreview() {
 			if (this.backgroundType !== 'deleted') {
 				return true
 			}
@@ -400,22 +401,22 @@ export default {
 				this.debouncePropertyChange()
 			},
 		},
-		showResetRenderMode() {
+		displayResetRenderMode() {
 			return this.renderMode !== 'GRAPHIC_AND_DESCRIPTION'
 		},
-		showResetTemplate() {
+		displayResetTemplate() {
 			return this.signatureTextTemplate !== this.defaultSignatureTextTemplate
 		},
-		showResetTemplateFontSize() {
+		displayResetTemplateFontSize() {
 			return this.templateFontSize !== this.defaultTemplateFontSize
 		},
-		showResetSignatureFontSize() {
+		dislayResetSignatureFontSize() {
 			return this.signatureFontSize !== this.defaultSignatureFontSize
 		},
-		showResetSignatureWidth() {
+		displayResetSignatureWidth() {
 			return this.signatureWidth !== this.defaultSignatureWidth
 		},
-		showResetSignatureHeight() {
+		displayResetSignatureHeight() {
 			return this.signatureHeight !== this.defaultSignatureHeight
 		},
 		previewSignatureImageWidth() {
@@ -463,7 +464,7 @@ export default {
 	},
 	methods: {
 		reset() {
-			this.showSuccessTemplate = false
+			this.dislaySuccessTemplate = false
 			this.errorMessageBackground = ''
 			this.errorMessageTemplate = []
 		},
@@ -594,9 +595,9 @@ export default {
 					if (data.ocs.data.signatureFontSize !== this.signatureFontSize) {
 						this.signatureFontSize = data.ocs.data.signatureFontSize
 					}
-					this.showSuccessTemplate = true
+					this.dislaySuccessTemplate = true
 					this.templateSaved = true
-					setTimeout(() => { this.showSuccessTemplate = false }, 2000)
+					setTimeout(() => { this.dislaySuccessTemplate = false }, 2000)
 				})
 				.catch(({ response }) => {
 					this.errorMessageTemplate.push(response.data.ocs.data.error)
