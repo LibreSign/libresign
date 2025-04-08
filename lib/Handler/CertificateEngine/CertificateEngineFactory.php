@@ -14,18 +14,24 @@ use OCP\IAppConfig;
 
 class CertificateEngineFactory {
 	private static ?IEngineHandler $engine = null;
+	public function __construct(
+		private IAppConfig $appConfig,
+		private OpenSslHandler $openSslHandler,
+		private CfsslHandler $cfsslHandler,
+		private NoneHandler $noneHandler,
+	) {
+	}
 	public function getEngine(string $engineName = '', array $rootCert = []): IEngineHandler {
 		if (self::$engine) {
 			return self::$engine;
 		}
 		if (!$engineName) {
-			$appConfig = \OCP\Server::get(IAppConfig::class);
-			$engineName = $appConfig->getValueString(Application::APP_ID, 'certificate_engine', 'openssl');
+			$engineName = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', 'openssl');
 		}
 		self::$engine = match ($engineName) {
-			'openssl' => \OCP\Server::get(OpenSslHandler::class),
-			'cfssl' => \OCP\Server::get(CfsslHandler::class),
-			'none' => \OCP\Server::get(NoneHandler::class),
+			'openssl' => $this->openSslHandler,
+			'cfssl' => $this->cfsslHandler,
+			'none' => $this->noneHandler,
 			default => throw new LibresignException("Certificate engine not found: $engineName"),
 		};
 		self::$engine->populateInstance($rootCert);
