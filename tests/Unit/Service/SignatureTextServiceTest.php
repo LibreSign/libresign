@@ -160,30 +160,45 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 	}
 
 	#[DataProvider('providerSignerNameImage')]
-	public function testSignerNameImageVariants(string $text, int $width, int $height, string $align, float $fontSize): void {
+	public function testSignerNameImageVariants(
+		string $text,
+		int $width,
+		int $height,
+		string $align,
+		float $scale,
+	): void {
 		$class = $this->getClass();
-		$blob = $class->signerNameImage($text, $width, $height, $align, $fontSize);
+		$blob = $class->signerNameImage(
+			text: $text,
+			width: $width,
+			height: $height,
+			align: $align,
+			scale: $scale
+		);
 
 		$image = new Imagick();
 		$image->readImageBlob($blob);
 
-		$this->assertEquals($width, $image->getImageWidth());
-		$this->assertEquals($height, $image->getImageHeight());
+		$expectedWidth = (int)($width * $scale);
+		$expectedHeight = (int)($height * $scale);
+
+		$this->assertEquals($expectedWidth, $image->getImageWidth());
+		$this->assertEquals($expectedHeight, $image->getImageHeight());
 	}
 
 	public static function providerSignerNameImage(): array {
 		return [
-			'center 350x100' => ['LibreSign', 350, 100, 'center', 16],
-			'left 350x100' => ['Secure signature', 350, 100, 'left', 18],
-			'right 350x100' => ['Verified by LibreCode', 350, 100, 'right', 14],
+			'center 350x100 scale 5' => ['LibreSign', 350, 100, 'center', 5],
+			'left 350x100 scale 4' => ['Secure signature', 350, 100, 'left', 4],
+			'right 350x100 scale 3' => ['Verified by LibreCode', 350, 100, 'right', 3],
 
-			'center 175x100' => ['Fast & Easy Signing', 175, 100, 'center', 12],
-			'left 175x100' => ['LibreSign Service', 175, 100, 'left', 10],
-			'right 175x100' => ['Electronic Docs', 175, 100, 'right', 12],
+			'center 175x100 scale 2' => ['Fast & Easy Signing', 175, 100, 'center', 2],
+			'left 175x100 scale 1.5' => ['LibreSign Service', 175, 100, 'left', 1.5],
+			'right 175x100 scale 1' => ['Electronic Docs', 175, 100, 'right', 1],
 
-			'center 175x50' => ['Secure ✔️', 175, 50, 'center', 10],
-			'left 175x50' => ['Sign now', 175, 50, 'left', 9],
-			'right 175x50' => ['Signed 🔐', 175, 50, 'right', 11],
+			'center 175x50 scale 2.5' => ['Secure ✔️', 175, 50, 'center', 2.5],
+			'left 175x50 scale 3' => ['Sign now', 175, 50, 'left',3],
+			'right 175x50 scale 4' => ['Signed 🔐', 175, 50, 'right', 4],
 		];
 	}
 }
