@@ -671,6 +671,9 @@ export default {
 			line-height: 1;
 			word-wrap: anywhere;
 			overflow: hidden;
+			font-family: sans-serif;
+			margin: 10px;
+			margin-left: 0;
 		}
 	}
 	input[type="file"] {
