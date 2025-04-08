@@ -1,10 +1,9 @@
 OC.L10N.register(
     "libresign",
     {
-    "You have a <strong>file to sign</strong>" : "Tens un <strong>fitxer per a signar</strong>",
-    "Other activities" : "Altres activitats",
     "{from} requested your signature on {file}" : "{from} ha demanat que signes l'arxiu {file}",
     "{from} made changes on {file}" : "{from} ha modificat l'arxiu {file}",
+    "You have a <strong>file to sign</strong>" : "Tens un <strong>fitxer per a signar</strong>",
     "Success" : "Èxit",
     "Invalid user or password" : "Usuari o contrasenya no vàlids",
     "Settings saved" : "S'han desat els paràmetres",
@@ -293,6 +292,7 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Nom d'una localitat o lloc, com ara una ciutat, un comtat o una altra regió geogràfica",
     "Name of an organization" : "Nom d'una organització",
     "Name of an organizational unit" : "Nom d'una unitat organitzativa",
-    "Requested by {name}, at {date}" : "Sol·licitat per {name}, a {date}"
+    "Requested by {name}, at {date}" : "Sol·licitat per {name}, a {date}",
+    "Other activities" : "Altres activitats"
 },
 "nplurals=2; plural=(n != 1);");

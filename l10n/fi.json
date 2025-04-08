@@ -1,5 +1,4 @@
 { "translations": {
-    "Other activities" : "Muut tapahtumat",
     "Success" : "Onnistui",
     "Invalid user or password" : "Virheellinen käyttäjä tai salasana",
     "Settings saved" : "Asetukset tallennettu",
@@ -185,6 +184,7 @@
     "No date" : "Ei päiväystä",
     "Return" : "Palaa",
     "Open in LibreSign" : "Avaa LibreSignissa",
-    "Requested by {name}, at {date}" : "Pyytänyt {name} {date}"
+    "Requested by {name}, at {date}" : "Pyytänyt {name} {date}",
+    "Other activities" : "Muut tapahtumat"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

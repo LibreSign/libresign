@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "다른 활동",
     "Success" : "성공",
     "Invalid user or password" : "잘못된 사용자 또는 암호",
     "Settings saved" : "설정 저장됨",
@@ -237,6 +236,7 @@ OC.L10N.register(
     "No date" : "날짜 없음",
     "Return" : "반환",
     "Open in LibreSign" : "LibreSign으로 열기",
-    "Requested by {name}, at {date}" : "{날짜}에 {이름}에 의해 요청됨"
+    "Requested by {name}, at {date}" : "{날짜}에 {이름}에 의해 요청됨",
+    "Other activities" : "다른 활동"
 },
 "nplurals=1; plural=0;");

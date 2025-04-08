@@ -1,10 +1,9 @@
 OC.L10N.register(
     "libresign",
     {
-    "You have a <strong>file to sign</strong>" : "Vous avez un <strong>fichier à signer</strong>",
-    "Other activities" : "Autres activités",
     "{from} requested your signature on {file}" : "{from} a demandé votre signature sur {file}",
     "{from} made changes on {file}" : "{from} a effectué des modifications sur {file}",
+    "You have a <strong>file to sign</strong>" : "Vous avez un <strong>fichier à signer</strong>",
     "Success" : "Succès",
     "Invalid user or password" : "Nom d'utilisateur ou mot de passe incorrect",
     "Settings saved" : "Paramètres sauvegardés",
@@ -365,6 +364,7 @@ OC.L10N.register(
     "Name of an organization" : "Nom d'une organisation",
     "Name of an organizational unit" : "Nom d'une unité d'organisation",
     "New signature request" : "Nouvelle demande de signature",
-    "Requested by {name}, at {date}" : "Demandé par {name}, le {date}"
+    "Requested by {name}, at {date}" : "Demandé par {name}, le {date}",
+    "Other activities" : "Autres activités"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

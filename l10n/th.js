@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "กิจกรรมอื่น ๆ",
     "Success" : "สำเร็จ",
     "Settings saved" : "บันทึกการตั้งค่าแล้ว",
     "Invalid password" : "รหัสผ่านไม่ถูกต้อง",
@@ -56,6 +55,7 @@ OC.L10N.register(
     "Resource" : "ทรัพยากร",
     "Yes" : "ใช่",
     "No" : "ไม่",
-    "No date" : "ไม่มีวันที่"
+    "No date" : "ไม่มีวันที่",
+    "Other activities" : "กิจกรรมอื่น ๆ"
 },
 "nplurals=1; plural=0;");

@@ -1,5 +1,4 @@
 { "translations": {
-    "Other activities" : "その他のアクティビティ",
     "Success" : "完了",
     "Settings saved" : "設定が保存されました",
     "draft" : "下書き",
@@ -96,6 +95,7 @@
     "Name:" : "名前: ",
     "Status:" : "ステータス:",
     "No date" : "日付なし",
-    "Open in LibreSign" : "LibreSignで開く"
+    "Open in LibreSign" : "LibreSignで開く",
+    "Other activities" : "その他のアクティビティ"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

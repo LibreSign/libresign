@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "Άλλες δραστηριότητες",
     "Success" : "Επιτυχής",
     "Invalid user or password" : "Μη έγκυρος χρήστης ή συνθηματικό",
     "Settings saved" : "Οι ρυθμίσεις αποθηκεύτηκαν",
@@ -114,6 +113,7 @@ OC.L10N.register(
     "Name:" : "Όνομα:",
     "Status:" : "Κατάσταση:",
     "No date" : "Καμία ημερομηνία",
-    "Return" : "Επιστροφή"
+    "Return" : "Επιστροφή",
+    "Other activities" : "Άλλες δραστηριότητες"
 },
 "nplurals=2; plural=(n != 1);");
