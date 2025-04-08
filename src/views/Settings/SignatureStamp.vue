@@ -10,6 +10,7 @@
 				value="DESCRIPTION_ONLY"
 				name="render_mode"
 				type="radio"
+				:aria-label="t('libresign', 'Descriptin only')"
 				@update:modelValue="saveTemplate">
 				{{ t('libresign', 'Descriptin only') }}
 			</NcCheckboxRadioSwitch>
@@ -17,6 +18,7 @@
 				value="GRAPHIC_AND_DESCRIPTION"
 				name="render_mode"
 				type="radio"
+				:aria-label="t('libresign', 'Signature and description')"
 				@update:modelValue="saveTemplate">
 				{{ t('libresign', 'Signature and description') }}
 			</NcCheckboxRadioSwitch>
@@ -24,6 +26,7 @@
 				value="SIGNAME_AND_DESCRIPTION"
 				name="render_mode"
 				type="radio"
+				:aria-label="t('libresign', 'Signer name and description')"
 				@update:modelValue="saveTemplate">
 				{{ t('libresign', 'Signer name and description') }}
 			</NcCheckboxRadioSwitch>
