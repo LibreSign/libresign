@@ -70,7 +70,7 @@ class SignatureBackgroundService {
 		$width = $image->getImageWidth();
 		$height = $image->getImageHeight();
 		$dimensions = $this->scaleDimensions($width, $height);
-		if ($dimensions['width'] === $width && $dimensions['height'] === $height) {
+		if ($dimensions['width'] === $width && $dimensions['height'] === $height && $image->readImageBlob($content) === 'PNG') {
 			return $content;
 		}
 		$image->setImageResolution(300, 300);
