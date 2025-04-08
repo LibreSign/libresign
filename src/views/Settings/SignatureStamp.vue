@@ -277,7 +277,7 @@
 					:style="{
 						'font-size': ((templateFontSize * 1.1 * zoomLevel) / 100) + 'px',
 						display: renderMode === 'GRAPHIC_ONLY' ? 'none' : '',
-						margin: (0.022 * zoomLevel) + 'px',
+						margin: (0.019 * zoomLevel) + 'px',
 					}"
 					@resize="checkPreviewOverflow"
 					v-html="parsedWithLineBreak" />
