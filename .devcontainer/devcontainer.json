@@ -39,7 +39,13 @@
 				],
 				"gitlens.showWelcomeOnInstall": false,
 				"telemetry.telemetryLevel": "off",
-				"intelephense.telemetry.enabled": false
+				"intelephense.telemetry.enabled": false,
+				"intelephense.environment.includePaths": [
+					"apps-extra"
+				],
+				"git.scanRepositories": [
+					"/apps-extra/libresign"
+				]
 			}
 		}
 	},
