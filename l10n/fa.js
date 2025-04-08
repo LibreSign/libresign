@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "سایر فعالیت ها",
     "Success" : "موفقیت",
     "Invalid user or password" : "Invalid user or password",
     "Settings saved" : "تنظیمات ذخیره شد",
@@ -275,6 +274,7 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Name of a locality or place, such as a city, county, or other geographic region",
     "Name of an organization" : "Name of an organization",
     "Name of an organizational unit" : "Name of an organizational unit",
-    "Requested by {name}, at {date}" : "Requested by {name}, at {date}"
+    "Requested by {name}, at {date}" : "Requested by {name}, at {date}",
+    "Other activities" : "سایر فعالیت ها"
 },
 "nplurals=2; plural=(n > 1);");

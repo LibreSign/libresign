@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "Други активности",
     "Success" : "Успех",
     "Invalid user or password" : "Невалиден потребител или парола",
     "Settings saved" : "Настройките са запазени",
@@ -275,6 +274,7 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Име на населено място или местност, като град, окръг или друг географски регион",
     "Name of an organization" : "Име на организация",
     "Name of an organizational unit" : "Име на организационна единица",
-    "Requested by {name}, at {date}" : "Поискано от {name}, на {date}"
+    "Requested by {name}, at {date}" : "Поискано от {name}, на {date}",
+    "Other activities" : "Други активности"
 },
 "nplurals=2; plural=(n != 1);");

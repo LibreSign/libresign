@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "Alte activități",
     "Success" : "Succes",
     "Settings saved" : "Setările au fost salvate",
     "deleted" : "șterge",
@@ -75,6 +74,7 @@ OC.L10N.register(
     "Yes" : "a",
     "No" : "Nu",
     "Name:" : "Nume:",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Other activities" : "Alte activități"
 },
 "nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));");

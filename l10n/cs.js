@@ -1,10 +1,9 @@
 OC.L10N.register(
     "libresign",
     {
-    "You have a <strong>file to sign</strong>" : "Máte <strong>soubor k podpisu</strong> ",
-    "Other activities" : "Ostatní aktivity",
     "{from} requested your signature on {file}" : "Uživatel {from} požádal o váš podpis u souboru {file}",
     "{from} made changes on {file}" : "{from} učinil(a) změny na {file}",
+    "You have a <strong>file to sign</strong>" : "Máte <strong>soubor k podpisu</strong> ",
     "Success" : "Úspěch",
     "Invalid user or password" : "Neplatný uživatel nebo heslo",
     "Settings saved" : "Nastavení uložena",
@@ -403,6 +402,7 @@ OC.L10N.register(
     "Name of an organizational unit" : "Název organizační jednotky",
     "not a LibreSign file" : "není LibreSign soubor",
     "New signature request" : "Nový požadavek na podepsání",
-    "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}"
+    "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}",
+    "Other activities" : "Ostatní aktivity"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

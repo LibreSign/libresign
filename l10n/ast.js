@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "Otres actividaes",
     "Settings saved" : "Guardóse la configuración",
     "deleted" : "desanicióse",
     "Invalid password" : "La contraseña ye inválida",
@@ -82,6 +81,7 @@ OC.L10N.register(
     "No" : "Non",
     "Forgot password?" : "¿Escaeciesti la contraseña?",
     "Name:" : "Nome:",
-    "Status:" : "Estáu:"
+    "Status:" : "Estáu:",
+    "Other activities" : "Otres actividaes"
 },
 "nplurals=2; plural=(n != 1);");

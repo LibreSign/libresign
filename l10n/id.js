@@ -1,10 +1,9 @@
 OC.L10N.register(
     "libresign",
     {
-    "You have a <strong>file to sign</strong>" : "Anda memiliki <strong>berkas untuk di tandatangani </strong>",
-    "Other activities" : "Aktivitas lain",
     "{from} requested your signature on {file}" : "{from} meminta tanda tangan anda pada {file}",
     "{from} made changes on {file}" : "{from} membuat perubahan pada{file}",
+    "You have a <strong>file to sign</strong>" : "Anda memiliki <strong>berkas untuk di tandatangani </strong>",
     "Success" : "Berhasil",
     "Invalid user or password" : "Pengguna atau kata sandi tidak valid",
     "Settings saved" : "Setelan tersimpan",
@@ -88,6 +87,7 @@ OC.L10N.register(
     "Dependencies" : "Ketergantungan",
     "Yes" : "Ya",
     "No" : "Tidak",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Other activities" : "Aktivitas lain"
 },
 "nplurals=1; plural=0;");

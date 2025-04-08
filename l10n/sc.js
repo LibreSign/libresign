@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "Àteras atividades",
     "Success" : "In manera curreta",
     "Invalid user or password" : "Utente o crae non bàlidos",
     "Settings saved" : "Cunfiguratzione sarvada",
@@ -155,6 +154,7 @@ OC.L10N.register(
     "No date" : "Peruna data",
     "Return" : "Torra",
     "Open in LibreSign" : "Aberi in LibreSign",
-    "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}"
+    "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}",
+    "Other activities" : "Àteras atividades"
 },
 "nplurals=2; plural=(n != 1);");

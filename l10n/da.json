@@ -1,5 +1,4 @@
 { "translations": {
-    "Other activities" : "Andre aktiviteter",
     "Success" : "Succes",
     "Settings saved" : "Indstillinger gemt",
     "deleted" : "Slettet",
@@ -85,6 +84,7 @@
     "Forgot password?" : "Glemt adgangskode?",
     "Name:" : "Navn:",
     "No date" : "Ingen dato",
-    "Return" : "Aflever"
+    "Return" : "Aflever",
+    "Other activities" : "Andre aktiviteter"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

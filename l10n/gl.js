@@ -1,10 +1,9 @@
 OC.L10N.register(
     "libresign",
     {
-    "You have a <strong>file to sign</strong>" : "Ten un <strong>ficheiro para asinar</strong>",
-    "Other activities" : "Outras actividades",
     "{from} requested your signature on {file}" : "{from} solicitou a súa sinatura en {file}",
     "{from} made changes on {file}" : "{from} fixo cambios en {file}",
+    "You have a <strong>file to sign</strong>" : "Ten un <strong>ficheiro para asinar</strong>",
     "Success" : "Correcto",
     "Invalid user or password" : "O usuario ou o contrasinal non é correcto",
     "Settings saved" : "Axustes gardados",
@@ -404,6 +403,7 @@ OC.L10N.register(
     "Name of an organizational unit" : "Nome dunha unidade organizativa",
     "not a LibreSign file" : "non é un ficheiro LibreSign",
     "New signature request" : "Nova solicitude de sinatura",
-    "Requested by {name}, at {date}" : "Solicitado por {name}, o {date}"
+    "Requested by {name}, at {date}" : "Solicitado por {name}, o {date}",
+    "Other activities" : "Outras actividades"
 },
 "nplurals=2; plural=(n != 1);");

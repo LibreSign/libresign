@@ -1,5 +1,4 @@
 { "translations": {
-    "Other activities" : "Otres actividaes",
     "Settings saved" : "Guardóse la configuración",
     "deleted" : "desanicióse",
     "Invalid password" : "La contraseña ye inválida",
@@ -80,6 +79,7 @@
     "No" : "Non",
     "Forgot password?" : "¿Escaeciesti la contraseña?",
     "Name:" : "Nome:",
-    "Status:" : "Estáu:"
+    "Status:" : "Estáu:",
+    "Other activities" : "Otres actividaes"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

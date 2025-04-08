@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "Autras activitats",
     "Success" : "Succès",
     "Invalid user or password" : "Nom d’utilizaire o senhal marrit",
     "Settings saved" : "Paramètres salvats",
@@ -106,6 +105,7 @@ OC.L10N.register(
     "Forgot password?" : "Senhal oblidat ?",
     "This document is valid" : "Aqueste document es valid",
     "No date" : "Cap de data",
-    "Return" : "Tornar"
+    "Return" : "Tornar",
+    "Other activities" : "Autras activitats"
 },
 "nplurals=2; plural=(n > 1);");

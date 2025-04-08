@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "Aðrar athafnir",
     "Success" : "Tókst",
     "Settings saved" : "Stillingar vistaðar",
     "Name is mandatory" : "Nafn er nauðsynlegt",
@@ -84,6 +83,7 @@ OC.L10N.register(
     "Yes" : "Já",
     "No" : "Nei",
     "Name:" : "Nafn:",
-    "No date" : "Engin dagsetning"
+    "No date" : "Engin dagsetning",
+    "Other activities" : "Aðrar athafnir"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

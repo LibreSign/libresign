@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "Alia aktivado",
     "Settings saved" : "Agordoj konservitaj",
     "deleted" : "forigita",
     "Invalid password" : "Nevalida pasvorto",
@@ -63,6 +62,7 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Forgot password?" : "Ĉu vi forgesis vian pasvorton?",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Other activities" : "Alia aktivado"
 },
 "nplurals=2; plural=(n != 1);");

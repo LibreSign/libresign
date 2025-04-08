@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "Beste jarduerak",
     "Success" : "Arrakasta",
     "Invalid user or password" : "Erabiltzailea edo pasahitza baliogabea da",
     "Settings saved" : "Ezarpenak gordeta",
@@ -307,6 +306,7 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Hiri, herri, eskualde edo antzeko eremu geografiko baten izena",
     "Name of an organization" : "Erakunde baten izena",
     "Name of an organizational unit" : "Erakunde bateko sail baten izena",
-    "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean"
+    "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean",
+    "Other activities" : "Beste jarduerak"
 },
 "nplurals=2; plural=(n != 1);");
