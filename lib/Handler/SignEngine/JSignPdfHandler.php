@@ -235,6 +235,9 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 	private function getScaleFactor(float $width): float {
 		$systemWidth = $this->signatureTextService->getFullSignatureWidth();
+		if (!$systemWidth) {
+			return 1;
+		}
 		$widthScale = $width / $systemWidth;
 		return $widthScale;
 	}
