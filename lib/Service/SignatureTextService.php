@@ -341,7 +341,7 @@ class SignatureTextService {
 	public function getDefaultTemplateFontSize(): float {
 		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
 		if ($collectMetadata) {
-			return self::TEMPLATE_DEFAULT_FONT_SIZE - 1;
+			return self::TEMPLATE_DEFAULT_FONT_SIZE - 0.2;
 		}
 		return self::TEMPLATE_DEFAULT_FONT_SIZE;
 	}
