@@ -331,7 +331,19 @@ class SignatureTextService {
 	}
 
 	public function getTemplateFontSize(): float {
+		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
+		if ($collectMetadata) {
+			return $this->appConfig->getValueFloat(Application::APP_ID, 'template_font_size', self::TEMPLATE_DEFAULT_FONT_SIZE - 1);
+		}
 		return $this->appConfig->getValueFloat(Application::APP_ID, 'template_font_size', self::TEMPLATE_DEFAULT_FONT_SIZE);
+	}
+
+	public function getDefaultTemplateFontSize(): float {
+		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
+		if ($collectMetadata) {
+			return self::TEMPLATE_DEFAULT_FONT_SIZE - 1;
+		}
+		return self::TEMPLATE_DEFAULT_FONT_SIZE;
 	}
 
 	public function getSignatureFontSize(): float {

@@ -98,7 +98,7 @@ class Admin implements ISettings {
 		);
 		$this->initialState->provideInitialState(
 			'default_template_font_size',
-			SignatureTextService::TEMPLATE_DEFAULT_FONT_SIZE,
+			$this->signatureTextService->getDefaultTemplateFontSize(),
 		);
 		$this->initialState->provideInitialState(
 			'default_signature_font_size',
