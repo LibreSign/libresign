@@ -103,7 +103,6 @@ export default {
 		this.mounted = true
 		this.$nextTick(() => {
 			this.$refs.canvas.signaturePad = new SignaturePad(this.$refs.canvas)
-			this.$refs.canvas.signaturePad.backgroundColor = '#cecece'
 			this.$refs.canvas.signaturePad.addEventListener('endStroke', () => {
 				this.canSave = !this.$refs.canvas.signaturePad.isEmpty()
 			})
