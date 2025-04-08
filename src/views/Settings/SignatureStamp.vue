@@ -275,7 +275,7 @@
 				<div ref="rightColumn"
 					class="right-column"
 					:style="{
-						'font-size': ((templateFontSize * 0.75 * zoomLevel) / 100) + 'px',
+						'font-size': ((templateFontSize * 1.1 * zoomLevel) / 100) + 'px',
 						display: renderMode === 'GRAPHIC_ONLY' ? 'none' : '',
 					}"
 					@resize="checkPreviewOverflow"
