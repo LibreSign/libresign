@@ -238,16 +238,6 @@
 				:show-alert="true">
 				<p>{{ errorMessageBackground }}</p>
 			</NcNoteCard>
-			<NcNoteCard v-if="wasScalled"
-				type="info"
-				:show-alert="true">
-				<p>
-					{{ t('libresign', 'The signature background image was resized to fit within {width}×{height} pixels.', {
-						width: signatureWidth,
-						height: signatureHeight,
-					}) }}
-				</p>
-			</NcNoteCard>
 		</div>
 		<div class="settings-section__row_preview">
 			<div v-if="showPreview && !previewLoaded"
@@ -353,7 +343,6 @@ export default {
 			name: t('libresign', 'Signature stamp'),
 			description: t('libresign', 'Configure the content displayed with the signature. The text template uses Twig syntax.'),
 			showLoadingBackground: false,
-			wasScalled: false,
 			backgroundType,
 			acceptMime: ['image/png'],
 			errorMessageBackground: '',
@@ -473,7 +462,6 @@ export default {
 			this.showSuccessTemplate = false
 			this.errorMessageBackground = ''
 			this.errorMessageTemplate = []
-			this.wasScalled = false
 		},
 		activateLocalFilePicker() {
 			this.reset()
@@ -500,7 +488,6 @@ export default {
 					this.showLoadingBackground = false
 					this.backgroundType = 'custom'
 					this.backgroundUrl = generateOcsUrl('/apps/libresign/api/v1/admin/signature-background') + '?t=' + Date.now()
-					this.wasScalled = data.ocs.data.wasScalled
 				})
 				.catch(({ response }) => {
 					this.showLoadingBackground = false

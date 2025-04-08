@@ -26,7 +26,6 @@ use OCP\ITempManager;
 class SignatureBackgroundService {
 	use TSimpleFile;
 
-	private bool $wasBackgroundScaled = false;
 	public function __construct(
 		private IAppData $appData,
 		private IAppConfig $appConfig,
@@ -64,10 +63,6 @@ class SignatureBackgroundService {
 		return $this->getSignatureBackgroundType() !== 'deleted';
 	}
 
-	public function wasBackgroundScaled(): bool {
-		return $this->wasBackgroundScaled;
-	}
-
 	private function optmizeImage(string $content, float $opacity = 1): string {
 		$image = new Imagick();
 		$image->setBackgroundColor(new ImagickPixel('transparent'));
@@ -78,7 +73,6 @@ class SignatureBackgroundService {
 		if ($dimensions['width'] === $width && $dimensions['height'] === $height) {
 			return $content;
 		}
-		$this->wasBackgroundScaled = true;
 		$image->setImageResolution(300, 300);
 		$image->resampleImage(300, 300, Imagick::FILTER_LANCZOS, 1);
 		$image->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
