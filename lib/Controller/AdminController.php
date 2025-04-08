@@ -274,7 +274,7 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Add custom background image
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{status: 'success', wasScalled: boolean}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{status: 'failure', message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{status: 'failure', message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Error
@@ -322,7 +322,6 @@ class AdminController extends AEnvironmentAwareController {
 		return new DataResponse(
 			[
 				'status' => 'success',
-				'wasScalled' => $this->signatureBackgroundService->wasBackgroundScaled(),
 			]
 		);
 	}
