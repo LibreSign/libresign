@@ -84,6 +84,8 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	#[DataProvider('providerSignAffectedParams')]
 	public function testSignAffectedParams(
 		array $visibleElements,
+		float $signatureWidth,
+		float $signatureHeight,
 		string $template,
 		string $signatureBackgroundType,
 		string $renderMode,
@@ -113,6 +115,8 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig->setValueString('libresign', 'java_path', __FILE__);
 		$this->appConfig->setValueString('libresign', 'jsignpdf_temp_path', sys_get_temp_dir());
 		$this->appConfig->setValueString('libresign', 'jsignpdf_jar_path', __FILE__);
+		$this->appConfig->setValueFloat('libresign', 'signature_width', $signatureWidth);
+		$this->appConfig->setValueFloat('libresign', 'signature_height', $signatureHeight);
 
 		$jSignPdfHandler = $this->getClass();
 		$jSignPdfHandler->setVisibleElements($visibleElements);
@@ -135,17 +139,17 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public static function providerSignAffectedParams(): array {
 		return [
 			// variations of hash algorithm
-			[[], '', '', '', 0, '%PDF-1',   '',          '-a -kst PKCS12 --hash-algorithm SHA1'],
-			[[], '', '', '', 0, '%PDF-1.5', 'SHA1',      '-a -kst PKCS12 --hash-algorithm SHA1'],
-			[[], '', '', '', 0, '%PDF-1.5', 'SHA256',    '-a -kst PKCS12 --hash-algorithm SHA1'],
-			[[], '', '', '', 0, '%PDF-1.6', 'SHA1',      '-a -kst PKCS12 --hash-algorithm SHA256'],
-			[[], '', '', '', 0, '%PDF-1.6', 'SHA256',    '-a -kst PKCS12 --hash-algorithm SHA256'],
-			[[], '', '', '', 0, '%PDF-1.6', 'SHA384',    '-a -kst PKCS12 --hash-algorithm SHA256'],
-			[[], '', '', '', 0, '%PDF-1.6', 'SHA512',    '-a -kst PKCS12 --hash-algorithm SHA256'],
-			[[], '', '', '', 0, '%PDF-1.7', 'SHA1',      '-a -kst PKCS12 --hash-algorithm SHA256'],
-			[[], '', '', '', 0, '%PDF-1.7', 'SHA384',    '-a -kst PKCS12 --hash-algorithm SHA384'],
-			[[], '', '', '', 0, '%PDF-1.7', 'SHA512',    '-a -kst PKCS12 --hash-algorithm SHA512'],
-			[[], '', '', '', 0, '%PDF-1.7', 'RIPEMD160', '-a -kst PKCS12 --hash-algorithm RIPEMD160'],
+			[[], 100, 100, '', '', '', 0, '%PDF-1',   '',          '-a -kst PKCS12 --hash-algorithm SHA1'],
+			[[], 100, 100, '', '', '', 0, '%PDF-1.5', 'SHA1',      '-a -kst PKCS12 --hash-algorithm SHA1'],
+			[[], 100, 100, '', '', '', 0, '%PDF-1.5', 'SHA256',    '-a -kst PKCS12 --hash-algorithm SHA1'],
+			[[], 100, 100, '', '', '', 0, '%PDF-1.6', 'SHA1',      '-a -kst PKCS12 --hash-algorithm SHA256'],
+			[[], 100, 100, '', '', '', 0, '%PDF-1.6', 'SHA256',    '-a -kst PKCS12 --hash-algorithm SHA256'],
+			[[], 100, 100, '', '', '', 0, '%PDF-1.6', 'SHA384',    '-a -kst PKCS12 --hash-algorithm SHA256'],
+			[[], 100, 100, '', '', '', 0, '%PDF-1.6', 'SHA512',    '-a -kst PKCS12 --hash-algorithm SHA256'],
+			[[], 100, 100, '', '', '', 0, '%PDF-1.7', 'SHA1',      '-a -kst PKCS12 --hash-algorithm SHA256'],
+			[[], 100, 100, '', '', '', 0, '%PDF-1.7', 'SHA384',    '-a -kst PKCS12 --hash-algorithm SHA384'],
+			[[], 100, 100, '', '', '', 0, '%PDF-1.7', 'SHA512',    '-a -kst PKCS12 --hash-algorithm SHA512'],
+			[[], 100, 100, '', '', '', 0, '%PDF-1.7', 'RIPEMD160', '-a -kst PKCS12 --hash-algorithm RIPEMD160'],
 			'page = 1 is default, do not will set the page' => [
 				[self::getElement([
 					'page' => 1,
@@ -154,6 +158,8 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'urx' => 0,
 					'ury' => 0,
 				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
+				100,
+				100,
 				'',
 				'default',
 				'DESCRIPTION_ONLY',
@@ -170,6 +176,8 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'urx' => 30,
 					'ury' => 40,
 				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
+				20,
+				20,
 				'',
 				'default',
 				'DESCRIPTION_ONLY',
@@ -186,6 +194,8 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'urx' => 30,
 					'ury' => 40,
 				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
+				20,
+				20,
 				'aaaaa',
 				'default',
 				'DESCRIPTION_ONLY',
@@ -202,13 +212,15 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'urx' => 30,
 					'ury' => 40,
 				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
+				20,
+				20,
 				'aaaaa',
 				'default',
 				'DESCRIPTION_ONLY',
 				11,
 				'%PDF-1.6',
 				'',
-				'-a -kst PKCS12 --l2-text "aaaaa" -V --font-size 11 -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png --hash-algorithm SHA256'
+				'-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --font-size 11 --bg-path merged.png --hash-algorithm SHA256'
 			],
 			'background = deleted: bg-path = signature' => [
 				[self::getElement([
@@ -218,6 +230,8 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'urx' => 30,
 					'ury' => 40,
 				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
+				20,
+				20,
 				'aaaaa',
 				'deleted',
 				'DESCRIPTION_ONLY',
@@ -234,6 +248,8 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'urx' => 30,
 					'ury' => 40,
 				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
+				20,
+				20,
 				'aaaaa',
 				'default',
 				'GRAPHIC_AND_DESCRIPTION',
@@ -250,6 +266,8 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'urx' => 351,
 					'ury' => 200,
 				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
+				350,
+				100,
 				'aaaaa',
 				'default',
 				'SIGNAME_AND_DESCRIPTION',
@@ -266,6 +284,8 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'urx' => 30,
 					'ury' => 40,
 				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
+				20,
+				20,
 				'aaaaa',
 				'deleted',
 				'SIGNAME_AND_DESCRIPTION',
@@ -282,6 +302,8 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'urx' => 30,
 					'ury' => 40,
 				], '')],
+				20,
+				20,
 				'aaaaa',
 				'deleted',
 				'SIGNAME_AND_DESCRIPTION',
@@ -298,6 +320,8 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'urx' => 30,
 					'ury' => 40,
 				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
+				20,
+				20,
 				'',
 				'default',
 				'GRAPHIC_AND_DESCRIPTION',
