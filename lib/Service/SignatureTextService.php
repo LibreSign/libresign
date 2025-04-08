@@ -168,7 +168,7 @@ class SignatureTextService {
 			'{{LocalSignerSignatureDateOnly}}' => $this->l10n->t('Date when the signer sent the request to sign (without time, in their local time zone).'),
 			'{{LocalSignerSignatureDateTime}}' => $this->l10n->t('Date and time when the signer send the request to sign (in their local time zone).'),
 			'{{LocalSignerTimezone}}' => $this->l10n->t('Time zone of signer when send the request to sign (in their local time zone).'),
-			'{{ServerSignatureDate}}' => $this->l10n->t('Date and time when the signature was applied on the server.'),
+			'{{ServerSignatureDate}}' => $this->l10n->t('Date and time when the signature was applied on the server. Cannot be formatted using Twig.'),
 			'{{SignerCommonName}}' => $this->l10n->t('Common Name (CN) used to identify the document signer.'),
 			'{{SignerEmail}}' => $this->l10n->t('The signer\'s email is optional and can be left blank.'),
 			'{{SignerIdentifier}}' => $this->l10n->t('Unique information used to identify the signer (such as email, phone number, or username).'),
