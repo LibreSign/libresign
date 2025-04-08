@@ -390,7 +390,7 @@ class ConfigureCheckService {
 						(new ConfigureCheckHelper())
 							->setErrorMessage('Java encoding not found.')
 							->setResource('java')
-							->setTip(sprintf('The command %s need to have native.encoding', [$javaPath . ' -XshowSettings:properties -version'])),
+							->setTip(sprintf('The command %s need to have native.encoding', $javaPath . ' -XshowSettings:properties -version')),
 					];
 				}
 				if (!str_contains($matches['encoding'], 'UTF-8')) {
