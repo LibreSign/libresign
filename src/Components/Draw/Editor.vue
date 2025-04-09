@@ -33,7 +33,7 @@
 			:stroke-options="strokeOptions"
 			@onEnd="updateCanSave" />
 		<div class="action-buttons">
-			<NcButton type="primary"
+			<NcButton variant="primary"
 				:disabled="!canSave"
 				@click="confirmationDraw">
 				{{ t('libresign', 'Save') }}
@@ -47,7 +47,7 @@
 			@closing="handleModal(false)">
 			<PreviewSignature :src="imageData" />
 			<template #actions>
-				<NcButton type="primary" @click="saveSignature">
+				<NcButton variant="primary" @click="saveSignature">
 					{{ t('libresign', 'Save') }}
 				</NcButton>
 				<NcButton @click="handleModal(false)">

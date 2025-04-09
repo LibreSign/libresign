@@ -43,7 +43,7 @@
 							:helper-text="helperTextValidation"
 							:error="uuidToValidate.length > 0 && !canValidate" />
 						<template #actions>
-							<NcButton type="primary"
+							<NcButton variant="primary"
 								:disabled="loading || !canValidate"
 								@click.prevent="clickedValidate = true;validate(uuidToValidate)">
 								<template #icon>
@@ -112,7 +112,7 @@
 							:text="legalInformation"
 							:use-markdown="true" />
 
-						<NcButton type="primary"
+						<NcButton variant="primary"
 							@click="viewDocument()">
 							<template #icon>
 								<NcLoadingIcon v-if="loading" :size="20" />
@@ -147,7 +147,7 @@
 									<span v-else>{{ t('libresign', 'No date') }}</span>
 								</template>
 								<template #extra-actions>
-									<NcButton type="tertiary"
+									<NcButton variant="tertiary"
 										@click="toggleDetail(signer)">
 										<template #icon>
 											<NcIconSvgWrapper v-if="signer.opened"
@@ -279,7 +279,7 @@
 					</ul>
 				</div>
 				<NcButton v-if="clickedValidate"
-					type="primary"
+					variant="primary"
 					@click.prevent="goBack">
 					{{ t('libresign', 'Return') }}
 				</NcButton>

@@ -10,7 +10,7 @@
 	<div v-else
 		id="request-signature-tab">
 		<NcButton v-if="filesStore.canAddSigner()"
-			:type="hasSigners ? 'secondary' : 'primary'"
+			:variant="hasSigners ? 'secondary' : 'primary'"
 			@click="addSigner">
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
@@ -36,7 +36,7 @@
 		</Signers>
 		<div class="action-buttons">
 			<NcButton v-if="filesStore.canSave()"
-				:type="filesStore.canSign() ? 'secondary' : 'primary'"
+				:variant="filesStore.canSign() ? 'secondary' : 'primary'"
 				:disabled="hasLoading"
 				@click="save()">
 				<template #icon>
@@ -45,7 +45,7 @@
 				{{ t('libresign', 'Next') }}
 			</NcButton>
 			<NcButton v-if="filesStore.canSign()"
-				type="primary"
+				variant="primary"
 				:disabled="hasLoading"
 				@click="sign()">
 				<template #icon>
@@ -54,7 +54,7 @@
 				{{ t('libresign', 'Sign') }}
 			</NcButton>
 			<NcButton v-if="filesStore.canValidate()"
-				type="primary"
+				variant="primary"
 				@click="validationFile()">
 				{{ t('libresign', 'Validate') }}
 			</NcButton>

@@ -4,7 +4,7 @@
 -->
 <template>
 	<NcDialog size="normal"
-		:can-close="!loading"
+		:no-close="loading"
 		:name="t('libresign', 'Sign with your email.')"
 		@closing="close">
 		<div v-if="signMethodsStore.blurredEmail().length > 0" class="email">
@@ -37,7 +37,7 @@
 		<template #actions>
 			<NcButton v-if="signMethodsStore.settings.emailToken.hasConfirmCode"
 				:disabled="loading && !canRequestCode"
-				native-type="submit"
+				type="submit"
 				@click="requestNewCode">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
@@ -46,8 +46,8 @@
 			</NcButton>
 			<NcButton v-if="!signMethodsStore.settings.emailToken.hasConfirmCode"
 				:disabled="loading || !canRequestCode"
-				native-type="submit"
-				type="primary"
+				type="submit"
+				variant="primary"
 				@click="requestCode">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
@@ -56,8 +56,8 @@
 			</NcButton>
 			<NcButton v-if="signMethodsStore.settings.emailToken.hasConfirmCode"
 				:disabled="!canSendCode"
-				native-type="submit"
-				type="primary"
+				type="submit"
+				variant="primary"
 				@click="sendCode">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
