@@ -28,7 +28,7 @@
 					</tr>
 				</tbody>
 			</table>
-			<NcButton type="primary" @click="showModal">
+			<NcButton variant="primary" @click="showModal">
 				{{ t('libresign', 'Regenerate root certificate') }}
 			</NcButton>
 			<NcDialog v-if="modal"
@@ -36,11 +36,11 @@
 				@closing="closeModal">
 				{{ t('libresign', 'Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?') }}
 				<template #actions>
-					<NcButton type="error"
+					<NcButton variant="error"
 						@click="clearAndShowForm">
 						{{ t('libresign', 'Yes') }}
 					</NcButton>
-					<NcButton type="primary"
+					<NcButton variant="primary"
 						@click="closeModal">
 						{{ t('libresign', 'No') }}
 					</NcButton>

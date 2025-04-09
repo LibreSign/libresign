@@ -26,7 +26,7 @@
 				<NcButton @click="filesStore.disableIdentifySigner()">
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
-				<NcButton type="primary"
+				<NcButton variant="primary"
 					:disabled="!signerSelected"
 					@click="saveSigner">
 					{{ saveButtonText }}

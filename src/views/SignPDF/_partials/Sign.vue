@@ -11,7 +11,7 @@
 			<NcButton v-if="ableToSign"
 				:wide="true"
 				:disabled="loading"
-				type="primary"
+				variant="primary"
 				@click="confirmSignDocument">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
@@ -24,7 +24,7 @@
 				</p>
 				<NcButton :wide="true"
 					:disabled="loading"
-					type="primary"
+					variant="primary"
 					@click="signMethodsStore.showModal('createPassword')">
 					{{ t('libresign', 'Define a password and sign the document.') }}
 				</NcButton>
@@ -35,7 +35,7 @@
 				</p>
 				<NcButton :wide="true"
 					:disabled="loading"
-					type="primary"
+					variant="primary"
 					@click="signMethodsStore.showModal('createSignature')">
 					{{ t('libresign', 'Define your signature.') }}
 				</NcButton>
@@ -47,7 +47,7 @@
 			</div>
 		</div>
 		<NcDialog v-if="signMethodsStore.modal.clickToSign"
-			:can-close="!loading"
+			:no-close="loading"
 			:name="t('libresign', 'Confirm')"
 			@closing="signMethodsStore.closeModal('clickToSign')">
 			{{ t('libresign', 'Confirm your signature') }}
@@ -56,7 +56,7 @@
 					@click="signMethodsStore.closeModal('clickToSign')">
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
-				<NcButton type="primary"
+				<NcButton variant="primary"
 					:disabled="loading"
 					@click="signWithClick">
 					<template #icon>
@@ -67,7 +67,7 @@
 			</template>
 		</NcDialog>
 		<NcDialog v-if="signMethodsStore.modal.password"
-			:can-close="!loading"
+			:no-close="loading"
 			:name="t('libresign', 'Confirm your signature')"
 			@closing="onCloseConfirmPassword">
 			{{ t('libresign', 'Subscription password.') }}
@@ -77,9 +77,9 @@
 			<a id="lost-password" @click="toggleManagePassword">{{ t('libresign', 'Forgot password?') }}</a>
 			<ManagePassword v-if="showManagePassword" />
 			<template #actions>
-				<NcButton type="primary"
-					:disabled="signPassword.length < 3 || loading"
-					native-type="submit"
+				<NcButton :disabled="signPassword.length < 3 || loading"
+					type="submit"
+					variant="primary"
 					@click="signWithPassword()">
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />

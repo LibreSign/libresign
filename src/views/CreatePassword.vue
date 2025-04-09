@@ -15,8 +15,8 @@
 			:placeholder="t('libresign', 'Enter a password')" />
 		<template #actions>
 			<NcButton :disabled="hasLoading"
-				native-type="submit"
-				type="primary"
+				type="submit"
+				variant="primary"
 				@click="send()">
 				<template #icon>
 					<NcLoadingIcon v-if="hasLoading" :size="20" />

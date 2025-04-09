@@ -10,8 +10,8 @@
 			</p>
 		</NcNoteCard>
 		<NcButton class="primary"
-			type="primary"
-			native-type="submit"
+			type="submit"
+			variant="primary"
 			:disabled="configureCheckStore.downloadInProgress"
 			@click="installAndValidate">
 			<template #icon>

@@ -8,7 +8,7 @@
 		:aria-label="t('libresign', 'Open sidebar')"
 		:title="t('libresign', 'Open sidebar')"
 		close-after-click="true"
-		type="tertiary"
+		variant="tertiary"
 		@click="openSidebar">
 		<template #icon>
 			<MenuIcon :size="20" />

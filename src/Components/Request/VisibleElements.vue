@@ -24,7 +24,7 @@
 				<li v-if="signerSelected"
 					:class="{ tip: signerSelected }">
 					{{ t('libresign', 'Click on the place you want to add.') }}
-					<NcButton type="primary"
+					<NcButton variant="primary"
 						@click="stopAddSigner">
 						{{ t('libresign', 'Cancel') }}
 					</NcButton>
@@ -39,7 +39,7 @@
 				</Signer>
 			</ul>
 			<NcButton v-if="canSave"
-				:type="typeOfRequestButton"
+				:variant="variantOfRequestButton"
 				:wide="true"
 				:class="{ disabled: signerSelected }"
 				@click="showConfirm = true">
@@ -47,7 +47,7 @@
 			</NcButton>
 
 			<NcButton v-if="canSign"
-				:type="typeOfSignButton"
+				:variant="variantOfSignButton"
 				:wide="true"
 				@click="goToSign">
 				{{ t('libresign', 'Sign') }}
@@ -64,19 +64,18 @@
 		<NcDialog v-if="showConfirm"
 			:open.sync="showConfirm"
 			:name="t('libresign', 'Confirm')"
-			:can-close="!loading"
+			:no-close="loading"
 			:message="t('libresign', 'Request signatures?')">
 			<NcNoteCard v-if="errorConfirmRequest.length > 0"
 				type="error">
 				{{ errorConfirmRequest }}
 			</NcNoteCard>
 			<template #actions>
-				<NcButton type="secondary"
-					:disabled="loading"
+				<NcButton :disabled="loading"
 					@click="showConfirm = false">
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
-				<NcButton type="primary"
+				<NcButton variant="primary"
 					:disabled="loading"
 					@click="save">
 					<template #icon>
@@ -135,13 +134,13 @@ export default {
 		}
 	},
 	computed: {
-		typeOfRequestButton() {
+		variantOfRequestButton() {
 			if (this.canSave) {
 				return 'primary'
 			}
 			return 'secondary'
 		},
-		typeOfSignButton() {
+		variantOfSignButton() {
 			if (this.canSave) {
 				return 'secondary'
 			}
