@@ -67,7 +67,7 @@ export default {
 			await axios(config)
 				.then(response => {
 					const buffer = Buffer.from(response.data, 'binary').toString('base64')
-					this.imageData = 'data:application/pdf;base64,' + buffer
+					this.imageData = 'data:' + response.headers['content-type'] + ';base64,' + buffer
 					this.onImageLoad(true)
 				})
 				.catch(() => this.onImageLoad(false))
@@ -89,5 +89,8 @@ export default {
 	margin-bottom: 10px;
 	min-width: 350px;
 	min-height: 95px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 </style>
