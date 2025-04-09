@@ -42,7 +42,7 @@
 			@close="showFilePicker = false" />
 		<NcDialog v-if="modalUploadFromUrl"
 			:name="t('libresign', 'URL of a PDF file')"
-			:can-close="!loading"
+			:no-close="loading"
 			is-form
 			@submit.prevent="uploadUrl()"
 			@closing="closeModalUploadFromUrl">
@@ -57,8 +57,8 @@
 			</NcTextField>
 			<template #actions>
 				<NcButton :disabled="!canUploadFronUrl"
-					type="primary"
-					native-type="submit"
+					type="submit"
+					variant="primary"
 					@click="uploadUrl()">
 					{{ t('libresign', 'Send') }}
 					<template #icon>

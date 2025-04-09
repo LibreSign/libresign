@@ -8,7 +8,7 @@
 			'files-list__column-sort-button--size': filesSortingStore.sortingMode === 'size',
 		}]"
 		:alignment="mode === 'size' ? 'end' : 'start-reverse'"
-		type="tertiary"
+		variant="tertiary"
 		@click="filesSortingStore.toggleSortBy(mode)">
 		<template #icon>
 			<MenuUp v-if="filesSortingStore.sortingMode !== mode || filesSortingStore.sortingDirection === 'asc'" class="files-list__column-sort-button-icon" />

@@ -18,7 +18,7 @@
 					@close="chip.onclick">
 					<template v-if="chip.user" #icon>
 						<NcAvatar disable-menu
-							:show-user-status="false"
+							:verbose-status="false"
 							:size="24"
 							:user="chip.user" />
 					</template>
