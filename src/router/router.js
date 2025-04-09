@@ -165,7 +165,7 @@ const router = new Router({
 			props: true,
 		},
 		{
-			path: '/f/account/files/approve/:uuid',
+			path: '/f/id-docs/approve/:uuid',
 			name: 'AccountFileApprove',
 			component: () => import('../views/SignPDF/SignPDF.vue'),
 			props: true,

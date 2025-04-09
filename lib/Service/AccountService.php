@@ -147,35 +147,6 @@ class AccountService {
 		}
 	}
 
-	public function validateAccountFiles(array $files, IUser $user): void {
-		foreach ($files as $fileIndex => $file) {
-			$this->validateAccountFile($fileIndex, $file, $user);
-		}
-	}
-
-	private function validateAccountFile(int $fileIndex, array $file, IUser $user): void {
-		$profileFileTypes = $this->fileTypeMapper->getTypes();
-		if (!array_key_exists($file['type'], $profileFileTypes)) {
-			throw new LibresignException(json_encode([
-				'type' => 'danger',
-				'file' => $fileIndex,
-				'message' => $this->l10n->t('Invalid file type.')
-			]));
-		}
-
-		try {
-			$this->validateHelper->validateFileTypeExists($file['type']);
-			$this->validateHelper->validateNewFile($file, ValidateHelper::TYPE_ACCOUNT_DOCUMENT, $user);
-			$this->validateHelper->validateUserHasNoFileWithThisType($user->getUID(), $file['type']);
-		} catch (\Exception $e) {
-			throw new LibresignException(json_encode([
-				'type' => 'danger',
-				'file' => $fileIndex,
-				'message' => $e->getMessage()
-			]));
-		}
-	}
-
 	/**
 	 * Get signRequest by Uuid
 	 */
@@ -330,24 +301,6 @@ class AccountService {
 		return $return;
 	}
 
-	public function addFilesToAccount(array $files, IUser $user): void {
-		$this->validateAccountFiles($files, $user);
-		foreach ($files as $fileData) {
-			$dataToSave = $fileData;
-			$dataToSave['userManager'] = $user;
-			$dataToSave['name'] = $fileData['name'] ?? $fileData['type'];
-			$file = $this->requestSignatureService->saveFile($dataToSave);
-
-			$this->accountFileService->addFile($file, $user, $fileData['type']);
-		}
-	}
-
-	public function deleteFileFromAccount(int $nodeId, IUser $user): void {
-		$this->validateHelper->validateAccountFileIsOwnedByUser($nodeId, $user->getUID());
-		$accountFile = $this->accountFileMapper->getByUserIdAndNodeId($user->getUID(), $nodeId);
-		$this->accountFileService->deleteFile($accountFile->getFileId(), $user->getUID());
-	}
-
 	public function saveVisibleElements(array $elements, string $sessionId, ?IUser $user): void {
 		foreach ($elements as $element) {
 			$this->saveVisibleElement($element, $sessionId, $user);
@@ -386,7 +339,7 @@ class AccountService {
 
 	private function saveFileOfVisibleElementUsingUser(array $data, IUser $user): File {
 		$rootSignatureFolder = $this->folderService->getFolder();
-		$folderName = $this->folderService->getFolderName($data, $user);
+		$folderName = $this->folderService->getFolderName($data, $user->getUID());
 		if ($rootSignatureFolder->nodeExists($folderName)) {
 			throw new \Exception($this->l10n->t('File already exists'));
 		}

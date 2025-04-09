@@ -52,6 +52,7 @@ class FileService {
 	private bool $showMessages = false;
 	private bool $validateFile = false;
 	private bool $signersLibreSignLoaded = false;
+	private bool $signerIdentified = false;
 	private string $fileContent = '';
 	private string $host = '';
 	private ?File $file = null;
@@ -138,6 +139,11 @@ class FileService {
 	 */
 	public function setMe(?IUser $user): self {
 		$this->me = $user;
+		return $this;
+	}
+
+	public function setSignerIdentified(bool $identified = true): self {
+		$this->signerIdentified = $identified;
 		return $this;
 	}
 
@@ -570,7 +576,9 @@ class FileService {
 		if ($this->me) {
 			$this->fileData->settings = array_merge($this->fileData->settings, $this->accountService->getSettings($this->me));
 			$this->fileData->settings['phoneNumber'] = $this->getPhoneNumber();
-			$status = $this->getIdentificationDocumentsStatus($this->me->getUID());
+		}
+		if ($this->signerIdentified || $this->me) {
+			$status = $this->getIdentificationDocumentsStatus();
 			if ($status === self::IDENTIFICATION_DOCUMENTS_NEED_SEND) {
 				$this->fileData->settings['needIdentificationDocuments'] = true;
 				$this->fileData->settings['identificationDocumentsWaitingApproval'] = false;
@@ -581,14 +589,18 @@ class FileService {
 		}
 	}
 
-	public function getIdentificationDocumentsStatus(?string $userId): int {
+	public function getIdentificationDocumentsStatus(string $userId = ''): int {
 		if (!$this->appConfig->getValueBool(Application::APP_ID, 'identification_documents', false)) {
 			return self::IDENTIFICATION_DOCUMENTS_DISABLED;
 		}
 
+		if (!$userId && $this->me instanceof IUser) {
+			$userId = $this->me->getUID();
+		}
 		if (!empty($userId)) {
 			$files = $this->fileMapper->getFilesOfAccount($userId);
 		}
+
 		if (empty($files) || !count($files)) {
 			return self::IDENTIFICATION_DOCUMENTS_NEED_SEND;
 		}

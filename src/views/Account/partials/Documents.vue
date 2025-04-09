@@ -100,6 +100,13 @@ export default {
 		FilePicker,
 		ProgressBar,
 	},
+	props: {
+		signRequestUuid: {
+			type: String,
+			required: false,
+			default: '',
+		},
+	},
 	data() {
 		return {
 			documentList: [],
@@ -138,7 +145,11 @@ export default {
 		},
 		async loadDocuments() {
 			this.loading = true
-			await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/files'))
+			const params = {};
+			if (this.signRequestUuid) {
+				params.uuid = this.signRequestUuid
+			}
+			await axios.get(generateOcsUrl('/apps/libresign/api/v1/id-docs'), { params })
 				.then(({ data }) => {
 					this.documentList = data.ocs.data.data
 				})
@@ -156,7 +167,7 @@ export default {
 
 			this.loading = true
 
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/files'), {
+			const params = {
 				files: [{
 					type: this.selectedType,
 					name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
@@ -164,7 +175,12 @@ export default {
 						path,
 					},
 				}],
-			})
+			}
+			if (this.signRequestUuid) {
+				params.uuid = this.signRequestUuid;
+			}
+
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/id-docs'), params)
 				.then(() => {
 					showSuccess(t('libresign', 'File was sent.'))
 				})
@@ -176,7 +192,7 @@ export default {
 		async uploadFile(type, inputFile) {
 			this.loading = true
 			const raw = await loadFileToBase64(inputFile)
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/files'), {
+			const params = {
 				files: [{
 					type,
 					name: inputFile.name,
@@ -184,7 +200,11 @@ export default {
 						base64: raw,
 					},
 				}],
-			})
+			}
+			if (this.signRequestUuid) {
+				params.uuid = this.signRequestUuid;
+			}
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/id-docs'), params)
 				.then(() => {
 					showSuccess(t('libresign', 'File was sent.'))
 				})
@@ -194,7 +214,7 @@ export default {
 			this.loading = false
 		},
 		async deleteFile({ nodeId }) {
-			await axios.delete(generateOcsUrl('/apps/libresign/api/v1/account/files'), {
+			await axios.delete(generateOcsUrl('/apps/libresign/api/v1/id-docs'), {
 				data: { nodeId },
 			})
 				.then(async () => {

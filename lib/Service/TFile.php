@@ -8,8 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\Db\SignRequest;
 use OCP\Files\Node;
 use OCP\Http\Client\IClientService;
+use OCP\IUser;
 use setasign\Fpdi\PdfParserService\Type\PdfTypeException;
 
 trait TFile {
@@ -18,7 +20,7 @@ trait TFile {
 	protected IClientService $client;
 
 	public function getNodeFromData(array $data): Node {
-		if (!$this->folderService->getUserId()) {
+		if (!$this->folderService->getUserId() && $data['userManager'] instanceof IUser) {
 			$this->folderService->setUserId($data['userManager']->getUID());
 		}
 		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
@@ -39,7 +41,14 @@ trait TFile {
 		}
 
 		$userFolder = $this->folderService->getFolder();
-		$folderName = $this->folderService->getFolderName($data, $data['userManager']);
+		if ($data['userManager'] instanceof IUser) {
+			$identifier = $data['userManager']->getUID();
+		} elseif ($data['userManager'] instanceof SignRequest) {
+			$identifier = $data['userManager']->getDisplayName();
+		} else {
+			$identifier = '';
+		}
+		$folderName = $this->folderService->getFolderName($data, $identifier);
 		if ($userFolder->nodeExists($folderName)) {
 			throw new \Exception($this->l10n->t('File already exists'));
 		}
