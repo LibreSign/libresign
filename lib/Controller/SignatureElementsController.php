@@ -25,11 +25,14 @@ use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
+use OCP\Files\SimpleFS\InMemoryFile;
 use OCP\IL10N;
 use OCP\IPreview;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserSession;
+use OCP\Preview\IMimeIconProvider;
 
 /**
  * @psalm-import-type LibresignUserElement from ResponseDefinitions
@@ -46,6 +49,8 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		protected SessionService $sessionService,
 		protected SignFileService $signFileService,
 		private IPreview $preview,
+		protected IMimeIconProvider $mimeIconProvider,
+		protected IURLGenerator $urlGenerator,
 		private ValidateHelper $validateHelper,
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -157,14 +162,30 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 				$nodeId,
 				$this->sessionService->getSessionId()
 			);
+			if ($this->preview->isAvailable($node)) {
+				$preview = $this->preview->getPreview(
+					file: $node,
+					width: SignerElementsService::ELEMENT_SIGN_WIDTH,
+					height: SignerElementsService::ELEMENT_SIGN_HEIGHT,
+				);
+			} else {
+				// When the preview is disabled, use the icon image of mimetype
+				// as fallback
+				$url = $this->mimeIconProvider->getMimeIconUrl($node->getMimeType());
+				$baseUrl = $this->urlGenerator->getBaseUrl();
+				if (!str_starts_with($url, $baseUrl)) {
+					throw new DoesNotExistException('Preview disabled');
+				}
+				$path = \OC::$SERVERROOT . str_replace($baseUrl, '', $url);
+				if (!file_exists($path)) {
+					throw new DoesNotExistException('Preview disabled');
+				}
+				$extension = pathinfo($path, PATHINFO_EXTENSION);
+				$preview = new InMemoryFile(implode('.', ['signature', $extension]), file_get_contents($path));
+			}
 		} catch (DoesNotExistException $th) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
-		$preview = $this->preview->getPreview(
-			file: $node,
-			width: SignerElementsService::ELEMENT_SIGN_WIDTH,
-			height: SignerElementsService::ELEMENT_SIGN_HEIGHT,
-		);
 		$response = new FileDisplayResponse($preview, Http::STATUS_OK, [
 			'Content-Type' => $preview->getMimeType(),
 		]);

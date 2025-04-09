@@ -33,7 +33,6 @@ use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\UseSession;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
-use OCP\IPreview;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
@@ -62,7 +61,6 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		private LoggerInterface $logger,
 		protected IUserSession $userSession,
 		protected SessionService $sessionService,
-		private IPreview $preview,
 		private ValidateHelper $validateHelper,
 	) {
 		parent::__construct(Application::APP_ID, $request);
