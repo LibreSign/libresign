@@ -16,7 +16,7 @@
 				:label="t('libresign', 'Enter your Full Name or Initials to create Signature')" />
 		</div>
 		<div class="action-buttons">
-			<NcButton :disabled="!isValid" type="primary" @click="confirmSignature">
+			<NcButton :disabled="!isValid" variant="primary" @click="confirmSignature">
 				{{ t('libresign', 'Save') }}
 			</NcButton>
 			<NcButton @click="close">
@@ -28,7 +28,7 @@
 			@closing="handleModal(false)">
 			<img :src="imageData">
 			<template #actions>
-				<NcButton type="primary" @click="saveSignature">
+				<NcButton variant="primary" @click="saveSignature">
 					{{ t('libresign', 'Save') }}
 				</NcButton>
 				<NcButton @click="cancelConfirm">

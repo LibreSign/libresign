@@ -5,7 +5,7 @@
 <template>
 	<div class="draw-file-input">
 		<div class="file-input-container">
-			<NcButton type="primary"
+			<NcButton variant="primary"
 				:wide="true"
 				@click="$refs.file.click()">
 				{{
@@ -32,7 +32,7 @@
 			</p>
 
 			<div class="action-buttons">
-				<NcButton type="primary" @click="confirmSave">
+				<NcButton variant="primary" @click="confirmSave">
 					{{ t('libresign', 'Save') }}
 				</NcButton>
 				<NcButton @click="close">
@@ -46,7 +46,7 @@
 			@closing="cancel">
 			<img :src="imageData">
 			<template #actions>
-				<NcButton type="primary" @click="saveSignature">
+				<NcButton variant="primary" @click="saveSignature">
 					{{ t('libresign', 'Save') }}
 				</NcButton>
 				<NcButton @click="cancel">

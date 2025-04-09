@@ -25,7 +25,7 @@ export default {
 			<div class="icons icon-contacts-dark" />
 		</div>
 
-		<NcAvatar :show-user-status="false"
+		<NcAvatar :verbose-status="false"
 			:size="145"
 			class="user-avatar"
 			:user="user.uid"

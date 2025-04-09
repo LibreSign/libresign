@@ -24,7 +24,7 @@
 				{{ error }}
 			</NcNoteCard>
 			<NcButton v-if="response.length === 0 && error.length === 0"
-				type="primary"
+				variant="primary"
 				:wide="true"
 				:disabled="hasLoading"
 				@click="renew">
