@@ -202,6 +202,9 @@ class Pkcs12Handler extends SignEngineHandler {
 		file_put_contents($tempFile, $content);
 
 		$content = shell_exec('pdfsig ' . $tempFile);
+		if (empty($content)) {
+			return [];
+		}
 		$lines = explode("\n", $content);
 
 		$lastSignature = 0;
