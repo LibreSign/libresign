@@ -49,7 +49,7 @@
 					:error="confirmPasswordError.length > 0"
 					required />
 				<NcButton :wide="true"
-					type="primary"
+					variant="primary"
 					:disabled="!canSave"
 					@click="createAccount">
 					<template #icon>

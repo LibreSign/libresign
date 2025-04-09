@@ -29,7 +29,7 @@
 		</NcActions>
 		<NcDialog v-if="confirmDelete"
 			:name="t('libresign', 'Confirm')"
-			:can-close="!deleting"
+			:no-close="deleting"
 			:open.sync="confirmDelete">
 			{{ t('libresign', 'The signature request will be deleted. Do you confirm this action?') }}
 			<NcCheckboxRadioSwitch type="switch"
@@ -38,7 +38,7 @@
 				{{ t('libresign', 'Also delete the file.') }}
 			</NcCheckboxRadioSwitch>
 			<template #actions>
-				<NcButton type="primary"
+				<NcButton variant="primary"
 					:disabled="deleting"
 					@click="doDelete()">
 					<template #icon>
@@ -46,8 +46,7 @@
 					</template>
 					{{ t('libresign', 'Ok') }}
 				</NcButton>
-				<NcButton type="secondary"
-					:disabled="deleting"
+				<NcButton :disabled="deleting"
 					@click="confirmDelete = false">
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
