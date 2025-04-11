@@ -37,6 +37,68 @@
                     }
                 }
             },
+            "Capabilities": {
+                "type": "object",
+                "required": [
+                    "features",
+                    "config",
+                    "version"
+                ],
+                "properties": {
+                    "features": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "config": {
+                        "type": "object",
+                        "required": [
+                            "sign-elements"
+                        ],
+                        "properties": {
+                            "sign-elements": {
+                                "type": "object",
+                                "required": [
+                                    "is-available",
+                                    "can-create-signature",
+                                    "full-signature-width",
+                                    "full-signature-height",
+                                    "signature-width",
+                                    "signature-height"
+                                ],
+                                "properties": {
+                                    "is-available": {
+                                        "type": "boolean"
+                                    },
+                                    "can-create-signature": {
+                                        "type": "boolean"
+                                    },
+                                    "full-signature-width": {
+                                        "type": "number",
+                                        "format": "double"
+                                    },
+                                    "full-signature-height": {
+                                        "type": "number",
+                                        "format": "double"
+                                    },
+                                    "signature-width": {
+                                        "type": "number",
+                                        "format": "double"
+                                    },
+                                    "signature-height": {
+                                        "type": "number",
+                                        "format": "double"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "version": {
+                        "type": "string"
+                    }
+                }
+            },
             "CertificatePfxData": {
                 "type": "object",
                 "required": [
@@ -481,6 +543,14 @@
                     "first": {
                         "type": "string",
                         "nullable": true
+                    }
+                }
+            },
+            "PublicCapabilities": {
+                "type": "object",
+                "properties": {
+                    "libresign": {
+                        "$ref": "#/components/schemas/Capabilities"
                     }
                 }
             },

@@ -21,7 +21,7 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\Pkcs12Handler;
+use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;

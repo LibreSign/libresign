@@ -13,8 +13,8 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Handler\FooterHandler;
-use OCA\Libresign\Handler\Pkcs12Handler;
-use OCA\Libresign\Handler\Pkcs7Handler;
+use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
+use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -26,6 +26,7 @@ use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
+use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
@@ -55,6 +56,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignerElementsService&MockObject $signerElementsService;
 	private IRootFolder&MockObject $root;
 	private IUserSession&MockObject $userSession;
+	private IDateTimeZone $dateTimeZone;
 	private IUserMountCache&MockObject $userMountCache;
 	private FileElementMapper&MockObject $fileElementMapper;
 	private UserElementMapper&MockObject $userElementMapper;
@@ -86,6 +88,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
 		$this->userSession = $this->createMock(IUserSession::class);
+		$this->dateTimeZone = \OCP\Server::get(IDateTimeZone::class);
 		$this->userMountCache = $this->createMock(IUserMountCache::class);
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
@@ -115,6 +118,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->signerElementsService,
 			$this->root,
 			$this->userSession,
+			$this->dateTimeZone,
 			$this->userMountCache,
 			$this->fileElementMapper,
 			$this->userElementMapper,
@@ -182,8 +186,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testSignWithFileNotFound():void {
 		$this->expectExceptionMessage('File not found');
 
-		$this->createAccount('username', 'password');
-
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUserId('username');
 
@@ -207,8 +209,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 * @dataProvider dataSignWithSuccess
 	 */
 	public function testSignWithSuccess(string $mimetype, string $filename, string $extension):void {
-		$this->createAccount('username', 'password');
-
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUserId('username');
 
@@ -222,12 +222,17 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->root->method('getUserFolder')->willReturn($this->root);
 		$this->root->method('getById')->willReturn([$nextcloudFile]);
 		$this->root->method('newFile')->willReturn($nextcloudFile);
-		$this->userMountCache->method('getMountsForFileId')->wilLReturn([]);
+		$this->userMountCache->method('getMountsForFileId')->willReturn([]);
 
 		$this->pkcs12Handler->method('setInputFile')->willReturn($this->pkcs12Handler);
 		$this->pkcs12Handler->method('setCertificate')->willReturn($this->pkcs12Handler);
 		$this->pkcs12Handler->method('setVisibleElements')->willReturn($this->pkcs12Handler);
+		$this->pkcs12Handler->method('setSignatureParams')->willReturn($this->pkcs12Handler);
 		$this->pkcs12Handler->method('setPassword')->willReturn($this->pkcs12Handler);
+		$this->pkcs12Handler->method('readCertificate')->willReturn([
+			'issuer' => ['CN' => 'Acme Cooperative'],
+			'subject' => ['CN' => 'John Doe'],
+		]);
 		$this->pkcs12Handler->method('sign')->willReturn($nextcloudFile);
 
 		$this->pkcs7Handler->method('setInputFile')->willReturn($this->pkcs12Handler);

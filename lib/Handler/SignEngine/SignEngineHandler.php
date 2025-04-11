@@ -6,17 +6,19 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Handler;
+namespace OCA\Libresign\Handler\SignEngine;
 
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCP\Files\File;
 
 abstract class SignEngineHandler implements ISignEngineHandler {
 	private File $inputFile;
-	private string $certificate;
+	protected string $certificate;
 	private string $password = '';
 	/** @var VisibleElementAssoc[] */
 	private array $visibleElements = [];
+	private array $signatureParams = [];
 
 	/**
 	 * @return static
@@ -37,6 +39,15 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 
 	public function getCertificate(): string {
 		return $this->certificate;
+	}
+
+	public function readCertificate(): array {
+		return \OCP\Server::get(CertificateEngineFactory::class)
+			->getEngine()
+			->readCertificate(
+				$this->getCertificate(),
+				$this->getPassword()
+			);
 	}
 
 	public function setPassword(string $password): self {
@@ -69,5 +80,14 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 
 	public function getSignedContent(): string {
 		return $this->sign()->getContent();
+	}
+
+	public function getSignatureParams(): array {
+		return $this->signatureParams;
+	}
+
+	public function setSignatureParams(array $params): self {
+		$this->signatureParams = $params;
+		return $this;
 	}
 }

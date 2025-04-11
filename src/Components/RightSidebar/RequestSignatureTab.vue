@@ -42,7 +42,7 @@
 				<template #icon>
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
 				</template>
-				{{ t('libresign', 'Next') }}
+				{{ labelOfSaveButton }}
 			</NcButton>
 			<NcButton v-if="filesStore.canSign()"
 				variant="primary"
@@ -73,6 +73,7 @@
 import Delete from 'vue-material-design-icons/Delete.vue'
 
 import axios from '@nextcloud/axios'
+import { getCapabilities } from '@nextcloud/capabilities'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -123,6 +124,12 @@ export default {
 		}
 	},
 	computed: {
+		labelOfSaveButton() {
+			if (this.isSignElementsAvailable()) {
+				return t('libresign', 'Next')
+			}
+			return t('libresign', 'Request')
+		},
 		hasSigners() {
 			return this.filesStore.hasSigners(this.filesStore.getFile())
 		},
@@ -143,6 +150,9 @@ export default {
 		unsubscribe('libresign:edit-signer')
 	},
 	methods: {
+		isSignElementsAvailable() {
+			return getCapabilities()?.libresign?.config?.['sign-elements']?.['is-available'] === true
+		},
 		closeModal() {
 			this.modalSrc = ''
 			this.filesStore.flushSelectedFile()
@@ -220,6 +230,10 @@ export default {
 				})
 				config.data.users.push(user)
 			})
+
+			if (!this.isSignElementsAvailable()) {
+				config.data.status = 1
+			}
 
 			if (this.filesStore.getFile().uuid) {
 				config.data.uuid = this.filesStore.getFile().uuid

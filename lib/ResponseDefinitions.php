@@ -230,6 +230,20 @@ namespace OCA\Libresign;
  *     starred: 0|1,
  *     createdAt: string,
  * }
+ * @psalm-type LibresignCapabilities = array{
+ *     features: list<string>,
+ *     config: array{
+ *         sign-elements: array{
+ *             is-available: bool,
+ *             can-create-signature: bool,
+ *             full-signature-width: float,
+ *             full-signature-height: float,
+ *             signature-width: float,
+ *             signature-height: float,
+ *         },
+ *     },
+ *     version: string,
+ * }
  */
 class ResponseDefinitions {
 }

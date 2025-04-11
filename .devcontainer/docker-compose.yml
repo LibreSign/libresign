@@ -67,7 +67,7 @@ services:
       - nextcloud:/var/www/html:ro
       - ../:/var/www/html/apps-extra/libresign:ro
     ports:
-      - 127.0.0.1:${HTTP_PORT:-80}:80
+      - ${HTTP_PORT:-80}:80
   mailhog:
     image: blueimp/mailhog
     ports:

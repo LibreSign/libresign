@@ -7,7 +7,7 @@
 		size="normal"
 		@closing="closeModal">
 		<div v-if="filesStore.loading">
-			<NcLoadingIcon :size="64" :name="t('libresign', 'Loading file')" />
+			<NcLoadingIcon :size="64" :name="t('libresign', 'Loading …')" />
 		</div>
 		<div v-else class="sign-details">
 			<h2 class="modal_name">
@@ -90,6 +90,7 @@
 
 <script>
 import axios from '@nextcloud/axios'
+import { getCapabilities } from '@nextcloud/capabilities'
 import { showSuccess } from '@nextcloud/dialogs'
 import { subscribe, unsubscribe, emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
@@ -106,7 +107,6 @@ import Signer from '../Signers/Signer.vue'
 
 import { SIGN_STATUS } from '../../domains/sign/enum.js'
 import { useFilesStore } from '../../store/files.js'
-import { SignatureImageDimensions } from '../Draw/options.js'
 
 export default {
 	name: 'VisibleElements',
@@ -131,6 +131,8 @@ export default {
 			loading: false,
 			errorConfirmRequest: '',
 			signerSelected: null,
+			width: getCapabilities().libresign.config['sign-elements']['full-signature-width'],
+			height: getCapabilities().libresign.config['sign-elements']['full-signature-height'],
 		}
 	},
 	computed: {
@@ -191,6 +193,9 @@ export default {
 			if (!this.canRequestSign) {
 				return
 			}
+			if (getCapabilities()?.libresign?.config?.['sign-elements']?.['is-available'] === false) {
+				return
+			}
 			this.modal = true
 			this.filesStore.loading = true
 		},
@@ -238,10 +243,10 @@ export default {
 			this.signerSelected.element = {
 				coordinates: {
 					page: page + 1,
-					llx: x - SignatureImageDimensions.width / 2,
-					ury: y - SignatureImageDimensions.height / 2,
-					height: SignatureImageDimensions.height,
-					width: SignatureImageDimensions.width,
+					llx: x - this.width / 2,
+					ury: y - this.height / 2,
+					width: this.width,
+					height: this.height,
 				},
 			}
 			this.$refs.pdfEditor.addSigner(this.signerSelected)

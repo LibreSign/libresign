@@ -21,8 +21,8 @@ use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
-use OCA\Libresign\Handler\Pkcs12Handler;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
@@ -64,7 +64,7 @@ class AccountService {
 		private AccountFileMapper $accountFileMapper,
 		private SignFileService $signFileService,
 		private RequestSignatureService $requestSignatureService,
-		private CertificateEngineHandler $certificateEngineHandler,
+		private CertificateEngineFactory $certificateEngineFactory,
 		private IConfig $config,
 		private IAppConfig $appConfig,
 		private IMountProviderCollection $mountProviderCollection,
@@ -225,7 +225,7 @@ class AccountService {
 	}
 
 	public function getCertificateEngineName(): string {
-		return $this->certificateEngineHandler->getEngine()->getName();
+		return $this->certificateEngineFactory->getEngine()->getName();
 	}
 
 	/**
@@ -252,7 +252,7 @@ class AccountService {
 			return false;
 		}
 		try {
-			$this->pkcs12Handler->getPfx($user->getUID());
+			$this->pkcs12Handler->getPfxOfCurrentSigner($user->getUID());
 			return true;
 		} catch (\Throwable $th) {
 		}
@@ -539,7 +539,10 @@ class AccountService {
 	 */
 	public function readPfxData(IUser $user, string $password): array {
 		try {
-			return $this->pkcs12Handler->readCertificate($user->getUID(), $password);
+			return $this->pkcs12Handler
+				->setCertificate($this->pkcs12Handler->getPfxOfCurrentSigner($user->getUID()))
+				->setPassword($password)
+				->readCertificate();
 		} catch (InvalidPasswordException $e) {
 			throw new LibresignException($this->l10n->t('Invalid user or password'));
 		}
