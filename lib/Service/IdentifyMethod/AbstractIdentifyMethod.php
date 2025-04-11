@@ -146,11 +146,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 		$nodeId = $fileEntity->getNodeId();
 
-		$mountsContainingFile = $this->identifyService->getUserMountCache()->getMountsForFileId($nodeId);
-		foreach ($mountsContainingFile as $fileInfo) {
-			$this->identifyService->getRootFolder()->getByIdInPath($nodeId, $fileInfo->getMountPoint());
-		}
-		$fileToSign = $this->identifyService->getRootFolder()->getById($nodeId);
+		$fileToSign = $this->identifyService->getRootFolder()->getUserFolder($fileEntity->getUserId())->getById($nodeId);
 		if (count($fileToSign) < 1) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,

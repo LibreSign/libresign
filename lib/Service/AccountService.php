@@ -120,11 +120,7 @@ class AccountService {
 
 			$nodeId = $this->fileData->getNodeId();
 
-			$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
-			foreach ($mountsContainingFile as $fileInfo) {
-				$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
-			}
-			$fileToSign = $this->root->getById($nodeId);
+			$fileToSign = $this->root->getUserFolder($this->fileData->getUserId())->getById($nodeId);
 			if (count($fileToSign)) {
 				$this->fileToSign = current($fileToSign);
 			}
@@ -278,11 +274,7 @@ class AccountService {
 		} else {
 			$nodeId = $fileData->getNodeId();
 		}
-		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
-		foreach ($mountsContainingFile as $fileInfo) {
-			$nodes = $this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
-		}
-		$nodes = $this->root->getById($nodeId);
+		$nodes = $this->root->getUserFolder($fileData->getUserId())->getById($nodeId);
 		if (empty($nodes)) {
 			throw new DoesNotExistException('Not found');
 		}
