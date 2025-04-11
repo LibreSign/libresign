@@ -473,8 +473,7 @@
                 ],
                 "properties": {
                     "date": {
-                        "type": "integer",
-                        "format": "int64"
+                        "type": "string"
                     },
                     "method": {
                         "type": "string",

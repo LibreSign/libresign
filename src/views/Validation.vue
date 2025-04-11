@@ -138,7 +138,7 @@
 								<template #subname>
 									<strong>{{ t('libresign', 'Date signed:') }}</strong>
 									<span v-if="signer.signed" class="data-signed">
-										{{ signer.signed }}
+										{{ dateFromSqlAnsi(signer.signed) }}
 									</span>
 									<span v-else>{{ t('libresign', 'No date') }}</span>
 								</template>
@@ -156,9 +156,10 @@
 									</NcButton>
 								</template>
 								<template #indicator>
-									<NcIconSvgWrapper :name="signer.signature_validation.label"
+									<NcIconSvgWrapper v-if="signer.signature_validation"
+										:name="signer.signature_validation.label"
 										:path="getIconValidityPath(signer)"
-										:style="{color: signer.signature_validation.id === 1? 'green' : 'red'}"
+										:style="{color: signer.signature_validation?.id === 1? 'green' : 'red'}"
 										:size="20" />
 								</template>
 							</NcListItem>
@@ -171,7 +172,7 @@
 									{{ dateFromSqlAnsi(signer.request_sign_date) }}
 								</template>
 							</NcListItem>
-							<NcListItem v-if="signer.opened"
+							<NcListItem v-if="signer.opened && signer.signature_validation"
 								class="extra"
 								compact
 								:name="t('libresign', 'Signature validation:')">
@@ -218,7 +219,7 @@
 									<ul>
 										<li v-for="(notify, notifyIndex) in signer.notify"
 											:key="notifyIndex">
-											<strong>{{ notify.method }}</strong>: {{ dateFromUnixTimestamp(notify.date) }}
+											<strong>{{ notify.method }}</strong>: {{ dateFromSqlAnsi(notify.date) }}
 										</li>
 									</ul>
 								</template>
@@ -229,7 +230,7 @@
 								:name="t('libresign', 'Certificate valid from:')">
 								<template #name>
 									<strong>{{ t('libresign', 'Certificate valid from:') }}</strong>
-									{{ dateFromUnixTimestamp(signer.valid_from) }}
+									{{ dateFromSqlAnsi(signer.valid_from) }}
 								</template>
 							</NcListItem>
 							<NcListItem v-if="signer.opened && signer.valid_to"
@@ -238,7 +239,7 @@
 								:name="t('libresign', 'Certificate valid to:')">
 								<template #name>
 									<strong>{{ t('libresign', 'Certificate valid to:') }}</strong>
-									{{ dateFromUnixTimestamp(signer.valid_to) }}
+									{{ dateFromSqlAnsi(signer.valid_to) }}
 								</template>
 							</NcListItem>
 							<NcListItem v-if="signer.opened && signer.hash_algorithm"
@@ -452,9 +453,6 @@ export default {
 		},
 		dateFromSqlAnsi(date) {
 			return Moment(Date.parse(date)).format('LL LTS')
-		},
-		dateFromUnixTimestamp(date) {
-			return Moment(date * 1000).format('LL LTS')
 		},
 		toggleDetail(signer) {
 			this.$set(signer, 'opened', !signer.opened)

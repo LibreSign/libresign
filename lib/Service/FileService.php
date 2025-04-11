@@ -24,6 +24,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use DateTime;
+use DateTimeInterface;
 use InvalidArgumentException;
 use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
@@ -357,13 +359,13 @@ class FileService {
 			$this->fileData->signers[$index]['description'] = $signer->getDescription();
 			$this->fileData->signers[$index]['identifyMethods'] = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signer->getId());
 			$this->fileData->signers[$index]['visibleElements'] = $this->getVisibleElements($signer->getId());
-			$this->fileData->signers[$index]['request_sign_date'] = (new \DateTime())
-				->setTimestamp($signer->getCreatedAt())
-				->format('Y-m-d H:i:s');
+			$this->fileData->signers[$index]['request_sign_date'] = $signer->getCreatedAt()->format(DateTimeInterface::ATOM);
 			if (empty($this->fileData->signers[$index]['signed'])) {
-				$this->fileData->signers[$index]['signed'] = $signer->getSigned() ?
-					$this->dateTimeFormatter->formatDateTime($signer->getSigned())
-					: null;
+				if ($signer->getSigned()) {
+					$this->fileData->signers[$index]['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
+				} else {
+					$this->fileData->signers[$index]['signed'] = null;
+				}
 			}
 			$metadata = $signer->getMetadata();
 			if (!empty($metadata['remote-address'])) {
@@ -373,12 +375,19 @@ class FileService {
 				$this->fileData->signers[$index]['user_agent'] = $metadata['user-agent'];
 			}
 			if (!empty($metadata['notify'])) {
-				$this->fileData->signers[$index]['notify'] = $metadata['notify'];
+				foreach ($metadata['notify'] as $notify) {
+					$this->fileData->signers[$index]['notify'][] = [
+						'method' => $notify['method'],
+						'date' => (new \DateTime('@' . $notify['date']))->format(DateTimeInterface::ATOM),
+					];
+				}
 			}
 			if ($signer->getSigned() && empty($this->fileData->signers[$index]['signed'])) {
-				$this->fileData->signers[$index]['signed'] = (new \DateTime())
-					->setTimestamp($signer->getSigned())
-					->format('Y-m-d H:i:s');
+				if ($signer->getSigned()) {
+					$this->fileData->signers[$index]['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
+				} else {
+					$this->fileData->signers[$index]['signed'] = null;
+				}
 			}
 			// @todo refactor this code
 			if ($this->me || $this->identifyMethodId) {
@@ -441,13 +450,13 @@ class FileService {
 				$this->fileData->signers[$index]['subject'] = $signer['chain'][0]['name'];
 			}
 			if (!empty($signer['chain'][0]['validFrom_time_t'])) {
-				$this->fileData->signers[$index]['valid_from'] = $signer['chain'][0]['validFrom_time_t'];
+				$this->fileData->signers[$index]['valid_from'] = (new DateTime('@' . $signer['chain'][0]['validFrom_time_t']))->format(DateTimeInterface::ATOM);
 			}
 			if (!empty($signer['chain'][0]['validTo_time_t'])) {
-				$this->fileData->signers[$index]['valid_to'] = $signer['chain'][0]['validTo_time_t'];
+				$this->fileData->signers[$index]['valid_to'] = (new DateTime('@' . $signer['chain'][0]['validTo_time_t']))->format(DateTimeInterface::ATOM);
 			}
 			if (!empty($signer['signingTime'])) {
-				$this->fileData->signers[$index]['signed'] = $signer['signingTime']->format('Y-m-d H:i:s');
+				$this->fileData->signers[$index]['signed'] = $signer['signingTime']->format(DateTimeInterface::ATOM);
 			}
 			$this->fileData->signers[$index]['signature_validation'] = $signer['chain'][0]['signature_validation'];
 			if (!empty($signer['chain'][0]['certificate_validation'])) {
@@ -630,9 +639,7 @@ class FileService {
 		$this->fileData->uuid = $this->file->getUuid();
 		$this->fileData->name = $this->file->getName();
 		$this->fileData->status = $this->file->getStatus();
-		$this->fileData->created_at = (new \DateTime())
-			->setTimestamp($this->file->getCreatedAt())
-			->format('Y-m-d H:i:s');
+		$this->fileData->created_at = $this->file->getCreatedAt()->format(DateTimeInterface::ATOM);
 		$this->fileData->statusText = $this->fileMapper->getTextOfStatus($this->file->getStatus());
 		$this->fileData->nodeId = $this->file->getNodeId();
 
@@ -757,9 +764,7 @@ class FileService {
 								}
 								return $carry;
 							}, $signer->getDisplayName()),
-						'request_sign_date' => (new \DateTime())
-							->setTimestamp($signer->getCreatedAt())
-							->format('Y-m-d H:i:s'),
+						'request_sign_date' => $signer->getCreatedAt()->format(DateTimeInterface::ATOM),
 						'signed' => null,
 						'signRequestId' => $signer->getId(),
 						'me' => array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
@@ -819,7 +824,7 @@ class FileService {
 					}
 
 					if ($signer->getSigned()) {
-						$data['signed'] = $this->dateTimeFormatter->formatDateTime($signer->getSigned());
+						$data['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
 						$totalSigned++;
 					}
 					ksort($data);
