@@ -402,6 +402,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateIfNodeIdExistsWithSuccess() {
 		$this->root
+			->method('getUserFolder')
+			->willReturn($this->root);
+		$this->root
 			->method('getById')
 			->willReturn(['file']);
 		$this->userMountCache

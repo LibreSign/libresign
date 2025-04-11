@@ -375,6 +375,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willreturn([]);
 		$node = $this->createMock(\OCP\Files\File::class);
 		$this->root
+			->method('getUserFolder')
+			->willReturn($this->root);
+		$this->root
 			->method('getById')
 			->willReturn([$node]);
 
@@ -391,6 +394,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getMountsForFileId')
 			->willreturn([]);
 		$node = $this->createMock(\OCP\Files\File::class);
+		$this->root
+			->method('getUserFolder')
+			->willReturn($this->root);
 		$this->root
 			->method('getById')
 			->willReturn([$node]);
