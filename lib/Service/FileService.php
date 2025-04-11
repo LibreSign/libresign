@@ -242,11 +242,7 @@ class FileService {
 		if (!$nodeId) {
 			$nodeId = $this->file->getNodeId();
 		}
-		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
-		foreach ($mountsContainingFile as $fileInfo) {
-			$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
-		}
-		$fileToValidate = $this->root->getById($nodeId);
+		$fileToValidate = $this->root->getUserFolder($this->file->getUserId())->getById($nodeId);
 		if (!count($fileToValidate)) {
 			throw new LibresignException($this->l10n->t('File not found'), 404);
 		}
