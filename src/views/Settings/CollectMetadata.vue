@@ -46,7 +46,7 @@ export default {
 			OCP.AppConfig.setValue('libresign', 'collect_metadata', this.collectMetadataEnabled ? 1 : 0, {
 				success: () => {
 					emit('collect-metadata:changed')
-				}
+				},
 			})
 		},
 	},

@@ -129,7 +129,7 @@ class SignatureBackgroundService {
 		try {
 			$file = $this->getRootFolder()->getFile('background.png');
 		} catch (NotFoundException $e) {
-			$content = $this->optmizeImage(file_get_contents(__DIR__ . '/../../img/logo-gray.svg'), 0.3);
+			$content = $this->optmizeImage(file_get_contents(__DIR__ . '/../../img/logo-gray.svg'), 0.15);
 			$file = new InMemoryFile('background.png', $content);
 		}
 		return $file;
