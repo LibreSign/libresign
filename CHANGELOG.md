@@ -18,6 +18,62 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 11.2.0 - 2025-04-11
+### Features
+- feat: customize signature stamp [#4827](https://github.com/LibreSign/libresign/pull/4827)
+- feat: add group activity [#4793](https://github.com/LibreSign/libresign/pull/4793)
+
+### Changes
+- Update translations
+- Bump dependencies
+- chore: replace deprecated properties [#4808](https://github.com/LibreSign/libresign/pull/4808)
+- chore: cover jsignparam with tests [#4790](https://github.com/LibreSign/libresign/pull/4790)
+- refactor: adding types to entities [#4776](https://github.com/LibreSign/libresign/pull/4776)
+
+### Fixes
+- fix: time stamp when then document signed [#4823](https://github.com/LibreSign/libresign/pull/4823)
+- fix: optimize file loading [#4820](https://github.com/LibreSign/libresign/pull/4820)
+- fix: check if preview is available [#4818](https://github.com/LibreSign/libresign/pull/4818)
+- fix: prevent error when output of pdfsig is empty [#4816](https://github.com/LibreSign/libresign/pull/4816)
+- fix: prevent error when collect metadata [#4787](https://github.com/LibreSign/libresign/pull/4787)
+- refactor: fix var typo [#4779](https://github.com/LibreSign/libresign/pull/4779)
+- fix: psalm issue [#4761](https://github.com/LibreSign/libresign/pull/4761)
+
+## 10.7.0 - 2025-04-11
+### Features
+- feat: customize signature stamp [#4826](https://github.com/LibreSign/libresign/pull/4826)
+- feat: add group activity [#4792](https://github.com/LibreSign/libresign/pull/4792)
+
+### Changes
+- Update translations
+- Bump dependencies
+- chore: replace deprecated properties [#4807](https://github.com/LibreSign/libresign/pull/4807)
+- chore: cover jsignparam with tests [#4789](https://github.com/LibreSign/libresign/pull/4789)
+- refactor: adding types to entities [#4775](https://github.com/LibreSign/libresign/pull/4775)
+
+### Fixes
+- fix: time stamp when then document signed [#4822](https://github.com/LibreSign/libresign/pull/4822)
+- fix: optimize file loading [#4821](https://github.com/LibreSign/libresign/pull/4821)
+- fix: check if preview is available [#4817](https://github.com/LibreSign/libresign/pull/4817)
+- fix: prevent error when output of pdfsig is empty [#4815](https://github.com/LibreSign/libresign/pull/4815)
+- fix: prevent error when collect metadata [#4786](https://github.com/LibreSign/libresign/pull/4786)
+- refactor: fix var typo [#4778](https://github.com/LibreSign/libresign/pull/4778)
+- fix: psalm issue [#4760](https://github.com/LibreSign/libresign/pull/4760)
+
+## 9.9.5 - 2025-04-11
+### Changes
+- Update translations
+- Bump dependencies
+- chore: cover jsignparam with tests [#4788](https://github.com/LibreSign/libresign/pull/4788)
+- refactor: adding types to entities [#4774](https://github.com/LibreSign/libresign/pull/4774)
+
+### Fixes
+- fix: optimize file loading [#4825](https://github.com/LibreSign/libresign/pull/4825)
+- fix: time stamp when then document signed [#4824](https://github.com/LibreSign/libresign/pull/4824)
+- fix: prevent error when collect metadata [#4785](https://github.com/LibreSign/libresign/pull/4785)
+- refactor: fix var typo [#4777](https://github.com/LibreSign/libresign/pull/4777)
+- fix: psalm issue [#4759](https://github.com/LibreSign/libresign/pull/4759)
+
 ## 11.0.4 - 2025-03-20
 ### Changes
 - Update translations
