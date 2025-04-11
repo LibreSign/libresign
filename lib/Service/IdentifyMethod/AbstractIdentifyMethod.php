@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
+use DateTime;
+use DateTimeInterface;
 use InvalidArgumentException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
@@ -159,8 +161,10 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			return;
 		}
 		$signRequest = $this->identifyService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
-		$now = $this->identifyService->getTimeFactory()->getTime();
-		if ($signRequest->getCreatedAt() + $maximumValidity < $now) {
+		$now = $this->identifyService->getTimeFactory()->getDateTime();
+		$expirationDate = (clone $signRequest->getCreatedAt())
+			->add(new \DateInterval('PT' . $maximumValidity . 'S'));
+		if ($expirationDate < $now) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$this->identifyService->getL10n()->t('Link expired.')],
@@ -203,23 +207,30 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		}
 		$signRequest = $this->identifyService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
 		$startTime = $this->identifyService->getSessionService()->getSignStartTime();
+		if ($startTime > 0) {
+			$startTime = new DateTime('@' . $startTime);
+		} else {
+			$startTime = null;
+		}
 		$createdAt = $signRequest->getCreatedAt();
-		$lastAttempt = (int)$this->getEntity()->getLastAttemptDate()?->format('U');
+		$lastAttempt = $this->getEntity()->getLastAttemptDate();
 		$lastActionDate = max(
 			$startTime,
 			$createdAt,
 			$lastAttempt,
 		);
-		$now = $this->identifyService->getTimeFactory()->getTime();
+		$now = $this->identifyService->getTimeFactory()->getDateTime();
 		$this->identifyService->getLogger()->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Times', [
 			'renewalInterval' => $renewalInterval,
 			'startTime' => $startTime,
 			'createdAt' => $createdAt,
 			'lastAttempt' => $lastAttempt,
 			'lastActionDate' => $lastActionDate,
-			'now' => $now,
+			'now' => $now->format(DateTimeInterface::ATOM),
 		]);
-		if ($lastActionDate + $renewalInterval < $now) {
+		$endRenewal = (clone $lastActionDate)
+			->add(new \DateInterval('PT' . $renewalInterval . 'S'));
+		if ($endRenewal < $now) {
 			$this->identifyService->getLogger()->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Exception');
 			if ($this->getName() === 'email') {
 				$blur = new Blur($this->getEntity()->getIdentifierValue());
