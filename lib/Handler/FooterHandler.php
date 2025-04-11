@@ -152,6 +152,14 @@ class FooterHandler {
 		return $this;
 	}
 
+	private function getLanguageDirection(string $language): string {
+		if (in_array($language, self::RTL_LANGUAGES, true)) {
+			return 'rtl';
+		}
+
+		return 'ltr';
+	}
+
 	private function getTemplateVars(): array {
 		$this->templateVars['signedBy'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_signed_by', $this->l10n->t('Digital signed by LibreSign.'));
 
