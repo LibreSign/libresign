@@ -399,7 +399,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('signature_methods', $signatureMethods);
 		$this->initialState->provideInitialState('token_length', TokenService::TOKEN_LENGTH);
 		$this->initialState->provideInitialState('description', '');
-		$nextcloudFile = $this->signFileService->getNextcloudFile($fileEntity->getNodeId());
+		$nextcloudFile = $this->signFileService->getNextcloudFile($fileEntity);
 		$this->initialState->provideInitialState('pdf',
 			$this->signFileService->getFileUrl('url', $fileEntity, $nextcloudFile, $uuid)
 		);

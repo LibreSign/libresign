@@ -186,6 +186,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUserId('username');
 
+		$this->root->method('getUserFolder')
+			->willReturn($this->root);
 		$this->root->method('getById')
 			->willReturn([]);
 		$this->userMountCache
@@ -216,6 +218,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$nextcloudFile->method('getContent')->willReturn('fake content');
 		$nextcloudFile->method('getId')->willReturn(171);
 
+		$this->root->method('getUserFolder')->willReturn($this->root);
 		$this->root->method('getById')->willReturn([$nextcloudFile]);
 		$this->root->method('newFile')->willReturn($nextcloudFile);
 		$this->userMountCache->method('getMountsForFileId')->wilLReturn([]);
