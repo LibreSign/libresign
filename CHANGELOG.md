@@ -13,6 +13,21 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+<!-- changelog-linker -->
+## 9.9.5 - 2025-04-11
+### Changes
+- Update translations
+- Bump dependencies
+- chore: cover jsignparam with tests [#4788](https://github.com/LibreSign/libresign/pull/4788)
+- refactor: adding types to entities [#4774](https://github.com/LibreSign/libresign/pull/4774)
+
+### Fixes
+- fix: optimize file loading [#4825](https://github.com/LibreSign/libresign/pull/4825)
+- fix: time stamp when then document signed [#4824](https://github.com/LibreSign/libresign/pull/4824)
+- fix: prevent error when collect metadata [#4785](https://github.com/LibreSign/libresign/pull/4785)
+- refactor: fix var typo [#4777](https://github.com/LibreSign/libresign/pull/4777)
+- fix: psalm issue [#4759](https://github.com/LibreSign/libresign/pull/4759)
+
 ## 9.9.4 - 2025-03-20
 ### Changes
 - Update translations
