@@ -10,7 +10,7 @@ namespace OCA\Libresign\Listener;
 
 use OCA\Files\Event\LoadAdditionalScriptsEvent;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCP\App\IAppManager;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -22,7 +22,7 @@ use OCP\Util;
 class LoadAdditionalListener implements IEventListener {
 	public function __construct(
 		private IAppManager $appManager,
-		private CertificateEngineHandler $certificateEngineHandler,
+		private CertificateEngineFactory $certificateEngineFactory,
 	) {
 	}
 	public function handle(Event $event): void {
@@ -34,7 +34,7 @@ class LoadAdditionalListener implements IEventListener {
 			return;
 		}
 
-		if (!$this->certificateEngineHandler->getEngine()->isSetupOk()) {
+		if (!$this->certificateEngineFactory->getEngine()->isSetupOk()) {
 			return;
 		}
 

@@ -16,7 +16,7 @@ use OCA\Libresign\Controller\ISignatureUuid;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
@@ -54,7 +54,7 @@ class InjectionMiddleware extends Middleware {
 		private IUserSession $userSession,
 		private ValidateHelper $validateHelper,
 		private SignRequestMapper $signRequestMapper,
-		private CertificateEngineHandler $certificateEngineHandler,
+		private CertificateEngineFactory $certificateEngineFactory,
 		private FileMapper $fileMapper,
 		private IInitialState $initialState,
 		private SignFileService $signFileService,
@@ -184,7 +184,7 @@ class InjectionMiddleware extends Middleware {
 			return;
 		}
 		$attribute = current($attribute);
-		if (!$this->certificateEngineHandler->getEngine()->isSetupOk()) {
+		if (!$this->certificateEngineFactory->getEngine()->isSetupOk()) {
 			/** @var RequireSetupOk $requirement */
 			$requireSetupOk = $attribute->newInstance();
 			throw new LibresignException(json_encode([

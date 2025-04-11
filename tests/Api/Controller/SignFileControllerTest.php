@@ -223,7 +223,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			],
 			'userManager' => $user,
 		]);
-		$pkcs12Handler = \OCP\Server::get(\OCA\Libresign\Handler\Pkcs12Handler::class);
+		$pkcs12Handler = \OCP\Server::get(\OCA\Libresign\Handler\SignEngine\Pkcs12Handler::class);
 		$certificate = $pkcs12Handler->generateCertificate(
 			[
 				'host' => 'person@test.coop',
@@ -283,7 +283,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			],
 			'userManager' => $user,
 		]);
-		$pkcs12Handler = \OCP\Server::get(\OCA\Libresign\Handler\Pkcs12Handler::class);
+		$pkcs12Handler = \OCP\Server::get(\OCA\Libresign\Handler\SignEngine\Pkcs12Handler::class);
 		$certificate = $pkcs12Handler->generateCertificate(
 			[
 				'host' => 'person@test.coop',
@@ -297,9 +297,9 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$mock = $this->createMock(JSignPDF::class);
 		$mock->method('sign')->willReturn('content');
-		$jsignHandler = \OCP\Server::get(\OCA\Libresign\Handler\JSignPdfHandler::class);
+		$jsignHandler = \OCP\Server::get(\OCA\Libresign\Handler\SignEngine\JSignPdfHandler::class);
 		$jsignHandler->setJSignPdf($mock);
-		\OC::$server->registerService(\OCA\Libresign\Handler\JSignPdfHandler::class, function () use ($jsignHandler):\OCA\Libresign\Handler\JSignPdfHandler {
+		\OC::$server->registerService(\OCA\Libresign\Handler\SignEngine\JSignPdfHandler::class, function () use ($jsignHandler):\OCA\Libresign\Handler\SignEngine\JSignPdfHandler {
 			return $jsignHandler;
 		});
 

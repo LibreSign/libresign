@@ -177,6 +177,11 @@
       <code><![CDATA[UUIDUtil]]></code>
     </UndefinedClass>
   </file>
+  <file src="lib/Service/SignatureTextService.php">
+    <UndefinedClass>
+      <code><![CDATA[UUIDUtil]]></code>
+    </UndefinedClass>
+  </file>
   <file src="lib/Service/TFile.php">
     <UndefinedDocblockClass>
       <code><![CDATA[PdfTypeException]]></code>

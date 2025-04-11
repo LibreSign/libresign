@@ -13,7 +13,7 @@ use OCA\Libresign\Db\FileElement;
 class VisibleElementAssoc {
 	public function __construct(
 		private FileElement $fileElement,
-		private string $tempFile,
+		private string $tempFile = '',
 	) {
 	}
 

@@ -16,7 +16,6 @@ use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\RoundBlockSizeMode;
 use Endroid\QrCode\Writer\PngWriter;
-use League\Plates\Engine;
 use Mpdf\Mpdf;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
@@ -28,6 +27,9 @@ use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
 use OCP\L10N\IFactory;
+use Twig\Environment;
+use Twig\Error\SyntaxError;
+use Twig\Loader\FilesystemLoader;
 
 class FooterHandler {
 	private QrCode $qrCode;
@@ -133,15 +135,29 @@ class FooterHandler {
 	}
 
 	private function getRenderedHtmlFooter(): string {
-		$templateFile = $this->getTemplateFile();
-		$pathInfo = pathinfo($templateFile);
-		$templates = new Engine($pathInfo['dirname']);
-		return $templates->render($pathInfo['filename'], $this->getTemplateVars());
+		try {
+			$twigEnvironment = new Environment(
+				new FilesystemLoader(),
+			);
+			return $twigEnvironment
+				->createTemplate($this->getTemplate())
+				->render($this->getTemplateVars());
+		} catch (SyntaxError $e) {
+			throw new LibresignException($e->getMessage());
+		}
 	}
 
 	public function setTemplateVar(string $name, mixed $value): self {
 		$this->templateVars[$name] = $value;
 		return $this;
+	}
+
+	private function getLanguageDirection(string $language): string {
+		if (in_array($language, self::RTL_LANGUAGES, true)) {
+			return 'rtl';
+		}
+
+		return 'ltr';
 	}
 
 	private function getTemplateVars(): array {
@@ -178,25 +194,12 @@ class FooterHandler {
 		return $this->templateVars;
 	}
 
-	private function getLanguageDirection(string $language): string {
-		if (in_array($language, self::RTL_LANGUAGES, true)) {
-			return 'rtl';
-		}
-
-		return 'ltr';
-	}
-
-	private function getTemplateFile(): string {
+	private function getTemplate(): string {
 		$footerTemplate = $this->appConfig->getValueString(Application::APP_ID, 'footer_template', '');
 		if ($footerTemplate) {
-			$tempFile = $this->tempManager->getTemporaryFile('footerTemplate.php');
-			if (!$tempFile) {
-				throw new LibresignException('Failure to create temporary file footerTemplate.php');
-			}
-			file_put_contents($tempFile, $footerTemplate);
-			return $tempFile;
+			return $footerTemplate;
 		}
-		return __DIR__ . '/Templates/footer.php';
+		return (string)file_get_contents(__DIR__ . '/Templates/footer.twig');
 	}
 
 	private function getQrCodeImageBase64(string $text): string {

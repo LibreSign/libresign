@@ -13,6 +13,7 @@
 </template>
 <script>
 import axios from '@nextcloud/axios'
+import { emit } from '@nextcloud/event-bus'
 import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
@@ -42,7 +43,11 @@ export default {
 			this.collectMetadataEnabled = ['true', true, '1', 1].includes(value)
 		},
 		saveCollectMetadata() {
-			OCP.AppConfig.setValue('libresign', 'collect_metadata', this.collectMetadataEnabled ? 1 : 0)
+			OCP.AppConfig.setValue('libresign', 'collect_metadata', this.collectMetadataEnabled ? 1 : 0, {
+				success: () => {
+					emit('collect-metadata:changed')
+				},
+			})
 		},
 	},
 }

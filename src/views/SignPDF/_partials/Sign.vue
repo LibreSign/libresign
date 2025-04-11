@@ -112,6 +112,7 @@
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
+import { getCapabilities } from '@nextcloud/capabilities'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
 
@@ -187,6 +188,10 @@ export default {
 			return !!signer.signRequestId
 				&& signer.visibleElements.length > 0
 				&& !this.hasSignatures
+				&& this.canCreateSignature
+		},
+		canCreateSignature() {
+			return getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true
 		},
 		ableToSign() {
 			if (this.signMethodsStore.needCreatePassword()) {
@@ -266,11 +271,18 @@ export default {
 		async signDocument(payload = {}) {
 			this.loading = true
 			if (this.elements.length > 0) {
-				payload.elements = this.elements
-					.map(row => ({
-						documentElementId: row.elementId,
-						profileNodeId: this.signatureElementsStore.signs[row.type].file.nodeId,
-					}))
+				if (this.canCreateSignature) {
+					payload.elements = this.elements
+						.map(row => ({
+							documentElementId: row.elementId,
+							profileNodeId: this.signatureElementsStore.signs[row.type].file.nodeId,
+						}))
+				} else {
+					payload.elements = this.elements
+						.map(row => ({
+							documentElementId: row.elementId,
+						}))
+				}
 			}
 			let url = ''
 			if (this.signStore.document.fileId > 0) {

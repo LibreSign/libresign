@@ -11,8 +11,8 @@ namespace OCA\Libresign\Service\Install;
 use OC\AppConfig;
 use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngine;
-use OCA\Libresign\Handler\JSignPdfHandler;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
@@ -25,7 +25,7 @@ class ConfigureCheckService {
 		private SystemConfig $systemConfig,
 		private AppConfig $ocAppConfig,
 		private JSignPdfHandler $jSignPdfHandler,
-		private CertificateEngine $certificateEngine,
+		private CertificateEngineFactory $certificateEngineFactory,
 		private SignSetupService $signSetupService,
 		private LoggerInterface $logger,
 	) {
@@ -383,6 +383,24 @@ class ConfigureCheckService {
 							->setTip('Run occ libresign:install --java'),
 					];
 				}
+				\exec($javaPath . ' -XshowSettings:properties -version 2>&1', $output, $resultCode);
+				preg_match('/native.encoding = (?<encoding>.*)\n/', implode("\n", $output), $matches);
+				if (!isset($matches['encoding'])) {
+					return [
+						(new ConfigureCheckHelper())
+							->setErrorMessage('Java encoding not found.')
+							->setResource('java')
+							->setTip(sprintf('The command %s need to have native.encoding', $javaPath . ' -XshowSettings:properties -version')),
+					];
+				}
+				if (!str_contains($matches['encoding'], 'UTF-8')) {
+					return [
+						(new ConfigureCheckHelper())
+							->setInfoMessage('Non-UTF-8 encoding detected. This may cause issues with accented or special characters')
+							->setResource('java')
+							->setTip(' Ensure the system encoding is UTF-8. You can check it using: locale charmap'),
+					];
+				}
 				return [
 					(new ConfigureCheckHelper())
 						->setSuccessMessage('Java version: ' . $javaVersion)
@@ -426,14 +444,14 @@ class ConfigureCheckService {
 	 */
 	public function checkCertificate(): array {
 		try {
-			$return = $this->certificateEngine->getEngine()->configureCheck();
+			$return = $this->certificateEngineFactory->getEngine()->configureCheck();
 		} catch (\Throwable $th) {
 			$return = [
 				(new ConfigureCheckHelper())
 					->setErrorMessage('Define the certificate engine to use')
 					->setResource('certificate-engine')
 					->setTip(sprintf('Run occ libresign:configure:%s --help',
-						$this->certificateEngine->getEngine()->getName()
+						$this->certificateEngineFactory->getEngine()->getName()
 					)),
 			];
 		}

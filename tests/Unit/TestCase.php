@@ -63,7 +63,7 @@ class TestCase extends \Test\TestCase {
 	private signRequestMapper $signRequestMapper;
 	private array $users = [];
 
-	public function getMockAppConfig(): IAppConfig {
+	public static function getMockAppConfig(): IAppConfig {
 		\OC::$server->registerParameter('appName', 'libresign');
 		$service = \OCP\Server::get(\OCP\IAppConfig::class);
 		if (!$service instanceof AppConfigOverwrite) {

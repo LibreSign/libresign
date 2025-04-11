@@ -14,7 +14,7 @@ use OCP\Security\ICrypto;
 use Psr\Log\LoggerInterface;
 
 class AppConfigOverwrite extends AppConfig {
-	/** @var string[][] */
+	/** @var string|bool|array|float|int[][] */
 	private $overWrite = [];
 
 	public function __construct(
@@ -47,6 +47,13 @@ class AppConfigOverwrite extends AppConfig {
 	): bool {
 		$this->overWrite[$app][$key] = $value;
 		return true;
+	}
+
+	public function hasKey(string $app, string $key, ?bool $lazy = false): bool {
+		if (isset($this->overWrite[$app]) && isset($this->overWrite[$app][$key])) {
+			return true;
+		}
+		return parent::hasKey($app, $key, $lazy);
 	}
 
 	public function getValueArray(string $app, string $key, array $default = [], bool $lazy = false): array {

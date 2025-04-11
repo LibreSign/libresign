@@ -19,6 +19,7 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignerElementsService;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
@@ -39,12 +40,13 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private AccountFileMapper&MockObject $accountFileMapper;
 	private UserElementMapper&MockObject $userElementMapper;
 	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
-	private IdentifyMethodService $identifyMethodService;
+	private IdentifyMethodService&MockObject $identifyMethodService;
+	private SignerElementsService&MockObject $signerElementsService;
 	private IMimeTypeDetector $mimeTypeDetector;
-	private IHasher $hasher;
+	private IHasher&MockObject $hasher;
 	private IAppConfig&MockObject $appConfig;
 	private IGroupManager&MockObject $groupManager;
-	private IUserManager $userManager;
+	private IUserManager&MockObject $userManager;
 	private IRootFolder&MockObject $root;
 	private IUserMountCache&MockObject $userMountCache;
 
@@ -61,6 +63,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->mimeTypeDetector = \OCP\Server::get(IMimeTypeDetector::class);
 		$this->hasher = $this->createMock(IHasher::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
@@ -81,6 +84,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->userElementMapper,
 			$this->identifyMethodMapper,
 			$this->identifyMethodService,
+			$this->signerElementsService,
 			$this->mimeTypeDetector,
 			$this->hasher,
 			$this->appConfig,
