@@ -163,6 +163,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get signature settings
+         * @description This endpoint requires admin access
+         */
+        get: operations["admin-get-signature-settings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signer-name": {
         parameters: {
             query?: never;
@@ -788,6 +808,41 @@ export interface operations {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
                                 error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-get-signature-settings": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                default_signature_text_template: string;
+                                signature_available_variables: {
+                                    [key: string]: string;
+                                };
                             };
                         };
                     };

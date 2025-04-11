@@ -463,6 +463,22 @@ class AdminController extends AEnvironmentAwareController {
 	}
 
 	/**
+	 * Get signature settings
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{default_signature_text_template: string, signature_available_variables: array<string, string>}, array{}>
+	 *
+	 * 200: OK
+	 */
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/signature-settings', requirements: ['apiVersion' => '(v1)'])]
+	public function getSignatureSettings(): DataResponse {
+		$response = [
+			'signature_available_variables' => $this->signatureTextService->getAvailableVariables(),
+			'default_signature_text_template' => $this->signatureTextService->getDefaultTemplate(),
+		];
+		return new DataResponse($response);
+	}
+
+	/**
 	 * Convert signer name as image
 	 *
 	 * @param int $width Image width,
