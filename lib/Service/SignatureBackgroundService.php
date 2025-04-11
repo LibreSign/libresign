@@ -25,6 +25,7 @@ use OCP\ITempManager;
 
 class SignatureBackgroundService {
 	use TSimpleFile;
+	public const SCALE_FACTOR = 3;
 
 	public function __construct(
 		private IAppData $appData,
@@ -86,10 +87,8 @@ class SignatureBackgroundService {
 		$signatureWidth = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_width', SignatureTextService::DEFAULT_SIGNATURE_WIDTH);
 		$signatureHeight = $this->appConfig->getValueFloat(Application::APP_ID, 'signature_height', SignatureTextService::DEFAULT_SIGNATURE_HEIGHT);
 
-		$upscaleFactor = 5;
-
-		$maxWidth = $signatureWidth * $upscaleFactor;
-		$maxHeight = $signatureHeight * $upscaleFactor;
+		$maxWidth = $signatureWidth * self::SCALE_FACTOR;
+		$maxHeight = $signatureHeight * self::SCALE_FACTOR;
 
 		if ($width <= $maxWidth && $height <= $maxHeight) {
 			return ['width' => $width, 'height' => $height];
