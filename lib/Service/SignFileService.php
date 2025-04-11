@@ -401,11 +401,7 @@ class SignFileService {
 	public function getFileToSing(FileEntity $libresignFile): \OCP\Files\Node {
 		$nodeId = $libresignFile->getNodeId();
 
-		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
-		foreach ($mountsContainingFile as $fileInfo) {
-			$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
-		}
-		$originalFile = $this->root->getById($nodeId);
+		$originalFile = $this->root->getUserFolder($libresignFile->getUserId())->getById($nodeId);
 		if (count($originalFile) < 1) {
 			throw new LibresignException($this->l10n->t('File not found'));
 		}
@@ -539,11 +535,7 @@ class SignFileService {
 		if ($fileData->getSignedNodeId()) {
 			$nodeId = $fileData->getSignedNodeId();
 
-			$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
-			foreach ($mountsContainingFile as $fileInfo) {
-				$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
-			}
-			$fileToSign = $this->root->getById($nodeId);
+			$fileToSign = $this->root->getUserFolder($fileData->getUserId())->getById($nodeId);
 			/** @var \OCP\Files\File */
 			$fileToSign = current($fileToSign);
 		} else {
@@ -652,12 +644,8 @@ class SignFileService {
 		return $this->accountFileMapper->getByFileId($fileId);
 	}
 
-	public function getNextcloudFile(int $nodeId): File {
-		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
-		foreach ($mountsContainingFile as $fileInfo) {
-			$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
-		}
-		$fileToSign = $this->root->getById($nodeId);
+	public function getNextcloudFile(FileEntity $fileData): File {
+		$fileToSign = $this->root->getUserFolder($fileData->getUserId())->getById($fileData->getNodeId());
 		if (count($fileToSign) < 1) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,

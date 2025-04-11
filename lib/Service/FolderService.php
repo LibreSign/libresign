@@ -84,12 +84,8 @@ class FolderService {
 	 */
 	public function getFileById(?int $nodeId = null): File {
 		if ($this->getUserId()) {
-			$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
-			foreach ($mountsContainingFile as $fileInfo) {
-				$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
-			}
 			/** @var File[] */
-			$file = $this->root->getById($nodeId);
+			$file = $this->root->getUserFolder($this->getUserId())->getById($nodeId);
 			if ($file) {
 				if (!$file[0]->fopen('r')) {
 					throw new NotFoundException('Invalid node');
