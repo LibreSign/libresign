@@ -124,6 +124,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getMimeType')
 			->willReturn('application/pdf');
 		$this->root
+			->method('getUserFolder')
+			->willReturn($this->root);
+		$this->root
 			->method('getById')
 			->willReturn([$file]);
 		$this->userMountCache
@@ -166,6 +169,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file
 			->method('getMimeType')
 			->willReturn($mimetype);
+		$this->root
+			->method('getUserFolder')
+			->willReturn($this->root);
 		$this->root
 			->method('getById')
 			->willReturn([$file]);
