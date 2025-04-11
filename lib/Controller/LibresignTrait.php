@@ -54,9 +54,7 @@ trait LibresignTrait {
 	public function validateSignRequestUuid(string $uuid): void {
 		$this->loadEntitiesFromUuid($uuid);
 		$this->signFileService->validateSigner($uuid, $this->userSession->getUser());
-		$this->nextcloudFile = $this->signFileService->getNextcloudFile(
-			$this->fileEntity->getNodeId(),
-		);
+		$this->nextcloudFile = $this->signFileService->getNextcloudFile($this->fileEntity);
 	}
 
 	/**
@@ -65,9 +63,7 @@ trait LibresignTrait {
 	public function validateRenewSigner(string $uuid): void {
 		$this->loadEntitiesFromUuid($uuid);
 		$this->signFileService->validateRenewSigner($uuid, $this->userSession->getUser());
-		$this->nextcloudFile = $this->signFileService->getNextcloudFile(
-			$this->fileEntity->getNodeId(),
-		);
+		$this->nextcloudFile = $this->signFileService->getNextcloudFile($this->fileEntity);
 	}
 
 	/**
@@ -75,9 +71,7 @@ trait LibresignTrait {
 	 */
 	public function loadNextcloudFileFromSignRequestUuid(string $uuid): void {
 		$this->loadEntitiesFromUuid($uuid);
-		$this->nextcloudFile = $this->signFileService->getNextcloudFile(
-			$this->fileEntity->getNodeId(),
-		);
+		$this->nextcloudFile = $this->signFileService->getNextcloudFile($this->fileEntity);
 	}
 
 	public function getSignRequestEntity(): ?SignRequestEntity {
