@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use DateTime;
 use DateTimeInterface;
 use InvalidArgumentException;
 use mikehaertl\pdftk\Command;
@@ -29,8 +30,8 @@ use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\PdfTk\Pdf;
-use OCA\Libresign\Handler\Pkcs12Handler;
-use OCA\Libresign\Handler\Pkcs7Handler;
+use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
+use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -45,6 +46,7 @@ use OCP\Files\Node;
 use OCP\Files\NotPermittedException;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
+use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
@@ -89,6 +91,7 @@ class SignFileService {
 		private SignerElementsService $signerElementsService,
 		private IRootFolder $root,
 		private IUserSession $userSession,
+		private IDateTimeZone $dateTimeZone,
 		private IUserMountCache $userMountCache,
 		private FileElementMapper $fileElementMapper,
 		private UserElementMapper $userElementMapper,
@@ -214,11 +217,12 @@ class SignFileService {
 	 */
 	public function setVisibleElements(array $list): self {
 		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($this->signRequest->getFileId(), $this->signRequest->getId());
+		$canCreateSignature = $this->signerElementsService->canCreateSignature();
 		foreach ($fileElements as $fileElement) {
 			$element = array_filter($list, function (array $element) use ($fileElement): bool {
 				return $element['documentElementId'] === $fileElement->getId();
 			});
-			if ($element) {
+			if ($element && $canCreateSignature) {
 				$c = current($element);
 				if (!empty($c['profileNodeId'])) {
 					$nodeId = $c['profileNodeId'];
@@ -228,11 +232,16 @@ class SignFileService {
 			} elseif (!$this->user instanceof IUser) {
 				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 			} else {
-				$userElement = $this->userElementMapper->findOne([
-					'user_id' => $this->user->getUID(),
-					'type' => $fileElement->getType(),
-				]);
-				$nodeId = $userElement->getFileId();
+				if ($canCreateSignature) {
+					$userElement = $this->userElementMapper->findOne([
+						'user_id' => $this->user->getUID(),
+						'type' => $fileElement->getType(),
+					]);
+					$nodeId = $userElement->getFileId();
+				} else {
+					$this->elements[] = new VisibleElementAssoc($fileElement);
+					continue;
+				}
 			}
 			try {
 				if ($this->user instanceof IUser) {
@@ -250,25 +259,49 @@ class SignFileService {
 			}
 			$tempFile = $this->tempManager->getTemporaryFile('.png');
 			file_put_contents($tempFile, $node->getContent());
-			$visibleElements = new VisibleElementAssoc(
+			$this->elements[] = new VisibleElementAssoc(
 				$fileElement,
 				$tempFile
 			);
-			$this->elements[] = $visibleElements;
 		}
 		return $this;
 	}
 
 	public function sign(): File {
 		$fileToSign = $this->getFileToSing($this->libreSignFile);
-		$pfxFileContent = $this->getPfxFile();
+		$pfxFileContent = $this->getPfxContent();
 		switch (strtolower($fileToSign->getExtension())) {
 			case 'pdf':
+				$certificateData = $this->readCertificate();
+				$signatureParams = [
+					'DocumentUUID' => $this->libreSignFile->getUuid(),
+					'IssuerCommonName' => $certificateData['issuer']['CN'],
+					'SignerCommonName' => $certificateData['subject']['CN'],
+					'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
+					'LocalSignerSignatureDateTime' => (new DateTime('now', $this->dateTimeZone->getTimeZone()))
+						->format(DateTimeInterface::ATOM)
+				];
+				if (isset($certificateData['extensions']['subjectAltName'])) {
+					preg_match('/^email:(?<email>.*)$/', $certificateData['extensions']['subjectAltName'], $matches);
+					if ($matches && filter_var($matches['email'], FILTER_VALIDATE_EMAIL)) {
+						$signatureParams['SignerEmail'] = $matches['email'];
+					} elseif (filter_var($certificateData['extensions']['subjectAltName'], FILTER_VALIDATE_EMAIL)) {
+						$signatureParams['SignerEmail'] = $certificateData['extensions']['subjectAltName'];
+					}
+				}
+				$signReuestMetadata = $this->signRequest->getMetadata();
+				if (isset($signReuestMetadata['remote-address'])) {
+					$signatureParams['SignerIP'] = $signReuestMetadata['remote-address'];
+				}
+				if (isset($signReuestMetadata['remote-address'])) {
+					$signatureParams['SignerUserAgent'] = $signReuestMetadata['user-agent'];
+				}
 				$signedFile = $this->pkcs12Handler
 					->setInputFile($fileToSign)
 					->setCertificate($pfxFileContent)
 					->setVisibleElements($this->elements)
 					->setPassword($this->password)
+					->setSignatureParams($signatureParams)
 					->sign();
 				break;
 			default:
@@ -350,7 +383,10 @@ class SignFileService {
 		return false;
 	}
 
-	private function getPfxFile(): string {
+	private function getPfxContent(): string {
+		if ($certificate = $this->pkcs12Handler->getCertificate()) {
+			return $certificate;
+		}
 		if ($this->signWithoutPassword) {
 			$tempPassword = sha1((string)time());
 			$this->setPassword($tempPassword);
@@ -364,7 +400,7 @@ class SignFileService {
 					$tempPassword,
 					$this->friendlyName,
 				);
-				$this->pkcs12Handler->setPfxContent($certificate);
+				$this->pkcs12Handler->setCertificate($certificate);
 			} catch (TypeError $e) {
 				throw new LibresignException($this->l10n->t('Failure to generate certificate'));
 			} catch (EmptyCertificateException $e) {
@@ -375,7 +411,14 @@ class SignFileService {
 				throw new LibresignException($this->l10n->t('Failure on generate certificate'));
 			}
 		}
-		return $this->pkcs12Handler->getPfx();
+		return $this->pkcs12Handler->getPfxOfCurrentSigner();
+	}
+
+	private function readCertificate(): array {
+		return $this->pkcs12Handler
+			->setPassword($this->password)
+			->setCertificate($this->getPfxContent())
+			->readCertificate();
 	}
 
 	/**

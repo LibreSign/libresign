@@ -1017,6 +1017,102 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-background": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get custom background image
+         * @description This endpoint requires admin access
+         */
+        get: operations["admin-signature-background-get"];
+        put?: never;
+        /**
+         * Add custom background image
+         * @description This endpoint requires admin access
+         */
+        post: operations["admin-signature-background-save"];
+        /**
+         * Delete background image
+         * @description This endpoint requires admin access
+         */
+        delete: operations["admin-signature-background-delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Reset the background image to be the default of LibreSign
+         * @description This endpoint requires admin access
+         */
+        patch: operations["admin-signature-background-reset"];
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-text": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get parsed signature text service
+         * @description This endpoint requires admin access
+         */
+        get: operations["admin-signature-text-get"];
+        put?: never;
+        /**
+         * Save signature text service
+         * @description This endpoint requires admin access
+         */
+        post: operations["admin-signature-text-save"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get signature settings
+         * @description This endpoint requires admin access
+         */
+        get: operations["admin-get-signature-settings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signer-name": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Convert signer name as image
+         * @description This endpoint requires admin access
+         */
+        get: operations["admin-signer-name"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
         parameters: {
             query?: never;
@@ -1045,6 +1141,24 @@ export type components = {
             file: components["schemas"]["NewFile"];
             name?: string;
             type?: string;
+        };
+        Capabilities: {
+            features: string[];
+            config: {
+                "sign-elements": {
+                    "is-available": boolean;
+                    "can-create-signature": boolean;
+                    /** Format: double */
+                    "full-signature-width": number;
+                    /** Format: double */
+                    "full-signature-height": number;
+                    /** Format: double */
+                    "signature-width": number;
+                    /** Format: double */
+                    "signature-height": number;
+                };
+            };
+            version: string;
         };
         CertificatePfxData: {
             name: string;
@@ -1192,6 +1306,9 @@ export type components = {
             prev: string | null;
             last: string | null;
             first: string | null;
+        };
+        PublicCapabilities: {
+            libresign?: components["schemas"]["Capabilities"];
         };
         RootCertificate: {
             commonName: string;
@@ -4391,6 +4508,395 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: unknown;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-signature-background-get": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Image returned */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+        };
+    };
+    "admin-signature-background-save": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** @enum {string} */
+                                status: "success";
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** @enum {string} */
+                                status: "failure";
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-signature-background-delete": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted with success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** @enum {string} */
+                                status: "success";
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-signature-background-reset": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Image reseted to default */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** @enum {string} */
+                                status: "success";
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-signature-text-get": {
+        parameters: {
+            query?: {
+                /** @description Template to signature text */
+                template?: string;
+                /** @description Context for parsing the template */
+                context?: string;
+            };
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                template: string;
+                                parsed: string;
+                                /** Format: double */
+                                templateFontSize: number;
+                                /** Format: double */
+                                signatureFontSize: number;
+                                /** Format: double */
+                                signatureWidth: number;
+                                /** Format: double */
+                                signatureHeight: number;
+                                renderMode: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Bad request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-signature-text-save": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Template to signature text */
+                    template: string;
+                    /**
+                     * Format: double
+                     * @description Font size used when print the parsed text of this template at PDF file
+                     * @default 10
+                     */
+                    templateFontSize?: number;
+                    /**
+                     * Format: double
+                     * @description Font size used when the signature mode is SIGNAME_AND_DESCRIPTION
+                     * @default 20
+                     */
+                    signatureFontSize?: number;
+                    /**
+                     * Format: double
+                     * @description Signature width
+                     * @default 350
+                     */
+                    signatureWidth?: number;
+                    /**
+                     * Format: double
+                     * @description Signature height
+                     * @default 100
+                     */
+                    signatureHeight?: number;
+                    /**
+                     * @description Signature render mode
+                     * @default GRAPHIC_AND_DESCRIPTION
+                     */
+                    renderMode?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                template: string;
+                                parsed: string;
+                                /** Format: double */
+                                templateFontSize: number;
+                                /** Format: double */
+                                signatureFontSize: number;
+                                /** Format: double */
+                                signatureWidth: number;
+                                /** Format: double */
+                                signatureHeight: number;
+                                renderMode: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Bad request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-get-signature-settings": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                default_signature_text_template: string;
+                                signature_available_variables: {
+                                    [key: string]: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-signer-name": {
+        parameters: {
+            query: {
+                /** @description Image width, */
+                width: number;
+                /** @description Image height */
+                height: number;
+                /** @description Text to be added to image */
+                text: string;
+                /** @description Font size of text */
+                fontSize: number;
+                /** @description Color of text, white if is tark theme and black if not */
+                isDarkTheme: 0 | 1;
+                /** @description Align of text: left, center or right */
+                align: string;
+            };
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "Content-Disposition"?: "inline; filename=\"signer-name.png\"";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": string;
+                };
+            };
+            /** @description Bad request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                error: string;
+                            };
                         };
                     };
                 };

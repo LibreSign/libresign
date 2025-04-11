@@ -60,10 +60,10 @@
 <script>
 import { Cropper } from 'vue-advanced-cropper'
 
+import { getCapabilities } from '@nextcloud/capabilities'
+
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
-
-import { SignatureImageDimensions } from './options.js'
 
 import 'vue-advanced-cropper/dist/style.css'
 
@@ -81,8 +81,8 @@ export default {
 			image: '',
 			imageData: '',
 			stencilSize: {
-				height: SignatureImageDimensions.height,
-				width: SignatureImageDimensions.width,
+				width: getCapabilities().libresign.config['sign-elements']['signature-width'],
+				height: getCapabilities().libresign.config['sign-elements']['signature-height'],
 			},
 		}
 	},

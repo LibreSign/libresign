@@ -4,17 +4,16 @@
 -->
 <template>
 	<div class="container-draw">
-		<div class="canva-container">
-			<canvas id="canvas-text"
-				ref="canvas"
+		<div ref="canvasWrapper" class="canvas-wrapper">
+			<canvas ref="canvas"
 				class="canvas"
-				:width="canvasWidth + 'px'"
-				:height="canvasHeight + 'px'" />
-			<NcTextField id="text"
-				ref="input"
-				v-model="value"
-				:label="t('libresign', 'Enter your Full Name or Initials to create Signature')" />
+				width="10px"
+				height="10px" />
 		</div>
+		<NcTextField id="text"
+			ref="input"
+			v-model="value"
+			:label="t('libresign', 'Enter your Full Name or Initials to create Signature')" />
 		<div class="action-buttons">
 			<NcButton :disabled="!isValid" variant="primary" @click="confirmSignature">
 				{{ t('libresign', 'Save') }}
@@ -41,12 +40,13 @@
 
 <script>
 import '@fontsource/dancing-script'
+import debounce from 'debounce'
+
+import { getCapabilities } from '@nextcloud/capabilities'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
-
-import { SignatureImageDimensions } from './options.js'
 
 export default {
 	name: 'TextInput',
@@ -57,11 +57,12 @@ export default {
 	},
 
 	data: () => ({
-		canvasWidth: SignatureImageDimensions.width,
-		canvasHeight: SignatureImageDimensions.height,
+		canvasWidth: getCapabilities().libresign.config['sign-elements']['signature-width'],
+		canvasHeight: getCapabilities().libresign.config['sign-elements']['signature-height'],
 		value: '',
 		modal: false,
 		imageData: null,
+		scale: 1,
 	}),
 	computed: {
 		isValid() {
@@ -70,32 +71,44 @@ export default {
 	},
 	watch: {
 		value(val) {
-			const ctx = this.$canvas
-			ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
+			const ctx = this.$refs.canvas.getContext('2d')
+			ctx.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height)
 			ctx.fillStyle = 'black'
 			ctx.font = "30px 'Dancing Script'"
 			ctx.fillText(val, 15, 50)
 		},
 	},
 	mounted() {
-		this.$canvas = this.$refs.canvas.getContext('2d')
-		const padding = 20
-		if (SignatureImageDimensions.width > window.innerWidth - padding) {
-			this.canvasWidth = window.innerWidth - padding
-		} else {
-			this.canvasWidth = SignatureImageDimensions.width
-		}
-		if (SignatureImageDimensions.height > window.innerHeight) {
-			this.canvasHeight = window.innerHeight
-		} else {
-			this.canvasHeight = SignatureImageDimensions.height
-		}
-		this.$canvas.width = this.canvasWidth
-		this.$canvas.height = this.canvasHeight
+		this.$nextTick(() => {
+			this.observeResize()
+		})
 		this.setFocus()
 	},
 
 	methods: {
+		observeResize() {
+			this.debounceScaleCanvasToFit = debounce(this.scaleCanvasToFit, 200)
+			this.resizeObserver = new ResizeObserver(() => {
+				this.debounceScaleCanvasToFit()
+			})
+			this.resizeObserver.observe(this.$refs.canvasWrapper)
+		},
+		scaleCanvasToFit() {
+			if (!this.$refs.canvasWrapper) {
+				return
+			}
+			const padding = 5
+			const maxWidth = this.$refs.canvasWrapper.offsetWidth - padding
+			const maxHeight = this.$refs.canvasWrapper.offsetHeight - padding
+
+			this.scale = Math.min(maxWidth / this.canvasWidth, maxHeight / this.canvasHeight)
+
+			const finalWidth = this.canvasWidth * this.scale
+			const finalHeight = this.canvasHeight * this.scale
+
+			this.$refs.canvas.width = finalWidth
+			this.$refs.canvas.height = finalHeight
+		},
 		saveSignature() {
 			this.handleModal(false)
 			this.$emit('save', this.imageData)
@@ -112,7 +125,7 @@ export default {
 		},
 
 		clearCanvas() {
-			const ctx = this.$canvas
+			const ctx = this.$refs.canvas.getContext('2d')
 			ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
 			this.imageData = null
 		},
@@ -154,20 +167,24 @@ export default {
 	}
 }
 
-.canvas{
-	border: 1px solid #dbdbdb;
-	background-color: #cecece;
-	border-radius: 10px;
-	margin-bottom: 5px;
-}
-
-.canva-container {
+.canvas-wrapper{
 	display: flex;
-	flex-direction: column;
+	position: relative;
+	overflow: hidden;
+	width: 100%;
+	height: 100%;
+	justify-content: center;
 	align-items: center;
-	label {
-		word-wrap: break-word;
+	.canvas{
+		max-width: 100%;
+		max-height: 100%;
+		position: block;
+		background-color: #cecece;
+		border-radius: 10px;
 	}
+}
+label {
+	word-wrap: break-word;
 }
 
 img{

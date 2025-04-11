@@ -37,13 +37,19 @@ interface IEngineHandler {
 		array $names = [],
 	): string;
 
+	public function populateInstance(array $rootCert): IEngineHandler;
+
 	public function generateCertificate(): string;
+
+	public function readCertificate(string $certificate, string $privateKey): array;
 
 	public function updatePassword(string $certificate, string $currentPrivateKey, string $newPrivateKey): string;
 
+	public function getEngine(): string;
+
 	public function isSetupOk(): bool;
 
-	public function setConfigPath(string $configPath): void;
+	public function setConfigPath(string $configPath): IEngineHandler;
 
 	public function expirity(): int;
 

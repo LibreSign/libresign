@@ -6,14 +6,15 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Handler;
+namespace OCA\Libresign\Handler\SignEngine;
 
 use DateTime;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\OrderCertificatesTrait;
+use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
 use OCP\Files\GenericFileException;
@@ -26,15 +27,18 @@ use TypeError;
 class Pkcs12Handler extends SignEngineHandler {
 	use OrderCertificatesTrait;
 	private string $pfxFilename = 'signature.pfx';
-	private string $pfxContent = '';
+	protected string $certificate = '';
 	private array $signaturesFromPoppler = [];
+	/**
+	 * Used by method self::getHandler()
+	 */
+	private ?JSignPdfHandler $jSignPdfHandler = null;
 
 	public function __construct(
 		private FolderService $folderService,
 		private IAppConfig $appConfig,
-		private CertificateEngineHandler $certificateEngineHandler,
+		protected CertificateEngineFactory $certificateEngineFactory,
 		private IL10N $l10n,
-		private JSignPdfHandler $jSignPdfHandler,
 		private FooterHandler $footerHandler,
 		private ITempManager $tempManager,
 	) {
@@ -72,22 +76,13 @@ class Pkcs12Handler extends SignEngineHandler {
 	}
 
 	public function updatePassword(string $uid, string $currentPrivateKey, string $newPrivateKey): string {
-		$pfx = $this->getPfx($uid);
-		$content = $this->certificateEngineHandler->getEngine()->updatePassword(
+		$pfx = $this->getPfxOfCurrentSigner($uid);
+		$content = $this->certificateEngineFactory->getEngine()->updatePassword(
 			$pfx,
 			$currentPrivateKey,
 			$newPrivateKey
 		);
 		return $this->savePfx($uid, $content);
-	}
-
-	public function readCertificate(string $uid, string $privateKey): array {
-		$this->setPassword($privateKey);
-		$pfx = $this->getPfx($uid);
-		return $this->certificateEngineHandler->getEngine()->readCertificate(
-			$pfx,
-			$privateKey
-		);
 	}
 
 	/**
@@ -370,16 +365,12 @@ class Pkcs12Handler extends SignEngineHandler {
 		return $pem;
 	}
 
-	public function setPfxContent(string $content): void {
-		$this->pfxContent = $content;
-	}
-
 	/**
 	 * Get content of pfx file
 	 */
-	public function getPfx(?string $uid = null): string {
-		if (!empty($this->pfxContent) || empty($uid)) {
-			return $this->pfxContent;
+	public function getPfxOfCurrentSigner(?string $uid = null): string {
+		if (!empty($this->certificate) || empty($uid)) {
+			return $this->certificate;
 		}
 		$this->folderService->setUserId($uid);
 		$folder = $this->folderService->getFolder();
@@ -389,22 +380,22 @@ class Pkcs12Handler extends SignEngineHandler {
 		try {
 			/** @var \OCP\Files\File */
 			$node = $folder->get($this->pfxFilename);
-			$this->pfxContent = $node->getContent();
+			$this->certificate = $node->getContent();
 		} catch (GenericFileException $e) {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		} catch (\Throwable $th) {
 		}
-		if (empty($this->pfxContent)) {
+		if (empty($this->certificate)) {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		}
 		if ($this->getPassword()) {
 			try {
-				$this->certificateEngineHandler->getEngine()->opensslPkcs12Read($this->pfxContent, $this->getPassword());
+				$this->certificateEngineFactory->getEngine()->readCertificate($this->certificate, $this->getPassword());
 			} catch (InvalidPasswordException $e) {
 				throw new LibresignException($this->l10n->t('Invalid password'));
 			}
 		}
-		return $this->pfxContent;
+		return $this->certificate;
 	}
 
 	private function getHandler(): SignEngineHandler {
@@ -413,7 +404,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		if (!property_exists($this, $property)) {
 			throw new LibresignException($this->l10n->t('Invalid Sign engine.'), 400);
 		}
-		$classHandler = 'OCA\\Libresign\\Handler\\' . $property;
+		$classHandler = 'OCA\\Libresign\\Handler\\SignEngine\\' . ucfirst($property);
 		if (!$this->$property instanceof $classHandler) {
 			$this->$property = \OCP\Server::get($classHandler);
 		}
@@ -425,6 +416,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			->setCertificate($this->getCertificate())
 			->setInputFile($this->getInputFile())
 			->setPassword($this->getPassword())
+			->setSignatureParams($this->getSignatureParams())
 			->setVisibleElements($this->getVisibleElements())
 			->getSignedContent();
 		$this->getInputFile()->putContent($signedContent);
@@ -432,7 +424,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	}
 
 	public function isHandlerOk(): bool {
-		return $this->certificateEngineHandler->getEngine()->isSetupOk();
+		return $this->certificateEngineFactory->getEngine()->isSetupOk();
 	}
 
 	/**
@@ -443,7 +435,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	 * @param string $friendlyName Friendly name
 	 */
 	public function generateCertificate(array $user, string $signPassword, string $friendlyName): string {
-		$content = $this->certificateEngineHandler->getEngine()
+		$content = $this->certificateEngineFactory->getEngine()
 			->setHosts([$user['host']])
 			->setCommonName($user['name'])
 			->setFriendlyName($friendlyName)

@@ -20,6 +20,68 @@
             }
         },
         "schemas": {
+            "Capabilities": {
+                "type": "object",
+                "required": [
+                    "features",
+                    "config",
+                    "version"
+                ],
+                "properties": {
+                    "features": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "config": {
+                        "type": "object",
+                        "required": [
+                            "sign-elements"
+                        ],
+                        "properties": {
+                            "sign-elements": {
+                                "type": "object",
+                                "required": [
+                                    "is-available",
+                                    "can-create-signature",
+                                    "full-signature-width",
+                                    "full-signature-height",
+                                    "signature-width",
+                                    "signature-height"
+                                ],
+                                "properties": {
+                                    "is-available": {
+                                        "type": "boolean"
+                                    },
+                                    "can-create-signature": {
+                                        "type": "boolean"
+                                    },
+                                    "full-signature-width": {
+                                        "type": "number",
+                                        "format": "double"
+                                    },
+                                    "full-signature-height": {
+                                        "type": "number",
+                                        "format": "double"
+                                    },
+                                    "signature-width": {
+                                        "type": "number",
+                                        "format": "double"
+                                    },
+                                    "signature-height": {
+                                        "type": "number",
+                                        "format": "double"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "version": {
+                        "type": "string"
+                    }
+                }
+            },
             "CetificateDataGenerated": {
                 "allOf": [
                     {
@@ -104,6 +166,14 @@
                     },
                     "itemsperpage": {
                         "type": "string"
+                    }
+                }
+            },
+            "PublicCapabilities": {
+                "type": "object",
+                "properties": {
+                    "libresign": {
+                        "$ref": "#/components/schemas/Capabilities"
                     }
                 }
             },
@@ -695,6 +765,968 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-background": {
+            "post": {
+                "operationId": "admin-signature-background-save",
+                "summary": "Add custom background image",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "admin"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "status"
+                                                    ],
+                                                    "properties": {
+                                                        "status": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "success"
+                                                            ]
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "status",
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "status": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "failure"
+                                                            ]
+                                                        },
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "operationId": "admin-signature-background-get",
+                "summary": "Get custom background image",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "admin"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Image returned",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "admin-signature-background-reset",
+                "summary": "Reset the background image to be the default of LibreSign",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "admin"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Image reseted to default",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "status"
+                                                    ],
+                                                    "properties": {
+                                                        "status": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "success"
+                                                            ]
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "admin-signature-background-delete",
+                "summary": "Delete background image",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "admin"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deleted with success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "status"
+                                                    ],
+                                                    "properties": {
+                                                        "status": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "success"
+                                                            ]
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-text": {
+            "post": {
+                "operationId": "admin-signature-text-save",
+                "summary": "Save signature text service",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "admin"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "template"
+                                ],
+                                "properties": {
+                                    "template": {
+                                        "type": "string",
+                                        "description": "Template to signature text"
+                                    },
+                                    "templateFontSize": {
+                                        "type": "number",
+                                        "format": "double",
+                                        "default": 10,
+                                        "description": "Font size used when print the parsed text of this template at PDF file"
+                                    },
+                                    "signatureFontSize": {
+                                        "type": "number",
+                                        "format": "double",
+                                        "default": 20,
+                                        "description": "Font size used when the signature mode is SIGNAME_AND_DESCRIPTION"
+                                    },
+                                    "signatureWidth": {
+                                        "type": "number",
+                                        "format": "double",
+                                        "default": 350,
+                                        "description": "Signature width"
+                                    },
+                                    "signatureHeight": {
+                                        "type": "number",
+                                        "format": "double",
+                                        "default": 100,
+                                        "description": "Signature height"
+                                    },
+                                    "renderMode": {
+                                        "type": "string",
+                                        "default": "GRAPHIC_AND_DESCRIPTION",
+                                        "description": "Signature render mode"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "template",
+                                                        "parsed",
+                                                        "templateFontSize",
+                                                        "signatureFontSize",
+                                                        "signatureWidth",
+                                                        "signatureHeight",
+                                                        "renderMode"
+                                                    ],
+                                                    "properties": {
+                                                        "template": {
+                                                            "type": "string"
+                                                        },
+                                                        "parsed": {
+                                                            "type": "string"
+                                                        },
+                                                        "templateFontSize": {
+                                                            "type": "number",
+                                                            "format": "double"
+                                                        },
+                                                        "signatureFontSize": {
+                                                            "type": "number",
+                                                            "format": "double"
+                                                        },
+                                                        "signatureWidth": {
+                                                            "type": "number",
+                                                            "format": "double"
+                                                        },
+                                                        "signatureHeight": {
+                                                            "type": "number",
+                                                            "format": "double"
+                                                        },
+                                                        "renderMode": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "error"
+                                                    ],
+                                                    "properties": {
+                                                        "error": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "operationId": "admin-signature-text-get",
+                "summary": "Get parsed signature text service",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "admin"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "template",
+                        "in": "query",
+                        "description": "Template to signature text",
+                        "schema": {
+                            "type": "string",
+                            "default": ""
+                        }
+                    },
+                    {
+                        "name": "context",
+                        "in": "query",
+                        "description": "Context for parsing the template",
+                        "schema": {
+                            "type": "string",
+                            "default": ""
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "template",
+                                                        "parsed",
+                                                        "templateFontSize",
+                                                        "signatureFontSize",
+                                                        "signatureWidth",
+                                                        "signatureHeight",
+                                                        "renderMode"
+                                                    ],
+                                                    "properties": {
+                                                        "template": {
+                                                            "type": "string"
+                                                        },
+                                                        "parsed": {
+                                                            "type": "string"
+                                                        },
+                                                        "templateFontSize": {
+                                                            "type": "number",
+                                                            "format": "double"
+                                                        },
+                                                        "signatureFontSize": {
+                                                            "type": "number",
+                                                            "format": "double"
+                                                        },
+                                                        "signatureWidth": {
+                                                            "type": "number",
+                                                            "format": "double"
+                                                        },
+                                                        "signatureHeight": {
+                                                            "type": "number",
+                                                            "format": "double"
+                                                        },
+                                                        "renderMode": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "error"
+                                                    ],
+                                                    "properties": {
+                                                        "error": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-settings": {
+            "get": {
+                "operationId": "admin-get-signature-settings",
+                "summary": "Get signature settings",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "admin"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "default_signature_text_template",
+                                                        "signature_available_variables"
+                                                    ],
+                                                    "properties": {
+                                                        "default_signature_text_template": {
+                                                            "type": "string"
+                                                        },
+                                                        "signature_available_variables": {
+                                                            "type": "object",
+                                                            "additionalProperties": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signer-name": {
+            "get": {
+                "operationId": "admin-signer-name",
+                "summary": "Convert signer name as image",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "admin"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "width",
+                        "in": "query",
+                        "description": "Image width,",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "height",
+                        "in": "query",
+                        "description": "Image height",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "text",
+                        "in": "query",
+                        "description": "Text to be added to image",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fontSize",
+                        "in": "query",
+                        "description": "Font size of text",
+                        "required": true,
+                        "schema": {
+                            "type": "number",
+                            "format": "double"
+                        }
+                    },
+                    {
+                        "name": "isDarkTheme",
+                        "in": "query",
+                        "description": "Color of text, white if is tark theme and black if not",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "enum": [
+                                0,
+                                1
+                            ]
+                        }
+                    },
+                    {
+                        "name": "align",
+                        "in": "query",
+                        "description": "Align of text: left, center or right",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {
+                            "Content-Disposition": {
+                                "schema": {
+                                    "type": "string",
+                                    "enum": [
+                                        "inline; filename=\"signer-name.png\""
+                                    ]
+                                }
+                            }
+                        },
+                        "content": {
+                            "image/png": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "error"
+                                                    ],
+                                                    "properties": {
+                                                        "error": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }

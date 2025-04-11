@@ -923,6 +923,24 @@ export type components = {
             name?: string;
             type?: string;
         };
+        Capabilities: {
+            features: string[];
+            config: {
+                "sign-elements": {
+                    "is-available": boolean;
+                    "can-create-signature": boolean;
+                    /** Format: double */
+                    "full-signature-width": number;
+                    /** Format: double */
+                    "full-signature-height": number;
+                    /** Format: double */
+                    "signature-width": number;
+                    /** Format: double */
+                    "signature-height": number;
+                };
+            };
+            version: string;
+        };
         CertificatePfxData: {
             name: string;
             subject: string;
@@ -1054,6 +1072,9 @@ export type components = {
             prev: string | null;
             last: string | null;
             first: string | null;
+        };
+        PublicCapabilities: {
+            libresign?: components["schemas"]["Capabilities"];
         };
         Settings: {
             canSign: boolean;

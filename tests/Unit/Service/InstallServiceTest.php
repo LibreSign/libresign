@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use bovigo\vfs\vfsStream;
-use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCP\Files\AppData\IAppDataFactory;
@@ -25,7 +25,7 @@ use Symfony\Component\Console\Output\BufferedOutput;
 final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ICacheFactory&MockObject $cacheFactory;
 	private IClientService&MockObject $clientService;
-	private CertificateEngineHandler&MockObject $certificateEngineHandler;
+	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private IConfig&MockObject $config;
 	private IAppConfig&MockObject $appConfig;
 	private IRootFolder&MockObject $rootFolder;
@@ -40,7 +40,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected function getInstallService(): InstallService {
 		$this->cacheFactory = $this->createMock(ICacheFactory::class);
 		$this->clientService = $this->createMock(IClientService::class);
-		$this->certificateEngineHandler = $this->createMock(CertificateEngineHandler::class);
+		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->rootFolder = $this->createMock(IRootFolder::class);
@@ -50,7 +50,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return new InstallService(
 			$this->cacheFactory,
 			$this->clientService,
-			$this->certificateEngineHandler,
+			$this->certificateEngineFactory,
 			$this->config,
 			$this->appConfig,
 			$this->rootFolder,

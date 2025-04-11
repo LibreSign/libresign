@@ -17,8 +17,9 @@
 		<LegalInformation />
 		<IdentificationDocuments />
 		<CollectMetadata />
-		<DefaultUserFolder />
+		<SignatureStamp />
 		<SignatureHashAlgorithm />
+		<DefaultUserFolder />
 	</NcSettingsSection>
 </template>
 
@@ -38,6 +39,7 @@ import LegalInformation from './LegalInformation.vue'
 import RootCertificateCfssl from './RootCertificateCfssl.vue'
 import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
 import SignatureHashAlgorithm from './SignatureHashAlgorithm.vue'
+import SignatureStamp from './SignatureStamp.vue'
 import Validation from './Validation.vue'
 
 export default {
@@ -56,8 +58,9 @@ export default {
 		LegalInformation,
 		IdentificationDocuments,
 		CollectMetadata,
-		DefaultUserFolder,
+		SignatureStamp,
 		SignatureHashAlgorithm,
+		DefaultUserFolder,
 	},
 	data() {
 		return {

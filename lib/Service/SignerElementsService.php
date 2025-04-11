@@ -19,14 +19,13 @@ use OCP\IURLGenerator;
  * @psalm-import-type LibresignUserElement from ResponseDefinitions
  */
 class SignerElementsService {
-	public const ELEMENT_SIGN_WIDTH = 350;
-	public const ELEMENT_SIGN_HEIGHT = 100;
-
 	public function __construct(
 		private FolderService $folderService,
 		private SessionService $sessionService,
 		private IURLGenerator $urlGenerator,
 		private UserElementMapper $userElementMapper,
+		private SignatureBackgroundService $signatureBackgroundService,
+		private SignatureTextService $signatureTextService,
 	) {
 	}
 
@@ -129,5 +128,19 @@ class SignerElementsService {
 			];
 		}
 		return $return;
+	}
+
+	public function isSignElementsAvailable(): bool {
+		return $this->signatureBackgroundService->isEnabled() || $this->signatureTextService->isEnabled();
+	}
+
+	public function canCreateSignature(): bool {
+		return !in_array(
+			$this->signatureTextService->getRenderMode(),
+			[
+				'SIGNAME_AND_DESCRIPTION',
+				'DESCRIPTION_ONLY',
+			]
+		);
 	}
 }
