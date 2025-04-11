@@ -306,6 +306,7 @@ import Upload from 'vue-material-design-icons/Upload.vue'
 
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
+import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t, isRTL } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -461,12 +462,23 @@ export default {
 	},
 	mounted() {
 		this.resizeHeight()
+		subscribe('collect-metadata:changed', this.refreshAfterChangeCollectMetadata)
+	},
+	beforeUnmount() {
+		unsubscribe('collect-metadata:changed')
 	},
 	methods: {
 		reset() {
 			this.dislaySuccessTemplate = false
 			this.errorMessageBackground = ''
 			this.errorMessageTemplate = []
+		},
+		async refreshAfterChangeCollectMetadata() {
+			await axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/signature-settings'))
+				.then(({ data }) => {
+					this.availableVariables = data.ocs.data.signature_available_variables
+					this.defaultSignatureTextTemplate = data.ocs.data.default_signature_text_template
+				})
 		},
 		activateLocalFilePicker() {
 			this.reset()
