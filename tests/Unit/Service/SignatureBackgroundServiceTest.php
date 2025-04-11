@@ -63,13 +63,13 @@ final class SignatureBackgroundServiceTest extends \OCA\Libresign\Tests\Unit\Tes
 			'under limit => return equals' =>
 				[100, 50, 200, 100, 100, 50],
 			'between upscale limit => return equals' =>
-				[900, 400, 200, 100, 900, 400],
+				[500, 200, 200, 100, 500, 200],
 			'height over upscale limit => reduce to scale limit' =>
-				[1200, 800, 200, 100, 750, 500],
+				[800, 600, 200, 100, 400, 300],
 			'width and height over upscale limit => reduce to scale limit' =>
-				[2000, 1600, 200, 100, 625, 500],
+				[2000, 1600, 200, 100, 375, 300],
 			'every return integer' =>
-				[2000, 1600, 200.7, 100.5, 628, 502],
+				[2000, 1600, 200.7, 100.5, 376, 301],
 		];
 	}
 }
