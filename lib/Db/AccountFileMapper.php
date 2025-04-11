@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
+use DateTimeInterface;
 use OCA\Libresign\Helper\Pagination;
 use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\QBMapper;
@@ -184,9 +185,7 @@ class AccountFileMapper extends QBMapper {
 			'name' => $this->fileTypeMapper->getNameOfType($row['file_type']),
 			'description' => $this->fileTypeMapper->getDescriptionOfType($row['file_type']),
 		];
-		$row['created_at'] = (new \DateTime())
-			->setTimestamp((int)$row['created_at'])
-			->format('Y-m-d H:i:s');
+		$row['created_at'] = $row['created_at']->format(DateTimeInterface::ATOM);
 		$row['file'] = [
 			'name' => $row['name'],
 			'status' => $row['status'],
@@ -227,16 +226,12 @@ class AccountFileMapper extends QBMapper {
 					$data = [
 						'description' => $signer->getDescription(),
 						'displayName' => $signer->getDisplayName(),
-						'request_sign_date' => (new \DateTime())
-							->setTimestamp($signer->getCreatedAt())
-							->format('Y-m-d H:i:s'),
-						'sign_date' => null,
+						'request_sign_date' => $signer->getCreatedAt()->format(DateTimeInterface::ATOM),
+						'sign_date' => $signer->getSigned(),
 						'signRequestId' => $signer->getId(),
 					];
-					if ($signer->getSigned()) {
-						$data['sign_date'] = (new \DateTime())
-							->setTimestamp($signer->getSigned())
-							->format('Y-m-d H:i:s');
+					if ($data['sign_date']) {
+						$data['sign_date'] = $data['sign_date']->format(DateTimeInterface::ATOM);
 						$totalSigned++;
 					}
 					$files[$key]['file']['signers'][] = $data;
