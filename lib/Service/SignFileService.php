@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use DateTimeInterface;
 use InvalidArgumentException;
 use mikehaertl\pdftk\Command;
 use OC\AppFramework\Http as AppFrameworkHttp;
@@ -279,7 +280,7 @@ class SignFileService {
 		}
 		$hash = hash('sha256', $signedFile->getContent());
 
-		$this->signRequest->setSigned(time());
+		$this->signRequest->setSigned(new \DateTime());
 		$this->signRequest->setSignedHash($hash);
 		if ($this->signRequest->getId()) {
 			$this->signRequestMapper->update($this->signRequest);
@@ -505,7 +506,7 @@ class SignFileService {
 			$signRequest->setFileId($libresignFile->getId());
 			$signRequest->setDisplayName($user->getDisplayName());
 			$signRequest->setUuid(UUIDUtil::getUUID());
-			$signRequest->setCreatedAt(time());
+			$signRequest->setCreatedAt(new \DateTime());
 		}
 		return $signRequest;
 	}
@@ -533,7 +534,9 @@ class SignFileService {
 				->setTemplateVar('signers', array_map(function (SignRequestEntity $signer) {
 					return [
 						'displayName' => $signer->getDisplayName(),
-						'signed' => $signer->getSigned(),
+						'signed' => $signer->getSigned()
+							? $signer->getSigned()->format(DateTimeInterface::ATOM)
+							: null,
 					];
 				}, $this->getSigners()))
 				->getFooter($originalFile, $fileData);
