@@ -175,7 +175,7 @@ OC.L10N.register(
     "Validate" : "التحقق من الصحة",
     "Documents Validation" : "التحقق من صحة الوثائق",
     "Settings" : "الإعدادات",
-    "Loading file" : "تحميل الملف",
+    "Loading …" : "التحميل جارٍ ...",
     "Name" : "الاسم",
     "Searching …" : "البحث جارٍ …",
     "No signers." : "لا يوجد موقعون.",
@@ -202,7 +202,6 @@ OC.L10N.register(
     "Add signer" : "أضِف صاحب توقيع",
     "Send reminder" : "إرسال تذكير",
     "Enter who will receive the request" : "أدخِل من سيستلم الطلب",
-    "Loading …" : "التحميل جارٍ ...",
     "Document not available for signature." : "الوثيقة ليست متاحة للتوقيع.",
     "Rate LibreSign ❤️" : "قيِّم LibreSign ❤️",
     "signed at {date}" : "تمّ توقيعه بتاريخ: {date}",
@@ -404,6 +403,7 @@ OC.L10N.register(
     "not a LibreSign file" : "ليس ملف LibreSign",
     "New signature request" : "طلب جديد للتوقيع",
     "Requested by {name}, at {date}" : "مطلوب من قبل {name}، في {date}",
-    "Other activities" : "أنشطة أخرى"
+    "Other activities" : "أنشطة أخرى",
+    "Loading file" : "تحميل الملف"
 },
 "nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;");

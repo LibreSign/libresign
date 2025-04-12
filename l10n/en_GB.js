@@ -12,6 +12,8 @@ OC.L10N.register(
     "Certificate file saved with success." : "Certificate file saved with success.",
     "New password to sign documents has been created" : "New password to sign documents has been created",
     "Could not download binaries." : "Could not download binaries.",
+    "The file was only partially uploaded" : "The file was only partially uploaded",
+    "Missing a temporary folder" : "Missing a temporary folder",
     "Internal error. Contact admin." : "Internal error. Contact admin.",
     "Name is mandatory" : "Name is mandatory",
     "Invalid UUID" : "Invalid UUID",
@@ -175,7 +177,7 @@ OC.L10N.register(
     "Validate" : "Validate",
     "Documents Validation" : "Documents Validation",
     "Settings" : "Settings",
-    "Loading file" : "Loading file",
+    "Loading …" : "Loading …",
     "Name" : "Surname",
     "Searching …" : "Searching …",
     "No signers." : "No signers.",
@@ -202,7 +204,6 @@ OC.L10N.register(
     "Add signer" : "Add signer",
     "Send reminder" : "Send reminder",
     "Enter who will receive the request" : "Enter who will receive the request",
-    "Loading …" : "Loading …",
     "Document not available for signature." : "Document not available for signature.",
     "Rate LibreSign ❤️" : "Rate LibreSign ❤️",
     "signed at {date}" : "signed at {date}",
@@ -348,6 +349,7 @@ OC.L10N.register(
     "Not mandatory, don't fill to use default value." : "Not mandatory, don't fill to use default value.",
     "Signature hash algorithm" : "Signature hash algorithm",
     "Hash algorithm used for signature." : "Hash algorithm used for signature.",
+    "Remove background" : "Remove background",
     "Validation URL" : "Validation URL",
     "Make validation URL acessible only by authenticated users" : "Make validation URL acessible only by authenticated users",
     "Add visible footer with signature details" : "Add visible footer with signature details",
@@ -404,6 +406,7 @@ OC.L10N.register(
     "not a LibreSign file" : "not a LibreSign file",
     "New signature request" : "New signature request",
     "Requested by {name}, at {date}" : "Requested by {name}, at {date}",
-    "Other activities" : "Other activities"
+    "Other activities" : "Other activities",
+    "Loading file" : "Loading file"
 },
 "nplurals=2; plural=(n != 1);");

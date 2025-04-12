@@ -3,6 +3,11 @@ OC.L10N.register(
     {
     "Success" : "წარმატება",
     "Settings saved" : "პარამეტრები შენახულია",
+    "The uploaded file exceeds the upload_max_filesize directive in php.ini" : "ატვირთული ფაილი აჭარბებს php.ini-ში დაყენებულ upload_max_filesize დირექტივას",
+    "The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form" : "ატვირთული ფაილი აჭარბებს HTML ფორამაში მითითებულ MAX_FILE_SIZE დირექტივას",
+    "No file was uploaded" : "ფაილი არ აიტვირთა",
+    "Missing a temporary folder" : "დროებითი დირექტორია არ არსებობს",
+    "No file uploaded" : "არც ერთი ფაილი არ ატვირთულა",
     "deleted" : "გაუქმებულია",
     "File is too big" : "ფაილი ზედმეტად დიდია",
     "File sharing" : "ფაილების გაზიარება",
@@ -51,6 +56,7 @@ OC.L10N.register(
     "Dependencies" : "დამოკიდებულებები",
     "Yes" : "კი",
     "No" : "არა",
+    "Reset to default" : "საწყის მდგომარეობაში დაბრუნება",
     "No date" : "თარიღი არაა"
 },
 "nplurals=2; plural=(n!=1);");

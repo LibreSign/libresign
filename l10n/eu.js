@@ -6,6 +6,12 @@ OC.L10N.register(
     "Settings saved" : "Ezarpenak gordeta",
     "New password to sign documents has been created" : "Dokumentuak sinatzeko pasahitz berria sortu da",
     "Could not download binaries." : "Ezin izan dira binarioak deskargatu",
+    "The uploaded file exceeds the upload_max_filesize directive in php.ini" : "Igotako fitxategiak php.ini fitxategiko upload_max_filesize direktiban zehazturikoa gainditzen du",
+    "The file was only partially uploaded" : "Fitxategia erdizka igo da",
+    "No file was uploaded" : "Ez da fitxategirik igo",
+    "Missing a temporary folder" : "Aldi baterako karpeta bat falta da",
+    "Could not write file to disk" : "Ezin izan da fitxategia diskoan idatzi",
+    "No file uploaded" : "Ez da fitxategirik igo",
     "Internal error. Contact admin." : "Barne-errorea. Jarri harremanetan administratzailearekin.",
     "Name is mandatory" : "Izena nahitaezkoa da",
     "Invalid UUID" : "UUID baliogabea",
@@ -135,7 +141,7 @@ OC.L10N.register(
     "Validate" : "Balidatu",
     "Documents Validation" : "Dokumentuen balioztatzea",
     "Settings" : "Ezarpenak",
-    "Loading file" : "Fitxategia kargatzen",
+    "Loading …" : "Kargatzen …",
     "Name" : "Izena",
     "Searching …" : "Bilatzen…",
     "No signers." : "Sinatzailerik ez.",
@@ -155,7 +161,6 @@ OC.L10N.register(
     "Request signatures?" : "Sinadurak eskatu?",
     "Add signer" : "Gehitu sinatzailea",
     "Send reminder" : "Bidali gogorarazpena",
-    "Loading …" : "Kargatzen …",
     "Document not available for signature." : "Dokumentua ezin da sinatu.",
     "pending" : "zain",
     "Open sidebar" : "Ireki alboko barra",
@@ -307,6 +312,7 @@ OC.L10N.register(
     "Name of an organization" : "Erakunde baten izena",
     "Name of an organizational unit" : "Erakunde bateko sail baten izena",
     "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean",
-    "Other activities" : "Beste jarduerak"
+    "Other activities" : "Beste jarduerak",
+    "Loading file" : "Fitxategia kargatzen"
 },
 "nplurals=2; plural=(n != 1);");

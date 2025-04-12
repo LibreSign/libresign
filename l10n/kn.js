@@ -1,6 +1,8 @@
 OC.L10N.register(
     "libresign",
     {
+    "No file was uploaded" : "ವರ್ಗಾವಣೆಗೆ ﻿ಯಾವುದೇ ಕಡತಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
+    "Missing a temporary folder" : "ತಾತ್ಕಾಲಿಕ ಕಡತಕೋಶ ದೊರೆಕುತ್ತಿಲ್ಲ",
     "File not found" : "ಕಡತ ಕಂಡುಬಂದಿಲ್ಲ",
     "Invalid user" : "﻿ಅಮಾನ್ಯ ಬಳಕೆದಾರ",
     "Email" : "﻿ಇ-ಅಂಚೆ",
