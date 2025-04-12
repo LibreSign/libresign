@@ -516,7 +516,6 @@ class AdminController extends AEnvironmentAwareController {
 				'Content-Disposition' => 'inline; filename="signer-name.png"',
 				'Content-Type' => 'image/png',
 			]);
-			return $response;
 		} catch (LibresignException $th) {
 			return new DataResponse(
 				[
