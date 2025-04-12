@@ -18,6 +18,15 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 10.7.1 - 2025-04-12
+### Fixes
+- fix: only load backup if exists [#4840](https://github.com/LibreSign/libresign/pull/4840)
+- fix typo: descriptin -> description [#4836](https://github.com/LibreSign/libresign/pull/4836)
+
+## 9.9.6 - 2025-04-12
+### Fixes
+- fix: only load backup if exists [#4842](https://github.com/LibreSign/libresign/pull/4842)
+
 ## 10.7.0 - 2025-04-11
 ### Features
 - feat: customize signature stamp [#4826](https://github.com/LibreSign/libresign/pull/4826)
