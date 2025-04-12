@@ -10,9 +10,9 @@
 				value="DESCRIPTION_ONLY"
 				name="render_mode"
 				type="radio"
-				:aria-label="t('libresign', 'Descriptin only')"
+				:aria-label="t('libresign', 'Description only')"
 				@update:modelValue="saveTemplate">
-				{{ t('libresign', 'Descriptin only') }}
+				{{ t('libresign', 'Description only') }}
 			</NcCheckboxRadioSwitch>
 			<NcCheckboxRadioSwitch v-model="renderMode"
 				value="GRAPHIC_AND_DESCRIPTION"
