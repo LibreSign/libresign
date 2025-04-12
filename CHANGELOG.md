@@ -14,6 +14,10 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 9.9.6 - 2025-04-12
+### Fixes
+- fix: only load backup if exists [#4842](https://github.com/LibreSign/libresign/pull/4842)
+
 ## 9.9.5 - 2025-04-11
 ### Changes
 - Update translations
