@@ -10,6 +10,7 @@
     "Certificate file saved with success." : "Zertifikatdatei erfolgreich gespeichert.",
     "New password to sign documents has been created" : "Ein neues Passwort zum Signieren von Dokumenten wurde erstellt",
     "Could not download binaries." : "Binärdateien konnten nicht heruntergeladen werden.",
+    "The file was only partially uploaded" : "Die Datei wurde nur teilweise hochgeladen",
     "Internal error. Contact admin." : "Interner Fehler. Kontaktiere einen Administrator.",
     "Name is mandatory" : "Name ist erforderlich",
     "Invalid UUID" : "Ungültige UUID",
@@ -173,7 +174,7 @@
     "Validate" : "Überprüfen",
     "Documents Validation" : "Dokumentenvalidierung",
     "Settings" : "Einstellungen",
-    "Loading file" : "Lade Datei",
+    "Loading …" : "Lade …",
     "Name" : "Name",
     "Searching …" : "Suche …",
     "No signers." : "Keine Unterzeichner",
@@ -200,7 +201,6 @@
     "Add signer" : "Unterzeichner hinzufügen",
     "Send reminder" : "Erinnerung senden",
     "Enter who will receive the request" : "Gib ein, wer die Anfrage erhalten soll.",
-    "Loading …" : "Lade …",
     "Document not available for signature." : "Dokument ist nicht zum Signieren verfügbar",
     "Rate LibreSign ❤️" : "LibreSign bewerten ❤️",
     "signed at {date}" : "Unterzeichnet am {date}",
@@ -346,6 +346,7 @@
     "Not mandatory, don't fill to use default value." : "Optional, nicht ausfüllen, wenn du den Standardwert verwenden möchtest.",
     "Signature hash algorithm" : "Signatur-Hash-Algorithmus",
     "Hash algorithm used for signature." : "Zur Signatur verwendeter Hash-Algorithmus.",
+    "Remove background" : "Hintergrund entfernen",
     "Validation URL" : "Überprüfungs-URL",
     "Make validation URL acessible only by authenticated users" : "Mach die Validierungs-URL nur für authentifizierte Benutzer zugänglich.",
     "Add visible footer with signature details" : "Sichtbare Fußzeile mit Unterschriftsdetails hinzufügen",
@@ -402,6 +403,7 @@
     "not a LibreSign file" : "Keine LibreSign-Datei",
     "New signature request" : "Neue Signaturanfrage",
     "Requested by {name}, at {date}" : "Angefordert von {name}, am {date}",
-    "Other activities" : "Andere Aktivitäten"
+    "Other activities" : "Andere Aktivitäten",
+    "Loading file" : "Lade Datei"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

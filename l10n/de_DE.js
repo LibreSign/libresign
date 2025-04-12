@@ -12,6 +12,7 @@ OC.L10N.register(
     "Certificate file saved with success." : "Zertifikatdatei erfolgreich gespeichert.",
     "New password to sign documents has been created" : "Neues Passwort zum Signieren von Dokumenten erstellt",
     "Could not download binaries." : "Binärdateien konnten nicht heruntergeladen werden.",
+    "The file was only partially uploaded" : "Die Datei konnte nur teilweise hochgeladen werden",
     "Internal error. Contact admin." : "Interner Fehler. Bitte die Administration kontaktieren.",
     "Name is mandatory" : "Name ist erforderlich",
     "Invalid UUID" : "Ungültiges UUID",
@@ -175,7 +176,7 @@ OC.L10N.register(
     "Validate" : "Überprüfen",
     "Documents Validation" : "Dokumentenvalidierung",
     "Settings" : "Einstellungen",
-    "Loading file" : "Lade Datei",
+    "Loading …" : "Lade …",
     "Name" : "Name",
     "Searching …" : "Suche …",
     "No signers." : "Keine Unterzeichner.",
@@ -202,7 +203,6 @@ OC.L10N.register(
     "Add signer" : "Unterzeichner hinzufügen",
     "Send reminder" : "Erinnerung senden",
     "Enter who will receive the request" : "Geben Sie ein, wer die Anfrage erhalten soll",
-    "Loading …" : "Lade …",
     "Document not available for signature." : "Dokument ist nicht zum Signieren verfügbar.",
     "Rate LibreSign ❤️" : "LibreSign bewerten ❤️",
     "signed at {date}" : "Unterzeichnet am {date}",
@@ -348,6 +348,7 @@ OC.L10N.register(
     "Not mandatory, don't fill to use default value." : "Nicht obligatorisch, nicht ausfüllen, um den Standardwert zu verwenden.",
     "Signature hash algorithm" : "Signatur-Hash-Algorithmus",
     "Hash algorithm used for signature." : "Zur Signatur verwendeter Hash-Algorithmus.",
+    "Remove background" : "Hintergrund entfernen",
     "Validation URL" : "Überprüfungs-URL",
     "Make validation URL acessible only by authenticated users" : "Machen Sie die Validierungs-URL nur für authentifizierte Benutzer zugänglich",
     "Add visible footer with signature details" : "Sichtbare Fußzeile mit Unterschriftsdetails hinzufügen",
@@ -404,6 +405,7 @@ OC.L10N.register(
     "not a LibreSign file" : "Keine LibreSign-Datei",
     "New signature request" : "Neue Signaturanfrage",
     "Requested by {name}, at {date}" : "Angefordert von {name}, am {date}",
-    "Other activities" : "Andere Aktivitäten"
+    "Other activities" : "Andere Aktivitäten",
+    "Loading file" : "Lade Datei"
 },
 "nplurals=2; plural=(n != 1);");
