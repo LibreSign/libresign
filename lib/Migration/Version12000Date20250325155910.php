@@ -15,6 +15,7 @@ use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\DB\Types;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
+use OCP\Files\NotFoundException;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
@@ -77,8 +78,12 @@ class Version12000Date20250325155910 extends SimpleMigrationStep {
 			->set('created_at', $update->createParameter('created_at'))
 			->where($update->expr()->eq('id', $update->createParameter('id')));
 
-		$folder = $this->appData->getFolder('/');
-		$file = $folder->getFile('backup-table-libresign_file_Version12000Date20250325143340.csv');
+		try {
+			$folder = $this->appData->getFolder('/');
+			$file = $folder->getFile('backup-table-libresign_file_Version12000Date20250325143340.csv');
+		} catch (NotFoundException $e) {
+			return;
+		}
 		$handle = $file->read();
 		fgetcsv($handle); // header
 		while (($row = fgetcsv($handle)) !== false) {
@@ -95,8 +100,12 @@ class Version12000Date20250325155910 extends SimpleMigrationStep {
 			->set('signed', $update->createParameter('signed'))
 			->where($update->expr()->eq('id', $update->createParameter('id')));
 
-		$folder = $this->appData->getFolder('/');
-		$file = $folder->getFile('backup-table-libresign_sign_request_Version12000Date20250325143340.csv');
+		try {
+			$folder = $this->appData->getFolder('/');
+			$file = $folder->getFile('backup-table-libresign_sign_request_Version12000Date20250325143340.csv');
+		} catch (NotFoundException $e) {
+			return;
+		}
 		$handle = $file->read();
 		fgetcsv($handle); // header
 		while (($row = fgetcsv($handle)) !== false) {
