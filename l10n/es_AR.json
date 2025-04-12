@@ -1,5 +1,7 @@
 { "translations": {
     "Settings saved" : "Configuraciones guardadas",
+    "The file was only partially uploaded" : "El archivo sólo fue cargado parcialmente",
+    "Missing a temporary folder" : "Falta un directorio temporal",
     "deleted" : "Borrado",
     "Invalid password" : "Contraseña invalida",
     "File is too big" : "El archivo es demasiado grande.",
@@ -18,6 +20,7 @@
     "Cancel" : "Cancelar",
     "Files" : "Archivos",
     "Settings" : "Ajustes",
+    "Loading …" : "Cargando …",
     "Name" : "Nombre",
     "Searching …" : "Buscando ...",
     "No recommendations. Start typing." : "No hay sugerencias. Comenzar a escribir",
@@ -27,7 +30,6 @@
     "Previous" : "Anterior",
     "Next" : "Siguiente",
     "Confirm" : "Confirmar",
-    "Loading …" : "Cargando …",
     "Open sidebar" : "Abrir barra lateral",
     "Details" : "Detalles",
     "Certificate" : "Certificado",

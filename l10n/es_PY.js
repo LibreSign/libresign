@@ -3,6 +3,9 @@ OC.L10N.register(
     {
     "Success" : "Éxito",
     "Settings saved" : "Se han guardado las configuraciones ",
+    "No file was uploaded" : "No se cargó el archivo",
+    "Missing a temporary folder" : "Falta una carpeta temporal",
+    "No file uploaded" : "No hay archivos cargados",
     "deleted" : "Borrado",
     "File is too big" : "El archivo es demasiado grande.",
     "File not found" : "Archivo no encontrado",

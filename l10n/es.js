@@ -12,6 +12,8 @@ OC.L10N.register(
     "Certificate file saved with success." : "Archivo de certificado guardado exitosamente.",
     "New password to sign documents has been created" : "Se ha creado una nueva contraseña para firmar documentos",
     "Could not download binaries." : "No fue posible descargar los binarios.",
+    "The file was only partially uploaded" : "El archivo solo se ha subido parcialmente",
+    "Missing a temporary folder" : "Falta una carpeta temporal",
     "Internal error. Contact admin." : "Error interno. Ponte en contacto con un administrador.",
     "Name is mandatory" : "El nombre es obligatorio",
     "Invalid UUID" : "UUID no válido",
@@ -175,7 +177,7 @@ OC.L10N.register(
     "Validate" : "Validar",
     "Documents Validation" : "Validación de documentos",
     "Settings" : "Ajustes",
-    "Loading file" : "Cargando archivo",
+    "Loading …" : "Cargando …",
     "Name" : "Nombre",
     "Searching …" : "Buscando  …",
     "No signers." : "Sin firmantes.",
@@ -201,7 +203,6 @@ OC.L10N.register(
     "Add signer" : "Añadir firmante",
     "Send reminder" : "Enviar recordatorio",
     "Enter who will receive the request" : "Ingrese quien recibirá la solicitud",
-    "Loading …" : "Cargando …",
     "Document not available for signature." : "Documento no disponible para firma.",
     "Rate LibreSign ❤️" : "Valora LibreSign ❤️",
     "signed at {date}" : "firmado en {date}",
@@ -347,6 +348,7 @@ OC.L10N.register(
     "Not mandatory, don't fill to use default value." : "No es obligatorio, deje en blanco para usar el valor por defecto.",
     "Signature hash algorithm" : "Algoritmo de hash de la firma",
     "Hash algorithm used for signature." : "Algoritmo hash utilizado para la firma.",
+    "Remove background" : "Eliminar fondo",
     "Validation URL" : "URL de validación",
     "Make validation URL acessible only by authenticated users" : "Hacer que la URL de validación solo sea accesible a usuarios autenticados",
     "Add visible footer with signature details" : "Añadir un pié de página visible con los detalles de la firma",
@@ -402,6 +404,7 @@ OC.L10N.register(
     "Name of an organizational unit" : "Nombre de una unidad organizacional",
     "New signature request" : "Nueva solicitud de firma",
     "Requested by {name}, at {date}" : "Pedido por {name}, el {date}",
-    "Other activities" : "Otras actividades"
+    "Other activities" : "Otras actividades",
+    "Loading file" : "Cargando archivo"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

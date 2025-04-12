@@ -2,6 +2,7 @@ OC.L10N.register(
     "libresign",
     {
     "Settings saved" : "Тохиргоо хадгалагдлаа",
+    "No file uploaded" : "Файл илгээгдсэнгүй",
     "deleted" : "Устгагдсан",
     "File is too big" : "Файлын хэмжээ хэт их байна",
     "File not found" : "Файл олдсонгүй",
@@ -15,6 +16,7 @@ OC.L10N.register(
     "Cancel" : "болиулах",
     "Files" : "файлууд",
     "Settings" : "Тохиргоо",
+    "Loading …" : "Уншиж байна...",
     "Name" : "Нэр",
     "Choose" : "Сонгох",
     "Choose from Files" : "Файлаас сонгох",
@@ -22,7 +24,6 @@ OC.L10N.register(
     "Previous" : "өмнөх",
     "Next" : "дараагийх",
     "Confirm" : "Батлах",
-    "Loading …" : "Уншиж байна...",
     "Details" : "Дэлгэрэнгүй",
     "Certificate" : "Гэрчилгээ",
     "Type" : "Төрөл",
@@ -43,6 +44,7 @@ OC.L10N.register(
     "Resource" : "Нөөц",
     "Yes" : "Тийм",
     "No" : "Үгүй",
+    "Reset to default" : "Анхны байдлаар сэргээх",
     "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");
