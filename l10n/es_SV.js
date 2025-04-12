@@ -3,6 +3,11 @@ OC.L10N.register(
     {
     "Success" : "Éxito",
     "Settings saved" : "Se han guardado las configuraciones ",
+    "The file was only partially uploaded" : "El archivo sólo fue cargado parcialmente",
+    "No file was uploaded" : "No se cargó el archivo",
+    "Missing a temporary folder" : "Falta una carpeta temporal",
+    "Could not write file to disk" : "No fue posible escribir a disco",
+    "No file uploaded" : "No hay archivos cargados",
     "deleted" : "Borrado",
     "File is too big" : "El archivo es demasiado grande.",
     "File sharing" : "Compartir archivos",

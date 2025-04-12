@@ -12,6 +12,7 @@ OC.L10N.register(
     "Certificate file saved with success." : "Soubor s certifikátem úspěšně uložen.",
     "New password to sign documents has been created" : "Nové heslo pro podepisování dokumentů vytvořeno",
     "Could not download binaries." : "Programy se nepodařilo stáhnout.",
+    "The file was only partially uploaded" : "Soubor byl nahrán pouze z části",
     "Internal error. Contact admin." : "Vnitřní chyba chyba – obraťte se na správce.",
     "Name is mandatory" : "Název je třeba zadat",
     "Invalid UUID" : "Neplatný UUID identifikátro",
@@ -174,7 +175,7 @@ OC.L10N.register(
     "Validate" : "Ověřit správnost",
     "Documents Validation" : "Ověřování dokumentů",
     "Settings" : "Nastavení",
-    "Loading file" : "Načítání souboru",
+    "Loading …" : "Načítání…",
     "Name" : "Název",
     "Searching …" : "Hledání…",
     "No signers." : "Nikdo není podepsaný.",
@@ -201,7 +202,6 @@ OC.L10N.register(
     "Add signer" : "Přidat podepisujícího",
     "Send reminder" : "Odeslat připomínku",
     "Enter who will receive the request" : "Zadejte kdo obdrží požadavek",
-    "Loading …" : "Načítání…",
     "Document not available for signature." : "Dokument není k dispozici pro podepisování.",
     "Rate LibreSign ❤️" : "Ohodnotit LibreSign ❤️",
     "signed at {date}" : "podepsáno v {date}",
@@ -403,6 +403,7 @@ OC.L10N.register(
     "not a LibreSign file" : "není LibreSign soubor",
     "New signature request" : "Nový požadavek na podepsání",
     "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}",
-    "Other activities" : "Ostatní aktivity"
+    "Other activities" : "Ostatní aktivity",
+    "Loading file" : "Načítání souboru"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

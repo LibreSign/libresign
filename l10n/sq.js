@@ -3,6 +3,11 @@ OC.L10N.register(
     {
     "Success" : "Sukses",
     "Settings saved" : "Opsjonet u Ruajtën.",
+    "The file was uploaded" : "Skedari u ngarkua",
+    "The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form" : "Kartela e ngarkuar tejkalon udhëzimin MAX_FILE_SIZE që qe përcaktuar te formulari HTML",
+    "No file was uploaded" : "S’u ngarkua kartelë",
+    "Missing a temporary folder" : "Mungon një dosje e përkohshme",
+    "No file uploaded" : "Asnjë skedar i ngarkuar",
     "deleted" : "të fshira",
     "File is too big" : "Skedari është shumë i madh",
     "File sharing" : "Shpërndarja e skedarëve",
@@ -56,6 +61,7 @@ OC.L10N.register(
     "Dependencies" : "Varësitë",
     "Yes" : "Yes",
     "No" : "Jo",
+    "Reset to default" : "Rivendos tek të paracaktuarat",
     "Name:" : "Emri",
     "No date" : "No date"
 },
