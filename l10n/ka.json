@@ -1,5 +1,6 @@
 { "translations": {
     "Settings saved" : "Settings saved",
+    "The file was uploaded" : "ფაილი ატვირთულ იქნა",
     "The uploaded file exceeds the upload_max_filesize directive in php.ini" : "ატვირთული ფაილი აჭარბებს php.ini-ში დაყენებულ upload_max_filesize დირექტივას",
     "The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form" : "ატვირთული ფაილი აჭარბებს MAX_FILE_SIZE დირექტივას, რომელიც მითითებული იყო HTML ფორმაში",
     "The file was only partially uploaded" : "ფაილი მხოლოდ ნაწილობრივ აიტვირთა",

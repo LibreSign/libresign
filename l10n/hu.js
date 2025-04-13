@@ -6,6 +6,7 @@ OC.L10N.register(
     "Settings saved" : "Beállítások mentve",
     "New password to sign documents has been created" : "Az új, dokumentumok aláírásához használt jelszó létrehozva",
     "Could not download binaries." : "Nem sikerült letölteni a binárisokat.",
+    "The file was uploaded" : "A fájl feltöltve",
     "The uploaded file exceeds the upload_max_filesize directive in php.ini" : "A feltöltött fájl meghaladja a php.ini-ben szereplő upload_max_filesize direktívában megadott méretet",
     "The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form" : "A feltöltött fájl meghaladja a HTML űrlapon megadott MAX_FILE_SIZE direktívában meghatározott méretet.",
     "The file was only partially uploaded" : "A fájl csak részlegesen lett feltöltve",
