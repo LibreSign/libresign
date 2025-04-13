@@ -10,6 +10,7 @@
     "Certificate file saved with success." : "Il file del certificato è stato salvato correttamente.",
     "New password to sign documents has been created" : "È stata creata una nuova password per firmare i documenti",
     "Could not download binaries." : "Impossibile scaricare i file binari.",
+    "The file was uploaded" : "Il file è stato caricato",
     "The uploaded file exceeds the upload_max_filesize directive in php.ini" : "Il file caricato supera la direttiva upload_max_filesize in php.ini",
     "The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form" : "Il file caricato supera la direttiva MAX_FILE_SIZE specificata nel modulo HTML",
     "The file was only partially uploaded" : "Il file è stato caricato solo parzialmente",

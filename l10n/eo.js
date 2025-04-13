@@ -2,8 +2,15 @@ OC.L10N.register(
     "libresign",
     {
     "Settings saved" : "Agordoj konservitaj",
+    "The file was uploaded" : "La dosiero alŝutiĝis",
+    "The uploaded file exceeds the upload_max_filesize directive in php.ini" : "La dosiero alŝutita superas la regulon „upload_max_filesize“ el „php.ini“",
+    "The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form" : "La dosiero alŝutita superas la regulon MAX_FILE_SIZE, kiu estas difinita en la HTML-formularo",
     "The file was only partially uploaded" : "La dosiero alŝutiĝis nur parte",
+    "No file was uploaded" : "Neniu dosiero alŝutiĝis",
     "Missing a temporary folder" : "Mankas provizora dosierujo",
+    "Could not write file to disk" : "Ne eblis skribi dosieron sur diskon",
+    "A PHP extension stopped the file upload" : "PHP-modulo haltigis la dosieralŝuton",
+    "No file uploaded" : "Neniu dosiero alŝutiĝis",
     "deleted" : "forigita",
     "Invalid password" : "Nevalida pasvorto",
     "File is too big" : "Dosiero tro grandas",
@@ -63,6 +70,7 @@ OC.L10N.register(
     "Dependencies" : "Dependecoj",
     "Yes" : "Yes",
     "No" : "No",
+    "Reset to default" : "Restarigi al defaŭltaj agordoj",
     "Forgot password?" : "Ĉu vi forgesis vian pasvorton?",
     "No date" : "No date",
     "Other activities" : "Alia aktivado"

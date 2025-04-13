@@ -10,6 +10,7 @@
     "Certificate file saved with success." : "Berkas sertifikat berhasil disimpan.",
     "New password to sign documents has been created" : "Kata sandi baru untuk menandatangani dokumen telah dibuat",
     "Could not download binaries." : "Tidak dapat mengunduh binary",
+    "The file was uploaded" : "Berkas terunggah",
     "The uploaded file exceeds the upload_max_filesize directive in php.ini" : "Berkas terunggah melampau parameter upload_max_filesize pada php.ini",
     "The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form" : "Berkas yang diunggah melampaui direktif MAX_FILE_SIZE yang ditentukan dalam formulir HTML.",
     "The file was only partially uploaded" : "Berkas hanya sebagian terunggah",
