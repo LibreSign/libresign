@@ -190,7 +190,7 @@ class RequestSignatureService {
 							],
 							displayName: $user['displayName'] ?? '',
 							description: $user['description'] ?? '',
-							notify: empty($user['notify']),
+							notify: empty($user['notify']) && $this->isStatusAbleToNotify($data['status']),
 							fileId: $fileId,
 						);
 					}
@@ -199,13 +199,20 @@ class RequestSignatureService {
 						identifyMethods: $user['identify'],
 						displayName: $user['displayName'] ?? '',
 						description: $user['description'] ?? '',
-						notify: empty($user['notify']),
+						notify: empty($user['notify']) && $this->isStatusAbleToNotify($data['status']),
 						fileId: $fileId,
 					);
 				}
 			}
 		}
 		return $return;
+	}
+
+	private function isStatusAbleToNotify(int $status): bool {
+		return in_array($status, [
+			FileEntity::STATUS_ABLE_TO_SIGN,
+			FileEntity::STATUS_PARTIAL_SIGNED,
+		]);
 	}
 
 	private function associateToSigner(array $identifyMethods, string $displayName, string $description, bool $notify, int $fileId): SignRequestEntity {
