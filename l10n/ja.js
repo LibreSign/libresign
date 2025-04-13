@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Success" : "完了",
     "Settings saved" : "設定が保存されました",
+    "The file was uploaded" : "ファイルがアップロードされました",
     "The uploaded file exceeds the upload_max_filesize directive in php.ini" : "アップロードされたファイルがphp.iniのupload_max_filesizeディレクティブのサイズを超えています",
     "The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form" : "アップロードされたファイルは、HTMLフォームで指定されたMAX_FILE_SIZEディレクティブ制限を超えています",
     "The file was only partially uploaded" : "ファイルは部分的にしかアップロードされていません",
