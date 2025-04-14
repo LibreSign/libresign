@@ -373,6 +373,7 @@ OC.L10N.register(
     "Signature image here" : "Podpis obrázku sem",
     "Signature template content is overflowing. Reduce the text." : "Obsah šablony podpisu přetéká. Zkraťte text.",
     "Display signature mode" : "Režim zobrazení podpisu",
+    "Description only" : "Pouze popis",
     "Signature and description" : "Podpis a popis",
     "Signer name and description" : "Jméno a popis podepisujícího",
     "Signature only" : "Pouze podpis",
