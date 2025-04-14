@@ -189,7 +189,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->userMountCache
 			->method('getMountsForFileId')
 			->willreturn([]);
-		$actual = $this->getValidateHelper()->validateMimeTypeAcceptedByNodeId(171, $destination);
+		$actual = $this->getValidateHelper()->validateMimeTypeAcceptedByNodeId(171, '', $destination);
 		if (!$exception) {
 			$this->assertNull($actual);
 		}
