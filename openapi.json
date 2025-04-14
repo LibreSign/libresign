@@ -961,6 +961,55 @@
         }
     },
     "paths": {
+        "/index.php/apps/libresign/certificate-policy.pdf": {
+            "get": {
+                "operationId": "certificate_policy-get-certificate-policy",
+                "summary": "Certificate policy of this instance",
+                "tags": [
+                    "certificate_policy"
+                ],
+                "security": [
+                    {},
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {
+                            "Content-Disposition": {
+                                "schema": {
+                                    "type": "string",
+                                    "enum": [
+                                        "inline; filename=\"certificate-policy.pdf\""
+                                    ]
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/pdf": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/index.php/apps/libresign/develop/pdf": {
             "get": {
                 "operationId": "develop-pdf",

@@ -10,6 +10,7 @@
 		<ConfigureCheck />
 		<RootCertificateCfssl />
 		<RootCertificateOpenSsl />
+		<CertificatePolicy />
 		<IdentificationFactors />
 		<ExpirationRules />
 		<Validation />
@@ -28,6 +29,7 @@ import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 import AllowedGroups from './AllowedGroups.vue'
 import CertificateEngine from './CertificateEngine.vue'
+import CertificatePolicy from './CertificatePolicy.vue'
 import CollectMetadata from './CollectMetadata.vue'
 import ConfigureCheck from './ConfigureCheck.vue'
 import DefaultUserFolder from './DefaultUserFolder.vue'
@@ -45,22 +47,23 @@ import Validation from './Validation.vue'
 export default {
 	name: 'Settings',
 	components: {
-		NcSettingsSection,
+		AllowedGroups,
 		CertificateEngine,
-		DownloadBinaries,
+		CertificatePolicy,
+		CollectMetadata,
 		ConfigureCheck,
+		DefaultUserFolder,
+		DownloadBinaries,
+		ExpirationRules,
+		IdentificationDocuments,
+		IdentificationFactors,
+		LegalInformation,
+		NcSettingsSection,
 		RootCertificateCfssl,
 		RootCertificateOpenSsl,
-		IdentificationFactors,
-		ExpirationRules,
-		Validation,
-		AllowedGroups,
-		LegalInformation,
-		IdentificationDocuments,
-		CollectMetadata,
-		SignatureStamp,
 		SignatureHashAlgorithm,
-		DefaultUserFolder,
+		SignatureStamp,
+		Validation,
 	},
 	data() {
 		return {
