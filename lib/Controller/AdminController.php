@@ -14,6 +14,7 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\ResponseDefinitions;
+use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\SignatureBackgroundService;
@@ -51,6 +52,7 @@ class AdminController extends AEnvironmentAwareController {
 		private IL10N $l10n,
 		protected ISession $session,
 		private SignatureBackgroundService $signatureBackgroundService,
+		private CertificatePolicyService $certificatePolicyService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->eventSource = $this->eventSourceFactory->create();
@@ -522,6 +524,103 @@ class AdminController extends AEnvironmentAwareController {
 					'error' => $th->getMessage(),
 				],
 				Http::STATUS_BAD_REQUEST
+			);
+		}
+	}
+
+	/**
+	 * Update certificate policy of this instance
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{status: 'success', url: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{status: 'failure', message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 422: Not found
+	 */
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/certificate-policy', requirements: ['apiVersion' => '(v1)'])]
+	public function saveCertificatePolicy(): DataResponse {
+		$pdf = $this->request->getUploadedFile('pdf');
+		$phpFileUploadErrors = [
+			UPLOAD_ERR_OK => $this->l10n->t('The file was uploaded'),
+			UPLOAD_ERR_INI_SIZE => $this->l10n->t('The uploaded file exceeds the upload_max_filesize directive in php.ini'),
+			UPLOAD_ERR_FORM_SIZE => $this->l10n->t('The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form'),
+			UPLOAD_ERR_PARTIAL => $this->l10n->t('The file was only partially uploaded'),
+			UPLOAD_ERR_NO_FILE => $this->l10n->t('No file was uploaded'),
+			UPLOAD_ERR_NO_TMP_DIR => $this->l10n->t('Missing a temporary folder'),
+			UPLOAD_ERR_CANT_WRITE => $this->l10n->t('Could not write file to disk'),
+			UPLOAD_ERR_EXTENSION => $this->l10n->t('A PHP extension stopped the file upload'),
+		];
+		if (empty($pdf)) {
+			$error = $this->l10n->t('No file uploaded');
+		} elseif (!empty($pdf) && array_key_exists('error', $pdf) && $pdf['error'] !== UPLOAD_ERR_OK) {
+			$error = $phpFileUploadErrors[$pdf['error']];
+		}
+		if ($error !== null) {
+			return new DataResponse(
+				[
+					'message' => $error,
+					'status' => 'failure',
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+		try {
+			$url = $this->certificatePolicyService->updateFile($pdf['tmp_name']);
+		} catch (\Exception $e) {
+			return new DataResponse(
+				[
+					'message' => $e->getMessage(),
+					'status' => 'failure',
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+		return new DataResponse(
+			[
+				'url' => $url,
+				'status' => 'success',
+			]
+		);
+	}
+
+	/**
+	 * Delete certificate policy of this instance
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Not found
+	 */
+	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/admin/certificate-policy', requirements: ['apiVersion' => '(v1)'])]
+	public function deleteCertificatePolicy(): DataResponse {
+		$this->certificatePolicyService->deleteFile();
+		return new DataResponse();
+	}
+
+	/**
+	 * Update OID
+	 *
+	 * @param string $oid OID is a unique numeric identifier for certificate policies in digital certificates.
+	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{status: 'failure', message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 422: Validation error
+	 */
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/certificate-policy/oid', requirements: ['apiVersion' => '(v1)'])]
+	public function updateOID(string $oid): DataResponse {
+		try {
+			$this->certificatePolicyService->updateOid($oid);
+			return new DataResponse(
+				[
+					'status' => 'success',
+				]
+			);
+		} catch (\Exception $e) {
+			return new DataResponse(
+				[
+					'message' => $e->getMessage(),
+					'status' => 'failure',
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
 	}

@@ -11,6 +11,7 @@ namespace OCA\Libresign\Settings;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
@@ -25,6 +26,7 @@ class Admin implements ISettings {
 		private IInitialState $initialState,
 		private IdentifyMethodService $identifyMethodService,
 		private CertificateEngineFactory $certificateEngineFactory,
+		private CertificatePolicyService $certificatePolicyService,
 		private IAppConfig $appConfig,
 		private SignatureTextService $signatureTextService,
 		private SignatureBackgroundService $signatureBackgroundService,
@@ -40,6 +42,8 @@ class Admin implements ISettings {
 			$this->initialState->provideInitialState('signature_text_template_error', $e->getMessage());
 		}
 		$this->initialState->provideInitialState('certificate_engine', $this->certificateEngineFactory->getEngine()->getName());
+		$this->initialState->provideInitialState('certificate_policies_oid', $this->certificatePolicyService->getOid());
+		$this->initialState->provideInitialState('certificate_policies_url', $this->certificatePolicyService->getUrl());
 		$this->initialState->provideInitialState('config_path', $this->appConfig->getValueString(Application::APP_ID, 'config_path'));
 		$this->initialState->provideInitialState('default_signature_font_size', SignatureTextService::SIGNATURE_DEFAULT_FONT_SIZE);
 		$this->initialState->provideInitialState('default_signature_height', SignatureTextService::DEFAULT_SIGNATURE_HEIGHT);

@@ -8,17 +8,25 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
 use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
 use OCP\Files\SimpleFS\ISimpleFile;
+use OCP\IAppConfig;
+use OCP\IL10N;
+use OCP\IURLGenerator;
 
 class CertificatePolicyService {
 	public function __construct(
 		private IAppData $appData,
+		private IURLGenerator $urlGenerator,
+		private IAppConfig $appConfig,
+		private IL10N $l10n,
 	) {
 	}
 
-	public function updateFile(string $tmpFile): void {
+	public function updateFile(string $tmpFile): string {
 		$detectedMimeType = mime_content_type($tmpFile);
 		if (!in_array($detectedMimeType, ['application/pdf'], true)) {
 			throw new \Exception('Unsupported image type: ' . $detectedMimeType);
@@ -32,6 +40,7 @@ class CertificatePolicyService {
 			$file = $rootFolder->getFile('certificate-policy.pdf');
 			$file->putContent($blob);
 		}
+		return $this->urlGenerator->linkToRouteAbsolute('libresign.CertificatePolicy.getCertificatePolicy');
 	}
 
 	public function getFile(): ISimpleFile {
@@ -39,6 +48,40 @@ class CertificatePolicyService {
 	}
 
 	public function deleteFile(): void {
-		$this->appData->getFolder('/')->getFile('certificate-policy.pdf')->delete();
+		try {
+			$this->appData->getFolder('/')->getFile('certificate-policy.pdf')->delete();
+		} catch (NotFoundException $e) {
+		}
+	}
+
+	public function updateOid(string $oid): string {
+		if (empty($oid)) {
+			$this->appConfig->deleteKey(Application::APP_ID, 'certificate_policies_oid');
+			return '';
+		}
+		$regex = '/^(0|1|2)(\.\d+)+$/';
+		preg_match($regex, $oid, $matches);
+		if (empty($matches)) {
+			// TRANSLATORS This message appears when an invalid Object
+			// Identifier (OID) is entered. It informs the admin that the input
+			// must follow a specific numeric pattern used in digital
+			// certificate policies.
+			throw new LibresignException($this->l10n->t('Invalid OID format. Expected pattern: %s', [$regex]));
+		}
+		$this->appConfig->setValueString(Application::APP_ID, 'certificate_policies_oid', $oid);
+		return $oid;
+	}
+
+	public function getOid(): string {
+		return $this->appConfig->getValueString(Application::APP_ID, 'certificate_policies_oid', '');
+	}
+
+	public function getUrl(): string {
+		try {
+			$this->getFile();
+		} catch (NotFoundException $e) {
+			return '';
+		}
+		return $this->urlGenerator->linkToRouteAbsolute('libresign.CertificatePolicy.getCertificatePolicy');
 	}
 }
