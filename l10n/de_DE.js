@@ -374,6 +374,7 @@ OC.L10N.register(
     "Signature image here" : "Signaturbild hier",
     "Signature template content is overflowing. Reduce the text." : "Der Inhalt der Signaturvorlage ist überfüllt. Reduzieren Sie den Text.",
     "Display signature mode" : "Signaturmodus anzeigen",
+    "Description only" : "Nur Beschreibung",
     "Signature and description" : "Signatur und Beschreibung",
     "Signer name and description" : "Name des Unterzeichners und Beschreibung ",
     "Signature only" : "Nur Signatur",
