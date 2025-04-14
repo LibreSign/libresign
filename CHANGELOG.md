@@ -18,6 +18,15 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 10.7.2 - 2025-04-14
+### Changes
+- Update translations
+
+### Fixes
+- fix: user userId when validate file [#4856](https://github.com/LibreSign/libresign/pull/4856)
+- fix: only notify when is not draft [#4854](https://github.com/LibreSign/libresign/pull/4854)
+- fix: prevent json decode null [#4851](https://github.com/LibreSign/libresign/pull/4851)
+
 ## 10.7.1 - 2025-04-12
 ### Fixes
 - fix: only load backup if exists [#4840](https://github.com/LibreSign/libresign/pull/4840)
