@@ -50,6 +50,9 @@ class RequestSignatureService {
 	public function save(array $data): FileEntity {
 		$file = $this->saveFile($data);
 		$this->saveVisibleElements($data, $file);
+		if (empty($data['status'])) {
+			$data['status'] = $file->getStatus();
+		}
 		$this->associateToSigners($data, $file->getId());
 		return $file;
 	}
