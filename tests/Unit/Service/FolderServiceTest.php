@@ -12,7 +12,6 @@ use Exception;
 use OCA\Libresign\Service\FolderService;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
-use OCP\Files\Config\IUserMountCache;
 use OCP\Files\Folder;
 use OCP\Files\IAppData;
 use OCP\Files\IRootFolder;
@@ -59,7 +58,6 @@ final class FakeFolder implements ISimpleFolder {
 
 final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IRootFolder&MockObject $root;
-	private IUserMountCache&MockObject $userMountCache;
 	private IAppDataFactory&MockObject $appDataFactory;
 	private IGroupManager&MockObject $groupManager;
 	private IAppConfig&MockObject $appConfig;
@@ -68,7 +66,6 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function setUp(): void {
 		parent::setUp();
 		$this->root = $this->createMock(IRootFolder::class);
-		$this->userMountCache = $this->createMock(IUserMountCache::class);
 		$this->appDataFactory = $this->createMock(IAppDataFactory::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
@@ -78,7 +75,6 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private function getFolderService(?string $userId = '171'): FolderSErvice {
 		$service = new FolderService(
 			$this->root,
-			$this->userMountCache,
 			$this->appDataFactory,
 			$this->groupManager,
 			$this->appConfig,
@@ -106,7 +102,6 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetFileWithInvalidNodeId():void {
-		$this->userMountCache->method('getMountsForFileId')->wilLReturn([]);
 		$folder = $this->createMock(\OCP\Files\Folder::class);
 		$folder->method('isUpdateable')->willReturn(true);
 		$this->root->method('getUserFolder')->willReturn($folder);
@@ -117,9 +112,6 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetFolderWithValidNodeId():void {
-		$this->userMountCache
-			->method('getMountsForFileId')
-			->willreturn([]);
 		$node = $this->createMock(\OCP\Files\File::class);
 		$folder = $this->createMock(\OCP\Files\Folder::class);
 		$node->method('getParent')
