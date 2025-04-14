@@ -27,7 +27,6 @@ use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
@@ -74,7 +73,6 @@ class ValidateHelper {
 		private IGroupManager $groupManager,
 		private IUserManager $userManager,
 		private IRootFolder $root,
-		private IUserMountCache $userMountCache,
 	) {
 	}
 	public function validateNewFile(array $data, int $type = self::TYPE_TO_SIGN, ?IUser $user = null): void {
