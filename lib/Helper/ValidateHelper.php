@@ -27,7 +27,6 @@ use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
@@ -74,7 +73,6 @@ class ValidateHelper {
 		private IGroupManager $groupManager,
 		private IUserManager $userManager,
 		private IRootFolder $root,
-		private IUserMountCache $userMountCache,
 	) {
 	}
 	public function validateNewFile(array $data, int $type = self::TYPE_TO_SIGN, ?IUser $user = null): void {
@@ -116,8 +114,13 @@ class ValidateHelper {
 			if (!is_numeric($data['file']['fileId'])) {
 				throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
 			}
-			$this->validateIfNodeIdExists((int)$data['file']['fileId'], $type);
-			$this->validateMimeTypeAcceptedByNodeId((int)$data['file']['fileId'], $type);
+			if (!is_a($user, IUser::class)) {
+				if (!is_a($data['userManager'], IUser::class)) {
+					throw new LibresignException($this->l10n->t('User not found.'));
+				}
+			}
+			$this->validateIfNodeIdExists((int)$data['file']['fileId'], $data['userManager']->getUID(), $type);
+			$this->validateMimeTypeAcceptedByNodeId((int)$data['file']['fileId'], $data['userManager']->getUID(), $type);
 		} elseif (!empty($data['file']['base64'])) {
 			$this->validateBase64($data['file']['base64'], $type);
 		} elseif (!empty($data['file']['path'])) {
@@ -366,10 +369,13 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateIfNodeIdExists(int $nodeId, int $type = self::TYPE_TO_SIGN): void {
-		try {
+	public function validateIfNodeIdExists(int $nodeId, string $userId = '', int $type = self::TYPE_TO_SIGN): void {
+		if (!$userId) {
 			$libresignFile = $this->fileMapper->getByFileId($nodeId);
-			$file = $this->root->getUserFolder($libresignFile->getUserId())->getById($nodeId);
+			$userId = $libresignFile->getUserId();
+		}
+		try {
+			$file = $this->root->getUserFolder($userId)->getById($nodeId);
 			$file = $file[0] ?? null;
 		} catch (\Throwable $th) {
 			throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
@@ -379,9 +385,12 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateMimeTypeAcceptedByNodeId(int $nodeId, int $type = self::TYPE_TO_SIGN): void {
-		$libresignFile = $this->fileMapper->getByFileId($nodeId);
-		$file = $this->root->getUserFolder($libresignFile->getUserId())->getById($nodeId);
+	public function validateMimeTypeAcceptedByNodeId(int $nodeId, string $userId = '', int $type = self::TYPE_TO_SIGN): void {
+		if (!$userId) {
+			$libresignFile = $this->fileMapper->getByFileId($nodeId);
+			$userId = $libresignFile->getUserId();
+		}
+		$file = $this->root->getUserFolder($userId)->getById($nodeId);
 		$file = $file[0];
 		$this->validateMimeTypeAcceptedByMime($file->getMimeType(), $type);
 	}
