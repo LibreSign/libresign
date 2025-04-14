@@ -210,7 +210,6 @@ export default {
 			const config = {
 				url: generateOcsUrl('/apps/libresign/api/v1/request-signature'),
 				data: {
-					status: this.filesStore.getFile()?.status ?? 0,
 					name: this.filesStore.getFile()?.name,
 					users: [],
 				},
@@ -230,9 +229,12 @@ export default {
 				})
 				config.data.users.push(user)
 			})
-
-			if (!this.isSignElementsAvailable()) {
+			if (this.filesStore.getFile()?.status) {
+				config.data.status = this.filesStore.getFile()?.status
+			} else if (!this.isSignElementsAvailable()) {
 				config.data.status = 1
+			} else {
+				config.data.status = 0
 			}
 
 			if (this.filesStore.getFile().uuid) {
