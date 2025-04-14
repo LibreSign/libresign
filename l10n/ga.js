@@ -374,6 +374,7 @@ OC.L10N.register(
     "Signature image here" : "Íomhá sínithe anseo",
     "Signature template content is overflowing. Reduce the text." : "Tá ábhar an teimpléid sínithe ag cur thar maoil. Laghdaigh an téacs.",
     "Display signature mode" : "Taispeáin mód sínithe",
+    "Description only" : "Cur síos amháin",
     "Signature and description" : "Síniú agus cur síos",
     "Signer name and description" : "Ainm an tsínitheora agus cur síos",
     "Signature only" : "Síniú amháin",

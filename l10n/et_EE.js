@@ -1,6 +1,9 @@
 OC.L10N.register(
     "libresign",
     {
+    "You have a <strong>file to sign</strong>" : "Sul on <strong>allkirjastamiseks üks fail</strong>",
+    "Success" : "Valmis",
+    "Invalid user or password" : "Vigane kasutajanimi või salasõna",
     "Settings saved" : "Seaded salvestatud",
     "The file was uploaded" : "Fail laaditi üles",
     "The uploaded file exceeds the upload_max_filesize directive in php.ini" : "Üleslaaditud fail on suurem, kui php.ini failis määratud upload_max_filesize",
@@ -97,6 +100,7 @@ OC.L10N.register(
     "Dependencies" : "Sõltuvused",
     "Yes" : "Jah",
     "No" : "Ei",
+    "Description only" : "Vaid kirjeldus",
     "Reset to default" : "Taasta vaikeseaded",
     "Forgot password?" : "Unustasid parooli?",
     "Status:" : "Seisund:",
