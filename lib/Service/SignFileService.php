@@ -39,7 +39,6 @@ use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
-use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;
@@ -92,7 +91,6 @@ class SignFileService {
 		private IRootFolder $root,
 		private IUserSession $userSession,
 		private IDateTimeZone $dateTimeZone,
-		private IUserMountCache $userMountCache,
 		private FileElementMapper $fileElementMapper,
 		private UserElementMapper $userElementMapper,
 		private IEventDispatcher $eventDispatcher,

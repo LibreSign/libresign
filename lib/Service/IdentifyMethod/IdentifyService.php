@@ -16,7 +16,6 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
-use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
 use OCP\IAppConfig;
 use OCP\IL10N;
@@ -35,7 +34,6 @@ class IdentifyService {
 		private IRootFolder $root,
 		private IAppConfig $appConfig,
 		private SignRequestMapper $signRequestMapper,
-		private IUserMountCache $userMountCache,
 		private IL10N $l10n,
 		private FileMapper $fileMapper,
 		private IHasher $hasher,
@@ -109,10 +107,6 @@ class IdentifyService {
 
 	public function getSignRequestMapper(): SignRequestMapper {
 		return $this->signRequestMapper;
-	}
-
-	public function getUserMountCache(): IUserMountCache {
-		return $this->userMountCache;
 	}
 
 	public function getL10n(): IL10N {

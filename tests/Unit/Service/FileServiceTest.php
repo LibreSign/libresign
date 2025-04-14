@@ -35,7 +35,6 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\PdfParserService;
 use OCA\Libresign\Tests\lib\AppConfigOverwrite;
 use OCP\Accounts\IAccountManager;
-use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
@@ -72,7 +71,6 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IURLGenerator $urlGenerator;
 	protected IMimeTypeDetector $mimeTypeDetector;
 	protected Pkcs12Handler $pkcs12Handler;
-	private IUserMountCache $userMountCache;
 	private IRootFolder $root;
 	protected LoggerInterface $logger;
 	protected IL10N $l10n;
@@ -108,7 +106,6 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->urlGenerator = \OCP\Server::get(IURLGenerator::class);
 		$this->mimeTypeDetector = \OCP\Server::get(IMimeTypeDetector::class);
 		$this->pkcs12Handler = \OCP\Server::get(Pkcs12Handler::class);
-		$this->userMountCache = \OCP\Server::get(IUserMountCache::class);
 		$this->root = \OCP\Server::get(IRootFolder::class);
 		$this->logger = \OCP\Server::get(LoggerInterface::class);
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
@@ -131,7 +128,6 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			$this->mimeTypeDetector,
 			$this->pkcs12Handler,
-			$this->userMountCache,
 			$this->root,
 			$this->logger,
 			$this->l10n,
