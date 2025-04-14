@@ -455,15 +455,17 @@ Feature: request-signature
     And set the email of user "signer1" to "signer1@domain.test"
     And my inbox is empty
     And as user "admin"
+    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"email","enabled":true,"mandatory":true,"signatureMethods":{"emailToken":{"enabled":true}}}] |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"signer1@domain.test"}},{"identify":{"account":"signer1"}}] |
+      | users | [{"identify":{"email":"signer1@domain.test"}}] |
       | name | document |
       | status | 0 |
     And there should be 0 emails in my inbox
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"email":"signer1@domain.test"}},{"identify":{"account":"signer1"}}] |
+      | users | [{"identify":{"email":"signer1@domain.test"}}] |
       | name | document |
       | status | 1 |
-    And there should be 2 emails in my inbox
+    And there should be 1 email in my inbox
