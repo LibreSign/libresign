@@ -11,7 +11,6 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\Exception\LibresignException;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
-use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IAppData;
@@ -27,7 +26,6 @@ class FolderService {
 	protected IAppData $appData;
 	public function __construct(
 		private IRootFolder $root,
-		private IUserMountCache $userMountCache,
 		protected IAppDataFactory $appDataFactory,
 		protected IGroupManager $groupManager,
 		private IAppConfig $appConfig,

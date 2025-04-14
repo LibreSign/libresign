@@ -27,7 +27,6 @@ use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
@@ -85,7 +84,6 @@ class FileService {
 		private IURLGenerator $urlGenerator,
 		protected IMimeTypeDetector $mimeTypeDetector,
 		protected Pkcs12Handler $pkcs12Handler,
-		private IUserMountCache $userMountCache,
 		private IRootFolder $root,
 		protected LoggerInterface $logger,
 		protected IL10N $l10n,
