@@ -50,6 +50,9 @@ class RequestSignatureService {
 	public function save(array $data): FileEntity {
 		$file = $this->saveFile($data);
 		$this->saveVisibleElements($data, $file);
+		if (empty($data['status'])) {
+			$data['status'] = $file->getStatus();
+		}
 		$this->associateToSigners($data, $file->getId());
 		return $file;
 	}
@@ -190,7 +193,7 @@ class RequestSignatureService {
 							],
 							displayName: $user['displayName'] ?? '',
 							description: $user['description'] ?? '',
-							notify: empty($user['notify']),
+							notify: empty($user['notify']) && $this->isStatusAbleToNotify($data['status'] ?? null),
 							fileId: $fileId,
 						);
 					}
@@ -199,13 +202,20 @@ class RequestSignatureService {
 						identifyMethods: $user['identify'],
 						displayName: $user['displayName'] ?? '',
 						description: $user['description'] ?? '',
-						notify: empty($user['notify']),
+						notify: empty($user['notify']) && $this->isStatusAbleToNotify($data['status'] ?? null),
 						fileId: $fileId,
 					);
 				}
 			}
 		}
 		return $return;
+	}
+
+	private function isStatusAbleToNotify(?int $status): bool {
+		return in_array($status, [
+			FileEntity::STATUS_ABLE_TO_SIGN,
+			FileEntity::STATUS_PARTIAL_SIGNED,
+		]);
 	}
 
 	private function associateToSigner(array $identifyMethods, string $displayName, string $description, bool $notify, int $fileId): SignRequestEntity {
