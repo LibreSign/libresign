@@ -20,7 +20,6 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignerElementsService;
-use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\IAppConfig;
@@ -48,7 +47,6 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IGroupManager&MockObject $groupManager;
 	private IUserManager&MockObject $userManager;
 	private IRootFolder&MockObject $root;
-	private IUserMountCache&MockObject $userMountCache;
 
 	public function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
@@ -70,7 +68,6 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->root = $this->createMock(IRootFolder::class);
-		$this->userMountCache = $this->createMock(IUserMountCache::class);
 	}
 
 	private function getValidateHelper(): ValidateHelper {
@@ -91,7 +88,6 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->groupManager,
 			$this->userManager,
 			$this->root,
-			$this->userMountCache,
 		);
 		return $validateHelper;
 	}
@@ -117,12 +113,12 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->root->method('getById')->will($this->returnCallback(function ():void {
 			throw new \Exception('not found');
 		}));
-		$this->userMountCache
-			->method('getMountsForFileId')
-			->willreturn([]);
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')->willReturn('john.doe');
 		$this->getValidateHelper()->validateFile([
 			'file' => ['fileId' => 123],
-			'name' => 'test'
+			'name' => 'test',
+			'userManager' => $user,
 		]);
 	}
 
@@ -137,12 +133,13 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->root
 			->method('getById')
 			->willReturn([$file]);
-		$this->userMountCache
-			->method('getMountsForFileId')
-			->willreturn([]);
+
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')->willReturn('john.doe');
 		$actual = $this->getValidateHelper()->validateNewFile([
 			'file' => ['fileId' => 123],
-			'name' => 'test'
+			'name' => 'test',
+			'userManager' => $user,
 		]);
 		$this->assertNull($actual);
 	}
@@ -186,9 +183,6 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		if ($exception) {
 			$this->expectExceptionMessage($exception);
 		}
-		$this->userMountCache
-			->method('getMountsForFileId')
-			->willreturn([]);
 		$actual = $this->getValidateHelper()->validateMimeTypeAcceptedByNodeId(171, '', $destination);
 		if (!$exception) {
 			$this->assertNull($actual);
@@ -391,9 +385,6 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->will($this->returnCallback(function ():void {
 				throw new \Exception('not found');
 			}));
-		$this->userMountCache
-			->method('getMountsForFileId')
-			->willreturn([]);
 		$this->getValidateHelper()->validateIfNodeIdExists(171);
 	}
 
@@ -402,9 +393,6 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->root
 			->method('getById')
 			->willReturn([0 => null]);
-		$this->userMountCache
-			->method('getMountsForFileId')
-			->willreturn([]);
 		$this->getValidateHelper()->validateIfNodeIdExists(171);
 	}
 
@@ -415,9 +403,6 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->root
 			->method('getById')
 			->willReturn(['file']);
-		$this->userMountCache
-			->method('getMountsForFileId')
-			->willreturn([]);
 		$actual = $this->getValidateHelper()->validateIfNodeIdExists(171);
 		$this->assertNull($actual);
 	}
