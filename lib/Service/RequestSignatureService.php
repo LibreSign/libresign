@@ -208,7 +208,7 @@ class RequestSignatureService {
 		return $return;
 	}
 
-	private function isStatusAbleToNotify(int $status): bool {
+	private function isStatusAbleToNotify(?int $status): bool {
 		return in_array($status, [
 			FileEntity::STATUS_ABLE_TO_SIGN,
 			FileEntity::STATUS_PARTIAL_SIGNED,
