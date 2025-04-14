@@ -448,3 +448,22 @@ Feature: request-signature
       | (jq).ocs.data.data[0].signers\|length          | 1                       |
       | (jq).ocs.data.data[0].signers[0].email         | signer1@domain.test     |
       | (jq).ocs.data.data[0].signers[0].me            | false                   |
+
+  Scenario: Not notify with status 0 and notify with status 1
+    Given run the command "libresign:configure:openssl --cn test" with result code 0
+    And user "signer1" exists
+    And set the email of user "signer1" to "signer1@domain.test"
+    And my inbox is empty
+    And as user "admin"
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"identify":{"email":"signer1@domain.test"}},{"identify":{"account":"signer1"}}] |
+      | name | document |
+      | status | 0 |
+    And there should be 0 emails in my inbox
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"identify":{"email":"signer1@domain.test"}},{"identify":{"account":"signer1"}}] |
+      | name | document |
+      | status | 1 |
+    And there should be 2 emails in my inbox
