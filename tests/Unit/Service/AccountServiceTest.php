@@ -29,7 +29,6 @@ use OCA\Libresign\Service\SignFileService;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
 use OCP\Files\Config\IMountProviderCollection;
-use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\IAppConfig;
@@ -50,7 +49,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IUserManager&MockObject $userManager;
 	private IAccountManager $accountManager;
 	private IRootFolder&MockObject $root;
-	private IUserMountCache&MockObject $userMountCache;
 	private IMimeTypeDetector&MockObject $mimeTypeDetector;
 	private FileMapper&MockObject $fileMapper;
 	private FileTypeMapper&MockObject $fileTypeMapper;
@@ -84,7 +82,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->accountManager = $this->createMock(IAccountManager::class);
 		$this->root = $this->createMock(IRootFolder::class);
-		$this->userMountCache = $this->createMock(IUserMountCache::class);
 		$this->mimeTypeDetector = $this->createMock(IMimeTypeDetector::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->fileTypeMapper = $this->createMock(FileTypeMapper::class);
@@ -116,7 +113,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->userManager,
 			$this->accountManager,
 			$this->root,
-			$this->userMountCache,
 			$this->mimeTypeDetector,
 			$this->fileMapper,
 			$this->fileTypeMapper,
@@ -369,9 +365,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileMapper
 			->method('getByUuid')
 			->will($this->returnValue($libresignFile));
-		$this->userMountCache
-			->method('getMountsForFileId')
-			->willreturn([]);
 		$node = $this->createMock(\OCP\Files\File::class);
 		$this->root
 			->method('getUserFolder')
@@ -389,9 +382,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileMapper
 			->method('getByUuid')
 			->will($this->returnValue($libresignFile));
-		$this->userMountCache
-			->method('getMountsForFileId')
-			->willreturn([]);
 		$node = $this->createMock(\OCP\Files\File::class);
 		$this->root
 			->method('getUserFolder')

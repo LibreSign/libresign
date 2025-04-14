@@ -29,7 +29,6 @@ use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IMountProviderCollection;
-use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
@@ -57,7 +56,6 @@ class AccountService {
 		private IUserManager $userManager,
 		private IAccountManager $accountManager,
 		private IRootFolder $root,
-		private IUserMountCache $userMountCache,
 		private IMimeTypeDetector $mimeTypeDetector,
 		private FileMapper $fileMapper,
 		private FileTypeMapper $fileTypeMapper,

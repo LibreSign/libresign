@@ -22,7 +22,6 @@ use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
-use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
@@ -57,7 +56,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IRootFolder&MockObject $root;
 	private IUserSession&MockObject $userSession;
 	private IDateTimeZone $dateTimeZone;
-	private IUserMountCache&MockObject $userMountCache;
 	private FileElementMapper&MockObject $fileElementMapper;
 	private UserElementMapper&MockObject $userElementMapper;
 	private IEventDispatcher&MockObject $eventDispatcher;
@@ -89,7 +87,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->dateTimeZone = \OCP\Server::get(IDateTimeZone::class);
-		$this->userMountCache = $this->createMock(IUserMountCache::class);
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
@@ -119,7 +116,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->root,
 			$this->userSession,
 			$this->dateTimeZone,
-			$this->userMountCache,
 			$this->fileElementMapper,
 			$this->userElementMapper,
 			$this->eventDispatcher,
@@ -193,9 +189,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn($this->root);
 		$this->root->method('getById')
 			->willReturn([]);
-		$this->userMountCache
-			->method('getMountsForFileId')
-			->wilLReturn([]);
 
 		$signRequest = new \OCA\Libresign\Db\SignRequest();
 		$this->getService()
@@ -222,7 +215,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->root->method('getUserFolder')->willReturn($this->root);
 		$this->root->method('getById')->willReturn([$nextcloudFile]);
 		$this->root->method('newFile')->willReturn($nextcloudFile);
-		$this->userMountCache->method('getMountsForFileId')->willReturn([]);
 
 		$this->pkcs12Handler->method('setInputFile')->willReturn($this->pkcs12Handler);
 		$this->pkcs12Handler->method('setCertificate')->willReturn($this->pkcs12Handler);
