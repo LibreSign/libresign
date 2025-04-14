@@ -190,7 +190,7 @@ class RequestSignatureService {
 							],
 							displayName: $user['displayName'] ?? '',
 							description: $user['description'] ?? '',
-							notify: empty($user['notify']) && $this->isStatusAbleToNotify($data['status']),
+							notify: empty($user['notify']) && $this->isStatusAbleToNotify($data['status'] ?? null),
 							fileId: $fileId,
 						);
 					}
@@ -199,7 +199,7 @@ class RequestSignatureService {
 						identifyMethods: $user['identify'],
 						displayName: $user['displayName'] ?? '',
 						description: $user['description'] ?? '',
-						notify: empty($user['notify']) && $this->isStatusAbleToNotify($data['status']),
+						notify: empty($user['notify']) && $this->isStatusAbleToNotify($data['status'] ?? null),
 						fileId: $fileId,
 					);
 				}
