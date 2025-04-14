@@ -57,7 +57,11 @@ class IdentifyMethodMapper extends QBMapper {
 			->andWhere($qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($userId)));
 		$cursor = $qb->executeQuery();
 		while ($row = $cursor->fetch()) {
-			$row['metadata'] = json_decode($row['metadata'], true);
+			if (is_string($row['metadata']) && !empty($row['metadata'])) {
+				$row['metadata'] = json_decode($row['metadata'], true);
+			} else {
+				$row['metadata'] = [];
+			}
 			$row['metadata']['deleted_account'] = [
 				'account' => $userId,
 				'display_name' => $displayName,
