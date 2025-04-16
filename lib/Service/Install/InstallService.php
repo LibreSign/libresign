@@ -45,8 +45,8 @@ class InstallService {
 		getInternalPathOfFolder as getInternalPathOfFolderTrait;
 	}
 
-	public const JAVA_VERSION = 'openjdk version "21.0.6" 2025-01-21 LTS';
-	private const JAVA_URL_PATH_NAME = '21.0.6+7';
+	public const JAVA_VERSION = 'openjdk version "21.0.7" 2025-04-16 LTS';
+	private const JAVA_URL_PATH_NAME = '21.0.7+6';
 	public const PDFTK_VERSION = '3.3.3'; /** @todo When update, verify the hash **/
 	private const PDFTK_HASH = '59a28bed53b428595d165d52988bf4cf';
 	public const JSIGNPDF_VERSION = '2.3.0'; /** @todo When update, verify the hash **/
