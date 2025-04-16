@@ -363,44 +363,44 @@ class InstallService {
 				$extractDir = $this->getInternalPathOfFolder($folder);
 				$this->appConfig->setValueString(Application::APP_ID, 'java_path', $extractDir . '/jdk-' . self::JAVA_URL_PATH_NAME . '-jre/bin/java');
 			}
-		} else {
-			/**
-			 * Steps to update:
-			 *     Check the compatible version of Java to use JSignPdf
-			 *     Update all the follow data
-			 *     Update the constants with java version
-			 * URL used to get the MD5 and URL to download:
-			 * https://jdk.java.net/java-se-ri/8-MR3
-			 */
-			$linuxDistribution = $this->getLinuxDistributionToDownloadJava();
-			$slugfyVersionNumber = str_replace('+', '_', self::JAVA_URL_PATH_NAME);
-			if ($this->architecture === 'x86_64') {
-				$compressedFileName = 'OpenJDK21U-jre_x64_' . $linuxDistribution . '_hotspot_' . $slugfyVersionNumber . '.tar.gz';
-				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
-			} elseif ($this->architecture === 'aarch64') {
-				$compressedFileName = 'OpenJDK21U-jre_aarch64_' . $linuxDistribution . '_hotspot_' . $slugfyVersionNumber . '.tar.gz';
-				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
-			}
-			$folder = $this->getFolder('/' . $linuxDistribution . '/' . $this->resource);
-			try {
-				$compressedFile = $folder->getFile($compressedFileName);
-			} catch (NotFoundException $th) {
-				$compressedFile = $folder->newFile($compressedFileName);
-			}
-
-			$compressedInternalFileName = $this->getInternalPathOfFile($compressedFile);
-			$dependencyName = 'java ' . $this->architecture . ' ' . $linuxDistribution;
-			$checksumUrl = $url . '.sha256.txt';
-			$hash = $this->getHash($compressedFileName, $checksumUrl);
-			$this->download($url, $dependencyName, $compressedInternalFileName, $hash, 'sha256');
-
-			$extractor = new TAR($compressedInternalFileName);
-			$extractDir = $this->getInternalPathOfFolder($folder);
-			$extractor->extract($extractDir);
-			unlink($compressedInternalFileName);
-			$this->appConfig->setValueString(Application::APP_ID, 'java_path', $extractDir . '/jdk-' . self::JAVA_URL_PATH_NAME . '-jre/bin/java');
-			$this->writeAppSignature();
+			return;
 		}
+		/**
+		 * Steps to update:
+		 *     Check the compatible version of Java to use JSignPdf
+		 *     Update all the follow data
+		 *     Update the constants with java version
+		 * URL used to get the MD5 and URL to download:
+		 * https://jdk.java.net/java-se-ri/8-MR3
+		 */
+		$linuxDistribution = $this->getLinuxDistributionToDownloadJava();
+		$slugfyVersionNumber = str_replace('+', '_', self::JAVA_URL_PATH_NAME);
+		if ($this->architecture === 'x86_64') {
+			$compressedFileName = 'OpenJDK21U-jre_x64_' . $linuxDistribution . '_hotspot_' . $slugfyVersionNumber . '.tar.gz';
+			$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
+		} elseif ($this->architecture === 'aarch64') {
+			$compressedFileName = 'OpenJDK21U-jre_aarch64_' . $linuxDistribution . '_hotspot_' . $slugfyVersionNumber . '.tar.gz';
+			$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-' . self::JAVA_URL_PATH_NAME . '/' . $compressedFileName;
+		}
+		$folder = $this->getFolder('/' . $linuxDistribution . '/' . $this->resource);
+		try {
+			$compressedFile = $folder->getFile($compressedFileName);
+		} catch (NotFoundException $th) {
+			$compressedFile = $folder->newFile($compressedFileName);
+		}
+
+		$compressedInternalFileName = $this->getInternalPathOfFile($compressedFile);
+		$dependencyName = 'java ' . $this->architecture . ' ' . $linuxDistribution;
+		$checksumUrl = $url . '.sha256.txt';
+		$hash = $this->getHash($compressedFileName, $checksumUrl);
+		$this->download($url, $dependencyName, $compressedInternalFileName, $hash, 'sha256');
+
+		$extractor = new TAR($compressedInternalFileName);
+		$extractDir = $this->getInternalPathOfFolder($folder);
+		$extractor->extract($extractDir);
+		unlink($compressedInternalFileName);
+		$this->appConfig->setValueString(Application::APP_ID, 'java_path', $extractDir . '/jdk-' . self::JAVA_URL_PATH_NAME . '-jre/bin/java');
+		$this->writeAppSignature();
 		$this->removeDownloadProgress();
 	}
 
@@ -457,27 +457,27 @@ class InstallService {
 				$fullPath = $extractDir . '/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '/JSignPdf.jar';
 				$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_jar_path', $fullPath);
 			}
-		} else {
-			$folder = $this->getFolder($this->resource);
-			$compressedFileName = 'jsignpdf-' . InstallService::JSIGNPDF_VERSION . '.zip';
-			try {
-				$compressedFile = $folder->getFile($compressedFileName);
-			} catch (\Throwable $th) {
-				$compressedFile = $folder->newFile($compressedFileName);
-			}
-			$compressedInternalFileName = $this->getInternalPathOfFile($compressedFile);
-			$url = 'https://github.com/intoolswetrust/jsignpdf/releases/download/JSignPdf_' . str_replace('.', '_', InstallService::JSIGNPDF_VERSION) . '/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '.zip';
-
-			$this->download($url, 'JSignPdf', $compressedInternalFileName, self::JSIGNPDF_HASH);
-
-			$extractDir = $this->getInternalPathOfFolder($folder);
-			$zip = new ZIP($extractDir . '/' . $compressedFileName);
-			$zip->extract($extractDir);
-			unlink($extractDir . '/' . $compressedFileName);
-			$fullPath = $extractDir . '/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '/JSignPdf.jar';
-			$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_jar_path', $fullPath);
-			$this->writeAppSignature();
+			return;
 		}
+		$folder = $this->getFolder($this->resource);
+		$compressedFileName = 'jsignpdf-' . InstallService::JSIGNPDF_VERSION . '.zip';
+		try {
+			$compressedFile = $folder->getFile($compressedFileName);
+		} catch (\Throwable $th) {
+			$compressedFile = $folder->newFile($compressedFileName);
+		}
+		$compressedInternalFileName = $this->getInternalPathOfFile($compressedFile);
+		$url = 'https://github.com/intoolswetrust/jsignpdf/releases/download/JSignPdf_' . str_replace('.', '_', InstallService::JSIGNPDF_VERSION) . '/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '.zip';
+
+		$this->download($url, 'JSignPdf', $compressedInternalFileName, self::JSIGNPDF_HASH);
+
+		$extractDir = $this->getInternalPathOfFolder($folder);
+		$zip = new ZIP($extractDir . '/' . $compressedFileName);
+		$zip->extract($extractDir);
+		unlink($extractDir . '/' . $compressedFileName);
+		$fullPath = $extractDir . '/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '/JSignPdf.jar';
+		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_jar_path', $fullPath);
+		$this->writeAppSignature();
 
 		$this->removeDownloadProgress();
 	}
@@ -511,20 +511,20 @@ class InstallService {
 				$fullPath = $this->getInternalPathOfFile($file);
 				$this->appConfig->setValueString(Application::APP_ID, 'pdftk_path', $fullPath);
 			}
-		} else {
-			$folder = $this->getFolder($this->resource);
-			try {
-				$file = $folder->getFile('pdftk.jar');
-			} catch (\Throwable $th) {
-				$file = $folder->newFile('pdftk.jar');
-			}
-			$fullPath = $this->getInternalPathOfFile($file);
-			$url = 'https://gitlab.com/api/v4/projects/5024297/packages/generic/pdftk-java/v' . self::PDFTK_VERSION . '/pdftk-all.jar';
-
-			$this->download($url, 'pdftk', $fullPath, self::PDFTK_HASH);
-			$this->appConfig->setValueString(Application::APP_ID, 'pdftk_path', $fullPath);
-			$this->writeAppSignature();
+			return;
 		}
+		$folder = $this->getFolder($this->resource);
+		try {
+			$file = $folder->getFile('pdftk.jar');
+		} catch (\Throwable $th) {
+			$file = $folder->newFile('pdftk.jar');
+		}
+		$fullPath = $this->getInternalPathOfFile($file);
+		$url = 'https://gitlab.com/api/v4/projects/5024297/packages/generic/pdftk-java/v' . self::PDFTK_VERSION . '/pdftk-all.jar';
+
+		$this->download($url, 'pdftk', $fullPath, self::PDFTK_HASH);
+		$this->appConfig->setValueString(Application::APP_ID, 'pdftk_path', $fullPath);
+		$this->writeAppSignature();
 		$this->removeDownloadProgress();
 	}
 
