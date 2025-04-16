@@ -10,12 +10,18 @@ namespace OCA\Libresign\Handler;
 
 use Closure;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\CertificatePolicyService;
 
 class CfsslServerHandler {
 	private string $csrServerFile = '';
 	private string $configServerFile = '';
 	private string $configServerFileHash = '';
 	private Closure $getConfigPath;
+
+	public function __construct(
+		private CertificatePolicyService $certificatePolicyService,
+	) {
+	}
 
 	/**
 	 * Create a callback to get config path not at the constructor because
@@ -98,6 +104,19 @@ class CfsslServerHandler {
 				],
 			],
 		];
+		$oid = $this->certificatePolicyService->getOid();
+		$url = $this->certificatePolicyService->getUrl();
+		if ($oid && $url) {
+			$config['signing']['profiles']['CA']['policies'][] = [
+				'id' => $oid,
+				'qualifiers' => [
+					[
+						'type' => 'id-qt-cps',
+						'value' => $url,
+					],
+				],
+			];
+		}
 		$this->saveConfig($config);
 	}
 
