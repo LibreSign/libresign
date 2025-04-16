@@ -37,7 +37,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	protected $client;
 	protected $cfsslUri;
 	private string $binary = '';
-	private CfsslServerHandler $cfsslServerHandler;
 
 	public function __construct(
 		protected IConfig $config,
@@ -46,10 +45,10 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		protected IAppDataFactory $appDataFactory,
 		protected IDateTimeFormatter $dateTimeFormatter,
 		protected ITempManager $tempManager,
+		protected CfsslServerHandler $cfsslServerHandler,
 	) {
 		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager);
 
-		$this->cfsslServerHandler = new CfsslServerHandler();
 		$this->cfsslServerHandler->configCallback(fn () => $this->getConfigPath());
 	}
 
