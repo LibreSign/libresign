@@ -10,7 +10,6 @@
 		<ConfigureCheck />
 		<RootCertificateCfssl />
 		<RootCertificateOpenSsl />
-		<CertificatePolicy />
 		<IdentificationFactors />
 		<ExpirationRules />
 		<Validation />
