@@ -350,11 +350,11 @@ abstract class AEngineHandler implements IEngineHandler {
 	}
 
 	private function getCertificatePolicy(): array {
-		$return = ['policy_section' => []];
+		$return = ['policySection' => []];
 		$oid = $this->certificatePolicyService->getOid();
 		$cps = $this->certificatePolicyService->getCps();
 		if ($oid && $cps) {
-			$return['policy_section'][] = [
+			$return['policySection'][] = [
 				'OID' => $oid,
 				'CPS' => $cps,
 			];

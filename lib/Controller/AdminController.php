@@ -564,7 +564,7 @@ class AdminController extends AEnvironmentAwareController {
 			);
 		}
 		try {
-			$url = $this->certificatePolicyService->updateFile($pdf['tmp_name']);
+			$cps = $this->certificatePolicyService->updateFile($pdf['tmp_name']);
 		} catch (\Exception $e) {
 			return new DataResponse(
 				[
@@ -576,7 +576,7 @@ class AdminController extends AEnvironmentAwareController {
 		}
 		return new DataResponse(
 			[
-				'url' => $url,
+				'CPS' => $cps,
 				'status' => 'success',
 			]
 		);
