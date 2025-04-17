@@ -302,13 +302,12 @@ export type components = {
         EngineHandler: {
             configPath: string;
             cfsslUri?: string;
-            generated: boolean;
             policySection: {
                 ""?: {
                     OID: string;
                     CPS: string;
                 };
-            };
+            } | Record<string, never>;
             rootCert: components["schemas"]["RootCertificate"];
         };
         OCSMeta: {
