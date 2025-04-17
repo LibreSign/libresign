@@ -291,10 +291,12 @@ abstract class AEngineHandler implements IEngineHandler {
 		if (!$configPath) {
 			$this->appConfig->deleteKey(Application::APP_ID, 'config_path');
 		} else {
-			mkdir(
-				directory: $configPath,
-				recursive: true,
-			);
+			if (!is_dir($configPath)) {
+				mkdir(
+					directory: $configPath,
+					recursive: true,
+				);
+			}
 			$this->appConfig->setValueString(Application::APP_ID, 'config_path', $configPath);
 		}
 		$this->configPath = $configPath;
