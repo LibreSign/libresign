@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
-use bovigo\vfs\vfsStream;
 use Jeidison\JSignPDF\JSignPDF;
 use Jeidison\JSignPDF\Sign\JSignParam;
 use OCA\Libresign\AppInfo\Application;
@@ -42,14 +41,11 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		parent::setUpBeforeClass();
 
 		self::$certificateEngineFactory = \OCP\Server::get(CertificateEngineFactory::class);
-		// The storage can't be modified when create a new instance to
-		// don't lost the root cert
-		vfsStream::setup('certificate');
 		$appConfig = self::getMockAppConfig();
 		$appConfig->setValueString(Application::APP_ID, 'certificate_engine', 'openssl');
 		$certificateEngine = self::$certificateEngineFactory->getEngine();
 		$certificateEngine
-			->setConfigPath('vfs://certificate/')
+			->setConfigPath(\OCP\Server::get(ITempManager::class)->getTemporaryFolder('certificate'))
 			->generateRootCert('', []);
 
 		self::$certificateContent = $certificateEngine
