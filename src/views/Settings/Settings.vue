@@ -29,7 +29,6 @@ import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 import AllowedGroups from './AllowedGroups.vue'
 import CertificateEngine from './CertificateEngine.vue'
-import CertificatePolicy from './CertificatePolicy.vue'
 import CollectMetadata from './CollectMetadata.vue'
 import ConfigureCheck from './ConfigureCheck.vue'
 import DefaultUserFolder from './DefaultUserFolder.vue'
@@ -49,7 +48,6 @@ export default {
 	components: {
 		AllowedGroups,
 		CertificateEngine,
-		CertificatePolicy,
 		CollectMetadata,
 		ConfigureCheck,
 		DefaultUserFolder,
