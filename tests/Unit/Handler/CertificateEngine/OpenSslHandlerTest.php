@@ -6,7 +6,6 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-use bovigo\vfs\vfsStream;
 use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
@@ -25,6 +24,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ITempManager $tempManager;
 	private OpenSslHandler $openSslHandler;
 	protected CertificatePolicyService $certificatePolicyService;
+	private string $tempDir;
 	public function setUp(): void {
 		$this->config = \OCP\Server::get(IConfig::class);
 		$this->appConfig = \OCP\Server::get(IAppConfig::class);
@@ -32,10 +32,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->dateTimeFormatter = \OCP\Server::get(IDateTimeFormatter::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
 		$this->certificatePolicyService = \OCP\Server::get(certificatePolicyService::class);
-
-		// The storage can't be modified when create a new instance to
-		// don't lost the root cert
-		vfsStream::setup('certificate');
+		$this->tempDir = $this->tempManager->getTemporaryFolder('certificate');
 	}
 
 	private function getInstance(): OpenSslHandler {
@@ -47,7 +44,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->tempManager,
 			$this->certificatePolicyService,
 		);
-		$this->openSslHandler->setConfigPath('vfs://certificate/');
+		$this->openSslHandler->setConfigPath($this->tempDir);
 		return $this->openSslHandler;
 	}
 
