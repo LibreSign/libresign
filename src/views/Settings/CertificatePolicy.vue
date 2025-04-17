@@ -4,38 +4,40 @@
 -->
 
 <template>
-	<NcSettingsSection :name="name" :description="description">
+	<div>
 		<fieldset class="settings-section__row">
 			<NcTextField :value.sync="OID"
 				:label="t('libresign', 'Certificate Policy OID')"
 				:placeholder="t('libresign', 'Certificate Policy OID')"
 				:spellcheck="false"
 				:success="dislaySuccessOID"
+				:disabled="loading || disabled"
+				:error="!OID"
 				@update:modelValue="saveOID" />
 		</fieldset>
 		<fieldset class="settings-section__row">
 			<NcButton id="signature-background"
-				type="secondary"
+				:variant="url ? 'secondary' : 'error'"
 				:aria-label="t('libresign', 'Upload Certification Practice Statement (CPS) PDF')"
-				:disabled="loading"
+				:disabled="loading || disabled"
 				@click="activateLocalFilePicker">
 				<template #icon>
 					<Upload :size="20" />
 				</template>
-				{{ t('libresign', 'Upload') }}
+				{{ t('libresign', 'Upload Certification Practice Statement (CPS) PDF') }}
 			</NcButton>
 			<NcButton v-if="url"
-				type="tertiary"
+				variant="tertiary"
 				:aria-label="t('libresign', 'Remove')"
-				:disabled="loading"
+				:disabled="loading || disabled"
 				@click="removeCps">
 				<template #icon>
 					<Delete :size="20" />
 				</template>
 			</NcButton>
 			<NcButton v-if="url"
-				type="tertiary"
-				:disabled="loading"
+				variant="tertiary"
+				:disabled="loading || disabled"
 				@click="view">
 				{{ t('libresign', 'View') }}
 			</NcButton>
@@ -54,7 +56,7 @@
 				<p>{{ errorMessage }}</p>
 			</NcNoteCard>
 		</div>
-	</NcSettingsSection>
+	</div>
 </template>
 
 <script>
@@ -65,13 +67,11 @@ import Upload from 'vue-material-design-icons/Upload.vue'
 
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
-import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import '@nextcloud/password-confirmation/dist/style.css'
@@ -83,15 +83,17 @@ export default {
 		NcButton,
 		NcLoadingIcon,
 		NcNoteCard,
-		NcSettingsSection,
 		NcTextField,
 		Upload,
 	},
-
+	props: {
+		disabled: {
+			type: Boolean,
+			default: false,
+		},
+	},
 	data() {
 		return {
-			name: t('libresign', 'Certificate policies'),
-			description: t('libresign', 'Define OIDs and CPS for issued certificates.'),
 			acceptMime: ['application/pdf'],
 			OID: loadState('libresign', 'certificate_policies_oid'),
 			url: loadState('libresign', 'certificate_policies_url'),
@@ -99,6 +101,14 @@ export default {
 			dislaySuccessOID: false,
 			errorMessage: '',
 		}
+	},
+	computed: {
+		certificatePolicyValid() {
+			return this.OID && this.url
+		},
+	},
+	mounted() {
+		this.$emit('certificate-policy-valid', this.certificatePolicyValid)
 	},
 	methods: {
 		view() {
@@ -124,10 +134,12 @@ export default {
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/certificate-policy'), formData)
 				.then(({ data }) => {
 					this.url = data.ocs.data.url
+					this.$emit('certificate-policy-valid', this.certificatePolicyValid)
 					this.loading = false
 				})
 				.catch(({ response }) => {
 					this.errorMessage = response?.data?.ocs?.data?.message
+					this.$emit('certificate-policy-valid', this.certificatePolicyValid)
 					this.loading = false
 				})
 		},
@@ -137,6 +149,7 @@ export default {
 			await axios.delete(generateOcsUrl('/apps/libresign/api/v1/admin/certificate-policy'))
 				.then(() => {
 					this.url = ''
+					this.$emit('certificate-policy-valid', this.certificatePolicyValid)
 					this.loading = false
 				})
 		},
@@ -148,16 +161,18 @@ export default {
 			})
 				.then(() => {
 					this.dislaySuccessOID = true
+					this.$emit('certificate-policy-valid', this.certificatePolicyValid)
 					setTimeout(() => { this.dislaySuccessOID = false }, 2000)
 				})
 				.catch(({ response }) => {
 					this.errorMessage = response?.data?.ocs?.data?.message
+					this.$emit('certificate-policy-valid', this.certificatePolicyValid)
 					this.loading = false
 				})
 		},
-		saveOID: debounce(function () {
+		saveOID: debounce(function() {
 			this._saveOID()
-		}, 500)
+		}, 500),
 	},
 
 }
