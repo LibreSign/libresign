@@ -76,7 +76,7 @@ class CertificatePolicyService {
 		return $this->appConfig->getValueString(Application::APP_ID, 'certificate_policies_oid', '');
 	}
 
-	public function getUrl(): string {
+	public function getCps(): string {
 		try {
 			$this->getFile();
 		} catch (NotFoundException $e) {
