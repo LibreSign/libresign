@@ -131,6 +131,7 @@ export default {
 
 			this.errorMessage = ''
 			this.loading = true
+			this.$emit('certificate-policy-valid', this.certificatePolicyValid)
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/certificate-policy'), formData)
 				.then(({ data }) => {
 					this.url = data.ocs.data.url
@@ -146,6 +147,7 @@ export default {
 		async removeCps() {
 			this.errorMessage = ''
 			this.loading = true
+			this.$emit('certificate-policy-valid', this.certificatePolicyValid)
 			await axios.delete(generateOcsUrl('/apps/libresign/api/v1/admin/certificate-policy'))
 				.then(() => {
 					this.url = ''
@@ -156,6 +158,7 @@ export default {
 		async _saveOID() {
 			this.dislaySuccessOID = false
 			this.errorMessage = ''
+			this.$emit('certificate-policy-valid', this.certificatePolicyValid)
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/certificate-policy/oid'), {
 				oid: this.OID,
 			})
