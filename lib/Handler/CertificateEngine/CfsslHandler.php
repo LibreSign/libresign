@@ -16,6 +16,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslServerHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
+use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\Install\InstallService;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
@@ -46,8 +47,9 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		protected IDateTimeFormatter $dateTimeFormatter,
 		protected ITempManager $tempManager,
 		protected CfsslServerHandler $cfsslServerHandler,
+		protected CertificatePolicyService $certificatePolicyService,
 	) {
-		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager);
+		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager, $certificatePolicyService);
 
 		$this->cfsslServerHandler->configCallback(fn () => $this->getConfigPath());
 	}

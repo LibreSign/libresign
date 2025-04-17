@@ -17,7 +17,7 @@
 		</fieldset>
 		<fieldset class="settings-section__row">
 			<NcButton id="signature-background"
-				:variant="url ? 'secondary' : 'error'"
+				:variant="CPS ? 'secondary' : 'error'"
 				:aria-label="t('libresign', 'Upload Certification Practice Statement (CPS) PDF')"
 				:disabled="loading || disabled"
 				@click="activateLocalFilePicker">
@@ -26,7 +26,7 @@
 				</template>
 				{{ t('libresign', 'Upload Certification Practice Statement (CPS) PDF') }}
 			</NcButton>
-			<NcButton v-if="url"
+			<NcButton v-if="CPS"
 				variant="tertiary"
 				:aria-label="t('libresign', 'Remove')"
 				:disabled="loading || disabled"
@@ -35,7 +35,7 @@
 					<Delete :size="20" />
 				</template>
 			</NcButton>
-			<NcButton v-if="url"
+			<NcButton v-if="CPS"
 				variant="tertiary"
 				:disabled="loading || disabled"
 				@click="view">
@@ -96,7 +96,7 @@ export default {
 		return {
 			acceptMime: ['application/pdf'],
 			OID: loadState('libresign', 'certificate_policies_oid'),
-			url: loadState('libresign', 'certificate_policies_url'),
+			CPS: loadState('libresign', 'certificate_policies_cps'),
 			loading: false,
 			dislaySuccessOID: false,
 			errorMessage: '',
@@ -104,7 +104,7 @@ export default {
 	},
 	computed: {
 		certificatePolicyValid() {
-			return this.OID && this.url
+			return this.OID && this.CPS
 		},
 	},
 	mounted() {
@@ -113,9 +113,9 @@ export default {
 	methods: {
 		view() {
 			if (OCA?.Viewer !== undefined) {
-				OCA.Viewer.open({ path: this.url })
+				OCA.Viewer.open({ path: this.CPS })
 			} else {
-				window.open(`${this.url}?_t=${Date.now()}`)
+				window.open(`${this.CPS}?_t=${Date.now()}`)
 			}
 		},
 		activateLocalFilePicker() {
@@ -134,7 +134,7 @@ export default {
 			this.$emit('certificate-policy-valid', this.certificatePolicyValid)
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/certificate-policy'), formData)
 				.then(({ data }) => {
-					this.url = data.ocs.data.url
+					this.CPS = data.ocs.data.CPS
 					this.$emit('certificate-policy-valid', this.certificatePolicyValid)
 					this.loading = false
 				})
@@ -150,7 +150,7 @@ export default {
 			this.$emit('certificate-policy-valid', this.certificatePolicyValid)
 			await axios.delete(generateOcsUrl('/apps/libresign/api/v1/admin/certificate-policy'))
 				.then(() => {
-					this.url = ''
+					this.CPS = ''
 					this.$emit('certificate-policy-valid', this.certificatePolicyValid)
 					this.loading = false
 				})

@@ -105,14 +105,14 @@ class CfsslServerHandler {
 			],
 		];
 		$oid = $this->certificatePolicyService->getOid();
-		$url = $this->certificatePolicyService->getUrl();
-		if ($oid && $url) {
+		$cps = $this->certificatePolicyService->getCps();
+		if ($oid && $cps) {
 			$config['signing']['profiles']['CA']['policies'][] = [
 				'id' => $oid,
 				'qualifiers' => [
 					[
 						'type' => 'id-qt-cps',
-						'value' => $url,
+						'value' => $cps,
 					],
 				],
 			];

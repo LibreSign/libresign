@@ -13,6 +13,7 @@ use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
+use OCA\Libresign\Service\CertificatePolicyService;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\SimpleFS\ISimpleFolder;
@@ -71,6 +72,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		protected IAppDataFactory $appDataFactory,
 		protected IDateTimeFormatter $dateTimeFormatter,
 		protected ITempManager $tempManager,
+		protected CertificatePolicyService $certificatePolicyService,
 	) {
 		$this->appData = $appDataFactory->get('libresign');
 	}
@@ -347,6 +349,19 @@ abstract class AEngineHandler implements IEngineHandler {
 		throw new \Exception('Necessary to implement configureCheck method');
 	}
 
+	private function getCertificatePolicy(): array {
+		$return = ['policy_section' => []];
+		$oid = $this->certificatePolicyService->getOid();
+		$cps = $this->certificatePolicyService->getCps();
+		if ($oid && $cps) {
+			$return['policy_section'][] = [
+				'OID' => $oid,
+				'CPS' => $cps,
+			];
+		}
+		return $return;
+	}
+
 	public function toArray(): array {
 		$return = [
 			'configPath' => $this->getConfigPath(),
@@ -356,6 +371,10 @@ abstract class AEngineHandler implements IEngineHandler {
 				'names' => [],
 			],
 		];
+		$return = array_merge(
+			$return,
+			$this->getCertificatePolicy(),
+		);
 		$names = $this->getNames();
 		foreach ($names as $name => $value) {
 			$return['rootCert']['names'][] = [
