@@ -43,7 +43,7 @@ class Admin implements ISettings {
 		}
 		$this->initialState->provideInitialState('certificate_engine', $this->certificateEngineFactory->getEngine()->getName());
 		$this->initialState->provideInitialState('certificate_policies_oid', $this->certificatePolicyService->getOid());
-		$this->initialState->provideInitialState('certificate_policies_url', $this->certificatePolicyService->getUrl());
+		$this->initialState->provideInitialState('certificate_policies_cps', $this->certificatePolicyService->getCps());
 		$this->initialState->provideInitialState('config_path', $this->appConfig->getValueString(Application::APP_ID, 'config_path'));
 		$this->initialState->provideInitialState('default_signature_font_size', SignatureTextService::SIGNATURE_DEFAULT_FONT_SIZE);
 		$this->initialState->provideInitialState('default_signature_height', SignatureTextService::DEFAULT_SIGNATURE_HEIGHT);

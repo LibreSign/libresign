@@ -131,6 +131,8 @@
                 "type": "object",
                 "required": [
                     "configPath",
+                    "generated",
+                    "policySection",
                     "rootCert"
                 ],
                 "properties": {
@@ -139,6 +141,32 @@
                     },
                     "cfsslUri": {
                         "type": "string"
+                    },
+                    "generated": {
+                        "type": "boolean"
+                    },
+                    "policySection": {
+                        "type": "object",
+                        "required": [
+                            null
+                        ],
+                        "properties": {
+                            "": {
+                                "type": "object",
+                                "required": [
+                                    "OID",
+                                    "CPS"
+                                ],
+                                "properties": {
+                                    "OID": {
+                                        "type": "string"
+                                    },
+                                    "CPS": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
                     },
                     "rootCert": {
                         "$ref": "#/components/schemas/RootCertificate"

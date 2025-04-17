@@ -33,7 +33,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		protected ITempManager $tempManager,
 		protected CertificatePolicyService $certificatePolicyService,
 	) {
-		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager);
+		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager, $certificatePolicyService);
 	}
 
 	public function generateRootCert(
@@ -123,12 +123,12 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			],
 		];
 		$oid = $this->certificatePolicyService->getOid();
-		$url = $this->certificatePolicyService->getUrl();
-		if ($oid && $url) {
+		$cps = $this->certificatePolicyService->getCps();
+		if ($oid && $cps) {
 			$config['v3_req']['certificatePolicies'] = '@policy_section';
 			$config['policy_section'] = [
 				'policyIdentifier' => $oid,
-				'CPS.1' => $url,
+				'CPS.1' => $cps,
 			];
 		}
 		if (empty($config['v3_req']['subjectAltName'])) {
@@ -152,12 +152,12 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			],
 		];
 		$oid = $this->certificatePolicyService->getOid();
-		$url = $this->certificatePolicyService->getUrl();
-		if ($oid && $url) {
+		$cps = $this->certificatePolicyService->getCps();
+		if ($oid && $cps) {
 			$config['v3_ca']['certificatePolicies'] = '@policy_section';
 			$config['policy_section'] = [
 				'policyIdentifier' => $oid,
-				'CPS.1' => $url,
+				'CPS.1' => $cps,
 			];
 		}
 		if (empty($config['v3_ca']['subjectAltName'])) {

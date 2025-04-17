@@ -18,6 +18,14 @@
 						<td>{{ getLabelFromId(customName.id) }} ({{ customName.id }})</td>
 						<td>{{ customName.value }}</td>
 					</tr>
+					<tr v-if="OID" class="customNames">
+						<td>OID</td>
+						<td>{{ OID }}</td>
+					</tr>
+					<tr v-if="CPS" class="customNames">
+						<td>CPS</td>
+						<td>{{ CPS }}</td>
+					</tr>
 					<tr>
 						<td>{{ t('libresign', 'Config path') }}</td>
 						<td>{{ certificate.configPath }}</td>
@@ -128,7 +136,7 @@ export default {
 	},
 	data() {
 		const OID = loadState('libresign', 'certificate_policies_oid')
-		const url = loadState('libresign', 'certificate_policies_url')
+		const CPS = loadState('libresign', 'certificate_policies_cps')
 		return {
 			isThisEngine: loadState('libresign', 'certificate_engine') === 'openssl',
 			modal: false,
@@ -146,14 +154,14 @@ export default {
 			submitLabel: t('libresign', 'Generate root certificate'),
 			formDisabled: false,
 			OID,
-			url,
-			toggleCertificatePolicy: !!(OID || url),
-			certificatePolicyValid: !!OID && !!url,
+			CPS,
+			toggleCertificatePolicy: !!(OID || CPS),
+			certificatePolicyValid: !!OID && !!CPS,
 		}
 	},
 	computed: {
 		includeCertificatePolicy() {
-			return this.toggleCertificatePolicy || this.url || this.OID
+			return this.toggleCertificatePolicy || this.CPS || this.OID
 		},
 		canSave() {
 			if (this.formDisabled) {
