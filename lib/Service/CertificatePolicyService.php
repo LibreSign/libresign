@@ -59,8 +59,8 @@ class CertificatePolicyService {
 			$this->appConfig->deleteKey(Application::APP_ID, 'certificate_policies_oid');
 			return '';
 		}
-		$regex = '/^(0|1|2)(\.\d+)+$/';
-		preg_match($regex, $oid, $matches);
+		$regex = '(0|1|2)(\.\d+)+';
+		preg_match('/^' . $regex . '$/', $oid, $matches);
 		if (empty($matches)) {
 			// TRANSLATORS This message appears when an invalid Object
 			// Identifier (OID) is entered. It informs the admin that the input
