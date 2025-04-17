@@ -531,7 +531,7 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Update certificate policy of this instance
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{status: 'success', url: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{status: 'failure', message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{status: 'success', CPS: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{status: 'failure', message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Not found

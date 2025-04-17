@@ -302,12 +302,7 @@ export type components = {
         EngineHandler: {
             configPath: string;
             cfsslUri?: string;
-            policySection: {
-                ""?: {
-                    OID: string;
-                    CPS: string;
-                };
-            } | Record<string, never>;
+            policySection: components["schemas"]["PolicySection"][];
             rootCert: components["schemas"]["RootCertificate"];
         };
         OCSMeta: {
@@ -316,6 +311,10 @@ export type components = {
             message?: string;
             totalitems?: string;
             itemsperpage?: string;
+        };
+        PolicySection: {
+            OID: string;
+            CPS: string;
         };
         PublicCapabilities: {
             libresign?: components["schemas"]["Capabilities"];
@@ -981,7 +980,7 @@ export interface operations {
                             data: {
                                 /** @enum {string} */
                                 status: "success";
-                                url: string;
+                                CPS: string;
                             };
                         };
                     };

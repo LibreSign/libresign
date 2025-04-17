@@ -142,34 +142,10 @@
                         "type": "string"
                     },
                     "policySection": {
-                        "anyOf": [
-                            {
-                                "type": "object",
-                                "required": [
-                                    null
-                                ],
-                                "properties": {
-                                    "": {
-                                        "type": "object",
-                                        "required": [
-                                            "OID",
-                                            "CPS"
-                                        ],
-                                        "properties": {
-                                            "OID": {
-                                                "type": "string"
-                                            },
-                                            "CPS": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                "type": "object"
-                            }
-                        ]
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PolicySection"
+                        }
                     },
                     "rootCert": {
                         "$ref": "#/components/schemas/RootCertificate"
@@ -196,6 +172,21 @@
                         "type": "string"
                     },
                     "itemsperpage": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PolicySection": {
+                "type": "object",
+                "required": [
+                    "OID",
+                    "CPS"
+                ],
+                "properties": {
+                    "OID": {
+                        "type": "string"
+                    },
+                    "CPS": {
                         "type": "string"
                     }
                 }
@@ -1833,7 +1824,7 @@
                                                     "type": "object",
                                                     "required": [
                                                         "status",
-                                                        "url"
+                                                        "CPS"
                                                     ],
                                                     "properties": {
                                                         "status": {
@@ -1842,7 +1833,7 @@
                                                                 "success"
                                                             ]
                                                         },
-                                                        "url": {
+                                                        "CPS": {
                                                             "type": "string"
                                                         }
                                                     }

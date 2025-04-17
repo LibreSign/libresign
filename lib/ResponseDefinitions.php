@@ -81,15 +81,14 @@ namespace OCA\Libresign;
  *     commonName: string,
  *     names: LibresignRootCertificateName[],
  * }
+ * @psalm-type LibresignPolicySection = array{
+ *      OID: string,
+ *      CPS: string,
+ *  }
  * @psalm-type LibresignEngineHandler = array{
  *     configPath: string,
  *     cfsslUri?: string,
- *     policySection: array{
- *         array{
- *             OID: string,
- *             CPS: string,
- *         },
- *     }|array{},
+ *     policySection: LibresignPolicySection[],
  *     rootCert: LibresignRootCertificate,
  * }
  * @psalm-type LibresignCetificateDataGenerated = LibresignEngineHandler&array{
