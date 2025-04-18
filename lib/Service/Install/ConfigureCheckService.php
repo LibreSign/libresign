@@ -151,7 +151,7 @@ class ConfigureCheckService {
 		if ($jsignpdJarPath) {
 			$resultOfVerify = $this->verify('jsignpdf');
 			if (count($resultOfVerify)) {
-				[$errorMessage, $tip] = $this->getErrorAndTipToResultOfVerify($resultOfVerify);
+				[$errorMessage, $tip] = $this->getErrorAndTipToResultOfVerify($resultOfVerify, 'jsignpdf');
 				return [
 					(new ConfigureCheckHelper())
 						->setErrorMessage($errorMessage)
@@ -221,7 +221,7 @@ class ConfigureCheckService {
 		if ($pdftkPath) {
 			$resultOfVerify = $this->verify('pdftk');
 			if (count($resultOfVerify)) {
-				[$errorMessage, $tip] = $this->getErrorAndTipToResultOfVerify($resultOfVerify);
+				[$errorMessage, $tip] = $this->getErrorAndTipToResultOfVerify($resultOfVerify, 'pdftk');
 				return [
 					(new ConfigureCheckHelper())
 						->setErrorMessage($errorMessage)
@@ -308,7 +308,7 @@ class ConfigureCheckService {
 		return $result;
 	}
 
-	private function getErrorAndTipToResultOfVerify(array $result): array {
+	private function getErrorAndTipToResultOfVerify(array $result, string $resource): array {
 		if (count($result) === 1 && !$this->isDebugEnabled()) {
 			if (isset($result['SIGNATURE_DATA_NOT_FOUND'])) {
 				return [
@@ -320,6 +320,14 @@ class ConfigureCheckService {
 				return [
 					'Your signature data is empty.',
 					"Sounds that you are running from source code of LibreSign.\nEnable debug mode by: occ config:system:set debug --value true --type boolean",
+				];
+			}
+		}
+		if (isset($result['HASH_FILE_ERROR'])) {
+			if ($this->isDebugEnabled()) {
+				return [
+					'Invalid hash of binaries files.',
+					'Debug mode is enabled at your config.php and your LibreSign app was signed using a production signature. If you are not working at development of LibreSign, disable your debug mode or run the command: occ libresign install --' . $resource . ' --use-local-cert',
 				];
 			}
 		}
@@ -340,7 +348,7 @@ class ConfigureCheckService {
 		if ($javaPath) {
 			$resultOfVerify = $this->verify('java');
 			if (count($resultOfVerify)) {
-				[$errorMessage, $tip] = $this->getErrorAndTipToResultOfVerify($resultOfVerify);
+				[$errorMessage, $tip] = $this->getErrorAndTipToResultOfVerify($resultOfVerify, 'java');
 				return [
 					(new ConfigureCheckHelper())
 						->setErrorMessage($errorMessage)
