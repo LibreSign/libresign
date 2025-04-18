@@ -32,6 +32,7 @@ use OCP\IEventSourceFactory;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\ISession;
+use UnexpectedValueException;
 
 /**
  * @psalm-import-type LibresignEngineHandler from ResponseDefinitions
@@ -565,7 +566,7 @@ class AdminController extends AEnvironmentAwareController {
 		}
 		try {
 			$cps = $this->certificatePolicyService->updateFile($pdf['tmp_name']);
-		} catch (\Exception $e) {
+		} catch (UnexpectedValueException $e) {
 			return new DataResponse(
 				[
 					'message' => $e->getMessage(),

@@ -94,4 +94,8 @@ class AppConfigOverwrite extends AppConfig {
 		$this->overWrite[$app][$key] = $value;
 		return true;
 	}
+
+	public function deleteKey(string $app, string $key): void {
+		unset($this->overWrite[$app][$key]);
+	}
 }
