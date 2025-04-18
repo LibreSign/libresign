@@ -18,6 +18,7 @@ use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
+use OCP\Files\NotFoundException;
 use OCP\IRequest;
 
 class CertificatePolicyController extends Controller {
@@ -40,11 +41,15 @@ class CertificatePolicyController extends Controller {
 	#[NoCSRFRequired]
 	#[AnonRateLimit(limit: 10, period: 60)]
 	#[FrontpageRoute(verb: 'GET', url: '/certificate-policy.pdf')]
-	public function getCertificatePolicy(): FileDisplayResponse {
-		$file = $this->certificatePolicyService->getFile();
-		return new FileDisplayResponse($file, Http::STATUS_OK, [
-			'Content-Disposition' => 'inline; filename="certificate-policy.pdf"',
-			'Content-Type' => 'application/pdf',
-		]);
+	public function getCertificatePolicy(): FileDisplayResponse|DataResponse {
+		try {
+			$file = $this->certificatePolicyService->getFile();
+			return new FileDisplayResponse($file, Http::STATUS_OK, [
+				'Content-Disposition' => 'inline; filename="certificate-policy.pdf"',
+				'Content-Type' => 'application/pdf',
+			]);
+		} catch (NotFoundException $e) {
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
+		}
 	}
 }

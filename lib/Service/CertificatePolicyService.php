@@ -16,6 +16,7 @@ use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
+use UnexpectedValueException;
 
 class CertificatePolicyService {
 	public function __construct(
@@ -28,8 +29,8 @@ class CertificatePolicyService {
 
 	public function updateFile(string $tmpFile): string {
 		$detectedMimeType = mime_content_type($tmpFile);
-		if (!in_array($detectedMimeType, ['application/pdf'], true)) {
-			throw new \Exception('Unsupported image type: ' . $detectedMimeType);
+		if ($detectedMimeType !== 'application/pdf') {
+			throw new UnexpectedValueException('Unsupported image type: ' . $detectedMimeType);
 		}
 
 		$blob = file_get_contents($tmpFile);
