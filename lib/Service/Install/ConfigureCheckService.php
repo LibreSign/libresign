@@ -20,6 +20,7 @@ use Psr\Log\LoggerInterface;
 class ConfigureCheckService {
 	private string $architecture;
 	private bool $isCacheDisabled = false;
+	private array $result = [];
 	public function __construct(
 		private IAppConfig $appConfig,
 		private SystemConfig $systemConfig,
@@ -72,8 +73,11 @@ class ConfigureCheckService {
 	}
 
 	public function checkPdfSig(): array {
+		if (!empty($this->result['poppler'])) {
+			return $this->result['poppler'];
+		}
 		if (shell_exec('which pdfsig') === null) {
-			return [
+			return $this->result['poppler'] = [
 				(new ConfigureCheckHelper())
 					->setInfoMessage('Poppler utils not installed')
 					->setResource('pdfsig')
@@ -84,7 +88,7 @@ class ConfigureCheckService {
 		// With 2>&1 the STRERR is redirected to STDOUT
 		$version = shell_exec('pdfsig -v 2>&1');
 		if (!$version) {
-			return [
+			return $this->result['poppler'] = [
 				(new ConfigureCheckHelper())
 					->setErrorMessage('Fail to retrieve pdfsig version')
 					->setResource('pdfsig')
@@ -93,22 +97,25 @@ class ConfigureCheckService {
 		}
 		$version = preg_match('/pdfsig version (?<version>.*)/', $version, $matches);
 		if (!$version) {
-			return [
+			return $this->result['poppler'] = [
 				(new ConfigureCheckHelper())
 					->setErrorMessage('Fail to retrieve pdfsig version')
 					->setResource('pdfsig')
 					->setTip("This is a poppler-utils dependency and wasn't possible to parse the output of command pdfsig -v"),
 			];
 		}
-		return [(new ConfigureCheckHelper())
+		return $this->result['poppler'] = [(new ConfigureCheckHelper())
 			->setSuccessMessage('pdfsig version: ' . $matches['version'])
 			->setResource('pdfsig')
 		];
 	}
 
 	public function checkPdfinfo(): array {
+		if (!empty($this->result['pdfinfo'])) {
+			return $this->result['pdfinfo'];
+		}
 		if (shell_exec('which pdfinfo') === null) {
-			return [
+			return $this->result['pdfinfo'] = [
 				(new ConfigureCheckHelper())
 					->setInfoMessage('Poppler utils not installed')
 					->setResource('pdfinfo')
@@ -119,7 +126,7 @@ class ConfigureCheckService {
 		// With 2>&1 the STRERR is redirected to STDOUT
 		$version = shell_exec('pdfinfo -v 2>&1');
 		if (!$version) {
-			return [
+			return $this->result['pdfinfo'] = [
 				(new ConfigureCheckHelper())
 					->setErrorMessage('Fail to retrieve pdfinfo version')
 					->setResource('pdfinfo')
@@ -128,14 +135,14 @@ class ConfigureCheckService {
 		}
 		$version = preg_match('/pdfinfo version (?<version>.*)/', $version, $matches);
 		if (!$version) {
-			return [
+			return $this->result['pdfinfo'] = [
 				(new ConfigureCheckHelper())
 					->setErrorMessage('Fail to retrieve pdfinfo version')
 					->setResource('pdfinfo')
 					->setTip("This is a poppler-utils dependency and wasn't possible to parse the output of command pdfinfo -v"),
 			];
 		}
-		return [(new ConfigureCheckHelper())
+		return $this->result['pdfinfo'] = [(new ConfigureCheckHelper())
 			->setSuccessMessage('pdfinfo version: ' . $matches['version'])
 			->setResource('pdfinfo')
 		];
@@ -147,12 +154,15 @@ class ConfigureCheckService {
 	 * @return ConfigureCheckHelper[]
 	 */
 	public function checkJSignPdf(): array {
+		if (!empty($this->result['jsignpdf'])) {
+			return $this->result['jsignpdf'];
+		}
 		$jsignpdJarPath = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path');
 		if ($jsignpdJarPath) {
 			$resultOfVerify = $this->verify('jsignpdf');
 			if (count($resultOfVerify)) {
 				[$errorMessage, $tip] = $this->getErrorAndTipToResultOfVerify($resultOfVerify);
-				return [
+				return $this->result['jsignpdf'] = [
 					(new ConfigureCheckHelper())
 						->setErrorMessage($errorMessage)
 						->setResource('jsignpdf')
@@ -161,7 +171,7 @@ class ConfigureCheckService {
 			}
 			if (file_exists($jsignpdJarPath)) {
 				if (!$this->isJavaOk()) {
-					return [
+					return $this->result['jsignpdf'] = [
 						(new ConfigureCheckHelper())
 							->setErrorMessage('Necessary Java to run JSignPdf')
 							->setResource('jsignpdf')
@@ -171,6 +181,7 @@ class ConfigureCheckService {
 				$jsignPdf = $this->jSignPdfHandler->getJSignPdf();
 				$jsignPdf->setParam($this->jSignPdfHandler->getJSignParam());
 				$currentVersion = $jsignPdf->getVersion();
+				$return = [];
 				if ($currentVersion < InstallService::JSIGNPDF_VERSION) {
 					if (!$currentVersion) {
 						$message = 'Necessary install the version ' . InstallService::JSIGNPDF_VERSION;
@@ -196,14 +207,14 @@ class ConfigureCheckService {
 					->setResource('jsignpdf');
 				return $return;
 			}
-			return [
+			return $this->result['jsignpdf'] = [
 				(new ConfigureCheckHelper())
 					->setErrorMessage('JSignPdf binary not found: ' . $jsignpdJarPath)
 					->setResource('jsignpdf')
 					->setTip('Run occ libresign:install --jsignpdf'),
 			];
 		}
-		return [
+		return $this->result['jsignpdf'] = [
 			(new ConfigureCheckHelper())
 				->setErrorMessage('JSignPdf not found')
 				->setResource('jsignpdf')
@@ -217,12 +228,15 @@ class ConfigureCheckService {
 	 * @return ConfigureCheckHelper[]
 	 */
 	public function checkPdftk(): array {
+		if (!empty($this->result['pdftk'])) {
+			return $this->result['pdftk'];
+		}
 		$pdftkPath = $this->appConfig->getValueString(Application::APP_ID, 'pdftk_path');
 		if ($pdftkPath) {
 			$resultOfVerify = $this->verify('pdftk');
 			if (count($resultOfVerify)) {
 				[$errorMessage, $tip] = $this->getErrorAndTipToResultOfVerify($resultOfVerify);
-				return [
+				return $this->result['pdftk'] = [
 					(new ConfigureCheckHelper())
 						->setErrorMessage($errorMessage)
 						->setResource('pdftk')
@@ -231,7 +245,7 @@ class ConfigureCheckService {
 			}
 			if (file_exists($pdftkPath)) {
 				if (!$this->isJavaOk()) {
-					return [
+					return $this->result['pdftk'] = [
 						(new ConfigureCheckHelper())
 							->setErrorMessage('Necessary Java to run PDFtk')
 							->setResource('jsignpdf')
@@ -242,7 +256,7 @@ class ConfigureCheckService {
 				$version = [];
 				\exec($javaPath . ' -jar ' . $pdftkPath . ' --version 2>&1', $version, $resultCode);
 				if ($resultCode !== 0) {
-					return [
+					return $this->result['pdftk'] = [
 						(new ConfigureCheckHelper())
 							->setErrorMessage('Failure to check PDFtk version.')
 							->setResource('java')
@@ -253,36 +267,39 @@ class ConfigureCheckService {
 					preg_match('/pdftk port to java (?<version>.*) a Handy Tool/', $version[0], $matches);
 					if (isset($matches['version'])) {
 						if ($matches['version'] === InstallService::PDFTK_VERSION) {
-							$return[] = (new ConfigureCheckHelper())
-								->setSuccessMessage('PDFtk version: ' . InstallService::PDFTK_VERSION)
-								->setResource('pdftk');
-							$return[] = (new ConfigureCheckHelper())
-								->setSuccessMessage('PDFtk path: ' . $pdftkPath)
-								->setResource('pdftk');
-							return $return;
+							return $this->result['pdftk'] = [
+								$this->result['pdftk'][] = (new ConfigureCheckHelper())
+									->setSuccessMessage('PDFtk version: ' . InstallService::PDFTK_VERSION)
+									->setResource('pdftk'),
+								$this->result['pdftk'][] = (new ConfigureCheckHelper())
+									->setSuccessMessage('PDFtk path: ' . $pdftkPath)
+									->setResource('pdftk'),
+							];
 						}
 						$message = 'Necessary install the version ' . InstallService::PDFTK_VERSION;
-						$return[] = (new ConfigureCheckHelper())
-							->setErrorMessage($message)
-							->setResource('jsignpdf')
-							->setTip('Run occ libresign:install --jsignpdf');
+						return $this->result['pdftk'] = [
+							(new ConfigureCheckHelper())
+								->setErrorMessage($message)
+								->setResource('jsignpdf')
+								->setTip('Run occ libresign:install --jsignpdf')
+						];
 					}
 				}
-				return [
+				return $this->result['pdftk'] = [
 					(new ConfigureCheckHelper())
 						->setErrorMessage('PDFtk binary is invalid: ' . $pdftkPath)
 						->setResource('pdftk')
 						->setTip('Run occ libresign:install --pdftk'),
 				];
 			}
-			return [
+			return $this->result['pdftk'] = [
 				(new ConfigureCheckHelper())
 					->setErrorMessage('PDFtk binary not found: ' . $pdftkPath)
 					->setResource('pdftk')
 					->setTip('Run occ libresign:install --pdftk'),
 			];
 		}
-		return [
+		return $this->result['pdftk'] = [
 			(new ConfigureCheckHelper())
 				->setErrorMessage('PDFtk not found')
 				->setResource('pdftk')
@@ -336,12 +353,15 @@ class ConfigureCheckService {
 	 * @return ConfigureCheckHelper[]
 	 */
 	private function checkJava(): array {
+		if (!empty($this->result['java'])) {
+			return $this->result['java'];
+		}
 		$javaPath = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
 		if ($javaPath) {
 			$resultOfVerify = $this->verify('java');
 			if (count($resultOfVerify)) {
 				[$errorMessage, $tip] = $this->getErrorAndTipToResultOfVerify($resultOfVerify);
-				return [
+				return $this->result['java'] = [
 					(new ConfigureCheckHelper())
 						->setErrorMessage($errorMessage)
 						->setResource('java')
@@ -351,7 +371,7 @@ class ConfigureCheckService {
 			if (file_exists($javaPath)) {
 				\exec($javaPath . ' -version 2>&1', $javaVersion, $resultCode);
 				if (empty($javaVersion)) {
-					return [
+					return $this->result['java'] = [
 						(new ConfigureCheckHelper())
 							->setErrorMessage(
 								'Failed to execute Java. Sounds that your operational system is blocking the JVM.'
@@ -361,7 +381,7 @@ class ConfigureCheckService {
 					];
 				}
 				if ($resultCode !== 0) {
-					return [
+					return $this->result['java'] = [
 						(new ConfigureCheckHelper())
 							->setErrorMessage('Failure to check Java version.')
 							->setResource('java')
@@ -370,7 +390,7 @@ class ConfigureCheckService {
 				}
 				$javaVersion = current($javaVersion);
 				if ($javaVersion !== InstallService::JAVA_VERSION) {
-					return [
+					return $this->result['java'] = [
 						(new ConfigureCheckHelper())
 							->setErrorMessage(
 								sprintf(
@@ -386,7 +406,7 @@ class ConfigureCheckService {
 				\exec($javaPath . ' -XshowSettings:properties -version 2>&1', $output, $resultCode);
 				preg_match('/native.encoding = (?<encoding>.*)\n/', implode("\n", $output), $matches);
 				if (!isset($matches['encoding'])) {
-					return [
+					return $this->result['java'] = [
 						(new ConfigureCheckHelper())
 							->setErrorMessage('Java encoding not found.')
 							->setResource('java')
@@ -394,14 +414,14 @@ class ConfigureCheckService {
 					];
 				}
 				if (!str_contains($matches['encoding'], 'UTF-8')) {
-					return [
+					return $this->result['java'] = [
 						(new ConfigureCheckHelper())
 							->setInfoMessage('Non-UTF-8 encoding detected. This may cause issues with accented or special characters')
 							->setResource('java')
 							->setTip(' Ensure the system encoding is UTF-8. You can check it using: locale charmap'),
 					];
 				}
-				return [
+				return $this->result['java'] = [
 					(new ConfigureCheckHelper())
 						->setSuccessMessage('Java version: ' . $javaVersion)
 						->setResource('java'),
@@ -410,14 +430,14 @@ class ConfigureCheckService {
 						->setResource('java'),
 				];
 			}
-			return [
+			return $this->result['java'] = [
 				(new ConfigureCheckHelper())
 					->setErrorMessage('Java binary not found: ' . $javaPath)
 					->setResource('java')
 					->setTip('Run occ libresign:install --java'),
 			];
 		}
-		return [
+		return $this->result['java'] = [
 			(new ConfigureCheckHelper())
 				->setErrorMessage('Java not installed')
 				->setResource('java')
