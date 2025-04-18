@@ -42,7 +42,7 @@ OC.L10N.register(
     "signed" : "assinado",
     "deleted" : "excluído",
     "Identification Document" : "Documento de identificação",
-    "Digital signed by LibreSign." : "Digital assinado por LibreSign.",
+    "Digital signed by LibreSign." : "Assinado digitalmente por LibreSign.",
     "Validate in %s." : "Validar em  %s.",
     "Unsigned file." : "Arquivo não assinado.",
     "Signature is valid." : "A assinatura é válida.",
