@@ -190,7 +190,7 @@ OC.L10N.register(
     "Active filters" : "활성 필터",
     "Remove filter" : "필터 삭제",
     "Switch to list view" : "목록 보기로 전환",
-    "Switch to grid view" : "그리드뷰로 전환",
+    "Switch to grid view" : "바둑판식 보기로 전환",
     "There are no documents" : "문서가 없습니다.",
     "Choose the file to request signatures." : "서명을 요청할 파일을 선택하십시오.",
     "1 file" : "파일 1개",
