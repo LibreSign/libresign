@@ -27,6 +27,7 @@ OC.L10N.register(
     "Account" : "Konto",
     "Invalid user" : "Vigane kasutaja",
     "Email" : "Epost",
+    "User already exists" : "Kasutaja on juba olemas",
     "Draw" : "Joonista",
     "Text" : "Tekst",
     "Upload" : "Laadi üles",
@@ -103,6 +104,7 @@ OC.L10N.register(
     "Description only" : "Vaid kirjeldus",
     "Reset to default" : "Taasta vaikeseaded",
     "Forgot password?" : "Unustasid parooli?",
+    "Name:" : "Nimi:",
     "Status:" : "Seisund:",
     "No date" : "No date",
     "Other activities" : "Muud tegevused"
