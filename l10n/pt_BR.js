@@ -215,7 +215,7 @@ OC.L10N.register(
     "Send" : "Enviar",
     "Previous" : "Anteriores",
     "Next" : "Próximo",
-    "Account not exist" : "Conta inexistente",
+    "Account not exist" : "Conta não existe",
     "Select a signer to set their signature position" : "Selecione um signatário para definir sua posição de assinatura",
     "Click on the place you want to add." : "Clique no lugar que você quiser adicionar",
     "Sign" : "Assinar",
