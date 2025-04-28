@@ -64,6 +64,7 @@ OC.L10N.register(
     "Status" : "Staatus",
     "Actions" : "Tegevused",
     "Delete certificate" : "Kustuta sertifikaat",
+    "Change password" : "Muuda Salasõna",
     "Signature" : "Allkiri",
     "Profile picture" : "Profiili pilt",
     "Create account" : "Loo konto",
