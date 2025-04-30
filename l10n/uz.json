@@ -40,6 +40,7 @@
     "Last 7 days" : "Oxirgi 7 kun",
     "Last 30 days" : "Oxirgi 30 kun",
     "Modified" : "Modified",
+    "{fileCount} files" : "{fileCount} fayllari",
     "_{count} selected_::_{count} selected_" : ["{count} tanlangan"],
     "Password reset" : "Password reset",
     "Current password" : "Current password",
