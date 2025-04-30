@@ -80,6 +80,7 @@ OC.L10N.register(
     "\"{displayName}\" failed on some elements " : "\"{displayName}\" не успеа на некои елементи",
     "\"{displayName}\" batch action executed successfully" : "\"{displayName}\" сериската акцијата е успешно извршена",
     "\"{displayName}\" action failed" : "\"{displayName}\" акцијата не успеа",
+    "(selected)" : "(означени)",
     "Password reset" : "Ресетирај лозинка",
     "Current password" : "Моментална лозинка",
     "New password" : "Нова лозинка",
