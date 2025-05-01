@@ -247,7 +247,7 @@ OC.L10N.register(
     "Change password" : "Passwort ändern",
     "Your signatures" : "Ihre Signaturen",
     "Signature" : "Signatur",
-    "No signature, click here to create a new" : "Keine Signatur, klicken Sie hier um eine Neue zu erstellen",
+    "No signature, click here to create a new" : "Keine Signatur, klicken Sie hier, um eine neue zu erstellen",
     "Initials" : "Initialen",
     "No initials, click here to create a new" : "Keine Initialen, klicken Sie hier um neue zu erstellen",
     "Profile picture" : "Profilbild",
