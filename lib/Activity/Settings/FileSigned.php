@@ -17,16 +17,14 @@ class FileSigned extends LibresignActivitySettings {
 	}
 
 	/**
-	 * @return string Lowercase a-z and underscore only identifier. The type of table activity
-	 * @since 20.0.0
+	 * {@inheritdoc}
 	 */
 	public function getIdentifier(): string {
 		return 'file_signed';
 	}
 
 	/**
-	 * @return string A translated string
-	 * @since 11.0.0
+	 * {@inheritdoc}
 	 */
 	public function getName(): string {
 		return $this->l->t('A document has been <strong>signed</strong>');
