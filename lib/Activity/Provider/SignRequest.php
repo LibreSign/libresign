@@ -58,7 +58,7 @@ class SignRequest implements IProvider {
 			$event->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')));
 		}
 
-		if (in_array($event->getSubject(), ['new_sign_request', 'update_sign_request'])) {
+		if (in_array($event->getSubject(), ['new_sign_request', 'update_sign_request', 'new_file_signed'])) {
 			$l = $this->languageFactory->get(Application::APP_ID, $language);
 			$parameters = $event->getSubjectParameters();
 
@@ -83,6 +83,8 @@ class SignRequest implements IProvider {
 			return $l->t('{from} requested your signature on {file}');
 		} elseif ($subject === 'update_sign_request') {
 			return $l->t('{from} made changes on {file}');
+		} elseif ($subject === 'new_file_signed') {
+			return '{from} teste aqui foi {file}';
 		}
 	}
 }

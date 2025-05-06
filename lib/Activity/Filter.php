@@ -39,12 +39,14 @@ class Filter implements IFilter {
 	}
 
 	public function filterTypes(array $types) {
-		return ['file_to_sign'];
+		return array_intersect([
+				'file_to_sign',
+				'file_signed',
+			], $types);
 	}
 
 	public function allowedApps() {
 		return [
-			'file_to_sign',
 			Application::APP_ID,
 		];
 	}
