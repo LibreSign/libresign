@@ -69,6 +69,8 @@ class Notifier implements INotifier {
 				return $this->parseSignRequest($notification, $l, false);
 			case 'update_sign_request':
 				return $this->parseSignRequest($notification, $l, true);
+			case 'new_file_signed':
+				return $this->parseSignRequest($notification, $l, false);
 			default:
 				throw new UnknownActivityException();
 		}
@@ -125,6 +127,32 @@ class Notifier implements INotifier {
 				);
 			$notification->addParsedAction($dismissAction);
 		}
+
+		if($notification->getSubject() == 'new_file_signed'){
+		$parameters = [
+			'actor' => [
+				'name' => 'John Doe',
+			],
+			'file' => [
+				'name' => 'Contract.pdf',
+				'link' => 'https://example.com/file/123',
+			],
+		];
+		if (isset($parameters['actor'])) {
+			$subject = $l->t('{actor} signed the document {file}');
+			$notification->setParsedSubject(
+				str_replace(
+					['{actor}', '{file}'],
+					[
+						$parameters['actor']['name'] ?? 'Mocked Actor',
+						$parameters['file']['name'] ?? 'Mocked File',
+					],
+					$subject
+				)
+			)->setRichSubject($subject, $parameters);
+		}
+		}
+
 		return $notification;
 	}
 }
