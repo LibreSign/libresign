@@ -78,7 +78,7 @@ OC.L10N.register(
     "Total rows summary" : "Резиме на вкупно редови",
     "Created at" : "Создадена на",
     "\"{displayName}\" failed on some elements " : "\"{displayName}\" не успеа на некои елементи",
-    "\"{displayName}\" batch action executed successfully" : "\"{displayName}\" сериската акцијата е успешно извршена",
+    "\"{displayName}\" batch action executed successfully" : "\"{displayName}\" сериската акција е успешно извршена",
     "\"{displayName}\" action failed" : "\"{displayName}\" акцијата не успеа",
     "(selected)" : "(означени)",
     "Password reset" : "Ресетирај лозинка",
