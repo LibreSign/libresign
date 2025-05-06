@@ -13,6 +13,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
+use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\Activity\Exceptions\UnknownActivityException;
@@ -41,13 +42,14 @@ class Listener implements IEventListener {
 	}
 
 	public function handle(Event $event): void {
-		/** @var SendSignNotificationEvent $event */
+		/** @var SendSignNotificationEvent|SignedEvent $event */
 		match (get_class($event)) {
 			SendSignNotificationEvent::class => $this->generateNewSignNotificationActivity(
 				$event->getSignRequest(),
 				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
 			),
+			SignedEvent::class => $this->generateSignedEventActivity($event),
 		};
 	}
 
@@ -104,6 +106,44 @@ class Listener implements IEventListener {
 				],
 			]);
 			$this->activityManager->publish($event);
+		} catch (UnknownActivityException $e) {
+			$this->logger->error($e->getMessage(), ['exception' => $e]);
+			return;
+		}
+	}
+
+
+	//TODO dados mockados para testar activities
+	protected function generateSignedEventActivity(SignedEvent $event): void {
+
+
+		$activityEvent = $this->activityManager->generateEvent();
+		try {
+			$activityEvent
+				->setApp(Application::APP_ID)
+				->setType('file_signed')
+				->setAuthor('admin')
+				->setObject('signedFile', 10)
+				->setTimestamp($this->timeFactory->getTime())
+				->setAffectedUser('admin')
+				->setGenerateNotification(true);
+
+				//dados mockados por enquanto
+			$activityEvent->setSubject('new_file_signed', [
+				'from' => $this->getUserParameter(
+					'admin',
+					'admin',
+				),
+				'file' => [
+					'type' => 'file',
+					'id' => '2151',
+					'name' => 'teste',
+					'path' => 'teste',
+					'link' => $this->url->linkToRouteAbsolute('libresign.page.sign', ['uuid' => 'admin']),
+				]
+			]);
+
+			$this->activityManager->publish($activityEvent);
 		} catch (UnknownActivityException $e) {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
 			return;

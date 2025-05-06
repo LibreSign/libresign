@@ -13,6 +13,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
+use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -42,6 +43,8 @@ class NotificationListener implements IEventListener {
 				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
 			);
+		} elseif ($event instanceof SignedEvent) {
+			$this->sendSignedNotification($event);
 		}
 	}
 
@@ -81,6 +84,36 @@ class NotificationListener implements IEventListener {
 				'name' => $actor->getDisplayName(),
 			],
 		]);
+		$this->notificationManager->notify($notification);
+	}
+
+	//TODO dados mockados para testar notificação
+	private function sendSignedNotification(SignedEvent $event): void {
+		/*
+		$actor = $this->userSession->getUser();
+		if (!$actor instanceof IUser) {
+			return;
+		}
+	*/
+		$notification = $this->notificationManager->createNotification();
+		$notification
+			->setApp(AppInfoApplication::APP_ID)
+			->setObject('signedFile', 'document_signed') 
+			->setDateTime((new \DateTime())->setTimestamp($this->timeFactory->now()->getTimestamp()))
+			->setUser('admin') 
+			->setSubject('new_file_signed', [
+				'from' => $this->getUserParameter(
+					'admin',
+					'admin',
+				),
+				'file' => [
+					'type' => 'file',
+					'id' => 'mocked-file-id', 
+					'name' => 'Mocked File Name', 
+					'link' => 'https://example.com/file/mock', 
+				],
+			]);
+	
 		$this->notificationManager->notify($notification);
 	}
 
