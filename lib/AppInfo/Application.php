@@ -70,9 +70,11 @@ class Application extends App implements IBootstrap {
 
 		// Activity listeners
 		$context->registerEventListener(SendSignNotificationEvent::class, ActivityListener::class);
+		$context->registerEventListener(SignedEvent::class, ActivityListener::class);
 
 		// Notification listeners
 		$context->registerEventListener(SendSignNotificationEvent::class, NotificationListener::class);
+		//$context->registerEventListener(SignedEvent::class, NotificationListener::class);
 
 		// MailNotify listener
 		$context->registerEventListener(SendSignNotificationEvent::class, MailNotifyListener::class);
