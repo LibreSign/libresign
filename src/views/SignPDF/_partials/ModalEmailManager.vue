@@ -140,13 +140,12 @@ export default {
 	},
 	methods: {
 		onChangeEmail() {
-			if (validateEmail(this.sendTo)) {
-				if (md5(this.sendTo) !== this.signMethodsStore.settings.emailToken.hashOfEmail) {
-					this.errorMessage = t('libresign', 'Invalid email')
-					return
-				}
-				this.errorMessage = ''
+			if (!validateEmail(this.sendTo) || md5(this.sendTo) !== this.signMethodsStore.settings.emailToken.hashOfEmail) {
+				this.errorMessage = t('libresign', 'Invalid email')
+				return
 			}
+
+			this.errorMessage = ''
 		},
 		requestNewCode() {
 			this.signMethodsStore.hasEmailConfirmCode(false)
@@ -157,6 +156,11 @@ export default {
 			this.signMethodsStore.hasEmailConfirmCode(false)
 
 			await this.$nextTick()
+			if (!this.canRequestCode) {
+				this.onChangeEmail()
+				this.loading = false
+				return
+			}
 
 			try {
 				if (this.signStore.document.fileId) {
@@ -193,6 +197,9 @@ export default {
 			}
 		},
 		sendCode() {
+			if (!this.canSendCode) {
+				return
+			}
 			this.$emit('change')
 			this.close()
 		},
