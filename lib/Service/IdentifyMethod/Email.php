@@ -48,6 +48,18 @@ class Email extends AbstractIdentifyMethod {
 	public function validateToIdentify(): void {
 		$this->throwIfAccountAlreadyExists();
 		$this->throwIfIsAuthenticatedWithDifferentAccount();
+		$this->throwIfMaximumValidityExpired();
+		$this->throwIfRenewalIntervalExpired();
+		$this->throwIfNeedToCreateAccount();
+		$this->throwIfFileNotFound();
+		$this->throwIfAlreadySigned();
+		$this->renewSession();
+		$this->updateIdentifiedAt();
+	}
+
+	public function validateToSign(): void {
+		$this->throwIfAccountAlreadyExists();
+		$this->throwIfIsAuthenticatedWithDifferentAccount();
 		$this->throwIfInvalidToken();
 		$this->throwIfMaximumValidityExpired();
 		$this->throwIfRenewalIntervalExpired();
