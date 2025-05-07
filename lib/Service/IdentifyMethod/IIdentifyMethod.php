@@ -30,6 +30,7 @@ interface IIdentifyMethod {
 	public function validateToCreateAccount(string $value): void;
 	public function validateToIdentify(): void;
 	public function validateToRenew(?IUser $user = null): void;
+	public function validateToSign(): void;
 	public function save(): void;
 	public function delete(): void;
 }

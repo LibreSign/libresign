@@ -140,6 +140,9 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	public function validateToIdentify(): void {
 	}
 
+	public function validateToSign(): void {
+	}
+
 	protected function throwIfFileNotFound(): void {
 		$signRequest = $this->identifyService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
 		$fileEntity = $this->identifyService->getFileMapper()->getById($signRequest->getFileId());
@@ -173,10 +176,8 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function throwIfInvalidToken(): void {
-		if (empty($this->codeSentByUser)) {
-			return;
-		}
-		if (!$this->identifyService->getHasher()->verify($this->codeSentByUser, $this->getEntity()->getCode())) {
+		$code = $this->getEntity()->getCode();
+		if (empty($this->codeSentByUser) || empty($code) || !$this->identifyService->getHasher()->verify($this->codeSentByUser, $code)) {
 			throw new LibresignException($this->identifyService->getL10n()->t('Invalid code.'));
 		}
 	}

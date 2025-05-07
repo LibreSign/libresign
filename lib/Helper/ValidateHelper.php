@@ -24,6 +24,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -694,27 +695,67 @@ class ValidateHelper {
 
 	public function validateCredentials(SignRequest $signRequest, string $identifyMethodName, string $identifyValue, string $token): void {
 		$this->validateIfIdentifyMethodExists($identifyMethodName);
-		if ($signRequest->getId()) {
-			$multidimensionalList = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
-			if (!empty($multidimensionalList[$identifyMethodName])) {
-				$identifyMethods = $multidimensionalList[$identifyMethodName];
-				if ($identifyValue) {
-					$identifyMethods = array_filter($identifyMethods, fn ($m) => $m->getEntity()->getIdentifierValue() === $identifyValue);
-				}
-			}
-		}
-		if (empty($identifyMethods)) {
-			$identifyMethod = $this->identifyMethodService
-				->setCurrentIdentifyMethod()
-				->getInstanceOfIdentifyMethod($identifyMethodName, $identifyValue);
-		} else {
-			$identifyMethod = current($identifyMethods);
-		}
 		if ($signRequest->getSigned()) {
 			throw new LibresignException($this->l10n->t('File already signed.'));
 		}
+		$identifyMethod = $this->resolveIdentifyMethod($signRequest, $identifyMethodName, $identifyValue);
 		$identifyMethod->setCodeSentByUser($token);
-		$identifyMethod->validateToIdentify();
+		$identifyMethod->validateToSign();
+	}
+
+	private function resolveIdentifyMethod(SignRequest $signRequest, string $methodName, ?string $identifyValue): IIdentifyMethod {
+		if (!$signRequest->getId()) {
+			return $this->identifyMethodService
+				->setCurrentIdentifyMethod()
+				->getInstanceOfIdentifyMethod($methodName, $identifyValue);
+		}
+
+		$methodsList = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
+		$identifyMethod = $this->searchMethodByNameAndValue($methodsList, $methodName, $identifyValue);
+		if ($identifyMethod) {
+			return $identifyMethod;
+		}
+
+		$signMethods = $this->identifyMethodService->getSignMethodsOfIdentifiedFactors($signRequest->getId());
+		$identifyMethod = $this->searchMethodByNameAndValue($signMethods, $methodName, $identifyValue);
+		if ($identifyMethod) {
+			return $identifyMethod;
+		}
+
+		if (!empty($methodsList)) {
+			return $this->getFirstAvailableMethod($methodsList);
+		}
+
+		if (!empty($signMethods)) {
+			return $this->getFirstAvailableMethod($signMethods);
+		}
+
+		throw new LibresignException($this->l10n->t('Invalid identification method'));
+	}
+
+	private function searchMethodByNameAndValue(array $methods, string $methodName, ?string $identifyValue): ?IIdentifyMethod {
+		if (isset($methods[$methodName])) {
+			if ($identifyValue) {
+				foreach ($methods[$methodName] as $method) {
+					if ($method->getEntity()->getIdentifierValue() === $identifyValue) {
+						return $method;
+					}
+				}
+			} else {
+				return current($methods[$methodName]);
+			}
+		}
+
+		return null;
+	}
+
+	private function getFirstAvailableMethod(array $methods): IIdentifyMethod {
+		foreach ($methods as $methodGroup) {
+			if (!empty($methodGroup)) {
+				return current($methodGroup);
+			}
+		}
+		throw new LibresignException($this->l10n->t('Invalid identification method'));
 	}
 
 	public function validateIfIdentifyMethodExists(string $identifyMethod): void {
