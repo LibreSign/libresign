@@ -26,6 +26,10 @@ class Password extends AbstractSignatureMethod {
 		);
 	}
 
+	public function validateToSign(): void {
+		$this->validateToIdentify();
+	}
+
 	public function validateToIdentify(): void {
 		$this->pkcs12Handler->setPassword($this->codeSentByUser);
 		$pfx = $this->pkcs12Handler->getPfxOfCurrentSigner($this->userSession->getUser()?->getUID());
