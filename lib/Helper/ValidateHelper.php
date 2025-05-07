@@ -736,17 +736,30 @@ class ValidateHelper {
 	private function searchMethodByNameAndValue(array $methods, string $methodName, ?string $identifyValue): ?IIdentifyMethod {
 		if (isset($methods[$methodName])) {
 			if ($identifyValue) {
-				foreach ($methods[$methodName] as $method) {
-					if ($method->getEntity()->getIdentifierValue() === $identifyValue) {
-						return $method;
+				foreach ($methods[$methodName] as $identifyMethod) {
+					if (!$identifyMethod instanceof IIdentifyMethod) {
+						$identifyMethod = $this->getIdentifyMethodByNameAndValue($methodName, $identifyValue);
+					}
+					if ($identifyMethod->getEntity()->getIdentifierValue() === $identifyValue) {
+						return $identifyMethod;
 					}
 				}
 			} else {
-				return current($methods[$methodName]);
+				$identifyMethod = current($methods[$methodName]);
+				if (!$identifyMethod instanceof IIdentifyMethod) {
+					$identifyMethod = $this->getIdentifyMethodByNameAndValue($methodName, $identifyValue);
+				}
+				return $identifyMethod;
 			}
 		}
 
 		return null;
+	}
+
+	private function getIdentifyMethodByNameAndValue(string $identifyMethodName, ?string $identifyValue): IIdentifyMethod {
+		return $this->identifyMethodService
+			->setCurrentIdentifyMethod()
+			->getInstanceOfIdentifyMethod($identifyMethodName, $identifyValue);
 	}
 
 	private function getFirstAvailableMethod(array $methods): IIdentifyMethod {
