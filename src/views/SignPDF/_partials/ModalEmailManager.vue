@@ -17,6 +17,8 @@
 				:disabled="loading"
 				:label="t('libresign', 'Enter your code')"
 				:placeholder="t('libresign', 'Enter your code')"
+				:helper-text="errorMessage"
+				:error="errorMessage.length > 0"
 				name="code"
 				type="text"
 				@keyup.enter="sendCode">
