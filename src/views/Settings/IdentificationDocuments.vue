@@ -10,7 +10,7 @@
 			{{ t('libresign', 'Enable identification documents flow') }}
 		</NcCheckboxRadioSwitch>
 		<p v-if="identificationDocumentsFlowEnabled">
-			{{ t('libresign', 'Select authorized groups that can request to sign documents. Admin group is the default group and don\'t need to be defined.') }}
+			{{ t('libresign', 'Select authorized groups that can request to sign documents. Admin group is the default group and doesn\'t need to be defined.') }}
 			<br>
 			<NcSelect :key="idApprovalGroupsKey"
 				v-model="approvalGroups"
