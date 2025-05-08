@@ -13,7 +13,7 @@ use OCA\Files\Event\LoadSidebar;
 use OCA\Libresign\Activity\Listener as ActivityListener;
 use OCA\Libresign\Capabilities;
 use OCA\Libresign\Events\SendSignNotificationEvent;
-use OCA\Libresign\Events\SignedEvent;
+use OCA\Libresign\Events\SignedCallbackEvent;
 use OCA\Libresign\Files\TemplateLoader as FilesTemplateLoader;
 use OCA\Libresign\Listener\BeforeNodeDeletedListener;
 use OCA\Libresign\Listener\LoadAdditionalListener;
@@ -63,18 +63,18 @@ class Application extends App implements IBootstrap {
 		$context->registerEventListener(LoadSidebar::class, LoadSidebarListener::class);
 		$context->registerEventListener(BeforeNodeDeletedEvent::class, BeforeNodeDeletedListener::class);
 		$context->registerEventListener(CacheEntryRemovedEvent::class, BeforeNodeDeletedListener::class);
-		$context->registerEventListener(SignedEvent::class, SignedListener::class);
+		$context->registerEventListener(SignedCallbackEvent::class, SignedListener::class);
 
 		// Files newFile listener
 		$context->registerEventListener(LoadAdditionalScriptsEvent::class, LoadAdditionalListener::class);
 
 		// Activity listeners
 		$context->registerEventListener(SendSignNotificationEvent::class, ActivityListener::class);
-		$context->registerEventListener(SignedEvent::class, ActivityListener::class);
+		$context->registerEventListener(SignedCallbackEvent::class, ActivityListener::class);
 
 		// Notification listeners
 		$context->registerEventListener(SendSignNotificationEvent::class, NotificationListener::class);
-		//$context->registerEventListener(SignedEvent::class, NotificationListener::class);
+		//$context->registerEventListener(SignedCallbackEvent::class, NotificationListener::class);
 
 		// MailNotify listener
 		$context->registerEventListener(SendSignNotificationEvent::class, MailNotifyListener::class);
