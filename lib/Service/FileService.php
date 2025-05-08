@@ -736,6 +736,9 @@ class FileService {
 							if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
 								return $identifyMethod->getIdentifierValue();
 							}
+							if (filter_var($identifyMethod->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
+								return $identifyMethod->getIdentifierValue();
+							}
 							return $carry;
 						}, ''),
 						'description' => $signer->getDescription(),
