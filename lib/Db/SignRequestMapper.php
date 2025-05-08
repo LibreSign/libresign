@@ -196,10 +196,11 @@ class SignRequestMapper extends QBMapper {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
-			->from($this->getTableName())
+			->from($this->getTableName(), 'sr')
 			->where(
-				$qb->expr()->in('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT_ARRAY))
-			);
+				$qb->expr()->in('sr.file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT_ARRAY))
+			)
+			->orderBy('sr.id', 'ASC');
 
 		/** @var SignRequest[] */
 		return $this->findEntities($qb);
