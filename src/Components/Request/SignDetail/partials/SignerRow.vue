@@ -63,7 +63,7 @@ export default {
 				return signer.email
 			}
 
-			return t('libresign', 'Account not exist')
+			return t('libresign', 'Account does not exist')
 		},
 		status() {
 			const { signer } = this
