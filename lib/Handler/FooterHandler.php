@@ -161,7 +161,7 @@ class FooterHandler {
 	}
 
 	private function getTemplateVars(): array {
-		$this->templateVars['signedBy'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_signed_by', $this->l10n->t('Digital signed by LibreSign.'));
+		$this->templateVars['signedBy'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_signed_by', $this->l10n->t('Digitally signed by LibreSign.'));
 
 		$this->templateVars['direction'] = $this->getLanguageDirection($this->l10n->getLanguageCode());
 
