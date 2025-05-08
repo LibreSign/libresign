@@ -25,7 +25,7 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
-use OCA\Libresign\Events\SignedEvent;
+use OCA\Libresign\Events\SignedCallbackEvent;
 use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\FooterHandler;
@@ -324,7 +324,7 @@ class SignFileService {
 		$allSigned = $this->updateStatus();
 		$this->fileMapper->update($this->libreSignFile);
 
-		$this->eventDispatcher->dispatchTyped(new SignedEvent($this, $signedFile, $allSigned));
+		$this->eventDispatcher->dispatchTyped(new SignedCallbackEvent($this, $signedFile, $allSigned));
 
 		return $signedFile;
 	}

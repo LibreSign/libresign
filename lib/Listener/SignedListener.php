@@ -8,15 +8,15 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Listener;
 
-use OCA\Libresign\Events\ASignedEvent;
+use OCA\Libresign\Events\ASignedCallbackEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
-/** @template-implements IEventListener<ASignedEvent> */
+/** @template-implements IEventListener<ASignedCallbackEvent> */
 class SignedListener implements IEventListener {
 	public function handle(Event $event): void {
-		/** @var ASignedEvent */
-		if (!($event instanceof ASignedEvent)) {
+		/** @var ASignedCallbackEvent */
+		if (!($event instanceof ASignedCallbackEvent)) {
 			return;
 		}
 

@@ -13,7 +13,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
-use OCA\Libresign\Events\SignedEvent;
+use OCA\Libresign\Events\SignedCallbackEvent;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\Activity\Exceptions\UnknownActivityException;
@@ -42,14 +42,14 @@ class Listener implements IEventListener {
 	}
 
 	public function handle(Event $event): void {
-		/** @var SendSignNotificationEvent|SignedEvent $event */
+		/** @var SendSignNotificationEvent|SignedCallbackEvent $event */
 		match (get_class($event)) {
 			SendSignNotificationEvent::class => $this->generateNewSignNotificationActivity(
 				$event->getSignRequest(),
 				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
 			),
-			SignedEvent::class => $this->generateSignedEventActivity($event),
+			SignedCallbackEvent::class => $this->generateSignedCallbackEventActivity($event),
 		};
 	}
 
@@ -114,7 +114,7 @@ class Listener implements IEventListener {
 
 
 	//TODO dados mockados para testar activities
-	protected function generateSignedEventActivity(SignedEvent $event): void {
+	protected function generateSignedCallbackEventActivity(SignedCallbackEvent $event): void {
 
 
 		$activityEvent = $this->activityManager->generateEvent();
