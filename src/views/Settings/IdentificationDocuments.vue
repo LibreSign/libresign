@@ -10,7 +10,7 @@
 			{{ t('libresign', 'Enable identification documents flow') }}
 		</NcCheckboxRadioSwitch>
 		<p v-if="identificationDocumentsFlowEnabled">
-			{{ t('libresign', 'Select authorized groups that can request to sign documents. Admin group is the default group and don\'t need to be defined.') }}
+			{{ t('libresign', 'Select authorized groups that can request to sign documents. Admin group is the default group and doesn\'t need to be defined.') }}
 			<br>
 			<NcSelect :key="idApprovalGroupsKey"
 				v-model="approvalGroups"
@@ -50,7 +50,7 @@ export default {
 	data() {
 		return {
 			name: t('libresign', 'Identification documents'),
-			description: t('libresign', 'The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents.'),
+			description: t('libresign', 'The flow of identification documents will make it mandatory for anyone who must sign a file, to send their identification documents, this, in order for them to be approved by some member of the approval group. The user can only create the certificate after these are approved.'),
 			identificationDocumentsFlowEnabled: false,
 			approvalGroups: [],
 			groups: [],

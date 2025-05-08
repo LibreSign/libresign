@@ -26,7 +26,7 @@
 			</NcCheckboxRadioSwitch>
 		</p>
 		<p v-if="addFooter">
-			{{ t('libresign', 'To validate signature of the documents. Only change this value if you want to replace the default validation URL by other.') }}
+			{{ t('libresign', 'To validate the signature of the documents. Only change this value if you want to replace the default validation URL with a different one.') }}
 			<input id="validation_site"
 				ref="urlInput"
 				:placeholder="url"
