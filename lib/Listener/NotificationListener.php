@@ -13,7 +13,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
-use OCA\Libresign\Events\SignedEvent;
+use OCA\Libresign\Events\SignedCallbackEvent;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -43,7 +43,7 @@ class NotificationListener implements IEventListener {
 				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
 			);
-		} elseif ($event instanceof SignedEvent) {
+		} elseif ($event instanceof SignedCallbackEvent) {
 			$this->sendSignedNotification($event);
 		}
 	}
@@ -88,7 +88,7 @@ class NotificationListener implements IEventListener {
 	}
 
 	//TODO dados mockados para testar notificação
-	private function sendSignedNotification(SignedEvent $event): void {
+	private function sendSignedNotification(SignedCallbackEvent $event): void {
 		/*
 		$actor = $this->userSession->getUser();
 		if (!$actor instanceof IUser) {
