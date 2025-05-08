@@ -12,7 +12,7 @@
 			</template>
 
 			<span slot="no-signatures">
-				{{ t('libresign', 'No signature, click here to create a new') }}
+				{{ t('libresign', 'No signature, click here to create a new one') }}
 			</span>
 		</Signature>
 
@@ -22,7 +22,7 @@
 			</template>
 
 			<span slot="no-signatures">
-				{{ t('libresign', 'No initials, click here to create a new') }}
+				{{ t('libresign', 'No initials, click here to create a new one') }}
 			</span>
 		</Signature>
 	</div>

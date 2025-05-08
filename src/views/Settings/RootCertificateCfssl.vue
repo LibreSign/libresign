@@ -72,7 +72,7 @@
 				<NcTextField id="cfsslUri"
 					v-model="certificate.cfsslUri"
 					:label-outside="true"
-					:placeholder="t('libresign', 'Not mandatory, don\'t fill to use default value.')"
+					:placeholder="t('libresign', 'Not mandatory, leave blank to use the default value.')"
 					:disabled="formDisabled" />
 			</div>
 			<div v-if="customData" class="form-group">
@@ -80,7 +80,7 @@
 				<NcTextField id="configPath"
 					v-model="certificate.configPath"
 					:label-outside="true"
-					:placeholder="t('libresign', 'Not mandatory, don\'t fill to use default value.')"
+					:placeholder="t('libresign', 'Not mandatory, leave blank to use the default value.')"
 					:disabled="formDisabled" />
 			</div>
 			<NcButton :disabled="formDisabled"
