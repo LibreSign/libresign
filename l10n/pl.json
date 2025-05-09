@@ -31,7 +31,6 @@
     "signed" : "podpisany",
     "deleted" : "usunięty",
     "Identification Document" : "Dokument tożsamości",
-    "Digital signed by LibreSign." : "Podpisane cyfrowo przez LibreSign.",
     "Validate in %s." : "Sprawdź w %s.",
     "Password to sign not defined. Create a password to sign." : "Nie zdefiniowano hasła dla podpisu. Utwórz hasło dla podpisu.",
     "Invalid password" : "Nieprawidłowe hasło",
@@ -150,7 +149,6 @@
     "Send" : "Wyślij",
     "Previous" : "Poprzedni",
     "Next" : "Następny",
-    "Account not exist" : "Konto nie istnieje",
     "Sign" : "Podpisz",
     "Confirm" : "Potwierdź",
     "Request signatures?" : "Prośba o podpisy?",
@@ -172,9 +170,7 @@
     "Upload certificate" : "Prześlij certyfikat",
     "Your signatures" : "Twoje podpisy",
     "Signature" : "Podpis",
-    "No signature, click here to create a new" : "Brak podpisu, kliknij tutaj, aby utworzyć nowy",
     "Initials" : "Inicjały",
-    "No initials, click here to create a new" : "Brak inicjałów, kliknij tutaj, aby utworzyć nowy",
     "Profile picture" : "Zdjęcie profilowe",
     "This is not a valid email" : "To nie jest prawidłowy adres e-mail",
     "The email entered is not the same as the email in the invitation" : "Wprowadzony e-mail nie jest taki sam jak e-mail w zaproszeniu",
@@ -241,7 +237,6 @@
     "Reset to default" : "Przywróć domyślne",
     "Remove background" : "Usuń tło",
     "Validation URL" : "Walidacja adresu URL",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Aby potwierdzić podpis dokumentów. Zmień tę wartość tylko wtedy, gdy chcesz zastąpić domyślny adres URL weryfikacji innym.",
     "Sign with your email." : "Podpisz za pomocą swojego e-maila.",
     "Request code." : "Kod zapytania.",
     "Send code." : "Wyślij kod.",
@@ -268,6 +263,11 @@
     "Return" : "Powróć",
     "Open in LibreSign" : "Otwórz w LibreSign",
     "Requested by {name}, at {date}" : "Prośba złożona przez {name}, dnia {date}",
-    "Other activities" : "Inne aktywności"
+    "Other activities" : "Inne aktywności",
+    "Digital signed by LibreSign." : "Podpisane cyfrowo przez LibreSign.",
+    "Account not exist" : "Konto nie istnieje",
+    "No signature, click here to create a new" : "Brak podpisu, kliknij tutaj, aby utworzyć nowy",
+    "No initials, click here to create a new" : "Brak inicjałów, kliknij tutaj, aby utworzyć nowy",
+    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Aby potwierdzić podpis dokumentów. Zmień tę wartość tylko wtedy, gdy chcesz zastąpić domyślny adres URL weryfikacji innym."
 },"pluralForm" :"nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);"
 }

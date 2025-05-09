@@ -26,7 +26,6 @@ OC.L10N.register(
     "partially signed" : "osittain allekirjoitettu",
     "signed" : "allekirjoitettu",
     "deleted" : "poistettu",
-    "Digital signed by LibreSign." : "Digitaalisesti allekirjoitettu LibreSignilla.",
     "Invalid password" : "Virheellinen salasana",
     "File type: %s. Empty file." : "Tiedostotyyppi: %s. Tyhjä tiedosto.",
     "File type: %s. Invalid fileID." : "Tiedoston tyyppi: %s. Virheellinen fileID.",
@@ -114,7 +113,6 @@ OC.L10N.register(
     "Send" : "Lähetä",
     "Previous" : "Edellinen",
     "Next" : "Seuraava",
-    "Account not exist" : "Tiliä ei ole olemassa",
     "Sign" : "Allekirjoita",
     "Confirm" : "Vahvista",
     "Send reminder" : "Lähetä muistutus",
@@ -130,9 +128,7 @@ OC.L10N.register(
     "Delete certificate" : "Poista varmenne",
     "Your signatures" : "Omat allekirjoitukset",
     "Signature" : "Allekirjoitus",
-    "No signature, click here to create a new" : "Ei allekirjoitusta, napsauta tästä luodaksesi uuden",
     "Initials" : "Nimikirjaimet",
-    "No initials, click here to create a new" : "Ei nimikirjaimia, napsauta tästä luodaksesi uuden",
     "Profile picture" : "Profiilikuva",
     "This is not a valid email" : "Tämä ei ole kelvollinen sähköpostiosoite",
     "The email entered is not the same as the email in the invitation" : "Annettu sähköpostiosoite ei ole sama kuin kutsussa",
@@ -198,6 +194,10 @@ OC.L10N.register(
     "Return" : "Palaa",
     "Open in LibreSign" : "Avaa LibreSignissa",
     "Requested by {name}, at {date}" : "Pyytänyt {name} {date}",
-    "Other activities" : "Muut tapahtumat"
+    "Other activities" : "Muut tapahtumat",
+    "Digital signed by LibreSign." : "Digitaalisesti allekirjoitettu LibreSignilla.",
+    "Account not exist" : "Tiliä ei ole olemassa",
+    "No signature, click here to create a new" : "Ei allekirjoitusta, napsauta tästä luodaksesi uuden",
+    "No initials, click here to create a new" : "Ei nimikirjaimia, napsauta tästä luodaksesi uuden"
 },
 "nplurals=2; plural=(n != 1);");

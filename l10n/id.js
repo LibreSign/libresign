@@ -38,7 +38,6 @@ OC.L10N.register(
     "signed" : "ditandatangani",
     "deleted" : "terhapus",
     "Identification Document" : "Dokumen Identifikasi",
-    "Digital signed by LibreSign." : "Ditandatangani secara digital oleh LibreSign",
     "Validate in %s." : "Validasi dalam %s.",
     "Unsigned file." : "Berkas belum ditandatangani.",
     "Password to sign not defined. Create a password to sign." : "Kata sandi untuk tandatangani tidak dibuat. Buat kata sandi untuk menandatangani.",
@@ -97,6 +96,7 @@ OC.L10N.register(
     "Yes" : "Ya",
     "No" : "Tidak",
     "No date" : "No date",
-    "Other activities" : "Aktivitas lain"
+    "Other activities" : "Aktivitas lain",
+    "Digital signed by LibreSign." : "Ditandatangani secara digital oleh LibreSign"
 },
 "nplurals=1; plural=0;");

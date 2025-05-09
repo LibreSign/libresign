@@ -22,7 +22,6 @@ OC.L10N.register(
     "draft" : "borrolhon",
     "signed" : "signat",
     "deleted" : "suprimit",
-    "Digital signed by LibreSign." : "Signatura numerica per LibreSign.",
     "User not found." : "Utilizaire pas trobat.",
     "document to sign" : "document de signar",
     "visible element" : "element visible",
@@ -114,6 +113,7 @@ OC.L10N.register(
     "This document is valid" : "Aqueste document es valid",
     "No date" : "Cap de data",
     "Return" : "Tornar",
-    "Other activities" : "Autras activitats"
+    "Other activities" : "Autras activitats",
+    "Digital signed by LibreSign." : "Signatura numerica per LibreSign."
 },
 "nplurals=2; plural=(n > 1);");
