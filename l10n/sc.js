@@ -94,7 +94,6 @@ OC.L10N.register(
     "Select your file" : "Seletziona is archìvios tuos",
     "Previous" : "Pretzedente",
     "Next" : "Imbeniente",
-    "Account not exist" : "Su contu non b'est",
     "Sign" : "Firma",
     "Confirm" : "Cunfirma",
     "Send reminder" : "Imbia promemòria",
@@ -106,7 +105,6 @@ OC.L10N.register(
     "Actions" : "Atziones",
     "Change password" : "Càmbia crae",
     "Signature" : "Firma",
-    "No signature, click here to create a new" : "Peruna firma. Incarca inoghe pro nde creare una noa",
     "Profile picture" : "Immàgine de profilu",
     "The email entered is not the same as the email in the invitation" : "S'indiritzu de posta eletrònica no est su pròpiu de cuddu de s'invitu",
     "Create account" : "Crea contu",
@@ -165,6 +163,8 @@ OC.L10N.register(
     "Return" : "Torra",
     "Open in LibreSign" : "Aberi in LibreSign",
     "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}",
-    "Other activities" : "Àteras atividades"
+    "Other activities" : "Àteras atividades",
+    "Account not exist" : "Su contu non b'est",
+    "No signature, click here to create a new" : "Peruna firma. Incarca inoghe pro nde creare una noa"
 },
 "nplurals=2; plural=(n != 1);");
