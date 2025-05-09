@@ -17,6 +17,8 @@
 				:disabled="loading"
 				:label="t('libresign', 'Enter your code')"
 				:placeholder="t('libresign', 'Enter your code')"
+				:helper-text="errorMessage"
+				:error="errorMessage.length > 0"
 				name="code"
 				type="text"
 				@keyup.enter="sendCode">
@@ -138,13 +140,12 @@ export default {
 	},
 	methods: {
 		onChangeEmail() {
-			if (validateEmail(this.sendTo)) {
-				if (md5(this.sendTo) !== this.signMethodsStore.settings.emailToken.hashOfEmail) {
-					this.errorMessage = t('libresign', 'Invalid email')
-					return
-				}
-				this.errorMessage = ''
+			if (!validateEmail(this.sendTo) || md5(this.sendTo) !== this.signMethodsStore.settings.emailToken.hashOfEmail) {
+				this.errorMessage = t('libresign', 'Invalid email')
+				return
 			}
+
+			this.errorMessage = ''
 		},
 		requestNewCode() {
 			this.signMethodsStore.hasEmailConfirmCode(false)
@@ -155,6 +156,11 @@ export default {
 			this.signMethodsStore.hasEmailConfirmCode(false)
 
 			await this.$nextTick()
+			if (!this.canRequestCode) {
+				this.onChangeEmail()
+				this.loading = false
+				return
+			}
 
 			try {
 				if (this.signStore.document.fileId) {
@@ -191,6 +197,9 @@ export default {
 			}
 		},
 		sendCode() {
+			if (!this.canSendCode) {
+				return
+			}
 			this.$emit('change')
 			this.close()
 		},
