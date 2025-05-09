@@ -79,6 +79,7 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
         </filters>
         <providers>
             <provider>OCA\Libresign\Activity\Provider\SignRequest</provider>
+            <provider>OCA\Libresign\Activity\Provider\Signed</provider>
         </providers>
     </activity>
     <navigations>
