@@ -32,7 +32,6 @@ OC.L10N.register(
     "signed" : "getekend",
     "deleted" : "verwijderd",
     "Identification Document" : "Identiteitsdocument",
-    "Digital signed by LibreSign." : "Digitaal ondertekend door LibreSign.",
     "Validate in %s." : "Valideer in %s.",
     "Password to sign not defined. Create a password to sign." : "Wachtwoord om te ondertekenen niet gedefinieerd. Stel een tekenwachtwoord in.",
     "Invalid password" : "Ongeldig wachtwoord",
@@ -150,7 +149,6 @@ OC.L10N.register(
     "Send" : "Verzenden",
     "Previous" : "Vorige",
     "Next" : "Volgende",
-    "Account not exist" : "Account bestaat niet",
     "Sign" : "Ondertekenen",
     "Confirm" : "Bevestigen",
     "Request signatures?" : "Handtekeningen aanvragen?",
@@ -169,9 +167,7 @@ OC.L10N.register(
     "Change password" : "Wachtwoord wijzigen",
     "Your signatures" : "Jouw handtekeningen",
     "Signature" : "Handtekening",
-    "No signature, click here to create a new" : "Geen handtekening, klik hier om een nieuwe te creëren",
     "Initials" : "Initialen",
-    "No initials, click here to create a new" : "Geen initialen, klik hier om een nieuwe te creëren",
     "Profile picture" : "Profielafbeelding",
     "This is not a valid email" : "Dit is geen geldige e-mail",
     "The email entered is not the same as the email in the invitation" : "Het opgegeven e-mailadres is niet hetzelfde als dat in de uitnodiging",
@@ -257,6 +253,10 @@ OC.L10N.register(
     "Return" : "Terug",
     "Open in LibreSign" : "Openen in LibreSign",
     "Requested by {name}, at {date}" : "Aangevraagd door {name}, op {date}",
-    "Other activities" : "Andere activiteiten"
+    "Other activities" : "Andere activiteiten",
+    "Digital signed by LibreSign." : "Digitaal ondertekend door LibreSign.",
+    "Account not exist" : "Account bestaat niet",
+    "No signature, click here to create a new" : "Geen handtekening, klik hier om een nieuwe te creëren",
+    "No initials, click here to create a new" : "Geen initialen, klik hier om een nieuwe te creëren"
 },
 "nplurals=2; plural=(n != 1);");

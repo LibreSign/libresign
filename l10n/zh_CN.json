@@ -29,7 +29,6 @@
     "signed" : "已签名",
     "deleted" : "已删除",
     "Identification Document" : "身份文档",
-    "Digital signed by LibreSign." : "由 LibreSign 进行数字签名",
     "Validate in %s." : "在 %s 中验证",
     "Password to sign not defined. Create a password to sign." : "未定义签名密码。创建签名密码。",
     "Invalid password" : "无效的密码",
@@ -143,7 +142,6 @@
     "Send" : "发送",
     "Previous" : "上一个",
     "Next" : "下一个",
-    "Account not exist" : "账号不存在",
     "Sign" : "签名",
     "Confirm" : "确认",
     "Request signatures?" : "请求签名？",
@@ -160,9 +158,7 @@
     "Change password" : "修改密码",
     "Your signatures" : "你的签名",
     "Signature" : "签名",
-    "No signature, click here to create a new" : "没有签名，点击此处新建",
     "Initials" : "首字母",
-    "No initials, click here to create a new" : "没有首字母，点击此处新建",
     "Profile picture" : "个人资料图片 ",
     "This is not a valid email" : "此邮箱无效",
     "The email entered is not the same as the email in the invitation" : "输入的邮件与邀请函中的邮件不一样",
@@ -249,6 +245,10 @@
     "Return" : "返回",
     "Open in LibreSign" : "在 LibreSign 中打开",
     "Requested by {name}, at {date}" : "{name} 请求于 {date}",
-    "Other activities" : "其他活动"
+    "Other activities" : "其他活动",
+    "Digital signed by LibreSign." : "由 LibreSign 进行数字签名",
+    "Account not exist" : "账号不存在",
+    "No signature, click here to create a new" : "没有签名，点击此处新建",
+    "No initials, click here to create a new" : "没有首字母，点击此处新建"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

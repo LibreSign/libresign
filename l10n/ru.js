@@ -34,7 +34,6 @@ OC.L10N.register(
     "partially signed" : "частично подписан",
     "signed" : "подписан",
     "deleted" : "удалено",
-    "Digital signed by LibreSign." : "Подписан электронной подписью LibreSign.",
     "Validate in %s." : "Проверить в %s.",
     "Password to sign not defined. Create a password to sign." : "Пароль для подписи не задан. Создайте пароль для подписи.",
     "Invalid password" : "Неверный пароль",
@@ -146,7 +145,6 @@ OC.L10N.register(
     "Send" : "Отправить",
     "Previous" : "Назад",
     "Next" : "Далее",
-    "Account not exist" : "Учётная запись не существует",
     "Sign" : "Знак",
     "Confirm" : "Подтвердить",
     "Request signatures?" : "Запрашивать подписи?",
@@ -164,9 +162,7 @@ OC.L10N.register(
     "Change password" : "Сменить пароль",
     "Your signatures" : "Ваши подписи",
     "Signature" : "Подпись",
-    "No signature, click here to create a new" : "Нет подписи, нажмите здесь, чтобы ее создать",
     "Initials" : "Инициалы",
-    "No initials, click here to create a new" : "Нет инициалов, нажмите здесь, чтобы их создать",
     "Profile picture" : "Изображение профиля",
     "This is not a valid email" : "Недействительный адрес электронной почты",
     "The email entered is not the same as the email in the invitation" : "Введенный адрес электронной почты не совпадает с адресом электронной почты в приглашении.",
@@ -259,6 +255,10 @@ OC.L10N.register(
     "Open in LibreSign" : "Открыть в LibreSign",
     "Name of a locality or place, such as a city, county, or other geographic region" : "Название местности или места, например города, округа или другого географического региона",
     "Requested by {name}, at {date}" : "Запрошено у {name} {date}",
-    "Other activities" : "Другие события"
+    "Other activities" : "Другие события",
+    "Digital signed by LibreSign." : "Подписан электронной подписью LibreSign.",
+    "Account not exist" : "Учётная запись не существует",
+    "No signature, click here to create a new" : "Нет подписи, нажмите здесь, чтобы ее создать",
+    "No initials, click here to create a new" : "Нет инициалов, нажмите здесь, чтобы их создать"
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");
