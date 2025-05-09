@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 /**
- * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-FileCopyrightText: 2025 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
@@ -18,7 +18,7 @@ use OCP\IUserManager;
 use OCP\L10N\IFactory;
 use OCP\RichObjectStrings\Definitions;
 
-class SignRequest implements IProvider {
+class Signed implements IProvider {
 	public function __construct(
 		protected IFactory $languageFactory,
 		protected IURLGenerator $url,
@@ -33,28 +33,9 @@ class SignRequest implements IProvider {
 			throw new UnknownActivityException('app');
 		}
 
-		if (!in_array($event->getSubject(), ['new_sign_request', 'update_sign_request'])) {
+		if ($event->getSubject() !== 'file_signed') {
 			throw new UnknownActivityException('subject');
 		}
-
-		$this->definitions->definitions['sign-request'] = [
-			'author' => 'LibreSign',
-			'since' => '28.0.0',
-			'parameters' => [
-				'id' => [
-					'since' => '28.0.0',
-					'required' => true,
-					'description' => 'The id of SignRequest object',
-					'example' => '12345',
-				],
-				'name' => [
-					'since' => '28.0.0',
-					'required' => true,
-					'description' => 'The display name of signer',
-					'example' => 'John Doe',
-				],
-			],
-		];
 
 		if ($this->activityManager->getRequirePNG()) {
 			$event->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.png')));
@@ -65,7 +46,7 @@ class SignRequest implements IProvider {
 		$l = $this->languageFactory->get(Application::APP_ID, $language);
 		$parameters = $event->getSubjectParameters();
 
-		$subject = $this->getParsedSubject($l, $event->getSubject());
+		$subject = $l->t('{from} signed {file}');
 		$event->setParsedSubject(
 			str_replace(
 				['{from}', '{file}'],
@@ -78,13 +59,5 @@ class SignRequest implements IProvider {
 			->setRichSubject($subject, $parameters);
 
 		return $event;
-	}
-
-	private function getParsedSubject(\OCP\IL10N $l, string $subject) {
-		if ($subject === 'new_sign_request') {
-			return $l->t('{from} requested your signature on {file}');
-		} elseif ($subject === 'update_sign_request') {
-			return $l->t('{from} made changes on {file}');
-		}
 	}
 }

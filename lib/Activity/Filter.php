@@ -40,9 +40,9 @@ class Filter implements IFilter {
 
 	public function filterTypes(array $types) {
 		return array_intersect([
-				'file_to_sign',
-				'file_signed',
-			], $types);
+			'file_to_sign',
+			'file_signed',
+		], $types);
 	}
 
 	public function allowedApps() {
