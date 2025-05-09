@@ -30,7 +30,6 @@ OC.L10N.register(
     "partially signed" : "부분 서명됨",
     "signed" : "서명됨",
     "deleted" : "삭제됨",
-    "Digital signed by LibreSign." : "LibreSign이 디지털 서명했습니다.",
     "Validate in %s." : "%s에서 검증",
     "Password to sign not defined. Create a password to sign." : "서명할 암호가 정의되지 않았습니다. 서명할 암호를 만드십시오.",
     "Invalid password" : "잘못된 암호",
@@ -143,7 +142,6 @@ OC.L10N.register(
     "Send" : "전송",
     "Previous" : "이전",
     "Next" : "다음",
-    "Account not exist" : "계정을 찾을 수 없습니다.",
     "Sign" : "서명",
     "Confirm" : "확인",
     "Request signatures?" : "서명 요청?",
@@ -159,9 +157,7 @@ OC.L10N.register(
     "Delete certificate" : "인증서 삭제",
     "Your signatures" : "나의 서명",
     "Signature" : "서명",
-    "No signature, click here to create a new" : "서명이 없습니다. 새 서명을 작성하려면 여기를 클릭하십시오.",
     "Initials" : "이니셜",
-    "No initials, click here to create a new" : "이니셜이 없습니다. 새로 만들려면 여기를 클릭하십시오.",
     "Profile picture" : "프로필 사진",
     "This is not a valid email" : "잘못된 이메일입니다.",
     "The email entered is not the same as the email in the invitation" : "입력한 이메일이 초대장의 이메일과 다릅니다.",
@@ -247,6 +243,10 @@ OC.L10N.register(
     "Return" : "반환",
     "Open in LibreSign" : "LibreSign으로 열기",
     "Requested by {name}, at {date}" : "{날짜}에 {이름}에 의해 요청됨",
-    "Other activities" : "다른 활동"
+    "Other activities" : "다른 활동",
+    "Digital signed by LibreSign." : "LibreSign이 디지털 서명했습니다.",
+    "Account not exist" : "계정을 찾을 수 없습니다.",
+    "No signature, click here to create a new" : "서명이 없습니다. 새 서명을 작성하려면 여기를 클릭하십시오.",
+    "No initials, click here to create a new" : "이니셜이 없습니다. 새로 만들려면 여기를 클릭하십시오."
 },
 "nplurals=1; plural=0;");

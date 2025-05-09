@@ -95,7 +95,6 @@ OC.L10N.register(
     "Send" : "Siųsti",
     "Previous" : "Ankstesnis",
     "Next" : "Kitas",
-    "Account not exist" : "Paskyros nėra",
     "Sign" : "Pasirašyti",
     "Confirm" : "Patvirtinti",
     "Send reminder" : "Siųsti priminimą",
@@ -116,9 +115,7 @@ OC.L10N.register(
     "Change password" : "Keisti slaptažodį",
     "Your signatures" : "Jūsų parašai",
     "Signature" : "Parašas",
-    "No signature, click here to create a new" : "Nėra parašo, spustelėkite čia norėdami sukurti naują",
     "Initials" : "Inicialai",
-    "No initials, click here to create a new" : "Nėra inicialų, spustelėkite čia norėdami sukurti naujus",
     "Profile picture" : "Profilio paveikslėlis",
     "This is not a valid email" : "Tai nėra tinkamas el. paštas",
     "Passwords does not match" : "Slaptažodžiai nesutampa",
@@ -169,6 +166,9 @@ OC.L10N.register(
     "Name:" : "Pavadinimas:",
     "Status:" : "Būsena:",
     "No date" : "No date",
-    "Other activities" : "Kitos veiklos"
+    "Other activities" : "Kitos veiklos",
+    "Account not exist" : "Paskyros nėra",
+    "No signature, click here to create a new" : "Nėra parašo, spustelėkite čia norėdami sukurti naują",
+    "No initials, click here to create a new" : "Nėra inicialų, spustelėkite čia norėdami sukurti naujus"
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");

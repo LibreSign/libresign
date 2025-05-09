@@ -30,7 +30,6 @@ OC.L10N.register(
     "partially signed" : "djelomično potpisano",
     "signed" : "potpisao",
     "deleted" : "izbrisano",
-    "Digital signed by LibreSign." : "Digitalno potpisano sustavom LibreSign.",
     "Validate in %s." : "Potvrdite u %s.",
     "Password to sign not defined. Create a password to sign." : "Nije definirana zaporka za potpisivanje. Stvorite zaporku za potpisivanje.",
     "Invalid password" : "Netočna zaporka",
@@ -137,7 +136,6 @@ OC.L10N.register(
     "Send" : "Pošaljite",
     "Previous" : "Natrag",
     "Next" : "Dalje",
-    "Account not exist" : "Račun ne postoji",
     "Sign" : "Potpiši",
     "Confirm" : "Potvrdi",
     "Send reminder" : "Pošalji podsjetnik",
@@ -150,9 +148,7 @@ OC.L10N.register(
     "Change password" : "Promijeni lozinku",
     "Your signatures" : "Vaši potpisi",
     "Signature" : "Potpis",
-    "No signature, click here to create a new" : "Nema potpisa, kliknite ovdje za stvaranje novog",
     "Initials" : "Inicijali",
-    "No initials, click here to create a new" : "Nema inicijala, kliknite ovdje za stvaranje novog",
     "Profile picture" : "Profilna slika",
     "This is not a valid email" : "Ovo nije važeća adresa e-pošte",
     "The email entered is not the same as the email in the invitation" : "Unesena adresa e-pošte nije ista kao adresa e-pošte u pozivu",
@@ -209,6 +205,10 @@ OC.L10N.register(
     "Return" : "Natrag",
     "Open in LibreSign" : "Otvori u sustavu LibreSign",
     "Requested by {name}, at {date}" : "Zatražio {name} na dan {date}",
-    "Other activities" : "Druge aktivnosti"
+    "Other activities" : "Druge aktivnosti",
+    "Digital signed by LibreSign." : "Digitalno potpisano sustavom LibreSign.",
+    "Account not exist" : "Račun ne postoji",
+    "No signature, click here to create a new" : "Nema potpisa, kliknite ovdje za stvaranje novog",
+    "No initials, click here to create a new" : "Nema inicijala, kliknite ovdje za stvaranje novog"
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");
