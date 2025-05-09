@@ -25,6 +25,10 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 		);
 	}
 
+	public function validateToSign(): void {
+		$this->throwIfInvalidToken();
+	}
+
 	public function toArray(): array {
 		$entity = $this->getEntity();
 
