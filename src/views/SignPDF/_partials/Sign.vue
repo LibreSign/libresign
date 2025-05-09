@@ -300,6 +300,11 @@ export default {
 					}
 				})
 				.catch((err) => {
+					const message = err.response?.data?.ocs?.data?.message
+					if (message) {
+						showError(message)
+						return
+					}
 					const errors = err.response?.data?.ocs?.data?.errors
 					if (errors) {
 						errors.forEach(error => {
