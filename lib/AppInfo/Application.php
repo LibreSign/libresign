@@ -14,6 +14,7 @@ use OCA\Libresign\Activity\Listener as ActivityListener;
 use OCA\Libresign\Capabilities;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedCallbackEvent;
+use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Files\TemplateLoader as FilesTemplateLoader;
 use OCA\Libresign\Listener\BeforeNodeDeletedListener;
 use OCA\Libresign\Listener\LoadAdditionalListener;
@@ -70,7 +71,7 @@ class Application extends App implements IBootstrap {
 
 		// Activity listeners
 		$context->registerEventListener(SendSignNotificationEvent::class, ActivityListener::class);
-		$context->registerEventListener(SignedCallbackEvent::class, ActivityListener::class);
+		$context->registerEventListener(SignedEvent::class, ActivityListener::class);
 
 		// Notification listeners
 		$context->registerEventListener(SendSignNotificationEvent::class, NotificationListener::class);
