@@ -98,9 +98,9 @@ class NotificationListener implements IEventListener {
 		$notification = $this->notificationManager->createNotification();
 		$notification
 			->setApp(AppInfoApplication::APP_ID)
-			->setObject('signedFile', 'document_signed') 
+			->setObject('signedFile', 'document_signed')
 			->setDateTime((new \DateTime())->setTimestamp($this->timeFactory->now()->getTimestamp()))
-			->setUser('admin') 
+			->setUser('admin')
 			->setSubject('new_file_signed', [
 				'from' => $this->getUserParameter(
 					'admin',
@@ -108,9 +108,9 @@ class NotificationListener implements IEventListener {
 				),
 				'file' => [
 					'type' => 'file',
-					'id' => 'mocked-file-id', 
-					'name' => 'Mocked File Name', 
-					'link' => 'https://example.com/file/mock', 
+					'id' => 'mocked-file-id',
+					'name' => 'Mocked File Name',
+					'link' => 'https://example.com/file/mock',
 				],
 			]);
 	
