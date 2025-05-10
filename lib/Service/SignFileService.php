@@ -438,15 +438,13 @@ class SignFileService {
 		return $originalFile;
 	}
 
-	public function getLibresignFile(?int $nodeId = null, ?string $signRequestUuid = null): FileEntity {
+	public function getLibresignFile(?int $nodeId, ?string $signRequestUuid = null): FileEntity {
 		try {
 			if ($nodeId) {
 				return $this->fileMapper->getByFileId($nodeId);
 			} elseif ($signRequestUuid) {
 				$signRequest = $this->signRequestMapper->getByUuid($signRequestUuid);
 				return $this->fileMapper->getById($signRequest->getFileId());
-			} elseif ($this->libreSignFile) {
-				return $this->libreSignFile;
 			} else {
 				throw new \Exception('Invalid arguments');
 			}
