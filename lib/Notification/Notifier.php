@@ -70,7 +70,7 @@ class Notifier implements INotifier {
 			case 'update_sign_request':
 				return $this->parseSignRequest($notification, $l, true);
 			case 'file_signed':
-				return $this->parseSigned($notification, $l, false);
+				return $this->parseSigned($notification, $l);
 			default:
 				throw new UnknownActivityException();
 		}
@@ -94,7 +94,7 @@ class Notifier implements INotifier {
 				);
 			$notification->addParsedAction($signAction);
 			if (isset($parameters['from'])) {
-				$subject = $l->t('{from} signed {file}');
+				$subject = $l->t('{from} requested your signature on {file}');
 				$notification->setParsedSubject(
 					str_replace(
 						['{from}', '{file}'],
@@ -134,7 +134,6 @@ class Notifier implements INotifier {
 	private function parseSigned(
 		INotification $notification,
 		IL10N $l,
-		bool $update,
 	): INotification {
 
 		$parameters = $notification->getSubjectParameters();
@@ -163,10 +162,6 @@ class Notifier implements INotifier {
 					->setRichSubject($subject, $parameters);
 			}
 		}
-		if ($update) {
-			$notification->setParsedMessage($l->t('Changes have been made in a file that you have to sign.'));
-		}
-
 		if (isset($parameters['signedFile']) && isset($parameters['signedFile']['id'])) {
 			$dismissAction = $notification->createAction()
 				->setParsedLabel($l->t('Dismiss notification'))
