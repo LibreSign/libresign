@@ -13,6 +13,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
+use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -38,6 +39,12 @@ class NotificationListener implements IEventListener {
 	public function handle(Event $event): void {
 		if ($event instanceof SendSignNotificationEvent) {
 			$this->sendSignNotification(
+				$event->getSignRequest(),
+				$event->getLibreSignFile(),
+				$event->getIdentifyMethod(),
+			);
+		} elseif ($event instanceof SignedEvent) {
+			$this->sendSignedNotification(
 				$event->getSignRequest(),
 				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
@@ -84,6 +91,45 @@ class NotificationListener implements IEventListener {
 		$this->notificationManager->notify($notification);
 	}
 
+	//TODO dados mockados para testar notificação
+	private function sendSignedNotification(
+		SignRequest $signRequest,
+		FileEntity $libreSignFile,
+		IIdentifyMethod $identifyMethod,
+	): void {
+
+		$actorId = $libreSignFile->getUserId();
+
+		if ($this->isNotificationDisabledAtActivity($identifyMethod)) {
+			return;
+		}
+
+		$notification = $this->notificationManager->createNotification();
+		$notification
+			->setApp(AppInfoApplication::APP_ID)
+			->setObject('signedFile', (string)$signRequest->getId())
+			->setDateTime((new \DateTime())->setTimestamp($this->timeFactory->now()->getTimestamp()))
+			->setUser($actorId)
+			->setSubject('file_signed', [
+				'from' => $this->getFromSignedParameter(
+					$identifyMethod->getEntity()->getIdentifierKey(),
+					$identifyMethod->getEntity()->getIdentifierValue(),
+					$signRequest->getDisplayName(),
+				),
+				'file' => [
+					'type' => 'file',
+					'id' => (string)$libreSignFile->getNodeId(),
+					'name' => $libreSignFile->getName(),
+					'path' => $libreSignFile->getName(),
+					'link' => $this->url->linkToRouteAbsolute('libresign.page.validationFilePublic', [
+						'uuid' => $libreSignFile->getUuid(),
+					]),
+				],
+			]);
+
+		$this->notificationManager->notify($notification);
+	}
+
 	public function isNotificationDisabledAtActivity(IIdentifyMethod $identifyMethod): bool {
 		if (!class_exists(\OCA\Activity\UserSettings::class)) {
 			return false;
@@ -96,7 +142,8 @@ class NotificationListener implements IEventListener {
 			$notificationSetting = $activityUserSettings->getUserSetting(
 				$identifyMethod->getEntity()->getIdentifierValue(),
 				'notification',
-				'file_to_sign'
+				'file_to_sign',
+				'file_signed',
 			);
 			if (!$notificationSetting) {
 				return true;
@@ -125,6 +172,24 @@ class NotificationListener implements IEventListener {
 		return [
 			'type' => 'user',
 			'id' => $userId,
+			'name' => $displayName,
+		];
+	}
+
+	protected function getFromSignedParameter(
+		string $type,
+		string $identifier,
+		string $displayName,
+	): array {
+
+		if ($type === 'account') {
+			return $this->getUserParameter(
+				$identifier,
+				$displayName
+			);
+		}
+
+		return [
 			'name' => $displayName,
 		];
 	}

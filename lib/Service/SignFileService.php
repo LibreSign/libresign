@@ -25,6 +25,7 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Events\SignedCallbackEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\LibresignException;
@@ -61,8 +62,7 @@ class SignFileService {
 	private $signRequest;
 	/** @var string */
 	private $password;
-	/** @var FileEntity */
-	private $libreSignFile;
+	private ?FileEntity $libreSignFile;
 	/** @var VisibleElementAssoc[] */
 	private $elements = [];
 	/** @var bool */
@@ -324,7 +324,9 @@ class SignFileService {
 		$allSigned = $this->updateStatus();
 		$this->fileMapper->update($this->libreSignFile);
 
-		$this->eventDispatcher->dispatchTyped(new SignedEvent($this, $signedFile, $allSigned));
+		$this->eventDispatcher->dispatchTyped(new SignedCallbackEvent($this, $signedFile, $allSigned));
+
+		$this->eventDispatcher->dispatchTyped(new SignedEvent($this->signRequest, $this->libreSignFile, $this->identifyMethodService->getIdentifiedMethod($this->signRequest->getId())));
 
 		return $signedFile;
 	}
@@ -441,17 +443,16 @@ class SignFileService {
 	public function getLibresignFile(?int $nodeId, ?string $signRequestUuid = null): FileEntity {
 		try {
 			if ($nodeId) {
-				$libresignFile = $this->fileMapper->getByFileId($nodeId);
+				return $this->fileMapper->getByFileId($nodeId);
 			} elseif ($signRequestUuid) {
 				$signRequest = $this->signRequestMapper->getByUuid($signRequestUuid);
-				$libresignFile = $this->fileMapper->getById($signRequest->getFileId());
+				return $this->fileMapper->getById($signRequest->getFileId());
 			} else {
 				throw new \Exception('Invalid arguments');
 			}
 		} catch (DoesNotExistException $th) {
 			throw new LibresignException($this->l10n->t('File not found'), 1);
 		}
-		return $libresignFile;
 	}
 
 	public function renew(SignRequestEntity $signRequest, string $method): void {

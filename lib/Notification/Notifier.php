@@ -69,6 +69,8 @@ class Notifier implements INotifier {
 				return $this->parseSignRequest($notification, $l, false);
 			case 'update_sign_request':
 				return $this->parseSignRequest($notification, $l, true);
+			case 'file_signed':
+				return $this->parseSigned($notification, $l);
 			default:
 				throw new UnknownActivityException();
 		}
@@ -125,6 +127,59 @@ class Notifier implements INotifier {
 				);
 			$notification->addParsedAction($dismissAction);
 		}
+
 		return $notification;
+	}
+
+	private function parseSigned(
+		INotification $notification,
+		IL10N $l,
+	): INotification {
+
+		$parameters = $notification->getSubjectParameters();
+		$notification->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')));
+		if (isset($parameters['file'])) {
+			$notification->setLink($parameters['file']['link']);
+			$signAction = $notification->createAction()
+				->setParsedLabel($l->t('View'))
+				->setPrimary(true)
+				->setLink(
+					$parameters['file']['link'],
+					IAction::TYPE_WEB
+				);
+			$notification->addParsedAction($signAction);
+			if (isset($parameters['from'])) {
+				$subject = $l->t('{from} signed {file}');
+				$notification->setParsedSubject(
+					str_replace(
+						['{from}', '{file}'],
+						[
+							$parameters['from']['name'],
+							$parameters['file']['name'],
+						],
+						$subject
+					))
+					->setRichSubject($subject, $parameters);
+			}
+		}
+		if (isset($parameters['signedFile']) && isset($parameters['signedFile']['id'])) {
+			$dismissAction = $notification->createAction()
+				->setParsedLabel($l->t('Dismiss notification'))
+				->setLink(
+					$this->url->linkToOCSRouteAbsolute(
+						'libresign.notify.notificationDismiss',
+						[
+							'apiVersion' => 'v1',
+							'timestamp' => $notification->getDateTime()->getTimestamp(),
+							'signRequestId' => $parameters['signedFile']['id'],
+						],
+					),
+					IAction::TYPE_DELETE
+				);
+			$notification->addParsedAction($dismissAction);
+		}
+
+		return $notification;
+
 	}
 }
