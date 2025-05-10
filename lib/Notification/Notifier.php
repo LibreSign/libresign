@@ -69,8 +69,8 @@ class Notifier implements INotifier {
 				return $this->parseSignRequest($notification, $l, false);
 			case 'update_sign_request':
 				return $this->parseSignRequest($notification, $l, true);
-			case 'new_file_signed':
-				return $this->parseSignRequest($notification, $l, false);
+			case 'file_signed':
+				return $this->parseSigned($notification, $l, false);
 			default:
 				throw new UnknownActivityException();
 		}
@@ -94,7 +94,7 @@ class Notifier implements INotifier {
 				);
 			$notification->addParsedAction($signAction);
 			if (isset($parameters['from'])) {
-				$subject = $l->t('{from} requested your signature on {file}');
+				$subject = $l->t('{from} signed {file}');
 				$notification->setParsedSubject(
 					str_replace(
 						['{from}', '{file}'],
@@ -128,31 +128,63 @@ class Notifier implements INotifier {
 			$notification->addParsedAction($dismissAction);
 		}
 
-		if ($notification->getSubject() == 'new_file_signed') {
-			$parameters = [
-				'actor' => [
-					'name' => 'John Doe',
-				],
-				'file' => [
-					'name' => 'Contract.pdf',
-					'link' => 'https://example.com/file/123',
-				],
-			];
-			if (isset($parameters['actor'])) {
-				$subject = $l->t('{actor} signed the document {file}');
+		return $notification;
+	}
+
+	private function parseSigned(
+		INotification $notification,
+		IL10N $l,
+		bool $update,
+	): INotification {
+
+		$parameters = $notification->getSubjectParameters();
+		$notification->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')));
+		if (isset($parameters['file'])) {
+			$notification->setLink($parameters['file']['link']);
+			$signAction = $notification->createAction()
+				->setParsedLabel($l->t('View'))
+				->setPrimary(true)
+				->setLink(
+					$parameters['file']['link'],
+					IAction::TYPE_WEB
+				);
+			$notification->addParsedAction($signAction);
+			if (isset($parameters['from'])) {
+				$subject = $l->t('{from} signed {file}');
 				$notification->setParsedSubject(
 					str_replace(
-						['{actor}', '{file}'],
+						['{from}', '{file}'],
 						[
-							$parameters['actor']['name'] ?? 'Mocked Actor',
-							$parameters['file']['name'] ?? 'Mocked File',
+							$parameters['from']['name'],
+							$parameters['file']['name'],
 						],
 						$subject
-					)
-				)->setRichSubject($subject, $parameters);
+					))
+					->setRichSubject($subject, $parameters);
 			}
+		}
+		if ($update) {
+			$notification->setParsedMessage($l->t('Changes have been made in a file that you have to sign.'));
+		}
+
+		if (isset($parameters['signedFile']) && isset($parameters['signedFile']['id'])) {
+			$dismissAction = $notification->createAction()
+				->setParsedLabel($l->t('Dismiss notification'))
+				->setLink(
+					$this->url->linkToOCSRouteAbsolute(
+						'libresign.notify.notificationDismiss',
+						[
+							'apiVersion' => 'v1',
+							'timestamp' => $notification->getDateTime()->getTimestamp(),
+							'signRequestId' => $parameters['signedFile']['id'],
+						],
+					),
+					IAction::TYPE_DELETE
+				);
+			$notification->addParsedAction($dismissAction);
 		}
 
 		return $notification;
+
 	}
 }
