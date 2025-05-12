@@ -111,9 +111,16 @@ class NotifyController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/notify/notification', requirements: ['apiVersion' => '(v1)'])]
-	public function notificationDismiss(int $signRequestId, int $timestamp): DataResponse {
+	public function notificationDismiss(
+		string $objectType,
+		int $objectId,
+		string $subject,
+		int $timestamp,
+	): DataResponse {
 		$this->notifyService->notificationDismiss(
-			$signRequestId,
+			$objectType,
+			$objectId,
+			$subject,
 			$this->userSession->getUser(),
 			$timestamp
 		);
