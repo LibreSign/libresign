@@ -50,6 +50,14 @@
 			:no-close="loading"
 			:name="t('libresign', 'Confirm')"
 			@closing="signMethodsStore.closeModal('clickToSign')">
+			<NcNoteCard v-for="(error, index) in errors"
+				:key="index"
+				:heading="error.title || ''"
+				type="error">
+				<NcRichText
+					:text="error.message"
+					:use-markdown="true" />
+			</NcNoteCard>
 			{{ t('libresign', 'Confirm your signature') }}
 			<template #actions>
 				<NcButton :disabled="loading"
@@ -119,7 +127,9 @@ import { generateOcsUrl } from '@nextcloud/router'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
+import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
+import NcRichText from '@nextcloud/vue/components/NcRichText'
 
 import EmailManager from './ModalEmailManager.vue'
 import SMSManager from './ModalSMSManager.vue'
@@ -139,7 +149,9 @@ export default {
 		NcDialog,
 		NcButton,
 		NcLoadingIcon,
+		NcNoteCard,
 		NcPasswordField,
+		NcRichText,
 		CreatePassword,
 		SMSManager,
 		EmailManager,
@@ -270,6 +282,7 @@ export default {
 		},
 		async signDocument(payload = {}) {
 			this.loading = true
+			this.errors = []
 			if (this.elements.length > 0) {
 				if (this.canCreateSignature) {
 					payload.elements = this.elements
@@ -300,21 +313,12 @@ export default {
 					}
 				})
 				.catch((err) => {
-					const message = err.response?.data?.ocs?.data?.message
-					if (message) {
-						showError(message)
-						return
-					}
-					const errors = err.response?.data?.ocs?.data?.errors
-					if (errors) {
-						errors.forEach(error => {
-							showError(error)
-						})
-					}
+					this.errors = err.response?.data?.ocs?.data?.errors
 				})
 			this.loading = false
 		},
 		confirmSignDocument() {
+			this.errors = []
 			if (this.signMethodsStore.needEmailCode()) {
 				this.signMethodsStore.showModal('emailToken')
 				return
