@@ -441,17 +441,17 @@ Feature: request-signature
       | token |  |
     And the response should have a status code 422
     Then the response should be a JSON array with the following mandatory values
-      | key                     | value         |
-      | (jq).ocs.data.action    | 2000          |
-      | (jq).ocs.data.errors[0] | Invalid code. |
+      | key                             | value         |
+      | (jq).ocs.data.action            | 2000          |
+      | (jq).ocs.data.errors[0].message | Invalid code. |
     And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
       | method | account |
       | token |  |
     And the response should have a status code 422
     Then the response should be a JSON array with the following mandatory values
-      | key                     | value         |
-      | (jq).ocs.data.action    | 2000          |
-      | (jq).ocs.data.errors[0] | Invalid code. |
+      | key                             | value         |
+      | (jq).ocs.data.action            | 2000          |
+      | (jq).ocs.data.errors[0].message | Invalid code. |
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"email","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}},"can_create_account":false}] |
     And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
@@ -459,17 +459,17 @@ Feature: request-signature
       | token |  |
     And the response should have a status code 422
     Then the response should be a JSON array with the following mandatory values
-      | key                     | value         |
-      | (jq).ocs.data.action    | 2000          |
-      | (jq).ocs.data.errors[0] | Invalid code. |
+      | key                             | value         |
+      | (jq).ocs.data.action            | 2000          |
+      | (jq).ocs.data.errors[0].message | Invalid code. |
     And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
       | method | account |
       | token |  |
     And the response should have a status code 422
     Then the response should be a JSON array with the following mandatory values
-      | key                     | value         |
-      | (jq).ocs.data.action    | 2000          |
-      | (jq).ocs.data.errors[0] | Invalid code. |
+      | key                             | value         |
+      | (jq).ocs.data.action            | 2000          |
+      | (jq).ocs.data.errors[0].message | Invalid code. |
 
   Scenario: Failed to sign with invalid code
     Given run the command "libresign:configure:openssl --cn test" with result code 0
@@ -500,15 +500,15 @@ Feature: request-signature
       | token |  |
     And the response should have a status code 422
     Then the response should be a JSON array with the following mandatory values
-      | key                     | value         |
-      | (jq).ocs.data.errors[0] | Invalid code. |
+      | key                             | value         |
+      | (jq).ocs.data.errors[0].message | Invalid code. |
     And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
       | method | email |
       | token | 123456789132456789 |
     And the response should have a status code 422
     Then the response should be a JSON array with the following mandatory values
-      | key                     | value         |
-      | (jq).ocs.data.errors[0] | Invalid code. |
+      | key                             | value         |
+      | (jq).ocs.data.errors[0].message | Invalid code. |
 
   Scenario: CRUD of identify methods
     Given run the command "libresign:configure:openssl --cn test" with result code 0
