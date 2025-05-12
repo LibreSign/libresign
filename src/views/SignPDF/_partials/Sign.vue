@@ -54,8 +54,7 @@
 				:key="index"
 				:heading="error.title || ''"
 				type="error">
-				<NcRichText
-					:text="error.message"
+				<NcRichText :text="error.message"
 					:use-markdown="true" />
 			</NcNoteCard>
 			{{ t('libresign', 'Confirm your signature') }}
