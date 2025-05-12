@@ -77,6 +77,13 @@
 			:no-close="loading"
 			:name="t('libresign', 'Confirm your signature')"
 			@closing="onCloseConfirmPassword">
+			<NcNoteCard v-for="(error, index) in errors"
+				:key="index"
+				:heading="error.title || ''"
+				type="error">
+				<NcRichText :text="error.message"
+					:use-markdown="true" />
+			</NcNoteCard>
 			{{ t('libresign', 'Subscription password.') }}
 			<form @submit.prevent="signWithPassword()">
 				<NcPasswordField v-model="signPassword" type="password" />
@@ -209,6 +216,9 @@ export default {
 				return false
 			}
 			if (this.needCreateSignature) {
+				return false
+			}
+			if (this.signStore.errors.length > 0) {
 				return false
 			}
 			return true
