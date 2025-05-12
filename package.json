@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@fontsource/dancing-script": "^5.2.5",
-    "@libresign/vue-pdf-editor": "^1.4.5",
+    "@libresign/vue-pdf-editor": "^1.4.6",
     "@marionebl/option": "^1.0.8",
     "@mdi/js": "^7.4.47",
     "@mdi/svg": "^7.4.47",
