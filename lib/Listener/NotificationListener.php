@@ -91,7 +91,6 @@ class NotificationListener implements IEventListener {
 		$this->notificationManager->notify($notification);
 	}
 
-	//TODO dados mockados para testar notificação
 	private function sendSignedNotification(
 		SignRequest $signRequest,
 		FileEntity $libreSignFile,
@@ -124,6 +123,11 @@ class NotificationListener implements IEventListener {
 					'link' => $this->url->linkToRouteAbsolute('libresign.page.validationFilePublic', [
 						'uuid' => $libreSignFile->getUuid(),
 					]),
+				],
+				'signedFile' => [
+					'type' => 'signed-file',
+					'id' => (string)$signRequest->getId(),
+					'name' => $signRequest->getDisplayName(),
 				],
 			]);
 

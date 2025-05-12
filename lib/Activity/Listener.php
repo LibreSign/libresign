@@ -150,8 +150,12 @@ class Listener implements IEventListener {
 					'link' => $this->url->linkToRouteAbsolute('libresign.page.validationFilePublic', [
 						'uuid' => $libreSignFile->getUuid(),
 					]),
-
-				]
+				],
+				'signedFile' => [
+					'type' => 'signed-file',
+					'id' => (string)$signRequest->getId(),
+					'name' => $signRequest->getDisplayName(),
+				],
 			]);
 
 			$this->activityManager->publish($activityEvent);

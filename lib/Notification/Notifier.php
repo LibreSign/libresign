@@ -43,25 +43,6 @@ class Notifier implements INotifier {
 			throw new UnknownActivityException();
 		}
 
-		$this->definitions->definitions['sign-request'] = [
-			'author' => 'LibreSign',
-			'since' => '28.0.0',
-			'parameters' => [
-				'id' => [
-					'since' => '28.0.0',
-					'required' => true,
-					'description' => 'The id of SignRequest object',
-					'example' => '12345',
-				],
-				'name' => [
-					'since' => '28.0.0',
-					'required' => true,
-					'description' => 'The display name of signer',
-					'example' => 'John Doe',
-				],
-			],
-		];
-
 		$l = $this->factory->get(Application::APP_ID, $languageCode);
 
 		switch ($notification->getSubject()) {
@@ -81,6 +62,26 @@ class Notifier implements INotifier {
 		IL10N $l,
 		bool $update,
 	): INotification {
+
+		$this->definitions->definitions['sign-request'] = [
+			'author' => 'LibreSign',
+			'since' => '28.0.0',
+			'parameters' => [
+				'id' => [
+					'since' => '28.0.0',
+					'required' => true,
+					'description' => 'The id of SignRequest object',
+					'example' => '12345',
+				],
+				'name' => [
+					'since' => '28.0.0',
+					'required' => true,
+					'description' => 'The display name of signer',
+					'example' => 'John Doe',
+				],
+			],
+		];
+
 		$parameters = $notification->getSubjectParameters();
 		$notification->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')));
 		if (isset($parameters['file'])) {
@@ -120,7 +121,9 @@ class Notifier implements INotifier {
 						[
 							'apiVersion' => 'v1',
 							'timestamp' => $notification->getDateTime()->getTimestamp(),
-							'signRequestId' => $parameters['signRequest']['id'],
+							'objectType' => 'signRequest',
+							'objectId' => $parameters['signRequest']['id'],
+							'subject' => 'new_sign_request',
 						],
 					),
 					IAction::TYPE_DELETE
@@ -135,6 +138,25 @@ class Notifier implements INotifier {
 		INotification $notification,
 		IL10N $l,
 	): INotification {
+
+		$this->definitions->definitions['signed-file'] = [
+			'author' => 'LibreSign',
+			'since' => '28.0.0',
+			'parameters' => [
+				'id' => [
+					'since' => '28.0.0',
+					'required' => true,
+					'description' => 'The id of SignRequest object',
+					'example' => '12345',
+				],
+				'name' => [
+					'since' => '28.0.0',
+					'required' => true,
+					'description' => 'The display name of signer',
+					'example' => 'John Doe',
+				],
+			],
+		];
 
 		$parameters = $notification->getSubjectParameters();
 		$notification->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')));
@@ -162,6 +184,7 @@ class Notifier implements INotifier {
 					->setRichSubject($subject, $parameters);
 			}
 		}
+
 		if (isset($parameters['signedFile']) && isset($parameters['signedFile']['id'])) {
 			$dismissAction = $notification->createAction()
 				->setParsedLabel($l->t('Dismiss notification'))
@@ -171,7 +194,9 @@ class Notifier implements INotifier {
 						[
 							'apiVersion' => 'v1',
 							'timestamp' => $notification->getDateTime()->getTimestamp(),
-							'signRequestId' => $parameters['signedFile']['id'],
+							'objectType' => 'signedFile',
+							'objectId' => $parameters['signedFile']['id'],
+							'subject' => 'file_signed',
 						],
 					),
 					IAction::TYPE_DELETE
