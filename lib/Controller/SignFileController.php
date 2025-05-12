@@ -57,7 +57,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param array<string, mixed> $elements List of visible elements
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
-	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: string[], redirect?: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid data
@@ -80,7 +80,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param array<string, mixed> $elements List of visible elements
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
-	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: string[], redirect?: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid data
@@ -96,7 +96,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	}
 
 	/**
-	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: string[], redirect?: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}>
 	 */
 	public function sign(string $method, array $elements = [], string $identifyValue = '', string $token = '', ?int $fileId = null, ?string $signRequestUuid = null): DataResponse {
 		try {

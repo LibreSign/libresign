@@ -3422,7 +3422,10 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                                 redirect?: string;
                             };
                         };
@@ -3572,7 +3575,10 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                                 redirect?: string;
                             };
                         };
