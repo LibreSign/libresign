@@ -51,7 +51,7 @@ export default {
 	props: {
 		file: {
 			type: File,
-			require: true,
+			required: true,
 		},
 		readOnly: {
 			type: Boolean,
