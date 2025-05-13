@@ -196,7 +196,7 @@ class PageController extends AEnvironmentPageAwareController {
 			} catch (LibresignException $e) {
 				throw new LibresignException(json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [$this->l10n->t('Invalid UUID')],
+					'errors' => [['message' => $this->l10n->t('Invalid UUID')]],
 				]), Http::STATUS_NOT_FOUND);
 			}
 		}
@@ -349,7 +349,7 @@ class PageController extends AEnvironmentPageAwareController {
 		} catch (DoesNotExistException $e) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('Invalid UUID')],
+				'errors' => [['message' => $this->l10n->t('Invalid UUID')]],
 			]), Http::STATUS_NOT_FOUND);
 		}
 		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN_ACCOUNT_FILE);
@@ -564,7 +564,7 @@ class PageController extends AEnvironmentPageAwareController {
 				$this->fileService->setFile($libresignFile);
 			} catch (DoesNotExistException $e) {
 				$this->initialState->provideInitialState('action', JSActions::ACTION_DO_NOTHING);
-				$this->initialState->provideInitialState('errors', [$this->l10n->t('Invalid UUID')]);
+				$this->initialState->provideInitialState('errors', [['message' => $this->l10n->t('Invalid UUID')]]);
 			}
 		}
 		if ($this->userSession->isLoggedIn()) {

@@ -78,7 +78,7 @@ class FileElementController extends AEnvironmentAwareController {
 			$this->logger->error($th->getMessage());
 			return new DataResponse(
 				[
-					'errors' => [$th->getMessage()]
+					'errors' => [['message' => $th->getMessage()]],
 				],
 				Http::STATUS_NOT_FOUND
 			);
@@ -136,7 +136,7 @@ class FileElementController extends AEnvironmentAwareController {
 			$this->logger->error($th->getMessage());
 			return new DataResponse(
 				[
-					'errors' => [$th->getMessage()]
+					'errors' => [['message' => $th->getMessage()]],
 				],
 				Http::STATUS_NOT_FOUND
 			);
