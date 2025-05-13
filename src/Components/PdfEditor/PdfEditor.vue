@@ -16,6 +16,7 @@
 		:show-save-btn="false"
 		:save-to-upload="false"
 		:init-file="file"
+		:init-file-src="fileSrc"
 		:init-image-scale="1"
 		:seal-image-show="false"
 		@pdf-editor:end-init="endInit">
@@ -51,7 +52,11 @@ export default {
 	props: {
 		file: {
 			type: File,
-			required: true,
+			default: null,
+		},
+		fileSrc: {
+			type: String,
+			default: '',
 		},
 		readOnly: {
 			type: Boolean,
