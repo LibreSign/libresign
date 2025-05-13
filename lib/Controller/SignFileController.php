@@ -146,9 +146,11 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			$message = $e->getMessage();
 			if ($message === 'Password to sign not defined. Create a password to sign') {
 				$action = JSActions::ACTION_CREATE_SIGNATURE_PASSWORD;
+			} else {
+				$action = JSActions::ACTION_DO_NOTHING;
 			}
 			$data = [
-				'action' => $action ?: JSActions::ACTION_DO_NOTHING,
+				'action' => $action,
 				'errors' => [['message' => $e->getMessage()]],
 			];
 		} catch (\Throwable $th) {

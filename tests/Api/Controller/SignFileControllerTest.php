@@ -477,7 +477,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testDeleteUsingSignFileIdWithError():void {
+	public function testDeleteUsingSignFileIdWithInvalidSignRequestGroup():void {
 		$user = $this->createAccount('username', 'password');
 
 		$this->request
@@ -487,6 +487,24 @@ final class SignFileControllerTest extends ApiTestCase {
 			])
 			->withPath('/api/v1/sign/file_id/171')
 			->assertResponseCode(422);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testDeleteUsingSignFileIdWithInvalidFile():void {
+		$user = $this->createAccount('username', 'password');
+		$this->getMockAppConfig()->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin','testGroup']);
+
+		$this->request
+			->withMethod('DELETE')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password')
+			])
+			->withPath('/api/v1/sign/file_id/171')
+			->assertResponseCode(401);
 
 		$this->assertRequest();
 	}
