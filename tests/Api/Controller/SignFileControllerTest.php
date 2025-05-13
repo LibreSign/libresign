@@ -42,7 +42,9 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('File not found', $body['ocs']['data']['errors'][0]);
+		$this->assertCount(1, $body['ocs']['data']['errors']);
+		$this->assertArrayHasKey(0, $body['ocs']['data']['errors']);
+		$this->assertEquals('File not found', $body['ocs']['data']['errors'][0]['message']);
 	}
 
 	/**
@@ -65,7 +67,9 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('Invalid UUID', $body['ocs']['data']['errors'][0]);
+		$this->assertCount(1, $body['ocs']['data']['errors']);
+		$this->assertArrayHasKey(0, $body['ocs']['data']['errors']);
+		$this->assertEquals('Invalid UUID', $body['ocs']['data']['errors'][0]['message']);
 	}
 
 	/**
@@ -107,7 +111,9 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('File already signed.', $body['ocs']['data']['errors'][0]);
+		$this->assertCount(1, $body['ocs']['data']['errors']);
+		$this->assertArrayHasKey(0, $body['ocs']['data']['errors']);
+		$this->assertEquals('File already signed.', $body['ocs']['data']['errors'][0]['message']);
 	}
 
 	/**
@@ -150,7 +156,9 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('File not found', $body['ocs']['data']['errors'][0]);
+		$this->assertCount(1, $body['ocs']['data']['errors']);
+		$this->assertArrayHasKey(0, $body['ocs']['data']['errors']);
+		$this->assertEquals('File not found', $body['ocs']['data']['errors'][0]['message']);
 	}
 
 	/**
@@ -190,7 +198,9 @@ final class SignFileControllerTest extends ApiTestCase {
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
 		$this->assertEquals(200, $body['ocs']['data']['action']);
-		$this->assertEquals('Empty identify data.', $body['ocs']['data']['errors'][0]);
+		$this->assertCount(1, $body['ocs']['data']['errors']);
+		$this->assertArrayHasKey(0, $body['ocs']['data']['errors']);
+		$this->assertEquals('Empty identify data.', $body['ocs']['data']['errors'][0]['message']);
 	}
 
 	/**
@@ -250,7 +260,9 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('Empty identify data.', $body['ocs']['data']['errors'][0]);
+		$this->assertCount(1, $body['ocs']['data']['errors']);
+		$this->assertArrayHasKey(0, $body['ocs']['data']['errors']);
+		$this->assertEquals('Empty identify data.', $body['ocs']['data']['errors'][0]['message']);
 	}
 
 	/**
@@ -465,7 +477,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testDeleteUsingSignFileIdWithError():void {
+	public function testDeleteUsingSignFileIdWithInvalidSignRequestGroup():void {
 		$user = $this->createAccount('username', 'password');
 
 		$this->request
@@ -475,6 +487,24 @@ final class SignFileControllerTest extends ApiTestCase {
 			])
 			->withPath('/api/v1/sign/file_id/171')
 			->assertResponseCode(422);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testDeleteUsingSignFileIdWithInvalidFile():void {
+		$user = $this->createAccount('username', 'password');
+		$this->getMockAppConfig()->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin','testGroup']);
+
+		$this->request
+			->withMethod('DELETE')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password')
+			])
+			->withPath('/api/v1/sign/file_id/171')
+			->assertResponseCode(401);
 
 		$this->assertRequest();
 	}

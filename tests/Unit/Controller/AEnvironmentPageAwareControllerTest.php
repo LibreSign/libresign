@@ -59,7 +59,7 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 		$this->expectExceptionCode(404);
 		$this->expectExceptionMessage(json_encode([
 			'action' => 2000,
-			'errors' => ['Invalid UUID'],
+			'errors' => [['message' => 'Invalid UUID']],
 		]));
 		$this->controller->loadNextcloudFileFromSignRequestUuid('');
 	}
@@ -95,7 +95,7 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 		$this->expectExceptionCode(404);
 		$this->expectExceptionMessage(json_encode([
 			'action' => 2000,
-			'errors' => ['Invalid UUID'],
+			'errors' => [['message' => 'Invalid UUID']],
 		]));
 
 		$this->controller->validateSignRequestUuid($file->getUuid());

@@ -255,7 +255,7 @@ export default {
 					if (response?.data?.ocs?.data?.message) {
 						showError(response.data.ocs.data.message)
 					} else if (response?.data?.ocs?.data?.errors) {
-						response.data.ocs.data.errors.forEach(error => showError(error))
+						response.data.ocs.data.errors.forEach(error => showError(error.message))
 					}
 				})
 			this.hasLoading = false

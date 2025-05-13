@@ -43,7 +43,7 @@ trait LibresignTrait {
 		} catch (DoesNotExistException|LibresignException $e) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('Invalid UUID')],
+				'errors' => [['message' => $this->l10n->t('Invalid UUID')]],
 			]), AppFrameworkHttp::STATUS_NOT_FOUND);
 		}
 	}

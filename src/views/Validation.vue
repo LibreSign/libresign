@@ -433,7 +433,7 @@ export default {
 					}
 				})
 				.catch(({ response }) => {
-					showError(response.data.ocs.data.errors[0])
+					showError(response.data.ocs.data.errors[0].message)
 				})
 		},
 		async uploadFile() {
@@ -488,7 +488,7 @@ export default {
 					}
 				})
 				.catch(({ response }) => {
-					showError(response.data.ocs.data.errors[0])
+					showError(response.data.ocs.data.errors[0].message)
 				})
 			this.loading = false
 		},
@@ -509,7 +509,7 @@ export default {
 				})
 				.catch(({ response }) => {
 					if (response?.data?.ocs?.data?.errors?.length > 0) {
-						showError(response.data.ocs.data.errors[0])
+						showError(response.data.ocs.data.errors[0].message)
 					}
 				})
 			this.loading = false

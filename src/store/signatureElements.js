@@ -64,7 +64,7 @@ export const useSignatureElementsStore = function(...args) {
 						})
 					})
 					.catch(({ data }) => {
-						this.error = data.ocs.data.message
+						this.error = { message: data.ocs.data.message }
 					})
 				this._initialized = true
 			},
@@ -115,7 +115,7 @@ export const useSignatureElementsStore = function(...args) {
 						if (Object.hasOwn(response.data.ocs.data, 'errors')) {
 							this.error = response.data.ocs.data.errors[0]
 						} else {
-							this.error = response.data.ocs.data.message
+							this.error = { message: response.data.ocs.data.message }
 						}
 					})
 			},
@@ -137,7 +137,7 @@ export const useSignatureElementsStore = function(...args) {
 						this.success = data.ocs.data.message
 					})
 					.catch(({ data }) => {
-						this.error = data.ocs.data.message
+						this.error = { message: data.ocs.data.message }
 					})
 			},
 		},

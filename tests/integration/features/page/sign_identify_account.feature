@@ -38,7 +38,7 @@ Feature: page/sign_identify_account
     And the response should be a JSON array with the following mandatory values
       | key      | value             |
       | action | 2000 |
-      | errors | ["Invalid UUID"] |
+      | errors | [{"message":"Invalid UUID"}] |
     # invalid user
     When as user "admin"
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
@@ -46,7 +46,7 @@ Feature: page/sign_identify_account
     And the response should be a JSON array with the following mandatory values
       | key      | value             |
       | action | 2000 |
-      | errors | ["Invalid user"] |
+      | errors | [{"message":"Invalid user"}] |
     # unauthenticated user
     When as user ""
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
