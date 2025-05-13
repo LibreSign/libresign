@@ -638,7 +638,8 @@ export default {
 				border-radius: 8px;
 				box-shadow: 0 0 6px 0 var(--color-box-shadow);
 				margin-bottom: 10px;
-				width: 100%;
+				width: unset;
+				overflow: hidden;
 				@media screen and (max-width: 900px) {
 					max-width: 100%;
 				}
@@ -682,6 +683,9 @@ export default {
 				}
 
 				.signers {
+					:deep(.list-item__wrapper) {
+						box-sizing: border-box;
+					}
 					.extra {
 						margin-left: 44px;
 						padding-right: 44px;
@@ -706,6 +710,7 @@ export default {
 		.infor-container {
 			margin-right: 0px;
 			.section {
+				width: unset;
 				box-shadow: none;
 			}
 		}
