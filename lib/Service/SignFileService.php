@@ -565,12 +565,6 @@ class SignFileService {
 			/** @var \OCP\Files\File */
 			$fileToSign = current($fileToSign);
 		} else {
-			$signedFilePath = preg_replace(
-				'/' . $originalFile->getExtension() . '$/',
-				$this->l10n->t('signed') . '.' . $originalFile->getExtension(),
-				$originalFile->getPath()
-			);
-
 			$footer = $this->footerHandler
 				->setTemplateVar('signers', array_map(function (SignRequestEntity $signer) {
 					return [
@@ -606,44 +600,25 @@ class SignFileService {
 			} else {
 				$buffer = $originalFile->getContent();
 			}
-			$fileToSign = $this->forceSaveFileOfDifferentUser($signedFilePath, $buffer);
+			$fileToSign = $this->createSignedFile($originalFile, $buffer);
 		}
 		return $fileToSign;
 	}
 
-	/**
-	 * Problem: Nextcloud server disalowed to write a content into a file that isn't of authenticated user.
-	 *
-	 * Workaround: to prevent error when try to save a file in a folder of different authenticated user
-	 *
-	 * At the follow code:
-	 * https://github.com/nextcloud/server/blob/4173dfe05bd0155eb217dd428ac82091a508567a/apps/files_versions/lib/Listener/FileEventsListener.php#L350-L366
-	 * Nextcloud server force to use the user folder to get the file of authenticated user.
-	 * This piece of code is to bypass the logic to use the authenticated user.
-	 *
-	 * How to reproduce: With account signer1, upload a file and request to signer 2 to sign
-	 * Authenticated as signer2, try to sign the file
-	 * Expected behavior: file signed
-	 * Current behavior: Will get "internal error" because the code at previous link will return null as the path of file
-	 *
-	 * @todo Identify a way to be possible save the file content
-	 */
-	private function forceSaveFileOfDifferentUser(string $path, string $content): \OCP\Files\File {
+	private function createSignedFile(File $originalFile, string $content): File {
+		$filename = preg_replace(
+			'/' . $originalFile->getExtension() . '$/',
+			$this->l10n->t('signed') . '.' . $originalFile->getExtension(),
+			basename($originalFile->getPath())
+		);
+		$owner = $originalFile->getOwner()->getUID();
 		try {
-			/** @var \OCP\Files\File */
-			$fileToSign = $this->root->newFile($path);
+			/** @var \OCP\Files\Folder */
+			$parentFolder = $this->root->getUserFolder($owner)->getFirstNodeById($originalFile->getParentId());
+			return $parentFolder->newFile($filename, $content);
 		} catch (NotPermittedException $e) {
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
-		}
-		$currentUser = $this->userSession->getUser();
-		$this->userSession->setUser(null);
-		try {
-			$fileToSign->putContent($content);
-		} catch (\Throwable $th) {
-			$this->userSession->setUser($currentUser);
-			throw $th;
-		}
-		return $fileToSign;
+		};
 	}
 
 	/**
