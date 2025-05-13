@@ -2547,7 +2547,10 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                                 messages?: {
                                     type: string;
                                     message: string;
@@ -2601,7 +2604,10 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                                 messages?: {
                                     type: string;
                                     message: string;
@@ -2653,11 +2659,15 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                                 messages?: {
                                     type: string;
                                     message: string;
                                 }[];
+                                message?: string;
                             };
                         };
                     };
@@ -2675,11 +2685,15 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                                 messages?: {
                                     type: string;
                                     message: string;
                                 }[];
+                                message?: string;
                             };
                         };
                     };
@@ -2952,7 +2966,10 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                             };
                         };
                     };
@@ -3033,7 +3050,10 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                             };
                         };
                     };
@@ -3083,7 +3103,10 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                             };
                         };
                     };
@@ -3161,7 +3184,10 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                             };
                         };
                     };
@@ -3402,7 +3428,7 @@ export interface operations {
                      * @description Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
                      * @default 1
                      */
-                    status?: number;
+                    status?: number | null;
                 };
             };
         };
@@ -3437,7 +3463,10 @@ export interface operations {
                                 message?: string;
                                 /** Format: int64 */
                                 action?: number;
-                                errors?: string[];
+                                errors?: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                             };
                         };
                     };
@@ -3464,7 +3493,7 @@ export interface operations {
                      * @description Collection of users who must sign the document
                      * @default []
                      */
-                    users?: components["schemas"]["NewSigner"][];
+                    users?: components["schemas"]["NewSigner"][] | null;
                     /** @description UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID. */
                     uuid?: string | null;
                     /** @description Visible elements on document */
@@ -3473,7 +3502,7 @@ export interface operations {
                      * @description File object.
                      * @default []
                      */
-                    file?: components["schemas"]["NewFile"] | unknown[];
+                    file?: (components["schemas"]["NewFile"] | unknown[]) | null;
                     /**
                      * Format: int64
                      * @description Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
@@ -3513,7 +3542,10 @@ export interface operations {
                                 message?: string;
                                 /** Format: int64 */
                                 action?: number;
-                                errors?: string[];
+                                errors?: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                             };
                         };
                     };
@@ -3583,7 +3615,10 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                             };
                         };
                     };
@@ -3664,7 +3699,10 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                                 redirect?: string;
                             };
                         };
@@ -3733,7 +3771,10 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                             };
                         };
                     };
@@ -3814,7 +3855,10 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                                 redirect?: string;
                             };
                         };

@@ -677,7 +677,7 @@ class SignFileService {
 		if (count($fileToSign) < 1) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('File not found')],
+				'errors' => [['message' => $this->l10n->t('File not found')]],
 			]), AppFrameworkHttp::STATUS_NOT_FOUND);
 		}
 		/** @var File */

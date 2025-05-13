@@ -41,7 +41,7 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 		if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->identifyService->getL10n()->t('Invalid email')],
+				'errors' => [['message' => $this->identifyService->getL10n()->t('Invalid email')]],
 			]));
 		}
 		$return = parent::toArray();

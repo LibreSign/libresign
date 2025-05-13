@@ -449,7 +449,7 @@ class ValidateHelper {
 			throw new LibresignException(
 				json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [$this->l10n->t('You are not allowed to request signing')],
+					'errors' => [['message' => $this->l10n->t('You are not allowed to request signing')]],
 				]),
 				Http::STATUS_UNPROCESSABLE_ENTITY,
 			);
@@ -459,7 +459,7 @@ class ValidateHelper {
 			throw new LibresignException(
 				json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [$this->l10n->t('You are not allowed to request signing')],
+					'errors' => [['message' => $this->l10n->t('You are not allowed to request signing')]],
 				]),
 				Http::STATUS_UNPROCESSABLE_ENTITY,
 			);
@@ -642,7 +642,7 @@ class ValidateHelper {
 		} catch (DoesNotExistException $e) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('Invalid UUID')],
+				'errors' => [['message' => $this->l10n->t('Invalid UUID')]],
 			]));
 		}
 	}
@@ -654,7 +654,7 @@ class ValidateHelper {
 		if (!$uuid || !preg_match('/^[a-f\d]{8}(-[a-f\d]{4}){4}[a-f\d]{8}$/i', $uuid)) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('Invalid UUID')],
+				'errors' => [['message' => $this->l10n->t('Invalid UUID')]],
 			]), Http::STATUS_NOT_FOUND);
 		}
 	}

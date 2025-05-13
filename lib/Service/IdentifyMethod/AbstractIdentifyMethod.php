@@ -153,7 +153,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		if (count($fileToSign) < 1) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->identifyService->getL10n()->t('File not found')],
+				'errors' => [['message' => $this->identifyService->getL10n()->t('File not found')]],
 			]));
 		}
 	}
@@ -170,7 +170,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		if ($expirationDate < $now) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->identifyService->getL10n()->t('Link expired.')],
+				'errors' => [['message' => $this->identifyService->getL10n()->t('Link expired.')]],
 			]));
 		}
 	}
@@ -271,7 +271,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_REDIRECT,
-				'errors' => [$this->identifyService->getL10n()->t('File already signed.')],
+				'errors' => [['message' => $this->identifyService->getL10n()->t('File already signed.')]],
 				'redirect' => $this->identifyService->getUrlGenerator()->linkToRoute(
 					'libresign.page.validationFilePublic',
 					['uuid' => $signRequest->getUuid()]

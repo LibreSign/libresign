@@ -122,7 +122,7 @@ class Email extends AbstractIdentifyMethod {
 			}
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->identifyService->getL10n()->t('Invalid user')],
+				'errors' => [['message' => $this->identifyService->getL10n()->t('Invalid user')]],
 			]));
 		}
 	}
@@ -176,7 +176,7 @@ class Email extends AbstractIdentifyMethod {
 		if (!$settings['can_create_account']) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_SHOW_ERROR,
-				'errors' => [$this->identifyService->getL10n()->t('It is not possible to create new accounts.')],
+				'errors' => [['message' => $this->identifyService->getL10n()->t('It is not possible to create new accounts.')]],
 			]));
 		}
 	}
