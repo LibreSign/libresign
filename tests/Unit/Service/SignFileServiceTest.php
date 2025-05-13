@@ -212,9 +212,17 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$nextcloudFile->method('getContent')->willReturn('fake content');
 		$nextcloudFile->method('getId')->willReturn(171);
 
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')->willReturn('john.doe');
+		$nextcloudFile->method('getOwner')->willReturn($user);
+
 		$this->root->method('getUserFolder')->willReturn($this->root);
 		$this->root->method('getById')->willReturn([$nextcloudFile]);
 		$this->root->method('newFile')->willReturn($nextcloudFile);
+
+		$nextcloudFolder = $this->createMock(\OCP\Files\Folder::class);
+		$nextcloudFolder->method('newFile')->willReturn($nextcloudFile);
+		$this->root->method('getFirstNodeById')->willReturn($nextcloudFolder);
 
 		$this->pkcs12Handler->method('setInputFile')->willReturn($this->pkcs12Handler);
 		$this->pkcs12Handler->method('setCertificate')->willReturn($this->pkcs12Handler);
