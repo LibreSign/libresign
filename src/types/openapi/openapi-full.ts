@@ -3463,7 +3463,10 @@ export interface operations {
                                 message?: string;
                                 /** Format: int64 */
                                 action?: number;
-                                errors?: string[];
+                                errors?: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                             };
                         };
                     };
@@ -3539,7 +3542,10 @@ export interface operations {
                                 message?: string;
                                 /** Format: int64 */
                                 action?: number;
-                                errors?: string[];
+                                errors?: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                             };
                         };
                     };

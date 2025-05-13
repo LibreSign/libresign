@@ -5837,7 +5837,18 @@
                                                         "errors": {
                                                             "type": "array",
                                                             "items": {
-                                                                "type": "string"
+                                                                "type": "object",
+                                                                "required": [
+                                                                    "message"
+                                                                ],
+                                                                "properties": {
+                                                                    "message": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "title": {
+                                                                        "type": "string"
+                                                                    }
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -6020,7 +6031,18 @@
                                                         "errors": {
                                                             "type": "array",
                                                             "items": {
-                                                                "type": "string"
+                                                                "type": "object",
+                                                                "required": [
+                                                                    "message"
+                                                                ],
+                                                                "properties": {
+                                                                    "message": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "title": {
+                                                                        "type": "string"
+                                                                    }
+                                                                }
                                                             }
                                                         }
                                                     }
