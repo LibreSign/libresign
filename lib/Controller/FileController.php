@@ -151,7 +151,7 @@ class FileController extends AEnvironmentAwareController {
 			$message = $this->l10n->t($e->getMessage());
 			$return = [
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$message]
+				'errors' => [['message' => $message]]
 			];
 			$statusCode = Http::STATUS_NOT_FOUND;
 		} catch (\Exception $e) {
@@ -216,7 +216,7 @@ class FileController extends AEnvironmentAwareController {
 			$message = $this->l10n->t($e->getMessage());
 			$return = [
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$message]
+				'errors' => [['message' => $message]]
 			];
 			$statusCode = Http::STATUS_NOT_FOUND;
 		} catch (\Throwable $th) {
@@ -224,7 +224,7 @@ class FileController extends AEnvironmentAwareController {
 			$this->logger->error($message);
 			$return = [
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$message]
+				'errors' => [['message' => $message]]
 			];
 			$statusCode = Http::STATUS_NOT_FOUND;
 		}

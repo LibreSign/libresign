@@ -28,9 +28,9 @@ import PdfEditor from '../../Components/PdfEditor/PdfEditor.vue'
 import TopBar from '../../Components/TopBar/TopBar.vue'
 
 import { useFilesStore } from '../../store/files.js'
+import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import { useSignMethodsStore } from '../../store/signMethods.js'
-import { useSidebarStore } from '../../store/sidebar.js'
 
 export default {
 	name: 'SignPDF',
@@ -94,7 +94,7 @@ export default {
 					this.signStore.errors = data.errors
 					return
 				}
-				this.signStore.errors = [{message: t('libresign', 'File not found')}]
+				this.signStore.errors = [{ message: t('libresign', 'File not found') }]
 				return
 			}
 			const blob = await response.blob()

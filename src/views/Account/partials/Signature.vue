@@ -103,8 +103,8 @@ export default {
 			await this.signatureElementsStore.delete(this.type)
 			if (this.signatureElementsStore.success.length) {
 				showSuccess(this.signatureElementsStore.success)
-			} else if (this.signatureElementsStore.error.length) {
-				showError(this.signatureElementsStore.error)
+			} else if (this.signatureElementsStore.error?.message) {
+				showError(this.signatureElementsStore.error.message)
 			}
 		},
 		close() {
@@ -113,8 +113,8 @@ export default {
 		save() {
 			if (this.signatureElementsStore.success.length) {
 				showSuccess(this.signatureElementsStore.success)
-			} else if (this.signatureElementsStore.error.length) {
-				showError(this.signatureElementsStore.error)
+			} else if (this.signatureElementsStore.error?.message) {
+				showError(this.signatureElementsStore.error.message)
 			}
 			this.close()
 		},
