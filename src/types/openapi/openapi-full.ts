@@ -2547,7 +2547,10 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                                 messages?: {
                                     type: string;
                                     message: string;
@@ -2601,7 +2604,10 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                                 messages?: {
                                     type: string;
                                     message: string;
@@ -2653,11 +2659,15 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                                 messages?: {
                                     type: string;
                                     message: string;
                                 }[];
+                                message?: string;
                             };
                         };
                     };
@@ -2675,11 +2685,15 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                                 messages?: {
                                     type: string;
                                     message: string;
                                 }[];
+                                message?: string;
                             };
                         };
                     };
@@ -2952,7 +2966,10 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                             };
                         };
                     };
@@ -3033,7 +3050,10 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                             };
                         };
                     };
@@ -3083,7 +3103,10 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                             };
                         };
                     };
@@ -3161,7 +3184,10 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                             };
                         };
                     };
@@ -3583,7 +3609,10 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                             };
                         };
                     };
@@ -3736,7 +3765,10 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                errors: string[];
+                                errors: {
+                                    message: string;
+                                    title?: string;
+                                }[];
                             };
                         };
                     };
