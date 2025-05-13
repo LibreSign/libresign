@@ -15,7 +15,7 @@
 		:show-rename="false"
 		:show-save-btn="false"
 		:save-to-upload="false"
-		:init-file-src="fileSrc"
+		:init-file="file"
 		:init-image-scale="1"
 		:seal-image-show="false"
 		@pdf-editor:end-init="endInit">
@@ -49,9 +49,8 @@ export default {
 		Signature,
 	},
 	props: {
-		fileSrc: {
-			type: String,
-			default: '',
+		file: {
+			type: File,
 			require: true,
 		},
 		readOnly: {
