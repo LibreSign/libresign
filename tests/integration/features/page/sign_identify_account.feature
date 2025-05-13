@@ -54,7 +54,7 @@ Feature: page/sign_identify_account
     And the response should be a JSON array with the following mandatory values
       | key    | value                                     |
       | action | 1000                                      |
-      | errors | [{"message":"You are not logged in. Please log in."}] |
+      | errors | ["You are not logged in. Please log in."] |
 
   Scenario: Open sign file with all data valid
     Given user "signer1" exists
