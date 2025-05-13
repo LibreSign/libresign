@@ -599,7 +599,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			[[],                            'uuid', ''],
 			[['file' => []],                '',     'Invalid fileID'],
-			[[],                            [],     'Inform or UUID or a File object'],
+			[[],                            [],     'Please provide either UUID or File objec'],
 			[['file' => ['fileId' => 171]], '',     ''],
 		];
 	}
