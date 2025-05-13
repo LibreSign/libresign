@@ -12,6 +12,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
+use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\MailService;
@@ -36,7 +37,12 @@ class MailNotifyListener implements IEventListener {
 	public function handle(Event $event): void {
 		/** @var SendSignNotificationEvent $event */
 		match (get_class($event)) {
-			SendSignNotificationEvent::class => $this->sendMailNotification(
+			SendSignNotificationEvent::class => $this->sendSignMailNotification(
+				$event->getSignRequest(),
+				$event->getLibreSignFile(),
+				$event->getIdentifyMethod(),
+			),
+			SignedEvent::class => $this->sendSignedMailNotification(
 				$event->getSignRequest(),
 				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
@@ -44,7 +50,7 @@ class MailNotifyListener implements IEventListener {
 		};
 	}
 
-	protected function sendMailNotification(
+	protected function sendSignMailNotification(
 		SignRequest $signRequest,
 		FileEntity $libreSignFile,
 		IIdentifyMethod $identifyMethod,
@@ -74,5 +80,55 @@ class MailNotifyListener implements IEventListener {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
 			return;
 		}
+	}
+
+	protected function sendSignedMailNotification(
+		SignRequest $signRequest,
+		FileEntity $libreSignFile,
+		IIdentifyMethod $identifyMethod,
+	): void {
+		try {
+			if ($this->isNotificationDisabledAtActivity($identifyMethod, 'file_signed')) {
+				return;
+			}
+			$email = '';
+			if ($identifyMethod->getName() === 'account') {
+				$email = $this->userManager
+					->get($identifyMethod->getEntity()->getIdentifierValue())
+					->getEMailAddress();
+			} elseif ($identifyMethod->getName() === 'email') {
+				$email = $identifyMethod->getEntity()->getIdentifierValue();
+			}
+			if (empty($email)) {
+				return;
+			}
+
+			$this->mail->notifySignedUser($signRequest, $email);
+
+		} catch (\InvalidArgumentException $e) {
+			$this->logger->error($e->getMessage(), ['exception' => $e]);
+			return;
+		}
+	}
+
+	public function isNotificationDisabledAtActivity(IIdentifyMethod $identifyMethod, string $type): bool {
+		if (!class_exists(\OCA\Activity\UserSettings::class)) {
+			return false;
+		}
+		$activityUserSettings = \OCP\Server::get(\OCA\Activity\UserSettings::class);
+		if ($activityUserSettings) {
+			if ($identifyMethod->getEntity()->isDeletedAccount()) {
+				return false;
+			}
+			$notificationSetting = $activityUserSettings->getUserSetting(
+				$identifyMethod->getEntity()->getIdentifierValue(),
+				'email',
+				$type
+			);
+			if (!$notificationSetting) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

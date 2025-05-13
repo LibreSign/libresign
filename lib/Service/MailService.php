@@ -108,6 +108,40 @@ class MailService {
 		}
 	}
 
+	/**
+	 * @psalm-suppress MixedMethodCall
+	 */
+	public function notifySignedUser(SignRequest $data, string $email): void {
+		$notifyUnsignedUser = $this->appConfig->getValueBool(Application::APP_ID, 'notify_unsigned_user', true);
+		if (!$notifyUnsignedUser) {
+			return;
+		}
+		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
+		$emailTemplate->setSubject($this->l10n->t('LibreSign: A file has been signed'));
+		$emailTemplate->addHeader();
+		$emailTemplate->addHeading($this->l10n->t('File signed'), false);
+		$emailTemplate->addBodyText($this->l10n->t('A document has been signed. You can access it using the link below:'));
+		$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $data->getUuid()]);
+		$file = $this->getFileById($data->getFileId());
+		$emailTemplate->addBodyButton(
+			$this->l10n->t('View signed file »%s«', [$file->getName()]),
+			$link
+		);
+		$message = $this->mailer->createMessage();
+		if ($data->getDisplayName()) {
+			$message->setTo([$email => $data->getDisplayName()]);
+		} else {
+			$message->setTo([$email]);
+		}
+		$message->useTemplate($emailTemplate);
+		try {
+			$this->mailer->send($message);
+		} catch (\Exception $e) {
+			$this->logger->error('Notify signed notification mail could not be sent: ' . $e->getMessage());
+			throw new LibresignException('Notify signed notification mail could not be sent', 1);
+		}
+	}
+
 	public function sendCodeToSign(string $email, string $name, string $code): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		$emailTemplate->setSubject($this->l10n->t('LibreSign: Code to sign file'));
