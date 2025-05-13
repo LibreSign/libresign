@@ -27,7 +27,9 @@ final class FileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('Invalid data to validate file', $body['ocs']['data']['errors'][0]);
+		$this->assertCount(1, $body['ocs']['data']['errors']);
+		$this->assertArrayHasKey(0, $body['ocs']['data']['errors']);
+		$this->assertEquals('Invalid data to validate file', $body['ocs']['data']['errors'][0]['message']);
 	}
 
 	/**
@@ -40,7 +42,9 @@ final class FileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('Invalid data to validate file', $body['ocs']['data']['errors'][0]);
+		$this->assertCount(1, $body['ocs']['data']['errors']);
+		$this->assertArrayHasKey(0, $body['ocs']['data']['errors']);
+		$this->assertEquals('Invalid data to validate file', $body['ocs']['data']['errors'][0]['message']);
 	}
 
 	/**

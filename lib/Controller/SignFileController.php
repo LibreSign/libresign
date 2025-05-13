@@ -57,7 +57,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param array<string, mixed> $elements List of visible elements
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
-	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: string[], redirect?: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid data
@@ -80,7 +80,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param array<string, mixed> $elements List of visible elements
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
-	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: string[], redirect?: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid data
@@ -96,7 +96,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	}
 
 	/**
-	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: string[], redirect?: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}>
 	 */
 	public function sign(string $method, array $elements = [], string $identifyValue = '', string $token = '', ?int $fileId = null, ?string $signRequestUuid = null): DataResponse {
 		try {
@@ -143,36 +143,49 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				Http::STATUS_OK
 			);
 		} catch (LibresignException $e) {
-			return new DataResponse(
-				[
-					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [$e->getMessage()]
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
+			$message = $e->getMessage();
+			if ($message === 'Password to sign not defined. Create a password to sign') {
+				$action = JSActions::ACTION_CREATE_SIGNATURE_PASSWORD;
+			} else {
+				$action = JSActions::ACTION_DO_NOTHING;
+			}
+			$data = [
+				'action' => $action,
+				'errors' => [['message' => $e->getMessage()]],
+			];
 		} catch (\Throwable $th) {
 			$message = $th->getMessage();
-			$action = JSActions::ACTION_DO_NOTHING;
+			$data = [
+				'action' => JSActions::ACTION_DO_NOTHING,
+			];
 			switch ($message) {
-				case 'Password to sign not defined. Create a password to sign':
-					$action = JSActions::ACTION_CREATE_SIGNATURE_PASSWORD;
-					// no break
 				case 'Host violates local access rules.':
 				case 'Certificate Password Invalid.':
 				case 'Certificate Password is Empty.':
-					$message = $this->l10n->t($message);
+					$data['errors'] = [['message' => $this->l10n->t($message)]];
 					break;
 				default:
-					$this->logger->error($message);
-					$this->logger->error(json_encode($th->getTrace()));
-					$message = $this->l10n->t('Internal error. Contact admin.');
+					$this->logger->error($message, ['exception' => $th]);
+					$data['errors'] = [[
+						'message' =>
+							sprintf(<<<MESSAGE
+								The server was unable to complete your request.
+								If this happens again, please send the technical details below to the server administrator.
+								## Technical details:
+								**Remote Address**: %s
+								**Request ID**: %s
+								**Message**: %s
+								MESSAGE,
+								$this->request->getRemoteAddress(),
+								$this->request->getId(),
+								$message,
+							),
+						'title' => $this->l10n->t('Internal Server Error'),
+					]];
 			}
 		}
 		return new DataResponse(
-			[
-				'action' => $action,
-				'errors' => [$message]
-			],
+			$data,
 			Http::STATUS_UNPROCESSABLE_ENTITY
 		);
 	}
