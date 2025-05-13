@@ -51,6 +51,7 @@ export const useSignStore = defineStore('sign', {
 		},
 		setDocumentToSign(document) {
 			if (document) {
+				this.errors = []
 				set(this, 'document', document)
 
 				const sidebarStore = useSidebarStore()

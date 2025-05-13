@@ -93,7 +93,7 @@ class Account extends AbstractIdentifyMethod {
 			if (empty($signer) || count($signer) > 1) {
 				throw new LibresignException(json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [$this->identifyService->getL10n()->t('Invalid user')],
+					'errors' => [['message' => $this->identifyService->getL10n()->t('Invalid user')]],
 				]));
 			}
 			$signer = current($signer);
@@ -105,7 +105,7 @@ class Account extends AbstractIdentifyMethod {
 		if ($this->userSession->getUser() !== $signer) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->identifyService->getL10n()->t('Invalid user')],
+				'errors' => [['message' => $this->identifyService->getL10n()->t('Invalid user')]],
 			]));
 		}
 	}
