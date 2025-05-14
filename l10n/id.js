@@ -25,8 +25,6 @@ OC.L10N.register(
     "Invalid UUID" : "UUID Tidak valid",
     "Notification sent with success." : "Notifikasi berhasil dikirim",
     "File signed" : "Berkas ditandatangani",
-    "Renewed with success. Access the link again." : "Berhasil diperbaharui. Silahkan akses kembali tautan",
-    "Invalid data to sign file" : "Berkas di tandatangani memiliki data yang tidak valid",
     "Element created with success" : "Elemen berhasil dibuat",
     "Elements created with success" : "Elemen berhasil dibuat",
     "Elements not found" : "Elemen tidak ditemukan",
@@ -43,6 +41,7 @@ OC.L10N.register(
     "Password to sign not defined. Create a password to sign." : "Kata sandi untuk tandatangani tidak dibuat. Buat kata sandi untuk menandatangani.",
     "Invalid password" : "Kata sandi tidak valid",
     "File is too big" : "Berkas terlalu besar",
+    "Invalid data to sign file" : "Berkas di tandatangani memiliki data yang tidak valid",
     "View" : "Tampilan",
     "Dismiss notification" : "Abaikan notifikasi",
     "File not found" : "Berkas tidak ditemukan",
@@ -97,6 +96,7 @@ OC.L10N.register(
     "No" : "Tidak",
     "No date" : "No date",
     "Other activities" : "Aktivitas lain",
+    "Renewed with success. Access the link again." : "Berhasil diperbaharui. Silahkan akses kembali tautan",
     "Digital signed by LibreSign." : "Ditandatangani secara digital oleh LibreSign"
 },
 "nplurals=1; plural=0;");
