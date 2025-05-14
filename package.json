@@ -25,7 +25,7 @@
     "@marionebl/option": "^1.0.8",
     "@mdi/js": "^7.4.47",
     "@mdi/svg": "^7.4.47",
-    "@nextcloud/auth": "^2.4.0",
+    "@nextcloud/auth": "^2.5.1",
     "@nextcloud/axios": "^2.5.1",
     "@nextcloud/capabilities": "^1.2.0",
     "@nextcloud/dialogs": "^6.3.0",
