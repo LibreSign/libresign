@@ -363,7 +363,7 @@ class RequestSignatureService {
 			$signatures = $this->signRequestMapper->getByNodeId($data['file']['fileId']);
 			$fileData = $this->fileMapper->getByFileId($data['file']['fileId']);
 		} else {
-			throw new \Exception($this->l10n->t('Inform or UUID or a File object'));
+			throw new \Exception($this->l10n->t('Please provide either UUID or File object'));
 		}
 		foreach ($signatures as $signRequest) {
 			$this->signRequestMapper->delete($signRequest);

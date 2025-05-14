@@ -111,7 +111,7 @@ class SignFileService {
 		} elseif (!empty($data['file']['fileId'])) {
 			$signatures = $this->signRequestMapper->getByNodeId($data['file']['fileId']);
 		} else {
-			throw new \Exception($this->l10n->t('Inform or UUID or a File object'));
+			throw new \Exception($this->l10n->t('Please provide either UUID or File object'));
 		}
 		$signed = array_filter($signatures, fn ($s) => $s->getSigned());
 		if ($signed) {
