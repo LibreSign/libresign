@@ -313,48 +313,6 @@ Feature: request-signature
       | type | signature |
     Then the response should have a status code 200
 
-  Scenario: Sign file
-    Given as user "admin"
-    And user "signer1" exists
-    And run the command "libresign:install --use-local-cert --java" with result code 0
-    And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
-    And run the command "libresign:install --use-local-cert --pdftk" with result code 0
-    And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
-    And run the command "config:app:set libresign add_footer --value=true --type=boolean" with result code 0
-    And run the command "config:app:set libresign write_qrcode_on_footer --value=true --type=boolean" with result code 0
-    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"password":{"name":"password","enabled":true}},"signatureMethodEnabled":"password"}] |
-    And the response should have a status code 200
-    And my inbox is empty
-    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
-      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"displayName": "Signer Name","description": "Please, sign this document","identify": {"account": "signer1"}}] |
-      | name | Document Name |
-    And the response should have a status code 200
-    And as user "signer1"
-    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
-    Then the response should be a JSON array with the following mandatory values
-      | key                        | value         |
-      | (jq).ocs.data.data[0].name | Document Name |
-    And fetch field "(SIGN_URL)ocs.data.data.0.url" from prevous JSON response
-    And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from prevous JSON response
-    And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from prevous JSON response
-    And sending "post" to ocs "/apps/libresign/api/v1/account/signature"
-      | signPassword | TheComplexPfxPasswordHere |
-    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
-      | method | password |
-      | token | TheComplexPfxPasswordHere |
-    And the response should have a status code 200
-    Then the response should be a JSON array with the following mandatory values
-      | key                     | value       |
-      | (jq).ocs.data.message   | File signed |
-      | (jq).ocs.data.file.uuid | <FILE_UUID> |
-    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
-    Then the response should be a JSON array with the following mandatory values
-      | key  | value                                 |
-      | (jq).ocs.data.data[0].name   | Document Name |
-      | (jq).ocs.data.data[0].status | 3             |
-
   Scenario: Request to sign with success using multiple users
     Given as user "admin"
     And user "signer1" exists

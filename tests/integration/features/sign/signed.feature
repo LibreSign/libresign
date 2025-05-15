@@ -1,0 +1,89 @@
+Feature: signed
+  Scenario: Sign file
+    Given as user "admin"
+    And user "signer1" exists
+    And run the command "libresign:install --use-local-cert --java" with result code 0
+    And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
+    And run the command "libresign:install --use-local-cert --pdftk" with result code 0
+    And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
+    And run the command "config:app:set libresign add_footer --value=true --type=boolean" with result code 0
+    And run the command "config:app:set libresign write_qrcode_on_footer --value=true --type=boolean" with result code 0
+    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"password":{"name":"password","enabled":true}},"signatureMethodEnabled":"password"}] |
+    And the response should have a status code 200
+    And my inbox is empty
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"displayName": "Signer Name","description": "Please, sign this document","identify": {"account": "signer1"}}] |
+      | name | Document Name |
+    And the response should have a status code 200
+    And as user "signer1"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    Then the response should be a JSON array with the following mandatory values
+      | key                        | value         |
+      | (jq).ocs.data.data[0].name | Document Name |
+    And fetch field "(SIGN_URL)ocs.data.data.0.url" from prevous JSON response
+    And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from prevous JSON response
+    And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from prevous JSON response
+    And sending "post" to ocs "/apps/libresign/api/v1/account/signature"
+      | signPassword | TheComplexPfxPasswordHere |
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
+      | method | password |
+      | token | TheComplexPfxPasswordHere |
+    And the response should have a status code 200
+    Then the response should be a JSON array with the following mandatory values
+      | key                     | value       |
+      | (jq).ocs.data.message   | File signed |
+      | (jq).ocs.data.file.uuid | <FILE_UUID> |
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    Then the response should be a JSON array with the following mandatory values
+      | key  | value                                 |
+      | (jq).ocs.data.data[0].name   | Document Name |
+      | (jq).ocs.data.data[0].status | 3             |
+
+  Scenario: Sign events
+    Given as user "admin"
+    And user "signer1" exists
+    And set the email of user "signer1" to "signer@domain.test"
+    And set the email of user "admin" to "admin@email.tld"
+    And run the command "libresign:install --use-local-cert --java" with result code 0
+    And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
+    And run the command "libresign:install --use-local-cert --pdftk" with result code 0
+    And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
+    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}}}] |
+    And the response should have a status code 200
+    And my inbox is empty
+    And reset notifications of user "signer1"
+    And reset notifications of user "admin"
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"displayName": "Signer Name","identify": {"account": "signer1"}},{"displayName": "Admin","identify": {"account": "admin"}}] |
+      | name | Document Name |
+    And the response should have a status code 200
+    And as user "signer1"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    Then the response should be a JSON array with the following mandatory values
+      | key                        | value         |
+      | (jq).ocs.data.data[0].name | Document Name |
+    And fetch field "(SIGN_URL)ocs.data.data.0.url" from prevous JSON response
+    And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from prevous JSON response
+    And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from prevous JSON response
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
+      | method | clickToSign |
+    And the response should have a status code 200
+    Then the response should be a JSON array with the following mandatory values
+      | key                     | value       |
+      | (jq).ocs.data.message   | File signed |
+      | (jq).ocs.data.file.uuid | <FILE_UUID> |
+    And as user "admin"
+    When sending "get" to ocs "/apps/notifications/api/v2/notifications"
+    Then the response should be a JSON array with the following mandatory values
+      | key | value                                                         |
+      | ocs | (jq).data\|.[].subject == "Signer Name signed Document Name"|
+    Then I open the latest email to "admin@email.tld" with subject "LibreSign: A file has been signed"
+    When sending "get" to ocs "/apps/activity/api/v2/activity/libresign?since=0"
+    Then the response should be a JSON array with the following mandatory values
+      | key                      | value                                      |
+      | (jq).ocs.data[0].subject | Signer Name signed Document Name |
+
