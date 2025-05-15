@@ -13,7 +13,7 @@ use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
 /** @template-implements IEventListener<ASignedCallbackEvent> */
-class SignedListener implements IEventListener {
+class SignedCallbackListener implements IEventListener {
 	public function handle(Event $event): void {
 		/** @var ASignedCallbackEvent */
 		if (!($event instanceof ASignedCallbackEvent)) {
