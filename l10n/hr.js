@@ -60,7 +60,6 @@ OC.L10N.register(
     "You do not have permission for this action." : "Nemate dopuštenje za ovu radnju.",
     "Invalid status code for file." : "Nevažeća šifra statusa za datoteku.",
     "Sign process already started. Unable to change status." : "Postupak potpisivanja je započeo. Nije moguće promijeniti status.",
-    "Inform or UUID or a File object" : "Objekt Inform ili UUID ili File",
     "No user data" : "Nema korisničkih podataka",
     "User %s has no email address." : "Korisnik %s nema adresu e-pošte.",
     "Email required" : "Adresa e-pošte je obavezna",
@@ -207,6 +206,7 @@ OC.L10N.register(
     "Requested by {name}, at {date}" : "Zatražio {name} na dan {date}",
     "Other activities" : "Druge aktivnosti",
     "Digital signed by LibreSign." : "Digitalno potpisano sustavom LibreSign.",
+    "Inform or UUID or a File object" : "Objekt Inform ili UUID ili File",
     "Account not exist" : "Račun ne postoji",
     "No signature, click here to create a new" : "Nema potpisa, kliknite ovdje za stvaranje novog",
     "No initials, click here to create a new" : "Nema inicijala, kliknite ovdje za stvaranje novog"

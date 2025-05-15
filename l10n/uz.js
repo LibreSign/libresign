@@ -49,6 +49,7 @@ OC.L10N.register(
     "New password" : "New password",
     "Yes" : "Yes",
     "No" : "No",
+    "Remove background" : "Fonni olib tashlash",
     "Forgot password?" : "Parolni unutdingizmi?"
 },
 "nplurals=1; plural=0;");

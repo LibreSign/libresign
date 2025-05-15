@@ -63,7 +63,6 @@ OC.L10N.register(
     "You do not have permission for this action." : "Je hebt geen machtiging voor deze actie.",
     "Invalid status code for file." : "Ongeldige status code voor bestand.",
     "Sign process already started. Unable to change status." : "Signeerproces reeds begonnen. Kan status niet veranderen.",
-    "Inform or UUID or a File object" : "Informeren van UUID of een bestandsobject",
     "No user data" : "Geen gebruikersgegevens",
     "User %s has no email address." : "Gebruiker %s heeft geen e-mailadres.",
     "Email required" : "E-mailadres verplicht",
@@ -255,6 +254,7 @@ OC.L10N.register(
     "Other activities" : "Andere activiteiten",
     "The code to sign file was successfully requested." : "De code om het bestand te signeren is succesvol opgevraagd.",
     "Digital signed by LibreSign." : "Digitaal ondertekend door LibreSign.",
+    "Inform or UUID or a File object" : "Informeren van UUID of een bestandsobject",
     "Account not exist" : "Account bestaat niet",
     "No signature, click here to create a new" : "Geen handtekening, klik hier om een nieuwe te creëren",
     "No initials, click here to create a new" : "Geen initialen, klik hier om een nieuwe te creëren"

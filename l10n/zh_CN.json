@@ -60,7 +60,6 @@
     "You do not have permission for this action." : "你没有此操作的权限",
     "Invalid status code for file." : "无效的文件状态码",
     "Sign process already started. Unable to change status." : "签署过程已启动。无法更改状态。",
-    "Inform or UUID or a File object" : "通知或 UUID 或一个文件对象",
     "No user data" : "没有用户数据",
     "User %s has no email address." : "用户 %s 没有电子邮箱",
     "Email required" : "需要电子邮箱",
@@ -247,6 +246,7 @@
     "Other activities" : "其他活动",
     "The code to sign file was successfully requested." : "已成功请求文件签名的代码",
     "Digital signed by LibreSign." : "由 LibreSign 进行数字签名",
+    "Inform or UUID or a File object" : "通知或 UUID 或一个文件对象",
     "Account not exist" : "账号不存在",
     "No signature, click here to create a new" : "没有签名，点击此处新建",
     "No initials, click here to create a new" : "没有首字母，点击此处新建"
