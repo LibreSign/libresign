@@ -111,7 +111,7 @@ class MailService {
 	/**
 	 * @psalm-suppress MixedMethodCall
 	 */
-	public function notifySignedUser(SignRequest $data, string $email): void {
+	public function notifySignedUser(SignRequest $signRequest, string $email, File $libreSignFile): void {
 		$notifyUnsignedUser = $this->appConfig->getValueBool(Application::APP_ID, 'notify_unsigned_user', true);
 		if (!$notifyUnsignedUser) {
 			return;
@@ -121,15 +121,17 @@ class MailService {
 		$emailTemplate->addHeader();
 		$emailTemplate->addHeading($this->l10n->t('File signed'), false);
 		$emailTemplate->addBodyText($this->l10n->t('A document has been signed. You can access it using the link below:'));
-		$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $data->getUuid()]);
-		$file = $this->getFileById($data->getFileId());
+		$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.indexFPath', [
+			'path' => 'validation/' . $libreSignFile->getUuid(),
+		]);
+		$file = $this->getFileById($signRequest->getFileId());
 		$emailTemplate->addBodyButton(
 			$this->l10n->t('View signed file »%s«', [$file->getName()]),
 			$link
 		);
 		$message = $this->mailer->createMessage();
-		if ($data->getDisplayName()) {
-			$message->setTo([$email => $data->getDisplayName()]);
+		if ($signRequest->getDisplayName()) {
+			$message->setTo([$email => $signRequest->getDisplayName()]);
 		} else {
 			$message->setTo([$email]);
 		}

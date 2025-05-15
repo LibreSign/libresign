@@ -147,8 +147,8 @@ class Listener implements IEventListener {
 					'id' => (string)$libreSignFile->getNodeId(),
 					'name' => $libreSignFile->getName(),
 					'path' => $libreSignFile->getName(),
-					'link' => $this->url->linkToRouteAbsolute('libresign.page.validationFilePublic', [
-						'uuid' => $libreSignFile->getUuid(),
+					'link' => $this->url->linkToRouteAbsolute('libresign.page.indexFPath', [
+						'path' => 'validation/' . $libreSignFile->getUuid(),
 					]),
 				],
 				'signedFile' => [
