@@ -52,7 +52,7 @@ class MailNotifyListener implements IEventListener {
 		IIdentifyMethod $identifyMethod,
 	): void {
 		try {
-			if ($identifyMethod->getEntity()->isDeletedAccount()) {
+			if ($this->isNotificationDisabledAtActivity($identifyMethod, 'file_to_sign')) {
 				return;
 			}
 			$email = '';
@@ -106,7 +106,7 @@ class MailNotifyListener implements IEventListener {
 		}
 	}
 
-	public function isNotificationDisabledAtActivity(IIdentifyMethod $identifyMethod, string $type): bool {
+	private function isNotificationDisabledAtActivity(IIdentifyMethod $identifyMethod, string $type): bool {
 		if (!class_exists(\OCA\Activity\UserSettings::class)) {
 			return false;
 		}
