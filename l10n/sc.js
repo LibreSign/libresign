@@ -28,7 +28,6 @@ OC.L10N.register(
     "Invalid fileID" : "fileID non bàlidu",
     "You are not allowed to request signing" : "Non tenes su permissu pro rechèdere sa firma",
     "You do not have permission for this action." : "Non tenes su permissu pro fàghere de aici.",
-    "Inform or UUID or a File object" : "Informa o UUID o unu File object",
     "No user data" : "Perunu datu utente",
     "Email required" : "Serbit s'indiritzu de posta eletrònica",
     "Invalid email" : "Indirìtzu de posta eletrònica",
@@ -164,6 +163,7 @@ OC.L10N.register(
     "Open in LibreSign" : "Aberi in LibreSign",
     "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}",
     "Other activities" : "Àteras atividades",
+    "Inform or UUID or a File object" : "Informa o UUID o unu File object",
     "Account not exist" : "Su contu non b'est",
     "No signature, click here to create a new" : "Peruna firma. Incarca inoghe pro nde creare una noa"
 },
