@@ -38,12 +38,10 @@ class MailNotifyListener implements IEventListener {
 		match (get_class($event)) {
 			SendSignNotificationEvent::class => $this->sendSignMailNotification(
 				$event->getSignRequest(),
-				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
 			),
 			SignedEvent::class => $this->sendSignedMailNotification(
 				$event->getSignRequest(),
-				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
 			),
 		};
@@ -51,7 +49,6 @@ class MailNotifyListener implements IEventListener {
 
 	protected function sendSignMailNotification(
 		SignRequest $signRequest,
-		FileEntity $libreSignFile,
 		IIdentifyMethod $identifyMethod,
 	): void {
 		try {
@@ -83,7 +80,6 @@ class MailNotifyListener implements IEventListener {
 
 	protected function sendSignedMailNotification(
 		SignRequest $signRequest,
-		FileEntity $libreSignFile,
 		IIdentifyMethod $identifyMethod,
 	): void {
 		try {
