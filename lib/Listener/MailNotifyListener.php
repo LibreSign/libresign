@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Listener;
 
-use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
