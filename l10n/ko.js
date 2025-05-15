@@ -60,7 +60,6 @@ OC.L10N.register(
     "You do not have permission for this action." : "이 작업에 대한 권한이 없습니다.",
     "Invalid status code for file." : "Invalid status code for file.",
     "Sign process already started. Unable to change status." : "서명 프로세스가 이미 시작되었습니다. 상태를 변경할 수 없습니다.",
-    "Inform or UUID or a File object" : "알림, UUID 또는 파일 개체",
     "No user data" : "사용자 데이터 없음",
     "User %s has no email address." : "사용자 %s는 이메일 주소가 없습니다.",
     "Email required" : "이메일 필요",
@@ -245,6 +244,7 @@ OC.L10N.register(
     "Other activities" : "다른 활동",
     "The code to sign file was successfully requested." : "파일에 서명할 코드가 성공적으로 요청되었습니다.",
     "Digital signed by LibreSign." : "LibreSign이 디지털 서명했습니다.",
+    "Inform or UUID or a File object" : "알림, UUID 또는 파일 개체",
     "Account not exist" : "계정을 찾을 수 없습니다.",
     "No signature, click here to create a new" : "서명이 없습니다. 새 서명을 작성하려면 여기를 클릭하십시오.",
     "No initials, click here to create a new" : "이니셜이 없습니다. 새로 만들려면 여기를 클릭하십시오."

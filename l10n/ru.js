@@ -62,7 +62,6 @@ OC.L10N.register(
     "You do not have permission for this action." : "У вас не хватает разрешений для этого действия.",
     "Invalid status code for file." : "Недопустимый код состояния файла.",
     "Sign process already started. Unable to change status." : "Процесс подписания уже начался. Невозможно изменить статус.",
-    "Inform or UUID or a File object" : "Сообщить UUID или файловый объект",
     "No user data" : "Нет пользовательских данных",
     "User %s has no email address." : "Не указан адрес электронной почты пользователя %s",
     "Email required" : "Требуется указать электронную почту",
@@ -257,6 +256,7 @@ OC.L10N.register(
     "Renewed with success. Access the link again." : "Успешно обновлено. Перейдите по ссылке еще раз.",
     "The code to sign file was successfully requested." : "Код для подписи файла был успешно запрошен.",
     "Digital signed by LibreSign." : "Подписан электронной подписью LibreSign.",
+    "Inform or UUID or a File object" : "Сообщить UUID или файловый объект",
     "Account not exist" : "Учётная запись не существует",
     "No signature, click here to create a new" : "Нет подписи, нажмите здесь, чтобы ее создать",
     "No initials, click here to create a new" : "Нет инициалов, нажмите здесь, чтобы их создать"
