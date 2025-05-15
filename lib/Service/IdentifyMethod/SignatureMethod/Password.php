@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
+use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
@@ -28,13 +29,21 @@ class Password extends AbstractSignatureMethod {
 
 	public function validateToSign(): void {
 		$this->validateToIdentify();
+		try {
+			$this->pkcs12Handler
+				->setCertificate($this->pkcs12Handler->getPfxOfCurrentSigner($this->userSession->getUser()?->getUID()))
+				->setPassword($this->codeSentByUser)
+				->readCertificate();
+		} catch (InvalidPasswordException $e) {
+			throw new LibresignException($this->identifyService->getL10n()->t('Invalid user or password'));
+		}
 	}
 
 	public function validateToIdentify(): void {
 		$this->pkcs12Handler->setPassword($this->codeSentByUser);
 		$pfx = $this->pkcs12Handler->getPfxOfCurrentSigner($this->userSession->getUser()?->getUID());
 		if (empty($pfx)) {
-			throw new LibresignException($this->identifyService->getL10n()->t('Invalid password'));
+			throw new LibresignException($this->identifyService->getL10n()->t('Invalid certificate'));
 		}
 	}
 
