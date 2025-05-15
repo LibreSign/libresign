@@ -21,7 +21,7 @@ use OCA\Libresign\Listener\LoadAdditionalListener;
 use OCA\Libresign\Listener\LoadSidebarListener;
 use OCA\Libresign\Listener\MailNotifyListener;
 use OCA\Libresign\Listener\NotificationListener;
-use OCA\Libresign\Listener\SignedListener;
+use OCA\Libresign\Listener\SignedCallbackListener;
 use OCA\Libresign\Listener\UserDeletedListener;
 use OCA\Libresign\Middleware\GlobalInjectionMiddleware;
 use OCA\Libresign\Middleware\InjectionMiddleware;
@@ -64,7 +64,7 @@ class Application extends App implements IBootstrap {
 		$context->registerEventListener(LoadSidebar::class, LoadSidebarListener::class);
 		$context->registerEventListener(BeforeNodeDeletedEvent::class, BeforeNodeDeletedListener::class);
 		$context->registerEventListener(CacheEntryRemovedEvent::class, BeforeNodeDeletedListener::class);
-		$context->registerEventListener(SignedCallbackEvent::class, SignedListener::class);
+		$context->registerEventListener(SignedCallbackEvent::class, SignedCallbackListener::class);
 
 		// Files newFile listener
 		$context->registerEventListener(LoadAdditionalScriptsEvent::class, LoadAdditionalListener::class);
