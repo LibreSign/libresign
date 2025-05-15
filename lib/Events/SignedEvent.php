@@ -12,12 +12,14 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\EventDispatcher\Event;
+use OCP\IUser;
 
 class SignedEvent extends Event {
 	public function __construct(
 		private SignRequest $signRequest,
 		private FileEntity $libreSignFile,
 		private IIdentifyMethod $identifyMethod,
+		private IUser $user,
 	) {
 	}
 
@@ -32,4 +34,9 @@ class SignedEvent extends Event {
 	public function getIdentifyMethod(): IIdentifyMethod {
 		return $this->identifyMethod;
 	}
+
+	public function getUser(): IUser {
+		return $this->user;
+	}
+
 }

@@ -315,7 +315,12 @@ class SignFileService {
 		$this->signRequest->setSignedHash($hash);
 		if ($this->signRequest->getId()) {
 			$this->signRequestMapper->update($this->signRequest);
-			$this->eventDispatcher->dispatchTyped(new SignedEvent($this->signRequest, $this->libreSignFile, $this->identifyMethodService->getIdentifiedMethod($this->signRequest->getId())));
+			$this->eventDispatcher->dispatchTyped(new SignedEvent(
+				$this->signRequest,
+				$this->libreSignFile,
+				$this->identifyMethodService->getIdentifiedMethod($this->signRequest->getId()),
+				$this->userManager->get($this->libreSignFile->getUserId()),
+			));
 		} else {
 			$this->signRequestMapper->insert($this->signRequest);
 		}

@@ -18,6 +18,7 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\MailService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
@@ -35,7 +36,7 @@ class MailNotifyListener implements IEventListener {
 	}
 
 	public function handle(Event $event): void {
-		/** @var SendSignNotificationEvent $event */
+		/** @var SendSignNotificationEvent|SignedEvent $event */
 		match (get_class($event)) {
 			SendSignNotificationEvent::class => $this->sendSignMailNotification(
 				$event->getSignRequest(),
@@ -44,7 +45,8 @@ class MailNotifyListener implements IEventListener {
 			SignedEvent::class => $this->sendSignedMailNotification(
 				$event->getSignRequest(),
 				$event->getIdentifyMethod(),
-				$event->getLibreSignFile()
+				$event->getLibreSignFile(),
+				$event->getUser(),
 			),
 		};
 	}
@@ -84,24 +86,20 @@ class MailNotifyListener implements IEventListener {
 		SignRequest $signRequest,
 		IIdentifyMethod $identifyMethod,
 		FileEntity $libreSignFile,
+		IUser $user,
 	): void {
 		try {
 			if ($this->isNotificationDisabledAtActivity($identifyMethod, 'file_signed')) {
 				return;
 			}
-			$email = '';
-			if ($identifyMethod->getName() === 'account') {
-				$email = $this->userManager
-					->get($identifyMethod->getEntity()->getIdentifierValue())
-					->getEMailAddress();
-			} elseif ($identifyMethod->getName() === 'email') {
-				$email = $identifyMethod->getEntity()->getIdentifierValue();
-			}
+
+			$email = $user->getEMailAddress();
+
 			if (empty($email)) {
 				return;
 			}
 
-			$this->mail->notifySignedUser($signRequest, $email, $libreSignFile);
+			$this->mail->notifySignedUser($signRequest, $email, $libreSignFile, $user->getDisplayName());
 
 		} catch (\InvalidArgumentException $e) {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
