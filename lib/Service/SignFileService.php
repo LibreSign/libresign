@@ -443,12 +443,15 @@ class SignFileService {
 		try {
 			if ($nodeId) {
 				return $this->fileMapper->getByFileId($nodeId);
-			} elseif ($signRequestUuid) {
+			}
+
+			if ($signRequestUuid) {
 				$signRequest = $this->signRequestMapper->getByUuid($signRequestUuid);
 				return $this->fileMapper->getById($signRequest->getFileId());
-			} else {
-				throw new \Exception('Invalid arguments');
 			}
+
+			throw new \Exception('Invalid arguments');
+
 		} catch (DoesNotExistException $th) {
 			throw new LibresignException($this->l10n->t('File not found'), 1);
 		}
