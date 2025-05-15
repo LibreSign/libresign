@@ -134,7 +134,7 @@ class NotificationListener implements IEventListener {
 		$this->notificationManager->notify($notification);
 	}
 
-	public function isNotificationDisabledAtActivity(IIdentifyMethod $identifyMethod, string $type): bool {
+	private function isNotificationDisabledAtActivity(IIdentifyMethod $identifyMethod, string $type): bool {
 		if (!class_exists(\OCA\Activity\UserSettings::class)) {
 			return false;
 		}
