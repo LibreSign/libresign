@@ -141,16 +141,16 @@ class Notifier implements INotifier {
 
 		$this->definitions->definitions['signed-file'] = [
 			'author' => 'LibreSign',
-			'since' => '28.0.0',
+			'since' => '30.0.0',
 			'parameters' => [
 				'id' => [
-					'since' => '28.0.0',
+					'since' => '30.0.0',
 					'required' => true,
 					'description' => 'The id of SignRequest object',
 					'example' => '12345',
 				],
 				'name' => [
-					'since' => '28.0.0',
+					'since' => '30.0.0',
 					'required' => true,
 					'description' => 'The display name of signer',
 					'example' => 'John Doe',
