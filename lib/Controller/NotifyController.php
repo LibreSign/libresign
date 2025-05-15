@@ -103,7 +103,9 @@ class NotifyController extends AEnvironmentAwareController {
 	/**
 	 * Dismiss a specific notification
 	 *
-	 * @param integer $signRequestId The sign request id
+	 * @param string $objectType The type of object
+	 * @param integer $objectId The identifier value of LibreSign file
+	 * @param string $subject The subject of notification
 	 * @param integer $timestamp Timestamp of notification to dismiss
 	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
 	 *
