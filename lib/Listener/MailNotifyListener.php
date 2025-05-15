@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Listener;
 
+use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
@@ -43,6 +44,7 @@ class MailNotifyListener implements IEventListener {
 			SignedEvent::class => $this->sendSignedMailNotification(
 				$event->getSignRequest(),
 				$event->getIdentifyMethod(),
+				$event->getLibreSignFile()
 			),
 		};
 	}
@@ -81,6 +83,7 @@ class MailNotifyListener implements IEventListener {
 	protected function sendSignedMailNotification(
 		SignRequest $signRequest,
 		IIdentifyMethod $identifyMethod,
+		FileEntity $libreSignFile,
 	): void {
 		try {
 			if ($this->isNotificationDisabledAtActivity($identifyMethod, 'file_signed')) {
@@ -98,7 +101,7 @@ class MailNotifyListener implements IEventListener {
 				return;
 			}
 
-			$this->mail->notifySignedUser($signRequest, $email);
+			$this->mail->notifySignedUser($signRequest, $email, $libreSignFile);
 
 		} catch (\InvalidArgumentException $e) {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
