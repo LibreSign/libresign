@@ -23,7 +23,7 @@ use OCP\IUserManager;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
-/** @template-implements IEventListener<SendSignNotificationEvent> */
+/** @template-implements IEventListener<Event> */
 class MailNotifyListener implements IEventListener {
 	public function __construct(
 		protected IUserSession $userSession,
