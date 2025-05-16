@@ -91,6 +91,7 @@ OC.L10N.register(
     "You do not have permission for this action." : "Sie haben nicht die erforderlichen Rechte für diese Aktion",
     "Invalid status code for file." : "Ungültiger Statuscode für die Datei.",
     "Sign process already started. Unable to change status." : "Signaturprozess bereits gestartet. Status kann nicht geändert werden.",
+    "Please provide either UUID or File object" : "Bitte entweder UUID oder Dateiobjekt angeben",
     "No user data" : "Keine Nutzerdaten",
     "User %s has no email address." : "Benutzer %s hat keine E-Mail-Adresse.",
     "Email required" : "E-Mail-Adresse erforderlich",

@@ -89,6 +89,7 @@
     "You do not have permission for this action." : "Non hai i permessi per eseguire questa azione.",
     "Invalid status code for file." : "Codice di stato non valido per il file.",
     "Sign process already started. Unable to change status." : "Processo di firma già avviato. Impossibile modificare lo stato.",
+    "Please provide either UUID or File object" : "Si prega di fornire l'UUID o l'oggetto File",
     "No user data" : "Nessun dato utente",
     "User %s has no email address." : "L'utente %s non ha un indirizzo email.",
     "Email required" : "Email richiesta",
