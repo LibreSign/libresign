@@ -41,7 +41,7 @@ Feature: signed
       | (jq).ocs.data.data[0].name   | Document Name |
       | (jq).ocs.data.data[0].status | 3             |
 
-  Scenario: Sign events
+  Scenario: Signing a file sends an email and notification
     Given as user "admin"
     And user "signer1" exists
     And set the email of user "signer1" to "signer@domain.test"
@@ -53,6 +53,10 @@ Feature: signed
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}}}] |
     And the response should have a status code 200
+    And run the command "config:app:set activity notify_notification_libresign_file_to_sign --value=1" with result code 0
+    And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
+    And run the command "config:app:set activity notify_notification_libresign_file_signed --value=1" with result code 0
+    And run the command "config:app:set activity notify_email_libresign_file_signed --value=1" with result code 0
     And my inbox is empty
     And reset notifications of user "signer1"
     And reset notifications of user "admin"
@@ -66,7 +70,6 @@ Feature: signed
     Then the response should be a JSON array with the following mandatory values
       | key                        | value         |
       | (jq).ocs.data.data[0].name | Document Name |
-    And fetch field "(SIGN_URL)ocs.data.data.0.url" from prevous JSON response
     And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from prevous JSON response
     And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from prevous JSON response
     And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
