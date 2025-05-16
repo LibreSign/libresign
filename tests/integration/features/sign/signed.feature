@@ -79,16 +79,68 @@ Feature: signed
       | key                     | value       |
       | (jq).ocs.data.message   | File signed |
       | (jq).ocs.data.file.uuid | <FILE_UUID> |
-    And as user "admin"
-    When sending "get" to ocs "/apps/notifications/api/v2/notifications"
+    Then I open the latest email to "signer@domain.test" with subject "LibreSign: There is a file for you to sign"
+    Then I open the latest email to "admin@email.tld" with subject "LibreSign: There is a file for you to sign"
+    Then I open the latest email to "admin@email.tld" with subject "LibreSign: A file has been signed"
+    When as user "admin"
+    And sending "get" to ocs "/apps/notifications/api/v2/notifications"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key | value                                                         |
       | ocs | (jq).data\|any(.subject == "Signer Name signed Document Name")|
-    Then I open the latest email to "admin@email.tld" with subject "LibreSign: A file has been signed"
     When sending "get" to ocs "/apps/activity/api/v2/activity/libresign?since=0"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key | value                                                          |
       | ocs | (jq).data\|any(.subject == "Signer Name signed Document Name") |
 
+  Scenario: Signing a file doesn't send an email or notification
+    Given as user "admin"
+    And user "signer1" exists
+    And set the email of user "signer1" to "signer@domain.test"
+    And set the email of user "admin" to "admin@email.tld"
+    And run the command "libresign:install --use-local-cert --java" with result code 0
+    And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
+    And run the command "libresign:install --use-local-cert --pdftk" with result code 0
+    And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
+    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}}}] |
+    And the response should have a status code 200
+    And run the command "config:app:set activity notify_notification_libresign_file_to_sign --value=0" with result code 0
+    And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=0" with result code 0
+    And run the command "config:app:set activity notify_notification_libresign_file_signed --value=0" with result code 0
+    And run the command "config:app:set activity notify_email_libresign_file_signed --value=0" with result code 0
+    And my inbox is empty
+    And reset notifications of user "signer1"
+    And reset notifications of user "admin"
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"displayName": "Signer Name","identify": {"account": "signer1"}},{"displayName": "Admin","identify": {"account": "admin"}}] |
+      | name | Document Name |
+    And the response should have a status code 200
+    And as user "signer1"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    Then the response should be a JSON array with the following mandatory values
+      | key                        | value         |
+      | (jq).ocs.data.data[0].name | Document Name |
+    And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from prevous JSON response
+    And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from prevous JSON response
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
+      | method | clickToSign |
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                     | value       |
+      | (jq).ocs.data.message   | File signed |
+      | (jq).ocs.data.file.uuid | <FILE_UUID> |
+    Then there should be 0 email in my inbox
+    When as user "admin"
+    And sending "get" to ocs "/apps/notifications/api/v2/notifications"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key           | value |
+      | (jq).ocs.data | []    |
+    When sending "get" to ocs "/apps/activity/api/v2/activity/libresign?since=0"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key | value                                                          |
+      | ocs | (jq).data\|any(.subject == "Signer Name signed Document Name") |
