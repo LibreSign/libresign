@@ -78,7 +78,7 @@ class Listener implements IEventListener {
 		try {
 			$event
 				->setApp(Application::APP_ID)
-				->setType('file_to_sign')
+				->setType(SendSignNotificationEvent::FILE_TO_SIGN)
 				->setAuthor($actorId)
 				->setObject('signRequest', $signRequest->getId())
 				->setTimestamp($this->timeFactory->getTime())
@@ -129,7 +129,7 @@ class Listener implements IEventListener {
 		try {
 			$activityEvent
 				->setApp(Application::APP_ID)
-				->setType('file_signed')
+				->setType(SignedEvent::FILE_SIGNED)
 				->setAuthor($actorId)
 				->setObject('signedFile', 10)
 				->setTimestamp($this->timeFactory->getTime())

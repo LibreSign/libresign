@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Activity\Settings;
 
+use OCA\Libresign\Events\SignedEvent;
 use OCP\IL10N;
 
 class FileSigned extends LibresignActivitySettings {
@@ -20,7 +21,7 @@ class FileSigned extends LibresignActivitySettings {
 	 * {@inheritdoc}
 	 */
 	public function getIdentifier(): string {
-		return 'file_signed';
+		return SignedEvent::FILE_SIGNED;
 	}
 
 	/**

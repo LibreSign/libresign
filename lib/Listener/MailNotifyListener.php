@@ -56,7 +56,7 @@ class MailNotifyListener implements IEventListener {
 		IIdentifyMethod $identifyMethod,
 	): void {
 		try {
-			if ($this->isNotificationDisabledAtActivity($identifyMethod, 'file_to_sign')) {
+			if ($this->isNotificationDisabledAtActivity($identifyMethod, SendSignNotificationEvent::FILE_TO_SIGN)) {
 				return;
 			}
 			$email = '';
@@ -89,7 +89,7 @@ class MailNotifyListener implements IEventListener {
 		IUser $user,
 	): void {
 		try {
-			if ($this->isNotificationDisabledAtActivity($identifyMethod, 'file_signed')) {
+			if ($this->isNotificationDisabledAtActivity($identifyMethod, SignedEvent::FILE_SIGNED)) {
 				return;
 			}
 

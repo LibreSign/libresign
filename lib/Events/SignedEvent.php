@@ -15,6 +15,7 @@ use OCP\EventDispatcher\Event;
 use OCP\IUser;
 
 class SignedEvent extends Event {
+	public const FILE_SIGNED = 'libresign_file_signed';
 	public function __construct(
 		private SignRequest $signRequest,
 		private FileEntity $libreSignFile,

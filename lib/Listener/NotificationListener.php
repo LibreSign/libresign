@@ -61,7 +61,7 @@ class NotificationListener implements IEventListener {
 		if (!$actor instanceof IUser) {
 			return;
 		}
-		if ($this->isNotificationDisabledAtActivity($identifyMethod, 'file_to_sign')) {
+		if ($this->isNotificationDisabledAtActivity($identifyMethod, SendSignNotificationEvent::FILE_TO_SIGN)) {
 			return;
 		}
 		$notification = $this->notificationManager->createNotification();
@@ -99,7 +99,7 @@ class NotificationListener implements IEventListener {
 
 		$actorId = $libreSignFile->getUserId();
 
-		if ($this->isNotificationDisabledAtActivity($identifyMethod, 'file_signed')) {
+		if ($this->isNotificationDisabledAtActivity($identifyMethod, SignedEvent::FILE_SIGNED)) {
 			return;
 		}
 
