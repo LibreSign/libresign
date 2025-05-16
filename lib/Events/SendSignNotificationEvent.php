@@ -14,6 +14,7 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\EventDispatcher\Event;
 
 class SendSignNotificationEvent extends Event {
+	public const FILE_TO_SIGN = 'libresign_file_to_sign';
 	public function __construct(
 		private SignRequest $signRequest,
 		private FileEntity $libreSignFile,
