@@ -89,6 +89,7 @@
     "You do not have permission for this action." : "您無權執行此動作。",
     "Invalid status code for file." : "檔案狀態碼無效。",
     "Sign process already started. Unable to change status." : "簽署流程已開始。無法變更狀態。",
+    "Please provide either UUID or File object" : "請提供 UUID 或檔案物件",
     "No user data" : "沒有使用者資料",
     "User %s has no email address." : "使用者 %s 沒有電子郵件地址。",
     "Email required" : "需要電子郵件",
