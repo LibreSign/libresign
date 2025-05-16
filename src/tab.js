@@ -12,6 +12,7 @@ import { translate, translatePlural } from '@nextcloud/l10n'
 import AppFilesTab from './Components/RightSidebar/AppFilesTab.vue'
 
 import './actions/openInLibreSignAction.js'
+import './actions/showStatusInlineAction.js'
 import './plugins/vuelidate.js'
 
 import './style/icons.scss'
