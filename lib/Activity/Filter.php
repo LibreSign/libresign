@@ -9,11 +9,17 @@ declare(strict_types=1);
 namespace OCA\Libresign\Activity;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Events\SendSignNotificationEvent;
+use OCA\Libresign\Events\SignedEvent;
 use OCP\Activity\IFilter;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 
 class Filter implements IFilter {
+	private const ALLOWED_TYPES = [
+		SendSignNotificationEvent::FILE_TO_SIGN,
+		SignedEvent::FILE_SIGNED,
+	];
 	public function __construct(
 		protected IL10N $l,
 		protected IURLGenerator $url,
@@ -39,12 +45,11 @@ class Filter implements IFilter {
 	}
 
 	public function filterTypes(array $types) {
-		return ['file_to_sign'];
+		return array_intersect(self::ALLOWED_TYPES, $types);
 	}
 
 	public function allowedApps() {
 		return [
-			'file_to_sign',
 			Application::APP_ID,
 		];
 	}

@@ -12,7 +12,7 @@ use OCA\Libresign\Service\SignFileService;
 use OCP\EventDispatcher\Event;
 use OCP\Files\File;
 
-abstract class ASignedEvent extends Event {
+abstract class ASignedCallbackEvent extends Event {
 	public function __construct(
 		public SignFileService $fileService,
 		public File $signedFile,

@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Activity\Settings;
 
+use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCP\IL10N;
 
 class FileToSign extends LibresignActivitySettings {
@@ -21,7 +22,7 @@ class FileToSign extends LibresignActivitySettings {
 	 * @since 20.0.0
 	 */
 	public function getIdentifier(): string {
-		return 'file_to_sign';
+		return SendSignNotificationEvent::FILE_TO_SIGN;
 	}
 
 	/**

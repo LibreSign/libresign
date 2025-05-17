@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
@@ -78,10 +77,6 @@ class MailService {
 	 * @psalm-suppress MixedMethodCall
 	 */
 	public function notifyUnsignedUser(SignRequest $data, string $email): void {
-		$notifyUnsignedUser = $this->appConfig->getValueBool(Application::APP_ID, 'notify_unsigned_user', true);
-		if (!$notifyUnsignedUser) {
-			return;
-		}
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		$emailTemplate->setSubject($this->l10n->t('LibreSign: There is a file for you to sign'));
 		$emailTemplate->addHeader();
@@ -105,6 +100,32 @@ class MailService {
 		} catch (\Exception $e) {
 			$this->logger->error('Notify unsigned notification mail could not be sent: ' . $e->getMessage());
 			throw new LibresignException('Notify unsigned notification mail could not be sent', 1);
+		}
+	}
+
+	public function notifySignedUser(SignRequest $signRequest, string $email, File $libreSignFile, string $displayName): void {
+		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
+		$emailTemplate->setSubject($this->l10n->t('LibreSign: A file has been signed'));
+		$emailTemplate->addHeader();
+		$emailTemplate->addHeading($this->l10n->t('File signed'), false);
+		$emailTemplate->addBodyText($this->l10n->t('%s signed the document. You can access it using the link below:', [$signRequest->getDisplayName()]));
+		$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.indexFPath', [
+			'path' => 'validation/' . $libreSignFile->getUuid(),
+		]);
+		$file = $this->getFileById($signRequest->getFileId());
+		$emailTemplate->addBodyButton(
+			$this->l10n->t('View signed file »%s«', [$file->getName()]),
+			$link
+		);
+		$message = $this->mailer->createMessage();
+		$message->setTo([$email => $displayName]);
+
+		$message->useTemplate($emailTemplate);
+		try {
+			$this->mailer->send($message);
+		} catch (\Exception $e) {
+			$this->logger->error('Notify signed notification mail could not be sent: ' . $e->getMessage());
+			throw new LibresignException('Notify signed notification mail could not be sent', 1);
 		}
 	}
 

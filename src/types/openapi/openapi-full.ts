@@ -3464,8 +3464,12 @@ export interface operations {
     "notify-notification-dismiss": {
         parameters: {
             query: {
-                /** @description The sign request id */
-                signRequestId: number;
+                /** @description The type of object */
+                objectType: string;
+                /** @description The identifier value of LibreSign file */
+                objectId: number;
+                /** @description The subject of notification */
+                subject: string;
                 /** @description Timestamp of notification to dismiss */
                 timestamp: number;
             };

@@ -13,6 +13,7 @@ use OCA\Files\Event\LoadSidebar;
 use OCA\Libresign\Activity\Listener as ActivityListener;
 use OCA\Libresign\Capabilities;
 use OCA\Libresign\Events\SendSignNotificationEvent;
+use OCA\Libresign\Events\SignedCallbackEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Files\TemplateLoader as FilesTemplateLoader;
 use OCA\Libresign\Listener\BeforeNodeDeletedListener;
@@ -20,7 +21,7 @@ use OCA\Libresign\Listener\LoadAdditionalListener;
 use OCA\Libresign\Listener\LoadSidebarListener;
 use OCA\Libresign\Listener\MailNotifyListener;
 use OCA\Libresign\Listener\NotificationListener;
-use OCA\Libresign\Listener\SignedListener;
+use OCA\Libresign\Listener\SignedCallbackListener;
 use OCA\Libresign\Listener\UserDeletedListener;
 use OCA\Libresign\Middleware\GlobalInjectionMiddleware;
 use OCA\Libresign\Middleware\InjectionMiddleware;
@@ -63,19 +64,22 @@ class Application extends App implements IBootstrap {
 		$context->registerEventListener(LoadSidebar::class, LoadSidebarListener::class);
 		$context->registerEventListener(BeforeNodeDeletedEvent::class, BeforeNodeDeletedListener::class);
 		$context->registerEventListener(CacheEntryRemovedEvent::class, BeforeNodeDeletedListener::class);
-		$context->registerEventListener(SignedEvent::class, SignedListener::class);
+		$context->registerEventListener(SignedCallbackEvent::class, SignedCallbackListener::class);
 
 		// Files newFile listener
 		$context->registerEventListener(LoadAdditionalScriptsEvent::class, LoadAdditionalListener::class);
 
 		// Activity listeners
 		$context->registerEventListener(SendSignNotificationEvent::class, ActivityListener::class);
+		$context->registerEventListener(SignedEvent::class, ActivityListener::class);
 
 		// Notification listeners
 		$context->registerEventListener(SendSignNotificationEvent::class, NotificationListener::class);
+		$context->registerEventListener(SignedEvent::class, NotificationListener::class);
 
 		// MailNotify listener
 		$context->registerEventListener(SendSignNotificationEvent::class, MailNotifyListener::class);
+		$context->registerEventListener(SignedEvent::class, MailNotifyListener::class);
 
 		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
 	}
