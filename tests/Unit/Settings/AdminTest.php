@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
@@ -26,6 +27,7 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IInitialState&MockObject $initialState;
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
+	private CertificatePolicyService&MockObject $certificatePolicyService;
 	private IAppConfig&MockObject $appConfig;
 	private SignatureTextService&MockObject $signatureTextService;
 	private SignatureBackgroundService&MockObject $signatureBackgroundService;
@@ -33,6 +35,7 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->initialState = $this->createMock(IInitialState::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
+		$this->certificatePolicyService = $this->createMock(CertificatePolicyService::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->signatureTextService = $this->createMock(SignatureTextService::class);
 		$this->signatureBackgroundService = $this->createMock(SignatureBackgroundService::class);
@@ -40,6 +43,7 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->initialState,
 			$this->identifyMethodService,
 			$this->certificateEngineFactory,
+			$this->certificatePolicyService,
 			$this->appConfig,
 			$this->signatureTextService,
 			$this->signatureBackgroundService,

@@ -10,6 +10,7 @@ namespace OCA\Libresign\Handler\CertificateEngine;
 
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
+use OCA\Libresign\Service\CertificatePolicyService;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
 use OCP\IConfig;
@@ -30,8 +31,9 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		protected IAppDataFactory $appDataFactory,
 		protected IDateTimeFormatter $dateTimeFormatter,
 		protected ITempManager $tempManager,
+		protected CertificatePolicyService $certificatePolicyService,
 	) {
-		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager);
+		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager, $certificatePolicyService);
 	}
 
 	public function generateRootCert(
@@ -44,7 +46,8 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		]);
 
 		$csr = openssl_csr_new($this->getCsrNames(), $privateKey, ['digest_alg' => 'sha256']);
-		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365 * 5, ['digest_alg' => 'sha256']);
+		$options = $this->getRootCertOptions();
+		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365 * 5, $options);
 
 		openssl_csr_export($csr, $csrout);
 		openssl_x509_export($x509, $certout);
@@ -55,6 +58,18 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		$this->saveFile('ca-key.pem', $pkeyout);
 
 		return $pkeyout;
+	}
+
+	private function getRootCertOptions(): array {
+		$this->generateRootCertConfig();
+		$configPath = $this->getConfigPath();
+
+		$options = [
+			'digest_alg' => 'sha256',
+			'config' => $configPath . DIRECTORY_SEPARATOR . 'openssl.cnf',
+			'x509_extensions' => 'v3_ca',
+		];
+		return $options;
 	}
 
 	public function generateCertificate(): string {
@@ -105,16 +120,51 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 				'subjectAltName' => $this->getSubjectAltNames(),
 				'authorityKeyIdentifier' => 'keyid',
 				'subjectKeyIdentifier' => 'hash',
-				// @todo Implement a feature to define this PDF at Administration Settings
-				// 'certificatePolicies' => '<policyOID> CPS: http://url/with/policy/informations.pdf',
-			]
+			],
 		];
+		$oid = $this->certificatePolicyService->getOid();
+		$cps = $this->certificatePolicyService->getCps();
+		if ($oid && $cps) {
+			$config['v3_req']['certificatePolicies'] = '@policy_section';
+			$config['policy_section'] = [
+				'policyIdentifier' => $oid,
+				'CPS.1' => $cps,
+			];
+		}
 		if (empty($config['v3_req']['subjectAltName'])) {
 			unset($config['v3_req']['subjectAltName']);
 		}
 		$config = $this->arrayToIni($config);
 		file_put_contents($temporaryFile, $config);
 		return $temporaryFile;
+	}
+
+	private function generateRootCertConfig(): void {
+		// More information about x509v3: https://www.openssl.org/docs/manmaster/man5/x509v3_config.html
+		$config = [
+			'v3_ca' => [
+				'basicConstraints' => 'critical, CA:TRUE',
+				'keyUsage' => 'critical, digitalSignature, keyCertSign',
+				'extendedKeyUsage' => 'clientAuth, emailProtection',
+				'subjectAltName' => $this->getSubjectAltNames(),
+				'authorityKeyIdentifier' => 'keyid',
+				'subjectKeyIdentifier' => 'hash',
+			],
+		];
+		$oid = $this->certificatePolicyService->getOid();
+		$cps = $this->certificatePolicyService->getCps();
+		if ($oid && $cps) {
+			$config['v3_ca']['certificatePolicies'] = '@policy_section';
+			$config['policy_section'] = [
+				'policyIdentifier' => $oid,
+				'CPS.1' => $cps,
+			];
+		}
+		if (empty($config['v3_ca']['subjectAltName'])) {
+			unset($config['v3_ca']['subjectAltName']);
+		}
+		$iniContent = $this->arrayToIni($config);
+		$this->saveFile('openssl.cnf', $iniContent);
 	}
 
 	private function arrayToIni(array $config) {

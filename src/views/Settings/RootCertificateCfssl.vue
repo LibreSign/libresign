@@ -22,6 +22,14 @@
 						<td>{{ t('libresign', 'CFSSL API URI') }}</td>
 						<td>{{ certificate.cfsslUri }}</td>
 					</tr>
+					<tr v-if="OID" class="customNames">
+						<td>OID</td>
+						<td>{{ OID }}</td>
+					</tr>
+					<tr v-if="CPS" class="customNames">
+						<td>CPS</td>
+						<td>{{ CPS }}</td>
+					</tr>
 					<tr>
 						<td>{{ t('libresign', 'Config path') }}</td>
 						<td>{{ certificate.configPath }}</td>
@@ -61,7 +69,17 @@
 			</div>
 			<CertificateCustonOptions :names.sync="certificate.rootCert.names" />
 			<div>
-				<NcCheckboxRadioSwitch v-if="!customData || !formDisabled"
+				<NcCheckboxRadioSwitch :disabled="formDisabled"
+					type="switch"
+					:checked.sync="toggleCertificatePolicy">
+					{{ t('libresign', 'Include certificate policy') }}
+				</NcCheckboxRadioSwitch>
+			</div>
+			<CertificatePolicy v-if="toggleCertificatePolicy"
+				:disabled="formDisabled"
+				@certificate-policy-valid="handleCertificatePolicyValid" />
+			<div>
+				<NcCheckboxRadioSwitch :disabled="formDisabled"
 					type="switch"
 					:checked.sync="customData">
 					{{ t('libresign', 'Define custom values to use {engine}', {engine: 'CFSSL'}) }}
@@ -83,7 +101,7 @@
 					:placeholder="t('libresign', 'Not mandatory, leave blank to use the default value.')"
 					:disabled="formDisabled" />
 			</div>
-			<NcButton :disabled="formDisabled"
+			<NcButton :disabled="!canSave"
 				@click="generateCertificate">
 				{{ submitLabel }}
 			</NcButton>
@@ -106,6 +124,7 @@ import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import CertificateCustonOptions from './CertificateCustonOptions.vue'
+import CertificatePolicy from './CertificatePolicy.vue'
 
 import { selectCustonOption } from '../../helpers/certification.js'
 import logger from '../../logger.js'
@@ -120,12 +139,15 @@ export default {
 		NcButton,
 		NcTextField,
 		CertificateCustonOptions,
+		CertificatePolicy,
 	},
 	setup() {
 		const configureCheckStore = useConfigureCheckStore()
 		return { configureCheckStore }
 	},
 	data() {
+		const OID = loadState('libresign', 'certificate_policies_oid')
+		const CPS = loadState('libresign', 'certificate_policies_cps')
 		return {
 			isThisEngine: loadState('libresign', 'certificate_engine') === 'cfssl',
 			modal: false,
@@ -144,9 +166,25 @@ export default {
 			description: t('libresign', 'To generate new signatures, you must first generate the root certificate.'),
 			submitLabel: t('libresign', 'Generate root certificate'),
 			formDisabled: false,
+			OID,
+			CPS,
+			toggleCertificatePolicy: !!(OID || CPS),
+			certificatePolicyValid: !!OID && !!CPS,
 		}
 	},
 	computed: {
+		includeCertificatePolicy() {
+			return this.toggleCertificatePolicy || this.CPS || this.OID
+		},
+		canSave() {
+			if (this.formDisabled) {
+				return false
+			}
+			if (!this.toggleCertificatePolicy) {
+				return true
+			}
+			return this.certificatePolicyValid
+		},
 		configureOk() {
 			return this.configureCheckStore.isConfigureOk('cfssl')
 		},
@@ -168,6 +206,9 @@ export default {
 	},
 
 	methods: {
+		handleCertificatePolicyValid(isValid) {
+			this.certificatePolicyValid = isValid
+		},
 		updateNames(names) {
 			this.certificate.rootCert.names = names
 		},
