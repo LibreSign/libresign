@@ -154,6 +154,7 @@ OC.L10N.register(
     "Request signatures?" : "Prośba o podpisy?",
     "Send reminder" : "Wyślij przypomnienie",
     "Document not available for signature." : "Dokument niedostępny do podpisu.",
+    "Administration" : "Administracja",
     "pending" : "oczekujące",
     "Open sidebar" : "Otwórz pasek boczny",
     "Details" : "Szczegóły",

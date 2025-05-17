@@ -165,6 +165,7 @@ OC.L10N.register(
     "Add signer" : "Aláíró hozzáadása",
     "Send reminder" : "Emlékeztető küldése",
     "Document not available for signature." : "A dokumentum nem érhető el az aláíráshoz.",
+    "Administration" : "Adminisztráció",
     "pending" : "függőben",
     "Open sidebar" : "Oldalsáv megnyitása",
     "Details" : "Részletek",

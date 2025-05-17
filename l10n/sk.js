@@ -207,6 +207,7 @@ OC.L10N.register(
     "Send reminder" : "Odoslať pripomienku",
     "Enter who will receive the request" : "Zadajte kto dostane žiadosť",
     "Document not available for signature." : "Dokument nie je k dispozícii na podpis.",
+    "Administration" : "Administrácia",
     "Rate LibreSign ❤️" : "Ohodnoďte LibreSign ❤️",
     "signed at {date}" : "podpísané {date}",
     "pending" : "čakajúce",

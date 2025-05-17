@@ -223,6 +223,7 @@ OC.L10N.register(
     "Send reminder" : "Invia promemoria",
     "Enter who will receive the request" : "Inserisci chi riceverà la richiesta",
     "Document not available for signature." : "Documento non disponibile per la firma.",
+    "Administration" : "Amministrazione",
     "Rate LibreSign ❤️" : "Vota LibreSign ❤️",
     "signed at {date}" : "firmato il {date}",
     "pending" : "in sospeso",

@@ -153,6 +153,7 @@ OC.L10N.register(
     "Request signatures?" : "¿Solicitar firmas?",
     "Send reminder" : "Enviar recordatorio",
     "Document not available for signature." : "Documento no disponible para firmar.",
+    "Administration" : "Administración",
     "Open sidebar" : "Abrir barra lateral",
     "Details" : "Detalles",
     "Certificate" : "Certificado",

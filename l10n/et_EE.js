@@ -62,6 +62,7 @@ OC.L10N.register(
     "Next" : "Järgmine",
     "Account does not exist" : "Kasutajakontot pole olemas",
     "Confirm" : "Kinnita",
+    "Administration" : "Haldus",
     "Open sidebar" : "Ava külgriba",
     "Details" : "Üksikasjad",
     "Certificate" : "Sertifikaat",

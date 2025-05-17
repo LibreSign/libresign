@@ -99,6 +99,7 @@ OC.L10N.register(
     "Confirm" : "Patvirtinti",
     "Send reminder" : "Siųsti priminimą",
     "Document not available for signature." : "Dokumentas neprieinamas pasirašymui.",
+    "Administration" : "Administravimas",
     "signed at {date}" : "pasirašytas {date}",
     "Open sidebar" : "Atverti šoninę juostą",
     "Details" : "Išsamiau",

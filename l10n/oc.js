@@ -80,6 +80,7 @@ OC.L10N.register(
     "Next" : "Seguent",
     "Sign" : "Signar",
     "Confirm" : "Confirmar",
+    "Administration" : "Administracion",
     "pending" : "pendent",
     "Open sidebar" : "Dobrir lo panèl lateral",
     "Details" : "Detalhs",
