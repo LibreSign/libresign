@@ -49,6 +49,9 @@ Feature: signed
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
     And run the command "config:app:set activity notify_notification_libresign_file_signed --value=1" with result code 0
     And run the command "config:app:set activity notify_email_libresign_file_signed --value=1" with result code 0
+    And run the command "user:setting signer1 activity notify_email_libresign_file_to_sign 1" with result code 0
+    And run the command "user:setting signer1 activity notify_notification_libresign_file_to_sign 1" with result code 0
+    And run the command "user:setting admin activity notify_notification_libresign_file_signed 1" with result code 0
     And run the command "libresign:install --use-local-cert --java" with result code 0
     And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
@@ -81,6 +84,11 @@ Feature: signed
     Then I open the latest email to "signer@domain.test" with subject "LibreSign: There is a file for you to sign"
     Then I open the latest email to "admin@email.tld" with subject "LibreSign: There is a file for you to sign"
     Then I open the latest email to "admin@email.tld" with subject "LibreSign: A file has been signed"
+    When sending "get" to ocs "/apps/notifications/api/v2/notifications"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key | value                                                         |
+      | ocs | (jq).data\|any(.subject == "admin requested your signature on Document Name")|
     When as user "admin"
     And sending "get" to ocs "/apps/notifications/api/v2/notifications"
     Then the response should have a status code 200
@@ -102,6 +110,9 @@ Feature: signed
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=0" with result code 0
     And run the command "config:app:set activity notify_notification_libresign_file_signed --value=0" with result code 0
     And run the command "config:app:set activity notify_email_libresign_file_signed --value=0" with result code 0
+    And run the command "user:setting signer1 activity notify_email_libresign_file_to_sign 0" with result code 0
+    And run the command "user:setting signer1 activity notify_notification_libresign_file_to_sign 0" with result code 0
+    And run the command "user:setting admin activity notify_notification_libresign_file_signed 0" with result code 0
     And run the command "libresign:install --use-local-cert --java" with result code 0
     And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
@@ -132,6 +143,11 @@ Feature: signed
       | (jq).ocs.data.message   | File signed |
       | (jq).ocs.data.file.uuid | <FILE_UUID> |
     Then there should be 0 email in my inbox
+    When sending "get" to ocs "/apps/notifications/api/v2/notifications"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key           | value |
+      | (jq).ocs.data | []    |
     When as user "admin"
     And sending "get" to ocs "/apps/notifications/api/v2/notifications"
     Then the response should have a status code 200
