@@ -138,6 +138,7 @@ OC.L10N.register(
     "Sign" : "Potpiši",
     "Confirm" : "Potvrdi",
     "Send reminder" : "Pošalji podsjetnik",
+    "Administration" : "Administracija",
     "Open sidebar" : "Otvori bočnu traku",
     "Details" : "Pojedinosti",
     "Certificate" : "Vjerodajnica",

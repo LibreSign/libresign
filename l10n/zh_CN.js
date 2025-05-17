@@ -147,6 +147,7 @@ OC.L10N.register(
     "Request signatures?" : "请求签名？",
     "Send reminder" : "发送提醒",
     "Document not available for signature." : "无法签署的文档。",
+    "Administration" : "管理员",
     "pending" : "等待中",
     "Open sidebar" : "打开侧边栏",
     "Details" : "详情",

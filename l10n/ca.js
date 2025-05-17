@@ -161,6 +161,7 @@ OC.L10N.register(
     "Request signatures?" : "Demanar signatures?",
     "Send reminder" : "Envia un recordatori",
     "Document not available for signature." : "Document no disponible per signar.",
+    "Administration" : "Administració",
     "pending" : "pendent",
     "Open sidebar" : "Obre la barra lateral",
     "Details" : "Detalls",

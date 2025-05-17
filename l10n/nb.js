@@ -188,6 +188,7 @@ OC.L10N.register(
     "Send reminder" : "Send påminnelse",
     "Enter who will receive the request" : "Angi hvem som skal motta forespørselen",
     "Document not available for signature." : "Dokument ikke tilgjengelig for signering.",
+    "Administration" : "Administrasjon",
     "signed at {date}" : "signert den {date}",
     "pending" : "venter",
     "Open sidebar" : "Åpne sidepanel",

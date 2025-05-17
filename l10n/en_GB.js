@@ -222,6 +222,7 @@ OC.L10N.register(
     "Send reminder" : "Send reminder",
     "Enter who will receive the request" : "Enter who will receive the request",
     "Document not available for signature." : "Document not available for signature.",
+    "Administration" : "Administration",
     "Rate LibreSign ❤️" : "Rate LibreSign ❤️",
     "signed at {date}" : "signed at {date}",
     "pending" : "pending",

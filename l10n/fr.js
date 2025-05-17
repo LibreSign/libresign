@@ -190,6 +190,7 @@ OC.L10N.register(
     "Send reminder" : "Envoyer un rappel",
     "Enter who will receive the request" : "Saisissez ceux qui recevront la requête",
     "Document not available for signature." : "Document non disponible pour signature.",
+    "Administration" : "Administration",
     "signed at {date}" : "signé le {date}",
     "pending" : "en attente",
     "Open sidebar" : "Ouvrir le panneau latéral",

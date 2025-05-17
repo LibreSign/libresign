@@ -35,6 +35,7 @@ OC.L10N.register(
     "Previous" : "Previo",
     "Next" : "Siguiente",
     "Confirm" : "Confirmar",
+    "Administration" : "Administración",
     "Details" : "Detalles",
     "Certificate" : "Certificado",
     "Type" : "Tipo",

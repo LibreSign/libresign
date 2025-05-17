@@ -44,6 +44,7 @@ OC.L10N.register(
     "Previous" : "Precedentul",
     "Next" : "Următorul",
     "Confirm" : "Confirmă",
+    "Administration" : "Administrare",
     "Open sidebar" : "Deschide bara laterală",
     "Details" : "Detalii",
     "Certificate" : "Certificat",

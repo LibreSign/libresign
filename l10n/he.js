@@ -43,6 +43,7 @@ OC.L10N.register(
     "Previous" : "הקודם",
     "Next" : "הבא",
     "Confirm" : "אימות",
+    "Administration" : "ניהול",
     "Open sidebar" : "פתיחת סרגל הצד",
     "Details" : "פרטים",
     "Certificate" : "אישור",

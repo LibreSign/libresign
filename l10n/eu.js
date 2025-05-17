@@ -161,6 +161,7 @@ OC.L10N.register(
     "Add signer" : "Gehitu sinatzailea",
     "Send reminder" : "Bidali gogorarazpena",
     "Document not available for signature." : "Dokumentua ezin da sinatu.",
+    "Administration" : "Administrazioa",
     "pending" : "zain",
     "Open sidebar" : "Ireki alboko barra",
     "Details" : "Xehetasunak",
