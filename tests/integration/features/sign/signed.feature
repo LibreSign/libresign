@@ -11,7 +11,6 @@ Feature: signed
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"password":{"name":"password","enabled":true}},"signatureMethodEnabled":"password"}] |
     And the response should have a status code 200
-    And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | users | [{"displayName": "Signer Name","description": "Please, sign this document","identify": {"account": "signer1"}}] |
