@@ -1,5 +1,5 @@
 Feature: signed
-  Scenario: Sign file
+  Scenario: Sign file using password
     Given as user "admin"
     And user "signer1" exists
     And run the command "libresign:install --use-local-cert --java" with result code 0
