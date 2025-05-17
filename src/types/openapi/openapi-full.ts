@@ -4,6 +4,23 @@
  */
 
 export type paths = {
+    "/index.php/apps/libresign/certificate-policy.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Certificate policy of this instance */
+        get: operations["certificate_policy-get-certificate-policy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/index.php/apps/libresign/develop/pdf": {
         parameters: {
             query?: never;
@@ -1113,6 +1130,50 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/certificate-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update certificate policy of this instance
+         * @description This endpoint requires admin access
+         */
+        post: operations["admin-save-certificate-policy"];
+        /**
+         * Delete certificate policy of this instance
+         * @description This endpoint requires admin access
+         */
+        delete: operations["admin-delete-certificate-policy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/certificate-policy/oid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update OID
+         * @description This endpoint requires admin access
+         */
+        post: operations["admin-updateoid"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
         parameters: {
             query?: never;
@@ -1203,6 +1264,7 @@ export type components = {
         EngineHandler: {
             configPath: string;
             cfsslUri?: string;
+            policySection: components["schemas"]["PolicySection"][];
             rootCert: components["schemas"]["RootCertificate"];
         };
         File: {
@@ -1306,6 +1368,10 @@ export type components = {
             prev: string | null;
             last: string | null;
             first: string | null;
+        };
+        PolicySection: {
+            OID: string;
+            CPS: string;
         };
         PublicCapabilities: {
             libresign?: components["schemas"]["Capabilities"];
@@ -1442,6 +1508,36 @@ export type components = {
 };
 export type $defs = Record<string, never>;
 export interface operations {
+    "certificate_policy-get-certificate-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "Content-Disposition"?: "inline; filename=\"certificate-policy.pdf\"";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
     "develop-pdf": {
         parameters: {
             query?: never;
@@ -4940,6 +5036,146 @@ export interface operations {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
                                 error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-save-certificate-policy": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** @enum {string} */
+                                status: "success";
+                                CPS: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Not found */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** @enum {string} */
+                                status: "failure";
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-delete-certificate-policy": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: Record<string, never>;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-updateoid": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description OID is a unique numeric identifier for certificate policies in digital certificates. */
+                    oid: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** @enum {string} */
+                                status: "success";
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Validation error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** @enum {string} */
+                                status: "failure";
+                                message: string;
                             };
                         };
                     };
