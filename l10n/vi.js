@@ -42,6 +42,7 @@ OC.L10N.register(
     "Previous" : "Trước",
     "Next" : "Tiếp theo",
     "Confirm" : "Xác nhận",
+    "Administration" : "Quản trị viên",
     "Open sidebar" : "Mở thanh bên",
     "Details" : "Chi tiết",
     "Certificate" : "Chứng chỉ",

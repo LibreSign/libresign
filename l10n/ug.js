@@ -189,6 +189,7 @@ OC.L10N.register(
     "Send reminder" : "ئەسكەرتىش ئەۋەتىڭ",
     "Enter who will receive the request" : "كىمنىڭ تەلىپىنى تاپشۇرۇۋالىدۇ",
     "Document not available for signature." : "ئىمزا قويغىلى بولمايدۇ.",
+    "Administration" : "Administration",
     "signed at {date}" : "{date}",
     "pending" : "ساقلىنىۋاتىدۇ",
     "Open sidebar" : "يان بالداقنى ئېچىڭ",

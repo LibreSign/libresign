@@ -54,6 +54,7 @@ OC.L10N.register(
     "Previous" : "前へ",
     "Next" : "次へ",
     "Confirm" : "承認",
+    "Administration" : "管理",
     "pending" : "保留中",
     "Open sidebar" : "サイドバーを開く",
     "Details" : "詳細",

@@ -50,6 +50,7 @@ OC.L10N.register(
     "Sign" : "Знак",
     "Confirm" : "Потврди",
     "Send reminder" : "Испрати потсетник",
+    "Administration" : "Администрација",
     "Open sidebar" : "Отвори странична лента",
     "Details" : "Детали",
     "Certificate" : "Сертификат",

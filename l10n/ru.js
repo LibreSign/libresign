@@ -147,6 +147,7 @@ OC.L10N.register(
     "Request signatures?" : "Запрашивать подписи?",
     "Send reminder" : "Отправить напоминание",
     "Enter who will receive the request" : "Укажите, кто получит запрос",
+    "Administration" : "Администрирование",
     "pending" : "ожидается",
     "Open sidebar" : "Открыть боковую панель",
     "Details" : "Свойства",

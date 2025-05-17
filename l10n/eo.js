@@ -41,6 +41,7 @@ OC.L10N.register(
     "Previous" : "Antaŭa",
     "Next" : "Sekva",
     "Confirm" : "Konfirmi",
+    "Administration" : "Administrado",
     "Open sidebar" : "Malfermi flankopanelon",
     "Details" : "Detaloj",
     "Certificate" : "Atestilo",

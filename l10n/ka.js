@@ -42,6 +42,7 @@ OC.L10N.register(
     "Previous" : "Previous",
     "Next" : "Next",
     "Confirm" : "Confirm",
+    "Administration" : "Administration",
     "pending" : "pending",
     "Open sidebar" : "Open sidebar",
     "Details" : "Details",

@@ -151,6 +151,7 @@ OC.L10N.register(
     "Request signatures?" : "Request signatures?",
     "Send reminder" : "Send reminder",
     "Document not available for signature." : "Document not available for signature.",
+    "Administration" : "مدیریت",
     "Open sidebar" : "باز کردن نوار کناری",
     "Details" : "جزئیات",
     "Certificate" : "گواهی",

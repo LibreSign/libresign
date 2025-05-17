@@ -47,6 +47,7 @@ OC.L10N.register(
     "Previous" : "Назад",
     "Next" : "Далі",
     "Confirm" : "Підтвердити",
+    "Administration" : "Адміністрування",
     "Open sidebar" : "Показати бічну панель",
     "Details" : "Деталі",
     "Certificate" : "Сертифікат",

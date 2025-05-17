@@ -188,6 +188,7 @@ OC.L10N.register(
     "Send reminder" : "Pošlji opomnik",
     "Enter who will receive the request" : "Vpišite podpisnike, ki bodo prejeli zahtevo",
     "Document not available for signature." : "Dokument ni pripravljen za podpisovanje.",
+    "Administration" : "Skrbništvo",
     "signed at {date}" : "podpisano {date}",
     "pending" : "na čakanju",
     "Open sidebar" : "Odpri bočno okno",

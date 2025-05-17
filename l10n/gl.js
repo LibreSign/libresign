@@ -207,6 +207,7 @@ OC.L10N.register(
     "Send reminder" : "Enviar lembrete",
     "Enter who will receive the request" : "Indique quen recibirá a solicitude",
     "Document not available for signature." : "Documento non dispoñíbel para sinatura.",
+    "Administration" : "Administración",
     "Rate LibreSign ❤️" : "Valora LibreSign ❤️",
     "signed at {date}" : "asinado o {data}",
     "pending" : "pendente",
