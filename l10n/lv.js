@@ -42,6 +42,7 @@ OC.L10N.register(
     "Previous" : "Iepriekšējā",
     "Next" : "Nākamā",
     "Confirm" : "Apstiprināt",
+    "Administration" : "Pārvaldīšana",
     "Open sidebar" : "Atvērt sānjoslu",
     "Details" : "Detaļas",
     "Certificate" : "Sertifikāts",

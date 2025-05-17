@@ -31,6 +31,7 @@ OC.L10N.register(
     "Previous" : "წინა",
     "Next" : "შემდეგი",
     "Confirm" : "დადასტურება",
+    "Administration" : "ადმინისტრაცია",
     "Details" : "დეტალები",
     "Certificate" : "სერტიფიკატი",
     "Type" : "სახეობა",

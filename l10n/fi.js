@@ -116,6 +116,7 @@ OC.L10N.register(
     "Sign" : "Allekirjoita",
     "Confirm" : "Vahvista",
     "Send reminder" : "Lähetä muistutus",
+    "Administration" : "Ylläpito",
     "Open sidebar" : "Avaa sivupalkki",
     "Details" : "Tiedot",
     "Certificate" : "Varmenne",

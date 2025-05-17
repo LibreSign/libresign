@@ -218,6 +218,7 @@ OC.L10N.register(
     "Send reminder" : "Пошаљи подсетник",
     "Enter who will receive the request" : "Унесите ко ће примити захтев",
     "Document not available for signature." : "Документ није доступан за потписивање.",
+    "Administration" : "Администрација",
     "Rate LibreSign ❤️" : "Оцените LibreSign ❤️",
     "signed at {date}" : "потписано дана {date}",
     "pending" : "на чекању",

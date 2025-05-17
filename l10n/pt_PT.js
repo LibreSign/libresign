@@ -43,6 +43,7 @@ OC.L10N.register(
     "Previous" : "Anterior",
     "Next" : "Seguinte",
     "Confirm" : "Confirmar",
+    "Administration" : "Administração",
     "Open sidebar" : "Abrir barra lateral",
     "Details" : "Detalhes",
     "Certificate" : "Certificado",

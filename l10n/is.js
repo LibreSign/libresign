@@ -46,6 +46,7 @@ OC.L10N.register(
     "Previous" : "Fyrra",
     "Next" : "Næsta",
     "Confirm" : "Staðfesta",
+    "Administration" : "Stjórnun",
     "Open sidebar" : "Opna hliðarspjald",
     "Details" : "Details",
     "Certificate" : "Skilríki",

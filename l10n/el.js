@@ -68,6 +68,7 @@ OC.L10N.register(
     "Sign" : "Υπογραφή",
     "Confirm" : "Επιβεβαίωση",
     "Document not available for signature." : "Το έγγραφο δεν είναι διαθέσιμο για υπογραφή.",
+    "Administration" : "Διαχείριση",
     "Open sidebar" : "Άνοιγμα πλευρικής στήλης",
     "Details" : "Λεπτομέρειες",
     "Certificate" : "Πιστοποιητικό",

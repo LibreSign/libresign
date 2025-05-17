@@ -218,6 +218,7 @@ OC.L10N.register(
     "Send reminder" : "Anımsatıcı gönder",
     "Enter who will receive the request" : "İsteği kimin alacağını yazın",
     "Document not available for signature." : "Belge imzalanmaya uygun değil.",
+    "Administration" : "Yönetim",
     "Rate LibreSign ❤️" : "LibreSign uygulamasını değerlendirin ❤️",
     "signed at {date}" : "{date} tarihinde imzalandı",
     "pending" : "Bekliyor",
