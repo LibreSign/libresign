@@ -78,10 +78,6 @@ class MailService {
 	 * @psalm-suppress MixedMethodCall
 	 */
 	public function notifyUnsignedUser(SignRequest $data, string $email): void {
-		$notifyUnsignedUser = $this->appConfig->getValueBool(Application::APP_ID, 'notify_unsigned_user', true);
-		if (!$notifyUnsignedUser) {
-			return;
-		}
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		$emailTemplate->setSubject($this->l10n->t('LibreSign: There is a file for you to sign'));
 		$emailTemplate->addHeader();
@@ -109,10 +105,6 @@ class MailService {
 	}
 
 	public function notifySignedUser(SignRequest $signRequest, string $email, File $libreSignFile, string $displayName): void {
-		$notifyUnsignedUser = $this->appConfig->getValueBool(Application::APP_ID, 'notify_unsigned_user', true);
-		if (!$notifyUnsignedUser) {
-			return;
-		}
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		$emailTemplate->setSubject($this->l10n->t('LibreSign: A file has been signed'));
 		$emailTemplate->addHeader();
