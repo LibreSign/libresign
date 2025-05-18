@@ -32,6 +32,7 @@ OC.L10N.register(
     "Password" : "මුර පදය",
     "Today" : "අද",
     "New password" : "නව මුරපදය",
+    "Remove" : "ඉවත් කරන්න",
     "Message" : "පණිවිඩය",
     "Yes" : "ඔව්",
     "No" : "නැහැ",

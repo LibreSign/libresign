@@ -67,6 +67,7 @@ OC.L10N.register(
     "Current password" : "Pašreizējā parole",
     "New password" : "Jauna parole",
     "Repeat password" : "Atkārtojiet paroli",
+    "Remove" : "Izņemt",
     "Status of setup" : "Iestatīšanas stāvoklis",
     "Message" : "Ziņojums",
     "Resource" : "Resurss",

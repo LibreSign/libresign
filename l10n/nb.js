@@ -271,6 +271,7 @@ OC.L10N.register(
     "Certificate engine" : "Sertifikatmotor",
     "Select the certificate engine to generate the root certificate" : "Velg sertifikatmotoren for å generere rotsertifikatet",
     "I will not use root certificate" : "Jeg vil ikke bruke rotsertifikat",
+    "Remove" : "Fjern",
     "Collect signers' metadata" : "Samle inn underskrivernes metadata",
     "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "Ved å aktivere denne funksjonen vil LibreSign lagre IP-adressen og brukeragenten til underskriveren hver gang et dokument signeres.",
     "Collect signers' metadata when signing a document" : "Samle inn underskrivernes metadata når det signeres et dokument",

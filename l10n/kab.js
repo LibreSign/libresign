@@ -33,6 +33,7 @@ OC.L10N.register(
     "Modified" : "Yettwabeddel",
     "Password reset" : "Awennez n wawal uffir",
     "New password" : "Awal uffir amaynut",
+    "Remove" : "Kkes",
     "Message" : "Izen",
     "Yes" : "Oui",
     "No" : "Uhu",

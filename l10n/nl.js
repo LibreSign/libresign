@@ -211,6 +211,7 @@ OC.L10N.register(
     "Current password" : "Huidig wachtwoord",
     "New password" : "Nieuw wachtwoord",
     "Repeat password" : "Herhaal wachtwoord",
+    "Remove" : "Verwijderen",
     "Message" : "Bericht",
     "Resource" : "Bron",
     "Dependencies" : "Afhankelijkheden",

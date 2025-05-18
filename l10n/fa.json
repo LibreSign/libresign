@@ -210,6 +210,7 @@
     "Optional attributes" : "Optional attributes",
     "Select a custom name" : "Select a custom name",
     "Remove custom name entry from root certificate" : "Remove custom name entry from root certificate",
+    "Remove" : "حذف",
     "Collect signers' metadata" : "Collect signers' metadata",
     "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer.",
     "Collect signers' metadata when signing a document" : "Collect signers' metadata when signing a document",

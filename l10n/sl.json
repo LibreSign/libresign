@@ -269,6 +269,7 @@
     "Certificate engine" : "Programnik za podpisovanje",
     "Select the certificate engine to generate the root certificate" : "Izbor programnika za upravljanje s potrdili za ustvarjanje korenskega digitalnega potrdila.",
     "I will not use root certificate" : "Korensko potrdilo ni v uporabi",
+    "Remove" : "Odstrani",
     "Collect signers' metadata" : "Zbiranje metapodatkov podpisnika",
     "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "Možnost omogoča programu LibreSign pri vsakem podpisovanju shranjevanje naslovov IP in uporabniškega agenta podpisnika.",
     "Collect signers' metadata when signing a document" : "Zbiraj metapodatke podpisnikov pri podpisovanju dokumenta",

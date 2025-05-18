@@ -109,6 +109,7 @@ OC.L10N.register(
     "Current password" : "Τρέχον συνθηματικό",
     "New password" : "Νέο συνθηματικό",
     "Repeat password" : "Επανάληψη συνθηματικού",
+    "Remove" : "Αφαίρεση",
     "Message" : "Μήνυμα",
     "Resource" : "Πόρος",
     "Dependencies" : "Εξαρτήσεις",
