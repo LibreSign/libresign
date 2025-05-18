@@ -103,6 +103,7 @@ OC.L10N.register(
     "Password reset" : "Reïnicializacion de senhal",
     "Current password" : "Senhal actual",
     "New password" : "Senhal novèl",
+    "Remove" : "Suprimir",
     "Resource" : "Ressorsa",
     "Generating certificate." : "Generacion del certificat",
     "Generated certificate!" : "Certificat generat !",

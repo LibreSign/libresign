@@ -314,6 +314,7 @@
     "Certificate engine" : "Motore di certificazione",
     "Select the certificate engine to generate the root certificate" : "Selezionare il motore di certificazione per generare il certificato root",
     "I will not use root certificate" : "Non utilizzerò il certificato root",
+    "Remove" : "Rimuovi",
     "Collect signers' metadata" : "Raccogli i metadati dei firmatari",
     "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "Abilitando questa funzione, ogni volta che un documento viene firmato, LibreSign memorizzerà l'indirizzo IP e lo user agent del firmatario.",
     "Collect signers' metadata when signing a document" : "Raccogliere i metadati dei firmatari quando firmano un documento",

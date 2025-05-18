@@ -78,6 +78,7 @@ OC.L10N.register(
     "Current password" : "Current password",
     "New password" : "New password",
     "Repeat password" : "Repeat password",
+    "Remove" : "Remove",
     "Message" : "Message",
     "Dependencies" : "Dependencies",
     "Yes" : "Yes",

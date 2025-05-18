@@ -32,6 +32,7 @@ OC.L10N.register(
     "Modified" : "ດັດແປງ",
     "Password reset" : "ປ່ຽນບະຫັດຜ່ານ",
     "New password" : "ລະຫັດຜ່ານໃຫມ່",
+    "Remove" : "ຍ້າຍອອກ",
     "Yes" : "ແມ່ນແລ້ວ",
     "No" : "ບໍ່",
     "No date" : "ບໍ່ມີວັນທີ"

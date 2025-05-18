@@ -28,6 +28,7 @@ OC.L10N.register(
     "Send" : "Kas",
     "Next" : "Da heul",
     "Confirm" : "Kadarnañ",
+    "Administration" : "Merouriez",
     "Open sidebar" : "Digori ar varenn gostez",
     "Details" : "Munudoù",
     "Type" : "Seurt",

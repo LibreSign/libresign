@@ -60,6 +60,7 @@ OC.L10N.register(
     "Password reset" : "ตั้งรหัสผ่านใหม่",
     "Current password" : "รหัสผ่านปัจจุบัน",
     "New password" : "รหัสผ่านใหม่",
+    "Remove" : "ลบออก",
     "Resource" : "ทรัพยากร",
     "Yes" : "ใช่",
     "No" : "ไม่",

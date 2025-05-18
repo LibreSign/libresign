@@ -56,6 +56,7 @@ OC.L10N.register(
     "Current password" : "Fjalëkalimi aktual",
     "New password" : "Fjalëkalim i ri",
     "Repeat password" : "Përsërit Fjalëkalimin",
+    "Remove" : "Hiqe",
     "Message" : "Mesazh",
     "Resource" : "Burim",
     "Dependencies" : "Varësitë",

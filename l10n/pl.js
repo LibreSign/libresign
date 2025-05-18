@@ -216,6 +216,7 @@ OC.L10N.register(
     "Current password" : "Bieżące hasło",
     "New password" : "Nowe hasło",
     "Repeat password" : "Powtórz hasło",
+    "Remove" : "Usuń",
     "Message" : "Komunikat",
     "Resource" : "Zasób",
     "Tip" : "Porada",

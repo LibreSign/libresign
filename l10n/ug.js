@@ -270,6 +270,7 @@ OC.L10N.register(
     "Certificate engine" : "گۇۋاھنامە ماتورى",
     "Select the certificate engine to generate the root certificate" : "يىلتىز گۇۋاھنامىسى ھاسىل قىلىش ئۈچۈن گۇۋاھنامە ماتورىنى تاللاڭ",
     "I will not use root certificate" : "مەن يىلتىز گۇۋاھنامىسىنى ئىشلەتمەيمەن",
+    "Remove" : "ئۆچۈرۈڭ",
     "Collect signers' metadata" : "ئىمزا قويغۇچىلارنىڭ مېتا سانلىق مەلۇماتلىرىنى توپلاڭ",
     "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "بۇ ئىقتىدارنى قوزغىتىپ ، ھەر قېتىم ھۆججەت ئىمزالانغاندا ، LibreSign ئىمزا قويغۇچىنىڭ IP ئادرېسى ۋە ئىشلەتكۈچى ۋاكالەتچىسىنى ساقلايدۇ.",
     "Collect signers' metadata when signing a document" : "ھۆججەتكە ئىمزا قويغاندا ئىمزا قويغۇچىلارنىڭ ئۇچۇرلىرىنى توپلاڭ",

@@ -314,6 +314,7 @@ OC.L10N.register(
     "Certificate engine" : "Nástroj pro práci s certifikáty",
     "Select the certificate engine to generate the root certificate" : "Vyberte nástroj pro práci s certifikáty kterým vytvořit kořenový certifikát",
     "I will not use root certificate" : "Nepoužiji kořenový certifikát",
+    "Remove" : "Odebrat",
     "Collect signers' metadata" : "Shromáždit metadata o podepisujících",
     "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "Když je tato funkce zapnutá, pak LibreSign při podepsání uloží IP adresu a identifikátor aplikace (user agent) podepisujícího.",
     "Collect signers' metadata when signing a document" : "Shromáždit při podepisování metadata o podepisujících",

@@ -314,6 +314,7 @@
     "Certificate engine" : "憑證引擎",
     "Select the certificate engine to generate the root certificate" : "選取用來產生根憑證的憑證引擎",
     "I will not use root certificate" : "我將不會使用根憑證",
+    "Remove" : "移除",
     "Collect signers' metadata" : "蒐集簽署者的中介資料",
     "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "啟用此功能後，LibreSign 將在每次簽署文件時儲存簽署者的 IP 位置與使用者代理字串。",
     "Collect signers' metadata when signing a document" : "簽署文件時蒐集簽署者的中介資料",

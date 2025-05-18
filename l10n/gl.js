@@ -298,6 +298,7 @@ OC.L10N.register(
     "Certificate engine" : "Motor de certificados",
     "Select the certificate engine to generate the root certificate" : "Seleccione o motor de certificados para xerar o certificado raíz",
     "I will not use root certificate" : "Non vou usar o certificado raíz",
+    "Remove" : "Retirar",
     "Collect signers' metadata" : "Recoller os metadatos dos asinantes",
     "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "Ao activar esta función, cada vez que se asine un documento, LibreSign almacenará o enderezo IP e o axente de usuario do asinante.",
     "Collect signers' metadata when signing a document" : "Recoller os metadatos dos asinantes ao asinar un documento",
