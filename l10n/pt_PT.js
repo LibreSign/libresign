@@ -76,6 +76,7 @@ OC.L10N.register(
     "Password reset" : "Reposição da senha",
     "Current password" : "Palavra-passe atual",
     "New password" : "Nova palavra-passe",
+    "Remove" : "Remover",
     "Message" : "Mensagem",
     "Resource" : "Recurso",
     "Dependencies" : "Dependências",

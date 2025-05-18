@@ -167,6 +167,7 @@ OC.L10N.register(
     "Current password" : "Nykyinen salasana",
     "New password" : "Uusi salasana",
     "Repeat password" : "Toista salasana",
+    "Remove" : "Poista",
     "Message" : "Viesti",
     "Resource" : "Resurssi",
     "Dependencies" : "Riippuvuudet",

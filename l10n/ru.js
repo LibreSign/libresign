@@ -208,6 +208,7 @@ OC.L10N.register(
     "Repeat password" : "Повторите пароль",
     "Allow request to sign" : "Разрешить запрос на подпись",
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Выберите авторизованные группы, которые могут запрашивать подпись документов. Группа администраторов является группой по умолчанию, и ее не нужно определять.",
+    "Remove" : "Исключить",
     "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "При включении этой функции каждый раз при подписании документа LibreSign будет сохранять IP-адрес и пользовательский агент подписавшего.",
     "Message" : "Сообщение",
     "Resource" : "Ресурс",

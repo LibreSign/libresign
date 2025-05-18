@@ -28,6 +28,7 @@ OC.L10N.register(
     "Previous" : "Əvvələ",
     "Next" : "Növbəti",
     "Confirm" : "Təsdiq edin",
+    "Administration" : "İdarəetmə",
     "Details" : "Detallar",
     "Certificate" : "Sertifikat",
     "Type" : "Type",

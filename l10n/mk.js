@@ -85,6 +85,7 @@ OC.L10N.register(
     "Password reset" : "Ресетирај лозинка",
     "Current password" : "Моментална лозинка",
     "New password" : "Нова лозинка",
+    "Remove" : "Отстрани ",
     "Message" : "Порака",
     "Resource" : "Ресурси",
     "Yes" : "Да",

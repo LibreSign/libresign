@@ -176,6 +176,7 @@ OC.L10N.register(
     "Current password" : "Trenutna zaporka",
     "New password" : "Nova zaporka",
     "Repeat password" : "Ponovi zaporku",
+    "Remove" : "Ukloni",
     "Message" : "Poruka",
     "Resource" : "Resurs",
     "Dependencies" : "Ovisnosti",

@@ -88,6 +88,7 @@ OC.L10N.register(
     "Current password" : "Поточний пароль",
     "New password" : "Новий пароль",
     "Repeat password" : "Повторіть пароль",
+    "Remove" : "Вилучити",
     "Message" : "Повідомлення",
     "Resource" : "Ресурс",
     "Dependencies" : "Залежності",
