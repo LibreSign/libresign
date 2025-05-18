@@ -309,6 +309,7 @@ OC.L10N.register(
     "Certificate engine" : "Sertifika işleyici",
     "Select the certificate engine to generate the root certificate" : "Kök sertifikayı oluşturacak sertifika işleyiciyi seçin",
     "I will not use root certificate" : "Kök sertifikayı kullanmayacağım",
+    "Remove" : "Kaldır",
     "Collect signers' metadata" : "İmzalayanın üst verileri alınsın",
     "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "Bu seçenek kullanıma alındığında, LibreSign bir belge imzalanırken imzalayanın IP adresini ve kullandığı uygulamayı kaydeder.",
     "Collect signers' metadata when signing a document" : "Bir belge imzalanırken imzalayanın üst verileri alınsın",

@@ -83,6 +83,7 @@ OC.L10N.register(
     "Current password" : "Contraseña actual",
     "New password" : "Nueva contraseña",
     "Repeat password" : "Repetir contraseña",
+    "Remove" : "Borrar",
     "Status of setup" : "Estado de la configuración",
     "Message" : "Mensaje",
     "Resource" : "Recurso",

@@ -78,6 +78,7 @@ OC.L10N.register(
     "Password reset" : "Đặt lại mật khẩu",
     "Current password" : "Mật khẩu cũ",
     "New password" : "Mật khẩu mới",
+    "Remove" : "Xoá",
     "Resource" : "Tài nguyên",
     "Dependencies" : "Các phụ thuộc",
     "Yes" : "Có",

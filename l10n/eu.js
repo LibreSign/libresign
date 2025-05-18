@@ -236,6 +236,7 @@ OC.L10N.register(
     "Select a custom name" : "Hautatu izen pertsonalizatu bat",
     "Remove custom name entry from root certificate" : "Kendu izen pertsonalizatua erro zertifikatutik",
     "Certificate engine" : "Ziurtagiriaren motorra",
+    "Remove" : "Kendu",
     "Collect signers' metadata" : "Bildu sinatzailearen metadatuak",
     "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "Aukera hau gaituta, dokumentu bat sinatzen den bakoitzean LibreSign-ek sinatzailearen IP helbidea eta erabiltzaile-agentea gordeko ditu.",
     "Collect signers' metadata when signing a document" : "Bildu sinatzailearen metadatuak, dokumentu bat sinatzen duenean",

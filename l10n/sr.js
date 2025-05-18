@@ -309,6 +309,7 @@ OC.L10N.register(
     "Certificate engine" : "Механизам за сертификате",
     "Select the certificate engine to generate the root certificate" : "Изаберите механизам за сертификате који треба да генерише корени сертификат",
     "I will not use root certificate" : "Нећу користити корени сертификат",
+    "Remove" : "Уклони",
     "Collect signers' metadata" : "Прикупи метаподатке потписника",
     "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "Када се ова могућност укључи, сваки пут када се документ потписује, LibreSign ће сачувати IP адресу и кориснички агент потписника.",
     "Collect signers' metadata when signing a document" : "Прикупи метаподатке потписника када се потписује документ",

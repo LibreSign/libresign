@@ -235,6 +235,7 @@ OC.L10N.register(
     "Remove custom name entry from root certificate" : "Egyéni névbejegyzés eltávolítása a gyökértanúsítványból",
     "Certificate engine" : "Tanúsítvány motor",
     "Select the certificate engine to generate the root certificate" : "Válasszon tanúsítvány motort a gyökértanúsítvány létrehozásához",
+    "Remove" : "Eltávolítás",
     "Collect signers' metadata" : "Aláírók metaadatainak begyűjtése",
     "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "Ha engedélyezi a funkciót, akkor a LibreSign eltárolja az aláíró IP-címét és felhasználói ügynökét, amikor dokumentumot ír alá. ",
     "Collect signers' metadata when signing a document" : "Az aláírók metaadatainak begyűjtése a dokumentum aláírásakor",

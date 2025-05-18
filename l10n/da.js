@@ -88,6 +88,7 @@ OC.L10N.register(
     "Current password" : "Nuværende adgangskode",
     "New password" : "Ny adgangskode",
     "Repeat password" : "Gentag adgangskode",
+    "Remove" : "Fjern",
     "Message" : "Besked",
     "Resource" : "Ressource",
     "Dependencies" : "Afhængigheder",

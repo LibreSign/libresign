@@ -313,6 +313,7 @@
     "Certificate engine" : "Inneall deimhnithe",
     "Select the certificate engine to generate the root certificate" : "Roghnaigh an t-inneall deimhnithe chun an teastas fréimhe a ghiniúint",
     "I will not use root certificate" : "Ní úsáidfidh mé teastas fréimhe",
+    "Remove" : "Bain",
     "Collect signers' metadata" : "Bailigh meiteashonraí sínitheoirí",
     "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "Leis an ngné seo a chumasú, gach uair a shínítear doiciméad, stórálfaidh LibreSign seoladh IP agus gníomhaire úsáideora an tsínitheora.",
     "Collect signers' metadata when signing a document" : "Bailigh meiteashonraí sínitheoirí agus doiciméad á shíniú",

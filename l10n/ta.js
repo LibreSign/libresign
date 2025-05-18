@@ -28,6 +28,7 @@ OC.L10N.register(
     "Modified" : "மாற்றப்பட்டது",
     "Current password" : "தற்போதைய கடவுச்சொல்",
     "New password" : "புதிய கடவுச்சொல்",
+    "Remove" : "அகற்றுக",
     "Yes" : "Yes",
     "No" : "No",
     "No date" : "No date"
