@@ -18,6 +18,7 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
+use OCA\Libresign\Service\SignerElementsService;
 use OCP\Files\File;
 use OCP\IAppConfig;
 use OCP\ITempManager;
@@ -173,8 +174,8 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 				$signatureImagePath = $element->getTempFile();
 				if ($backgroundType === 'deleted') {
-					if ($renderMode === 'SIGNAME_AND_DESCRIPTION') {
-						$params['--render-mode'] = 'GRAPHIC_AND_DESCRIPTION';
+					if ($renderMode === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION) {
+						$params['--render-mode'] = SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION;
 						$params['--img-path'] = $this->createTextImage(
 							width: ($params['-urx'] - $params['-llx']),
 							height: ($params['-ury'] - $params['-lly']),
@@ -195,12 +196,12 @@ class JSignPdfHandler extends Pkcs12Handler {
 						$params['--bg-path'] = $signatureImagePath;
 					}
 				} else {
-					if ($renderMode === 'GRAPHIC_AND_DESCRIPTION') {
-						$params['--render-mode'] = 'GRAPHIC_AND_DESCRIPTION';
+					if ($renderMode === SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION) {
+						$params['--render-mode'] = SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION;
 						$params['--bg-path'] = $backgroundPath;
 						$params['--img-path'] = $signatureImagePath;
-					} elseif ($renderMode === 'SIGNAME_AND_DESCRIPTION') {
-						$params['--render-mode'] = 'GRAPHIC_AND_DESCRIPTION';
+					} elseif ($renderMode === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION) {
+						$params['--render-mode'] = SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION;
 						$params['--bg-path'] = $backgroundPath;
 						$params['--img-path'] = $this->createTextImage(
 							width: (int)(($params['-urx'] - $params['-llx']) / 2),
