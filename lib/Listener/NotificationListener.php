@@ -61,7 +61,14 @@ class NotificationListener implements IEventListener {
 		if (!$actor instanceof IUser) {
 			return;
 		}
-		if ($this->isNotificationDisabledAtActivity($identifyMethod, SendSignNotificationEvent::FILE_TO_SIGN)) {
+		if ($identifyMethod->getEntity()->isDeletedAccount()) {
+			return;
+		}
+		$notificationDisabled = $this->isNotificationDisabledAtActivity(
+			$identifyMethod->getEntity()->getIdentifierValue(),
+			SendSignNotificationEvent::FILE_TO_SIGN,
+		);
+		if ($notificationDisabled) {
 			return;
 		}
 		$notification = $this->notificationManager->createNotification();
@@ -99,7 +106,14 @@ class NotificationListener implements IEventListener {
 
 		$actorId = $libreSignFile->getUserId();
 
-		if ($this->isNotificationDisabledAtActivity($identifyMethod, SignedEvent::FILE_SIGNED)) {
+		if ($identifyMethod->getEntity()->isDeletedAccount()) {
+			return;
+		}
+		$notificationDisabled = $this->isNotificationDisabledAtActivity(
+			$libreSignFile->getUserId(),
+			SignedEvent::FILE_SIGNED,
+		);
+		if ($notificationDisabled) {
 			return;
 		}
 
@@ -134,17 +148,14 @@ class NotificationListener implements IEventListener {
 		$this->notificationManager->notify($notification);
 	}
 
-	private function isNotificationDisabledAtActivity(IIdentifyMethod $identifyMethod, string $type): bool {
+	private function isNotificationDisabledAtActivity(string $userId, string $type): bool {
 		if (!class_exists(\OCA\Activity\UserSettings::class)) {
 			return false;
 		}
 		$activityUserSettings = \OCP\Server::get(\OCA\Activity\UserSettings::class);
 		if ($activityUserSettings) {
-			if ($identifyMethod->getEntity()->isDeletedAccount()) {
-				return false;
-			}
 			$notificationSetting = $activityUserSettings->getUserSetting(
-				$identifyMethod->getEntity()->getIdentifierValue(),
+				$userId,
 				'notification',
 				$type
 			);

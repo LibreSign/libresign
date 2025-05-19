@@ -56,7 +56,10 @@ class MailNotifyListener implements IEventListener {
 		IIdentifyMethod $identifyMethod,
 	): void {
 		try {
-			if ($this->isNotificationDisabledAtActivity($identifyMethod, SendSignNotificationEvent::FILE_TO_SIGN)) {
+			if ($identifyMethod->getEntity()->isDeletedAccount()) {
+				return;
+			}
+			if ($this->isNotificationDisabledAtActivity($identifyMethod->getEntity()->getIdentifierValue(), SendSignNotificationEvent::FILE_TO_SIGN)) {
 				return;
 			}
 			$email = '';
@@ -89,7 +92,10 @@ class MailNotifyListener implements IEventListener {
 		IUser $user,
 	): void {
 		try {
-			if ($this->isNotificationDisabledAtActivity($identifyMethod, SignedEvent::FILE_SIGNED)) {
+			if ($identifyMethod->getEntity()->isDeletedAccount()) {
+				return;
+			}
+			if ($this->isNotificationDisabledAtActivity($libreSignFile->getUserId(), SignedEvent::FILE_SIGNED)) {
 				return;
 			}
 
@@ -107,17 +113,14 @@ class MailNotifyListener implements IEventListener {
 		}
 	}
 
-	private function isNotificationDisabledAtActivity(IIdentifyMethod $identifyMethod, string $type): bool {
+	private function isNotificationDisabledAtActivity(string $userId, string $type): bool {
 		if (!class_exists(\OCA\Activity\UserSettings::class)) {
 			return false;
 		}
 		$activityUserSettings = \OCP\Server::get(\OCA\Activity\UserSettings::class);
 		if ($activityUserSettings) {
-			if ($identifyMethod->getEntity()->isDeletedAccount()) {
-				return false;
-			}
 			$notificationSetting = $activityUserSettings->getUserSetting(
-				$identifyMethod->getEntity()->getIdentifierValue(),
+				$userId,
 				'email',
 				$type
 			);
