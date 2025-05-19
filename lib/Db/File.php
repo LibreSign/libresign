@@ -46,6 +46,7 @@ class File extends Entity {
 	protected ?string $signedHash = null;
 	protected ?string $callback = null;
 	protected ?array $metadata = null;
+	public const STATUS_ORIGINAL_FILE_SIGNED_SOMEWHERE = -2;
 	public const STATUS_NOT_LIBRESIGN_FILE = -1;
 	public const STATUS_DRAFT = 0;
 	public const STATUS_ABLE_TO_SIGN = 1;
