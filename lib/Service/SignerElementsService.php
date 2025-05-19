@@ -19,6 +19,10 @@ use OCP\IURLGenerator;
  * @psalm-import-type LibresignUserElement from ResponseDefinitions
  */
 class SignerElementsService {
+	public const RENDER_MODE_DESCRIPTION_ONLY = 'DESCRIPTION_ONLY';
+	public const RENDER_MODE_SIGNAME_AND_DESCRIPTION = 'SIGNAME_AND_DESCRIPTION';
+	public const RENDER_MODE_GRAPHIC_AND_DESCRIPTION = 'GRAPHIC_AND_DESCRIPTION';
+	public const RENDER_MODE_DEFAULT = 'GRAPHIC_AND_DESCRIPTION';
 	public function __construct(
 		private FolderService $folderService,
 		private SessionService $sessionService,
@@ -138,8 +142,8 @@ class SignerElementsService {
 		return !in_array(
 			$this->signatureTextService->getRenderMode(),
 			[
-				'SIGNAME_AND_DESCRIPTION',
-				'DESCRIPTION_ONLY',
+				self::RENDER_MODE_DESCRIPTION_ONLY,
+				self::RENDER_MODE_SIGNAME_AND_DESCRIPTION,
 			]
 		);
 	}
