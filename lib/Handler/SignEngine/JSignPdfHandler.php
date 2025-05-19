@@ -212,11 +212,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 					} else {
 						// --render-mode DESCRIPTION_ONLY, this is the default
 						// render-mode, because this, is unecessary to set here
-						$params['--bg-path'] = $this->mergeBackgroundWithSignature(
-							$backgroundPath,
-							$signatureImagePath,
-							$scaleFactor < 5 ? 5 : $scaleFactor
-						);
+						$params['--bg-path'] = $backgroundPath;
 					}
 				}
 
