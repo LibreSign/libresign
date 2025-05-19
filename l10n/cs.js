@@ -140,6 +140,7 @@ OC.L10N.register(
     "Click to sign" : "Kliknutím podepíšete",
     "Email token" : "E-mailový token",
     "Certificate with password" : "Certifikát s heslem",
+    "Invalid certificate" : "Neplatný certifikát",
     "LibreSign: Changes into a file for you to sign" : "LibreSign: Změny, provedené v souboru, které máte podepsat",
     "File to sign" : "Soubor který podepsat",
     "Changes have been made in a file that you have to sign. Access the link below:" : "V souboru, který máte podepsat byly provedeny změny. K dispozici v níže uvedeném odkazu.",

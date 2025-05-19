@@ -296,6 +296,7 @@
     "Certificate engine" : "محرك شهادات المصادقة",
     "Select the certificate engine to generate the root certificate" : "إختَر محرك شهادات المصادقة لتوليد الشهادة الجذرية",
     "I will not use root certificate" : "سوف لن أستعمل الشهادة الجذرية",
+    "Remove" : "حذف",
     "Collect signers' metadata" : "جمع بيانات التعريف الوصفية للموقعين",
     "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "بتمكين هذه الميزة في كل مرة يتم فيها توقيع مستند، يقوم تطبيق التوقيع الالكتروني LibreSign بتخزين عنوان IP، و وكيل المستخدِم الخاص بصاحب التوقيع.",
     "Collect signers' metadata when signing a document" : "جمع البيانات التعريفية بالموقعين عند توقيعهم للمستند",
