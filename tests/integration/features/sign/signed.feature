@@ -113,6 +113,7 @@ Feature: signed
     And run the command "user:setting signer1 activity notify_email_libresign_file_to_sign 0" with result code 0
     And run the command "user:setting signer1 activity notify_notification_libresign_file_to_sign 0" with result code 0
     And run the command "user:setting admin activity notify_notification_libresign_file_signed 0" with result code 0
+    And run the command "user:setting admin activity notify_email_libresign_file_signed 0" with result code 0
     And run the command "libresign:install --use-local-cert --java" with result code 0
     And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
