@@ -314,7 +314,7 @@ class ValidateHelper {
 					return true;
 				}
 				try {
-					if (!$user instanceof $user) {
+					if (!$user instanceof IUser) {
 						throw new \Exception();
 					}
 					$this->userElementMapper->findMany([
