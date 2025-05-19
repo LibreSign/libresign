@@ -227,8 +227,6 @@ class SignFileService {
 				} else {
 					throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 				}
-			} elseif (!$this->user instanceof IUser) {
-				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 			} else {
 				if ($canCreateSignature) {
 					$userElement = $this->userElementMapper->findOne([

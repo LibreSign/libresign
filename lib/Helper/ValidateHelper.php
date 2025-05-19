@@ -310,6 +310,9 @@ class ValidateHelper {
 				return $item['documentElementId'] === $fileElement->getId();
 			});
 			if (!$found) {
+				if (!$this->signerElementsService->canCreateSignature()) {
+					return true;
+				}
 				try {
 					if (!$user instanceof $user) {
 						throw new \Exception();
