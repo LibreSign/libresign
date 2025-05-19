@@ -305,7 +305,7 @@ class ValidateHelper {
 
 	private function validateUserHasNecessaryElements(SignRequest $signRequest, ?IUser $user, array $list = []): void {
 		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($signRequest->getFileId(), $signRequest->getId());
-		$total = array_filter($fileElements, function (FileElement $fileElement) use ($list, $user, $signRequest): bool {
+		$total = array_filter($fileElements, function (FileElement $fileElement) use ($list, $user): bool {
 			$found = array_filter($list, function ($item) use ($fileElement): bool {
 				return $item['documentElementId'] === $fileElement->getId();
 			});
