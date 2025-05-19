@@ -9,11 +9,16 @@ declare(strict_types=1);
 namespace OCA\Libresign\Activity\Settings;
 
 use OCA\Libresign\Events\SignedEvent;
+use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCP\IL10N;
+use OCP\IUserSession;
 
 class FileSigned extends LibresignActivitySettings {
 	public function __construct(
 		protected IL10N $l,
+		protected ValidateHelper $validateHelper,
+		protected IUserSession $userSession,
 	) {
 	}
 
@@ -38,4 +43,27 @@ class FileSigned extends LibresignActivitySettings {
 		return 52;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
+	public function canChangeNotification(): bool {
+		try {
+			$this->validateHelper->canrequestSign($this->userSession->getUser());
+		} catch (LibresignException $e) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function canChangeMail() {
+		try {
+			$this->validateHelper->canrequestSign($this->userSession->getUser());
+		} catch (LibresignException $e) {
+			return false;
+		}
+		return true;
+	}
 }
