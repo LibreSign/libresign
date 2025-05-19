@@ -29,7 +29,6 @@ class SignatureTextService {
 	public const SIGNATURE_DEFAULT_FONT_SIZE = 20;
 	public const FONT_SIZE_MINIMUM = 0.1;
 	public const FRONT_SIZE_MAX = 30;
-	public const DEFAULT_RENDER_MODE = 'GRAPHIC_AND_DESCRIPTION';
 	public const DEFAULT_SIGNATURE_WIDTH = 350;
 	public const DEFAULT_SIGNATURE_HEIGHT = 100;
 	public function __construct(
@@ -51,7 +50,7 @@ class SignatureTextService {
 		float $signatureFontSize = self::SIGNATURE_DEFAULT_FONT_SIZE,
 		float $signatureWidth = self::DEFAULT_SIGNATURE_WIDTH,
 		float $signatureHeight = self::DEFAULT_SIGNATURE_HEIGHT,
-		string $renderMode = self::DEFAULT_RENDER_MODE,
+		string $renderMode = SignerElementsService::RENDER_MODE_DEFAULT,
 	): array {
 		if ($templateFontSize > self::FRONT_SIZE_MAX || $templateFontSize < self::FONT_SIZE_MINIMUM) {
 			// TRANSLATORS This message refers to the font size used in the text
@@ -351,7 +350,7 @@ class SignatureTextService {
 	}
 
 	public function getRenderMode(): string {
-		return $this->appConfig->getValueString(Application::APP_ID, 'signature_render_mode', self::DEFAULT_RENDER_MODE);
+		return $this->appConfig->getValueString(Application::APP_ID, 'signature_render_mode', SignerElementsService::RENDER_MODE_DEFAULT);
 	}
 
 	public function isEnabled(): bool {
