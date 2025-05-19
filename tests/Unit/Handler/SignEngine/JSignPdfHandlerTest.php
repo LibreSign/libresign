@@ -243,7 +243,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'templateFontSize' => 10,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
-				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png --hash-algorithm SHA256'
+				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path background.png --hash-algorithm SHA256'
 			],
 			'font size != 10' => [
 				'visibleElements' => [self::getElement([
@@ -261,7 +261,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'templateFontSize' => 11,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
-				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --font-size 11 --bg-path merged.png --hash-algorithm SHA256'
+				'params' => '-a -kst PKCS12 --l2-text "aaaaa" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --font-size 11 --bg-path background.png --hash-algorithm SHA256'
 			],
 			'background = deleted: bg-path = signature' => [
 				'visibleElements' => [self::getElement([
