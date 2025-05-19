@@ -30,6 +30,7 @@ OC.L10N.register(
     "File not found" : "Faili ei leitud",
     "File already exists" : "Fail on juba olemas",
     "Empty file" : "Tühi fail",
+    "Invalid OID format. Expected pattern: %s" : "Vigane OID vorming. Eeldatud muster: %s",
     "Invalid file provided" : "Vigane fail",
     "You need to sign this document" : "Sa pead selle dokumendi allkirjastama",
     "Account" : "Konto",

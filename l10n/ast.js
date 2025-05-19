@@ -84,6 +84,7 @@ OC.L10N.register(
     "Current password" : "Contraseña actual",
     "New password" : "Contraseña nueva",
     "Optional attributes" : "Atributos opcionales",
+    "Remove" : "Quitar",
     "Message" : "Mensaxe",
     "Dependencies" : "Dependencies",
     "Legal information" : "Información llegal",
