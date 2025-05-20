@@ -211,6 +211,7 @@ OC.L10N.register(
     "Optional attributes" : "Допълнителни атрибути /по избор/",
     "Select a custom name" : "Избор на потребителско име",
     "Remove custom name entry from root certificate" : "Премахване на запис за персонализирано име от основния сертификат",
+    "Remove" : "Премахване",
     "Collect signers' metadata" : "Събиране на метаданни на подписващите",
     "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "Ако активирате тази функция, при всяко подписване на документ LibreSign ще съхрани IP адреса и потребителския агент на подписващия.",
     "Collect signers' metadata when signing a document" : "Събиране на метаданни на подписващите при подписване на документ",
