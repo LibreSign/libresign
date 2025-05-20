@@ -103,7 +103,9 @@ class NotifyController extends AEnvironmentAwareController {
 	/**
 	 * Dismiss a specific notification
 	 *
-	 * @param integer $signRequestId The sign request id
+	 * @param string $objectType The type of object
+	 * @param integer $objectId The identifier value of LibreSign file
+	 * @param string $subject The subject of notification
 	 * @param integer $timestamp Timestamp of notification to dismiss
 	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
 	 *
@@ -111,9 +113,16 @@ class NotifyController extends AEnvironmentAwareController {
 	 */
 	#[NoAdminRequired]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/notify/notification', requirements: ['apiVersion' => '(v1)'])]
-	public function notificationDismiss(int $signRequestId, int $timestamp): DataResponse {
+	public function notificationDismiss(
+		string $objectType,
+		int $objectId,
+		string $subject,
+		int $timestamp,
+	): DataResponse {
 		$this->notifyService->notificationDismiss(
-			$signRequestId,
+			$objectType,
+			$objectId,
+			$subject,
 			$this->userSession->getUser(),
 			$timestamp
 		);
