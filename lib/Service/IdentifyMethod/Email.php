@@ -18,6 +18,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\IRootFolder;
 use OCP\IUser;
 use OCP\IUserSession;
+use Psr\Log\LoggerInterface;
 
 class Email extends AbstractIdentifyMethod {
 	public array $availableSignatureMethods = [
@@ -33,6 +34,7 @@ class Email extends AbstractIdentifyMethod {
 		private SessionService $sessionService,
 		private FileElementMapper $fileElementMapper,
 		private IUserSession $userSession,
+		private LoggerInterface $logger,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by email
 		$this->friendlyName = $this->identifyService->getL10n()->t('Email');
@@ -76,6 +78,15 @@ class Email extends AbstractIdentifyMethod {
 			return;
 		}
 		$settings = $this->getSettings();
+		if (!$settings['enabled']) {
+			$this->logger->debug('Email identification method is disabled');
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_SHOW_ERROR,
+				// TRANSLATORS This signalize that the identification method by email is disabled and the signer can't be identified
+				'errors' => [['message' => $this->identifyService->getL10n()->t('Invalid identification method')]],
+			]));
+			return;
+		}
 		if (!$settings['can_create_account']) {
 			return;
 		}
