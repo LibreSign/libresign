@@ -226,6 +226,7 @@
     "Optional attributes" : "Atributs opcionals",
     "Select a custom name" : "Seleccioneu un nom personalitzat",
     "Remove custom name entry from root certificate" : "Elimina l'entrada de nom personalitzada del certificat arrel",
+    "Remove" : "Suprimir",
     "Collect signers' metadata" : "Recull les metadades dels signants",
     "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "En activar aquesta funció, cada vegada que es signa un document, LibreSign emmagatzemarà l'adreça IP i l'agent d'usuari del signant.",
     "Collect signers' metadata when signing a document" : "Recolliu metadades dels signants en signar un document",
