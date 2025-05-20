@@ -16,7 +16,7 @@
 				:key="index"
 				type="error"
 				heading="Error">
-				{{ error }}
+				{{ error.message }}
 			</NcNoteCard>
 		</div>
 	</div>
