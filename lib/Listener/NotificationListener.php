@@ -13,6 +13,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
+use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -42,6 +43,12 @@ class NotificationListener implements IEventListener {
 				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
 			);
+		} elseif ($event instanceof SignedEvent) {
+			$this->sendSignedNotification(
+				$event->getSignRequest(),
+				$event->getLibreSignFile(),
+				$event->getIdentifyMethod(),
+			);
 		}
 	}
 
@@ -54,7 +61,14 @@ class NotificationListener implements IEventListener {
 		if (!$actor instanceof IUser) {
 			return;
 		}
-		if ($this->isNotificationDisabledAtActivity($identifyMethod)) {
+		if ($identifyMethod->getEntity()->isDeletedAccount()) {
+			return;
+		}
+		$notificationDisabled = $this->isNotificationDisabledAtActivity(
+			$identifyMethod->getEntity()->getIdentifierValue(),
+			SendSignNotificationEvent::FILE_TO_SIGN,
+		);
+		if ($notificationDisabled) {
 			return;
 		}
 		$notification = $this->notificationManager->createNotification();
@@ -84,19 +98,66 @@ class NotificationListener implements IEventListener {
 		$this->notificationManager->notify($notification);
 	}
 
-	public function isNotificationDisabledAtActivity(IIdentifyMethod $identifyMethod): bool {
+	private function sendSignedNotification(
+		SignRequest $signRequest,
+		FileEntity $libreSignFile,
+		IIdentifyMethod $identifyMethod,
+	): void {
+
+		$actorId = $libreSignFile->getUserId();
+
+		if ($identifyMethod->getEntity()->isDeletedAccount()) {
+			return;
+		}
+		$notificationDisabled = $this->isNotificationDisabledAtActivity(
+			$libreSignFile->getUserId(),
+			SignedEvent::FILE_SIGNED,
+		);
+		if ($notificationDisabled) {
+			return;
+		}
+
+		$notification = $this->notificationManager->createNotification();
+		$notification
+			->setApp(AppInfoApplication::APP_ID)
+			->setObject('signedFile', (string)$signRequest->getId())
+			->setDateTime((new \DateTime())->setTimestamp($this->timeFactory->now()->getTimestamp()))
+			->setUser($actorId)
+			->setSubject('file_signed', [
+				'from' => $this->getFromSignedParameter(
+					$identifyMethod->getEntity()->getIdentifierKey(),
+					$identifyMethod->getEntity()->getIdentifierValue(),
+					$signRequest->getDisplayName(),
+				),
+				'file' => [
+					'type' => 'file',
+					'id' => (string)$libreSignFile->getNodeId(),
+					'name' => $libreSignFile->getName(),
+					'path' => $libreSignFile->getName(),
+					'link' => $this->url->linkToRouteAbsolute('libresign.page.indexFPath', [
+						'path' => 'validation/' . $libreSignFile->getUuid(),
+					]),
+				],
+				'signedFile' => [
+					'type' => 'signed-file',
+					'id' => (string)$signRequest->getId(),
+					'name' => $signRequest->getDisplayName(),
+				],
+			]);
+
+		$this->notificationManager->notify($notification);
+	}
+
+	private function isNotificationDisabledAtActivity(string $userId, string $type): bool {
 		if (!class_exists(\OCA\Activity\UserSettings::class)) {
 			return false;
 		}
 		$activityUserSettings = \OCP\Server::get(\OCA\Activity\UserSettings::class);
 		if ($activityUserSettings) {
-			if ($identifyMethod->getEntity()->isDeletedAccount()) {
-				return false;
-			}
 			$notificationSetting = $activityUserSettings->getUserSetting(
-				$identifyMethod->getEntity()->getIdentifierValue(),
+				$userId,
 				'notification',
-				'file_to_sign'
+				$type
 			);
 			if (!$notificationSetting) {
 				return true;
@@ -125,6 +186,24 @@ class NotificationListener implements IEventListener {
 		return [
 			'type' => 'user',
 			'id' => $userId,
+			'name' => $displayName,
+		];
+	}
+
+	protected function getFromSignedParameter(
+		string $type,
+		string $identifier,
+		string $displayName,
+	): array {
+
+		if ($type === 'account') {
+			return $this->getUserParameter(
+				$identifier,
+				$displayName
+			);
+		}
+
+		return [
 			'name' => $displayName,
 		];
 	}

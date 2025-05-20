@@ -8,5 +8,36 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Events;
 
-class SignedEvent extends ASignedEvent {
+use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCP\EventDispatcher\Event;
+use OCP\IUser;
+
+class SignedEvent extends Event {
+	public const FILE_SIGNED = 'libresign_file_signed';
+	public function __construct(
+		private SignRequest $signRequest,
+		private FileEntity $libreSignFile,
+		private IIdentifyMethod $identifyMethod,
+		private IUser $user,
+	) {
+	}
+
+	public function getLibreSignFile(): FileEntity {
+		return $this->libreSignFile;
+	}
+
+	public function getSignRequest(): SignRequest {
+		return $this->signRequest;
+	}
+
+	public function getIdentifyMethod(): IIdentifyMethod {
+		return $this->identifyMethod;
+	}
+
+	public function getUser(): IUser {
+		return $this->user;
+	}
+
 }
