@@ -729,6 +729,5 @@ class InstallService {
 		} else {
 			$this->appConfig->setValueString(Application::APP_ID, 'certificate_engine', 'openssl');
 		}
-		$this->appConfig->setValueBool(Application::APP_ID, 'notify_unsigned_user', true);
 	}
 }

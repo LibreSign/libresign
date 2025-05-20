@@ -13,6 +13,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
+use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\Activity\Exceptions\UnknownActivityException;
@@ -41,9 +42,14 @@ class Listener implements IEventListener {
 	}
 
 	public function handle(Event $event): void {
-		/** @var SendSignNotificationEvent $event */
+		/** @var SendSignNotificationEvent|SignedEvent $event */
 		match (get_class($event)) {
 			SendSignNotificationEvent::class => $this->generateNewSignNotificationActivity(
+				$event->getSignRequest(),
+				$event->getLibreSignFile(),
+				$event->getIdentifyMethod(),
+			),
+			SignedEvent::class => $this->generateSignedEventActivity(
 				$event->getSignRequest(),
 				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
@@ -72,7 +78,7 @@ class Listener implements IEventListener {
 		try {
 			$event
 				->setApp(Application::APP_ID)
-				->setType('file_to_sign')
+				->setType(SendSignNotificationEvent::FILE_TO_SIGN)
 				->setAuthor($actorId)
 				->setObject('signRequest', $signRequest->getId())
 				->setTimestamp($this->timeFactory->getTime())
@@ -110,6 +116,55 @@ class Listener implements IEventListener {
 		}
 	}
 
+	protected function generateSignedEventActivity(
+		SignRequest $signRequest,
+		FileEntity $libreSignFile,
+		IIdentifyMethod $identifyMethod,
+	): void {
+
+		$actorId = $libreSignFile->getUserId();
+
+		$activityEvent = $this->activityManager->generateEvent();
+
+		try {
+			$activityEvent
+				->setApp(Application::APP_ID)
+				->setType(SignedEvent::FILE_SIGNED)
+				->setAuthor($actorId)
+				->setObject('signedFile', 10)
+				->setTimestamp($this->timeFactory->getTime())
+				->setAffectedUser($actorId)
+				->setGenerateNotification(true);
+
+			$activityEvent->setSubject('file_signed', [
+				'from' => $this->getFromSignedParameter(
+					$identifyMethod->getEntity()->getIdentifierKey(),
+					$identifyMethod->getEntity()->getIdentifierValue(),
+					$signRequest->getDisplayName(),
+				),
+				'file' => [
+					'type' => 'file',
+					'id' => (string)$libreSignFile->getNodeId(),
+					'name' => $libreSignFile->getName(),
+					'path' => $libreSignFile->getName(),
+					'link' => $this->url->linkToRouteAbsolute('libresign.page.indexFPath', [
+						'path' => 'validation/' . $libreSignFile->getUuid(),
+					]),
+				],
+				'signedFile' => [
+					'type' => 'signed-file',
+					'id' => (string)$signRequest->getId(),
+					'name' => $signRequest->getDisplayName(),
+				],
+			]);
+
+			$this->activityManager->publish($activityEvent);
+		} catch (UnknownActivityException $e) {
+			$this->logger->error($e->getMessage(), ['exception' => $e]);
+			return;
+		}
+	}
+
 	/**
 	 * @return array{type: 'file', id: string, name: string, path: string, link: string}
 	 */
@@ -130,6 +185,24 @@ class Listener implements IEventListener {
 		return [
 			'type' => 'user',
 			'id' => $userId,
+			'name' => $displayName,
+		];
+	}
+
+	protected function getFromSignedParameter(
+		string $type,
+		string $identifier,
+		string $displayName,
+	): array {
+
+		if ($type === 'account') {
+			return $this->getUserParameter(
+				$identifier,
+				$displayName
+			);
+		}
+
+		return [
 			'name' => $displayName,
 		];
 	}

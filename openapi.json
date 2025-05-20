@@ -5662,13 +5662,31 @@
                         }
                     },
                     {
-                        "name": "signRequestId",
+                        "name": "objectType",
                         "in": "query",
-                        "description": "The sign request id",
+                        "description": "The type of object",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "objectId",
+                        "in": "query",
+                        "description": "The identifier value of LibreSign file",
                         "required": true,
                         "schema": {
                             "type": "integer",
                             "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "subject",
+                        "in": "query",
+                        "description": "The subject of notification",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     {
