@@ -18,6 +18,60 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 11.2.0 - 2025-05-20
+## Features
+- feat: manage certificate policy [#4970](https://github.com/LibreSign/libresign/pull/4970)
+- feat: add administration settings to settings menu [#4968](https://github.com/LibreSign/libresign/pull/4968)
+- feat: adding new activity configuration [#4985](https://github.com/LibreSign/libresign/pull/4985)
+
+### Changes
+- Update translations
+- Bump dependencies
+- chore: move strings to constants [#4978](https://github.com/LibreSign/libresign/pull/4978)
+- chore: valdiate password before send to sign [#4966](https://github.com/LibreSign/libresign/pull/4966)
+- chore: text improvement [#4961](https://github.com/LibreSign/libresign/pull/4961)
+- chore: change save signed file logic [#4946](https://github.com/LibreSign/libresign/pull/4946)
+- chore: improve error message [#4943](https://github.com/LibreSign/libresign/pull/4943)
+- chore: improve feedback of configure check [#4916](https://github.com/LibreSign/libresign/pull/4916)
+- chore: reduce configure check time [#4879](https://github.com/LibreSign/libresign/pull/4879)
+- chore: remove unecessary else [#4871](https://github.com/LibreSign/libresign/pull/4871)
+
+## Fixes
+- fix: allow to sign without account [#4983](https://github.com/LibreSign/libresign/pull/4983)
+- fix: prevent merge when haven't a signature [#4975](https://github.com/LibreSign/libresign/pull/4975)
+- fix: css at validation page [#4954](https://github.com/LibreSign/libresign/pull/4954)
+- fix: send fileSrc to PDF Editor [#4951](https://github.com/LibreSign/libresign/pull/4951)
+- fix: test identify method [#4931](https://github.com/LibreSign/libresign/pull/4931)
+- fix: order signers by id [#4929](https://github.com/LibreSign/libresign/pull/4929)
+- fix: main license file [#4869](https://github.com/LibreSign/libresign/pull/4869)
+
+## 10.8.0 - 2025-05-20
+### Features
+- feat: adding new activity configuration [#4984](https://github.com/LibreSign/libresign/pull/4984)
+- feat: manage certificate policy [#4969](https://github.com/LibreSign/libresign/pull/4969)
+- feat: add administration settings to settings menu [#4967](https://github.com/LibreSign/libresign/pull/4967)
+
+### Changes
+- Update translations
+- Bump dependencies
+- chore: move strings to constants [#4977](https://github.com/LibreSign/libresign/pull/4977)
+- chore: valdiate password before send to sign [#4965](https://github.com/LibreSign/libresign/pull/4965)
+- chore: text improvement [#4960](https://github.com/LibreSign/libresign/pull/4960)
+- chore: change save signed file logic [#4945](https://github.com/LibreSign/libresign/pull/4945)
+- chore: improve error message [#4942](https://github.com/LibreSign/libresign/pull/4942)
+- chore: improve feedback of configure check [#4915](https://github.com/LibreSign/libresign/pull/4915)
+- chore: reduce configure check time [#4878](https://github.com/LibreSign/libresign/pull/4878)
+- chore: remove unecessary else [#4870](https://github.com/LibreSign/libresign/pull/4870)
+
+## Fixes
+- fix: allow to sign without account [#4982](https://github.com/LibreSign/libresign/pull/4982)
+- fix: prevent merge when haven't a signature [#4974](https://github.com/LibreSign/libresign/pull/4974)
+- fix: css at validation page [#4953](https://github.com/LibreSign/libresign/pull/4953)
+- fix: send fileSrc to PDF Editor [#4950](https://github.com/LibreSign/libresign/pull/4950)
+- fix: test identify method [#4930](https://github.com/LibreSign/libresign/pull/4930)
+- fix: order signers by id [#4928](https://github.com/LibreSign/libresign/pull/4928)
+- fix: main license file [#4868](https://github.com/LibreSign/libresign/pull/4868)
+
 ## 11.1.2 - 2025-04-14
 ### Changes
 - Update translations
