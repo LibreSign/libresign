@@ -305,13 +305,16 @@ class ValidateHelper {
 
 	private function validateUserHasNecessaryElements(SignRequest $signRequest, ?IUser $user, array $list = []): void {
 		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($signRequest->getFileId(), $signRequest->getId());
-		$total = array_filter($fileElements, function (FileElement $fileElement) use ($list, $user, $signRequest): bool {
+		$total = array_filter($fileElements, function (FileElement $fileElement) use ($list, $user): bool {
 			$found = array_filter($list, function ($item) use ($fileElement): bool {
 				return $item['documentElementId'] === $fileElement->getId();
 			});
 			if (!$found) {
+				if (!$this->signerElementsService->canCreateSignature()) {
+					return true;
+				}
 				try {
-					if (!$user instanceof $user) {
+					if (!$user instanceof IUser) {
 						throw new \Exception();
 					}
 					$this->userElementMapper->findMany([
