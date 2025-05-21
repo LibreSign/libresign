@@ -1,12 +1,18 @@
 <?php
 
 declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 namespace OCA\Libresign\Controller;
+
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -27,7 +33,7 @@ class FileStatusController extends AEnvironmentAwareController {
 	 * Get file status by nodeId
 	 *
 	 * @param int $nodeId Id of file node
-	 * @return DataResponse<Http::STATUS_OK, array{status: int}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{status: int}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 400: Error
@@ -39,11 +45,11 @@ class FileStatusController extends AEnvironmentAwareController {
 		try {
 			$file = $this->fileMapper->getByFileId($nodeId);
 
-			if(!$file) {
+			if (!$file) {
 				return new DataResponse(['status' => File::STATUS_NOT_LIBRESIGN_FILE]);
 			}
 
-			if($file->getNodeId() === $nodeId &&
+			if ($file->getNodeId() === $nodeId &&
 				in_array($file->getStatus(), [File::STATUS_PARTIAL_SIGNED, File::STATUS_SIGNED])) {
 				return new DataResponse(['status' => File::STATUS_ORIGINAL_FILE_SIGNED_SOMEWHERE]);
 			}
