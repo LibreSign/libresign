@@ -148,12 +148,12 @@ export default {
 			this.errorMessage = ''
 		},
 		requestNewCode() {
-			this.signMethodsStore.hasEmailConfirmCode(false)
+			this.signMethodsStore.setHasEmailConfirmCode(false)
 			this.signMethodsStore.setEmailToken('')
 		},
 		async requestCode() {
 			this.loading = true
-			this.signMethodsStore.hasEmailConfirmCode(false)
+			this.signMethodsStore.setHasEmailConfirmCode(false)
 
 			await this.$nextTick()
 			if (!this.canRequestCode) {
@@ -189,7 +189,7 @@ export default {
 					)
 					showSuccess(data.ocs.data.message)
 				}
-				this.signMethodsStore.hasEmailConfirmCode(true)
+				this.signMethodsStore.setHasEmailConfirmCode(true)
 			} catch (err) {
 				showError(err.response.data.ocs.data.message)
 			} finally {

@@ -28,7 +28,7 @@ export const useSignMethodsStore = defineStore('signMethods', {
 		blurredEmail() {
 			return this.settings?.emailToken?.blurredEmail ?? ''
 		},
-		hasEmailConfirmCode(hasConfirmCode) {
+		setHasEmailConfirmCode(hasConfirmCode) {
 			if (!Object.hasOwn(this.settings, 'emailToken')) {
 				set(this.settings, 'emailToken', {})
 			}
