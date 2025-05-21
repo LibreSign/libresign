@@ -450,18 +450,6 @@ OC.L10N.register(
     "Name of an organizational unit" : "Name einer Organisationseinheit",
     "not a LibreSign file" : "Keine LibreSign-Datei",
     "New signature request" : "Neue Signaturanfrage",
-    "Requested by {name}, at {date}" : "Angefordert von {name}, am {date}",
-    "Other activities" : "Andere Aktivitäten",
-    "Renewed with success. Access the link again." : "Erfolgreich erneuert. Greifen Sie erneut auf den Link zu.",
-    "The code to sign file was successfully requested." : "Der Code zum Signieren der Datei wurde angefordert.",
-    "Digital signed by LibreSign." : "Digital signiert durch LibreSign.",
-    "Inform or UUID or a File object" : "Inform oder UUID oder ein Dateiobjekt",
-    "Loading file" : "Lade Datei",
-    "Account not exist" : "Konto existiert nicht",
-    "No signature, click here to create a new" : "Keine Signatur, klicken Sie hier, um eine neue zu erstellen",
-    "No initials, click here to create a new" : "Keine Initialen, klicken Sie hier um neue zu erstellen",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Der Ablauf für Ausweisdokumenten wird es für jeden, der eine Datei signieren muss, zwingend erforderlich machen, Ausweisdokumente zu senden, die von einem Mitglied der Genehmigungsgruppe genehmigt werden müssen. Der Benutzer kann das Zertifikat erst nach Genehmigung der Ausweisdokumente erstellen.",
-    "Not mandatory, don't fill to use default value." : "Nicht obligatorisch, nicht ausfüllen, um den Standardwert zu verwenden.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Um die Signatur der Dokumente zu prüfen. Ändern Sie diesen Wert nur, wenn Sie die Standard-Überprüfungs-URL durch eine andere ersetzen möchten."
+    "Requested by {name}, at {date}" : "Angefordert von {name}, am {date}"
 },
 "nplurals=2; plural=(n != 1);");

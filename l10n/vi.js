@@ -86,7 +86,6 @@ OC.L10N.register(
     "Reset to default" : "Đặt lại về mặc định",
     "Forgot password?" : "Quên mật khẩu sao?",
     "Name:" : "Tên:",
-    "No date" : "No date",
-    "Other activities" : "Hoạt động khác"
+    "No date" : "No date"
 },
 "nplurals=1; plural=0;");

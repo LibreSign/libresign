@@ -448,18 +448,6 @@
     "Name of an organizational unit" : "Nome de uma unidade organizacional",
     "not a LibreSign file" : "não é um arquivo LibreSign",
     "New signature request" : "Nova solicitação de assinatura",
-    "Requested by {name}, at {date}" : "Solicitada por {name}, em {date}",
-    "Other activities" : "Outras atividades",
-    "Renewed with success. Access the link again." : "Renovado com sucesso. Acesse o link novamente.",
-    "The code to sign file was successfully requested." : "O código para assinar o arquivo foi solicitado com sucesso.",
-    "Digital signed by LibreSign." : "Assinado digitalmente por LibreSign.",
-    "Inform or UUID or a File object" : "Por favor, forneça ou um UUID ou um objeto de Arquivo",
-    "Loading file" : "Carregando arquivo",
-    "Account not exist" : "Conta não existe",
-    "No signature, click here to create a new" : "Sem assinatura, clique aqui para criar uma nova",
-    "No initials, click here to create a new" : "Sem iniciais, clique aqui para criar novas",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "O fluxo de documentos de identificação tornará obrigatório que qualquer pessoa que precise assinar um arquivo envie documentos de identificação para serem aprovados por algum membro do grupo de aprovação. O usuário só poderá criar o certificado após a aprovação dos documentos de identificação.",
-    "Not mandatory, don't fill to use default value." : "Não obrigatório, não preencha para usar o valor padrão.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Para validar a assinatura dos documentos. Somente altere este valor se quiser substituir o URL de validação padrão por outro."
+    "Requested by {name}, at {date}" : "Solicitada por {name}, em {date}"
 },"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

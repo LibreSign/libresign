@@ -163,10 +163,6 @@ OC.L10N.register(
     "No date" : "Peruna data",
     "Return" : "Torra",
     "Open in LibreSign" : "Aberi in LibreSign",
-    "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}",
-    "Other activities" : "Àteras atividades",
-    "Inform or UUID or a File object" : "Informa o UUID o unu File object",
-    "Account not exist" : "Su contu non b'est",
-    "No signature, click here to create a new" : "Peruna firma. Incarca inoghe pro nde creare una noa"
+    "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}"
 },
 "nplurals=2; plural=(n != 1);");

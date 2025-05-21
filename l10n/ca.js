@@ -294,17 +294,6 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Nom d'una localitat o lloc, com ara una ciutat, un comtat o una altra regió geogràfica",
     "Name of an organization" : "Nom d'una organització",
     "Name of an organizational unit" : "Nom d'una unitat organitzativa",
-    "Requested by {name}, at {date}" : "Sol·licitat per {name}, a {date}",
-    "Other activities" : "Altres activitats",
-    "Renewed with success. Access the link again." : "Renovat amb èxit. Accedeix a l'enllaç altra vegada.",
-    "The code to sign file was successfully requested." : "El codi per signar el fitxer s'ha sol·licitat correctament.",
-    "Digital signed by LibreSign." : "Signat digitalment per LibreSign.",
-    "Inform or UUID or a File object" : "Informar o UUID o un objecte Fitxer",
-    "Account not exist" : "El compte no existeix",
-    "No signature, click here to create a new" : "Sense signatura, feu clic aquí per crear-ne una",
-    "No initials, click here to create a new" : "Sense inicials, feu clic aquí per crear-ne una de nova",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "El flux de documents identificatius farà que sigui obligatori per a qualsevol persona que hagi de signar un expedient, enviar documents identificatius perquè sigui aprovat per algun membre del grup d'homologació. L'usuari només pot crear el certificat després de l'aprovació dels documents d'identificació.",
-    "Not mandatory, don't fill to use default value." : "No és obligatori, no ompliu per utilitzar el valor predeterminat.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Per validar la signatura dels documents. Canvieu aquest valor només si voleu substituir l'URL de validació predeterminat per un altre."
+    "Requested by {name}, at {date}" : "Sol·licitat per {name}, a {date}"
 },
 "nplurals=2; plural=(n != 1);");

@@ -448,18 +448,6 @@
     "Name of an organizational unit" : "Ainm aonaid eagraíochta",
     "not a LibreSign file" : "ní comhad LibreSign é",
     "New signature request" : "Iarratas sínithe nua",
-    "Requested by {name}, at {date}" : "Arna iarraidh ag {name}, ag {date}",
-    "Other activities" : "Gníomhaíochtaí eile",
-    "Renewed with success. Access the link again." : "Athnuaite le rath. Faigh rochtain ar an nasc arís.",
-    "The code to sign file was successfully requested." : "Iarradh an cód chun an comhad a shíniú.",
-    "Digital signed by LibreSign." : "Digiteach sínithe ag LibreSign.",
-    "Inform or UUID or a File object" : "Eolas nó UUID nó réad Comhad",
-    "Loading file" : "Comhad á lódáil",
-    "Account not exist" : "Níl an cuntas ann",
-    "No signature, click here to create a new" : "Gan síniú, cliceáil anseo chun ceann nua a chruthú",
-    "No initials, click here to create a new" : "Gan aon cheannlitreacha, cliceáil anseo chun ceann nua a chruthú",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Mar gheall ar shreabhadh na ndoiciméad sainaitheantais, beidh sé éigeantach d’aon duine nach mór dó comhad a shíniú, doiciméid aitheantais a sheoladh le go mbeidh siad ceadaithe ag ball éigin den ghrúpa ceadaithe. Ní féidir leis an úsáideoir an deimhniú a chruthú ach amháin tar éis na doiciméid aitheantais a cheadú.",
-    "Not mandatory, don't fill to use default value." : "Níl sé éigeantach, ná líon isteach chun an luach réamhshocraithe a úsáid.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Chun síniú na ndoiciméad a bhailíochtú. Ná athraigh an luach seo ach amháin más mian leat ceann eile a chur in ionad an URL bailíochtaithe réamhshocraithe."
+    "Requested by {name}, at {date}" : "Arna iarraidh ag {name}, ag {date}"
 },"pluralForm" :"nplurals=5; plural=(n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n<11 ? 3 : 4);"
 }

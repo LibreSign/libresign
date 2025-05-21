@@ -308,17 +308,6 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Hiri, herri, eskualde edo antzeko eremu geografiko baten izena",
     "Name of an organization" : "Erakunde baten izena",
     "Name of an organizational unit" : "Erakunde bateko sail baten izena",
-    "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean",
-    "Other activities" : "Beste jarduerak",
-    "The code to sign file was successfully requested." : "Fitxategia sinatzeko kodea ondo eskatu da.",
-    "Digital signed by LibreSign." : "LibreSign-en sinadura digitala.",
-    "Inform or UUID or a File object" : "Jakinarazpen edo UUID edo fitxategi elementu bat",
-    "Loading file" : "Fitxategia kargatzen",
-    "Account not exist" : "Kontua ez da existitzen",
-    "No signature, click here to create a new" : "Ez dago sinadurarik, egin klik hemen berri bat sortzeko",
-    "No initials, click here to create a new" : "Ez dago inizialik, egin klik hemen berri bat sortzeko",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Identifikazio dokumentuen fluxuak nahitaezko bihurtuko du fitxategi bat sinatu nahi duen ororentzat lehenengo identifikazio dokumentuak bidaltzea, onarpen taldeko norbaitek onartu ditzan. Erabiltzaileak ezingo du zertifikaturik sortu, identifikazio dokumentua onartzen dioten arte.",
-    "Not mandatory, don't fill to use default value." : "Ez da nahitaezkoa, betetzen ez bada balio lehenetsia erabiliko da.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Dokumentuen sinadura baliozkotzeko. Balio hau aldatu lehenetsitako URLa beste batengatik ordezkatu nahi baduzu soilik."
+    "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean"
 },
 "nplurals=2; plural=(n != 1);");

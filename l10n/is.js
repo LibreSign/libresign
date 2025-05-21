@@ -95,7 +95,6 @@ OC.L10N.register(
     "No" : "Nei",
     "Reset to default" : "Endurstilla á sjálfgefið",
     "Name:" : "Nafn:",
-    "No date" : "Engin dagsetning",
-    "Other activities" : "Aðrar athafnir"
+    "No date" : "Engin dagsetning"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

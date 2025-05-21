@@ -357,18 +357,6 @@
     "Name of a locality or place, such as a city, county, or other geographic region" : "Ime kraja, mesta, okrožja, države ali druge geografske regije.",
     "Name of an organization" : "Naziv organizacije",
     "Name of an organizational unit" : "Naziv organizacijske enote v podjetju",
-    "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}",
-    "Other activities" : "Druge dejavnosti",
-    "Renewed with success. Access the link again." : "Povezava je uspešno obnovljena. Poskusite ponovno uporabiti povezavo.",
-    "The code to sign file was successfully requested." : "Koda, namenjena podpisu datoteke, je uspešno ustvarjena.",
-    "Digital signed by LibreSign." : "Digitalno podpisano z LibreSign.",
-    "Inform or UUID or a File object" : "Inform, UUID oziroma predmet datoteke",
-    "Loading file" : "Nalaganje datoteke",
-    "Account not exist" : "Račun ne obstaja",
-    "No signature, click here to create a new" : "Ni še ustvarjenega podpisa. Kliknite na to mesto za pripravo novega.",
-    "No initials, click here to create a new" : "Ni še ustvarjenega imena oziroma začetnic. Kliknite na to mesto za pripravo podpisa.",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Zaradi pretoka identifikacijskih dokumentov v postopku podpisa bo vsakdo, ki mora podpisati datoteko, obvezno poslal identifikacijske dokumente v potrditev članu skupine za odobritev. Uporabnik lahko ustvari potrdilo šele po odobritvi identifikacijskih dokumentov.",
-    "Not mandatory, don't fill to use default value." : "Ni zahtevano, prazno polje omogoči privzeto vrednost.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Naslov za potrditev podpisa dokumentov. To vrednost spremenite le, če želite privzeti overitveni naslov URL zamenjati z drugim."
+    "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}"
 },"pluralForm" :"nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);"
 }

@@ -205,12 +205,6 @@ OC.L10N.register(
     "No date" : "Nema datuma",
     "Return" : "Natrag",
     "Open in LibreSign" : "Otvori u sustavu LibreSign",
-    "Requested by {name}, at {date}" : "Zatražio {name} na dan {date}",
-    "Other activities" : "Druge aktivnosti",
-    "Digital signed by LibreSign." : "Digitalno potpisano sustavom LibreSign.",
-    "Inform or UUID or a File object" : "Objekt Inform ili UUID ili File",
-    "Account not exist" : "Račun ne postoji",
-    "No signature, click here to create a new" : "Nema potpisa, kliknite ovdje za stvaranje novog",
-    "No initials, click here to create a new" : "Nema inicijala, kliknite ovdje za stvaranje novog"
+    "Requested by {name}, at {date}" : "Zatražio {name} na dan {date}"
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");

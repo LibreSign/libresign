@@ -450,18 +450,6 @@ OC.L10N.register(
     "Name of an organizational unit" : "Nome di un'unità organizzativa",
     "not a LibreSign file" : "non è un file LibreSign",
     "New signature request" : "Nuova richiesta di firma",
-    "Requested by {name}, at {date}" : "Richiesta da {name}, il {date}",
-    "Other activities" : "Altre attività",
-    "Renewed with success. Access the link again." : "Rinnovato con successo. Accedi nuovamente al link.",
-    "The code to sign file was successfully requested." : "Il codice per firmare il file è stato richiesto correttamente.",
-    "Digital signed by LibreSign." : "Firmata digitalmente con LibreSign.",
-    "Inform or UUID or a File object" : "Inform o UUID o un oggetto File",
-    "Loading file" : "Caricamento file",
-    "Account not exist" : "L'account non esiste",
-    "No signature, click here to create a new" : "Nessuna firma, fai clic qui per crearne una",
-    "No initials, click here to create a new" : "Nessuna iniziale, fai clic qui per crearne una",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Il flusso di documenti di identificazione renderà obbligatorio per chiunque debba firmare un file, inviare documenti di identificazione per essere approvati da un membro del gruppo di approvazione. L'utente potrà creare il certificato solo dopo l'approvazione dei documenti identificativi.",
-    "Not mandatory, don't fill to use default value." : "Non obbligatorio, non compilare per utilizzare il valore predefinito.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Per convalidare la firma dei documenti. Cambia questo valore solo se vuoi sostituire l'URL di convalida predefinito con un altro."
+    "Requested by {name}, at {date}" : "Richiesta da {name}, il {date}"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

@@ -302,16 +302,6 @@
     "Name of a locality or place, such as a city, county, or other geographic region" : "Egy terület vagy helység neve, például város, megye vagy más földrajzi régió",
     "Name of an organization" : "Egy szervezet neve",
     "Name of an organizational unit" : "Egy szervezeti egység neve",
-    "Requested by {name}, at {date}" : "{name} kérte, ekkor: {date}",
-    "Other activities" : "Egyéb tevékenységek",
-    "The code to sign file was successfully requested." : "A fájl aláírásához használt kód kérése sikeres.",
-    "Digital signed by LibreSign." : "LibreSignnal digitálisan aláírva.",
-    "Inform or UUID or a File object" : "Adjon meg egy UUID-t vagy egy fájlobjektumot",
-    "Account not exist" : "A fiók nem létezik",
-    "No signature, click here to create a new" : "Nincs aláírás, kattintson ide egy új létrehozásához",
-    "No initials, click here to create a new" : "Nincs monogram, kattintson ide egy új létrehozásához",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Az azonosító dokumentumok folyamata kötelezővé teszi mindenki számára, akinek fájlt kell aláírnia, hogy azonosító dokumentumokat küldjön, melyet a jóváhagyó csoport egy tagja fog jóváhagyni. A felhasználó csak az azonosító dokumentumok jóváhagyása után hozhatja létre a tanúsítványt.",
-    "Not mandatory, don't fill to use default value." : "Nem kötelező, az alapértelmezett érték használatához hagyja üresen.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "A dokumentumok aláírásának ellenőrzéséhez. Csak akkor változtassa meg ezt az értéket, ha másra akarja cserélni az érvényesítési webcímet."
+    "Requested by {name}, at {date}" : "{name} kérte, ekkor: {date}"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -366,18 +366,6 @@ OC.L10N.register(
     "Name of an organization" : "Nom d'une organisation",
     "Name of an organizational unit" : "Nom d'une unité d'organisation",
     "New signature request" : "Nouvelle demande de signature",
-    "Requested by {name}, at {date}" : "Demandé par {name}, le {date}",
-    "Other activities" : "Autres activités",
-    "Renewed with success. Access the link again." : "Renouvelé avec succès. Accédez à nouveau au lien.",
-    "The code to sign file was successfully requested." : "La requête de signature du fichier à été correctement soumise.",
-    "Digital signed by LibreSign." : "Signé numériquement avec LibreSign.",
-    "Inform or UUID or a File object" : "Renseignez soit l'UUID soit un objet de type Fichier",
-    "Loading file" : "Chargement du fichier",
-    "Account not exist" : "Compte inexistant",
-    "No signature, click here to create a new" : "Aucune signature, cliquez ici pour en créer une nouvelle",
-    "No initials, click here to create a new" : "Pas d’initiales, cliquez ici pour en créer de nouvelles",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Le flux des documents d'identification rendra obligatoire pour quiconque devant signer un document, d'envoyer des documents d'identification devant recevoir l'agrément d'un membre du groupe Approbation. L'utilisateur ne peut créer le certificat qu'après approbation de ses documents d'identification.",
-    "Not mandatory, don't fill to use default value." : "Facultatif, ne pas remplir pour utiliser les valeurs par défaut.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Pour valider la signature des documents. Changez cette valeur uniquement si vous voulez remplacer l'URL de validation par défaut par une autre."
+    "Requested by {name}, at {date}" : "Demandé par {name}, le {date}"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

@@ -403,18 +403,6 @@
     "Name of an organizational unit" : "Nome dunha unidade organizativa",
     "not a LibreSign file" : "non é un ficheiro LibreSign",
     "New signature request" : "Nova solicitude de sinatura",
-    "Requested by {name}, at {date}" : "Solicitado por {name}, o {date}",
-    "Other activities" : "Outras actividades",
-    "Renewed with success. Access the link again." : "Renovada correctamente. Acceda de novo á ligazón.",
-    "The code to sign file was successfully requested." : "O código para asinar o ficheiro foi solicitado correctamente.",
-    "Digital signed by LibreSign." : "Asinado dixitalmente por LibreSign.",
-    "Inform or UUID or a File object" : "Informar do UUID ou un obxecto de tipo ficheiro",
-    "Loading file" : "Cargando o ficheiro",
-    "Account not exist" : "A conta non existe",
-    "No signature, click here to create a new" : "Sen sinatura, prema aquí para crear unha nova",
-    "No initials, click here to create a new" : "Sen iniciais, prema aquí para crear unhas novas",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "O fluxo de documentos identificativos será obrigatorio para todo aquel que teña que asinar un ficheiro, envíe os documentos identificativos para ser aprobados por algún membro do grupo de homologación. O usuario só pode crear o certificado após a aprobación dos documentos de identificación.",
-    "Not mandatory, don't fill to use default value." : "Non é obrigatorio, non o encha para usar o valor predeterminado.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Para validar a sinatura dos documentos. Cambie só este valor se quere substituír o URL de validación predeterminado por outro."
+    "Requested by {name}, at {date}" : "Solicitado por {name}, o {date}"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -86,7 +86,6 @@ OC.L10N.register(
     "Reset to default" : "Reset to default",
     "Forgot password?" : "Forgot password?",
     "Name:" : "Name:",
-    "Status:" : "Status:",
-    "Other activities" : "Other activities"
+    "Status:" : "Status:"
 },
 "nplurals=2; plural=(n!=1);");

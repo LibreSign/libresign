@@ -109,7 +109,6 @@ OC.L10N.register(
     "Name:" : "名前: ",
     "Status:" : "ステータス:",
     "No date" : "日付なし",
-    "Open in LibreSign" : "LibreSignで開く",
-    "Other activities" : "その他のアクティビティ"
+    "Open in LibreSign" : "LibreSignで開く"
 },
 "nplurals=1; plural=0;");

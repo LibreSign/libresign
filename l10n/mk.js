@@ -95,7 +95,6 @@ OC.L10N.register(
     "Forgot password?" : "Заборавена лозинка?",
     "Name:" : "Име:",
     "Status:" : "Статус:",
-    "No date" : "No date",
-    "Other activities" : "Други активности"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;");

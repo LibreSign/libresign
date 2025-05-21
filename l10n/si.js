@@ -35,7 +35,6 @@ OC.L10N.register(
     "Remove" : "ඉවත් කරන්න",
     "Message" : "පණිවිඩය",
     "Yes" : "ඔව්",
-    "No" : "නැහැ",
-    "Other activities" : "වෙනත්  ක්‍රියාකාරකම්"
+    "No" : "නැහැ"
 },
 "nplurals=2; plural=(n != 1);");

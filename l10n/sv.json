@@ -447,18 +447,6 @@
     "Name of an organizational unit" : "Namn på en organisationsenhet",
     "not a LibreSign file" : "inte en LibreSign-fil",
     "New signature request" : "Ny signaturförfrågan",
-    "Requested by {name}, at {date}" : "Begärd av {name}, den {date}",
-    "Other activities" : "Andra aktiviteter",
-    "Renewed with success. Access the link again." : "Förnyad med framgång. Öppna länken igen.",
-    "The code to sign file was successfully requested." : "Koden för att signera filen har begärts.",
-    "Digital signed by LibreSign." : "Digital signerad av LibreSign.",
-    "Inform or UUID or a File object" : "Informera eller UUID eller en fil-objekt",
-    "Loading file" : "Läser in fil",
-    "Account not exist" : "Kontot finns inte",
-    "No signature, click here to create a new" : "Ingen signatur, klicka här för att skapa en ny",
-    "No initials, click here to create a new" : "Inga initialer, klicka här för att skapa en ny",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Flödet av identifieringshandlingar kommer att göra det obligatoriskt för alla som måste underteckna en fil, skicka identifieringsdokument för att godkännas av någon medlem i godkännandegruppen. Användaren kan bara skapa certifikatet efter godkännande av identifieringsdokumenten.",
-    "Not mandatory, don't fill to use default value." : "Inte obligatoriskt, fyll inte i för att använda standardvärdet.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "För att validera dokumentens signatur. Ändra endast detta värde om du vill ersätta standardverifierings-URL med en annan."
+    "Requested by {name}, at {date}" : "Begärd av {name}, den {date}"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

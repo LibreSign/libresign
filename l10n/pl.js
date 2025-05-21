@@ -264,14 +264,6 @@ OC.L10N.register(
     "No date" : "Brak daty",
     "Return" : "Powróć",
     "Open in LibreSign" : "Otwórz w LibreSign",
-    "Requested by {name}, at {date}" : "Prośba złożona przez {name}, dnia {date}",
-    "Other activities" : "Inne aktywności",
-    "The code to sign file was successfully requested." : "Pomyślnie zażądano kodu do podpisania pliku.",
-    "Digital signed by LibreSign." : "Podpisane cyfrowo przez LibreSign.",
-    "Inform or UUID or a File object" : "Inform lub UUID lub obiekt pliku",
-    "Account not exist" : "Konto nie istnieje",
-    "No signature, click here to create a new" : "Brak podpisu, kliknij tutaj, aby utworzyć nowy",
-    "No initials, click here to create a new" : "Brak inicjałów, kliknij tutaj, aby utworzyć nowy",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Aby potwierdzić podpis dokumentów. Zmień tę wartość tylko wtedy, gdy chcesz zastąpić domyślny adres URL weryfikacji innym."
+    "Requested by {name}, at {date}" : "Prośba złożona przez {name}, dnia {date}"
 },
 "nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);");
