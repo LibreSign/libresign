@@ -15,10 +15,11 @@ if (!defined('PHPUNIT_RUN')) {
 }
 
 require_once __DIR__ . '/../../../../lib/base.php';
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../../../../tests/autoload.php';
 
 \OC::$composerAutoloader->addPsr4('Test\\', OC::$SERVERROOT . '/tests/php/lib/', true);
 \OC::$composerAutoloader->addPsr4('Tests\\', OC::$SERVERROOT . '/tests/php/', true);
+\OC::$composerAutoloader->addPsr4('OCA\\Libresign\\Tests\\', __DIR__, true);
 
 Server::get(IAppManager::class)->loadApp('libresign');
 

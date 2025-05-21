@@ -7,7 +7,7 @@
          failOnRisky="true"
          failOnWarning="true"
          colors="true"
-         cacheDirectory="build/logs/.phpunit.cache"
+         cacheDirectory="../../build/logs/.phpunit.cache"
          displayDetailsOnTestsThatTriggerWarnings="true"
          beStrictAboutCoverageMetadata="true">
   <testsuites>
@@ -20,8 +20,8 @@
   </testsuites>
   <coverage>
     <report>
-      <clover outputFile="build/logs/clover.xml"/>
-      <html outputDirectory="build/logs/html-coverage" lowUpperBound="50" highLowerBound="90"/>
+      <clover outputFile="../../build/logs/clover.xml"/>
+      <html outputDirectory="../../build/logs/html-coverage" lowUpperBound="50" highLowerBound="90"/>
     </report>
   </coverage>
   <source>
