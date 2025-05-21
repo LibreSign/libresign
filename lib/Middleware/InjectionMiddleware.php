@@ -46,8 +46,6 @@ use OCP\IUserSession;
 use OCP\Util;
 
 class InjectionMiddleware extends Middleware {
-	protected ?string $userId;
-
 	public function __construct(
 		private IRequest $request,
 		private ISession $session,
@@ -61,10 +59,9 @@ class InjectionMiddleware extends Middleware {
 		private IL10N $l10n,
 		private IAppConfig $appConfig,
 		private IURLGenerator $urlGenerator,
-		?string $userId,
+		protected ?string $userId,
 	) {
 		$this->request = $request;
-		$this->userId = $userId;
 	}
 
 	/**
@@ -76,7 +73,7 @@ class InjectionMiddleware extends Middleware {
 		if ($controller instanceof AEnvironmentAwareController) {
 			$apiVersion = $this->request->getParam('apiVersion');
 			/** @var AEnvironmentAwareController $controller */
-			$controller->setAPIVersion((int)substr($apiVersion, 1));
+			$controller->setAPIVersion((int)substr((string)$apiVersion, 1));
 		}
 
 		$reflectionMethod = new \ReflectionMethod($controller, $methodName);

@@ -354,9 +354,7 @@ class SignRequestMapper extends QBMapper {
 	 * @return FileElement[][]
 	 */
 	public function getVisibleElementsFromSigners(array $signRequests): array {
-		$signRequestIds = array_map(function (SignRequest $signRequest): int {
-			return $signRequest->getId();
-		}, $signRequests);
+		$signRequestIds = array_map(fn (SignRequest $signRequest): int => $signRequest->getId(), $signRequests);
 		if (!$signRequestIds) {
 			return [];
 		}
@@ -383,9 +381,7 @@ class SignRequestMapper extends QBMapper {
 	 * @return array<array-key, array<array-key, \OCP\AppFramework\Db\Entity&\OCA\Libresign\Db\IdentifyMethod>>
 	 */
 	public function getIdentifyMethodsFromSigners(array $signRequests): array {
-		$signRequestIds = array_map(function (SignRequest $signRequest): int {
-			return $signRequest->getId();
-		}, $signRequests);
+		$signRequestIds = array_map(fn (SignRequest $signRequest): int => $signRequest->getId(), $signRequests);
 		if (!$signRequestIds) {
 			return [];
 		}

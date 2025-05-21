@@ -219,27 +219,21 @@ class FileMapper extends QBMapper {
 	}
 
 	public function getTextOfStatus(int $status): ?string {
-		switch ($status) {
-			case File::STATUS_NOT_LIBRESIGN_FILE:
-				// TRANSLATORS Name of the status when document is not a LibreSign file
-				return $this->l->t('not LibreSign file');
-			case File::STATUS_DRAFT:
-				// TRANSLATORS Name of the status that the document is still as a draft
-				return $this->l->t('draft');
-			case File::STATUS_ABLE_TO_SIGN:
-				// TRANSLATORS Name of the status that the document can be signed
-				return $this->l->t('available for signature');
-			case File::STATUS_PARTIAL_SIGNED:
-				// TRANSLATORS Name of the status when the document has already been partially signed
-				return $this->l->t('partially signed');
-			case File::STATUS_SIGNED:
-				// TRANSLATORS Name of the status when the document has been completely signed
-				return $this->l->t('signed');
-			case File::STATUS_DELETED:
-				// TRANSLATORS Name of the status when the document was deleted
-				return $this->l->t('deleted');
-		}
-		return '';
+		return match ($status) {
+			// TRANSLATORS Name of the status when document is not a LibreSign file
+			File::STATUS_NOT_LIBRESIGN_FILE => $this->l->t('not LibreSign file'),
+			// TRANSLATORS Name of the status that the document is still as a draft
+			File::STATUS_DRAFT => $this->l->t('draft'),
+			// TRANSLATORS Name of the status that the document can be signed
+			File::STATUS_ABLE_TO_SIGN => $this->l->t('available for signature'),
+			// TRANSLATORS Name of the status when the document has already been partially signed
+			File::STATUS_PARTIAL_SIGNED => $this->l->t('partially signed'),
+			// TRANSLATORS Name of the status when the document has been completely signed
+			File::STATUS_SIGNED => $this->l->t('signed'),
+			// TRANSLATORS Name of the status when the document was deleted
+			File::STATUS_DELETED => $this->l->t('deleted'),
+			default => '',
+		};
 	}
 
 	public function neutralizeDeletedUser(string $userId, string $displayName): void {
@@ -251,7 +245,7 @@ class FileMapper extends QBMapper {
 			->where($qb->expr()->eq('f.user_id', $qb->createNamedParameter($userId)));
 		$cursor = $qb->executeQuery();
 		while ($row = $cursor->fetch()) {
-			$row['metadata'] = json_decode($row['metadata'], true);
+			$row['metadata'] = json_decode((string)$row['metadata'], true);
 			$row['metadata']['deleted_account'] = [
 				'account' => $userId,
 				'display_name' => $displayName,

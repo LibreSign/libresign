@@ -43,7 +43,7 @@ class Listener implements IEventListener {
 
 	public function handle(Event $event): void {
 		/** @var SendSignNotificationEvent|SignedEvent $event */
-		match (get_class($event)) {
+		match ($event::class) {
 			SendSignNotificationEvent::class => $this->generateNewSignNotificationActivity(
 				$event->getSignRequest(),
 				$event->getLibreSignFile(),

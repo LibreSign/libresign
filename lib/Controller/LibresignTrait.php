@@ -40,7 +40,7 @@ trait LibresignTrait {
 			$this->fileEntity = $this->signFileService->getFile(
 				$this->signRequestEntity->getFileId(),
 			);
-		} catch (DoesNotExistException|LibresignException $e) {
+		} catch (DoesNotExistException|LibresignException) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $this->l10n->t('Invalid UUID')]],

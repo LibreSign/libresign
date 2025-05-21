@@ -30,7 +30,7 @@ class CfsslServerHandler {
 	 */
 	public function configCallback(Closure $callback): void {
 		$this->getConfigPath = $callback;
-		$this->getConfigPath = function () use ($callback) {
+		$this->getConfigPath = function () use ($callback): void {
 			if ($this->csrServerFile) {
 				return;
 			}

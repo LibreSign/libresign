@@ -109,7 +109,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		try {
 			$this->getClient();
 			return true;
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 		}
 		return false;
 	}
@@ -414,7 +414,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 					->setTip('Run occ libresign:install --cfssl')
 			];
 		}
-		if (strpos($matches['version'][0], InstallService::CFSSL_VERSION) === false) {
+		if (!str_contains($matches['version'][0], InstallService::CFSSL_VERSION)) {
 			return [
 				(new ConfigureCheckHelper())
 					->setErrorMessage(sprintf(

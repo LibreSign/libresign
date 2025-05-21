@@ -45,16 +45,12 @@ class Notifier implements INotifier {
 
 		$l = $this->factory->get(Application::APP_ID, $languageCode);
 
-		switch ($notification->getSubject()) {
-			case 'new_sign_request':
-				return $this->parseSignRequest($notification, $l, false);
-			case 'update_sign_request':
-				return $this->parseSignRequest($notification, $l, true);
-			case 'file_signed':
-				return $this->parseSigned($notification, $l);
-			default:
-				throw new UnknownActivityException();
-		}
+		return match ($notification->getSubject()) {
+			'new_sign_request' => $this->parseSignRequest($notification, $l, false),
+			'update_sign_request' => $this->parseSignRequest($notification, $l, true),
+			'file_signed' => $this->parseSigned($notification, $l),
+			default => throw new UnknownActivityException(),
+		};
 	}
 
 	private function parseSignRequest(

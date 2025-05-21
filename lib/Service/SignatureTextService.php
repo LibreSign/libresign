@@ -82,7 +82,7 @@ class SignatureTextService {
 			],
 			$template
 		);
-		$template = strip_tags($template);
+		$template = strip_tags((string)$template);
 		$template = trim($template);
 		$template = html_entity_decode($template);
 		$this->appConfig->setValueString(Application::APP_ID, 'signature_text_template', $template);
