@@ -74,9 +74,6 @@ class File extends Entity {
 
 	public function getUserId(): string {
 		$metadata = $this->getMetadata();
-		if (isset($metadata['deleted_account']['account'])) {
-			return $metadata['deleted_account']['account'];
-		}
-		return $this->userId ?? '';
+		return $metadata['deleted_account']['account'] ?? $this->userId ?? '';
 	}
 }

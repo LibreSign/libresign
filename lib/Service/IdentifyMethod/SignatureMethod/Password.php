@@ -34,7 +34,7 @@ class Password extends AbstractSignatureMethod {
 				->setCertificate($this->pkcs12Handler->getPfxOfCurrentSigner($this->userSession->getUser()?->getUID()))
 				->setPassword($this->codeSentByUser)
 				->readCertificate();
-		} catch (InvalidPasswordException $e) {
+		} catch (InvalidPasswordException) {
 			throw new LibresignException($this->identifyService->getL10n()->t('Invalid user or password'));
 		}
 	}
@@ -57,7 +57,7 @@ class Password extends AbstractSignatureMethod {
 		try {
 			$this->pkcs12Handler->getPfxOfCurrentSigner($this->userSession->getUser()?->getUID());
 			return true;
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 		}
 		return false;
 	}

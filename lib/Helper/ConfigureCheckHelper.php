@@ -33,7 +33,7 @@ class ConfigureCheckHelper implements JsonSerializable {
 	private string $tip = '';
 
 	public function __call($name, $arguments) {
-		if (!preg_match('/^set(?<status>.+)Message/', $name, $matches)) {
+		if (!preg_match('/^set(?<status>.+)Message/', (string)$name, $matches)) {
 			return $this->__getSet($name, $arguments);
 		}
 		$status = strtolower($matches['status']);

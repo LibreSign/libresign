@@ -55,7 +55,7 @@ final class AdminControllerTest extends ApiTestCase {
 		]);
 		$appConfig->setValueString(Application::APP_ID, 'cfssl_uri', self::$server->getServerRoot() . '/api/v1/cfssl/');
 		$appConfig->setValueString(Application::APP_ID, 'config_path', 'vfs://home/');
-		$cfsslConfig['rootCert'] = json_decode($cfsslConfig['rootCert'], true);
+		$cfsslConfig['rootCert'] = json_decode((string)$cfsslConfig['rootCert'], true);
 
 		// Configure request
 		$this->request
@@ -76,7 +76,7 @@ final class AdminControllerTest extends ApiTestCase {
 		$rootCert = \OCP\Server::get(\OC\AllConfig::class)->getAppValue('libresign', 'rootCert');
 		$this->assertEqualsCanonicalizing(
 			$cfsslConfig['rootCert'],
-			json_decode($rootCert, true)
+			json_decode((string)$rootCert, true)
 		);
 
 		// Test result of endpoint

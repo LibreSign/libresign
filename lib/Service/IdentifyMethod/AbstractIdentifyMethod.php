@@ -48,7 +48,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	public static function getId(): string {
-		$id = lcfirst(substr(strrchr(get_called_class(), '\\'), 1));
+		$id = lcfirst(substr(strrchr(static::class, '\\'), 1));
 		return $id;
 	}
 
@@ -78,13 +78,11 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	public function signatureMethodsToArray(): array {
-		return array_map(function (AbstractSignatureMethod $method) {
-			return [
-				'label' => $method->friendlyName,
-				'name' => $method->getName(),
-				'enabled' => $method->isEnabled(),
-			];
-		}, $this->signatureMethods);
+		return array_map(fn (AbstractSignatureMethod $method) => [
+			'label' => $method->friendlyName,
+			'name' => $method->getName(),
+			'enabled' => $method->isEnabled(),
+		], $this->signatureMethods);
 	}
 
 	public function getEmptyInstanceOfSignatureMethodByName(string $name): AbstractSignatureMethod {
@@ -256,11 +254,10 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	private function getRenewAction(): int {
-		switch ($this->name) {
-			case 'email':
-				return JSActions::ACTION_RENEW_EMAIL;
-		}
-		throw new InvalidArgumentException('Invalid identify method name');
+		return match ($this->name) {
+			'email' => JSActions::ACTION_RENEW_EMAIL,
+			default => throw new InvalidArgumentException('Invalid identify method name'),
+		};
 	}
 
 	protected function throwIfAlreadySigned(): void {

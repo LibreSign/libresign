@@ -180,7 +180,7 @@ class FileService {
 				[$this->fileMapper, 'getBy' . $type],
 				$identifier
 			);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 		}
 		if (!$file) {
@@ -230,7 +230,7 @@ class FileService {
 		try {
 			$libresignFile = $this->fileMapper->getBySignedHash($this->fileData->hash);
 			$this->setFile($libresignFile);
-		} catch (DoesNotExistException $e) {
+		} catch (DoesNotExistException) {
 			$this->fileData->status = File::STATUS_NOT_LIBRESIGN_FILE;
 		}
 		$this->fileData->name = $file['name'];
@@ -258,7 +258,7 @@ class FileService {
 				return $this->fileContent = $this->getFile()->getContent();
 			} catch (LibresignException $e) {
 				throw new LibresignException($e->getMessage(), 404);
-			} catch (\Throwable $th) {
+			} catch (\Throwable) {
 				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 			}
 		}
@@ -308,7 +308,7 @@ class FileService {
 					if (!isset($found['uid'])) {
 						return false;
 					}
-					[$key, $value] = explode(':', $found['uid']);
+					[$key, $value] = explode(':', (string)$found['uid']);
 					foreach ($identifyMethods as $methods) {
 						foreach ($methods as $identifyMethod) {
 							$entity = $identifyMethod->getEntity();
@@ -449,12 +449,12 @@ class FileService {
 			}
 			if (!empty($signer['chain'][0]['subject']['UID'])) {
 				$this->fileData->signers[$index]['uid'] = $signer['chain'][0]['subject']['UID'];
-			} elseif (!empty($signer['chain'][0]['subject']['CN']) && preg_match('/^(?<key>.*):(?<value>.*), /', $signer['chain'][0]['subject']['CN'], $matches)) {
+			} elseif (!empty($signer['chain'][0]['subject']['CN']) && preg_match('/^(?<key>.*):(?<value>.*), /', (string)$signer['chain'][0]['subject']['CN'], $matches)) {
 				// Used by CFSSL
 				$this->fileData->signers[$index]['uid'] = $matches['key'] . ':' . $matches['value'];
 			} elseif (!empty($signer['chain'][0]['extensions']['subjectAltName'])) {
 				// Used by old certs of LibreSign
-				preg_match('/^(?<key>(email|account)):(?<value>.*)$/', $signer['chain'][0]['extensions']['subjectAltName'], $matches);
+				preg_match('/^(?<key>(email|account)):(?<value>.*)$/', (string)$signer['chain'][0]['extensions']['subjectAltName'], $matches);
 				if ($matches) {
 					if (str_ends_with($matches['value'], $this->host)) {
 						$uid = str_replace('@' . $this->host, '', $matches['value']);
@@ -555,7 +555,7 @@ class FileService {
 				);
 				$return[] = $element;
 			}
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 		}
 		return $return;
 	}
@@ -597,16 +597,12 @@ class FileService {
 		if (empty($files) || !count($files)) {
 			return self::IDENTIFICATION_DOCUMENTS_NEED_SEND;
 		}
-		$deleted = array_filter($files, function (File $file) {
-			return $file->getStatus() === File::STATUS_DELETED;
-		});
+		$deleted = array_filter($files, fn (File $file) => $file->getStatus() === File::STATUS_DELETED);
 		if (count($deleted) === count($files)) {
 			return self::IDENTIFICATION_DOCUMENTS_NEED_SEND;
 		}
 
-		$signed = array_filter($files, function (File $file) {
-			return $file->getStatus() === File::STATUS_SIGNED;
-		});
+		$signed = array_filter($files, fn (File $file) => $file->getStatus() === File::STATUS_SIGNED);
 		if (count($signed) !== count($files)) {
 			return self::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL;
 		}
@@ -701,8 +697,8 @@ class FileService {
 		array $filter = [],
 		array $sort = [],
 	): array {
-		$page = $page ?? 1;
-		$length = $length ?? (int)$this->appConfig->getValueInt(Application::APP_ID, 'length_of_page', 100);
+		$page ??= 1;
+		$length ??= (int)$this->appConfig->getValueInt(Application::APP_ID, 'length_of_page', 100);
 
 		$return = $this->signRequestMapper->getFilesAssociatedFilesWithMeFormatted(
 			$this->me,
@@ -769,15 +765,13 @@ class FileService {
 						}, false),
 						'visibleElements' => $this->formatVisibleElementsToArray(
 							$visibleElements[$signer->getId()] ?? [],
-							!empty($file['metadata'])?json_decode($file['metadata'], true):[]
+							!empty($file['metadata'])?json_decode((string)$file['metadata'], true):[]
 						),
-						'identifyMethods' => array_map(function (IdentifyMethod $identifyMethod) use ($signer): array {
-							return [
-								'method' => $identifyMethod->getIdentifierKey(),
-								'value' => $identifyMethod->getIdentifierValue(),
-								'mandatory' => $identifyMethod->getMandatory(),
-							];
-						}, array_values($identifyMethodsOfSigner)),
+						'identifyMethods' => array_map(fn (IdentifyMethod $identifyMethod): array => [
+							'method' => $identifyMethod->getIdentifierKey(),
+							'value' => $identifyMethod->getIdentifierValue(),
+							'mandatory' => $identifyMethod->getMandatory(),
+						], array_values($identifyMethodsOfSigner)),
 					];
 
 					if ($data['me']) {
@@ -884,7 +878,7 @@ class FileService {
 		try {
 			$nextcloudFile = $this->folderService->getFileById($fileId);
 			$nextcloudFile->delete();
-		} catch (NotFoundException $e) {
+		} catch (NotFoundException) {
 		}
 	}
 }

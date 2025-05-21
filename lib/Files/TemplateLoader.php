@@ -57,7 +57,7 @@ class TemplateLoader implements IEventListener {
 		try {
 			$this->validateHelper->canRequestSign($this->userSession->getUser());
 			$this->initialState->provideInitialState('can_request_sign', true);
-		} catch (LibresignException $th) {
+		} catch (LibresignException) {
 			$this->initialState->provideInitialState('can_request_sign', false);
 		}
 	}

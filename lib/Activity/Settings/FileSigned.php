@@ -49,7 +49,7 @@ class FileSigned extends LibresignActivitySettings {
 	public function canChangeNotification(): bool {
 		try {
 			$this->validateHelper->canrequestSign($this->userSession->getUser());
-		} catch (LibresignException $e) {
+		} catch (LibresignException) {
 			return false;
 		}
 		return true;
@@ -61,7 +61,7 @@ class FileSigned extends LibresignActivitySettings {
 	public function canChangeMail() {
 		try {
 			$this->validateHelper->canrequestSign($this->userSession->getUser());
-		} catch (LibresignException $e) {
+		} catch (LibresignException) {
 			return false;
 		}
 		return true;

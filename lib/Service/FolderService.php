@@ -187,7 +187,7 @@ class FolderService {
 		$userFolder = $this->root->getUserFolder($this->getUserId());
 		try {
 			return $userFolder->get($path);
-		} catch (NotFoundException $e) {
+		} catch (NotFoundException) {
 			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 		}
 	}

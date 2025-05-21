@@ -72,19 +72,17 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 		$libresignFile
 			->method('__call')
-			->willReturnCallback(function ($key, $default):array|string {
-				return match ($key) {
-					'getMetadata' => [
-						'd' => [
-							[
-								'w' => 842,
-								'h' => 595,
-							],
+			->willReturnCallback(fn ($key, $default): array|string => match ($key) {
+				'getMetadata' => [
+					'd' => [
+						[
+							'w' => 842,
+							'h' => 595,
 						],
 					],
-					'getUuid' => 'uuid',
-					default => '',
-				};
+				],
+				'getUuid' => 'uuid',
+				default => '',
 			});
 
 		$this->l10n = $this->l10nFactory->get(Application::APP_ID, $language);

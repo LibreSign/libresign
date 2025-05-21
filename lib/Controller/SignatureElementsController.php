@@ -134,7 +134,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 				],
 				Http::STATUS_OK
 			);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Elements not found')
@@ -175,7 +175,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 				// as fallback
 				$url = $this->mimeIconProvider->getMimeIconUrl($node->getMimeType());
 				$baseUrl = $this->urlGenerator->getBaseUrl();
-				if (!str_starts_with($url, $baseUrl)) {
+				if (!str_starts_with((string)$url, $baseUrl)) {
 					throw new DoesNotExistException('Preview disabled');
 				}
 				$path = \OC::$SERVERROOT . str_replace($baseUrl, '', $url);
@@ -185,7 +185,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 				$extension = pathinfo($path, PATHINFO_EXTENSION);
 				$preview = new InMemoryFile(implode('.', ['signature', $extension]), file_get_contents($path));
 			}
-		} catch (DoesNotExistException $th) {
+		} catch (DoesNotExistException) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 		$response = new FileDisplayResponse($preview, Http::STATUS_OK, [
@@ -213,7 +213,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 				$this->signerElementsService->getUserElementByNodeId($userId, $nodeId),
 				Http::STATUS_OK
 			);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Element not found')
@@ -302,7 +302,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 				nodeId: $nodeId,
 				sessionId: $this->sessionService->getSessionId(),
 			);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Element not found')

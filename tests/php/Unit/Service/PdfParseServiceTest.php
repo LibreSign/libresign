@@ -61,8 +61,7 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				->willReturn(file_get_contents($path));
 		}
 		$this->getService()
-			->setFile($file)
-			->getPageDimensions($file);
+			->setFile($file)->getPageDimensions();
 	}
 
 	public static function dataGetMetadataWithFail(): array {
