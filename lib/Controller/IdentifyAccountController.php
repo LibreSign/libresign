@@ -178,15 +178,11 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 	}
 
 	private function excludeEmptyShareWith(array $list): array {
-		return array_filter($list, function ($result) {
-			return strlen($result['value']['shareWith']) > 0;
-		});
+		return array_filter($list, fn ($result) => strlen((string)$result['value']['shareWith']) > 0);
 	}
 
 	private function excludeNotAllowed(array $list): array {
 		$shareTypes = $this->getShareTypes();
-		return array_filter($list, function ($result) use ($shareTypes) {
-			return in_array($result['shareType'], $shareTypes);
-		});
+		return array_filter($list, fn ($result) => in_array($result['shareType'], $shareTypes));
 	}
 }

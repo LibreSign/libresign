@@ -33,7 +33,7 @@ class PdfParserService {
 			} else {
 				$this->content = $file;
 			}
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 		}
 		if (!$this->content) {
 			throw new LibresignException('Empty file.');
@@ -122,7 +122,7 @@ class PdfParserService {
 		if (!$pdfinfo) {
 			return [];
 		}
-		if (!preg_match_all('/Page +\d+ +size: +(\d+\.?\d*) x (\d+\.?\d*)/', $pdfinfo, $pages)) {
+		if (!preg_match_all('/Page +\d+ +size: +(\d+\.?\d*) x (\d+\.?\d*)/', (string)$pdfinfo, $pages)) {
 			return [];
 		}
 		$output = [

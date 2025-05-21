@@ -32,7 +32,7 @@ class ApiRequester extends AbstractRequester {
 
 		$headers = \xdebug_get_headers();
 		foreach ($headers as $header) {
-			$header = explode(': ', $header, 2);
+			$header = explode(': ', (string)$header, 2);
 			$response = $response->withHeader($header[0], $header[1]);
 		}
 
@@ -100,9 +100,7 @@ class ApiRequester extends AbstractRequester {
 			\OCP\Server::get(\OC\Security\CSRF\CsrfTokenManager::class),
 			$stream
 		);
-		\OC::$server->registerService(IRequest::class, function () use ($mockRequest):IRequest {
-			return $mockRequest;
-		});
+		\OC::$server->registerService(IRequest::class, fn (): IRequest => $mockRequest);
 		\OC::$CLI = false;
 
 		$router = \OCP\Server::get(\OC\Route\Router::class);

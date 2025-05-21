@@ -97,6 +97,11 @@
       <code><![CDATA[ViewController]]></code>
     </UndefinedClass>
   </file>
+  <file src="lib/Migration/DeleteOldBinaries.php">
+    <UndefinedClass>
+      <code><![CDATA[ScanAppData]]></code>
+    </UndefinedClass>
+  </file>
   <file src="lib/Migration/ResynchronizeDatabaseSequences.php">
     <UndefinedClass>
       <code><![CDATA[PostgreSQLPlatform]]></code>

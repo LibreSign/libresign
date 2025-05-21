@@ -157,7 +157,7 @@ class SignSetupService {
 							return $path;
 						}
 						throw new InvalidSignatureException('Java path not found at app config.');
-					} catch (\Throwable $th) {
+					} catch (\Throwable) {
 						throw new InvalidSignatureException('Java path not found at app config.');
 					}
 				}
@@ -185,7 +185,7 @@ class SignSetupService {
 							return $path;
 						}
 						throw new InvalidSignatureException('JSignPdf path not found at app config.');
-					} catch (\Throwable $th) {
+					} catch (\Throwable) {
 						throw new InvalidSignatureException('JSignPdf path not found at app config.');
 					}
 				}
@@ -204,7 +204,7 @@ class SignSetupService {
 							return $path;
 						}
 						throw new InvalidSignatureException('pdftk path not found at app config.');
-					} catch (\Throwable $th) {
+					} catch (\Throwable) {
 						throw new InvalidSignatureException('pdftk path not found at app config.');
 					}
 				}
@@ -223,7 +223,7 @@ class SignSetupService {
 							return $path;
 						}
 						throw new InvalidSignatureException('cfssl path not found at app config.');
-					} catch (\Throwable $th) {
+					} catch (\Throwable) {
 						throw new InvalidSignatureException('cfssl path not found at app config.');
 					}
 				}
@@ -232,11 +232,11 @@ class SignSetupService {
 			default:
 				$installPath = '';
 		}
-		if (!str_contains($installPath, $this->architecture)) {
+		if (!str_contains((string)$installPath, $this->architecture)) {
 			$installPath = preg_replace(
 				"/{$this->instanceId}\/libresign\/(\w+)/i",
 				"{$this->instanceId}/libresign/{$this->architecture}",
-				$installPath
+				(string)$installPath
 			);
 		}
 		return (string)$installPath;
@@ -385,7 +385,7 @@ class SignSetupService {
 		$rsa->setSaltLength(0);
 
 		$signatureData = $this->getSignatureData();
-		$signature = base64_decode($signatureData['signature']);
+		$signature = base64_decode((string)$signatureData['signature']);
 		if (!$rsa->verify(json_encode($expectedHashes), $signature)) {
 			throw new InvalidSignatureException('Signature could not get verified.');
 		}
@@ -488,7 +488,7 @@ class SignSetupService {
 				continue;
 			}
 
-			$relativeFileName = substr($filename, $baseDirectoryLength);
+			$relativeFileName = substr((string)$filename, $baseDirectoryLength);
 			$relativeFileName = ltrim($relativeFileName, '/');
 
 			if ($this->isExcluded($relativeFileName)) {
@@ -503,7 +503,7 @@ class SignSetupService {
 
 	private function isExcluded(string $filename): bool {
 		foreach ($this->exclude as $prefix) {
-			if (str_starts_with($filename, $prefix)) {
+			if (str_starts_with($filename, (string)$prefix)) {
 				return true;
 			}
 		}

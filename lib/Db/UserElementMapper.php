@@ -56,7 +56,7 @@ class UserElementMapper extends QBMapper {
 		$qb = $this->getQueryBuilder($data);
 		try {
 			$row = $this->findOneQuery($qb);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			$qb->andWhere(
 				$qb->expr()->eq('ue.starred', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT))
 			);
@@ -85,7 +85,7 @@ class UserElementMapper extends QBMapper {
 			->where($qb->expr()->eq('ue.user_id', $qb->createNamedParameter($userId)));
 		$cursor = $qb->executeQuery();
 		while ($row = $cursor->fetch()) {
-			$row['metadata'] = json_decode($row['metadata'], true);
+			$row['metadata'] = json_decode((string)$row['metadata'], true);
 			$row['metadata']['deleted_account'] = [
 				'account' => $userId,
 				'display_name' => $displayName,

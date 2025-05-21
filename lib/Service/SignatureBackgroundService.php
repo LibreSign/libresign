@@ -38,7 +38,7 @@ class SignatureBackgroundService {
 	private function getRootFolder(): ISimpleFolder {
 		try {
 			return $this->appData->getFolder('signature');
-		} catch (NotFoundException $e) {
+		} catch (NotFoundException) {
 			return $this->appData->newFolder('signature');
 		}
 	}
@@ -109,8 +109,7 @@ class SignatureBackgroundService {
 			$this->appConfig->setValueString(Application::APP_ID, 'signature_background_type', 'deleted');
 			$file = $this->getRootFolder()->getFile('background.png');
 			$file->delete();
-		} catch (NotFoundException $e) {
-		} catch (NotPermittedException $e) {
+		} catch (NotFoundException|NotPermittedException) {
 		}
 	}
 
@@ -119,15 +118,14 @@ class SignatureBackgroundService {
 			$this->appConfig->deleteKey(Application::APP_ID, 'signature_background_type');
 			$file = $this->getRootFolder()->getFile('background.png');
 			$file->delete();
-		} catch (NotFoundException $e) {
-		} catch (NotPermittedException $e) {
+		} catch (NotFoundException|NotPermittedException) {
 		}
 	}
 
 	public function getImage(): ISimpleFile {
 		try {
 			$file = $this->getRootFolder()->getFile('background.png');
-		} catch (NotFoundException $e) {
+		} catch (NotFoundException) {
 			$content = $this->optmizeImage(file_get_contents(__DIR__ . '/../../img/logo-gray.svg'), 0.15);
 			$file = new InMemoryFile('background.png', $content);
 		}
@@ -139,7 +137,7 @@ class SignatureBackgroundService {
 			$filePath = $this->getRootFolder()->getFile('background.png');
 			$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
 			return $dataDir . '/' . $this->getInternalPathOfFile($filePath);
-		} catch (NotFoundException $e) {
+		} catch (NotFoundException) {
 			$content = $this->optmizeImage(file_get_contents(__DIR__ . '/../../img/logo-gray.svg'), 0.3);
 			$filePath = $this->tempManager->getTemporaryFile('.png');
 			if (!$filePath) {

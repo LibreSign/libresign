@@ -88,7 +88,7 @@ trait TFile {
 			}
 			try {
 				$response = $this->client->newClient()->get($data['file']['url']);
-			} catch (\Throwable $th) {
+			} catch (\Throwable) {
 				throw new \Exception($this->l10n->t('Invalid URL file'));
 			}
 			$mimetypeFromHeader = $response->getHeader('Content-Type');

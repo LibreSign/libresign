@@ -170,9 +170,7 @@ class AdminController extends AEnvironmentAwareController {
 		$configureResult = $engine->configureCheck();
 		$success = array_filter(
 			$configureResult,
-			function (ConfigureCheckHelper $config) {
-				return $config->getStatus() === 'success';
-			}
+			fn (ConfigureCheckHelper $config) => $config->getStatus() === 'success'
 		);
 		$certificate['generated'] = count($success) === count($configureResult);
 
@@ -183,7 +181,7 @@ class AdminController extends AEnvironmentAwareController {
 		if (empty($value)) {
 			throw new LibresignException("parameter '{$key}' is required!", 400);
 		}
-		return trim($value);
+		return trim((string)$value);
 	}
 
 	/**

@@ -51,7 +51,7 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 			|| empty($this->codeSentByUser);
 		$return['hasConfirmCode'] = !empty($entity->getCode());
 		$return['blurredEmail'] = $this->blurEmail($email);
-		$return['hashOfEmail'] = md5($email);
+		$return['hashOfEmail'] = md5((string)$email);
 		return $return;
 	}
 

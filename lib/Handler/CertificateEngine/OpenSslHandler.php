@@ -173,7 +173,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			if (is_array($v)) {
 				$fileContent .= "\n[$i]\n" . $this->arrayToIni($v);
 			} else {
-				$fileContent .= "$i = " . (str_contains($v, "\n") ? '"' . $v . '"' : $v) . "\n";
+				$fileContent .= "$i = " . (str_contains((string)$v, "\n") ? '"' . $v . '"' : $v) . "\n";
 			}
 		}
 		return $fileContent;

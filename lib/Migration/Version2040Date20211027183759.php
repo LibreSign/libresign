@@ -19,20 +19,13 @@ use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 class Version2040Date20211027183759 extends SimpleMigrationStep {
-	/** @var IDBConnection */
-	private $connection;
-	/** @var IRootFolder */
-	private $root;
-	/** @var PdfParserService */
-	private $pdfParserService;
 	/** @var array */
 	private $rows;
-	public function __construct(IDBConnection $connection,
-		IRootFolder $root,
-		PdfParserService $pdfParserService) {
-		$this->connection = $connection;
-		$this->root = $root;
-		$this->pdfParserService = $pdfParserService;
+	public function __construct(
+		private IDBConnection $connection,
+		private IRootFolder $root,
+		private PdfParserService $pdfParserService,
+	) {
 	}
 
 	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
