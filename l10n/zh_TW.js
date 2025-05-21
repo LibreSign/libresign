@@ -450,18 +450,6 @@ OC.L10N.register(
     "Name of an organizational unit" : "組織單位名稱",
     "not a LibreSign file" : "非 LibreSign 檔案",
     "New signature request" : "新簽章請求",
-    "Requested by {name}, at {date}" : "由 {name} 請求於 {date}",
-    "Other activities" : "其它活動",
-    "Renewed with success. Access the link again." : "更新成功。請再次存取連結。",
-    "The code to sign file was successfully requested." : "已成功請求檔案簽名的代碼。",
-    "Digital signed by LibreSign." : "透過 LibreSign 進行數位簽署。",
-    "Inform or UUID or a File object" : "通知、UUID 或檔案物件",
-    "Loading file" : "正在載入檔案",
-    "Account not exist" : "帳號不存在",
-    "No signature, click here to create a new" : "沒有簽名，點擊此處建立新的",
-    "No initials, click here to create a new" : "沒有姓名首字母，點擊此處建立新的",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "身份證明文件流程將強制要求每個人必須簽署文件，傳送身份證明文件以供已批准群組的某些成員批准。使用者僅有在確認身份證明文件後才能建立證書。",
-    "Not mandatory, don't fill to use default value." : "不強制，若未填寫則使用預設值。",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "用來驗證文件的簽章。僅當您想用其他的取代預設驗證 URL 時才變更此值。"
+    "Requested by {name}, at {date}" : "由 {name} 請求於 {date}"
 },
 "nplurals=1; plural=0;");

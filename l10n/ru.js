@@ -253,14 +253,6 @@ OC.L10N.register(
     "Return" : "Возврат",
     "Open in LibreSign" : "Открыть в LibreSign",
     "Name of a locality or place, such as a city, county, or other geographic region" : "Название местности или места, например города, округа или другого географического региона",
-    "Requested by {name}, at {date}" : "Запрошено у {name} {date}",
-    "Other activities" : "Другие события",
-    "Renewed with success. Access the link again." : "Успешно обновлено. Перейдите по ссылке еще раз.",
-    "The code to sign file was successfully requested." : "Код для подписи файла был успешно запрошен.",
-    "Digital signed by LibreSign." : "Подписан электронной подписью LibreSign.",
-    "Inform or UUID or a File object" : "Сообщить UUID или файловый объект",
-    "Account not exist" : "Учётная запись не существует",
-    "No signature, click here to create a new" : "Нет подписи, нажмите здесь, чтобы ее создать",
-    "No initials, click here to create a new" : "Нет инициалов, нажмите здесь, чтобы их создать"
+    "Requested by {name}, at {date}" : "Запрошено у {name} {date}"
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");

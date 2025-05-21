@@ -93,7 +93,6 @@ OC.L10N.register(
     "Reset to default" : "Reafitar los valores",
     "Forgot password?" : "¿Escaeciesti la contraseña?",
     "Name:" : "Nome:",
-    "Status:" : "Estáu:",
-    "Other activities" : "Otres actividaes"
+    "Status:" : "Estáu:"
 },
 "nplurals=2; plural=(n != 1);");

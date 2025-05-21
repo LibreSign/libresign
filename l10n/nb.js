@@ -358,18 +358,6 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Navn på en lokalitet eller et sted, for eksempel en by, et fylke eller et annet geografisk område",
     "Name of an organization" : "Navn på en organisasjon",
     "Name of an organizational unit" : "Navn på en organisatorisk enhet",
-    "Requested by {name}, at {date}" : "Bedt av {name}, den {date}",
-    "Other activities" : "Andre aktiviteter",
-    "Renewed with success. Access the link again." : "Fornyet med suksess. Få tilgang til lenken igjen.",
-    "The code to sign file was successfully requested." : "Koden som skal signeres, ble forespurt.",
-    "Digital signed by LibreSign." : "Digitalt signert av LibreSign.",
-    "Inform or UUID or a File object" : "Informer eller UUID eller et filobjekt",
-    "Loading file" : "Laster fil",
-    "Account not exist" : "Konto finnes ikke",
-    "No signature, click here to create a new" : "Ingen signatur, klikk her for å opprette en ny",
-    "No initials, click here to create a new" : "Ingen initialer, klikk her for å opprette en ny",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Flyten av identifikasjonsdokumenter vil gjøre det obligatorisk for alle som må signere en fil, sende identifikasjonsdokumenter som skal godkjennes av et medlem av godkjenningsgruppen. Brukeren kan bare opprette sertifikatet etter godkjenning av identifikasjonsdokumentene.",
-    "Not mandatory, don't fill to use default value." : "Ikke obligatorisk, ikke fyll for å bruke standardverdi.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "For å validere signaturen til dokumentene. Endre denne verdien bare hvis du vil erstatte standard validerings-URL med en annen."
+    "Requested by {name}, at {date}" : "Bedt av {name}, den {date}"
 },
 "nplurals=2; plural=(n != 1);");

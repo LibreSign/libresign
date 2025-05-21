@@ -278,16 +278,6 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "Име на населено място или местност, като град, окръг или друг географски регион",
     "Name of an organization" : "Име на организация",
     "Name of an organizational unit" : "Име на организационна единица",
-    "Requested by {name}, at {date}" : "Поискано от {name}, на {date}",
-    "Other activities" : "Други активности",
-    "The code to sign file was successfully requested." : "Кодът за подписване на файла беше успешно поискан.",
-    "Digital signed by LibreSign." : "Цифров подпис от LibreSign.",
-    "Inform or UUID or a File object" : "Информирайте или UUID или файлов обект",
-    "Account not exist" : "Профилът не съществува",
-    "No signature, click here to create a new" : "Нямате подпис, щракнете тук, за да създадете нов",
-    "No initials, click here to create a new" : "Нямате инициали, щракнете тук, за да създадете нови",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Потокът от документи за самоличност ще се прилага задължително за всеки, който трябва да подпише файл; да изпрати документи за самоличност, които да бъдат одобрени от някой член на групата за одобрение. Потребителят може да създаде сертификата само след одобрение на документите засамоличност.",
-    "Not mandatory, don't fill to use default value." : "Не е задължително, не попълвайте това поле, за да използвате стойността по подразбиране.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "За проверката на подписа на документите. Променете тази стойност само ако искате да замените URL адреса за проверка по подразбиране с друг."
+    "Requested by {name}, at {date}" : "Поискано от {name}, на {date}"
 },
 "nplurals=2; plural=(n != 1);");

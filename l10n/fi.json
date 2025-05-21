@@ -193,11 +193,6 @@
     "No date" : "Ei päiväystä",
     "Return" : "Palaa",
     "Open in LibreSign" : "Avaa LibreSignissa",
-    "Requested by {name}, at {date}" : "Pyytänyt {name} {date}",
-    "Other activities" : "Muut tapahtumat",
-    "Digital signed by LibreSign." : "Digitaalisesti allekirjoitettu LibreSignilla.",
-    "Account not exist" : "Tiliä ei ole olemassa",
-    "No signature, click here to create a new" : "Ei allekirjoitusta, napsauta tästä luodaksesi uuden",
-    "No initials, click here to create a new" : "Ei nimikirjaimia, napsauta tästä luodaksesi uuden"
+    "Requested by {name}, at {date}" : "Pyytänyt {name} {date}"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

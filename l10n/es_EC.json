@@ -270,16 +270,6 @@
     "Name of a locality or place, such as a city, county, or other geographic region" : "Nombre de una localidad o lugar, como una ciudad, condado u otra región geográfica",
     "Name of an organization" : "Nombre de una organización",
     "Name of an organizational unit" : "Nombre de una unidad organizativa",
-    "Requested by {name}, at {date}" : "Solicitado por {nombre}, el {fecha}",
-    "Other activities" : "Otras actividades",
-    "The code to sign file was successfully requested." : "El código para firmar el archivo fue solicitado con éxito.",
-    "Digital signed by LibreSign." : "Firmado digitalmente por LibreSign.",
-    "Inform or UUID or a File object" : "Informa un UUID o un objeto de archivo",
-    "Account not exist" : "Cuenta inexistente",
-    "No signature, click here to create a new" : "Sin firma, haz clic aquí para crear una nueva",
-    "No initials, click here to create a new" : "Sin iniciales, haz clic aquí para crear una nueva",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "El flujo de documentos de identificación hará obligatorio que cualquier persona que deba firmar un archivo envíe documentos de identificación para ser aprobados por algún miembro del grupo de aprobación. El usuario solo podrá crear el certificado después de la aprobación de los documentos de identificación.",
-    "Not mandatory, don't fill to use default value." : "No es obligatorio, no llenar para usar el valor predeterminado.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Para validar la firma de los documentos. Solo cambia este valor si deseas reemplazar la URL de validación predeterminada por otra."
+    "Requested by {name}, at {date}" : "Solicitado por {nombre}, el {fecha}"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

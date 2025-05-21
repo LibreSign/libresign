@@ -96,9 +96,6 @@ OC.L10N.register(
     "Dependencies" : "Ketergantungan",
     "Yes" : "Ya",
     "No" : "Tidak",
-    "No date" : "No date",
-    "Other activities" : "Aktivitas lain",
-    "Renewed with success. Access the link again." : "Berhasil diperbaharui. Silahkan akses kembali tautan",
-    "Digital signed by LibreSign." : "Ditandatangani secara digital oleh LibreSign"
+    "No date" : "No date"
 },
 "nplurals=1; plural=0;");

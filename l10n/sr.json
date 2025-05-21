@@ -432,18 +432,6 @@
     "Name of an organizational unit" : "Име организационе јединице",
     "not a LibreSign file" : "није LibreSign фајл",
     "New signature request" : "Нови захтев за потпис",
-    "Requested by {name}, at {date}" : "Захтевао {name}, дана {date}",
-    "Other activities" : "Остале активности",
-    "Renewed with success. Access the link again." : "Успешно обновљено. Приступите линку поново.",
-    "The code to sign file was successfully requested." : "Успешно је захтеван кôд за потписивање фајла.",
-    "Digital signed by LibreSign." : "Дигитално потписао LibreSign.",
-    "Inform or UUID or a File object" : "Inform или UUID или Фајл објекат",
-    "Loading file" : "Фајл се учитава",
-    "Account not exist" : "Налог не постоји",
-    "No signature, click here to create a new" : "Нема потписа, кликните овде да креирате нови",
-    "No initials, click here to create a new" : "Нема иницијала, кликните овде да креирате нови",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Ток идентификационих докумената ће осигурати да свако ко мора да потпише документ пошаље идентификациона документа тако да их одобри неки члан групе за одобравање. Корисник може да креира сертификат само након одобравања идентификационих докумената.",
-    "Not mandatory, don't fill to use default value." : "Није обавезно, оставите празно ако желите да се користи подразумевана вредност.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "За проверу исправности потписа докумената. Ову вредност промените само ако желите да замените подразумевани URL за проверу неким другим."
+    "Requested by {name}, at {date}" : "Захтевао {name}, дана {date}"
 },"pluralForm" :"nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
 }

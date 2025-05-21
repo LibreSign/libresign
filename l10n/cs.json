@@ -444,18 +444,6 @@
     "Name of an organizational unit" : "Název organizační jednotky",
     "not a LibreSign file" : "není LibreSign soubor",
     "New signature request" : "Nový požadavek na podepsání",
-    "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}",
-    "Other activities" : "Ostatní aktivity",
-    "Renewed with success. Access the link again." : "Úspěšně obnoveno. Přistupte k odkazu znovu.",
-    "The code to sign file was successfully requested." : "Kód pro podepsání souboru byl úspěšně vyžádán.",
-    "Digital signed by LibreSign." : "Digitálně podepsáno pomocí LibreSign.",
-    "Inform or UUID or a File object" : "Inform nebo UUID nebo objekt-soubor",
-    "Loading file" : "Načítání souboru",
-    "Account not exist" : "Účet neexistuje",
-    "No signature, click here to create a new" : "Žádné podpisy – nové vytvoříte kliknutím sem",
-    "No initials, click here to create a new" : "Žádné iniciály – nové vytvoříte kliknutím sem",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Tok identifikačních dokumentů učiní pro kohokoli, kdo má podepsat soubor, povinným aby jím zaslané identifikační doklady byly schváleny některým ze členů schvalující skupiny. Uživatel tak bude moci vytvořit certifikát pouze až po schválení svých identifikačních dokladů.",
-    "Not mandatory, don't fill to use default value." : "Není povinné – pokud chcete použít výchozí hodnotu, nevyplňujte.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Pro ověření podpisu dokumentů. Tuto hodnotu měňte pouze tehdy, pokud chcete nahradit výchozí URL ověřování jinou."
+    "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}"
 },"pluralForm" :"nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;"
 }

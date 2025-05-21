@@ -93,7 +93,6 @@ OC.L10N.register(
     "Reset to default" : "Restablecer al predeterminado",
     "Name:" : "Nombre:",
     "Status:" : "Estado:",
-    "No date" : "Sin fecha",
-    "Other activities" : "Otras actividades"
+    "No date" : "Sin fecha"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

@@ -450,18 +450,6 @@ OC.L10N.register(
     "Name of an organizational unit" : "Name of an organizational unit",
     "not a LibreSign file" : "not a LibreSign file",
     "New signature request" : "New signature request",
-    "Requested by {name}, at {date}" : "Requested by {name}, at {date}",
-    "Other activities" : "Other activities",
-    "Renewed with success. Access the link again." : "Renewed with success. Access the link again.",
-    "The code to sign file was successfully requested." : "The code to sign file was successfully requested.",
-    "Digital signed by LibreSign." : "Digital signed by LibreSign.",
-    "Inform or UUID or a File object" : "Inform or UUID or a File object",
-    "Loading file" : "Loading file",
-    "Account not exist" : "Account not exist",
-    "No signature, click here to create a new" : "No signature, click here to create a new",
-    "No initials, click here to create a new" : "No initials, click here to create a new",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by member(s) of the approval group. The user can only create the certificate after approval of the identification documents.",
-    "Not mandatory, don't fill to use default value." : "Not mandatory, don't fill to use default value.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other."
+    "Requested by {name}, at {date}" : "Requested by {name}, at {date}"
 },
 "nplurals=2; plural=(n != 1);");

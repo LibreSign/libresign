@@ -125,7 +125,6 @@ OC.L10N.register(
     "Forgot password?" : "Unustasid parooli?",
     "Name:" : "Nimi:",
     "Status:" : "Seisund:",
-    "No date" : "No date",
-    "Other activities" : "Muud tegevused"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

@@ -99,7 +99,6 @@ OC.L10N.register(
     "Forgot password?" : "Glemt adgangskode?",
     "Name:" : "Navn:",
     "No date" : "Ingen dato",
-    "Return" : "Aflever",
-    "Other activities" : "Andre aktiviteter"
+    "Return" : "Aflever"
 },
 "nplurals=2; plural=(n != 1);");
