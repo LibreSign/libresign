@@ -44,8 +44,8 @@
 		"post-update-cmd": [
 			"composer dump-autoload"
 		],
-		"test:unit": "vendor/bin/phpunit --no-coverage",
-		"test:coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit"
+		"test:unit": "vendor/bin/phpunit -c tests/php/phpunit.xml --no-coverage --colors=always --fail-on-warning --fail-on-risky --display-deprecations --display-phpunit-deprecations",
+		"test:coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit -c tests/php/phpunit.xml"
 	},
 	"extra": {
 		"bamarni-bin": {

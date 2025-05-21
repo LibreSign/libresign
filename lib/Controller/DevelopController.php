@@ -48,7 +48,7 @@ class DevelopController extends Controller {
 		if (!$this->isDebugMode()) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
-		$file = new InMemoryFile('file.pdf', file_get_contents(__DIR__ . '/../../tests/fixtures/small_valid.pdf'));
+		$file = new InMemoryFile('file.pdf', file_get_contents(__DIR__ . '/../../tests/php/fixtures/small_valid.pdf'));
 		$response = new FileDisplayResponse($file);
 		$response->setHeaders([
 			'Content-Disposition' => 'inline; filename="file.pdf"',
