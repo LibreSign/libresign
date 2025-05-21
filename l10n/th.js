@@ -64,7 +64,6 @@ OC.L10N.register(
     "Resource" : "ทรัพยากร",
     "Yes" : "ใช่",
     "No" : "ไม่",
-    "No date" : "ไม่มีวันที่",
-    "Other activities" : "กิจกรรมอื่น ๆ"
+    "No date" : "ไม่มีวันที่"
 },
 "nplurals=1; plural=0;");

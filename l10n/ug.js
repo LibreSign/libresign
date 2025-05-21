@@ -357,18 +357,6 @@ OC.L10N.register(
     "Name of a locality or place, such as a city, county, or other geographic region" : "شەھەر ، ناھىيە ياكى باشقا جۇغراپىيىلىك رايونغا ئوخشاش جاي ياكى جاينىڭ ئىسمى",
     "Name of an organization" : "بىر تەشكىلاتنىڭ ئىسمى",
     "Name of an organizational unit" : "تەشكىلىي ئورۇننىڭ ئىسمى",
-    "Requested by {name}, at {date}" : "{name} تەرىپىدىن تەلەپ قىلىنغان ، {date}",
-    "Other activities" : "باشقا پائالىيەتلەر",
-    "Renewed with success. Access the link again." : "مۇۋەپپەقىيەت بىلەن يېڭىلاندى. ئۇلىنىشنى قايتا زىيارەت قىلىڭ.",
-    "The code to sign file was successfully requested." : "ھۆججەتكە ئىمزا قويۇش كودى مۇۋەپپەقىيەتلىك تەلەپ قىلىندى.",
-    "Digital signed by LibreSign." : "LibreSign ئىمزالىغان رەقەملىك.",
-    "Inform or UUID or a File object" : "ئۇچۇر ياكى UUID ياكى ھۆججەت ئوبيېكتى",
-    "Loading file" : "ھۆججەت يۈكلەۋاتىدۇ",
-    "Account not exist" : "ھېسابات مەۋجۇت ئەمەس",
-    "No signature, click here to create a new" : "ئىمزا يوق ، يېڭىنى قۇرۇش ئۈچۈن بۇ يەرنى چېكىڭ",
-    "No initials, click here to create a new" : "باش ھەرىپى يوق ، بۇ يەرنى چېكىپ يېڭى قۇرۇڭ",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "كىملىك ھۆججىتىنىڭ ئېقىمى چوقۇم ھۆججەتكە ئىمزا قويۇشى ، سالاھىيەت گۇۋاھنامىسىنى ئەۋەتىش گۇرۇپپىسىنىڭ بىر قىسىم ئەزالىرى تەرىپىدىن تەستىقلىنىشى كېرەك. ئىشلەتكۈچى كىنىشكا ھۆججىتىنى تەستىقلىغاندىن كېيىن ئاندىن گۇۋاھنامە قۇرالايدۇ.",
-    "Not mandatory, don't fill to use default value." : "مەجبۇرىي ئەمەس ، سۈكۈتتىكى قىممەتنى تولدۇرماڭ.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "ھۆججەتلەرنىڭ ئىمزاسىنى دەلىللەش. ئەگەر سۈكۈتتىكى دەلىللەش URL نى باشقا ئورۇنغا ئالماشتۇرماقچى بولسىڭىز ، بۇ قىممەتنى ئۆزگەرتىڭ."
+    "Requested by {name}, at {date}" : "{name} تەرىپىدىن تەلەپ قىلىنغان ، {date}"
 },
 "nplurals=2; plural=(n != 1);");

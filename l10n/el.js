@@ -126,7 +126,6 @@ OC.L10N.register(
     "Name:" : "Όνομα:",
     "Status:" : "Κατάσταση:",
     "No date" : "Καμία ημερομηνία",
-    "Return" : "Επιστροφή",
-    "Other activities" : "Άλλες δραστηριότητες"
+    "Return" : "Επιστροφή"
 },
 "nplurals=2; plural=(n != 1);");

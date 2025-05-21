@@ -240,13 +240,6 @@
     "No date" : "날짜 없음",
     "Return" : "반환",
     "Open in LibreSign" : "LibreSign으로 열기",
-    "Requested by {name}, at {date}" : "{날짜}에 {이름}에 의해 요청됨",
-    "Other activities" : "다른 활동",
-    "The code to sign file was successfully requested." : "파일에 서명할 코드가 성공적으로 요청되었습니다.",
-    "Digital signed by LibreSign." : "LibreSign이 디지털 서명했습니다.",
-    "Inform or UUID or a File object" : "알림, UUID 또는 파일 개체",
-    "Account not exist" : "계정을 찾을 수 없습니다.",
-    "No signature, click here to create a new" : "서명이 없습니다. 새 서명을 작성하려면 여기를 클릭하십시오.",
-    "No initials, click here to create a new" : "이니셜이 없습니다. 새로 만들려면 여기를 클릭하십시오."
+    "Requested by {name}, at {date}" : "{날짜}에 {이름}에 의해 요청됨"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

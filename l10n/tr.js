@@ -434,18 +434,6 @@ OC.L10N.register(
     "Name of an organizational unit" : "Bir kuruluş biriminin adı",
     "not a LibreSign file" : "Bir LibreSign dosyası değil",
     "New signature request" : "Yeni imza isteği",
-    "Requested by {name}, at {date}" : "{name} tarafından {date} tarihinde istendi",
-    "Other activities" : "Diğer işlemler",
-    "Renewed with success. Access the link again." : "Yenilendi. Bağlantıya yeniden erişin.",
-    "The code to sign file was successfully requested." : "Dosyayı imzalama kodu istendi.",
-    "Digital signed by LibreSign." : "LibreSign tarafından sayısal olarak imzalanmış. ",
-    "Inform or UUID or a File object" : "Bilgi ya da UUID ya da dosya nesnesi",
-    "Loading file" : "Dosya yükleniyor",
-    "Account not exist" : "Hesap bulunamadı.",
-    "No signature, click here to create a new" : "Henüz bir imza yok. Eklemek için buraya tıklayın",
-    "No initials, click here to create a new" : "Herhangi bir ad baş harfi yok. Eklemek için buraya tıklayın",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Kimlik belgeleri akışı, bir dosyayı imzalaması gereken herkesin, onay grubunun bazı üyeleri tarafından onaylanmak üzere kimlik belgelerini göndermesini zorunlu kılar. Kullanıcı, yalnızca kimlik belgelerinin onaylanmasından sonra sertifika oluşturabilir.",
-    "Not mandatory, don't fill to use default value." : "Zorunlu değildir. Varsayılan değerin kullanılması için boş bırakın.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Belgelerin imzasını doğrulamak için. Bu değeri yalnızca varsayılan doğrulama adresini değiştirmek istiyorsanız değiştirin."
+    "Requested by {name}, at {date}" : "{name} tarafından {date} tarihinde istendi"
 },
 "nplurals=2; plural=(n > 1);");

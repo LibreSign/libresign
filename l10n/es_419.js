@@ -80,9 +80,6 @@ OC.L10N.register(
     "No" : "No",
     "Reset to default" : "Restablecer al predeterminado",
     "Forgot password?" : "¿Olvidaste tu contraseña?",
-    "No date" : "Sin fecha",
-    "Other activities" : "Otras actividades",
-    "Renewed with success. Access the link again." : "Renovado con éxito, Acceda al link nuevamente",
-    "The code to sign file was successfully requested." : "El código para firmar fue exitosamente solicitado"
+    "No date" : "Sin fecha"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

@@ -252,13 +252,6 @@ OC.L10N.register(
     "No date" : "Geen datum",
     "Return" : "Terug",
     "Open in LibreSign" : "Openen in LibreSign",
-    "Requested by {name}, at {date}" : "Aangevraagd door {name}, op {date}",
-    "Other activities" : "Andere activiteiten",
-    "The code to sign file was successfully requested." : "De code om het bestand te signeren is succesvol opgevraagd.",
-    "Digital signed by LibreSign." : "Digitaal ondertekend door LibreSign.",
-    "Inform or UUID or a File object" : "Informeren van UUID of een bestandsobject",
-    "Account not exist" : "Account bestaat niet",
-    "No signature, click here to create a new" : "Geen handtekening, klik hier om een nieuwe te creëren",
-    "No initials, click here to create a new" : "Geen initialen, klik hier om een nieuwe te creëren"
+    "Requested by {name}, at {date}" : "Aangevraagd door {name}, op {date}"
 },
 "nplurals=2; plural=(n != 1);");

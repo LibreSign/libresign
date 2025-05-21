@@ -85,7 +85,6 @@ OC.L10N.register(
     "Reset to default" : "Repor original",
     "Forgot password?" : "Senha esquecida?",
     "Name:" : "Nome:",
-    "No date" : "Sem data",
-    "Other activities" : "Outras atividades"
+    "No date" : "Sem data"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

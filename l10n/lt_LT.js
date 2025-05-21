@@ -167,10 +167,6 @@ OC.L10N.register(
     "Forgot password?" : "Pamiršote slaptažodį?",
     "Name:" : "Pavadinimas:",
     "Status:" : "Būsena:",
-    "No date" : "No date",
-    "Other activities" : "Kitos veiklos",
-    "Account not exist" : "Paskyros nėra",
-    "No signature, click here to create a new" : "Nėra parašo, spustelėkite čia norėdami sukurti naują",
-    "No initials, click here to create a new" : "Nėra inicialų, spustelėkite čia norėdami sukurti naujus"
+    "No date" : "No date"
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");

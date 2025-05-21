@@ -405,18 +405,6 @@ OC.L10N.register(
     "Name of an organizational unit" : "Názov organizačnej jednotky",
     "not a LibreSign file" : "toto nie je súbor LibreSign ",
     "New signature request" : "Nová žiadosť o podpis",
-    "Requested by {name}, at {date}" : "Vyžiadané od {name}, o {date}",
-    "Other activities" : "Iné aktivity",
-    "Renewed with success. Access the link again." : "Úspešne obnovené. Pristúpte k odkazu znova.",
-    "The code to sign file was successfully requested." : "Kód pre podpísanie súboru bol úspešne vyžiadaný.",
-    "Digital signed by LibreSign." : "Digitálne podpísané od LibreSign.",
-    "Inform or UUID or a File object" : "Inform alebo UUID alebo Objekt súboru",
-    "Loading file" : "Načítavanie súboru",
-    "Account not exist" : "Účet neexistuje",
-    "No signature, click here to create a new" : "Žiadny podpis, pre vytvorenie nového kliknite sem",
-    "No initials, click here to create a new" : "Žiadne iniciály, pre vytvorenie nových kliknite sem",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Tok identifikačných dokumentov bude povinný pre každého, kto chce podpísať súbor, pošle identifikačné dokumenty na schválenie niektorým členom schvaľovacej skupiny. Užívateľ môže vytvoriť certifikát až po schválení identifikačných dokumentov.",
-    "Not mandatory, don't fill to use default value." : "Nie je povinné, ak chcete použiť predvolenú hodnotu, nevyplňujte.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Na overenie podpisu dokumentov. Túto hodnotu zmeňte iba vtedy, ak chcete nahradiť predvolenú overovaciu URL inou."
+    "Requested by {name}, at {date}" : "Vyžiadané od {name}, o {date}"
 },
 "nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);");

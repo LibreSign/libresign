@@ -244,13 +244,6 @@
     "No date" : "无日期",
     "Return" : "返回",
     "Open in LibreSign" : "在 LibreSign 中打开",
-    "Requested by {name}, at {date}" : "{name} 请求于 {date}",
-    "Other activities" : "其他活动",
-    "The code to sign file was successfully requested." : "已成功请求文件签名的代码",
-    "Digital signed by LibreSign." : "由 LibreSign 进行数字签名",
-    "Inform or UUID or a File object" : "通知或 UUID 或一个文件对象",
-    "Account not exist" : "账号不存在",
-    "No signature, click here to create a new" : "没有签名，点击此处新建",
-    "No initials, click here to create a new" : "没有首字母，点击此处新建"
+    "Requested by {name}, at {date}" : "{name} 请求于 {date}"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

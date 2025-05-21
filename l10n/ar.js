@@ -405,18 +405,6 @@ OC.L10N.register(
     "Name of an organizational unit" : "اسم الوحدة الإدارية",
     "not a LibreSign file" : "ليس ملف LibreSign",
     "New signature request" : "طلب جديد للتوقيع",
-    "Requested by {name}, at {date}" : "مطلوب من قبل {name}، في {date}",
-    "Other activities" : "أنشطة أخرى",
-    "Renewed with success. Access the link again." : "تمّ التجديد بنحاحٍ. عاوِد الدخول على الرابط.",
-    "The code to sign file was successfully requested." : "تم طلب كود توقيع الملف بنجاح.",
-    "Digital signed by LibreSign." : "موقّع رقميا بواسطة تطبيق LibreSign.",
-    "Inform or UUID or a File object" : "إبلاغ أو مُعرِّف UUID أو كائن ملف",
-    "Loading file" : "تحميل الملف",
-    "Account not exist" : "الحساب غير موجود",
-    "No signature, click here to create a new" : "لا يوجد توقيع، انقر هنا لإنشاء توقيع جديد",
-    "No initials, click here to create a new" : "لا يوجد توقيع بالأحرف الأولى، انقر هنا لإنشاء ملف",
-    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "أتمتة سير العمل الخاص بوثائق الهوية سيجعلها إلزامية لأي شخص يلزم قيامه بالتوقيع على ملف، ويرسل وثائق الهوية ليتم اعتمادها من قبل بعض أعضاء مجموعة الاعتماد. ويمكن للمستخدم إنشاء الشهادة فقط بعد الموافقة على وثائق الهوية.",
-    "Not mandatory, don't fill to use default value." : "ليس إلزامياً، سيتم استخدام القيمة الافتراضية إذا تركته فارغاً.",
-    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "للتحقق من صحة التوقيع على الوثائق. قم بتغيير هذه القيمة فقط إذا كنت تريد استبدال عنوان URL الافتراضي للتحقُّق من الصحة بغيره."
+    "Requested by {name}, at {date}" : "مطلوب من قبل {name}، في {date}"
 },
 "nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;");
