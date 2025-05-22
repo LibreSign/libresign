@@ -72,7 +72,7 @@ class DeleteOldBinaries implements IRepairStep {
 			'command' => 'files:scan-app-data',
 			'folder' => 'libresign',
 		]);
-		$application->add(\OC::$server->get(ScanAppData::class));
+		$application->add(\OCP\Server::get(ScanAppData::class));
 		$application->setAutoExit(false);
 		$application->run($input);
 	}

@@ -60,7 +60,7 @@ class ApiTestCase extends TestCase {
 	private function removeBasePath(array $data): array {
 		$cleaned = [];
 		foreach ($data['paths'] as $key => $value) {
-			$key = preg_replace('~^/ocs/v2.php/apps/libresign~', '', $key);
+			$key = preg_replace('~^/ocs/v2.php/apps/libresign~', '', (string)$key);
 			$cleaned[$key] = $value;
 		}
 		$data['paths'] = $cleaned;

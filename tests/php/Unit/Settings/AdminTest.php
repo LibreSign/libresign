@@ -62,6 +62,6 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->markTestSkipped('Need to reimplement this test, stated to failure');
 		$actual = $this->admin->getForm();
 		$this->assertIsObject($actual);
-		$this->assertInstanceOf('\OCP\AppFramework\Http\TemplateResponse', $actual);
+		$this->assertInstanceOf(\OCP\AppFramework\Http\TemplateResponse::class, $actual);
 	}
 }

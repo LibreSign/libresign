@@ -153,7 +153,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			'empty' => [fn () => null, []],
 			'No file provided' => [
-				function (self $self, FileService $service) {
+				function (self $self, FileService $service): void {
 					$self->expectException(InvalidArgumentException::class);
 					$self->expectExceptionMessage('No file provided');
 					$service
@@ -162,7 +162,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[]
 			],
 			'error when upload' => [
-				function (self $self, FileService $service) {
+				function (self $self, FileService $service): void {
 					$self->expectException(InvalidArgumentException::class);
 					$self->expectExceptionMessage('Invalid file provided');
 					$service
@@ -171,7 +171,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[]
 			],
 			'blacklisted file' => [
-				function (self $self, FileService $service) {
+				function (self $self, FileService $service): void {
 					$path = 'vfs://uploaded/.htaccess';
 					file_put_contents($path, '');
 					$self->expectException(InvalidArgumentException::class);
@@ -182,7 +182,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[]
 			],
 			'File is too big' => [
-				function (self $self, FileService $service) {
+				function (self $self, FileService $service): void {
 					$path = 'vfs://uploaded/file.pdf';
 					file_put_contents($path, '');
 					$self->expectException(InvalidArgumentException::class);
@@ -193,7 +193,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[]
 			],
 			'Invalid file provided' => [
-				function (self $self, FileService $service) {
+				function (self $self, FileService $service): void {
 					$path = 'vfs://uploaded/file.php';
 					file_put_contents($path, '');
 					$self->expectException(InvalidArgumentException::class);
@@ -208,7 +208,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[]
 			],
 			'not signed file' => [
-				function (self $self, FileService $service) {
+				function (self $self, FileService $service): void {
 					$notSigned = tempnam(sys_get_temp_dir(), 'not_signed');
 					copy(realpath(__DIR__ . '/../../fixtures/small_valid.pdf'), $notSigned);
 					$service
@@ -229,7 +229,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				]
 			],
 			'signed file outside LibreSign' => [
-				function (self $self, FileService $service) {
+				function (self $self, FileService $service): void {
 					$notSigned = tempnam(sys_get_temp_dir(), 'not_signed');
 					copy(realpath(__DIR__ . '/../../fixtures/small_valid-signed.pdf'), $notSigned);
 					$service
@@ -250,7 +250,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				]
 			],
 			'signed file outside LibreSign and display signers' => [
-				function (self $self, FileService $service) {
+				function (self $self, FileService $service): void {
 					$notSigned = tempnam(sys_get_temp_dir(), 'not_signed');
 					copy(realpath(__DIR__ . '/../../fixtures/small_valid-signed.pdf'), $notSigned);
 					$service
