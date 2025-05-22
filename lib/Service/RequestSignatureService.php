@@ -77,7 +77,7 @@ class RequestSignatureService {
 			try {
 				$file = $this->fileMapper->getByFileId($fileId);
 				return $this->updateStatus($file, $data['status'] ?? 0);
-			} catch (\Throwable $th) {
+			} catch (\Throwable) {
 			}
 		}
 
@@ -331,7 +331,7 @@ class RequestSignatureService {
 	private function getSignRequestByIdentifyMethod(IIdentifyMethod $identifyMethod, int $fileId): SignRequestEntity {
 		try {
 			$signRequest = $this->signRequestMapper->getByIdentifyMethodAndFileId($identifyMethod, $fileId);
-		} catch (DoesNotExistException $e) {
+		} catch (DoesNotExistException) {
 			$signRequest = new SignRequestEntity();
 		}
 		return $signRequest;
@@ -351,7 +351,7 @@ class RequestSignatureService {
 			foreach ($visibleElements as $visibleElement) {
 				$this->fileElementMapper->delete($visibleElement);
 			}
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 		}
 	}
 

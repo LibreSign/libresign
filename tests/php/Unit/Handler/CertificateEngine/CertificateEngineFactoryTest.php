@@ -59,9 +59,7 @@ class CertificateEngineFactoryTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			CfsslHandler::class => $this->cfsslHandler,
 			NoneHandler::class => $this->noneHandler,
 		};
-		\OC::$server->registerService($handlerClass, function () use ($mockHandler) {
-			return $mockHandler;
-		});
+		\OC::$server->registerService($handlerClass, fn () => $mockHandler);
 
 		$factory = $this->getInstance();
 		$actual = $factory->getEngine($engineName, ['cert' => 'abc']);

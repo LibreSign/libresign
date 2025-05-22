@@ -115,7 +115,7 @@ class InstallService {
 				$path = '';
 				throw new \Exception('Need to be empty');
 			}
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			try {
 				$folder = $folder->newFolder($path);
 			} catch (NotPermittedException $e) {
@@ -182,7 +182,7 @@ class InstallService {
 			$appFolder = $this->getFolder();
 			try {
 				$file = $appFolder->getFile('setup-cache.json');
-			} catch (\Throwable $th) {
+			} catch (\Throwable) {
 				$file = $appFolder->newFile('setup-cache.json', '[]');
 			}
 			$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
@@ -203,7 +203,7 @@ class InstallService {
 				$file = $appFolder->getFile('setup-cache.json');
 				$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
 				return $json[$key] ?? null;
-			} catch (NotFoundException $th) {
+			} catch (NotFoundException) {
 			} catch (\Throwable $th) {
 				$this->logger->error('Unexpected error when get setup-cache.json file', [
 					'app' => Application::APP_ID,
@@ -229,7 +229,7 @@ class InstallService {
 				} else {
 					$file->putContent(json_encode($json));
 				}
-			} catch (\Throwable $th) {
+			} catch (\Throwable) {
 			}
 			return;
 		}
@@ -282,7 +282,7 @@ class InstallService {
 			if (empty($progressData)) {
 				return false;
 			}
-			$pid = isset($progressData['pid']) ? $progressData['pid'] : 0;
+			$pid = $progressData['pid'] ?? 0;
 			if ($this->getInstallPid($pid) === 0) {
 				if (!array_key_exists('error', $progressData)) {
 					$this->removeDownloadProgress();
@@ -385,7 +385,7 @@ class InstallService {
 		$folder = $this->getFolder('/' . $linuxDistribution . '/' . $this->resource);
 		try {
 			$compressedFile = $folder->getFile($compressedFileName);
-		} catch (NotFoundException $th) {
+		} catch (NotFoundException) {
 			$compressedFile = $folder->newFile($compressedFileName);
 		}
 
@@ -434,7 +434,7 @@ class InstallService {
 		$folder = $this->getFolder($this->resource);
 		try {
 			$folder->delete();
-		} catch (NotFoundException $th) {
+		} catch (NotFoundException) {
 		}
 		$this->appConfig->deleteKey(Application::APP_ID, 'java_path');
 	}
@@ -463,7 +463,7 @@ class InstallService {
 		$compressedFileName = 'jsignpdf-' . InstallService::JSIGNPDF_VERSION . '.zip';
 		try {
 			$compressedFile = $folder->getFile($compressedFileName);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			$compressedFile = $folder->newFile($compressedFileName);
 		}
 		$compressedInternalFileName = $this->getInternalPathOfFile($compressedFile);
@@ -491,7 +491,7 @@ class InstallService {
 		$folder = $this->getFolder($this->resource);
 		try {
 			$folder->delete();
-		} catch (NotFoundException $e) {
+		} catch (NotFoundException) {
 		}
 		$this->appConfig->deleteKey(Application::APP_ID, 'jsignpdf_jar_path');
 	}
@@ -516,7 +516,7 @@ class InstallService {
 		$folder = $this->getFolder($this->resource);
 		try {
 			$file = $folder->getFile('pdftk.jar');
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			$file = $folder->newFile('pdftk.jar');
 		}
 		$fullPath = $this->getInternalPathOfFile($file);
@@ -537,7 +537,7 @@ class InstallService {
 		$folder = $this->getFolder($this->resource);
 		try {
 			$folder->delete();
-		} catch (NotFoundException $e) {
+		} catch (NotFoundException) {
 		}
 		$this->appConfig->deleteKey(Application::APP_ID, 'pdftk_path');
 	}
@@ -609,7 +609,7 @@ class InstallService {
 		$folder = $this->getFolder($this->resource);
 		try {
 			$folder->delete();
-		} catch (NotFoundException $e) {
+		} catch (NotFoundException) {
 		}
 		$this->appConfig->deleteKey(Application::APP_ID, 'cfssl_bin');
 	}
@@ -637,7 +637,7 @@ class InstallService {
 			$client->get($url, [
 				'sink' => $path,
 				'timeout' => 0,
-				'progress' => function ($downloadSize, $downloaded) {
+				'progress' => function ($downloadSize, $downloaded): void {
 					$this->progressToDatabase($downloadSize, $downloaded);
 				},
 			]);
@@ -658,7 +658,7 @@ class InstallService {
 			$client->get($url, [
 				'sink' => $path,
 				'timeout' => 0,
-				'progress' => function ($downloadSize, $downloaded) use ($progressBar) {
+				'progress' => function ($downloadSize, $downloaded) use ($progressBar): void {
 					$progressBar->setMaxSteps($downloadSize);
 					$progressBar->setProgress($downloaded);
 					$this->progressToDatabase($downloadSize, $downloaded);

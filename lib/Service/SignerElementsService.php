@@ -90,7 +90,7 @@ class SignerElementsService {
 	private function signatureFileExists(UserElement $userElement): bool {
 		try {
 			$this->folderService->getFileById($userElement->getFileId());
-		} catch (\Exception $e) {
+		} catch (\Exception) {
 			$this->userElementMapper->delete($userElement);
 			return false;
 		}
@@ -102,7 +102,7 @@ class SignerElementsService {
 		try {
 			/** @var Folder $signerFolder */
 			$signerFolder = $folder->get($this->sessionService->getSessionId());
-		} catch (NotFoundException $th) {
+		} catch (NotFoundException) {
 			return [];
 		}
 		$fileList = $signerFolder->getDirectoryListing();
@@ -116,7 +116,7 @@ class SignerElementsService {
 		$return = [];
 		$fileList = $this->getElementsFromSession();
 		foreach ($fileList as $fileElement) {
-			[$type, $timestamp] = explode('_', pathinfo($fileElement->getName(), PATHINFO_FILENAME));
+			[$type, $timestamp] = explode('_', pathinfo((string)$fileElement->getName(), PATHINFO_FILENAME));
 			$return[] = [
 				'type' => $type,
 				'file' => [

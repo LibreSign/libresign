@@ -97,7 +97,7 @@ abstract class AEngineHandler implements IEngineHandler {
 			if (!$certContent) {
 				throw new \Exception();
 			}
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			throw new LibresignException('Error while creating certificate file', 500);
 		}
 
@@ -192,23 +192,16 @@ abstract class AEngineHandler implements IEngineHandler {
 	 * @psalm-param array-key $name
 	 */
 	public function translateToLong($name): string {
-		switch ($name) {
-			case 'CN':
-				return 'CommonName';
-			case 'C':
-				return 'Country';
-			case 'ST':
-				return 'State';
-			case 'L':
-				return 'Locality';
-			case 'O':
-				return 'Organization';
-			case 'OU':
-				return 'OrganizationalUnit';
-			case 'UID':
-				return 'UserIdentifier';
-		}
-		return '';
+		return match ($name) {
+			'CN' => 'CommonName',
+			'C' => 'Country',
+			'ST' => 'State',
+			'L' => 'Locality',
+			'O' => 'Organization',
+			'OU' => 'OrganizationalUnit',
+			'UID' => 'UserIdentifier',
+			default => '',
+		};
 	}
 
 	public function setEngine(string $engine): void {
@@ -260,7 +253,7 @@ abstract class AEngineHandler implements IEngineHandler {
 			if (!$folder->fileExists('/')) {
 				throw new \Exception();
 			}
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			$folder = $this->appData->newFolder($this->getName() . '_config');
 		}
 		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
@@ -323,9 +316,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		if ($uid = $this->getUID()) {
 			$names['UID'] = $uid;
 		}
-		$names = array_filter($names, function ($v) {
-			return !empty($v);
-		});
+		$names = array_filter($names, fn ($v) => !empty($v));
 		return $names;
 	}
 

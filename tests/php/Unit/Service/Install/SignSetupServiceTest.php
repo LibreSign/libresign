@@ -45,10 +45,8 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private function getInstance(array $methods = []) {
 		$this->config
 			->method('getSystemValue')
-			->willReturnCallback(function ($key, $default):string {
-				return match ($key) {
-					'instanceid' => '1',
-				};
+			->willReturnCallback(fn ($key, $default): string => match ($key) {
+				'instanceid' => '1',
 			});
 		return $this->getMockBuilder(SignSetupService::class)
 			->setConstructorArgs([

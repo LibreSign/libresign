@@ -233,7 +233,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	public function getCodeUsingUuid(string $uuid): DataResponse {
 		try {
 			$signRequest = $this->signRequestMapper->getBySignerUuidAndUserId($uuid);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 		}
 		return $this->getCode($signRequest);
@@ -259,7 +259,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	public function getCodeUsingFileId(int $fileId, ?string $identifyMethod, ?string $signMethod, ?string $identify): DataResponse {
 		try {
 			$signRequest = $this->signRequestMapper->getByFileIdAndUserId($fileId);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 		}
 		return $this->getCode($signRequest);

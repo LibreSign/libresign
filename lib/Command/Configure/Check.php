@@ -19,14 +19,11 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Check extends Base {
-	private ConfigureCheckService $configureCheckService;
-
 	public function __construct(
-		ConfigureCheckService $configureCheckService,
+		private ConfigureCheckService $configureCheckService,
 		private IConfig $config,
 	) {
 		parent::__construct();
-		$this->configureCheckService = $configureCheckService;
 	}
 
 	protected function configure(): void {

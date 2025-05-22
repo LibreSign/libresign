@@ -88,7 +88,7 @@ class PageController extends AEnvironmentPageAwareController {
 		try {
 			$this->validateHelper->canRequestSign($this->userSession->getUser());
 			$this->initialState->provideInitialState('can_request_sign', true);
-		} catch (LibresignException $th) {
+		} catch (LibresignException) {
 			$this->initialState->provideInitialState('can_request_sign', false);
 		}
 
@@ -193,7 +193,7 @@ class PageController extends AEnvironmentPageAwareController {
 						->showValidateFile()
 						->toArray()
 				);
-			} catch (LibresignException $e) {
+			} catch (LibresignException) {
 				throw new LibresignException(json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
 					'errors' => [['message' => $this->l10n->t('Invalid UUID')]],
@@ -346,7 +346,7 @@ class PageController extends AEnvironmentPageAwareController {
 		try {
 			$fileEntity = $this->signFileService->getFileByUuid($uuid);
 			$this->signFileService->getAccountFileById($fileEntity->getId());
-		} catch (DoesNotExistException $e) {
+		} catch (DoesNotExistException) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $this->l10n->t('Invalid UUID')]],
@@ -418,7 +418,7 @@ class PageController extends AEnvironmentPageAwareController {
 	public function getPdf($uuid) {
 		try {
 			$file = $this->accountService->getPdfByUuid($uuid);
-		} catch (DoesNotExistException $th) {
+		} catch (DoesNotExistException) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 
@@ -557,12 +557,12 @@ class PageController extends AEnvironmentPageAwareController {
 		try {
 			$this->signFileService->getFileByUuid($uuid);
 			$this->fileService->setFileByType('uuid', $uuid);
-		} catch (DoesNotExistException $e) {
+		} catch (DoesNotExistException) {
 			try {
 				$signRequest = $this->signFileService->getSignRequest($uuid);
 				$libresignFile = $this->signFileService->getFile($signRequest->getFileId());
 				$this->fileService->setFile($libresignFile);
-			} catch (DoesNotExistException $e) {
+			} catch (DoesNotExistException) {
 				$this->initialState->provideInitialState('action', JSActions::ACTION_DO_NOTHING);
 				$this->initialState->provideInitialState('errors', [['message' => $this->l10n->t('Invalid UUID')]]);
 			}

@@ -37,7 +37,7 @@ class CertificatePolicyService {
 		$rootFolder = $this->appData->getFolder('/');
 		try {
 			$rootFolder->newFile('certificate-policy.pdf', $blob);
-		} catch (NotFoundException $e) {
+		} catch (NotFoundException) {
 			$file = $rootFolder->getFile('certificate-policy.pdf');
 			$file->putContent($blob);
 		}
@@ -51,7 +51,7 @@ class CertificatePolicyService {
 	public function deleteFile(): void {
 		try {
 			$this->appData->getFolder('/')->getFile('certificate-policy.pdf')->delete();
-		} catch (NotFoundException $e) {
+		} catch (NotFoundException) {
 		}
 	}
 
@@ -80,7 +80,7 @@ class CertificatePolicyService {
 	public function getCps(): string {
 		try {
 			$this->getFile();
-		} catch (NotFoundException $e) {
+		} catch (NotFoundException) {
 			return '';
 		}
 		return $this->urlGenerator->linkToRouteAbsolute('libresign.CertificatePolicy.getCertificatePolicy');
