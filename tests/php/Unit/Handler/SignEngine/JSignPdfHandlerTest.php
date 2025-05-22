@@ -147,7 +147,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 
 		$this->signatureBackgroundService->method('getImagePath')->willReturn(
-			realpath(__DIR__ . '/../../../../img/LibreSign.png')
+			realpath(__DIR__ . '/../../../../../img/LibreSign.png')
 		);
 
 		$this->appConfig->setValueFloat('libresign', 'template_font_size', $templateFontSize);
@@ -199,7 +199,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 0,
 					'urx' => 0,
 					'ury' => 0,
-				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
 				'signatureWidth' => 100,
 				'signatureHeight' => 100,
 				'template' => '',
@@ -217,7 +217,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => '',
@@ -235,7 +235,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => 'aaaaa',
@@ -253,7 +253,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => 'aaaaa',
@@ -271,7 +271,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => 'aaaaa',
@@ -289,7 +289,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => 'aaaaa',
@@ -307,7 +307,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 100,
 					'urx' => 351,
 					'ury' => 200,
-				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
 				'signatureWidth' => 350,
 				'signatureHeight' => 100,
 				'template' => 'aaaaa',
@@ -325,7 +325,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => 'aaaaa',
@@ -361,7 +361,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'lly' => 20,
 					'urx' => 30,
 					'ury' => 40,
-				], realpath(__DIR__ . '/../../../../img/app-dark.png'))],
+				], realpath(__DIR__ . '/../../../../../img/app-dark.png'))],
 				'signatureWidth' => 20,
 				'signatureHeight' => 20,
 				'template' => '',
