@@ -3,6 +3,8 @@ OC.L10N.register(
     {
     "{from} requested your signature on {file}" : "{from} solicitou sua assinatura em {file}",
     "{from} made changes on {file}" : "{from} fez alterações em {file}",
+    "{from} signed {file}" : "{from} assinou {file}",
+    "A document has been <strong>signed</strong>" : "Um documento foi <strong>assinado</strong>",
     "You have a <strong>file to sign</strong>" : "Você tem um <strong>arquivo para assinar</atrong>",
     "Success" : "Sucesso",
     "Invalid user or password" : "Usuário ou senha inválidos",
@@ -149,6 +151,9 @@ OC.L10N.register(
     "Sign »%s«" : "Assine »%s«",
     "LibreSign: There is a file for you to sign" : "LibreSign: Há um arquivo para você assinar ",
     "There is a document for you to sign. Access the link below:" : "Este é um documento para você assinar. Acesse o link abaixo:",
+    "LibreSign: A file has been signed" : "LibreSign: Um arquivo foi assinado",
+    "%s signed the document. You can access it using the link below:" : "%s assinou o documento. Você pode acessá-lo usando o link abaixo:",
+    "View signed file »%s«" : "Ver arquivo assinado »%s«",
     "LibreSign: Code to sign file" : "LibreSign: Código para assinar arquivo",
     "Use this code to sign the document:" : "Use este código para assinar o documento:",
     "Empty users list" : "Lista de usuários vazia",

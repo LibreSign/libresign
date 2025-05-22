@@ -1,6 +1,8 @@
 OC.L10N.register(
     "libresign",
     {
+    "{from} signed {file}" : "{from} allkirjastas „{file}“ faili",
+    "A document has been <strong>signed</strong>" : "Dokument on <strong>allkirjastatud</strong>",
     "You have a <strong>file to sign</strong>" : "Sul on <strong>allkirjastamiseks üks fail</strong>",
     "Success" : "Valmis",
     "Invalid user or password" : "Vigane kasutajanimi või salasõna",
@@ -38,6 +40,9 @@ OC.L10N.register(
     "Email" : "Epost",
     "User already exists" : "Kasutaja on juba olemas",
     "Invalid certificate" : "Vigane sertifikaat",
+    "LibreSign: A file has been signed" : "LibreSign: fail on allkirjastatud",
+    "%s signed the document. You can access it using the link below:" : "%s allkirjastas dokumendi. Leiad ta järgnevalt lingilt:",
+    "View signed file »%s«" : "Vaata allkirjastatud „%s“ faili",
     "Date and time when the signer sent the request to sign (in their local time zone)." : "Allkirjastaja tehtud allkirjastamispäringu kuupäev ja kellaaeg (oma kohaliku järgi).",
     "Time zone of signer when sent the request to sign (in their local time zone)." : "Allkirjastaja ajavöönd tehtud allkirjastamispäringu puhul (oma kohaliku järgi).",
     "Draw" : "Joonista",
@@ -121,7 +126,7 @@ OC.L10N.register(
     "Yes" : "Jah",
     "No" : "Ei",
     "Description only" : "Vaid kirjeldus",
-    "Reset to default" : "Taasta vaikeseaded",
+    "Reset to default" : "Taasta vaikeseadistused",
     "Forgot password?" : "Unustasid parooli?",
     "Name:" : "Nimi:",
     "Status:" : "Seisund:",

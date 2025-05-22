@@ -1,6 +1,8 @@
 { "translations": {
     "{from} requested your signature on {file}" : "{from} 請求您在 {file} 上簽名",
     "{from} made changes on {file}" : "{from} 對 {file} 進行了變更",
+    "{from} signed {file}" : "{from} 已簽署 {file}",
+    "A document has been <strong>signed</strong>" : "文件已被 <strong>簽署</strong>",
     "You have a <strong>file to sign</strong>" : "您有一個<strong>檔案要簽署</strong>。",
     "Success" : "成功",
     "Invalid user or password" : "無效的用戶或密碼",
@@ -147,6 +149,9 @@
     "Sign »%s«" : "簽署 »%s«",
     "LibreSign: There is a file for you to sign" : "LibreSign︰有一份檔案需要您簽署",
     "There is a document for you to sign. Access the link below:" : "有一份文件需要您簽署。存取下方連結：",
+    "LibreSign: A file has been signed" : "LibreSign：檔案已被簽署",
+    "%s signed the document. You can access it using the link below:" : "%s 已簽署該文件。您可以使用以下連結存取它：",
+    "View signed file »%s«" : "檢視已簽署文件 »%s«",
     "LibreSign: Code to sign file" : "LibreSign：簽署檔案的代碼",
     "Use this code to sign the document:" : "使用此代碼簽署文件：",
     "Empty users list" : "空白的用戶清單",
