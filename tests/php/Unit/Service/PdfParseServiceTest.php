@@ -91,7 +91,7 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			[
 				'disablePdfInfo' => true,
-				'tests/fixtures/small_valid.pdf',
+				'tests/php/fixtures/small_valid.pdf',
 				[
 					'p' => 1,
 					'd' => [
@@ -101,7 +101,7 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			[
 				'disablePdfInfo' => true,
-				'tests/fixtures/small_valid-signed.pdf',
+				'tests/php/fixtures/small_valid-signed.pdf',
 				[
 					'p' => 1,
 					'd' => [
@@ -111,7 +111,7 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			[
 				'disablePdfInfo' => false,
-				'tests/fixtures/small_valid.pdf',
+				'tests/php/fixtures/small_valid.pdf',
 				[
 					'p' => 1,
 					'd' => [
@@ -121,7 +121,7 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			[
 				'disablePdfInfo' => false,
-				'tests/fixtures/small_valid-signed.pdf',
+				'tests/php/fixtures/small_valid-signed.pdf',
 				[
 					'p' => 1,
 					'd' => [
