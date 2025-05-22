@@ -491,6 +491,7 @@ class SignRequestMapper extends QBMapper {
 			$qb->select(
 				'f.id',
 				'f.node_id',
+				'f.signed_node_id',
 				'f.user_id',
 				'f.uuid',
 				'f.name',
@@ -602,6 +603,7 @@ class SignRequestMapper extends QBMapper {
 		$row['status'] = (int)$row['status'];
 		$row['statusText'] = $this->fileMapper->getTextOfStatus($row['status']);
 		$row['nodeId'] = (int)$row['node_id'];
+		$row['signedNodeId'] = (int)$row['signed_node_id'];
 		$row['requested_by'] = [
 			'userId' => $row['user_id'],
 			'displayName' => $this->userManager->get($row['user_id'])?->getDisplayName(),
@@ -615,6 +617,7 @@ class SignRequestMapper extends QBMapper {
 		unset(
 			$row['user_id'],
 			$row['node_id'],
+			$row['signed_node_id'],
 		);
 		return $row;
 	}
