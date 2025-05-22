@@ -81,7 +81,7 @@ class Version12000Date20250325155910 extends SimpleMigrationStep {
 		try {
 			$folder = $this->appData->getFolder('/');
 			$file = $folder->getFile('backup-table-libresign_file_Version12000Date20250325143340.csv');
-		} catch (NotFoundException $e) {
+		} catch (NotFoundException) {
 			return;
 		}
 		$handle = $file->read();
@@ -103,7 +103,7 @@ class Version12000Date20250325155910 extends SimpleMigrationStep {
 		try {
 			$folder = $this->appData->getFolder('/');
 			$file = $folder->getFile('backup-table-libresign_sign_request_Version12000Date20250325143340.csv');
-		} catch (NotFoundException $e) {
+		} catch (NotFoundException) {
 			return;
 		}
 		$handle = $file->read();

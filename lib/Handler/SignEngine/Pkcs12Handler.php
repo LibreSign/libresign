@@ -54,7 +54,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			}
 			try {
 				$file->putContent($content);
-			} catch (GenericFileException $e) {
+			} catch (GenericFileException) {
 				throw new LibresignException("path {$file->getPath()} does not exists!", 400);
 			}
 			return $content;
@@ -71,7 +71,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		try {
 			$file = $folder->get($this->pfxFilename);
 			$file->delete();
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 		}
 	}
 
@@ -150,7 +150,7 @@ class Pkcs12Handler extends SignEngineHandler {
 				try {
 					$decoded = ASN1::decodeBER($signature);
 					$certificates[$signerCounter]['signingTime'] = $decoded[0]['content'][1]['content'][0]['content'][4]['content'][0]['content'][3]['content'][1]['content'][1]['content'][0]['content'];
-				} catch (\Throwable $th) {
+				} catch (\Throwable) {
 				}
 			}
 
@@ -186,10 +186,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			return [];
 		}
 		if (!empty($this->signaturesFromPoppler)) {
-			if (isset($this->signaturesFromPoppler[$signerCounter])) {
-				return $this->signaturesFromPoppler[$signerCounter];
-			}
-			return [];
+			return $this->signaturesFromPoppler[$signerCounter] ?? [];
 		}
 		rewind($resource);
 		$content = stream_get_contents($resource);
@@ -253,86 +250,70 @@ class Pkcs12Handler extends SignEngineHandler {
 				}
 			}
 		}
-		if (isset($this->signaturesFromPoppler[$signerCounter])) {
-			return $this->signaturesFromPoppler[$signerCounter];
-		}
-		return [];
+		return $this->signaturesFromPoppler[$signerCounter] ?? [];
 	}
 
 	private function getReadableSigState(string $status) {
-		switch ($status) {
-			case 'Signature is Valid.':
-				return [
-					'id' => 1,
-					'label' => $this->l10n->t('Signature is valid.'),
-				];
-			case 'Signature is Invalid.':
-				return [
-					'id' => 2,
-					'label' => $this->l10n->t('Signature is invalid.'),
-				];
-			case 'Digest Mismatch.':
-				return [
-					'id' => 3,
-					'label' => $this->l10n->t('Digest mismatch.'),
-				];
-			case "Document isn't signed or corrupted data.":
-				return [
-					'id' => 4,
-					'label' => $this->l10n->t("Document isn't signed or corrupted data."),
-				];
-			case 'Signature has not yet been verified.':
-				return [
-					'id' => 5,
-					'label' => $this->l10n->t('Signature has not yet been verified.'),
-				];
-			default:
-				return [
-					'id' => 6,
-					'label' => $this->l10n->t('Unknown validation failure.'),
-				];
-		}
+		return match ($status) {
+			'Signature is Valid.' => [
+				'id' => 1,
+				'label' => $this->l10n->t('Signature is valid.'),
+			],
+			'Signature is Invalid.' => [
+				'id' => 2,
+				'label' => $this->l10n->t('Signature is invalid.'),
+			],
+			'Digest Mismatch.' => [
+				'id' => 3,
+				'label' => $this->l10n->t('Digest mismatch.'),
+			],
+			"Document isn't signed or corrupted data." => [
+				'id' => 4,
+				'label' => $this->l10n->t("Document isn't signed or corrupted data."),
+			],
+			'Signature has not yet been verified.' => [
+				'id' => 5,
+				'label' => $this->l10n->t('Signature has not yet been verified.'),
+			],
+			default => [
+				'id' => 6,
+				'label' => $this->l10n->t('Unknown validation failure.'),
+			],
+		};
 	}
 
 
 	private function getReadableCertState(string $status) {
-		switch ($status) {
-			case 'Certificate is Trusted.':
-				return [
-					'id' => 1,
-					'label' => $this->l10n->t('Certificate is trusted.'),
-				];
-			case "Certificate issuer isn't Trusted.":
-				return [
-					'id' => 2,
-					'label' => $this->l10n->t("Certificate issuer isn't trusted."),
-				];
-			case 'Certificate issuer is unknown.':
-				return [
-					'id' => 3,
-					'label' => $this->l10n->t('Certificate issuer is unknown.'),
-				];
-			case 'Certificate has been Revoked.':
-				return [
-					'id' => 4,
-					'label' => $this->l10n->t('Certificate has been revoked.'),
-				];
-			case 'Certificate has Expired':
-				return [
-					'id' => 5,
-					'label' => $this->l10n->t('Certificate has expired'),
-				];
-			case 'Certificate has not yet been verified.':
-				return [
-					'id' => 6,
-					'label' => $this->l10n->t('Certificate has not yet been verified.'),
-				];
-			default:
-				return [
-					'id' => 7,
-					'label' => $this->l10n->t('Unknown issue with Certificate or corrupted data.')
-				];
-		}
+		return match ($status) {
+			'Certificate is Trusted.' => [
+				'id' => 1,
+				'label' => $this->l10n->t('Certificate is trusted.'),
+			],
+			"Certificate issuer isn't Trusted." => [
+				'id' => 2,
+				'label' => $this->l10n->t("Certificate issuer isn't trusted."),
+			],
+			'Certificate issuer is unknown.' => [
+				'id' => 3,
+				'label' => $this->l10n->t('Certificate issuer is unknown.'),
+			],
+			'Certificate has been Revoked.' => [
+				'id' => 4,
+				'label' => $this->l10n->t('Certificate has been revoked.'),
+			],
+			'Certificate has Expired' => [
+				'id' => 5,
+				'label' => $this->l10n->t('Certificate has expired'),
+			],
+			'Certificate has not yet been verified.' => [
+				'id' => 6,
+				'label' => $this->l10n->t('Certificate has not yet been verified.'),
+			],
+			default => [
+				'id' => 7,
+				'label' => $this->l10n->t('Unknown issue with Certificate or corrupted data.')
+			],
+		};
 	}
 
 
@@ -360,7 +341,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	}
 
 	private function der2pem($derData) {
-		$pem = chunk_split(base64_encode($derData), 64, "\n");
+		$pem = chunk_split(base64_encode((string)$derData), 64, "\n");
 		$pem = "-----BEGIN CERTIFICATE-----\n" . $pem . "-----END CERTIFICATE-----\n";
 		return $pem;
 	}
@@ -383,7 +364,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			$this->certificate = $node->getContent();
 		} catch (GenericFileException $e) {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 		}
 		if (empty($this->certificate)) {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
@@ -391,7 +372,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		if ($this->getPassword()) {
 			try {
 				$this->certificateEngineFactory->getEngine()->readCertificate($this->certificate, $this->getPassword());
-			} catch (InvalidPasswordException $e) {
+			} catch (InvalidPasswordException) {
 				throw new LibresignException($this->l10n->t('Invalid password'));
 			}
 		}

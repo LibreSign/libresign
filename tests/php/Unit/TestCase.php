@@ -67,13 +67,11 @@ class TestCase extends \Test\TestCase {
 		\OC::$server->registerParameter('appName', 'libresign');
 		$service = \OCP\Server::get(\OCP\IAppConfig::class);
 		if (!$service instanceof AppConfigOverwrite) {
-			\OC::$server->registerService(\OCP\IAppConfig::class, function ():AppConfigOverwrite {
-				return new AppConfigOverwrite(
-					\OCP\Server::get(\OCP\IDBConnection::class),
-					\OCP\Server::get(\Psr\Log\LoggerInterface::class),
-					\OCP\Server::get(\OCP\Security\ICrypto::class),
-				);
-			});
+			\OC::$server->registerService(\OCP\IAppConfig::class, fn (): AppConfigOverwrite => new AppConfigOverwrite(
+				\OCP\Server::get(\OCP\IDBConnection::class),
+				\OCP\Server::get(\Psr\Log\LoggerInterface::class),
+				\OCP\Server::get(\OCP\Security\ICrypto::class),
+			));
 			$service = \OCP\Server::get(\OCP\IAppConfig::class);
 		}
 		return $service;
@@ -103,7 +101,7 @@ class TestCase extends \Test\TestCase {
 	}
 
 	public function haveDependents(): bool {
-		$reflector = new \ReflectionClass(\get_class($this));
+		$reflector = new \ReflectionClass(static::class);
 
 		$methods = $reflector->getMethods();
 		foreach ($methods as $method) {
@@ -119,7 +117,7 @@ class TestCase extends \Test\TestCase {
 	}
 
 	public function iDependOnOthers(): bool {
-		$reflector = new \ReflectionClass(\get_class($this));
+		$reflector = new \ReflectionClass(static::class);
 		$docblock = $reflector->getMethod($this->name())->getDocComment();
 		if (!$docblock) {
 			return false;
@@ -137,7 +135,7 @@ class TestCase extends \Test\TestCase {
 	}
 
 	public function setUp(): void {
-		$this->getMockAppConfig();
+		static::getMockAppConfig();
 		$this->getBinariesFromCache();
 		if ($this->iDependOnOthers() || !$this->IsDatabaseAccessAllowed()) {
 			return;
@@ -156,7 +154,7 @@ class TestCase extends \Test\TestCase {
 	public static function tearDownAfterClass(): void {
 		try {
 			parent::tearDownAfterClass();
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 		}
 	}
 
@@ -219,7 +217,7 @@ class TestCase extends \Test\TestCase {
 		if ($user) {
 			try {
 				$user->delete();
-			} catch (\Throwable $th) {
+			} catch (\Throwable) {
 			}
 		}
 	}
@@ -229,7 +227,7 @@ class TestCase extends \Test\TestCase {
 		if (!$appPath) {
 			return;
 		}
-		$cachePath = preg_replace('/\/.*\/appdata_[a-z0-9]*/', \OC::$server->getTempManager()->getTempBaseDir(), $appPath);
+		$cachePath = preg_replace('/\/.*\/appdata_[a-z0-9]*/', (string)\OCP\Server::get(\OCP\ITempManager::class)->getTempBaseDir(), $appPath);
 		if (!file_exists($cachePath)) {
 			return;
 		}
@@ -259,7 +257,7 @@ class TestCase extends \Test\TestCase {
 		if ($isEmpty) {
 			return;
 		}
-		$cachePath = preg_replace('/\/.*\/appdata_[a-z0-9]*/', \OC::$server->getTempManager()->getTempBaseDir(), $appPath);
+		$cachePath = preg_replace('/\/.*\/appdata_[a-z0-9]*/', (string)\OCP\Server::get(\OCP\ITempManager::class)->getTempBaseDir(), $appPath);
 		if (!file_exists($cachePath)) {
 			mkdir($cachePath);
 		}
@@ -291,7 +289,7 @@ class TestCase extends \Test\TestCase {
 			file_get_contents(__DIR__ . '/../fixtures/cfssl/newcert-with-success.json')
 		));
 
-		$appConfig = $this->getMockAppConfig();
+		$appConfig = static::getMockAppConfig();
 		$appConfig->setValueBool(Application::APP_ID, 'notifyUnsignedUser', false);
 		$appConfig->setValueString(Application::APP_ID, 'commonName', 'CommonName');
 		$appConfig->setValueString(Application::APP_ID, 'country', 'Brazil');

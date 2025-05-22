@@ -48,7 +48,7 @@ class CertificatePolicyController extends Controller {
 				'Content-Disposition' => 'inline; filename="certificate-policy.pdf"',
 				'Content-Type' => 'application/pdf',
 			]);
-		} catch (NotFoundException $e) {
+		} catch (NotFoundException) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 	}

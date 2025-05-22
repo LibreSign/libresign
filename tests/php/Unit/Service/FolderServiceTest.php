@@ -97,7 +97,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appDataFactory->method('get')->willReturn($appData);
 
 		$service = $this->getFolderService(null);
-		$service->getFolder(171);
+		$service->getFolder();
 		$this->assertTrue(true);
 	}
 
@@ -130,7 +130,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn($appData);
 
 		$service = $this->getFolderService('1');
-		$actual = $service->getFolder(171);
+		$actual = $service->getFolder();
 		$this->assertInstanceOf(\OCP\Files\Folder::class, $actual);
 	}
 }

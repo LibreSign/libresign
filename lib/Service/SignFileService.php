@@ -62,7 +62,7 @@ class SignFileService {
 	private $signRequest;
 	/** @var string */
 	private $password;
-	private ?FileEntity $libreSignFile;
+	private ?FileEntity $libreSignFile = null;
 	/** @var VisibleElementAssoc[] */
 	private $elements = [];
 	/** @var bool */
@@ -71,7 +71,7 @@ class SignFileService {
 	private string $userUniqueIdentifier = '';
 	private string $friendlyName = '';
 	private array $signers = [];
-	private ?IUser $user;
+	private ?IUser $user = null;
 
 	public function __construct(
 		protected IL10N $l10n,
@@ -117,7 +117,7 @@ class SignFileService {
 		if ($signed) {
 			throw new \Exception($this->l10n->t('Document already signed'));
 		}
-		array_walk($data['users'], function ($user) use ($signatures) {
+		array_walk($data['users'], function ($user) use ($signatures): void {
 			$exists = array_filter($signatures, function (SignRequestEntity $signRequest) use ($user) {
 				$identifyMethod = $this->identifyMethodService->getIdentifiedMethod($signRequest->getId());
 				if ($identifyMethod->getName() === 'email') {
@@ -217,9 +217,7 @@ class SignFileService {
 		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($this->signRequest->getFileId(), $this->signRequest->getId());
 		$canCreateSignature = $this->signerElementsService->canCreateSignature();
 		foreach ($fileElements as $fileElement) {
-			$element = array_filter($list, function (array $element) use ($fileElement): bool {
-				return $element['documentElementId'] === $fileElement->getId();
-			});
+			$element = array_filter($list, fn (array $element): bool => $element['documentElementId'] === $fileElement->getId());
 			if ($element && $canCreateSignature) {
 				$c = current($element);
 				if (!empty($c['profileNodeId'])) {
@@ -250,7 +248,7 @@ class SignFileService {
 				if (!$node) {
 					throw new \Exception('empty');
 				}
-			} catch (\Throwable $th) {
+			} catch (\Throwable) {
 				throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 			}
 			$tempFile = $this->tempManager->getTemporaryFile('.png');
@@ -403,13 +401,13 @@ class SignFileService {
 					$this->friendlyName,
 				);
 				$this->pkcs12Handler->setCertificate($certificate);
-			} catch (TypeError $e) {
+			} catch (TypeError) {
 				throw new LibresignException($this->l10n->t('Failure to generate certificate'));
-			} catch (EmptyCertificateException $e) {
+			} catch (EmptyCertificateException) {
 				throw new LibresignException($this->l10n->t('Empty root certificate data'));
-			} catch (InvalidArgumentException $e) {
+			} catch (InvalidArgumentException) {
 				throw new LibresignException($this->l10n->t('Invalid data to generate certificate'));
-			} catch (\Throwable $th) {
+			} catch (\Throwable) {
 				throw new LibresignException($this->l10n->t('Failure on generate certificate'));
 			}
 		}
@@ -455,7 +453,7 @@ class SignFileService {
 
 			throw new \Exception('Invalid arguments');
 
-		} catch (DoesNotExistException $th) {
+		} catch (DoesNotExistException) {
 			throw new LibresignException($this->l10n->t('File not found'), 1);
 		}
 	}
@@ -469,7 +467,7 @@ class SignFileService {
 		$signRequest->setUuid(UUIDUtil::getUUID());
 		$this->signRequestMapper->update($signRequest);
 
-		array_map(function (IIdentifyMethod $identifyMethod) {
+		array_map(function (IIdentifyMethod $identifyMethod): void {
 			$entity = $identifyMethod->getEntity();
 			$entity->setAttempts($entity->getAttempts() + 1);
 			$entity->setLastAttemptDate($this->timeFactory->getDateTime());
@@ -491,7 +489,7 @@ class SignFileService {
 			try {
 				$signatureMethod = $identifyMethod->getEmptyInstanceOfSignatureMethodByName($signMethodName);
 				$signatureMethod->setEntity($identifyMethod->getEntity());
-			} catch (InvalidArgumentException $th) {
+			} catch (InvalidArgumentException) {
 				continue;
 			}
 			/** @var EmailToken $signatureMethod */
@@ -542,10 +540,10 @@ class SignFileService {
 			if ($signRequest->getSigned()) {
 				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
 			}
-		} catch (DoesNotExistException $th) {
+		} catch (DoesNotExistException) {
 			try {
 				$accountFile = $this->accountFileMapper->getByFileId($libresignFile->getId());
-			} catch (\Throwable $th) {
+			} catch (\Throwable) {
 				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 			}
 			$this->validateHelper->userCanApproveValidationDocuments($user);
@@ -572,14 +570,12 @@ class SignFileService {
 			$fileToSign = current($fileToSign);
 		} else {
 			$footer = $this->footerHandler
-				->setTemplateVar('signers', array_map(function (SignRequestEntity $signer) {
-					return [
-						'displayName' => $signer->getDisplayName(),
-						'signed' => $signer->getSigned()
-							? $signer->getSigned()->format(DateTimeInterface::ATOM)
-							: null,
-					];
-				}, $this->getSigners()))
+				->setTemplateVar('signers', array_map(fn (SignRequestEntity $signer) => [
+					'displayName' => $signer->getDisplayName(),
+					'signed' => $signer->getSigned()
+						? $signer->getSigned()->format(DateTimeInterface::ATOM)
+						: null,
+				], $this->getSigners()))
 				->getFooter($originalFile, $fileData);
 			if ($footer) {
 				$stamp = $this->tempManager->getTemporaryFile('stamp.pdf');
@@ -622,7 +618,7 @@ class SignFileService {
 			/** @var \OCP\Files\Folder */
 			$parentFolder = $this->root->getUserFolder($owner)->getFirstNodeById($originalFile->getParentId());
 			return $parentFolder->newFile($filename, $content);
-		} catch (NotPermittedException $e) {
+		} catch (NotPermittedException) {
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
 		};
 	}
@@ -686,14 +682,12 @@ class SignFileService {
 
 	public function getAvailableIdentifyMethodsFromSettings(): array {
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsSettings();
-		$return = array_map(function (array $identifyMethod): array {
-			return [
-				'mandatory' => $identifyMethod['mandatory'],
-				'identifiedAtDate' => null,
-				'validateCode' => false,
-				'method' => $identifyMethod['name'],
-			];
-		}, $identifyMethods);
+		$return = array_map(fn (array $identifyMethod): array => [
+			'mandatory' => $identifyMethod['mandatory'],
+			'identifiedAtDate' => null,
+			'validateCode' => false,
+			'method' => $identifyMethod['name'],
+		], $identifyMethods);
 		return $return;
 	}
 
@@ -710,7 +704,7 @@ class SignFileService {
 				try {
 					$this->accountFileMapper->getByFileId($fileEntity->getId());
 					$url = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $uuid])];
-				} catch (DoesNotExistException $e) {
+				} catch (DoesNotExistException) {
 					$url = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $uuid])];
 				}
 				break;

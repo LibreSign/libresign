@@ -68,9 +68,7 @@ class IdentifyService {
 		}
 
 		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($identifyMethod->getSignRequestId());
-		$exists = array_filter($identifyMethods, function (IdentifyMethod $current) use ($identifyMethod): bool {
-			return $current->getIdentifierKey() === $identifyMethod->getIdentifierKey();
-		});
+		$exists = array_filter($identifyMethods, fn (IdentifyMethod $current): bool => $current->getIdentifierKey() === $identifyMethod->getIdentifierKey());
 		if (!$exists) {
 			return;
 		}

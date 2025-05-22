@@ -178,7 +178,7 @@ class FileController extends AEnvironmentAwareController {
 				try {
 					$this->fileService
 						->setFileByType('Uuid', $identifier);
-				} catch (LibresignException $e) {
+				} catch (LibresignException) {
 					$this->fileService
 						->setFileByType('SignerUuid', $identifier);
 				}
@@ -268,7 +268,7 @@ class FileController extends AEnvironmentAwareController {
 			'status' => $status,
 			'start' => $start,
 			'end' => $end,
-		], static function ($var) { return $var !== null; });
+		], static fn ($var) => $var !== null);
 		$sort = [
 			'sortBy' => $sortBy,
 			'sortDirection' => $sortDirection,
@@ -318,7 +318,7 @@ class FileController extends AEnvironmentAwareController {
 				->setMe($this->userSession->getUser())
 				->getMyLibresignFile($nodeId);
 			$node = $this->accountService->getPdfByUuid($myLibreSignFile->getUuid());
-		} catch (DoesNotExistException $e) {
+		} catch (DoesNotExistException) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 
@@ -361,7 +361,7 @@ class FileController extends AEnvironmentAwareController {
 			]);
 			$response->cacheFor(3600 * 24, false, true);
 			return $response;
-		} catch (NotFoundException $e) {
+		} catch (NotFoundException) {
 			// If we have no preview enabled, we can redirect to the mime icon if any
 			if ($mimeFallback) {
 				if ($url = $this->mimeIconProvider->getMimeIconUrl($node->getMimeType())) {
@@ -370,7 +370,7 @@ class FileController extends AEnvironmentAwareController {
 			}
 
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
-		} catch (\InvalidArgumentException $e) {
+		} catch (\InvalidArgumentException) {
 			return new DataResponse([], Http::STATUS_BAD_REQUEST);
 		}
 	}

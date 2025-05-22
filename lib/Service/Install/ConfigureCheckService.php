@@ -457,9 +457,7 @@ class ConfigureCheckService {
 		$checkJava = $this->checkJava();
 		$error = array_filter(
 			$checkJava,
-			function (ConfigureCheckHelper $config) {
-				return $config->getStatus() === 'error';
-			}
+			fn (ConfigureCheckHelper $config) => $config->getStatus() === 'error'
 		);
 		return empty($error);
 	}
@@ -473,7 +471,7 @@ class ConfigureCheckService {
 	public function checkCertificate(): array {
 		try {
 			$return = $this->certificateEngineFactory->getEngine()->configureCheck();
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			$return = [
 				(new ConfigureCheckHelper())
 					->setErrorMessage('Define the certificate engine to use')

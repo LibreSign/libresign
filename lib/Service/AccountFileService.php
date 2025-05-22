@@ -47,8 +47,8 @@ class AccountFileService {
 	 * @psalm-return array{data: LibresignFile[], pagination: array}
 	 */
 	public function accountFileList(array $filter, ?int $page = null, ?int $length = null): array {
-		$page = $page ?? 1;
-		$length = $length ?? (int)$this->appConfig->getValueInt(Application::APP_ID, 'length_of_page', 100);
+		$page ??= 1;
+		$length ??= (int)$this->appConfig->getValueInt(Application::APP_ID, 'length_of_page', 100);
 		$data = $this->accountFileMapper->accountFileList($filter, $page, $length);
 		$data['pagination']->setRouteName('ocs.libresign.File.list');
 		return [

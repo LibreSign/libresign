@@ -87,7 +87,7 @@ class AccountService {
 		}
 		try {
 			$signRequest = $this->getSignRequestByUuid($data['uuid']);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('UUID not found'), 1);
 		}
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
@@ -203,7 +203,7 @@ class AccountService {
 			try {
 				$emailTemplate = $this->newUserMail->generateTemplate($newUser, false);
 				$this->newUserMail->sendMail($newUser, $emailTemplate);
-			} catch (\Exception $e) {
+			} catch (\Exception) {
 				throw new LibresignException('Unable to send the invitation', 1);
 			}
 		}
@@ -252,7 +252,7 @@ class AccountService {
 		try {
 			$this->pkcs12Handler->getPfxOfCurrentSigner($user->getUID());
 			return true;
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 		}
 		return false;
 	}
@@ -288,13 +288,13 @@ class AccountService {
 		if (!$rootSignatureFolder->nodeExists($sessionId)) {
 			try {
 				return $this->folderService->getFileById($nodeId);
-			} catch (NotFoundException $th) {
+			} catch (NotFoundException) {
 				throw new DoesNotExistException('Not found');
 			}
 		}
 		try {
 			return $this->folderService->getFileById($nodeId);
-		} catch (NotFoundException $th) {
+		} catch (NotFoundException) {
 			throw new DoesNotExistException('Not found');
 		}
 	}
@@ -393,9 +393,7 @@ class AccountService {
 
 	private function updateFileOfVisibleElementUsingSession(array $data, string $sessionId): File {
 		$fileList = $this->signerElementsService->getElementsFromSession();
-		$element = array_filter($fileList, function (File $element) use ($data) {
-			return $element->getId() === $data['nodeId'];
-		});
+		$element = array_filter($fileList, fn (File $element) => $element->getId() === $data['nodeId']);
 		$element = current($element);
 		if (!$element instanceof File) {
 			throw new \Exception($this->l10n->t('File not found'));
@@ -452,11 +450,11 @@ class AccountService {
 			return $content;
 		}
 		$this->validateHelper->validateBase64($data['file']['base64'], ValidateHelper::TYPE_VISIBLE_ELEMENT_USER);
-		$withMime = explode(',', $data['file']['base64']);
+		$withMime = explode(',', (string)$data['file']['base64']);
 		if (count($withMime) === 2) {
 			$content = base64_decode($withMime[1]);
 		} else {
-			$content = base64_decode($data['file']['base64']);
+			$content = base64_decode((string)$data['file']['base64']);
 		}
 		if (!$content) {
 			return '';
@@ -474,7 +472,7 @@ class AccountService {
 			try {
 				$file = $this->folderService->getFileById($element->getFileId());
 				$file->delete();
-			} catch (NotFoundException $e) {
+			} catch (NotFoundException) {
 			}
 		} else {
 			$rootSignatureFolder = $this->folderService->getFolder();
@@ -508,7 +506,7 @@ class AccountService {
 			// TRANSLATORS Error when the mimetype of uploaded file is not valid
 			throw new InvalidArgumentException($this->l10n->t('Invalid file provided. Need to be a .pfx file.'));
 		}
-		$extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+		$extension = strtolower(pathinfo((string)$file['name'], PATHINFO_EXTENSION));
 		if ($extension !== 'pfx') {
 			// TRANSLATORS Error when the certificate file is not a pfx file
 			throw new InvalidArgumentException($this->l10n->t('Invalid file provided. Need to be a .pfx file.'));
@@ -527,7 +525,7 @@ class AccountService {
 	public function updatePfxPassword(IUser $user, string $current, string $new): void {
 		try {
 			$pfx = $this->pkcs12Handler->updatePassword($user->getUID(), $current, $new);
-		} catch (InvalidPasswordException $e) {
+		} catch (InvalidPasswordException) {
 			throw new LibresignException($this->l10n->t('Invalid user or password'));
 		}
 	}
@@ -541,7 +539,7 @@ class AccountService {
 				->setCertificate($this->pkcs12Handler->getPfxOfCurrentSigner($user->getUID()))
 				->setPassword($password)
 				->readCertificate();
-		} catch (InvalidPasswordException $e) {
+		} catch (InvalidPasswordException) {
 			throw new LibresignException($this->l10n->t('Invalid user or password'));
 		}
 	}
