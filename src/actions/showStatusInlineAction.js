@@ -5,6 +5,7 @@
 import axios from '@nextcloud/axios'
 import { FileAction, registerFileAction } from '@nextcloud/files'
 import { loadState } from '@nextcloud/initial-state'
+import { t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import { SIGN_STATUS } from '../domains/sign/enum.js'
@@ -23,7 +24,9 @@ const action = new FileAction({
 			const node = nodeStatusById.get(nodeId)
 
 			if ([SIGN_STATUS.PARTIAL_SIGNED, SIGN_STATUS.SIGNED].includes(node.status)) {
-				return fileStatus.find(status => status.id === node.status).label
+				return node.original
+					? t('libresign', 'original file')
+					: fileStatus.find(status => status.id === node.status).label
 			}
 		}
 
@@ -39,7 +42,9 @@ const action = new FileAction({
 			const node = nodeStatusById.get(nodeId)
 
 			if ([SIGN_STATUS.PARTIAL_SIGNED, SIGN_STATUS.SIGNED].includes(node.status)) {
-				return fileStatus.find(status => status.id === node.status).icon
+				return node.original
+					? fileStatus.find(status => status.id === SIGN_STATUS.ABLE_TO_SIGN).icon
+					: fileStatus.find(status => status.id === node.status).icon
 			}
 		}
 
@@ -58,10 +63,14 @@ const action = new FileAction({
 axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'), {
 	params: {
 		nodeIds,
-	}
+	},
 }).then(({ data }) => {
 	data.ocs.data.data.forEach(node => {
-		nodeStatusById.set(node.nodeId, { status: node.status })
+		nodeStatusById.set(node.nodeId, { status: node.status, original: true })
+
+		if (node.signedNodeId) {
+			nodeStatusById.set(node.signedNodeId, { status: node.status, original: false })
+		}
 	})
 
 	registerFileAction(action)
