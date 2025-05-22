@@ -3,6 +3,8 @@ OC.L10N.register(
     {
     "{from} requested your signature on {file}" : "{from} requested your signature on {file}",
     "{from} made changes on {file}" : "{from} made changes on {file}",
+    "{from} signed {file}" : "{from} signed {file}",
+    "A document has been <strong>signed</strong>" : "A document has been <strong>signed</strong>",
     "You have a <strong>file to sign</strong>" : "You have a <strong>file to sign</strong>",
     "Success" : "Success",
     "Invalid user or password" : "Invalid user or password",
@@ -149,6 +151,9 @@ OC.L10N.register(
     "Sign »%s«" : "Sign »%s«",
     "LibreSign: There is a file for you to sign" : "LibreSign: There is a file for you to sign",
     "There is a document for you to sign. Access the link below:" : "There is a document for you to sign. Access the link below:",
+    "LibreSign: A file has been signed" : "LibreSign: A file has been signed",
+    "%s signed the document. You can access it using the link below:" : "%s signed the document. You can access it using the link below:",
+    "View signed file »%s«" : "View signed file »%s«",
     "LibreSign: Code to sign file" : "LibreSign: Code to sign file",
     "Use this code to sign the document:" : "Use this code to sign the document:",
     "Empty users list" : "Empty users list",
