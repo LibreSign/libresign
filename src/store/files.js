@@ -72,7 +72,7 @@ export const useFilesStore = function(...args) {
 			},
 			async flushSelectedFile() {
 				const files = await this.getAllFiles({
-					nodeId: this.selectedNodeId,
+					'nodeIds[]': [this.selectedNodeId],
 				})
 				this.addFile(files[this.selectedNodeId])
 			},
@@ -298,11 +298,6 @@ export const useFilesStore = function(...args) {
 
 				if (filter) {
 					for (const [key, value] of Object.entries(filter)) {
-						if (key === 'nodeId') {
-							params.set('nodeIds[]', value)
-							continue
-						}
-
 						params.set(key, value)
 					}
 				}
