@@ -206,7 +206,7 @@ class Listener implements IEventListener {
 
 		return [
 			'type' => 'signer',
-			'id' => (string) $identifyMethodId,
+			'id' => (string)$identifyMethodId,
 			'name' => $displayName,
 		];
 	}
