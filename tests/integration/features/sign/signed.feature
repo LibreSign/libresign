@@ -63,6 +63,7 @@ Feature: signed
     And my inbox is empty
     And reset notifications of user "signer1"
     And reset notifications of user "admin"
+    And reset activity of user "admin"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | users | [{"displayName": "Signer Name","identify": {"account": "signer1"}},{"displayName": "Admin","identify": {"account": "admin"}}] |
@@ -126,6 +127,7 @@ Feature: signed
     And my inbox is empty
     And reset notifications of user "signer1"
     And reset notifications of user "admin"
+    And reset activity of user "admin"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | users | [{"displayName": "Signer Name","identify": {"account": "signer1"}},{"displayName": "Admin","identify": {"account": "admin"}}] |
