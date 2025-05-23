@@ -12,6 +12,7 @@ use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\IL10N;
+use OCP\IUser;
 use OCP\IUserSession;
 
 class FileSigned extends LibresignActivitySettings {
@@ -47,6 +48,9 @@ class FileSigned extends LibresignActivitySettings {
 	 * {@inheritdoc}
 	 */
 	public function canChangeNotification(): bool {
+		if (!$this->userSession->getUser() instanceof IUser) {
+			return true;
+		}
 		try {
 			$this->validateHelper->canrequestSign($this->userSession->getUser());
 		} catch (LibresignException) {
@@ -59,6 +63,9 @@ class FileSigned extends LibresignActivitySettings {
 	 * {@inheritdoc}
 	 */
 	public function canChangeMail() {
+		if (!$this->userSession->getUser() instanceof IUser) {
+			return true;
+		}
 		try {
 			$this->validateHelper->canrequestSign($this->userSession->getUser());
 		} catch (LibresignException) {
