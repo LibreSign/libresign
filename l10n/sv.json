@@ -1,6 +1,8 @@
 { "translations": {
     "{from} requested your signature on {file}" : "{from} begärde din underskrift på {file}",
     "{from} made changes on {file}" : "{from} gjorde ändringar på {file}",
+    "{from} signed {file}" : "{from} signerade {file}",
+    "A document has been <strong>signed</strong>" : "Ett dokument har <strong>signerats</strong>",
     "You have a <strong>file to sign</strong>" : "Du har en <strong>fil att signera</strong>",
     "Success" : "Lyckades",
     "Invalid user or password" : "Ogiltig användare eller lösenord",
@@ -147,6 +149,9 @@
     "Sign »%s«" : "Signera \"%s\"",
     "LibreSign: There is a file for you to sign" : "LibreSign: Det finns en fil för dig att signera",
     "There is a document for you to sign. Access the link below:" : "Det finns ett dokument för dig att signera. Gå till länken nedan:",
+    "LibreSign: A file has been signed" : "LibreSign: En fil har signerats",
+    "%s signed the document. You can access it using the link below:" : "%s har signerat dokumentet. Du kan komma åt det via länken nedan:",
+    "View signed file »%s«" : "Visa signerat dokument »%s«",
     "LibreSign: Code to sign file" : "LibreSign: Kod för att signera fil",
     "Use this code to sign the document:" : "Använd denna kod för att signera dokumentet:",
     "Empty users list" : "Töm användarlistan",
