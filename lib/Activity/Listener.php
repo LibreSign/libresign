@@ -141,6 +141,7 @@ class Listener implements IEventListener {
 					$identifyMethod->getEntity()->getIdentifierKey(),
 					$identifyMethod->getEntity()->getIdentifierValue(),
 					$signRequest->getDisplayName(),
+					$identifyMethod->getEntity()->getId(),
 				),
 				'file' => [
 					'type' => 'file',
@@ -151,8 +152,8 @@ class Listener implements IEventListener {
 						'path' => 'validation/' . $libreSignFile->getUuid(),
 					]),
 				],
-				'signedFile' => [
-					'type' => 'signed-file',
+				'sign-request' => [
+					'type' => 'sign-request',
 					'id' => (string)$signRequest->getId(),
 					'name' => $signRequest->getDisplayName(),
 				],
@@ -193,6 +194,7 @@ class Listener implements IEventListener {
 		string $type,
 		string $identifier,
 		string $displayName,
+		int $identifyMethodId,
 	): array {
 
 		if ($type === 'account') {
@@ -203,6 +205,8 @@ class Listener implements IEventListener {
 		}
 
 		return [
+			'type' => 'signer',
+			'id' => (string) $identifyMethodId,
 			'name' => $displayName,
 		];
 	}
