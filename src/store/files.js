@@ -297,6 +297,11 @@ export const useFilesStore = function(...args) {
 
 				if (filter) {
 					for (const [key, value] of Object.entries(filter)) {
+						if (key === 'nodeId') {
+							params.set('nodeIds[]', value)
+							continue
+						}
+
 						params.set(key, value)
 					}
 				}
