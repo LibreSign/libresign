@@ -176,7 +176,6 @@ abstract class AEngineHandler implements IEngineHandler {
 				REPACK_COMMAND
 			);
 			$certificateRepacked = file_get_contents($tempEncriptedRepacked);
-			$this->tempManager->clean();
 			openssl_pkcs12_read($certificateRepacked, $certContent, $privateKey);
 			if (!empty($certContent)) {
 				$certificate = $certificateRepacked;
