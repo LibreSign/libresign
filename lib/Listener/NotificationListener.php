@@ -128,6 +128,7 @@ class NotificationListener implements IEventListener {
 					$identifyMethod->getEntity()->getIdentifierKey(),
 					$identifyMethod->getEntity()->getIdentifierValue(),
 					$signRequest->getDisplayName(),
+					$identifyMethod->getEntity()->getId(),
 				),
 				'file' => [
 					'type' => 'file',
@@ -138,8 +139,8 @@ class NotificationListener implements IEventListener {
 						'path' => 'validation/' . $libreSignFile->getUuid(),
 					]),
 				],
-				'signedFile' => [
-					'type' => 'signed-file',
+				'sign-request' => [
+					'type' => 'sign-request',
 					'id' => (string)$signRequest->getId(),
 					'name' => $signRequest->getDisplayName(),
 				],
@@ -194,6 +195,7 @@ class NotificationListener implements IEventListener {
 		string $type,
 		string $identifier,
 		string $displayName,
+		int $identifyMethodId,
 	): array {
 
 		if ($type === 'account') {
@@ -204,6 +206,8 @@ class NotificationListener implements IEventListener {
 		}
 
 		return [
+			'type' => 'signer',
+			'id' => (string)$identifyMethodId,
 			'name' => $displayName,
 		];
 	}
