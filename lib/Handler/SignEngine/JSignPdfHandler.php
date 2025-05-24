@@ -76,10 +76,26 @@ class JSignPdfHandler extends Pkcs12Handler {
 				if (!file_exists($javaPath)) {
 					throw new \Exception('Invalid Java binary. Run occ libresign:install --java');
 				}
-				$this->jSignParam->setJavaPath($javaPath);
+				$this->jSignParam->setJavaPath(
+					'JSIGNPDF_HOME=' . $this->getTempConfigFolder() . ' ' . $javaPath
+				);
 			}
 		}
 		return $this->jSignParam;
+	}
+
+	private function getTempConfigFolder(): string {
+		$jsignpdfTempFolder = $this->tempManager->getTemporaryFolder('jsignpdf');
+		if (!$jsignpdfTempFolder) {
+			throw new \Exception('Temporary file not accessible');
+		}
+		mkdir(
+			directory: $jsignpdfTempFolder . '/conf',
+			recursive: true
+		);
+		$file = fopen($jsignpdfTempFolder . '/conf/conf.properties', 'w');
+		fclose($file);
+		return $jsignpdfTempFolder;
 	}
 
 	private function getHashAlgorithm(): string {
