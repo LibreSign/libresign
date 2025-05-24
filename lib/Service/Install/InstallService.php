@@ -23,7 +23,6 @@ use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
-use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\Files\SimpleFS\ISimpleFile;
@@ -73,7 +72,6 @@ class InstallService {
 		private CertificateEngineFactory $certificateEngineFactory,
 		private IConfig $config,
 		private IAppConfig $appConfig,
-		private IRootFolder $rootFolder,
 		private LoggerInterface $logger,
 		private SignSetupService $signSetupService,
 		protected IAppDataFactory $appDataFactory,
