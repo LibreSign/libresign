@@ -396,7 +396,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$expected = new JSignParam();
 		if ($java_path) {
-			$expected->setJavaPath('JSIGNPDF_HOME=/ ' . $java_path);
+			$expected->setJavaPath("JSIGNPDF_HOME='/' $java_path -Duser.home='/' ");
 		}
 		$expected->setTempPath($temp_path);
 		$expected->setjSignPdfJarPath($jar_path);
