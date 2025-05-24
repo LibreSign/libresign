@@ -79,7 +79,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 				$this->jSignParam->setJavaPath(
 					$this->getEnvironments() .
 					$javaPath .
-					' -Duser.home="' . $this->getHome() . '" '
+					' -Duser.home=' . escapeshellarg($this->getHome()) . ' '
 				);
 			}
 		}
@@ -87,7 +87,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 	}
 
 	private function getEnvironments(): string {
-		return 'JSIGNPDF_HOME=' . $this->getHome() . ' ';
+		return 'JSIGNPDF_HOME=' . escapeshellarg($this->getHome()) . ' ';
 	}
 
 	/**
