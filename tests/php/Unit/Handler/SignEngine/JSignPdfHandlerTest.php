@@ -389,15 +389,16 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[DataProvider('providerGetJSignParam')]
 	public function testGetJSignParam(string $temp_path, string $java_path, string $jar_path, bool $throwException): void {
-		$expected = new JSignParam();
-
+		$this->appConfig->setValueString('libresign', 'jsignpdf_home', '/');
 		$this->appConfig->setValueString('libresign', 'java_path', $java_path);
-		$expected->setJavaPath($java_path);
-
 		$this->appConfig->setValueString('libresign', 'jsignpdf_temp_path', $temp_path);
-		$expected->setTempPath($temp_path);
-
 		$this->appConfig->setValueString('libresign', 'jsignpdf_jar_path', $jar_path);
+
+		$expected = new JSignParam();
+		if ($java_path) {
+			$expected->setJavaPath("JSIGNPDF_HOME='/' $java_path -Duser.home='/' ");
+		}
+		$expected->setTempPath($temp_path);
 		$expected->setjSignPdfJarPath($jar_path);
 
 		$jSignPdfHandler = $this->getInstance();
