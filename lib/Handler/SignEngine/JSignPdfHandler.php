@@ -77,7 +77,9 @@ class JSignPdfHandler extends Pkcs12Handler {
 					throw new \Exception('Invalid Java binary. Run occ libresign:install --java');
 				}
 				$this->jSignParam->setJavaPath(
-					$this->getEnvironments() . $javaPath
+					$this->getEnvironments() .
+					$javaPath .
+					' -Duser.home="' . $this->getHome() . '" '
 				);
 			}
 		}
@@ -85,14 +87,20 @@ class JSignPdfHandler extends Pkcs12Handler {
 	}
 
 	private function getEnvironments(): string {
-		$jSignPdfHome = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_home', '');
-		if ($jSignPdfHome) {
-			return 'JSIGNPDF_HOME=' . $jSignPdfHome . ' ';
-		}
-		return 'JSIGNPDF_HOME=' . $this->getTempConfigFolder() . ' ';
+		return 'JSIGNPDF_HOME=' . $this->getHome() . ' ';
 	}
 
-	private function getTempConfigFolder(): string {
+	/**
+	 * It's a workaround to create the folder structure that JSignPdf needs. Without
+	 * this, the JSignPdf will return the follow message to all commands:
+	 * > FINE Config file conf/conf.properties doesn't exists.
+	 * > FINE Default property file /root/.JSignPdf doesn't exists.
+	 */
+	private function getHome(): string {
+		$jSignPdfHome = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_home', '');
+		if ($jSignPdfHome) {
+			return $jSignPdfHome;
+		}
 		$jsignpdfTempFolder = $this->tempManager->getTemporaryFolder('jsignpdf');
 		if (!$jsignpdfTempFolder) {
 			throw new \Exception('Temporary file not accessible');
@@ -101,8 +109,10 @@ class JSignPdfHandler extends Pkcs12Handler {
 			directory: $jsignpdfTempFolder . '/conf',
 			recursive: true
 		);
-		$file = fopen($jsignpdfTempFolder . '/conf/conf.properties', 'w');
-		fclose($file);
+		$configFile = fopen($jsignpdfTempFolder . '/conf/conf.properties', 'w');
+		fclose($configFile);
+		$propertyFile = fopen($jsignpdfTempFolder . '/.JSignPdf', 'w');
+		fclose($propertyFile);
 		return $jsignpdfTempFolder;
 	}
 
