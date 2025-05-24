@@ -488,15 +488,17 @@ class InstallService {
 	 * It's a workaround to create the folder structure that JSignPdf needs. Without
 	 * this, the JSignPdf will return the follow message to all commands:
 	 * > FINE Config file conf/conf.properties doesn't exists.
+	 * > FINE Default property file /root/.JSignPdf doesn't exists.
 	 */
 	private function saveJsignPdfHome(): void {
 		if ($this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_home')) {
 			return;
 		}
-		$configFolder = $this->getFolder('/jsignpdf/conf/');
+		$homeFolder = $this->getFolder('/jsignpdf/');
+		$homeFolder->newFile('.JSignPdf', '');
+		$configFolder = $this->getFolder('conf', $homeFolder);
 		$configFolder->newFile('conf.properties', '');
-		$configFolder->newFolder('conf')->newFile('conf.properties', '');
-		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_home', $this->getInternalPathOfFolder($configFolder));
+		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_home', $this->getInternalPathOfFolder($homeFolder));
 	}
 
 	public function uninstallJSignPdf(): void {
