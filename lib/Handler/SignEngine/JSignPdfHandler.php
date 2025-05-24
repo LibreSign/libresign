@@ -77,11 +77,19 @@ class JSignPdfHandler extends Pkcs12Handler {
 					throw new \Exception('Invalid Java binary. Run occ libresign:install --java');
 				}
 				$this->jSignParam->setJavaPath(
-					'JSIGNPDF_HOME=' . $this->getTempConfigFolder() . ' ' . $javaPath
+					$this->getEnvironments() . $javaPath
 				);
 			}
 		}
 		return $this->jSignParam;
+	}
+
+	private function getEnvironments(): string {
+		$jSignPdfHome = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_home', '');
+		if ($jSignPdfHome) {
+			return 'JSIGNPDF_HOME=' . $jSignPdfHome . ' ';
+		}
+		return 'JSIGNPDF_HOME=' . $this->getTempConfigFolder() . ' ';
 	}
 
 	private function getTempConfigFolder(): string {
