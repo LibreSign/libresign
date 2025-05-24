@@ -37,7 +37,7 @@ class Signed implements IProvider {
 			throw new UnknownActivityException('subject');
 		}
 
-		$this->definitions->definitions['signed-file'] = [
+		$this->definitions->definitions['sign-request'] = [
 			'author' => 'LibreSign',
 			'since' => '30.0.0',
 			'parameters' => [
@@ -45,6 +45,24 @@ class Signed implements IProvider {
 					'since' => '30.0.0',
 					'required' => true,
 					'description' => 'The id of SignRequest object',
+					'example' => '12345',
+				],
+				'name' => [
+					'since' => '30.0.0',
+					'required' => true,
+					'description' => 'The display name of signer',
+					'example' => 'John Doe',
+				],
+			],
+		];
+		$this->definitions->definitions['signer'] = [
+			'author' => 'LibreSign',
+			'since' => '30.0.0',
+			'parameters' => [
+				'id' => [
+					'since' => '30.0.0',
+					'required' => true,
+					'description' => 'The identify method id',
 					'example' => '12345',
 				],
 				'name' => [
