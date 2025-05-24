@@ -457,6 +457,7 @@ class InstallService {
 				$fullPath = $extractDir . '/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '/JSignPdf.jar';
 				$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_jar_path', $fullPath);
 			}
+			$this->saveJsignPdfHome();
 			return;
 		}
 		$folder = $this->getFolder($this->resource);
@@ -477,9 +478,25 @@ class InstallService {
 		unlink($extractDir . '/' . $compressedFileName);
 		$fullPath = $extractDir . '/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '/JSignPdf.jar';
 		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_jar_path', $fullPath);
+		$this->saveJsignPdfHome();
 		$this->writeAppSignature();
 
 		$this->removeDownloadProgress();
+	}
+
+	/**
+	 * It's a workaround to create the folder structure that JSignPdf needs. Without
+	 * this, the JSignPdf will return the follow message to all commands:
+	 * > FINE Config file conf/conf.properties doesn't exists.
+	 */
+	private function saveJsignPdfHome(): void {
+		if ($this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_home')) {
+			return;
+		}
+		$configFolder = $this->getFolder('/jsignpdf/conf/');
+		$configFolder->newFile('conf.properties', '');
+		$configFolder->newFolder('conf')->newFile('conf.properties', '');
+		$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_home', $this->getInternalPathOfFolder($configFolder));
 	}
 
 	public function uninstallJSignPdf(): void {
@@ -494,6 +511,7 @@ class InstallService {
 		} catch (NotFoundException) {
 		}
 		$this->appConfig->deleteKey(Application::APP_ID, 'jsignpdf_jar_path');
+		$this->appConfig->deleteKey(Application::APP_ID, 'jsignpdf_home');
 	}
 
 	public function installPdftk(?bool $async = false): void {
