@@ -13,7 +13,6 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCP\Files\AppData\IAppDataFactory;
-use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\ICacheFactory;
@@ -28,7 +27,6 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private IConfig&MockObject $config;
 	private IAppConfig&MockObject $appConfig;
-	private IRootFolder&MockObject $rootFolder;
 	private LoggerInterface&MockObject $logger;
 	private SignSetupService&MockObject $ignSetupService;
 	private IAppDataFactory&MockObject $appDataFactory;
@@ -43,7 +41,6 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->rootFolder = $this->createMock(IRootFolder::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->ignSetupService = $this->createMock(SignSetupService::class);
 		$this->appDataFactory = $this->createMock(IAppDataFactory::class);
@@ -53,7 +50,6 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->certificateEngineFactory,
 			$this->config,
 			$this->appConfig,
-			$this->rootFolder,
 			$this->logger,
 			$this->ignSetupService,
 			$this->appDataFactory
