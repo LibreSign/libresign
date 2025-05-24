@@ -105,15 +105,18 @@ class MailService {
 
 	public function notifySignedUser(SignRequest $signRequest, string $email, File $libreSignFile, string $displayName): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
+		// TRANSLATORS The subject of the email that is sent after a document has been signed by a user. This email is sent to the person who requested the signature.
 		$emailTemplate->setSubject($this->l10n->t('LibreSign: A file has been signed'));
 		$emailTemplate->addHeader();
 		$emailTemplate->addHeading($this->l10n->t('File signed'), false);
+		// TRANSLATORS The text in the email that is sent after a document has been signed by a user. %s will be replaced with the name of the user who signed the document.
 		$emailTemplate->addBodyText($this->l10n->t('%s signed the document. You can access it using the link below:', [$signRequest->getDisplayName()]));
 		$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.indexFPath', [
 			'path' => 'validation/' . $libreSignFile->getUuid(),
 		]);
 		$file = $this->getFileById($signRequest->getFileId());
 		$emailTemplate->addBodyButton(
+			// TRANSLATORS The button text in the email that is sent after a document has been signed by a user. %s will be replaced with the name of the file that was signed.
 			$this->l10n->t('View signed file »%s«', [$file->getName()]),
 			$link
 		);
