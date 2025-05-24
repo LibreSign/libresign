@@ -199,10 +199,10 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	/**
-	 * @When reset notifications of user :user
+	 * @When reset :type of user :user
 	 */
-	public function resetNotifications($user): void {
-		self::runCommand('libresign:developer:reset --notifications=' . $user);
+	public function resetNotifications($type, $user): void {
+		self::runCommand('libresign:developer:reset --' . $type . '=' . $user);
 	}
 
 	/**
