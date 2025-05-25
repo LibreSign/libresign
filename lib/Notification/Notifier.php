@@ -214,11 +214,19 @@ class Notifier implements INotifier {
 	): INotification {
 
 		$parameters = $notification->getSubjectParameters();
+		$version = $parameters['version'] ?? '';
 		$notification->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')));
-		$subject = $l->t('LibreSign has been updated!');
+		$subject = $l->t('LibreSign has been updated to version %s!', [$version]);
 		$message = $parameters['message'] ?? '';
 		$notification->setParsedSubject($subject)
 			->setParsedMessage($message);
+
+		$donateAction = $notification->createAction()
+			->setParsedLabel($l->t('Donate'))
+			->setPrimary(true)
+			->setLink('https://github.com/sponsors/LibreSign', \OCP\Notification\IAction::TYPE_WEB);
+
+		$notification->addParsedAction($donateAction);
 
 		$dismissAction = $notification->createAction()
 			->setParsedLabel($l->t('Dismiss notification'))
@@ -235,7 +243,8 @@ class Notifier implements INotifier {
 					],
 				),
 				IAction::TYPE_DELETE
-		);
+			);
+
 		$notification->addParsedAction($dismissAction);
 
 		return $notification;
