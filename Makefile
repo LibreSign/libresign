@@ -106,7 +106,7 @@ appstore:
 	find $(appstore_sign_dir)/$(app_name)/vendor/mpdf/mpdf/ttfonts -type f -not -name 'DejaVuSerifCondensed.ttf' -delete
 	rm -rf $(appstore_sign_dir)/$(app_name)/img/screenshot/
 	mkdir -p $(appstore_sign_dir)/$(app_name)/tests/fixtures
-	cp tests/fixtures/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/fixtures
+	cp tests/php/fixtures/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/php/fixtures
 
 	mkdir -p $(cert_dir)
 	if [ -n "$$GITHUB_ACTION" ]; then \
