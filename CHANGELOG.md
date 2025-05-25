@@ -18,6 +18,23 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 10.8.1 - 2025-05-25
+### Changes
+- Update translations
+- chore: remove unused property [#5028](https://github.com/LibreSign/libresign/pull/5028)
+- chore: hide JSignPDF config check [#5024](https://github.com/LibreSign/libresign/pull/5024)
+- chore: translators tips [#5019](https://github.com/LibreSign/libresign/pull/5019)
+- chore: implement Rector [#5002](https://github.com/LibreSign/libresign/pull/5002)
+- chore: move php tests to php folder [#5000](https://github.com/LibreSign/libresign/pull/5000)
+- chore: rename method [#4997](https://github.com/LibreSign/libresign/pull/4997)
+
+### Fixes
+- fix: prevent destroy temp files [#5026](https://github.com/LibreSign/libresign/pull/5026)
+- fix: prevent flakiness at scenario with time [#5018](https://github.com/LibreSign/libresign/pull/5018)
+- fix: notification and activity parameters [#5013](https://github.com/LibreSign/libresign/pull/5013)
+- fix: throw error when identify by email is disabled [#4993](https://github.com/LibreSign/libresign/pull/4993)
+- fix: display error message instead of json [#4991](https://github.com/LibreSign/libresign/pull/4991)
+
 ## 10.8.0 - 2025-05-20
 ### Features
 - feat: adding new activity configuration [#4984](https://github.com/LibreSign/libresign/pull/4984)
@@ -36,7 +53,7 @@ Types of changes:
 - chore: reduce configure check time [#4878](https://github.com/LibreSign/libresign/pull/4878)
 - chore: remove unecessary else [#4870](https://github.com/LibreSign/libresign/pull/4870)
 
-## Fixes
+### Fixes
 - fix: allow to sign without account [#4982](https://github.com/LibreSign/libresign/pull/4982)
 - fix: prevent merge when haven't a signature [#4974](https://github.com/LibreSign/libresign/pull/4974)
 - fix: css at validation page [#4953](https://github.com/LibreSign/libresign/pull/4953)
