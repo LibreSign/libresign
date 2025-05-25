@@ -3,6 +3,8 @@ OC.L10N.register(
     {
     "{from} requested your signature on {file}" : "D'iarr {from} do shíniú ar {file}",
     "{from} made changes on {file}" : "Rinne {from} athruithe ar {file}",
+    "{from} signed {file}" : "{from} sínithe {file}",
+    "A document has been <strong>signed</strong>" : "Tá doiciméad <strong> sínithe</strong>",
     "You have a <strong>file to sign</strong>" : "Tá <strong>chomhad agat le síniú</strong>",
     "Success" : "Rath",
     "Invalid user or password" : "Úsáideoir nó pasfhocal neamhbhailí",
@@ -149,6 +151,9 @@ OC.L10N.register(
     "Sign »%s«" : "Sínigh »%s«",
     "LibreSign: There is a file for you to sign" : "LibreSign: Tá comhad ann chun tú a shíniú",
     "There is a document for you to sign. Access the link below:" : "Tá doiciméad ann chun tú a shíniú. Faigh rochtain ar an nasc thíos:",
+    "LibreSign: A file has been signed" : "LibreSign: Tá comhad sínithe",
+    "%s signed the document. You can access it using the link below:" : "Shínigh %s an doiciméad. Is féidir leat rochtain a fháil air tríd an nasc thíos:",
+    "View signed file »%s«" : "Féach ar chomhad sínithe  »%s«",
     "LibreSign: Code to sign file" : "LibreSign: Cód chun an comhad a shíniú",
     "Use this code to sign the document:" : "Úsáid an cód seo chun an doiciméad a shíniú:",
     "Empty users list" : "Liosta úsáideoirí folamh",
