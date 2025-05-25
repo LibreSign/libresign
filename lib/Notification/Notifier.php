@@ -212,12 +212,32 @@ class Notifier implements INotifier {
 		INotification $notification,
 		IL10N $l,
 	): INotification {
+
 		$parameters = $notification->getSubjectParameters();
 		$notification->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')));
 		$subject = $l->t('LibreSign has been updated!');
 		$message = $parameters['message'] ?? '';
 		$notification->setParsedSubject($subject)
 			->setParsedMessage($message);
+
+		$dismissAction = $notification->createAction()
+			->setParsedLabel($l->t('Dismiss notification'))
+			->setPrimary(false)
+			->setLink(
+				$this->url->linkToOCSRouteAbsolute(
+					'libresign.notify.notificationDismiss',
+					[
+						'apiVersion' => 'v1',
+						'timestamp' => $notification->getDateTime()->getTimestamp(),
+						'objectType' => 'upgrade',
+						'objectId' => '1',
+						'subject' => 'libresign_upgrade',
+					],
+				),
+				IAction::TYPE_DELETE
+		);
+		$notification->addParsedAction($dismissAction);
+
 		return $notification;
 	}
 }
