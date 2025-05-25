@@ -52,6 +52,7 @@ class Notifier implements INotifier {
 			'new_sign_request' => $this->parseSignRequest($notification, $l, false),
 			'update_sign_request' => $this->parseSignRequest($notification, $l, true),
 			'file_signed' => $this->parseSigned($notification, $l),
+			'libresign_upgrade' => $this->parseUpgrade($notification, $l),
 			default => throw new UnknownNotificationException(),
 		};
 	}
@@ -205,5 +206,18 @@ class Notifier implements INotifier {
 
 		return $notification;
 
+	}
+
+	private function parseUpgrade(
+		INotification $notification,
+		IL10N $l,
+	): INotification {
+		$parameters = $notification->getSubjectParameters();
+		$notification->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')));
+		$subject = $l->t('LibreSign has been updated!');
+		$message = $parameters['message'] ?? '';
+		$notification->setParsedSubject($subject)
+			->setParsedMessage($message);
+		return $notification;
 	}
 }
