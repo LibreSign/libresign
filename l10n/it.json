@@ -1,6 +1,8 @@
 { "translations": {
     "{from} requested your signature on {file}" : "{from} ha richiesto la tua firma su {file}",
     "{from} made changes on {file}" : "{from} apportato modifiche su {file}",
+    "{from} signed {file}" : "{from} firmato {file}",
+    "A document has been <strong>signed</strong>" : "Un documento è stato <strong>firmato</strong>",
     "You have a <strong>file to sign</strong>" : "Hai un <strong>file da firmare</strong>",
     "Success" : "Successo",
     "Invalid user or password" : "Utente o password non validi",
@@ -147,6 +149,9 @@
     "Sign »%s«" : "Firma «%s»",
     "LibreSign: There is a file for you to sign" : "LibreSign: c'è da firmare un file",
     "There is a document for you to sign. Access the link below:" : "C'è un documento da firmare. Accedi al collegamento sottostante:",
+    "LibreSign: A file has been signed" : "LibreSign: un file è stato firmato",
+    "%s signed the document. You can access it using the link below:" : "%s firmato il documento. È possibile accedervi tramite il link sottostante:",
+    "View signed file »%s«" : "Visualizza il file firmato »%s«",
     "LibreSign: Code to sign file" : "LibreSign: Codice per firmare il file",
     "Use this code to sign the document:" : "Usa questo codice per firmare il documento:",
     "Empty users list" : "Elenco di utenti vuoto",
