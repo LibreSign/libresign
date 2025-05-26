@@ -16,6 +16,7 @@ use OCP\IUserSession;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
 
 final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignatureTextService $service;
@@ -24,6 +25,8 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 	private IDateTimeZone $dateTimeZone;
 	private IRequest&MockObject $request;
 	private IUserSession&MockObject $userSession;
+	private LoggerInterface&MockObject $logger;
+
 
 	public function setUp(): void {
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
@@ -31,8 +34,8 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		$this->dateTimeZone = \OCP\Server::get(IDateTimeZone::class);
 		$this->request = $this->createMock(IRequest::class);
 		$this->userSession = $this->createMock(IUserSession::class);
+		$this->logger = $this->createMock(LoggerInterface::class);
 	}
-
 
 	private function getClass(): SignatureTextService {
 		$this->service = new SignatureTextService(
@@ -41,6 +44,7 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 			$this->dateTimeZone,
 			$this->request,
 			$this->userSession,
+			$this->logger,
 		);
 		return $this->service;
 	}
@@ -200,5 +204,9 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 			'left 175x50 scale 3' => ['Sign now', 175, 50, 'left',3],
 			'right 175x50 scale 4' => ['Signed 🔐', 175, 50, 'right', 4],
 		];
+	}
+
+	public function testHasFont(): void {
+		$this->assertFileExists($fallbackFond = __DIR__ . '/../../../../vendor/mpdf/mpdf/ttfonts/DejaVuSerifCondensed.ttf');
 	}
 }
