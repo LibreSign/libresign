@@ -19,6 +19,7 @@ use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
+use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
 use Twig\Environment;
 use Twig\Error\SyntaxError;
@@ -37,6 +38,7 @@ class SignatureTextService {
 		private IDateTimeZone $dateTimeZone,
 		private IRequest $request,
 		private IUserSession $userSession,
+		protected LoggerInterface $logger,
 	) {
 	}
 
@@ -189,10 +191,6 @@ class SignatureTextService {
 		bool $isDarkTheme = false,
 		float $scale = 5,
 	): string {
-		$fonts = Imagick::queryFonts();
-		if (empty($fonts)) {
-			throw new LibresignException('No fonts available at system');
-		}
 		$width *= $scale;
 		$height *= $scale;
 
@@ -202,7 +200,17 @@ class SignatureTextService {
 		$image->setImageFormat('png');
 
 		$draw = new ImagickDraw();
-		$draw->setFont($fonts[0]);
+		$fonts = Imagick::queryFonts();
+		if ($fonts) {
+			$draw->setFont($fonts[0]);
+		} else {
+			$fallbackFond = __DIR__ . '/../../vendor/mpdf/mpdf/ttfonts/DejaVuSerifCondensed.ttf';
+			if (!file_exists($fallbackFond)) {
+				$this->logger->error('No fonts available at system, and fallback font not found: ' . $fallbackFond);
+				throw new LibresignException('No fonts available at system, and fallback font not found: ' . $fallbackFond);
+			}
+			$draw->setFont(__DIR__ . '/../../vendor/mpdf/mpdf/ttfonts/DejaVuSerifCondensed.ttf');
+		}
 		if (!$fontSize) {
 			$fontSize = $this->getSignatureFontSize();
 		}
