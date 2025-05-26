@@ -235,6 +235,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 * @dataProvider dataSignWithSuccess
 	 */
 	public function testSignWithSuccess(string $mimetype, string $filename, string $extension):void {
+		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
+
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUserId('username');
 
@@ -275,6 +277,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$signRequest = new \OCA\Libresign\Db\SignRequest();
 		$signRequest->setFileId(171);
+		$signRequest->setId(171);
 		$this->getService()
 			->setLibreSignFile($file)
 			->setSignRequest($signRequest)
