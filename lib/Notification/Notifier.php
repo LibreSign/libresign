@@ -135,24 +135,6 @@ class Notifier implements INotifier {
 		IL10N $l,
 	): INotification {
 
-		$this->definitions->definitions['sign-request'] = [
-			'author' => 'LibreSign',
-			'since' => '30.0.0',
-			'parameters' => [
-				'id' => [
-					'since' => '30.0.0',
-					'required' => true,
-					'description' => 'The id of SignRequest object',
-					'example' => '12345',
-				],
-				'name' => [
-					'since' => '30.0.0',
-					'required' => true,
-					'description' => 'The display name of signer',
-					'example' => 'John Doe',
-				],
-			],
-		];
 		$this->definitions->definitions['signer'] = [
 			'author' => 'LibreSign',
 			'since' => '30.0.0',
