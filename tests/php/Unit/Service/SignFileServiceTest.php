@@ -9,6 +9,7 @@ declare(strict_types=1);
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
@@ -18,6 +19,7 @@ use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
@@ -511,6 +513,40 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'SignerEmail' => 'test@email.coop',
 				],
 			],
+		];
+	}
+
+	#[DataProvider('providerGetSignatureParamsSignerEmailFallback')]
+	public function testGetSignatureParamsSignerEmailFallback(
+		string $methodName,
+		string $email,
+	): void {
+		$service = $this->getService(['readCertificate']);
+
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('__call')->willReturn(171);
+		$service->setSignRequest($signRequest);
+
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getName')->willReturn($methodName);
+		$entity = new IdentifyMethod();
+		$entity->setIdentifierValue($email);
+		$identifyMethod->method('getEntity')->willReturn($entity);
+		$this->identifyMethodService->method('getIdentifiedMethod')->willReturn($identifyMethod);
+
+		$actual = $this->invokePrivate($service, 'getSignatureParams');
+		if (empty($email)) {
+			$this->assertArrayNotHasKey('SignerEmail', $actual);
+		} else {
+			$this->assertArrayHasKey('SignerEmail', $actual);
+			$this->assertEquals($email, $actual['SignerEmail']);
+		}
+	}
+
+	public static function providerGetSignatureParamsSignerEmailFallback(): array {
+		return [
+			['account', '',],
+			['email', 'signer@email.tld',],
 		];
 	}
 
