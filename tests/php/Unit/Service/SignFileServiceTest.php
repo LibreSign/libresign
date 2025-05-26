@@ -9,7 +9,9 @@ declare(strict_types=1);
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Handler\FooterHandler;
@@ -17,6 +19,7 @@ use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
@@ -97,7 +100,39 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->timeFactory = $this->createMock(ITimeFactory::class);
 	}
 
-	private function getService(): SignFileService {
+	private function getService(array $methods = []): SignFileService|MockObject {
+		if ($methods) {
+			return $this->getMockBuilder(SignFileService::class)
+				->setConstructorArgs([
+					$this->l10n,
+					$this->fileMapper,
+					$this->signRequestMapper,
+					$this->accountFileMapper,
+					$this->pkcs7Handler,
+					$this->pkcs12Handler,
+					$this->footerHandler,
+					$this->folderService,
+					$this->clientService,
+					$this->userManager,
+					$this->logger,
+					$this->appConfig,
+					$this->validateHelper,
+					$this->signerElementsService,
+					$this->root,
+					$this->userSession,
+					$this->dateTimeZone,
+					$this->fileElementMapper,
+					$this->userElementMapper,
+					$this->eventDispatcher,
+					$this->urlGenerator,
+					$this->identifyMethodMapper,
+					$this->tempManager,
+					$this->identifyMethodService,
+					$this->timeFactory,
+				])
+				->onlyMethods($methods)
+				->getMock();
+		}
 		return new SignFileService(
 			$this->l10n,
 			$this->fileMapper,
@@ -202,6 +237,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 * @dataProvider dataSignWithSuccess
 	 */
 	public function testSignWithSuccess(string $mimetype, string $filename, string $extension):void {
+		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
+
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUserId('username');
 
@@ -242,6 +279,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$signRequest = new \OCA\Libresign\Db\SignRequest();
 		$signRequest->setFileId(171);
+		$signRequest->setId(171);
 		$this->getService()
 			->setLibreSignFile($file)
 			->setSignRequest($signRequest)
@@ -297,4 +335,282 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	private function createSignRequestMock(array $methods): MockObject {
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('__call')->willReturnCallback(fn (string $method) =>
+			$methods[$method] ?? null
+		);
+		return $signRequest;
+	}
+
+	#[DataProvider('providerGetSignatureParamsCommonName')]
+	public function testGetSignatureParamsCommonName(
+		array $certData,
+		string $expectedIssuerCN,
+		string $expectedSignerCN,
+	): void {
+		$service = $this->getService(['readCertificate']);
+
+		$libreSignFile = new \OCA\Libresign\Db\File();
+		$libreSignFile->setUuid('uuid');
+		$service->setLibreSignFile($libreSignFile);
+
+		$service->method('readCertificate')->willReturn($certData);
+		$service->setCurrentUser(null);
+
+		$signRequest = $this->createSignRequestMock([
+			'getId' => 171,
+			'getMetadata' => [],
+		]);
+		$service->setSignRequest($signRequest);
+
+		$actual = $this->invokePrivate($service, 'getSignatureParams');
+
+		$this->assertEquals($expectedIssuerCN, $actual['IssuerCommonName']);
+		$this->assertEquals($expectedSignerCN, $actual['SignerCommonName']);
+		$this->assertEquals('uuid', $actual['DocumentUUID']);
+		$this->assertArrayHasKey('DocumentUUID', $actual);
+		$this->assertArrayHasKey('LocalSignerTimezone', $actual);
+		$this->assertArrayHasKey('LocalSignerSignatureDateTime', $actual);
+	}
+
+	public static function providerGetSignatureParamsCommonName(): array {
+		return [
+			'simple CNs' => [
+				[
+					'issuer' => ['CN' => 'LibreCode'],
+					'subject' => ['CN' => 'Jane Doe'],
+				],
+				'LibreCode',
+				'Jane Doe',
+			],
+			'empty CNs' => [
+				[
+					'issuer' => ['CN' => ''],
+					'subject' => ['CN' => ''],
+				],
+				'',
+				'',
+			],
+		];
+	}
+
+	#[DataProvider('providerGetSignatureParamsSignerEmail')]
+	public function testGetSignatureParamsSignerEmail(
+		array $certData,
+		string $authenticatedUserEmail,
+		array $expected,
+	): void {
+		$libreSignFile = new \OCA\Libresign\Db\File();
+		$libreSignFile->setUuid('uuid');
+		$service = $this->getService(['readCertificate']);
+		$service->method('readCertificate')
+			->willReturn($certData);
+		$service->setLibreSignFile($libreSignFile);
+
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest
+			->method('__call')
+			->willReturnCallback(fn (string $method) =>
+				match ($method) {
+					'getId' => 171,
+					'getMetadata' => [],
+				}
+			);
+		$service->setSignRequest($signRequest);
+
+		if ($authenticatedUserEmail) {
+			$user = $this->createMock(\OCP\IUser::class);
+			$user->method('getEMailAddress')->willReturn($authenticatedUserEmail);
+		} else {
+			$user = null;
+		}
+		$service->setCurrentUser($user);
+
+		$actual = $this->invokePrivate($service, 'getSignatureParams');
+		if (isset($expected['SignerEmail'])) {
+			$this->assertArrayHasKey('SignerEmail', $actual);
+			$this->assertEquals($expected['SignerEmail'], $actual['SignerEmail']);
+		} else {
+			$this->assertArrayNotHasKey('SignerEmail', $actual);
+		}
+	}
+
+	public static function providerGetSignatureParamsSignerEmail(): array {
+		return [
+			[
+				[], '', [],
+			],
+			[
+				[
+					'extensions' => [
+						'subjectAltName' => '',
+					],
+				],
+				'',
+				[
+				],
+			],
+			[
+				[
+					'extensions' => [
+						'subjectAltName' => 'email:test@email.coop',
+					],
+				],
+				'',
+				[
+					'SignerEmail' => 'test@email.coop',
+				],
+			],
+			[
+				[
+					'extensions' => [
+						'subjectAltName' => 'email:test@email.coop,otherinfo',
+					],
+				],
+				'',
+				[
+					'SignerEmail' => 'test@email.coop',
+				],
+			],
+			[
+				[
+					'extensions' => [
+						'subjectAltName' => 'otherinfo,email:test@email.coop',
+					],
+				],
+				'',
+				[
+					'SignerEmail' => 'test@email.coop',
+				],
+			],
+			[
+				[
+					'extensions' => [
+						'subjectAltName' => 'otherinfo,email:test@email.coop,moreinfo',
+					],
+				],
+				'',
+				[
+					'SignerEmail' => 'test@email.coop',
+				],
+			],
+			[
+				[
+					'extensions' => [
+						'subjectAltName' => 'test@email.coop',
+					],
+				],
+				'',
+				[
+					'SignerEmail' => 'test@email.coop',
+				],
+			],
+			[
+				[],
+				'test@email.coop',
+				[
+					'SignerEmail' => 'test@email.coop',
+				],
+			],
+		];
+	}
+
+	#[DataProvider('providerGetSignatureParamsSignerEmailFallback')]
+	public function testGetSignatureParamsSignerEmailFallback(
+		string $methodName,
+		string $email,
+	): void {
+		$service = $this->getService(['readCertificate']);
+
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('__call')->willReturn(171);
+		$service->setSignRequest($signRequest);
+
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getName')->willReturn($methodName);
+		$entity = new IdentifyMethod();
+		$entity->setIdentifierValue($email);
+		$identifyMethod->method('getEntity')->willReturn($entity);
+		$this->identifyMethodService->method('getIdentifiedMethod')->willReturn($identifyMethod);
+
+		$actual = $this->invokePrivate($service, 'getSignatureParams');
+		if (empty($email)) {
+			$this->assertArrayNotHasKey('SignerEmail', $actual);
+		} else {
+			$this->assertArrayHasKey('SignerEmail', $actual);
+			$this->assertEquals($email, $actual['SignerEmail']);
+		}
+	}
+
+	public static function providerGetSignatureParamsSignerEmailFallback(): array {
+		return [
+			['account', '',],
+			['email', 'signer@email.tld',],
+		];
+	}
+
+	#[DataProvider('providerGetSignatureParamsMetadata')]
+	public function testGetSignatureParamsMetadata(
+		array $metadata,
+		array $expected,
+	): void {
+		$service = $this->getService(['readCertificate']);
+		$service->method('readCertificate')->willReturn([]);
+
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest
+			->method('__call')
+			->willReturnCallback(fn (string $method) =>
+				match ($method) {
+					'getId' => 171,
+					'getMetadata' => $metadata,
+				}
+			);
+		$service->setSignRequest($signRequest);
+		$actual = $this->invokePrivate($service, 'getSignatureParams');
+		if (empty($expected)) {
+			$this->assertArrayNotHasKey('SignerIP', $actual);
+			$this->assertArrayNotHasKey('SignerUserAgent', $actual);
+			return;
+		}
+		if (isset($expected['SignerIP'])) {
+			$this->assertArrayHasKey('SignerIP', $actual);
+			$this->assertEquals($expected['SignerIP'], $actual['SignerIP']);
+		} else {
+			$this->assertArrayNotHasKey('SignerIP', $actual);
+		}
+		if (isset($expected['SignerUserAgent'])) {
+			$this->assertArrayHasKey('SignerUserAgent', $actual);
+			$this->assertEquals($expected['SignerUserAgent'], $actual['SignerUserAgent']);
+		} else {
+			$this->assertArrayNotHasKey('SignerUserAgent', $actual);
+		}
+	}
+
+	public static function providerGetSignatureParamsMetadata(): array {
+		return [
+			[[], []],
+			[
+				[
+					'remote-address' => '',
+					'user-agent' => '',
+				],
+				[
+					'SignerIP' => '',
+					'SignerUserAgent' => '',
+				],
+			],
+			[
+				[
+					'remote-address' => '127.0.0.1',
+					'user-agent' => 'Robot',
+				],
+				[
+					'SignerIP' => '127.0.0.1',
+					'SignerUserAgent' => 'Robot',
+				],
+			],
+		];
+	}
 }
