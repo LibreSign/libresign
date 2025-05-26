@@ -318,7 +318,7 @@ class SignFileService {
 				->format(DateTimeInterface::ATOM)
 		];
 		if (isset($certificateData['extensions']['subjectAltName'])) {
-			preg_match('/(?:^email:)?(?<email>[^\s,]+)$/', $certificateData['extensions']['subjectAltName'], $matches);
+			preg_match('/(?:email:)+(?<email>[^\s,]+)/', $certificateData['extensions']['subjectAltName'], $matches);
 			if ($matches && filter_var($matches['email'], FILTER_VALIDATE_EMAIL)) {
 				$signatureParams['SignerEmail'] = $matches['email'];
 			} elseif (filter_var($certificateData['extensions']['subjectAltName'], FILTER_VALIDATE_EMAIL)) {

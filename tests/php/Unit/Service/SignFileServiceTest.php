@@ -463,6 +463,39 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[
 				[
 					'extensions' => [
+						'subjectAltName' => 'email:test@email.coop,otherinfo',
+					],
+				],
+				'',
+				[
+					'SignerEmail' => 'test@email.coop',
+				],
+			],
+			[
+				[
+					'extensions' => [
+						'subjectAltName' => 'otherinfo,email:test@email.coop',
+					],
+				],
+				'',
+				[
+					'SignerEmail' => 'test@email.coop',
+				],
+			],
+			[
+				[
+					'extensions' => [
+						'subjectAltName' => 'otherinfo,email:test@email.coop,moreinfo',
+					],
+				],
+				'',
+				[
+					'SignerEmail' => 'test@email.coop',
+				],
+			],
+			[
+				[
+					'extensions' => [
 						'subjectAltName' => 'test@email.coop',
 					],
 				],
