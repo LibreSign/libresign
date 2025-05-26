@@ -139,8 +139,8 @@ class NotificationListener implements IEventListener {
 						'path' => 'validation/' . $libreSignFile->getUuid(),
 					]),
 				],
-				'sign-request' => [
-					'type' => 'sign-request',
+				'signedFile' => [
+					'type' => 'signer',
 					'id' => (string)$signRequest->getId(),
 					'name' => $signRequest->getDisplayName(),
 				],
