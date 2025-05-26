@@ -306,10 +306,16 @@ class SignFileService {
 
 		return $signedFile;
 	}
-
 	private function getSignatureParams(): array {
 		$certificateData = $this->readCertificate();
-		$signatureParams = [
+		$signatureParams = $this->buildBaseSignatureParams($certificateData);
+		$signatureParams = $this->addEmailToSignatureParams($signatureParams, $certificateData);
+		$signatureParams = $this->addMetadataToSignatureParams($signatureParams);
+		return $signatureParams;
+	}
+
+	private function buildBaseSignatureParams(array $certificateData): array {
+		return [
 			'DocumentUUID' => $this->libreSignFile?->getUuid(),
 			'IssuerCommonName' => $certificateData['issuer']['CN'] ?? '',
 			'SignerCommonName' => $certificateData['subject']['CN'] ?? '',
@@ -317,6 +323,9 @@ class SignFileService {
 			'LocalSignerSignatureDateTime' => (new DateTime('now', $this->dateTimeZone->getTimeZone()))
 				->format(DateTimeInterface::ATOM)
 		];
+	}
+
+	private function addEmailToSignatureParams(array $signatureParams, array $certificateData): array {
 		if (isset($certificateData['extensions']['subjectAltName'])) {
 			preg_match('/(?:email:)+(?<email>[^\s,]+)/', $certificateData['extensions']['subjectAltName'], $matches);
 			if ($matches && filter_var($matches['email'], FILTER_VALIDATE_EMAIL)) {
@@ -325,9 +334,7 @@ class SignFileService {
 				$signatureParams['SignerEmail'] = $certificateData['extensions']['subjectAltName'];
 			}
 		}
-		if (empty($signatureParams['SignerEmail'])
-			&& $this->user instanceof IUser
-		) {
+		if (empty($signatureParams['SignerEmail']) && $this->user instanceof IUser) {
 			$signatureParams['SignerEmail'] = $this->user->getEMailAddress();
 		}
 		if (empty($signatureParams['SignerEmail'])) {
@@ -336,6 +343,10 @@ class SignFileService {
 				$signatureParams['SignerEmail'] = $identifyMethod->getEntity()->getIdentifierValue();
 			}
 		}
+		return $signatureParams;
+	}
+
+	private function addMetadataToSignatureParams(array $signatureParams): array {
 		$signRequestMetadata = $this->signRequest->getMetadata();
 		if (isset($signRequestMetadata['remote-address'])) {
 			$signatureParams['SignerIP'] = $signRequestMetadata['remote-address'];
