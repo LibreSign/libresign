@@ -502,6 +502,7 @@ class SignRequestMapper extends QBMapper {
 				->groupBy(
 					'f.id',
 					'f.node_id',
+					'f.signed_node_id',
 					'f.user_id',
 					'f.uuid',
 					'f.name',
