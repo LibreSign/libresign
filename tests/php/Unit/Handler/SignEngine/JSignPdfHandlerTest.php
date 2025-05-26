@@ -69,6 +69,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			\OCP\Server::get(IDateTimeZone::class),
 			\OCP\Server::get(IRequest::class),
 			\OCP\Server::get(IUserSession::class),
+			\OCP\Server::get(LoggerInterface::class),
 		);
 		if (empty($methods)) {
 			return new JSignPdfHandler(
