@@ -60,8 +60,7 @@ use TypeError;
 class SignFileService {
 	/** @var SignRequestEntity */
 	private $signRequest;
-	/** @var string */
-	private $password;
+	private string $password = '';
 	private ?FileEntity $libreSignFile = null;
 	/** @var VisibleElementAssoc[] */
 	private $elements = [];
@@ -266,30 +265,7 @@ class SignFileService {
 		$pfxFileContent = $this->getPfxContent();
 		switch (strtolower($fileToSign->getExtension())) {
 			case 'pdf':
-				$certificateData = $this->readCertificate();
-				$signatureParams = [
-					'DocumentUUID' => $this->libreSignFile->getUuid(),
-					'IssuerCommonName' => $certificateData['issuer']['CN'],
-					'SignerCommonName' => $certificateData['subject']['CN'],
-					'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
-					'LocalSignerSignatureDateTime' => (new DateTime('now', $this->dateTimeZone->getTimeZone()))
-						->format(DateTimeInterface::ATOM)
-				];
-				if (isset($certificateData['extensions']['subjectAltName'])) {
-					preg_match('/^email:(?<email>.*)$/', $certificateData['extensions']['subjectAltName'], $matches);
-					if ($matches && filter_var($matches['email'], FILTER_VALIDATE_EMAIL)) {
-						$signatureParams['SignerEmail'] = $matches['email'];
-					} elseif (filter_var($certificateData['extensions']['subjectAltName'], FILTER_VALIDATE_EMAIL)) {
-						$signatureParams['SignerEmail'] = $certificateData['extensions']['subjectAltName'];
-					}
-				}
-				$signReuestMetadata = $this->signRequest->getMetadata();
-				if (isset($signReuestMetadata['remote-address'])) {
-					$signatureParams['SignerIP'] = $signReuestMetadata['remote-address'];
-				}
-				if (isset($signReuestMetadata['remote-address'])) {
-					$signatureParams['SignerUserAgent'] = $signReuestMetadata['user-agent'];
-				}
+				$signatureParams = $this->getSignatureParams();
 				$signedFile = $this->pkcs12Handler
 					->setInputFile($fileToSign)
 					->setCertificate($pfxFileContent)
@@ -329,6 +305,45 @@ class SignFileService {
 		$this->eventDispatcher->dispatchTyped(new SignedCallbackEvent($this, $signedFile, $allSigned));
 
 		return $signedFile;
+	}
+
+	private function getSignatureParams(): array {
+		$certificateData = $this->readCertificate();
+		$signatureParams = [
+			'DocumentUUID' => $this->libreSignFile?->getUuid(),
+			'IssuerCommonName' => $certificateData['issuer']['CN'] ?? '',
+			'SignerCommonName' => $certificateData['subject']['CN'] ?? '',
+			'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
+			'LocalSignerSignatureDateTime' => (new DateTime('now', $this->dateTimeZone->getTimeZone()))
+				->format(DateTimeInterface::ATOM)
+		];
+		if (isset($certificateData['extensions']['subjectAltName'])) {
+			preg_match('/(?:^email:)?(?<email>[^\s,]+)$/', $certificateData['extensions']['subjectAltName'], $matches);
+			if ($matches && filter_var($matches['email'], FILTER_VALIDATE_EMAIL)) {
+				$signatureParams['SignerEmail'] = $matches['email'];
+			} elseif (filter_var($certificateData['extensions']['subjectAltName'], FILTER_VALIDATE_EMAIL)) {
+				$signatureParams['SignerEmail'] = $certificateData['extensions']['subjectAltName'];
+			}
+		}
+		if (empty($signatureParams['SignerEmail'])
+			&& $this->user instanceof IUser
+		) {
+			$signatureParams['SignerEmail'] = $this->user->getEMailAddress();
+		}
+		if (empty($signatureParams['SignerEmail'])) {
+			$identifyMethod = $this->identifyMethodService->getIdentifiedMethod($this->signRequest->getId());
+			if ($identifyMethod->getName() === IdentifyMethodService::IDENTIFY_EMAIL) {
+				$signatureParams['SignerEmail'] = $identifyMethod->getEntity()->getIdentifierValue();
+			}
+		}
+		$signRequestMetadata = $this->signRequest->getMetadata();
+		if (isset($signRequestMetadata['remote-address'])) {
+			$signatureParams['SignerIP'] = $signRequestMetadata['remote-address'];
+		}
+		if (isset($signRequestMetadata['user-agent'])) {
+			$signatureParams['SignerUserAgent'] = $signRequestMetadata['user-agent'];
+		}
+		return $signatureParams;
 	}
 
 	public function storeUserMetadata(array $metadata = []): self {
@@ -414,7 +429,7 @@ class SignFileService {
 		return $this->pkcs12Handler->getPfxOfCurrentSigner();
 	}
 
-	private function readCertificate(): array {
+	protected function readCertificate(): array {
 		return $this->pkcs12Handler
 			->setPassword($this->password)
 			->setCertificate($this->getPfxContent())
