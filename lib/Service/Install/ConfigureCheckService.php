@@ -351,7 +351,7 @@ class ConfigureCheckService {
 		$this->logger->error('Invalid hash of binaries files', ['result' => $result]);
 		return [
 			'Invalid hash of binaries files.',
-			'Run occ libresign:install --all',
+			'Check your nextcloud.log file an run occ libresign:install --all',
 		];
 	}
 
