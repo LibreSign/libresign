@@ -18,6 +18,22 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 11.2.2 - 2025-05-26
+### Changes
+- chore: add more ways to get signer email [#5048](https://github.com/LibreSign/libresign/pull/5048)
+
+### Fixes
+- fix: fallback when system haven't a TTF font [#5045](https://github.com/LibreSign/libresign/pull/5045)
+- fix: show 'Dismiss notification' button on signed file notification [#5042](https://github.com/LibreSign/libresign/pull/5042)
+
+## 10.8.2 - 2025-05-26
+### Changes
+- chore: add more ways to get signer email [#5047](https://github.com/LibreSign/libresign/pull/5047)
+
+### Fixes
+- fix: fallback when system haven't a TTF font [#5044](https://github.com/LibreSign/libresign/pull/5044)
+- fix: show 'Dismiss notification' button on signed file notification [#5041](https://github.com/LibreSign/libresign/pull/5041)
+
 ## 11.2.1 - 2025-05-25
 ### Changes
 - Update translations
