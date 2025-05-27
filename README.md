@@ -12,6 +12,9 @@ Nextcloud app to sign PDF documents.
 
 <img src="img/LibreSign.png" />
 
+[![Report a BUG](https://img.shields.io/badge/Report%20a%20bug-8e0000?style=for-the-badge)](https://github.com/LibreSign/libresign/issues/new?template=bug_report.yml)
+[![Request a feature](https://img.shields.io/badge/Request%20a%20feature-7057ff?style=for-the-badge)](https://github.com/LibreSign/libresign/issues/new?template=request_feature.yml)
+
 ## Contributing
 
 There are many ways to contribute, including writing code, filing issues on GitHub, helping people Overflow, helping to triage, reproduce, or fix bugs that people have filed, adding to our documentation.
