@@ -1,0 +1,71 @@
+# SPDX-FileCopyrightText: 2025 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Bug report
+description: Create a report to help us improve
+labels: [ 'bug' ]
+assignees: 'your-username'
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+
+  - type: input
+    id: title
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+      placeholder: ex. Failed signing a large pdf.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: To reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        - I'm an authenticated user
+        - Go to '...'
+        - Click on '....'
+        - Scroll down to '....'
+        - See error
+    validations:
+      required: false
+
+  - type: input
+    id: behavior
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      placeholder: Press the button below to add screenshots.
+      description: If applicable, add screenshots to help explain your problem.
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment information
+      description: Please complete the following infomation
+      placeholder: |
+        - OS: [e.g. Linux Debian, Docker]
+        - Browser [e.g. chrome, safari]
+        - LibreSign Version [e.g. 3.2.1]
+        - Nextcloud Server Version [e.g. 24.0.1]
+        - Logs (get the entries from nextcloud.log related with LibreSign i.e `tail -f data/nextcloud.log|grep libresign`)
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add any other context about the problem here.
+    validations:
+      required: false
