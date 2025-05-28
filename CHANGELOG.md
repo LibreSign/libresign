@@ -18,6 +18,22 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 11.2.3 - 2025-05-28
+### Changes
+- chore: improve tip to sysadmin [#5055](https://github.com/LibreSign/libresign/pull/5055)
+
+### Fixes
+- fix: prevent error when check binaries of JSignPdf [#5066](https://github.com/LibreSign/libresign/pull/5066)
+- fix: prevent warning when install first time [#5064](https://github.com/LibreSign/libresign/pull/5064)
+
+## 10.8.3 - 2025-05-28
+### Changes
+- chore: improve tip to sysadmin [#5054](https://github.com/LibreSign/libresign/pull/5054)
+
+### Fixes
+- fix: prevent error when check binaries of JSignPdf [#5065](https://github.com/LibreSign/libresign/pull/5065)
+- fix: prevent warning when install first time [#5063](https://github.com/LibreSign/libresign/pull/5063)
+
 ## 11.2.2 - 2025-05-26
 ### Changes
 - chore: add more ways to get signer email [#5048](https://github.com/LibreSign/libresign/pull/5048)
