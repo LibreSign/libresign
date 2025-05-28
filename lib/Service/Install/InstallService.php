@@ -489,10 +489,12 @@ class InstallService {
 	 * > FINE Default property file /root/.JSignPdf doesn't exists.
 	 */
 	private function saveJsignPdfHome(): void {
-		if ($this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_home')) {
+		$home = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_home');
+		if ($home && preg_match('/libresign\/jsignpdf_home/', $home)) {
 			return;
 		}
-		$homeFolder = $this->getFolder('/jsignpdf/');
+		$libresignFolder = $this->appData->getFolder('/');
+		$homeFolder = $libresignFolder->newFolder('jsignpdf_home');
 		$homeFolder->newFile('.JSignPdf', '');
 		$configFolder = $this->getFolder('conf', $homeFolder);
 		$configFolder->newFile('conf.properties', '');
