@@ -63,6 +63,7 @@ OC.L10N.register(
     "1 file" : "1 datne",
     "{fileCount} files" : "{fileCount} datņu",
     "Created at" : "Izveidots plkst.",
+    "_{count} selected_::_{count} selected_" : ["{count} atlasītas","{count} atlasīta","{count} atlasītas"],
     "Password reset" : "Parole atiestatīta",
     "Current password" : "Pašreizējā parole",
     "New password" : "Jauna parole",
