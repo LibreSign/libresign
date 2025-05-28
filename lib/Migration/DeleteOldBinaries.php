@@ -17,6 +17,7 @@ use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\NullOutput;
 
 class DeleteOldBinaries implements IRepairStep {
 	protected IAppData $appData;
@@ -63,7 +64,7 @@ class DeleteOldBinaries implements IRepairStep {
 		$this->output = $output;
 		$folder = $this->appData->getFolder('/');
 
-		$this->deleteFolder($folder, $this->allowedFiles);
+		$this->deleteInvalidFolder($folder, $this->allowedFiles);
 	}
 
 	private function scan(): void {
@@ -74,10 +75,11 @@ class DeleteOldBinaries implements IRepairStep {
 		]);
 		$application->add(\OCP\Server::get(ScanAppData::class));
 		$application->setAutoExit(false);
-		$application->run($input);
+		$output = new NullOutput();
+		$application->run($input, $output);
 	}
 
-	private function deleteFolder(ISimpleFolder $folder, array $allowedFiles): void {
+	private function deleteInvalidFolder(ISimpleFolder $folder, array $allowedFiles): void {
 		$list = $this->getSimpleFolderList($folder);
 		foreach ($list as $node) {
 			if (!in_array($node->getName(), $allowedFiles)) {
