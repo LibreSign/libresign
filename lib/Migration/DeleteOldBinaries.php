@@ -64,7 +64,7 @@ class DeleteOldBinaries implements IRepairStep {
 		$this->output = $output;
 		$folder = $this->appData->getFolder('/');
 
-		$this->deleteFolder($folder, $this->allowedFiles);
+		$this->deleteInvalidFolder($folder, $this->allowedFiles);
 	}
 
 	private function scan(): void {
@@ -79,7 +79,7 @@ class DeleteOldBinaries implements IRepairStep {
 		$application->run($input, $output);
 	}
 
-	private function deleteFolder(ISimpleFolder $folder, array $allowedFiles): void {
+	private function deleteInvalidFolder(ISimpleFolder $folder, array $allowedFiles): void {
 		$list = $this->getSimpleFolderList($folder);
 		foreach ($list as $node) {
 			if (!in_array($node->getName(), $allowedFiles)) {
