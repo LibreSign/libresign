@@ -3,14 +3,31 @@
 
 name-template: 'v$RESOLVED_VERSION'
 tag-template: 'v$RESOLVED_VERSION'
+
 categories:
   - title: '🚀 Features'
-    label: 'feature'
+    labels:
+      - 'feature'
+      - 'feat'
   - title: '🐛 Bug Fixes'
     labels:
       - 'fix'
       - 'bugfix'
       - 'bug'
+  - title: '🛠️ Changes'
+    labels:
+      - 'chore'
+      - 'refactor'
+      - 'docs'
+  - title: '📦 Dependencies'
+    labels:
+      - 'dependencies'
+  - title: '🧪 Tests'
+    labels:
+      - 'test'
+
+change-template: '- $TITLE [#$NUMBER]($URL)'
+
 version-resolver:
   major:
     labels:
@@ -22,7 +39,11 @@ version-resolver:
     labels:
       - 'patch'
   default: patch
+
 template: |
   ## What’s Changed
 
   $CHANGES
+
+  Milestone: $RESOLVED_VERSION
+  **Full Changelog**: https://github.com/LibreSign/libresign/compare/$PREVIOUS_TAG...$NEXT_TAG
