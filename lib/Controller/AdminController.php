@@ -112,6 +112,9 @@ class AdminController extends AEnvironmentAwareController {
 		array $rootCert,
 		string $configPath = '',
 	): DataResponse {
+		if(1==1){
+			echo 'teste';
+		}
 		try {
 			$engineHandler = $this->generateCertificate($rootCert, [
 				'engine' => 'openssl',
