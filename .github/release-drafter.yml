@@ -45,4 +45,5 @@ template: |
 
   $CHANGES
 
+  Milestone: $RESOLVED_VERSION
   **Full Changelog**: https://github.com/LibreSign/libresign/compare/$PREVIOUS_TAG...$NEXT_TAG
