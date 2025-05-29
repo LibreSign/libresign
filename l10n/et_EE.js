@@ -76,6 +76,7 @@ OC.L10N.register(
     "Account does not exist" : "Kasutajakontot pole olemas",
     "Confirm" : "Kinnita",
     "Administration" : "Haldus",
+    "pending" : "ootel",
     "Open sidebar" : "Ava külgriba",
     "Details" : "Üksikasjad",
     "Certificate" : "Sertifikaat",
