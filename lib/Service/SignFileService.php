@@ -300,6 +300,7 @@ class SignFileService {
 	 * Reference: https://www.php.net/manual/en/function.array-find.php#130257
 	 *
 	 * @todo remove this after minor PHP version is >= 8.4
+	 * @deprecated This method will be removed once the minimum PHP version is >= 8.4. Use native array_find instead.
 	 */
 	private function array_find(array $array, callable $callback): mixed {
 		foreach ($array as $key => $value) {
