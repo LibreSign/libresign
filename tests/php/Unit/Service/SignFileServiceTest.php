@@ -626,7 +626,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		array $signatureFile,
 		bool $canCreateSignature,
 		?string $exception,
-		bool $isAuthenticatedUser,
+		bool $isAuthenticatedSigner,
 	): void {
 		$service = $this->getService();
 		$signRequest = $this->createMock(SignRequest::class);
@@ -671,7 +671,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->expectException($exception);
 		}
 
-		if ($isAuthenticatedUser) {
+		if ($isAuthenticatedSigner) {
 			$currentUser = $this->createMock(\OCP\IUser::class);
 		}
 		$service->setCurrentUser($currentUser ?? null);
@@ -698,7 +698,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			'empty list, can create signature' => [[], [], [], [], true, null, true],
 			'empty list, cannot create signature' => [[], [], [], [], false, null, true],
-			'valid data, can create signature' => [
+			'can create signature, with sucess' => [
 				[
 					[
 						'documentElementId' => 171,
@@ -727,7 +727,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				LibresignException::class,
 				true,
 			],
-			'valid data, cannot create signature' => [
+			'cannot create signature' => [
 				[
 					['documentElementId' => 171],
 				],
