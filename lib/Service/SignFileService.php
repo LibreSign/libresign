@@ -246,6 +246,7 @@ class SignFileService {
 		if (is_array($element) && !empty($element['profileNodeId']) && is_int($element['profileNodeId'])) {
 			return true;
 		}
+		$this->logger->error('Invalid data provided for signing file.', ['element' => $element]);
 		throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 	}
 
@@ -277,6 +278,7 @@ class SignFileService {
 		$tempFile = $this->tempManager->getTemporaryFile('_' . $nodeId . '.png');
 		$content = $node->getContent();
 		if (empty($content)) {
+			$this->logger->error('Failed to retrieve content for node.', ['nodeId' => $nodeId, 'fileElement' => $fileElement]);
 			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 		}
 		file_put_contents($tempFile, $content);
