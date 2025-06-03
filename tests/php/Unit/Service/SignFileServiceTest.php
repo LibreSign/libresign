@@ -695,83 +695,112 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public static function providerSetVisibleElements(): array {
+		$validDocumentId = 171;
+		$validProfileNodeId = 1;
+		$vfsPath = 'vfs://home';
+
 		return [
-			'empty list, can create signature' => [[], [], [], [], true, null, true],
-			'empty list, cannot create signature' => [[], [], [], [], false, null, true],
-			'can create signature, authenticated signer, with sucess' => [
-				[
-					[
-						'documentElementId' => 171,
-						'profileNodeId' => 1,
-					],
+			'empty list, can create signature' => self::createScenario(
+				signerList: [],
+				databaseList: [],
+				tempFiles: [],
+				signatureFile: [],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true
+			),
+
+			'empty list, cannot create signature' => self::createScenario(
+				signerList: [],
+				databaseList: [],
+				tempFiles: [],
+				signatureFile: [],
+				canCreateSignature: false,
+				isAuthenticatedSigner: true
+			),
+
+			'valid signer with signature file' => self::createScenario(
+				signerList: [
+					['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId],
 				],
-				[
-					['id' => 171,]
+				databaseList: [
+					['id' => $validDocumentId],
 				],
-				[1 => 'vfs://home'],
-				[1 => true],
-				true,
-				null,
-				true,
-			],
-			'can create signature, authenticated signer, with invalid signature file' => [
-				[
-					[
-						'documentElementId' => 171,
-						'profileNodeId' => 1,
-					],
+				tempFiles: [$validProfileNodeId => $vfsPath],
+				signatureFile: [$validProfileNodeId => true],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true
+			),
+
+			'invalid signature file' => self::createScenario(
+				signerList: [
+					['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId],
 				],
-				[
-					['id' => 171,]
+				databaseList: [
+					['id' => $validDocumentId],
 				],
-				[1 => 'vfs://home'],
-				[1 => false],
-				true,
-				LibresignException::class,
-				true,
-			],
-			'can create signature, with sucess' => [
-				[
-					[
-						'documentElementId' => 171,
-						'profileNodeId' => 1,
-					],
+				tempFiles: [$validProfileNodeId => $vfsPath],
+				signatureFile: [$validProfileNodeId => false],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
+				expectedException: LibresignException::class
+			),
+
+			'missing profileNodeId throws exception' => self::createScenario(
+				signerList: [
+					['documentElementId' => $validDocumentId],
 				],
-				[
-					['id' => 171,]
+				databaseList: [
+					['id' => $validDocumentId],
 				],
-				[1 => 'vfs://home'],
-				[1 => true],
-				true,
-				null,
-				true,
-			],
-			'invalida data to sign' => [
-				[
-					['documentElementId' => 171],
+				tempFiles: [],
+				signatureFile: [],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
+				expectedException: LibresignException::class
+			),
+
+			'cannot create signature, visible element fallback' => self::createScenario(
+				signerList: [
+					['documentElementId' => $validDocumentId],
 				],
-				[
-					['id' => 171,]
+				databaseList: [
+					['id' => $validDocumentId],
 				],
-				[''],
-				[],
-				true,
-				LibresignException::class,
-				true,
-			],
-			'cannot create signature' => [
-				[
-					['documentElementId' => 171],
-				],
-				[
-					['id' => 171,]
-				],
-				[''],
-				[],
-				false,
-				null,
-				true,
-			],
+				tempFiles: [],
+				signatureFile: [],
+				canCreateSignature: false,
+				isAuthenticatedSigner: true
+			),
+			'no authenticated user, missing session file' => self::createScenario(
+				signerList: [['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId]],
+				databaseList: [['id' => $validDocumentId]],
+				tempFiles: [],
+				signatureFile: [],
+				canCreateSignature: true,
+				isAuthenticatedSigner: false,
+				expectedException: LibresignException::class,
+			),
+
+		];
+	}
+
+	private static function createScenario(
+		array $signerList,
+		array $databaseList,
+		array $tempFiles,
+		array $signatureFile,
+		bool $canCreateSignature,
+		bool $isAuthenticatedSigner,
+		?string $expectedException = null
+	): array {
+		return [
+			$signerList,
+			$databaseList,
+			$tempFiles,
+			$signatureFile,
+			$canCreateSignature,
+			$expectedException,
+			$isAuthenticatedSigner,
 		];
 	}
 }
