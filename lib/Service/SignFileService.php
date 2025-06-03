@@ -229,6 +229,9 @@ class SignFileService {
 						'user_id' => $this->user->getUID(),
 						'type' => $fileElement->getType(),
 					]);
+					if (!$userElement) {
+						throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
+					}
 					$nodeId = $userElement->getFileId();
 				} else {
 					$this->elements[] = new VisibleElementAssoc($fileElement);

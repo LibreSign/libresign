@@ -15,6 +15,7 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\FooterHandler;
@@ -649,6 +650,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->signerElementsService->method('canCreateSignature')->willReturn($canCreateSignature);
 
+		if (!empty($signatureFile)) {
+			$userElement = new UserElement();
+			$userElement->setFileId(1);
+			$this->userElementMapper->method('findOne')->willReturn($userElement);
+		}
+
 		$this->folderService->method('getFileById')
 			->willReturnCallback(function ($id) use ($signatureFile) {
 				if (isset($signatureFile[$id]) && $signatureFile[$id]) {
@@ -729,6 +736,20 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				signatureFile: [$validProfileNodeId => true],
 				canCreateSignature: true,
 				isAuthenticatedSigner: true
+			),
+
+			'invalid signature file, with invalid field' => self::createScenarioSetVisibleElements(
+				signerList: [
+					['fake' => 'value', 'profileNodeId' => $validProfileNodeId],
+				],
+				databaseList: [
+					['id' => $validDocumentId],
+				],
+				tempFiles: [$validProfileNodeId => $vfsPath],
+				signatureFile: [$validProfileNodeId => false],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
+				expectedException: LibresignException::class
 			),
 
 			'invalid signature file' => self::createScenarioSetVisibleElements(
