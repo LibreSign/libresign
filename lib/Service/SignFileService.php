@@ -19,6 +19,7 @@ use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\AccountFile;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
@@ -222,7 +223,7 @@ class SignFileService {
 		return $this;
 	}
 
-	private function buildVisibleElementAssoc($fileElement, array $list, bool $canCreateSignature): VisibleElementAssoc {
+	private function buildVisibleElementAssoc(FileElement $fileElement, array $list, bool $canCreateSignature): VisibleElementAssoc {
 		if (!$canCreateSignature) {
 			return new VisibleElementAssoc($fileElement);
 		}
@@ -233,8 +234,8 @@ class SignFileService {
 		return $this->bindFileElementWithTempFile($fileElement, $nodeId);
 	}
 
-	private function getNodeId(?array $element, $fileElement): int {
-		if ($element) {
+	private function getNodeId(?array $element, FileElement $fileElement): int {
+		if (is_array($element)) {
 			if (!empty($element['profileNodeId']) && is_numeric($element['profileNodeId'])) {
 				return $element['profileNodeId'];
 			}
@@ -255,7 +256,7 @@ class SignFileService {
 		return $userElement->getFileId();
 	}
 
-	private function bindFileElementWithTempFile($fileElement, int $nodeId): VisibleElementAssoc {
+	private function bindFileElementWithTempFile(FileElement $fileElement, int $nodeId): VisibleElementAssoc {
 		try {
 			$node = $this->getNode($nodeId);
 			if (!$node) {
