@@ -36,7 +36,7 @@ trait LibresignTrait {
 			return;
 		}
 		try {
-			$this->signRequestEntity = $this->signFileService->getSignRequest($uuid);
+			$this->signRequestEntity = $this->signFileService->getSignRequestByUuid($uuid);
 			$this->fileEntity = $this->signFileService->getFile(
 				$this->signRequestEntity->getFileId(),
 			);

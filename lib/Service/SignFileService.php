@@ -538,7 +538,7 @@ class SignFileService {
 			$signRequests = $this->signRequestMapper->getByFileId($libresignFile->getId());
 
 			if (!empty($signRequestUuid)) {
-				$signRequest = $this->getSignRequest($signRequestUuid);
+				$signRequest = $this->getSignRequestByUuid($signRequestUuid);
 			} else {
 				$signRequest = array_reduce($signRequests, function (?SignRequestEntity $carry, SignRequestEntity $signRequest) use ($user): ?SignRequestEntity {
 					$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId());
@@ -659,7 +659,7 @@ class SignFileService {
 	/**
 	 * @throws DoesNotExistException
 	 */
-	public function getSignRequest(string $uuid): SignRequestEntity {
+	public function getSignRequestByUuid(string $uuid): SignRequestEntity {
 		$this->validateHelper->validateUuidFormat($uuid);
 		return $this->signRequestMapper->getByUuid($uuid);
 	}
