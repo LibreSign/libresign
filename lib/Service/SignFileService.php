@@ -260,6 +260,13 @@ class SignFileService {
 		return $this;
 	}
 
+	/**
+	 * @return VisibleElementAssoc[]
+	 */
+	public function getVisibleElements(): array {
+		return $this->elements;
+	}
+
 	public function sign(): File {
 		$fileToSign = $this->getFileToSing($this->libreSignFile);
 		$pfxFileContent = $this->getPfxContent();
@@ -269,7 +276,7 @@ class SignFileService {
 				$signedFile = $this->pkcs12Handler
 					->setInputFile($fileToSign)
 					->setCertificate($pfxFileContent)
-					->setVisibleElements($this->elements)
+					->setVisibleElements($this->getVisibleElements())
 					->setPassword($this->password)
 					->setSignatureParams($signatureParams)
 					->sign();
