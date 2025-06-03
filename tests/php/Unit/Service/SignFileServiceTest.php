@@ -616,7 +616,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	public function testSetVisibleElementsWithEmptyList(): void {
+	#[DataProvider('providerSetVisibleElements')]
+	public function testSetVisibleElements(array $signerList, array $databaseList, bool $canCreateSignature, ?string $exception): void {
 		$service = $this->getService();
 		$signRequest = $this->createMock(SignRequest::class);
 		$signRequest
@@ -628,37 +629,41 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				}
 			);
 		$service->setSignRequest($signRequest);
-		$service->setVisibleElements([]);
-		$this->assertEmpty($service->getVisibleElements());
+
+		$databaseList = array_map(function ($value) {
+			$fileElement = new FileElement();
+			$fileElement->setId($value['id']);
+			return $fileElement;
+		}, $databaseList);
+		$this->fileElementMapper->method('getByFileIdAndSignRequestId')->willReturn($databaseList);
+
+		$this->signerElementsService->method('canCreateSignature')->willReturn($canCreateSignature);
+
+		if ($exception) {
+			$this->expectException($exception);
+		}
+
+		$service->setVisibleElements($signerList);
+
+		if (!$exception) {
+			$this->assertCount(count($signerList), $service->getVisibleElements());
+		}
 	}
 
-	public function testSetVisibleElementsWithInvalidData(): void {
-		$service = $this->getService();
-		$signRequest = $this->createMock(SignRequest::class);
-		$signRequest
-			->method('__call')
-			->willReturnCallback(fn (string $method) =>
-				match ($method) {
-					'getFileId' => 171,
-					'getId' => 171,
-				}
-			);
-		$service->setSignRequest($signRequest);
-
-		$fileElement = new FileElement();
-		$fileElement->setId(171);
-		$this->fileElementMapper->method('getByFileIdAndSignRequestId')
-			->willReturn(
-				[$fileElement],
-			);
-
-		$this->expectException(LibresignException::class);
-		$this->signerElementsService->method('canCreateSignature')->willReturn(true);
-
-		$service->setVisibleElements([
-			[
-				'documentElementId' => 171,
+	public static function providerSetVisibleElements(): array {
+		return [
+			'empty list and can create signature' => [[], [], true, null],
+			'empty list and can not create signature' => [[], [], false, null],
+			'invalida data to sign' => [
+				[
+					['documentElementId' => 171],
+				],
+				[
+					['id' => 171,]
+				],
+				true,
+				LibresignException::class,
 			],
-		]);
+		];
 	}
 }
