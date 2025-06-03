@@ -791,7 +791,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		array $signatureFile,
 		bool $canCreateSignature,
 		bool $isAuthenticatedSigner,
-		?string $expectedException = null
+		?string $expectedException = null,
 	): array {
 		return [
 			$signerList,
