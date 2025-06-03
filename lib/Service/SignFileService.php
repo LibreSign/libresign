@@ -236,7 +236,7 @@ class SignFileService {
 
 	private function getNodeId(?array $element, FileElement $fileElement): int {
 		if ($this->isValidElement($element)) {
-			return (int) $element['profileNodeId'];
+			return (int)$element['profileNodeId'];
 		}
 
 		return $this->retrieveUserElement($fileElement);
