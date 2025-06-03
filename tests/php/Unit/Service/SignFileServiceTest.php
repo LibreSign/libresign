@@ -651,7 +651,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->folderService->method('getFileById')
 			->willReturnCallback(function ($id) use ($signatureFile) {
-				if (isset($signatureFile[$id])) {
+				if (isset($signatureFile[$id]) && $signatureFile[$id]) {
 					$file = $this->getMockBuilder(\OCP\Files\File::class)->getMock();
 					$file->method('getContent')->willReturn('');
 					return $file;
@@ -698,6 +698,38 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			'empty list, can create signature' => [[], [], [], [], true, null, true],
 			'empty list, cannot create signature' => [[], [], [], [], false, null, true],
+			'can create signature, authenticated signer, with sucess' => [
+				[
+					[
+						'documentElementId' => 171,
+						'profileNodeId' => 1,
+					],
+				],
+				[
+					['id' => 171,]
+				],
+				[1 => 'vfs://home'],
+				[1 => true],
+				true,
+				null,
+				true,
+			],
+			'can create signature, authenticated signer, with invalid signature file' => [
+				[
+					[
+						'documentElementId' => 171,
+						'profileNodeId' => 1,
+					],
+				],
+				[
+					['id' => 171,]
+				],
+				[1 => 'vfs://home'],
+				[1 => false],
+				true,
+				LibresignException::class,
+				true,
+			],
 			'can create signature, with sucess' => [
 				[
 					[
