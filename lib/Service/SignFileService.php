@@ -243,8 +243,7 @@ class SignFileService {
 					$node = $this->folderService->getFileById($nodeId);
 				} else {
 					$filesOfElementes = $this->signerElementsService->getElementsFromSession();
-					$node = array_filter($filesOfElementes, fn ($file) => $file->getId() === $nodeId);
-					$node = current($node);
+					$node = $this->array_find($filesOfElementes, fn ($file) => $file->getId() === $nodeId);
 				}
 				if (!$node) {
 					throw new \Exception('empty');
