@@ -752,6 +752,20 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				expectedException: LibresignException::class
 			),
 
+			'invalid signature file, with invalid type of profileNodeId' => self::createScenarioSetVisibleElements(
+				signerList: [
+					['documentElementId' => $validDocumentId, 'profileNodeId' => 'not-a-number'],
+				],
+				databaseList: [
+					['id' => $validDocumentId],
+				],
+				tempFiles: [$validProfileNodeId => $vfsPath],
+				signatureFile: [$validProfileNodeId => false],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
+				expectedException: LibresignException::class
+			),
+
 			'invalid signature file' => self::createScenarioSetVisibleElements(
 				signerList: [
 					['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId],

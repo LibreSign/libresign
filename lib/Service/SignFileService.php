@@ -218,7 +218,7 @@ class SignFileService {
 		foreach ($fileElements as $fileElement) {
 			$element = $this->array_find($list, fn (array $element): bool => ($element['documentElementId'] ?? '') === $fileElement->getId());
 			if ($element && $canCreateSignature) {
-				if (!empty($element['profileNodeId'])) {
+				if (!empty($element['profileNodeId']) && is_numeric($element['profileNodeId'])) {
 					$nodeId = $element['profileNodeId'];
 				} else {
 					throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
