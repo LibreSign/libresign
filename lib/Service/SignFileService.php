@@ -10,6 +10,7 @@ namespace OCA\Libresign\Service;
 
 use DateTime;
 use DateTimeInterface;
+use Exception;
 use InvalidArgumentException;
 use mikehaertl\pdftk\Command;
 use OC\AppFramework\Http as AppFrameworkHttp;
@@ -241,11 +242,14 @@ class SignFileService {
 		}
 
 		try {
+			if (!$this->user instanceof IUser) {
+				throw new Exception('User not set');
+			}
 			$userElement = $this->userElementMapper->findOne([
 				'user_id' => $this->user->getUID(),
 				'type' => $fileElement->getType(),
 			]);
-		} catch (MultipleObjectsReturnedException|DoesNotExistException) {
+		} catch (MultipleObjectsReturnedException|DoesNotExistException|Exception) {
 			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 		}
 		return $userElement->getFileId();
