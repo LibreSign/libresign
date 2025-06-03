@@ -270,7 +270,7 @@ class SignFileService {
 		return new VisibleElementAssoc($fileElement, $tempFile);
 	}
 
-	private function getNode(int $nodeId): ?Node {
+	private function getNode(int $nodeId): ?File {
 		if ($this->user instanceof IUser) {
 			return $this->folderService->getFileById($nodeId);
 		}
