@@ -250,7 +250,7 @@ class SignFileService {
 			} catch (\Throwable) {
 				throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 			}
-			$tempFile = $this->tempManager->getTemporaryFile('.png');
+			$tempFile = $this->tempManager->getTemporaryFile('_' . $nodeId . '.png');
 			file_put_contents($tempFile, $node->getContent());
 			$this->elements[] = new VisibleElementAssoc(
 				$fileElement,
