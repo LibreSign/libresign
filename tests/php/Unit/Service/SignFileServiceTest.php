@@ -7,6 +7,7 @@ declare(strict_types=1);
  */
 
 use OCA\Libresign\Db\AccountFileMapper;
+use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
@@ -14,6 +15,7 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
@@ -628,5 +630,35 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service->setSignRequest($signRequest);
 		$service->setVisibleElements([]);
 		$this->assertEmpty($service->getVisibleElements());
+	}
+
+	public function testSetVisibleElementsWithInvalidData(): void {
+		$service = $this->getService();
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest
+			->method('__call')
+			->willReturnCallback(fn (string $method) =>
+				match ($method) {
+					'getFileId' => 171,
+					'getId' => 171,
+				}
+			);
+		$service->setSignRequest($signRequest);
+
+		$fileElement = new FileElement();
+		$fileElement->setId(171);
+		$this->fileElementMapper->method('getByFileIdAndSignRequestId')
+			->willReturn(
+				[$fileElement],
+			);
+
+		$this->expectException(LibresignException::class);
+		$this->signerElementsService->method('canCreateSignature')->willReturn(true);
+
+		$service->setVisibleElements([
+			[
+				'documentElementId' => 171,
+			],
+		]);
 	}
 }
