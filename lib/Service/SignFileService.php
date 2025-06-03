@@ -38,6 +38,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\File;
@@ -209,56 +210,69 @@ class SignFileService {
 		return $this;
 	}
 
-	/**
-	 * @return static
-	 */
 	public function setVisibleElements(array $list): self {
 		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($this->signRequest->getFileId(), $this->signRequest->getId());
 		$canCreateSignature = $this->signerElementsService->canCreateSignature();
+
 		foreach ($fileElements as $fileElement) {
-			$element = $this->array_find($list, fn (array $element): bool => ($element['documentElementId'] ?? '') === $fileElement->getId());
-			if ($element && $canCreateSignature) {
-				if (!empty($element['profileNodeId']) && is_numeric($element['profileNodeId'])) {
-					$nodeId = $element['profileNodeId'];
-				} else {
-					throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
-				}
-			} else {
-				if ($canCreateSignature) {
-					$userElement = $this->userElementMapper->findOne([
-						'user_id' => $this->user->getUID(),
-						'type' => $fileElement->getType(),
-					]);
-					if (!$userElement) {
-						throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
-					}
-					$nodeId = $userElement->getFileId();
-				} else {
-					$this->elements[] = new VisibleElementAssoc($fileElement);
-					continue;
-				}
-			}
-			try {
-				if ($this->user instanceof IUser) {
-					$node = $this->folderService->getFileById($nodeId);
-				} else {
-					$filesOfElementes = $this->signerElementsService->getElementsFromSession();
-					$node = $this->array_find($filesOfElementes, fn ($file) => $file->getId() === $nodeId);
-				}
-				if (!$node) {
-					throw new \Exception('empty');
-				}
-			} catch (\Throwable) {
-				throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
-			}
-			$tempFile = $this->tempManager->getTemporaryFile('_' . $nodeId . '.png');
-			file_put_contents($tempFile, $node->getContent());
-			$this->elements[] = new VisibleElementAssoc(
-				$fileElement,
-				$tempFile
-			);
+			$this->elements[] = $this->buildVisibleElementAssoc($fileElement, $list, $canCreateSignature);
 		}
+
 		return $this;
+	}
+
+	private function buildVisibleElementAssoc($fileElement, array $list, bool $canCreateSignature): VisibleElementAssoc {
+		if (!$canCreateSignature) {
+			return new VisibleElementAssoc($fileElement);
+		}
+
+		$element = $this->array_find($list, fn (array $element): bool => ($element['documentElementId'] ?? '') === $fileElement->getId());
+		$nodeId = $this->getNodeId($element, $fileElement);
+
+		return $this->bindFileElementWithTempFile($fileElement, $nodeId);
+	}
+
+	private function getNodeId(?array $element, $fileElement): int {
+		if ($element) {
+			if (!empty($element['profileNodeId']) && is_numeric($element['profileNodeId'])) {
+				return $element['profileNodeId'];
+			}
+			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
+		}
+
+		try {
+			$userElement = $this->userElementMapper->findOne([
+				'user_id' => $this->user->getUID(),
+				'type' => $fileElement->getType(),
+			]);
+		} catch (MultipleObjectsReturnedException|DoesNotExistException) {
+			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
+		}
+		return $userElement->getFileId();
+	}
+
+	private function bindFileElementWithTempFile($fileElement, int $nodeId): VisibleElementAssoc {
+		try {
+			$node = $this->getNode($nodeId);
+			if (!$node) {
+				throw new \Exception('empty');
+			}
+		} catch (\Throwable) {
+			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
+		}
+
+		$tempFile = $this->tempManager->getTemporaryFile('_' . $nodeId . '.png');
+		file_put_contents($tempFile, $node->getContent());
+		return new VisibleElementAssoc($fileElement, $tempFile);
+	}
+
+	private function getNode(int $nodeId): ?Node {
+		if ($this->user instanceof IUser) {
+			return $this->folderService->getFileById($nodeId);
+		}
+
+		$filesOfElementes = $this->signerElementsService->getElementsFromSession();
+		return $this->array_find($filesOfElementes, fn ($file) => $file->getId() === $nodeId);
 	}
 
 	/**
