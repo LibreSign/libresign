@@ -6,6 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+use bovigo\vfs\vfsStream;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
@@ -28,6 +29,7 @@ use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IRootFolder;
+use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IDateTimeZone;
@@ -617,7 +619,15 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	#[DataProvider('providerSetVisibleElements')]
-	public function testSetVisibleElements(array $signerList, array $databaseList, array $tempFiles, bool $canCreateSignature, ?string $exception): void {
+	public function testSetVisibleElements(
+		array $signerList,
+		array $databaseList,
+		array $tempFiles,
+		array $signatureFile,
+		bool $canCreateSignature,
+		?string $exception,
+		bool $isAuthenticatedUser,
+	): void {
 		$service = $this->getService();
 		$signRequest = $this->createMock(SignRequest::class);
 		$signRequest
@@ -639,28 +649,72 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->signerElementsService->method('canCreateSignature')->willReturn($canCreateSignature);
 
+		$this->folderService->method('getFileById')
+			->willReturnCallback(function ($id) use ($signatureFile) {
+				if (isset($signatureFile[$id])) {
+					$file = $this->getMockBuilder(\OCP\Files\File::class)->getMock();
+					$file->method('getContent')->willReturn('');
+					return $file;
+				}
+				throw new NotFoundException();
+			});
+
+		vfsStream::setup('home');
+		$this->tempManager->method('getTemporaryFile')
+			->willReturnCallback(function ($postFix) {
+				preg_match('/.*(\d+).*/', $postFix, $matches);
+				$path = 'vfs://home/_' . $matches[1] . '.png';
+				return $path;
+			});
+
 		if ($exception) {
 			$this->expectException($exception);
 		}
 
-		$service->setVisibleElements($signerList);
+		if ($isAuthenticatedUser) {
+			$currentUser = $this->createMock(\OCP\IUser::class);
+		}
+		$service->setCurrentUser($currentUser ?? null);
 
+		$service->setVisibleElements($signerList);
 
 		if (!$exception) {
 			$visibleElements = $service->getVisibleElements();
+			$this->assertCount(count($databaseList), $visibleElements);
 			foreach ($databaseList as $key => $element) {
 				$this->assertArrayHasKey($key, $visibleElements);
 				$this->assertSame($element, $visibleElements[$key]->getFileElement());
-				$this->assertEquals($tempFiles[$key] ?? '', $visibleElements[$key]->getTempFile());
+				$this->assertEquals(
+					isset($signerList[$key], $signerList[$key]['profileNodeId'], $tempFiles[$signerList[$key]['profileNodeId']])
+						? $tempFiles[$signerList[$key]['profileNodeId']] . '/_' . $signerList[$key]['profileNodeId'] . '.png'
+						: '',
+					$visibleElements[$key]->getTempFile(),
+				);
 			}
 		}
 	}
 
 	public static function providerSetVisibleElements(): array {
 		return [
-			'empty list and can create signature' => [[], [], [], true, null],
-			'empty list and cannot create signature' => [[], [], [], false, null],
-			'invalida data to sign and can create signature' => [
+			'empty list, can create signature' => [[], [], [], [], true, null, true],
+			'empty list, cannot create signature' => [[], [], [], [], false, null, true],
+			'valid data, can create signature' => [
+				[
+					[
+						'documentElementId' => 171,
+						'profileNodeId' => 1,
+					],
+				],
+				[
+					['id' => 171,]
+				],
+				[1 => 'vfs://home'],
+				[1 => true],
+				true,
+				null,
+				true,
+			],
+			'invalida data to sign' => [
 				[
 					['documentElementId' => 171],
 				],
@@ -668,10 +722,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					['id' => 171,]
 				],
 				[''],
+				[],
 				true,
 				LibresignException::class,
+				true,
 			],
-			'valid data but cannot create signature' => [
+			'valid data, cannot create signature' => [
 				[
 					['documentElementId' => 171],
 				],
@@ -679,8 +735,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					['id' => 171,]
 				],
 				[''],
+				[],
 				false,
 				null,
+				true,
 			],
 		];
 	}
