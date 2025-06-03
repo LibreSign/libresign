@@ -216,7 +216,7 @@ class SignFileService {
 		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($this->signRequest->getFileId(), $this->signRequest->getId());
 		$canCreateSignature = $this->signerElementsService->canCreateSignature();
 		foreach ($fileElements as $fileElement) {
-			$element = $this->array_find($list, fn (array $element): bool => $element['documentElementId'] === $fileElement->getId());
+			$element = $this->array_find($list, fn (array $element): bool => ($element['documentElementId'] ?? '') === $fileElement->getId());
 			if ($element && $canCreateSignature) {
 				if (!empty($element['profileNodeId'])) {
 					$nodeId = $element['profileNodeId'];
