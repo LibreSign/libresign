@@ -663,9 +663,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->folderService->method('getFileById')
 			->willReturnCallback(function ($id) use ($signatureFile) {
-				if (isset($signatureFile[$id]) && $signatureFile[$id]) {
+				if (isset($signatureFile[$id]) && $signatureFile[$id]['valid']) {
 					$file = $this->getMockBuilder(\OCP\Files\File::class)->getMock();
-					$file->method('getContent')->willReturn('');
+					$file->method('getContent')->willReturn($signatureFile[$id]['content']);
 					return $file;
 				}
 				throw new NotFoundException();
@@ -730,7 +730,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				isAuthenticatedSigner: true
 			),
 
-			'valid signer with signature file' => self::createScenarioSetVisibleElements(
+			'valid signer with signature file, valid content of signature file' => self::createScenarioSetVisibleElements(
 				signerList: [
 					['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId],
 				],
@@ -738,9 +738,23 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					['id' => $validDocumentId],
 				],
 				tempFiles: [$validProfileNodeId => $vfsPath],
-				signatureFile: [$validProfileNodeId => true],
+				signatureFile: [$validProfileNodeId => ['valid' => true, 'content' => 'valid content']],
 				canCreateSignature: true,
 				isAuthenticatedSigner: true
+			),
+
+			'valid signer with signature file, invalid content of signature file' => self::createScenarioSetVisibleElements(
+				signerList: [
+					['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId],
+				],
+				fileElements: [
+					['id' => $validDocumentId],
+				],
+				tempFiles: [$validProfileNodeId => false],
+				signatureFile: [$validProfileNodeId => ['valid' => true, 'content' => '']],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
+				expectedException: LibresignException::class,
 			),
 
 			'authenticated signer without profileNodeId' => self::createScenarioSetVisibleElements(
@@ -749,7 +763,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					['id' => $validDocumentId],
 				],
 				tempFiles: [$validProfileNodeId => $vfsPath],
-				signatureFile: [$validProfileNodeId => true],
+				signatureFile: [$validProfileNodeId => ['valid' => true, 'content' => 'valid content']],
 				canCreateSignature: true,
 				isAuthenticatedSigner: false,
 				expectedException: LibresignException::class,
@@ -763,7 +777,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					['id' => $validDocumentId],
 				],
 				tempFiles: [$validProfileNodeId => $vfsPath],
-				signatureFile: [$validProfileNodeId => false],
+				signatureFile: [$validProfileNodeId => ['valid' => false, 'content' => 'valid content']],
 				canCreateSignature: true,
 				isAuthenticatedSigner: true,
 				expectedException: LibresignException::class,
@@ -780,7 +794,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					[],
 				],
 				tempFiles: [$validProfileNodeId => $vfsPath],
-				signatureFile: [$validProfileNodeId => false],
+				signatureFile: [$validProfileNodeId => ['valid' => false, 'content' => 'valid content']],
 				canCreateSignature: true,
 				isAuthenticatedSigner: true,
 				expectedException: LibresignException::class,
@@ -794,7 +808,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					['id' => $validDocumentId],
 				],
 				tempFiles: [$validProfileNodeId => $vfsPath],
-				signatureFile: [$validProfileNodeId => false],
+				signatureFile: [$validProfileNodeId => ['valid' => false, 'content' => 'valid content']],
 				canCreateSignature: true,
 				isAuthenticatedSigner: true,
 				expectedException: LibresignException::class,
@@ -808,7 +822,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					['id' => $validDocumentId],
 				],
 				tempFiles: [$validProfileNodeId => $vfsPath],
-				signatureFile: [$validProfileNodeId => false],
+				signatureFile: [$validProfileNodeId => ['valid' => false, 'content' => 'valid content']],
 				canCreateSignature: true,
 				isAuthenticatedSigner: true,
 				expectedException: LibresignException::class,
