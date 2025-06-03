@@ -235,13 +235,21 @@ class SignFileService {
 	}
 
 	private function getNodeId(?array $element, FileElement $fileElement): int {
-		if (is_array($element)) {
-			if (!empty($element['profileNodeId']) && is_numeric($element['profileNodeId'])) {
-				return $element['profileNodeId'];
-			}
-			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
+		if ($this->isValidElement($element)) {
+			return (int) $element['profileNodeId'];
 		}
 
+		return $this->retrieveUserElement($fileElement);
+	}
+
+	private function isValidElement(?array $element): bool {
+		if (is_array($element) && !empty($element['profileNodeId']) && is_int($element['profileNodeId'])) {
+			return true;
+		}
+		throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
+	}
+
+	private function retrieveUserElement(FileElement $fileElement): int {
 		try {
 			if (!$this->user instanceof IUser) {
 				throw new Exception('User not set');
@@ -260,14 +268,18 @@ class SignFileService {
 		try {
 			$node = $this->getNode($nodeId);
 			if (!$node) {
-				throw new \Exception('empty');
+				throw new \Exception('Node content is empty or unavailable.');
 			}
 		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 		}
 
 		$tempFile = $this->tempManager->getTemporaryFile('_' . $nodeId . '.png');
-		file_put_contents($tempFile, $node->getContent());
+		$content = $node->getContent();
+		if (empty($content)) {
+			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
+		}
+		file_put_contents($tempFile, $content);
 		return new VisibleElementAssoc($fileElement, $tempFile);
 	}
 
