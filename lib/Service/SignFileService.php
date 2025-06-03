@@ -216,11 +216,10 @@ class SignFileService {
 		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($this->signRequest->getFileId(), $this->signRequest->getId());
 		$canCreateSignature = $this->signerElementsService->canCreateSignature();
 		foreach ($fileElements as $fileElement) {
-			$element = array_filter($list, fn (array $element): bool => $element['documentElementId'] === $fileElement->getId());
+			$element = $this->array_find($list, fn (array $element): bool => $element['documentElementId'] === $fileElement->getId());
 			if ($element && $canCreateSignature) {
-				$c = current($element);
-				if (!empty($c['profileNodeId'])) {
-					$nodeId = $c['profileNodeId'];
+				if (!empty($element['profileNodeId'])) {
+					$nodeId = $element['profileNodeId'];
 				} else {
 					throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 				}
@@ -258,6 +257,23 @@ class SignFileService {
 			);
 		}
 		return $this;
+	}
+
+	/**
+	 * Fallback to PHP < 8.4
+	 *
+	 * Reference: https://www.php.net/manual/en/function.array-find.php#130257
+	 *
+	 * @todo remove this after minor PHP version is >= 8.4
+	 */
+	private function array_find(array $array, callable $callback): mixed {
+		foreach ($array as $key => $value) {
+			if ($callback($value, $key)) {
+				return $value;
+			}
+		}
+
+		return null;
 	}
 
 	/**
