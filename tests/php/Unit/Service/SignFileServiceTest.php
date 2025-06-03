@@ -613,4 +613,20 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 		];
 	}
+
+	public function testSetVisibleElementsWithEmptyList(): void {
+		$service = $this->getService();
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest
+			->method('__call')
+			->willReturnCallback(fn (string $method) =>
+				match ($method) {
+					'getFileId' => 171,
+					'getId' => 171,
+				}
+			);
+		$service->setSignRequest($signRequest);
+		$service->setVisibleElements([]);
+		$this->assertEmpty($service->getVisibleElements());
+	}
 }
