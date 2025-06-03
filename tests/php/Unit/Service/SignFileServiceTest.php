@@ -27,6 +27,7 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IRootFolder;
@@ -622,7 +623,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	#[DataProvider('providerSetVisibleElements')]
 	public function testSetVisibleElements(
 		array $signerList,
-		array $databaseList,
+		array $fileElements,
+		array $userElements,
 		array $tempFiles,
 		array $signatureFile,
 		bool $canCreateSignature,
@@ -641,20 +643,23 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			);
 		$service->setSignRequest($signRequest);
 
-		$databaseList = array_map(function ($value) {
+		$fileElements = array_map(function ($value) {
 			$fileElement = new FileElement();
 			$fileElement->setId($value['id']);
 			return $fileElement;
-		}, $databaseList);
-		$this->fileElementMapper->method('getByFileIdAndSignRequestId')->willReturn($databaseList);
+		}, $fileElements);
+		$this->fileElementMapper->method('getByFileIdAndSignRequestId')->willReturn($fileElements);
 
 		$this->signerElementsService->method('canCreateSignature')->willReturn($canCreateSignature);
 
-		if (!empty($signatureFile)) {
-			$userElement = new UserElement();
-			$userElement->setFileId(1);
-			$this->userElementMapper->method('findOne')->willReturn($userElement);
-		}
+		$this->userElementMapper->method('findOne')->willReturnCallback(function () use ($signatureFile) {
+			if (!empty($signatureFile)) {
+				$userElement = new UserElement();
+				$userElement->setFileId(1);
+				return $userElement;
+			}
+			throw new DoesNotExistException('User element not found');
+		});
 
 		$this->folderService->method('getFileById')
 			->willReturnCallback(function ($id) use ($signatureFile) {
@@ -687,8 +692,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		if (!$exception) {
 			$visibleElements = $service->getVisibleElements();
-			$this->assertCount(count($databaseList), $visibleElements);
-			foreach ($databaseList as $key => $element) {
+			$this->assertCount(count($fileElements), $visibleElements);
+			foreach ($fileElements as $key => $element) {
 				$this->assertArrayHasKey($key, $visibleElements);
 				$this->assertSame($element, $visibleElements[$key]->getFileElement());
 				$this->assertEquals(
@@ -709,7 +714,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			'empty list, can create signature' => self::createScenarioSetVisibleElements(
 				signerList: [],
-				databaseList: [],
+				fileElements: [],
 				tempFiles: [],
 				signatureFile: [],
 				canCreateSignature: true,
@@ -718,7 +723,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 			'empty list, cannot create signature' => self::createScenarioSetVisibleElements(
 				signerList: [],
-				databaseList: [],
+				fileElements: [],
 				tempFiles: [],
 				signatureFile: [],
 				canCreateSignature: false,
@@ -729,7 +734,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				signerList: [
 					['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId],
 				],
-				databaseList: [
+				fileElements: [
 					['id' => $validDocumentId],
 				],
 				tempFiles: [$validProfileNodeId => $vfsPath],
@@ -742,8 +747,25 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				signerList: [
 					['fake' => 'value', 'profileNodeId' => $validProfileNodeId],
 				],
-				databaseList: [
+				fileElements: [
 					['id' => $validDocumentId],
+				],
+				tempFiles: [$validProfileNodeId => $vfsPath],
+				signatureFile: [$validProfileNodeId => false],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
+				expectedException: LibresignException::class
+			),
+
+			'invalid signature file, with invalid user element' => self::createScenarioSetVisibleElements(
+				signerList: [
+					['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId],
+				],
+				fileElements: [
+					['id' => $validDocumentId],
+				],
+				userElements: [
+					[],
 				],
 				tempFiles: [$validProfileNodeId => $vfsPath],
 				signatureFile: [$validProfileNodeId => false],
@@ -756,7 +778,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				signerList: [
 					['documentElementId' => $validDocumentId, 'profileNodeId' => 'not-a-number'],
 				],
-				databaseList: [
+				fileElements: [
 					['id' => $validDocumentId],
 				],
 				tempFiles: [$validProfileNodeId => $vfsPath],
@@ -770,7 +792,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				signerList: [
 					['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId],
 				],
-				databaseList: [
+				fileElements: [
 					['id' => $validDocumentId],
 				],
 				tempFiles: [$validProfileNodeId => $vfsPath],
@@ -784,7 +806,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				signerList: [
 					['documentElementId' => $validDocumentId],
 				],
-				databaseList: [
+				fileElements: [
 					['id' => $validDocumentId],
 				],
 				tempFiles: [],
@@ -798,7 +820,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				signerList: [
 					['documentElementId' => $validDocumentId],
 				],
-				databaseList: [
+				fileElements: [
 					['id' => $validDocumentId],
 				],
 				tempFiles: [],
@@ -808,7 +830,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			),
 			'no authenticated user, missing session file' => self::createScenarioSetVisibleElements(
 				signerList: [['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId]],
-				databaseList: [['id' => $validDocumentId]],
+				fileElements: [['id' => $validDocumentId]],
 				tempFiles: [],
 				signatureFile: [],
 				canCreateSignature: true,
@@ -820,17 +842,19 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	private static function createScenarioSetVisibleElements(
-		array $signerList,
-		array $databaseList,
-		array $tempFiles,
-		array $signatureFile,
-		bool $canCreateSignature,
-		bool $isAuthenticatedSigner,
+		array $signerList = [],
+		array $fileElements = [],
+		array $userElements = [],
+		array $tempFiles = [],
+		array $signatureFile = [],
+		bool $canCreateSignature = false,
+		bool $isAuthenticatedSigner = false,
 		?string $expectedException = null,
 	): array {
 		return [
 			$signerList,
-			$databaseList,
+			$fileElements,
+			$userElements,
 			$tempFiles,
 			$signatureFile,
 			$canCreateSignature,
