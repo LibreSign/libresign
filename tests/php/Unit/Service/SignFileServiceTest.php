@@ -617,7 +617,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	#[DataProvider('providerSetVisibleElements')]
-	public function testSetVisibleElements(array $signerList, array $databaseList, bool $canCreateSignature, ?string $exception): void {
+	public function testSetVisibleElements(array $signerList, array $databaseList, array $tempFiles, bool $canCreateSignature, ?string $exception): void {
 		$service = $this->getService();
 		$signRequest = $this->createMock(SignRequest::class);
 		$signRequest
@@ -645,24 +645,42 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$service->setVisibleElements($signerList);
 
+
 		if (!$exception) {
-			$this->assertCount(count($signerList), $service->getVisibleElements());
+			$visibleElements = $service->getVisibleElements();
+			foreach ($databaseList as $key => $element) {
+				$this->assertArrayHasKey($key, $visibleElements);
+				$this->assertSame($element, $visibleElements[$key]->getFileElement());
+				$this->assertEquals($tempFiles[$key] ?? '', $visibleElements[$key]->getTempFile());
+			}
 		}
 	}
 
 	public static function providerSetVisibleElements(): array {
 		return [
-			'empty list and can create signature' => [[], [], true, null],
-			'empty list and can not create signature' => [[], [], false, null],
-			'invalida data to sign' => [
+			'empty list and can create signature' => [[], [], [], true, null],
+			'empty list and cannot create signature' => [[], [], [], false, null],
+			'invalida data to sign and can create signature' => [
 				[
 					['documentElementId' => 171],
 				],
 				[
 					['id' => 171,]
 				],
+				[''],
 				true,
 				LibresignException::class,
+			],
+			'valid data but cannot create signature' => [
+				[
+					['documentElementId' => 171],
+				],
+				[
+					['id' => 171,]
+				],
+				[''],
+				false,
+				null,
 			],
 		];
 	}
