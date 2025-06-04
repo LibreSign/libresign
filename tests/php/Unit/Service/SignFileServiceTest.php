@@ -756,7 +756,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				expectedException: LibresignException::class,
 			),
 
-			'authenticated signer without profileNodeId' => self::createScenarioSetVisibleElements(
+			'unauthenticated signer without profileNodeId' => self::createScenarioSetVisibleElements(
 				signerList: [],
 				fileElements: [
 					['id' => $validDocumentId],
@@ -859,7 +859,32 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				isAuthenticatedSigner: false,
 				expectedException: LibresignException::class,
 			),
+			'user fallback with valid user element' => self::createScenarioSetVisibleElements(
+				signerList: [
+					['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId],
+				],
+				fileElements: [
+					['id' => $validDocumentId],
+				],
+				tempFiles: [$validProfileNodeId => $vfsPath],
+				signatureFile: [$validProfileNodeId => ['valid' => true, 'content' => 'valid content']],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true
+			),
 
+			'authenticated user, file not found' => self::createScenarioSetVisibleElements(
+				signerList: [
+					['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId],
+				],
+				fileElements: [
+					['id' => $validDocumentId],
+				],
+				tempFiles: [],
+				signatureFile: [],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
+				expectedException: LibresignException::class,
+			),
 		];
 	}
 
