@@ -140,7 +140,7 @@ class Version8000Date20231102215331 extends SimpleMigrationStep {
 			$qb->update('libresign_file_element')
 				->set('sign_request_id', 'file_user_id')
 				->executeStatement();
-		} catch (DbalException $e) {
+		} catch (DbalException) {
 		}
 
 		try {
