@@ -624,7 +624,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testSetVisibleElements(
 		array $signerList,
 		array $fileElements,
-		array $userElements,
 		array $tempFiles,
 		array $signatureFile,
 		bool $canCreateSignature,
@@ -790,9 +789,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				fileElements: [
 					['id' => $validDocumentId],
 				],
-				userElements: [
-					[],
-				],
 				tempFiles: [$validProfileNodeId => $vfsPath],
 				signatureFile: [$validProfileNodeId => ['valid' => false, 'content' => 'valid content']],
 				canCreateSignature: true,
@@ -870,7 +866,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private static function createScenarioSetVisibleElements(
 		array $signerList = [],
 		array $fileElements = [],
-		array $userElements = [],
 		array $tempFiles = [],
 		array $signatureFile = [],
 		bool $canCreateSignature = false,
@@ -880,7 +875,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			$signerList,
 			$fileElements,
-			$userElements,
 			$tempFiles,
 			$signatureFile,
 			$canCreateSignature,
