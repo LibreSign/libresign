@@ -33,7 +33,6 @@ use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\PdfParserService;
-use OCA\Libresign\Tests\lib\AppConfigOverwrite;
 use OCP\Accounts\IAccountManager;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
@@ -98,11 +97,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->accountManager = $this->createMock(IAccountManager::class);
 		$this->client = \OCP\Server::get(IClientService::class);
 		$this->dateTimeFormatter = \OCP\Server::get(IDateTimeFormatter::class);
-		$this->appConfig = new AppConfigOverwrite(
-			$this->createMock(\OCP\IDBConnection::class),
-			\OCP\Server::get(\Psr\Log\LoggerInterface::class),
-			\OCP\Server::get(\OCP\Security\ICrypto::class),
-		);
+		$this->appConfig = $this->getMockAppConfig();
 		$this->urlGenerator = \OCP\Server::get(IURLGenerator::class);
 		$this->mimeTypeDetector = \OCP\Server::get(IMimeTypeDetector::class);
 		$this->pkcs12Handler = \OCP\Server::get(Pkcs12Handler::class);
