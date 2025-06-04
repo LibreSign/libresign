@@ -11,7 +11,6 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
-use OCA\Libresign\Tests\lib\AppConfigOverwrite;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
@@ -29,11 +28,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
-		$this->appConfig = new AppConfigOverwrite(
-			$this->createMock(\OCP\IDBConnection::class),
-			\OCP\Server::get(\Psr\Log\LoggerInterface::class),
-			\OCP\Server::get(\OCP\Security\ICrypto::class),
-		);
+		$this->appConfig = $this->getMockAppConfig();
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
