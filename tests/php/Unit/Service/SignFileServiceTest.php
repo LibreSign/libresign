@@ -717,7 +717,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				tempFiles: [],
 				signatureFile: [],
 				canCreateSignature: true,
-				isAuthenticatedSigner: true
+				isAuthenticatedSigner: true,
 			),
 
 			'empty list, cannot create signature' => self::createScenarioSetVisibleElements(
@@ -726,7 +726,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				tempFiles: [],
 				signatureFile: [],
 				canCreateSignature: false,
-				isAuthenticatedSigner: true
+				isAuthenticatedSigner: true,
 			),
 
 			'valid signer with signature file, valid content of signature file' => self::createScenarioSetVisibleElements(
@@ -739,7 +739,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				tempFiles: [$validProfileNodeId => $vfsPath],
 				signatureFile: [$validProfileNodeId => ['valid' => true, 'content' => 'valid content']],
 				canCreateSignature: true,
-				isAuthenticatedSigner: true
+				isAuthenticatedSigner: true,
 			),
 
 			'valid signer with signature file, invalid content of signature file' => self::createScenarioSetVisibleElements(
@@ -848,7 +848,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				tempFiles: [],
 				signatureFile: [],
 				canCreateSignature: false,
-				isAuthenticatedSigner: true
+				isAuthenticatedSigner: true,
 			),
 			'no authenticated user, missing session file' => self::createScenarioSetVisibleElements(
 				signerList: [['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId]],
@@ -869,7 +869,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				tempFiles: [$validProfileNodeId => $vfsPath],
 				signatureFile: [$validProfileNodeId => ['valid' => true, 'content' => 'valid content']],
 				canCreateSignature: true,
-				isAuthenticatedSigner: true
+				isAuthenticatedSigner: true,
 			),
 
 			'authenticated user, file not found' => self::createScenarioSetVisibleElements(
