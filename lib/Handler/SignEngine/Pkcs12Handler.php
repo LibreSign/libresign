@@ -362,7 +362,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			/** @var \OCP\Files\File */
 			$node = $folder->get($this->pfxFilename);
 			$this->certificate = $node->getContent();
-		} catch (GenericFileException $e) {
+		} catch (GenericFileException) {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		} catch (\Throwable) {
 		}
