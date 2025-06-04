@@ -6,14 +6,18 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+use bovigo\vfs\vfsStream;
 use OCA\Libresign\Db\AccountFileMapper;
+use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
@@ -23,9 +27,11 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IRootFolder;
+use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IDateTimeZone;
@@ -611,6 +617,294 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'SignerUserAgent' => 'Robot',
 				],
 			],
+		];
+	}
+
+	#[DataProvider('providerSetVisibleElements')]
+	public function testSetVisibleElements(
+		array $signerList,
+		array $fileElements,
+		array $tempFiles,
+		array $signatureFile,
+		bool $canCreateSignature,
+		?string $exception,
+		bool $isAuthenticatedSigner,
+	): void {
+		$service = $this->getService();
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest
+			->method('__call')
+			->willReturnCallback(fn (string $method) =>
+				match ($method) {
+					'getFileId' => 171,
+					'getId' => 171,
+				}
+			);
+		$service->setSignRequest($signRequest);
+
+		$fileElements = array_map(function ($value) {
+			$fileElement = new FileElement();
+			$fileElement->setId($value['id']);
+			return $fileElement;
+		}, $fileElements);
+		$this->fileElementMapper->method('getByFileIdAndSignRequestId')->willReturn($fileElements);
+
+		$this->signerElementsService->method('canCreateSignature')->willReturn($canCreateSignature);
+
+		$this->userElementMapper->method('findOne')->willReturnCallback(function () use ($signatureFile) {
+			if (!empty($signatureFile)) {
+				$userElement = new UserElement();
+				$userElement->setFileId(1);
+				return $userElement;
+			}
+			throw new DoesNotExistException('User element not found');
+		});
+
+		$this->folderService->method('getFileById')
+			->willReturnCallback(function ($id) use ($signatureFile) {
+				if (isset($signatureFile[$id]) && $signatureFile[$id]['valid']) {
+					$file = $this->getMockBuilder(\OCP\Files\File::class)->getMock();
+					$file->method('getContent')->willReturn($signatureFile[$id]['content']);
+					return $file;
+				}
+				throw new NotFoundException();
+			});
+
+		vfsStream::setup('home');
+		$this->tempManager->method('getTemporaryFile')
+			->willReturnCallback(function ($postFix) {
+				preg_match('/.*(\d+).*/', $postFix, $matches);
+				$path = 'vfs://home/_' . $matches[1] . '.png';
+				return $path;
+			});
+
+		if ($exception) {
+			$this->expectException($exception);
+		}
+
+		if ($isAuthenticatedSigner) {
+			$currentUser = $this->createMock(\OCP\IUser::class);
+		}
+		$service->setCurrentUser($currentUser ?? null);
+
+		$service->setVisibleElements($signerList);
+
+		if (!$exception) {
+			$visibleElements = $service->getVisibleElements();
+			$this->assertCount(count($fileElements), $visibleElements);
+			foreach ($fileElements as $key => $element) {
+				$this->assertArrayHasKey($key, $visibleElements);
+				$this->assertSame($element, $visibleElements[$key]->getFileElement());
+				$this->assertEquals(
+					isset($signerList[$key], $signerList[$key]['profileNodeId'], $tempFiles[$signerList[$key]['profileNodeId']])
+						? $tempFiles[$signerList[$key]['profileNodeId']] . '/_' . $signerList[$key]['profileNodeId'] . '.png'
+						: '',
+					$visibleElements[$key]->getTempFile(),
+				);
+			}
+		}
+	}
+
+	public static function providerSetVisibleElements(): array {
+		$validDocumentId = 171;
+		$validProfileNodeId = 1;
+		$vfsPath = 'vfs://home';
+
+		return [
+			'empty list, can create signature' => self::createScenarioSetVisibleElements(
+				signerList: [],
+				fileElements: [],
+				tempFiles: [],
+				signatureFile: [],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
+			),
+
+			'empty list, cannot create signature' => self::createScenarioSetVisibleElements(
+				signerList: [],
+				fileElements: [],
+				tempFiles: [],
+				signatureFile: [],
+				canCreateSignature: false,
+				isAuthenticatedSigner: true,
+			),
+
+			'valid signer with signature file, valid content of signature file' => self::createScenarioSetVisibleElements(
+				signerList: [
+					['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId],
+				],
+				fileElements: [
+					['id' => $validDocumentId],
+				],
+				tempFiles: [$validProfileNodeId => $vfsPath],
+				signatureFile: [$validProfileNodeId => ['valid' => true, 'content' => 'valid content']],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
+			),
+
+			'valid signer with signature file, invalid content of signature file' => self::createScenarioSetVisibleElements(
+				signerList: [
+					['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId],
+				],
+				fileElements: [
+					['id' => $validDocumentId],
+				],
+				tempFiles: [$validProfileNodeId => false],
+				signatureFile: [$validProfileNodeId => ['valid' => true, 'content' => '']],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
+				expectedException: LibresignException::class,
+			),
+
+			'unauthenticated signer without profileNodeId' => self::createScenarioSetVisibleElements(
+				signerList: [],
+				fileElements: [
+					['id' => $validDocumentId],
+				],
+				tempFiles: [$validProfileNodeId => $vfsPath],
+				signatureFile: [$validProfileNodeId => ['valid' => true, 'content' => 'valid content']],
+				canCreateSignature: true,
+				isAuthenticatedSigner: false,
+				expectedException: LibresignException::class,
+			),
+
+			'invalid signature file, with invalid field' => self::createScenarioSetVisibleElements(
+				signerList: [
+					['fake' => 'value', 'profileNodeId' => $validProfileNodeId],
+				],
+				fileElements: [
+					['id' => $validDocumentId],
+				],
+				tempFiles: [$validProfileNodeId => $vfsPath],
+				signatureFile: [$validProfileNodeId => ['valid' => false, 'content' => 'valid content']],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
+				expectedException: LibresignException::class,
+			),
+
+			'invalid signature file, with invalid user element' => self::createScenarioSetVisibleElements(
+				signerList: [
+					['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId],
+				],
+				fileElements: [
+					['id' => $validDocumentId],
+				],
+				tempFiles: [$validProfileNodeId => $vfsPath],
+				signatureFile: [$validProfileNodeId => ['valid' => false, 'content' => 'valid content']],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
+				expectedException: LibresignException::class,
+			),
+
+			'invalid signature file, with invalid type of profileNodeId' => self::createScenarioSetVisibleElements(
+				signerList: [
+					['documentElementId' => $validDocumentId, 'profileNodeId' => 'not-a-number'],
+				],
+				fileElements: [
+					['id' => $validDocumentId],
+				],
+				tempFiles: [$validProfileNodeId => $vfsPath],
+				signatureFile: [$validProfileNodeId => ['valid' => false, 'content' => 'valid content']],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
+				expectedException: LibresignException::class,
+			),
+
+			'invalid signature file' => self::createScenarioSetVisibleElements(
+				signerList: [
+					['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId],
+				],
+				fileElements: [
+					['id' => $validDocumentId],
+				],
+				tempFiles: [$validProfileNodeId => $vfsPath],
+				signatureFile: [$validProfileNodeId => ['valid' => false, 'content' => 'valid content']],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
+				expectedException: LibresignException::class,
+			),
+
+			'missing profileNodeId throws exception' => self::createScenarioSetVisibleElements(
+				signerList: [
+					['documentElementId' => $validDocumentId],
+				],
+				fileElements: [
+					['id' => $validDocumentId],
+				],
+				tempFiles: [],
+				signatureFile: [],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
+				expectedException: LibresignException::class,
+			),
+
+			'cannot create signature, visible element fallback' => self::createScenarioSetVisibleElements(
+				signerList: [
+					['documentElementId' => $validDocumentId],
+				],
+				fileElements: [
+					['id' => $validDocumentId],
+				],
+				tempFiles: [],
+				signatureFile: [],
+				canCreateSignature: false,
+				isAuthenticatedSigner: true,
+			),
+			'no authenticated user, missing session file' => self::createScenarioSetVisibleElements(
+				signerList: [['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId]],
+				fileElements: [['id' => $validDocumentId]],
+				tempFiles: [],
+				signatureFile: [],
+				canCreateSignature: true,
+				isAuthenticatedSigner: false,
+				expectedException: LibresignException::class,
+			),
+			'user fallback with valid user element' => self::createScenarioSetVisibleElements(
+				signerList: [
+					['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId],
+				],
+				fileElements: [
+					['id' => $validDocumentId],
+				],
+				tempFiles: [$validProfileNodeId => $vfsPath],
+				signatureFile: [$validProfileNodeId => ['valid' => true, 'content' => 'valid content']],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
+			),
+
+			'authenticated user, file not found' => self::createScenarioSetVisibleElements(
+				signerList: [
+					['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId],
+				],
+				fileElements: [
+					['id' => $validDocumentId],
+				],
+				tempFiles: [],
+				signatureFile: [],
+				canCreateSignature: true,
+				isAuthenticatedSigner: true,
+				expectedException: LibresignException::class,
+			),
+		];
+	}
+
+	private static function createScenarioSetVisibleElements(
+		array $signerList = [],
+		array $fileElements = [],
+		array $tempFiles = [],
+		array $signatureFile = [],
+		bool $canCreateSignature = false,
+		bool $isAuthenticatedSigner = false,
+		?string $expectedException = null,
+	): array {
+		return [
+			$signerList,
+			$fileElements,
+			$tempFiles,
+			$signatureFile,
+			$canCreateSignature,
+			$expectedException,
+			$isAuthenticatedSigner,
 		];
 	}
 }

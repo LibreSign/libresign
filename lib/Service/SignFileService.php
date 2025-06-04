@@ -10,6 +10,7 @@ namespace OCA\Libresign\Service;
 
 use DateTime;
 use DateTimeInterface;
+use Exception;
 use InvalidArgumentException;
 use mikehaertl\pdftk\Command;
 use OC\AppFramework\Http as AppFrameworkHttp;
@@ -18,6 +19,7 @@ use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\AccountFile;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
@@ -38,6 +40,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\File;
@@ -209,55 +212,111 @@ class SignFileService {
 		return $this;
 	}
 
-	/**
-	 * @return static
-	 */
 	public function setVisibleElements(array $list): self {
 		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($this->signRequest->getFileId(), $this->signRequest->getId());
 		$canCreateSignature = $this->signerElementsService->canCreateSignature();
+
 		foreach ($fileElements as $fileElement) {
-			$element = array_filter($list, fn (array $element): bool => $element['documentElementId'] === $fileElement->getId());
-			if ($element && $canCreateSignature) {
-				$c = current($element);
-				if (!empty($c['profileNodeId'])) {
-					$nodeId = $c['profileNodeId'];
-				} else {
-					throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
-				}
-			} else {
-				if ($canCreateSignature) {
-					$userElement = $this->userElementMapper->findOne([
-						'user_id' => $this->user->getUID(),
-						'type' => $fileElement->getType(),
-					]);
-					$nodeId = $userElement->getFileId();
-				} else {
-					$this->elements[] = new VisibleElementAssoc($fileElement);
-					continue;
-				}
-			}
-			try {
-				if ($this->user instanceof IUser) {
-					$node = $this->folderService->getFileById($nodeId);
-				} else {
-					$filesOfElementes = $this->signerElementsService->getElementsFromSession();
-					$node = array_filter($filesOfElementes, fn ($file) => $file->getId() === $nodeId);
-					$node = current($node);
-				}
-				if (!$node) {
-					throw new \Exception('empty');
-				}
-			} catch (\Throwable) {
-				throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
-			}
-			$tempFile = $this->tempManager->getTemporaryFile('.png');
-			file_put_contents($tempFile, $node->getContent());
-			$this->elements[] = new VisibleElementAssoc(
-				$fileElement,
-				$tempFile
-			);
+			$this->elements[] = $this->buildVisibleElementAssoc($fileElement, $list, $canCreateSignature);
 		}
+
 		return $this;
+	}
+
+	private function buildVisibleElementAssoc(FileElement $fileElement, array $list, bool $canCreateSignature): VisibleElementAssoc {
+		if (!$canCreateSignature) {
+			return new VisibleElementAssoc($fileElement);
+		}
+
+		$element = $this->array_find($list, fn (array $element): bool => ($element['documentElementId'] ?? '') === $fileElement->getId());
+		$nodeId = $this->getNodeId($element, $fileElement);
+
+		return $this->bindFileElementWithTempFile($fileElement, $nodeId);
+	}
+
+	private function getNodeId(?array $element, FileElement $fileElement): int {
+		if ($this->isValidElement($element)) {
+			return (int)$element['profileNodeId'];
+		}
+
+		return $this->retrieveUserElement($fileElement);
+	}
+
+	private function isValidElement(?array $element): bool {
+		if (is_array($element) && !empty($element['profileNodeId']) && is_int($element['profileNodeId'])) {
+			return true;
+		}
+		$this->logger->error('Invalid data provided for signing file.', ['element' => $element]);
+		throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
+	}
+
+	private function retrieveUserElement(FileElement $fileElement): int {
+		try {
+			if (!$this->user instanceof IUser) {
+				throw new Exception('User not set');
+			}
+			$userElement = $this->userElementMapper->findOne([
+				'user_id' => $this->user->getUID(),
+				'type' => $fileElement->getType(),
+			]);
+		} catch (MultipleObjectsReturnedException|DoesNotExistException|Exception) {
+			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
+		}
+		return $userElement->getFileId();
+	}
+
+	private function bindFileElementWithTempFile(FileElement $fileElement, int $nodeId): VisibleElementAssoc {
+		try {
+			$node = $this->getNode($nodeId);
+			if (!$node) {
+				throw new \Exception('Node content is empty or unavailable.');
+			}
+		} catch (\Throwable) {
+			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
+		}
+
+		$tempFile = $this->tempManager->getTemporaryFile('_' . $nodeId . '.png');
+		$content = $node->getContent();
+		if (empty($content)) {
+			$this->logger->error('Failed to retrieve content for node.', ['nodeId' => $nodeId, 'fileElement' => $fileElement]);
+			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
+		}
+		file_put_contents($tempFile, $content);
+		return new VisibleElementAssoc($fileElement, $tempFile);
+	}
+
+	private function getNode(int $nodeId): ?File {
+		if ($this->user instanceof IUser) {
+			return $this->folderService->getFileById($nodeId);
+		}
+
+		$filesOfElementes = $this->signerElementsService->getElementsFromSession();
+		return $this->array_find($filesOfElementes, fn ($file) => $file->getId() === $nodeId);
+	}
+
+	/**
+	 * Fallback to PHP < 8.4
+	 *
+	 * Reference: https://www.php.net/manual/en/function.array-find.php#130257
+	 *
+	 * @todo remove this after minor PHP version is >= 8.4
+	 * @deprecated This method will be removed once the minimum PHP version is >= 8.4. Use native array_find instead.
+	 */
+	private function array_find(array $array, callable $callback): mixed {
+		foreach ($array as $key => $value) {
+			if ($callback($value, $key)) {
+				return $value;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * @return VisibleElementAssoc[]
+	 */
+	public function getVisibleElements(): array {
+		return $this->elements;
 	}
 
 	public function sign(): File {
@@ -269,7 +328,7 @@ class SignFileService {
 				$signedFile = $this->pkcs12Handler
 					->setInputFile($fileToSign)
 					->setCertificate($pfxFileContent)
-					->setVisibleElements($this->elements)
+					->setVisibleElements($this->getVisibleElements())
 					->setPassword($this->password)
 					->setSignatureParams($signatureParams)
 					->sign();
@@ -531,7 +590,7 @@ class SignFileService {
 			$signRequests = $this->signRequestMapper->getByFileId($libresignFile->getId());
 
 			if (!empty($signRequestUuid)) {
-				$signRequest = $this->getSignRequest($signRequestUuid);
+				$signRequest = $this->getSignRequestByUuid($signRequestUuid);
 			} else {
 				$signRequest = array_reduce($signRequests, function (?SignRequestEntity $carry, SignRequestEntity $signRequest) use ($user): ?SignRequestEntity {
 					$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId());
@@ -652,7 +711,7 @@ class SignFileService {
 	/**
 	 * @throws DoesNotExistException
 	 */
-	public function getSignRequest(string $uuid): SignRequestEntity {
+	public function getSignRequestByUuid(string $uuid): SignRequestEntity {
 		$this->validateHelper->validateUuidFormat($uuid);
 		return $this->signRequestMapper->getByUuid($uuid);
 	}
