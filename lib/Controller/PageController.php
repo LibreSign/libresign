@@ -559,7 +559,7 @@ class PageController extends AEnvironmentPageAwareController {
 			$this->fileService->setFileByType('uuid', $uuid);
 		} catch (DoesNotExistException) {
 			try {
-				$signRequest = $this->signFileService->getSignRequest($uuid);
+				$signRequest = $this->signFileService->getSignRequestByUuid($uuid);
 				$libresignFile = $this->signFileService->getFile($signRequest->getFileId());
 				$this->fileService->setFile($libresignFile);
 			} catch (DoesNotExistException) {
