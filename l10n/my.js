@@ -11,6 +11,7 @@ OC.L10N.register(
     "Empty file" : "ဗလာဖိုင်",
     "You need to create an account to sign this file." : "ဤဖိုင်အား အမှတ်အသားထိုးရန် အကောင့်ဖွင့်ရန်လိုအပ်သည်။",
     "File already signed by you" : "ဖိုင်အား သင် အမှတ်အသားပြုလုပ်ပြီးပါပြီ",
+    "Cancel" : "Cancel",
     "Status" : "အခြေအနေ",
     "Password Creation" : "လျှို့ဝှက်ကုဒ် ဖန်တီးရန်",
     "Enter a password" : "စကားဝှက် ရိုက်ထည့်ပါ။",

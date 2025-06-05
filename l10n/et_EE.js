@@ -161,6 +161,7 @@ OC.L10N.register(
     "Message" : "Sõnum",
     "Resource" : "Ressurss",
     "Dependencies" : "Sõltuvused",
+    "Legal information" : "Juriidiline teave",
     "Yes" : "Jah",
     "No" : "Ei",
     "Description only" : "Vaid kirjeldus",
