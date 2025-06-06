@@ -207,7 +207,7 @@ OC.L10N.register(
     "Searching …" : "Pesquisando …",
     "No signers." : "Sem signatários.",
     "Search signer" : "Pesquisar signatário",
-    "No recommendations. Start typing." : "Sem recomendações. Começe a digitar.",
+    "No recommendations. Start typing." : "Sem recomendações. Comece a digitar.",
     "Signer is mandatory" : "O signatário é obrigatório",
     "Update" : "Atualizar",
     "Please enter signer name." : "Por favor, insira o nome do signatário.",
