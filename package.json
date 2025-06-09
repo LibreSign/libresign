@@ -20,7 +20,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@fontsource/dancing-script": "^5.2.5",
+    "@fontsource/dancing-script": "^5.2.6",
     "@libresign/vue-pdf-editor": "^1.4.6",
     "@marionebl/option": "^1.0.8",
     "@mdi/js": "^7.4.47",
