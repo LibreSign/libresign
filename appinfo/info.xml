@@ -54,6 +54,7 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
         <post-migration>
             <step>OCA\Libresign\Migration\DeleteOldBinaries</step>
             <step>OCA\Libresign\Migration\ResynchronizeDatabaseSequences</step>
+			<step>OCA\Libresign\Migration\NotifyAdminsAfterUpgrade</step>
         </post-migration>
     </repair-steps>
     <commands>
