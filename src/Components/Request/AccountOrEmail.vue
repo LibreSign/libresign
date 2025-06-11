@@ -29,6 +29,7 @@
 	</div>
 </template>
 <script>
+import debounce from 'debounce'
 import AlertCircle from 'vue-material-design-icons/AlertCircleOutline.vue'
 
 import axios from '@nextcloud/axios'
@@ -98,7 +99,7 @@ export default {
 		}
 	},
 	methods: {
-		async asyncFind(search, lookup = false) {
+		async _asyncFind(search, lookup = false) {
 			search = search.trim()
 			this.loading = true
 
@@ -117,6 +118,9 @@ export default {
 			this.options = response.data.ocs.data
 			this.loading = false
 		},
+		asyncFind: debounce(function(search, lookup = false) {
+			this._asyncFind(search,lookup)
+		}, 500),
 	},
 }
 </script>
