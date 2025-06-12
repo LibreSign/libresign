@@ -30,6 +30,7 @@
 </template>
 <script>
 import debounce from 'debounce'
+
 import AlertCircle from 'vue-material-design-icons/AlertCircleOutline.vue'
 
 import axios from '@nextcloud/axios'
@@ -119,7 +120,7 @@ export default {
 			this.loading = false
 		},
 		asyncFind: debounce(function(search, lookup = false) {
-			this._asyncFind(search,lookup)
+			this._asyncFind(search, lookup)
 		}, 500),
 	},
 }
