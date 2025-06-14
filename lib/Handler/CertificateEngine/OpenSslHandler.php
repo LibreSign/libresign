@@ -53,9 +53,10 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		openssl_x509_export($x509, $certout);
 		openssl_pkey_export($privateKey, $pkeyout);
 
-		$this->saveFile('ca.csr', $csrout);
-		$this->saveFile('ca.pem', $certout);
-		$this->saveFile('ca-key.pem', $pkeyout);
+		$configPath = $this->getConfigPath();
+		CertificateHelper::saveFile($configPath . '/ca.csr', $csrout);
+		CertificateHelper::saveFile($configPath . '/ca.pem', $certout);
+		CertificateHelper::saveFile($configPath . '/ca-key.pem', $pkeyout);
 
 		return $pkeyout;
 	}
@@ -134,7 +135,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		if (empty($config['v3_req']['subjectAltName'])) {
 			unset($config['v3_req']['subjectAltName']);
 		}
-		$config = $this->arrayToIni($config);
+		$config = CertificateHelper::arrayToIni($config);
 		file_put_contents($temporaryFile, $config);
 		return $temporaryFile;
 	}
@@ -163,20 +164,9 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		if (empty($config['v3_ca']['subjectAltName'])) {
 			unset($config['v3_ca']['subjectAltName']);
 		}
-		$iniContent = $this->arrayToIni($config);
-		$this->saveFile('openssl.cnf', $iniContent);
-	}
-
-	private function arrayToIni(array $config) {
-		$fileContent = '';
-		foreach ($config as $i => $v) {
-			if (is_array($v)) {
-				$fileContent .= "\n[$i]\n" . $this->arrayToIni($v);
-			} else {
-				$fileContent .= "$i = " . (str_contains((string)$v, "\n") ? '"' . $v . '"' : $v) . "\n";
-			}
-		}
-		return $fileContent;
+		$configFile = $this->getConfigPath() . '/openssl.cnf';
+		$iniContent = CertificateHelper::arrayToIni($config);
+		CertificateHelper::saveFile($configFile, $iniContent);
 	}
 
 	private function getSubjectAltNames(): string {
@@ -215,14 +205,6 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			$distinguishedNames['commonName'] = $this->getCommonName();
 		}
 		return $distinguishedNames;
-	}
-
-	private function saveFile(string $filename, string $content): void {
-		$configPath = $this->getConfigPath();
-		$success = file_put_contents($configPath . DIRECTORY_SEPARATOR . $filename, $content);
-		if ($success === false) {
-			throw new LibresignException('Failure to save file. Check permission: ' . $configPath . DIRECTORY_SEPARATOR . $filename);
-		}
 	}
 
 	public function isSetupOk(): bool {
