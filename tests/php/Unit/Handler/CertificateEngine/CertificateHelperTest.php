@@ -35,8 +35,8 @@ final class CertificateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[DataProvider('dataProviderArrayToIni')]
 	public function testArrayToIni(array $array, string $expected): void {
-		$result = CertificateHelper::arrayToIni($array);
-		$this->assertSame($expected, $result);
+		$actual = CertificateHelper::arrayToIni($array);
+		$this->assertSame($expected, $actual);
 	}
 
 	public static function dataProviderArrayToIni(): array {
