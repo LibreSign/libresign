@@ -14,6 +14,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
+use OCA\Libresign\Helper\JavaHelper;
 use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
 
@@ -29,6 +30,7 @@ class ConfigureCheckService {
 		private CertificateEngineFactory $certificateEngineFactory,
 		private SignSetupService $signSetupService,
 		private LoggerInterface $logger,
+		protected JavaHelper $javaHelper,
 	) {
 		$this->architecture = php_uname('m');
 	}
@@ -252,7 +254,7 @@ class ConfigureCheckService {
 							->setTip('Run occ libresign:install --java'),
 					];
 				}
-				$javaPath = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
+				$javaPath = $this->javaHelper->getJavaPath();
 				$version = [];
 				\exec($javaPath . ' -jar ' . $pdftkPath . ' --version 2>&1', $version, $resultCode);
 				if ($resultCode !== 0) {
@@ -364,7 +366,7 @@ class ConfigureCheckService {
 		if (!empty($this->result['java'])) {
 			return $this->result['java'];
 		}
-		$javaPath = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
+		$javaPath = $this->javaHelper->getJavaPath();
 		if ($javaPath) {
 			$resultOfVerify = $this->verify('java');
 			if (count($resultOfVerify)) {
