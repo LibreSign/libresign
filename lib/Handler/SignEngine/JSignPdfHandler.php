@@ -15,6 +15,7 @@ use Jeidison\JSignPDF\Sign\JSignParam;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
@@ -38,6 +39,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 		private ITempManager $tempManager,
 		private SignatureBackgroundService $signatureBackgroundService,
 		protected CertificateEngineFactory $certificateEngineFactory,
+		protected JavaHelper $javaHelper,
 	) {
 	}
 
@@ -59,7 +61,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 	 */
 	public function getJSignParam(): JSignParam {
 		if (!$this->jSignParam) {
-			$javaPath = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
+			$javaPath = $this->javaHelper->getJavaPath();
 			$tempPath = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_temp_path', sys_get_temp_dir() . DIRECTORY_SEPARATOR);
 			if (!is_writable($tempPath)) {
 				throw new \Exception('The path ' . $tempPath . ' is not writtable. Fix this or change the LibreSign app setting jsignpdf_temp_path to a writtable path');
