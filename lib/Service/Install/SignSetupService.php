@@ -605,7 +605,7 @@ class SignSetupService {
 			throw new LibresignException('Failure to create temporary file to OpenSSL .cfg file');
 		}
 		$ini = CertificateHelper::arrayToIni($config);
-		file_put_contents($temporaryFile, $config);
+		file_put_contents($temporaryFile, $ini);
 		return $temporaryFile;
 	}
 }
