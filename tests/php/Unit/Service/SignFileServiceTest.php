@@ -21,6 +21,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
+use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -73,6 +74,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ITempManager&MockObject $tempManager;
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private ITimeFactory&MockObject $timeFactory;
+	private JavaHelper&MockObject $javaHelper;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -104,6 +106,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->tempManager = $this->createMock(ITempManager::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->timeFactory = $this->createMock(ITimeFactory::class);
+		$this->javaHelper = $this->createMock(JavaHelper::class);
 	}
 
 	private function getService(array $methods = []): SignFileService|MockObject {
@@ -135,6 +138,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->tempManager,
 					$this->identifyMethodService,
 					$this->timeFactory,
+					$this->javaHelper,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -165,6 +169,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->tempManager,
 			$this->identifyMethodService,
 			$this->timeFactory,
+			$this->javaHelper,
 		);
 	}
 
