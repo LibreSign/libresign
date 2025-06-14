@@ -14,7 +14,9 @@ use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\EmptySignatureDataException;
 use OCA\Libresign\Exception\InvalidSignatureException;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\SignatureDataNotFoundException;
+use OCA\Libresign\Handler\CertificateEngine\CertificateHelper;
 use OCP\App\IAppManager;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
@@ -22,6 +24,7 @@ use OCP\Files\NotFoundException;
 use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IAppConfig;
 use OCP\IConfig;
+use OCP\ITempManager;
 use phpseclib\Crypt\RSA;
 use phpseclib\File\X509;
 
@@ -47,6 +50,7 @@ class SignSetupService {
 		private IAppConfig $appConfig,
 		private IAppManager $appManager,
 		private IAppDataFactory $appDataFactory,
+		protected ITempManager $tempManager,
 	) {
 		$this->instanceId = $this->config->getSystemValue('instanceid');
 		$this->appData = $appDataFactory->get('libresign');
@@ -555,16 +559,16 @@ class SignSetupService {
 		$csr = openssl_csr_new($csrNames, $privateKey, ['digest_alg' => 'sha256']);
 		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365, [
 			'digest_alg' => 'sha256',
-			'x509_extensions' => [
-				'authorityInfoAccess' => [
-					[
-						'accessMethod' => '1.3.6.1.5.5.7.1.1',
-						'accessLocation' => [
-							'uniformResourceIdentifier' => 'https://apps.nextcloud.com/apps/libresign',
-						],
-					],
+			'config' => $this->arrayToConfigFile([
+				'v3_user' => [
+					'keyUsage' => 'digitalSignature',
+					'extendedKeyUsage' => 'clientAuth',
+					'authorityInfoAccess' => '@aia_section',
 				],
-			]
+				'aia_section' => [
+					'caIssuers;URI.0' => 'https://apps.nextcloud.com/apps/libresign',
+				],
+			]),
 		]);
 
 		openssl_x509_export($x509, $rootCertificate);
@@ -593,5 +597,15 @@ class SignSetupService {
 			'privateKeyInstance' => $privateKeyInstance,
 			'privateKeyCert' => $privateKeyCert,
 		];
+	}
+
+	private function arrayToConfigFile(array $config): string {
+		$temporaryFile = $this->tempManager->getTemporaryFile('.cfg');
+		if (!$temporaryFile) {
+			throw new LibresignException('Failure to create temporary file to OpenSSL .cfg file');
+		}
+		$ini = CertificateHelper::arrayToIni($config);
+		file_put_contents($temporaryFile, $config);
+		return $temporaryFile;
 	}
 }
