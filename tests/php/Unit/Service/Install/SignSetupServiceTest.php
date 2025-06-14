@@ -17,6 +17,7 @@ use OCP\App\IAppManager;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
 use OCP\IConfig;
+use OCP\ITempManager;
 use phpseclib\Crypt\RSA;
 use phpseclib\File\X509;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -29,6 +30,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;
 	private IAppManager&MockObject $appManager;
 	private IAppDataFactory $appDataFactory;
+	private ITempManager $tempManager;
 
 	public function setUp(): void {
 		$this->environmentHelper = $this->createMock(EnvironmentHelper::class);
@@ -37,6 +39,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->config = $this->createMock(IConfig::class);
 		$this->appConfig = $this->getMockAppConfig();
 		$this->appDataFactory = \OCP\Server::get(IAppDataFactory::class);
+		$this->tempManager = \OCP\Server::get(ITempManager::class);
 	}
 
 	/**
@@ -56,6 +59,7 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->appConfig,
 				$this->appManager,
 				$this->appDataFactory,
+				$this->tempManager,
 			])
 			->onlyMethods($methods)
 			->getMock();
