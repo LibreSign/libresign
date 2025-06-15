@@ -25,7 +25,7 @@ class CertificateEngineFactoryTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$ref = new \ReflectionClass(CertificateEngineFactory::class);
 		$prop = $ref->getProperty('engine');
 		$prop->setAccessible(true);
-		$prop->setValue(null);
+		$prop->setValue($ref, null);
 	}
 
 	public function setUp(): void {
