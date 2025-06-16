@@ -15,6 +15,7 @@ use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
+use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -37,6 +38,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ITempManager $tempManager;
 	private SignatureBackgroundService&MockObject $signatureBackgroundService;
 	private static CertificateEngineFactory $certificateEngineFactory;
+	private JavaHelper&MockObject $javaHelper;
 	private static string $certificateContent = '';
 	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
@@ -60,6 +62,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
 		$this->signatureBackgroundService = $this->createMock(SignatureBackgroundService::class);
+		$this->javaHelper = $this->createMock(JavaHelper::class);
 	}
 
 	private function getInstance(array $methods = []): JSignPdfHandler|MockObject {
@@ -79,6 +82,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->tempManager,
 				$this->signatureBackgroundService,
 				self::$certificateEngineFactory,
+				$this->javaHelper,
 			);
 		}
 		return $this->getMockBuilder(JSignPdfHandler::class)
@@ -89,6 +93,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->tempManager,
 				$this->signatureBackgroundService,
 				self::$certificateEngineFactory,
+				$this->javaHelper,
 			])
 			->onlyMethods($methods)
 			->getMock();
@@ -394,6 +399,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig->setValueString('libresign', 'java_path', $java_path);
 		$this->appConfig->setValueString('libresign', 'jsignpdf_temp_path', $temp_path);
 		$this->appConfig->setValueString('libresign', 'jsignpdf_jar_path', $jar_path);
+		$this->javaHelper->method('getJavaPath')->willReturn($java_path);
 
 		$expected = new JSignParam();
 		if ($java_path) {

@@ -35,6 +35,7 @@ use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\PdfTk\Pdf;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
+use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -101,6 +102,7 @@ class SignFileService {
 		private ITempManager $tempManager,
 		private IdentifyMethodService $identifyMethodService,
 		private ITimeFactory $timeFactory,
+		protected JavaHelper $javaHelper,
 	) {
 	}
 
@@ -669,7 +671,7 @@ class SignFileService {
 				$input = $this->tempManager->getTemporaryFile('input.pdf');
 				file_put_contents($input, $originalFile->getContent());
 
-				$javaPath = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
+				$javaPath = $this->javaHelper->getJavaPath();
 				$pdftkPath = $this->appConfig->getValueString(Application::APP_ID, 'pdftk_path');
 				if (!file_exists($javaPath) || !file_exists($pdftkPath)) {
 					throw new LibresignException($this->l10n->t('The admin hasn\'t set up LibreSign yet, please wait.'));
