@@ -18,6 +18,48 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+
+## 11.2.4 - 2025-06-16
+### Changes
+- Update translations
+- Bump dependencies
+- docs: add donation link to appear on Nextcloud appstore [#5153](https://github.com/LibreSign/libresign/pull/5153)
+- chore: edit visible signatures [#5151](https://github.com/LibreSign/libresign/pull/5151)
+- chore: start to move methods to Helper class [#5142](https://github.com/LibreSign/libresign/pull/5142)
+- docs: add Star History image at README.md file [#5131](https://github.com/LibreSign/libresign/pull/5131)
+- chore: use method that get app config [#5109](https://github.com/LibreSign/libresign/pull/5109)
+- chore: remove unused var reported by Rector [#5108](https://github.com/LibreSign/libresign/pull/5108)
+- chore: test set visible elements [#5103](https://github.com/LibreSign/libresign/pull/5103)
+- chore: implement unit tests at visible elements class [#5093](https://github.com/LibreSign/libresign/pull/5093)
+- chore: improve Release Drafter config with categories, changelog temp… [#5082](https://github.com/LibreSign/libresign/pull/5082)
+- chore: Convert bug_report.md and feature_request.md to yaml [#5071](https://github.com/LibreSign/libresign/pull/5071)
+
+### Fixes
+- fix: link in README.md to feature_request.yml form [#5078](https://github.com/LibreSign/libresign/pull/5078)
+- fix: change display name [#5155](https://github.com/LibreSign/libresign/pull/5155)
+- fix: change lang environment when is possible [#5149](https://github.com/LibreSign/libresign/pull/5149)
+- fix: implemented debounce on signer search field [#5132](https://github.com/LibreSign/libresign/pull/5132)
+
+## 10.8.4 - 2025-06-16
+### Changes
+- Update translations
+- Bump dependencies
+- docs: add donation link to appear on Nextcloud appstore [#5152](https://github.com/LibreSign/libresign/pull/5152)
+- chore: edit visible signatures [#5150](https://github.com/LibreSign/libresign/pull/5150)
+- chore: start to move methods to Helper class [#5141](https://github.com/LibreSign/libresign/pull/5141)
+- docs: add Star History image at README.md file [#5130](https://github.com/LibreSign/libresign/pull/5130)
+- chore: remove unused var reported by Rector [#5107](https://github.com/LibreSign/libresign/pull/5107)
+- chore: test set visible elements [#5102](https://github.com/LibreSign/libresign/pull/5102)
+- chore: implement unit tests at visible elements class [#5095](https://github.com/LibreSign/libresign/pull/5095)
+- chore: improve Release Drafter config with categories, changelog temp… [#5081](https://github.com/LibreSign/libresign/pull/5081)
+- chore: Convert bug_report.md and feature_request.md to yaml [#5070](https://github.com/LibreSign/libresign/pull/5070)
+
+### Fixes
+- fix: link in README.md to feature_request.yml form [#5077](https://github.com/LibreSign/libresign/pull/5077)
+- fix: change display name [#5154](https://github.com/LibreSign/libresign/pull/5154)
+- fix: change lang environment when is possible [#5148](https://github.com/LibreSign/libresign/pull/5148)
+- fix: implemented debounce on signer search field [#5133](https://github.com/LibreSign/libresign/pull/5133)
+
 ## 11.2.3 - 2025-05-28
 ### Changes
 - chore: improve tip to sysadmin [#5055](https://github.com/LibreSign/libresign/pull/5055)
