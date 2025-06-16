@@ -13,7 +13,7 @@
 			@update:display-name="updateDisplayName" />
 		<label v-if="signerSelected" for="name-input">{{ t('libresign', 'Signer name') }}</label>
 		<NcTextField v-if="signerSelected"
-			v-model="signerSelected"
+			v-model="displayName"
 			aria-describedby="name-input"
 			autocapitalize="none"
 			:label="t('libresign', 'Signer name')"
