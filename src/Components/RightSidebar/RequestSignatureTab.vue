@@ -125,6 +125,10 @@ export default {
 	},
 	computed: {
 		labelOfSaveButton() {
+
+			if (this.filesStore.canSign()) {
+				return t('libresign', 'Edit visible signatures')
+			}
 			if (this.isSignElementsAvailable()) {
 				return t('libresign', 'Next')
 			}
