@@ -58,6 +58,11 @@
 				@click="validationFile()">
 				{{ t('libresign', 'Validate') }}
 			</NcButton>
+			<NcButton v-if="filesStore.canValidate()"
+				variant="primary"
+				@click="validationFile()">
+				{{ t('libresign', 'Open file') }}
+			</NcButton>
 		</div>
 		<VisibleElements />
 		<NcModal v-if="modalSrc"

@@ -59,6 +59,7 @@
 import svgDelete from '@mdi/svg/svg/delete.svg?raw'
 import svgSignature from '@mdi/svg/svg/signature.svg?raw'
 import svgTextBoxCheck from '@mdi/svg/svg/text-box-check.svg?raw'
+import svgFileDocument from '@mdi/svg/svg/file-document-outline.svg?raw'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -147,6 +148,11 @@ export default {
 			title: t('libresign', 'Delete'),
 			iconSvgInline: svgDelete,
 		})
+		this.registerAction({
+			id: 'open',
+			title: t('libresign', 'Open file'),
+			iconSvgInline: svgFileDocument,
+		})
 	},
 	methods: {
 		visibleIf(action) {
@@ -158,6 +164,8 @@ export default {
 				visible = this.filesStore.canValidate(file)
 			} else if (action.id === 'delete') {
 				visible = this.filesStore.canDelete(file)
+			} else if (action.id === 'open') {
+				visible = this.filesStore.canValidate(file)
 			}
 			return visible
 		},
