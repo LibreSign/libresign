@@ -58,8 +58,7 @@
 				@click="validationFile()">
 				{{ t('libresign', 'Validate') }}
 			</NcButton>
-			<NcButton
-				variant="primary"
+			<NcButton variant="primary"
 				@click="openFile()">
 				{{ t('libresign', 'Open file') }}
 			</NcButton>
@@ -81,8 +80,8 @@ import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
-import { generateOcsUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
+import { generateOcsUrl } from '@nextcloud/router'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcButton from '@nextcloud/vue/components/NcButton'
