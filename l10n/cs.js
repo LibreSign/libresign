@@ -225,6 +225,7 @@ OC.L10N.register(
     "Sign" : "Podepsat",
     "Confirm" : "Potvrdit",
     "Request signatures?" : "Požádat o podpisy?",
+    "Edit visible signatures" : "Upravit viditelné podpisy",
     "Add signer" : "Přidat podepisujícího",
     "Send reminder" : "Odeslat připomínku",
     "Enter who will receive the request" : "Zadejte kdo obdrží požadavek",

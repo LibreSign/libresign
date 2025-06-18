@@ -226,6 +226,7 @@ OC.L10N.register(
     "Sign" : "Потпис",
     "Confirm" : "Потврди",
     "Request signatures?" : "Захтевај потписе?",
+    "Edit visible signatures" : "Уреди видљиве потписе",
     "Add signer" : "Додај потписника",
     "Send reminder" : "Пошаљи подсетник",
     "Enter who will receive the request" : "Унесите ко ће примити захтев",
