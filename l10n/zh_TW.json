@@ -224,6 +224,7 @@
     "Sign" : "簽署",
     "Confirm" : "確認",
     "Request signatures?" : "請求簽署？",
+    "Edit visible signatures" : "編輯可見的簽名",
     "Add signer" : "新增簽署者",
     "Send reminder" : "傳送提醒",
     "Enter who will receive the request" : "輸入誰會收到請求",
