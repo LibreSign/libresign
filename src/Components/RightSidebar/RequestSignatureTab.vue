@@ -58,7 +58,7 @@
 				@click="validationFile()">
 				{{ t('libresign', 'Validate') }}
 			</NcButton>
-			<NcButton variant="primary"
+			<NcButton
 				@click="openFile()">
 				{{ t('libresign', 'Open file') }}
 			</NcButton>
