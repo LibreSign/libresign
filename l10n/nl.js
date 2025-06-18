@@ -228,6 +228,7 @@ OC.L10N.register(
     "Yes" : "Ja",
     "No" : "Nee",
     "Reset to default" : "Herstellen naar standaard",
+    "Remove background" : "Achtergrond verwijderen",
     "Validation URL" : "Validatie-URL",
     "Sign with your email." : "Onderteken met uw e-mail.",
     "Request code." : "Vraag code aan.",

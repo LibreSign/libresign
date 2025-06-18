@@ -105,6 +105,7 @@ OC.L10N.register(
     "Next" : "Järgmine",
     "Account does not exist" : "Kasutajakontot pole olemas",
     "Confirm" : "Kinnita",
+    "Edit visible signatures" : "Muuda nähtavaid allkirju",
     "Add signer" : "Lisa allkirjastaja",
     "Send reminder" : "Saada meeldetuletus",
     "Document not available for signature." : "Dokument pole allkirjastamiseks saadaval.",
