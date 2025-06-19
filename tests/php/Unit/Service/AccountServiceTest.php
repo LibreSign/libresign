@@ -243,8 +243,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$signRequest = $this->createMock(SignRequest::class);
 					$signRequest
 						->method('__call')
-						->willReturnCallback(fn (string $method) =>
-							match ($method) {
+						->willReturnCallback(fn (string $method)
+							=> match ($method) {
 								'getEmail' => 'valid@test.coop',
 								'getFileId' => 171,
 								'getUserId' => 'username',
@@ -341,8 +341,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest = $this->createMock(\OCA\Libresign\Db\SignRequest::class);
 		$signRequest
 			->method('__call')
-			->willReturnCallback(fn (string $method) =>
-				match ($method) {
+			->willReturnCallback(fn (string $method)
+				=> match ($method) {
 					'getDisplayName' => 'John Doe',
 					'getId' => 1,
 				}

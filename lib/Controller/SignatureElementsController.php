@@ -96,8 +96,8 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		return new DataResponse(
 			[
 				'message' => $message,
-				'elements' =>
-					(
+				'elements'
+					=> (
 						$this->userSession->getUser() instanceof IUser
 						? $this->signerElementsService->getUserElements($this->userSession->getUser()->getUID())
 						: $this->signerElementsService->getElementsFromSessionAsArray()
