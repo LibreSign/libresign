@@ -225,6 +225,7 @@ OC.L10N.register(
     "Sign" : "Signera",
     "Confirm" : "Bekräfta",
     "Request signatures?" : "Begär underskrift?",
+    "Edit visible signatures" : "Redigera synliga signaturer",
     "Add signer" : "Lägg till undertecknare",
     "Send reminder" : "Skicka påminnelse",
     "Enter who will receive the request" : "Ange vem som kommer att ta emot begäran",
