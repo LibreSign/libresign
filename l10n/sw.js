@@ -25,6 +25,7 @@ OC.L10N.register(
     "Confirm" : "Thibitisha",
     "Details" : "Maelezo ya kina",
     "Type" : "Aina",
+    "Status" : "Wadhifa",
     "Actions" : "Utendekaji",
     "Toggle selection for file \"{displayName}\"" : "Geuza uteuzi wa faili \"{displayName}\"",
     "File is loading" : "Faili inapakia",
