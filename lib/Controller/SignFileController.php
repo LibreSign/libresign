@@ -119,9 +119,9 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				->setLibreSignFile($libreSignFile)
 				->setSignRequest($signRequest)
 				->setUserUniqueIdentifier(
-					$identifyMethod->getEntity()->getIdentifierKey() .
-					':' .
-					$identifyMethod->getEntity()->getIdentifierValue()
+					$identifyMethod->getEntity()->getIdentifierKey()
+					. ':'
+					. $identifyMethod->getEntity()->getIdentifierValue()
 				)
 				->setFriendlyName($signRequest->getDisplayName())
 				->storeUserMetadata([
@@ -167,8 +167,8 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				default:
 					$this->logger->error($message, ['exception' => $th]);
 					$data['errors'] = [[
-						'message' =>
-							sprintf(<<<MESSAGE
+						'message'
+							=> sprintf(<<<MESSAGE
 								The server was unable to complete your request.
 								If this happens again, please send the technical details below to the server administrator.
 								## Technical details:

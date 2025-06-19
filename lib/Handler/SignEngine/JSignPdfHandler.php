@@ -79,9 +79,9 @@ class JSignPdfHandler extends Pkcs12Handler {
 					throw new \Exception('Invalid Java binary. Run occ libresign:install --java');
 				}
 				$this->jSignParam->setJavaPath(
-					$this->getEnvironments() .
-					$javaPath .
-					' -Duser.home=' . escapeshellarg($this->getHome()) . ' '
+					$this->getEnvironments()
+					. $javaPath
+					. ' -Duser.home=' . escapeshellarg($this->getHome()) . ' '
 				);
 			}
 		}
@@ -254,8 +254,8 @@ class JSignPdfHandler extends Pkcs12Handler {
 				}
 
 				$param->setJSignParameters(
-					$originalParam->getJSignParameters() .
-					$this->listParamsToString($params)
+					$originalParam->getJSignParameters()
+					. $this->listParamsToString($params)
 				);
 				$jSignPdf->setParam($param);
 				$signed = $this->signWrapper($jSignPdf);
@@ -406,8 +406,8 @@ class JSignPdfHandler extends Pkcs12Handler {
 			$param = $this->getJSignParam();
 			$param
 				->setJSignParameters(
-					$this->jSignParam->getJSignParameters() .
-					' --hash-algorithm ' . $this->getHashAlgorithm()
+					$this->jSignParam->getJSignParameters()
+					. ' --hash-algorithm ' . $this->getHashAlgorithm()
 				);
 			$jSignPDF->setParam($param);
 			return $jSignPDF->sign();

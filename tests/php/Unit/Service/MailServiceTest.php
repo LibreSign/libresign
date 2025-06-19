@@ -57,8 +57,8 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest
 			->method('__call')
 
-			->willReturnCallback(fn (string $method) =>
-				match ($method) {
+			->willReturnCallback(fn (string $method)
+				=> match ($method) {
 					'getUuid' => 'asdfg',
 					'getFileId' => 1,
 					'getDisplayName' => 'John Doe'
@@ -86,8 +86,8 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest = $this->createMock(SignRequest::class);
 		$signRequest
 			->method('__call')
-			->willReturnCallback(fn (string $method) =>
-				match ($method) {
+			->willReturnCallback(fn (string $method)
+				=> match ($method) {
 					'getUuid' => 'asdfg',
 					'getFileId' => 1,
 					'getDisplayName' => 'John doe',

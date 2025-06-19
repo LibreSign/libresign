@@ -489,9 +489,9 @@ class AccountService {
 	 */
 	public function uploadPfx(array $file, IUser $user): void {
 		if (
-			$file['error'] !== 0 ||
-			!is_uploaded_file($file['tmp_name']) ||
-			Filesystem::isFileBlacklisted($file['tmp_name'])
+			$file['error'] !== 0
+			|| !is_uploaded_file($file['tmp_name'])
+			|| Filesystem::isFileBlacklisted($file['tmp_name'])
 		) {
 			// TRANSLATORS Error when the uploaded certificate file is not valid
 			throw new InvalidArgumentException($this->l10n->t('Invalid file provided. Need to be a .pfx file.'));

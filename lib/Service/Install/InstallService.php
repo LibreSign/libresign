@@ -119,9 +119,9 @@ class InstallService {
 			} catch (NotPermittedException $e) {
 				$user = posix_getpwuid(posix_getuid());
 				throw new LibresignException(
-					$e->getMessage() . '. ' .
-					'Permission problems. ' .
-					'Maybe this could fix: chown -R ' . $user['name'] . ' ' . $this->getInternalPathOfFolder($folder)
+					$e->getMessage() . '. '
+					. 'Permission problems. '
+					. 'Maybe this could fix: chown -R ' . $user['name'] . ' ' . $this->getInternalPathOfFolder($folder)
 				);
 			}
 		}
@@ -304,10 +304,10 @@ class InstallService {
 		} else {
 			$cmd = 'ps -eo pid,command|';
 		}
-		$cmd .= 'grep "libresign:install --' . $this->resource . '"|' .
-			'grep -v grep|' .
-			'grep -v defunct|' .
-			'sed -e "s/^[[:space:]]*//"|cut -d" " -f1';
+		$cmd .= 'grep "libresign:install --' . $this->resource . '"|'
+			. 'grep -v grep|'
+			. 'grep -v defunct|'
+			. 'sed -e "s/^[[:space:]]*//"|cut -d" " -f1';
 		$output = shell_exec($cmd);
 		if (!is_string($output)) {
 			return 0;
