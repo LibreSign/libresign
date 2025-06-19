@@ -274,17 +274,17 @@ class SignatureTextService {
 			$index = $middle;
 
 			while (
-				$index >= 0 &&
-				$index < $length &&
-				mb_substr($text, $index, 1) !== ' '
+				$index >= 0
+				&& $index < $length
+				&& mb_substr($text, $index, 1) !== ' '
 			) {
 				$index += $direction;
 			}
 
 			if (
-				$index > 0 &&
-				$index < $length &&
-				mb_substr($text, $index, 1) === ' '
+				$index > 0
+				&& $index < $length
+				&& mb_substr($text, $index, 1) === ' '
 			) {
 				$first = mb_substr($text, 0, $index);
 				$second = mb_substr($text, $index + 1);
