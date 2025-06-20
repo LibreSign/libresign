@@ -180,8 +180,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest = $this->createMock(\OCA\Libresign\Db\SignRequest::class);
 		$signRequest
 			->method('__call')
-			->willReturnCallback(fn (string $method) =>
-				match ($method) {
+			->willReturnCallback(fn (string $method)
+				=> match ($method) {
 					'getSigned' => '2021-01-01 01:01:01',
 				}
 			);
@@ -197,8 +197,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest = $this->createMock(\OCA\Libresign\Db\SignRequest::class);
 		$signRequest
 			->method('__call')
-			->willReturnCallback(fn (string $method) =>
-				match ($method) {
+			->willReturnCallback(fn (string $method)
+				=> match ($method) {
 					'getSigned' => null,
 					'getId' => 171,
 				}
@@ -348,8 +348,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	private function createSignRequestMock(array $methods): MockObject {
 		$signRequest = $this->createMock(SignRequest::class);
-		$signRequest->method('__call')->willReturnCallback(fn (string $method) =>
-			$methods[$method] ?? null
+		$signRequest->method('__call')->willReturnCallback(fn (string $method)
+			=> $methods[$method] ?? null
 		);
 		return $signRequest;
 	}
@@ -422,8 +422,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest = $this->createMock(SignRequest::class);
 		$signRequest
 			->method('__call')
-			->willReturnCallback(fn (string $method) =>
-				match ($method) {
+			->willReturnCallback(fn (string $method)
+				=> match ($method) {
 					'getId' => 171,
 					'getMetadata' => [],
 				}
@@ -572,8 +572,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest = $this->createMock(SignRequest::class);
 		$signRequest
 			->method('__call')
-			->willReturnCallback(fn (string $method) =>
-				match ($method) {
+			->willReturnCallback(fn (string $method)
+				=> match ($method) {
 					'getId' => 171,
 					'getMetadata' => $metadata,
 				}
@@ -639,8 +639,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest = $this->createMock(SignRequest::class);
 		$signRequest
 			->method('__call')
-			->willReturnCallback(fn (string $method) =>
-				match ($method) {
+			->willReturnCallback(fn (string $method)
+				=> match ($method) {
 					'getFileId' => 171,
 					'getId' => 171,
 				}

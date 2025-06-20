@@ -195,9 +195,9 @@ class FileService {
 			throw new InvalidArgumentException($this->l10n->t('No file provided'));
 		}
 		if (
-			$file['error'] !== 0 ||
-			!is_uploaded_file($file['tmp_name']) ||
-			Filesystem::isFileBlacklisted($file['tmp_name'])
+			$file['error'] !== 0
+			|| !is_uploaded_file($file['tmp_name'])
+			|| Filesystem::isFileBlacklisted($file['tmp_name'])
 		) {
 			unlink($file['tmp_name']);
 			throw new InvalidArgumentException($this->l10n->t('Invalid file provided'));
@@ -736,8 +736,8 @@ class FileService {
 							return $carry;
 						}, ''),
 						'description' => $signer->getDescription(),
-						'displayName' =>
-							array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
+						'displayName'
+							=> array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
 								if (!$carry && $identifyMethod->getMandatory()) {
 									return $identifyMethod->getIdentifierValue();
 								}

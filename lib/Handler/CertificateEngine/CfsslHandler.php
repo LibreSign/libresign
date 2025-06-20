@@ -196,9 +196,9 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	private function genkey(): void {
 		$binary = $this->getBinary();
 		$configPath = $this->getConfigPath();
-		$cmd = $binary . ' genkey ' .
-			'-initca=true ' . $configPath . DIRECTORY_SEPARATOR . 'csr_server.json | ' .
-			$binary . 'json -bare ' . $configPath . DIRECTORY_SEPARATOR . 'ca;';
+		$cmd = $binary . ' genkey '
+			. '-initca=true ' . $configPath . DIRECTORY_SEPARATOR . 'csr_server.json | '
+			. $binary . 'json -bare ' . $configPath . DIRECTORY_SEPARATOR . 'ca;';
 		shell_exec($cmd);
 	}
 
@@ -258,10 +258,10 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			throw new LibresignException('CFSSL not configured.');
 		}
 		$this->cfsslServerHandler->updateExpirity($this->expirity());
-		$cmd = 'nohup ' . $binary . ' serve -address=127.0.0.1 ' .
-			'-ca-key ' . $configPath . DIRECTORY_SEPARATOR . 'ca-key.pem ' .
-			'-ca ' . $configPath . DIRECTORY_SEPARATOR . 'ca.pem ' .
-			'-config ' . $configPath . DIRECTORY_SEPARATOR . 'config_server.json > /dev/null 2>&1 & echo $!';
+		$cmd = 'nohup ' . $binary . ' serve -address=127.0.0.1 '
+			. '-ca-key ' . $configPath . DIRECTORY_SEPARATOR . 'ca-key.pem '
+			. '-ca ' . $configPath . DIRECTORY_SEPARATOR . 'ca.pem '
+			. '-config ' . $configPath . DIRECTORY_SEPARATOR . 'config_server.json > /dev/null 2>&1 & echo $!';
 		shell_exec($cmd);
 		$loops = 0;
 		while (!$this->portOpen() && $loops <= 4) {
@@ -286,10 +286,10 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 
 	private function getServerPid(): int {
 		$cmd = 'ps -eo pid,command|';
-		$cmd .= 'grep "cfssl.*serve.*-address"|' .
-			'grep -v grep|' .
-			'grep -v defunct|' .
-			'sed -e "s/^[[:space:]]*//"|cut -d" " -f1';
+		$cmd .= 'grep "cfssl.*serve.*-address"|'
+			. 'grep -v grep|'
+			. 'grep -v defunct|'
+			. 'sed -e "s/^[[:space:]]*//"|cut -d" " -f1';
 		$output = shell_exec($cmd);
 		if (!is_string($output)) {
 			return 0;

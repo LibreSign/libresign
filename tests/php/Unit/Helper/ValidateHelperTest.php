@@ -558,8 +558,8 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		if (!empty($uuid)) {
 			$libresignFile->method('__call')
-				->willReturnCallback(fn ($method) =>
-					match ($method) {
+				->willReturnCallback(fn ($method)
+					=> match ($method) {
 						'getNodeId' => 1,
 					}
 				);
