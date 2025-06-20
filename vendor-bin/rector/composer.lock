@@ -9,16 +9,16 @@
     "packages-dev": [
         {
             "name": "nextcloud/ocp",
-            "version": "v31.0.5",
+            "version": "v31.0.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-deps/ocp.git",
-                "reference": "a6103c4f1f65ef53dded3af4b8f2fdfcb51beb56"
+                "reference": "bec55048b46eadbd2c564f2b26c9486a43f958c2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/a6103c4f1f65ef53dded3af4b8f2fdfcb51beb56",
-                "reference": "a6103c4f1f65ef53dded3af4b8f2fdfcb51beb56",
+                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/bec55048b46eadbd2c564f2b26c9486a43f958c2",
+                "reference": "bec55048b46eadbd2c564f2b26c9486a43f958c2",
                 "shasum": ""
             },
             "require": {
@@ -51,9 +51,9 @@
             "description": "Composer package containing Nextcloud's public OCP API and the unstable NCU API",
             "support": {
                 "issues": "https://github.com/nextcloud-deps/ocp/issues",
-                "source": "https://github.com/nextcloud-deps/ocp/tree/v31.0.5"
+                "source": "https://github.com/nextcloud-deps/ocp/tree/v31.0.6"
             },
-            "time": "2025-05-07T00:51:25+00:00"
+            "time": "2025-05-28T00:52:27+00:00"
         },
         {
             "name": "nextcloud/rector",
@@ -381,21 +381,21 @@
         },
         {
             "name": "rector/rector",
-            "version": "2.0.16",
+            "version": "2.0.18",
             "source": {
                 "type": "git",
                 "url": "https://github.com/rectorphp/rector.git",
-                "reference": "f1366d1f8c7490541c8f7af6e5c7cef7cca1b5a2"
+                "reference": "be3a452085b524a04056e3dfe72d861948711062"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/rectorphp/rector/zipball/f1366d1f8c7490541c8f7af6e5c7cef7cca1b5a2",
-                "reference": "f1366d1f8c7490541c8f7af6e5c7cef7cca1b5a2",
+                "url": "https://api.github.com/repos/rectorphp/rector/zipball/be3a452085b524a04056e3dfe72d861948711062",
+                "reference": "be3a452085b524a04056e3dfe72d861948711062",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.4|^8.0",
-                "phpstan/phpstan": "^2.1.14"
+                "phpstan/phpstan": "^2.1.17"
             },
             "conflict": {
                 "rector/rector-doctrine": "*",
@@ -428,7 +428,7 @@
             ],
             "support": {
                 "issues": "https://github.com/rectorphp/rector/issues",
-                "source": "https://github.com/rectorphp/rector/tree/2.0.16"
+                "source": "https://github.com/rectorphp/rector/tree/2.0.18"
             },
             "funding": [
                 {
@@ -436,7 +436,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-05-12T16:37:16+00:00"
+            "time": "2025-06-11T11:19:37+00:00"
         },
         {
             "name": "webmozart/assert",
