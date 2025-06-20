@@ -84,6 +84,7 @@ OC.L10N.register(
     "\"{displayName}\" batch action executed successfully" : "Операцію \"{displayName}\" успішно виконано",
     "\"{displayName}\" action failed" : "Не вдалося виконати \"{displayName}\"",
     "(selected)" : "(вибрано)",
+    "_{count} selected_::_{count} selected_" : ["Вибрано {count}","Вибрано {count}","Вибрано {count} ","Вибрано {count} "],
     "Password reset" : "Відновлення пароля",
     "Current password" : "Поточний пароль",
     "New password" : "Новий пароль",
