@@ -94,6 +94,7 @@ OC.L10N.register(
     "\"{displayName}\" batch action executed successfully" : "\"{displayName}\" バッチアクションが正常に実行されました。",
     "\"{displayName}\" action failed" : "\"{displayName}\" アクションは失敗しました",
     "(selected)" : "(選択済み)",
+    "_{count} selected_::_{count} selected_" : ["{count}選択されています"],
     "Password reset" : "パスワードのリセット",
     "Current password" : "現在のパスワード",
     "New password" : "新たなパスワード",

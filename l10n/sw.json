@@ -24,6 +24,7 @@
     "No recommendations. Start typing." : "Hakuna maoni. Anza kuchapisha",
     "Update" : "Sasisha",
     "Choose" : "Chagua",
+    "Previous" : "Iliyopita",
     "Confirm" : "Thibitisha",
     "Details" : "Maelezo ya kina",
     "Type" : "Aina",
@@ -50,7 +51,10 @@
     "\"{displayName}\" action failed" : "\"{displayName}\" matendo yameshindwa",
     "(selected)" : "(iliyochaguliwa)",
     "_{count} selected_::_{count} selected_" : ["{count} selected","{count} selected"],
+    "Password reset" : "Uwekaji mpya wa nenosiri",
+    "New password" : "Nenosiri jipya",
     "Yes" : "Ndiyo",
-    "No" : "Hapana"
+    "No" : "Hapana",
+    "Forgot password?" : "Umesahau nenosiri"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

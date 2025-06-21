@@ -226,6 +226,7 @@ OC.L10N.register(
     "Sign" : "Comhartha",
     "Confirm" : "Deimhnigh",
     "Request signatures?" : "Iarr sínithe?",
+    "Edit visible signatures" : "Cuir sínithe infheicthe in eagar",
     "Add signer" : "Cuir sínitheoir leis",
     "Send reminder" : "Seol meabhrúchán",
     "Enter who will receive the request" : "Cuir isteach cé a gheobhaidh an t-iarratas",
