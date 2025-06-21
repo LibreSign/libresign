@@ -226,6 +226,7 @@ OC.L10N.register(
     "Sign" : "Sign",
     "Confirm" : "Confirm",
     "Request signatures?" : "Request signatures?",
+    "Edit visible signatures" : "Edit visible signatures",
     "Add signer" : "Add signer",
     "Send reminder" : "Send reminder",
     "Enter who will receive the request" : "Enter who will receive the request",

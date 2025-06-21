@@ -293,7 +293,7 @@
     "Created at" : "Vytvořeno",
     "Toggle selection for all files" : "Vybrat / zrušit výběr všech souborů",
     "\"{displayName}\" failed on some elements " : "„{displayName}“ se pro některé prvky nezdařilo",
-    "\"{displayName}\" batch action executed successfully" : "hromadná akce „{displayName}“ úspěšně vykonána",
+    "\"{displayName}\" batch action executed successfully" : "Hromadná akce „{displayName}“ úspěšně vykonána",
     "\"{displayName}\" action failed" : "akce „{displayName}“ se nezdařila",
     "(selected)" : "(vybráno)",
     "_{count} selected_::_{count} selected_" : ["vybráno {count}","vybráno {count}","vybráno {count}","vybráno {count}"],
