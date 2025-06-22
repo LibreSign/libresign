@@ -224,6 +224,7 @@
     "Sign" : "Signer",
     "Confirm" : "Confirmer",
     "Request signatures?" : "Demander une signature ?",
+    "Edit visible signatures" : "Modifier les signatures visibles",
     "Add signer" : "Ajouter un signataire",
     "Send reminder" : "Envoyer un rappel",
     "Enter who will receive the request" : "Saisissez ceux qui recevront la requête",
