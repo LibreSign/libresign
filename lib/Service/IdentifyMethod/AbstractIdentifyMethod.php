@@ -237,11 +237,10 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 					'action' => $this->getRenewAction(),
 					// TRANSLATORS title that is displayed at screen to notify the signer that the link to sign the document expired
 					'title' => $this->identifyService->getL10n()->t('Link expired'),
-					'body' => $this->identifyService->getL10n()->t(<<<'BODY'
-						The link to sign the document has expired.
-						We will send a new link to the email %1$s.
-						Click below to receive the new link and be able to sign the document.
-						BODY,
+					'body' => $this->identifyService->getL10n()->t(
+						"The link to sign the document has expired.\n"
+						. 'We will send a new link to the email %1$s.' . "\n"
+						. 'Click below to receive the new link and be able to sign the document.',
 						[$blur->make()]
 					),
 					'uuid' => $signRequest->getUuid(),
