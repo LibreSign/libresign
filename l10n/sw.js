@@ -33,6 +33,7 @@ OC.L10N.register(
     "Type" : "Aina",
     "Status" : "Wadhifa",
     "Actions" : "Utendekaji",
+    "Signature" : "Saini",
     "Password" : "Nenosiri",
     "Page not found" : "Ukurasa haupatikani",
     "Ok" : "Sawa",
