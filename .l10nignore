@@ -9,3 +9,4 @@ js/
 node_modules/
 tests/
 vendor/
+vendor-bin/
