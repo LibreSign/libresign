@@ -401,7 +401,7 @@ export default {
 	},
 	created() {
 		this.$set(this, 'document', loadState('libresign', 'file_info', {}))
-		this.hasInfo = Object.keys(this.document).length > 0
+		this.hasInfo = !!this.document?.name
 		if (this.hasInfo) {
 			this.document.signers.forEach(signer => {
 				this.$set(signer, 'opened', false)
