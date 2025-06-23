@@ -168,14 +168,13 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 					$this->logger->error($message, ['exception' => $th]);
 					$data['errors'] = [[
 						'message'
-							=> sprintf(<<<MESSAGE
-								The server was unable to complete your request.
-								If this happens again, please send the technical details below to the server administrator.
-								## Technical details:
-								**Remote Address**: %s
-								**Request ID**: %s
-								**Message**: %s
-								MESSAGE,
+							=> sprintf(
+								"The server was unable to complete your request.\n"
+								. "If this happens again, please send the technical details below to the server administrator.\n"
+								. "## Technical details:\n"
+								. "**Remote Address**: %s\n"
+								. "**Request ID**: %s\n"
+								. '**Message**: %s',
 								$this->request->getRemoteAddress(),
 								$this->request->getId(),
 								$message,

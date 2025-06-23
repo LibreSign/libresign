@@ -298,22 +298,20 @@ class SignatureTextService {
 	public function getDefaultTemplate(): string {
 		$collectMetadata = $this->appConfig->getValueBool(Application::APP_ID, 'collect_metadata', false);
 		if ($collectMetadata) {
-			return $this->l10n->t(<<<TEMPLATE
-				Signed with LibreSign
-				{{SignerCommonName}}
-				Issuer: {{IssuerCommonName}}
-				Date: {{ServerSignatureDate}}
-				IP: {{SignerIP}}
-				User agent: {{SignerUserAgent}}
-				TEMPLATE
+			return $this->l10n->t(
+				"Signed with LibreSign\n"
+				. "{{SignerCommonName}}\n"
+				. "Issuer: {{IssuerCommonName}}\n"
+				. "Date: {{ServerSignatureDate}}\n"
+				. "IP: {{SignerIP}}\n"
+				. 'User agent: {{SignerUserAgent}}'
 			);
 		}
-		return $this->l10n->t(<<<TEMPLATE
-			Signed with LibreSign
-			{{SignerCommonName}}
-			Issuer: {{IssuerCommonName}}
-			Date: {{ServerSignatureDate}}
-			TEMPLATE
+		return $this->l10n->t(
+			"Signed with LibreSign\n"
+			. "{{SignerCommonName}}\n"
+			. "Issuer: {{IssuerCommonName}}\n"
+			. 'Date: {{ServerSignatureDate}}'
 		);
 	}
 
