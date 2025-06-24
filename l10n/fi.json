@@ -17,6 +17,7 @@
     "Invalid UUID" : "Virheellinen UUID",
     "Notification sent with success." : "Ilmoitus lähetetty onnistuneesti.",
     "File signed" : "Tiedosto allekirjoitettu",
+    "Internal Server Error" : "Sisäinen palvelinvirhe",
     "Elements not found" : "Elementtejä ei löydy",
     "Element not found" : "Elementtiä ei löydy",
     "Visible element deleted" : "Näkyvä elementti poistettu",

@@ -13,6 +13,7 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "PHP-viðbót stöðvaði innsendingu skráar",
     "No file uploaded" : "Engin skrá var send inn",
     "Name is mandatory" : "Nafn er nauðsynlegt",
+    "Internal Server Error" : "Innri villa",
     "deleted" : "eytt",
     "File is too big" : "Skrá er of stór",
     "Invalid email" : "Ógilt tölvupóstfang",

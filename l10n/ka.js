@@ -11,6 +11,7 @@ OC.L10N.register(
     "Could not write file to disk" : "დისკზე ჩაწერა ვერ მოხერხდა",
     "A PHP extension stopped the file upload" : "PHP გაფართოებამ შეწყვიტა ფაილის ატვირთვა",
     "No file uploaded" : "No file uploaded",
+    "Internal Server Error" : "Internal Server Error",
     "deleted" : "deleted",
     "Invalid password" : "Invalid password",
     "File is too big" : "File is too big",

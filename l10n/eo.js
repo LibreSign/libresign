@@ -11,6 +11,7 @@ OC.L10N.register(
     "Could not write file to disk" : "Ne eblis skribi dosieron sur diskon",
     "A PHP extension stopped the file upload" : "PHP-modulo haltigis la dosieralŝuton",
     "No file uploaded" : "Neniu dosiero alŝutiĝis",
+    "Internal Server Error" : "Interna servileraro",
     "deleted" : "forigita",
     "Invalid password" : "Nevalida pasvorto",
     "File is too big" : "Dosiero tro grandas",

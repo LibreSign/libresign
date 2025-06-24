@@ -17,6 +17,7 @@ OC.L10N.register(
     "Could not write file to disk" : "Faili kirjutamine kettale ebaõnnestus",
     "A PHP extension stopped the file upload" : "PHP laiendus peatas faili üleslaadimise",
     "No file uploaded" : "Faili ei laaditud üles",
+    "Internal Server Error" : "Serveri sisemine viga",
     "draft" : "kavand",
     "partially signed" : "osaliselt allkirjastatud",
     "deleted" : "kustutatud",

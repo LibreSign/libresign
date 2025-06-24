@@ -10,6 +10,7 @@
     "Could not write file to disk" : "Kunne ikke skrive fil til disk",
     "A PHP extension stopped the file upload" : "En PHP udvidelse stoppede filupload.",
     "No file uploaded" : "Ingen fil uploadet",
+    "Internal Server Error" : "Intern serverfejl",
     "deleted" : "Slettet",
     "Invalid password" : "Ugyldigt kodeord",
     "File is too big" : "Filen er for stor",

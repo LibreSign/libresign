@@ -12,6 +12,7 @@ OC.L10N.register(
     "Could not write file to disk" : "Không thể ghi tệp lên ổ đĩa",
     "A PHP extension stopped the file upload" : "Một phần mở rộng của PHP đã dừng tải tệp lên",
     "No file uploaded" : "Không có tệp nào được tải lên",
+    "Internal Server Error" : "Lỗi máy chủ.",
     "deleted" : "đã xóa",
     "File is too big" : "Tệp quá lớn",
     "File sharing" : "Chia sẻ file",

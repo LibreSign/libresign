@@ -13,6 +13,7 @@ OC.L10N.register(
     "Could not write file to disk" : "Неможливо записати файл на диск",
     "A PHP extension stopped the file upload" : "Розширення PHP призупинило завантаження файлу",
     "No file uploaded" : "Файл не завантажено",
+    "Internal Server Error" : "Внутрішня помилка серверу",
     "deleted" : "вилучено",
     "File is too big" : "Файл занадто великий",
     "Sign process already started. Unable to change status." : "Процес підписування вже розпочато. Неможливо змінити статус.",
