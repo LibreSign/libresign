@@ -12,6 +12,7 @@ OC.L10N.register(
     "Could not write file to disk" : "Nu s-a putut scrie fișierul pe disc",
     "A PHP extension stopped the file upload" : "O extensie PHP a oprit încărcarea fișierelor",
     "No file uploaded" : "Nu a fost încărcat niciun fișier",
+    "Internal Server Error" : "Eroare internă a serverului",
     "deleted" : "șterge",
     "File is too big" : "Fișierul este prea mare",
     "File sharing" : "Partajare fișiere",

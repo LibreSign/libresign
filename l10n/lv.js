@@ -11,6 +11,7 @@ OC.L10N.register(
     "Could not write file to disk" : "Datni nevarēja ierakstīt diskā",
     "A PHP extension stopped the file upload" : "PHP paplašinājums apturēja datnes augšupielādi",
     "No file uploaded" : "Nav augšupielādēta datne",
+    "Internal Server Error" : "Iekšēja servera kļūda",
     "deleted" : "izdzēsta",
     "Invalid password" : "Nederīga parole",
     "File type: %s. Empty file." : "Datnes veids: %s. Tukša datne.",

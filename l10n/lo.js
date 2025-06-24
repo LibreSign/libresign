@@ -4,6 +4,7 @@ OC.L10N.register(
     "Success" : "ຄວາມສໍາເລັດ",
     "The file was uploaded" : "ຟາຍຖຶກອັບໂຫລດສຳເລັດ",
     "No file was uploaded" : "ບໍ່ມີການອັບໂຫລດຟາຍ",
+    "Internal Server Error" : "ຄວາມຜິດພາດຂອງ Server ພາຍໃນ",
     "deleted" : "ລຶບແລ້ວ",
     "File is too big" : "ຟາຍໃຫຍ່ໂພດ",
     "Dismiss notification" : "ຍົກເລີກການເເຈ້ງເຕືອນ",

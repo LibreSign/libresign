@@ -8,6 +8,7 @@ OC.L10N.register(
     "No file was uploaded" : "No se cargó el archivo",
     "Missing a temporary folder" : "Falta una carpeta temporal",
     "No file uploaded" : "No hay archivos cargados",
+    "Internal Server Error" : "Error interno del servidor",
     "deleted" : "Borrado",
     "File is too big" : "El archivo es demasiado grande.",
     "File not found" : "Archivo no encontrado",

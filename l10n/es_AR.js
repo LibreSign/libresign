@@ -11,6 +11,7 @@ OC.L10N.register(
     "Could not write file to disk" : "No se pudo escribir el archivo en el disco",
     "A PHP extension stopped the file upload" : "Una extensión de PHP detuvo la carga del archivo",
     "No file uploaded" : "No hay archivos cargados",
+    "Internal Server Error" : "Error interno del servidor",
     "deleted" : "Borrado",
     "Invalid password" : "Contraseña invalida",
     "File is too big" : "El archivo es demasiado grande.",

@@ -21,6 +21,7 @@ OC.L10N.register(
     "Invalid UUID" : "Neteisingas UUID",
     "Notification sent with success." : "Pranešimas sėkmingai išsiųstas.",
     "File signed" : "Failas pasirašytas",
+    "Internal Server Error" : "Vidinė serverio klaida",
     "Element updated with success" : "Elementas sėkmingai atnaujintas",
     "draft" : "juodraštis",
     "available for signature" : "prieinamas pasirašymui",

@@ -5,6 +5,7 @@ OC.L10N.register(
     "Settings saved" : "Stummoù enrollet",
     "The file was uploaded" : "Kaset eo bet ar restr",
     "No file was uploaded" : "N'eus restr ebet a zo bet kaset",
+    "Internal Server Error" : "Fazi servijour diabazh",
     "deleted" : "dilamet",
     "File is too big" : "Re vras eo ar restr",
     "View" : "Gwell",

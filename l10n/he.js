@@ -12,6 +12,7 @@ OC.L10N.register(
     "Could not write file to disk" : "לא ניתן לכתוב לכונן",
     "A PHP extension stopped the file upload" : "הרחבת PHP עצרה את העלאת הקובץ",
     "No file uploaded" : "לא הועלה קובץ",
+    "Internal Server Error" : "שגיאה פנימית בשרת",
     "deleted" : "נמחק",
     "Invalid password" : "ססמה שגויה",
     "File is too big" : "הקובץ גדול מדי",
