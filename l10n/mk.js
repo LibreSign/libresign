@@ -14,6 +14,7 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "PHP додаток го стопираше прикачувањето на датотеката",
     "No file uploaded" : "Нема прикачено дадотека",
     "Notification sent with success." : "Успешно исптарено известување.",
+    "Internal Server Error" : "Внатрешна серверска грешка",
     "deleted" : "избришана",
     "Invalid password" : "Погрешна лозинка",
     "File is too big" : "Датотеката е премногу голема",

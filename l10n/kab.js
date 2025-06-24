@@ -5,6 +5,7 @@ OC.L10N.register(
     "The file was only partially uploaded" : "Afaylu, cwiṭ kan i yettwaznen segs",
     "No file was uploaded" : "Ulac afaylu i d-yettwasulin",
     "Missing a temporary folder" : "Ixuṣ ukaram akudan",
+    "Internal Server Error" : "Tuccḍa tagensant n uqeddac",
     "deleted" : "yettwakkes",
     "Invalid password" : "Yir awal uffir",
     "File is too big" : "Afaylu-agi bezzaf meqqer",

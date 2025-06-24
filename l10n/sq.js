@@ -8,6 +8,7 @@ OC.L10N.register(
     "No file was uploaded" : "S’u ngarkua kartelë",
     "Missing a temporary folder" : "Mungon një dosje e përkohshme",
     "No file uploaded" : "Asnjë skedar i ngarkuar",
+    "Internal Server Error" : "Gabim i Brendshëm Shërbyesi",
     "deleted" : "të fshira",
     "File is too big" : "Skedari është shumë i madh",
     "File sharing" : "Shpërndarja e skedarëve",

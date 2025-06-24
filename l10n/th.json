@@ -9,6 +9,7 @@
     "Missing a temporary folder" : "โฟลเดอร์ชั่วคราวขาดหาย",
     "Could not write file to disk" : "ไม่สามารถเขียนไฟล์ลงดิสก์",
     "A PHP extension stopped the file upload" : "ส่วนขยาย PHP ได้หยุดการอัปโหลดไฟล์",
+    "Internal Server Error" : "ข้อผิดพลาดภายในเซิร์ฟเวอร์",
     "Invalid password" : "รหัสผ่านไม่ถูกต้อง",
     "File is too big" : "ไฟล์ใหญ่เกินไป",
     "View" : "มุมมอง",

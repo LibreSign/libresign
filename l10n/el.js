@@ -16,6 +16,7 @@ OC.L10N.register(
     "Internal error. Contact admin." : "Εσωτερικό σφάλμα. Επικοινωνήστε με τον διαχειριστή.",
     "Name is mandatory" : "Το όνομα είναι υποχρεωτικό",
     "Invalid UUID" : "Μη έγκυρο UUID",
+    "Internal Server Error" : "Εσωτερικό Σφάλμα Διακομιστή",
     "Element created with success" : "Στοιχεία δημιουργήθηκαν με επιτυχία",
     "Elements created with success" : "Στοιχεία δημιουργήθηκαν με επιτυχία",
     "Elements not found" : "Τα στοιχεία δεν βρέθηκαν",

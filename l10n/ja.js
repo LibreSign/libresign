@@ -12,6 +12,7 @@ OC.L10N.register(
     "Could not write file to disk" : "ファイルをディスクに書き込めませんでした",
     "A PHP extension stopped the file upload" : "PHP拡張機能がファイルのアップロードを停止しました",
     "No file uploaded" : "ファイルがアップロードされていません",
+    "Internal Server Error" : "内部サーバーエラー",
     "draft" : "下書き",
     "deleted" : "削除しました",
     "Invalid password" : "無効なパスワード",
