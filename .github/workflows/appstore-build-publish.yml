@@ -8,6 +8,11 @@
 
 name: Build and publish app release
 
+permissions:
+  contents: read
+  actions: write
+  packages: write
+
 on:
   release:
     types: [published]
