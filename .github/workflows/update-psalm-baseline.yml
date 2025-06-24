@@ -3,6 +3,10 @@
 
 name: Update Psalm baseline
 
+permissions:
+  contents: read
+  pull-requests: write
+
 on:
   workflow_dispatch:
   schedule:
