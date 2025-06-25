@@ -70,21 +70,22 @@ jobs:
       matrix:
         php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
         server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
-        mariadb-versions: ['10.6', '10.11']
+        mariadb-versions: ['10.6', '11.4']
 
     name: MariaDB ${{ matrix.mariadb-versions }} PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
 
     services:
       mariadb:
-        image: ghcr.io/nextcloud/continuous-integration-mariadb-${{ matrix.mariadb-versions }}:latest
+        image: ghcr.io/nextcloud/continuous-integration-mariadb-${{ matrix.mariadb-versions }}:latest # zizmor: ignore[unpinned-images]
         ports:
           - 4444:3306/tcp
         env:
-          MYSQL_ROOT_PASSWORD: rootpassword
-        options: --health-cmd="mysqladmin ping" --health-interval 5s --health-timeout 2s --health-retries 5
+          MARIADB_ROOT_PASSWORD: rootpassword
+        options: --health-cmd="mariadb-admin ping" --health-interval 5s --health-timeout 2s --health-retries 5
 
     steps:
       - name: Set app env
+        if: ${{ env.APP_NAME == '' }}
         run: |
           # Split and keep last
           echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
@@ -107,13 +108,15 @@ jobs:
           path: apps/${{ env.APP_NAME }}
 
       - name: Set up php ${{ matrix.php-versions }}
-        uses: shivammathur/setup-php@fc14643b0a99ee9db10a3c025a33d76544fa3761 # v2
+        uses: shivammathur/setup-php@0f7f1d08e3e32076e51cae65eb0b0c871405b16e # v2.34.1
         with:
           php-version: ${{ matrix.php-versions }}
           # https://docs.nextcloud.com/server/stable/admin_manual/installation/source_installation.html#prerequisites-for-manual-installation
           extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql
           coverage: xdebug
           ini-file: development
+          # Temporary workaround for missing pcntl_* in PHP 8.3
+          ini-values: disable_functions=
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
