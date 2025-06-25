@@ -26,6 +26,7 @@ OC.L10N.register(
     "Account" : "Conta",
     "Invalid user" : "Utilizador inválido",
     "Email" : "E-mail",
+    "Draw" : "Draw",
     "Text" : "Texto",
     "Upload" : "Upload",
     "Delete" : "Eliminar",

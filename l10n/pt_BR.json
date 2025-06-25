@@ -180,6 +180,8 @@
     "Unique information used to identify the signer (such as email, phone number, or username)." : "Informações únicas usadas para identificar o signatário (como e-mail, número de telefone ou nome de usuário).",
     "IP address of the person who signed the document." : "Endereço IP da pessoa que assinou o documento.",
     "Browser and device information of the person who signed the document." : "Informações sobre o navegador e sobre o dispositivo da pessoa que assinou o documento.",
+    "Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}\nIP: {{SignerIP}}\nUser agent: {{SignerUserAgent}}" : "Assinado com LibreSign\n{{SignerCommonName}}\nEmissor: {{IssuerCommonName}}\nData: {{ServerSignatureDate}}\nIP: {{SignerIP}}\nAgente de usuário: {{SignerUserAgent}}",
+    "Signed with LibreSign\n{{SignerCommonName}}\nIssuer: {{IssuerCommonName}}\nDate: {{ServerSignatureDate}}" : "Assinado com LibreSign\n{{SignerCommonName}}\nEmissor: {{IssuerCommonName}}\nData: {{ServerSignatureDate}}",
     "Invalid PDF" : "PDF inválido",
     "LibreSign" : "LibreSign",
     "✍️ Self-hosted document signer using digital certificate" : "✍️ Assinador de documento auto-hospedado usando certificado digital",
