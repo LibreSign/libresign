@@ -64,6 +64,8 @@ OC.L10N.register(
     "File is loading" : "Ficheiro está a carregar",
     "Clear filter" : "Limpar filtro",
     "Today" : "Hoje",
+    "Last 7 days" : "Últimos 7 dias",
+    "Last 30 days" : "Últimos 30 dias",
     "Modified" : "Modificado",
     "Active filters" : "Filtros ativos",
     "Remove filter" : "Remover filtro",
