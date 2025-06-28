@@ -11,6 +11,7 @@ OC.L10N.register(
     "Could not write file to disk" : "Nun se pudo escribir el ficheru nel discu",
     "A PHP extension stopped the file upload" : "Una estensión PHP paró la xuba de ficheros",
     "No file uploaded" : "Nun se xubió nengún ficheru",
+    "Internal Server Error" : "Error internu del sirvidor",
     "deleted" : "desanicióse",
     "Invalid password" : "La contraseña ye inválida",
     "File is too big" : "El ficheru ye mui grande",
