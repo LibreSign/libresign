@@ -222,6 +222,7 @@
     "\"{displayName}\" batch action executed successfully" : "A(z) „{displayName}” tömeges művelet sikeresen végrehajtva",
     "\"{displayName}\" action failed" : "A(z) „{displayName}” művelet sikertelen",
     "(selected)" : "(kijelölt)",
+    "_{count} selected_::_{count} selected_" : ["{count} kijelölve","{count} kijelölve"],
     "Request Signatures" : "Aláírások kérése",
     "Password reset" : "Jelszó-visszaállítás",
     "Enter new password and then repeat it" : "Adja meg az új jelszót, majd ismételje meg",
