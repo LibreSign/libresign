@@ -10,6 +10,7 @@ OC.L10N.register(
     "Could not write file to disk" : "Haikuweza kuandika faili kwenye disk",
     "A PHP extension stopped the file upload" : "Uongezaji wa PHP umesimamisha upakiaji wa faili",
     "Internal Server Error" : "Hitilafu ya ndani ya seva",
+    "Invalid password" : "Nenosiri batili",
     "File is too big" : "Faili ni kubwa mno",
     "View" : "Angalia",
     "File not found" : "Faili halipatikani",
