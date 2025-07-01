@@ -136,6 +136,8 @@ OC.L10N.register(
     "Link expired." : "Link expirado.",
     "Invalid code." : "Código inválido.",
     "Link expired" : "Link expirado",
+    "The link to sign the document has expired.\nWe will send a new link to the email %1$s.\nClick below to receive the new link and be able to sign the document." : "O link para assinar o documento expirou.\nEnviaremos um novo link para o e-mail %1$s.\nClique abaixo para receber o novo link e poder assinar o documento.",
+    "Renew" : "Renovar",
     "Account" : "Conta",
     "Invalid user" : "Usuário inválido",
     "Email" : "Email",

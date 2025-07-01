@@ -29,6 +29,7 @@ OC.L10N.register(
     "No recommendations. Start typing." : "Hakuna maoni. Anza kuchapisha",
     "Update" : "Sasisha",
     "Choose" : "Chagua",
+    "Send" : "Tuma",
     "Previous" : "Iliyopita",
     "Confirm" : "Thibitisha",
     "Details" : "Maelezo ya kina",
@@ -38,6 +39,7 @@ OC.L10N.register(
     "Actions" : "Utendekaji",
     "Signature" : "Saini",
     "Password" : "Nenosiri",
+    "Enter a password" : "Ingiza nenosiri",
     "Page not found" : "Ukurasa haupatikani",
     "Ok" : "Sawa",
     "Toggle selection for file \"{displayName}\"" : "Geuza uteuzi wa faili \"{displayName}\"",
@@ -62,6 +64,7 @@ OC.L10N.register(
     "_{count} selected_::_{count} selected_" : ["{count} selected","{count} selected"],
     "Password reset" : "Uwekaji mpya wa nenosiri",
     "New password" : "Nenosiri jipya",
+    "Remove" : "Ondoa",
     "Yes" : "Ndiyo",
     "No" : "Hapana",
     "Forgot password?" : "Umesahau nenosiri"
