@@ -242,7 +242,7 @@ OC.L10N.register(
     "Rate LibreSign ❤️" : "LibreSign uygulamasını değerlendirin ❤️",
     "signed at {date}" : "{date} tarihinde imzalandı",
     "pending" : "Bekliyor",
-    "Open sidebar" : "Yan çubuğu aç",
+    "Open sidebar" : "Kenar çubuğunu aç",
     "Details" : "Ayrıntılar",
     "Certificate" : "Sertifika",
     "Not sent yet" : "Henüz gönderilmemiş",
