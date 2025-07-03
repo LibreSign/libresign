@@ -16,6 +16,7 @@ OC.L10N.register(
     "File not found" : "Faili halipatikani",
     "File already exists" : "Faili lipo tayari",
     "Invalid file provided" : "Faili iliyotolewa si halali",
+    "Account" : "Akaunti",
     "Email" : "Barua pepe",
     "Text" : "Maandishi",
     "Delete" : "Futa",
