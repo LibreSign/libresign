@@ -201,6 +201,7 @@ OC.L10N.register(
     "No" : "Ei",
     "Description only" : "Vaid kirjeldus",
     "Reset to default" : "Taasta vaikeseadistused",
+    "Remove background" : "Eemalda taust",
     "Sign with your email." : "Allkirjasta oma e-posti aadressiga.",
     "Send code." : "Saada kood.",
     "Review the entered number." : "Kontrolli sisestatud numbrit.",
