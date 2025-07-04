@@ -57,8 +57,11 @@
 
 <script>
 import svgDelete from '@mdi/svg/svg/delete.svg?raw'
+import svgFileDocument from '@mdi/svg/svg/file-document-outline.svg?raw'
 import svgSignature from '@mdi/svg/svg/signature.svg?raw'
 import svgTextBoxCheck from '@mdi/svg/svg/text-box-check.svg?raw'
+
+import { loadState } from '@nextcloud/initial-state'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -116,6 +119,8 @@ export default {
 			confirmDelete: false,
 			deleteFile: true,
 			deleting: false,
+			document: {},
+			hasInfo: false,
 		}
 	},
 	computed: {
@@ -147,6 +152,14 @@ export default {
 			title: t('libresign', 'Delete'),
 			iconSvgInline: svgDelete,
 		})
+		this.registerAction({
+			id: 'open',
+			title: t('libresign', 'Open file'),
+			iconSvgInline: svgFileDocument,
+		})
+	},
+	created() {
+		this.$set(this, 'document', loadState('libresign', 'file_info', {}))
 	},
 	methods: {
 		visibleIf(action) {
@@ -158,6 +171,8 @@ export default {
 				visible = this.filesStore.canValidate(file)
 			} else if (action.id === 'delete') {
 				visible = this.filesStore.canDelete(file)
+			} else if (action.id === 'open') {
+				visible = true
 			}
 			return visible
 		},
@@ -193,6 +208,8 @@ export default {
 				})
 			} else if (action.id === 'delete') {
 				this.confirmDelete = true
+			} else if (action.id === 'open') {
+				this.openFile()
 			}
 		},
 		registerAction(action) {
@@ -202,6 +219,22 @@ export default {
 			this.deleting = true
 			await this.filesStore.delete(this.source, this.deleteFile)
 			this.deleting = false
+		},
+		openFile() {
+			if (OCA?.Viewer !== undefined) {
+				const fileInfo = {
+					source: this.document.file,
+					basename: this.document.name,
+					mime: 'application/pdf',
+					fileid: this.document.nodeId,
+				}
+				OCA.Viewer.open({
+					fileInfo,
+					list: [fileInfo],
+				})
+			} else {
+				window.open(`${this.document.file}?_t=${Date.now()}`)
+			}
 		},
 	},
 }

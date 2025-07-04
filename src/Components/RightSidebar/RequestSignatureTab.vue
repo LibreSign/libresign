@@ -58,6 +58,9 @@
 				@click="validationFile()">
 				{{ t('libresign', 'Validate') }}
 			</NcButton>
+			<NcButton @click="openFile()">
+				{{ t('libresign', 'Open file') }}
+			</NcButton>
 		</div>
 		<VisibleElements />
 		<NcModal v-if="modalSrc"
@@ -76,6 +79,7 @@ import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
+import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
@@ -121,6 +125,8 @@ export default {
 			hasLoading: false,
 			signerToEdit: {},
 			modalSrc: '',
+			document: {},
+			hasInfo: false,
 		}
 	},
 	computed: {
@@ -152,6 +158,9 @@ export default {
 	},
 	beforeUnmount() {
 		unsubscribe('libresign:edit-signer')
+	},
+	created() {
+		this.$set(this, 'document', loadState('libresign', 'file_info', {}))
 	},
 	methods: {
 		isSignElementsAvailable() {
@@ -263,6 +272,22 @@ export default {
 					}
 				})
 			this.hasLoading = false
+		},
+		openFile() {
+			if (OCA?.Viewer !== undefined) {
+				const fileInfo = {
+					source: this.document.file,
+					basename: this.document.name,
+					mime: 'application/pdf',
+					fileid: this.document.nodeId,
+				}
+				OCA.Viewer.open({
+					fileInfo,
+					list: [fileInfo],
+				})
+			} else {
+				window.open(`${this.document.file}?_t=${Date.now()}`)
+			}
 		},
 	},
 }
