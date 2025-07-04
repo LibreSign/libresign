@@ -28,18 +28,62 @@ Feature: request-signature
   Scenario: Request to sign with error using different authenticated account
     Given as user "admin"
     And user "signer1" exists
-    And run the command "libresign:configure:openssl --cn test" with result code 0
+    And user "signer2" exists
     And set the email of user "signer1" to "signer1@domain.test"
+    And set the email of user "signer2" to "signer2@domain.test"
+    And my inbox is empty
     And reset notifications of user "signer1"
+    And reset notifications of user "signer2"
+    And run the command "libresign:configure:openssl --cn test" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | users | [{"identify":{"account":"signer1"}}] |
       | name | document |
     And the response should have a status code 200
+    And there should be 1 emails in my inbox
+    And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
     And as user "signer1"
     And I fetch the signer UUID from notification
-    And user "signer2" exists
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    Then the response should have a status code 200
     And as user "signer2"
+    When sending "get" to ocs "/apps/notifications/api/v2/notifications"
+    Then the response should be a JSON array with the following mandatory values
+      | key           | value |
+      | (jq).ocs.data | []    |
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    Then the response should have a status code 422
+    And the response should be a JSON array with the following mandatory values
+      | key    | value            |
+      | action | 2000             |
+      | errors | [{"message":"Invalid user"}] |
+
+  Scenario: Request to sign with two accounts with same email
+    Given as user "admin"
+    And user "signer1" exists
+    And user "signer2" exists
+    And set the email of user "signer1" to "contact@domain.test"
+    And set the email of user "signer2" to "contact@domain.test"
+    And my inbox is empty
+    And reset notifications of user "signer1"
+    And reset notifications of user "signer2"
+    And run the command "libresign:configure:openssl --cn test" with result code 0
+    And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"identify":{"account":"signer1"}}] |
+      | name | document |
+    And the response should have a status code 200
+    And there should be 1 emails in my inbox
+    And I open the latest email to "contact@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And as user "signer1"
+    And I fetch the signer UUID from notification
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    Then the response should have a status code 200
+    And as user "signer2"
+    When sending "get" to ocs "/apps/notifications/api/v2/notifications"
+    Then the response should be a JSON array with the following mandatory values
+      | key           | value |
+      | (jq).ocs.data | []    |
     When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
