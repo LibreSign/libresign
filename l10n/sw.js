@@ -9,6 +9,7 @@ OC.L10N.register(
     "Missing a temporary folder" : "Imekosa faili la muda",
     "Could not write file to disk" : "Haikuweza kuandika faili kwenye disk",
     "A PHP extension stopped the file upload" : "Uongezaji wa PHP umesimamisha upakiaji wa faili",
+    "No file uploaded" : "Hakuna faili iliyopakiwa",
     "Internal Server Error" : "Hitilafu ya ndani ya seva",
     "Invalid password" : "Nenosiri batili",
     "File is too big" : "Faili ni kubwa mno",
