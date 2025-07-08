@@ -333,6 +333,9 @@ class SignFileService {
 					->setVisibleElements($this->getVisibleElements())
 					->setPassword($this->password)
 					->setSignatureParams($signatureParams)
+					->setReason($this->l10n->t('Signed by %s with LibreSign.coop', [
+						$this->signRequest->getDisplayName() . ' <' . $this->userUniqueIdentifier . '>'
+					]))
 					->sign();
 				break;
 			default:
