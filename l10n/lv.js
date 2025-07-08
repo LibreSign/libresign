@@ -37,6 +37,7 @@ OC.L10N.register(
     "Loading …" : "Ielādē…",
     "Name" : "Vārds",
     "Searching …" : "Meklē...",
+    "No recommendations. Start typing." : "Nav ieteikumu. Jāsāk rakstīt.",
     "Update" : "Atjaunināt",
     "Choose" : "Izvēlēties",
     "Send" : "Sūtīt",
