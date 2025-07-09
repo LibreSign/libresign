@@ -236,7 +236,7 @@ class FileController extends AEnvironmentAwareController {
 	 * List account files that need to be approved
 	 *
 	 * @param string|null $signer_uuid Signer UUID
-	 * @param string|null $nodeId The nodeId (also called fileId). Is the id of a file at Nextcloud
+	 * @param list<string>|null $nodeIds The list of nodeIds (also called fileIds). It's the ids of files at Nextcloud
 	 * @param list<int>|null $status Status could be none or many of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted.
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
@@ -255,7 +255,7 @@ class FileController extends AEnvironmentAwareController {
 		?int $page = null,
 		?int $length = null,
 		?string $signer_uuid = null,
-		?string $nodeId = null,
+		?array $nodeIds = null,
 		?array $status = null,
 		?int $start = null,
 		?int $end = null,
@@ -264,7 +264,7 @@ class FileController extends AEnvironmentAwareController {
 	): DataResponse {
 		$filter = array_filter([
 			'signer_uuid' => $signer_uuid,
-			'nodeId' => $nodeId,
+			'nodeIds' => $nodeIds,
 			'status' => $status,
 			'start' => $start,
 			'end' => $end,
