@@ -51,7 +51,7 @@ OC.L10N.register(
     "Invalid file provided" : "Berkas tidak valid",
     "Account" : "Akun",
     "Invalid user" : "Pengguna salah",
-    "Email" : "Surel",
+    "Email" : "Email",
     "Draw" : "Gambar",
     "Text" : "Teks",
     "Upload" : "Unggah",
