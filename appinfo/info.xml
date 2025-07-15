@@ -96,7 +96,6 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
 		</plugins>
 	</sabre>
 	<types>
-		<filesystem/>
 		<dav/>
 	</types>
 </info>
