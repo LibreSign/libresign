@@ -6,7 +6,7 @@
 import Vue from 'vue'
 
 import axios from '@nextcloud/axios'
-import { addNewFileMenuEntry, Permission } from '@nextcloud/files'
+import { addNewFileMenuEntry, Permission, registerDavProperty } from '@nextcloud/files'
 import { translate, translatePlural } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 import { getUploader } from '@nextcloud/upload'
@@ -20,6 +20,8 @@ Vue.prototype.t = translate
 Vue.prototype.n = translatePlural
 Vue.prototype.OC = OC
 Vue.prototype.OCA = OCA
+
+registerDavProperty('nc:node-name', { nc: 'http://nextcloud.org/ns' })
 
 addNewFileMenuEntry({
 	id: 'libresign-request',
