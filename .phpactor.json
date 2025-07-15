@@ -1,0 +1,9 @@
+{
+	"indexer.stub_paths": [
+		"/home/david/Devel/librecode/nextcloud-dev/server"
+	],
+	"phpunit.enabled": true,
+	"language_server_psalm.enabled": true,
+	"behat.enabled": true,
+	"language_server_php_cs_fixer.enabled": true
+}

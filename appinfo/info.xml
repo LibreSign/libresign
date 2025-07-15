@@ -94,4 +94,12 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
 			<route>libresign.page.index</route>
 		</navigation>
 	</navigations>
+	<sabre>
+		<plugins>
+			<plugin>OCA\Libresign\Dav\SignatureStatusPlugin</plugin>
+		</plugins>
+	</sabre>
+	<types>
+		<dav/>
+	</types>
 </info>
