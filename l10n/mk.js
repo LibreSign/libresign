@@ -67,6 +67,7 @@ OC.L10N.register(
     "Enter a password" : "Внесете лозинка",
     "Page not found" : "Страницата не е пронајдена",
     "Ok" : "Во ред",
+    "File is loading" : "Датотеката се вчитува",
     "Clear filter" : "Исчисти филтри",
     "Today" : "Денес",
     "Last 7 days" : "Предходни 7 дена",

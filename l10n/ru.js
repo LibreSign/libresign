@@ -203,6 +203,7 @@ OC.L10N.register(
     "\"{displayName}\" batch action executed successfully" : "Пакетное действие \"{displayName}\" выполнено успешно",
     "\"{displayName}\" action failed" : "Действие «{displayName}» завершилось неудачно",
     "(selected)" : "(выбранный)",
+    "_{count} selected_::_{count} selected_" : ["Выбран {count}","Выбрано {count}","Выбрано {count}","Выбрано {count}"],
     "Request Signatures" : "Запросить подписи",
     "Password reset" : "Сброс пароля",
     "Enter new password and then repeat it" : "Введите новый пароль, а затем повторите ввод",
