@@ -19,6 +19,32 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 11.2.5 - 2025-07-17
+### Changes
+- Update translations
+- Bump dependencies
+- chore: cover scenario of two accoutns with same email [#5209](https://github.com/LibreSign/libresign/pull/5209)
+
+### Fixes
+- fix: display draw signature in full mode [#5203](https://github.com/LibreSign/libresign/pull/5203)
+- fix: validate file answer [#5181](https://github.com/LibreSign/libresign/pull/5181)
+- fix: replace heredoc by string concat [#5176](https://github.com/LibreSign/libresign/pull/5176)
+- fix: ignore vendor bin at transifex sync [#5175](https://github.com/LibreSign/libresign/pull/5175)
+
+## 10.8.5 - 2025-06-16
+### Changes
+- Update translations
+- Bump dependencies
+- chore: cover scenario of two accoutns with same email [#5210](https://github.com/LibreSign/libresign/pull/5210)
+
+### Fixes
+- fix: display draw signature in full mode [#5202](https://github.com/LibreSign/libresign/pull/5202)
+- fix: Workflow does not contain permissions [#5191](https://github.com/LibreSign/libresign/pull/5191)
+- fix: Workflow does not contain permissions [#5185](https://github.com/LibreSign/libresign/pull/5185)
+- fix: validate file answer [#5180](https://github.com/LibreSign/libresign/pull/5180)
+- fix: ignore vendor bin at transifex sync [#5174](https://github.com/LibreSign/libresign/pull/5174)
+- fix: replace heredoc by string concat [#5173](https://github.com/LibreSign/libresign/pull/5173)
+
 ## 11.2.4 - 2025-06-16
 ### Changes
 - Update translations
