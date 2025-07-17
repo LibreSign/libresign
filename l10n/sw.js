@@ -14,6 +14,7 @@ OC.L10N.register(
     "Internal Server Error" : "Hitilafu ya ndani ya seva",
     "Invalid password" : "Nenosiri batili",
     "File is too big" : "Faili ni kubwa mno",
+    "File sharing" : "File sharing",
     "View" : "Angalia",
     "File not found" : "Faili halipatikani",
     "File already exists" : "Faili lipo tayari",
