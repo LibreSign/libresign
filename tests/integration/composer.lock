@@ -8,24 +8,24 @@
     "packages": [
         {
             "name": "behat/behat",
-            "version": "v3.22.0",
+            "version": "v3.23.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Behat/Behat.git",
-                "reference": "a93098a77753c3cfdc4c485d75141924a78ceb93"
+                "reference": "c465af8756adaaa6d962c3176a0a6c594361809b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Behat/Behat/zipball/a93098a77753c3cfdc4c485d75141924a78ceb93",
-                "reference": "a93098a77753c3cfdc4c485d75141924a78ceb93",
+                "url": "https://api.github.com/repos/Behat/Behat/zipball/c465af8756adaaa6d962c3176a0a6c594361809b",
+                "reference": "c465af8756adaaa6d962c3176a0a6c594361809b",
                 "shasum": ""
             },
             "require": {
                 "behat/gherkin": "^4.12.0",
                 "composer-runtime-api": "^2.2",
-                "composer/xdebug-handler": "^3.0",
+                "composer/xdebug-handler": "^1.4 || ^2.0 || ^3.0",
                 "ext-mbstring": "*",
-                "nikic/php-parser": "^5.2",
+                "nikic/php-parser": "^4.19.2 || ^5.2",
                 "php": "8.1.* || 8.2.* || 8.3.* || 8.4.* ",
                 "psr/container": "^1.0 || ^2.0",
                 "symfony/config": "^5.4 || ^6.4 || ^7.0",
@@ -39,6 +39,7 @@
                 "friendsofphp/php-cs-fixer": "^3.68",
                 "phpstan/phpstan": "^2.0",
                 "phpunit/phpunit": "^9.6",
+                "rector/rector": "^2.0",
                 "sebastian/diff": "^4.0",
                 "symfony/polyfill-php84": "^1.31",
                 "symfony/process": "^5.4 || ^6.4 || ^7.0"
@@ -94,9 +95,9 @@
             ],
             "support": {
                 "issues": "https://github.com/Behat/Behat/issues",
-                "source": "https://github.com/Behat/Behat/tree/v3.22.0"
+                "source": "https://github.com/Behat/Behat/tree/v3.23.0"
             },
-            "time": "2025-05-06T15:25:03+00:00"
+            "time": "2025-07-15T16:58:54+00:00"
         },
         {
             "name": "behat/gherkin",
@@ -1623,16 +1624,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "10.5.47",
+            "version": "10.5.48",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "3637b3e50d32ab3a0d1a33b3b6177169ec3d95a3"
+                "reference": "6e0a2bc39f6fae7617989d690d76c48e6d2eb541"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/3637b3e50d32ab3a0d1a33b3b6177169ec3d95a3",
-                "reference": "3637b3e50d32ab3a0d1a33b3b6177169ec3d95a3",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/6e0a2bc39f6fae7617989d690d76c48e6d2eb541",
+                "reference": "6e0a2bc39f6fae7617989d690d76c48e6d2eb541",
                 "shasum": ""
             },
             "require": {
@@ -1642,7 +1643,7 @@
                 "ext-mbstring": "*",
                 "ext-xml": "*",
                 "ext-xmlwriter": "*",
-                "myclabs/deep-copy": "^1.13.1",
+                "myclabs/deep-copy": "^1.13.3",
                 "phar-io/manifest": "^2.0.4",
                 "phar-io/version": "^3.2.1",
                 "php": ">=8.1",
@@ -1704,7 +1705,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/10.5.47"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/10.5.48"
             },
             "funding": [
                 {
@@ -1728,7 +1729,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-06-20T11:29:11+00:00"
+            "time": "2025-07-11T04:07:17+00:00"
         },
         {
             "name": "psr-discovery/discovery",
@@ -2371,16 +2372,16 @@
         },
         {
             "name": "rpkamp/mailhog-client",
-            "version": "2.0.1",
+            "version": "2.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/rpkamp/mailhog-client.git",
-                "reference": "6da09c287b7ebf1f0fa2d4f159c35464f07e9786"
+                "reference": "80464889d03373513b3f2d375c5e4596152e45fb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/rpkamp/mailhog-client/zipball/6da09c287b7ebf1f0fa2d4f159c35464f07e9786",
-                "reference": "6da09c287b7ebf1f0fa2d4f159c35464f07e9786",
+                "url": "https://api.github.com/repos/rpkamp/mailhog-client/zipball/80464889d03373513b3f2d375c5e4596152e45fb",
+                "reference": "80464889d03373513b3f2d375c5e4596152e45fb",
                 "shasum": ""
             },
             "require": {
@@ -2423,9 +2424,9 @@
             "description": "Mailhog API Client for PHP",
             "support": {
                 "issues": "https://github.com/rpkamp/mailhog-client/issues",
-                "source": "https://github.com/rpkamp/mailhog-client/tree/2.0.1"
+                "source": "https://github.com/rpkamp/mailhog-client/tree/2.0.2"
             },
-            "time": "2024-03-02T14:52:24+00:00"
+            "time": "2025-07-10T05:59:31+00:00"
         },
         {
             "name": "sebastian/cli-parser",
