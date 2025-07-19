@@ -168,6 +168,30 @@ class FileMapper extends QBMapper {
 	}
 
 	/**
+	 * Check if file exists
+	 */
+	public function fileIdExists(int $nodeId): bool {
+		$exists = array_filter($this->file, fn ($f) => $f->getNodeId() === $nodeId || $f->getSignedNodeId() === $nodeId);
+		if (!empty($exists)) {
+			return true;
+		}
+
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('id')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->orX(
+					$qb->expr()->eq('node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->eq('signed_node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT))
+				)
+			);
+
+		$files = $this->findEntities($qb);
+		return !empty($files);
+	}
+
+	/**
 	 * @return File[]
 	 */
 	public function getFilesOfAccount(string $userId): array {
