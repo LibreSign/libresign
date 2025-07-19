@@ -254,7 +254,12 @@ class FileService {
 		return $this->file->getStatus();
 	}
 
-	public function getSignedNodeId(): int {
+	public function getSignedNodeId(): ?int {
+		$status = $this->file->getStatus();
+
+		if (!in_array($status, [File::STATUS_PARTIAL_SIGNED, File::STATUS_SIGNED])) {
+			return null;
+		}
 		return $this->file->getSignedNodeId();
 	}
 
