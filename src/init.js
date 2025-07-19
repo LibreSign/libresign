@@ -21,7 +21,8 @@ Vue.prototype.n = translatePlural
 Vue.prototype.OC = OC
 Vue.prototype.OCA = OCA
 
-registerDavProperty('nc:node-name', { nc: 'http://nextcloud.org/ns' })
+registerDavProperty('nc:signature-status', { nc: 'http://nextcloud.org/ns' })
+registerDavProperty('nc:signed-node-id', { nc: 'http://nextcloud.org/ns' })
 
 addNewFileMenuEntry({
 	id: 'libresign-request',
