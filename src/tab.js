@@ -12,6 +12,7 @@ import { translate, translatePlural } from '@nextcloud/l10n'
 import AppFilesTab from './Components/RightSidebar/AppFilesTab.vue'
 
 import './actions/openInLibreSignAction.js'
+import './actions/showStatusInlineAction.js'
 import './plugins/vuelidate.js'
 
 import './style/icons.scss'
@@ -27,7 +28,7 @@ Vue.use(PiniaVuePlugin)
 
 const pinia = createPinia()
 
-const isEnabled = function(fileInfo) {
+const isEnabled = function (fileInfo) {
 	if (fileInfo?.isDirectory() || !loadState('libresign', 'certificate_ok')) {
 		return false
 	}
