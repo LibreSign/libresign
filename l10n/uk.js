@@ -56,6 +56,7 @@ OC.L10N.register(
     "Status" : "Статус",
     "Actions" : "Дії",
     "Delete certificate" : "Видалити сертифікат",
+    "Change password" : "Змінити пароль",
     "Signature" : "Підпис",
     "Profile picture" : "Зображення користувача",
     "Create account" : "Створити обліковий запис",
