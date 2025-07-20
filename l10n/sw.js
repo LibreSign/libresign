@@ -71,6 +71,7 @@ OC.L10N.register(
     "Remove" : "Ondoa",
     "Yes" : "Ndiyo",
     "No" : "Hapana",
+    "Remove background" : "Remove background",
     "Forgot password?" : "Umesahau nenosiri"
 },
 "nplurals=2; plural=(n != 1);");
