@@ -19,8 +19,10 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
-## 11.2.5 - 2025-07-17
+## 11.2.5 - 2025-07-21
 ### Changes
+- Update translations
+- Bump dependencies
 - chore: cover scenario of two accoutns with same email [#5209](https://github.com/LibreSign/libresign/pull/5209)
 
 ### Fixes
@@ -29,8 +31,10 @@ Types of changes:
 - fix: replace heredoc by string concat [#5176](https://github.com/LibreSign/libresign/pull/5176)
 - fix: ignore vendor bin at transifex sync [#5175](https://github.com/LibreSign/libresign/pull/5175)
 
-## 10.8.5 - 2025-06-16
+## 10.8.5 - 2025-07-21
 ### Changes
+- Update translations
+- Bump dependencies
 - chore: cover scenario of two accoutns with same email [#5210](https://github.com/LibreSign/libresign/pull/5210)
 
 ### Fixes
