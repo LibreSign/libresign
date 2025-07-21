@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
-    <id>libresign</id>
-    <name>LibreSign</name>
-    <summary>✍️ Self-hosted document signer using digital certificate</summary>
-    <description><![CDATA[**This is a libre digital PDF signature app for Nextcloud**
+	<id>libresign</id>
+	<name>LibreSign</name>
+	<summary>✍️ Self-hosted document signer using digital certificate</summary>
+	<description><![CDATA[**This is a libre digital PDF signature app for Nextcloud**
 
 * ✍️ **Sign PDF** documents using digital certificates
 * 🔄 **Hybrid signatures**: You can choose between personal or system-generated digital certificates
@@ -24,70 +24,70 @@ If you enjoy this app and want to help maintain its development or want enterpri
 Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform people and businesses through cooperativism.
 
 * [Donate with GitHub Sponsor: ![Donate using GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/libresign)
-    ]]></description>
-    <version>12.0.0-dev.1</version>
-    <licence>agpl</licence>
-    <author mail="contact@librecode.coop" homepage="https://librecode.coop">LibreCode</author>
-    <documentation>
-        <admin>https://github.com/LibreSign/libresign/blob/master/README.md</admin>
-    </documentation>
-    <category>files</category>
-    <category>office</category>
-    <category>security</category>
-    <category>tools</category>
-    <website>https://github.com/LibreSign/libresign</website>
-    <discussion>https://t.me/libresign</discussion>
-    <bugs>https://github.com/LibreSign/libresign/issues</bugs>
-    <repository type="git">https://github.com/LibreSign/libresign</repository>
-    <screenshot>https://raw.githubusercontent.com/LibreSign/libresign/main/img/screenshot/request-signature.png</screenshot>
-    <screenshot>https://raw.githubusercontent.com/LibreSign/libresign/main/img/screenshot/presentation.gif</screenshot>
+	]]></description>
+	<version>12.0.0-dev.1</version>
+	<licence>agpl</licence>
+	<author mail="contact@librecode.coop" homepage="https://librecode.coop">LibreCode</author>
+	<documentation>
+		<admin>https://github.com/LibreSign/libresign/blob/master/README.md</admin>
+	</documentation>
+	<category>files</category>
+	<category>office</category>
+	<category>security</category>
+	<category>tools</category>
+	<website>https://github.com/LibreSign/libresign</website>
+	<discussion>https://t.me/libresign</discussion>
+	<bugs>https://github.com/LibreSign/libresign/issues</bugs>
+	<repository type="git">https://github.com/LibreSign/libresign</repository>
+	<screenshot>https://raw.githubusercontent.com/LibreSign/libresign/main/img/screenshot/request-signature.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/LibreSign/libresign/main/img/screenshot/presentation.gif</screenshot>
 	<donation title="Donate via GitHub Sponsors">https://github.com/sponsors/LibreSign</donation>
-    <donation type="stripe" title="Donate via Stripe">https://buy.stripe.com/eVqfZibhx8QO3LseWc2kw00</donation>
-    <dependencies>
-        <lib>openssl</lib>
-        <nextcloud min-version="32" max-version="32"/>
-        <architecture>x86_64</architecture>
-        <architecture>aarch64</architecture>
-    </dependencies>
-    <background-jobs>
-        <job>OCA\Libresign\BackgroundJob\UserDeleted</job>
-    </background-jobs>
-    <repair-steps>
-        <post-migration>
-            <step>OCA\Libresign\Migration\DeleteOldBinaries</step>
-            <step>OCA\Libresign\Migration\ResynchronizeDatabaseSequences</step>
-        </post-migration>
-    </repair-steps>
-    <commands>
-        <command>OCA\Libresign\Command\Configure\Check</command>
-        <command>OCA\Libresign\Command\Configure\Cfssl</command>
-        <command>OCA\Libresign\Command\Configure\OpenSsl</command>
-        <command>OCA\Libresign\Command\Developer\Reset</command>
-        <command>OCA\Libresign\Command\Developer\SignSetup</command>
-        <command>OCA\Libresign\Command\Install</command>
-        <command>OCA\Libresign\Command\Uninstall</command>
-    </commands>
-    <settings>
-        <admin>OCA\Libresign\Settings\Admin</admin>
-        <admin-section>OCA\Libresign\Settings\AdminSettings</admin-section>
-    </settings>
-    <activity>
-        <settings>
-            <setting>OCA\Libresign\Activity\Settings\FileToSign</setting>
-            <setting>OCA\Libresign\Activity\Settings\FileSigned</setting>
-        </settings>
-        <filters>
-            <filter>OCA\Libresign\Activity\Filter</filter>
-        </filters>
-        <providers>
-            <provider>OCA\Libresign\Activity\Provider\SignRequest</provider>
-            <provider>OCA\Libresign\Activity\Provider\Signed</provider>
-        </providers>
-    </activity>
-    <navigations>
-        <navigation>
-            <name>LibreSign</name>
-            <route>libresign.page.index</route>
-        </navigation>
-    </navigations>
+	<donation type="stripe" title="Donate via Stripe">https://buy.stripe.com/eVqfZibhx8QO3LseWc2kw00</donation>
+	<dependencies>
+		<lib>openssl</lib>
+		<nextcloud min-version="32" max-version="32"/>
+		<architecture>x86_64</architecture>
+		<architecture>aarch64</architecture>
+	</dependencies>
+	<background-jobs>
+		<job>OCA\Libresign\BackgroundJob\UserDeleted</job>
+	</background-jobs>
+	<repair-steps>
+		<post-migration>
+			<step>OCA\Libresign\Migration\DeleteOldBinaries</step>
+			<step>OCA\Libresign\Migration\ResynchronizeDatabaseSequences</step>
+		</post-migration>
+	</repair-steps>
+	<commands>
+		<command>OCA\Libresign\Command\Configure\Check</command>
+		<command>OCA\Libresign\Command\Configure\Cfssl</command>
+		<command>OCA\Libresign\Command\Configure\OpenSsl</command>
+		<command>OCA\Libresign\Command\Developer\Reset</command>
+		<command>OCA\Libresign\Command\Developer\SignSetup</command>
+		<command>OCA\Libresign\Command\Install</command>
+		<command>OCA\Libresign\Command\Uninstall</command>
+	</commands>
+	<settings>
+		<admin>OCA\Libresign\Settings\Admin</admin>
+		<admin-section>OCA\Libresign\Settings\AdminSettings</admin-section>
+	</settings>
+	<activity>
+		<settings>
+			<setting>OCA\Libresign\Activity\Settings\FileToSign</setting>
+			<setting>OCA\Libresign\Activity\Settings\FileSigned</setting>
+		</settings>
+		<filters>
+			<filter>OCA\Libresign\Activity\Filter</filter>
+		</filters>
+		<providers>
+			<provider>OCA\Libresign\Activity\Provider\SignRequest</provider>
+			<provider>OCA\Libresign\Activity\Provider\Signed</provider>
+		</providers>
+	</activity>
+	<navigations>
+		<navigation>
+			<name>LibreSign</name>
+			<route>libresign.page.index</route>
+		</navigation>
+	</navigations>
 </info>
