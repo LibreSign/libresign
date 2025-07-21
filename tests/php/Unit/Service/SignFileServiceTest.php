@@ -289,6 +289,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'subject' => ['CN' => 'John Doe'],
 		]);
 		$this->pkcs12Handler->method('sign')->willReturn($nextcloudFile);
+		$this->pkcs12Handler->method('getCertificateChain')->willReturn([
+			[
+				'signingTime' => new \DateTime()
+			],
+		]);
 
 		$this->pkcs7Handler->method('setInputFile')->willReturn($this->pkcs12Handler);
 		$this->pkcs7Handler->method('setCertificate')->willReturn($this->pkcs12Handler);
