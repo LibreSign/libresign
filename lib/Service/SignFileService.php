@@ -344,7 +344,7 @@ class SignFileService {
 		}
 		$hash = hash('sha256', $signedFile->getContent());
 
-		$this->signRequest->setSigned(new \DateTime());
+		$this->signRequest->setSigned($this->getLastSignedDdate($signedFile));
 		$this->signRequest->setSignedHash($hash);
 		if ($this->signRequest->getId()) {
 			$this->signRequestMapper->update($this->signRequest);
@@ -367,6 +367,13 @@ class SignFileService {
 
 		return $signedFile;
 	}
+
+	private function getLastSignedDdate(File $signedFile): \DateTime {
+		$chain = $this->pkcs12Handler->getCertificateChain($signedFile->fopen('rb'));
+		$last = end($chain);
+		return $last['signingTime'];
+	}
+
 	private function getSignatureParams(): array {
 		$certificateData = $this->readCertificate();
 		$signatureParams = $this->buildBaseSignatureParams($certificateData);
