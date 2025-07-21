@@ -28,7 +28,7 @@ Vue.use(PiniaVuePlugin)
 
 const pinia = createPinia()
 
-const isEnabled = function (fileInfo) {
+const isEnabled = function(fileInfo) {
 	if (fileInfo?.isDirectory() || !loadState('libresign', 'certificate_ok')) {
 		return false
 	}
