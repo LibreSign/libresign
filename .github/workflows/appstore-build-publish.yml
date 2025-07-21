@@ -9,9 +9,8 @@
 name: Build and publish app release
 
 permissions:
-  contents: read
+  contents: write
   actions: write
-  packages: write
 
 on:
   release:
