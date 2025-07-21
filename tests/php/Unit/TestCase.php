@@ -69,6 +69,7 @@ class TestCase extends \Test\TestCase {
 		if (!$service instanceof AppConfigOverwrite) {
 			\OC::$server->registerService(\OCP\IAppConfig::class, fn (): AppConfigOverwrite => new AppConfigOverwrite(
 				\OCP\Server::get(\OCP\IDBConnection::class),
+				\OCP\Server::get(\OCP\IConfig::class),
 				\OCP\Server::get(\Psr\Log\LoggerInterface::class),
 				\OCP\Server::get(\OCP\Security\ICrypto::class),
 			));
