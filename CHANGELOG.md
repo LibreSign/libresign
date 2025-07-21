@@ -19,7 +19,7 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
-## 10.8.5 - 2025-06-16
+## 10.8.5 - 2025-07-21
 ### Changes
 - Update translations
 - Bump dependencies
