@@ -15,7 +15,7 @@ const action = new FileAction({
 	title: (nodes) => {
 		const node = nodes[0]
 
-		const signedNodeId = node.attributes['signed-node-id'];
+		const signedNodeId = node.attributes['signed-node-id']
 
 		return !signedNodeId || node.fileid === signedNodeId
 			? fileStatus.find(status => status.id === node.attributes['signature-status']).label
@@ -25,7 +25,7 @@ const action = new FileAction({
 	iconSvgInline: (nodes) => {
 		const node = nodes[0]
 
-		const signedNodeId = node.attributes['signed-node-id'];
+		const signedNodeId = node.attributes['signed-node-id']
 
 		return !signedNodeId || node.fileid === signedNodeId
 			? fileStatus.find(status => status.id === node.attributes['signature-status']).icon
