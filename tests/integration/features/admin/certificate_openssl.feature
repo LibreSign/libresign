@@ -12,7 +12,7 @@ Feature: admin/certificate_openssl
       | (jq).ocs.data.rootCert.names\|length | 0           |
       | (jq).ocs.data.generated              | true        |
 
-  Scenario: Generate root cert with fail using only required values
+  Scenario: Generate root cert with fail without CN
     Given as user "admin"
     When sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":""} |
@@ -21,7 +21,7 @@ Feature: admin/certificate_openssl
       | key                   | value                               |
       | (jq).ocs.data.message | Parameter 'CN' is required! |
 
-  Scenario: Generate root cert with fail using only required values
+  Scenario: Generate root cert with a big CN
     Given as user "admin"
     When sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"0123456789012345678901234567890123456789012345678901234567890123456789"} |
