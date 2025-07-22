@@ -19,7 +19,7 @@ Feature: admin/certificate_openssl
     Then the response should have a status code 401
     And the response should be a JSON array with the following mandatory values
       | key                   | value                               |
-      | (jq).ocs.data.message | parameter 'commonName' is required! |
+      | (jq).ocs.data.message | Parameter 'CN' is required! |
 
   Scenario: Generate root cert with fail using only required values
     Given as user "admin"
@@ -28,7 +28,7 @@ Feature: admin/certificate_openssl
     Then the response should have a status code 401
     And the response should be a JSON array with the following mandatory values
       | key                   | value                                               |
-      | (jq).ocs.data.message | parameter 'commonName' should be betweeen 1 and 64. |
+      | (jq).ocs.data.message | Parameter 'CN' should be betweeen 1 and 64. |
 
   Scenario: Generate root cert with success using optional names values
     Given as user "admin"
@@ -52,7 +52,7 @@ Feature: admin/certificate_openssl
       Then the response should have a status code 401
       And the response should be a JSON array with the following mandatory values
         | key                   | value                                     |
-        | (jq).ocs.data.message | parameter 'C' should be betweeen 2 and 2. |
+        | (jq).ocs.data.message | Parameter 'C' should be betweeen 2 and 2. |
 
   Scenario: Generate root cert with fail when country have more then 2 characters
       Given as user "admin"
@@ -61,4 +61,4 @@ Feature: admin/certificate_openssl
       Then the response should have a status code 401
       And the response should be a JSON array with the following mandatory values
         | key                   | value                                     |
-        | (jq).ocs.data.message | parameter 'C' should be betweeen 2 and 2. |
+        | (jq).ocs.data.message | Parameter 'C' should be betweeen 2 and 2. |
