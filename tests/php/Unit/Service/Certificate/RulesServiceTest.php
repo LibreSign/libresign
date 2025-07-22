@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use OCA\Activity\Tests\Mock\Provider;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Certificate\RulesService;
 use OCP\IL10N;
@@ -43,6 +44,28 @@ final class RulesServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			['L', 'locality'],
 			['O', 'organization'],
 			['OU', 'organizational unit'],
+		];
+	}
+
+	#[DataProvider('providerGetHelperTextWithInvalidFieldName')]
+	public function testGetHelperTextWithInvalidFieldName(string $fieldName): void {
+		$service = $this->getService();
+		$helperText = $service->getHelperText($fieldName);
+		$this->assertNull($helperText);
+	}
+
+	public static function providerGetHelperTextWithInvalidFieldName(): array {
+		return [
+			['INVALID'],
+			[''],
+			['123'],
+			['!@#'],
+			['CN1'],
+			['C2'],
+			['ST3'],
+			['L4'],
+			['O5'],
+			['OU6'],
 		];
 	}
 }
