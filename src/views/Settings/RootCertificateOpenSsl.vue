@@ -11,7 +11,7 @@
 			<table class="grid">
 				<tbody>
 					<tr>
-						<td>{{ t('libresign', 'Name (CN)') }}</td>
+						<td>{{ t('libresign', 'Common Name (CN)') }}</td>
 						<td>{{ certificate.rootCert.commonName }}</td>
 					</tr>
 					<tr v-for="(customName) in certificate.rootCert.names" :key="customName.id" class="customNames">
@@ -53,7 +53,7 @@
 		</div>
 		<div v-else id="formRootCertificateOpenSsl" class="form-libresign">
 			<div class="form-group">
-				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Name (CN)') }}</label>
+				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Common Name (CN)') }}</label>
 				<NcTextField id="commonName"
 					ref="commonName"
 					v-model="certificate.rootCert.commonName"
