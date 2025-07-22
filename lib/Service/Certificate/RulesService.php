@@ -54,7 +54,7 @@ class RulesService {
 		return $this->rules[$fieldName];
 	}
 
-	public function getHelperText(string $fieldName) {
+	public function getHelperText(string $fieldName): ?string {
 		return match ($fieldName) {
 			'CN' => $this->l10n->t('Common Name (CN)'),
 			'C' => $this->l10n->t('Two-letter ISO 3166 country code'),
