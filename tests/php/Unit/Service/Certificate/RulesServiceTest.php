@@ -125,4 +125,26 @@ final class RulesServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 		];
 	}
+
+	#[DataProvider('providerGetRuleToInvalidField')]
+	public function testGetRuleToInvalidField(string $fieldName): void {
+		$service = $this->getService();
+		$actual = $service->getRule($fieldName);
+		$this->assertEmpty($actual);
+	}
+
+	public static function providerGetRuleToInvalidField(): array {
+		return [
+			['INVALID'],
+			[''],
+			['123'],
+			['!@#'],
+			['CN1'],
+			['C2'],
+			['ST3'],
+			['L4'],
+			['O5'],
+			['OU6'],
+		];
+	}
 }
