@@ -18,7 +18,7 @@ Feature: admin/certificate_openssl
       | rootCert | {"commonName":""} |
     Then the response should have a status code 401
     And the response should be a JSON array with the following mandatory values
-      | key                   | value                               |
+      | key                   | value                       |
       | (jq).ocs.data.message | Parameter 'CN' is required! |
 
   Scenario: Generate root cert with a big CN
@@ -27,7 +27,7 @@ Feature: admin/certificate_openssl
       | rootCert | {"commonName":"0123456789012345678901234567890123456789012345678901234567890123456789"} |
     Then the response should have a status code 401
     And the response should be a JSON array with the following mandatory values
-      | key                   | value                                               |
+      | key                   | value                                       |
       | (jq).ocs.data.message | Parameter 'CN' should be betweeen 1 and 64. |
 
   Scenario: Generate root cert with success using optional names values
