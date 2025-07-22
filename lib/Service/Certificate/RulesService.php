@@ -56,7 +56,7 @@ class RulesService {
 
 	public function getHelperText(string $fieldName) {
 		return match ($fieldName) {
-			'CN' => $this->l10n->t('Name (CN)'),
+			'CN' => $this->l10n->t('Common Name (CN)'),
 			'C' => $this->l10n->t('Two-letter ISO 3166 country code'),
 			'ST' => $this->l10n->t('Full name of states or provinces'),
 			'L' => $this->l10n->t('Name of a locality or place, such as a city, county, or other geographic region'),
