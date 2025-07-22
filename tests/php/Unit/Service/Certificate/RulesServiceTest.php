@@ -77,10 +77,9 @@ final class RulesServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertArrayHasKey('helperText', $actual);
 		unset($actual['helperText']);
 
-		foreach ($actual as $fieldCode => $value) {
-			$this->assertArrayHasKey($fieldCode, $expected);
-			$this->assertSame($expected[$fieldCode], $value, "Mismatch for field: $fieldCode");
-		}
+		$this->assertCount(count($expected), $actual, "Expected count does not match actual count for field: $fieldName");
+
+		$this->assertSame($expected, $actual, "Mismatch for field: $fieldName");
 	}
 
 	public static function providerGetRuleToValidField(): array {
