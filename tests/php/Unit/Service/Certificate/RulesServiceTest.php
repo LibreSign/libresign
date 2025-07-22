@@ -68,4 +68,61 @@ final class RulesServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			['OU6'],
 		];
 	}
+
+	#[DataProvider('providerGetRuleToValidField')]
+	public function testGetRuleToValidField(string $fieldName, array $expected): void {
+		$service = $this->getService();
+
+		$actual = $service->getRule($fieldName);
+
+		$this->assertArrayHasKey('helperText', $actual);
+		unset($actual['helperText']);
+
+		foreach ($actual as $fieldCode => $value) {
+			$this->assertArrayHasKey($fieldCode, $expected);
+			$this->assertSame($expected[$fieldCode], $value, "Mismatch for field: $fieldCode");
+		}
+	}
+
+	public static function providerGetRuleToValidField(): array {
+		return [
+			[
+				'CN', [
+					'required' => true,
+					'min' => 1,
+					'max' => 64,
+				],
+			],
+			[
+				'C', [
+					'min' => 2,
+					'max' => 2,
+				],
+			],
+			[
+				'ST', [
+					'min' => 1,
+					'max' => 128,
+				],
+			],
+			[
+				'L', [
+					'min' => 1,
+					'max' => 128,
+				],
+			],
+			[
+				'O', [
+					'min' => 1,
+					'max' => 64,
+				],
+			],
+			[
+				'OU', [
+					'min' => 1,
+					'max' => 64,
+				],
+			],
+		];
+	}
 }
