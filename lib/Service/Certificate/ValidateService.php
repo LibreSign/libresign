@@ -16,8 +16,7 @@ class ValidateService {
 	public function __construct(
 		protected RulesService $rulesService,
 		protected IL10N $l10n,
-	)
-	{
+	) {
 
 	}
 
@@ -25,19 +24,19 @@ class ValidateService {
 		$rule = $this->rulesService->getRule($fieldName);
 		$value = trim($value);
 		$length = strlen($value);
-		if(!$length && isset($rule['required']) && $rule['required']){
+		if (!$length && isset($rule['required']) && $rule['required']) {
 			throw new InvalidArgumentException(
 				$this->l10n->t("Parameter '%s' is required!", [$fieldName])
 			);
 		}
-		if($length > $rule['max'] || $length < $rule['min']){
+		if ($length > $rule['max'] || $length < $rule['min']) {
 			throw new InvalidArgumentException(
 				$this->l10n->t("Parameter '%s' should be betweeen %s and %s.", [$fieldName, $rule['min'], $rule['max']])
 			);
 		}
 	}
 
-	public function validateNames(array $names){
+	public function validateNames(array $names) {
 		foreach ($names as $item) {
 			if (empty($item['id'])) {
 				throw new InvalidArgumentException('Parameter id is required!');
