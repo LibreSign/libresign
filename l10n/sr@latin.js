@@ -25,6 +25,7 @@ OC.L10N.register(
     "Name" : "Ime",
     "Choose" : "Odaberi",
     "Send" : "Pošalji",
+    "Open file" : "Отвори фајл",
     "Open sidebar" : "Otvori bočnu traku",
     "Details" : "Detalji",
     "Type" : "Tip",

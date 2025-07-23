@@ -18,6 +18,7 @@ OC.L10N.register(
     "Previous" : "Zeréck",
     "Next" : "Weider",
     "Confirm" : "Konfirméieren",
+    "Open file" : "Fichier opmaachen",
     "Details" : "Detailer",
     "Type" : "Typ",
     "Actions" : "Aktiounen",

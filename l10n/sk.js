@@ -208,6 +208,7 @@ OC.L10N.register(
     "Request signatures?" : "Vyžiadať podpisy?",
     "Add signer" : "Pridať podpisujúceho",
     "Send reminder" : "Odoslať pripomienku",
+    "Open file" : "Otvoriť súbor",
     "Enter who will receive the request" : "Zadajte kto dostane žiadosť",
     "Document not available for signature." : "Dokument nie je k dispozícii na podpis.",
     "Administration" : "Administrácia",

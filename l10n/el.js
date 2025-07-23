@@ -68,6 +68,7 @@ OC.L10N.register(
     "Next" : "Επόμενο",
     "Sign" : "Υπογραφή",
     "Confirm" : "Επιβεβαίωση",
+    "Open file" : "Άνοιγμα αρχείου",
     "Document not available for signature." : "Το έγγραφο δεν είναι διαθέσιμο για υπογραφή.",
     "Administration" : "Διαχείριση",
     "Open sidebar" : "Άνοιγμα πλευρικής στήλης",

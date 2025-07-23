@@ -236,6 +236,7 @@ OC.L10N.register(
     "Edit visible signatures" : "Modifica le firme visibili",
     "Add signer" : "Aggiungi firmatario",
     "Send reminder" : "Invia promemoria",
+    "Open file" : "Apri file",
     "Enter who will receive the request" : "Inserisci chi riceverà la richiesta",
     "Document not available for signature." : "Documento non disponibile per la firma.",
     "Administration" : "Amministrazione",

@@ -139,6 +139,7 @@ OC.L10N.register(
     "Sign" : "Potpiši",
     "Confirm" : "Potvrdi",
     "Send reminder" : "Pošalji podsjetnik",
+    "Open file" : "Otvori datoteku",
     "Administration" : "Administracija",
     "Open sidebar" : "Otvori bočnu traku",
     "Details" : "Pojedinosti",

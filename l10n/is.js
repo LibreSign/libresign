@@ -47,6 +47,7 @@ OC.L10N.register(
     "Previous" : "Fyrra",
     "Next" : "Næsta",
     "Confirm" : "Staðfesta",
+    "Open file" : "Opna skrá",
     "Administration" : "Stjórnun",
     "Open sidebar" : "Opna hliðarspjald",
     "Details" : "Details",

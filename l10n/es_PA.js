@@ -31,6 +31,7 @@ OC.L10N.register(
     "Previous" : "Anterior",
     "Next" : "Siguiente",
     "Confirm" : "Confirmar",
+    "Open file" : "Abrir archivo",
     "Administration" : "Administración",
     "Details" : "Detalles",
     "Certificate" : "Certificado",

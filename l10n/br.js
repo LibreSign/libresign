@@ -29,6 +29,7 @@ OC.L10N.register(
     "Send" : "Kas",
     "Next" : "Da heul",
     "Confirm" : "Kadarnañ",
+    "Open file" : "Digeriñ ur restr",
     "Administration" : "Merouriez",
     "Open sidebar" : "Digori ar varenn gostez",
     "Details" : "Munudoù",

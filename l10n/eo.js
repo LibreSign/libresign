@@ -42,6 +42,7 @@ OC.L10N.register(
     "Previous" : "Antaŭa",
     "Next" : "Sekva",
     "Confirm" : "Konfirmi",
+    "Open file" : "Malfermi dosieron",
     "Administration" : "Administrado",
     "Open sidebar" : "Malfermi flankopanelon",
     "Details" : "Detaloj",

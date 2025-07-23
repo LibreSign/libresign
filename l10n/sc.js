@@ -97,6 +97,7 @@ OC.L10N.register(
     "Sign" : "Firma",
     "Confirm" : "Cunfirma",
     "Send reminder" : "Imbia promemòria",
+    "Open file" : "Aberi archìviu",
     "Administration" : "Amministratzione",
     "Open sidebar" : "Aberi s'istanca laterale",
     "Details" : "Detàllios",

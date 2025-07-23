@@ -154,6 +154,7 @@ OC.L10N.register(
     "Confirm" : "Confirmar",
     "Request signatures?" : "¿Solicitar firmas?",
     "Send reminder" : "Enviar recordatorio",
+    "Open file" : "Abrir archivo",
     "Document not available for signature." : "Documento no disponible para firmar.",
     "Administration" : "Administración",
     "Open sidebar" : "Abrir barra lateral",

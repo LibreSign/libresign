@@ -236,6 +236,7 @@ OC.L10N.register(
     "Edit visible signatures" : "Уреди видљиве потписе",
     "Add signer" : "Додај потписника",
     "Send reminder" : "Пошаљи подсетник",
+    "Open file" : "Отвори фајл",
     "Enter who will receive the request" : "Унесите ко ће примити захтев",
     "Document not available for signature." : "Документ није доступан за потписивање.",
     "Administration" : "Администрација",

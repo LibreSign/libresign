@@ -16,6 +16,7 @@ OC.L10N.register(
     "Send" : "Hantar",
     "Previous" : "Sebelum",
     "Next" : "Seterus",
+    "Open file" : "Buka fail",
     "Type" : "Jenis",
     "Profile picture" : "Gambar profil",
     "Password" : "Kata laluan",

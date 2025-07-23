@@ -19,6 +19,7 @@ OC.L10N.register(
     "Send" : "পাঠাও",
     "Previous" : "পূর্ববর্তী",
     "Next" : "পরবর্তী",
+    "Open file" : "খোলা ফাইল",
     "Details" : "বিসতারিত",
     "Type" : "ধরণ",
     "Actions" : "পদক্ষেপসমূহ",

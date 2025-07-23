@@ -69,6 +69,7 @@ OC.L10N.register(
     "Previous" : "Sebelumnya",
     "Next" : "Berikutnya",
     "Confirm" : "Konfirmasi",
+    "Open file" : "Membuka berkas",
     "Administration" : "Administrasi",
     "Open sidebar" : "Buka jendela samping",
     "Details" : "Detail",

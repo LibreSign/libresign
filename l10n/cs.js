@@ -235,6 +235,7 @@ OC.L10N.register(
     "Edit visible signatures" : "Upravit viditelné podpisy",
     "Add signer" : "Přidat podepisujícího",
     "Send reminder" : "Odeslat připomínku",
+    "Open file" : "Otevřít soubor",
     "Enter who will receive the request" : "Zadejte kdo obdrží požadavek",
     "Document not available for signature." : "Dokument není k dispozici pro podepisování.",
     "Administration" : "Správa",

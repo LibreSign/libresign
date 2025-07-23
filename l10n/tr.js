@@ -236,6 +236,7 @@ OC.L10N.register(
     "Edit visible signatures" : "Görülebilir imzaları düzenle",
     "Add signer" : "İmzalayan seçin",
     "Send reminder" : "Anımsatıcı gönder",
+    "Open file" : "Dosyayı aç",
     "Enter who will receive the request" : "İsteği kimin alacağını yazın",
     "Document not available for signature." : "Belge imzalanmaya uygun değil.",
     "Administration" : "Yönetim",

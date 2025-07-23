@@ -45,6 +45,7 @@ OC.L10N.register(
     "Previous" : "Precedentul",
     "Next" : "Următorul",
     "Confirm" : "Confirmă",
+    "Open file" : "Deschide fișier",
     "Administration" : "Administrare",
     "Open sidebar" : "Deschide bara laterală",
     "Details" : "Detalii",

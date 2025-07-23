@@ -163,6 +163,7 @@ OC.L10N.register(
     "Confirm" : "Confirma",
     "Request signatures?" : "Demanar signatures?",
     "Send reminder" : "Envia un recordatori",
+    "Open file" : "Obre un fitxer",
     "Document not available for signature." : "Document no disponible per signar.",
     "Administration" : "Administració",
     "pending" : "pendent",

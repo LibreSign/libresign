@@ -188,6 +188,7 @@ OC.L10N.register(
     "Request signatures?" : "Ali želite poslati dokument v podpisovanje?",
     "Add signer" : "Dodaj podpisnike",
     "Send reminder" : "Pošlji opomnik",
+    "Open file" : "Odpri datoteko",
     "Enter who will receive the request" : "Vpišite podpisnike, ki bodo prejeli zahtevo",
     "Document not available for signature." : "Dokument ni pripravljen za podpisovanje.",
     "Administration" : "Skrbništvo",
