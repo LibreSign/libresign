@@ -24,6 +24,7 @@ OC.L10N.register(
     "Previous" : "Ɣer deffir",
     "Next" : "Uḍfir",
     "Confirm" : "Serggeg",
+    "Open file" : "Ldi afaylu",
     "Details" : "Talqayt",
     "Type" : "Anaw",
     "Status" : "État",

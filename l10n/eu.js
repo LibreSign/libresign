@@ -162,6 +162,7 @@ OC.L10N.register(
     "Request signatures?" : "Sinadurak eskatu?",
     "Add signer" : "Gehitu sinatzailea",
     "Send reminder" : "Bidali gogorarazpena",
+    "Open file" : "Ireki fitxategia",
     "Document not available for signature." : "Dokumentua ezin da sinatu.",
     "Administration" : "Administrazioa",
     "pending" : "zain",

@@ -153,6 +153,7 @@ OC.L10N.register(
     "Confirm" : "Bevestigen",
     "Request signatures?" : "Handtekeningen aanvragen?",
     "Send reminder" : "Versturen herinnering",
+    "Open file" : "Openen bestand",
     "Document not available for signature." : "Document niet beschikbaar voor ondertekening.",
     "Administration" : "Beheer",
     "pending" : "in behandeling",

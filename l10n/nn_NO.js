@@ -22,6 +22,7 @@ OC.L10N.register(
     "Send" : "Send",
     "Previous" : "Førre",
     "Next" : "Neste",
+    "Open file" : "Opne fil",
     "Administration" : "Administrasjon",
     "Open sidebar" : "Opne sidestolpe",
     "Details" : "Detaljar",

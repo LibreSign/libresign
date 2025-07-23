@@ -207,6 +207,7 @@ OC.L10N.register(
     "Request signatures?" : "Solicitar sinaturas?",
     "Add signer" : "Engadir asinante",
     "Send reminder" : "Enviar lembrete",
+    "Open file" : "Abrir ficheiro",
     "Enter who will receive the request" : "Indique quen recibirá a solicitude",
     "Document not available for signature." : "Documento non dispoñíbel para sinatura.",
     "Administration" : "Administración",

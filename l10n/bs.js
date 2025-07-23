@@ -20,6 +20,7 @@ OC.L10N.register(
     "Send" : "Pošalji",
     "Previous" : "Prethodno",
     "Next" : "Sljedeće",
+    "Open file" : "Otvori Datoteku",
     "Type" : "Type",
     "Status" : "Status",
     "Actions" : "Radnje",

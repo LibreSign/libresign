@@ -44,6 +44,7 @@ OC.L10N.register(
     "Previous" : "הקודם",
     "Next" : "הבא",
     "Confirm" : "אימות",
+    "Open file" : "פתיחת קובץ",
     "Administration" : "ניהול",
     "Open sidebar" : "פתיחת סרגל הצד",
     "Details" : "פרטים",

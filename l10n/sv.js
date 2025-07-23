@@ -235,6 +235,7 @@ OC.L10N.register(
     "Edit visible signatures" : "Redigera synliga signaturer",
     "Add signer" : "Lägg till undertecknare",
     "Send reminder" : "Skicka påminnelse",
+    "Open file" : "Öppna fil",
     "Enter who will receive the request" : "Ange vem som kommer att ta emot begäran",
     "Document not available for signature." : "Dokumentet är inte tillgängligt för signering.",
     "Administration" : "Administration",

@@ -152,6 +152,7 @@ OC.L10N.register(
     "Confirm" : "تائید",
     "Request signatures?" : "Request signatures?",
     "Send reminder" : "Send reminder",
+    "Open file" : "باز کردن فایل",
     "Document not available for signature." : "Document not available for signature.",
     "Administration" : "مدیریت",
     "Open sidebar" : "باز کردن نوار کناری",

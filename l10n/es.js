@@ -219,6 +219,7 @@ OC.L10N.register(
     "Request signatures?" : "¿Solicitar firmas?",
     "Add signer" : "Añadir firmante",
     "Send reminder" : "Enviar recordatorio",
+    "Open file" : "Abrir archivo",
     "Enter who will receive the request" : "Ingrese quien recibirá la solicitud",
     "Document not available for signature." : "Documento no disponible para firma.",
     "Administration" : "Administración",

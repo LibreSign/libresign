@@ -48,6 +48,7 @@ OC.L10N.register(
     "Previous" : "Назад",
     "Next" : "Далі",
     "Confirm" : "Підтвердити",
+    "Open file" : "Відкрити файл",
     "Administration" : "Адміністрування",
     "Open sidebar" : "Показати бічну панель",
     "Details" : "Деталі",

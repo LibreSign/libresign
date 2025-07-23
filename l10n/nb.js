@@ -189,6 +189,7 @@ OC.L10N.register(
     "Request signatures?" : "Be om signaturer?",
     "Add signer" : "Legg til underskriver",
     "Send reminder" : "Send påminnelse",
+    "Open file" : "Åpne fil",
     "Enter who will receive the request" : "Angi hvem som skal motta forespørselen",
     "Document not available for signature." : "Dokument ikke tilgjengelig for signering.",
     "Administration" : "Administrasjon",

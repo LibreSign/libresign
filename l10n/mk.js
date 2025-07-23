@@ -51,6 +51,7 @@ OC.L10N.register(
     "Sign" : "Знак",
     "Confirm" : "Потврди",
     "Send reminder" : "Испрати потсетник",
+    "Open file" : "Отвори датотека",
     "Administration" : "Администрација",
     "Open sidebar" : "Отвори странична лента",
     "Details" : "Детали",
