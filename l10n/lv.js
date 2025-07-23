@@ -44,6 +44,7 @@ OC.L10N.register(
     "Previous" : "Iepriekšējā",
     "Next" : "Nākamā",
     "Confirm" : "Apstiprināt",
+    "Open file" : "Atvērt datni",
     "Administration" : "Pārvaldīšana",
     "Open sidebar" : "Atvērt sānjoslu",
     "Details" : "Informācija",

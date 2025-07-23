@@ -45,6 +45,7 @@ OC.L10N.register(
     "Previous" : "Anterior",
     "Next" : "Seguinte",
     "Confirm" : "Confirmar",
+    "Open file" : "Abrir ficheiro",
     "Administration" : "Administração",
     "Open sidebar" : "Abrir barra lateral",
     "Details" : "Detalhes",

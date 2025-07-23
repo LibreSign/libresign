@@ -81,6 +81,7 @@ OC.L10N.register(
     "Next" : "Seguent",
     "Sign" : "Signar",
     "Confirm" : "Confirmar",
+    "Open file" : "Dobrir fichièr",
     "Administration" : "Administracion",
     "pending" : "pendent",
     "Open sidebar" : "Dobrir lo panèl lateral",

@@ -39,6 +39,7 @@ OC.L10N.register(
     "Previous" : "ก่อนหน้า",
     "Next" : "ถัดไป",
     "Confirm" : "ยืนยัน",
+    "Open file" : "เปิดไฟล์",
     "Open sidebar" : "เปิดแถบด้านข้าง",
     "Details" : "รายละเอียด",
     "Certificate" : "ใบรับรอง",

@@ -20,6 +20,7 @@ OC.L10N.register(
     "Previous" : "Previe",
     "Next" : "Sequente",
     "Confirm" : "Confirmar",
+    "Open file" : "Aperir file",
     "Details" : "Detalios",
     "Type" : "Typo",
     "Actions" : "Actiones",

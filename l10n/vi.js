@@ -43,6 +43,7 @@ OC.L10N.register(
     "Previous" : "Trước",
     "Next" : "Tiếp theo",
     "Confirm" : "Xác nhận",
+    "Open file" : "Mở tệp",
     "Administration" : "Quản trị viên",
     "Open sidebar" : "Mở thanh bên",
     "Details" : "Chi tiết",

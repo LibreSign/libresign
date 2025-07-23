@@ -24,6 +24,7 @@ OC.L10N.register(
     "Previous" : "өмнөх",
     "Next" : "дараагийх",
     "Confirm" : "Батлах",
+    "Open file" : "Файл онгойлгох",
     "Details" : "Дэлгэрэнгүй",
     "Certificate" : "Гэрчилгээ",
     "Type" : "Төрөл",

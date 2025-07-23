@@ -117,6 +117,7 @@ OC.L10N.register(
     "Sign" : "Allekirjoita",
     "Confirm" : "Vahvista",
     "Send reminder" : "Lähetä muistutus",
+    "Open file" : "Avaa tiedosto",
     "Administration" : "Ylläpito",
     "Open sidebar" : "Avaa sivupalkki",
     "Details" : "Tiedot",

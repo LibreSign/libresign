@@ -34,6 +34,7 @@ OC.L10N.register(
     "Previous" : "I mëparshëm",
     "Next" : "Tjetër",
     "Confirm" : "Konfirmo",
+    "Open file" : "Hap skedarin",
     "Open sidebar" : "Hapni sidebar-in",
     "Details" : "Detajet",
     "Certificate" : "Çertifikata",

@@ -121,6 +121,7 @@ OC.L10N.register(
     "Edit visible signatures" : "Muuda nähtavaid allkirju",
     "Add signer" : "Lisa allkirjastaja",
     "Send reminder" : "Saada meeldetuletus",
+    "Open file" : "Ava fail",
     "Enter who will receive the request" : "Sisesta kasutajad, kes saavad antud päringu",
     "Document not available for signature." : "Dokument pole allkirjastamiseks saadaval.",
     "Administration" : "Haldus",
