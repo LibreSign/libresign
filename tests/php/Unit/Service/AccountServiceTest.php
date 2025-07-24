@@ -362,16 +362,24 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testGetPdfByUuidWithSuccessAndSignedFile():void {
 		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$libresignFile->method('__call')
+			->willReturnCallback(fn ($method)
+				=> match ($method) {
+					'getSignedNodeId' => 1,
+					'getNodeId' => 1,
+					'getStatus' => \OCA\Libresign\Db\File::STATUS_SIGNED,
+				}
+			);
 		$this->fileMapper
 			->method('getByUuid')
-			->will($this->returnValue($libresignFile));
+			->willReturn($libresignFile);
 		$node = $this->createMock(\OCP\Files\File::class);
 		$this->root
 			->method('getUserFolder')
 			->willReturn($this->root);
 		$this->root
-			->method('getById')
-			->willReturn([$node]);
+			->method('getFirstNodeById')
+			->willReturn($node);
 
 		$actual = $this->getService()->getPdfByUuid('uuid');
 		$this->assertInstanceOf(\OCP\Files\File::class, $actual);
@@ -379,6 +387,14 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testGetPdfByUuidWithSuccessAndUnignedFile():void {
 		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$libresignFile->method('__call')
+			->willReturnCallback(fn ($method)
+				=> match ($method) {
+					'getSignedNodeId' => 1,
+					'getNodeId' => 1,
+					'getStatus' => \OCA\Libresign\Db\File::STATUS_SIGNED,
+				}
+			);
 		$this->fileMapper
 			->method('getByUuid')
 			->will($this->returnValue($libresignFile));
@@ -387,8 +403,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getUserFolder')
 			->willReturn($this->root);
 		$this->root
-			->method('getById')
-			->willReturn([$node]);
+			->method('getFirstNodeById')
+			->willReturn($node);
 
 		$actual = $this->getService()->getPdfByUuid('uuid');
 		$this->assertInstanceOf(\OCP\Files\File::class, $actual);
