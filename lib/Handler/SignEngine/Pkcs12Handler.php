@@ -22,7 +22,6 @@ use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use phpseclib3\File\ASN1;
-use TypeError;
 
 class Pkcs12Handler extends SignEngineHandler {
 	use OrderCertificatesTrait;
@@ -406,26 +405,5 @@ class Pkcs12Handler extends SignEngineHandler {
 
 	public function isHandlerOk(): bool {
 		return $this->certificateEngineFactory->getEngine()->isSetupOk();
-	}
-
-	/**
-	 * Generate certificate
-	 *
-	 * @param array $user Example: ['host' => '', 'name' => '']
-	 * @param string $signPassword Password of signature
-	 * @param string $friendlyName Friendly name
-	 */
-	public function generateCertificate(array $user, string $signPassword, string $friendlyName): string {
-		$content = $this->certificateEngineFactory->getEngine()
-			->setHosts([$user['host']])
-			->setCommonName($user['name'])
-			->setFriendlyName($friendlyName)
-			->setUID($user['uid'])
-			->setPassword($signPassword)
-			->generateCertificate();
-		if (!$content) {
-			throw new TypeError();
-		}
-		return $content;
 	}
 }
