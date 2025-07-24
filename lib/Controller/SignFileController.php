@@ -112,7 +112,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			if ($method === 'password') {
 				$this->signFileService->setPassword($token);
 			} else {
-				$this->signFileService->setSignWithoutPassword(true);
+				$this->signFileService->setSignWithoutPassword();
 			}
 			$identifyMethod = $this->identifyMethodService->getIdentifiedMethod($signRequest->getId());
 			$this->signFileService

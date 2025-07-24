@@ -196,7 +196,7 @@ class SignFileService {
 	/**
 	 * @return static
 	 */
-	public function setSignWithoutPassword(bool $signWithoutPassword): self {
+	public function setSignWithoutPassword(bool $signWithoutPassword = true): self {
 		$this->signWithoutPassword = $signWithoutPassword;
 		return $this;
 	}
