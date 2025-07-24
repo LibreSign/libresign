@@ -10,7 +10,9 @@ namespace OCA\Libresign\Handler\SignEngine;
 
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCP\Files\File;
+use TypeError;
 
 abstract class SignEngineHandler implements ISignEngineHandler {
 	private File $inputFile;
@@ -42,8 +44,7 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	}
 
 	public function readCertificate(): array {
-		return \OCP\Server::get(CertificateEngineFactory::class)
-			->getEngine()
+		return $this->getCertificateEngine()
 			->readCertificate(
 				$this->getCertificate(),
 				$this->getPassword()
@@ -89,5 +90,31 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	public function setSignatureParams(array $params): self {
 		$this->signatureParams = $params;
 		return $this;
+	}
+
+	/**
+	 * Generate certificate
+	 *
+	 * @param array $user Example: ['host' => '', 'name' => '']
+	 * @param string $signPassword Password of signature
+	 * @param string $friendlyName Friendly name
+	 */
+	public function generateCertificate(array $user, string $signPassword, string $friendlyName): string {
+		$content = $this->getCertificateEngine()
+			->setHosts([$user['host']])
+			->setCommonName($user['name'])
+			->setFriendlyName($friendlyName)
+			->setUID($user['uid'])
+			->setPassword($signPassword)
+			->generateCertificate();
+		if (!$content) {
+			throw new TypeError();
+		}
+		return $content;
+	}
+
+	private function getCertificateEngine(): IEngineHandler {
+		return \OCP\Server::get(CertificateEngineFactory::class)
+			->getEngine();
 	}
 }
