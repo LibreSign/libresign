@@ -48,6 +48,7 @@ OC.L10N.register(
     "Previous" : "Anterior",
     "Next" : "Siguiente",
     "Confirm" : "Confirmar",
+    "Open file" : "Abrir ficheru",
     "Administration" : "Alministración",
     "pending" : "pendiente",
     "Open sidebar" : "Abrir la barra llateral",

@@ -34,6 +34,7 @@ OC.L10N.register(
     "Previous" : "Vorige",
     "Next" : "Volgende",
     "Confirm" : "Bevestig",
+    "Open file" : "Open lêer",
     "Open sidebar" : "Open kantbalk",
     "Details" : "Besonderhede",
     "Certificate" : "Sertifikaat",
