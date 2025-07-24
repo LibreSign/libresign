@@ -516,11 +516,10 @@ class SignFileService {
 	public function getFileToSing(FileEntity $libresignFile): \OCP\Files\Node {
 		$nodeId = $libresignFile->getNodeId();
 
-		$originalFile = $this->root->getUserFolder($libresignFile->getUserId())->getById($nodeId);
-		if (count($originalFile) < 1) {
+		$originalFile = $this->root->getUserFolder($libresignFile->getUserId())->getFirstNodeById($nodeId);
+		if (!$originalFile instanceof \OCP\Files\File) {
 			throw new LibresignException($this->l10n->t('File not found'));
 		}
-		$originalFile = current($originalFile);
 		if (strtolower($originalFile->getExtension()) === 'pdf') {
 			return $this->getPdfToSign($libresignFile, $originalFile);
 		}
@@ -652,9 +651,7 @@ class SignFileService {
 		if ($fileData->getSignedNodeId()) {
 			$nodeId = $fileData->getSignedNodeId();
 
-			$fileToSign = $this->root->getUserFolder($fileData->getUserId())->getById($nodeId);
-			/** @var \OCP\Files\File */
-			$fileToSign = current($fileToSign);
+			$fileToSign = $this->root->getUserFolder($fileData->getUserId())->getFirstNodeById($nodeId);
 		} else {
 			$footer = $this->footerHandler
 				->setTemplateVar('signers', array_map(fn (SignRequestEntity $signer) => [
@@ -737,15 +734,13 @@ class SignFileService {
 	}
 
 	public function getNextcloudFile(FileEntity $fileData): File {
-		$fileToSign = $this->root->getUserFolder($fileData->getUserId())->getById($fileData->getNodeId());
-		if (count($fileToSign) < 1) {
+		$fileToSign = $this->root->getUserFolder($fileData->getUserId())->getFirstNodeById($fileData->getNodeId());
+		if (!$fileToSign instanceof File) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $this->l10n->t('File not found')]],
 			]), AppFrameworkHttp::STATUS_NOT_FOUND);
 		}
-		/** @var File */
-		$fileToSign = $fileToSign[0];
 		return $fileToSign;
 	}
 
