@@ -652,6 +652,9 @@ class SignFileService {
 			$nodeId = $fileData->getSignedNodeId();
 
 			$fileToSign = $this->root->getUserFolder($fileData->getUserId())->getFirstNodeById($nodeId);
+			if (!$fileToSign instanceof File) {
+				throw new LibresignException($this->l10n->t('File not found'));
+			}
 		} else {
 			$footer = $this->footerHandler
 				->setTemplateVar('signers', array_map(fn (SignRequestEntity $signer) => [
