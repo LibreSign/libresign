@@ -131,8 +131,8 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getUserFolder')
 			->willReturn($this->root);
 		$this->root
-			->method('getById')
-			->willReturn([$file]);
+			->method('getFirstNodeById')
+			->willReturn($file);
 
 		$user = $this->createMock(\OCP\IUser::class);
 		$user->method('getUID')->willReturn('john.doe');
@@ -178,8 +178,8 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getUserFolder')
 			->willReturn($this->root);
 		$this->root
-			->method('getById')
-			->willReturn([$file]);
+			->method('getFirstNodeById')
+			->willReturn($file);
 		if ($exception) {
 			$this->expectExceptionMessage($exception);
 		}
@@ -401,8 +401,8 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getUserFolder')
 			->willReturn($this->root);
 		$this->root
-			->method('getById')
-			->willReturn(['file']);
+			->method('getFirstNodeById')
+			->willReturn($this->createMock(\OCP\Files\File::class));
 		$actual = $this->getValidateHelper()->validateIfNodeIdExists(171);
 		$this->assertNull($actual);
 	}
