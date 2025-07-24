@@ -39,7 +39,7 @@ use OCP\IUserManager;
 use OCP\Security\IHasher;
 
 class ValidateHelper {
-	/** @var \OCP\Files\Node[] */
+	/** @var \OCP\Files\File[] */
 	private $file = [];
 
 	public const TYPE_TO_SIGN = 1;
@@ -419,12 +419,7 @@ class ValidateHelper {
 		}
 	}
 
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 * @return \OCP\Files\Node|array
-	 * @psalm-return \OCP\Files\Node|array<empty, empty>
-	 */
-	private function getLibreSignFileByNodeId(int $nodeId) {
+	private function getLibreSignFileByNodeId(int $nodeId): ?\OCP\Files\File {
 		if (isset($this->file[$nodeId])) {
 			return $this->file[$nodeId];
 		}
@@ -432,11 +427,11 @@ class ValidateHelper {
 
 		$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
 		$file = $userFolder->getFirstNodeById($nodeId);
-		if (!$file instanceof \OCP\Files\File) {
+		if ($file instanceof \OCP\Files\File) {
 			$this->file[$nodeId] = $file;
 			return $this->file[$nodeId];
 		}
-		return [];
+		return null;
 	}
 
 	public function canRequestSign(IUser $user): void {
