@@ -208,6 +208,7 @@ OC.L10N.register(
     "Request signatures?" : "طلب التوقيعات؟",
     "Add signer" : "أضِف صاحب توقيع",
     "Send reminder" : "إرسال تذكير",
+    "Open file" : "فتح ملف",
     "Enter who will receive the request" : "أدخِل من سيستلم الطلب",
     "Document not available for signature." : "الوثيقة ليست متاحة للتوقيع.",
     "Administration" : "الإدارة",
