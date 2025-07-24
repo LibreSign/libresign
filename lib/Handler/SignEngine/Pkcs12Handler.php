@@ -25,7 +25,6 @@ use phpseclib3\File\ASN1;
 
 class Pkcs12Handler extends SignEngineHandler {
 	use OrderCertificatesTrait;
-	private string $pfxFilename = 'signature.pfx';
 	protected string $certificate = '';
 	private array $signaturesFromPoppler = [];
 	/**
@@ -41,47 +40,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		private FooterHandler $footerHandler,
 		private ITempManager $tempManager,
 	) {
-	}
-
-	public function savePfx(string $uid, string $content): string {
-		$this->folderService->setUserId($uid);
-		$folder = $this->folderService->getFolder();
-		if ($folder->nodeExists($this->pfxFilename)) {
-			$file = $folder->get($this->pfxFilename);
-			if (!$file instanceof File) {
-				throw new LibresignException("path {$this->pfxFilename} already exists and is not a file!", 400);
-			}
-			try {
-				$file->putContent($content);
-			} catch (GenericFileException) {
-				throw new LibresignException("path {$file->getPath()} does not exists!", 400);
-			}
-			return $content;
-		}
-
-		$file = $folder->newFile($this->pfxFilename);
-		$file->putContent($content);
-		return $content;
-	}
-
-	public function deletePfx(string $uid): void {
-		$this->folderService->setUserId($uid);
-		$folder = $this->folderService->getFolder();
-		try {
-			$file = $folder->get($this->pfxFilename);
-			$file->delete();
-		} catch (\Throwable) {
-		}
-	}
-
-	public function updatePassword(string $uid, string $currentPrivateKey, string $newPrivateKey): string {
-		$pfx = $this->getPfxOfCurrentSigner($uid);
-		$content = $this->certificateEngineFactory->getEngine()->updatePassword(
-			$pfx,
-			$currentPrivateKey,
-			$newPrivateKey
-		);
-		return $this->savePfx($uid, $content);
+		parent::__construct($l10n, $folderService);
 	}
 
 	/**
@@ -343,39 +302,6 @@ class Pkcs12Handler extends SignEngineHandler {
 		$pem = chunk_split(base64_encode((string)$derData), 64, "\n");
 		$pem = "-----BEGIN CERTIFICATE-----\n" . $pem . "-----END CERTIFICATE-----\n";
 		return $pem;
-	}
-
-	/**
-	 * Get content of pfx file
-	 */
-	public function getPfxOfCurrentSigner(?string $uid = null): string {
-		if (!empty($this->certificate) || empty($uid)) {
-			return $this->certificate;
-		}
-		$this->folderService->setUserId($uid);
-		$folder = $this->folderService->getFolder();
-		if (!$folder->nodeExists($this->pfxFilename)) {
-			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
-		}
-		try {
-			/** @var \OCP\Files\File */
-			$node = $folder->get($this->pfxFilename);
-			$this->certificate = $node->getContent();
-		} catch (GenericFileException) {
-			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
-		} catch (\Throwable) {
-		}
-		if (empty($this->certificate)) {
-			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
-		}
-		if ($this->getPassword()) {
-			try {
-				$this->certificateEngineFactory->getEngine()->readCertificate($this->certificate, $this->getPassword());
-			} catch (InvalidPasswordException) {
-				throw new LibresignException($this->l10n->t('Invalid password'));
-			}
-		}
-		return $this->certificate;
 	}
 
 	private function getHandler(): SignEngineHandler {
