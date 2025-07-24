@@ -9,18 +9,30 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler\SignEngine;
 
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
+use OCA\Libresign\Exception\InvalidPasswordException;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
+use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
+use OCP\Files\GenericFileException;
+use OCP\IL10N;
 use TypeError;
 
 abstract class SignEngineHandler implements ISignEngineHandler {
 	private File $inputFile;
-	protected string $certificate;
+	protected string $certificate = '';
+	private string $pfxFilename = 'signature.pfx';
 	private string $password = '';
 	/** @var VisibleElementAssoc[] */
 	private array $visibleElements = [];
 	private array $signatureParams = [];
+
+	public function __construct(
+		private IL10N $l10n,
+		private readonly FolderService $folderService,
+	) {
+	}
 
 	/**
 	 * @return static
@@ -111,6 +123,80 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 			throw new TypeError();
 		}
 		return $content;
+	}
+
+	public function savePfx(string $uid, string $content): string {
+		$this->folderService->setUserId($uid);
+		$folder = $this->folderService->getFolder();
+		if ($folder->nodeExists($this->pfxFilename)) {
+			$file = $folder->get($this->pfxFilename);
+			if (!$file instanceof File) {
+				throw new LibresignException("path {$this->pfxFilename} already exists and is not a file!", 400);
+			}
+			try {
+				$file->putContent($content);
+			} catch (GenericFileException) {
+				throw new LibresignException("path {$file->getPath()} does not exists!", 400);
+			}
+			return $content;
+		}
+
+		$file = $folder->newFile($this->pfxFilename);
+		$file->putContent($content);
+		return $content;
+	}
+
+	public function deletePfx(string $uid): void {
+		$this->folderService->setUserId($uid);
+		$folder = $this->folderService->getFolder();
+		try {
+			$file = $folder->get($this->pfxFilename);
+			$file->delete();
+		} catch (\Throwable) {
+		}
+	}
+
+	/**
+	 * Get content of pfx file
+	 */
+	public function getPfxOfCurrentSigner(?string $uid = null): string {
+		if (!empty($this->certificate) || empty($uid)) {
+			return $this->certificate;
+		}
+		$this->folderService->setUserId($uid);
+		$folder = $this->folderService->getFolder();
+		if (!$folder->nodeExists($this->pfxFilename)) {
+			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
+		}
+		try {
+			/** @var \OCP\Files\File */
+			$node = $folder->get($this->pfxFilename);
+			$this->certificate = $node->getContent();
+		} catch (GenericFileException) {
+			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
+		} catch (\Throwable) {
+		}
+		if (empty($this->certificate)) {
+			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
+		}
+		if ($this->getPassword()) {
+			try {
+				$this->getCertificateEngine()->readCertificate($this->certificate, $this->getPassword());
+			} catch (InvalidPasswordException) {
+				throw new LibresignException($this->l10n->t('Invalid password'));
+			}
+		}
+		return $this->certificate;
+	}
+
+	public function updatePassword(string $uid, string $currentPrivateKey, string $newPrivateKey): string {
+		$pfx = $this->getPfxOfCurrentSigner($uid);
+		$content = $this->getCertificateEngine()->updatePassword(
+			$pfx,
+			$currentPrivateKey,
+			$newPrivateKey
+		);
+		return $this->savePfx($uid, $content);
 	}
 
 	private function getCertificateEngine(): IEngineHandler {
