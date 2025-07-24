@@ -50,7 +50,7 @@ use Psr\Log\LoggerInterface;
  */
 final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N&MockObject $l10n;
-	private Pkcs7Handler&MockObject $pkcs7Handler;
+	private Pkcs7Handler|MockObject $pkcs7Handler;
 	private Pkcs12Handler&MockObject $pkcs12Handler;
 	private FooterHandler&MockObject $footerHandler;
 	private FileMapper&MockObject $fileMapper;
@@ -85,7 +85,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
-		$this->pkcs7Handler = $this->createMock(Pkcs7Handler::class);
+		$this->pkcs7Handler = \OCP\Server::get(Pkcs7Handler::class);//$this->createMock(Pkcs7Handler::class);
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->clientService = $this->createMock(IClientService::class);
@@ -282,11 +282,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'subject' => ['CN' => 'John Doe'],
 		]);
 		$this->pkcs12Handler->method('sign')->willReturn($nextcloudFile);
-		$this->pkcs12Handler->method('getCertificateChain')->willReturn([
-			[
-				'signingTime' => new \DateTime()
-			],
-		]);
 
 		$this->pkcs7Handler->method('setInputFile')->willReturn($this->pkcs12Handler);
 		$this->pkcs7Handler->method('setCertificate')->willReturn($this->pkcs12Handler);
@@ -308,6 +303,75 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			['application/pdf', 'file.PDF', 'PDF'],
 			['application/pdf', 'file.pdf', 'pdf'],
+			['application/xml', 'file.XML', 'XML'],
+			['application/xml', 'file.xml', 'xml'],
+		];
+	}
+
+	#[DataProvider('dataDatabaseSignatureDateMatchesLastDocumentSignature')]
+	public function testDatabaseSignatureDateMatchesLastDocumentSignature(string $mimetype, string $filename, string $extension):void {
+		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
+
+		$file = new \OCA\Libresign\Db\File();
+		$file->setUserId('username');
+
+		vfsStream::setup('data');
+
+		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
+		$nextcloudFile->method('getMimeType')->willReturn($mimetype);
+		$nextcloudFile->method('getExtension')->willReturn($extension);
+		$nextcloudFile->method('getPath')->willReturn($filename);
+		$nextcloudFile->method('getContent')->willReturn('fake content');
+		$nextcloudFile->method('getId')->willReturn(171);
+		$nextcloudFile->method('getName')->willReturn($filename);
+		$nextcloudFile->method('getInternalPath')->willReturn('vfs://data/' . $filename);
+
+		$p7sFile = $this->createMock(\OCP\Files\File::class);
+		$p7sFile->method('getInternalPath')->willReturn('vfs://data/' . $filename . 'p7s');
+		$this->root->method('newFile')->willReturn($p7sFile);
+
+		$nextcloudFile->method('getParent')->willReturn($this->root);
+
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')->willReturn('john.doe');
+		$nextcloudFile->method('getOwner')->willReturn($user);
+
+		$this->root->method('getUserFolder')->willReturn($this->root);
+		$this->root->method('getById')->willReturn([$nextcloudFile]);
+		$this->root->method('newFile')->willReturn($nextcloudFile);
+		$this->root->method('getFirstNodeById')->willReturn($nextcloudFile);
+
+		$nextcloudFolder = $this->createMock(\OCP\Files\Folder::class);
+		$nextcloudFolder->method('newFile')->willReturn($nextcloudFile);
+		$this->root->method('getFirstNodeById')->willReturn($nextcloudFolder);
+
+		$this->pkcs12Handler->method('setInputFile')->willReturn($this->pkcs12Handler);
+		$this->pkcs12Handler->method('setCertificate')->willReturn($this->pkcs12Handler);
+		$this->pkcs12Handler->method('setVisibleElements')->willReturn($this->pkcs12Handler);
+		$this->pkcs12Handler->method('setSignatureParams')->willReturn($this->pkcs12Handler);
+		$this->pkcs12Handler->method('setPassword')->willReturn($this->pkcs12Handler);
+		$this->pkcs12Handler->method('readCertificate')->willReturn([
+			'issuer' => ['CN' => 'Acme Cooperative'],
+			'subject' => ['CN' => 'John Doe'],
+		]);
+		$this->pkcs12Handler->method('sign')->willReturn($nextcloudFile);
+
+		$signRequest = new \OCA\Libresign\Db\SignRequest();
+		$signRequest->setFileId(171);
+		$signRequest->setId(171);
+		$this->getService()
+			->setLibreSignFile($file)
+			->setSignRequest($signRequest)
+			->setSignWithoutPassword()
+			->setPassword('password')
+			->sign();
+		$this->assertTrue(true);
+	}
+
+	public static function dataDatabaseSignatureDateMatchesLastDocumentSignature(): array {
+		return [
+			['application/xml', 'file.XML', 'XML'],
+			['application/xml', 'file.xml', 'xml'],
 		];
 	}
 
