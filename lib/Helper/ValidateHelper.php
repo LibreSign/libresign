@@ -377,8 +377,7 @@ class ValidateHelper {
 			$userId = $libresignFile->getUserId();
 		}
 		try {
-			$file = $this->root->getUserFolder($userId)->getById($nodeId);
-			$file = $file[0] ?? null;
+			$file = $this->root->getUserFolder($userId)->getFirstNodeById($nodeId);
 		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
 		}
@@ -392,8 +391,7 @@ class ValidateHelper {
 			$libresignFile = $this->fileMapper->getByFileId($nodeId);
 			$userId = $libresignFile->getUserId();
 		}
-		$file = $this->root->getUserFolder($userId)->getById($nodeId);
-		$file = $file[0];
+		$file = $this->root->getUserFolder($userId)->getFirstNodeById($nodeId);
 		$this->validateMimeTypeAcceptedByMime($file->getMimeType(), $type);
 	}
 
@@ -433,9 +431,9 @@ class ValidateHelper {
 		$libresignFile = $this->fileMapper->getByFileId($nodeId);
 
 		$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
-		$files = $userFolder->getById($nodeId);
-		if (!empty($files)) {
-			$this->file[$nodeId] = $files[0];
+		$file = $userFolder->getFirstNodeById($nodeId);
+		if (!$file instanceof \OCP\Files\File) {
+			$this->file[$nodeId] = $file;
 			return $this->file[$nodeId];
 		}
 		return [];

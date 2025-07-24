@@ -147,8 +147,8 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 		$nodeId = $fileEntity->getNodeId();
 
-		$fileToSign = $this->identifyService->getRootFolder()->getUserFolder($fileEntity->getUserId())->getById($nodeId);
-		if (count($fileToSign) < 1) {
+		$fileToSign = $this->identifyService->getRootFolder()->getUserFolder($fileEntity->getUserId())->getFirstNodeById($nodeId);
+		if (!$fileToSign instanceof \OCP\Files\File) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $this->identifyService->getL10n()->t('File not found')]],
