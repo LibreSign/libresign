@@ -36,6 +36,7 @@ OC.L10N.register(
     "Choose" : "Chagua",
     "Send" : "Tuma",
     "Previous" : "Iliyopita",
+    "Next" : "Next",
     "Confirm" : "Thibitisha",
     "Open sidebar" : "Open sidebar",
     "Details" : "Maelezo ya kina",

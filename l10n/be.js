@@ -1,6 +1,8 @@
 OC.L10N.register(
     "libresign",
     {
+    "Missing a temporary folder" : "Адсутнічае часовая папка",
+    "Could not write file to disk" : "Не ўдалося запісаць файл на дыск",
     "Internal Server Error" : "Унутраная памылка сервера",
     "Invalid password" : "Няправільны пароль",
     "File is too big" : "Файл занадта вялікі",
@@ -18,6 +20,7 @@ OC.L10N.register(
     "Searching …" : "Пошук …",
     "No recommendations. Start typing." : "Няма рэкамендацый. Пачніце друкаваць.",
     "Confirm" : "Пацвердзіць",
+    "Open file" : "Адкрыць файл",
     "Type" : "Тып",
     "Actions" : "Дзеянні",
     "Password" : "Пароль",
@@ -30,14 +33,17 @@ OC.L10N.register(
     "Last 7 days" : "Апошнія 7 дзён",
     "Last 30 days" : "Апошнія 30 дзён",
     "This year ({year})" : "Гэты год ({year})",
-    "Last year ({year})" : "Апошні год ({year})",
+    "Last year ({year})" : "Мінулы год ({year})",
     "Modified" : "Зменены",
     "Active filters" : "Актыўныя фільтры",
     "Remove filter" : "Выдаліць фільтр",
     "1 file" : "1 файл",
     "{fileCount} files" : "{fileCount} файлы",
+    "Password reset" : "Скід пароля",
+    "New password" : "Новы пароль",
     "Yes" : "Так",
     "No" : "Не",
+    "Forgot password?" : "Забылі пароль?",
     "No date" : "Няма даты"
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");
