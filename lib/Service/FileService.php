@@ -242,12 +242,11 @@ class FileService {
 		if (!$nodeId) {
 			$nodeId = $this->file->getNodeId();
 		}
-		$fileToValidate = $this->root->getUserFolder($this->file->getUserId())->getById($nodeId);
-		if (!count($fileToValidate)) {
+		$fileToValidate = $this->root->getUserFolder($this->file->getUserId())->getFirstNodeById($nodeId);
+		if (!$fileToValidate instanceof \OCP\Files\File) {
 			throw new LibresignException($this->l10n->t('File not found'), 404);
 		}
-		/** @var \OCP\Files\File */
-		return current($fileToValidate);
+		return $fileToValidate;
 	}
 
 	private function getFileContent(): string {

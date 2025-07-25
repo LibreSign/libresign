@@ -39,7 +39,7 @@ use OCP\IUserManager;
 use OCP\Security\IHasher;
 
 class ValidateHelper {
-	/** @var \OCP\Files\Node[] */
+	/** @var \OCP\Files\File[] */
 	private $file = [];
 
 	public const TYPE_TO_SIGN = 1;
@@ -377,8 +377,7 @@ class ValidateHelper {
 			$userId = $libresignFile->getUserId();
 		}
 		try {
-			$file = $this->root->getUserFolder($userId)->getById($nodeId);
-			$file = $file[0] ?? null;
+			$file = $this->root->getUserFolder($userId)->getFirstNodeById($nodeId);
 		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
 		}
@@ -392,8 +391,7 @@ class ValidateHelper {
 			$libresignFile = $this->fileMapper->getByFileId($nodeId);
 			$userId = $libresignFile->getUserId();
 		}
-		$file = $this->root->getUserFolder($userId)->getById($nodeId);
-		$file = $file[0];
+		$file = $this->root->getUserFolder($userId)->getFirstNodeById($nodeId);
 		$this->validateMimeTypeAcceptedByMime($file->getMimeType(), $type);
 	}
 
@@ -421,24 +419,19 @@ class ValidateHelper {
 		}
 	}
 
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 * @return \OCP\Files\Node|array
-	 * @psalm-return \OCP\Files\Node|array<empty, empty>
-	 */
-	private function getLibreSignFileByNodeId(int $nodeId) {
+	private function getLibreSignFileByNodeId(int $nodeId): ?\OCP\Files\File {
 		if (isset($this->file[$nodeId])) {
 			return $this->file[$nodeId];
 		}
 		$libresignFile = $this->fileMapper->getByFileId($nodeId);
 
 		$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
-		$files = $userFolder->getById($nodeId);
-		if (!empty($files)) {
-			$this->file[$nodeId] = $files[0];
+		$file = $userFolder->getFirstNodeById($nodeId);
+		if ($file instanceof \OCP\Files\File) {
+			$this->file[$nodeId] = $file;
 			return $this->file[$nodeId];
 		}
-		return [];
+		return null;
 	}
 
 	public function canRequestSign(IUser $user): void {
