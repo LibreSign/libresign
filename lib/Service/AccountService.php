@@ -118,9 +118,9 @@ class AccountService {
 
 			$nodeId = $this->fileData->getNodeId();
 
-			$fileToSign = $this->root->getUserFolder($this->fileData->getUserId())->getById($nodeId);
-			if (count($fileToSign)) {
-				$this->fileToSign = current($fileToSign);
+			$fileToSign = $this->root->getUserFolder($this->fileData->getUserId())->getFirstNodeById($nodeId);
+			if ($fileToSign) {
+				$this->fileToSign = $fileToSign;
 			}
 		}
 		return [
@@ -272,11 +272,7 @@ class AccountService {
 		} else {
 			$nodeId = $fileData->getNodeId();
 		}
-		$nodes = $this->root->getUserFolder($fileData->getUserId())->getById($nodeId);
-		if (empty($nodes)) {
-			throw new DoesNotExistException('Not found');
-		}
-		$file = current($nodes);
+		$file = $this->root->getUserFolder($fileData->getUserId())->getFirstNodeById($nodeId);
 		if (!$file instanceof File) {
 			throw new DoesNotExistException('Not found');
 		}
