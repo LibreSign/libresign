@@ -236,6 +236,7 @@ OC.L10N.register(
     "Edit visible signatures" : "Cuir sínithe infheicthe in eagar",
     "Add signer" : "Cuir sínitheoir leis",
     "Send reminder" : "Seol meabhrúchán",
+    "Open file" : "Oscail comhad",
     "Enter who will receive the request" : "Cuir isteach cé a gheobhaidh an t-iarratas",
     "Document not available for signature." : "Níl an doiciméad ar fáil le síniú.",
     "Administration" : "Riarachán",
