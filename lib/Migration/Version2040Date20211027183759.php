@@ -59,11 +59,10 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 	public function postSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
 		foreach ($this->rows as $row) {
 			$userFolder = $this->root->getUserFolder($row['user_id']);
-			/** @var File[] */
-			$file = $userFolder->getById($row['node_id']);
-			if (count($file) >= 1) {
+			$file = $userFolder->getFirstNodeById($row['node_id']);
+			if ($file instanceof File) {
 				$data = $this->pdfParserService
-					->setFile($file[0])
+					->setFile($file)
 					->getPageDimensions();
 				$json = json_encode($data);
 				$query = $this->connection->getQueryBuilder();

@@ -66,23 +66,21 @@ class FolderService {
 	 */
 	public function getFileById(?int $nodeId = null): File {
 		if ($this->getUserId()) {
-			/** @var File[] */
-			$file = $this->root->getUserFolder($this->getUserId())->getById($nodeId);
-			if ($file) {
-				if (!$file[0]->fopen('r')) {
+			$file = $this->root->getUserFolder($this->getUserId())->getFirstNodeById($nodeId);
+			if ($file instanceof File) {
+				if (!$file->fopen('r')) {
 					throw new NotFoundException('Invalid node');
 				}
-				return $file[0];
+				return $file;
 			}
 
 			$folder = $this->root->getUserFolder($this->getUserId());
-			/** @var File[] */
-			$file = $folder->getById($nodeId);
-			if ($file) {
-				if (!$file[0]->fopen('r')) {
+			$file = $folder->getFirstNodeById($nodeId);
+			if ($file instanceof File) {
+				if (!$file->fopen('r')) {
 					throw new NotFoundException('Invalid node');
 				}
-				return current($file);
+				return $file;
 			}
 		}
 		$path = $this->getLibreSignDefaultPath();
@@ -92,12 +90,11 @@ class FolderService {
 		}
 		/** @var Folder $folder */
 		$folder = $containerFolder->get($path);
-		$file = $folder->getById($nodeId);
-		if (empty($file)) {
+		$file = $folder->getFirstNodeById($nodeId);
+		if (!$file instanceof File || !$file->fopen('r')) {
 			throw new NotFoundException('Invalid node');
 		}
-		/** @var File */
-		return current($file);
+		return $file;
 	}
 
 	private function getContainerFolder(): Folder {
