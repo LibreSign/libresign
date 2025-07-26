@@ -157,6 +157,7 @@ OC.L10N.register(
     "Confirm" : "Потвърди",
     "Request signatures?" : "Ще заявите ли подписи?",
     "Send reminder" : "Изпрашане на напомняне",
+    "Open file" : "Отваряне на файл",
     "Document not available for signature." : "Документът не е наличен за подпис.",
     "Administration" : "Администрация",
     "Open sidebar" : "Отвори страничното меню",

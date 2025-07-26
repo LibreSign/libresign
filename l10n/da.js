@@ -47,7 +47,7 @@ OC.L10N.register(
     "Previous" : "Tidligere",
     "Next" : "Næste",
     "Confirm" : "Bekræft",
-    "Open file" : "Åben fil",
+    "Open file" : "Åbn fil",
     "Administration" : "Administration",
     "Open sidebar" : "Åbn sidebar",
     "Details" : "Detaljer",
