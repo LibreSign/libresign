@@ -322,10 +322,10 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest
 			->method('__call')
 			->with($this->equalTo('getEmail'), $this->anything())
-			->will($this->returnValue('valid@test.coop'));
+			->willReturn('valid@test.coop');
 		$this->signRequestMapper
 			->method('getByUuid')
-			->will($this->returnValue($signRequest));
+			->willReturn($signRequest);
 		$actual = $this->getService()->validateCertificateData([
 			'uuid' => '12345678-1234-1234-1234-123456789012',
 			'user' => [
@@ -347,12 +347,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'getId' => 1,
 				}
 			);
-		$this->signRequestMapper->method('getByUuid')->will($this->returnValue($signRequest));
+		$this->signRequestMapper->method('getByUuid')->willReturn($signRequest);
 		$userToSign = $this->createMock(\OCP\IUser::class);
-		$this->userManager->method('createUser')->will($this->returnValue($userToSign));
-		$this->config->method('getAppValue')->will($this->returnValue('yes'));
+		$this->userManager->method('createUser')->willReturn($userToSign);
+		$this->config->method('getAppValue')->willReturn('yes');
 		$template = $this->createMock(\OCP\Mail\IEMailTemplate::class);
-		$this->newUserMail->method('generateTemplate')->will($this->returnValue($template));
+		$this->newUserMail->method('generateTemplate')->willReturn($template);
 		$this->newUserMail->method('sendMail')->will($this->returnCallback(function ():void {
 			throw new \Exception('Error Processing Request', 1);
 		}));
@@ -397,7 +397,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			);
 		$this->fileMapper
 			->method('getByUuid')
-			->will($this->returnValue($libresignFile));
+			->willReturn($libresignFile);
 		$node = $this->createMock(\OCP\Files\File::class);
 		$this->root
 			->method('getUserFolder')

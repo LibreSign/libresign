@@ -145,7 +145,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testValidateNotRequestedSignWhenAlreadyAskedToSignThisDocument():void {
-		$this->signRequestMapper->method('getByNodeId')->will($this->returnValue('exists'));
+		$this->signRequestMapper->method('getByNodeId')->willReturn('exists');
 		$this->expectExceptionMessage('Already asked to sign this document');
 		$this->getValidateHelper()->validateNotRequestedSign(1);
 	}
@@ -417,7 +417,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateFileUuidWithValidUuid():void {
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
-		$this->fileMapper->method('getByUuid')->will($this->returnValue($file));
+		$this->fileMapper->method('getByUuid')->willReturn($file);
 		$actual = $this->getValidateHelper()->validateFileUuid(['uuid' => 'valid']);
 		$this->assertNull($actual);
 	}
@@ -565,14 +565,14 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				);
 			$libresignFile->method('getUserId')
 				->willReturn('fake_user');
-			$this->fileMapper->method('getByUuid')->will($this->returnValue($libresignFile));
-			$this->fileMapper->method('getByFileId')->will($this->returnValue($libresignFile));
+			$this->fileMapper->method('getByUuid')->willReturn($libresignFile);
+			$this->fileMapper->method('getByFileId')->willReturn($libresignFile);
 
 			$data['uuid'] = $uuid;
 		} elseif (!empty($dataFile)) {
 			$libresignFile->method('getUserId')
 				->willReturn('fake_user');
-			$this->fileMapper->method('getByFileId')->will($this->returnValue($libresignFile));
+			$this->fileMapper->method('getByFileId')->willReturn($libresignFile);
 
 			$file = $this->createMock(\OCP\Files\File::class);
 			$file
