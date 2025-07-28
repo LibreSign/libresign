@@ -48,9 +48,9 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testSavePfxWhenPfxFileIsAFolder():void {
 		$node = $this->createMock(\OCP\Files\Folder::class);
-		$node->method('nodeExists')->will($this->returnValue(true));
-		$node->method('get')->will($this->returnValue($node));
-		$this->folderService->method('getFolder')->will($this->returnValue($node));
+		$node->method('nodeExists')->willReturn(true);
+		$node->method('get')->willReturn($node);
+		$this->folderService->method('getFolder')->willReturn($node);
 
 		$this->expectExceptionMessage('path signature.pfx already exists and is not a file!');
 		$this->getHandler()->savePfx('userId', 'content');
@@ -58,10 +58,10 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testSavePfxWhenPfxFileExsitsAndIsAFile():void {
 		$node = $this->createMock(\OCP\Files\Folder::class);
-		$node->method('nodeExists')->will($this->returnValue(true));
+		$node->method('nodeExists')->willReturn(true);
 		$file = $this->createMock(\OCP\Files\File::class);
-		$node->method('get')->will($this->returnValue($file));
-		$this->folderService->method('getFolder')->will($this->returnValue($node));
+		$node->method('get')->willReturn($file);
+		$this->folderService->method('getFolder')->willReturn($node);
 
 		$actual = $this->getHandler()->savePfx('userId', 'content');
 		$this->assertEquals('content', $actual);
@@ -69,8 +69,8 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testGetPfxOfCurrentSignerWithInvalidPfx():void {
 		$node = $this->createMock(\OCP\Files\Folder::class);
-		$node->method('nodeExists')->will($this->returnValue(false));
-		$this->folderService->method('getFolder')->will($this->returnValue($node));
+		$node->method('nodeExists')->willReturn(false);
+		$this->folderService->method('getFolder')->willReturn($node);
 		$this->expectExceptionMessage('Password to sign not defined. Create a password to sign');
 		$this->expectExceptionCode(400);
 		$this->getHandler()->getPfxOfCurrentSigner('userId');
@@ -78,12 +78,12 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testGetPfxOfCurrentSignerOk():void {
 		$folder = $this->createMock(\OCP\Files\Folder::class);
-		$folder->method('nodeExists')->will($this->returnValue(true));
+		$folder->method('nodeExists')->willReturn(true);
 		$file = $this->createMock(\OCP\Files\File::class);
 		$file->method('getContent')
 			->willReturn('valid pfx content');
-		$folder->method('get')->will($this->returnValue($file));
-		$this->folderService->method('getFolder')->will($this->returnValue($folder));
+		$folder->method('get')->willReturn($file);
+		$this->folderService->method('getFolder')->willReturn($folder);
 		$actual = $this->getHandler()->getPfxOfCurrentSigner('userId');
 		$this->assertEquals('valid pfx content', $actual);
 	}
