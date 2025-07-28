@@ -175,8 +175,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testCanDeleteRequestSignatureWhenDocumentAlreadySigned():void {
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
-		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
-		$this->fileMapper->method('getByUuid')->will($this->returnValue($file));
+		$file->method('__call')->with($this->equalTo('getId'))->willReturn(1);
+		$this->fileMapper->method('getByUuid')->willReturn($file);
 		$signRequest = $this->createMock(\OCA\Libresign\Db\SignRequest::class);
 		$signRequest
 			->method('__call')
@@ -185,15 +185,15 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'getSigned' => '2021-01-01 01:01:01',
 				}
 			);
-		$this->signRequestMapper->method('getByFileUuid')->will($this->returnValue([$signRequest]));
+		$this->signRequestMapper->method('getByFileUuid')->willReturn([$signRequest]);
 		$this->expectExceptionMessage('Document already signed');
 		$this->getService()->canDeleteRequestSignature(['uuid' => 'valid']);
 	}
 
 	public function testCanDeleteRequestSignatureWhenNoSignatureWasRequested():void {
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
-		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
-		$this->fileMapper->method('getByUuid')->will($this->returnValue($file));
+		$file->method('__call')->with($this->equalTo('getId'))->willReturn(1);
+		$this->fileMapper->method('getByUuid')->willReturn($file);
 		$signRequest = $this->createMock(\OCA\Libresign\Db\SignRequest::class);
 		$signRequest
 			->method('__call')
@@ -203,7 +203,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'getId' => 171,
 				}
 			);
-		$this->signRequestMapper->method('getByFileUuid')->will($this->returnValue([$signRequest]));
+		$this->signRequestMapper->method('getByFileUuid')->willReturn([$signRequest]);
 		$this->expectExceptionMessage('No signature was requested to %');
 		$this->getService()->canDeleteRequestSignature([
 			'uuid' => 'valid',
