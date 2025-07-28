@@ -103,14 +103,14 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$response = $this->createMock(IResponse::class);
 		$response
 			->method('getHeaders')
-			->will($this->returnValue(['Content-Type' => ['application/pdf']]));
+			->willReturn(['Content-Type' => ['application/pdf']]);
 		$client = $this->createMock(IClient::class);
 		$client
 			->method('get')
-			->will($this->returnValue($response));
+			->willReturn($response);
 		$this->clientService
 			->method('newClient')
-			->will($this->returnValue($client));
+			->willReturn($client);
 
 		$this->getService()->validateNewRequestToFile([
 			'file' => ['url' => 'http://test.coop'],

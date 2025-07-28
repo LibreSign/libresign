@@ -69,10 +69,10 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file
 			->method('__call')
 			->with($this->equalTo('getName'), $this->anything())
-			->will($this->returnValue('Filename'));
+			->willReturn('Filename');
 		$this->fileMapper
 			->method('getById')
-			->will($this->returnValue($file));
+			->willReturn($file);
 		$this->appConfig
 			->method('getValueBool')
 			->willReturn(true);
@@ -98,10 +98,10 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file
 			->method('__call')
 			->with($this->equalTo('getName'), $this->anything())
-			->will($this->returnValue('Filename'));
+			->willReturn('Filename');
 		$this->fileMapper
 			->method('getById')
-			->will($this->returnValue($file));
+			->willReturn($file);
 		$this->mailer
 			->method('send')
 			->willReturnCallback(function ():void {
@@ -109,7 +109,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			});
 		$this->appConfig
 			->method('getValueBool')
-			->will($this->returnValue(true));
+			->willReturn(true);
 		$actual = $this->service->notifyUnsignedUser($signRequest, 'a@b.coop');
 		$this->assertNull($actual);
 	}
