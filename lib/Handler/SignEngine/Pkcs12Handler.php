@@ -10,14 +10,12 @@ namespace OCA\Libresign\Handler\SignEngine;
 
 use DateTime;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\OrderCertificatesTrait;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
-use OCP\Files\GenericFileException;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
