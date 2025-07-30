@@ -74,7 +74,7 @@ class SignFileService {
 	private string $friendlyName = '';
 	private array $signers = [];
 	private ?IUser $user = null;
-	private Pkcs7Handler|Pkcs12Handler|null $engine = null;
+	private Pkcs7Handler|Pkcs12Handler $engine = null;
 
 	public function __construct(
 		protected IL10N $l10n,
@@ -538,7 +538,7 @@ class SignFileService {
 		return $originalFile;
 	}
 
-	protected function getEngine(): Pkcs7Handler|Pkcs12Handler {
+	protected function getEngine(): Pkcs7Handler|Pkcs12Handler|null {
 		if (!is_object($this->engine)) {
 			$originalFile = $this->getFileToSing();
 			$this->identifyEngine($originalFile);
