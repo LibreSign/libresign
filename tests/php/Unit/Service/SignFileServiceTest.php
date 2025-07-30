@@ -50,7 +50,7 @@ use Psr\Log\LoggerInterface;
  */
 final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N&MockObject $l10n;
-	private Pkcs7Handler&MockObject $pkcs7Handler;
+	private Pkcs7Handler|MockObject $pkcs7Handler;
 	private Pkcs12Handler&MockObject $pkcs12Handler;
 	private FooterHandler&MockObject $footerHandler;
 	private FileMapper&MockObject $fileMapper;
@@ -71,7 +71,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IEventDispatcher&MockObject $eventDispatcher;
 	private IURLGenerator&MockObject $urlGenerator;
 	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
-	private ITempManager&MockObject $tempManager;
+	private ITempManager|MockObject $tempManager;
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private ITimeFactory&MockObject $timeFactory;
 	private JavaHelper&MockObject $javaHelper;
@@ -317,6 +317,57 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			['application/pdf', 'file.pdf', 'pdf'],
 			['application/xml', 'file.XML', 'XML'],
 			['application/xml', 'file.xml', 'xml'],
+		];
+	}
+
+	#[DataProvider('dataDatabaseSignatureDateMatchesLastDocumentSignature')]
+	public function testDatabaseSignatureDateMatchesLastDocumentSignature(string $mimetype, string $filename, string $extension):void {
+		$this->pkcs7Handler = \OCP\Server::get(Pkcs7Handler::class);
+
+		$file = new \OCA\Libresign\Db\File();
+		$file->setNodeId(100);
+
+		$this->tempManager = \OCP\Server::get(\OCP\ITempManager::class);
+		$originalTempFile = $this->tempManager->getTemporaryFile($filename);
+		$signedTempFile = $this->tempManager->getTemporaryFile($filename . '.p7s');
+		file_put_contents($originalTempFile, 'fake content');
+		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
+		$nextcloudFile->method('getExtension')->willReturn($extension);
+		$nextcloudFile->method('getInternalPath')->willReturn($originalTempFile);
+
+		$p7sFile = $this->createMock(\OCP\Files\File::class);
+		$p7sFile->method('getInternalPath')->willReturn($signedTempFile);
+		$p7sFile->method('getContent')->willReturnCallback(function () use ($signedTempFile) {
+			return file_get_contents($signedTempFile);
+		});
+		$p7sFile->method('fopen')->willReturnCallback(function () use ($signedTempFile) {
+			return fopen($signedTempFile, 'rb');
+		});
+		$this->root->method('newFile')->willReturn($p7sFile);
+
+		$nextcloudFile->method('getParent')->willReturn($this->root);
+
+		$this->root->method('getUserFolder')->willReturn($this->root);
+		$this->root->method('getFirstNodeById')->willReturnCallback(function ($id) use ($nextcloudFile) {
+			return match ($id) {
+				100 => $nextcloudFile,
+			};
+		});
+
+		$signRequest = new \OCA\Libresign\Db\SignRequest();
+		$signRequest->setFileId(100);
+		$this->getService()
+			->setLibreSignFile($file)
+			->setSignRequest($signRequest)
+			->setSignWithoutPassword()
+			->setPassword('password')
+			->sign();
+		$this->assertTrue(true);
+	}
+
+	public static function dataDatabaseSignatureDateMatchesLastDocumentSignature(): array {
+		return [
+			['application/xml', 'file.XML', 'XML'],
 		];
 	}
 
