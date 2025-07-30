@@ -322,20 +322,19 @@ class SignFileService {
 	}
 
 	public function sign(): File {
-		$signedFile = match ($this->getEngine()::class) {
-			Pkcs12Handler::class => $this->pkcs12Handler
-				->setInputFile($this->getFileToSing())
-				->setCertificate($this->getPfxContent())
+		$engine = $this->getEngine()
+			->setInputFile($this->getFileToSing())
+			->setCertificate($this->getPfxContent())
+			->setPassword($this->password);
+
+		if ($engine::class === Pkcs12Handler::class) {
+			$engine
 				->setVisibleElements($this->getVisibleElements())
-				->setPassword($this->password)
-				->setSignatureParams($this->getSignatureParams())
-				->sign(),
-			default => $this->pkcs7Handler
-				->setInputFile($this->getFileToSing())
-				->setCertificate($this->getPfxContent())
-				->setPassword($this->password)
-				->sign(),
+				->setSignatureParams($this->getSignatureParams());
 		};
+
+		$signedFile = $engine->sign();
+
 		$hash = hash('sha256', $signedFile->getContent());
 
 		$this->signRequest->setSigned($this->getLastSignedDate($signedFile));
