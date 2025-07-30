@@ -43,6 +43,7 @@ use OCP\IURLGenerator;
 use OCP\IUserManager;
 use OCP\IUserSession;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
@@ -320,8 +321,16 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	#[DataProvider('dataDatabaseSignatureDateMatchesLastDocumentSignature')]
+	#[RunInSeparateProcess]
 	public function testDatabaseSignatureDateMatchesLastDocumentSignature(string $mimetype, string $filename, string $extension):void {
+		$this->tempManager = \OCP\Server::get(\OCP\ITempManager::class);
+		$folder = $this->tempManager->getTemporaryFolder('libresign');
+		mkdir($folder . 'openssl_config');
+		$this->appConfig->setValueString('libresign', 'certificate_engine', 'openssl');
+		$this->appConfig->setValueString('libresign', 'config_path', $folder . 'openssl_config');
+
 		$openSslHandler = \OCP\Server::get(OpenSslHandler::class);
+		$openSslHandler->setConfigPath($folder . 'openssl_config');
 		$openSslHandler->generateRootCert('CommonName');
 
 		$this->pkcs7Handler = \OCP\Server::get(Pkcs7Handler::class);
@@ -329,7 +338,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setNodeId(100);
 
-		$this->tempManager = \OCP\Server::get(\OCP\ITempManager::class);
 		$originalTempFile = $this->tempManager->getTemporaryFile($filename);
 		$signedTempFile = $this->tempManager->getTemporaryFile($filename . '.p7s');
 		file_put_contents($originalTempFile, 'fake content');
