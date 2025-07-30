@@ -18,6 +18,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
@@ -320,6 +321,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[DataProvider('dataDatabaseSignatureDateMatchesLastDocumentSignature')]
 	public function testDatabaseSignatureDateMatchesLastDocumentSignature(string $mimetype, string $filename, string $extension):void {
+		$openSslHandler = \OCP\Server::get(OpenSslHandler::class);
+		$openSslHandler->generateRootCert('CommonName');
+
 		$this->pkcs7Handler = \OCP\Server::get(Pkcs7Handler::class);
 
 		$file = new \OCA\Libresign\Db\File();
