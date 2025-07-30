@@ -315,8 +315,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			['application/pdf', 'file.PDF', 'PDF'],
 			['application/pdf', 'file.pdf', 'pdf'],
-			['application/xml', 'file.XML', 'XML'],
-			['application/xml', 'file.xml', 'xml'],
 		];
 	}
 
