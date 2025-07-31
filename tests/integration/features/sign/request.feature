@@ -237,7 +237,7 @@ Feature: request-signature
       | users | [{"identify":{"account":"signer1"}}] |
       | name | document |
     Then the response should have a status code 200
-    And fetch field "(FILE_UUID)ocs.data.data.uuid" from prevous JSON response
+    And fetch field "(FILE_UUID)ocs.data.data.uuid" from previous JSON response
     When as user "signer1"
     Then sending "get" to ocs "/apps/notifications/api/v2/notifications"
     And the response should be a JSON array with the following mandatory values
@@ -342,10 +342,10 @@ Feature: request-signature
       | users  | [{"identify":{"email":"signer1@domain.test"}}]  |
       | status | 0                                               |
       | name   | document                                        |
-    And fetch field "(FILE_UUID)ocs.data.data.uuid" from prevous JSON response
+    And fetch field "(FILE_UUID)ocs.data.data.uuid" from previous JSON response
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list"
-    And fetch field "ocs.data.data.0.signers.0.signRequestId" from prevous JSON response
+    And fetch field "ocs.data.data.0.signers.0.signRequestId" from previous JSON response
     When sending "post" to ocs "/apps/libresign/api/v1/file-element/<FILE_UUID>"
       | signRequestId | <ocs.data.data.0.signers.0.signRequestId> |
       | type          | signature                                 |
@@ -523,7 +523,7 @@ Feature: request-signature
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | users | [{"identify":{"email":"signer1@domain.test"}},{"identify":{"account":"signer1"}}] |
       | name | document |
-    And fetch field "(FILE_UUID)ocs.data.data.uuid" from prevous JSON response
+    And fetch field "(FILE_UUID)ocs.data.data.uuid" from previous JSON response
     And the response should have a status code 200
     When sending "get" to ocs "/apps/libresign/api/v1/file/list"
     And the response should be a JSON array with the following mandatory values
