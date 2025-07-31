@@ -27,9 +27,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 * @BeforeSuite
 	 */
 	public static function beforeSuite(BeforeSuiteScope $scope):void {
-		if (get_current_user() !== exec('whoami')) {
-			throw new Exception(sprintf("Have files that %s is the owner and the user that is running this test is %s, is necessary to be the same user.\n You should prefix your command to run the behat test with 'runuser -u %s'", get_current_user(), exec('whoami'), get_current_user()));
-		}
+		parent::beforeSuite($scope);
 		self::runCommand('config:system:set debug --value true --type boolean');
 		self::runCommand('app:enable --force notifications');
 	}
@@ -37,68 +35,9 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	/**
 	 * @BeforeScenario
 	 */
-	public static function BeforeScenario(): void {
-		self::$environments = [];
+	public function beforeScenario(): void {
+		parent::beforeScenario();
 		self::runCommand('libresign:developer:reset --all');
-	}
-
-	/**
-	 * @When /^run the command "(?P<command>(?:[^"]|\\")*)"$/
-	 */
-	public static function runCommand(string $command): array {
-		$console = realpath(__DIR__ . '/../../../../../../console.php');
-		$owner = posix_getpwuid(fileowner($console));
-		$fullCommand = 'php ' . $console . ' ' . $command;
-		if (posix_getuid() !== $owner['uid']) {
-			$fullCommand = 'runuser -u ' . $owner['name'] . ' -- ' . $fullCommand;
-		}
-		if (!empty(self::$environments)) {
-			$fullCommand = http_build_query(self::$environments, '', ' ') . ' ' . $fullCommand;
-		}
-		$fullCommand .= '  2>&1';
-		return self::runBashCommand($fullCommand);
-	}
-
-	private static function runBashCommand(string $command): array {
-		$command = str_replace('\"', '"', $command);
-		$patterns = [];
-		$replacements = [];
-		$fields['libresignRootDir'] = realpath(__DIR__ . '/../../../../');
-		foreach ($fields as $key => $value) {
-			$patterns[] = '/<' . $key . '>/';
-			$replacements[] = $value;
-		}
-		$command = preg_replace($patterns, $replacements, $command);
-
-		exec($command, $output, $resultCode);
-		return [
-			'command' => $command,
-			'output' => $output,
-			'resultCode' => $resultCode,
-		];
-	}
-
-	/**
-	 * @When /^run the command "(?P<command>(?:[^"]|\\")*)" with result code (\d+)$/
-	 */
-	public static function runCommandWithResultCode(string $command, int $resultCode = 0): void {
-		$return = self::runCommand($command);
-		Assert::assertEquals($resultCode, $return['resultCode'], print_r($return, true));
-	}
-
-	/**
-	 * @When /^run the bash command "(?P<command>(?:[^"]|\\")*)" with result code (\d+)$/
-	 */
-	public static function runBashCommandWithResultCode(string $command, int $resultCode = 0): void {
-		$return = self::runBashCommand($command);
-		Assert::assertEquals($resultCode, $return['resultCode'], print_r($return, true));
-	}
-
-	/**
-	 * @Given create an environment :name with value :value to be used by occ command
-	 */
-	public static function createAnEnvironmentWithValueToBeUsedByOccCommand($name, $value):void {
-		self::$environments[$name] = $value;
 	}
 
 	/**
@@ -107,12 +46,12 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	public function assureGuestExists(string $guest): void {
 		$response = $this->userExists($guest);
 		if ($response->getStatusCode() !== 200) {
-			$this->createAnEnvironmentWithValueToBeUsedByOccCommand('OC_PASS', '123456');
+			static::createAnEnvironmentWithValueToBeUsedByOccCommand('OC_PASS', '123456');
 			$this->runCommandWithResultCode('guests:add admin ' . $guest . ' --password-from-env', 0);
 			// Set a display name different than the user ID to be able to
 			// ensure in the tests that the right value was returned.
 			$this->setUserDisplayName($guest);
-			$this->createdUsers[] = $guest;
+			self::$createdUsers[] = $guest;
 		}
 	}
 
