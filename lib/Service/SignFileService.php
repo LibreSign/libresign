@@ -324,8 +324,7 @@ class SignFileService {
 
 	public function sign(): File {
 		$engine = $this->getEngine();
-		$engine
-			->setCertificate($this->getPfxContent());
+		$engine->setCertificate($this->getPfxContent());
 
 		$signedFile = $engine->sign();
 
