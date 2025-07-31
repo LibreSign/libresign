@@ -322,16 +322,10 @@ class SignFileService {
 	}
 
 	public function sign(): File {
-		$engine = $this->getEngine()
-			->setInputFile($this->getFileToSing())
+		$engine = $this->getEngine();
+		$engine
 			->setCertificate($this->getPfxContent())
 			->setPassword($this->password);
-
-		if ($engine::class === Pkcs12Handler::class) {
-			$engine
-				->setVisibleElements($this->getVisibleElements())
-				->setSignatureParams($this->getSignatureParams());
-		};
 
 		$signedFile = $engine->sign();
 
@@ -510,8 +504,6 @@ class SignFileService {
 
 	protected function readCertificate(): array {
 		return $this->getEngine()
-			->setPassword($this->password)
-			->setCertificate($this->getPfxContent())
 			->readCertificate();
 	}
 
@@ -541,6 +533,14 @@ class SignFileService {
 		if (!is_object($this->engine)) {
 			$originalFile = $this->getFileToSing();
 			$this->identifyEngine($originalFile);
+		}
+		$this->engine
+			->setInputFile($this->getFileToSing());
+
+		if ($this->engine::class === Pkcs12Handler::class) {
+			$this->engine
+				->setVisibleElements($this->getVisibleElements())
+				->setSignatureParams($this->getSignatureParams());
 		}
 		return $this->engine;
 	}
