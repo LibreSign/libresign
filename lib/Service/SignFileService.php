@@ -467,7 +467,7 @@ class SignFileService {
 		return false;
 	}
 
-	private function getPfxContent(Pkcs7Handler|Pkcs12Handler $engine): string {
+	private function getOrGeneratePfxContent(Pkcs7Handler|Pkcs12Handler $engine): string {
 		if ($certificate = $engine->getCertificate()) {
 			return $certificate;
 		}
@@ -528,7 +528,7 @@ class SignFileService {
 		}
 		$this->engine
 			->setInputFile($this->getFileToSing())
-			->setCertificate($this->getPfxContent($this->engine))
+			->setCertificate($this->getOrGeneratePfxContent($this->engine))
 			->setPassword($this->password);
 
 		if ($this->engine::class === Pkcs12Handler::class) {
