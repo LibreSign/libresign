@@ -323,10 +323,7 @@ class SignFileService {
 	}
 
 	public function sign(): File {
-		$engine = $this->getEngine();
-		$engine->setCertificate($this->getPfxContent());
-
-		$signedFile = $engine->sign();
+		$signedFile = $this->getEngine()->sign();
 
 		$hash = hash('sha256', $signedFile->getContent());
 
@@ -470,14 +467,14 @@ class SignFileService {
 		return false;
 	}
 
-	private function getPfxContent(): string {
-		if ($certificate = $this->getEngine()->getCertificate()) {
+	private function getPfxContent(Pkcs7Handler|Pkcs12Handler $engine): string {
+		if ($certificate = $engine->getCertificate()) {
 			return $certificate;
 		}
 		if ($this->signWithoutPassword) {
 			$tempPassword = $this->generateTemporaryPassword();
 			$this->setPassword($tempPassword);
-			$certificate = $this->getEngine()->generateCertificate(
+			$certificate = $engine->generateCertificate(
 				[
 					'host' => $this->userUniqueIdentifier,
 					'uid' => $this->userUniqueIdentifier,
@@ -486,9 +483,9 @@ class SignFileService {
 				$tempPassword,
 				$this->friendlyName,
 			);
-			$this->getEngine()->setCertificate($certificate);
+			$engine->setCertificate($certificate);
 		}
-		return $this->getEngine()->getPfxOfCurrentSigner();
+		return $engine->getPfxOfCurrentSigner();
 	}
 
 	private function generateTemporaryPassword(): string {
@@ -524,13 +521,14 @@ class SignFileService {
 		return $originalFile;
 	}
 
-	protected function getEngine(): Pkcs7Handler|Pkcs12Handler|null {
+	protected function getEngine(): Pkcs7Handler|Pkcs12Handler {
 		if (!is_object($this->engine)) {
 			$originalFile = $this->getFileToSing();
 			$this->identifyEngine($originalFile);
 		}
 		$this->engine
 			->setInputFile($this->getFileToSing())
+			->setCertificate($this->getPfxContent($this->engine))
 			->setPassword($this->password);
 
 		if ($this->engine::class === Pkcs12Handler::class) {
