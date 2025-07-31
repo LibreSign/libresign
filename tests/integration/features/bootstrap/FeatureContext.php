@@ -7,6 +7,9 @@ declare(strict_types=1);
  */
 
 use Behat\Gherkin\Node\TableNode;
+use Behat\Hook\BeforeScenario;
+use Behat\Hook\BeforeSuite;
+use Behat\Step\Given;
 use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
 use Libresign\NextcloudBehat\NextcloudApiContext;
 use PHPUnit\Framework\Assert;
@@ -22,26 +25,20 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	private array $customHeaders = [];
 	private OpenedEmailStorage $openedEmailStorage;
 
-	/**
-	 * @BeforeSuite
-	 */
+	#[BeforeSuite()]
 	public static function beforeSuite(BeforeSuiteScope $scope):void {
 		parent::beforeSuite($scope);
 		self::runCommand('config:system:set debug --value true --type boolean');
 		self::runCommand('app:enable --force notifications');
 	}
 
-	/**
-	 * @BeforeScenario
-	 */
-	public function beforeScenario(): void {
+	#[BeforeScenario()]
+	public static function beforeScenario(): void {
 		parent::beforeScenario();
 		self::runCommand('libresign:developer:reset --all');
 	}
 
-	/**
-	 * @When guest :guest exists
-	 */
+	#[Given('guest :guest exists')]
 	public function assureGuestExists(string $guest): void {
 		$response = $this->userExists($guest);
 		if ($response->getStatusCode() !== 200) {
@@ -69,9 +66,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		parent::sendRequest($verb, $url, $body, $headers, $options);
 	}
 
-	/**
-	 * @Given /^set the custom http header "([^"]*)" with "([^"]*)" as value to next request$/
-	 */
+	#[Given('/^set the custom http header "([^"]*)" with "([^"]*)" as value to next request$/')]
 	public function setTheCustomHttpHeaderAsValueToNextRequest(string $header, string $value):void {
 		if (empty($value)) {
 			unset($this->customHeaders[$header]);
@@ -99,9 +94,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		return $text;
 	}
 
-	/**
-	 * @When I fetch the signer UUID from opened email
-	 */
+	#[Given('I fetch the signer UUID from opened email')]
 	public function iFetchTheLinkOnOpenedEmail(): void {
 		if (!$this->openedEmailStorage->hasOpenedEmail()) {
 			throw new RuntimeException('No email opened, unable to do something!');
@@ -114,16 +107,12 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$this->fields['SIGN_UUID'] = $matches['uuid'];
 	}
 
-	/**
-	 * @when I send a file to be signed
-	 */
+	#[Given('I send a file to be signed')]
 	public function iSendAFileToBeSigned(TableNode $body): void {
 		$this->sendOCSRequest('post', '/apps/libresign/api/v1/request-signature', $body);
 	}
 
-	/**
-	 * @When follow the link on opened email
-	 */
+	#[Given('follow the link on opened email')]
 	public function followTheLinkOnOpenedEmail(): void {
 		if (!$this->openedEmailStorage->hasOpenedEmail()) {
 			throw new RuntimeException('No email opened, unable to do something!');
@@ -136,23 +125,17 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$this->sendRequest('get', '/apps/libresign/p/sign/' . $matches['uuid']);
 	}
 
-	/**
-	 * @When reset :type of user :user
-	 */
+	#[Given('reset :type of user :user')]
 	public function resetNotifications($type, $user): void {
 		self::runCommand('libresign:developer:reset --' . $type . '=' . $user);
 	}
 
-	/**
-	 * @When /^wait for ([0-9]+) (second|seconds)$/
-	 */
+	#[Given('/^wait for ([0-9]+) (second|seconds)$/')]
 	public function waitForXSecond(int $seconds): void {
 		sleep($seconds);
 	}
 
-	/**
-	 * @When user :user has the following notifications
-	 */
+	#[Given('user :user has the following notifications')]
 	public function userNotifications(string $user, ?TableNode $body = null): void {
 		$this->setCurrentUser($user);
 		$this->sendOCSRequest(
@@ -193,9 +176,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		}
 	}
 
-	/**
-	 * @When I fetch the signer UUID from notification
-	 */
+	#[Given('I fetch the signer UUID from notification')]
 	public function iFetchTheSignerUuidFromNotification(): void {
 		$this->sendOCSRequest(
 			'GET', '/apps/notifications/api/v2/notifications'
