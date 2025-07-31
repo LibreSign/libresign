@@ -29,7 +29,6 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Events\SignedCallbackEvent;
 use OCA\Libresign\Events\SignedEvent;
-use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\PdfTk\Pdf;
@@ -60,7 +59,6 @@ use OCP\Security\Events\GenerateSecurePasswordEvent;
 use OCP\Security\ISecureRandom;
 use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
-use TypeError;
 
 class SignFileService {
 	/** @var SignRequestEntity */

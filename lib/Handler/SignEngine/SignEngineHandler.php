@@ -19,7 +19,6 @@ use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
 use OCP\Files\GenericFileException;
 use OCP\IL10N;
-use TypeError;
 
 abstract class SignEngineHandler implements ISignEngineHandler {
 	private File $inputFile;
