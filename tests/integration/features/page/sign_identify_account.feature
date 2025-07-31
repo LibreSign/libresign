@@ -13,7 +13,7 @@ Feature: page/sign_identify_account
       | users | [{"identify":{"account":"signer1"}}] |
       | name | document |
     And the response should have a status code 200
-    And fetch field "(FILE_UUID)ocs.data.data.uuid" from prevous JSON response
+    And fetch field "(FILE_UUID)ocs.data.data.uuid" from previous JSON response
     When as user "signer1"
     And sending "get" to ocs "/apps/notifications/api/v2/notifications"
     Then the response should be a JSON array with the following mandatory values
@@ -30,7 +30,7 @@ Feature: page/sign_identify_account
       | (jq).ocs.data.data[0].signers[0].identifyMethods\|length   | 1                       |
       | (jq).ocs.data.data[0].signers[0].identifyMethods[0].method | account                 |
       | (jq).ocs.data.data[0].signers[0].identifyMethods[0].value  | signer1                 |
-    And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from prevous JSON response
+    And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from previous JSON response
     # invalid UUID, need to be the signer UUID
     When as user "signer1"
     And sending "get" to "/apps/libresign/p/sign/<FILE_UUID>"
@@ -83,7 +83,7 @@ Feature: page/sign_identify_account
       | (jq).ocs.data.data[0].signers[0].identifyMethods\|length   | 1                       |
       | (jq).ocs.data.data[0].signers[0].identifyMethods[0].method | account                 |
       | (jq).ocs.data.data[0].signers[0].identifyMethods[0].value  | signer1                 |
-    And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from prevous JSON response
+    And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from previous JSON response
     When as user "signer1"
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     And the response should contain the initial state "libresign-action" with the following values:

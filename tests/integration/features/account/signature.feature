@@ -206,7 +206,7 @@ Feature: account/signature
       | key      | value                         |
       | (jq).ocs.data.elements\|length | 1         |
       | (jq).ocs.data.elements[0].type | signature |
-    And fetch field "(NODE_ID)ocs.data.elements.0.file.nodeId" from prevous JSON response
+    And fetch field "(NODE_ID)ocs.data.elements.0.file.nodeId" from previous JSON response
     When sending "delete" to ocs "/apps/libresign/api/v1/signature/elements/<NODE_ID>"
     Then the response should have a status code 200
 
@@ -232,6 +232,6 @@ Feature: account/signature
       | key                            | value     |
       | (jq).ocs.data.elements\|length | 1         |
       | (jq).ocs.data.elements[0].type | signature |
-    And fetch field "(NODE_ID)ocs.data.elements.0.file.nodeId" from prevous JSON response
+    And fetch field "(NODE_ID)ocs.data.elements.0.file.nodeId" from previous JSON response
     When sending "delete" to ocs "/apps/libresign/api/v1/signature/elements/<NODE_ID>"
     Then the response should have a status code 200
