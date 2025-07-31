@@ -56,6 +56,8 @@ use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
+use OCP\Security\Events\GenerateSecurePasswordEvent;
+use OCP\Security\ISecureRandom;
 use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
 use TypeError;
@@ -97,6 +99,7 @@ class SignFileService {
 		private FileElementMapper $fileElementMapper,
 		private UserElementMapper $userElementMapper,
 		private IEventDispatcher $eventDispatcher,
+		protected ISecureRandom $secureRandom,
 		private IURLGenerator $urlGenerator,
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private ITempManager $tempManager,
@@ -324,8 +327,7 @@ class SignFileService {
 	public function sign(): File {
 		$engine = $this->getEngine();
 		$engine
-			->setCertificate($this->getPfxContent())
-			->setPassword($this->password);
+			->setCertificate($this->getPfxContent());
 
 		$signedFile = $engine->sign();
 
@@ -476,30 +478,26 @@ class SignFileService {
 			return $certificate;
 		}
 		if ($this->signWithoutPassword) {
-			$tempPassword = sha1((string)time());
+			$tempPassword = $this->generateTemporaryPassword();
 			$this->setPassword($tempPassword);
-			try {
-				$certificate = $this->getEngine()->generateCertificate(
-					[
-						'host' => $this->userUniqueIdentifier,
-						'uid' => $this->userUniqueIdentifier,
-						'name' => $this->friendlyName,
-					],
-					$tempPassword,
-					$this->friendlyName,
-				);
-				$this->getEngine()->setCertificate($certificate);
-			} catch (TypeError) {
-				throw new LibresignException($this->l10n->t('Failure to generate certificate'));
-			} catch (EmptyCertificateException) {
-				throw new LibresignException($this->l10n->t('Empty root certificate data'));
-			} catch (InvalidArgumentException) {
-				throw new LibresignException($this->l10n->t('Invalid data to generate certificate'));
-			} catch (\Throwable) {
-				throw new LibresignException($this->l10n->t('Failure on generate certificate'));
-			}
+			$certificate = $this->getEngine()->generateCertificate(
+				[
+					'host' => $this->userUniqueIdentifier,
+					'uid' => $this->userUniqueIdentifier,
+					'name' => $this->friendlyName,
+				],
+				$tempPassword,
+				$this->friendlyName,
+			);
+			$this->getEngine()->setCertificate($certificate);
 		}
 		return $this->getEngine()->getPfxOfCurrentSigner();
+	}
+
+	private function generateTemporaryPassword(): string {
+		$passwordEvent = new GenerateSecurePasswordEvent();
+		$this->eventDispatcher->dispatchTyped($passwordEvent);
+		return $passwordEvent->getPassword() ?? $this->secureRandom->generate(20);
 	}
 
 	protected function readCertificate(): array {
@@ -535,7 +533,8 @@ class SignFileService {
 			$this->identifyEngine($originalFile);
 		}
 		$this->engine
-			->setInputFile($this->getFileToSing());
+			->setInputFile($this->getFileToSing())
+			->setPassword($this->password);
 
 		if ($this->engine::class === Pkcs12Handler::class) {
 			$this->engine

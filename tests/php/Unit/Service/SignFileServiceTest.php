@@ -42,6 +42,7 @@ use OCP\ITempManager;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
 use OCP\IUserSession;
+use OCP\Security\ISecureRandom;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -71,6 +72,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FileElementMapper&MockObject $fileElementMapper;
 	private UserElementMapper&MockObject $userElementMapper;
 	private IEventDispatcher&MockObject $eventDispatcher;
+	private ISecureRandom $secureRandom;
 	private IURLGenerator&MockObject $urlGenerator;
 	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
 	private ITempManager|MockObject $tempManager;
@@ -103,6 +105,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
+		$this->secureRandom = \OCP\Server::get(\OCP\Security\ISecureRandom::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
@@ -135,6 +138,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->fileElementMapper,
 					$this->userElementMapper,
 					$this->eventDispatcher,
+					$this->secureRandom,
 					$this->urlGenerator,
 					$this->identifyMethodMapper,
 					$this->tempManager,
@@ -166,6 +170,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileElementMapper,
 			$this->userElementMapper,
 			$this->eventDispatcher,
+			$this->secureRandom,
 			$this->urlGenerator,
 			$this->identifyMethodMapper,
 			$this->tempManager,
