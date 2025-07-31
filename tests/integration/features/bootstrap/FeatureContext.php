@@ -19,7 +19,6 @@ use rpkamp\Behat\MailhogExtension\Service\OpenedEmailStorage;
 class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAwareContext {
 	private array $signer = [];
 	private array $file = [];
-	private static array $environments = [];
 	private array $customHeaders = [];
 	private OpenedEmailStorage $openedEmailStorage;
 
