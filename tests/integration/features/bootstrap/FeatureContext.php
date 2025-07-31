@@ -20,9 +20,6 @@ use rpkamp\Behat\MailhogExtension\Service\OpenedEmailStorage;
  * Defines application features from the specific context.
  */
 class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAwareContext {
-	private array $signer = [];
-	private array $file = [];
-	private array $customHeaders = [];
 	private OpenedEmailStorage $openedEmailStorage;
 
 	#[BeforeSuite()]
@@ -38,41 +35,8 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		self::runCommand('libresign:developer:reset --all');
 	}
 
-	#[Given('guest :guest exists')]
-	public function assureGuestExists(string $guest): void {
-		$response = $this->userExists($guest);
-		if ($response->getStatusCode() !== 200) {
-			static::createAnEnvironmentWithValueToBeUsedByOccCommand('OC_PASS', '123456');
-			$this->runCommandWithResultCode('guests:add admin ' . $guest . ' --password-from-env', 0);
-			// Set a display name different than the user ID to be able to
-			// ensure in the tests that the right value was returned.
-			$this->setUserDisplayName($guest);
-			self::$createdUsers[] = $guest;
-		}
-	}
-
 	public function setOpenedEmailStorage(OpenedEmailStorage $storage): void {
 		$this->openedEmailStorage = $storage;
-	}
-
-	public function sendRequest(string $verb, string $url, $body = null, array $headers = [], array $options = []): void {
-		if (!is_null($this->currentUser)) {
-			$options = array_merge(
-				['cookies' => $this->getUserCookieJar($this->currentUser)],
-				$options
-			);
-		}
-		$headers = array_merge($headers, $this->customHeaders);
-		parent::sendRequest($verb, $url, $body, $headers, $options);
-	}
-
-	#[Given('/^set the custom http header "([^"]*)" with "([^"]*)" as value to next request$/')]
-	public function setTheCustomHttpHeaderAsValueToNextRequest(string $header, string $value):void {
-		if (empty($value)) {
-			unset($this->customHeaders[$header]);
-			return;
-		}
-		$this->customHeaders[$header] = $this->parseText($value);
 	}
 
 	protected function beforeRequest(string $fullUrl, array $options): array {
@@ -128,11 +92,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	#[Given('reset :type of user :user')]
 	public function resetNotifications($type, $user): void {
 		self::runCommand('libresign:developer:reset --' . $type . '=' . $user);
-	}
-
-	#[Given('/^wait for ([0-9]+) (second|seconds)$/')]
-	public function waitForXSecond(int $seconds): void {
-		sleep($seconds);
 	}
 
 	#[Given('user :user has the following notifications')]
