@@ -8,7 +8,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\SignEngine;
 
+use InvalidArgumentException;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
+use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
@@ -112,15 +114,23 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	 * @param string $friendlyName Friendly name
 	 */
 	public function generateCertificate(array $user, string $signPassword, string $friendlyName): string {
-		$content = $this->getCertificateEngine()
-			->setHosts([$user['host']])
-			->setCommonName($user['name'])
-			->setFriendlyName($friendlyName)
-			->setUID($user['uid'])
-			->setPassword($signPassword)
-			->generateCertificate();
+		try {
+			$content = $this->getCertificateEngine()
+				->setHosts([$user['host']])
+				->setCommonName($user['name'])
+				->setFriendlyName($friendlyName)
+				->setUID($user['uid'])
+				->setPassword($signPassword)
+				->generateCertificate();
+		} catch (EmptyCertificateException) {
+			throw new LibresignException($this->l10n->t('Empty root certificate data'));
+		} catch (InvalidArgumentException) {
+			throw new LibresignException($this->l10n->t('Invalid data to generate certificate'));
+		} catch (\Throwable) {
+			throw new LibresignException($this->l10n->t('Failure on generate certificate'));
+		}
 		if (!$content) {
-			throw new TypeError();
+			throw new LibresignException($this->l10n->t('Failure to generate certificate'));
 		}
 		return $content;
 	}
