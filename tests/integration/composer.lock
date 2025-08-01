@@ -5055,16 +5055,16 @@
         },
         {
             "name": "libresign/nextcloud-behat",
-            "version": "v1.3.1",
+            "version": "v1.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LibreSign/nextcloud-behat.git",
-                "reference": "3b75b9f184f63ee3bee2fa1e89dd5f32fc1d0e5d"
+                "reference": "84f90fc1eb24e6fbfc13642b1a91ed5960c7b21c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/3b75b9f184f63ee3bee2fa1e89dd5f32fc1d0e5d",
-                "reference": "3b75b9f184f63ee3bee2fa1e89dd5f32fc1d0e5d",
+                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/84f90fc1eb24e6fbfc13642b1a91ed5960c7b21c",
+                "reference": "84f90fc1eb24e6fbfc13642b1a91ed5960c7b21c",
                 "shasum": ""
             },
             "require": {
@@ -5109,9 +5109,9 @@
             ],
             "support": {
                 "issues": "https://github.com/LibreSign/nextcloud-behat/issues",
-                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v1.3.1"
+                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v1.4.0"
             },
-            "time": "2025-08-01T12:48:15+00:00"
+            "time": "2025-08-01T16:10:37+00:00"
         },
         {
             "name": "symfony/polyfill-php80",
