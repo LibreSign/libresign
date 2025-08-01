@@ -351,8 +351,8 @@ class SignFileService {
 		return $signedFile;
 	}
 
-	private function identifyEngine(File $file): void {
-		$this->engine = match (strtolower($file->getExtension())) {
+	private function identifyEngine(File $file): Pkcs7Handler|Pkcs12Handler {
+		return match (strtolower($file->getExtension())) {
 			'pdf' => $this->pkcs12Handler,
 			default => $this->pkcs7Handler,
 		};
@@ -521,19 +521,20 @@ class SignFileService {
 	}
 
 	protected function getEngine(): Pkcs7Handler|Pkcs12Handler {
-		if (!is_object($this->engine)) {
+		if (!$this->engine) {
 			$originalFile = $this->getFileToSing();
-			$this->identifyEngine($originalFile);
-		}
-		$this->engine
-			->setInputFile($this->getFileToSing())
-			->setCertificate($this->getOrGeneratePfxContent($this->engine))
-			->setPassword($this->password);
+			$this->engine = $this->identifyEngine($originalFile);
 
-		if ($this->engine::class === Pkcs12Handler::class) {
 			$this->engine
-				->setVisibleElements($this->getVisibleElements())
-				->setSignatureParams($this->getSignatureParams());
+				->setInputFile($this->getFileToSing())
+				->setCertificate($this->getOrGeneratePfxContent($this->engine))
+				->setPassword($this->password);
+
+			if ($this->engine::class === Pkcs12Handler::class) {
+				$this->engine
+					->setVisibleElements($this->getVisibleElements())
+					->setSignatureParams($this->getSignatureParams());
+			}
 		}
 		return $this->engine;
 	}
