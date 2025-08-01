@@ -830,16 +830,16 @@
         },
         {
             "name": "myclabs/deep-copy",
-            "version": "1.13.3",
+            "version": "1.13.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/myclabs/DeepCopy.git",
-                "reference": "faed855a7b5f4d4637717c2b3863e277116beb36"
+                "reference": "07d290f0c47959fd5eed98c95ee5602db07e0b6a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/faed855a7b5f4d4637717c2b3863e277116beb36",
-                "reference": "faed855a7b5f4d4637717c2b3863e277116beb36",
+                "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/07d290f0c47959fd5eed98c95ee5602db07e0b6a",
+                "reference": "07d290f0c47959fd5eed98c95ee5602db07e0b6a",
                 "shasum": ""
             },
             "require": {
@@ -878,7 +878,7 @@
             ],
             "support": {
                 "issues": "https://github.com/myclabs/DeepCopy/issues",
-                "source": "https://github.com/myclabs/DeepCopy/tree/1.13.3"
+                "source": "https://github.com/myclabs/DeepCopy/tree/1.13.4"
             },
             "funding": [
                 {
@@ -886,7 +886,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-07-05T12:25:42+00:00"
+            "time": "2025-08-01T08:46:24+00:00"
         },
         {
             "name": "nikic/php-parser",
@@ -5055,16 +5055,16 @@
         },
         {
             "name": "libresign/nextcloud-behat",
-            "version": "v1.2.1",
+            "version": "v1.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LibreSign/nextcloud-behat.git",
-                "reference": "272f95e337f66c27972830ccf99db6c6b07b6db4"
+                "reference": "3b75b9f184f63ee3bee2fa1e89dd5f32fc1d0e5d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/272f95e337f66c27972830ccf99db6c6b07b6db4",
-                "reference": "272f95e337f66c27972830ccf99db6c6b07b6db4",
+                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/3b75b9f184f63ee3bee2fa1e89dd5f32fc1d0e5d",
+                "reference": "3b75b9f184f63ee3bee2fa1e89dd5f32fc1d0e5d",
                 "shasum": ""
             },
             "require": {
@@ -5109,9 +5109,9 @@
             ],
             "support": {
                 "issues": "https://github.com/LibreSign/nextcloud-behat/issues",
-                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v1.2.1"
+                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v1.3.1"
             },
-            "time": "2025-07-31T21:08:57+00:00"
+            "time": "2025-08-01T12:48:15+00:00"
         },
         {
             "name": "symfony/polyfill-php80",
