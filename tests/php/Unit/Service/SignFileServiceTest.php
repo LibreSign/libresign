@@ -257,37 +257,38 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	#[DataProvider('dataSignGenerateASha256OfSignedFile')]
 	public function testSignGenerateASha256OfSignedFile(string $signedContent):void {
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
-
 		$nextcloudFile->method('getContent')->willReturn($signedContent);
+		$nextcloudFile->method('getId')->willReturn(1);
 
-		$service = $this->getService(['updateSignRequest', 'updateLibreSignFile', 'dispatchSignedEvent', 'getEngine']);
-
+		$service = $this->getService(['dispatchSignedEvent', 'getEngine', 'getLastSignedDate']);
 		$service->method('getEngine')->willReturn($this->pkcs12Handler);
 
 		$expectedHash = hash('sha256', $signedContent);
 
-		$service->expects($this->once())
-			->method('updateSignRequest')
-			->with(
-				$this->anything(),
-				$this->callback(function ($hash) use ($expectedHash) {
-					$this->assertEquals($expectedHash, $hash, 'Hash of signed file should match expected SHA-256 value');
-					return true;
-				})
-			);
+		$totalCalls = 0;
+		$hashCallback = function ($method, $args) use ($expectedHash, &$totalCalls) {
+			if ($method === 'setSignedHash') {
+				$this->assertEquals($expectedHash, $args[0], 'Hash of signed file should match expected SHA-256 value');
+				$totalCalls++;
+			}
+			if ($method === 'getFileId') {
+				return 1;
+			}
+			return null;
+		};
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('__call')->willReturnCallback($hashCallback);
 
-		$service->expects($this->once())
-			->method('updateLibreSignFile')
-			->with(
-				$this->anything(),
-				$this->callback(function ($hash) use ($expectedHash) {
-					$this->assertEquals($expectedHash, $hash, 'Hash of signed file should match expected SHA-256 value');
-					return true;
-				})
-			);
+		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$libreSignFile->method('__call')->willReturnCallback($hashCallback);
 
 		$this->pkcs12Handler->method('sign')->willReturn($nextcloudFile);
-		$service->sign();
+
+		$service
+			->setSignRequest($signRequest)
+			->setLibreSignFile($libreSignFile)
+			->sign();
+		$this->assertEquals(2, $totalCalls, 'setSignedHash should be called twice');
 	}
 
 	public static function dataSignGenerateASha256OfSignedFile(): array {
