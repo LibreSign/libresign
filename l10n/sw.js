@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Success" : "Mafanikio",
     "Settings saved" : "Settings saved",
     "The file was uploaded" : "Faili lilipakiwa",
     "The uploaded file exceeds the upload_max_filesize directive in php.ini" : "Faili lililopakiwa linazidi kiwango cha juu cha ukubwa wa faili linalielekea katika php.ini",
