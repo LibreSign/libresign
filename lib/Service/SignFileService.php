@@ -335,6 +335,12 @@ class SignFileService {
 		$this->setNewStatusIfNecessary();
 		$this->fileMapper->update($this->libreSignFile);
 
+		$this->dispatchSignedEvent($signedFile);
+
+		return $signedFile;
+	}
+
+	private function dispatchSignedEvent(File $signedFile): void {
 		$this->eventDispatcher->dispatchTyped(new SignedEvent(
 			$this->signRequest,
 			$this->libreSignFile,
@@ -342,8 +348,6 @@ class SignFileService {
 			$this->userManager->get($this->libreSignFile->getUserId()),
 			$signedFile,
 		));
-
-		return $signedFile;
 	}
 
 	private function identifyEngine(File $file): Pkcs7Handler|Pkcs12Handler {
