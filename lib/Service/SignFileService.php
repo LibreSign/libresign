@@ -33,6 +33,7 @@ use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\PdfTk\Pdf;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
+use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -103,6 +104,7 @@ class SignFileService {
 		private IdentifyMethodService $identifyMethodService,
 		private ITimeFactory $timeFactory,
 		protected JavaHelper $javaHelper,
+		protected SignEngineFactory $signEngineFactory,
 	) {
 	}
 
@@ -358,10 +360,7 @@ class SignFileService {
 	}
 
 	private function identifyEngine(File $file): Pkcs7Handler|Pkcs12Handler {
-		return match (strtolower($file->getExtension())) {
-			'pdf' => $this->pkcs12Handler,
-			default => $this->pkcs7Handler,
-		};
+		return $this->signEngineFactory->resolve($file->getExtension());
 	}
 
 	private function getLastSignedDate(File $signedFile): \DateTime {
@@ -531,18 +530,22 @@ class SignFileService {
 			$originalFile = $this->getFileToSing();
 			$this->engine = $this->identifyEngine($originalFile);
 
-			$this->engine
-				->setInputFile($this->getFileToSing())
-				->setCertificate($this->getOrGeneratePfxContent($this->engine))
-				->setPassword($this->password);
-
-			if ($this->engine::class === Pkcs12Handler::class) {
-				$this->engine
-					->setVisibleElements($this->getVisibleElements())
-					->setSignatureParams($this->getSignatureParams());
-			}
+			$this->configureEngine();
 		}
 		return $this->engine;
+	}
+
+	private function configureEngine(): void {
+		$this->engine
+			->setInputFile($this->getFileToSing())
+			->setCertificate($this->getOrGeneratePfxContent($this->engine))
+			->setPassword($this->password);
+
+		if ($this->engine::class === Pkcs12Handler::class) {
+			$this->engine
+				->setVisibleElements($this->getVisibleElements())
+				->setSignatureParams($this->getSignatureParams());
+		}
 	}
 
 	public function getLibresignFile(?int $nodeId, ?string $signRequestUuid = null): FileEntity {
