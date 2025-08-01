@@ -26,7 +26,8 @@ class SignedCallbackListener implements IEventListener {
 			return;
 		}
 
-		if ($event->isStatusChanged()) {
+		$updatedFields = $event->getLibreSignFile()->getUpdatedFields();
+		if (isset($updatedFields['signed']) && $updatedFields['signed'] === true) {
 			$this->signFileService->notifyCallback($event->getSignedFile());
 		}
 	}
