@@ -23,7 +23,6 @@ class SignedEvent extends Event {
 		private IIdentifyMethod $identifyMethod,
 		private IUser $user,
 		private File $signedFile,
-		private bool $statusChanged,
 	) {
 	}
 
@@ -45,9 +44,5 @@ class SignedEvent extends Event {
 
 	public function getSignedFile(): File {
 		return $this->signedFile;
-	}
-
-	public function isStatusChanged(): bool {
-		return $this->statusChanged;
 	}
 }

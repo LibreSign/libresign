@@ -332,7 +332,7 @@ class SignFileService {
 
 		$this->libreSignFile->setSignedNodeId($signedFile->getId());
 		$this->libreSignFile->setSignedHash($hash);
-		$statusHasChanged = $this->setNewStatusIfNecessary();
+		$this->setNewStatusIfNecessary();
 		$this->fileMapper->update($this->libreSignFile);
 
 		$this->eventDispatcher->dispatchTyped(new SignedEvent(
@@ -341,7 +341,6 @@ class SignFileService {
 			$this->identifyMethodService->getIdentifiedMethod($this->signRequest->getId()),
 			$this->userManager->get($this->libreSignFile->getUserId()),
 			$signedFile,
-			$statusHasChanged,
 		));
 
 		return $signedFile;
