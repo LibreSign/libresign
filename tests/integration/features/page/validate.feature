@@ -13,8 +13,8 @@ Feature: page/validate
       | name | document |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list"
-    And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from prevous JSON response
-    And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from prevous JSON response
+    And fetch field "(SIGN_UUID)ocs.data.data.0.signers.0.sign_uuid" from previous JSON response
+    And fetch field "(FILE_UUID)ocs.data.data.0.uuid" from previous JSON response
     When sending "get" to "<url>"
     And the response should have a status code 200
 
