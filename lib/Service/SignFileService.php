@@ -326,18 +326,25 @@ class SignFileService {
 
 		$hash = hash('sha256', $signedFile->getContent());
 
-		$this->signRequest->setSigned($this->getLastSignedDate($signedFile));
-		$this->signRequest->setSignedHash($hash);
-		$this->signRequestMapper->update($this->signRequest);
-
-		$this->libreSignFile->setSignedNodeId($signedFile->getId());
-		$this->libreSignFile->setSignedHash($hash);
-		$this->setNewStatusIfNecessary();
-		$this->fileMapper->update($this->libreSignFile);
+		$this->updateSignRequest($signedFile, $hash);
+		$this->updateLibreSignFile($signedFile, $hash);
 
 		$this->dispatchSignedEvent($signedFile);
 
 		return $signedFile;
+	}
+
+	private function updateSignRequest(File $signedFile, string $hash): void {
+		$this->signRequest->setSigned($this->getLastSignedDate($signedFile));
+		$this->signRequest->setSignedHash($hash);
+		$this->signRequestMapper->update($this->signRequest);
+	}
+
+	private function updateLibreSignFile(File $signedFile, string $hash): void {
+		$this->libreSignFile->setSignedNodeId($signedFile->getId());
+		$this->libreSignFile->setSignedHash($hash);
+		$this->setNewStatusIfNecessary();
+		$this->fileMapper->update($this->libreSignFile);
 	}
 
 	private function dispatchSignedEvent(File $signedFile): void {
