@@ -27,7 +27,6 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
-use OCA\Libresign\Events\SignedCallbackEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\FooterHandler;
@@ -329,24 +328,21 @@ class SignFileService {
 
 		$this->signRequest->setSigned($this->getLastSignedDate($signedFile));
 		$this->signRequest->setSignedHash($hash);
-		if ($this->signRequest->getId()) {
-			$this->signRequestMapper->update($this->signRequest);
-			$this->eventDispatcher->dispatchTyped(new SignedEvent(
-				$this->signRequest,
-				$this->libreSignFile,
-				$this->identifyMethodService->getIdentifiedMethod($this->signRequest->getId()),
-				$this->userManager->get($this->libreSignFile->getUserId()),
-			));
-		} else {
-			$this->signRequestMapper->insert($this->signRequest);
-		}
+		$this->signRequestMapper->update($this->signRequest);
 
 		$this->libreSignFile->setSignedNodeId($signedFile->getId());
 		$this->libreSignFile->setSignedHash($hash);
-		$allSigned = $this->updateStatus();
+		$statusHasChanged = $this->setNewStatusIfNecessary();
 		$this->fileMapper->update($this->libreSignFile);
 
-		$this->eventDispatcher->dispatchTyped(new SignedCallbackEvent($this, $signedFile, $allSigned));
+		$this->eventDispatcher->dispatchTyped(new SignedEvent(
+			$this->signRequest,
+			$this->libreSignFile,
+			$this->identifyMethodService->getIdentifiedMethod($this->signRequest->getId()),
+			$this->userManager->get($this->libreSignFile->getUserId()),
+			$signedFile,
+			$statusHasChanged,
+		));
 
 		return $signedFile;
 	}
@@ -446,7 +442,7 @@ class SignFileService {
 		return $this->signers;
 	}
 
-	private function updateStatus(): bool {
+	private function setNewStatusIfNecessary(): bool {
 		$signers = $this->getSigners();
 		$total = array_reduce($signers, function ($carry, $signer) {
 			$carry += $signer->getSigned() ? 1 : 0;
