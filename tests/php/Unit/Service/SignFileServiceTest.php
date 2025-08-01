@@ -371,6 +371,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$signRequest = new \OCA\Libresign\Db\SignRequest();
 		$signRequest->setFileId(100);
+		$signRequest->setId(171);
+
+		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
+
 		$this->getService()
 			->setLibreSignFile($file)
 			->setSignRequest($signRequest)
