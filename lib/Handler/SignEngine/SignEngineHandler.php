@@ -131,6 +131,7 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		if (!$content) {
 			throw new LibresignException($this->l10n->t('Failure to generate certificate'));
 		}
+		$this->setCertificate($content);
 		return $content;
 	}
 

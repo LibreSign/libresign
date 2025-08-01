@@ -474,7 +474,7 @@ class SignFileService {
 		if ($this->signWithoutPassword) {
 			$tempPassword = $this->generateTemporaryPassword();
 			$this->setPassword($tempPassword);
-			$certificate = $engine->generateCertificate(
+			$engine->generateCertificate(
 				[
 					'host' => $this->userUniqueIdentifier,
 					'uid' => $this->userUniqueIdentifier,
@@ -483,7 +483,6 @@ class SignFileService {
 				$tempPassword,
 				$this->friendlyName,
 			);
-			$engine->setCertificate($certificate);
 		}
 		return $engine->getPfxOfCurrentSigner();
 	}
