@@ -532,7 +532,7 @@ class SignFileService {
 			return $this->getPdfToSign($this->libreSignFile, $originalFile);
 		}
 		$this->fileToSign = $originalFile;
-		return $originalFile;
+		return $this->fileToSign;
 	}
 
 	protected function getEngine(): SignEngineHandler {
