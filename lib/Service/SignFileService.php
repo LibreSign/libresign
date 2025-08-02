@@ -520,9 +520,11 @@ class SignFileService {
 		if ($this->fileToSign instanceof File) {
 			return $this->fileToSign;
 		}
+
+		$userId = $this->libreSignFile->getUserId();
 		$nodeId = $this->libreSignFile->getNodeId();
 
-		$originalFile = $this->root->getUserFolder($this->libreSignFile->getUserId())->getFirstNodeById($nodeId);
+		$originalFile = $this->root->getUserFolder($userId)->getFirstNodeById($nodeId);
 		if (!$originalFile instanceof File) {
 			throw new LibresignException($this->l10n->t('File not found'));
 		}
