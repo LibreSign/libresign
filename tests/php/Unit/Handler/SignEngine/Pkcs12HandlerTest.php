@@ -175,4 +175,28 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 		];
 	}
+
+
+	#[DataProvider('providerGetLastSignedDateWillReturnTheBiggestDate')]
+	public function testGetLastSignedDateWillReturnTheBiggestDate(array $chain, \DateTime $signedDate): void {
+		$handler = $this->getHandler(['getCertificateChain', 'getFileStream']);
+		$handler->method('getCertificateChain')->wilLReturn($chain);
+
+		$actual = $handler->getLastSignedDate();
+		$this->assertEquals($signedDate, $actual);
+	}
+
+	public static function providerGetLastSignedDateWillReturnTheBiggestDate(): array {
+		$date = new DateTime();
+		return [
+			[
+				[
+					['signingTime' => (clone $date)->modify('-3 day')],
+					['signingTime' => (clone $date)->modify('-2 day')],
+					['signingTime' => (clone $date)->modify('-1 day')],
+				],
+				$date->modify('-1 day'),
+			],
+		];
+	}
 }
