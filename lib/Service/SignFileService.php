@@ -528,12 +528,16 @@ class SignFileService {
 		if (!$originalFile instanceof File) {
 			throw new LibresignException($this->l10n->t('File not found'));
 		}
-		if (strcasecmp($originalFile->getExtension(), 'pdf') === 0) {
+		if ($this->isPdf($originalFile)) {
 			$this->fileToSign = $this->getPdfToSign();
 		} else {
 			$this->fileToSign = $originalFile;
 		}
 		return $this->fileToSign;
+	}
+
+	private function isPdf(File $file): bool {
+		return strcasecmp($file->getExtension(), 'pdf') === 0;
 	}
 
 	protected function getEngine(): SignEngineHandler {
