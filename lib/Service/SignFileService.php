@@ -332,20 +332,20 @@ class SignFileService {
 		return hash('sha256', $file->getContent());
 	}
 
-	private function updateSignRequest(File $signedFile, string $hash): void {
+	protected function updateSignRequest(File $signedFile, string $hash): void {
 		$this->signRequest->setSigned($this->getLastSignedDate($signedFile));
 		$this->signRequest->setSignedHash($hash);
 		$this->signRequestMapper->update($this->signRequest);
 	}
 
-	private function updateLibreSignFile(File $signedFile, string $hash): void {
+	protected function updateLibreSignFile(File $signedFile, string $hash): void {
 		$this->libreSignFile->setSignedNodeId($signedFile->getId());
 		$this->libreSignFile->setSignedHash($hash);
 		$this->setNewStatusIfNecessary();
 		$this->fileMapper->update($this->libreSignFile);
 	}
 
-	private function dispatchSignedEvent(File $signedFile): void {
+	protected function dispatchSignedEvent(File $signedFile): void {
 		$event = $this->signedEventFactory->make(
 			$this->signRequest,
 			$this->libreSignFile,
@@ -354,7 +354,7 @@ class SignFileService {
 		$this->eventDispatcher->dispatchTyped($event);
 	}
 
-	private function identifyEngine(File $file): SignEngineHandler {
+	protected function identifyEngine(File $file): SignEngineHandler {
 		return $this->signEngineFactory->resolve($file->getExtension());
 	}
 
