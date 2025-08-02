@@ -59,6 +59,7 @@ OC.L10N.register(
     "Type" : "Вид",
     "Status" : "Статус",
     "Actions" : "Акции",
+    "Delete certificate" : "Избриши сертификат",
     "Change password" : "Смени лозинка",
     "Signature" : "Потпис",
     "Profile picture" : "Фотографија за профил",
