@@ -324,7 +324,7 @@ class SignFileService {
 	public function sign(): File {
 		$signedFile = $this->getEngine()->sign();
 
-		$hash = hash('sha256', $signedFile->getContent());
+		$hash = $this->computeHash($signedFile);
 
 		$this->updateSignRequest($signedFile, $hash);
 		$this->updateLibreSignFile($signedFile, $hash);
@@ -332,6 +332,10 @@ class SignFileService {
 		$this->dispatchSignedEvent($signedFile);
 
 		return $signedFile;
+	}
+
+	protected function computeHash(File $file): string {
+		return hash('sha256', $file->getContent());
 	}
 
 	private function updateSignRequest(File $signedFile, string $hash): void {
