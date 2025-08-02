@@ -528,10 +528,11 @@ class SignFileService {
 		if (!$originalFile instanceof File) {
 			throw new LibresignException($this->l10n->t('File not found'));
 		}
-		if (strtolower($originalFile->getExtension()) === 'pdf') {
-			return $this->getPdfToSign($this->libreSignFile, $originalFile);
+		if (strcasecmp($originalFile->getExtension(), 'pdf') === 0) {
+			$this->fileToSign = $this->getPdfToSign();
+		} else {
+			$this->fileToSign = $originalFile;
 		}
-		$this->fileToSign = $originalFile;
 		return $this->fileToSign;
 	}
 
@@ -674,68 +675,66 @@ class SignFileService {
 		return $signRequest;
 	}
 
-	private function getPdfToSign(FileEntity $fileData, File $originalFile): File {
-		if ($fileData->getSignedNodeId()) {
-			$nodeId = $fileData->getSignedNodeId();
+	private function getPdfToSign(): File {
+		if ($this->libreSignFile->getSignedNodeId()) {
+			$nodeId = $this->libreSignFile->getSignedNodeId();
 
-			$fileToSign = $this->root->getUserFolder($fileData->getUserId())->getFirstNodeById($nodeId);
+			$fileToSign = $this->root->getUserFolder($this->libreSignFile->getUserId())->getFirstNodeById($nodeId);
 			if (!$fileToSign instanceof File) {
 				throw new LibresignException($this->l10n->t('File not found'));
 			}
-			$this->fileToSign = $fileToSign;
-		} else {
-			$footer = $this->footerHandler
-				->setTemplateVar('signers', array_map(fn (SignRequestEntity $signer) => [
-					'displayName' => $signer->getDisplayName(),
-					'signed' => $signer->getSigned()
-						? $signer->getSigned()->format(DateTimeInterface::ATOM)
-						: null,
-				], $this->getSigners()))
-				->getFooter($originalFile, $fileData);
-			if ($footer) {
-				$stamp = $this->tempManager->getTemporaryFile('stamp.pdf');
-				file_put_contents($stamp, $footer);
-
-				$input = $this->tempManager->getTemporaryFile('input.pdf');
-				file_put_contents($input, $originalFile->getContent());
-
-				$javaPath = $this->javaHelper->getJavaPath();
-				$pdftkPath = $this->appConfig->getValueString(Application::APP_ID, 'pdftk_path');
-				if (!file_exists($javaPath) || !file_exists($pdftkPath)) {
-					throw new LibresignException($this->l10n->t('The admin hasn\'t set up LibreSign yet, please wait.'));
-				}
-				$pdf = new Pdf();
-				$command = new Command();
-				$command->setCommand($javaPath . ' -jar ' . $pdftkPath);
-				$pdf->setCommand($command);
-				$pdf->addFile($input);
-				$buffer = $pdf->multiStamp($stamp)
-					->toString();
-				if (!is_string($buffer)) {
-					throw new LibresignException('Failed to merge the PDF with the footer. The PDF was not successfully created with the footer.');
-				}
-			} else {
-				$buffer = $originalFile->getContent();
-			}
-			$this->fileToSign = $this->createSignedFile($originalFile, $buffer);
+			return $fileToSign;
 		}
-		return $this->fileToSign;
+		$footer = $this->footerHandler
+			->setTemplateVar('signers', array_map(fn (SignRequestEntity $signer) => [
+				'displayName' => $signer->getDisplayName(),
+				'signed' => $signer->getSigned()
+					? $signer->getSigned()->format(DateTimeInterface::ATOM)
+					: null,
+			], $this->getSigners()))
+			->getFooter($this->fileToSign, $this->libreSignFile);
+		if ($footer) {
+			$stamp = $this->tempManager->getTemporaryFile('stamp.pdf');
+			file_put_contents($stamp, $footer);
+
+			$input = $this->tempManager->getTemporaryFile('input.pdf');
+			file_put_contents($input, $this->fileToSign->getContent());
+
+			$javaPath = $this->javaHelper->getJavaPath();
+			$pdftkPath = $this->appConfig->getValueString(Application::APP_ID, 'pdftk_path');
+			if (!file_exists($javaPath) || !file_exists($pdftkPath)) {
+				throw new LibresignException($this->l10n->t('The admin hasn\'t set up LibreSign yet, please wait.'));
+			}
+			$pdf = new Pdf();
+			$command = new Command();
+			$command->setCommand($javaPath . ' -jar ' . $pdftkPath);
+			$pdf->setCommand($command);
+			$pdf->addFile($input);
+			$buffer = $pdf->multiStamp($stamp)
+				->toString();
+			if (!is_string($buffer)) {
+				throw new LibresignException('Failed to merge the PDF with the footer. The PDF was not successfully created with the footer.');
+			}
+		} else {
+			$buffer = $this->fileToSign->getContent();
+		}
+		return $this->createSignedFile($buffer);
 	}
 
-	private function createSignedFile(File $originalFile, string $content): File {
+	private function createSignedFile(string $content): File {
 		$filename = preg_replace(
-			'/' . $originalFile->getExtension() . '$/',
-			$this->l10n->t('signed') . '.' . $originalFile->getExtension(),
-			basename($originalFile->getPath())
+			'/' . $this->fileToSign->getExtension() . '$/',
+			$this->l10n->t('signed') . '.' . $this->fileToSign->getExtension(),
+			basename($this->fileToSign->getPath())
 		);
-		$owner = $originalFile->getOwner()->getUID();
+		$owner = $this->fileToSign->getOwner()->getUID();
 		try {
 			/** @var \OCP\Files\Folder */
-			$parentFolder = $this->root->getUserFolder($owner)->getFirstNodeById($originalFile->getParentId());
+			$parentFolder = $this->root->getUserFolder($owner)->getFirstNodeById($this->fileToSign->getParentId());
 			return $parentFolder->newFile($filename, $content);
 		} catch (NotPermittedException) {
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
-		};
+		}
 	}
 
 	/**
