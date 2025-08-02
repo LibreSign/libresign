@@ -347,10 +347,15 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public static function providerGetEngineWillWorkWithLazyLoadedEngine(): array {
 		return [
 			['pdf', Pkcs12Handler::class],
-			['txt', Pkcs7Handler::class],
-			['docx', Pkcs7Handler::class],
+			['PDF', Pkcs12Handler::class],
+			['odt', Pkcs7Handler::class],
+			['ODT', Pkcs7Handler::class],
 			['jpg', Pkcs7Handler::class],
+			['JPG', Pkcs7Handler::class],
 			['png', Pkcs7Handler::class],
+			['PNG', Pkcs7Handler::class],
+			['txt', Pkcs7Handler::class],
+			['TXT', Pkcs7Handler::class],
 		];
 	}
 
