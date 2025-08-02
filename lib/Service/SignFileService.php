@@ -34,6 +34,7 @@ use OCA\Libresign\Handler\PdfTk\Pdf;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
+use OCA\Libresign\Handler\SignEngine\SignEngineHandler;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -74,7 +75,7 @@ class SignFileService {
 	private string $friendlyName = '';
 	private array $signers = [];
 	private ?IUser $user = null;
-	private Pkcs7Handler|Pkcs12Handler|null $engine = null;
+	private SignEngineHandler|null $engine = null;
 
 	public function __construct(
 		protected IL10N $l10n,
@@ -355,7 +356,7 @@ class SignFileService {
 		$this->eventDispatcher->dispatchTyped($event);
 	}
 
-	private function identifyEngine(File $file): Pkcs7Handler|Pkcs12Handler {
+	private function identifyEngine(File $file): SignEngineHandler {
 		return $this->signEngineFactory->resolve($file->getExtension());
 	}
 
@@ -468,7 +469,7 @@ class SignFileService {
 		return false;
 	}
 
-	private function getOrGeneratePfxContent(Pkcs7Handler|Pkcs12Handler $engine): string {
+	private function getOrGeneratePfxContent(SignEngineHandler $engine): string {
 		if ($certificate = $engine->getCertificate()) {
 			return $certificate;
 		}
@@ -521,7 +522,7 @@ class SignFileService {
 		return $originalFile;
 	}
 
-	protected function getEngine(): Pkcs7Handler|Pkcs12Handler {
+	protected function getEngine(): SignEngineHandler {
 		if (!$this->engine) {
 			$originalFile = $this->getFileToSing();
 			$this->engine = $this->identifyEngine($originalFile);
