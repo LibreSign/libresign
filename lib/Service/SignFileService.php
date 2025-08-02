@@ -27,7 +27,7 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
-use OCA\Libresign\Events\SignedEvent;
+use OCA\Libresign\Events\SignedEventFactory;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\PdfTk\Pdf;
@@ -105,6 +105,7 @@ class SignFileService {
 		private ITimeFactory $timeFactory,
 		protected JavaHelper $javaHelper,
 		protected SignEngineFactory $signEngineFactory,
+		private SignedEventFactory $signedEventFactory,
 	) {
 	}
 
@@ -346,26 +347,25 @@ class SignFileService {
 	}
 
 	private function dispatchSignedEvent(File $signedFile): void {
-		$this->eventDispatcher->dispatchTyped(new SignedEvent(
+		$event = $this->signedEventFactory->make(
 			$this->signRequest,
 			$this->libreSignFile,
-			$this->identifyMethodService->getIdentifiedMethod($this->signRequest->getId()),
-			$this->userManager->get($this->libreSignFile->getUserId()),
 			$signedFile,
-		));
+		);
+		$this->eventDispatcher->dispatchTyped($event);
 	}
 
 	private function identifyEngine(File $file): Pkcs7Handler|Pkcs12Handler {
 		return $this->signEngineFactory->resolve($file->getExtension());
 	}
 
-	private function getLastSignedDate(File $signedFile): \DateTime {
+	protected function getLastSignedDate(File $signedFile): \DateTime {
 		$chain = $this->getEngine()->getCertificateChain($signedFile->fopen('rb'));
 		$last = end($chain);
 		return $last['signingTime'];
 	}
 
-	private function getSignatureParams(): array {
+	protected function getSignatureParams(): array {
 		$certificateData = $this->readCertificate();
 		$signatureParams = $this->buildBaseSignatureParams($certificateData);
 		$signatureParams = $this->addEmailToSignatureParams($signatureParams, $certificateData);
@@ -447,7 +447,7 @@ class SignFileService {
 		return $this->signers;
 	}
 
-	private function setNewStatusIfNecessary(): bool {
+	protected function setNewStatusIfNecessary(): bool {
 		$signers = $this->getSigners();
 		$total = array_reduce($signers, function ($carry, $signer) {
 			$carry += $signer->getSigned() ? 1 : 0;

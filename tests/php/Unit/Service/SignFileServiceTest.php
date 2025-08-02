@@ -17,6 +17,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Events\SignedEventFactory;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
@@ -79,6 +80,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ITimeFactory&MockObject $timeFactory;
 	private JavaHelper&MockObject $javaHelper;
 	private SignEngineFactory $signEngineFactory;
+	private SignedEventFactory&MockObject $signedEventFactory;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -113,6 +115,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->timeFactory = $this->createMock(ITimeFactory::class);
 		$this->javaHelper = $this->createMock(JavaHelper::class);
 		$this->signEngineFactory = \OCP\Server::get(SignEngineFactory::class);
+		$this->signedEventFactory = $this->createMock(SignedEventFactory::class);
 	}
 
 	private function getService(array $methods = []): SignFileService|MockObject {
@@ -147,6 +150,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->timeFactory,
 					$this->javaHelper,
 					$this->signEngineFactory,
+					$this->signedEventFactory,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -180,6 +184,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->timeFactory,
 			$this->javaHelper,
 			$this->signEngineFactory,
+			$this->signedEventFactory,
 		);
 	}
 
@@ -256,33 +261,34 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[DataProvider('dataSignGenerateASha256OfSignedFile')]
 	public function testSignGenerateASha256OfSignedFile(string $signedContent):void {
+		$service = $this->getService([
+			'getEngine',
+			'getLastSignedDate',
+			'setNewStatusIfNecessary',
+		]);
+
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
 		$nextcloudFile->method('getContent')->willReturn($signedContent);
-		$nextcloudFile->method('getId')->willReturn(1);
-
-		$service = $this->getService(['dispatchSignedEvent', 'getEngine', 'getLastSignedDate']);
+		$this->pkcs12Handler->method('sign')->willReturn($nextcloudFile);
 		$service->method('getEngine')->willReturn($this->pkcs12Handler);
 
 		$expectedHash = hash('sha256', $signedContent);
 
 		$totalCalls = 0;
 		$hashCallback = function ($method, $args) use ($expectedHash, &$totalCalls) {
-			if ($method === 'setSignedHash') {
-				$this->assertEquals($expectedHash, $args[0], 'Hash of signed file should match expected SHA-256 value');
-				$totalCalls++;
+			switch ($method) {
+				case 'setSignedHash':
+					$this->assertEquals($expectedHash, $args[0], 'Hash of signed file should match expected SHA-256 value');
+					$totalCalls++;
+					break;
+				default: return null;
 			}
-			if ($method === 'getFileId') {
-				return 1;
-			}
-			return null;
 		};
 		$signRequest = $this->createMock(SignRequest::class);
 		$signRequest->method('__call')->willReturnCallback($hashCallback);
 
 		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 		$libreSignFile->method('__call')->willReturnCallback($hashCallback);
-
-		$this->pkcs12Handler->method('sign')->willReturn($nextcloudFile);
 
 		$service
 			->setSignRequest($signRequest)
@@ -300,7 +306,14 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[DataProvider('providerGetEngineWillWorkWithLazyLoadedEngine')]
 	public function testGetEngineWillWorkWithLazyLoadedEngine(string $extension, string $instanceOf): void {
-		$service = $this->getService(['updateSignRequest', 'updateLibreSignFile', 'dispatchSignedEvent', 'getFileToSing', 'configureEngine']);
+		$service = $this->getService([
+			'updateSignRequest',
+			'updateLibreSignFile',
+			'dispatchSignedEvent',
+			'getFileToSing',
+			'configureEngine',
+			'getSignatureParams',
+		]);
 
 		$file = $this->createMock(\OCP\Files\File::class);
 		$file->method('getExtension')->willReturn($extension);
