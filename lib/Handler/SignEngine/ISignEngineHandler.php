@@ -23,4 +23,5 @@ interface ISignEngineHandler {
 	public function getSignatureParams(): array;
 	public function setSignatureParams(array $params): self;
 	public function getCertificateChain($resource): array;
+	public function getLastSignedDate(): \DateTime;
 }

@@ -15,6 +15,7 @@ use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\L10N\IFactory as IL10NFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -35,7 +36,20 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
 	}
 
-	private function getHandler(): Pkcs12Handler {
+	private function getHandler(array $methods = []): Pkcs12Handler|MockObject {
+		if ($methods) {
+			return $this->getMockBuilder(Pkcs12Handler::class)
+				->setConstructorArgs([
+					$this->folderService,
+					$this->appConfig,
+					$this->certificateEngineFactory,
+					$this->l10n,
+					$this->footerHandler,
+					$this->tempManager,
+				])
+				->onlyMethods($methods)
+				->getMock();
+		}
 		return new Pkcs12Handler(
 			$this->folderService,
 			$this->appConfig,
@@ -86,5 +100,79 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folderService->method('getFolder')->willReturn($folder);
 		$actual = $this->getHandler()->getPfxOfCurrentSigner('userId');
 		$this->assertEquals('valid pfx content', $actual);
+	}
+
+	public function testGetLastSignedDateWithProblemAtInputFile(): void {
+		$this->expectException(\RuntimeException::class);
+
+		$handler = $this->getHandler();
+
+		$fileMock = $this->createMock(\OCP\Files\File::class);
+		$fileMock->method('fopen')->willReturn(false);
+		$handler->setInputFile($fileMock);
+
+		$handler->getLastSignedDate();
+	}
+
+	public function testGetLastSignedDateWithEmptyCertificateChain(): void {
+		$handler = $this->getHandler(['getCertificateChain']);
+		$handler->method('getCertificateChain')->wilLReturn([]);
+		$this->expectException(\UnexpectedValueException::class);
+		$this->expectExceptionMessageMatches('/empty/');
+
+		$fileMock = $this->createMock(\OCP\Files\File::class);
+		$handler->setInputFile($fileMock);
+
+		$handler->getLastSignedDate();
+	}
+
+	#[DataProvider('providerGetLastSignedDateWithInvalidSigningTime')]
+	public function testGetLastSignedDateWithInvalidSigningTime(array $chain): void {
+		$handler = $this->getHandler(['getCertificateChain', 'getFileStream']);
+		$handler->method('getCertificateChain')->wilLReturn($chain);
+		$this->expectException(\UnexpectedValueException::class);
+		$this->expectExceptionMessageMatches('/signingTime/');
+
+		$handler->getLastSignedDate();
+	}
+
+	public static function providerGetLastSignedDateWithInvalidSigningTime(): array {
+		return [
+			// is not an array
+			'invalid: string' => [['not-an-array']],
+			'invalid: int' => [[123]],
+			'invalid: null' => [[null]],
+			'invalid: bool' => [[true]],
+			'invalid: object' => [[new \stdClass()]],
+
+			// is an array but missing 'signingTime' key
+			'missing signingTime' => [[[]]],
+			'wrong key' => [[['otherKey' => 'value']]],
+
+			// 'signingTime' exists but is not a DateTime instance
+			'signingTime null' => [[['signingTime' => null]]],
+			'signingTime string' => [[['signingTime' => '2024-01-01']]],
+			'signingTime int' => [[['signingTime' => 1234567890]]],
+			'signingTime object' => [[['signingTime' => new \stdClass()]]],
+
+			// Valid element followed by an invalid one at the end
+			'multiple, last is null' => [
+				[
+					['signingTime' => new \DateTime()],
+					['signingTime' => null],
+				],
+			],
+			'multiple, last is string' => [
+				[
+					['signingTime' => new \DateTime()],
+					['notEvenAnArray'],
+				],
+			],
+			'future date' => [
+				[
+					['signingTime' => (new DateTime())->modify('+30 years')],
+				],
+			],
+		];
 	}
 }
