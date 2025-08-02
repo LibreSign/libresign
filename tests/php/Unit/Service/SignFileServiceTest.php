@@ -405,14 +405,14 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'updateSignRequest',
 			'updateLibreSignFile',
 			'dispatchSignedEvent',
-			'getFileToSing',
+			'getFileToSign',
 			'configureEngine',
 			'getSignatureParams',
 		]);
 
 		$file = $this->createMock(\OCP\Files\File::class);
 		$file->method('getExtension')->willReturn($extension);
-		$service->method('getFileToSing')->willReturn($file);
+		$service->method('getFileToSign')->willReturn($file);
 
 		$engine = self::invokePrivate($service, 'getEngine');
 
