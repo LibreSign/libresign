@@ -6,7 +6,6 @@ use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerInterface;
 
 /**
