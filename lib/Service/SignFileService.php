@@ -677,11 +677,6 @@ class SignFileService {
 		return $signRequest;
 	}
 
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 * @psalm-suppress InvalidReturnStatement
-	 * @psalm-suppress MixedMethodCall
-	 */
 	private function getPdfToSign(FileEntity $fileData, File $originalFile): File {
 		if ($fileData->getSignedNodeId()) {
 			$nodeId = $fileData->getSignedNodeId();
