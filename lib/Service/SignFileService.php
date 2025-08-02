@@ -75,7 +75,7 @@ class SignFileService {
 	private string $friendlyName = '';
 	private array $signers = [];
 	private ?IUser $user = null;
-	private SignEngineHandler|null $engine = null;
+	private ?SignEngineHandler $engine = null;
 
 	public function __construct(
 		protected IL10N $l10n,
