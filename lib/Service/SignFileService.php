@@ -524,7 +524,7 @@ class SignFileService {
 			throw new LibresignException($this->l10n->t('File not found'));
 		}
 		if ($this->isPdf($originalFile)) {
-			$this->fileToSign = $this->getPdfToSign();
+			$this->fileToSign = $this->getPdfToSign($originalFile);
 		} else {
 			$this->fileToSign = $originalFile;
 		}
@@ -674,7 +674,7 @@ class SignFileService {
 		return $signRequest;
 	}
 
-	private function getPdfToSign(): File {
+	private function getPdfToSign(File $originalFile): File {
 		if ($this->libreSignFile->getSignedNodeId()) {
 			$nodeId = $this->libreSignFile->getSignedNodeId();
 
@@ -691,13 +691,13 @@ class SignFileService {
 					? $signer->getSigned()->format(DateTimeInterface::ATOM)
 					: null,
 			], $this->getSigners()))
-			->getFooter($this->fileToSign, $this->libreSignFile);
+			->getFooter($originalFile, $this->libreSignFile);
 		if ($footer) {
 			$stamp = $this->tempManager->getTemporaryFile('stamp.pdf');
 			file_put_contents($stamp, $footer);
 
 			$input = $this->tempManager->getTemporaryFile('input.pdf');
-			file_put_contents($input, $this->fileToSign->getContent());
+			file_put_contents($input, $originalFile->getContent());
 
 			try {
 				$pdfContent = $this->pdf->applyStamp($input, $stamp);
@@ -705,21 +705,21 @@ class SignFileService {
 				throw new LibresignException($e->getMessage());
 			}
 		} else {
-			$pdfContent = $this->fileToSign->getContent();
+			$pdfContent = $originalFile->getContent();
 		}
-		return $this->createSignedFile($pdfContent);
+		return $this->createSignedFile($originalFile, $pdfContent);
 	}
 
-	private function createSignedFile(string $content): File {
+	private function createSignedFile(File $originalFile, string $content): File {
 		$filename = preg_replace(
-			'/' . $this->fileToSign->getExtension() . '$/',
-			$this->l10n->t('signed') . '.' . $this->fileToSign->getExtension(),
-			basename($this->fileToSign->getPath())
+			'/' . $originalFile->getExtension() . '$/',
+			$this->l10n->t('signed') . '.' . $originalFile->getExtension(),
+			basename($originalFile->getPath())
 		);
-		$owner = $this->fileToSign->getOwner()->getUID();
+		$owner = $originalFile->getOwner()->getUID();
 		try {
 			/** @var \OCP\Files\Folder */
-			$parentFolder = $this->root->getUserFolder($owner)->getFirstNodeById($this->fileToSign->getParentId());
+			$parentFolder = $this->root->getUserFolder($owner)->getFirstNodeById($originalFile->getParentId());
 			return $parentFolder->newFile($filename, $content);
 		} catch (NotPermittedException) {
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
