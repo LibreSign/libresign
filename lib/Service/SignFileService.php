@@ -360,12 +360,6 @@ class SignFileService {
 		return $this->signEngineFactory->resolve($file->getExtension());
 	}
 
-	protected function getLastSignedDate(File $signedFile): \DateTime {
-		$chain = $this->getEngine()->getCertificateChain($signedFile->fopen('rb'));
-		$last = end($chain);
-		return $last['signingTime'];
-	}
-
 	protected function getSignatureParams(): array {
 		$certificateData = $this->readCertificate();
 		$signatureParams = $this->buildBaseSignatureParams($certificateData);
