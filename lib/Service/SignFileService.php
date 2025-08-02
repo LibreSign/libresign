@@ -137,10 +137,6 @@ class SignFileService {
 		});
 	}
 
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 * @psalm-suppress MixedMethodCall
-	 */
 	public function notifyCallback(File $file): void {
 		$uri = $this->libreSignFile->getCallback();
 		if (!$uri) {
