@@ -260,7 +260,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testSignGenerateASha256OfSignedFile(string $signedContent):void {
 		$service = $this->getService([
 			'getEngine',
-			'getLastSignedDate',
 			'setNewStatusIfNecessary',
 		]);
 
@@ -305,7 +304,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testUpdateDatabaseWhenSign(): void {
 		$service = $this->getService([
 			'getEngine',
-			'getLastSignedDate',
 			'setNewStatusIfNecessary',
 			'computeHash',
 		]);
@@ -325,7 +323,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testDispatchEventWhenSign(): void {
 		$service = $this->getService([
 			'getEngine',
-			'getLastSignedDate',
 			'setNewStatusIfNecessary',
 			'computeHash',
 		]);
@@ -348,7 +345,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testCheckStatusAfterSign(array $inputSigners, int $fileStatus, int $finalStatus): void {
 		$service = $this->getService([
 			'getEngine',
-			'getLastSignedDate',
 			'computeHash',
 			'getSigners',
 		]);

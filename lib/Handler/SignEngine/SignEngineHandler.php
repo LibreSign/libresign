@@ -209,6 +209,39 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		return $this->savePfx($uid, $content);
 	}
 
+	public function getLastSignedDate(): \DateTime {
+		$stream = $this->getFileStream();
+
+		$chain = $this->getCertificateChain($stream);
+		if (empty($chain)) {
+			throw new \UnexpectedValueException('Certificate chain is empty.');
+		}
+
+		$last = $chain[array_key_last($chain)];
+		if (!is_array($last) || !isset($last['signingTime']) || !$last['signingTime'] instanceof \DateTime) {
+			throw new \UnexpectedValueException('Invalid signingTime in certificate chain.');
+		}
+
+		// Prevent accepting certificates with future signing dates (possible clock issues)
+		if ($last['signingTime'] > new \DateTime()) {
+			throw new \UnexpectedValueException('Invalid signingTime in certificate chain. We found Marty McFly');
+		}
+
+		return $last['signingTime'];
+	}
+
+	/**
+	 * @return resource
+	 */
+	protected function getFileStream() {
+		$signedFile = $this->getInputFile();
+		$stream = $signedFile->fopen('rb');
+		if ($stream === false) {
+			throw new \RuntimeException('Unable to open the signed file for reading.');
+		}
+		return $stream;
+	}
+
 	private function getCertificateEngine(): IEngineHandler {
 		return \OCP\Server::get(CertificateEngineFactory::class)
 			->getEngine();
