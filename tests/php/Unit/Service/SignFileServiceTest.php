@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 use bovigo\vfs\vfsStream;
 use OCA\Libresign\Db\AccountFileMapper;
+use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
@@ -345,6 +346,64 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->setSignRequest($signRequest)
 			->setLibreSignFile($libreSignFile)
 			->sign();
+	}
+
+	#[DataProvider('providerCheckStatusAfterSign')]
+	public function testCheckStatusAfterSign(array $inputSigners, int $fileStatus, int $finalStatus): void {
+		$service = $this->getService([
+			'getEngine',
+			'getLastSignedDate',
+			'computeHash',
+			'getSigners',
+		]);
+
+		$service->method('getSigners')->willReturn($inputSigners);
+
+		$signRequest = $this->createMock(SignRequest::class);
+		$libreSignFile = new \OCA\Libresign\Db\File();
+		$libreSignFile->setStatus($fileStatus);
+		$libreSignFile->resetUpdatedFields();
+
+		$service
+			->setSignRequest($signRequest)
+			->setLibreSignFile($libreSignFile)
+			->sign();
+
+		$this->assertEquals($finalStatus, $libreSignFile->getStatus());
+
+		$updatedFields = $libreSignFile->getUpdatedFields();
+		if ($fileStatus !== $finalStatus) {
+			$this->assertArrayHasKey('status', $updatedFields);
+			$this->assertTrue($updatedFields['status']);
+		} else {
+			$this->assertArrayNotHasKey('status', $updatedFields);
+		}
+	}
+
+	public static function providerCheckStatusAfterSign(): array {
+		return [
+			[self::generateSigners(5, 1), File::STATUS_ABLE_TO_SIGN, File::STATUS_PARTIAL_SIGNED],
+			[self::generateSigners(5, 1), File::STATUS_PARTIAL_SIGNED, File::STATUS_PARTIAL_SIGNED],
+			[self::generateSigners(5, 5), File::STATUS_ABLE_TO_SIGN, File::STATUS_SIGNED],
+			[self::generateSigners(3, 0), File::STATUS_ABLE_TO_SIGN, File::STATUS_ABLE_TO_SIGN],
+			[self::generateSigners(3, 3), File::STATUS_PARTIAL_SIGNED, File::STATUS_SIGNED],
+			[self::generateSigners(2, 2), File::STATUS_SIGNED, File::STATUS_SIGNED],
+			[self::generateSigners(4, 3), File::STATUS_ABLE_TO_SIGN, File::STATUS_PARTIAL_SIGNED],
+			[self::generateSigners(4, 4), File::STATUS_PARTIAL_SIGNED, File::STATUS_SIGNED],
+			[self::generateSigners(1, 1), File::STATUS_ABLE_TO_SIGN, File::STATUS_SIGNED],
+			[self::generateSigners(0, 0), File::STATUS_ABLE_TO_SIGN, File::STATUS_ABLE_TO_SIGN],
+		];
+	}
+
+	private static function generateSigners(int $total, int $signed): array {
+		$signers = [];
+		for ($i = 0; $i < $total; $i ++) {
+			$signers[] = new SignRequest();
+		}
+		for ($i = 0; $i < $signed; $i ++) {
+			$signers[$i]->setSigned(new DateTime());
+		}
+		return $signers;
 	}
 
 	#[DataProvider('providerGetEngineWillWorkWithLazyLoadedEngine')]
