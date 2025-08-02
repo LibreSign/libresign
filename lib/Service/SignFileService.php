@@ -704,14 +704,14 @@ class SignFileService {
 			file_put_contents($input, $this->fileToSign->getContent());
 
 			try {
-				$buffer = $this->pdf->applyStamp($input, $stamp);
+				$pdfContent = $this->pdf->applyStamp($input, $stamp);
 			} catch (RuntimeException $e) {
 				throw new LibresignException($e->getMessage());
 			}
 		} else {
-			$buffer = $this->fileToSign->getContent();
+			$pdfContent = $this->fileToSign->getContent();
 		}
-		return $this->createSignedFile($buffer);
+		return $this->createSignedFile($pdfContent);
 	}
 
 	private function createSignedFile(string $content): File {
