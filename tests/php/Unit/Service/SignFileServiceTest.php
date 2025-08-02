@@ -304,6 +304,26 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	public function testUpdateDatabaseWhenSign(): void {
+		$service = $this->getService([
+			'getEngine',
+			'getLastSignedDate',
+			'setNewStatusIfNecessary',
+			'computeHash',
+		]);
+
+		$this->fileMapper->expects($this->once())->method('update');
+		$this->signRequestMapper->expects($this->once())->method('update');
+
+		$signRequest = $this->createMock(SignRequest::class);
+		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+
+		$service
+			->setSignRequest($signRequest)
+			->setLibreSignFile($libreSignFile)
+			->sign();
+	}
+
 	#[DataProvider('providerGetEngineWillWorkWithLazyLoadedEngine')]
 	public function testGetEngineWillWorkWithLazyLoadedEngine(string $extension, string $instanceOf): void {
 		$service = $this->getService([
