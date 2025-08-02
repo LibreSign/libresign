@@ -32,7 +32,6 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\PdfTk\Pdf;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
-use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
 use OCA\Libresign\Handler\SignEngine\SignEngineHandler;
 use OCA\Libresign\Helper\JavaHelper;
@@ -82,8 +81,6 @@ class SignFileService {
 		private FileMapper $fileMapper,
 		private SignRequestMapper $signRequestMapper,
 		private AccountFileMapper $accountFileMapper,
-		private Pkcs7Handler $pkcs7Handler,
-		private Pkcs12Handler $pkcs12Handler,
 		private FooterHandler $footerHandler,
 		protected FolderService $folderService,
 		private IClientService $client,
