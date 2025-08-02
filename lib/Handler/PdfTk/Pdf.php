@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler\PdfTk;
 
 use mikehaertl\pdftk\Pdf as BasePdf;
-use mikehaertl\shellcommand\Command;
+use mikehaertl\pdftk\Command;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JavaHelper;
