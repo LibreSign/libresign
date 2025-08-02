@@ -437,7 +437,7 @@ class SignFileService {
 	/**
 	 * @return SignRequestEntity[]
 	 */
-	private function getSigners(): array {
+	protected function getSigners(): array {
 		if (empty($this->signers)) {
 			$this->signers = $this->signRequestMapper->getByFileId($this->signRequest->getFileId());
 			if ($this->signers) {
@@ -453,24 +453,36 @@ class SignFileService {
 	}
 
 	protected function setNewStatusIfNecessary(): bool {
-		$signers = $this->getSigners();
-		$total = array_reduce($signers, function ($carry, $signer) {
-			$carry += $signer->getSigned() ? 1 : 0;
-			return $carry;
-		}, 0);
-		if ($total > 0
-			&& count($signers) !== $total
-			&& $this->libreSignFile->getStatus() !== FileEntity::STATUS_PARTIAL_SIGNED
-		) {
-			$this->libreSignFile->setStatus(FileEntity::STATUS_PARTIAL_SIGNED);
-			return true;
-		} elseif (count($signers) === $total
-			&& $this->libreSignFile->getStatus() !== FileEntity::STATUS_SIGNED
-		) {
-			$this->libreSignFile->setStatus(FileEntity::STATUS_SIGNED);
-			return true;
+		$newStatus = $this->evaluateStatusFromSigners();
+
+		if ($newStatus === null || $newStatus === $this->libreSignFile->getStatus()) {
+			return false;
 		}
-		return false;
+
+		$this->libreSignFile->setStatus($newStatus);
+		return true;
+	}
+
+	private function evaluateStatusFromSigners(): ?int {
+		$signers = $this->getSigners();
+
+		$total = count($signers);
+
+		if ($total === 0) {
+			return null;
+		}
+
+		$totalSigned = count(array_filter($signers, fn ($s) => $s->getSigned() !== null));
+
+		if ($totalSigned === $total) {
+			return FileEntity::STATUS_SIGNED;
+		}
+
+		if ($totalSigned > 0) {
+			return FileEntity::STATUS_PARTIAL_SIGNED;
+		}
+
+		return null;
 	}
 
 	private function getOrGeneratePfxContent(SignEngineHandler $engine): string {
