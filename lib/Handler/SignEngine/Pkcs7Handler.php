@@ -8,11 +8,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\SignEngine;
 
+use DateTime;
 use OCP\Files\File;
 
-/**
- * @codeCoverageIgnore
- */
 class Pkcs7Handler extends SignEngineHandler {
 	public function sign(): File {
 		$p7sFile = $this->getP7sFile();
@@ -28,15 +26,25 @@ class Pkcs7Handler extends SignEngineHandler {
 		return $p7sFile;
 	}
 
-	public function getSignedContent(): string {
-		return $this->sign()->getContent();
-	}
-
-	public function getP7sFile(): File {
+	protected function getP7sFile(): File {
 		$newName = $this->getInputFile()->getName() . '.p7s';
 		$p7sFile = $this->getInputFile()
 			->getParent()
 			->newFile($newName);
 		return $p7sFile;
 	}
+
+	/**
+	 * @todo Replace this method by a real implementation that retrieves the certificate chain and not just the file's last modified time.
+	 */
+	public function getCertificateChain($resource): array {
+		$metadata = stream_get_meta_data($resource);
+		$lastModifiedTime = filemtime($metadata['uri']);
+		return [
+			[
+				'signingTime' => (new DateTime())->setTimestamp($lastModifiedTime),
+			],
+		];
+	}
+
 }

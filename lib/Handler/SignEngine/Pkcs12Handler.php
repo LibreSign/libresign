@@ -10,23 +10,19 @@ namespace OCA\Libresign\Handler\SignEngine;
 
 use DateTime;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\OrderCertificatesTrait;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
-use OCP\Files\GenericFileException;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use phpseclib3\File\ASN1;
-use TypeError;
 
 class Pkcs12Handler extends SignEngineHandler {
 	use OrderCertificatesTrait;
-	private string $pfxFilename = 'signature.pfx';
 	protected string $certificate = '';
 	private array $signaturesFromPoppler = [];
 	/**
@@ -42,47 +38,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		private FooterHandler $footerHandler,
 		private ITempManager $tempManager,
 	) {
-	}
-
-	public function savePfx(string $uid, string $content): string {
-		$this->folderService->setUserId($uid);
-		$folder = $this->folderService->getFolder();
-		if ($folder->nodeExists($this->pfxFilename)) {
-			$file = $folder->get($this->pfxFilename);
-			if (!$file instanceof File) {
-				throw new LibresignException("path {$this->pfxFilename} already exists and is not a file!", 400);
-			}
-			try {
-				$file->putContent($content);
-			} catch (GenericFileException) {
-				throw new LibresignException("path {$file->getPath()} does not exists!", 400);
-			}
-			return $content;
-		}
-
-		$file = $folder->newFile($this->pfxFilename);
-		$file->putContent($content);
-		return $content;
-	}
-
-	public function deletePfx(string $uid): void {
-		$this->folderService->setUserId($uid);
-		$folder = $this->folderService->getFolder();
-		try {
-			$file = $folder->get($this->pfxFilename);
-			$file->delete();
-		} catch (\Throwable) {
-		}
-	}
-
-	public function updatePassword(string $uid, string $currentPrivateKey, string $newPrivateKey): string {
-		$pfx = $this->getPfxOfCurrentSigner($uid);
-		$content = $this->certificateEngineFactory->getEngine()->updatePassword(
-			$pfx,
-			$currentPrivateKey,
-			$newPrivateKey
-		);
-		return $this->savePfx($uid, $content);
+		parent::__construct($l10n, $folderService);
 	}
 
 	/**
@@ -346,39 +302,6 @@ class Pkcs12Handler extends SignEngineHandler {
 		return $pem;
 	}
 
-	/**
-	 * Get content of pfx file
-	 */
-	public function getPfxOfCurrentSigner(?string $uid = null): string {
-		if (!empty($this->certificate) || empty($uid)) {
-			return $this->certificate;
-		}
-		$this->folderService->setUserId($uid);
-		$folder = $this->folderService->getFolder();
-		if (!$folder->nodeExists($this->pfxFilename)) {
-			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
-		}
-		try {
-			/** @var \OCP\Files\File */
-			$node = $folder->get($this->pfxFilename);
-			$this->certificate = $node->getContent();
-		} catch (GenericFileException) {
-			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
-		} catch (\Throwable) {
-		}
-		if (empty($this->certificate)) {
-			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
-		}
-		if ($this->getPassword()) {
-			try {
-				$this->certificateEngineFactory->getEngine()->readCertificate($this->certificate, $this->getPassword());
-			} catch (InvalidPasswordException) {
-				throw new LibresignException($this->l10n->t('Invalid password'));
-			}
-		}
-		return $this->certificate;
-	}
-
 	private function getHandler(): SignEngineHandler {
 		$sign_engine = $this->appConfig->getValueString(Application::APP_ID, 'sign_engine', 'JSignPdf');
 		$property = lcfirst($sign_engine) . 'Handler';
@@ -406,26 +329,5 @@ class Pkcs12Handler extends SignEngineHandler {
 
 	public function isHandlerOk(): bool {
 		return $this->certificateEngineFactory->getEngine()->isSetupOk();
-	}
-
-	/**
-	 * Generate certificate
-	 *
-	 * @param array $user Example: ['host' => '', 'name' => '']
-	 * @param string $signPassword Password of signature
-	 * @param string $friendlyName Friendly name
-	 */
-	public function generateCertificate(array $user, string $signPassword, string $friendlyName): string {
-		$content = $this->certificateEngineFactory->getEngine()
-			->setHosts([$user['host']])
-			->setCommonName($user['name'])
-			->setFriendlyName($friendlyName)
-			->setUID($user['uid'])
-			->setPassword($signPassword)
-			->generateCertificate();
-		if (!$content) {
-			throw new TypeError();
-		}
-		return $content;
 	}
 }
