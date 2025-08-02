@@ -516,7 +516,7 @@ class SignFileService {
 	 *
 	 * @throws LibresignException
 	 */
-	protected function getFileToSing(): File {
+	protected function getFileToSign(): File {
 		if ($this->fileToSign instanceof File) {
 			return $this->fileToSign;
 		}
@@ -535,7 +535,7 @@ class SignFileService {
 
 	protected function getEngine(): SignEngineHandler {
 		if (!$this->engine) {
-			$originalFile = $this->getFileToSing();
+			$originalFile = $this->getFileToSign();
 			$this->engine = $this->identifyEngine($originalFile);
 
 			$this->configureEngine();
@@ -545,7 +545,7 @@ class SignFileService {
 
 	private function configureEngine(): void {
 		$this->engine
-			->setInputFile($this->getFileToSing())
+			->setInputFile($this->getFileToSign())
 			->setCertificate($this->getOrGeneratePfxContent($this->engine))
 			->setPassword($this->password);
 
