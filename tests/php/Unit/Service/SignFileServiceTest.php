@@ -22,6 +22,7 @@ use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignedEventFactory;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\FooterHandler;
+use OCA\Libresign\Handler\PdfTk\Pdf;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
@@ -81,6 +82,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private JavaHelper&MockObject $javaHelper;
 	private SignEngineFactory $signEngineFactory;
 	private SignedEventFactory&MockObject $signedEventFactory;
+	private Pdf&MockObject $pdf;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -114,6 +116,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->javaHelper = $this->createMock(JavaHelper::class);
 		$this->signEngineFactory = \OCP\Server::get(SignEngineFactory::class);
 		$this->signedEventFactory = $this->createMock(SignedEventFactory::class);
+		$this->pdf = $this->createMock(Pdf::class);
 	}
 
 	private function getService(array $methods = []): SignFileService|MockObject {
@@ -144,9 +147,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->tempManager,
 					$this->identifyMethodService,
 					$this->timeFactory,
-					$this->javaHelper,
 					$this->signEngineFactory,
 					$this->signedEventFactory,
+					$this->pdf,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -176,9 +179,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->tempManager,
 			$this->identifyMethodService,
 			$this->timeFactory,
-			$this->javaHelper,
 			$this->signEngineFactory,
 			$this->signedEventFactory,
+			$this->pdf,
 		);
 	}
 

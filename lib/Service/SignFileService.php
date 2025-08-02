@@ -12,7 +12,6 @@ use DateTime;
 use DateTimeInterface;
 use Exception;
 use InvalidArgumentException;
-use mikehaertl\pdftk\Command;
 use OC\AppFramework\Http as AppFrameworkHttp;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
@@ -34,7 +33,6 @@ use OCA\Libresign\Handler\PdfTk\Pdf;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
 use OCA\Libresign\Handler\SignEngine\SignEngineHandler;
-use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -58,6 +56,7 @@ use OCP\IUserSession;
 use OCP\Security\Events\GenerateSecurePasswordEvent;
 use OCP\Security\ISecureRandom;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Sabre\DAV\UUIDUtil;
 
 class SignFileService {
@@ -99,9 +98,9 @@ class SignFileService {
 		private ITempManager $tempManager,
 		private IdentifyMethodService $identifyMethodService,
 		private ITimeFactory $timeFactory,
-		protected JavaHelper $javaHelper,
 		protected SignEngineFactory $signEngineFactory,
 		private SignedEventFactory $signedEventFactory,
+		private Pdf $pdf,
 	) {
 	}
 
@@ -704,20 +703,10 @@ class SignFileService {
 			$input = $this->tempManager->getTemporaryFile('input.pdf');
 			file_put_contents($input, $this->fileToSign->getContent());
 
-			$javaPath = $this->javaHelper->getJavaPath();
-			$pdftkPath = $this->appConfig->getValueString(Application::APP_ID, 'pdftk_path');
-			if (!file_exists($javaPath) || !file_exists($pdftkPath)) {
-				throw new LibresignException($this->l10n->t('The admin hasn\'t set up LibreSign yet, please wait.'));
-			}
-			$pdf = new Pdf();
-			$command = new Command();
-			$command->setCommand($javaPath . ' -jar ' . $pdftkPath);
-			$pdf->setCommand($command);
-			$pdf->addFile($input);
-			$buffer = $pdf->multiStamp($stamp)
-				->toString();
-			if (!is_string($buffer)) {
-				throw new LibresignException('Failed to merge the PDF with the footer. The PDF was not successfully created with the footer.');
+			try {
+				$buffer = $this->pdf->applyStamp($input, $stamp);
+			} catch (RuntimeException $e) {
+				throw new LibresignException($e->getMessage());
 			}
 		} else {
 			$buffer = $this->fileToSign->getContent();
