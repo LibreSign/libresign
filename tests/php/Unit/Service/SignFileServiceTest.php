@@ -437,6 +437,43 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	#[DataProvider('providerGetOrGeneratePfxContent')]
+	public function testGetOrGeneratePfxContent(bool $signWithoutPassword, string $occurrency): void {
+		$service = $this->getService([
+			'getFileToSign',
+			'identifyEngine',
+			'generateTemporaryPassword',
+			'computeHash',
+			'updateSignRequest',
+			'updateLibreSignFile',
+			'dispatchSignedEvent',
+		]);
+
+		$signEngineHandler = $this->getMockBuilder(Pkcs12Handler::class)
+			->disableOriginalConstructor()
+			->onlyMethods([
+				'getCertificate',
+				'getPfxOfCurrentSigner',
+				'generateCertificate',
+				'sign',
+			])
+			->getMock();
+
+		$signEngineHandler->expects($this->{$occurrency}())->method('generateCertificate');
+		$service->method('identifyEngine')->willReturn($signEngineHandler);
+
+		$service
+			->setSignWithoutPassword($signWithoutPassword)
+			->sign();
+	}
+
+	public static function providerGetOrGeneratePfxContent(): array {
+		return [
+			[true, 'once'],
+			[false, 'never'],
+		];
+	}
+
 	#[DataProvider('providerStoreUserMetadata')]
 	public function testStoreUserMetadata(bool $collectMetadata, ?array $previous, array $new, ?array $expected): void {
 		$signRequest = new \OCA\Libresign\Db\SignRequest();
