@@ -61,14 +61,12 @@ use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
 
 class SignFileService {
-	/** @var SignRequestEntity */
-	private $signRequest;
+	private SignRequestEntity $signRequest;
 	private string $password = '';
 	private ?FileEntity $libreSignFile = null;
 	/** @var VisibleElementAssoc[] */
 	private $elements = [];
-	/** @var bool */
-	private $signWithoutPassword = false;
+	private bool $signWithoutPassword = false;
 	private ?File $fileToSign = null;
 	private string $userUniqueIdentifier = '';
 	private string $friendlyName = '';
