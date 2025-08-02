@@ -17,6 +17,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignedEventFactory;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\FooterHandler;
@@ -314,6 +315,28 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->fileMapper->expects($this->once())->method('update');
 		$this->signRequestMapper->expects($this->once())->method('update');
+
+		$signRequest = $this->createMock(SignRequest::class);
+		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+
+		$service
+			->setSignRequest($signRequest)
+			->setLibreSignFile($libreSignFile)
+			->sign();
+	}
+
+	public function testDispatchEventWhenSign(): void {
+		$service = $this->getService([
+			'getEngine',
+			'getLastSignedDate',
+			'setNewStatusIfNecessary',
+			'computeHash',
+		]);
+
+		$this->eventDispatcher
+			->expects($this->once())
+			->method('dispatchTyped')
+			->with($this->isInstanceOf(SignedEvent::class));
 
 		$signRequest = $this->createMock(SignRequest::class);
 		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
