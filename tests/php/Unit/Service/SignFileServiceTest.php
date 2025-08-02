@@ -55,8 +55,6 @@ use Psr\Log\LoggerInterface;
  */
 final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N&MockObject $l10n;
-	private Pkcs7Handler|MockObject $pkcs7Handler;
-	private Pkcs12Handler&MockObject $pkcs12Handler;
 	private FooterHandler&MockObject $footerHandler;
 	private FileMapper&MockObject $fileMapper;
 	private SignRequestMapper&MockObject $signRequestMapper;
@@ -93,8 +91,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
-		$this->pkcs7Handler = $this->createMock(Pkcs7Handler::class);
-		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->clientService = $this->createMock(IClientService::class);
 		$this->userManager = $this->createMock(IUserManager::class);
@@ -128,8 +124,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->fileMapper,
 					$this->signRequestMapper,
 					$this->accountFileMapper,
-					$this->pkcs7Handler,
-					$this->pkcs12Handler,
 					$this->footerHandler,
 					$this->folderService,
 					$this->clientService,
@@ -162,8 +156,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileMapper,
 			$this->signRequestMapper,
 			$this->accountFileMapper,
-			$this->pkcs7Handler,
-			$this->pkcs12Handler,
 			$this->footerHandler,
 			$this->folderService,
 			$this->clientService,
@@ -271,8 +263,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
 		$nextcloudFile->method('getContent')->willReturn($signedContent);
-		$this->pkcs12Handler->method('sign')->willReturn($nextcloudFile);
-		$service->method('getEngine')->willReturn($this->pkcs12Handler);
+		$pkcs12Handler = $this->createMock(Pkcs12Handler::class);
+		$pkcs12Handler->method('sign')->willReturn($nextcloudFile);
+		$service->method('getEngine')->willReturn($pkcs12Handler);
 
 		$expectedHash = hash('sha256', $signedContent);
 
