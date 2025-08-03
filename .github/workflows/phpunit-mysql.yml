@@ -222,7 +222,7 @@ jobs:
         run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-mysql.result != 'success' }}; then exit 1; fi
 
   upload-coverage:
-    needs: phpunit
+    needs: phpunit-mysql
     runs-on: ubuntu-latest
     steps:
       - name: Upload coverage results to Coveralls
