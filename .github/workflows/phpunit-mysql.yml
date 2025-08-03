@@ -225,7 +225,7 @@ jobs:
         run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-mysql.result != 'success' }}; then exit 1; fi
 
   finish-coverage:
-    needs: upload-coverage
+    needs: phpunit-mysql
     runs-on: ubuntu-latest
     steps:
       - name: Let Coveralls know that all tests have finished
