@@ -214,7 +214,7 @@ jobs:
         run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-mysql.result != 'success' }}; then exit 1; fi
 
   upload-coverage:
-    needs: phpunit-mysql
+    needs: [phpunit-mysql, matrix]
     runs-on: ubuntu-latest
     strategy:
       matrix:
