@@ -71,7 +71,6 @@ jobs:
         php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
         server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
         mysql-versions: ["8.4"]
-        xdebug_mode: ['coverage']
 
     name: MySQL ${{ matrix.mysql-versions }} PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
 
@@ -168,17 +167,7 @@ jobs:
         # Only run if phpunit config file exists
         if: steps.check_phpunit.outcome == 'success'
         working-directory: apps/${{ env.APP_NAME }}
-        env:
-          XDEBUG_MODE: ${{ matrix.xdebug_mode }}
         run: composer run test:coverage
-
-      - name: Upload coverage results to Coveralls
-        working-directory: apps/${{ env.APP_NAME }}
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_PARALLEL: true
-          COVERALLS_FLAG_NAME: php-${{ matrix.php-versions }}
-        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml --json_path=build/logs/coveralls-upload.json -v
 
       - name: Check PHPUnit integration script is defined
         id: check_integration
@@ -224,6 +213,20 @@ jobs:
       - name: Summary status
         run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-mysql.result != 'success' }}; then exit 1; fi
 
+  upload-coverage:
+    needs: phpunit-mysql
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
+    steps:
+      - name: Upload coverage results to Coveralls
+        working-directory: apps/${{ env.APP_NAME }}
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_PARALLEL: true
+          COVERALLS_FLAG_NAME: php-${{ matrix.php-versions }}
+        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml --json_path=build/logs/coveralls-upload.json -v
   finish-coverage:
     needs: phpunit-mysql
     runs-on: ubuntu-latest
