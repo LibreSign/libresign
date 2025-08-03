@@ -172,6 +172,14 @@ jobs:
           XDEBUG_MODE: ${{ matrix.xdebug_mode }}
         run: composer run test:unit
 
+      - name: Upload coverage results to Coveralls
+        working-directory: apps/${{ env.APP_NAME }}
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_PARALLEL: true
+          COVERALLS_FLAG_NAME: php-${{ matrix.php-versions }}
+        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml --json_path=build/logs/coveralls-upload.json -v
+
       - name: Check PHPUnit integration script is defined
         id: check_integration
         continue-on-error: true
@@ -216,17 +224,6 @@ jobs:
       - name: Summary status
         run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-mysql.result != 'success' }}; then exit 1; fi
 
-  upload-coverage:
-    needs: phpunit-mysql
-    runs-on: ubuntu-latest
-    steps:
-      - name: Upload coverage results to Coveralls
-        working-directory: apps/${{ env.APP_NAME }}
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_PARALLEL: true
-          COVERALLS_FLAG_NAME: php-${{ matrix.php-versions }}
-        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml --json_path=build/logs/coveralls-upload.json -v
   finish-coverage:
     needs: upload-coverage
     runs-on: ubuntu-latest
