@@ -18,6 +18,7 @@ use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
 use OCP\Files\GenericFileException;
+use OCP\Files\NotPermittedException;
 use OCP\IL10N;
 
 abstract class SignEngineHandler implements ISignEngineHandler {
@@ -162,7 +163,8 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		try {
 			$file = $folder->get($this->pfxFilename);
 			$file->delete();
-		} catch (\Throwable) {
+		} catch (NotPermittedException) {
+			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
 		}
 	}
 
