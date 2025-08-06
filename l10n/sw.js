@@ -24,6 +24,7 @@ OC.L10N.register(
     "Invalid file provided" : "Faili iliyotolewa si halali",
     "Account" : "Akaunti",
     "Email" : "Barua pepe",
+    "User already exists" : "User already exists",
     "Draw" : "Draw",
     "Text" : "Maandishi",
     "Upload" : "Pakia",
@@ -79,6 +80,7 @@ OC.L10N.register(
     "Yes" : "Ndiyo",
     "No" : "Hapana",
     "Remove background" : "Remove background",
-    "Forgot password?" : "Umesahau nenosiri"
+    "Forgot password?" : "Umesahau nenosiri",
+    "Name:" : "Jina:"
 },
 "nplurals=2; plural=(n != 1);");
