@@ -18,6 +18,8 @@ use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
 use OCP\Files\GenericFileException;
+use OCP\Files\InvalidPathException;
+use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IL10N;
 
@@ -165,6 +167,7 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 			$file->delete();
 		} catch (NotPermittedException) {
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
+		} catch (NotFoundException|InvalidPathException) {
 		}
 	}
 
