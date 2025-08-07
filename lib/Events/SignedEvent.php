@@ -12,6 +12,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\EventDispatcher\Event;
+use OCP\Files\File;
 use OCP\IUser;
 
 class SignedEvent extends Event {
@@ -21,6 +22,7 @@ class SignedEvent extends Event {
 		private FileEntity $libreSignFile,
 		private IIdentifyMethod $identifyMethod,
 		private IUser $user,
+		private File $signedFile,
 	) {
 	}
 
@@ -40,4 +42,7 @@ class SignedEvent extends Event {
 		return $this->user;
 	}
 
+	public function getSignedFile(): File {
+		return $this->signedFile;
+	}
 }
