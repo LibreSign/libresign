@@ -8,17 +8,35 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\SignEngine;
 
+use InvalidArgumentException;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
+use OCA\Libresign\Exception\EmptyCertificateException;
+use OCA\Libresign\Exception\InvalidPasswordException;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
+use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
+use OCP\Files\GenericFileException;
+use OCP\Files\InvalidPathException;
+use OCP\Files\NotFoundException;
+use OCP\Files\NotPermittedException;
+use OCP\IL10N;
 
 abstract class SignEngineHandler implements ISignEngineHandler {
 	private File $inputFile;
-	protected string $certificate;
+	protected string $certificate = '';
+	private string $pfxFilename = 'signature.pfx';
 	private string $password = '';
 	/** @var VisibleElementAssoc[] */
 	private array $visibleElements = [];
 	private array $signatureParams = [];
+
+	public function __construct(
+		private IL10N $l10n,
+		private readonly FolderService $folderService,
+	) {
+	}
 
 	/**
 	 * @return static
@@ -42,8 +60,7 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	}
 
 	public function readCertificate(): array {
-		return \OCP\Server::get(CertificateEngineFactory::class)
-			->getEngine()
+		return $this->getCertificateEngine()
 			->readCertificate(
 				$this->getCertificate(),
 				$this->getPassword()
@@ -89,5 +106,149 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	public function setSignatureParams(array $params): self {
 		$this->signatureParams = $params;
 		return $this;
+	}
+
+	/**
+	 * Generate certificate
+	 *
+	 * @param array $user Example: ['host' => '', 'name' => '']
+	 * @param string $signPassword Password of signature
+	 * @param string $friendlyName Friendly name
+	 */
+	public function generateCertificate(array $user, string $signPassword, string $friendlyName): string {
+		try {
+			$content = $this->getCertificateEngine()
+				->setHosts([$user['host']])
+				->setCommonName($user['name'])
+				->setFriendlyName($friendlyName)
+				->setUID($user['uid'])
+				->setPassword($signPassword)
+				->generateCertificate();
+		} catch (EmptyCertificateException) {
+			throw new LibresignException($this->l10n->t('Empty root certificate data'));
+		} catch (InvalidArgumentException) {
+			throw new LibresignException($this->l10n->t('Invalid data to generate certificate'));
+		} catch (\Throwable) {
+			throw new LibresignException($this->l10n->t('Failure on generate certificate'));
+		}
+		if (!$content) {
+			throw new LibresignException($this->l10n->t('Failure to generate certificate'));
+		}
+		$this->setCertificate($content);
+		return $content;
+	}
+
+	public function savePfx(string $uid, string $content): string {
+		$this->folderService->setUserId($uid);
+		$folder = $this->folderService->getFolder();
+		if ($folder->nodeExists($this->pfxFilename)) {
+			$file = $folder->get($this->pfxFilename);
+			if (!$file instanceof File) {
+				throw new LibresignException("path {$this->pfxFilename} already exists and is not a file!", 400);
+			}
+			try {
+				$file->putContent($content);
+			} catch (GenericFileException) {
+				throw new LibresignException("path {$file->getPath()} does not exists!", 400);
+			}
+			return $content;
+		}
+
+		$file = $folder->newFile($this->pfxFilename);
+		$file->putContent($content);
+		return $content;
+	}
+
+	public function deletePfx(string $uid): void {
+		$this->folderService->setUserId($uid);
+		$folder = $this->folderService->getFolder();
+		try {
+			$file = $folder->get($this->pfxFilename);
+			$file->delete();
+		} catch (NotPermittedException) {
+			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
+		} catch (NotFoundException|InvalidPathException) {
+		}
+	}
+
+	/**
+	 * Get content of pfx file
+	 */
+	public function getPfxOfCurrentSigner(?string $uid = null): string {
+		if (!empty($this->certificate) || empty($uid)) {
+			return $this->certificate;
+		}
+		$this->folderService->setUserId($uid);
+		$folder = $this->folderService->getFolder();
+		if (!$folder->nodeExists($this->pfxFilename)) {
+			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
+		}
+		try {
+			/** @var \OCP\Files\File */
+			$node = $folder->get($this->pfxFilename);
+			$this->certificate = $node->getContent();
+		} catch (GenericFileException) {
+			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
+		} catch (\Throwable) {
+		}
+		if (empty($this->certificate)) {
+			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
+		}
+		if ($this->getPassword()) {
+			try {
+				$this->getCertificateEngine()->readCertificate($this->certificate, $this->getPassword());
+			} catch (InvalidPasswordException) {
+				throw new LibresignException($this->l10n->t('Invalid password'));
+			}
+		}
+		return $this->certificate;
+	}
+
+	public function updatePassword(string $uid, string $currentPrivateKey, string $newPrivateKey): string {
+		$pfx = $this->getPfxOfCurrentSigner($uid);
+		$content = $this->getCertificateEngine()->updatePassword(
+			$pfx,
+			$currentPrivateKey,
+			$newPrivateKey
+		);
+		return $this->savePfx($uid, $content);
+	}
+
+	public function getLastSignedDate(): \DateTime {
+		$stream = $this->getFileStream();
+
+		$chain = $this->getCertificateChain($stream);
+		if (empty($chain)) {
+			throw new \UnexpectedValueException('Certificate chain is empty.');
+		}
+
+		$last = $chain[array_key_last($chain)];
+		if (!is_array($last) || !isset($last['signingTime']) || !$last['signingTime'] instanceof \DateTime) {
+			throw new \UnexpectedValueException('Invalid signingTime in certificate chain.');
+		}
+
+		// Prevent accepting certificates with future signing dates (possible clock issues)
+		if ($last['signingTime'] > new \DateTime()) {
+			throw new \UnexpectedValueException('Invalid signingTime in certificate chain. We found Marty McFly');
+		}
+
+		return $last['signingTime'];
+	}
+
+	/**
+	 * @return resource
+	 */
+	protected function getFileStream() {
+		$signedFile = $this->getInputFile();
+		$stream = $signedFile->fopen('rb');
+		if ($stream === false) {
+			throw new \RuntimeException('Unable to open the signed file for reading.');
+		}
+		return $stream;
+	}
+
+	private function getCertificateEngine(): IEngineHandler {
+		return \OCP\Server::get(CertificateEngineFactory::class)
+			->getEngine();
 	}
 }

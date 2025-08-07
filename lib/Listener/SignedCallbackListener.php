@@ -8,20 +8,27 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Listener;
 
-use OCA\Libresign\Events\ASignedCallbackEvent;
+use OCA\Libresign\Events\SignedEvent;
+use OCA\Libresign\Service\SignFileService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
-/** @template-implements IEventListener<ASignedCallbackEvent> */
+/** @template-implements IEventListener<SignedEvent> */
 class SignedCallbackListener implements IEventListener {
+	public function __construct(
+		private SignFileService $signFileService,
+	) {
+	}
+
 	public function handle(Event $event): void {
-		/** @var ASignedCallbackEvent */
-		if (!($event instanceof ASignedCallbackEvent)) {
+		/** @var SignedEvent */
+		if (!($event instanceof SignedEvent)) {
 			return;
 		}
 
-		if ($event->allSigned) {
-			$event->fileService->notifyCallback($event->signedFile);
+		$updatedFields = $event->getLibreSignFile()->getUpdatedFields();
+		if (isset($updatedFields['signed']) && $updatedFields['signed'] === true) {
+			$this->signFileService->notifyCallback($event->getSignedFile());
 		}
 	}
 }

@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 use bovigo\vfs\vfsStream;
 use OCA\Libresign\Db\AccountFileMapper;
+use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
@@ -17,10 +18,14 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Events\SignedEvent;
+use OCA\Libresign\Events\SignedEventFactory;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\FooterHandler;
+use OCA\Libresign\Handler\PdfTk\Pdf;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
+use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FolderService;
@@ -41,6 +46,7 @@ use OCP\ITempManager;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
 use OCP\IUserSession;
+use OCP\Security\ISecureRandom;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
@@ -50,8 +56,6 @@ use Psr\Log\LoggerInterface;
  */
 final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N&MockObject $l10n;
-	private Pkcs7Handler&MockObject $pkcs7Handler;
-	private Pkcs12Handler&MockObject $pkcs12Handler;
 	private FooterHandler&MockObject $footerHandler;
 	private FileMapper&MockObject $fileMapper;
 	private SignRequestMapper&MockObject $signRequestMapper;
@@ -69,12 +73,16 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FileElementMapper&MockObject $fileElementMapper;
 	private UserElementMapper&MockObject $userElementMapper;
 	private IEventDispatcher&MockObject $eventDispatcher;
+	private ISecureRandom $secureRandom;
 	private IURLGenerator&MockObject $urlGenerator;
 	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
-	private ITempManager&MockObject $tempManager;
+	private ITempManager|MockObject $tempManager;
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private ITimeFactory&MockObject $timeFactory;
 	private JavaHelper&MockObject $javaHelper;
+	private SignEngineFactory $signEngineFactory;
+	private SignedEventFactory&MockObject $signedEventFactory;
+	private Pdf&MockObject $pdf;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -85,8 +93,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
-		$this->pkcs7Handler = $this->createMock(Pkcs7Handler::class);
-		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->clientService = $this->createMock(IClientService::class);
 		$this->userManager = $this->createMock(IUserManager::class);
@@ -101,12 +107,16 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
+		$this->secureRandom = \OCP\Server::get(\OCP\Security\ISecureRandom::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->timeFactory = $this->createMock(ITimeFactory::class);
 		$this->javaHelper = $this->createMock(JavaHelper::class);
+		$this->signEngineFactory = \OCP\Server::get(SignEngineFactory::class);
+		$this->signedEventFactory = $this->createMock(SignedEventFactory::class);
+		$this->pdf = $this->createMock(Pdf::class);
 	}
 
 	private function getService(array $methods = []): SignFileService|MockObject {
@@ -117,8 +127,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->fileMapper,
 					$this->signRequestMapper,
 					$this->accountFileMapper,
-					$this->pkcs7Handler,
-					$this->pkcs12Handler,
 					$this->footerHandler,
 					$this->folderService,
 					$this->clientService,
@@ -133,12 +141,15 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->fileElementMapper,
 					$this->userElementMapper,
 					$this->eventDispatcher,
+					$this->secureRandom,
 					$this->urlGenerator,
 					$this->identifyMethodMapper,
 					$this->tempManager,
 					$this->identifyMethodService,
 					$this->timeFactory,
-					$this->javaHelper,
+					$this->signEngineFactory,
+					$this->signedEventFactory,
+					$this->pdf,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -148,8 +159,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileMapper,
 			$this->signRequestMapper,
 			$this->accountFileMapper,
-			$this->pkcs7Handler,
-			$this->pkcs12Handler,
 			$this->footerHandler,
 			$this->folderService,
 			$this->clientService,
@@ -164,12 +173,15 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileElementMapper,
 			$this->userElementMapper,
 			$this->eventDispatcher,
+			$this->secureRandom,
 			$this->urlGenerator,
 			$this->identifyMethodMapper,
 			$this->tempManager,
 			$this->identifyMethodService,
 			$this->timeFactory,
-			$this->javaHelper,
+			$this->signEngineFactory,
+			$this->signedEventFactory,
+			$this->pdf,
 		);
 	}
 
@@ -244,74 +256,217 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->sign();
 	}
 
-	/**
-	 * @dataProvider dataSignWithSuccess
-	 */
-	public function testSignWithSuccess(string $mimetype, string $filename, string $extension):void {
-		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
-
-		$file = new \OCA\Libresign\Db\File();
-		$file->setUserId('username');
+	#[DataProvider('dataSignGenerateASha256OfSignedFile')]
+	public function testSignGenerateASha256OfSignedFile(string $signedContent):void {
+		$service = $this->getService([
+			'getEngine',
+			'setNewStatusIfNecessary',
+		]);
 
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
-		$nextcloudFile->method('getMimeType')->willReturn($mimetype);
-		$nextcloudFile->method('getExtension')->willReturn($extension);
-		$nextcloudFile->method('getPath')->willReturn($filename);
-		$nextcloudFile->method('getContent')->willReturn('fake content');
-		$nextcloudFile->method('getId')->willReturn(171);
-		$nextcloudFile->method('getParentId')->willReturn(170);
+		$nextcloudFile->method('getContent')->willReturn($signedContent);
+		$pkcs12Handler = $this->createMock(Pkcs12Handler::class);
+		$pkcs12Handler->method('sign')->willReturn($nextcloudFile);
+		$service->method('getEngine')->willReturn($pkcs12Handler);
 
-		$user = $this->createMock(\OCP\IUser::class);
-		$user->method('getUID')->willReturn('john.doe');
-		$nextcloudFile->method('getOwner')->willReturn($user);
+		$expectedHash = hash('sha256', $signedContent);
 
-		$this->root->method('getUserFolder')->willReturn($this->root);
-		$this->root->method('getFirstNodeById')->willReturnCallback(function ($id) use ($nextcloudFile) {
-			return match ($id) {
-				0 => $nextcloudFile,
-				171 => $nextcloudFile,
-				170 => $this->root,
-			};
-		});
-		$this->root->method('newFile')->willReturn($nextcloudFile);
+		$totalCalls = 0;
+		$hashCallback = function ($method, $args) use ($expectedHash, &$totalCalls) {
+			switch ($method) {
+				case 'setSignedHash':
+					$this->assertEquals($expectedHash, $args[0], 'Hash of signed file should match expected SHA-256 value');
+					$totalCalls++;
+					break;
+				default: return null;
+			}
+		};
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('__call')->willReturnCallback($hashCallback);
 
-		$nextcloudFolder = $this->createMock(\OCP\Files\Folder::class);
-		$nextcloudFolder->method('newFile')->willReturn($nextcloudFile);
-		$this->root->method('getFirstNodeById')->willReturn($nextcloudFolder);
+		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$libreSignFile->method('__call')->willReturnCallback($hashCallback);
 
-		$this->pkcs12Handler->method('setInputFile')->willReturn($this->pkcs12Handler);
-		$this->pkcs12Handler->method('setCertificate')->willReturn($this->pkcs12Handler);
-		$this->pkcs12Handler->method('setVisibleElements')->willReturn($this->pkcs12Handler);
-		$this->pkcs12Handler->method('setSignatureParams')->willReturn($this->pkcs12Handler);
-		$this->pkcs12Handler->method('setPassword')->willReturn($this->pkcs12Handler);
-		$this->pkcs12Handler->method('readCertificate')->willReturn([
-			'issuer' => ['CN' => 'Acme Cooperative'],
-			'subject' => ['CN' => 'John Doe'],
-		]);
-		$this->pkcs12Handler->method('sign')->willReturn($nextcloudFile);
-
-		$this->pkcs7Handler->method('setInputFile')->willReturn($this->pkcs12Handler);
-		$this->pkcs7Handler->method('setCertificate')->willReturn($this->pkcs12Handler);
-		$this->pkcs7Handler->method('setPassword')->willReturn($this->pkcs12Handler);
-		$this->pkcs7Handler->method('sign')->willReturn($nextcloudFile);
-
-		$signRequest = new \OCA\Libresign\Db\SignRequest();
-		$signRequest->setFileId(171);
-		$signRequest->setId(171);
-		$this->getService()
-			->setLibreSignFile($file)
+		$service
 			->setSignRequest($signRequest)
-			->setPassword('password')
+			->setLibreSignFile($libreSignFile)
 			->sign();
-		$this->assertTrue(true);
+		$this->assertEquals(2, $totalCalls, 'setSignedHash should be called twice');
 	}
 
-	public static function dataSignWithSuccess(): array {
+	public static function dataSignGenerateASha256OfSignedFile(): array {
 		return [
-			['application/pdf', 'file.PDF', 'PDF'],
-			['application/pdf', 'file.pdf', 'pdf'],
-			['application/xml', 'file.XML', 'XML'],
-			['application/xml', 'file.xml', 'xml'],
+			['signed content'],
+			['another signed content'],
+		];
+	}
+
+	public function testUpdateDatabaseWhenSign(): void {
+		$service = $this->getService([
+			'getEngine',
+			'setNewStatusIfNecessary',
+			'computeHash',
+		]);
+
+		$this->fileMapper->expects($this->once())->method('update');
+		$this->signRequestMapper->expects($this->once())->method('update');
+
+		$signRequest = $this->createMock(SignRequest::class);
+		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+
+		$service
+			->setSignRequest($signRequest)
+			->setLibreSignFile($libreSignFile)
+			->sign();
+	}
+
+	public function testDispatchEventWhenSign(): void {
+		$service = $this->getService([
+			'getEngine',
+			'setNewStatusIfNecessary',
+			'computeHash',
+		]);
+
+		$this->eventDispatcher
+			->expects($this->once())
+			->method('dispatchTyped')
+			->with($this->isInstanceOf(SignedEvent::class));
+
+		$signRequest = $this->createMock(SignRequest::class);
+		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+
+		$service
+			->setSignRequest($signRequest)
+			->setLibreSignFile($libreSignFile)
+			->sign();
+	}
+
+	#[DataProvider('providerCheckStatusAfterSign')]
+	public function testCheckStatusAfterSign(array $inputSigners, int $fileStatus, int $finalStatus): void {
+		$service = $this->getService([
+			'getEngine',
+			'computeHash',
+			'getSigners',
+		]);
+
+		$service->method('getSigners')->willReturn($inputSigners);
+
+		$signRequest = $this->createMock(SignRequest::class);
+		$libreSignFile = new \OCA\Libresign\Db\File();
+		$libreSignFile->setStatus($fileStatus);
+		$libreSignFile->resetUpdatedFields();
+
+		$service
+			->setSignRequest($signRequest)
+			->setLibreSignFile($libreSignFile)
+			->sign();
+
+		$this->assertEquals($finalStatus, $libreSignFile->getStatus());
+
+		$updatedFields = $libreSignFile->getUpdatedFields();
+		if ($fileStatus !== $finalStatus) {
+			$this->assertArrayHasKey('status', $updatedFields);
+			$this->assertTrue($updatedFields['status']);
+		} else {
+			$this->assertArrayNotHasKey('status', $updatedFields);
+		}
+	}
+
+	public static function providerCheckStatusAfterSign(): array {
+		return [
+			[self::generateSigners(5, 1), File::STATUS_ABLE_TO_SIGN, File::STATUS_PARTIAL_SIGNED],
+			[self::generateSigners(5, 1), File::STATUS_PARTIAL_SIGNED, File::STATUS_PARTIAL_SIGNED],
+			[self::generateSigners(5, 5), File::STATUS_ABLE_TO_SIGN, File::STATUS_SIGNED],
+			[self::generateSigners(3, 0), File::STATUS_ABLE_TO_SIGN, File::STATUS_ABLE_TO_SIGN],
+			[self::generateSigners(3, 3), File::STATUS_PARTIAL_SIGNED, File::STATUS_SIGNED],
+			[self::generateSigners(2, 2), File::STATUS_SIGNED, File::STATUS_SIGNED],
+			[self::generateSigners(4, 3), File::STATUS_ABLE_TO_SIGN, File::STATUS_PARTIAL_SIGNED],
+			[self::generateSigners(4, 4), File::STATUS_PARTIAL_SIGNED, File::STATUS_SIGNED],
+			[self::generateSigners(1, 1), File::STATUS_ABLE_TO_SIGN, File::STATUS_SIGNED],
+			[self::generateSigners(0, 0), File::STATUS_ABLE_TO_SIGN, File::STATUS_ABLE_TO_SIGN],
+		];
+	}
+
+	private static function generateSigners(int $total, int $signed): array {
+		$signers = [];
+		for ($i = 0; $i < $total; $i ++) {
+			$signers[] = new SignRequest();
+		}
+		for ($i = 0; $i < $signed; $i ++) {
+			$signers[$i]->setSigned(new DateTime());
+		}
+		return $signers;
+	}
+
+	#[DataProvider('providerGetEngineWillWorkWithLazyLoadedEngine')]
+	public function testGetEngineWillWorkWithLazyLoadedEngine(string $extension, string $instanceOf): void {
+		$service = $this->getService([
+			'updateSignRequest',
+			'updateLibreSignFile',
+			'dispatchSignedEvent',
+			'getFileToSign',
+			'configureEngine',
+			'getSignatureParams',
+		]);
+
+		$file = $this->createMock(\OCP\Files\File::class);
+		$file->method('getExtension')->willReturn($extension);
+		$service->method('getFileToSign')->willReturn($file);
+
+		$engine = self::invokePrivate($service, 'getEngine');
+
+		$this->assertInstanceOf($instanceOf, $engine);
+	}
+
+	public static function providerGetEngineWillWorkWithLazyLoadedEngine(): array {
+		return [
+			['pdf', Pkcs12Handler::class],
+			['PDF', Pkcs12Handler::class],
+			['odt', Pkcs7Handler::class],
+			['ODT', Pkcs7Handler::class],
+			['jpg', Pkcs7Handler::class],
+			['JPG', Pkcs7Handler::class],
+			['png', Pkcs7Handler::class],
+			['PNG', Pkcs7Handler::class],
+			['txt', Pkcs7Handler::class],
+			['TXT', Pkcs7Handler::class],
+		];
+	}
+
+	#[DataProvider('providerGetOrGeneratePfxContent')]
+	public function testGetOrGeneratePfxContent(bool $signWithoutPassword, string $occurrency): void {
+		$service = $this->getService([
+			'getFileToSign',
+			'identifyEngine',
+			'generateTemporaryPassword',
+			'computeHash',
+			'updateSignRequest',
+			'updateLibreSignFile',
+			'dispatchSignedEvent',
+		]);
+
+		$signEngineHandler = $this->getMockBuilder(Pkcs12Handler::class)
+			->disableOriginalConstructor()
+			->onlyMethods([
+				'getCertificate',
+				'getPfxOfCurrentSigner',
+				'generateCertificate',
+				'sign',
+			])
+			->getMock();
+
+		$signEngineHandler->expects($this->{$occurrency}())->method('generateCertificate');
+		$service->method('identifyEngine')->willReturn($signEngineHandler);
+
+		$service
+			->setSignWithoutPassword($signWithoutPassword)
+			->sign();
+	}
+
+	public static function providerGetOrGeneratePfxContent(): array {
+		return [
+			[true, 'once'],
+			[false, 'never'],
 		];
 	}
 

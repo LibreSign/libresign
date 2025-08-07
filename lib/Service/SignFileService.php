@@ -12,7 +12,6 @@ use DateTime;
 use DateTimeInterface;
 use Exception;
 use InvalidArgumentException;
-use mikehaertl\pdftk\Command;
 use OC\AppFramework\Http as AppFrameworkHttp;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
@@ -27,15 +26,13 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
-use OCA\Libresign\Events\SignedCallbackEvent;
-use OCA\Libresign\Events\SignedEvent;
-use OCA\Libresign\Exception\EmptyCertificateException;
+use OCA\Libresign\Events\SignedEventFactory;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\PdfTk\Pdf;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
-use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
-use OCA\Libresign\Helper\JavaHelper;
+use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
+use OCA\Libresign\Handler\SignEngine\SignEngineHandler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -46,7 +43,6 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
-use OCP\Files\Node;
 use OCP\Files\NotPermittedException;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
@@ -57,32 +53,31 @@ use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
+use OCP\Security\Events\GenerateSecurePasswordEvent;
+use OCP\Security\ISecureRandom;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Sabre\DAV\UUIDUtil;
-use TypeError;
 
 class SignFileService {
-	/** @var SignRequestEntity */
-	private $signRequest;
+	private SignRequestEntity $signRequest;
 	private string $password = '';
 	private ?FileEntity $libreSignFile = null;
 	/** @var VisibleElementAssoc[] */
 	private $elements = [];
-	/** @var bool */
-	private $signWithoutPassword = false;
-	private ?Node $fileToSign = null;
+	private bool $signWithoutPassword = false;
+	private ?File $fileToSign = null;
 	private string $userUniqueIdentifier = '';
 	private string $friendlyName = '';
 	private array $signers = [];
 	private ?IUser $user = null;
+	private ?SignEngineHandler $engine = null;
 
 	public function __construct(
 		protected IL10N $l10n,
 		private FileMapper $fileMapper,
 		private SignRequestMapper $signRequestMapper,
 		private AccountFileMapper $accountFileMapper,
-		private Pkcs7Handler $pkcs7Handler,
-		private Pkcs12Handler $pkcs12Handler,
 		private FooterHandler $footerHandler,
 		protected FolderService $folderService,
 		private IClientService $client,
@@ -97,12 +92,15 @@ class SignFileService {
 		private FileElementMapper $fileElementMapper,
 		private UserElementMapper $userElementMapper,
 		private IEventDispatcher $eventDispatcher,
+		protected ISecureRandom $secureRandom,
 		private IURLGenerator $urlGenerator,
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private ITempManager $tempManager,
 		private IdentifyMethodService $identifyMethodService,
 		private ITimeFactory $timeFactory,
-		protected JavaHelper $javaHelper,
+		protected SignEngineFactory $signEngineFactory,
+		private SignedEventFactory $signedEventFactory,
+		private Pdf $pdf,
 	) {
 	}
 
@@ -135,10 +133,6 @@ class SignFileService {
 		});
 	}
 
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 * @psalm-suppress MixedMethodCall
-	 */
 	public function notifyCallback(File $file): void {
 		$uri = $this->libreSignFile->getCallback();
 		if (!$uri) {
@@ -196,7 +190,7 @@ class SignFileService {
 	/**
 	 * @return static
 	 */
-	public function setSignWithoutPassword(bool $signWithoutPassword): self {
+	public function setSignWithoutPassword(bool $signWithoutPassword = true): self {
 		$this->signWithoutPassword = $signWithoutPassword;
 		return $this;
 	}
@@ -322,52 +316,51 @@ class SignFileService {
 	}
 
 	public function sign(): File {
-		$fileToSign = $this->getFileToSing($this->libreSignFile);
-		$pfxFileContent = $this->getPfxContent();
-		switch (strtolower($fileToSign->getExtension())) {
-			case 'pdf':
-				$signatureParams = $this->getSignatureParams();
-				$signedFile = $this->pkcs12Handler
-					->setInputFile($fileToSign)
-					->setCertificate($pfxFileContent)
-					->setVisibleElements($this->getVisibleElements())
-					->setPassword($this->password)
-					->setSignatureParams($signatureParams)
-					->sign();
-				break;
-			default:
-				$signedFile = $this->pkcs7Handler
-					->setInputFile($fileToSign)
-					->setCertificate($pfxFileContent)
-					->setPassword($this->password)
-					->sign();
-		}
-		$hash = hash('sha256', $signedFile->getContent());
+		$signedFile = $this->getEngine()->sign();
 
-		$this->signRequest->setSigned(new \DateTime());
-		$this->signRequest->setSignedHash($hash);
-		if ($this->signRequest->getId()) {
-			$this->signRequestMapper->update($this->signRequest);
-			$this->eventDispatcher->dispatchTyped(new SignedEvent(
-				$this->signRequest,
-				$this->libreSignFile,
-				$this->identifyMethodService->getIdentifiedMethod($this->signRequest->getId()),
-				$this->userManager->get($this->libreSignFile->getUserId()),
-			));
-		} else {
-			$this->signRequestMapper->insert($this->signRequest);
-		}
+		$hash = $this->computeHash($signedFile);
 
-		$this->libreSignFile->setSignedNodeId($signedFile->getId());
-		$this->libreSignFile->setSignedHash($hash);
-		$allSigned = $this->updateStatus();
-		$this->fileMapper->update($this->libreSignFile);
+		$this->updateSignRequest($hash);
+		$this->updateLibreSignFile($hash);
 
-		$this->eventDispatcher->dispatchTyped(new SignedCallbackEvent($this, $signedFile, $allSigned));
+		$this->dispatchSignedEvent();
 
 		return $signedFile;
 	}
-	private function getSignatureParams(): array {
+
+	protected function computeHash(File $file): string {
+		return hash('sha256', $file->getContent());
+	}
+
+	protected function updateSignRequest(string $hash): void {
+		$lastSignedDate = $this->getEngine()->getLastSignedDate();
+		$this->signRequest->setSigned($lastSignedDate);
+		$this->signRequest->setSignedHash($hash);
+		$this->signRequestMapper->update($this->signRequest);
+	}
+
+	protected function updateLibreSignFile(string $hash): void {
+		$nodeId = $this->getEngine()->getInputFile()->getId();
+		$this->libreSignFile->setSignedNodeId($nodeId);
+		$this->libreSignFile->setSignedHash($hash);
+		$this->setNewStatusIfNecessary();
+		$this->fileMapper->update($this->libreSignFile);
+	}
+
+	protected function dispatchSignedEvent(): void {
+		$event = $this->signedEventFactory->make(
+			$this->signRequest,
+			$this->libreSignFile,
+			$this->getEngine()->getInputFile(),
+		);
+		$this->eventDispatcher->dispatchTyped($event);
+	}
+
+	protected function identifyEngine(File $file): SignEngineHandler {
+		return $this->signEngineFactory->resolve($file->getExtension());
+	}
+
+	protected function getSignatureParams(): array {
 		$certificateData = $this->readCertificate();
 		$signatureParams = $this->buildBaseSignatureParams($certificateData);
 		$signatureParams = $this->addEmailToSignatureParams($signatureParams, $certificateData);
@@ -434,7 +427,7 @@ class SignFileService {
 	/**
 	 * @return SignRequestEntity[]
 	 */
-	private function getSigners(): array {
+	protected function getSigners(): array {
 		if (empty($this->signers)) {
 			$this->signers = $this->signRequestMapper->getByFileId($this->signRequest->getFileId());
 			if ($this->signers) {
@@ -449,62 +442,67 @@ class SignFileService {
 		return $this->signers;
 	}
 
-	private function updateStatus(): bool {
-		$signers = $this->getSigners();
-		$total = array_reduce($signers, function ($carry, $signer) {
-			$carry += $signer->getSigned() ? 1 : 0;
-			return $carry;
-		}, 0);
-		if ($total > 0
-			&& count($signers) !== $total
-			&& $this->libreSignFile->getStatus() !== FileEntity::STATUS_PARTIAL_SIGNED
-		) {
-			$this->libreSignFile->setStatus(FileEntity::STATUS_PARTIAL_SIGNED);
-			return true;
-		} elseif (count($signers) === $total
-			&& $this->libreSignFile->getStatus() !== FileEntity::STATUS_SIGNED
-		) {
-			$this->libreSignFile->setStatus(FileEntity::STATUS_SIGNED);
-			return true;
+	protected function setNewStatusIfNecessary(): bool {
+		$newStatus = $this->evaluateStatusFromSigners();
+
+		if ($newStatus === null || $newStatus === $this->libreSignFile->getStatus()) {
+			return false;
 		}
-		return false;
+
+		$this->libreSignFile->setStatus($newStatus);
+		return true;
 	}
 
-	private function getPfxContent(): string {
-		if ($certificate = $this->pkcs12Handler->getCertificate()) {
+	private function evaluateStatusFromSigners(): ?int {
+		$signers = $this->getSigners();
+
+		$total = count($signers);
+
+		if ($total === 0) {
+			return null;
+		}
+
+		$totalSigned = count(array_filter($signers, fn ($s) => $s->getSigned() !== null));
+
+		if ($totalSigned === $total) {
+			return FileEntity::STATUS_SIGNED;
+		}
+
+		if ($totalSigned > 0) {
+			return FileEntity::STATUS_PARTIAL_SIGNED;
+		}
+
+		return null;
+	}
+
+	private function getOrGeneratePfxContent(SignEngineHandler $engine): string {
+		if ($certificate = $engine->getCertificate()) {
 			return $certificate;
 		}
 		if ($this->signWithoutPassword) {
-			$tempPassword = sha1((string)time());
+			$tempPassword = $this->generateTemporaryPassword();
 			$this->setPassword($tempPassword);
-			try {
-				$certificate = $this->pkcs12Handler->generateCertificate(
-					[
-						'host' => $this->userUniqueIdentifier,
-						'uid' => $this->userUniqueIdentifier,
-						'name' => $this->friendlyName,
-					],
-					$tempPassword,
-					$this->friendlyName,
-				);
-				$this->pkcs12Handler->setCertificate($certificate);
-			} catch (TypeError) {
-				throw new LibresignException($this->l10n->t('Failure to generate certificate'));
-			} catch (EmptyCertificateException) {
-				throw new LibresignException($this->l10n->t('Empty root certificate data'));
-			} catch (InvalidArgumentException) {
-				throw new LibresignException($this->l10n->t('Invalid data to generate certificate'));
-			} catch (\Throwable) {
-				throw new LibresignException($this->l10n->t('Failure on generate certificate'));
-			}
+			$engine->generateCertificate(
+				[
+					'host' => $this->userUniqueIdentifier,
+					'uid' => $this->userUniqueIdentifier,
+					'name' => $this->friendlyName,
+				],
+				$tempPassword,
+				$this->friendlyName,
+			);
 		}
-		return $this->pkcs12Handler->getPfxOfCurrentSigner();
+		return $engine->getPfxOfCurrentSigner();
+	}
+
+	private function generateTemporaryPassword(): string {
+		$passwordEvent = new GenerateSecurePasswordEvent();
+		$this->eventDispatcher->dispatchTyped($passwordEvent);
+		return $passwordEvent->getPassword() ?? $this->secureRandom->generate(20);
 	}
 
 	protected function readCertificate(): array {
-		return $this->pkcs12Handler
-			->setPassword($this->password)
-			->setCertificate($this->getPfxContent())
+		return $this->getEngine()
 			->readCertificate();
 	}
 
@@ -513,17 +511,51 @@ class SignFileService {
 	 *
 	 * @throws LibresignException
 	 */
-	public function getFileToSing(FileEntity $libresignFile): \OCP\Files\Node {
-		$nodeId = $libresignFile->getNodeId();
+	protected function getFileToSign(): File {
+		if ($this->fileToSign instanceof File) {
+			return $this->fileToSign;
+		}
 
-		$originalFile = $this->root->getUserFolder($libresignFile->getUserId())->getFirstNodeById($nodeId);
-		if (!$originalFile instanceof \OCP\Files\File) {
+		$userId = $this->libreSignFile->getUserId();
+		$nodeId = $this->libreSignFile->getNodeId();
+
+		$originalFile = $this->root->getUserFolder($userId)->getFirstNodeById($nodeId);
+		if (!$originalFile instanceof File) {
 			throw new LibresignException($this->l10n->t('File not found'));
 		}
-		if (strtolower($originalFile->getExtension()) === 'pdf') {
-			return $this->getPdfToSign($libresignFile, $originalFile);
+		if ($this->isPdf($originalFile)) {
+			$this->fileToSign = $this->getPdfToSign($originalFile);
+		} else {
+			$this->fileToSign = $originalFile;
 		}
-		return $originalFile;
+		return $this->fileToSign;
+	}
+
+	private function isPdf(File $file): bool {
+		return strcasecmp($file->getExtension(), 'pdf') === 0;
+	}
+
+	protected function getEngine(): SignEngineHandler {
+		if (!$this->engine) {
+			$originalFile = $this->getFileToSign();
+			$this->engine = $this->identifyEngine($originalFile);
+
+			$this->configureEngine();
+		}
+		return $this->engine;
+	}
+
+	private function configureEngine(): void {
+		$this->engine
+			->setInputFile($this->getFileToSign())
+			->setCertificate($this->getOrGeneratePfxContent($this->engine))
+			->setPassword($this->password);
+
+		if ($this->engine::class === Pkcs12Handler::class) {
+			$this->engine
+				->setVisibleElements($this->getVisibleElements())
+				->setSignatureParams($this->getSignatureParams());
+		}
 	}
 
 	public function getLibresignFile(?int $nodeId, ?string $signRequestUuid = null): FileEntity {
@@ -642,56 +674,40 @@ class SignFileService {
 		return $signRequest;
 	}
 
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 * @psalm-suppress InvalidReturnStatement
-	 * @psalm-suppress MixedMethodCall
-	 */
-	private function getPdfToSign(FileEntity $fileData, File $originalFile): File {
-		if ($fileData->getSignedNodeId()) {
-			$nodeId = $fileData->getSignedNodeId();
+	private function getPdfToSign(File $originalFile): File {
+		if ($this->libreSignFile->getSignedNodeId()) {
+			$nodeId = $this->libreSignFile->getSignedNodeId();
 
-			$fileToSign = $this->root->getUserFolder($fileData->getUserId())->getFirstNodeById($nodeId);
+			$fileToSign = $this->root->getUserFolder($this->libreSignFile->getUserId())->getFirstNodeById($nodeId);
 			if (!$fileToSign instanceof File) {
 				throw new LibresignException($this->l10n->t('File not found'));
 			}
-		} else {
-			$footer = $this->footerHandler
-				->setTemplateVar('signers', array_map(fn (SignRequestEntity $signer) => [
-					'displayName' => $signer->getDisplayName(),
-					'signed' => $signer->getSigned()
-						? $signer->getSigned()->format(DateTimeInterface::ATOM)
-						: null,
-				], $this->getSigners()))
-				->getFooter($originalFile, $fileData);
-			if ($footer) {
-				$stamp = $this->tempManager->getTemporaryFile('stamp.pdf');
-				file_put_contents($stamp, $footer);
-
-				$input = $this->tempManager->getTemporaryFile('input.pdf');
-				file_put_contents($input, $originalFile->getContent());
-
-				$javaPath = $this->javaHelper->getJavaPath();
-				$pdftkPath = $this->appConfig->getValueString(Application::APP_ID, 'pdftk_path');
-				if (!file_exists($javaPath) || !file_exists($pdftkPath)) {
-					throw new LibresignException($this->l10n->t('The admin hasn\'t set up LibreSign yet, please wait.'));
-				}
-				$pdf = new Pdf();
-				$command = new Command();
-				$command->setCommand($javaPath . ' -jar ' . $pdftkPath);
-				$pdf->setCommand($command);
-				$pdf->addFile($input);
-				$buffer = $pdf->multiStamp($stamp)
-					->toString();
-				if (!is_string($buffer)) {
-					throw new LibresignException('Failed to merge the PDF with the footer. The PDF was not successfully created with the footer.');
-				}
-			} else {
-				$buffer = $originalFile->getContent();
-			}
-			$fileToSign = $this->createSignedFile($originalFile, $buffer);
+			return $fileToSign;
 		}
-		return $fileToSign;
+		$footer = $this->footerHandler
+			->setTemplateVar('signers', array_map(fn (SignRequestEntity $signer) => [
+				'displayName' => $signer->getDisplayName(),
+				'signed' => $signer->getSigned()
+					? $signer->getSigned()->format(DateTimeInterface::ATOM)
+					: null,
+			], $this->getSigners()))
+			->getFooter($originalFile, $this->libreSignFile);
+		if ($footer) {
+			$stamp = $this->tempManager->getTemporaryFile('stamp.pdf');
+			file_put_contents($stamp, $footer);
+
+			$input = $this->tempManager->getTemporaryFile('input.pdf');
+			file_put_contents($input, $originalFile->getContent());
+
+			try {
+				$pdfContent = $this->pdf->applyStamp($input, $stamp);
+			} catch (RuntimeException $e) {
+				throw new LibresignException($e->getMessage());
+			}
+		} else {
+			$pdfContent = $originalFile->getContent();
+		}
+		return $this->createSignedFile($originalFile, $pdfContent);
 	}
 
 	private function createSignedFile(File $originalFile, string $content): File {
@@ -707,7 +723,7 @@ class SignFileService {
 			return $parentFolder->newFile($filename, $content);
 		} catch (NotPermittedException) {
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
-		};
+		}
 	}
 
 	/**
