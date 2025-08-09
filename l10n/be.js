@@ -24,6 +24,7 @@ OC.L10N.register(
     "Confirm" : "Пацвердзіць",
     "Open file" : "Адкрыць файл",
     "Type" : "Тып",
+    "Status" : "Стан",
     "Actions" : "Дзеянні",
     "Password" : "Пароль",
     "Enter a password" : "Увядзіце пароль",
