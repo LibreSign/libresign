@@ -9,6 +9,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\lib;
 
 use OC\AppConfig;
+use OC\Config\ConfigManager;
+use OC\Config\PresetManager;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Security\ICrypto;
@@ -19,12 +21,14 @@ class AppConfigOverwrite extends AppConfig {
 	private $overWrite = [];
 
 	public function __construct(
-		IDBConnection $conn,
+		IDBConnection $connection,
 		IConfig $config,
+		ConfigManager $configManager,
+		PresetManager $presetManager,
 		LoggerInterface $logger,
 		ICrypto $crypto,
 	) {
-		parent::__construct($conn, $config, $logger, $crypto);
+		parent::__construct($connection, $config, $configManager, $presetManager, $logger, $crypto);
 	}
 
 	public function getValueMixed(
