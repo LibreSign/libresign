@@ -44,8 +44,8 @@ class InstallService {
 		getInternalPathOfFolder as getInternalPathOfFolderTrait;
 	}
 
-	public const JAVA_VERSION = 'openjdk version "21.0.7" 2025-04-15 LTS';
-	private const JAVA_URL_PATH_NAME = '21.0.7+6';
+	public const JAVA_VERSION = 'openjdk version "21.0.8" 2025-07-15 LTS';
+	private const JAVA_URL_PATH_NAME = '21.0.8+9';
 	public const PDFTK_VERSION = '3.3.3'; /** @todo When update, verify the hash **/
 	private const PDFTK_HASH = '59a28bed53b428595d165d52988bf4cf';
 	public const JSIGNPDF_VERSION = '2.3.0'; /** @todo When update, verify the hash **/
@@ -355,13 +355,17 @@ class InstallService {
 
 		if ($this->isDownloadedFilesOk()) {
 			// The binaries files could exists but not saved at database
-			if (!$this->appConfig->getValueString(Application::APP_ID, 'java_path')) {
+			$javaPath = $this->appConfig->getValueString(Application::APP_ID, 'java_path');
+			if (!$javaPath) {
 				$linuxDistribution = $this->getLinuxDistributionToDownloadJava();
 				$folder = $this->getFolder('/' . $linuxDistribution . '/' . $this->resource);
 				$extractDir = $this->getInternalPathOfFolder($folder);
-				$this->appConfig->setValueString(Application::APP_ID, 'java_path', $extractDir . '/jdk-' . self::JAVA_URL_PATH_NAME . '-jre/bin/java');
+				$javaPath = $extractDir . '/jdk-' . self::JAVA_URL_PATH_NAME . '-jre/bin/java';
+				$this->appConfig->setValueString(Application::APP_ID, 'java_path', $javaPath);
 			}
-			return;
+			if (str_contains($javaPath, self::JAVA_URL_PATH_NAME)) {
+				return;
+			}
 		}
 		/**
 		 * Steps to update:
@@ -449,14 +453,17 @@ class InstallService {
 
 		if ($this->isDownloadedFilesOk()) {
 			// The binaries files could exists but not saved at database
-			if (!$this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path')) {
+			$fullPath = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path');
+			if (!$fullPath) {
 				$folder = $this->getFolder($this->resource);
 				$extractDir = $this->getInternalPathOfFolder($folder);
 				$fullPath = $extractDir . '/jsignpdf-' . InstallService::JSIGNPDF_VERSION . '/JSignPdf.jar';
 				$this->appConfig->setValueString(Application::APP_ID, 'jsignpdf_jar_path', $fullPath);
 			}
 			$this->saveJsignPdfHome();
-			return;
+			if (str_contains($fullPath, InstallService::JSIGNPDF_VERSION)) {
+				return;
+			}
 		}
 		$folder = $this->getFolder($this->resource);
 		$compressedFileName = 'jsignpdf-' . InstallService::JSIGNPDF_VERSION . '.zip';
