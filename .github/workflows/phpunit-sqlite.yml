@@ -40,7 +40,7 @@ jobs:
       pull-requests: read
 
     outputs:
-      src: ${{ steps.changes.outputs.src}}
+      src: ${{ steps.changes.outputs.src }}
 
     steps:
       - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
@@ -76,6 +76,7 @@ jobs:
 
     steps:
       - name: Set app env
+        if: ${{ env.APP_NAME == '' }}
         run: |
           # Split and keep last
           echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
@@ -98,13 +99,15 @@ jobs:
           path: apps/${{ env.APP_NAME }}
 
       - name: Set up php ${{ matrix.php-versions }}
-        uses: shivammathur/setup-php@fc14643b0a99ee9db10a3c025a33d76544fa3761 # v2
+        uses: shivammathur/setup-php@ccf2c627fe61b1b4d924adfcbd19d661a18133a0 # v2.35.2
         with:
           php-version: ${{ matrix.php-versions }}
           # https://docs.nextcloud.com/server/stable/admin_manual/installation/source_installation.html#prerequisites-for-manual-installation
           extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite, pdo_sqlite
           coverage: xdebug
           ini-file: development
+          # Temporary workaround for missing pcntl_* in PHP 8.3
+          ini-values: disable_functions=
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -118,7 +121,9 @@ jobs:
         # Only run if phpunit config file exists
         if: steps.check_composer.outputs.files_exists == 'true'
         working-directory: apps/${{ env.APP_NAME }}
-        run: composer i
+        run: |
+          composer remove nextcloud/ocp --dev --no-scripts
+          composer i
 
       - name: Prevent Nextcloud OCP outdated
         working-directory: apps/${{ env.APP_NAME }}
@@ -156,6 +161,14 @@ jobs:
         env:
           XDEBUG_MODE: ${{ matrix.xdebug_mode }}
         run: composer run test:coverage
+
+      - name: Upload coverage results to Coveralls
+        working-directory: apps/${{ env.APP_NAME }}
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_PARALLEL: true
+          COVERALLS_FLAG_NAME: php-${{ matrix.php-versions }}
+        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml --json_path=build/logs/coveralls-upload.json -v
 
       - name: Check PHPUnit integration script is defined
         id: check_integration
@@ -201,18 +214,6 @@ jobs:
       - name: Summary status
         run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-sqlite.result != 'success' }}; then exit 1; fi
 
-  upload-coverage:
-    needs: [changes, phpunit-sqlite]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Upload coverage results to Coveralls
-        working-directory: apps/${{ env.APP_NAME }}
-        if: matrix.xdebug_mode == 'coverage'
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_PARALLEL: true
-          COVERALLS_FLAG_NAME: php-${{ matrix.php-versions }}
-        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml --json_path=build/logs/coveralls-upload.json -v
   finish-coverage:
     needs: upload-coverage
     runs-on: ubuntu-latest
