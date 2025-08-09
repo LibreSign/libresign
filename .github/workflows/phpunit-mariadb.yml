@@ -40,7 +40,7 @@ jobs:
       pull-requests: read
 
     outputs:
-      src: ${{ steps.changes.outputs.src }}
+      src: ${{ steps.changes.outputs.src}}
 
     steps:
       - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
@@ -108,12 +108,12 @@ jobs:
           path: apps/${{ env.APP_NAME }}
 
       - name: Set up php ${{ matrix.php-versions }}
-        uses: shivammathur/setup-php@0f7f1d08e3e32076e51cae65eb0b0c871405b16e # v2.34.1
+        uses: shivammathur/setup-php@ccf2c627fe61b1b4d924adfcbd19d661a18133a0 # v2.35.2
         with:
           php-version: ${{ matrix.php-versions }}
           # https://docs.nextcloud.com/server/stable/admin_manual/installation/source_installation.html#prerequisites-for-manual-installation
           extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql
-          coverage: xdebug
+          coverage: none
           ini-file: development
           # Temporary workaround for missing pcntl_* in PHP 8.3
           ini-values: disable_functions=
@@ -135,11 +135,9 @@ jobs:
         # Only run if phpunit config file exists
         if: steps.check_composer.outputs.files_exists == 'true'
         working-directory: apps/${{ env.APP_NAME }}
-        run: composer i
-
-      - name: Prevent Nextcloud OCP outdated
-        working-directory: apps/${{ env.APP_NAME }}
-        run: make updateocp
+        run: |
+          composer remove nextcloud/ocp --dev --no-scripts
+          composer i
 
       - name: Set up Nextcloud
         env:
