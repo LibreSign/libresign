@@ -1625,12 +1625,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-deps/ocp.git",
-                "reference": "f823398dfaac41ae18a0f25bf6365d2e377e6650"
+                "reference": "55fd06e1c10111bd8812e5d1fbe3018da173cde5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/f823398dfaac41ae18a0f25bf6365d2e377e6650",
-                "reference": "f823398dfaac41ae18a0f25bf6365d2e377e6650",
+                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/55fd06e1c10111bd8812e5d1fbe3018da173cde5",
+                "reference": "55fd06e1c10111bd8812e5d1fbe3018da173cde5",
                 "shasum": ""
             },
             "require": {
@@ -1666,7 +1666,7 @@
                 "issues": "https://github.com/nextcloud-deps/ocp/issues",
                 "source": "https://github.com/nextcloud-deps/ocp/tree/master"
             },
-            "time": "2025-08-07T00:58:35+00:00"
+            "time": "2025-08-09T00:53:05+00:00"
         },
         {
             "name": "psr/clock",
@@ -1825,12 +1825,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "90fce983a76dd90a53a5b8171a98421aa703d58d"
+                "reference": "fc5feda437d44655ee5df703bda813e00674b227"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/90fce983a76dd90a53a5b8171a98421aa703d58d",
-                "reference": "90fce983a76dd90a53a5b8171a98421aa703d58d",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/fc5feda437d44655ee5df703bda813e00674b227",
+                "reference": "fc5feda437d44655ee5df703bda813e00674b227",
                 "shasum": ""
             },
             "conflict": {
@@ -1959,7 +1959,7 @@
                 "corveda/phpsandbox": "<1.3.5",
                 "cosenary/instagram": "<=2.3",
                 "couleurcitron/tarteaucitron-wp": "<0.3",
-                "craftcms/cms": "<4.15.3|>=5,<5.7.5",
+                "craftcms/cms": "<4.16.3|>=5,<5.8.4",
                 "croogo/croogo": "<4",
                 "cuyz/valinor": "<0.12",
                 "czim/file-handling": "<1.5|>=2,<2.3",
@@ -2779,7 +2779,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-08-06T18:07:51+00:00"
+            "time": "2025-08-08T20:05:48+00:00"
         }
     ],
     "aliases": [],
