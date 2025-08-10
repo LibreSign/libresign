@@ -110,9 +110,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateFileWhenFileIdDoesNotExist():void {
 		$this->expectExceptionMessage('Invalid fileID');
-		$this->root->method('getById')->will($this->returnCallback(function ():void {
+		$this->root->method('getById')->willReturnCallback(function ():void {
 			throw new \Exception('not found');
-		}));
+		});
 		$user = $this->createMock(\OCP\IUser::class);
 		$user->method('getUID')->willReturn('john.doe');
 		$this->getValidateHelper()->validateFile([
@@ -151,17 +151,17 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testValidateNotRequestedSignWithSuccessWhenNotFound():void {
-		$this->signRequestMapper->method('getByNodeId')->will($this->returnCallback(function ():void {
+		$this->signRequestMapper->method('getByNodeId')->willReturnCallback(function ():void {
 			throw new \Exception('not found');
-		}));
+		});
 		$actual = $this->getValidateHelper()->validateNotRequestedSign(1);
 		$this->assertNull($actual);
 	}
 
 	public function testValidateLibreSignNodeIdWhenFileIdNotExists():void {
-		$this->signRequestMapper->method('getByNodeId')->will($this->returnCallback(function ():void {
+		$this->signRequestMapper->method('getByNodeId')->willReturnCallback(function ():void {
 			throw new \Exception('not found');
-		}));
+		});
 		$this->expectExceptionMessage('Invalid fileID');
 		$this->getValidateHelper()->validateLibreSignNodeId(1);
 	}
@@ -343,9 +343,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectExceptionMessage('File not loaded');
 		$this->fileMapper
 			->method('getByFileId')
-			->will($this->returnCallback(function ():void {
+			->willReturnCallback(function ():void {
 				throw new \Exception('not found');
-			}));
+			});
 		$this->getValidateHelper()->signerWasAssociated([
 			'email' => 'invalid@test.coop'
 		]);
@@ -372,9 +372,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectExceptionMessage('File not loaded');
 		$this->fileMapper
 			->method('getByFileId')
-			->will($this->returnCallback(function ():void {
+			->willReturnCallback(function ():void {
 				throw new \Exception('not found');
-			}));
+			});
 		$this->getValidateHelper()->notSigned([]);
 	}
 
@@ -382,9 +382,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectExceptionMessage('Invalid fileID');
 		$this->root
 			->method('getById')
-			->will($this->returnCallback(function ():void {
+			->willReturnCallback(function ():void {
 				throw new \Exception('not found');
-			}));
+			});
 		$this->getValidateHelper()->validateIfNodeIdExists(171);
 	}
 
@@ -409,9 +409,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateFileUuidWithInvalidUuid():void {
 		$this->expectExceptionMessage('Invalid UUID file');
-		$this->fileMapper->method('getByUuid')->will($this->returnCallback(function ():void {
+		$this->fileMapper->method('getByUuid')->willReturnCallback(function ():void {
 			throw new \Exception('not found');
-		}));
+		});
 		$this->getValidateHelper()->validateFileUuid(['uuid' => 'invalid']);
 	}
 
@@ -450,9 +450,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testUserHasNoFileWithThisType():void {
 		$this->accountFileMapper
 			->method('getByUserAndType')
-			->will($this->returnCallback(function ():void {
+			->willReturnCallback(function ():void {
 				throw new \Exception('not found');
-			}));
+			});
 		$actual = $this->getValidateHelper()->validateUserHasNoFileWithThisType('username', (string)ValidateHelper::TYPE_TO_SIGN);
 		$this->assertNull($actual);
 	}
@@ -464,9 +464,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testNotASignerOfFile():void {
 		$this->expectExceptionMessage('Signer not associated to this file');
-		$this->signRequestMapper->method('getByFileIdAndSignRequestId')->will($this->returnCallback(function ():void {
+		$this->signRequestMapper->method('getByFileIdAndSignRequestId')->willReturnCallback(function ():void {
 			throw new \Exception('not found');
-		}));
+		});
 		$this->getValidateHelper()->validateIsSignerOfFile(1, 1);
 	}
 
