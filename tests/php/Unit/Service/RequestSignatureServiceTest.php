@@ -50,7 +50,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
 			->method('t')
-			->will($this->returnArgument(0));
+			->willReturnArgument(0);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
