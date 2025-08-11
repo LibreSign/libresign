@@ -39,7 +39,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
 			->method('t')
-			->will($this->returnArgument(0));
+			->willReturnArgument(0);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->service = new MailService(
