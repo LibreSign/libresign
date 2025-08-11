@@ -52,10 +52,15 @@ class IdentifyMethod extends Entity {
 	}
 
 	public function setIdentifiedAtDate(null|string|\DateTime $identifiedAtDate): void {
-		if ($identifiedAtDate && !$identifiedAtDate instanceof \DateTime) {
-			$identifiedAtDate = new \DateTime($identifiedAtDate);
+		if ($identifiedAtDate) {
+			if (!$identifiedAtDate instanceof \DateTime) {
+				$this->identifiedAtDate = new \DateTime($identifiedAtDate);
+			} else {
+				$this->identifiedAtDate = $identifiedAtDate;
+			}
+		} else {
+			$this->identifiedAtDate = null;
 		}
-		$this->identifiedAtDate = $identifiedAtDate;
 		$this->markFieldUpdated('identifiedAtDate');
 	}
 
@@ -73,10 +78,15 @@ class IdentifyMethod extends Entity {
 	}
 
 	public function setLastAttemptDate(null|string|\DateTime $lastAttemptDate): void {
-		if ($lastAttemptDate && !$lastAttemptDate instanceof \DateTime) {
-			$lastAttemptDate = new \DateTime($lastAttemptDate);
+		if ($lastAttemptDate) {
+			if (!$lastAttemptDate instanceof \DateTime) {
+				$this->lastAttemptDate = new \DateTime($lastAttemptDate);
+			} else {
+				$this->lastAttemptDate = $lastAttemptDate;
+			}
+		} else {
+			$this->lastAttemptDate = null;
 		}
-		$this->lastAttemptDate = $lastAttemptDate;
 		$this->markFieldUpdated('lastAttemptDate');
 	}
 }
