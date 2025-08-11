@@ -165,7 +165,7 @@ Feature: signed
       | key | value                                                          |
       | ocs | (jq).data\|any(.subject == "Signer Name signed Document Name") |
 
-  Scenario: Signing a file using unauthenticatd signer
+  Scenario: Signing a file using unauthenticatd signer with click to sign
     Given as user "admin"
     And run the command "config:app:set activity notify_notification_libresign_file_to_sign --value=1" with result code 0
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
