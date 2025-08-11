@@ -35,8 +35,8 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 		$email = match ($entity->getIdentifierKey()) {
 			'email' => $entity->getIdentifierValue(),
 			'account' => $this->identifyService->getUserManager()->get($entity->getIdentifierValue())
-				->getEMailAddress(),
-			default => '',
+				?->getEMailAddress(),
+			default => null,
 		};
 
 		if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -45,14 +45,22 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 				'errors' => [['message' => $this->identifyService->getL10n()->t('Invalid email')]],
 			]));
 		}
+
+		$code = $entity->getCode();
+		$identifiedAt = $entity->getIdentifiedAtDate();
+		$codeSentByUser = $this->codeSentByUser;
+
+		$hasConfirmCode = !empty($code);
+		$needCode = empty($code)
+			|| empty($identifiedAt)
+			|| empty($codeSentByUser);
+
 		$return = parent::toArray();
 		$return['identifyMethod'] = $entity->getIdentifierKey();
-		$return['needCode'] = empty($entity->getCode())
-			|| empty($entity->getIdentifiedAtDate())
-			|| empty($this->codeSentByUser);
-		$return['hasConfirmCode'] = !empty($entity->getCode());
+		$return['needCode'] = $needCode;
+		$return['hasConfirmCode'] = $hasConfirmCode;
 		$return['blurredEmail'] = $this->blurEmail($email);
-		$return['hashOfEmail'] = md5(strtolower((string)$email));
+		$return['hashOfEmail'] = md5(strtolower($email));
 		return $return;
 	}
 
