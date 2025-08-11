@@ -32,12 +32,13 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 	public function toArray(): array {
 		$entity = $this->getEntity();
 
-		if ($entity->getIdentifierKey() === 'email') {
-			$email = $entity->getIdentifierValue();
-		} elseif ($entity->getIdentifierKey() === 'account') {
-			$signer = $this->identifyService->getUserManager()->get($entity->getIdentifierValue());
-			$email = $signer->getEMailAddress();
-		}
+		$email = match ($entity->getIdentifierKey()) {
+			'email' => $entity->getIdentifierValue(),
+			'account' => $this->identifyService->getUserManager()->get($entity->getIdentifierValue())
+				->getEMailAddress(),
+			default => '',
+		};
+
 		if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
