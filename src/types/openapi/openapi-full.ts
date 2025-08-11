@@ -4016,7 +4016,21 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description Identify signer method
+                     * @enum {string|null}
+                     */
+                    identifyMethod?: "account" | "email" | null;
+                    /** @description Method used to sign the document, i.e. emailToken, account, clickToSign */
+                    signMethod?: string | null;
+                    /** @description Identify value, i.e. the signer email, account or phone number */
+                    identify?: string | null;
+                };
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -4074,7 +4088,7 @@ export interface operations {
                      * @enum {string|null}
                      */
                     identifyMethod?: "account" | "email" | null;
-                    /** @description Method used to sign the document */
+                    /** @description Method used to sign the document, i.e. emailToken, account, clickToSign */
                     signMethod?: string | null;
                     /** @description Identify value, i.e. the signer email, account or phone number */
                     identify?: string | null;

@@ -219,6 +219,9 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * Get code to sign the document using UUID
 	 *
 	 * @param string $uuid UUID of LibreSign file
+	 * @param 'account'|'email'|null $identifyMethod Identify signer method
+	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign
+	 * @param string|null $identify Identify value, i.e. the signer email, account or phone number
 	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
 	 * 200: OK
@@ -229,7 +232,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[RequireSigner]
 	#[PublicPage]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}/code', requirements: ['apiVersion' => '(v1)'])]
-	public function getCodeUsingUuid(string $uuid): DataResponse {
+	public function getCodeUsingUuid(string $uuid, ?string $identifyMethod, ?string $signMethod, ?string $identify): DataResponse {
 		try {
 			$signRequest = $this->signRequestMapper->getBySignerUuidAndUserId($uuid);
 		} catch (\Throwable) {
@@ -243,7 +246,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 *
 	 * @param int $fileId Id of LibreSign file
 	 * @param 'account'|'email'|null $identifyMethod Identify signer method
-	 * @param string|null $signMethod Method used to sign the document
+	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign
 	 * @param string|null $identify Identify value, i.e. the signer email, account or phone number
 	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
