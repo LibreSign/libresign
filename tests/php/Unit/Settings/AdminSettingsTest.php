@@ -22,7 +22,7 @@ final class AdminSettingsTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$l10n = $this->createMock(IL10N::class);
 		$l10n
 			->method('t')
-			->will($this->returnArgument(0));
+			->willReturnArgument(0);
 		$urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->adminSettings = new AdminSettings(
 			$l10n,
