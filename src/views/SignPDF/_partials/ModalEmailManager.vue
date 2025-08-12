@@ -120,7 +120,7 @@ export default {
 	computed: {
 		canRequestCode() {
 			if (validateEmail(this.sendTo)) {
-				if (md5(this.sendTo) !== this.signMethodsStore.settings.emailToken.hashOfEmail) {
+				if (md5(this.sendTo.toLowerCase()) !== this.signMethodsStore.settings.emailToken.hashOfEmail) {
 					return false
 				}
 				return true
