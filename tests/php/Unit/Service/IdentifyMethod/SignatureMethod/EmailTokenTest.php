@@ -76,6 +76,33 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	#[DataProvider('providerVaidateEmail')]
+	public function testVaidateEmail(string $email, string $blurred, string $hash): void {
+		$instance = $this->getClass();
+		$identifyMethod = new IdentifyMethod();
+		$entity['identifierKey'] = 'email';
+		$entity['identifierValue'] = $email;
+		$identifyMethod = $identifyMethod->fromParams($entity);
+		$instance->setEntity($identifyMethod);
+		$actual = $instance->toArray();
+
+		$this->assertArrayHasKey('blurredEmail', $actual);
+		$this->assertIsString($actual['blurredEmail']);
+		$this->assertEquals($blurred, $actual['blurredEmail']);
+
+		$this->assertArrayHasKey('hashOfEmail', $actual);
+		$this->assertIsString($actual['hashOfEmail']);
+		$this->assertEquals($hash, $actual['hashOfEmail']);
+	}
+
+	public static function providerVaidateEmail(): array {
+		return [
+			['valid@domain.coop', 'val***@***.coop', md5('valid@domain.coop')],
+			['valiD@Domain.coop', 'val***@***.coop', md5('valid@domain.coop')],
+			['VALID@DOMAIN.COOP', 'val***@***.coop', md5('valid@domain.coop')],
+		];
+	}
+
 	#[DataProvider('providerToArrayWithValidData')]
 	public function testToArrayWithValidData(array $entity, ?string $codeSentByUser, array $expected): void {
 		$instance = $this->getClass();

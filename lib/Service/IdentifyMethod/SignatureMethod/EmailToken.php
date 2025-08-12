@@ -46,6 +46,8 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 			]));
 		}
 
+		$emailLowercase = strtolower($email);
+
 		$code = $entity->getCode();
 		$identifiedAt = $entity->getIdentifiedAtDate();
 		$codeSentByUser = $this->codeSentByUser;
@@ -59,8 +61,8 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 		$return['identifyMethod'] = $entity->getIdentifierKey();
 		$return['needCode'] = $needCode;
 		$return['hasConfirmCode'] = $hasConfirmCode;
-		$return['blurredEmail'] = $this->blurEmail($email);
-		$return['hashOfEmail'] = md5(strtolower($email));
+		$return['blurredEmail'] = $this->blurEmail($emailLowercase);
+		$return['hashOfEmail'] = md5($emailLowercase);
 		return $return;
 	}
 
