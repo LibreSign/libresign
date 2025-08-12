@@ -7032,6 +7032,37 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "identifyMethod": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "enum": [
+                                            "account",
+                                            "email"
+                                        ],
+                                        "description": "Identify signer method"
+                                    },
+                                    "signMethod": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "description": "Method used to sign the document, i.e. emailToken, account, clickToSign"
+                                    },
+                                    "identify": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "description": "Identify value, i.e. the signer email, account or phone number"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
                     {
                         "name": "apiVersion",
@@ -7180,7 +7211,7 @@
                                     "signMethod": {
                                         "type": "string",
                                         "nullable": true,
-                                        "description": "Method used to sign the document"
+                                        "description": "Method used to sign the document, i.e. emailToken, account, clickToSign"
                                     },
                                     "identify": {
                                         "type": "string",

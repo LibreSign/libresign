@@ -32,26 +32,37 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 	public function toArray(): array {
 		$entity = $this->getEntity();
 
-		if ($entity->getIdentifierKey() === 'email') {
-			$email = $entity->getIdentifierValue();
-		} elseif ($entity->getIdentifierKey() === 'account') {
-			$signer = $this->identifyService->getUserManager()->get($entity->getIdentifierValue());
-			$email = $signer->getEMailAddress();
-		}
+		$email = match ($entity->getIdentifierKey()) {
+			'email' => $entity->getIdentifierValue(),
+			'account' => $this->identifyService->getUserManager()->get($entity->getIdentifierValue())
+				?->getEMailAddress(),
+			default => null,
+		};
+
 		if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $this->identifyService->getL10n()->t('Invalid email')]],
 			]));
 		}
+
+		$emailLowercase = strtolower($email);
+
+		$code = $entity->getCode();
+		$identifiedAt = $entity->getIdentifiedAtDate();
+		$codeSentByUser = $this->codeSentByUser;
+
+		$hasConfirmCode = !empty($code);
+		$needCode = empty($code)
+			|| empty($identifiedAt)
+			|| empty($codeSentByUser);
+
 		$return = parent::toArray();
 		$return['identifyMethod'] = $entity->getIdentifierKey();
-		$return['needCode'] = empty($entity->getCode())
-			|| empty($entity->getIdentifiedAtDate())
-			|| empty($this->codeSentByUser);
-		$return['hasConfirmCode'] = !empty($entity->getCode());
-		$return['blurredEmail'] = $this->blurEmail($email);
-		$return['hashOfEmail'] = md5((string)$email);
+		$return['needCode'] = $needCode;
+		$return['hasConfirmCode'] = $hasConfirmCode;
+		$return['blurredEmail'] = $this->blurEmail($emailLowercase);
+		$return['hashOfEmail'] = md5($emailLowercase);
 		return $return;
 	}
 
