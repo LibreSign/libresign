@@ -97,8 +97,8 @@ class ConfigureCheckService {
 					->setTip("The command <pdfsig -v> executed by PHP haven't any output."),
 			];
 		}
-		$version = preg_match('/pdfsig version (?<version>.*)/', implode(PHP_EOL, $version), $matches);
-		if (!$version) {
+		$returnValue = preg_match('/pdfsig version (?<version>.*)/', implode(PHP_EOL, $version), $matches);
+		if ($returnValue !== 1) {
 			return $this->result['poppler'] = [
 				(new ConfigureCheckHelper())
 					->setErrorMessage('Fail to retrieve pdfsig version')
@@ -135,8 +135,8 @@ class ConfigureCheckService {
 					->setTip("The command <pdfinfo -v> executed by PHP haven't any output."),
 			];
 		}
-		$version = preg_match('/pdfinfo version (?<version>.*)/', implode(PHP_EOL, $version), $matches);
-		if (!$version) {
+		$returnValue = preg_match('/pdfinfo version (?<version>.*)/', implode(PHP_EOL, $version), $matches);
+		if (!$returnValue) {
 			return $this->result['pdfinfo'] = [
 				(new ConfigureCheckHelper())
 					->setErrorMessage('Fail to retrieve pdfinfo version')
