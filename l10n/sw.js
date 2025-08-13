@@ -43,6 +43,8 @@ OC.L10N.register(
     "Previous" : "Iliyopita",
     "Next" : "Next",
     "Confirm" : "Thibitisha",
+    "Administration" : "Administration",
+    "pending" : "inayosubiri",
     "Open sidebar" : "Open sidebar",
     "Details" : "Maelezo ya kina",
     "Certificate" : "Cheti",
@@ -81,6 +83,7 @@ OC.L10N.register(
     "No" : "Hapana",
     "Remove background" : "Remove background",
     "Forgot password?" : "Umesahau nenosiri",
-    "Name:" : "Jina:"
+    "Name:" : "Jina:",
+    "Return" : "Rudi"
 },
 "nplurals=2; plural=(n != 1);");
