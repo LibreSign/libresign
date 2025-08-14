@@ -184,27 +184,33 @@
         },
         {
             "name": "jsignpdf/jsignpdf-php",
-            "version": "v1.2.6",
+            "version": "v1.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/JSignPdf/jsignpdf-php.git",
-                "reference": "5e0a02873fad59e28f464261c11c69bfe5766304"
+                "reference": "ef3902e895a57e533e9f3e697c78b8b8e8e31479"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JSignPdf/jsignpdf-php/zipball/5e0a02873fad59e28f464261c11c69bfe5766304",
-                "reference": "5e0a02873fad59e28f464261c11c69bfe5766304",
+                "url": "https://api.github.com/repos/JSignPdf/jsignpdf-php/zipball/ef3902e895a57e533e9f3e697c78b8b8e8e31479",
+                "reference": "ef3902e895a57e533e9f3e697c78b8b8e8e31479",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
                 "ext-openssl": "*",
-                "php": "^7.4|^8.0"
+                "php": "^8.1"
             },
             "require-dev": {
-                "phpunit/phpunit": "^9.5"
+                "bamarni/composer-bin-plugin": "^1.8"
             },
             "type": "library",
+            "extra": {
+                "bamarni-bin": {
+                    "bin-links": true,
+                    "forward-command": true
+                }
+            },
             "autoload": {
                 "psr-4": {
                     "Jeidison\\JSignPDF\\": "src/"
@@ -231,9 +237,9 @@
             ],
             "support": {
                 "issues": "https://github.com/JSignPdf/jsignpdf-php/issues",
-                "source": "https://github.com/JSignPdf/jsignpdf-php/tree/v1.2.6"
+                "source": "https://github.com/JSignPdf/jsignpdf-php/tree/v1.3.1"
             },
-            "time": "2024-12-12T16:47:19+00:00"
+            "time": "2025-08-13T23:26:44+00:00"
         },
         {
             "name": "libresign/whatosami",
@@ -1625,12 +1631,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-deps/ocp.git",
-                "reference": "55fd06e1c10111bd8812e5d1fbe3018da173cde5"
+                "reference": "c2c75ad8fdc54cbc6341764b5a2a8ecf860e6160"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/55fd06e1c10111bd8812e5d1fbe3018da173cde5",
-                "reference": "55fd06e1c10111bd8812e5d1fbe3018da173cde5",
+                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/c2c75ad8fdc54cbc6341764b5a2a8ecf860e6160",
+                "reference": "c2c75ad8fdc54cbc6341764b5a2a8ecf860e6160",
                 "shasum": ""
             },
             "require": {
@@ -1666,7 +1672,7 @@
                 "issues": "https://github.com/nextcloud-deps/ocp/issues",
                 "source": "https://github.com/nextcloud-deps/ocp/tree/master"
             },
-            "time": "2025-08-09T00:53:05+00:00"
+            "time": "2025-08-10T01:01:23+00:00"
         },
         {
             "name": "psr/clock",
@@ -1825,12 +1831,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "fc5feda437d44655ee5df703bda813e00674b227"
+                "reference": "0479005335290f5c772337cf359599dad65bb63f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/fc5feda437d44655ee5df703bda813e00674b227",
-                "reference": "fc5feda437d44655ee5df703bda813e00674b227",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/0479005335290f5c772337cf359599dad65bb63f",
+                "reference": "0479005335290f5c772337cf359599dad65bb63f",
                 "shasum": ""
             },
             "conflict": {
@@ -2031,7 +2037,7 @@
                 "encore/laravel-admin": "<=1.8.19",
                 "endroid/qr-code-bundle": "<3.4.2",
                 "enhavo/enhavo-app": "<=0.13.1",
-                "enshrined/svg-sanitize": "<0.15",
+                "enshrined/svg-sanitize": "<0.22",
                 "erusev/parsedown": "<1.7.2",
                 "ether/logs": "<3.0.4",
                 "evolutioncms/evolution": "<=3.2.3",
@@ -2779,7 +2785,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-08-08T20:05:48+00:00"
+            "time": "2025-08-12T21:05:30+00:00"
         }
     ],
     "aliases": [],
