@@ -73,6 +73,8 @@ class JSignPdfHandler extends Pkcs12Handler {
 			$this->jSignParam = (new JSignParam())
 				->setTempPath($tempPath)
 				->setIsUseJavaInstalled(empty($javaPath))
+				->setJavaDownloadUrl('')
+				->setJSignPdfDownloadUrl('')
 				->setjSignPdfJarPath($jSignPdfJarPath);
 			if (!empty($javaPath)) {
 				if (!file_exists($javaPath)) {
