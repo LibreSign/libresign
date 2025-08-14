@@ -343,6 +343,7 @@
                                 "required": [
                                     "type",
                                     "nodeId",
+                                    "signedNodeId",
                                     "url"
                                 ],
                                 "properties": {
@@ -350,6 +351,11 @@
                                         "type": "string"
                                     },
                                     "nodeId": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "minimum": 0
+                                    },
+                                    "signedNodeId": {
                                         "type": "integer",
                                         "format": "int64",
                                         "minimum": 0
@@ -4118,12 +4124,15 @@
                         }
                     },
                     {
-                        "name": "nodeId",
+                        "name": "nodeIds[]",
                         "in": "query",
-                        "description": "The nodeId (also called fileId). Is the id of a file at Nextcloud",
+                        "description": "The list of nodeIds (also called fileIds). It's the ids of files at Nextcloud",
                         "schema": {
-                            "type": "string",
-                            "nullable": true
+                            "type": "array",
+                            "nullable": true,
+                            "items": {
+                                "type": "string"
+                            }
                         }
                     },
                     {
