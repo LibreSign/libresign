@@ -7,6 +7,7 @@ declare(strict_types=1);
  */
 
 use bovigo\vfs\vfsStream;
+use OC\User\NoUserException;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
@@ -38,6 +39,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
+use OCP\Files\NotPermittedException;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IDateTimeZone;
@@ -1074,6 +1076,77 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$canCreateSignature,
 			$expectedException,
 			$isAuthenticatedSigner,
+		];
+	}
+
+	#[DataProvider('providerGetSignedFile')]
+	public function testGetSignedFile(
+		int $timesCalled,
+		string $managerUid,
+		?string $ownerUid = null,
+		?int $nodeId = null,
+	): void {
+		$service = $this->getService(['getNodeByIdUsingUid']);
+
+		$libreSignFile = new \OCA\Libresign\Db\File();
+		$libreSignFile->setSignedNodeId($nodeId);
+		$libreSignFile->setUserId($managerUid);
+		$service->setLibreSignFile($libreSignFile);
+
+		$fileToSign = $this->createMock(\OCP\Files\File::class);
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')->willReturn($ownerUid);
+		$fileToSign->method('getOwner')->willReturn($user);
+		$service
+			->expects($this->exactly($timesCalled))
+			->method('getNodeByIdUsingUid')
+			->willReturn($fileToSign);
+
+		$this->invokePrivate($service, 'getSignedFile');
+	}
+
+	public static function providerGetSignedFile(): array {
+		return [
+			[0, 'managerUid', '', null],
+			[1, 'managerUid', 'managerUid', 1],
+			[2, 'managerUid', 'johndoe', 1],
+		];
+	}
+
+	#[DataProvider('providerGetNodeByIdUsingUid')]
+	public function testGetNodeByIdUsingUid(
+		string $typeOfNode,
+		string $exceptionMessage,
+	): void {
+		$service = $this->getService();
+		if ($exceptionMessage) {
+			$this->expectExceptionMessageMatches($exceptionMessage);
+		}
+		$leaf = $this->createMock($typeOfNode);
+		$userFolder = $this->createMock(\OCP\Files\Folder::class);
+		$userFolder->method('getFirstNodeById')->willReturn($leaf);
+		$this->root->method('getUserFolder')->willReturnCallback(function () use ($userFolder, $exceptionMessage) {
+			switch ($exceptionMessage) {
+				case '/User not found/':
+					throw new NoUserException();
+				case '/not have permission/':
+					throw new NotPermittedException();
+				case '/File not found/':
+					return $userFolder;
+				default:
+					return $userFolder;
+			}
+		});
+		$actual = $this->invokePrivate($service, 'getNodeByIdUsingUid', ['', 1]);
+		$this->assertEquals($leaf, $actual);
+	}
+
+	public static function providerGetNodeByIdUsingUid(): array {
+		return [
+			[\OCP\Files\Folder::class, '/User not found/'],
+			[\OCP\Files\Folder::class, '/not have permission/'],
+			[\OCP\Files\Folder::class, '/File not found/'],
+			[\OCP\Files\File::class, ''],
 		];
 	}
 }
