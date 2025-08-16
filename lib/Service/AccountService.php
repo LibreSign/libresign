@@ -252,7 +252,7 @@ class AccountService {
 		try {
 			$this->pkcs12Handler->getPfxOfCurrentSigner($user->getUID());
 			return true;
-		} catch (\Throwable) {
+		} catch (LibresignException) {
 		}
 		return false;
 	}
