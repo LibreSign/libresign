@@ -86,10 +86,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testGetFolderAsUnauthenticatedWhenUserIdIsInvalid():void {
 		$folder = $this->createMock(\OCP\Files\Folder::class);
-		$folder->method('nodeExists')
-			->with($this->equalTo('unauthenticated'))
-			->willReturn(true);
-		$folder->method('get')->willReturn($folder);
+		$folder->method('newFolder')->willReturn($folder);
 		$fakeFolder = new FakeFolder();
 		$fakeFolder->folder = $folder;
 		$appData = $this->createMock(IAppData::class);
@@ -97,8 +94,8 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appDataFactory->method('get')->willReturn($appData);
 
 		$service = $this->getFolderService(null);
-		$service->getFolder();
-		$this->assertTrue(true);
+		$actual = $service->getFolder();
+		$this->assertEquals($folder, $actual);
 	}
 
 	public function testGetFileWithInvalidNodeId():void {
@@ -112,15 +109,12 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetFolderWithValidNodeId():void {
-		$node = $this->createMock(\OCP\Files\File::class);
 		$folder = $this->createMock(\OCP\Files\Folder::class);
-		$node->method('getParent')
-			->willReturn($folder);
+		$folder->method('isUpdateable')->willReturn(true);
+		$folder->method('newFolder')->willReturn($folder);
 		$this->root->method('getUserFolder')
-			->willReturn($node);
+			->willReturn($folder);
 
-		$folder->method('nodeExists')->willReturn(true);
-		$folder->method('get')->willReturn($folder);
 		$fakeFolder = new FakeFolder();
 		$fakeFolder->folder = $folder;
 		$appData = $this->createMock(IAppData::class);

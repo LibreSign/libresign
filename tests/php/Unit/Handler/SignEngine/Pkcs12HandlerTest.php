@@ -11,6 +11,7 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
+use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IAppConfig;
 use OCP\IL10N;
@@ -77,7 +78,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testGetPfxOfCurrentSignerWithInvalidPfx():void {
 		$node = $this->createMock(\OCP\Files\Folder::class);
-		$node->method('nodeExists')->willReturn(false);
+		$node->method('get')->willThrowException(new NotFoundException());
 		$this->folderService->method('getFolder')->willReturn($node);
 		$this->expectExceptionMessage('Password to sign not defined. Create a password to sign');
 		$this->expectExceptionCode(400);
@@ -86,7 +87,6 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testGetPfxOfCurrentSignerOk():void {
 		$folder = $this->createMock(\OCP\Files\Folder::class);
-		$folder->method('nodeExists')->willReturn(true);
 		$file = $this->createMock(\OCP\Files\File::class);
 		$file->method('getContent')
 			->willReturn('valid pfx content');
