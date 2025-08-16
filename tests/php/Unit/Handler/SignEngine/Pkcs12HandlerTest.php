@@ -11,6 +11,7 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
+use OCP\Files\NotPermittedException;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
@@ -60,23 +61,16 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
-	public function testSavePfxWhenPfxFileIsAFolder():void {
+	public function testSavePfxWhenHaventPermission():void {
 		$node = $this->createMock(\OCP\Files\Folder::class);
-		$node->method('nodeExists')->willReturn(true);
-		$node->method('get')->willReturn($node);
+		$node->method('newFile')->willThrowException(new NotPermittedException());
 		$this->folderService->method('getFolder')->willReturn($node);
 
-		$this->expectExceptionMessage('path signature.pfx already exists and is not a file!');
+		$this->expectExceptionMessage('You do not have permission');
 		$this->getHandler()->savePfx('userId', 'content');
 	}
 
 	public function testSavePfxWhenPfxFileExsitsAndIsAFile():void {
-		$node = $this->createMock(\OCP\Files\Folder::class);
-		$node->method('nodeExists')->willReturn(true);
-		$file = $this->createMock(\OCP\Files\File::class);
-		$node->method('get')->willReturn($file);
-		$this->folderService->method('getFolder')->willReturn($node);
-
 		$actual = $this->getHandler()->savePfx('userId', 'content');
 		$this->assertEquals('content', $actual);
 	}
