@@ -84,7 +84,7 @@ class FolderService {
 	}
 
 	protected function getContainerFolder(): Folder {
-		if ($this->getUserId() && (bool)$this->groupManager->isInGroup($this->getUserId(), 'guest_app')) {
+		if ($this->getUserId() && !$this->groupManager->isInGroup($this->getUserId(), 'guest_app')) {
 			$containerFolder = $this->root->getUserFolder($this->getUserId());
 			if ($containerFolder->isUpdateable()) {
 				return $containerFolder;
