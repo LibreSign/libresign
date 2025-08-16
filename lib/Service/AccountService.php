@@ -456,9 +456,7 @@ class AccountService {
 		} else {
 			$rootSignatureFolder = $this->folderService->getFolder();
 			$folderName = $sessionId;
-			if ($rootSignatureFolder->nodeExists($folderName)) {
-				$rootSignatureFolder->delete($folderName);
-			}
+			$rootSignatureFolder->delete($folderName);
 		}
 	}
 
