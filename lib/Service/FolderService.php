@@ -64,18 +64,6 @@ class FolderService {
 		if ($this->getUserId()) {
 			$file = $this->root->getUserFolder($this->getUserId())->getFirstNodeById($nodeId);
 			if ($file instanceof File) {
-				if (!$file->fopen('r')) {
-					throw new NotFoundException('Invalid node');
-				}
-				return $file;
-			}
-
-			$folder = $this->root->getUserFolder($this->getUserId());
-			$file = $folder->getFirstNodeById($nodeId);
-			if ($file instanceof File) {
-				if (!$file->fopen('r')) {
-					throw new NotFoundException('Invalid node');
-				}
 				return $file;
 			}
 		}
@@ -88,7 +76,7 @@ class FolderService {
 			throw new NotFoundException('Invalid node');
 		}
 		$file = $folder->getFirstNodeById($nodeId);
-		if (!$file instanceof File || !$file->fopen('r')) {
+		if (!$file instanceof File) {
 			throw new NotFoundException('Invalid node');
 		}
 		return $file;
