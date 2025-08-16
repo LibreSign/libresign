@@ -390,13 +390,7 @@ class AccountService {
 	private function createFileOfVisibleElementUsingSession(array $data, string $sessionId): File {
 		$rootSignatureFolder = $this->folderService->getFolder();
 		$folderName = $sessionId;
-		if ($rootSignatureFolder->nodeExists($folderName)) {
-			/** @var Folder $folderToFile */
-			$folderToFile = $rootSignatureFolder->get($folderName);
-		} else {
-			/** @var Folder $folderToFile */
-			$folderToFile = $rootSignatureFolder->newFolder($folderName);
-		}
+		$folderToFile = $rootSignatureFolder->newFolder($folderName);
 		$filename = implode(
 			'_',
 			[
