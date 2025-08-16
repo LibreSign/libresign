@@ -81,11 +81,12 @@ class FolderService {
 		}
 		$path = $this->getLibreSignDefaultPath();
 		$containerFolder = $this->getContainerFolder();
-		if (!$containerFolder->nodeExists($path)) {
+		try {
+			/** @var Folder $folder */
+			$folder = $containerFolder->get($path);
+		} catch (NotFoundException) {
 			throw new NotFoundException('Invalid node');
 		}
-		/** @var Folder $folder */
-		$folder = $containerFolder->get($path);
 		$file = $folder->getFirstNodeById($nodeId);
 		if (!$file instanceof File || !$file->fopen('r')) {
 			throw new NotFoundException('Invalid node');
