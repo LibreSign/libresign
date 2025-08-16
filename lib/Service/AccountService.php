@@ -365,9 +365,6 @@ class AccountService {
 	private function saveFileOfVisibleElementUsingUser(array $data, IUser $user): File {
 		$rootSignatureFolder = $this->folderService->getFolder();
 		$folderName = $this->folderService->getFolderName($data, $user);
-		if ($rootSignatureFolder->nodeExists($folderName)) {
-			throw new \Exception($this->l10n->t('File already exists'));
-		}
 		$folderToFile = $rootSignatureFolder->newFolder($folderName);
 		return $folderToFile->newFile(UUIDUtil::getUUID() . '.png', $this->getFileRaw($data));
 	}
