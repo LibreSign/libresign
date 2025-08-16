@@ -247,8 +247,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->root->method('getUserFolder')
 			->willReturn($this->root);
-		$this->root->method('getById')
-			->willReturn([]);
 
 		$signRequest = new \OCA\Libresign\Db\SignRequest();
 		$this->getService()
