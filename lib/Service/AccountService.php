@@ -279,15 +279,7 @@ class AccountService {
 		return $file;
 	}
 
-	public function getFileByNodeIdAndSessionId(int $nodeId, string $sessionId): File {
-		$rootSignatureFolder = $this->folderService->getFolder();
-		if (!$rootSignatureFolder->nodeExists($sessionId)) {
-			try {
-				return $this->folderService->getFileById($nodeId);
-			} catch (NotFoundException) {
-				throw new DoesNotExistException('Not found');
-			}
-		}
+	public function getFileByNodeId(int $nodeId): File {
 		try {
 			return $this->folderService->getFileById($nodeId);
 		} catch (NotFoundException) {
