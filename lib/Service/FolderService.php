@@ -62,6 +62,7 @@ class FolderService {
 	 */
 	public function getFileById(?int $nodeId = null): File {
 		if ($this->getUserId()) {
+
 			$file = $this->root->getUserFolder($this->getUserId())->getFirstNodeById($nodeId);
 			if ($file instanceof File) {
 				return $file;
@@ -82,27 +83,18 @@ class FolderService {
 		return $file;
 	}
 
-	private function getContainerFolder(): Folder {
-		$withoutPermission = false;
-		if ($this->getUserId()) {
+	protected function getContainerFolder(): Folder {
+		if ($this->getUserId() && (bool)$this->groupManager->isInGroup($this->getUserId(), 'guest_app')) {
 			$containerFolder = $this->root->getUserFolder($this->getUserId());
-			// TODO: retrieve guest group name from app once exposed
-			if ($this->groupManager->isInGroup($this->getUserId(), 'guest_app')) {
-				$withoutPermission = true;
-			} elseif (!$containerFolder->isUpdateable()) {
-				$withoutPermission = true;
+			if ($containerFolder->isUpdateable()) {
+				return $containerFolder;
 			}
-		} else {
-			$withoutPermission = true;
 		}
-		if ($withoutPermission) {
-			$containerFolder = $this->appData->getFolder('/');
-			$reflection = new \ReflectionClass($containerFolder);
-			$reflectionProperty = $reflection->getProperty('folder');
-			$reflectionProperty->setAccessible(true);
-			return $reflectionProperty->getValue($containerFolder);
-		}
-		return $this->root->getUserFolder($this->getUserId());
+		$containerFolder = $this->appData->getFolder('/');
+		$reflection = new \ReflectionClass($containerFolder);
+		$reflectionProperty = $reflection->getProperty('folder');
+		$reflectionProperty->setAccessible(true);
+		return $reflectionProperty->getValue($containerFolder);
 	}
 
 	private function getLibreSignDefaultPath(): string {
