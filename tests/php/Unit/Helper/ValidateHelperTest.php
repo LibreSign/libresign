@@ -22,6 +22,7 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
+use OCP\Files\NotPermittedException;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -110,9 +111,10 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateFileWhenFileIdDoesNotExist():void {
 		$this->expectExceptionMessage('Invalid fileID');
-		$this->root->method('getById')->willReturnCallback(function ():void {
-			throw new \Exception('not found');
-		});
+		$userFolder = $this->createMock(\OCP\Files\Folder::class);
+		$userFolder->method('getFirstNodeById')->willThrowException(new NotPermittedException());
+		$this->root->method('getUserFolder')->willReturn($userFolder);
+
 		$user = $this->createMock(\OCP\IUser::class);
 		$user->method('getUID')->willReturn('john.doe');
 		$this->getValidateHelper()->validateFile([
