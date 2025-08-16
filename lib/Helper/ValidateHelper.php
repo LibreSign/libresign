@@ -380,8 +380,10 @@ class ValidateHelper {
 		}
 		try {
 			$file = $this->root->getUserFolder($userId)->getFirstNodeById($nodeId);
-		} catch (NotPermittedException|NoUserException $e) {
-			throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
+		} catch (NoUserException) {
+			throw new LibresignException($this->l10n->t('User not found.'));
+		} catch (NotPermittedException) {
+			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
 		}
 		if (!$file) {
 			throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
