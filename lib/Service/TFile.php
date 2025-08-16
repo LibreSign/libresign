@@ -40,9 +40,6 @@ trait TFile {
 
 		$userFolder = $this->folderService->getFolder();
 		$folderName = $this->folderService->getFolderName($data, $data['userManager']);
-		if ($userFolder->nodeExists($folderName)) {
-			throw new \Exception($this->l10n->t('File already exists'));
-		}
 		$folderToFile = $userFolder->newFolder($folderName);
 		return $folderToFile->newFile($data['name'] . '.' . $extension, $content);
 	}
