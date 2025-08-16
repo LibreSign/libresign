@@ -54,11 +54,7 @@ class FolderService {
 	public function getFolder(): Folder {
 		$path = $this->getLibreSignDefaultPath();
 		$containerFolder = $this->getContainerFolder();
-		if (!$containerFolder->nodeExists($path)) {
-			return $containerFolder->newFolder($path);
-		}
-		/** @var Folder */
-		return $containerFolder->get($path);
+		return $containerFolder->newFolder($path);
 	}
 
 	/**
