@@ -13,6 +13,7 @@ use DateTimeInterface;
 use Exception;
 use InvalidArgumentException;
 use OC\AppFramework\Http as AppFrameworkHttp;
+use OC\User\NoUserException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\AccountFile;
@@ -674,15 +675,10 @@ class SignFileService {
 		return $signRequest;
 	}
 
-	private function getPdfToSign(File $originalFile): File {
-		if ($this->libreSignFile->getSignedNodeId()) {
-			$nodeId = $this->libreSignFile->getSignedNodeId();
-
-			$fileToSign = $this->root->getUserFolder($this->libreSignFile->getUserId())->getFirstNodeById($nodeId);
-			if (!$fileToSign instanceof File) {
-				throw new LibresignException($this->l10n->t('File not found'));
-			}
-			return $fileToSign;
+	protected function getPdfToSign(File $originalFile): File {
+		$file = $this->getSignedFile();
+		if ($file instanceof File) {
+			return $file;
 		}
 		$footer = $this->footerHandler
 			->setTemplateVar('signers', array_map(fn (SignRequestEntity $signer) => [
@@ -708,6 +704,34 @@ class SignFileService {
 			$pdfContent = $originalFile->getContent();
 		}
 		return $this->createSignedFile($originalFile, $pdfContent);
+	}
+
+	protected function getSignedFile(): ?File {
+		$nodeId = $this->libreSignFile->getSignedNodeId();
+		if (!$nodeId) {
+			return null;
+		}
+
+		$fileToSign = $this->getNodeByIdUsingUid($this->libreSignFile->getUserId(), $nodeId);
+
+		if ($fileToSign->getOwner()->getUID() !== $this->libreSignFile->getUserId()) {
+			$fileToSign = $this->getNodeByIdUsingUid($fileToSign->getOwner()->getUID(), $nodeId);
+		}
+		return $fileToSign;
+	}
+
+	protected function getNodeByIdUsingUid(string $uid, int $nodeId): File {
+		try {
+			$fileToSign = $this->root->getUserFolder($uid)->getFirstNodeById($nodeId);
+		} catch (NoUserException) {
+			throw new LibresignException($this->l10n->t('User not found.'));
+		} catch (NotPermittedException) {
+			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
+		}
+		if (!$fileToSign instanceof File) {
+			throw new LibresignException($this->l10n->t('File not found'));
+		}
+		return $fileToSign;
 	}
 
 	private function createSignedFile(File $originalFile, string $content): File {
