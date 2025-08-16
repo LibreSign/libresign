@@ -86,10 +86,10 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 		$this->userSession->setUser($user);
 
 		$root = \OCP\Server::get(IRootFolder::class);
-		$nextcloudFile = $root->getById($file->getNodeId());
+		$nextcloudFile = $root->getFirstNodeById($file->getNodeId());
 		$trashManager = \OCP\Server::get(ITrashManager::class);
 		$trashManager->pauseTrash();
-		$nextcloudFile[0]->delete();
+		$nextcloudFile->delete();
 
 		$this->expectException(LibresignException::class);
 		$this->expectExceptionCode(404);
