@@ -160,7 +160,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/signature/elements/preview/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
 	public function getSignatureElementPreview(int $nodeId) {
 		try {
-			$node = $this->accountService->getFileByNodeIdAndSessionId(
+			$node = $this->accountService->getFileByNodeId(
 				$nodeId,
 				$this->sessionService->getSessionId()
 			);
