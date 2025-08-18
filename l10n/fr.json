@@ -67,7 +67,7 @@
     "Failure on generate certificate" : "Échec de la génération du certificat",
     "Failure to generate certificate" : "Échec de la génération du certificat",
     "You do not have permission for this action." : "Vous n'avez pas la permission de réaliser cette action.",
-    "Password to sign not defined. Create a password to sign." : "Mot de passe de signature non définit. Créez-en un pour signer.",
+    "Password to sign not defined. Create a password to sign." : "Mot de passe de signature non défini. Créez-en un pour signer.",
     "Invalid password" : "Mot de passe incorrect",
     "Invalid data to validate file" : "Données invalides pour valider le fichier",
     "File type: %s. Empty file." : "Type de fichier %s. Fichier vide.",
