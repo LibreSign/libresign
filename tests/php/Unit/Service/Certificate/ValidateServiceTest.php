@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use InvalidArgumentException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Certificate\RulesService;
 use OCA\Libresign\Service\Certificate\ValidateService;
@@ -15,7 +16,7 @@ use OCP\IL10N;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-class ValidateServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class ValidateServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	private IL10N $l10n;
 
@@ -23,21 +24,91 @@ class ValidateServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 	}
 
-	public function getService(): RulesService {
-		return new RulesService(
-			$this->l10n,
+	private function getService(): ValidateService {
+		$rulesService = new RulesService($this->l10n);
+		return new ValidateService(
+			$rulesService,
+			$this->l10n
 		);
 	}
 
-	public function testValidateWithValidInput(): void {
-		$service = new ValidateService($this->getService(), $this->l10n);
-		$service->validate('CN', 'John Doe');
+	#[DataProvider('providerValidInputs')]
+	public function testValidateWithValidInput(string $fieldName, string $value): void {
+		$service = $this->getService();
+		$service->validate($fieldName, $value);
+		$this->assertTrue(true); // se não lançar exceção, passou
 	}
 
-	public function testValidateWithInvalidInput(): void {
-		$service = new ValidateService($this->getService(), $this->l10n);
-		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage("Parameter 'CN' should be betweeen 1 and 64.");
-		$service->validate('CN', str_repeat('a', 65));
+	public static function providerValidInputs(): array {
+		return [
+			['CN', 'John Doe'],       // requerido, dentro do limite
+			['C', 'BR'],              // exatamente 2 letras
+			['ST', 'Amazonas'],       // válido
+			['L', 'Manaus'],          // válido
+			['O', 'LibreCode'],       // válido
+			['OU', 'Development'],    // válido
+		];
+	}
+
+	#[DataProvider('providerInvalidInputs')]
+	public function testValidateWithInvalidInput(string $fieldName, string $value, string $expectedMessage): void {
+		$service = $this->getService();
+		$this->expectException(InvalidArgumentException::class);
+		$this->expectExceptionMessage($expectedMessage);
+		$service->validate($fieldName, $value);
+	}
+
+	public static function providerInvalidInputs(): array {
+		return [
+			// CN é obrigatório → vazio deve falhar
+			['CN', '', "Parameter 'CN' is required!"],
+			// CN muito longo
+			['CN', str_repeat('a', 65), "Parameter 'CN' should be betweeen 1 and 64."],
+			// C muito curto
+			['C', 'B', "Parameter 'C' should be betweeen 2 and 2."],
+			// C muito longo
+			['C', 'BRA', "Parameter 'C' should be betweeen 2 and 2."],
+			// ST acima do limite
+			['ST', str_repeat('x', 129), "Parameter 'ST' should be betweeen 1 and 128."],
+		];
+	}
+
+	public function testValidateNamesWithValidArray(): void {
+		$service = $this->getService();
+
+		$names = [
+			['id' => 'CN', 'value' => 'Maria da Silva'],
+			['id' => 'C', 'value' => 'BR'],
+		];
+
+		$service->validateNames($names);
+
+		$this->assertTrue(true);
+	}
+
+	public function testValidateNamesWithoutIdShouldFail(): void {
+		$service = $this->getService();
+
+		$names = [
+			['id' => '', 'value' => 'Invalid Name'],
+		];
+
+		$this->expectException(InvalidArgumentException::class);
+		$this->expectExceptionMessage('Parameter id is required!');
+
+		$service->validateNames($names);
+	}
+
+	public function testValidateNamesWithInvalidValueShouldFail(): void {
+		$service = $this->getService();
+
+		$names = [
+			['id' => 'C', 'value' => 'BRA'], // inválido, deve ter 2 chars
+		];
+
+		$this->expectException(InvalidArgumentException::class);
+		$this->expectExceptionMessage("Parameter 'C' should be betweeen 2 and 2.");
+
+		$service->validateNames($names);
 	}
 }
