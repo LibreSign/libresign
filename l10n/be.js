@@ -8,6 +8,7 @@ OC.L10N.register(
     "Invalid password" : "Няправільны пароль",
     "File is too big" : "Файл занадта вялікі",
     "File not found" : "Файл не знойдзены",
+    "File already exists" : "Файл ужо існуе",
     "Empty file" : "Пусты файл",
     "Invalid file provided" : "Прапанаваны файл некарэктны",
     "Account" : "Уліковы запіс",
