@@ -36,17 +36,17 @@ final class ValidateServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testValidateWithValidInput(string $fieldName, string $value): void {
 		$service = $this->getService();
 		$service->validate($fieldName, $value);
-		$this->assertTrue(true); // se não lançar exceção, passou
+		$this->assertTrue(true);
 	}
 
 	public static function providerValidInputs(): array {
 		return [
-			['CN', 'John Doe'],       // requerido, dentro do limite
-			['C', 'BR'],              // exatamente 2 letras
-			['ST', 'Amazonas'],       // válido
-			['L', 'Manaus'],          // válido
-			['O', 'LibreCode'],       // válido
-			['OU', 'Development'],    // válido
+			['CN', 'John Doe'],
+			['C', 'BR'],
+			['ST', 'Amazonas'],
+			['L', 'Manaus'],
+			['O', 'LibreCode'],
+			['OU', 'Development'],
 		];
 	}
 
@@ -60,16 +60,11 @@ final class ValidateServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public static function providerInvalidInputs(): array {
 		return [
-			// CN é obrigatório → vazio deve falhar
 			['CN', '', "Parameter 'CN' is required!"],
-			// CN muito longo
-			['CN', str_repeat('a', 65), "Parameter 'CN' should be betweeen 1 and 64."],
-			// C muito curto
-			['C', 'B', "Parameter 'C' should be betweeen 2 and 2."],
-			// C muito longo
-			['C', 'BRA', "Parameter 'C' should be betweeen 2 and 2."],
-			// ST acima do limite
-			['ST', str_repeat('x', 129), "Parameter 'ST' should be betweeen 1 and 128."],
+			['CN', str_repeat('a', 65), "Parameter 'CN' should be between 1 and 64."],
+			['C', 'B', "Parameter 'C' should be between 2 and 2."],
+			['C', 'BRA', "Parameter 'C' should be between 2 and 2."],
+			['ST', str_repeat('x', 129), "Parameter 'ST' should be between 1 and 128."],
 		];
 	}
 
@@ -90,7 +85,8 @@ final class ValidateServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = $this->getService();
 
 		$names = [
-			['id' => '', 'value' => 'Invalid Name'],
+			['id' => '', 'value' => 'Name'],
+			['value' => 'Name'],
 		];
 
 		$this->expectException(InvalidArgumentException::class);
@@ -99,16 +95,23 @@ final class ValidateServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service->validateNames($names);
 	}
 
-	public function testValidateNamesWithInvalidValueShouldFail(): void {
+
+	#[DataProvider('providerInvalidNames')]
+	public function testValidateNamesWithInvalidValueShouldFail(array $name, string $expectedMessage): void {
 		$service = $this->getService();
 
-		$names = [
-			['id' => 'C', 'value' => 'BRA'], // inválido, deve ter 2 chars
-		];
-
 		$this->expectException(InvalidArgumentException::class);
-		$this->expectExceptionMessage("Parameter 'C' should be betweeen 2 and 2.");
+		$this->expectExceptionMessage($expectedMessage);
 
-		$service->validateNames($names);
+		$service->validateNames([$name]);
+	}
+
+	public static function providerInvalidNames(): array {
+		return [
+			[['id' => 'C', 'value' => ''],   "Parameter 'C' should be between 2 and 2."],
+			[['id' => 'C', 'value' => 'B'],  "Parameter 'C' should be between 2 and 2."],
+			[['id' => 'C', 'value' => 'BRA'], "Parameter 'C' should be between 2 and 2."],
+			[['id' => 'C', 'value' => 'BRAA'], "Parameter 'C' should be between 2 and 2."],
+		];
 	}
 }

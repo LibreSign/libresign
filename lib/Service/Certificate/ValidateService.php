@@ -17,24 +17,33 @@ class ValidateService {
 		protected RulesService $rulesService,
 		protected IL10N $l10n,
 	) {
-
 	}
 
-	public function validate(string $fieldName, string $value):void {
+	public function validate(string $fieldName, string $value): void {
 		$rule = $this->rulesService->getRule($fieldName);
 		$value = trim($value);
 		$length = strlen($value);
+
+		if ($fieldName === 'id' && $length === 0) {
+			throw new InvalidArgumentException('Parameter id is invalid');
+		}
+
 		if (!$length && isset($rule['required']) && $rule['required']) {
 			throw new InvalidArgumentException(
 				$this->l10n->t("Parameter '%s' is required!", [$fieldName])
 			);
 		}
+
 		if ($length > $rule['max'] || $length < $rule['min']) {
 			throw new InvalidArgumentException(
-				$this->l10n->t("Parameter '%s' should be betweeen %s and %s.", [$fieldName, $rule['min'], $rule['max']])
+				$this->l10n->t(
+					"Parameter '%s' should be between %s and %s.",
+					[$fieldName, $rule['min'], $rule['max']]
+				)
 			);
 		}
 	}
+
 
 	public function validateNames(array $names) {
 		foreach ($names as $item) {
