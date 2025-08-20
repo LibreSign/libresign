@@ -141,21 +141,13 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	public function savePfx(string $uid, string $content): string {
 		$this->folderService->setUserId($uid);
 		$folder = $this->folderService->getFolder();
-		if ($folder->nodeExists($this->pfxFilename)) {
-			$file = $folder->get($this->pfxFilename);
-			if (!$file instanceof File) {
-				throw new LibresignException("path {$this->pfxFilename} already exists and is not a file!", 400);
-			}
-			try {
-				$file->putContent($content);
-			} catch (GenericFileException) {
-				throw new LibresignException("path {$file->getPath()} does not exists!", 400);
-			}
-			return $content;
+
+		try {
+			$folder->newFile($this->pfxFilename, $content);
+		} catch (NotPermittedException) {
+			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
 		}
 
-		$file = $folder->newFile($this->pfxFilename);
-		$file->putContent($content);
 		return $content;
 	}
 
@@ -180,14 +172,11 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		}
 		$this->folderService->setUserId($uid);
 		$folder = $this->folderService->getFolder();
-		if (!$folder->nodeExists($this->pfxFilename)) {
-			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
-		}
 		try {
 			/** @var \OCP\Files\File */
 			$node = $folder->get($this->pfxFilename);
 			$this->certificate = $node->getContent();
-		} catch (GenericFileException) {
+		} catch (GenericFileException|NotFoundException) {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		} catch (\Throwable) {
 		}
