@@ -223,7 +223,7 @@ Feature: account/signature
     When as user ""
     And I open the latest email to "signer@test.coop" with subject "LibreSign: There is a file for you to sign"
     And I fetch the signer UUID from opened email
-    And set the custom http header "LibreSign-sign-request-uuid" with "<SIGN_UUID>" as value to next request
+    And set the custom http header "libresign-sign-request-uuid" with "<SIGN_UUID>" as value to next request
     When sending "post" to ocs "/apps/libresign/api/v1/signature/elements"
       | elements | [{"type":"signature","file":{"base64":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="}}] |
     Then the response should have a status code 200
