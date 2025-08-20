@@ -46,6 +46,7 @@ namespace OCA\Libresign\Tests\Unit;
 
 use donatj\MockWebServer\MockWebServer;
 use donatj\MockWebServer\Response as MockWebServerResponse;
+use OC\Memcache\Factory as CacheFactory;
 use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
@@ -74,6 +75,7 @@ class TestCase extends \Test\TestCase {
 				\OCP\Server::get(\OC\Config\PresetManager::class),
 				\OCP\Server::get(\Psr\Log\LoggerInterface::class),
 				\OCP\Server::get(\OCP\Security\ICrypto::class),
+				\OCP\Server::get(CacheFactory::class),
 			));
 			$service = \OCP\Server::get(\OCP\IAppConfig::class);
 		}

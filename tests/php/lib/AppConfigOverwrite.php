@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\lib;
 use OC\AppConfig;
 use OC\Config\ConfigManager;
 use OC\Config\PresetManager;
+use OC\Memcache\Factory as CacheFactory;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Security\ICrypto;
@@ -27,8 +28,17 @@ class AppConfigOverwrite extends AppConfig {
 		PresetManager $presetManager,
 		LoggerInterface $logger,
 		ICrypto $crypto,
+		CacheFactory $cacheFactory,
 	) {
-		parent::__construct($connection, $config, $configManager, $presetManager, $logger, $crypto);
+		parent::__construct(
+			$connection,
+			$config,
+			$configManager,
+			$presetManager,
+			$logger,
+			$crypto,
+			$cacheFactory,
+		);
 	}
 
 	public function getValueMixed(
