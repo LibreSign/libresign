@@ -71,7 +71,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	#[RequestHeader(name: 'LibreSign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
+	#[RequestHeader(name: 'libresign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/signature/elements', requirements: ['apiVersion' => '(v1)'])]
 	public function createSignatureElement(array $elements): DataResponse {
@@ -120,7 +120,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	#[RequestHeader(name: 'LibreSign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
+	#[RequestHeader(name: 'libresign-sign-request-uuid', description: 'The UUID of the sign request, used to identify the request', indirect: true)]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/signature/elements', requirements: ['apiVersion' => '(v1)'])]
 	public function getSignatureElements(): DataResponse {

@@ -54,7 +54,7 @@ export const useSignatureElementsStore = function(...args) {
 				}
 				if (this.signRequestUuid !== '') {
 					config.headers = {
-						'LibreSign-sign-request-uuid': this.signRequestUuid,
+						'libresign-sign-request-uuid': this.signRequestUuid,
 					}
 				}
 				await axios(config)
@@ -98,7 +98,7 @@ export const useSignatureElementsStore = function(...args) {
 				}
 				if (this.signRequestUuid !== '') {
 					config.headers = {
-						'LibreSign-sign-request-uuid': this.signRequestUuid,
+						'libresign-sign-request-uuid': this.signRequestUuid,
 					}
 				}
 				await axios(config)
@@ -128,7 +128,7 @@ export const useSignatureElementsStore = function(...args) {
 				}
 				if (this.signRequestUuid !== '') {
 					config.headers = {
-						'LibreSign-sign-request-uuid': this.signRequestUuid,
+						'libresign-sign-request-uuid': this.signRequestUuid,
 					}
 				}
 				await axios(config)
