@@ -10,6 +10,7 @@ namespace OCA\Libresign\Helper;
 
 use InvalidArgumentException;
 use OC\AppFramework\Http;
+use OC\User\NoUserException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File;
@@ -31,6 +32,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
+use OCP\Files\NotPermittedException;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -378,8 +380,10 @@ class ValidateHelper {
 		}
 		try {
 			$file = $this->root->getUserFolder($userId)->getFirstNodeById($nodeId);
-		} catch (\Throwable) {
-			throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
+		} catch (NoUserException) {
+			throw new LibresignException($this->l10n->t('User not found.'));
+		} catch (NotPermittedException) {
+			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
 		}
 		if (!$file) {
 			throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));

@@ -54,11 +54,7 @@ class FolderService {
 	public function getFolder(): Folder {
 		$path = $this->getLibreSignDefaultPath();
 		$containerFolder = $this->getContainerFolder();
-		if (!$containerFolder->nodeExists($path)) {
-			return $containerFolder->newFolder($path);
-		}
-		/** @var Folder */
-		return $containerFolder->get($path);
+		return $containerFolder->newFolder($path);
 	}
 
 	/**
@@ -66,58 +62,39 @@ class FolderService {
 	 */
 	public function getFileById(?int $nodeId = null): File {
 		if ($this->getUserId()) {
+
 			$file = $this->root->getUserFolder($this->getUserId())->getFirstNodeById($nodeId);
 			if ($file instanceof File) {
-				if (!$file->fopen('r')) {
-					throw new NotFoundException('Invalid node');
-				}
-				return $file;
-			}
-
-			$folder = $this->root->getUserFolder($this->getUserId());
-			$file = $folder->getFirstNodeById($nodeId);
-			if ($file instanceof File) {
-				if (!$file->fopen('r')) {
-					throw new NotFoundException('Invalid node');
-				}
 				return $file;
 			}
 		}
 		$path = $this->getLibreSignDefaultPath();
 		$containerFolder = $this->getContainerFolder();
-		if (!$containerFolder->nodeExists($path)) {
+		try {
+			/** @var Folder $folder */
+			$folder = $containerFolder->get($path);
+		} catch (NotFoundException) {
 			throw new NotFoundException('Invalid node');
 		}
-		/** @var Folder $folder */
-		$folder = $containerFolder->get($path);
 		$file = $folder->getFirstNodeById($nodeId);
-		if (!$file instanceof File || !$file->fopen('r')) {
+		if (!$file instanceof File) {
 			throw new NotFoundException('Invalid node');
 		}
 		return $file;
 	}
 
-	private function getContainerFolder(): Folder {
-		$withoutPermission = false;
-		if ($this->getUserId()) {
+	protected function getContainerFolder(): Folder {
+		if ($this->getUserId() && !$this->groupManager->isInGroup($this->getUserId(), 'guest_app')) {
 			$containerFolder = $this->root->getUserFolder($this->getUserId());
-			// TODO: retrieve guest group name from app once exposed
-			if ($this->groupManager->isInGroup($this->getUserId(), 'guest_app')) {
-				$withoutPermission = true;
-			} elseif (!$containerFolder->isUpdateable()) {
-				$withoutPermission = true;
+			if ($containerFolder->isUpdateable()) {
+				return $containerFolder;
 			}
-		} else {
-			$withoutPermission = true;
 		}
-		if ($withoutPermission) {
-			$containerFolder = $this->appData->getFolder('/');
-			$reflection = new \ReflectionClass($containerFolder);
-			$reflectionProperty = $reflection->getProperty('folder');
-			$reflectionProperty->setAccessible(true);
-			return $reflectionProperty->getValue($containerFolder);
-		}
-		return $this->root->getUserFolder($this->getUserId());
+		$containerFolder = $this->appData->getFolder('/');
+		$reflection = new \ReflectionClass($containerFolder);
+		$reflectionProperty = $reflection->getProperty('folder');
+		$reflectionProperty->setAccessible(true);
+		return $reflectionProperty->getValue($containerFolder);
 	}
 
 	private function getLibreSignDefaultPath(): string {

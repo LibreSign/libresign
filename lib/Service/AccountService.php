@@ -30,7 +30,6 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\File;
-use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
@@ -252,9 +251,9 @@ class AccountService {
 		try {
 			$this->pkcs12Handler->getPfxOfCurrentSigner($user->getUID());
 			return true;
-		} catch (\Throwable) {
+		} catch (LibresignException) {
+			return false;
 		}
-		return false;
 	}
 
 	/**
@@ -279,15 +278,7 @@ class AccountService {
 		return $file;
 	}
 
-	public function getFileByNodeIdAndSessionId(int $nodeId, string $sessionId): File {
-		$rootSignatureFolder = $this->folderService->getFolder();
-		if (!$rootSignatureFolder->nodeExists($sessionId)) {
-			try {
-				return $this->folderService->getFileById($nodeId);
-			} catch (NotFoundException) {
-				throw new DoesNotExistException('Not found');
-			}
-		}
+	public function getFileByNodeId(int $nodeId): File {
 		try {
 			return $this->folderService->getFileById($nodeId);
 		} catch (NotFoundException) {
@@ -373,9 +364,6 @@ class AccountService {
 	private function saveFileOfVisibleElementUsingUser(array $data, IUser $user): File {
 		$rootSignatureFolder = $this->folderService->getFolder();
 		$folderName = $this->folderService->getFolderName($data, $user);
-		if ($rootSignatureFolder->nodeExists($folderName)) {
-			throw new \Exception($this->l10n->t('File already exists'));
-		}
 		$folderToFile = $rootSignatureFolder->newFolder($folderName);
 		return $folderToFile->newFile(UUIDUtil::getUUID() . '.png', $this->getFileRaw($data));
 	}
@@ -401,13 +389,7 @@ class AccountService {
 	private function createFileOfVisibleElementUsingSession(array $data, string $sessionId): File {
 		$rootSignatureFolder = $this->folderService->getFolder();
 		$folderName = $sessionId;
-		if ($rootSignatureFolder->nodeExists($folderName)) {
-			/** @var Folder $folderToFile */
-			$folderToFile = $rootSignatureFolder->get($folderName);
-		} else {
-			/** @var Folder $folderToFile */
-			$folderToFile = $rootSignatureFolder->newFolder($folderName);
-		}
+		$folderToFile = $rootSignatureFolder->newFolder($folderName);
 		$filename = implode(
 			'_',
 			[
@@ -473,9 +455,7 @@ class AccountService {
 		} else {
 			$rootSignatureFolder = $this->folderService->getFolder();
 			$folderName = $sessionId;
-			if ($rootSignatureFolder->nodeExists($folderName)) {
-				$rootSignatureFolder->delete($folderName);
-			}
+			$rootSignatureFolder->delete($folderName);
 		}
 	}
 

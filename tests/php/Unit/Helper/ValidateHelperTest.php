@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Helper;
 
+use OC\User\NoUserException;
 use OCA\Libresign\Db\AccountFile;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileElementMapper;
@@ -22,6 +23,7 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
+use OCP\Files\NotPermittedException;
 use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -105,20 +107,6 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getValidateHelper()->validateFile([
 			'file' => ['fileId' => 'invalid'],
 			'name' => 'test'
-		]);
-	}
-
-	public function testValidateFileWhenFileIdDoesNotExist():void {
-		$this->expectExceptionMessage('Invalid fileID');
-		$this->root->method('getById')->willReturnCallback(function ():void {
-			throw new \Exception('not found');
-		});
-		$user = $this->createMock(\OCP\IUser::class);
-		$user->method('getUID')->willReturn('john.doe');
-		$this->getValidateHelper()->validateFile([
-			'file' => ['fileId' => 123],
-			'name' => 'test',
-			'userManager' => $user,
 		]);
 	}
 
@@ -378,21 +366,27 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getValidateHelper()->notSigned([]);
 	}
 
-	public function testValidateIfNodeIdExistsWhenGetFileThrowException():void {
-		$this->expectExceptionMessage('Invalid fileID');
-		$this->root
-			->method('getById')
-			->willReturnCallback(function ():void {
-				throw new \Exception('not found');
-			});
+	public function testValidateIfNodeIdExistsWhenUserNotFound():void {
+		$this->expectExceptionMessage('User not found');
+		$userFolder = $this->createMock(\OCP\Files\Folder::class);
+		$userFolder->method('getFirstNodeById')->willThrowException(new NoUserException());
+		$this->root->method('getUserFolder')->willReturn($userFolder);
 		$this->getValidateHelper()->validateIfNodeIdExists(171);
 	}
 
-	public function testValidateIfNodeIdExistsWithInvalidFile():void {
+	public function testValidateIfNodeIdExistsWhenNotPermission():void {
+		$this->expectExceptionMessage('You do not have permission');
+		$userFolder = $this->createMock(\OCP\Files\Folder::class);
+		$userFolder->method('getFirstNodeById')->willThrowException(new NotPermittedException());
+		$this->root->method('getUserFolder')->willReturn($userFolder);
+		$this->getValidateHelper()->validateIfNodeIdExists(171);
+	}
+
+	public function testValidateIfNodeIdExistsWhenNotFound():void {
 		$this->expectExceptionMessage('Invalid fileID');
-		$this->root
-			->method('getById')
-			->willReturn([0 => null]);
+		$userFolder = $this->createMock(\OCP\Files\Folder::class);
+		$userFolder->method('getFirstNodeById')->willReturn(null);
+		$this->root->method('getUserFolder')->willReturn($userFolder);
 		$this->getValidateHelper()->validateIfNodeIdExists(171);
 	}
 
