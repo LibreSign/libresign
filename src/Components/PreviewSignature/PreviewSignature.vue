@@ -70,7 +70,7 @@ export default {
 			}
 			if (this.signRequestUuid !== '') {
 				config.headers = {
-					'LibreSign-sign-request-uuid': this.signRequestUuid,
+					'libresign-sign-request-uuid': this.signRequestUuid,
 				}
 			}
 			await axios(config)
