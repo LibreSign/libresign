@@ -59,7 +59,7 @@ class RulesService {
 	public function getHelperText(string $fieldName): ?string {
 		return match ($fieldName) {
 			'CN' => $this->l10n->t('Common Name (CN)'),
-			'C' => $this->l10n->t('Two-letter ISO 3166 country code'),
+			'C' => $tcertificate/his->l10n->t('Two-letter ISO 3166 country code'),
 			'ST' => $this->l10n->t('Full name of states or provinces'),
 			'L' => $this->l10n->t('Name of a locality or place, such as a city, county, or other geographic region'),
 			'O' => $this->l10n->t('Name of an organization'),
@@ -67,4 +67,32 @@ class RulesService {
 			default => null,
 		};
 	}
+
+	public function getAllRules(): array {
+		$result = [];
+		foreach ($this->rules as $field => $rule) {
+			$result[] = [
+				'id' => $field,
+				'label' => $this->getLabel($field),
+				'min' => $rule['min'] ?? null,
+				'max' => $rule['max'] ?? null,
+				'required' => $rule['required'] ?? false,
+				'helperText' => $this->getHelperText($field),
+			];
+		}
+		return $result;
+	}
+
+	private function getLabel(string $fieldName): string {
+		return match ($fieldName) {
+			'CN' => $this->l10n->t('Common Name (CN)'),
+			'C' => $this->l10n->t('Country'),
+			'ST' => $this->l10n->t('State'),
+			'L' => $this->l10n->t('Locality'),
+			'O' => $this->l10n->t('Organization'),
+			'OU' => $this->l10n->t('Organizational Unit'),
+			default => $fieldName,
+		};
+	}
+
 }
