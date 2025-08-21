@@ -7,7 +7,6 @@ OC.L10N.register(
     "Internal Server Error" : "අභ්‍යන්තර සේවාදායක දෝෂයකි",
     "File is too big" : "ගොනුව ඉතා විශාලයි",
     "File not found" : "ගොනුව හමු නොවිණි",
-    "File already exists" : "ගොනුව දැනටමත් පවතී",
     "Empty file" : "හිස් ගොනුවකි",
     "Account" : "ගිණුම",
     "Email" : "විද්‍යුත් තැපෑල",

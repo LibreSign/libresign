@@ -55,7 +55,6 @@
     "Password is mandatory" : "Slaptažodis yra privalomas",
     "File not found" : "Failas nerastas",
     "You must have an email. You can define the email in your profile." : "Jūs privalote turėti el. paštą. Galite apibrėžti el. paštą savo profilyje.",
-    "File already exists" : "Failas jau yra",
     "Empty file" : "Tuščias failas",
     "Invalid file provided. Need to be a .pfx file." : "Pateiktas neteisingas failas. Turi būti .pfx failas.",
     "Invalid file identifier" : "Neteisingas failo identifikatorius",

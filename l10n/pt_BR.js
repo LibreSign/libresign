@@ -126,7 +126,6 @@ OC.L10N.register(
     "File not found" : "Arquivo não encontrado",
     "You must have an email. You can define the email in your profile." : "Você deve ter um e-mail. Você pode definir o e-mail em seu perfil.",
     "Password to sign is mandatory" : "Senha para assinar é obrigatória",
-    "File already exists" : "Arquivo já existe",
     "Invalid URL file" : "URL de arquivo inválida",
     "Visible element file must be png." : "O arquivo de elemento visível deve ser png. ",
     "Empty file" : "Arquivo vazio",

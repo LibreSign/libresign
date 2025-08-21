@@ -47,7 +47,6 @@ OC.L10N.register(
     "View" : "Tampilan",
     "Dismiss notification" : "Abaikan notifikasi",
     "File not found" : "Berkas tidak ditemukan",
-    "File already exists" : "Berkas sudah ada",
     "Invalid file provided" : "Berkas tidak valid",
     "Account" : "Akun",
     "Invalid user" : "Pengguna salah",

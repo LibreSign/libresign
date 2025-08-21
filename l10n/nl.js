@@ -87,7 +87,6 @@ OC.L10N.register(
     "File not found" : "Bestand niet gevonden",
     "You must have an email. You can define the email in your profile." : "Je moet een e-mailadres hebben. Je kunt het in je profiel definiëren.",
     "Password to sign is mandatory" : "Wachtwoord verplicht voor ondertekening",
-    "File already exists" : "Bestand bestaat al",
     "Invalid URL file" : "Ongeldig URL bestand",
     "Visible element file must be png." : "Zichtbaar elementbestand moet een png zijn.",
     "Empty file" : "Leeg bestand",

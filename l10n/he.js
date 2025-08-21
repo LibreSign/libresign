@@ -20,7 +20,6 @@ OC.L10N.register(
     "View" : "צפייה",
     "Dismiss notification" : "התעלמות מהתראה",
     "File not found" : "קובץ לא נמצא",
-    "File already exists" : "הקובץ כבר קיים",
     "Invalid file provided" : "הקובץ שסופק שגוי",
     "Account" : "חשבון",
     "Invalid user" : "משתמש שגוי",

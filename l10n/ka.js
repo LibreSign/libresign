@@ -19,7 +19,6 @@ OC.L10N.register(
     "View" : "View",
     "Dismiss notification" : "Dismiss notification",
     "File not found" : "File not found",
-    "File already exists" : "File already exists",
     "Empty file" : "Empty file",
     "Invalid file provided" : "მითითებულია არასწორი ფაილი",
     "Account" : "Account",

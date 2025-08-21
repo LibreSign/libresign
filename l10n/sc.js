@@ -49,7 +49,6 @@ OC.L10N.register(
     "File not found" : "Archìviu no agatadu",
     "You must have an email. You can define the email in your profile." : "Depes tènnere un'indiritzu de posta eletrònica. Ddu podes ispetzificare in su profilu tuo?",
     "Password to sign is mandatory" : "Pro firmare est pretzisu a tènnere sa crae",
-    "File already exists" : "S'archìviu b'est giai",
     "Invalid URL file" : "URL de s'archìviu no est bàlidu",
     "Empty file" : "Archìviu bòidu",
     "Invalid file provided" : "S'archìviu frunidu no est vàlidu",

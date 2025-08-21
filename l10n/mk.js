@@ -22,7 +22,6 @@ OC.L10N.register(
     "View" : "Погледни",
     "Dismiss notification" : "Отфрли известување",
     "File not found" : "Датотеката не е пронајдена",
-    "File already exists" : "Датотека веќе постои",
     "Empty file" : "Празна датотека",
     "Invalid file provided" : "Доставена е невалидна датотека",
     "Account" : "Сметка",

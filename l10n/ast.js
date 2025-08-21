@@ -21,7 +21,6 @@ OC.L10N.register(
     "View" : "Ver",
     "Dismiss notification" : "Escargar l'avisu",
     "File not found" : "Nun s'atopó'l ficheru",
-    "File already exists" : "El ficheru yá esiste",
     "Empty file" : "Ficheru baleru",
     "Invalid file provided" : "Fornióse un ficheru inválidu",
     "You cannot request signature for this document, please contact your administrator" : "Nun pues solicitar la firma d'esti documentu. Ponte en contautu cola alministración",

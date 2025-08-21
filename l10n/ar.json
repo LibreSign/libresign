@@ -120,7 +120,6 @@
     "File not found" : "تعذر العثور على الملف",
     "You must have an email. You can define the email in your profile." : "يجب أن يكون لديك بريد إلكتروني. يمكنك تحديد البريد الإلكتروني في ملف التعريف الخاص بك.",
     "Password to sign is mandatory" : "كلمة المرور للتوقيع إلزامية",
-    "File already exists" : "الملف موجود مسبقاً",
     "Invalid URL file" : "عنوا URL ملف غير صالح",
     "Visible element file must be png." : "يجب أن يكون ملف العنصر المرئي بتنسيق png.",
     "Empty file" : "ملفٌ فارغٌ",

@@ -19,7 +19,6 @@ OC.L10N.register(
     "View" : "Ver",
     "Dismiss notification" : "Descartar notificación",
     "File not found" : "Archivo no encontrado",
-    "File already exists" : "El archivo ya existe",
     "Empty file" : "Archivo vacío",
     "Invalid file provided" : "Se proporcionó un archivo invalido",
     "Account" : "Cuenta",

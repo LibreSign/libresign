@@ -86,7 +86,6 @@ OC.L10N.register(
     "File not found" : "文件未找到",
     "You must have an email. You can define the email in your profile." : "你必须有一个电子邮箱。你可以在你的个人资料中定义邮箱",
     "Password to sign is mandatory" : "登录密码是强制的",
-    "File already exists" : "文件已存在 ",
     "Invalid URL file" : "无效的 URL 文件",
     "Visible element file must be png." : "可见元素文件必须是 png",
     "Empty file" : "空文件",
