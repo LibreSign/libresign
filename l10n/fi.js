@@ -61,7 +61,6 @@ OC.L10N.register(
     "File not found" : "Tiedostoa ei löytynyt",
     "You must have an email. You can define the email in your profile." : "Sinulla tulee olla sähköpostiosoite. Voit määrittää sähköpostiosoitteen profiilissasi.",
     "Password to sign is mandatory" : "Salasana allekirjoitusta varten on pakollinen",
-    "File already exists" : "Tiedosto on jo olemassa",
     "Invalid URL file" : "Virheellinen URL-tiedosto",
     "Visible element file must be png." : "Näkyvän elementtitiedoston tulee olla png.",
     "Empty file" : "Tyhjä tiedosto",

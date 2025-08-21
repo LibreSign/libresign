@@ -20,7 +20,6 @@ OC.L10N.register(
     "View" : "Skats",
     "Dismiss notification" : "Noraidīt paziņojumu",
     "File not found" : "Datne nav atrasta",
-    "File already exists" : "Datne jau pastāv",
     "Empty file" : "Tukša datne",
     "Invalid file provided" : "Norādīta nederīga datne",
     "Account" : "Konts",

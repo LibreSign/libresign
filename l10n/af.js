@@ -15,7 +15,6 @@ OC.L10N.register(
     "File is too big" : "Lêer is te groot",
     "View" : "Bekyk",
     "File not found" : "Lêer nie gevind nie",
-    "File already exists" : "Lêer bestaan reeds",
     "Invalid file provided" : "Ongeldige lêer verskaf",
     "Account" : "Rekening",
     "Invalid user" : "Ongeldige gebruiker",

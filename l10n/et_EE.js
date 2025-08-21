@@ -45,7 +45,6 @@ OC.L10N.register(
     "Password is mandatory" : "Salasõna on kohustuslik",
     "File not found" : "Faili ei leitud",
     "Password to sign is mandatory" : "Salasõna on allkirjastamisel kohustuslik",
-    "File already exists" : "Fail on juba olemas",
     "Visible element file must be png." : "Nähtav element peab olema png.",
     "Empty file" : "Tühi fail",
     "Invalid file provided. Need to be a .pfx file." : "Sisestasid vale või vigase faili. Vajalik on .pfx-fail.",

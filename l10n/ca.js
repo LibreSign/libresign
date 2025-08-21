@@ -97,7 +97,6 @@ OC.L10N.register(
     "File not found" : "No s'ha trobat el fitxer",
     "You must have an email. You can define the email in your profile." : "Heu de tenir un correu electrònic. Podeu definir el correu electrònic al vostre perfil.",
     "Password to sign is mandatory" : "La contrasenya per signar és obligatòria",
-    "File already exists" : "El fitxer ja existeix",
     "Invalid URL file" : "Fitxer URL no vàlid",
     "Visible element file must be png." : "El fitxer d'element visible ha de ser png.",
     "Empty file" : "Fitxer buit",

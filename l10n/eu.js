@@ -89,7 +89,6 @@ OC.L10N.register(
     "File not found" : "Ez da fitxategia aurkitu",
     "You must have an email. You can define the email in your profile." : "Mezu elektronikoa izan behar duzu. Mezu elektronikoa zure profilean defini dezakezu.",
     "Password to sign is mandatory" : "Pasahitza sinatzeko beharrezkoa da",
-    "File already exists" : "Badago izen bereko fitxategi bat",
     "Invalid URL file" : "URL fitxategi baliogabea",
     "Visible element file must be png." : "Elementu ikusgarriaren fitxategia png izan behar da.",
     "Empty file" : "Fitxategi hutsa",
