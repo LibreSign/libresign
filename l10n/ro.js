@@ -19,7 +19,6 @@ OC.L10N.register(
     "View" : "Vizualizare",
     "Dismiss notification" : "Elimină notificarea",
     "File not found" : "Fișierul nu a fost găsit",
-    "File already exists" : "Fișierul există deja",
     "Empty file" : "Fișier gol",
     "Invalid file provided" : "Numele fișierului pe care l-ai oferit este invalid",
     "Account" : "Cont",

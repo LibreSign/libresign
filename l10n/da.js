@@ -20,7 +20,6 @@ OC.L10N.register(
     "View" : "Vis",
     "Dismiss notification" : "Fjern notifikation",
     "File not found" : "Fil ikke fundet",
-    "File already exists" : "Filen findes allerede",
     "Empty file" : "Tom fil",
     "Invalid file provided" : "Der er angivet en ugyldig fil",
     "Account" : "Konto",

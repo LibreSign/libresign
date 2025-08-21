@@ -20,7 +20,6 @@ OC.L10N.register(
     "View" : "Angalia",
     "Dismiss notification" : "Dismiss notification",
     "File not found" : "Faili halipatikani",
-    "File already exists" : "Faili lipo tayari",
     "Invalid file provided" : "Faili iliyotolewa si halali",
     "Account" : "Akaunti",
     "Email" : "Barua pepe",

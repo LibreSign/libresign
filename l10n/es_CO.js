@@ -18,7 +18,6 @@ OC.L10N.register(
     "File sharing" : "Compartir archivos",
     "Dismiss notification" : "Descartar notificación",
     "File not found" : "Archivo no encontrado",
-    "File already exists" : "El archivo ya existe",
     "Invalid file provided" : "Archivo proporcionado inválido",
     "Account" : "Cuenta",
     "Invalid user" : "Usuario inválido",

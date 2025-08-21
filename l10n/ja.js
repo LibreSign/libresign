@@ -25,7 +25,6 @@ OC.L10N.register(
     "Dismiss notification" : "通知を閉じる",
     "UUID not found" : "UUIDが見つかりません",
     "File not found" : "ファイルが見つかりません",
-    "File already exists" : "ファイルが既に存在します",
     "Empty file" : "空白のファイル",
     "Invalid file provided" : "無効なファイルが提供されました",
     "Invalid code." : "無効なコード。",

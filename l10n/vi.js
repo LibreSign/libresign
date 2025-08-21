@@ -19,7 +19,6 @@ OC.L10N.register(
     "View" : "Xem",
     "Dismiss notification" : "Bỏ qua thông báo ",
     "File not found" : "Không tìm thấy tập tin",
-    "File already exists" : "Tệp đã tồn tại",
     "Invalid file provided" : "Tệp đã cung cấp không hợp lệ",
     "Account" : "Tài khoản",
     "Invalid user" : "Người dùng không hợp lệ",

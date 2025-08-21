@@ -86,7 +86,6 @@ OC.L10N.register(
     "Password is mandatory" : "Password is mandatory",
     "File not found" : "فایل یافت نشد",
     "Password to sign is mandatory" : "Password to sign is mandatory",
-    "File already exists" : "پرونده از قبل موجود است",
     "Invalid URL file" : "Invalid URL file",
     "Visible element file must be png." : "Visible element file must be png.",
     "Empty file" : "پرونده خالی",

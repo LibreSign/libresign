@@ -107,7 +107,6 @@ OC.L10N.register(
     "File not found" : "ھۆججەت تېپىلمىدى",
     "You must have an email. You can define the email in your profile." : "سىزدە ئېلېكترونلۇق خەت بولۇشى كېرەك. ئارخىپىڭىزدىكى ئېلېكترونلۇق خەتنى ئېنىقلىيالايسىز.",
     "Password to sign is mandatory" : "ئىمزا قويۇش مەخپىي نومۇرى",
-    "File already exists" : "ھۆججەت مەۋجۇت",
     "Invalid URL file" : "ئىناۋەتسىز URL ھۆججىتى",
     "Visible element file must be png." : "كۆرگىلى بولىدىغان ئېلېمېنت ھۆججىتى چوقۇم png بولۇشى كېرەك.",
     "Empty file" : "بوش ھۆججەت",

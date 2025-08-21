@@ -15,7 +15,6 @@ OC.L10N.register(
     "View" : "Shiko",
     "Dismiss notification" : "Hiq lajmërimin",
     "File not found" : "Skedari nuk u gjet",
-    "File already exists" : "Skedari ekziston tashmë",
     "Invalid file provided" : "U dha kartelë e pavlefshme",
     "Account" : "Llogari",
     "Invalid user" : "Përdorues i pavlefshëm",

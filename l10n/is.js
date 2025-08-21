@@ -21,7 +21,6 @@ OC.L10N.register(
     "View" : "Skoða",
     "Dismiss notification" : "Afgreiða tilkynningu",
     "File not found" : "Skrá finnst ekki",
-    "File already exists" : "Skrá er þegar til",
     "Empty file" : "Tóm skrá",
     "Invalid file provided" : "Ógild skrá gefin",
     "Account" : "Aðgangur",

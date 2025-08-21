@@ -19,7 +19,6 @@ OC.L10N.register(
     "View" : "Vidi",
     "Dismiss notification" : "Forsendi sciigon",
     "File not found" : "Netrovita dosiero",
-    "File already exists" : "La dosiero jam ekzistas",
     "Empty file" : "Malplena dosiero",
     "Invalid file provided" : "Nevalida dosiero provizita",
     "Account" : "Konto",
