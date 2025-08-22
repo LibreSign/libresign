@@ -1291,6 +1291,8 @@ export type components = {
                     type: string;
                     /** Format: int64 */
                     nodeId: number;
+                    /** Format: int64 */
+                    signedNodeId: number;
                     url: string;
                 };
                 callback: string | null;
@@ -2806,8 +2808,8 @@ export interface operations {
                 length?: number | null;
                 /** @description Signer UUID */
                 signer_uuid?: string | null;
-                /** @description The nodeId (also called fileId). Is the id of a file at Nextcloud */
-                nodeId?: string | null;
+                /** @description The list of nodeIds (also called fileIds). It's the ids of files at Nextcloud */
+                "nodeIds[]"?: string[] | null;
                 /** @description Status could be none or many of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted. */
                 "status[]"?: number[] | null;
                 /** @description Start date of signature request (UNIX timestamp) */
