@@ -20,6 +20,7 @@ use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use phpseclib3\File\ASN1;
+use Psr\Log\LoggerInterface;
 
 class Pkcs12Handler extends SignEngineHandler {
 	use OrderCertificatesTrait;
@@ -37,8 +38,9 @@ class Pkcs12Handler extends SignEngineHandler {
 		private IL10N $l10n,
 		private FooterHandler $footerHandler,
 		private ITempManager $tempManager,
+		private LoggerInterface $logger,
 	) {
-		parent::__construct($l10n, $folderService);
+		parent::__construct($l10n, $folderService, $logger);
 	}
 
 	/**
