@@ -23,6 +23,7 @@ use OCP\IUserSession;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
 
 final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IdentifyService&MockObject $identifyService;
@@ -34,6 +35,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N $l10n;
 	private FooterHandler&MockObject $footerHandler;
 	private ITempManager $tempManager;
+	private LoggerInterface&MockObject $logger;
 
 	public function setUp(): void {
 		$this->identifyService = $this->createMock(IdentifyService::class);
@@ -44,6 +46,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
 		$this->userSession = $this->createMock(IUserSession::class);
+		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->pkcs12Handler = $this->getPkcs12Instance();
 	}
 
@@ -67,6 +70,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->l10n,
 				$this->footerHandler,
 				$this->tempManager,
+				$this->logger,
 			])
 			->onlyMethods($methods)
 			->getMock();
