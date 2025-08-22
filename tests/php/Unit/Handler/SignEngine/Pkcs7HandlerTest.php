@@ -11,14 +11,17 @@ use OCA\Libresign\Service\FolderService;
 use OCP\IL10N;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
 
 final class Pkcs7HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N $l10n;
 	private FolderService&MockObject $folderService;
+	private LoggerInterface&MockObject $logger;
 	public function setUp(): void {
 		parent::setUp();
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(\OCA\Libresign\AppInfo\Application::APP_ID);
 		$this->folderService = $this->createMock(\OCA\Libresign\Service\FolderService::class);
+		$this->logger = $this->createMock(LoggerInterface::class);
 	}
 
 	protected function getInstance(array $methods = []): Pkcs7Handler|MockObject {
@@ -26,12 +29,14 @@ final class Pkcs7HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			return new Pkcs7Handler(
 				$this->l10n,
 				$this->folderService,
+				$this->logger,
 			);
 		}
 		return $this->getMockBuilder(Pkcs7Handler::class)
 			->setConstructorArgs([
 				$this->l10n,
 				$this->folderService,
+				$this->logger,
 			])
 			->onlyMethods($methods)
 			->getMock();

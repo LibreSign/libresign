@@ -19,6 +19,7 @@ use OCP\ITempManager;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
 
 final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected Pkcs12Handler $pkcs12Handler;
@@ -27,6 +28,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N $l10n;
 	private FooterHandler&MockObject $footerHandler;
 	private ITempManager $tempManager;
+	private LoggerInterface&MockObject $logger;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 
 	public function setUp(): void {
@@ -36,6 +38,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
+		$this->logger = $this->createMock(LoggerInterface::class);
 	}
 
 	private function getHandler(array $methods = []): Pkcs12Handler|MockObject {
@@ -48,6 +51,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->l10n,
 					$this->footerHandler,
 					$this->tempManager,
+					$this->logger,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -59,6 +63,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->footerHandler,
 			$this->tempManager,
+			$this->logger,
 		);
 	}
 
