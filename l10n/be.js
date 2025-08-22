@@ -32,6 +32,7 @@ OC.L10N.register(
     "Status" : "Стан",
     "Actions" : "Дзеянні",
     "Signature" : "Подпіс",
+    "Profile picture" : "Аватар профілю",
     "Password" : "Пароль",
     "Enter a password" : "Увядзіце пароль",
     "Page not found" : "Старонка не знойдзена",
