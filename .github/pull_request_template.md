@@ -28,3 +28,40 @@ Please check the type of change your pull request introduces. Remove all that is
 - [ ] Did you provide a general summary of your changes ?
 - [ ] Try to limit your pull request to one type, submit multiple pull requests if needed
 - [ ] I implemented tests that cover my contribution
+
+
+<details>
+<summary>How to see this running using GitHub Codespaces</summary>
+
+### 1. Open the Codespace
+- Authenticate to GitHub
+- Go to the branch: [chore/reduce-configure-check-time](https://github.com/LibreSign/libresign/tree/chore/reduce-configure-check-time)
+- Click the `Code` button and select the `Codespaces` tab.
+- Click **"Create codespace on feat/customize-signature-stamp"**
+
+### 2. Wait for the environment to start
+- A progress bar will appear on the left.  
+- After that, the terminal will show the build process.
+- Wait until you see the message:  
+  ```bash
+  ✍️ LibreSign is up!
+  ```
+  This may take a few minutes.
+
+### 3. Access LibreSign in the browser
+- Open the **Ports** tab (next to the **Terminal**).
+- Look for the service running on port **80**.
+- Hover over the URL and click the **globe icon** 🌐 to open it in your browser.
+
+### 4. (Optional) Make the service public
+- If you want to share the app with people **not logged in to GitHub**, you must change the port visibility:
+  - Click the three dots `⋮` on the row for port 80.
+  - Select `Change visibility` → `Public`.
+
+### 5. Login credentials
+- **Username**: `admin`  
+- **Password**: `admin`
+
+Done! 🎉
+You're now ready to test this.
+<details>
