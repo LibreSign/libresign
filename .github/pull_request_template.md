@@ -29,7 +29,6 @@ Please check the type of change your pull request introduces. Remove all that is
 - [ ] Try to limit your pull request to one type, submit multiple pull requests if needed
 - [ ] I implemented tests that cover my contribution
 
-
 <details>
 <summary>How to see this running using GitHub Codespaces</summary>
 
@@ -64,4 +63,4 @@ Please check the type of change your pull request introduces. Remove all that is
 
 Done! 🎉
 You're now ready to test this.
-<details>
+</details>
