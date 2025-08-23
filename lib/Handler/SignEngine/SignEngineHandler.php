@@ -22,6 +22,7 @@ use OCP\Files\InvalidPathException;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IL10N;
+use Psr\Log\LoggerInterface;
 
 abstract class SignEngineHandler implements ISignEngineHandler {
 	private File $inputFile;
@@ -35,6 +36,7 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	public function __construct(
 		private IL10N $l10n,
 		private readonly FolderService $folderService,
+		private LoggerInterface $logger,
 	) {
 	}
 
@@ -217,7 +219,9 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		}
 
 		// Prevent accepting certificates with future signing dates (possible clock issues)
-		if ($last['signingTime'] > new \DateTime()) {
+		$dateTime = new \DateTime();
+		if ($last['signingTime'] > $dateTime) {
+			$this->logger->error('We found Marty McFly', ['last_signature' => $last['signingTime'], 'current_date_time' => $dateTime]);
 			throw new \UnexpectedValueException('Invalid signingTime in certificate chain. We found Marty McFly');
 		}
 
