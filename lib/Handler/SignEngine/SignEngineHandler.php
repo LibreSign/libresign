@@ -221,7 +221,10 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		// Prevent accepting certificates with future signing dates (possible clock issues)
 		$dateTime = new \DateTime();
 		if ($last['signingTime'] > $dateTime) {
-			$this->logger->error('We found Marty McFly', ['last_signature' => $last['signingTime'], 'current_date_time' => $dateTime]);
+			$this->logger->error('We found Marty McFly', [
+				'last_signature' => json_encode($last['signingTime']),
+				'current_date_time' => json_encode($dateTime),
+			]);
 			throw new \UnexpectedValueException('Invalid signingTime in certificate chain. We found Marty McFly');
 		}
 
