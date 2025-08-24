@@ -32,3 +32,11 @@ To get more details go to our [contributing guide](CONTRIBUTING.md).
 ## API Documentation
 
 [API Documentation](https://libresign.github.io/)
+
+## Contributors ✨
+
+Thanks go to these wonderful people:
+
+<a href="https://github.com/LibreSign/libresign/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=LibreSign/libresign" />
+</a>
