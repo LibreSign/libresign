@@ -25,6 +25,7 @@ OC.L10N.register(
     "Searching …" : "Пошук …",
     "No recommendations. Start typing." : "Няма рэкамендацый. Пачніце друкаваць.",
     "Update" : "Абнавіць",
+    "Choose" : "Выбраць",
     "Send" : "Адправіць",
     "Confirm" : "Пацвердзіць",
     "Open file" : "Адкрыць файл",
