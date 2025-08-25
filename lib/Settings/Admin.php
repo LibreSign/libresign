@@ -15,6 +15,7 @@ use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
+use OCA\Libresign\Service\Certificate\RulesService;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IAppConfig;
@@ -30,6 +31,7 @@ class Admin implements ISettings {
 		private IAppConfig $appConfig,
 		private SignatureTextService $signatureTextService,
 		private SignatureBackgroundService $signatureBackgroundService,
+		private RulesService $rulesService,
 	) {
 	}
 	public function getForm(): TemplateResponse {
@@ -44,6 +46,7 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('certificate_engine', $this->certificateEngineFactory->getEngine()->getName());
 		$this->initialState->provideInitialState('certificate_policies_oid', $this->certificatePolicyService->getOid());
 		$this->initialState->provideInitialState('certificate_policies_cps', $this->certificatePolicyService->getCps());
+		$this->initialState->provideInitialState('rules_service', $this->rulesService->toArray());
 		$this->initialState->provideInitialState('config_path', $this->appConfig->getValueString(Application::APP_ID, 'config_path'));
 		$this->initialState->provideInitialState('default_signature_font_size', SignatureTextService::SIGNATURE_DEFAULT_FONT_SIZE);
 		$this->initialState->provideInitialState('default_signature_height', SignatureTextService::DEFAULT_SIGNATURE_HEIGHT);

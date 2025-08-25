@@ -59,7 +59,7 @@ class RulesService {
 	public function getHelperText(string $fieldName): ?string {
 		return match ($fieldName) {
 			'CN' => $this->l10n->t('Common Name (CN)'),
-			'C' => $tcertificate/his->l10n->t('Two-letter ISO 3166 country code'),
+			'C' => $this->l10n->t('Two-letter ISO 3166 country code'),
 			'ST' => $this->l10n->t('Full name of states or provinces'),
 			'L' => $this->l10n->t('Name of a locality or place, such as a city, county, or other geographic region'),
 			'O' => $this->l10n->t('Name of an organization'),
@@ -68,7 +68,7 @@ class RulesService {
 		};
 	}
 
-	public function getAllRules(): array {
+	public function toArray(): array {
 		$result = [];
 		foreach ($this->rules as $field => $rule) {
 			$result[] = [

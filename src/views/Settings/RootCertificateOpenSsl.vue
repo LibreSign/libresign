@@ -137,6 +137,7 @@ export default {
 	data() {
 		const OID = loadState('libresign', 'certificate_policies_oid')
 		const CPS = loadState('libresign', 'certificate_policies_cps')
+		const rulesService = loadState('libresign', 'rules_service')
 		return {
 			isThisEngine: loadState('libresign', 'certificate_engine') === 'openssl',
 			modal: false,
