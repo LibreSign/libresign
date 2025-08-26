@@ -57,10 +57,11 @@
 				<NcTextField id="commonName"
 					ref="commonName"
 					v-model="certificate.rootCert.commonName"
-					:helper-text="t('libresign', 'Full name of the main company or main user of this instance')"
-					:minlength="1"
-					:success="certificate.rootCert.commonName !== ''"
-					:error="certificate.rootCert.commonName === ''"
+					:helper-text="getRuleById('CN').helperText"
+					:minlength="getRuleById('CN').min"
+					:maxlength="getRuleById('CN').max"
+					:success="!getRuleById('CN').required || certificate.rootCert.commonName !== ''"
+					:error="getRuleById('CN').required && certificate.rootCert.commonName === ''"
 					:disabled="formDisabled" />
 			</div>
 			<CertificateCustonOptions :names.sync="certificate.rootCert.names" />
@@ -115,7 +116,6 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 import CertificateCustonOptions from './CertificateCustonOptions.vue'
 import CertificatePolicy from './CertificatePolicy.vue'
 
-import { selectCustonOption } from '../../helpers/certification.js'
 import logger from '../../logger.js'
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
@@ -139,6 +139,7 @@ export default {
 		const CPS = loadState('libresign', 'certificate_policies_cps')
 		const rulesService = loadState('libresign', 'rules_service')
 		return {
+			rulesService,
 			isThisEngine: loadState('libresign', 'certificate_engine') === 'openssl',
 			modal: false,
 			certificate: {
@@ -200,9 +201,16 @@ export default {
 			this.certificate.rootCert.names = names
 		},
 		getLabelFromId(id) {
-			const item = selectCustonOption(id).unwrap()
-			return item.label
+			const item = this.rulesService.find(rule => rule.id === id)
+        	return item ? item.label : id
 		},
+		getRuleById(id) {
+        	return this.rulesService.find(rule => rule.id === id) || {}
+    	},
+		getLabelFromId(id) {
+        	const rule = this.getRuleById(id)
+        	return rule.label || id
+    	},
 		changeEngine(engine) {
 			this.isThisEngine = engine === 'openssl'
 			this.loadRootCertificate()

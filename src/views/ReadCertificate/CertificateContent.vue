@@ -63,8 +63,7 @@
 
 <script>
 
-// import CertificateContent from './CertificateContent.vue'
-import { selectCustonOption } from '../../helpers/certification.js'
+import { loadState } from '@nextcloud/initial-state'
 
 export default {
 	name: 'CertificateContent',
@@ -78,6 +77,11 @@ export default {
 			type: String,
 			default: '0',
 		},
+	},
+	data() {
+		return {
+			rulesService: loadState('libresign', 'rules_service') || [],
+		}
 	},
 	methods: {
 		orderList(data) {
@@ -94,13 +98,12 @@ export default {
 			})
 			return sorted
 		},
+		getRuleById(id) {
+			return this.rulesService.find(rule => rule.id === id) || {}
+		},
 		getLabelFromId(id) {
-			try {
-				const item = selectCustonOption(id).unwrap()
-				return item.label
-			} catch (error) {
-				return id
-			}
+			const rule = this.getRuleById(id)
+			return rule.label || id
 		},
 	},
 }
