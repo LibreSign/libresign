@@ -56,6 +56,7 @@ final class RulesServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public static function providerGetHelperTextWithInvalidFieldName(): array {
 		return [
 			['INVALID'],
+			['NULL'],
 			[''],
 			['123'],
 			['!@#'],
@@ -134,6 +135,7 @@ final class RulesServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public static function providerGetRuleToInvalidField(): array {
 		return [
 			['INVALID'],
+			['NULL'],
 			[''],
 			['123'],
 			['!@#'],
