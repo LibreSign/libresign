@@ -46,7 +46,9 @@ class RulesService {
 	}
 
 	public function getRule(string $fieldName): array {
-		if (!array_key_exists($fieldName, $this->rules)) return [];
+		if (!array_key_exists($fieldName, $this->rules)) {
+			return [];
+		}
 		if (!isset($this->rules[$fieldName]['helperText'])) {
 			$this->rules[$fieldName]['helperText'] = $this->getHelperText($fieldName);
 			if (empty($this->rules[$fieldName]['helperText'])) {

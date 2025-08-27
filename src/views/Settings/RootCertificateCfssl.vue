@@ -126,7 +126,6 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 import CertificateCustonOptions from './CertificateCustonOptions.vue'
 import CertificatePolicy from './CertificatePolicy.vue'
 
-import { selectCustonOption } from '../../helpers/certification.js'
 import logger from '../../logger.js'
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
@@ -148,6 +147,7 @@ export default {
 	data() {
 		const OID = loadState('libresign', 'certificate_policies_oid')
 		const CPS = loadState('libresign', 'certificate_policies_cps')
+		const rules = loadState('libresign', 'rules_service') || []
 		return {
 			isThisEngine: loadState('libresign', 'certificate_engine') === 'cfssl',
 			modal: false,
@@ -170,6 +170,7 @@ export default {
 			CPS,
 			toggleCertificatePolicy: !!(OID || CPS),
 			certificatePolicyValid: !!OID && !!CPS,
+			allOptions: rules,
 		}
 	},
 	computed: {
@@ -212,9 +213,22 @@ export default {
 		updateNames(names) {
 			this.certificate.rootCert.names = names
 		},
+		selectCustonOption(id) {
+			return this.allOptions.find(option => option.id === id) || null
+		},
 		getLabelFromId(id) {
-			const item = selectCustonOption(id).unwrap()
-			return item.label
+			const option = selectCustonOption(id)
+			return option ? option.label : id
+		},
+		validateField(id, value) {
+			const rule = this.selectCustonOption(id)
+			if (!rule) return true
+
+			if (rule.required && !value) return false
+			if (rule.min && value.length < rule.min) return false
+			if (rule.max && value.length > rule.max) return false
+
+			return true
 		},
 		changeEngine(engine) {
 			this.isThisEngine = engine === 'cfssl'
