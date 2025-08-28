@@ -33,6 +33,7 @@ OC.L10N.register(
     "Choose" : "Выбраць",
     "Choose from Files" : "Выбраць у Файлах",
     "Send" : "Адправіць",
+    "Sign" : "Знак",
     "Confirm" : "Пацвердзіць",
     "Open file" : "Адкрыць файл",
     "Certificate" : "Сертыфікат",
