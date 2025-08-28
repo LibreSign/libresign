@@ -200,17 +200,13 @@ export default {
 		updateNames(names) {
 			this.certificate.rootCert.names = names
 		},
-		getLabelFromId(id) {
-			const item = this.rulesService.find(rule => rule.id === id)
-        	return item ? item.label : id
-		},
 		getRuleById(id) {
-        	return this.rulesService.find(rule => rule.id === id) || {}
-    	},
+			return this.rulesService.find(rule => rule.id === id) || {}
+		},
 		getLabelFromId(id) {
-        	const rule = this.getRuleById(id)
-        	return rule.label || id
-    	},
+			const rule = this.getRuleById(id)
+			return rule.label || id
+		},
 		changeEngine(engine) {
 			this.isThisEngine = engine === 'openssl'
 			this.loadRootCertificate()

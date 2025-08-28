@@ -54,13 +54,12 @@
 import Delete from 'vue-material-design-icons/Delete.vue'
 
 import { emit } from '@nextcloud/event-bus'
+import { loadState } from '@nextcloud/initial-state'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import NcPopover from '@nextcloud/vue/components/NcPopover'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
-
-import { loadState } from '@nextcloud/initial-state'
 
 export default {
 	name: 'CertificateCustonOptions',
@@ -86,8 +85,8 @@ export default {
 	computed: {
 		customNamesOptions() {
 			return this.allOptions
-			.filter(itemA => itemA.id !== 'CN')
-			.filter(itemA => !this.certificateList.some(itemB => itemB.id === itemA.id))
+				.filter(itemA => itemA.id !== 'CN')
+				.filter(itemA => !this.certificateList.some(itemB => itemB.id === itemA.id))
 		},
 		options() {
 			return this.allOptions.filter(option => option.id !== 'CN')
@@ -104,7 +103,7 @@ export default {
 			if (found) {
 				return { ...found, value: '' }
 			}
-				return null
+			return null
 		},
 		getOptionProperty(id, property) {
 			return this.options.find(option => option.id === id)[property]
@@ -125,8 +124,8 @@ export default {
 			const rule = this.allOptions.find(o => o.id === id)
 			if (!rule) return
 
-			option.error = !(this.validateMin({ ...rule, value: option.value }) &&
-							this.validateMax({ ...rule, value: option.value }))
+			option.error = !(this.validateMin({ ...rule, value: option.value })
+							&& this.validateMax({ ...rule, value: option.value }))
 
 			const listToSave = this.certificateList.map(certificate => ({
 				id: certificate.id,
@@ -135,7 +134,7 @@ export default {
 			emit('libresign:update:certificateToSave', listToSave)
 		},
 		async removeOptionalAttribute(id) {
-			const custonOption = selectCustonOption(id)
+			const custonOption = this.selectCustonOption(id)
 			if (custonOption.isSome()) {
 				const itemSelected = {
 					...custonOption.unwrap(),
@@ -146,7 +145,7 @@ export default {
 			}
 		},
 		async onOptionalAttributeSelect(selected) {
-			const custonOption = selectCustonOption(selected.id)
+			const custonOption = this.selectCustonOption(selected.id)
 			if (custonOption.isSome()) {
 				this.certificateList = [custonOption.unwrap(), ...this.certificateList]
 			}

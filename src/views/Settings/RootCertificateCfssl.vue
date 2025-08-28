@@ -217,7 +217,7 @@ export default {
 			return this.allOptions.find(option => option.id === id) || null
 		},
 		getLabelFromId(id) {
-			const option = selectCustonOption(id)
+			const option = this.selectCustonOption(id)
 			return option ? option.label : id
 		},
 		validateField(id, value) {
