@@ -11,7 +11,7 @@
 			<table class="grid">
 				<tbody>
 					<tr>
-						<td>{{ t('libresign', 'Name (CN)') }}</td>
+						<td>{{ t('libresign', 'Common Name (CN)') }}</td>
 						<td>{{ certificate.rootCert.commonName }}</td>
 					</tr>
 					<tr v-for="(customName) in certificate.rootCert.names" :key="customName.id" class="customNames">
@@ -53,14 +53,15 @@
 		</div>
 		<div v-else id="formRootCertificateOpenSsl" class="form-libresign">
 			<div class="form-group">
-				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Name (CN)') }}</label>
+				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Common Name (CN)') }}</label>
 				<NcTextField id="commonName"
 					ref="commonName"
 					v-model="certificate.rootCert.commonName"
-					:helper-text="t('libresign', 'Full name of the main company or main user of this instance')"
-					:minlength="1"
-					:success="certificate.rootCert.commonName !== ''"
-					:error="certificate.rootCert.commonName === ''"
+					:helper-text="getRuleById('CN').helperText"
+					:minlength="getRuleById('CN').min"
+					:maxlength="getRuleById('CN').max"
+					:success="!getRuleById('CN').required || certificate.rootCert.commonName !== ''"
+					:error="getRuleById('CN').required && certificate.rootCert.commonName === ''"
 					:disabled="formDisabled" />
 			</div>
 			<CertificateCustonOptions :names.sync="certificate.rootCert.names" />
@@ -115,7 +116,6 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 import CertificateCustonOptions from './CertificateCustonOptions.vue'
 import CertificatePolicy from './CertificatePolicy.vue'
 
-import { selectCustonOption } from '../../helpers/certification.js'
 import logger from '../../logger.js'
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
@@ -137,7 +137,9 @@ export default {
 	data() {
 		const OID = loadState('libresign', 'certificate_policies_oid')
 		const CPS = loadState('libresign', 'certificate_policies_cps')
+		const rulesService = loadState('libresign', 'rules_service')
 		return {
+			rulesService,
 			isThisEngine: loadState('libresign', 'certificate_engine') === 'openssl',
 			modal: false,
 			certificate: {
@@ -198,9 +200,12 @@ export default {
 		updateNames(names) {
 			this.certificate.rootCert.names = names
 		},
+		getRuleById(id) {
+			return this.rulesService.find(rule => rule.id === id) || {}
+		},
 		getLabelFromId(id) {
-			const item = selectCustonOption(id).unwrap()
-			return item.label
+			const rule = this.getRuleById(id)
+			return rule.label || id
 		},
 		changeEngine(engine) {
 			this.isThisEngine = engine === 'openssl'

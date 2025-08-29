@@ -54,13 +54,12 @@
 import Delete from 'vue-material-design-icons/Delete.vue'
 
 import { emit } from '@nextcloud/event-bus'
+import { loadState } from '@nextcloud/initial-state'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import NcPopover from '@nextcloud/vue/components/NcPopover'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
-
-import { options, selectCustonOption } from '../../helpers/certification.js'
 
 export default {
 	name: 'CertificateCustonOptions',
@@ -80,16 +79,17 @@ export default {
 	data() {
 		return {
 			certificateList: [],
+			allOptions: loadState('libresign', 'rules_service') || [],
 		}
 	},
 	computed: {
 		customNamesOptions() {
-			return this.options.filter(itemA =>
-				!this.certificateList.some(itemB => itemB.id === itemA.id),
-			)
+			return this.allOptions
+				.filter(itemA => itemA.id !== 'CN')
+				.filter(itemA => !this.certificateList.some(itemB => itemB.id === itemA.id))
 		},
 		options() {
-			return options.filter(option => option.id !== 'CN')
+			return this.allOptions.filter(option => option.id !== 'CN')
 		},
 	},
 	watch: {
@@ -98,6 +98,13 @@ export default {
 		},
 	},
 	methods: {
+		selectCustonOption(id) {
+			const found = this.allOptions.find(option => option.id === id)
+			if (found) {
+				return { ...found, value: '' }
+			}
+			return null
+		},
 		getOptionProperty(id, property) {
 			return this.options.find(option => option.id === id)[property]
 		},
@@ -111,23 +118,23 @@ export default {
 			return true
 		},
 		validate(id) {
-			const custonOption = selectCustonOption(id)
-			if (custonOption.isSome()) {
-				const item = custonOption.unwrap()
-				if (this.validateMin(item) && this.validateMax(item)) {
-					item.error = false
-				} else {
-					item.error = true
-				}
-				const listToSave = this.certificateList.map(certificate => ({
-					id: certificate.id,
-					value: certificate.value,
-				}))
-				emit('libresign:update:certificateToSave', listToSave)
-			}
+			const option = this.certificateList.find(c => c.id === id)
+			if (!option) return
+
+			const rule = this.allOptions.find(o => o.id === id)
+			if (!rule) return
+
+			option.error = !(this.validateMin({ ...rule, value: option.value })
+							&& this.validateMax({ ...rule, value: option.value }))
+
+			const listToSave = this.certificateList.map(certificate => ({
+				id: certificate.id,
+				value: certificate.value,
+			}))
+			emit('libresign:update:certificateToSave', listToSave)
 		},
 		async removeOptionalAttribute(id) {
-			const custonOption = selectCustonOption(id)
+			const custonOption = this.selectCustonOption(id)
 			if (custonOption.isSome()) {
 				const itemSelected = {
 					...custonOption.unwrap(),
@@ -138,7 +145,7 @@ export default {
 			}
 		},
 		async onOptionalAttributeSelect(selected) {
-			const custonOption = selectCustonOption(selected.id)
+			const custonOption = this.selectCustonOption(selected.id)
 			if (custonOption.isSome()) {
 				this.certificateList = [custonOption.unwrap(), ...this.certificateList]
 			}
