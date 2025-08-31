@@ -275,11 +275,12 @@ export default {
 		},
 		openFile() {
 			if (OCA?.Viewer !== undefined) {
+				const file = this.filesStore.getFile()
 				const fileInfo = {
-					source: this.document.file,
-					basename: this.document.name,
+					source: file.file,
+					basename: file.name,
 					mime: 'application/pdf',
-					fileid: this.document.nodeId,
+					fileid: file.nodeId,
 				}
 				OCA.Viewer.open({
 					fileInfo,
