@@ -12,6 +12,9 @@
 </template>
 
 <script>
+import { getCurrentUser } from '@nextcloud/auth'
+import { generateRemoteUrl } from '@nextcloud/router'
+
 import RequestSignatureTab from '../RightSidebar/RequestSignatureTab.vue'
 
 import { useFilesStore } from '../../store/files.js'
@@ -38,6 +41,8 @@ export default {
 			this.filesStore.addFile({
 				nodeId: fileInfo.id,
 				name: fileInfo.name,
+				file: generateRemoteUrl(`dav/files/${getCurrentUser()?.uid}/${fileInfo.path + '/' + fileInfo.name}`)
+					.replace(/\/\/$/, '/'),
 				signers: [],
 			})
 			this.filesStore.selectFile(fileInfo.id)
