@@ -14,6 +14,7 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\ResponseDefinitions;
+use OCA\Libresign\Service\Certificate\ValidateService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCA\Libresign\Service\Install\InstallService;
@@ -54,6 +55,7 @@ class AdminController extends AEnvironmentAwareController {
 		protected ISession $session,
 		private SignatureBackgroundService $signatureBackgroundService,
 		private CertificatePolicyService $certificatePolicyService,
+		private ValidateService $validateService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->eventSource = $this->eventSourceFactory->create();
@@ -136,15 +138,14 @@ class AdminController extends AEnvironmentAwareController {
 	): IEngineHandler {
 		$names = [];
 		if (isset($rootCert['names'])) {
+			$this->validateService->validateNames($rootCert['names']);
 			foreach ($rootCert['names'] as $item) {
-				if (empty($item['id'])) {
-					throw new LibresignException('Parameter id is required!', 400);
-				}
-				$names[$item['id']]['value'] = $this->trimAndThrowIfEmpty($item['id'], $item['value']);
+				$names[$item['id']]['value'] = trim((string)$item['value']);
 			}
 		}
+		$this->validateService->validate('CN', $rootCert['commonName']);
 		$this->installService->generate(
-			$this->trimAndThrowIfEmpty('commonName', $rootCert['commonName']),
+			trim((string)$rootCert['commonName']),
 			$names,
 			$properties,
 		);
@@ -175,13 +176,6 @@ class AdminController extends AEnvironmentAwareController {
 		$certificate['generated'] = count($success) === count($configureResult);
 
 		return new DataResponse($certificate);
-	}
-
-	private function trimAndThrowIfEmpty(string $key, $value): string {
-		if (empty($value)) {
-			throw new LibresignException("parameter '{$key}' is required!", 400);
-		}
-		return trim((string)$value);
 	}
 
 	/**
