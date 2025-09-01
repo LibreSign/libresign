@@ -19,6 +19,19 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 10.9.1 - 2025-09-01
+### Changes
+- Update translations
+- Bump dependencies
+- chore: add log to track McFly [#5354](https://github.com/LibreSign/libresign/pull/5354)
+- Docs/add GitHub codespaces steps to pr template [#5360](https://github.com/LibreSign/libresign/pull/5360)
+- chore: convert the date object to json [#5366](https://github.com/LibreSign/libresign/pull/5366)
+- chore: Improvements at response from API when generate root certificate [#5376](https://github.com/LibreSign/libresign/pull/5376)
+
+### Fixes
+- fix: remove condition that restricts LibreSign tab to LibreSign files [#5373](https://github.com/LibreSign/libresign/pull/5373)
+- fix: open file at app files [#5371](https://github.com/LibreSign/libresign/pull/5371)
+
 ## 10.9.0 - 2025-08-21
 ### Features
 - feat:button open file [#5239](https://github.com/LibreSign/libresign/pull/5239)
