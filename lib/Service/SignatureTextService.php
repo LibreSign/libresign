@@ -121,13 +121,14 @@ class SignatureTextService {
 			];
 		}
 		if (empty($context)) {
+			$date = new \DateTime('now', $this->dateTimeZone->getTimeZone());
 			$context = [
 				'DocumentUUID' => UUIDUtil::getUUID(),
 				'IssuerCommonName' => 'Acme Cooperative',
-				'LocalSignerSignatureDateOnly' => (new \DateTime())->format('Y-m-d'),
-				'LocalSignerSignatureDateTime' => (new \DateTime())->format(DateTimeInterface::ATOM),
+				'LocalSignerSignatureDateOnly' => ($date)->format('Y-m-d'),
+				'LocalSignerSignatureDateTime' => ($date)->format(DateTimeInterface::ATOM),
 				'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
-				'ServerSignatureDate' => (new \DateTime())->format(DateTimeInterface::ATOM),
+				'ServerSignatureDate' => ($date)->format(DateTimeInterface::ATOM),
 				'SignerIP' => $this->request->getRemoteAddress(),
 				'SignerCommonName' => $this->userSession?->getUser()?->getDisplayName() ?? 'John Doe',
 				'SignerEmail' => $this->userSession?->getUser()?->getEMailAddress() ?? 'john.doe@libresign.coop',
