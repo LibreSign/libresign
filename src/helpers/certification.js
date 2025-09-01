@@ -21,10 +21,10 @@ export function selectCustonOption(id) {
 export const options = [
 	{
 		id: 'CN',
-		label: t('libresign', 'Name (CN)'),
+		label: t('libresign', 'Common Name (CN)'),
 		max: 64,
 		value: '',
-		helperText: t('libresign', 'Name (CN)'),
+		helperText: t('libresign', 'Common Name (CN)'),
 	},
 	{
 		id: 'C',
