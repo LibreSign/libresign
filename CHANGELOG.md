@@ -19,6 +19,32 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 11.3.1 - 2025-09-01
+### Changes
+- Update translations
+- Bump dependencies
+- chore: add log to track McFly [#5355](https://github.com/LibreSign/libresign/pull/5355)
+- Docs/add GitHub codespaces steps to pr template [#5361](https://github.com/LibreSign/libresign/pull/5361)
+- chore: convert the date object to json [#5367](https://github.com/LibreSign/libresign/pull/5367)
+- chore: Improvements at response from API when generate root certificate [#5375](https://github.com/LibreSign/libresign/pull/5375)
+
+### Fixes
+- fix: remove condition that restricts LibreSign tab to LibreSign files [#5374](https://github.com/LibreSign/libresign/pull/5374)
+- fix: open file at app files [#5372](https://github.com/LibreSign/libresign/pull/5372)
+
+## 10.9.1 - 2025-09-01
+### Changes
+- Update translations
+- Bump dependencies
+- chore: add log to track McFly [#5354](https://github.com/LibreSign/libresign/pull/5354)
+- Docs/add GitHub codespaces steps to pr template [#5360](https://github.com/LibreSign/libresign/pull/5360)
+- chore: convert the date object to json [#5366](https://github.com/LibreSign/libresign/pull/5366)
+- chore: Improvements at response from API when generate root certificate [#5376](https://github.com/LibreSign/libresign/pull/5376)
+
+### Fixes
+- fix: remove condition that restricts LibreSign tab to LibreSign files [#5373](https://github.com/LibreSign/libresign/pull/5373)
+- fix: open file at app files [#5371](https://github.com/LibreSign/libresign/pull/5371)
+
 ## 11.3.0 - 2025-08-21
 ### Features
 - feat:button open file by [#5240](https://github.com/LibreSign/libresign/pull/5240)
@@ -27,22 +53,22 @@ Types of changes:
 - Update translations
 - Bump dependencies
 - chore: cover the sign method using pkcs7 engine [#5235](https://github.com/LibreSign/libresign/pull/5235)
-- chore: cover the sign method using pkcs7 engine by [#5235](https://github.com/LibreSign/libresign/pull/5235)
-- chore: Replace getById by getFirstNodeById by [#5244](https://github.com/LibreSign/libresign/pull/5244)
-- chore: update behat by [#5255](https://github.com/LibreSign/libresign/pull/5255)
-- chore: update workflows by [#5282](https://github.com/LibreSign/libresign/pull/5282)
-- chore: remove unecessary check if node exists by [#5339](https://github.com/LibreSign/libresign/pull/5339)
-- refactor: replace deprecated PHPUnit returnValue() with willReturn()  by [#5247](https://github.com/LibreSign/libresign/pull/5247)
-- Replace deprecated PHPUnit methods by [#5301](https://github.com/LibreSign/libresign/pull/5301)
+- chore: cover the sign method using pkcs7 engine [#5235](https://github.com/LibreSign/libresign/pull/5235)
+- chore: Replace getById getFirstNodeById [#5244](https://github.com/LibreSign/libresign/pull/5244)
+- chore: update behat [#5255](https://github.com/LibreSign/libresign/pull/5255)
+- chore: update workflows [#5282](https://github.com/LibreSign/libresign/pull/5282)
+- chore: remove unecessary check if node exists [#5339](https://github.com/LibreSign/libresign/pull/5339)
+- refactor: replace deprecated PHPUnit returnValue() with willReturn() [#5247](https://github.com/LibreSign/libresign/pull/5247)
+- Replace deprecated PHPUnit methods [#5301](https://github.com/LibreSign/libresign/pull/5301)
 
 ### Fixes
-- fix: indent using taps by [#5228](https://github.com/LibreSign/libresign/pull/5228)
-- fix: remove duplicated step by [#5233](https://github.com/LibreSign/libresign/pull/5233)
-- fix: store the date that the file was signed by [#5279](https://github.com/LibreSign/libresign/pull/5279)
-- fix: email token with camel case email by [#5310](https://github.com/LibreSign/libresign/pull/5310)
-- fix: configure check with poppler by [#5318](https://github.com/LibreSign/libresign/pull/5318)
-- fix: always return the owner of the file to be signed by [#5325](https://github.com/LibreSign/libresign/pull/5325)
-- fix: prevent show add signers early by [#5334](https://github.com/LibreSign/libresign/pull/5334)
+- fix: indent using taps [#5228](https://github.com/LibreSign/libresign/pull/5228)
+- fix: remove duplicated step [#5233](https://github.com/LibreSign/libresign/pull/5233)
+- fix: store the date that the file was signed [#5279](https://github.com/LibreSign/libresign/pull/5279)
+- fix: email token with camel case email [#5310](https://github.com/LibreSign/libresign/pull/5310)
+- fix: configure check with poppler [#5318](https://github.com/LibreSign/libresign/pull/5318)
+- fix: always return the owner of the file to be signed [#5325](https://github.com/LibreSign/libresign/pull/5325)
+- fix: prevent show add signers early [#5334](https://github.com/LibreSign/libresign/pull/5334)
 
 ## 10.9.0 - 2025-08-21
 ### Features
