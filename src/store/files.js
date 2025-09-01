@@ -108,10 +108,6 @@ export const useFilesStore = function(...args) {
 					&& file.signers
 						.filter(signer => signer.signed?.length > 0).length === file.signers.length
 			},
-			loadedAllData(file) {
-				file = this.getFile(file)
-				return Object.hasOwn(file, 'status')
-			},
 			canSign(file) {
 				file = this.getFile(file)
 				return !this.isFullSigned(file)
@@ -136,7 +132,6 @@ export const useFilesStore = function(...args) {
 			canAddSigner(file) {
 				file = this.getFile(file)
 				return this.canRequestSign
-					&& this.loadedAllData(file)
 					&& (
 						!Object.hasOwn(file, 'requested_by')
 						|| file.requested_by.userId === getCurrentUser()?.uid
