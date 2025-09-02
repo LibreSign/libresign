@@ -215,6 +215,7 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 
 		$last = $chain[array_key_last($chain)];
 		if (!is_array($last) || !isset($last['signingTime']) || !$last['signingTime'] instanceof \DateTime) {
+			$this->logger->error('Invalid signingTime in certificate chain.', ['chain' => $chain]);
 			throw new \UnexpectedValueException('Invalid signingTime in certificate chain.');
 		}
 
