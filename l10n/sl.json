@@ -108,6 +108,11 @@
     "Visible element file must be png." : "Slika vidnega predmeta mora biti v zapisu PNG.",
     "Empty file" : "Prazna datoteka",
     "Invalid file provided. Need to be a .pfx file." : "Podana je neveljavna datoteka. Biti mora datoteka vrste .pfx.",
+    "Two-letter ISO 3166 country code" : "Dvočrkovna koda države ISO 3166",
+    "Full name of states or provinces" : "Polno ime države ali province",
+    "Name of a locality or place, such as a city, county, or other geographic region" : "Ime kraja, mesta, okrožja, države ali druge geografske regije.",
+    "Name of an organization" : "Naziv organizacije",
+    "Name of an organizational unit" : "Naziv organizacijske enote v podjetju",
     "Invalid file identifier" : "Neveljavno določilo datoteke.",
     "Invalid file provided" : "Podana je neveljavna daoteka",
     "You need to sign this document" : "Ta dokument je treba podpisati",
@@ -309,7 +314,6 @@
     "Generating certificate." : "Ustvarjanje potrdila",
     "Could not generate certificate." : "Potrdila ni mogoče ustvariti.",
     "Generated certificate!" : "Korensko potrdilo je ustvarjeno!",
-    "Name (CN)" : "Splošno ime (CN):",
     "CFSSL API URI" : "Naslov URI vmesnika API CFSSL",
     "Config path" : "Pot nastavitev",
     "Regenerate root certificate" : "Ponovno ustvari korensko potrdilo",
@@ -354,11 +358,6 @@
     "No date" : "Ni datuma",
     "Return" : "Nazaj",
     "Open in LibreSign" : "Odpri v LibreSign",
-    "Two-letter ISO 3166 country code" : "Dvočrkovna koda države ISO 3166",
-    "Full name of states or provinces" : "Polno ime države ali province",
-    "Name of a locality or place, such as a city, county, or other geographic region" : "Ime kraja, mesta, okrožja, države ali druge geografske regije.",
-    "Name of an organization" : "Naziv organizacije",
-    "Name of an organizational unit" : "Naziv organizacijske enote v podjetju",
     "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}"
 },"pluralForm" :"nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);"
 }

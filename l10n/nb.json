@@ -109,6 +109,11 @@
     "Visible element file must be png." : "Synlig elementfil må være png.",
     "Empty file" : "Tom fil",
     "Invalid file provided. Need to be a .pfx file." : "Ugyldig fil angitt. Må være en .pfx-fil.",
+    "Two-letter ISO 3166 country code" : "ISO 3166-landskode med to bokstaver",
+    "Full name of states or provinces" : "Fullt navn på stater eller provinser",
+    "Name of a locality or place, such as a city, county, or other geographic region" : "Navn på en lokalitet eller et sted, for eksempel en by, et fylke eller et annet geografisk område",
+    "Name of an organization" : "Navn på en organisasjon",
+    "Name of an organizational unit" : "Navn på en organisatorisk enhet",
     "Invalid file identifier" : "Ugyldig filidentifikator",
     "Invalid file provided" : "Ugyldig fil oppgitt",
     "You need to sign this document" : "Du må signere dette dokumentet",
@@ -310,7 +315,6 @@
     "Generating certificate." : "Genererer sertifikat.",
     "Could not generate certificate." : "Kunne ikke generere sertifikat.",
     "Generated certificate!" : "Sertifikat generert!",
-    "Name (CN)" : "Navn (CN)",
     "CFSSL API URI" : "CFSSL API URI",
     "Config path" : "Konfigurasjonssti",
     "Regenerate root certificate" : "Generer rotsertifikat på nytt",
@@ -354,11 +358,6 @@
     "No date" : "Ingen dato",
     "Return" : "Returner",
     "Open in LibreSign" : "Åpne i LibreSign",
-    "Two-letter ISO 3166 country code" : "ISO 3166-landskode med to bokstaver",
-    "Full name of states or provinces" : "Fullt navn på stater eller provinser",
-    "Name of a locality or place, such as a city, county, or other geographic region" : "Navn på en lokalitet eller et sted, for eksempel en by, et fylke eller et annet geografisk område",
-    "Name of an organization" : "Navn på en organisasjon",
-    "Name of an organizational unit" : "Navn på en organisatorisk enhet",
     "Requested by {name}, at {date}" : "Bedt av {name}, den {date}"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

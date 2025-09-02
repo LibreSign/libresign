@@ -225,7 +225,6 @@ OC.L10N.register(
     "Generating certificate." : "Genereren certificaat.",
     "Could not generate certificate." : "Kon het certificaat niet genereren.",
     "Generated certificate!" : "Gegenereerd certificaat!",
-    "Name (CN)" : "Naam (CN)",
     "CFSSL API URI" : "CFSSL API URI",
     "Config path" : "Config pad",
     "Yes" : "Ja",

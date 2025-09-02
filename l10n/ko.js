@@ -215,7 +215,6 @@ OC.L10N.register(
     "Generating certificate." : "인증서를 생성하는 중입니다.",
     "Could not generate certificate." : "인증서를 생성할 수 없습니다.",
     "Generated certificate!" : "인증서를 생성했습니다!",
-    "Name (CN)" : "이름 (CN)",
     "CFSSL API URI" : "CFSSL API URI",
     "Config path" : "구성 경로",
     "Yes" : "예",
