@@ -18,6 +18,7 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\IDateTimeZone;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -33,6 +34,7 @@ class NotificationListener implements IEventListener {
 		private ITimeFactory $timeFactory,
 		protected IURLGenerator $url,
 		private SignRequestMapper $signRequestMapper,
+		private IDateTimeZone $dateTimeZone,
 	) {
 	}
 
@@ -75,7 +77,7 @@ class NotificationListener implements IEventListener {
 		$notification
 			->setApp(AppInfoApplication::APP_ID)
 			->setObject('signRequest', (string)$signRequest->getId())
-			->setDateTime((new \DateTime())->setTimestamp($this->timeFactory->now()->getTimestamp()))
+			->setDateTime((new \DateTime('now', $this->dateTimeZone->getTimeZone()))->setTimestamp($this->timeFactory->now()->getTimestamp()))
 			->setUser($identifyMethod->getEntity()->getIdentifierValue());
 		$isFirstNotification = $this->signRequestMapper->incrementNotificationCounter($signRequest, 'notify');
 		if ($isFirstNotification) {
@@ -121,7 +123,7 @@ class NotificationListener implements IEventListener {
 		$notification
 			->setApp(AppInfoApplication::APP_ID)
 			->setObject('signedFile', (string)$signRequest->getId())
-			->setDateTime((new \DateTime())->setTimestamp($this->timeFactory->now()->getTimestamp()))
+			->setDateTime((new \DateTime('now', $this->dateTimeZone->getTimeZone()))->setTimestamp($this->timeFactory->now()->getTimestamp()))
 			->setUser($actorId)
 			->setSubject('file_signed', [
 				'from' => $this->getFromSignedParameter(

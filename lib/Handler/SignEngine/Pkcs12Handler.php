@@ -17,6 +17,7 @@ use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
 use OCP\IAppConfig;
+use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\ITempManager;
 use phpseclib3\File\ASN1;
@@ -38,9 +39,10 @@ class Pkcs12Handler extends SignEngineHandler {
 		private IL10N $l10n,
 		private FooterHandler $footerHandler,
 		private ITempManager $tempManager,
+		private IDateTimeZone $dateTimeZone,
 		private LoggerInterface $logger,
 	) {
-		parent::__construct($l10n, $folderService, $logger);
+		parent::__construct($l10n, $folderService, $logger, $dateTimeZone);
 	}
 
 	/**
