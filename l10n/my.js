@@ -20,7 +20,6 @@ OC.L10N.register(
     "Generating certificate." : "Certificate ဖန်တီးနေသည်။",
     "Could not generate certificate." : "Certificate ဖန်တီးမှု မပြုလုပ်နိုင်ပါ။",
     "Generated certificate!" : "Certificate ဖန်တီးပြီး!",
-    "Name (CN)" : "အမည် (CN)",
     "CFSSL API URI" : "CFSSL API URI",
     "Config path" : "ချိန်ညှိမှု path",
     "This document is valid" : "ဤစာရွက်စာတမ်းသည် မှန်ကန်ခိုင်လုံသည်။",

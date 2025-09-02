@@ -108,7 +108,6 @@ OC.L10N.register(
     "Resource" : "Ressorsa",
     "Generating certificate." : "Generacion del certificat",
     "Generated certificate!" : "Certificat generat !",
-    "Name (CN)" : "Nom (CN)",
     "Yes" : "Òc",
     "No" : "Non",
     "Sign the document." : "Signar aqueste document.",

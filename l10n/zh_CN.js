@@ -220,7 +220,6 @@ OC.L10N.register(
     "Generating certificate." : "生成证书中",
     "Could not generate certificate." : "无法生成证书",
     "Generated certificate!" : "已生成证书！",
-    "Name (CN)" : "名称 (CN)",
     "CFSSL API URI" : "CFSSL API URI ",
     "Config path" : "配置路径",
     "Yes" : "是",

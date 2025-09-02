@@ -98,6 +98,11 @@
     "Invalid URL file" : "Fitxer URL no vàlid",
     "Visible element file must be png." : "El fitxer d'element visible ha de ser png.",
     "Empty file" : "Fitxer buit",
+    "Two-letter ISO 3166 country code" : "Codi de país ISO 3166 de dues lletres",
+    "Full name of states or provinces" : "Nom complet dels estats o províncies",
+    "Name of a locality or place, such as a city, county, or other geographic region" : "Nom d'una localitat o lloc, com ara una ciutat, un comtat o una altra regió geogràfica",
+    "Name of an organization" : "Nom d'una organització",
+    "Name of an organizational unit" : "Nom d'una unitat organitzativa",
     "Invalid file identifier" : "Identificador de fitxer no vàlid",
     "Invalid file provided" : "El fitxer proporcionat no és vàlid",
     "You need to sign this document" : "Heu de signar aquest document",
@@ -253,7 +258,6 @@
     "Generating certificate." : "S’estan generant el certificat.",
     "Could not generate certificate." : "No s'ha pogut generar el certificat.",
     "Generated certificate!" : "Certificat generat!",
-    "Name (CN)" : "Nom (CN):",
     "CFSSL API URI" : "URI de l'API CFSSL",
     "Config path" : "Ruta de configuració",
     "Regenerate root certificate" : "Regenera el certificat arrel",
@@ -290,11 +294,6 @@
     "No date" : "Sense data",
     "Return" : "Retorn",
     "Open in LibreSign" : "Obre a LibreSign",
-    "Two-letter ISO 3166 country code" : "Codi de país ISO 3166 de dues lletres",
-    "Full name of states or provinces" : "Nom complet dels estats o províncies",
-    "Name of a locality or place, such as a city, county, or other geographic region" : "Nom d'una localitat o lloc, com ara una ciutat, un comtat o una altra regió geogràfica",
-    "Name of an organization" : "Nom d'una organització",
-    "Name of an organizational unit" : "Nom d'una unitat organitzativa",
     "Requested by {name}, at {date}" : "Sol·licitat per {name}, a {date}"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

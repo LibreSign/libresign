@@ -235,7 +235,6 @@ OC.L10N.register(
     "Generating certificate." : "Generowanie certyfikatu.",
     "Could not generate certificate." : "Nie udało się wygenerować certyfikatu.",
     "Generated certificate!" : "Wygenerowano certyfikat!",
-    "Name (CN)" : "Nazwa (CN)",
     "CFSSL API URI" : "CFSSL API URI",
     "Config path" : "Ścieżka konfiguracji",
     "Yes" : "Tak",
