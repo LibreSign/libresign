@@ -188,7 +188,6 @@ OC.L10N.register(
     "Generating certificate." : "Generiranje vjerodajnice.",
     "Could not generate certificate." : "Generiranje vjerodajnice nije uspjelo.",
     "Generated certificate!" : "Vjerodajnica generirana!",
-    "Name (CN)" : "Ime (CN)",
     "CFSSL API URI" : "CFSSL API URI",
     "Config path" : "Put do konfiguracije",
     "Yes" : "Da",

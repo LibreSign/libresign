@@ -145,7 +145,6 @@ OC.L10N.register(
     "Generating certificate." : "Generatzione tzertificadu.",
     "Could not generate certificate." : "Generatzione tzertificadu faddida.",
     "Generated certificate!" : "Tzertificadu generadu!",
-    "Name (CN)" : "Nùmene (CN)",
     "CFSSL API URI" : "URI API CFSSL",
     "Config path" : "Percursu config",
     "Yes" : "Si",

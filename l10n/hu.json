@@ -96,6 +96,11 @@
     "Invalid URL file" : "Érvénytelen URL fájl",
     "Visible element file must be png." : "A látható elem fájljának png-nek kell lennie.",
     "Empty file" : "Üres fájl",
+    "Two-letter ISO 3166 country code" : "Kétbetűs ISO 3166 országkód",
+    "Full name of states or provinces" : "Az államok vagy tartományok teljes neve",
+    "Name of a locality or place, such as a city, county, or other geographic region" : "Egy terület vagy helység neve, például város, megye vagy más földrajzi régió",
+    "Name of an organization" : "Egy szervezet neve",
+    "Name of an organizational unit" : "Egy szervezeti egység neve",
     "Invalid file identifier" : "Érvénytelen fájlazonosító",
     "Invalid file provided" : "Érvénytelen fájl van megadva",
     "You need to sign this document" : "Alá kell írnia ezt a dokumentumot",
@@ -261,7 +266,6 @@
     "Generating certificate." : "Tanúsítvány előállítása.",
     "Could not generate certificate." : "Nem sikerült létrehozni a tanúsítványt.",
     "Generated certificate!" : "Tanúsítvány előállítva.",
-    "Name (CN)" : "Név (CN)",
     "CFSSL API URI" : "CFSSL API URI",
     "Config path" : "Konfigurációs útvonal",
     "Regenerate root certificate" : "Gyökértanúsítvány újbóli előállítása",
@@ -300,11 +304,6 @@
     "No date" : "Nincs dátum",
     "Return" : "Vissza",
     "Open in LibreSign" : "Megnyitás a LibreSignban",
-    "Two-letter ISO 3166 country code" : "Kétbetűs ISO 3166 országkód",
-    "Full name of states or provinces" : "Az államok vagy tartományok teljes neve",
-    "Name of a locality or place, such as a city, county, or other geographic region" : "Egy terület vagy helység neve, például város, megye vagy más földrajzi régió",
-    "Name of an organization" : "Egy szervezet neve",
-    "Name of an organizational unit" : "Egy szervezeti egység neve",
     "Requested by {name}, at {date}" : "{name} kérte, ekkor: {date}"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

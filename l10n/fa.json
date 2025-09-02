@@ -87,6 +87,11 @@
     "Invalid URL file" : "Invalid URL file",
     "Visible element file must be png." : "Visible element file must be png.",
     "Empty file" : "پرونده خالی",
+    "Two-letter ISO 3166 country code" : "Two-letter ISO 3166 country code",
+    "Full name of states or provinces" : "Full name of states or provinces",
+    "Name of a locality or place, such as a city, county, or other geographic region" : "Name of a locality or place, such as a city, county, or other geographic region",
+    "Name of an organization" : "Name of an organization",
+    "Name of an organizational unit" : "Name of an organizational unit",
     "Invalid file identifier" : "Invalid file identifier",
     "Invalid file provided" : "فایل داده‌شده نا معتبر است",
     "You need to sign this document" : "You need to sign this document",
@@ -241,7 +246,6 @@
     "Generating certificate." : "Generating certificate.",
     "Could not generate certificate." : "Could not generate certificate.",
     "Generated certificate!" : "Generated certificate!",
-    "Name (CN)" : "Name (CN)",
     "CFSSL API URI" : "CFSSL API URI",
     "Config path" : "Config path",
     "Regenerate root certificate" : "Regenerate root certificate",
@@ -278,11 +282,6 @@
     "No date" : "No date",
     "Return" : "Return",
     "Open in LibreSign" : "Open in LibreSign",
-    "Two-letter ISO 3166 country code" : "Two-letter ISO 3166 country code",
-    "Full name of states or provinces" : "Full name of states or provinces",
-    "Name of a locality or place, such as a city, county, or other geographic region" : "Name of a locality or place, such as a city, county, or other geographic region",
-    "Name of an organization" : "Name of an organization",
-    "Name of an organizational unit" : "Name of an organizational unit",
     "Requested by {name}, at {date}" : "Requested by {name}, at {date}"
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }

@@ -177,7 +177,6 @@ OC.L10N.register(
     "Generating certificate." : "Luodaan varmennetta.",
     "Could not generate certificate." : "Varmennetta ei voitu luoda.",
     "Generated certificate!" : "Varmenne luotu!",
-    "Name (CN)" : "Nimi (CN)",
     "Yes" : "Kyllä",
     "No" : "Ei",
     "Reset to default" : "Palauta oletukseksi",
