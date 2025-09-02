@@ -14,6 +14,7 @@ use OCA\Libresign\Service\FolderService;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IAppConfig;
+use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\L10N\IFactory as IL10NFactory;
@@ -28,6 +29,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N $l10n;
 	private FooterHandler&MockObject $footerHandler;
 	private ITempManager $tempManager;
+	private IDateTimeZone $dateTimeZone;
 	private LoggerInterface&MockObject $logger;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 
@@ -38,6 +40,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
+		$this->dateTimeZone = \OCP\Server::get(IDateTimeZone::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 	}
 
@@ -51,6 +54,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->l10n,
 					$this->footerHandler,
 					$this->tempManager,
+					$this->dateTimeZone,
 					$this->logger,
 				])
 				->onlyMethods($methods)
@@ -63,6 +67,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->footerHandler,
 			$this->tempManager,
+			$this->dateTimeZone,
 			$this->logger,
 		);
 	}
