@@ -107,8 +107,8 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 					'identifier_key' => $insert->createNamedParameter('account'),
 					'identifier_value' => $insert->createNamedParameter($row['user_id']),
 					'attempts' => $insert->createNamedParameter($row['signed'] ? 1 : 0, IQueryBuilder::PARAM_INT),
-					'identified_at_date' => $insert->createNamedParameter($row['signed'] ? new \DateTime('@' . $row['signed']): null, IQueryBuilder::PARAM_DATE),
-					'last_attempt_date' => $insert->createNamedParameter($row['signed'] ? new \DateTime('@' . $row['signed']): null, IQueryBuilder::PARAM_DATE),
+					'identified_at_date' => $insert->createNamedParameter($row['signed'] ? new \DateTime('@' . $row['signed'], new \DateTimeZone('UTC')): null, IQueryBuilder::PARAM_DATE),
+					'last_attempt_date' => $insert->createNamedParameter($row['signed'] ? new \DateTime('@' . $row['signed'], new \DateTimeZone('UTC')): null, IQueryBuilder::PARAM_DATE),
 				])
 				->executeStatement();
 		}
@@ -130,8 +130,8 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 					'identifier_key' => $insert->createNamedParameter('email'),
 					'identifier_value' => $insert->createNamedParameter($row['email']),
 					'attempts' => $insert->createNamedParameter($row['signed'] ? 1 : 0, IQueryBuilder::PARAM_INT),
-					'identified_at_date' => $insert->createNamedParameter($row['signed'] ? new \DateTime('@' . $row['signed']): null, IQueryBuilder::PARAM_DATE),
-					'last_attempt_date' => $insert->createNamedParameter($row['signed'] ? new \DateTime('@' . $row['signed']): null, IQueryBuilder::PARAM_DATE),
+					'identified_at_date' => $insert->createNamedParameter($row['signed'] ? new \DateTime('@' . $row['signed'], new \DateTimeZone('UTC')): null, IQueryBuilder::PARAM_DATE),
+					'last_attempt_date' => $insert->createNamedParameter($row['signed'] ? new \DateTime('@' . $row['signed'], new \DateTimeZone('UTC')): null, IQueryBuilder::PARAM_DATE),
 				])
 				->executeStatement();
 		}

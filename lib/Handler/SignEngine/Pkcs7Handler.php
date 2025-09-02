@@ -42,7 +42,7 @@ class Pkcs7Handler extends SignEngineHandler {
 		$lastModifiedTime = filemtime($metadata['uri']);
 		return [
 			[
-				'signingTime' => (new DateTime())->setTimestamp($lastModifiedTime),
+				'signingTime' => (new DateTime())->setTimestamp($lastModifiedTime)->setTimezone(new \DateTimeZone('UTC')),
 			],
 		];
 	}
