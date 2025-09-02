@@ -5,6 +5,7 @@
 
 import { defineStore } from 'pinia'
 import { set } from 'vue'
+import axios from 'axios'
 
 export const useUserConfigStore = defineStore('userconfig', {
 	state: () => ({
@@ -12,7 +13,24 @@ export const useUserConfigStore = defineStore('userconfig', {
 	}),
 	actions: {
 		async update(key, value) {
+			const oldValue = this[key]
+
 			set(this, key, value)
+
+			try {
+				const response = await axios.put(
+					`/apps/files/api/v1/config/${key}`,
+					{ value }
+				)
+
+				if (response?.data?.value !== undefined) {
+					set(this, key, response.data.value)
+				}
+			} catch (error) {
+				console.error('Erro ao salvar configuração:', error)
+
+				set(this, key, oldValue)
+			}
 		},
 	},
 })
