@@ -64,7 +64,7 @@ class FileElement extends Entity {
 	 */
 	public function setCreatedAt($createdAt): void {
 		if (!$createdAt instanceof \DateTime) {
-			$createdAt = new \DateTime($createdAt);
+			$createdAt = new \DateTime($createdAt, new \DateTimeZone('UTC'));
 		}
 		$this->createdAt = $createdAt;
 		$this->markFieldUpdated('createdAt');
