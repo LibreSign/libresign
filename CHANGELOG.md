@@ -19,6 +19,30 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 11.3.2 - 2025-09-02
+### Changes
+- Update translations
+- Bump dependencies
+- chore: update contributing [#5395](https://github.com/LibreSign/libresign/pull/5395)
+
+### Fixes
+- fix: timezone of preview signature stamp [#5387](https://github.com/LibreSign/libresign/pull/5387)
+- fix: propagate timezone [#5393](https://github.com/LibreSign/libresign/pull/5393)
+- fix: use UTC into all dates [#5398](https://github.com/LibreSign/libresign/pull/5398)
+- fix: set default value to initial state [#5401](https://github.com/LibreSign/libresign/pull/5401)
+
+## 10.9.2 - 2025-09-02
+### Changes
+- Update translations
+- Bump dependencies
+- chore: update contributing [#5394](https://github.com/LibreSign/libresign/pull/5394)
+
+### Fixes
+- fix: timezone of preview signature stamp [#5386](https://github.com/LibreSign/libresign/pull/5386)
+- fix: propagate timezone [#5392](https://github.com/LibreSign/libresign/pull/5392)
+- fix: use UTC into all dates [#5397](https://github.com/LibreSign/libresign/pull/5397)
+- fix: set default value to initial state [#5400](https://github.com/LibreSign/libresign/pull/5400)
+
 ## 11.3.1 - 2025-09-01
 ### Changes
 - Update translations
