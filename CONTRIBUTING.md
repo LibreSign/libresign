@@ -44,40 +44,4 @@ See the respective sections below for further instructions.
 
 ### Front and backend development environment
 
-This project depends on the NextCloud project, so to start writing code, you will need to set it up.
-We recommend using Docker for this, but feel free to use another method if you prefer. We suggest these two setups:
-
-[Libre Code Coop Setup](https://github.com/LibreCodeCoop/nextcloud-docker-development/)<br>
-[Julius Härtl Nextcloud Setup](https://github.com/juliushaertl/nextcloud-docker-dev)
-
-**If you have any problems with these setups open an issue at corresponding to the project that you select to use.**
-
-After executing these Docker setups, wait until it's possible to access localhost.
-If access is not possible, go to your terminal, run the command docker ps,
-and then find the "nextcloud" image or "ghcr.io/juliushaertl/nextcloud-dev-php**".
-Access the address reported from the command output.
-(If you cannot find the image, you likely encountered a problem running the Docker setup; please return to the previous step.)
-
-To get LibreSign executing go to the folder of the setup that you choose and find the folder called `volumes/nextcloud/apps-extra` and clone the LibreSign repository.
-
-Open bash in Nextcloud container with `docker compose exec -u www-data nextcloud bash`
-
-Inside bash of Nextcloud go to the folder `apps-extra/libresign` and then run the commands:
-  ```bash
-  # Download composer dependencies
-  composer install
-  # Download JS dependencies
-  npm ci
-  # Build and watch JS changes
-  npm run watch
-  ```
-
-To update API Documentation
----------------------------
-
-After Configure the environment
-
-After installing LibreSign, go to `Administration Settings > LibreSign` and:
-* Click in the `Download binaries` button. When it show status `successful` to all items, except `root certificate not configured`, is time to configure root certificate in the next section.
-
-[Repository of site and API documentation](https://github.com/libresign/libresign.github.io)
+More information [here](https://docs.libresign.coop/developer_manual/getting-started/development-environment/setup), at the [official documentation](https://docs.libresign.coop/developer_manual/getting-started/development-environment/setup)
