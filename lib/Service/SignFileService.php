@@ -670,7 +670,7 @@ class SignFileService {
 			$signRequest->setFileId($libresignFile->getId());
 			$signRequest->setDisplayName($user->getDisplayName());
 			$signRequest->setUuid(UUIDUtil::getUUID());
-			$signRequest->setCreatedAt(new \DateTime());
+			$signRequest->setCreatedAt(new \DateTime('now', $this->dateTimeZone->getTimeZone()));
 		}
 		return $signRequest;
 	}

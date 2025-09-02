@@ -17,6 +17,7 @@ use OCP\Files\IAppData;
 use OCP\Files\IRootFolder;
 use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\Files\SimpleFS\ISimpleFolder;
+use OCP\IDateTimeZone;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
@@ -64,6 +65,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IGroupManager&MockObject $groupManager;
 	private IAppConfig&MockObject $appConfig;
 	private IL10N&MockObject $l10n;
+	private IDateTimeZone&MockObject $dateTimeZone;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -72,6 +74,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->l10n = $this->createMock(IL10N::class);
+		$this->dateTimeZone = $this->createMock(IDateTimeZone::class);
 	}
 
 	private function getInstance(?string $userId = '171'): FolderService {
@@ -81,6 +84,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->groupManager,
 			$this->appConfig,
 			$this->l10n,
+			$this->dateTimeZone,
 			$userId
 		);
 		return $service;

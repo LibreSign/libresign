@@ -21,6 +21,7 @@ use OCP\Files\GenericFileException;
 use OCP\Files\InvalidPathException;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
+use OCP\IDateTimeZone;
 use OCP\IL10N;
 use Psr\Log\LoggerInterface;
 
@@ -37,6 +38,7 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		private IL10N $l10n,
 		private readonly FolderService $folderService,
 		private LoggerInterface $logger,
+		private IDateTimeZone $dateTimeZone,
 	) {
 	}
 
@@ -219,7 +221,7 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		}
 
 		// Prevent accepting certificates with future signing dates (possible clock issues)
-		$dateTime = new \DateTime();
+		$dateTime = new \DateTime('now', $this->dateTimeZone->getTimeZone());
 		if ($last['signingTime'] > $dateTime) {
 			$this->logger->error('We found Marty McFly', [
 				'last_signature' => json_encode($last['signingTime']),
