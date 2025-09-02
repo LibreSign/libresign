@@ -35,12 +35,12 @@ export const useSignStore = defineStore('sign', {
 			this.errors = loadState('libresign', 'errors', [])
 			const pdf = loadState('libresign', 'pdf', [])
 			const file = {
-				name: loadState('libresign', 'filename'),
+				name: loadState('libresign', 'filename', ''),
 				description: loadState('libresign', 'description', ''),
-				status: loadState('libresign', 'status'),
-				statusText: loadState('libresign', 'statusText'),
+				status: loadState('libresign', 'status', ''),
+				statusText: loadState('libresign', 'statusText', ''),
 				url: pdf.url,
-				nodeId: loadState('libresign', 'nodeId'),
+				nodeId: loadState('libresign', 'nodeId', 0),
 				uuid: loadState('libresign', 'uuid', null),
 				signers: loadState('libresign', 'signers', []),
 			}
