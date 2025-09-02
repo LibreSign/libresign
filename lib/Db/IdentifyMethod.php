@@ -54,7 +54,7 @@ class IdentifyMethod extends Entity {
 	public function setIdentifiedAtDate(null|string|\DateTime $identifiedAtDate): void {
 		if ($identifiedAtDate) {
 			if (!$identifiedAtDate instanceof \DateTime) {
-				$this->identifiedAtDate = new \DateTime($identifiedAtDate);
+				$this->identifiedAtDate = new \DateTime($identifiedAtDate, new \DateTimeZone('UTC'));
 			} else {
 				$this->identifiedAtDate = $identifiedAtDate;
 			}
@@ -80,7 +80,7 @@ class IdentifyMethod extends Entity {
 	public function setLastAttemptDate(null|string|\DateTime $lastAttemptDate): void {
 		if ($lastAttemptDate) {
 			if (!$lastAttemptDate instanceof \DateTime) {
-				$this->lastAttemptDate = new \DateTime($lastAttemptDate);
+				$this->lastAttemptDate = new \DateTime($lastAttemptDate, new \DateTimeZone('UTC'));
 			} else {
 				$this->lastAttemptDate = $lastAttemptDate;
 			}

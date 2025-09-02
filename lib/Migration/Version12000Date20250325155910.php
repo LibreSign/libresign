@@ -87,7 +87,7 @@ class Version12000Date20250325155910 extends SimpleMigrationStep {
 		$handle = $file->read();
 		fgetcsv($handle); // header
 		while (($row = fgetcsv($handle)) !== false) {
-			$update->setParameter('created_at', new \DateTime('@' . $row[1]), IQueryBuilder::PARAM_DATETIME_MUTABLE)
+			$update->setParameter('created_at', new \DateTime('@' . $row[1], new \DateTimeZone('UTC')), IQueryBuilder::PARAM_DATETIME_MUTABLE)
 				->setParameter('id', $row[0]);
 			$update->executeStatement();
 		}
@@ -109,11 +109,11 @@ class Version12000Date20250325155910 extends SimpleMigrationStep {
 		$handle = $file->read();
 		fgetcsv($handle); // header
 		while (($row = fgetcsv($handle)) !== false) {
-			$update->setParameter('created_at', new \DateTime('@' . $row[1]), IQueryBuilder::PARAM_DATETIME_MUTABLE)
+			$update->setParameter('created_at', new \DateTime('@' . $row[1], new \DateTimeZone('UTC')), IQueryBuilder::PARAM_DATETIME_MUTABLE)
 				->setParameter('id', $row[0]);
 
 			if ($row[2]) {
-				$update->setParameter('signed', new \DateTime('@' . $row[2]), IQueryBuilder::PARAM_DATETIME_MUTABLE);
+				$update->setParameter('signed', new \DateTime('@' . $row[2], new \DateTimeZone('UTC')), IQueryBuilder::PARAM_DATETIME_MUTABLE);
 			} else {
 				$update->setParameter('signed', null, IQueryBuilder::PARAM_NULL);
 			}

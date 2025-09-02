@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use OCA\Libresign\Service\FolderService;
-use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -18,13 +17,11 @@ final class Pkcs7HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N $l10n;
 	private FolderService&MockObject $folderService;
 	private LoggerInterface&MockObject $logger;
-	private IDateTimeZone&MockObject $dateTimeZone;
 	public function setUp(): void {
 		parent::setUp();
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(\OCA\Libresign\AppInfo\Application::APP_ID);
 		$this->folderService = $this->createMock(\OCA\Libresign\Service\FolderService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
-		$this->dateTimeZone = $this->createMock(IDateTimeZone::class);
 	}
 
 	protected function getInstance(array $methods = []): Pkcs7Handler|MockObject {
@@ -33,7 +30,6 @@ final class Pkcs7HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->l10n,
 				$this->folderService,
 				$this->logger,
-				$this->dateTimeZone,
 			);
 		}
 		return $this->getMockBuilder(Pkcs7Handler::class)
@@ -41,7 +37,6 @@ final class Pkcs7HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->l10n,
 				$this->folderService,
 				$this->logger,
-				$this->dateTimeZone,
 			])
 			->onlyMethods($methods)
 			->getMock();

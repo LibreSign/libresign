@@ -121,7 +121,7 @@ class SignatureTextService {
 			];
 		}
 		if (empty($context)) {
-			$date = new \DateTime('now', $this->dateTimeZone->getTimeZone());
+			$date = new \DateTime('now', new \DateTimeZone('UTC'));
 			$context = [
 				'DocumentUUID' => UUIDUtil::getUUID(),
 				'IssuerCommonName' => 'Acme Cooperative',

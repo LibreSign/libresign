@@ -21,7 +21,6 @@ use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
-use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -43,7 +42,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private PdfParserService&MockObject $pdfParserService;
 	private IMimeTypeDetector&MockObject $mimeTypeDetector;
-	private IDateTimeZone&MockObject $dateTimeZone;
 	private IClientService&MockObject $client;
 	private LoggerInterface&MockObject $loggerInterface;
 
@@ -67,7 +65,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->pdfParserService = $this->createMock(PdfParserService::class);
 		$this->mimeTypeDetector = $this->createMock(IMimeTypeDetector::class);
-		$this->dateTimeZone = $this->createMock(IDateTimeZone::class);
 		$this->client = $this->createMock(IClientService::class);
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
 	}
@@ -86,7 +83,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->folderService,
 			$this->mimeTypeDetector,
 			$this->validateHelper,
-			$this->dateTimeZone,
 			$this->client,
 			$this->loggerInterface
 		);

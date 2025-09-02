@@ -18,7 +18,6 @@ use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
-use OCP\IDateTimeZone;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
@@ -31,7 +30,6 @@ class FolderService {
 		protected IGroupManager $groupManager,
 		private IAppConfig $appConfig,
 		private IL10N $l10n,
-		private IDateTimeZone $dateTimeZone,
 		private ?string $userId,
 	) {
 		$this->userId = $userId;
@@ -144,7 +142,7 @@ class FolderService {
 		foreach ($data['settings']['folderPatterns'] as $pattern) {
 			switch ($pattern['name']) {
 				case 'date':
-					$folderName[] = (new \DateTime('now', $this->dateTimeZone->getTimeZone()))->format($pattern['setting']);
+					$folderName[] = (new \DateTime('now', new \DateTimeZone('UTC')))->format($pattern['setting']);
 					break;
 				case 'name':
 					if (!empty($data['name'])) {
