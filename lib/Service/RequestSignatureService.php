@@ -20,6 +20,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\Node;
 use OCP\Http\Client\IClientService;
+use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -42,6 +43,7 @@ class RequestSignatureService {
 		protected FolderService $folderService,
 		protected IMimeTypeDetector $mimeTypeDetector,
 		protected ValidateHelper $validateHelper,
+		protected IDateTimeZone $dateTimeZone,
 		protected IClientService $client,
 		protected LoggerInterface $logger,
 	) {
@@ -87,7 +89,7 @@ class RequestSignatureService {
 		$file->setNodeId($node->getId());
 		$file->setUserId($data['userManager']->getUID());
 		$file->setUuid(UUIDUtil::getUUID());
-		$file->setCreatedAt(new \DateTime());
+		$file->setCreatedAt(new \DateTime('now', $this->dateTimeZone->getTimeZone()));
 		$file->setName($data['name']);
 		$file->setMetadata($this->getFileMetadata($node));
 		if (!empty($data['callback'])) {
@@ -324,7 +326,7 @@ class RequestSignatureService {
 			$signRequest->setDescription($description);
 		}
 		if (!$signRequest->getId()) {
-			$signRequest->setCreatedAt(new \DateTime());
+			$signRequest->setCreatedAt(new \DateTime('now', $this->dateTimeZone->getTimeZone()));
 		}
 	}
 
