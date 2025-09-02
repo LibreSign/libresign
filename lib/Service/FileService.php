@@ -359,7 +359,7 @@ class FileService {
 				foreach ($metadata['notify'] as $notify) {
 					$this->fileData->signers[$index]['notify'][] = [
 						'method' => $notify['method'],
-						'date' => (new \DateTime('@' . $notify['date']))->format(DateTimeInterface::ATOM),
+						'date' => (new \DateTime('@' . $notify['date'], new \DateTimeZone('UTC')))->format(DateTimeInterface::ATOM),
 					];
 				}
 			}
@@ -431,10 +431,10 @@ class FileService {
 				$this->fileData->signers[$index]['subject'] = $signer['chain'][0]['name'];
 			}
 			if (!empty($signer['chain'][0]['validFrom_time_t'])) {
-				$this->fileData->signers[$index]['valid_from'] = (new DateTime('@' . $signer['chain'][0]['validFrom_time_t']))->format(DateTimeInterface::ATOM);
+				$this->fileData->signers[$index]['valid_from'] = (new DateTime('@' . $signer['chain'][0]['validFrom_time_t'], new \DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
 			}
 			if (!empty($signer['chain'][0]['validTo_time_t'])) {
-				$this->fileData->signers[$index]['valid_to'] = (new DateTime('@' . $signer['chain'][0]['validTo_time_t']))->format(DateTimeInterface::ATOM);
+				$this->fileData->signers[$index]['valid_to'] = (new DateTime('@' . $signer['chain'][0]['validTo_time_t'], new \DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
 			}
 			if (!empty($signer['signingTime'])) {
 				$this->fileData->signers[$index]['signed'] = $signer['signingTime']->format(DateTimeInterface::ATOM);

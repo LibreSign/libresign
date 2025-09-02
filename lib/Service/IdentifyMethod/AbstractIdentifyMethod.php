@@ -207,7 +207,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$signRequest = $this->identifyService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
 		$startTime = $this->identifyService->getSessionService()->getSignStartTime();
 		if ($startTime > 0) {
-			$startTime = new DateTime('@' . $startTime);
+			$startTime = new DateTime('@' . $startTime, new \DateTimeZone('UTC'));
 		} else {
 			$startTime = null;
 		}

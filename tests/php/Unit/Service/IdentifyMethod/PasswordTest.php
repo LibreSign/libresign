@@ -17,7 +17,6 @@ use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\Password;
 use OCP\IAppConfig;
-use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IUserSession;
@@ -35,7 +34,6 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private IL10N $l10n;
 	private FooterHandler&MockObject $footerHandler;
-	private IDateTimeZone $dateTimeZone;
 	private ITempManager $tempManager;
 	private LoggerInterface&MockObject $logger;
 
@@ -49,7 +47,6 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
-		$this->dateTimeZone = \OCP\Server::get(IDateTimeZone::class);
 		$this->pkcs12Handler = $this->getPkcs12Instance();
 	}
 
@@ -73,7 +70,6 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->l10n,
 				$this->footerHandler,
 				$this->tempManager,
-				$this->dateTimeZone,
 				$this->logger,
 			])
 			->onlyMethods($methods)
