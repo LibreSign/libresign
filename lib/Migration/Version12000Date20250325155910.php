@@ -87,7 +87,7 @@ class Version12000Date20250325155910 extends SimpleMigrationStep {
 		$handle = $file->read();
 		fgetcsv($handle); // header
 		while (($row = fgetcsv($handle)) !== false) {
-			$update->setParameter('created_at', new \DateTime('@' . $row[1]), 'datetime')
+			$update->setParameter('created_at', new \DateTime('@' . $row[1], new \DateTimeZone('UTC')), 'datetime')
 				->setParameter('id', $row[0]);
 			$update->executeStatement();
 		}
@@ -109,11 +109,11 @@ class Version12000Date20250325155910 extends SimpleMigrationStep {
 		$handle = $file->read();
 		fgetcsv($handle); // header
 		while (($row = fgetcsv($handle)) !== false) {
-			$update->setParameter('created_at', new \DateTime('@' . $row[1]), 'datetime')
+			$update->setParameter('created_at', new \DateTime('@' . $row[1], new \DateTimeZone('UTC')), 'datetime')
 				->setParameter('id', $row[0]);
 
 			if ($row[2]) {
-				$update->setParameter('signed', new \DateTime('@' . $row[2]), 'datetime');
+				$update->setParameter('signed', new \DateTime('@' . $row[2], new \DateTimeZone('UTC')), 'datetime');
 			} else {
 				$update->setParameter('signed', null, IQueryBuilder::PARAM_NULL);
 			}

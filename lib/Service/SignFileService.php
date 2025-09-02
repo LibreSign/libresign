@@ -375,7 +375,7 @@ class SignFileService {
 			'IssuerCommonName' => $certificateData['issuer']['CN'] ?? '',
 			'SignerCommonName' => $certificateData['subject']['CN'] ?? '',
 			'LocalSignerTimezone' => $this->dateTimeZone->getTimeZone()->getName(),
-			'LocalSignerSignatureDateTime' => (new DateTime('now', $this->dateTimeZone->getTimeZone()))
+			'LocalSignerSignatureDateTime' => (new DateTime('now', new \DateTimeZone('UTC')))
 				->format(DateTimeInterface::ATOM)
 		];
 	}
@@ -670,7 +670,7 @@ class SignFileService {
 			$signRequest->setFileId($libresignFile->getId());
 			$signRequest->setDisplayName($user->getDisplayName());
 			$signRequest->setUuid(UUIDUtil::getUUID());
-			$signRequest->setCreatedAt(new \DateTime('now', $this->dateTimeZone->getTimeZone()));
+			$signRequest->setCreatedAt(new \DateTime('now', new \DateTimeZone('UTC')));
 		}
 		return $signRequest;
 	}
