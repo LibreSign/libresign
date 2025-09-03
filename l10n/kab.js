@@ -28,6 +28,7 @@ OC.L10N.register(
     "Details" : "Talqayt",
     "Type" : "Anaw",
     "Status" : "État",
+    "Actions" : "Tigawin",
     "Password" : "Awal uffir",
     "Enter a password" : "Sekcem awal n uɛeddi",
     "Page not found" : "Ulac asebter",
