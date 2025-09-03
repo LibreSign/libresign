@@ -49,7 +49,7 @@ final class PdfTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testApplyStampReturnsBufferWhenSuccess(): void {
 		$pdf = $this->getInstance(['configureCommand', 'multiStamp']);
 
-		$mock = $this->createMock(\mikehaertl\pdftk\Pdf::class);
+		$mock = $this->createMock(\OCA\Libresign\Vendor\mikehaertl\pdftk\Pdf::class);
 		$mock->method('toString')->willReturn('%PDF-1.4 fake');
 
 		$pdf->method('multiStamp')->willReturn($mock);
