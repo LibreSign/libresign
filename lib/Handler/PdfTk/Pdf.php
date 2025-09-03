@@ -8,11 +8,11 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\PdfTk;
 
-use mikehaertl\pdftk\Command;
-use mikehaertl\pdftk\Pdf as BasePdf;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JavaHelper;
+use OCA\Libresign\Vendor\mikehaertl\pdftk\Command;
+use OCA\Libresign\Vendor\mikehaertl\pdftk\Pdf as BasePdf;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use RuntimeException;

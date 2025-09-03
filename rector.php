@@ -26,5 +26,6 @@ return RectorConfig::configure()
 	->withTypeCoverageLevel(0)
 	->withSkip([
 		ReadOnlyPropertyRector::class,
+		__DIR__ . '/lib/Vendor',
 	]);
 ;
