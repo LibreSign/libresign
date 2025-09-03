@@ -13,7 +13,6 @@
 		"wobeto/email-blur": "^1.0"
 	},
 	"require-dev": {
-		"bamarni/composer-bin-plugin": "^1.8",
 		"nextcloud/ocp": "dev-stable31",
 		"roave/security-advisories": "dev-latest"
 	},
