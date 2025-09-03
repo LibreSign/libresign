@@ -1,5 +1,6 @@
 {
 	"require": {
+		"bamarni/composer-bin-plugin": "^1.8",
 		"endroid/qr-code": "^5.0",
 		"jsignpdf/jsignpdf-php": "^1.2",
 		"libresign/whatosami": "^0.0.2",
@@ -12,7 +13,6 @@
 		"wobeto/email-blur": "^1.0"
 	},
 	"require-dev": {
-		"bamarni/composer-bin-plugin": "^1.8",
 		"nextcloud/ocp": "dev-master",
 		"roave/security-advisories": "dev-latest"
 	},
@@ -38,9 +38,11 @@
 		"psalm:update-baseline": "psalm --threads=$(nproc) --update-baseline --set-baseline=tests/psalm-baseline.xml",
 		"post-install-cmd": [
 			"@composer bin all install --ansi",
-			"composer dump-autoload"
+			"php -d error_reporting=E_ALL\\&~E_DEPRECATED\\&~E_USER_DEPRECATED vendor-bin/php-scoper/vendor/humbug/php-scoper/bin/php-scoper add-prefix --force",
+			"composer dump-autoload -o"
 		],
 		"post-update-cmd": [
+			"php -d error_reporting=E_ALL\\&~E_DEPRECATED\\&~E_USER_DEPRECATED vendor-bin/php-scoper/vendor/humbug/php-scoper/bin/php-scoper add-prefix --force",
 			"composer dump-autoload"
 		],
 		"test:unit": "vendor/bin/phpunit -c tests/php/phpunit.xml --no-coverage --colors=always --fail-on-warning --fail-on-risky --display-deprecations --display-phpunit-deprecations",
@@ -54,7 +56,10 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"OCA\\Libresign\\": "lib/"
+			"OCA\\Libresign\\": "lib/",
+			"OCA\\Libresign\\Vendor\\mikehaertl\\pdftk\\": "lib/Vendor/php-pdftk/src/",
+			"OCA\\Libresign\\Vendor\\mikehaertl\\shellcommand\\": "lib/Vendor/php-shellcommand/src/",
+			"OCA\\Libresign\\Vendor\\mikehaertl\\tmp\\": "lib/Vendor/php-tmpfile/src/"
 		}
 	},
 	"autoload-dev": {
