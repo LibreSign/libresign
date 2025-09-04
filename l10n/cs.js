@@ -130,6 +130,7 @@ OC.L10N.register(
     "Visible element file must be png." : "Je třeba, aby soubor viditelného prvku byl png.",
     "Empty file" : "Prázdný soubor",
     "Invalid file provided. Need to be a .pfx file." : "Poskytnut neplatný soubor. Je třeba, aby se jednalo o soubor .pfx.",
+    "Common Name (CN)" : "Běžný název (CN)",
     "Two-letter ISO 3166 country code" : "Dvoupísmenný kód země dle normy ISO 3166",
     "Full name of states or provinces" : "Úplný název států či provincií",
     "Name of a locality or place, such as a city, county, or other geographic region" : "Název lokality nebo místa, jako např. města, kraje nebo jiného geografického regionu",

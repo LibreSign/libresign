@@ -128,7 +128,7 @@
     "Visible element file must be png." : "Angezeigtes Element gelöscht",
     "Empty file" : "Leere Datei",
     "Invalid file provided. Need to be a .pfx file." : "Ungültige Datei bereitgestellt. PFX-Datei erforderlich.",
-    "Common Name (CN)" : "Gemeinsamer Name (CN)",
+    "Common Name (CN)" : "Allgemeiner Name (CN)",
     "Two-letter ISO 3166 country code" : "Zweibuchstabiger ISO 3166-Ländercode",
     "Full name of states or provinces" : "Vollständiger Name von Staaten oder Provinzen",
     "Name of a locality or place, such as a city, county, or other geographic region" : "Name eines Ortes oder eines Platzes, z. B. einer Stadt, eines Landkreises oder einer anderen geografischen Region",
