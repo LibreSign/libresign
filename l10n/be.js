@@ -3,6 +3,8 @@ OC.L10N.register(
     {
     "Settings saved" : "Налады захаваны",
     "The file was uploaded" : "Файл быў запампаваны.",
+    "The uploaded file exceeds the upload_max_filesize directive in php.ini" : "Памер запампаванага файла перавышае значэнне дырэктывы upload_max_filesize у php.ini",
+    "The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form" : "Памер запампаванага файла перавышае значэнне дырэктывы MAX_FILE_SIZE у HTML форме",
     "The file was only partially uploaded" : "Файл быў запампаваны толькі часткова",
     "No file was uploaded" : "Ніводзін файл не быў запампаваны",
     "Missing a temporary folder" : "Адсутнічае часовая папка",
@@ -72,6 +74,8 @@ OC.L10N.register(
     "{fileCount} files" : "{fileCount} файлы",
     "\"{displayName}\" batch action executed successfully" : "Пакетнае дзеянне \"{displayName}\" паспяхова выканана",
     "\"{displayName}\" action failed" : "Не ўдалося выканаць дзеянне \"{displayName}\"",
+    "(selected)" : "(выбраны)",
+    "_{count} selected_::_{count} selected_" : ["Выбраны {count}","Выбраны {count}","Выбрана {count}","Выбрана {count}"],
     "Password reset" : "Скід пароля",
     "Current password" : "Бягучы пароль",
     "New password" : "Новы пароль",
