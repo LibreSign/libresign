@@ -172,7 +172,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			if ($isSecondLevel) {
 				switch ((string)$match['key']) {
 					case 'Signing Time':
-						$this->signaturesFromPoppler[$lastSignature]['signingTime'] = DateTime::createFromFormat('M d Y H:i:s', $match['value']);
+						$this->signaturesFromPoppler[$lastSignature]['signingTime'] = DateTime::createFromFormat('M d Y H:i:s', $match['value'], new \DateTimeZone('UTC'));
 						break;
 					case 'Signer full Distinguished Name':
 						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['subject'] = $this->parseDistinguishedNameWithMultipleValues($match['value']);
