@@ -171,6 +171,7 @@ OC.L10N.register(
     "Status" : "Status",
     "Actions" : "Akcje",
     "Upload certificate" : "Prześlij certyfikat",
+    "Delete certificate" : "Usuń certyfikat",
     "Change password" : "Zmień hasło",
     "Your signatures" : "Twoje podpisy",
     "Signature" : "Podpis",
