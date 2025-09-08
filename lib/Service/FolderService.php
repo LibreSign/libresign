@@ -21,6 +21,7 @@ use OCP\Files\NotPermittedException;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
+use OCP\Lock\LockedException;
 
 class FolderService {
 	protected IAppData $appData;
@@ -50,11 +51,19 @@ class FolderService {
 	 * @psalm-suppress MixedReturnStatement
 	 * @throws NotFoundException
 	 * @throws NotPermittedException
+	 * @throws LockedException
 	 */
 	public function getFolder(): Folder {
 		$path = $this->getLibreSignDefaultPath();
 		$containerFolder = $this->getContainerFolder();
-		return $containerFolder->newFolder($path);
+		try {
+			/** @var Folder $folder */
+			$folder = $containerFolder->get($path);
+		} catch (NotFoundException) {
+			/** @var Folder $folder */
+			$folder = $containerFolder->newFolder($path);
+		}
+		return $folder;
 	}
 
 	/**
