@@ -5276,32 +5276,26 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "application/json": {
                     /**
                      * Format: int64
                      * @description First reminder after (days)
-                     * @default 1
                      */
-                    daysBefore?: number;
+                    daysBefore: number;
                     /**
                      * Format: int64
                      * @description Days between reminders
-                     * @default 1
                      */
-                    daysBetween?: number;
+                    daysBetween: number;
                     /**
                      * Format: int64
                      * @description Max reminders per signer
-                     * @default 5
                      */
-                    max?: number;
-                    /**
-                     * @description Send time (HH:mm)
-                     * @default 10:00
-                     */
-                    sendTimer?: string;
+                    max: number;
+                    /** @description Send time (HH:mm) */
+                    sendTimer: string;
                 };
             };
         };
