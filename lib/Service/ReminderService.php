@@ -38,10 +38,10 @@ class ReminderService {
 	}
 
 	public function save(
-		int $daysBefore = 1,
-		int $daysBetween = 1,
-		?int $max = 5,
-		string $sendTimer = '10:00',
+		int $daysBefore,
+		int $daysBetween,
+		int $max,
+		string $sendTimer,
 	): array {
 		$return = $this->saveConfig($daysBefore, $daysBetween, $max, $sendTimer);
 		$this->scheduleJob($return['send_timer']);
@@ -49,10 +49,10 @@ class ReminderService {
 	}
 
 	protected function saveConfig(
-		int $daysBefore = 1,
-		int $daysBetween = 1,
-		int $max = 5,
-		string $sendTimer = '10:00',
+		int $daysBefore,
+		int $daysBetween,
+		int $max,
+		string $sendTimer,
 	): array {
 		if ($daysBetween <= 0
 			|| $daysBefore <= 0
@@ -85,7 +85,7 @@ class ReminderService {
 			$this->appConfig->setValueInt(Application::APP_ID, 'reminder_max', $max);
 		}
 
-		$previous = $this->appConfig->getValueString(Application::APP_ID, 'reminder_send_timer', '');
+		$previous = $this->appConfig->getValueString(Application::APP_ID, 'reminder_send_timer', '10:00');
 		if ($previous !== $sendTimer) {
 			if (!$sendTimer || !preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $sendTimer)) {
 				$sendTimer = '10:00';
