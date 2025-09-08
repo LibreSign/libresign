@@ -12,12 +12,10 @@ use OCA\Libresign\Service\ReminderService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\TimedJob;
-use Psr\Log\LoggerInterface;
 
 class Reminders extends TimedJob {
 	public function __construct(
-		protected ITimeFactory $time,
-		protected LoggerInterface $logger,
+		ITimeFactory $time,
 		protected ReminderService $reminderService,
 	) {
 		parent::__construct($time);
@@ -28,7 +26,7 @@ class Reminders extends TimedJob {
 	}
 
 	/**
-	 * @param array $argument
+	 * @inheritDoc
 	 */
 	public function run($argument): void {
 		$this->reminderService->sendReminders();
