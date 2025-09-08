@@ -13,7 +13,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\TimedJob;
 
-class Reminders extends TimedJob {
+class Reminder extends TimedJob {
 	public function __construct(
 		ITimeFactory $time,
 		protected ReminderService $reminderService,
