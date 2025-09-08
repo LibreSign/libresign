@@ -647,10 +647,10 @@ class AdminController extends AEnvironmentAwareController {
 	 */
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/reminder', requirements: ['apiVersion' => '(v1)'])]
 	public function reminderSave(
-		int $daysBefore = 1,
-		int $daysBetween = 1,
-		int $max = 5,
-		string $sendTimer = '10:00',
+		int $daysBefore,
+		int $daysBetween,
+		int $max,
+		string $sendTimer,
 	): DataResponse {
 		$response = $this->reminderService->save($daysBefore, $daysBetween, $max, $sendTimer);
 		return new DataResponse($response);
