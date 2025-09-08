@@ -77,12 +77,7 @@ class SignRequestMapper extends QBMapper {
 	public function update(Entity $entity): SignRequest {
 		/** @var SignRequest */
 		$signRequest = parent::update($entity);
-		$filtered = array_filter($this->signers, fn ($e) => $e->getId() === $signRequest->getId());
-		if (!empty($filtered)) {
-			$this->signers[key($filtered)] = $signRequest;
-		} else {
-			$this->signers[] = $signRequest;
-		}
+		$this->signers[$signRequest->getId()] = $signRequest;
 		return $signRequest;
 	}
 
@@ -106,8 +101,8 @@ class SignRequestMapper extends QBMapper {
 			);
 		/** @var SignRequest */
 		$signRequest = $this->findEntity($qb);
-		if (!array_filter($this->signers, fn ($s) => $s->getId() === $signRequest->getId())) {
-			$this->signers[] = $signRequest;
+		if (!isset($this->signers[$signRequest->getId()])) {
+			$this->signers[$signRequest->getId()] = $signRequest;
 		}
 		return $signRequest;
 	}
@@ -155,8 +150,8 @@ class SignRequestMapper extends QBMapper {
 		/** @var SignRequest[] */
 		$signers = $this->findEntities($qb);
 		foreach ($signers as $signRequest) {
-			if (!array_filter($this->signers, fn ($s) => $s->getId() === $signRequest->getId())) {
-				$this->signers[] = $signRequest;
+			if (!isset($this->signers[$signRequest->getId()])) {
+				$this->signers[$signRequest->getId()] = $signRequest;
 			}
 		}
 		return $signers;
@@ -166,10 +161,8 @@ class SignRequestMapper extends QBMapper {
 	 * @throws DoesNotExistException
 	 */
 	public function getById(int $signRequestId): SignRequest {
-		foreach ($this->signers as $signRequest) {
-			if ($signRequest->getId() === $signRequestId) {
-				return $signRequest;
-			}
+		if (isset($this->signers[$signRequestId])) {
+			return $this->signers[$signRequestId];
 		}
 		$qb = $this->db->getQueryBuilder();
 
@@ -181,10 +174,74 @@ class SignRequestMapper extends QBMapper {
 
 		/** @var SignRequest */
 		$signRequest = $this->findEntity($qb);
-		if (!array_filter($this->signers, fn ($s) => $s->getId() === $signRequest->getId())) {
-			$this->signers[] = $signRequest;
+		if (!isset($this->signers[$signRequest->getId()])) {
+			$this->signers[$signRequest->getId()] = $signRequest;
 		}
 		return $signRequest;
+	}
+
+	/**
+	 * @return \Generator<IdentifyMethod>
+	 */
+	public function findRemindersCandidates(): \Generator {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select(
+			'sr.id AS sr_id',
+			'sr.file_id AS sr_file_id',
+			'sr.uuid AS sr_uuid',
+			'sr.display_name AS sr_display_name',
+			'sr.description AS sr_description',
+			'sr.metadata AS sr_metadata',
+			'sr.signed_hash AS sr_signed_hash',
+			'sr.created_at AS sr_created_at',
+			'sr.signed AS sr_signed',
+
+			'im.id AS im_id',
+			'im.mandatory AS im_mandatory',
+			'im.code AS im_code',
+			'im.identifier_key AS im_identifier_key',
+			'im.identifier_value AS im_identifier_value',
+			'im.attempts AS im_attempts',
+			'im.identified_at_date AS im_identified_at_date',
+			'im.last_attempt_date AS im_last_attempt_date',
+			'im.sign_request_id AS im_sign_request_id',
+			'im.metadata AS im_metadata',
+		)
+			->from('libresign_sign_request', 'sr')
+			->join('sr', 'libresign_identify_method', 'im', 'sr.id = im.sign_request_id')
+			->join('sr', 'libresign_file', 'f', 'sr.file_id = f.id')
+			->where($qb->expr()->isNull('sr.signed'))
+			->andWhere($qb->expr()->neq('im.identifier_value', $qb->createNamedParameter('deleted_users')))
+			->andWhere($qb->expr()->in('f.status', $qb->createNamedParameter([
+				File::STATUS_ABLE_TO_SIGN,
+				File::STATUS_PARTIAL_SIGNED
+			], IQueryBuilder::PARAM_INT_ARRAY)))
+			->setParameter('st', [1,2], IQueryBuilder::PARAM_INT_ARRAY)
+			->orderBy('sr.id', 'ASC');
+
+		$result = $qb->executeQuery();
+		try {
+			while ($row = $result->fetch()) {
+				$signRequest = new SignRequest();
+				$identifyMethod = new IdentifyMethod();
+				foreach ($row as $key => $value) {
+					$prop = $identifyMethod->columnToProperty(substr($key, 3));
+					if (str_starts_with($key, 'sr_')) {
+						$signRequest->{'set' . lcfirst($prop)}($value);
+					} else {
+						$identifyMethod->{'set' . lcfirst($prop)}($value);
+					}
+				}
+				$signRequest->resetUpdatedFields();
+				$identifyMethod->resetUpdatedFields();
+				if (!isset($this->signers[$signRequest->getId()])) {
+					$this->signers[$signRequest->getId()] = $signRequest;
+				}
+				yield $identifyMethod;
+			}
+		} finally {
+			$result->closeCursor();
+		}
 	}
 
 	/**
@@ -245,8 +302,8 @@ class SignRequestMapper extends QBMapper {
 		/** @var SignRequest[] */
 		$signers = $this->findEntities($qb);
 		foreach ($signers as $signRequest) {
-			if (!array_filter($this->signers, fn ($s) => $s->getId() === $signRequest->getId())) {
-				$this->signers[] = $signRequest;
+			if (!isset($this->signers[$signRequest->getId()])) {
+				$this->signers[$signRequest->getId()] = $signRequest;
 			}
 		}
 		return $signers;
@@ -263,8 +320,8 @@ class SignRequestMapper extends QBMapper {
 
 		/** @var SignRequest */
 		$signRequest = $this->findEntity($qb);
-		if (!array_filter($this->signers, fn ($s) => $s->getId() === $signRequest->getId())) {
-			$this->signers[] = $signRequest;
+		if (!isset($this->signers[$signRequest->getId()])) {
+			$this->signers[$signRequest->getId()] = $signRequest;
 		}
 		return $signRequest;
 	}
@@ -301,9 +358,8 @@ class SignRequestMapper extends QBMapper {
 	}
 
 	public function getByFileIdAndSignRequestId(int $fileId, int $signRequestId): SignRequest {
-		$filtered = array_filter($this->signers, fn ($e) => $e->getId() === $signRequestId);
-		if ($filtered) {
-			return current($filtered);
+		if (isset($this->signers[$signRequestId])) {
+			return $this->signers[$signRequestId];
 		}
 		$qb = $this->db->getQueryBuilder();
 
@@ -318,8 +374,8 @@ class SignRequestMapper extends QBMapper {
 			);
 
 		$signRequest = $this->findEntity($qb);
-		if (!array_filter($this->signers, fn ($s) => $s->getId() === $signRequest->getId())) {
-			$this->signers[] = $signRequest;
+		if (!isset($this->signers[$signRequest->getId()])) {
+			$this->signers[$signRequest->getId()] = $signRequest;
 		}
 		/** @var SignRequest */
 		return end($this->signers);

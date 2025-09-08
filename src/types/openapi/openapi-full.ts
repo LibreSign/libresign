@@ -1174,6 +1174,30 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/reminder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get reminder settings
+         * @description This endpoint requires admin access
+         */
+        get: operations["admin-reminder-fetch"];
+        put?: never;
+        /**
+         * Save reminder
+         * @description This endpoint requires admin access
+         */
+        post: operations["admin-reminder-save"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
         parameters: {
             query?: never;
@@ -1375,6 +1399,15 @@ export type components = {
         };
         PublicCapabilities: {
             libresign?: components["schemas"]["Capabilities"];
+        };
+        ReminderSettings: {
+            /** Format: int64 */
+            days_before: number;
+            /** Format: int64 */
+            days_between: number;
+            /** Format: int64 */
+            max: number;
+            send_timer: string;
         };
         RootCertificate: {
             commonName: string;
@@ -5195,6 +5228,94 @@ export interface operations {
                                 status: "failure";
                                 message: string;
                             };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-reminder-fetch": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ReminderSettings"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-reminder-save": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: int64
+                     * @description First reminder after (days)
+                     * @default 1
+                     */
+                    daysBefore?: number;
+                    /**
+                     * Format: int64
+                     * @description Days between reminders
+                     * @default 1
+                     */
+                    daysBetween?: number;
+                    /**
+                     * Format: int64
+                     * @description Max reminders per signer
+                     * @default 5
+                     */
+                    max?: number;
+                    /**
+                     * @description Send time (HH:mm)
+                     * @default 10:00
+                     */
+                    sendTimer?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["ReminderSettings"];
                         };
                     };
                 };
