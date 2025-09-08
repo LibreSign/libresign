@@ -2232,33 +2232,35 @@
                     }
                 ],
                 "requestBody": {
-                    "required": false,
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "type": "object",
+                                "required": [
+                                    "daysBefore",
+                                    "daysBetween",
+                                    "max",
+                                    "sendTimer"
+                                ],
                                 "properties": {
                                     "daysBefore": {
                                         "type": "integer",
                                         "format": "int64",
-                                        "default": 1,
                                         "description": "First reminder after (days)"
                                     },
                                     "daysBetween": {
                                         "type": "integer",
                                         "format": "int64",
-                                        "default": 1,
                                         "description": "Days between reminders"
                                     },
                                     "max": {
                                         "type": "integer",
                                         "format": "int64",
-                                        "default": 5,
                                         "description": "Max reminders per signer"
                                     },
                                     "sendTimer": {
                                         "type": "string",
-                                        "default": "10:00",
                                         "description": "Send time (HH:mm)"
                                     }
                                 }
