@@ -14,7 +14,7 @@ use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\TimedJob;
 use Psr\Log\LoggerInterface;
 
-class SendReminders extends TimedJob {
+class Reminders extends TimedJob {
 	public function __construct(
 		protected ITimeFactory $time,
 		protected LoggerInterface $logger,
