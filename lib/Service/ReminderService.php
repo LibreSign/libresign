@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\BackgroundJob\SendReminders;
+use OCA\Libresign\BackgroundJob\Reminder;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -103,7 +103,7 @@ class ReminderService {
 
 	protected function scheduleJob(string $startTime): void {
 		$this->jobList->remove(
-			SendReminders::class,
+			Reminder::class,
 		);
 
 		$runAfter = $this->getStartTime($startTime);
@@ -112,7 +112,7 @@ class ReminderService {
 		}
 
 		$this->jobList->scheduleAfter(
-			SendReminders::class,
+			Reminder::class,
 			$runAfter->getTimestamp(),
 		);
 	}
