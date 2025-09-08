@@ -15,29 +15,36 @@
 				:size="20" />
 			<div v-if="reminderState">
 				<NcTextField :value.sync="reminderDaysBefore"
-					:label="t('libresign', 'Days before first reminder')"
-					:placeholder="t('libresign', 'Days before first reminder')"
+					:label="t('libresign', 'First reminder after (days)')"
+					:placeholder="t('libresign', 'First reminder after (days)')"
 					type="number"
 					:min="0"
-					:max="maxValue"
 					:step="1"
 					:helper-text="helperTextDaysBefore"
-					:error="reminderDaysBefore > maxValue"
 					:spellcheck="false"
 					:success="displaySuccessReminderDaysBefore"
 					@keydown.enter="save"
 					@blur="save" />
-				<NcTextField :value.sync="reminderRepeatEvery"
-					:label="t('libresign', 'Repeat reminder')"
-					:placeholder="t('libresign', 'Repeat reminder')"
+				<NcTextField :value.sync="reminderDaysBetween"
+					:label="t('libresign', 'Days between reminders')"
+					:placeholder="t('libresign', 'Days between reminders')"
 					type="number"
 					:min="0"
-					:max="maxValue"
 					:step="1"
-					:helper-text="helperTextRepeatEvery"
-					:error="reminderRepeatEvery > maxValue"
+					:helper-text="helperTextDaysBetween"
 					:spellcheck="false"
-					:success="displaySuccessReminderRepeatEvery"
+					:success="displaySuccessReminderDaysBetween"
+					@keydown.enter="save"
+					@blur="save" />
+				<NcTextField :value.sync="reminderMax"
+					:label="t('libresign', 'Max reminders per signer')"
+					:placeholder="t('libresign', 'Max reminders per signer')"
+					type="number"
+					:min="0"
+					:step="1"
+					:helper-text="helperTextMax"
+					:spellcheck="false"
+					:success="displaySuccessReminderMax"
 					@keydown.enter="save"
 					@blur="save" />
 				<NcDateTimePickerNative v-model="reminderSendTimer"
@@ -78,18 +85,22 @@ export default {
 			description: t('libresign', 'Follow up with automatic reminders. Signers will receive reminders until they sign or decline.'),
 			// TRANSLATORS The time that will send a sign reminder to a signer
 			labelReminderSendTimer: t('libresign', 'Send time (HH:mm)'),
+			helperTextDaysBefore: t('libresign', 'The first message is not considered a notification'),
+			helperTextMax: t('libresign', 'Zero or empty is no reminder.'),
 			value: '',
 			reminderDaysBefore: 0,
-			reminderRepeatEvery: 0,
-			reminderSendTimer: null,
 			previousReminderDaysBefore: 0,
-			previousReminderRepeatEvery: 0,
-			previousReminderSendTimer: null,
-			maxValue: 30,
-			reminderState: false,
 			displaySuccessReminderDaysBefore: false,
-			displaySuccessReminderRepeatEvery: false,
+			reminderDaysBetween: 0,
+			previousReminderDaysBetween: 0,
+			displaySuccessReminderDaysBetween: false,
+			reminderSendTimer: null,
+			previousReminderSendTimer: null,
 			displaySuccessReminderSendTimer: false,
+			reminderMax: 5,
+			previousReminderMax: 0,
+			displaySuccessReminderMax: false,
+			reminderState: false,
 			loading: false,
 		}
 	},
@@ -101,25 +112,14 @@ export default {
 				reminderState: this.reminderState ? t('libresign', 'off') : t('libresign', 'on'),
 			})
 		},
-		helperTextDaysBefore() {
-			if (this.reminderDaysBefore > this.maxValue) {
-				return t('libresign', 'The max value is {maxValue}', { maxValue: this.maxValue })
-			}
-			return ''
-		},
-		helperTextRepeatEvery() {
-			if (this.reminderRepeatEvery > this.maxValue) {
-				return t('libresign', 'The max value is {maxValue}', { maxValue: this.maxValue })
-			}
-			return ''
-		},
 	},
 	watch: {
 		reminderState(reminderState) {
 			this.reminderState = reminderState
 			if (!reminderState) {
 				this.reminderDaysBefore = 0
-				this.reminderRepeatEvery = 0
+				this.reminderDaysBetween = 0
+				this.reminderMax = 0
 				this.reminderSendTimer = null
 				this.save()
 			}
@@ -132,64 +132,85 @@ export default {
 		async getData() {
 			this.loading = true
 
-			const reminderDaysBefore = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/reminder_days_before'))
-			this.reminderDaysBefore = parseInt(reminderDaysBefore.data.ocs.data.data) || 0
-			this.previousReminderDaysBefore = this.reminderDaysBefore
+			await axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/reminder'))
+				.then(({ data }) => {
+					const response = data.ocs.data
+					this.reminderDaysBefore = parseInt(response.days_before) || 0
+					this.previousReminderDaysBefore = this.reminderDaysBefore
 
-			const reminderRepeatEvery = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/reminder_repeat_every'))
-			this.reminderRepeatEvery = parseInt(reminderRepeatEvery.data.ocs.data.data) || 0
-			this.previousReminderRepeatEvery = this.reminderRepeatEvery
+					this.reminderDaysBetween = parseInt(response.days_between) || 0
+					this.previousReminderDaysBetween = this.reminderDaysBetween
 
-			const reminderSendTimer = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/reminder_send_timer'))
-			if (reminderSendTimer?.data?.ocs?.data?.data.length > 0) {
-				this.reminderSendTimer = new Date('2022-10-10 ' + reminderSendTimer.data.ocs.data.data)
+					this.reminderMax = parseInt(response.max) || 0
+					this.previousReminderMax = this.reminderMax
+
+					this.setSendTimer(response.send_timer)
+
+					this.reminderState = this.reminderDaysBefore > 0
+						|| this.reminderDaysBetween > 0
+						|| this.max > 0
+
+					this.loading = false
+				})
+				.catch(() => {
+					this.loading = false
+				})
+		},
+		setSendTimer(timer) {
+			if (timer.length > 0) {
+				this.reminderSendTimer = new Date('2022-10-10 ' + timer)
 			} else {
 				this.reminderSendTimer = new Date('2022-10-10 10:00:00')
 			}
 			this.previousReminderSendTimer = this.reminderSendTimer
-
-			this.reminderState = this.reminderDaysBefore > 0 || this.reminderRepeatEvery > 0
-
-			this.loading = false
 		},
 		save: debounce(async function() {
 			this.displaySuccessReminderDaysBefore = false
-			this.displaySuccessReminderRepeatEvery = false
+			this.displaySuccessReminderDaysBetween = false
 			this.displaySuccessReminderSendTimer = false
 
-			if (this.reminderDaysBefore !== this.previousReminderDaysBefore && this.reminderDaysBefore >= 0 && this.reminderDaysBefore <= this.maxValue) {
-				if (this.reminderDaysBefore > 0) {
-					await OCP.AppConfig.setValue('libresign', 'reminder_days_before', parseInt(this.reminderDaysBefore, 10) || 0)
-				} else {
-					await OCP.AppConfig.deleteKey('libresign', 'reminder_days_before')
-				}
-				this.previousReminderDaysBefore = this.reminderDaysBefore
-				this.displaySuccessReminderDaysBefore = true
-				setTimeout(() => { this.displaySuccessReminderDaysBefore = false }, 2000)
-			}
-
-			if (this.reminderRepeatEvery !== this.previousReminderRepeatEvery && this.reminderRepeatEvery >= 0 && this.reminderRepeatEvery <= this.maxValue) {
-				if (this.reminderRepeatEvery > 0) {
-					await OCP.AppConfig.setValue('libresign', 'reminder_repeat_every', parseInt(this.reminderRepeatEvery, 10) || 0)
-				} else {
-					await OCP.AppConfig.deleteKey('libresign', 'reminder_repeat_every')
-				}
-				this.previousReminderRepeatEvery = this.reminderRepeatEvery
-				this.displaySuccessReminderRepeatEvery = true
-				setTimeout(() => { this.displaySuccessReminderRepeatEvery = false }, 2000)
-			}
-
-			if (this.reminderSendTimer !== this.previousReminderSendTimer) {
-				if (this.reminderSendTimer instanceof Date) {
-					await OCP.AppConfig.setValue('libresign', 'reminder_send_timer', this.reminderSendTimer.toISOString().slice(11, 16))
-				} else {
-					await OCP.AppConfig.deleteKey('libresign', 'reminder_send_timer')
-				}
-				this.previousReminderSendTimer = this.reminderSendTimer
-				this.displaySuccessReminderSendTimer = true
-				setTimeout(() => { this.displaySuccessReminderSendTimer = false }, 2000)
-			}
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/reminder'), {
+				daysBefore: parseInt(this.reminderDaysBefore),
+				daysBetween: parseInt(this.reminderDaysBetween),
+				reminderMax: parseInt(this.reminderMax),
+				sendTimer: this.formatHourMinute(this.reminderSendTimer),
+			})
+				.then(({ data }) => {
+					const response = data.ocs.data
+					if (response.days_before !== this.previousReminderDaysBefore) {
+						this.previousReminderDaysBefore = response.days_before
+						this.displaySuccessReminderDaysBefore = true
+						setTimeout(() => { this.displaySuccessReminderDaysBefore = false }, 2000)
+					}
+					if (response.days_between !== this.previousReminderDaysBetween) {
+						this.previousReminderDaysBetween = response.days_between
+						this.displaySuccessReminderDaysBetween = true
+						setTimeout(() => { this.displaySuccessReminderDaysBetween = false }, 2000)
+					}
+					if (response.days_between !== this.previousReminderMax) {
+						this.previousReminderMax = response.days_between
+						this.displaySuccessReminderMax = true
+						setTimeout(() => { this.displaySuccessReminderMax = false }, 2000)
+					}
+					if (response.send_timer !== this.formatHourMinute(this.previousReminderSendTimer)) {
+						this.setSendTimer(response.send_timer)
+						this.displaySuccessReminderSendTimer = true
+						setTimeout(() => { this.displaySuccessReminderSendTimer = false }, 2000)
+					}
+				})
 		}, 1000),
+		formatHourMinute(date) {
+			if (!date) {
+				return ''
+			}
+			const hours = date.getHours()
+			const minutes = date.getMinutes()
+
+			const formattedHours = hours < 10 ? '0' + hours : hours
+			const formattedMinutes = minutes < 10 ? '0' + minutes : minutes
+
+			return `${formattedHours}:${formattedMinutes}`
+		},
 	},
 }
 </script>
@@ -197,10 +218,5 @@ export default {
 .reminders-content{
 	display: flex;
 	flex-direction: column;
-
-	:deep(input) {
-		display: flex;
-		max-width: 200px
-	}
 }
 </style>
