@@ -197,4 +197,58 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 		];
 	}
+
+	#[DataProvider('providerSave')]
+	public function testSave(
+		int $daysBefore,
+		int $daysBetween,
+		int $max,
+		string $sendTimer,
+		array $expected,
+	): void {
+		$service = $this->getService();
+		$actual = $service->save($daysBefore, $daysBetween, $max, $sendTimer);
+		$this->assertEquals($expected, $actual);
+	}
+
+	public static function providerSave(): array {
+		return [
+			[
+				'daysBefore' => 0, 'daysBetween' => 0, 'max' => 0, 'sendTimer' => '',
+				'expected' => ['days_before' => 0, 'days_between' => 0, 'max' => 0, 'send_timer' => ''],
+			],
+			[
+				'daysBefore' => 0, 'daysBetween' => 0, 'max' => 1, 'sendTimer' => '',
+				'expected' => ['days_before' => 0, 'days_between' => 0, 'max' => 0, 'send_timer' => ''],
+			],
+			[
+				'daysBefore' => 0, 'daysBetween' => 1, 'max' => 0, 'sendTimer' => '',
+				'expected' => ['days_before' => 0, 'days_between' => 0, 'max' => 0, 'send_timer' => ''],
+			],
+			[
+				'daysBefore' => 0, 'daysBetween' => 1, 'max' => 1, 'sendTimer' => '',
+				'expected' => ['days_before' => 0, 'days_between' => 0, 'max' => 0, 'send_timer' => ''],
+			],
+			[
+				'daysBefore' => 1, 'daysBetween' => 0, 'max' => 0, 'sendTimer' => '',
+				'expected' => ['days_before' => 0, 'days_between' => 0, 'max' => 0, 'send_timer' => ''],
+			],
+			[
+				'daysBefore' => 1, 'daysBetween' => 1, 'max' => 0, 'sendTimer' => '',
+				'expected' => ['days_before' => 0, 'days_between' => 0, 'max' => 0, 'send_timer' => ''],
+			],
+			[
+				'daysBefore' => 1, 'daysBetween' => 1, 'max' => 1, 'sendTimer' => '',
+				'expected' => ['days_before' => 1, 'days_between' => 1, 'max' => 1, 'send_timer' => '10:00'],
+			],
+			[
+				'daysBefore' => 1, 'daysBetween' => 1, 'max' => 1, 'sendTimer' => '11:05:00',
+				'expected' => ['days_before' => 1, 'days_between' => 1, 'max' => 1, 'send_timer' => '10:00'],
+			],
+			[
+				'daysBefore' => 1, 'daysBetween' => 1, 'max' => 1, 'sendTimer' => '11:05',
+				'expected' => ['days_before' => 1, 'days_between' => 1, 'max' => 1, 'send_timer' => '11:05'],
+			],
+		];
+	}
 }
