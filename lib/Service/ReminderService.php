@@ -43,9 +43,9 @@ class ReminderService {
 		int $max,
 		string $sendTimer,
 	): array {
-		$return = $this->saveConfig($daysBefore, $daysBetween, $max, $sendTimer);
-		$this->scheduleJob($return['send_timer']);
-		return $return;
+		$config = $this->saveConfig($daysBefore, $daysBetween, $max, $sendTimer);
+		$this->scheduleJob($config['send_timer']);
+		return $config;
 	}
 
 	protected function saveConfig(
