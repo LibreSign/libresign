@@ -70,28 +70,12 @@ class ReminderService {
 			];
 		}
 
-		$previous = $this->appConfig->getValueInt(Application::APP_ID, 'reminder_days_before', 0);
-		if ($previous !== $daysBefore) {
-			$this->appConfig->setValueInt(Application::APP_ID, 'reminder_days_before', $daysBefore);
-		}
+		$sendTimer = $this->normalizeTime($sendTimer);
 
-		$previous = $this->appConfig->getValueInt(Application::APP_ID, 'reminder_days_between', 0);
-		if ($previous !== $daysBetween) {
-			$this->appConfig->setValueInt(Application::APP_ID, 'reminder_days_between', $daysBetween);
-		}
-
-		$previous = $this->appConfig->getValueInt(Application::APP_ID, 'reminder_max', 0);
-		if ($previous !== $max) {
-			$this->appConfig->setValueInt(Application::APP_ID, 'reminder_max', $max);
-		}
-
-		$previous = $this->appConfig->getValueString(Application::APP_ID, 'reminder_send_timer', '10:00');
-		if ($previous !== $sendTimer) {
-			if (!$sendTimer || !preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $sendTimer)) {
-				$sendTimer = '10:00';
-			}
-			$this->appConfig->setValueString(Application::APP_ID, 'reminder_send_timer', $sendTimer);
-		}
+		$this->setIfChangedInt('reminder_days_before', $daysBefore);
+		$this->setIfChangedInt('reminder_days_between', $daysBetween);
+		$this->setIfChangedInt('reminder_max', $max);
+		$this->setIfChangedString('reminder_send_timer', $sendTimer);
 
 		return [
 			'days_before' => $daysBefore,
@@ -99,6 +83,27 @@ class ReminderService {
 			'max' => $max,
 			'send_timer' => $sendTimer,
 		];
+	}
+
+	private function normalizeTime(string $time): string {
+		if (!$time || !preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $time)) {
+			return '10:00';
+		}
+		return $time;
+	}
+
+	private function setIfChangedInt(string $key, int $value, int $default = 0): void {
+		$prev = $this->appConfig->getValueInt(Application::APP_ID, $key, $default);
+		if ($prev !== $value) {
+			$this->appConfig->setValueInt(Application::APP_ID, $key, $value);
+		}
+	}
+
+	private function setIfChangedString(string $key, string $value, string $default = ''): void {
+		$prev = $this->appConfig->getValueString(Application::APP_ID, $key, $default);
+		if ($prev !== $value) {
+			$this->appConfig->setValueString(Application::APP_ID, $key, $value);
+		}
 	}
 
 	protected function scheduleJob(string $startTime): void {
