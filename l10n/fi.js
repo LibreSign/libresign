@@ -162,6 +162,7 @@ OC.L10N.register(
     "Created at" : "Luotu",
     "\"{displayName}\" batch action executed successfully" : "\"{displayName}\" massatoiminto suoritettu",
     "(selected)" : "(valittu)",
+    "_{count} selected_::_{count} selected_" : ["{count} valittu","{count} valittu"],
     "Request Signatures" : "Pyydä allekirjoituksia",
     "Password reset" : "Salasanan palautus",
     "Enter new password and then repeat it" : "Kirjoita uusi salasana ja toista se",

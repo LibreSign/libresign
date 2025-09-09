@@ -100,6 +100,7 @@ OC.L10N.register(
     "Remove background" : "Fjern baggrund",
     "Forgot password?" : "Glemt adgangskode?",
     "Name:" : "Navn:",
+    "Status:" : "Status:",
     "No date" : "Ingen dato",
     "Return" : "Aflever"
 },
