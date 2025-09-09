@@ -405,11 +405,18 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 	private function signWrapper(JSignPDF $jSignPDF): string {
 		try {
+			$params = [
+				'--hash-algorithm' => $this->getHashAlgorithm(),
+				'--tsa-server-url' => $this->appConfig->getValueString(Application::APP_ID, 'tsa_url', ''),
+			];
+			if (empty($params['--tsa-server-url'])) {
+				unset($params['--tsa-server-url']);
+			}
 			$param = $this->getJSignParam();
 			$param
 				->setJSignParameters(
 					$this->jSignParam->getJSignParameters()
-					. ' --hash-algorithm ' . $this->getHashAlgorithm()
+					. $this->listParamsToString($params)
 				);
 			$jSignPDF->setParam($param);
 			return $jSignPDF->sign();

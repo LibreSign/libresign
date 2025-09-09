@@ -98,17 +98,26 @@ class Pkcs12Handler extends SignEngineHandler {
 				continue;
 			}
 
-			if (!isset($fromFallback['signingTime'])) {
-				// Probably the best way to do this would be:
-				// ASN1::asn1map($decoded[0], Maps\TheMapName::MAP);
-				// But, what's the MAP to use?
-				//
-				// With maps also could be possible read all certificate data and
-				// maybe discart openssl at  this pint
-				try {
-					$decoded = ASN1::decodeBER($signature);
-					$certificates[$signerCounter]['signingTime'] = $decoded[0]['content'][1]['content'][0]['content'][4]['content'][0]['content'][3]['content'][1]['content'][1]['content'][0]['content'];
-				} catch (\Throwable) {
+			$tsa = new TSA();
+			$decoded = ASN1::decodeBER($signature);
+			try {
+				$certificates[$signerCounter]['timestamp'] = $tsa->extract($decoded);
+			} catch (\Throwable $e) {
+			}
+
+			if (!isset($fromFallback['signingTime']) || !$fromFallback['signingTime'] instanceof \DateTime) {
+				$certificates[$signerCounter]['signingTime'] = $tsa->getSigninTime($decoded);
+				if (!$certificates[$signerCounter]['signingTime'] instanceof \DateTime) {
+					// Probably the best way to do this would be:
+					// ASN1::asn1map($decoded[0], Maps\TheMapName::MAP);
+					// But, what's the MAP to use?
+					//
+					// With maps also could be possible read all certificate data and
+					// maybe discart openssl at  this pint
+					try {
+						$certificates[$signerCounter]['signingTime'] = $decoded[0]['content'][1]['content'][0]['content'][4]['content'][0]['content'][3]['content'][1]['content'][1]['content'][0]['content'];
+					} catch (\Throwable) {
+					}
 				}
 			}
 
