@@ -7,6 +7,7 @@
 
 declare(strict_types=1);
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\ReminderService;
@@ -28,7 +29,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function setUp(): void {
 		$this->jobList = $this->createMock(IJobList::class);
-		$this->appConfig = Server::get(IAppConfig::class);
+		$this->appConfig = $this->getMockAppConfig();
 		$this->dateTimeZone = Server::get(IDateTimeZone::class);
 		$this->time = Server::get(ITimeFactory::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
@@ -209,6 +210,20 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = $this->getService();
 		$actual = $service->save($daysBefore, $daysBetween, $max, $sendTimer);
 		$this->assertEquals($expected, $actual);
+
+		$keys = [
+			'days_before',
+			'days_between',
+			'max',
+		];
+
+		foreach ($keys as $key) {
+			$actualConfig = $this->appConfig->getValueInt(Application::APP_ID, 'reminder_' . $key, $actual[$key]);
+			$this->assertEquals($actual[$key], $actualConfig);
+		}
+
+		$actualConfig = $this->appConfig->getValueString(Application::APP_ID, 'reminder_send_timer', $actual['send_timer']);
+		$this->assertEquals($actual['send_timer'], $actualConfig);
 	}
 
 	public static function providerSave(): array {
