@@ -90,7 +90,7 @@ class TSA {
 				}
 			}
 		}
-		if (!$tstInfoOctets) {
+		if (!isset($tstInfoOctets)) {
 			$tstInfoOctets = $this->findTstInfoOctetsInTree($root);
 			$cnHints = $this->collectCNHints($root);
 		}
@@ -114,38 +114,38 @@ class TSA {
 			if (!is_array($tst)) {
 				$tst = $this->parseTstInfoFallback($tstInfoOctets);
 			}
-		}
 
-		if (is_array($tst)) {
-			$tsa['genTime'] = $tst['genTime'] ?? null;
-			$tsa['policy'] = $tst['policy'] ?? null;
-			$tsa['serialNumber'] = $this->bigToString($tst['serialNumber'] ?? null);
+			if (is_array($tst)) {
+				$tsa['genTime'] = $tst['genTime'] ?? null;
+				$tsa['policy'] = $tst['policy'] ?? null;
+				$tsa['serialNumber'] = $this->bigToString($tst['serialNumber'] ?? null);
 
-			if (!empty($tst['messageImprint'])) {
-				$algOid = $tst['messageImprint']['hashAlgorithm']['algorithm'] ?? null;
-				$tsa['hashAlgorithmOID'] = $algOid;
-				$tsa['hashAlgorithm'] = ASN1::getOID($algOid) ?? $algOid;
-				$hashed = $tst['messageImprint']['hashedMessage'] ?? null;
-				if (is_string($hashed)) {
-					$tsa['hashedMessageHex'] = strtoupper(bin2hex($hashed));
+				if (!empty($tst['messageImprint'])) {
+					$algOid = $tst['messageImprint']['hashAlgorithm']['algorithm'] ?? null;
+					$tsa['hashAlgorithmOID'] = $algOid;
+					$tsa['hashAlgorithm'] = ASN1::getOID($algOid) ?? $algOid;
+					$hashed = $tst['messageImprint']['hashedMessage'] ?? null;
+					if (is_string($hashed)) {
+						$tsa['hashedMessageHex'] = strtoupper(bin2hex($hashed));
+					}
 				}
-			}
-			if (!empty($tst['accuracy'])) {
-				$acc = $tst['accuracy'];
-				$tsa['accuracy'] = [
-					'seconds' => isset($acc['seconds']) ? (int)$this->bigToString($acc['seconds']) : null,
-					'millis' => isset($acc['millis'])  ? (int)$this->bigToString($acc['millis'])  : null,
-					'micros' => isset($acc['micros'])  ? (int)$this->bigToString($acc['micros'])  : null,
-				];
-			}
-			if (array_key_exists('ordering', $tst)) {
-				$tsa['ordering'] = (bool)$tst['ordering'];
-			}
-			if (isset($tst['nonce'])) {
-				$tsa['nonce'] = $this->bigToString($tst['nonce']);
-			}
-			if (isset($tst['tsa'])) {
-				$tsa['tsa'] = $this->extractTsaNameFromAny($tst['tsa']);
+				if (!empty($tst['accuracy'])) {
+					$acc = $tst['accuracy'];
+					$tsa['accuracy'] = [
+						'seconds' => isset($acc['seconds']) ? (int)$this->bigToString($acc['seconds']) : null,
+						'millis' => isset($acc['millis'])  ? (int)$this->bigToString($acc['millis'])  : null,
+						'micros' => isset($acc['micros'])  ? (int)$this->bigToString($acc['micros'])  : null,
+					];
+				}
+				if (array_key_exists('ordering', $tst)) {
+					$tsa['ordering'] = (bool)$tst['ordering'];
+				}
+				if (isset($tst['nonce'])) {
+					$tsa['nonce'] = $this->bigToString($tst['nonce']);
+				}
+				if (isset($tst['tsa'])) {
+					$tsa['tsa'] = $this->extractTsaNameFromAny($tst['tsa']);
+				}
 			}
 		}
 
