@@ -83,7 +83,7 @@ export default {
 		return {
 			name: t('libresign', 'Reminders'),
 			description: t('libresign', 'Follow up with automatic reminders. Signers will receive reminders until they sign or decline.'),
-			// TRANSLATORS The time that will send a sign reminder to a signer
+			// TRANSLATORS The time that a sign reminder will be sent to a signer
 			labelReminderSendTimer: t('libresign', 'Send time (HH:mm)'),
 			helperTextDaysBefore: t('libresign', 'The first message is not considered a notification'),
 			helperTextMax: t('libresign', 'Zero or empty is no reminder.'),
