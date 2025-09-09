@@ -149,10 +149,8 @@ export default {
 					this.reminderState = this.reminderDaysBefore > 0
 						|| this.reminderDaysBetween > 0
 						|| this.max > 0
-
-					this.loading = false
 				})
-				.catch(() => {
+				.finally(() => {
 					this.loading = false
 				})
 		},
