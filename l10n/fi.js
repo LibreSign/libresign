@@ -128,6 +128,7 @@ OC.L10N.register(
     "Status" : "Tila",
     "Actions" : "Toiminnot",
     "Delete certificate" : "Poista varmenne",
+    "Change password" : "Vaihda salasana",
     "Your signatures" : "Omat allekirjoitukset",
     "Signature" : "Allekirjoitus",
     "Initials" : "Nimikirjaimet",
