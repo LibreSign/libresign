@@ -118,6 +118,7 @@ class PdfParserService {
 
 		// The output of this command go to STDERR and shell_exec get the STDOUT
 		// With 2>&1 the STRERR is redirected to STDOUT
+		$pdfinfo = shell_exec('pdfinfo ' . $filename . ' -l -1 2>&1');
 		if (!$pdfinfo) {
 			return [];
 		}
