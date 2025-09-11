@@ -54,6 +54,7 @@ OC.L10N.register(
     "Change password" : "Змяніць пароль",
     "Signature" : "Подпіс",
     "Profile picture" : "Аватар профілю",
+    "Passwords does not match" : "Паролі не супадаюць",
     "Create account" : "Стварыць уліковы запіс",
     "Password" : "Пароль",
     "Password Creation" : "Стварэнне пароля",
