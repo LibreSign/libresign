@@ -151,7 +151,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		$tempFile = $this->tempManager->getTemporaryFile('file.pdf');
 		file_put_contents($tempFile, $content);
 
-		$content = shell_exec('pdfsig ' . $tempFile);
+		$content = shell_exec('env TZ=UTC pdfsig ' . $tempFile);
 		if (empty($content)) {
 			return [];
 		}
