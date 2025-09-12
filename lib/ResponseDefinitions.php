@@ -235,6 +235,12 @@ namespace OCA\Libresign;
  *     starred: 0|1,
  *     createdAt: string,
  * }
+ * @psalm-type LibresignReminderSettings = array{
+ *     days_before: non-negative-int,
+ *     days_between: non-negative-int,
+ *     max: non-negative-int,
+ *     send_timer: string,
+ * }
  * @psalm-type LibresignCapabilities = array{
  *     features: list<string>,
  *     config: array{
