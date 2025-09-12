@@ -151,7 +151,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		$tempFile = $this->tempManager->getTemporaryFile('file.pdf');
 		file_put_contents($tempFile, $content);
 
-		$content = shell_exec('pdfsig ' . $tempFile);
+		$content = shell_exec('env TZ=UTC pdfsig ' . $tempFile);
 		if (empty($content)) {
 			return [];
 		}
@@ -172,7 +172,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			if ($isSecondLevel) {
 				switch ((string)$match['key']) {
 					case 'Signing Time':
-						$this->signaturesFromPoppler[$lastSignature]['signingTime'] = DateTime::createFromFormat('M d Y H:i:s', $match['value']);
+						$this->signaturesFromPoppler[$lastSignature]['signingTime'] = DateTime::createFromFormat('M d Y H:i:s', $match['value'], new \DateTimeZone('UTC'));
 						break;
 					case 'Signer full Distinguished Name':
 						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['subject'] = $this->parseDistinguishedNameWithMultipleValues($match['value']);
