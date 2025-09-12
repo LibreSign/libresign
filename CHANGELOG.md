@@ -23,7 +23,7 @@ Types of changes:
 ### Changes
 - Say hello to Nextcloud 32
 
-## 11.3.2 - 2025-09-12
+## 11.4.0 - 2025-09-12
 ### Features
 - feat: implement reminders to signers [#5434](https://github.com/LibreSign/libresign/pull/5434)
 
@@ -37,7 +37,7 @@ Types of changes:
 - fix: set TZ=UTC for pdfsig [#5427](https://github.com/LibreSign/libresign/pull/5427)
 - fix: use utc as timezone when read data from signed document [#5430](https://github.com/LibreSign/libresign/pull/5430)
 
-## 10.9.2 - 2025-09-12
+## 10.10.0 - 2025-09-12
 ### Features
 - feat: implement reminders to signers [#5433](https://github.com/LibreSign/libresign/pull/5433)
 
