@@ -19,6 +19,38 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 12.0.0-beta.1 - 2025-09-12
+### Changes
+- Say hello to Nextcloud 32
+
+## 11.4.0 - 2025-09-12
+### Features
+- feat: implement reminders to signers [#5434](https://github.com/LibreSign/libresign/pull/5434)
+
+### Changes
+- Update translations
+- chore: add log to make possible debug issues at certificate chain [#5411](https://github.com/LibreSign/libresign/pull/5411)
+
+### Fixes
+- fix: isolate PHP-pdftk dependency [#5413](https://github.com/LibreSign/libresign/pull/5413)
+- fix: prevent error when try to create a folder two times [#5421](https://github.com/LibreSign/libresign/pull/5421)
+- fix: set TZ=UTC for pdfsig [#5427](https://github.com/LibreSign/libresign/pull/5427)
+- fix: use utc as timezone when read data from signed document [#5430](https://github.com/LibreSign/libresign/pull/5430)
+
+## 10.10.0 - 2025-09-12
+### Features
+- feat: implement reminders to signers [#5433](https://github.com/LibreSign/libresign/pull/5433)
+
+### Changes
+- Update translations
+- chore: add log to make possible debug issues at certificate chain [#5410](https://github.com/LibreSign/libresign/pull/5410)
+
+### Fixes
+- fix: isolate PHP-pdftk dependency [#5412](https://github.com/LibreSign/libresign/pull/5412)
+- fix: prevent error when try to create a folder two times [#5420](https://github.com/LibreSign/libresign/pull/5420)
+- fix: set TZ=UTC for pdfsig [#5428](https://github.com/LibreSign/libresign/pull/5428)
+- fix: use utc as timezone when read data from signed document [#5431](https://github.com/LibreSign/libresign/pull/5431)
+
 ## 11.3.2 - 2025-09-02
 ### Changes
 - Update translations
