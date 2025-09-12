@@ -18,6 +18,7 @@ use OCA\Libresign\Service\Certificate\ValidateService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCA\Libresign\Service\Install\InstallService;
+use OCA\Libresign\Service\ReminderService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCP\AppFramework\Http;
@@ -40,6 +41,7 @@ use UnexpectedValueException;
  * @psalm-import-type LibresignCetificateDataGenerated from ResponseDefinitions
  * @psalm-import-type LibresignConfigureCheck from ResponseDefinitions
  * @psalm-import-type LibresignRootCertificate from ResponseDefinitions
+ * @psalm-import-type LibresignReminderSettings from ResponseDefinitions
  */
 class AdminController extends AEnvironmentAwareController {
 	private IEventSource $eventSource;
@@ -56,6 +58,7 @@ class AdminController extends AEnvironmentAwareController {
 		private SignatureBackgroundService $signatureBackgroundService,
 		private CertificatePolicyService $certificatePolicyService,
 		private ValidateService $validateService,
+		private ReminderService $reminderService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->eventSource = $this->eventSourceFactory->create();
@@ -616,5 +619,40 @@ class AdminController extends AEnvironmentAwareController {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
+	}
+
+	/**
+	 * Get reminder settings
+	 *
+	 * @return DataResponse<Http::STATUS_OK, LibresignReminderSettings, array{}>
+	 *
+	 * 200: OK
+	 */
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/reminder', requirements: ['apiVersion' => '(v1)'])]
+	public function reminderFetch(): DataResponse {
+		$response = $this->reminderService->getSettings();
+		return new DataResponse($response);
+	}
+
+	/**
+	 * Save reminder
+	 *
+	 * @param int $daysBefore First reminder after (days)
+	 * @param int $daysBetween Days between reminders
+	 * @param int $max Max reminders per signer
+	 * @param string $sendTimer Send time (HH:mm)
+	 * @return DataResponse<Http::STATUS_OK, LibresignReminderSettings, array{}>
+	 *
+	 * 200: OK
+	 */
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/reminder', requirements: ['apiVersion' => '(v1)'])]
+	public function reminderSave(
+		int $daysBefore,
+		int $daysBetween,
+		int $max,
+		string $sendTimer,
+	): DataResponse {
+		$response = $this->reminderService->save($daysBefore, $daysBetween, $max, $sendTimer);
+		return new DataResponse($response);
 	}
 }

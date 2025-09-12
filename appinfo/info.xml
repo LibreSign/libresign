@@ -50,6 +50,7 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
 		<architecture>aarch64</architecture>
 	</dependencies>
 	<background-jobs>
+		<job>OCA\Libresign\BackgroundJob\Reminder</job>
 		<job>OCA\Libresign\BackgroundJob\UserDeleted</job>
 	</background-jobs>
 	<repair-steps>
