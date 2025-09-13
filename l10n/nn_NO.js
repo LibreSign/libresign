@@ -45,6 +45,7 @@ OC.L10N.register(
     "Current password" : "Passord",
     "New password" : "Nytt passord",
     "Resource" : "Ressurs",
+    "Reminders" : "Påminningar",
     "Yes" : "Ja",
     "No" : "Nei",
     "No date" : "No date"

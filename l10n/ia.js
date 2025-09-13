@@ -33,6 +33,7 @@ OC.L10N.register(
     "Current password" : "Contrasigno actual",
     "New password" : "Nove contrasigno",
     "Resource" : "Ressource",
+    "Reminders" : "Memento",
     "Yes" : "Si",
     "No" : "No",
     "No date" : "No date"

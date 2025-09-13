@@ -94,6 +94,8 @@ OC.L10N.register(
     "Remove" : "Отстрани ",
     "Message" : "Порака",
     "Resource" : "Ресурси",
+    "Reminders" : "Потсетници",
+    "on" : "во",
     "Yes" : "Да",
     "No" : "Не",
     "Reset to default" : "Ресетирај на стандардно",

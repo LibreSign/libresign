@@ -234,6 +234,8 @@ OC.L10N.register(
     "Legal information" : "Información legal",
     "This information will appear on the validation page" : "Esta información aparecerá en la página de validación",
     "Legal Information" : "Información legal",
+    "Reminders" : "Recordatorios",
+    "on" : "el",
     "To generate new signatures, you must first generate the root certificate." : "Para generar nuevas firmas, primero debes generar el certificado raíz.",
     "Generating certificate." : "Generando certificado",
     "Could not generate certificate." : "No se pudo generar el certificado",

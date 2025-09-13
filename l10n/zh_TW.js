@@ -377,6 +377,8 @@ OC.L10N.register(
     "Legal information" : "法律資訊",
     "This information will appear on the validation page" : "此資訊將會顯示在驗證頁面上",
     "Legal Information" : "法律資訊",
+    "Reminders" : "提醒",
+    "on" : "在",
     "Root certificate data" : "根憑證資料",
     "To generate new signatures, you must first generate the root certificate." : "要產生新簽章，您必須先產生根憑證。",
     "Generate root certificate" : "產生根憑證",

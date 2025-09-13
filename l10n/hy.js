@@ -37,6 +37,7 @@ OC.L10N.register(
     "Password reset" : "Վերականգնել գաղտնաբառը",
     "New password" : "Նոր գաղտնաբառ",
     "Resource" : "Ռեսուրս",
+    "Reminders" : "Հիշեցումներ",
     "Yes" : "Yes",
     "No" : "No",
     "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։",

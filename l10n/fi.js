@@ -176,6 +176,8 @@ OC.L10N.register(
     "Dependencies" : "Riippuvuudet",
     "This information will appear on the validation page" : "Tämä tieto näkyy validointisivulla",
     "Legal Information" : "Lainopilliset tiedot",
+    "Reminders" : "Muistutukset",
+    "on" : "päivä",
     "Generating certificate." : "Luodaan varmennetta.",
     "Could not generate certificate." : "Varmennetta ei voitu luoda.",
     "Generated certificate!" : "Varmenne luotu!",

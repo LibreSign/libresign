@@ -309,6 +309,8 @@
     "Legal information" : "Juridisk informasjon",
     "This information will appear on the validation page" : "Denne informasjonen vises på valideringssiden",
     "Legal Information" : "Juridisk informasjon",
+    "Reminders" : "Varsler",
+    "on" : "på",
     "Root certificate data" : "Rotsertifikatdata",
     "To generate new signatures, you must first generate the root certificate." : "Hvis du vil generere nye signaturer, må du først generere rotsertifikatet.",
     "Generate root certificate" : "Generer rotsertifikat",

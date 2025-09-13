@@ -372,6 +372,8 @@
     "Legal information" : "Právní informace",
     "This information will appear on the validation page" : "Tato informace se objeví na stránce ověřování",
     "Legal Information" : "Právní informace",
+    "Reminders" : "Připomínky",
+    "on" : "v",
     "Root certificate data" : "Data kořenového certifikátu",
     "To generate new signatures, you must first generate the root certificate." : "Pro vytváření nových podpisů je třeba nejprve vytvořit kořenový certifikát.",
     "Generate root certificate" : "Vytvořit kořenový certifikát",

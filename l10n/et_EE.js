@@ -203,6 +203,8 @@ OC.L10N.register(
     "Resource" : "Ressurss",
     "Dependencies" : "Sõltuvused",
     "Legal information" : "Juriidiline teave",
+    "Reminders" : "Meelespead",
+    "on" : "ajal",
     "Yes" : "Jah",
     "No" : "Ei",
     "Include certificate policy" : "Kaasa sertifikaadireeglid",

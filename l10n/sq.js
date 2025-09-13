@@ -61,6 +61,7 @@ OC.L10N.register(
     "Message" : "Mesazh",
     "Resource" : "Burim",
     "Dependencies" : "Varësitë",
+    "Reminders" : "Kujtesë",
     "Yes" : "Yes",
     "No" : "Jo",
     "Reset to default" : "Rivendos tek të paracaktuarat",

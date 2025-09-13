@@ -377,6 +377,8 @@ OC.L10N.register(
     "Legal information" : "Правне информације",
     "This information will appear on the validation page" : "Ове информације ће се појавити на страници за потврђивање",
     "Legal Information" : "Правне информације",
+    "Reminders" : "Подсетници",
+    "on" : "дана",
     "Root certificate data" : "Подаци кореног сертификата",
     "To generate new signatures, you must first generate the root certificate." : "Да бисте генерисали нове потписе, најпре морате да генеришете корени сертификат.",
     "Generate root certificate" : "Генериши корени сертификат",

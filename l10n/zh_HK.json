@@ -375,6 +375,8 @@
     "Legal information" : "法律資訊",
     "This information will appear on the validation page" : "此資訊將顯示在驗證頁面上",
     "Legal Information" : "法律資訊",
+    "Reminders" : "提醒",
+    "on" : "在",
     "Root certificate data" : "根證書資料",
     "To generate new signatures, you must first generate the root certificate." : "要生成新簽署，必須首先生成根證書。",
     "Generate root certificate" : "生成根證書",

@@ -308,6 +308,8 @@
     "Legal information" : "Pravne podrobnosti",
     "This information will appear on the validation page" : "Besedilo, ki se prikaže na strani overitve podpisa",
     "Legal Information" : "Pravne podrobnosti",
+    "Reminders" : "Opomniki",
+    "on" : "na",
     "Root certificate data" : "Podatki korenskega potrdila",
     "To generate new signatures, you must first generate the root certificate." : "Za ustvarjanje podpisov je treba najprej ustvariti korensko potrdilo.",
     "Generate root certificate" : "Ustvari korensko potrdilo",
