@@ -141,6 +141,8 @@ OC.L10N.register(
     "Legal information" : "Informatziones legales",
     "This information will appear on the validation page" : "Custas informatziones s'ant a mustrare in sa pàgina de cumbàlida",
     "Legal Information" : "Informatziones legales",
+    "Reminders" : "Promemòrias",
+    "on" : "allutu",
     "To generate new signatures, you must first generate the root certificate." : "Pro generare firmas noas, pro prima cosa depes generare su tzertificadu sorgente.",
     "Generating certificate." : "Generatzione tzertificadu.",
     "Could not generate certificate." : "Generatzione tzertificadu faddida.",

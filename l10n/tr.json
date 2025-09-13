@@ -375,6 +375,8 @@
     "Legal information" : "Yasal bilgiler",
     "This information will appear on the validation page" : "Bu bilgiler doğrulama sayfasında görüntülenir",
     "Legal Information" : "Yasal bilgiler",
+    "Reminders" : "Anımsatıcılar",
+    "on" : "şu gün",
     "Root certificate data" : "Kök sertifika verileri",
     "To generate new signatures, you must first generate the root certificate." : "Yeni imzalar oluşturmak için, öncelikle bir kök sertifika oluşturmalısınız.",
     "Generate root certificate" : "Kök sertifikası oluştur",

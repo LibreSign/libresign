@@ -104,6 +104,8 @@ OC.L10N.register(
     "Message" : "メッセージ",
     "Resource" : "リソース",
     "Dependencies" : "依存関係",
+    "Reminders" : "リマインダー",
+    "on" : "曜日",
     "Yes" : "はい",
     "No" : "いいえ",
     "Reset to default" : "デフォルトに戻す",

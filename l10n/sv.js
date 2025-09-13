@@ -376,6 +376,8 @@ OC.L10N.register(
     "Legal information" : "Juridisk information",
     "This information will appear on the validation page" : "Denna information kommer att visas på valideringssidan",
     "Legal Information" : "Juridisk information",
+    "Reminders" : "Påminnelser",
+    "on" : "den",
     "Root certificate data" : "Rotcertifikatdata",
     "To generate new signatures, you must first generate the root certificate." : "För att generera nya signaturer måste du först generera rotcertifikatet.",
     "Generate root certificate" : "Generera rotcertifikat",

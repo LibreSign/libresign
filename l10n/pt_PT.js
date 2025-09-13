@@ -84,6 +84,8 @@ OC.L10N.register(
     "Message" : "Mensagem",
     "Resource" : "Recurso",
     "Dependencies" : "Dependências",
+    "Reminders" : "Lembretes",
+    "on" : "em",
     "Yes" : "Sim",
     "No" : "Não",
     "Reset to default" : "Repor original",

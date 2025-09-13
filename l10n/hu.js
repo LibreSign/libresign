@@ -264,6 +264,8 @@ OC.L10N.register(
     "Legal information" : "Jogi információk",
     "This information will appear on the validation page" : "Ez az információ csak az ellenőrzési oldalon jelenik meg",
     "Legal Information" : "Jogi információk",
+    "Reminders" : "Emlékeztetők",
+    "on" : "be",
     "To generate new signatures, you must first generate the root certificate." : "Új aláírások létrehozásához először elő kell állítania a gyökértanúsítványt.",
     "Generating certificate." : "Tanúsítvány előállítása.",
     "Could not generate certificate." : "Nem sikerült létrehozni a tanúsítványt.",

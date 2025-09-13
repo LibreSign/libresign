@@ -75,6 +75,7 @@ OC.L10N.register(
     "Message" : "Ziņojums",
     "Resource" : "Resurss",
     "Customize default user folder" : "Pielāgot noklusējuma lietotāja mapi",
+    "Reminders" : "Atgādinājumi",
     "Yes" : "Jā",
     "No" : "Nē",
     "Reset to default" : "Atiestatīt",

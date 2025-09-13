@@ -106,6 +106,8 @@ OC.L10N.register(
     "New password" : "Senhal novèl",
     "Remove" : "Suprimir",
     "Resource" : "Ressorsa",
+    "Reminders" : "Rapèls",
+    "on" : "lo",
     "Generating certificate." : "Generacion del certificat",
     "Generated certificate!" : "Certificat generat !",
     "Yes" : "Òc",

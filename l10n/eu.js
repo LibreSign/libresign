@@ -267,6 +267,8 @@ OC.L10N.register(
     "Legal information" : "Informazio legala",
     "This information will appear on the validation page" : "Informazio hau balidazio orrian agertuko da",
     "Legal Information" : "Informazio legala",
+    "Reminders" : "Gogorarazpenak",
+    "on" : "noiz",
     "To generate new signatures, you must first generate the root certificate." : "Sinadura berriak sortzeko, lehenik root ziurtagiria sortu behar duzu.",
     "Generating certificate." : "Ziurtagiria sortzen.",
     "Could not generate certificate." : "Ezin izan da ziurtagiria sortu.",

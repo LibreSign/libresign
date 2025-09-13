@@ -340,6 +340,8 @@ OC.L10N.register(
     "Legal information" : "Právne informácie",
     "This information will appear on the validation page" : "Tieto informácie sa zobrazia na overovacej stránke",
     "Legal Information" : "Právne informácie",
+    "Reminders" : "Pripomienky",
+    "on" : "o",
     "Root certificate data" : "Dáta koreňového certifikátu",
     "To generate new signatures, you must first generate the root certificate." : "Pre vygenerovanie nových podpisov naprv musíte vygenerovať koreňový certifikát.",
     "Generate root certificate" : "Vygenerovať koreňový certifikát",

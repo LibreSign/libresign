@@ -374,6 +374,8 @@ OC.L10N.register(
     "Legal information" : "Юридична інформація",
     "This information will appear on the validation page" : "Ця інформація з'явиться на сторінці валідації",
     "Legal Information" : "Юридична інформація",
+    "Reminders" : "Нагадування",
+    "on" : "о",
     "Root certificate data" : "Дані кореневого сертифіката",
     "To generate new signatures, you must first generate the root certificate." : "Щоб згенерувати нові підписи, ви повинні спочатку згенерувати кореневий сертифікат.",
     "Generate root certificate" : "Згенеруйте кореневий сертифікат",

@@ -221,6 +221,8 @@ OC.L10N.register(
     "Legal information" : "Juridische informatie",
     "This information will appear on the validation page" : "Deze informatie zal op de validatiepagina zichtbaar zijn",
     "Legal Information" : "Juridische Informatie",
+    "Reminders" : "Herinneringen",
+    "on" : "op",
     "To generate new signatures, you must first generate the root certificate." : "Om nieuwe handtekeningen te genereren, moet je eerst het rootcertificaat genereren.",
     "Generating certificate." : "Genereren certificaat.",
     "Could not generate certificate." : "Kon het certificaat niet genereren.",

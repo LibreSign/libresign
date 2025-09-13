@@ -63,6 +63,7 @@ OC.L10N.register(
     "New password" : "รหัสผ่านใหม่",
     "Remove" : "ลบออก",
     "Resource" : "ทรัพยากร",
+    "Reminders" : "การแจ้งเตือน",
     "Yes" : "ใช่",
     "No" : "ไม่",
     "No date" : "ไม่มีวันที่"
