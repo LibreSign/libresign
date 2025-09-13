@@ -170,7 +170,7 @@ export default {
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/reminder'), {
 				daysBefore: parseInt(this.reminderDaysBefore),
 				daysBetween: parseInt(this.reminderDaysBetween),
-				reminderMax: parseInt(this.reminderMax),
+				max: parseInt(this.reminderMax),
 				sendTimer: this.formatHourMinute(this.reminderSendTimer),
 			})
 				.then(({ data }) => {
