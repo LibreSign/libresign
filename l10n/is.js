@@ -92,6 +92,8 @@ OC.L10N.register(
     "Message" : "Skilaboð",
     "Resource" : "Tilfang",
     "Dependencies" : "Kerfiskröfur",
+    "Reminders" : "Áminningar",
+    "on" : "þann",
     "Yes" : "Já",
     "No" : "Nei",
     "Reset to default" : "Endurstilla á sjálfgefið",

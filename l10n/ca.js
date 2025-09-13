@@ -256,6 +256,8 @@ OC.L10N.register(
     "Legal information" : "Informació legal",
     "This information will appear on the validation page" : "Aquesta informació apareixerà a la pàgina de validació",
     "Legal Information" : "Informació legal",
+    "Reminders" : "Recordatoris",
+    "on" : "a",
     "To generate new signatures, you must first generate the root certificate." : "Per generar noves signatures, primer heu de generar el certificat arrel.",
     "Generating certificate." : "S’estan generant el certificat.",
     "Could not generate certificate." : "No s'ha pogut generar el certificat.",

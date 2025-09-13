@@ -159,6 +159,8 @@ OC.L10N.register(
     "Dependencies" : "Priklausomybės",
     "Legal information" : "Teisinė informacija",
     "Legal Information" : "Teisinė informacija",
+    "Reminders" : "Priminimai",
+    "on" : "šiomis dienomis",
     "Yes" : "Taip",
     "No" : "Ne",
     "Reset to default" : "Atstatyti į numatytąjį",

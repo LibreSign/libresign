@@ -79,6 +79,8 @@ OC.L10N.register(
     "New password" : "Nenosiri jipya",
     "Remove" : "Ondoa",
     "Message" : "Message",
+    "Reminders" : "Vikumbusho",
+    "on" : "Juu ya",
     "Yes" : "Ndiyo",
     "No" : "Hapana",
     "Reset to default" : "Weka upya chaguo msingi",

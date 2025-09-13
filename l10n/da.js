@@ -94,6 +94,8 @@ OC.L10N.register(
     "Message" : "Besked",
     "Resource" : "Ressource",
     "Dependencies" : "Afhængigheder",
+    "Reminders" : "Påmindelser",
+    "on" : "på",
     "Yes" : "Ja",
     "No" : "Nej",
     "Reset to default" : "Nulstil",

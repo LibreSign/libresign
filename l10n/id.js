@@ -96,6 +96,8 @@ OC.L10N.register(
     "Remove" : "Hapus",
     "Message" : "Pesan",
     "Dependencies" : "Ketergantungan",
+    "Reminders" : "Pengingat",
+    "on" : "pada",
     "Yes" : "Ya",
     "No" : "Tidak",
     "No date" : "No date"

@@ -82,6 +82,8 @@ OC.L10N.register(
     "Remove" : "Xoá",
     "Resource" : "Tài nguyên",
     "Dependencies" : "Các phụ thuộc",
+    "Reminders" : "Nhắc nhở",
+    "on" : "trên",
     "Yes" : "Có",
     "No" : "Không",
     "Reset to default" : "Đặt lại về mặc định",

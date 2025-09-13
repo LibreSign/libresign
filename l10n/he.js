@@ -73,6 +73,8 @@ OC.L10N.register(
     "Message" : "הודעה",
     "Resource" : "משאב",
     "Dependencies" : "תלויות",
+    "Reminders" : "תזכורות",
+    "on" : "על",
     "Yes" : "כן",
     "No" : "לא",
     "Reset to default" : "איפוס לבררת מחדל",

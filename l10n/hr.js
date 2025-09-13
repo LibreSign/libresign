@@ -184,6 +184,8 @@ OC.L10N.register(
     "Legal information" : "Pravne informacije",
     "This information will appear on the validation page" : "Ove će se informacije prikazati na stranici za potvrdu valjanosti",
     "Legal Information" : "Pravne informacije",
+    "Reminders" : "Podsjetnici",
+    "on" : "na",
     "To generate new signatures, you must first generate the root certificate." : "Kako biste generirali nove potpise, prvo morate generirati korijensku vjerodajnicu.",
     "Generating certificate." : "Generiranje vjerodajnice.",
     "Could not generate certificate." : "Generiranje vjerodajnice nije uspjelo.",

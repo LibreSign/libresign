@@ -377,6 +377,8 @@ OC.L10N.register(
     "Legal information" : "Rechtliche Informationen",
     "This information will appear on the validation page" : "Diese Informationen werden auf der Überprüfungsseite angezeigt",
     "Legal Information" : "Rechtliche Informationen",
+    "Reminders" : "Erinnerungen",
+    "on" : "am",
     "Root certificate data" : "Daten für Root-Zertifikat",
     "To generate new signatures, you must first generate the root certificate." : "Um neue Signaturen zu erzeugen, musst du zunächst das Stammzertifikat erzeugen.",
     "Generate root certificate" : "Root-Zertifikat erstellen",

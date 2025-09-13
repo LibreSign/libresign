@@ -70,6 +70,7 @@ OC.L10N.register(
     "Message" : "Mesaĝo",
     "Resource" : "Risurco",
     "Dependencies" : "Dependecoj",
+    "Reminders" : "Memorigoj",
     "Yes" : "Yes",
     "No" : "No",
     "Reset to default" : "Restarigi al defaŭltaj agordoj",

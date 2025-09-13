@@ -55,6 +55,7 @@ OC.L10N.register(
     "Message" : "წერილი",
     "Resource" : "რესურსი",
     "Dependencies" : "დამოკიდებულებები",
+    "Reminders" : "შემახსენებლები",
     "Yes" : "კი",
     "No" : "არა",
     "Reset to default" : "საწყის მდგომარეობაში დაბრუნება",

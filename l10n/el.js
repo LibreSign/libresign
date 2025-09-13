@@ -114,6 +114,8 @@ OC.L10N.register(
     "Message" : "Μήνυμα",
     "Resource" : "Πόρος",
     "Dependencies" : "Εξαρτήσεις",
+    "Reminders" : "Υπενθυμίσεις",
+    "on" : "σε",
     "CFSSL API URI" : "CFSSL API URI",
     "Yes" : "Ναι",
     "No" : "Όχι",

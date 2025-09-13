@@ -83,6 +83,8 @@ OC.L10N.register(
     "Message" : "Mesaj",
     "Resource" : "Resursă",
     "Dependencies" : "Dependențe",
+    "Reminders" : "Mementouri",
+    "on" : "pe",
     "Yes" : "a",
     "No" : "Nu",
     "Name:" : "Nume:",
