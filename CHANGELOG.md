@@ -19,6 +19,31 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 12.0.0-beta.2 - 2025-09-13
+### Changes
+- Update translations
+- Bump dependencies
+
+### Fixes
+- fix: typo [#5444](https://github.com/LibreSign/libresign/pull/5444)
+
+## 11.4.1 - 2025-09-13
+### Changes
+- Update translations
+- Bump dependencies
+
+### Fixes
+- fix: typo [#5443](https://github.com/LibreSign/libresign/pull/5443)
+
+## 10.10.1 - 2025-09-13
+### Changes
+- Update translations
+- Bump dependencies
+
+### Fixes
+- fix: typo [#5442](https://github.com/LibreSign/libresign/pull/5442)
+
+
 ## 12.0.0-beta.1 - 2025-09-12
 ### Changes
 - Say hello to Nextcloud 32
