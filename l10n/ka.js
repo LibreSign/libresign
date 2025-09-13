@@ -81,6 +81,8 @@ OC.L10N.register(
     "Remove" : "Remove",
     "Message" : "Message",
     "Dependencies" : "Dependencies",
+    "Reminders" : "Reminders",
+    "on" : "on",
     "Yes" : "Yes",
     "No" : "No",
     "Reset to default" : "Reset to default",

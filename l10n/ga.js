@@ -377,6 +377,8 @@ OC.L10N.register(
     "Legal information" : "Eolas dlíthiúil",
     "This information will appear on the validation page" : "Beidh an fhaisnéis seo le feiceáil ar an leathanach bailíochtaithe",
     "Legal Information" : "Eolas Dlí",
+    "Reminders" : "Meabhrúcháin",
+    "on" : "ar",
     "Root certificate data" : "Sonraí deimhnithe root",
     "To generate new signatures, you must first generate the root certificate." : "Chun sínithe nua a ghiniúint, ní mór duit an teastas fréimhe a ghiniúint ar dtús.",
     "Generate root certificate" : "Gin teastas fréimhe",

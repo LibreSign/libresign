@@ -40,6 +40,8 @@ OC.L10N.register(
     "New password" : "Cyfrinair newydd",
     "Resource" : "Adnodd",
     "Dependencies" : "Dibyniaethau",
+    "Reminders" : "Nodau atgoffa",
+    "on" : "ar",
     "Yes" : "Iawn",
     "No" : "No",
     "Forgot password?" : "Anghofio cyfrinair?",

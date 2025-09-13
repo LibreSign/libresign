@@ -209,6 +209,8 @@
     "Legal information" : "법률 정보",
     "This information will appear on the validation page" : "이 정보는 유효성 확인 페이지에 나타납니다.",
     "Legal Information" : "법률 정보",
+    "Reminders" : "알림",
+    "on" : "다음 시간/위치에: ",
     "To generate new signatures, you must first generate the root certificate." : "새 서명을 생성하려면 먼저 루트 인증서를 생성해야 합니다.",
     "Generating certificate." : "인증서를 생성하는 중입니다.",
     "Could not generate certificate." : "인증서를 생성할 수 없습니다.",
