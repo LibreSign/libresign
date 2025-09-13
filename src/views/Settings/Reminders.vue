@@ -31,7 +31,6 @@
 					type="number"
 					:min="0"
 					:step="1"
-					:helper-text="helperTextDaysBetween"
 					:spellcheck="false"
 					:success="displaySuccessReminderDaysBetween"
 					@keydown.enter="save"
@@ -170,7 +169,7 @@ export default {
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/reminder'), {
 				daysBefore: parseInt(this.reminderDaysBefore),
 				daysBetween: parseInt(this.reminderDaysBetween),
-				reminderMax: parseInt(this.reminderMax),
+				max: parseInt(this.reminderMax),
 				sendTimer: this.formatHourMinute(this.reminderSendTimer),
 			})
 				.then(({ data }) => {
