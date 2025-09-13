@@ -31,7 +31,6 @@
 					type="number"
 					:min="0"
 					:step="1"
-					:helper-text="helperTextDaysBetween"
 					:spellcheck="false"
 					:success="displaySuccessReminderDaysBetween"
 					@keydown.enter="save"
