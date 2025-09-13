@@ -19,6 +19,14 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 10.10.1 - 2025-09-13
+### Changes
+- Update translations
+- Bump dependencies
+
+### Fixes
+- fix: typo [#5442](https://github.com/LibreSign/libresign/pull/5442)
+
 ## 10.10.0 - 2025-09-12
 ### Features
 - feat: implement reminders to signers [#5433](https://github.com/LibreSign/libresign/pull/5433)
