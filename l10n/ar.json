@@ -338,6 +338,8 @@
     "Legal information" : "المعلومات القانونية",
     "This information will appear on the validation page" : "سوف تظهر هذه المعلومات على صفحة التحقق من الصحة",
     "Legal Information" : "المعلومات القانونية",
+    "Reminders" : "تذكيرات",
+    "on" : "في",
     "Root certificate data" : "بيانات شهادة المصادقة الجذرية",
     "To generate new signatures, you must first generate the root certificate." : "لإنشاء توقيعات جديدة ، يجب أولاً إنشاء شهادة الدليل الأساسي.",
     "Generate root certificate" : "توليد شهادة مصادقة جذرية",
