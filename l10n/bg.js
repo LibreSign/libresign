@@ -244,6 +244,7 @@ OC.L10N.register(
     "This information will appear on the validation page" : "Тази информация ще се появи на страницата за проверка",
     "Legal Information" : "Правна информация",
     "Reminders" : "Напомняния",
+    "on" : "на",
     "To generate new signatures, you must first generate the root certificate." : "За да генерирате нови подписи, първо трябва да генерирате основния сертификат.",
     "Generating certificate." : "Генериране на сертификат.",
     "Could not generate certificate." : "Неуспешно генериране на сертификат.",
