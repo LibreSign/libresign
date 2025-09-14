@@ -89,6 +89,7 @@ OC.L10N.register(
     "Message" : "Mensaxe",
     "Dependencies" : "Dependencies",
     "Legal information" : "Información llegal",
+    "Reminders" : "Recordatorios",
     "Yes" : "Sí",
     "No" : "Non",
     "Reset to default" : "Reafitar los valores",
