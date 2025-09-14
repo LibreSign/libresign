@@ -365,7 +365,7 @@ class ConfigureCheckService {
 		}
 		return [
 			'Invalid hash of binaries files.',
-			'Check your nextcloud.log file an run occ libresign:install --all',
+			'Check your nextcloud.log file and run occ libresign:install --all',
 		];
 	}
 
