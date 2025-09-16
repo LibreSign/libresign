@@ -377,7 +377,7 @@
     "Legal Information" : "Rechtliche Informationen",
     "Reminders" : "Erinnerungen",
     "Follow up with automatic reminders. Signers will receive reminders until they sign or decline." : "Dranbleiben mit automatischen Erinnerungen. Unterzeichner erhalten Erinnerungen, bis sie unterschreiben oder ablehnen.",
-    "Send time (HH:mm)" : "Sendezeit  (HH:mm)",
+    "Send time (HH:mm)" : "Sendezeit (HH:mm)",
     "The first message is not considered a notification" : "Die erste Nachricht gilt nicht als Benachrichtigung",
     "Zero or empty is no reminder." : "Null oder lehr bedeutet keine Erinnerung.",
     "off" : "Aus",
