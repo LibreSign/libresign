@@ -16,8 +16,6 @@ export default {
 			identificationDocumentsFlow: false,
 			isApprover: false,
 			phoneNumber: '',
-			grid_view: false,
-
 		},
 		...(libresignState?.settings || {}),
 	},
