@@ -154,8 +154,6 @@ export default {
 			this.filesStore.updateAllFiles()
 		},
 		toggleGridView() {
-			console.log('Toggling grid view')
-			console.log(this.userConfigStore)
 			this.userConfigStore.update('grid_view', !this.userConfigStore.grid_view)
 		},
 		closeSidebar() {
