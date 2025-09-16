@@ -233,9 +233,13 @@ class AccountService {
 		$info['hasSignatureFile'] = $this->hasSignatureFile($user);
 		$info['phoneNumber'] = $this->getPhoneNumber($user);
 		$info['isApprover'] = $this->validateHelper->userCanApproveValidationDocuments($user, false);
-		$info['grid_view'] = $this->appConfig->getValueBool(Application::APP_ID, 'grid_view', false);
+		//$info['grid_view'] = $this->appConfig->getValueBool(Application::APP_ID, 'grid_view', false);
+		$info['grid_view'] = $this->config->getUserValue($user->getUID(), Application::APP_ID, 'grid_view', false) === '1';
+
 		return $info;
 	}
+
+
 
 	private function getPhoneNumber(?IUser $user): string {
 		if (!$user) {

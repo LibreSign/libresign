@@ -32,6 +32,7 @@ use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\UseSession;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -62,6 +63,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		protected IUserSession $userSession,
 		protected SessionService $sessionService,
 		private ValidateHelper $validateHelper,
+		private IConfig $config,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -517,5 +519,44 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 			$data,
 			Http::STATUS_ACCEPTED
 		);
+	}
+
+	/**
+	 * Set user config value
+	 *
+	 * @param string $key Config key
+	 * @param mixed $value Config value
+	 * @return DataResponse<Http::STATUS_OK, array{key: string, value: mixed}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 *
+	 * 200: Config updated
+	 * 400: Error updating config
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'PUT', url: '/api/{apiVersion}/account/config/{key}', requirements: ['apiVersion' => '(v1)'])]
+	public function setConfig(string $key): DataResponse {
+		try {
+			$user = $this->userSession->getUser();
+			if (!$user) {
+				throw new \Exception('User not authenticated');
+			}
+			$data = $this->request->getParams();
+			$value = $data['value'] ?? null;
+
+			if (is_bool($value)) {
+				$value = $value ? '1' : '0';
+			}
+
+			$this->config->setUserValue($user->getUID(), Application::APP_ID, $key, $value);
+
+			return new DataResponse([
+				'key' => $key,
+				'value' => $value,
+			], Http::STATUS_OK);
+		} catch (\Throwable $e) {
+			return new DataResponse([
+				'message' => $e->getMessage(),
+			], Http::STATUS_BAD_REQUEST);
+		}
 	}
 }
