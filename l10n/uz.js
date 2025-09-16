@@ -13,6 +13,7 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "PHP kengaytmasi faylni yuklashni to'xtatdi",
     "Internal Server Error" : "Serverdagi ichki xatolik",
     "File is too big" : "File is too big",
+    "View" : "Ko'rish",
     "File not found" : "File not found",
     "Invalid file provided" : "Invalid file provided",
     "Account" : "Akkaunt",
