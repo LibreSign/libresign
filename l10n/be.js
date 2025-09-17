@@ -42,6 +42,7 @@ OC.L10N.register(
     "Sign" : "Знак",
     "Confirm" : "Пацвердзіць",
     "Open file" : "Адкрыць файл",
+    "Administration" : "Адміністратар",
     "pending" : "у чаканні",
     "Details" : "Падрабязнасці",
     "Certificate" : "Сертыфікат",
