@@ -233,8 +233,7 @@ class AccountService {
 		$info['hasSignatureFile'] = $this->hasSignatureFile($user);
 		$info['phoneNumber'] = $this->getPhoneNumber($user);
 		$info['isApprover'] = $this->validateHelper->userCanApproveValidationDocuments($user, false);
-		//$info['grid_view'] = $this->appConfig->getValueBool(Application::APP_ID, 'grid_view', false);
-		$info['grid_view'] = $this->config->getUserValue($user->getUID(), Application::APP_ID, 'grid_view', false) === '1';
+		$info['grid_view'] = $this->getUserConfigGridView($user);
 
 		return $info;
 	}
@@ -259,6 +258,14 @@ class AccountService {
 		} catch (LibresignException) {
 			return false;
 		}
+	}
+
+	private function getUserConfigGridView(?IUser $user = null): bool {
+		if (!$user) {
+			return false;
+		}
+
+		return $this->config->getUserValue($user->getUID(), Application::APP_ID, 'grid_view', false) === '1';
 	}
 
 	/**
