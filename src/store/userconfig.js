@@ -4,15 +4,25 @@
  */
 
 import { defineStore } from 'pinia'
-import { set } from 'vue'
+import { loadState } from '@nextcloud/initial-state'
+import { generateOcsUrl } from '@nextcloud/router'
+import axios from '@nextcloud/axios'
 
 export const useUserConfigStore = defineStore('userconfig', {
-	state: () => ({
-		grid_view: true,
-	}),
-	actions: {
-		async update(key, value) {
-			set(this, key, value)
-		},
-	},
+    state: () => ({
+        grid_view: loadState('libresign', 'config', { grid_view: false }).grid_view,
+    }),
+    actions: {
+        onUpdate(key, value) {
+            this[key] = value
+        },
+
+        async update(key, value) {
+            this.onUpdate(key, value)
+
+            await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key }), {
+                value,
+            })
+        },
+    },
 })
