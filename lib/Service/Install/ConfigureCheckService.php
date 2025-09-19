@@ -15,7 +15,9 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Helper\JavaHelper;
+use OCP\App\IAppManager;
 use OCP\IAppConfig;
+use OCP\IURLGenerator;
 use Psr\Log\LoggerInterface;
 
 class ConfigureCheckService {
@@ -26,6 +28,8 @@ class ConfigureCheckService {
 		private IAppConfig $appConfig,
 		private SystemConfig $systemConfig,
 		private AppConfig $ocAppConfig,
+		protected IAppManager $appManager,
+		protected IURLGenerator $urlGenerator,
 		private JSignPdfHandler $jSignPdfHandler,
 		private CertificateEngineFactory $certificateEngineFactory,
 		private SignSetupService $signSetupService,
@@ -351,9 +355,17 @@ class ConfigureCheckService {
 			}
 		}
 		$this->logger->error('Invalid hash of binaries files', ['result' => $result]);
+		if ($this->appManager->isEnabledForUser('logreader')) {
+			return [
+				'Invalid hash of binaries files.',
+				'Check your nextcloud.log file on '
+				. $this->urlGenerator->linkToRouteAbsolute('settings.adminsettings.form', ['section' => 'logging'])
+				. ' and run occ libresign:install --all',
+			];
+		}
 		return [
 			'Invalid hash of binaries files.',
-			'Check your nextcloud.log file an run occ libresign:install --all',
+			'Check your nextcloud.log file and run occ libresign:install --all',
 		];
 	}
 
