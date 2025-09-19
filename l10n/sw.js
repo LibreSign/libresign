@@ -76,6 +76,7 @@ OC.L10N.register(
     "(selected)" : "(iliyochaguliwa)",
     "_{count} selected_::_{count} selected_" : ["{count} selected","{count} selected"],
     "Password reset" : "Uwekaji mpya wa nenosiri",
+    "Current password" : "Current password",
     "New password" : "Nenosiri jipya",
     "Remove" : "Ondoa",
     "Message" : "Message",
