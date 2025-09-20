@@ -176,6 +176,7 @@
     "Document already signed" : "O documento xa está asinado",
     "Sending authorization code not enabled." : "O envío do código de autorización non está activado.",
     "File already signed by you" : "Ficheiro xa asinado por Vde.",
+    "Invalid template font size. The value must be between %.1f and %.0f." : "O tamaño da letra do modelo non é válido. O valor debe estar entre %.1f e %.0f.",
     "Invalid PDF" : "O PDF non é válido",
     "LibreSign" : "LibreSign",
     "✍️ Self-hosted document signer using digital certificate" : "✍️ Asinante de documentos en aloxamento propio empregando certificado dixital",

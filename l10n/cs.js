@@ -377,6 +377,7 @@ OC.L10N.register(
     "This information will appear on the validation page" : "Tato informace se objeví na stránce ověřování",
     "Legal Information" : "Právní informace",
     "Reminders" : "Připomínky",
+    "Follow up with automatic reminders. Signers will receive reminders until they sign or decline." : "Následovat automatickými připomínkami. Podepisující budou dostávat připomínky dokud nepodepíší nebo neodmítnou.",
     "Send time (HH:mm)" : "Okamžik odeslání (HH:mm)",
     "The first message is not considered a notification" : "První zpráva není považována za upozornění",
     "Zero or empty is no reminder." : "Nula nebo prázdné znamená žádná připomínka.",

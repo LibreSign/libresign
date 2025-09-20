@@ -51,6 +51,7 @@ OC.L10N.register(
     "Status" : "Wadhifa",
     "Actions" : "Utendekaji",
     "Signature" : "Saini",
+    "Create account" : "Tengeneza akaunti",
     "Password" : "Nenosiri",
     "Enter a password" : "Ingiza nenosiri",
     "Page not found" : "Ukurasa haupatikani",
