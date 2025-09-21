@@ -89,6 +89,7 @@ OC.L10N.register(
     "Remove background" : "Remove background",
     "Forgot password?" : "Umesahau nenosiri",
     "Name:" : "Jina:",
+    "Status:" : "Status:",
     "Return" : "Rudi"
 },
 "nplurals=2; plural=(n != 1);");
