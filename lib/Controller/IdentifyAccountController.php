@@ -56,15 +56,12 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 	#[RequireManager]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/identify-account/search', requirements: ['apiVersion' => '(v1)'])]
 	public function search(string $search = '', int $page = 1, int $limit = 25): DataResponse {
-		$shareTypes = $this->getShareTypes();
-		$lookup = false;
-
-		// only search for string larger than a given threshold
-		$threshold = 1;
-		if (strlen($search) < $threshold) {
+		// only search for string larger than a minimum length
+		if (strlen($search) < 1) {
 			return new DataResponse();
 		}
 
+		$lookup = false;
 		$offset = $limit * ($page - 1);
 		[$result] = $this->collaboratorSearch->search($search, $shareTypes, $lookup, $limit, $offset);
 		$result['exact'] = $this->unifyResult($result['exact']);
