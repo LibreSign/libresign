@@ -5509,6 +5509,15 @@
                         }
                     },
                     {
+                        "name": "method",
+                        "in": "query",
+                        "description": "filter by method (email, account, sms, signal, telegram, whatsapp, xmpp)",
+                        "schema": {
+                            "type": "string",
+                            "default": ""
+                        }
+                    },
+                    {
                         "name": "page",
                         "in": "query",
                         "description": "the number of page to return. Default: 1",
@@ -7330,7 +7339,7 @@
                                     "signMethod": {
                                         "type": "string",
                                         "nullable": true,
-                                        "description": "Method used to sign the document, i.e. emailToken, account, clickToSign"
+                                        "description": "Method used to sign the document, i.e. emailToken, account, clickToSign, sms, signal, telegram, whatsapp, xmpp"
                                     },
                                     "identify": {
                                         "type": "string",
@@ -7490,7 +7499,7 @@
                                     "signMethod": {
                                         "type": "string",
                                         "nullable": true,
-                                        "description": "Method used to sign the document, i.e. emailToken, account, clickToSign"
+                                        "description": "Method used to sign the document, i.e. emailToken, account, clickToSign, sms, signal, telegram, whatsapp, xmpp"
                                     },
                                     "identify": {
                                         "type": "string",
