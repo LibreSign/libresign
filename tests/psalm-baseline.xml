@@ -133,6 +133,21 @@
       <code><![CDATA[private]]></code>
     </UndefinedClass>
   </file>
+  <file src="lib/Service/IdentifyMethod/SignatureMethod/TokenService.php">
+    <UndefinedDocblockClass>
+      <code><![CDATA[$gateway]]></code>
+      <code><![CDATA[\OCA\TwoFactorGateway\Provider\Gateway\IGateway]]></code>
+    </UndefinedDocblockClass>
+  </file>
+  <file src="lib/Service/IdentifyMethod/TwofactorGateway.php">
+    <UndefinedClass>
+      <code><![CDATA[Factory]]></code>
+    </UndefinedClass>
+    <UndefinedDocblockClass>
+      <code><![CDATA[$gatewayFactory]]></code>
+      <code><![CDATA[$gatewayFactory]]></code>
+    </UndefinedDocblockClass>
+  </file>
   <file src="lib/Service/Install/InstallService.php">
     <UndefinedClass>
       <code><![CDATA[Process]]></code>
