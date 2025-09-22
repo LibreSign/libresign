@@ -73,4 +73,63 @@ class IdentifyMethodMapper extends QBMapper {
 			$update->executeStatement();
 		}
 	}
+
+	public function searchByIdentifierValue(string $search, string $userId, string $method, int $limit = 20, int $offset = 0): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$latestQb = $this->db->getQueryBuilder();
+		$latestQb->select('im2.identifier_key')
+			->addSelect('im2.identifier_value')
+			->addSelect($latestQb->func()->max('sr2.created_at', 'created_at'))
+			->from('libresign_identify_method', 'im2')
+			->join('im2', 'libresign_sign_request', 'sr2',
+				$latestQb->expr()->eq('sr2.id', 'im2.sign_request_id')
+			)
+			->join('im2', 'libresign_file', 'f2',
+				$latestQb->expr()->eq('f2.id', 'sr2.file_id')
+			)
+			->where($latestQb->expr()->eq('f2.user_id', $latestQb->createNamedParameter($userId)));
+		if (!empty($method)) {
+			$latestQb->andWhere($latestQb->expr()->eq('im2.identifier_key', $latestQb->createNamedParameter($method)));
+		}
+		$latestQb->andWhere(
+				$latestQb->expr()->orX(
+					$latestQb->expr()->iLike(
+						'im2.identifier_value',
+						$latestQb->createNamedParameter('%' . $this->db->escapeLikeParameter($search) . '%')
+					),
+					$latestQb->expr()->iLike(
+						'sr2.display_name',
+						$latestQb->createNamedParameter('%' . $this->db->escapeLikeParameter($search) . '%')
+					)
+				)
+			)
+			->groupBy('im2.identifier_key')
+			->addGroupBy('im2.identifier_value');
+
+		foreach ($latestQb->getParameters() as $name => $value) {
+			$qb->setParameter($name, $value);
+		}
+
+		$qb->select('im.identifier_key', 'im.identifier_value', 'sr.display_name')
+			->from('libresign_identify_method', 'im')
+			->join('im', $qb->createFunction('(' . $latestQb->getSQL() . ')'), 'latest',
+				$qb->expr()->andX(
+					$qb->expr()->eq('latest.identifier_key', 'im.identifier_key'),
+					$qb->expr()->eq('latest.identifier_value', 'im.identifier_value')
+				)
+			)
+			->join('im', 'libresign_sign_request', 'sr',
+				$qb->expr()->eq('sr.id', 'im.sign_request_id'),
+			)
+			->setMaxResults($limit)
+			->setFirstResult($offset);
+
+		$cursor = $qb->executeQuery();
+		$return = [];
+		while ($row = $cursor->fetch()) {
+			$return[] = $row;
+		}
+		return $return;
+	}
 }
