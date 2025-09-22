@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Collaboration\Collaborators\SignerPlugin;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdentifyMethod\Account;
@@ -55,14 +56,17 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[RequireManager]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/identify-account/search', requirements: ['apiVersion' => '(v1)'])]
-	public function search(string $search = '', int $page = 1, int $limit = 25): DataResponse {
+	public function search(string $search = '', string $method = '', int $page = 1, int $limit = 25): DataResponse {
 		// only search for string larger than a minimum length
 		if (strlen($search) < 1) {
 			return new DataResponse();
 		}
 
+		$shareTypes = $this->getShareTypes();
 		$lookup = false;
+
 		$offset = $limit * ($page - 1);
+		$this->registerPlugin($method);
 		[$result] = $this->collaboratorSearch->search($search, $shareTypes, $lookup, $limit, $offset);
 		$result['exact'] = $this->unifyResult($result['exact']);
 		$result = $this->unifyResult($result);
@@ -73,6 +77,19 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 		$return = $this->excludeNotAllowed($return);
 
 		return new DataResponse($return);
+	}
+
+	private function registerPlugin(string $method): void {
+		SignerPlugin::setMethod($method);
+
+		$refObject = new \ReflectionObject($this->collaboratorSearch);
+		$refProperty = $refObject->getProperty('pluginList');
+		$refProperty->setAccessible(true);
+
+		$plugins = $refProperty->getValue($this->collaboratorSearch);
+		$plugins[SignerPlugin::TYPE_SIGNER] = [SignerPlugin::class];
+
+		$refProperty->setValue($this->collaboratorSearch, $plugins);
 	}
 
 	private function getShareTypes(): array {
@@ -87,6 +104,8 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 		if ($settings['enabled']) {
 			$this->shareTypes[] = IShare::TYPE_USER;
 		}
+
+		$this->shareTypes[] = SignerPlugin::TYPE_SIGNER;
 		return $this->shareTypes;
 	}
 
@@ -106,21 +125,33 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 	}
 
 	private function formatForNcSelect(array $list): array {
+		$return = [];
 		foreach ($list as $key => $item) {
-			$list[$key] = [
+			$return[$key] = [
 				'id' => $item['value']['shareWith'],
 				'isNoUser' => $item['value']['shareType'] !== IShare::TYPE_USER,
 				'displayName' => $item['label'],
 				'subname' => $item['shareWithDisplayNameUnique'] ?? '',
-				'shareType' => $item['value']['shareType'],
 			];
 			if ($item['value']['shareType'] === IShare::TYPE_EMAIL) {
-				$list[$key]['icon'] = 'icon-mail';
+				$return[$key]['method'] = 'email';
+				$return[$key]['icon'] = 'icon-mail';
 			} elseif ($item['value']['shareType'] === IShare::TYPE_USER) {
-				$list[$key]['icon'] = 'icon-user';
+				$return[$key]['method'] = 'account';
+				$return[$key]['icon'] = 'icon-user';
+			} elseif ($item['value']['shareType'] === SignerPlugin::TYPE_SIGNER) {
+				$return[$key]['method'] = $item['key'];
+				if ($item['key'] === 'email') {
+					$return[$key]['icon'] = 'icon-mail';
+				} elseif ($item['key'] === 'account') {
+					$return[$key]['icon'] = 'icon-user';
+				} else {
+					$return[$key]['iconSvg'] = 'svg' . ucfirst($item['key']);
+					$return[$key]['iconName'] = $item['key'];
+				}
 			}
 		}
-		return $list;
+		return $return;
 	}
 
 	private function addHerselfAccount(array $return, string $search): array {
