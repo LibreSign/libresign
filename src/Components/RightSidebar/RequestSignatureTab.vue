@@ -70,18 +70,16 @@
 			:size="size"
 			:name="t('libresign', 'Add new signer')"
 			@closing="filesStore.disableIdentifySigner()">
-			<NcAppSidebar
-				:name="t('libresign', 'Add new signer')">
+			<NcAppSidebar :name="t('libresign', 'Add new signer')">
 				<NcAppSidebarTab v-for="method in enabledMethods()"
-					:key="method.name"
 					:id="`tab-${method.name}`"
+					:key="method.name"
 					:name="method.friendly_name">
 					<template #icon>
 						<NcIconSvgWrapper :size="20"
 							:svg="getSvgIcon(method.name)" />
 					</template>
-					<IdentifySigner
-						:signer-to-edit="signerToEdit"
+					<IdentifySigner :signer-to-edit="signerToEdit"
 						:placeholder="method.friendly_name"
 						:method="method.name" />
 				</NcAppSidebarTab>
@@ -90,14 +88,14 @@
 	</div>
 </template>
 <script>
-import Delete from 'vue-material-design-icons/Delete.vue'
 
 import svgAccount from '@mdi/svg/svg/account.svg?raw'
 import svgEmail from '@mdi/svg/svg/email.svg?raw'
-import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgSms from '@mdi/svg/svg/message-processing.svg?raw'
 import svgWhatsapp from '@mdi/svg/svg/whatsapp.svg?raw'
 import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
+
+import Delete from 'vue-material-design-icons/Delete.vue'
 
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
@@ -110,15 +108,16 @@ import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcAppSidebar from '@nextcloud/vue/components/NcAppSidebar'
 import NcAppSidebarTab from '@nextcloud/vue/components/NcAppSidebarTab'
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcModal from '@nextcloud/vue/components/NcModal'
-import NcDialog from '@nextcloud/vue/components/NcDialog'
 
 import IdentifySigner from '../Request/IdentifySigner.vue'
 import VisibleElements from '../Request/VisibleElements.vue'
 import Signers from '../Signers/Signers.vue'
 
+import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import router from '../../router/router.js'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
@@ -129,7 +128,7 @@ const iconMap = {
 	svgEmail,
 	svgSignal,
 	svgSms,
-	svgTelegram: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28"><g transform="rotate(-45, 12, 12)"><path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" /></g></svg>`,
+	svgTelegram: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28"><g transform="rotate(-45, 12, 12)"><path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" /></g></svg>',
 	svgWhatsapp,
 	svgXmpp,
 }
