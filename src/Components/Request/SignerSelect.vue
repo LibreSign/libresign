@@ -29,24 +29,25 @@
 	</div>
 </template>
 <script>
+
+import svgSms from '@mdi/svg/svg/message-processing.svg?raw'
+import svgWhatsapp from '@mdi/svg/svg/whatsapp.svg?raw'
+import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
 import debounce from 'debounce'
 
 import AlertCircle from 'vue-material-design-icons/AlertCircleOutline.vue'
-
-import svgWhatsapp from '@mdi/svg/svg/whatsapp.svg?raw'
-import svgSms from '@mdi/svg/svg/message-processing.svg?raw'
-import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
-import svgSignal from '../../../img/logo-signal-app.svg?raw'
 
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcSelect from '@nextcloud/vue/components/NcSelect'
 
+import svgSignal from '../../../img/logo-signal-app.svg?raw'
+
 const iconMap = {
 	svgSignal,
 	svgSms,
-	svgTelegram: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28"><g transform="rotate(-45, 12, 12)"><path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" /></g></svg>`,
+	svgTelegram: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28"><g transform="rotate(-45, 12, 12)"><path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" /></g></svg>',
 	svgWhatsapp,
 	svgXmpp,
 }
