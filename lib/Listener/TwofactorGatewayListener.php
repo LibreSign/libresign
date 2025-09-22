@@ -54,7 +54,6 @@ class TwofactorGatewayListener implements IEventListener {
 				$event->getSignRequest(),
 				$event->getIdentifyMethod(),
 				$event->getLibreSignFile(),
-				$event->getUser(),
 			),
 		};
 	}
@@ -113,24 +112,46 @@ class TwofactorGatewayListener implements IEventListener {
 		SignRequest $signRequest,
 		IIdentifyMethod $identifyMethod,
 		FileEntity $libreSignFile,
-		IUser $user,
 	): void {
 		try {
-			if ($identifyMethod->getEntity()->isDeletedAccount()) {
+			$entity = $identifyMethod->getEntity();
+			if ($entity->isDeletedAccount()) {
 				return;
 			}
-			if ($this->isNotificationDisabledAtActivity($libreSignFile->getUserId(), SignedEvent::FILE_SIGNED)) {
+			if (!in_array($entity->getIdentifierKey(), ['sms', 'signal', 'telegram', 'whatsapp', 'xmpp'], true)) {
+				return;
+			}
+			if (!$this->appManager->isEnabledForAnyone('twofactor_gateway')) {
+				$this->logger->info('Twofactor Gateway app is not enabled');
+				return;
+			}
+			$identifier = $entity->getIdentifierValue();
+			if (empty($identifier)) {
 				return;
 			}
 
-			$email = $user->getEMailAddress();
+			$message = $this->l10n->t('LibreSign: A file has been signed');
+			$message .= "\n";
+			// TRANSLATORS The text in the message that is sent after a document has been signed by a user. %s will be replaced with the name of the user who signed the document.
+			$message .= $this->l10n->t('%s signed the document. You can access it using the link below:', [$signRequest->getDisplayName()]);
+			$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.indexFPath', [
+				'path' => 'validation/' . $libreSignFile->getUuid(),
+			]);
+			$message .= "\n";
+			$message .= $libreSignFile->getName() . ': ' . $link;
 
-			if (empty($email)) {
+			/** @var Factory */
+			$gatewayFactory = Server::get(Factory::class);
+			$gateway = $gatewayFactory->get(strtolower($entity->getIdentifierKey()));
+			try {
+				$gateway->send($identifier, $message);
+			} catch (Exception $e) {
+				$this->logger->error('Could not send 2FA message', [
+					'identifier' => $identifier,
+					'exception' => $e,
+				]);
 				return;
 			}
-
-			$this->mail->notifySignedUser($signRequest, $email, $libreSignFile, $user->getDisplayName());
-
 		} catch (\InvalidArgumentException $e) {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
 			return;
