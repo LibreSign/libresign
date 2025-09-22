@@ -47,6 +47,7 @@ import svgSignal from '../../../img/logo-signal-app.svg?raw'
 const iconMap = {
 	svgSignal,
 	svgSms,
+	// Workaround to rotate telegram icon. MDI does not provide a telegram icon.
 	svgTelegram: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28"><g transform="rotate(-45, 12, 12)"><path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" /></g></svg>',
 	svgWhatsapp,
 	svgXmpp,
