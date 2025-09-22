@@ -61,6 +61,10 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		return $this->friendlyName;
 	}
 
+	public function setFriendlyName(string $friendlyName): void {
+		$this->friendlyName = $friendlyName;
+	}
+
 	public function setCodeSentByUser(string $code): void {
 		$this->codeSentByUser = $code;
 	}
@@ -80,7 +84,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 	public function signatureMethodsToArray(): array {
 		return array_map(fn (AbstractSignatureMethod $method) => [
-			'label' => $method->friendlyName,
+			'label' => $method->getFriendlyName(),
 			'name' => $method->getName(),
 			'enabled' => $method->isEnabled(),
 		], $this->signatureMethods);
@@ -289,7 +293,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$default = array_merge(
 			[
 				'name' => $this->name,
-				'friendly_name' => $this->friendlyName,
+				'friendly_name' => $this->getFriendlyName(),
 				'enabled' => true,
 				'mandatory' => true,
 				'signatureMethods' => $this->signatureMethodsToArray(),
