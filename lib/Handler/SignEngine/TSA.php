@@ -165,7 +165,7 @@ class TSA {
 		}
 
 		$tsa['cnHints'] = $cnHints;
-		$tsa['displayName'] = $this->generateDistingishedNames($cnHints);
+		$tsa['displayName'] = $this->generateDistinguishedNames($cnHints);
 		$tsa['genTime'] = new \DateTime($tsa['genTime']);
 
 		return $tsa;
@@ -370,7 +370,7 @@ class TSA {
 		return $hints;
 	}
 
-	private function generateDistingishedNames(array $hints): string {
+	private function generateDistinguishedNames(array $hints): string {
 		$map = [
 			'countryName' => 'C',
 			'stateOrProvinceName' => 'ST',
