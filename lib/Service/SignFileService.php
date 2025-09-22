@@ -612,7 +612,7 @@ class SignFileService {
 				continue;
 			}
 			/** @var IToken $signatureMethod */
-			$signatureMethod->requestCode($identify);
+			$signatureMethod->requestCode($identify, $identifyMethod->getEntity()->getIdentifierKey());
 			return;
 		}
 		throw new LibresignException($this->l10n->t('Sending authorization code not enabled.'));

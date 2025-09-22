@@ -26,7 +26,7 @@ class TokenService {
 	) {
 	}
 
-	public function sendCodeByGateway(string $identifier, string $code, string $gatewayName): string {
+	public function sendCodeByGateway(string $identifier, string $gatewayName): string {
 		$gateway = $this->getGateway($gatewayName);
 
 		$code = $this->secureRandom->generate(self::TOKEN_LENGTH, ISecureRandom::CHAR_DIGITS);
