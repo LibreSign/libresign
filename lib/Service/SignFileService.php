@@ -37,7 +37,7 @@ use OCA\Libresign\Handler\SignEngine\SignEngineHandler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
-use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\IToken;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -611,7 +611,7 @@ class SignFileService {
 			} catch (InvalidArgumentException) {
 				continue;
 			}
-			/** @var EmailToken $signatureMethod */
+			/** @var IToken $signatureMethod */
 			$signatureMethod->requestCode($identify);
 			return;
 		}
