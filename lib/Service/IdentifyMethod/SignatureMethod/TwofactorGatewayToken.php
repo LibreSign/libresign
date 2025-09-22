@@ -67,14 +67,18 @@ class TwofactorGatewayToken extends AbstractSignatureMethod implements IToken {
 		return $start . str_repeat('*', $maskedLength) . $end;
 	}
 
-	public function requestCode(string $identify): void {
+	public function requestCode(string $identify, string $method): void {
 		$signRequestMapper = $this->identifyService->getSignRequestMapper();
 		$signRequest = $signRequestMapper->getById($this->getEntity()->getSignRequestId());
 		$displayName = $signRequest->getDisplayName();
 		if ($identify === $displayName) {
 			$displayName = '';
 		}
-		$code = $this->tokenService->sendCodeByEmail($identify, $displayName);
+		if ($method === 'email') {
+			$code = $this->tokenService->sendCodeByEmail($identify, $displayName);
+		} else {
+			$code = $this->tokenService->sendCodeByGateway($identify, $method);
+		}
 		$this->getEntity()->setCode($code);
 		$this->identifyService->save($this->getEntity());
 	}
