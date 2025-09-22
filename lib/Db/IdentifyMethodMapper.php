@@ -93,17 +93,17 @@ class IdentifyMethodMapper extends QBMapper {
 			$latestQb->andWhere($latestQb->expr()->eq('im2.identifier_key', $latestQb->createNamedParameter($method)));
 		}
 		$latestQb->andWhere(
-				$latestQb->expr()->orX(
-					$latestQb->expr()->iLike(
-						'im2.identifier_value',
-						$latestQb->createNamedParameter('%' . $this->db->escapeLikeParameter($search) . '%')
-					),
-					$latestQb->expr()->iLike(
-						'sr2.display_name',
-						$latestQb->createNamedParameter('%' . $this->db->escapeLikeParameter($search) . '%')
-					)
+			$latestQb->expr()->orX(
+				$latestQb->expr()->iLike(
+					'im2.identifier_value',
+					$latestQb->createNamedParameter('%' . $this->db->escapeLikeParameter($search) . '%')
+				),
+				$latestQb->expr()->iLike(
+					'sr2.display_name',
+					$latestQb->createNamedParameter('%' . $this->db->escapeLikeParameter($search) . '%')
 				)
 			)
+		)
 			->groupBy('im2.identifier_key')
 			->addGroupBy('im2.identifier_value');
 
