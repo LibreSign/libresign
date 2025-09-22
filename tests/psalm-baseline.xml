@@ -146,6 +146,9 @@
     </UndefinedClass>
   </file>
   <file src="lib/Service/IdentifyMethod/SignatureMethod/TokenService.php">
+    <UndefinedClass>
+      <code><![CDATA[\OCA\TwoFactorGateway\Provider\Gateway\Factory]]></code>
+    </UndefinedClass>
     <UndefinedDocblockClass>
       <code><![CDATA[$gateway]]></code>
       <code><![CDATA[\OCA\TwoFactorGateway\Provider\Gateway\IGateway]]></code>
