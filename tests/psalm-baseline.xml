@@ -92,6 +92,18 @@
       <code><![CDATA[LoadSidebarListener]]></code>
     </UndefinedDocblockClass>
   </file>
+  <file src="lib/Listener/TwofactorGatewayListener.php">
+    <UndefinedClass>
+      <code><![CDATA[Factory]]></code>
+      <code><![CDATA[Factory]]></code>
+    </UndefinedClass>
+    <UndefinedDocblockClass>
+      <code><![CDATA[$gatewayFactory]]></code>
+      <code><![CDATA[$gatewayFactory]]></code>
+      <code><![CDATA[$gatewayFactory]]></code>
+      <code><![CDATA[$gatewayFactory]]></code>
+    </UndefinedDocblockClass>
+  </file>
   <file src="lib/Middleware/GlobalInjectionMiddleware.php">
     <UndefinedClass>
       <code><![CDATA[ViewController]]></code>
