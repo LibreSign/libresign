@@ -8,12 +8,14 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\MailService;
 use OCP\AppFramework\OCS\OCSForbiddenException;
 use OCP\IL10N;
 use OCP\Security\IHasher;
 use OCP\Security\ISecureRandom;
 use OCP\Server;
+use Psr\Container\NotFoundExceptionInterface;
 
 class TokenService {
 	public const TOKEN_LENGTH = 6;
@@ -39,7 +41,12 @@ class TokenService {
 	 * @return \OCA\TwoFactorGateway\Provider\Gateway\IGateway
 	 */
 	private function getGateway(string $gatewayName) {
-		$factory = Server::get('\OCA\TwoFactorGateway\Service\Gateway\Factory');
+		try {
+			$factory = Server::get(\OCA\TwoFactorGateway\Provider\Gateway\Factory::class);
+		} catch (NotFoundExceptionInterface) {
+			throw new LibresignException('App Two-Factor Gateway is not installed.');
+
+		}
 		$gateway = $factory->getGateway($gatewayName);
 		if (!$gateway->getConfig()->isComplete()) {
 			throw new OCSForbiddenException($this->l10n->t('Gateway %s not configured on Two-Factor Gateway.', $gatewayName));
