@@ -18,6 +18,7 @@ use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\AbstractSignatureMethod;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Vendor\Wobeto\EmailBlur\Blur;
 use OCP\IUser;
@@ -34,7 +35,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	 * @var string[]
 	 */
 	public array $availableSignatureMethods = [];
-	protected string $defaultSignatureMethod = '';
+	protected string $defaultSignatureMethod = ISignatureMethod::SIGNATURE_METHOD_CLICK_TO_SIGN;
 	/**
 	 * @var AbstractSignatureMethod[]
 	 */
@@ -85,8 +86,12 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		], $this->signatureMethods);
 	}
 
+	public function getAvailableSignatureMethods(): array {
+		return $this->availableSignatureMethods;
+	}
+
 	public function getEmptyInstanceOfSignatureMethodByName(string $name): AbstractSignatureMethod {
-		if (!in_array($name, $this->availableSignatureMethods)) {
+		if (!in_array($name, $this->getAvailableSignatureMethods())) {
 			throw new InvalidArgumentException(sprintf('%s is not a valid signature method of identify method %s', $name, $this->getName()));
 		}
 		$className = 'OCA\Libresign\Service\IdentifyMethod\\SignatureMethod\\' . ucfirst($name);
@@ -310,7 +315,8 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			return $carry;
 		}, []);
 		$enabled = false;
-		foreach ($this->availableSignatureMethods as $signatureMethodName) {
+		$availableSignatureMethods = $this->getAvailableSignatureMethods();
+		foreach ($availableSignatureMethods as $signatureMethodName) {
 			$this->signatureMethods[$signatureMethodName]
 				= $this->getEmptyInstanceOfSignatureMethodByName($signatureMethodName);
 			if (isset($this->settings['signatureMethods'][$signatureMethodName]['enabled'])
