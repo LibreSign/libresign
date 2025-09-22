@@ -4,8 +4,7 @@
 -->
 <template>
 	<div class="identifySigner">
-		<SignerSelect
-			:signer="signer"
+		<SignerSelect :signer="signer"
 			:placeholder="placeholder"
 			:method="method"
 			@update:signer="updateSigner" />
@@ -35,10 +34,9 @@
 	</div>
 </template>
 <script>
-import { loadState } from '@nextcloud/initial-state'
-
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
+
 import SignerSelect from './SignerSelect.vue'
 
 import { useFilesStore } from '../../store/files.js'
