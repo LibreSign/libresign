@@ -116,7 +116,7 @@ body {
 		height: 130px;
 		margin: 0 auto;
 		position: relative;
-		left: unset;
+		inset-inline-start: unset;
 	}
 }
 
@@ -146,7 +146,7 @@ body {
 	}
 	&__body {
 		white-space: pre-line;
-		text-align: left;
+		text-align: start;
 		font-size: 1rem;
 		padding: 1rem;
 	}

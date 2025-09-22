@@ -625,7 +625,7 @@ export default {
 			}
 		}
 		button {
-			float: right;
+			float: inline-end;
 			margin-top: 20px;
 			align-self: flex-end;
 		}
@@ -687,12 +687,12 @@ export default {
 						box-sizing: border-box;
 					}
 					.extra {
-						margin-left: 44px;
-						padding-right: 44px;
+						margin-inline-start: 44px;
+						padding-inline-end: 44px;
 					}
 					.extra-chain {
-						margin-left: 88px;
-						padding-right: 88px;
+						margin-inline-start: 88px;
+						padding-inline-end: 88px;
 					}
 				}
 
@@ -708,7 +708,7 @@ export default {
 			font-size: 1.3rem;
 		}
 		.infor-container {
-			margin-right: 0px;
+			margin-inline-end: 0px;
 			.section {
 				width: unset;
 				box-shadow: none;
