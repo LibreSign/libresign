@@ -152,6 +152,7 @@ jobs:
             --admin-pass admin
           ./occ --version
           ./occ app:enable --force ${{ env.APP_NAME }}
+          ./occ config:app:set dav enableDefaultContact --value false --type boolean
 
       - name: Check PHPUnit script is defined
         id: check_phpunit
