@@ -15,6 +15,11 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\IdentifyMethod\Signal;
+use OCA\Libresign\Service\IdentifyMethod\Sms;
+use OCA\Libresign\Service\IdentifyMethod\Telegram;
+use OCA\Libresign\Service\IdentifyMethod\Whatsapp;
+use OCA\Libresign\Service\IdentifyMethod\Xmpp;
 use OCP\IConfig;
 use OCP\IL10N;
 
@@ -24,6 +29,8 @@ class IdentifyMethodService {
 	public const IDENTIFY_SIGNAL = 'signal';
 	public const IDENTIFY_TELEGRAM = 'telegram';
 	public const IDENTIFY_SMS = 'sms';
+	public const IDENTIFY_WHATSAPP = 'whatsapp';
+	public const IDENTIFY_XMPP = 'xmpp';
 	public const IDENTIFY_PASSWORD = 'password';
 	public const IDENTIFY_CLICK_TO_SIGN = 'clickToSign';
 	public const IDENTIFY_METHODS = [
@@ -32,6 +39,8 @@ class IdentifyMethodService {
 		self::IDENTIFY_SIGNAL,
 		self::IDENTIFY_TELEGRAM,
 		self::IDENTIFY_SMS,
+		self::IDENTIFY_WHATSAPP,
+		self::IDENTIFY_XMPP,
 		self::IDENTIFY_PASSWORD,
 		self::IDENTIFY_CLICK_TO_SIGN,
 	];
@@ -49,6 +58,11 @@ class IdentifyMethodService {
 		private IL10N $l10n,
 		private Account $account,
 		private Email $email,
+		private Signal $signal,
+		private Sms $sms,
+		private Telegram $telegram,
+		private Whatsapp $whatsapp,
+		private Xmpp $xmpp,
 	) {
 	}
 
@@ -227,6 +241,21 @@ class IdentifyMethodService {
 			$this->account->getSettings(),
 			$this->email->getSettings(),
 		];
+		if ($this->signal->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsSettings[] = $this->signal->getSettings();
+		}
+		if ($this->sms->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsSettings[] = $this->sms->getSettings();
+		}
+		if ($this->telegram->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsSettings[] = $this->telegram->getSettings();
+		}
+		if ($this->whatsapp->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsSettings[] = $this->whatsapp->getSettings();
+		}
+		if ($this->xmpp->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsSettings[] = $this->xmpp->getSettings();
+		}
 		return $this->identifyMethodsSettings;
 	}
 }
