@@ -75,6 +75,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 		$return = $this->formatForNcSelect($result);
 		$return = $this->addHerselfAccount($return, $search);
 		$return = $this->addHerselfEmail($return, $search);
+		$return = $this->replaceShareTypeByMethod($return);
 		$return = $this->excludeNotAllowed($return);
 
 		return new DataResponse($return);
@@ -130,7 +131,9 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 		foreach ($list as $key => $item) {
 			$return[$key] = [
 				'id' => $item['value']['shareWith'],
-				'isNoUser' => $item['value']['shareType'] !== IShare::TYPE_USER,
+				'isNoUser' => $item['value']['shareType'] !== IShare::TYPE_USER
+					&& isset($item['method'])
+					&& $item['method'] !== 'account',
 				'displayName' => $item['label'],
 				'subname' => $item['shareWithDisplayNameUnique'] ?? '',
 			];
@@ -141,7 +144,13 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 				$return[$key]['method'] = 'account';
 				$return[$key]['icon'] = 'icon-user';
 			} elseif ($item['value']['shareType'] === SignerPlugin::TYPE_SIGNER) {
-				$return[$key]['method'] = $item['key'];
+				if (
+					!isset($return[$key]['method'])
+					&& empty($return[$key]['method'])
+					&& !empty($item['key'])
+				) {
+					$return[$key]['method'] = $item['key'];
+				}
 				if ($item['key'] === 'email') {
 					$return[$key]['icon'] = 'icon-mail';
 				} elseif ($item['key'] === 'account') {
@@ -177,7 +186,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 			'displayName' => $user->getDisplayName(),
 			'subname' => $user->getEMailAddress(),
 			'icon' => 'icon-user',
-			'shareType' => IShare::TYPE_USER,
+			'method' => 'account',
 		];
 		return $return;
 	}
@@ -206,7 +215,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 			'displayName' => $user->getDisplayName(),
 			'subname' => $user->getEMailAddress(),
 			'icon' => 'icon-mail',
-			'shareType' => IShare::TYPE_EMAIL,
+			'method' => 'email',
 		];
 		return $return;
 	}
@@ -218,5 +227,20 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 	private function excludeNotAllowed(array $list): array {
 		$shareTypes = $this->getShareTypes();
 		return array_filter($list, fn ($result) => in_array($result['shareType'], $shareTypes));
+	}
+
+	private function replaceShareTypeByMethod(array $list): array {
+		foreach ($list as $key => $item) {
+			if (!empty($item['method'])) {
+				continue;
+			}
+			match ($item['shareType']) {
+				IShare::TYPE_EMAIL => $item['method'] = 'email',
+				IShare::TYPE_USER => $item['method'] = 'account',
+				default => $item['method'] = '',
+			};
+			unset($list[$key]['shareType']);
+		}
+		return $list;
 	}
 }

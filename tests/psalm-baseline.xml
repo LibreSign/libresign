@@ -47,6 +47,11 @@
       <code><![CDATA[$storage]]></code>
     </UndefinedDocblockClass>
   </file>
+  <file src="lib/Controller/IdentifyAccountController.php">
+    <InvalidArrayOffset>
+      <code><![CDATA[$return[$key]['method']]]></code>
+    </InvalidArrayOffset>
+  </file>
   <file src="lib/Db/PagerFantaQueryAdapter.php">
     <MissingTemplateParam>
       <code><![CDATA[AdapterInterface]]></code>
