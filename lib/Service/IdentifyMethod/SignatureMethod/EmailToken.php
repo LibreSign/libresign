@@ -71,14 +71,14 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 		return $blur->make();
 	}
 
-	public function requestCode(string $identify, string $method): void {
+	public function requestCode(string $identifier, string $method): void {
 		$signRequestMapper = $this->identifyService->getSignRequestMapper();
 		$signRequest = $signRequestMapper->getById($this->getEntity()->getSignRequestId());
 		$displayName = $signRequest->getDisplayName();
-		if ($identify === $displayName) {
+		if ($identifier === $displayName) {
 			$displayName = '';
 		}
-		$code = $this->tokenService->sendCodeByEmail($identify, $displayName);
+		$code = $this->tokenService->sendCodeByEmail($identifier, $displayName);
 		$this->getEntity()->setCode($code);
 		$this->identifyService->save($this->getEntity());
 	}
