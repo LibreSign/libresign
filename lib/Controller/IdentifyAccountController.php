@@ -230,10 +230,10 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 
 	private function replaceShareTypeByMethod(array $list): array {
 		foreach ($list as $key => $item) {
-			if (!empty($item['method'])) {
+			if (isset($item['method']) && !empty($item['method'])) {
 				continue;
 			}
-			match ($item['shareType']) {
+			$list[$key]['method'] = match ($item['shareType']) {
 				IShare::TYPE_EMAIL => $item['method'] = 'email',
 				IShare::TYPE_USER => $item['method'] = 'account',
 				default => $item['method'] = '',
