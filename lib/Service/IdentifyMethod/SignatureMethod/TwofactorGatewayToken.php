@@ -11,6 +11,9 @@ namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 
 class TwofactorGatewayToken extends AbstractSignatureMethod implements IToken {
+	private const VISIBILITY_START = 2;
+	private const VISIBILITY_END = 2;
+
 	public function __construct(
 		protected IdentifyService $identifyService,
 		protected TokenService $tokenService,
@@ -52,7 +55,11 @@ class TwofactorGatewayToken extends AbstractSignatureMethod implements IToken {
 		return $return;
 	}
 
-	private function blurIdentifier(string $identifier, int $visibleStart = 2, int $visibleEnd = 2): string {
+	private function blurIdentifier(
+		string $identifier,
+		int $visibleStart = self::VISIBILITY_START,
+		int $visibleEnd = self::VISIBILITY_END,
+	): string {
 		$length = mb_strlen($identifier);
 
 		if ($length <= $visibleStart + $visibleEnd) {
