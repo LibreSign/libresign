@@ -66,7 +66,7 @@ class SignerPlugin implements ISearchPlugin {
 			$result['exact'][] = [
 				'label' => $search,
 				'shareWithDisplayNameUnique' => $search,
-				'key' => self::$method,
+				'method' => self::$method,
 				'value' => [
 					'shareWith' => $search,
 					'shareType' => self::TYPE_SIGNER,
@@ -88,7 +88,7 @@ class SignerPlugin implements ISearchPlugin {
 		$item = [
 			'label' => $row['display_name'],
 			'shareWithDisplayNameUnique' => $row['identifier_value'],
-			'key' => $row['identifier_key'],
+			'method' => $row['identifier_key'],
 			'value' => [
 				'shareWith' => $row['identifier_value'],
 				'shareType' => self::TYPE_SIGNER,
