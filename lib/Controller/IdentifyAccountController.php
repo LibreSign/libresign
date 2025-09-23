@@ -232,9 +232,9 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 				continue;
 			}
 			$list[$key]['method'] = match ($item['shareType']) {
-				IShare::TYPE_EMAIL => $item['method'] = 'email',
-				IShare::TYPE_USER => $item['method'] = 'account',
-				default => $item['method'] = '',
+				IShare::TYPE_EMAIL => 'email',
+				IShare::TYPE_USER => 'account',
+				default => '',
 			};
 			unset($list[$key]['shareType']);
 		}
