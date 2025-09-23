@@ -35,7 +35,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	 * @var string[]
 	 */
 	public array $availableSignatureMethods = [];
-	protected string $defaultSignatureMethod = ISignatureMethod::SIGNATURE_METHOD_CLICK_TO_SIGN;
+	protected string $defaultSignatureMethod = '';
 	/**
 	 * @var AbstractSignatureMethod[]
 	 */
