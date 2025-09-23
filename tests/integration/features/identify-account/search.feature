@@ -98,8 +98,9 @@ Feature: search
     When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=admin@email.tld"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                   | value |
-      | (jq).ocs.data\|length | 0     |
+      | key                        | value |
+      # ShareType equals to email is 4. Zero is the sharetype of account.
+      | (jq).ocs.data[0].shareType | 0     |
 
   Scenario: Search account by herself with permission to identify by email
     Given as user "admin"
