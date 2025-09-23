@@ -4483,7 +4483,7 @@
             "post": {
                 "operationId": "file-save",
                 "summary": "Send a file",
-                "description": "Send a new file to Nextcloud and return the fileId to request to sign",
+                "description": "Send a new file to Nextcloud and return the fileId to request to signature",
                 "tags": [
                     "file"
                 ],
