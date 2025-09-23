@@ -22,6 +22,7 @@ OC.L10N.register(
     "Invalid file provided" : "Прапанаваны файл некарэктны",
     "Account" : "Уліковы запіс",
     "Email" : "Электронная пошта",
+    "Email token" : "Токен электроннай пошты",
     "LibreSign" : "LibreSign",
     "Text" : "Тэкст",
     "Upload" : "Запампаваць",
