@@ -225,8 +225,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 	}
 
 	private function excludeNotAllowed(array $list): array {
-		$shareTypes = $this->getShareTypes();
-		return array_filter($list, fn ($result) => in_array($result['shareType'], $shareTypes));
+		return array_filter($list, fn ($result) => isset($result['method']) && !empty($result['method']));
 	}
 
 	private function replaceShareTypeByMethod(array $list): array {
