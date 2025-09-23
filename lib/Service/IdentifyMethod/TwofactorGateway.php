@@ -64,9 +64,7 @@ class TwofactorGateway extends AbstractIdentifyMethod {
 		/** @var Factory */
 		$gatewayFactory = Server::get(Factory::class);
 
-		$full = get_class($this);
-		$parts = explode('\\', $full);
-		$gatewayName = end($parts);
+		$gatewayName = strtolower($this->getId());
 
 		$gateway = $gatewayFactory->get($gatewayName);
 		return $gateway->isComplete();
