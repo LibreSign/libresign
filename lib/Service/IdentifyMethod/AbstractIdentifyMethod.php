@@ -18,7 +18,6 @@ use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\AbstractSignatureMethod;
-use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Vendor\Wobeto\EmailBlur\Blur;
 use OCP\IUser;
