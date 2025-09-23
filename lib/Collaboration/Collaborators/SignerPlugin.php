@@ -62,7 +62,7 @@ class SignerPlugin implements ISearchPlugin {
 			}
 		}
 
-		if (!count($identifiers) && !$this->canValidateMethod()) {
+		if (!count($identifiers) && self::$method && !$this->canValidateMethod()) {
 			$result['exact'][] = [
 				'label' => $search,
 				'shareWithDisplayNameUnique' => $search,
