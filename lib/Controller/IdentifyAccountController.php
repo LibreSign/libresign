@@ -191,7 +191,9 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 		if (empty($user->getEMailAddress())) {
 			return $return;
 		}
-		if (!str_contains($user->getEMailAddress(), $search) && !str_contains($user->getDisplayName(), $search)) {
+		if (!str_contains($user->getEMailAddress(), $search)
+			&& !str_contains($user->getDisplayName(), $search)
+		) {
 			return $return;
 		}
 		$filtered = array_filter($return, fn ($i) => $i['id'] === $user->getUID());
