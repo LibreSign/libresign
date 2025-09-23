@@ -144,20 +144,14 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 				$return[$key]['method'] = 'account';
 				$return[$key]['icon'] = 'icon-user';
 			} elseif ($item['value']['shareType'] === SignerPlugin::TYPE_SIGNER) {
-				if (
-					!isset($return[$key]['method'])
-					&& empty($return[$key]['method'])
-					&& !empty($item['key'])
-				) {
-					$return[$key]['method'] = $item['key'];
-				}
-				if ($item['key'] === 'email') {
+				$return[$key]['method'] = $item['method'] ?? '';
+				if ($item['method'] === 'email') {
 					$return[$key]['icon'] = 'icon-mail';
-				} elseif ($item['key'] === 'account') {
+				} elseif ($item['method'] === 'account') {
 					$return[$key]['icon'] = 'icon-user';
 				} else {
-					$return[$key]['iconSvg'] = 'svg' . ucfirst($item['key']);
-					$return[$key]['iconName'] = $item['key'];
+					$return[$key]['iconSvg'] = 'svg' . ucfirst($item['method']);
+					$return[$key]['iconName'] = $item['method'];
 				}
 			}
 		}
