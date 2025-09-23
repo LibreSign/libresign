@@ -99,6 +99,13 @@ class IdentifyMethodService {
 		$className = 'OCA\Libresign\Service\IdentifyMethod\\' . ucfirst($name);
 		if (!class_exists($className)) {
 			$className = 'OCA\Libresign\Service\IdentifyMethod\\SignatureMethod\\' . ucfirst($name);
+			if (!class_exists($className)) {
+				// TRANSLATORS When is requested to a person to sign a file, is
+				// necessary identify what is the identification method. The
+				// identification method is used to define how will be the sign
+				// flow.
+				throw new LibresignException($this->l10n->t('Invalid identification method'));
+			}
 		}
 		/** @var IIdentifyMethod */
 		$identifyMethod = clone \OCP\Server::get($className);
