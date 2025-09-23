@@ -255,6 +255,25 @@
 									{{ signer.hash_algorithm }}
 								</template>
 							</NcListItem>
+							<NcListItem v-if="signer.opened && signer.timestamp.displayName"
+								class="extra"
+								compact
+								:name="t('libresign', 'Timestamp:')">
+								<template #name>
+									<strong>{{ t('libresign', 'Timestamp:') }}</strong>
+									{{ signer.timestamp.displayName }}
+								</template>
+							</NcListItem>
+							<div v-if="signer.opened && signer.timestamp.displayName">
+								<NcListItem class="extra-chain"
+									compact
+									:name="t('libresign', 'Time:')">
+									<template #name>
+										<strong>{{ t('libresign', 'Time:') }}</strong>
+										{{ dateFromSqlAnsi(signer.timestamp.genTime) }}
+									</template>
+								</NcListItem>
+							</div>
 							<NcListItem v-if="signer.opened && signer.subject"
 								class="extra"
 								compact
