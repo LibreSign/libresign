@@ -79,7 +79,7 @@ export default {
 	box-sizing: border-box;
 	font-family: 'Nunito', sans-serif;
 	max-width: 560px;
-	padding-left: 50px;
+	padding-inline-start: 50px;
 
 	h1{
 		font-size: 65px;
