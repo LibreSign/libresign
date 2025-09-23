@@ -190,7 +190,7 @@ export default {
 			return this.filesStore.getFile()?.name ?? ''
 		},
 		size() {
-			return window.matchMedia('(max-width: 512px)').matches ? 'full' : 'small'
+			return window.matchMedia('(max-width: 512px)').matches ? 'full' : 'normal'
 		},
 	},
 	watch: {
