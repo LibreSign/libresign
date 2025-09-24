@@ -13,7 +13,7 @@ Feature: search
       | (jq).ocs.data[0].displayName | search-signer1-displayname |
       | (jq).ocs.data[0].subname     | search-signer1             |
       | (jq).ocs.data[0].icon        | icon-user                  |
-      | (jq).ocs.data[0].shareType   | 0                          |
+      | (jq).ocs.data[0].method      | account                    |
 
   Scenario: Search account by multiple users
     Given as user "admin"
@@ -29,13 +29,13 @@ Feature: search
       | (jq).ocs.data[0].displayName | search-signer1-displayname |
       | (jq).ocs.data[0].subname     | search-signer1             |
       | (jq).ocs.data[0].icon        | icon-user                  |
-      | (jq).ocs.data[0].shareType   | 0                          |
+      | (jq).ocs.data[0].method      | account                    |
       | (jq).ocs.data[1].id          | search-signer2             |
       | (jq).ocs.data[1].isNoUser    | false                      |
       | (jq).ocs.data[1].displayName | search-signer2-displayname |
       | (jq).ocs.data[1].subname     | search-signer2             |
       | (jq).ocs.data[1].icon        | icon-user                  |
-      | (jq).ocs.data[1].shareType   | 0                          |
+      | (jq).ocs.data[1].method      | account                    |
 
 
   Scenario: Search account by herself with partial name search
@@ -55,7 +55,7 @@ Feature: search
       | (jq).ocs.data[0].displayName | can-find-myself-displayname |
       | (jq).ocs.data[0].subname     | my@email.tld                |
       | (jq).ocs.data[0].icon        | icon-user                   |
-      | (jq).ocs.data[0].shareType   | 0                           |
+      | (jq).ocs.data[0].method      | account                     |
 
   Scenario: Search account by herself without permission to identify by account
     Given as user "admin"
@@ -88,7 +88,7 @@ Feature: search
       | (jq).ocs.data[0].displayName | admin           |
       | (jq).ocs.data[0].subname     | admin@email.tld |
       | (jq).ocs.data[0].icon        | icon-user       |
-      | (jq).ocs.data[0].shareType   | 0               |
+      | (jq).ocs.data[0].method      | account         |
 
   Scenario: Search account by herself without permission to identify by email
     Given as user "admin"
@@ -99,9 +99,8 @@ Feature: search
     When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=admin@email.tld"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                        | value |
-      # ShareType equals to email is 4. Zero is the charetype of account.
-      | (jq).ocs.data[0].shareType | 0     |
+      | key                     | value   |
+      | (jq).ocs.data[0].method | account |
 
   Scenario: Search account by herself with permission to identify by email
     Given as user "admin"
@@ -118,4 +117,4 @@ Feature: search
       | (jq).ocs.data[0].displayName | admin           |
       | (jq).ocs.data[0].subname     | admin@email.tld |
       | (jq).ocs.data[0].icon        | icon-mail       |
-      | (jq).ocs.data[0].shareType   | 4               |
+      | (jq).ocs.data[0].method      | email           |

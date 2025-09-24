@@ -29,6 +29,10 @@
 	</div>
 </template>
 <script>
+
+import svgSms from '@mdi/svg/svg/message-processing.svg?raw'
+import svgWhatsapp from '@mdi/svg/svg/whatsapp.svg?raw'
+import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
 import debounce from 'debounce'
 
 import AlertCircle from 'vue-material-design-icons/AlertCircleOutline.vue'
@@ -38,22 +42,31 @@ import { generateOcsUrl } from '@nextcloud/router'
 
 import NcSelect from '@nextcloud/vue/components/NcSelect'
 
+import svgSignal from '../../../img/logo-signal-app.svg?raw'
+import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
+
+const iconMap = {
+	svgSignal,
+	svgSms,
+	svgTelegram,
+	svgWhatsapp,
+	svgXmpp,
+}
+
 export default {
-	name: 'AccountOrEmail',
+	name: 'SignerSelect',
 	components: {
 		NcSelect,
 		AlertCircle,
 	},
 	props: {
-		required: {
-			type: Boolean,
-			default: false,
-			required: false,
-		},
 		signer: {
 			type: Object,
 			default: () => {},
-			required: false,
+		},
+		method: {
+			type: String,
+			default: 'all',
 		},
 		placeholder: {
 			type: String,
@@ -65,7 +78,7 @@ export default {
 			loading: false,
 			options: [],
 			selectedSigner: null,
-			haveError: this.required,
+			haveError: false,
 		}
 	},
 	computed: {
@@ -78,20 +91,8 @@ export default {
 	},
 	watch: {
 		selectedSigner(selected) {
-			this.haveError = selected === null && this.required
-			if (selected === null) {
-				this.$emit('update:email', false)
-				this.$emit('update:account', false)
-				this.$emit('update:display-name', '')
-			} else if (selected.isNoUser && selected.icon === 'icon-mail') {
-				this.$emit('update:email', selected)
-				this.$emit('update:account', false)
-				this.$emit('update:display-name', selected.displayName)
-			} else {
-				this.$emit('update:email', false)
-				this.$emit('update:account', selected)
-				this.$emit('update:display-name', selected.displayName)
-			}
+			this.haveError = selected === null
+			this.$emit('update:signer', selected)
 		},
 	},
 	mounted() {
@@ -109,6 +110,7 @@ export default {
 				response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/identify-account/search'), {
 					params: {
 						search,
+						method: this.method,
 					},
 				})
 			} catch (error) {
@@ -116,12 +118,23 @@ export default {
 				return
 			}
 
-			this.options = response.data.ocs.data
+			this.options = this.injectIcons(response.data.ocs.data)
 			this.loading = false
 		},
+
 		asyncFind: debounce(function(search, lookup = false) {
 			this._asyncFind(search, lookup)
 		}, 500),
+
+		injectIcons(items) {
+			return items.map(item => {
+				const icon = item.iconSvg ? iconMap[item.iconSvg] : undefined
+				return {
+					...item,
+					...(icon ? { iconSvg: icon } : {}),
+				}
+			})
+		},
 	},
 }
 </script>

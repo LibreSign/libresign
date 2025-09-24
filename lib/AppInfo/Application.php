@@ -21,6 +21,7 @@ use OCA\Libresign\Listener\LoadSidebarListener;
 use OCA\Libresign\Listener\MailNotifyListener;
 use OCA\Libresign\Listener\NotificationListener;
 use OCA\Libresign\Listener\SignedCallbackListener;
+use OCA\Libresign\Listener\TwofactorGatewayListener;
 use OCA\Libresign\Listener\UserDeletedListener;
 use OCA\Libresign\Middleware\GlobalInjectionMiddleware;
 use OCA\Libresign\Middleware\InjectionMiddleware;
@@ -79,6 +80,10 @@ class Application extends App implements IBootstrap {
 		// MailNotify listener
 		$context->registerEventListener(SendSignNotificationEvent::class, MailNotifyListener::class);
 		$context->registerEventListener(SignedEvent::class, MailNotifyListener::class);
+
+		// TwofactorGateway listener
+		$context->registerEventListener(SendSignNotificationEvent::class, TwofactorGatewayListener::class);
+		$context->registerEventListener(SignedEvent::class, TwofactorGatewayListener::class);
 
 		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
 	}

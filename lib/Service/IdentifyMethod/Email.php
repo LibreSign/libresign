@@ -37,7 +37,7 @@ class Email extends AbstractIdentifyMethod {
 		private LoggerInterface $logger,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by email
-		$this->friendlyName = $this->identifyService->getL10n()->t('Email');
+		$this->setFriendlyName($this->identifyService->getL10n()->t('Email'));
 		parent::__construct(
 			$identifyService,
 		);

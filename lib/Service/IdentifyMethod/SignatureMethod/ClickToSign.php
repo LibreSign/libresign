@@ -15,7 +15,7 @@ class ClickToSign extends AbstractSignatureMethod {
 		protected IdentifyService $identifyService,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer only need to click to sign after was identified
-		$this->friendlyName = $this->identifyService->getL10n()->t('Click to sign');
+		$this->setFriendlyName($this->identifyService->getL10n()->t('Click to sign'));
 		parent::__construct(
 			$identifyService,
 		);

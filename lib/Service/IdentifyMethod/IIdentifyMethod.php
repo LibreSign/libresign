@@ -15,6 +15,7 @@ use OCP\IUser;
 interface IIdentifyMethod {
 	public static function getId(): string;
 	public function getName(): string;
+	public function setFriendlyName(string $friendlyName): void;
 	public function getFriendlyName(): string;
 	public function setCodeSentByUser(string $code): void;
 	public function cleanEntity(): void;
