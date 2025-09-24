@@ -4,8 +4,17 @@
 version: 2
 updates:
   # Maintain dependencies for Composer
-  - package-ecosystem: "composer" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  - package-ecosystem: "composer"
+    directories:
+      - "/"
+      - "/vendor-bin/coding-standard"
+      - "/vendor-bin/openapi-extractor"
+      - "/vendor-bin/php-coveralls"
+      - "/vendor-bin/php-scoper"
+      - "/vendor-bin/phpunit"
+      - "/vendor-bin/psalm"
+      - "/vendor-bin/rector"
+      - "/tests/integration"
     schedule:
       interval: "daily"
 
