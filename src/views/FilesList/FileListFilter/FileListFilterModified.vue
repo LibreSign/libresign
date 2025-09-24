@@ -51,7 +51,7 @@ export default {
 	},
 	data() {
 		return {
-			selectedOption: null,
+			selectedOption: this.filtersStore.filter_modified || null,
 			timePresets: [
 				{
 					id: 'today',
@@ -94,6 +94,11 @@ export default {
 			return this.timePresets.find(({ id }) => id === this.selectedOption) ?? null
 		},
 	},
+	mounted() {
+		if (this.selectedOption) {
+			this.setPreset(this.currentPreset)
+		}
+	},
 	watch: {
 		selectedOption() {
 			if (this.selectedOption === null) {
@@ -114,6 +119,7 @@ export default {
 					end: preset.end,
 					icon: calendarSvg,
 					text: preset.label,
+					id: preset.id,
 					onclick: () => this.setPreset(),
 				})
 			} else {
