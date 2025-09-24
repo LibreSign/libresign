@@ -76,6 +76,7 @@ OC.L10N.register(
     "Type" : "Τύπος",
     "Status" : "Κατάσταση",
     "Actions" : "Ενέργειες",
+    "Delete certificate" : "Διαγραφή πιστοποιητικού",
     "Change password" : "Αλλαγή συνθηματικού",
     "Signature" : "Υπογραφή",
     "Profile picture" : "Φωτογραφία προφίλ",
