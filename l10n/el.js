@@ -70,6 +70,7 @@ OC.L10N.register(
     "Open file" : "Άνοιγμα αρχείου",
     "Document not available for signature." : "Το έγγραφο δεν είναι διαθέσιμο για υπογραφή.",
     "Administration" : "Διαχείριση",
+    "pending" : "εκκρεμεί",
     "Open sidebar" : "Άνοιγμα πλευρικής στήλης",
     "Details" : "Λεπτομέρειες",
     "Certificate" : "Πιστοποιητικό",
