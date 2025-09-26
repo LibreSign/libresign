@@ -18,6 +18,11 @@
 				@click="$emit('reset-filter')">
 				{{ t('files', 'Clear filter') }}
 			</NcActionButton>
+			<NcActionButton class="files-list-filter__clear-button"
+				close-after-click
+				@click="$emit('reset-filter')">
+				{{ t('files', 'Set marked filter') }}
+			</NcActionButton>
 		</template>
 	</NcActions>
 </template>
