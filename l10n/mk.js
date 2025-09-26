@@ -77,7 +77,7 @@ OC.L10N.register(
     "Last year ({year})" : "Минатата година ({year})",
     "Modified" : "Изменето",
     "Active filters" : "Активни филтри",
-    "Remove filter" : "Острани филтер",
+    "Remove filter" : "Отстрани филтер",
     "Switch to list view" : "Прикажи поглед во листа",
     "Switch to grid view" : "Прикажи поглед во мрежа",
     "{fileCount} files" : "{fileCount} датотеки",
