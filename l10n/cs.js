@@ -381,6 +381,7 @@ OC.L10N.register(
     "Send time (HH:mm)" : "Okamžik odeslání (HH:mm)",
     "The first message is not considered a notification" : "První zpráva není považována za upozornění",
     "Zero or empty is no reminder." : "Nula nebo prázdné znamená žádná připomínka.",
+    "off" : "vypnuto",
     "on" : "v",
     "Turn {reminderState} auto reminders" : " {reminderState} automatické připomínky",
     "First reminder after (days)" : "První připomínka po uplynutí (dnů)",
