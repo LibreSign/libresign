@@ -82,6 +82,19 @@ clean-dev:
 test: composer
 	$(CURDIR)/vendor/bin/phpunit -c phpunit.xml
 
+.PHONY: update-workflows
+update-workflows:
+	@echo "Updating GitHub workflows from the Nextcloud template repository..."
+	@if [ ! -d ./.github/workflows/ ]; then \
+		echo "Error: .github/workflows does not exist"; \
+		exit 1; \
+	fi
+	@temp=$(mktemp -d); \
+	git clone --depth=1 https://github.com/nextcloud/.github.git "$temp"; \
+	rsync -vr --existing --include='*/' --include='*.yml' --exclude='*' "$temp/workflow-templates/" ./.github/workflows/; \
+	rm -rf "$temp"; \
+	echo "Workflows updated successfully."
+
 updateocp:
 	php -r 'if (shell_exec("diff -qr ../../lib/public/ vendor/nextcloud/ocp/OCP/")) {\exec("rm -rf vendor/nextcloud/ocp/OCP/");\exec("cp -r ../../lib/public vendor/nextcloud/ocp/OCP/");}'
 
