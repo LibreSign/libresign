@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\Vendor\setasign\Fpdi\PdfParserService\Type\PdfTypeException;
 use OCP\Files\Node;
 use OCP\Http\Client\IClientService;
-use setasign\Fpdi\PdfParserService\Type\PdfTypeException;
 
 trait TFile {
 	/** @var ?string */

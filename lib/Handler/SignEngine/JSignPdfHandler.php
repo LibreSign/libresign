@@ -10,8 +10,6 @@ namespace OCA\Libresign\Handler\SignEngine;
 
 use Imagick;
 use ImagickPixel;
-use Jeidison\JSignPDF\JSignPDF;
-use Jeidison\JSignPDF\Sign\JSignParam;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
@@ -20,6 +18,8 @@ use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
+use OCA\Libresign\Vendor\Jeidison\JSignPDF\JSignPDF;
+use OCA\Libresign\Vendor\Jeidison\JSignPDF\Sign\JSignParam;
 use OCP\Files\File;
 use OCP\IAppConfig;
 use OCP\ITempManager;
