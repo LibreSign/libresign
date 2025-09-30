@@ -61,8 +61,7 @@
 		},
 		"classmap": [
 			"lib/Vendor/"
-		],
-		"exclude-from-classmap": ["/vendor/"]
+		]
 	},
 	"autoload-dev": {
 		"psr-4": {
