@@ -32,6 +32,7 @@ path = [
     "l10n/*.js",
     "l10n/*.json",
     "Makefile",
+    "lib/Vendor/.gitkeep",
     "openapi-administration.json",
     "openapi-full.json",
     "openapi.json",
