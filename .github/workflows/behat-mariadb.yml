@@ -151,7 +151,12 @@ jobs:
           ./occ app:enable --force notifications
           git clone --depth 1 -b ${{ matrix.server-versions }} https://github.com/nextcloud/activity apps/activity
           ./occ app:enable --force activity
-          git clone --depth 1 -b ${{ matrix.server-versions }} https://github.com/nextcloud/guests apps/guests
+          # guests app uses "main" branch instead of "master" for the latest
+          branch="${{ matrix.server-versions }}"
+          if [ "$branch" = "master" ]; then
+            branch="main"
+          fi
+          git clone --depth 1 -b "$branch" https://github.com/nextcloud/guests apps/guests
           ./occ app:enable --force guests
           ./occ config:system:set mail_smtpport --value 1025 --type integer
           ./occ config:system:set mail_smtphost --value mailhog
