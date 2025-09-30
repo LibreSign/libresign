@@ -39,11 +39,11 @@
 		"psalm:clear": "psalm --clear-cache && psalm --clear-global-cache",
 		"post-install-cmd": [
 			"@composer bin all install --ansi",
-			"php -d error_reporting=E_ALL\\&~E_DEPRECATED\\&~E_USER_DEPRECATED vendor-bin/php-scoper/vendor/humbug/php-scoper/bin/php-scoper add-prefix --force",
+			"php -d error_reporting=E_ALL\\&~E_DEPRECATED\\&~E_USER_DEPRECATED vendor-bin/php-scoper/vendor/humbug/php-scoper/bin/php-scoper add-prefix --force && > lib/Vendor/.gitkeep",
 			"composer dump-autoload -o"
 		],
 		"post-update-cmd": [
-			"php -d error_reporting=E_ALL\\&~E_DEPRECATED\\&~E_USER_DEPRECATED vendor-bin/php-scoper/vendor/humbug/php-scoper/bin/php-scoper add-prefix --force",
+			"php -d error_reporting=E_ALL\\&~E_DEPRECATED\\&~E_USER_DEPRECATED vendor-bin/php-scoper/vendor/humbug/php-scoper/bin/php-scoper add-prefix --force && > lib/Vendor/.gitkeep",
 			"composer dump-autoload"
 		],
 		"test:unit": "vendor/bin/phpunit -c tests/php/phpunit.xml --no-coverage --colors=always --fail-on-warning --fail-on-risky --display-deprecations --display-phpunit-deprecations",
@@ -57,11 +57,11 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"OCA\\Libresign\\": "lib/",
-			"OCA\\Libresign\\Vendor\\mikehaertl\\pdftk\\": "lib/Vendor/php-pdftk/src/",
-			"OCA\\Libresign\\Vendor\\mikehaertl\\shellcommand\\": "lib/Vendor/php-shellcommand/src/",
-			"OCA\\Libresign\\Vendor\\mikehaertl\\tmp\\": "lib/Vendor/php-tmpfile/src/"
-		}
+			"OCA\\Libresign\\": "lib/"
+		},
+		"classmap": [
+			"lib/Vendor/"
+		]
 	},
 	"autoload-dev": {
 		"psr-4": {

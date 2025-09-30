@@ -17,6 +17,8 @@ use OCA\Libresign\Exception\InvalidSignatureException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\SignatureDataNotFoundException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateHelper;
+use OCA\Libresign\Vendor\phpseclib\Crypt\RSA;
+use OCA\Libresign\Vendor\phpseclib\File\X509;
 use OCP\App\IAppManager;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
@@ -25,8 +27,6 @@ use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\ITempManager;
-use phpseclib\Crypt\RSA;
-use phpseclib\File\X509;
 
 class SignSetupService {
 	private array $exclude = [
