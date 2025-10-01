@@ -388,7 +388,8 @@ class SignSetupService {
 		$x509 = $this->getLibresignAppCertificate();
 
 		// Check if the signature of the files is valid
-		$rsa = $x509->getPublicKey();
+		$rsa = $x509->getPublicKey()
+			->withPadding(RSA::SIGNATURE_PSS);
 
 		$signatureData = $this->getSignatureData();
 		$signature = base64_decode((string)$signatureData['signature']);
