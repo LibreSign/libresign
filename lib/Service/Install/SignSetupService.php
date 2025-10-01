@@ -534,6 +534,7 @@ class SignSetupService {
 		$privateKey = $this->getPrivateKey();
 		$privateKey->withPadding(RSA::SIGNATURE_PSS);
 		$privateKey->withMGFHash('sha512');
+		// See https://tools.ietf.org/html/rfc3447#page-38
 		$privateKey->withSaltLength(0);
 		$signature = $privateKey->sign(json_encode($hashes));
 
