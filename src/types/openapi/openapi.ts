@@ -617,7 +617,7 @@ export type paths = {
         put?: never;
         /**
          * Send a file
-         * @description Send a new file to Nextcloud and return the fileId to request to signature
+         * @description Send a new file to Nextcloud and return the fileId to request signature
          */
         post: operations["file-save"];
         delete?: never;
