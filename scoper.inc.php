@@ -79,6 +79,15 @@ return [
 			$content = str_replace("'phpseclib3\\\\", "'\\\\" . $s_prefix . '\\\\phpseclib3\\\\', $content);
 			$content = str_replace("'\\\\phpseclib3", "'\\\\" . $s_prefix . '\\\\phpseclib3', $content);
 			return $content;
-		}
+		},
+		// patchers for pdfparser
+		static function (string $filePath, string $prefix, string $content): string {
+			if (!str_contains($filePath, 'smalot/pdfparser') || !str_ends_with($filePath, '.php')) {
+				return $content;
+			}
+			$s_prefix = str_replace('\\', '\\\\', $prefix);
+			$content = str_replace("'\\Smalot\\PdfParser", "'\\\\" . $s_prefix . '\\\\Smalot\\\\PdfParser\\\\', $content);
+			return $content;
+		},
 	],
 ];
