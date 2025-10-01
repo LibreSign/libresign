@@ -9,9 +9,9 @@ declare(strict_types=1);
 namespace OCA\Libresign\Helper;
 
 use OCA\Libresign\Db\PagerFantaQueryAdapter;
+use OCA\Libresign\Vendor\Pagerfanta\Pagerfanta;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IURLGenerator;
-use Pagerfanta\Pagerfanta;
 
 class Pagination extends Pagerfanta {
 	private string $routeName;

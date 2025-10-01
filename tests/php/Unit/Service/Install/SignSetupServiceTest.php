@@ -18,8 +18,6 @@ use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\ITempManager;
-use phpseclib\Crypt\RSA;
-use phpseclib\File\X509;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -106,12 +104,6 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn(['dependencies' => ['architecture' => [$architecture]]]);
 
 		$certificate = $signSetupService->getDevelopCert();
-		$rsa = new RSA();
-		$rsa->loadKey($certificate['privateKeyInstance']);
-		$rsa->loadKey($certificate['privateKeyCert']);
-		$x509 = new X509();
-		$x509->loadX509($certificate['rootCertificate']);
-		$x509->setPrivateKey($rsa);
 
 		$structure = [
 			'data' => [
