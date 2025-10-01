@@ -12,8 +12,9 @@ use Exception;
 use OC\Core\Command\Base;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\SignSetupService;
-use OCA\Libresign\Vendor\phpseclib\Crypt\RSA;
-use OCA\Libresign\Vendor\phpseclib\File\X509;
+use OCA\Libresign\Vendor\phpseclib3\Crypt\RSA;
+use OCA\Libresign\Vendor\phpseclib3\Exception\NoKeyLoadedException;
+use OCA\Libresign\Vendor\phpseclib3\File\X509;
 use OCP\IConfig;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -57,8 +58,9 @@ class SignSetup extends Base {
 			return 1;
 		}
 
-		$rsa = new RSA();
-		if ($rsa->loadKey($privateKey) === false) {
+		try {
+			$rsa = RSA::loadPrivateKey($privateKey);
+		} catch (NoKeyLoadedException) {
 			$output->writeln('Invalid private key');
 			return 1;
 		}
