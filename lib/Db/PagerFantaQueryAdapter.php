@@ -9,9 +9,9 @@ declare(strict_types=1);
 namespace OCA\Libresign\Db;
 
 use Doctrine\DBAL\Query\QueryBuilder;
+use OCA\Libresign\Vendor\Pagerfanta\Adapter\AdapterInterface;
+use OCA\Libresign\Vendor\Pagerfanta\Exception\InvalidArgumentException;
 use OCP\DB\QueryBuilder\IQueryBuilder;
-use Pagerfanta\Adapter\AdapterInterface;
-use Pagerfanta\Exception\InvalidArgumentException;
 
 /**
  * Adapter which calculates pagination from a Doctrine DBAL QueryBuilder.

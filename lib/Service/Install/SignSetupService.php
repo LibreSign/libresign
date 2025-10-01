@@ -17,6 +17,10 @@ use OCA\Libresign\Exception\InvalidSignatureException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\SignatureDataNotFoundException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateHelper;
+use OCA\Libresign\Vendor\phpseclib3\Crypt\PublicKeyLoader;
+use OCA\Libresign\Vendor\phpseclib3\Crypt\RSA;
+use OCA\Libresign\Vendor\phpseclib3\Crypt\RSA\PrivateKey;
+use OCA\Libresign\Vendor\phpseclib3\File\X509;
 use OCP\App\IAppManager;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
@@ -25,8 +29,6 @@ use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\ITempManager;
-use phpseclib\Crypt\RSA;
-use phpseclib\File\X509;
 
 class SignSetupService {
 	private array $exclude = [
@@ -40,7 +42,7 @@ class SignSetupService {
 	private bool $willUseLocalCert = false;
 	private string $distro = '';
 	private ?X509 $x509 = null;
-	private ?RSA $rsa = null;
+	private ?PrivateKey $privateKey = null;
 	private string $instanceId;
 	private IAppData $appData;
 	public function __construct(
@@ -74,8 +76,8 @@ class SignSetupService {
 		return $appInfo['dependencies']['architecture'];
 	}
 
-	public function setPrivateKey(RSA $privateKey): void {
-		$this->rsa = $privateKey;
+	public function setPrivateKey(PrivateKey $privateKey): void {
+		$this->privateKey = $privateKey;
 	}
 
 	public function setCertificate(x509 $x509): void {
@@ -86,17 +88,19 @@ class SignSetupService {
 		$this->willUseLocalCert = $willUseLocalCert;
 	}
 
-	private function getPrivateKey(): RSA {
-		if (!$this->rsa instanceof RSA) {
+	private function getPrivateKey(): PrivateKey {
+		if (!$this->privateKey instanceof PrivateKey) {
 			if (file_exists(__DIR__ . '/../../../build/tools/certificates/local/libresign.key')) {
 				$privateKey = file_get_contents(__DIR__ . '/../../../build/tools/certificates/local/libresign.key');
-				$this->rsa = new RSA();
-				$this->rsa->loadKey($privateKey);
+				$this->privateKey = PublicKeyLoader::loadPrivateKey($privateKey);
 			} else {
 				$this->getDevelopCert();
 			}
 		}
-		return $this->rsa;
+		if (!$this->privateKey instanceof PrivateKey) {
+			throw new LibresignException('Private key not found');
+		}
+		return $this->privateKey;
 	}
 
 	private function getCertificate(): X509 {
@@ -109,6 +113,9 @@ class SignSetupService {
 			} else {
 				$this->getDevelopCert();
 			}
+		}
+		if (!$this->x509 instanceof x509) {
+			throw new LibresignException('Certificate not found');
 		}
 		return $this->x509;
 	}
@@ -381,12 +388,8 @@ class SignSetupService {
 		$x509 = $this->getLibresignAppCertificate();
 
 		// Check if the signature of the files is valid
-		$rsa = new RSA();
-		$rsa->loadKey($x509->currentCert['tbsCertificate']['subjectPublicKeyInfo']['subjectPublicKey']);
-		$rsa->setSignatureMode(RSA::SIGNATURE_PSS);
-		$rsa->setMGFHash('sha512');
-		// See https://tools.ietf.org/html/rfc3447#page-38
-		$rsa->setSaltLength(0);
+		$rsa = $x509->getPublicKey()
+			->withPadding(RSA::SIGNATURE_PSS);
 
 		$signatureData = $this->getSignatureData();
 		$signature = base64_decode((string)$signatureData['signature']);
@@ -525,16 +528,14 @@ class SignSetupService {
 	private function createSignatureData(array $hashes): array {
 		ksort($hashes);
 
-		$this->getPrivateKey()->setSignatureMode(RSA::SIGNATURE_PSS);
-		$this->getPrivateKey()->setMGFHash('sha512');
-		// See https://tools.ietf.org/html/rfc3447#page-38
-		$this->getPrivateKey()->setSaltLength(0);
-		$signature = $this->getPrivateKey()->sign(json_encode($hashes));
+		$privateKey = $this->getPrivateKey()
+			->withPadding(RSA::SIGNATURE_PSS);
+		$signature = $privateKey->sign(json_encode($hashes));
 
 		return [
 			'hashes' => $hashes,
 			'signature' => base64_encode($signature),
-			'certificate' => $this->getCertificate()->saveX509($this->getCertificate()->currentCert),
+			'certificate' => $this->getCertificate()->saveX509($this->getCertificate()->getCurrentCert()),
 		];
 	}
 
@@ -574,11 +575,10 @@ class SignSetupService {
 		openssl_x509_export($x509, $rootCertificate);
 		openssl_pkey_export($privateKey, $privateKeyCert);
 
-		$this->rsa = new RSA();
-		$this->rsa->loadKey($privateKeyCert);
+		$this->privateKey = RSA::loadPrivateKey($privateKeyCert);
 		$this->x509 = new X509();
 		$this->x509->loadX509($rootCertificate);
-		$this->x509->setPrivateKey($this->rsa);
+		$this->x509->setPrivateKey($this->privateKey);
 
 		$rootCertPath = __DIR__ . '/../../../build/tools/certificates/local/';
 		if (!is_dir($rootCertPath)) {
