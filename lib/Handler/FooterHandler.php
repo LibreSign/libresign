@@ -8,28 +8,28 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler;
 
-use BaconQrCode\Encoder\Encoder;
-use Endroid\QrCode\Bacon\ErrorCorrectionLevelConverter;
-use Endroid\QrCode\Color\Color;
-use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel;
-use Endroid\QrCode\QrCode;
-use Endroid\QrCode\RoundBlockSizeMode;
-use Endroid\QrCode\Writer\PngWriter;
-use Mpdf\Mpdf;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\PdfParserService;
+use OCA\Libresign\Vendor\BaconQrCode\Encoder\Encoder;
+use OCA\Libresign\Vendor\Endroid\QrCode\Bacon\ErrorCorrectionLevelConverter;
+use OCA\Libresign\Vendor\Endroid\QrCode\Color\Color;
+use OCA\Libresign\Vendor\Endroid\QrCode\Encoding\Encoding;
+use OCA\Libresign\Vendor\Endroid\QrCode\ErrorCorrectionLevel;
+use OCA\Libresign\Vendor\Endroid\QrCode\QrCode;
+use OCA\Libresign\Vendor\Endroid\QrCode\RoundBlockSizeMode;
+use OCA\Libresign\Vendor\Endroid\QrCode\Writer\PngWriter;
+use OCA\Libresign\Vendor\Mpdf\Mpdf;
+use OCA\Libresign\Vendor\Twig\Environment;
+use OCA\Libresign\Vendor\Twig\Error\SyntaxError;
+use OCA\Libresign\Vendor\Twig\Loader\FilesystemLoader;
 use OCP\Files\File;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
 use OCP\L10N\IFactory;
-use Twig\Environment;
-use Twig\Error\SyntaxError;
-use Twig\Loader\FilesystemLoader;
 
 class FooterHandler {
 	private QrCode $qrCode;

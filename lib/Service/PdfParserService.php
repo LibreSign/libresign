@@ -9,10 +9,11 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Vendor\Smalot\PdfParser\Document;
+use OCA\Libresign\Vendor\Smalot\PdfParser\Parser;
 use OCP\Files\File;
 use OCP\ITempManager;
 use Psr\Log\LoggerInterface;
-use Smalot\PdfParser\Document;
 
 class PdfParserService {
 	private string $content = '';
@@ -52,7 +53,7 @@ class PdfParserService {
 		if (!$this->document) {
 			$content = $this->getContent();
 			try {
-				$parser = new \Smalot\PdfParser\Parser();
+				$parser = new Parser();
 				$this->document = $parser->parseContent($content);
 				return $this->document;
 			} catch (\Throwable $th) {

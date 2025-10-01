@@ -11,7 +11,7 @@ namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
-use Wobeto\EmailBlur\Blur;
+use OCA\Libresign\Vendor\Wobeto\EmailBlur\Blur;
 
 class EmailToken extends AbstractSignatureMethod implements IToken {
 	public function __construct(
