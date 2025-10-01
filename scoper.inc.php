@@ -86,7 +86,7 @@ return [
 				return $content;
 			}
 			$s_prefix = str_replace('\\', '\\\\', $prefix);
-			$content = str_replace("'\\Smalot\\PdfParser", "'\\\\" . $s_prefix . '\\\\Smalot\\\\PdfParser\\\\', $content);
+			$content = str_replace("'\\\\Smalot\\\\PdfParser", "'\\\\" . $s_prefix . '\\\\Smalot\\\\PdfParser', $content);
 			return $content;
 		},
 	],
