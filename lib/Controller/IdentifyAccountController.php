@@ -127,9 +127,9 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 	}
 
 	private function formatForNcSelect(array $list): array {
-		$return = [];
+		$formattedList = [];
 		foreach ($list as $key => $item) {
-			$return[$key] = [
+			$formattedList[$key] = [
 				'id' => $item['value']['shareWith'],
 				'isNoUser' => $item['value']['shareType'] !== IShare::TYPE_USER
 					&& isset($item['method'])
@@ -138,24 +138,24 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 				'subname' => $item['shareWithDisplayNameUnique'] ?? '',
 			];
 			if ($item['value']['shareType'] === IShare::TYPE_EMAIL) {
-				$return[$key]['method'] = 'email';
-				$return[$key]['icon'] = 'icon-mail';
+				$formattedList[$key]['method'] = 'email';
+				$formattedList[$key]['icon'] = 'icon-mail';
 			} elseif ($item['value']['shareType'] === IShare::TYPE_USER) {
-				$return[$key]['method'] = 'account';
-				$return[$key]['icon'] = 'icon-user';
+				$formattedList[$key]['method'] = 'account';
+				$formattedList[$key]['icon'] = 'icon-user';
 			} elseif ($item['value']['shareType'] === SignerPlugin::TYPE_SIGNER) {
-				$return[$key]['method'] = $item['method'] ?? '';
+				$formattedList[$key]['method'] = $item['method'] ?? '';
 				if ($item['method'] === 'email') {
-					$return[$key]['icon'] = 'icon-mail';
+					$formattedList[$key]['icon'] = 'icon-mail';
 				} elseif ($item['method'] === 'account') {
-					$return[$key]['icon'] = 'icon-user';
+					$formattedList[$key]['icon'] = 'icon-user';
 				} else {
-					$return[$key]['iconSvg'] = 'svg' . ucfirst($item['method']);
-					$return[$key]['iconName'] = $item['method'];
+					$formattedList[$key]['iconSvg'] = 'svg' . ucfirst($item['method']);
+					$formattedList[$key]['iconName'] = $item['method'];
 				}
 			}
 		}
-		return $return;
+		return $formattedList;
 	}
 
 	private function addHerselfAccount(array $return, string $search): array {
