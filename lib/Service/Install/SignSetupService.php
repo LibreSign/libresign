@@ -389,10 +389,6 @@ class SignSetupService {
 
 		// Check if the signature of the files is valid
 		$rsa = $x509->getPublicKey();
-		$rsa->withPadding(RSA::SIGNATURE_PSS);
-		$rsa->withMGFHash('sha512');
-		// See https://tools.ietf.org/html/rfc3447#page-38
-		$rsa->withSaltLength(0);
 
 		$signatureData = $this->getSignatureData();
 		$signature = base64_decode((string)$signatureData['signature']);
@@ -532,10 +528,6 @@ class SignSetupService {
 		ksort($hashes);
 
 		$privateKey = $this->getPrivateKey();
-		$privateKey->withPadding(RSA::SIGNATURE_PSS);
-		$privateKey->withMGFHash('sha512');
-		// See https://tools.ietf.org/html/rfc3447#page-38
-		$privateKey->withSaltLength(0);
 		$signature = $privateKey->sign(json_encode($hashes));
 
 		return [
