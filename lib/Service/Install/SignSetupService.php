@@ -528,7 +528,8 @@ class SignSetupService {
 	private function createSignatureData(array $hashes): array {
 		ksort($hashes);
 
-		$privateKey = $this->getPrivateKey();
+		$privateKey = $this->getPrivateKey()
+			->withPadding(RSA::SIGNATURE_PSS);
 		$signature = $privateKey->sign(json_encode($hashes));
 
 		return [
