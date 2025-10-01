@@ -258,6 +258,7 @@ OC.L10N.register(
     "\"{displayName}\" batch action executed successfully" : "\"{displayName}\" massehandling utført",
     "\"{displayName}\" action failed" : "\"{displayName}\"-handling feilet",
     "(selected)" : "(valgt)",
+    "_{count} selected_::_{count} selected_" : ["{count} valgt","{count} valgt"],
     "Welcome to LibreSign" : "Velkommen til LibreSign",
     "Finish the setup" : "Fullfør oppsettet",
     "Owner of certificate" : "Eier av sertifikat",
