@@ -106,12 +106,6 @@ final class SignSetupServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn(['dependencies' => ['architecture' => [$architecture]]]);
 
 		$certificate = $signSetupService->getDevelopCert();
-		$rsa = new RSA();
-		$rsa->loadKey($certificate['privateKeyInstance']);
-		$rsa->loadKey($certificate['privateKeyCert']);
-		$x509 = new X509();
-		$x509->loadX509($certificate['rootCertificate']);
-		$x509->setPrivateKey($rsa);
 
 		$structure = [
 			'data' => [
