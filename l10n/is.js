@@ -84,6 +84,7 @@ OC.L10N.register(
     "\"{displayName}\" batch action executed successfully" : "Tókst að framkvæma \"{displayName}\" magnvinnsluaðgerð",
     "\"{displayName}\" action failed" : "\"{displayName}\" aðgerð mistókst",
     "(selected)" : "(valið)",
+    "_{count} selected_::_{count} selected_" : ["{count} valið","{count} valið"],
     "Password reset" : "Endurstilling lykilorðs",
     "Current password" : "Núverandi lykilorð",
     "New password" : "Nýtt lykilorð",
