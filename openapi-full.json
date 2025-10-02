@@ -4630,7 +4630,7 @@
             "post": {
                 "operationId": "file-save",
                 "summary": "Send a file",
-                "description": "Send a new file to Nextcloud and return the fileId to request to sign usign fileId",
+                "description": "Send a new file to Nextcloud and return the fileId to request signature",
                 "tags": [
                     "file"
                 ],
@@ -5503,6 +5503,15 @@
                         "name": "search",
                         "in": "query",
                         "description": "search params",
+                        "schema": {
+                            "type": "string",
+                            "default": ""
+                        }
+                    },
+                    {
+                        "name": "method",
+                        "in": "query",
+                        "description": "filter by method (email, account, sms, signal, telegram, whatsapp, xmpp)",
                         "schema": {
                             "type": "string",
                             "default": ""
@@ -7330,7 +7339,7 @@
                                     "signMethod": {
                                         "type": "string",
                                         "nullable": true,
-                                        "description": "Method used to sign the document, i.e. emailToken, account, clickToSign"
+                                        "description": "Method used to sign the document, i.e. emailToken, account, clickToSign, sms, signal, telegram, whatsapp, xmpp"
                                     },
                                     "identify": {
                                         "type": "string",
@@ -7490,7 +7499,7 @@
                                     "signMethod": {
                                         "type": "string",
                                         "nullable": true,
-                                        "description": "Method used to sign the document, i.e. emailToken, account, clickToSign"
+                                        "description": "Method used to sign the document, i.e. emailToken, account, clickToSign, sms, signal, telegram, whatsapp, xmpp"
                                     },
                                     "identify": {
                                         "type": "string",

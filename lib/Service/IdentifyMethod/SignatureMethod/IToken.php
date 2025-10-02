@@ -9,5 +9,5 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
 interface IToken {
-	public function requestCode(string $identify): void;
+	public function requestCode(string $identifier, string $method): void;
 }
