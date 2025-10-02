@@ -54,11 +54,17 @@ return [
 			if (!str_contains($filePath, 'mpdf/mpdf')) {
 				return $content;
 			}
-			$content = str_replace("\\\\Mpdf\\\\", "\\\\" . $prefix . '\\\\Mpdf\\\\', $content);
-			$content = str_replace("'\\\\Mpdf\\\\", "'\\\\" . $prefix . '\\\\Mpdf\\\\', $content);
-			$content = str_replace("@var \\\\Mpdf\\\\", "@var \\\\" . $prefix . '\\\\Mpdf\\\\', $content);
-			$content = str_replace("use Mpdf\\\\", "use " . $prefix . '\\\\Mpdf\\\\', $content);
-			$content = str_replace("namespace Mpdf\\\\", "namespace " . $prefix . '\\\\Mpdf\\\\', $content);
+			$searchReplacePairs = [
+				'\\\\Mpdf\\\\' => '\\\\' . $prefix . '\\\\Mpdf\\\\',
+				"'Mpdf\\\\" => "'" . $prefix . '\\\\Mpdf\\\\',
+				"'\\\\Mpdf\\\\" => "'\\\\" . $prefix . '\\\\Mpdf\\\\',
+				'@var \\\\Mpdf\\\\' => '@var \\\\' . $prefix . '\\\\Mpdf\\\\',
+				'use Mpdf\\\\' => 'use ' . $prefix . '\\\\Mpdf\\\\',
+				'namespace Mpdf\\\\' => 'namespace ' . $prefix . '\\\\Mpdf\\\\',
+			];
+			foreach ($searchReplacePairs as $search => $replace) {
+				$content = str_replace($search, $replace, $content);
+			}
 
 			$file = basename($filePath);
 
