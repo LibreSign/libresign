@@ -35,7 +35,7 @@ export default {
 	},
 	computed: {
 		signers() {
-			return this.filesStore.getFile()?.signers ?? []
+			return this.filesStore.getFile().signers
 		},
 	},
 }

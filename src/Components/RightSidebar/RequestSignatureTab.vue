@@ -9,8 +9,7 @@
 			@click="addSigner">
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
-		<Signers :signers="filesStore.signers"
-			event="libresign:edit-signer">
+		<Signers event="libresign:edit-signer">
 			<template #actions="{signer}">
 				<NcActionButton v-if="filesStore.canSave() && !signer.signed"
 					aria-label="Delete"
