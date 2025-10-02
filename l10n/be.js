@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Success" : "Поспех",
     "Settings saved" : "Налады захаваны",
     "The file was uploaded" : "Файл быў запампаваны.",
     "The uploaded file exceeds the upload_max_filesize directive in php.ini" : "Памер запампаванага файла перавышае значэнне дырэктывы upload_max_filesize у php.ini",
