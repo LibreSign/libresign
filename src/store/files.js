@@ -31,6 +31,7 @@ const slugfy = (val) =>
 		.replace(/-+$/, '')
 
 export const useFilesStore = function(...args) {
+	const emptyFile = { signers: [] }
 	const store = defineStore('files', {
 		state: () => {
 			return {
@@ -67,7 +68,7 @@ export const useFilesStore = function(...args) {
 				if (typeof file === 'object') {
 					return file
 				}
-				return this.files[this.selectedNodeId] ?? {}
+				return this.files[this.selectedNodeId] || emptyFile
 			},
 			async flushSelectedFile() {
 				const files = await this.getAllFiles({
@@ -214,6 +215,9 @@ export const useFilesStore = function(...args) {
 					}
 				}
 				this.getFile().signers.push(signer)
+				const selected = this.selectedNodeId
+				this.selectFile(-1) // to force reactivity
+				this.selectFile(selected) // to force reactivity
 			},
 			async deleteSigner(signer) {
 				if (!isNaN(signer.signRequestId)) {

@@ -378,7 +378,7 @@ class FileController extends AEnvironmentAwareController {
 	/**
 	 * Send a file
 	 *
-	 * Send a new file to Nextcloud and return the fileId to request to sign usign fileId
+	 * Send a new file to Nextcloud and return the fileId to request signature
 	 *
 	 * @param LibresignNewFile $file File to save
 	 * @param string $name The name of file to sign

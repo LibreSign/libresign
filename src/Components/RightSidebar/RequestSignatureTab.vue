@@ -3,19 +3,13 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div v-if="filesStore.identifyingSigner"
-		id="request-signature-identify-signer">
-		<IdentifySigner :signer-to-edit="signerToEdit" />
-	</div>
-	<div v-else
-		id="request-signature-tab">
+	<div id="request-signature-tab">
 		<NcButton v-if="filesStore.canAddSigner()"
 			:variant="hasSigners ? 'secondary' : 'primary'"
 			@click="addSigner">
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
-		<Signers :signers="filesStore.signers"
-			event="libresign:edit-signer">
+		<Signers event="libresign:edit-signer">
 			<template #actions="{signer}">
 				<NcActionButton v-if="filesStore.canSave() && !signer.signed"
 					aria-label="Delete"
@@ -70,9 +64,36 @@
 			@close="closeModal()">
 			<iframe :src="modalSrc" class="iframe" />
 		</NcModal>
+		<NcDialog v-if="filesStore.identifyingSigner"
+			id="request-signature-identify-signer"
+			:size="size"
+			:name="t('libresign', 'Add new signer')"
+			@closing="filesStore.disableIdentifySigner()">
+			<NcAppSidebar :name="t('libresign', 'Add new signer')">
+				<NcAppSidebarTab v-for="method in enabledMethods()"
+					:id="`tab-${method.name}`"
+					:key="method.name"
+					:name="method.friendly_name">
+					<template #icon>
+						<NcIconSvgWrapper :size="20"
+							:svg="getSvgIcon(method.name)" />
+					</template>
+					<IdentifySigner :signer-to-edit="signerToEdit"
+						:placeholder="method.friendly_name"
+						:method="method.name" />
+				</NcAppSidebarTab>
+			</NcAppSidebar>
+		</NcDialog>
 	</div>
 </template>
 <script>
+
+import svgAccount from '@mdi/svg/svg/account.svg?raw'
+import svgEmail from '@mdi/svg/svg/email.svg?raw'
+import svgSms from '@mdi/svg/svg/message-processing.svg?raw'
+import svgWhatsapp from '@mdi/svg/svg/whatsapp.svg?raw'
+import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
+
 import Delete from 'vue-material-design-icons/Delete.vue'
 
 import axios from '@nextcloud/axios'
@@ -83,7 +104,11 @@ import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import NcAppSidebar from '@nextcloud/vue/components/NcAppSidebar'
+import NcAppSidebarTab from '@nextcloud/vue/components/NcAppSidebarTab'
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcDialog from '@nextcloud/vue/components/NcDialog'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcModal from '@nextcloud/vue/components/NcModal'
 
@@ -91,18 +116,34 @@ import IdentifySigner from '../Request/IdentifySigner.vue'
 import VisibleElements from '../Request/VisibleElements.vue'
 import Signers from '../Signers/Signers.vue'
 
+import svgSignal from '../../../img/logo-signal-app.svg?raw'
+import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
 import router from '../../router/router.js'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 
+const iconMap = {
+	svgAccount,
+	svgEmail,
+	svgSignal,
+	svgSms,
+	svgTelegram,
+	svgWhatsapp,
+	svgXmpp,
+}
+
 export default {
 	name: 'RequestSignatureTab',
 	components: {
 		NcActionButton,
+		NcAppSidebar,
+		NcAppSidebarTab,
 		NcButton,
+		NcIconSvgWrapper,
 		NcLoadingIcon,
 		NcModal,
+		NcDialog,
 		Delete,
 		Signers,
 		IdentifySigner,
@@ -127,6 +168,7 @@ export default {
 			modalSrc: '',
 			document: {},
 			hasInfo: false,
+			methods: [],
 		}
 	},
 	computed: {
@@ -146,6 +188,9 @@ export default {
 		fileName() {
 			return this.filesStore.getFile()?.name ?? ''
 		},
+		size() {
+			return window.matchMedia('(max-width: 512px)').matches ? 'full' : 'normal'
+		},
 	},
 	watch: {
 		signers(signers) {
@@ -160,9 +205,16 @@ export default {
 		unsubscribe('libresign:edit-signer')
 	},
 	created() {
+		this.$set(this, 'methods', loadState('libresign', 'identify_methods'))
 		this.$set(this, 'document', loadState('libresign', 'file_info', {}))
 	},
 	methods: {
+		getSvgIcon(name) {
+			return iconMap[`svg${name.charAt(0).toUpperCase() + name.slice(1)}`] || iconMap.svgAccount
+		},
+		enabledMethods() {
+			return this.methods.filter(method => method.enabled)
+		},
 		isSignElementsAvailable() {
 			return getCapabilities()?.libresign?.config?.['sign-elements']?.['is-available'] === true
 		},
@@ -238,6 +290,8 @@ export default {
 						user.identify.account = method?.value?.id ?? method?.value ?? signer.uid
 					} else if (method.method === 'email') {
 						user.identify.email = method?.value?.id ?? method?.value ?? signer.email
+					} else {
+						user.identify[method.method] = method.value
 					}
 				})
 				config.data.users.push(user)
@@ -304,5 +358,22 @@ export default {
 .iframe {
 	width: 100%;
 	height: 100%;
+}
+
+#request-signature-identify-signer {
+	::v-deep .app-sidebar-header{
+		display: none;
+	}
+	::v-deep aside {
+		border-left: unset;
+	}
+	::v-deep .app-sidebar__close {
+		display: none;
+	}
+	@media (min-width: 513px) {
+		::v-deep #app-sidebar-vue {
+			width: unset;
+		}
+	}
 }
 </style>
