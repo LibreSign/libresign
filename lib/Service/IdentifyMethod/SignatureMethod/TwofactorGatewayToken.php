@@ -2,24 +2,22 @@
 
 declare(strict_types=1);
 /**
- * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-FileCopyrightText: 2025 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
-use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
-use OCA\Libresign\Vendor\Wobeto\EmailBlur\Blur;
 
-class EmailToken extends AbstractSignatureMethod implements IToken {
+class TwofactorGatewayToken extends AbstractSignatureMethod implements IToken {
+	private const VISIBILITY_START = 2;
+	private const VISIBILITY_END = 2;
+
 	public function __construct(
 		protected IdentifyService $identifyService,
 		protected TokenService $tokenService,
 	) {
-		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by email
-		$this->setFriendlyName($this->identifyService->getL10n()->t('Email token'));
 		parent::__construct(
 			$identifyService,
 		);
@@ -32,21 +30,12 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 	public function toArray(): array {
 		$entity = $this->getEntity();
 
-		$email = match ($entity->getIdentifierKey()) {
-			'email' => $entity->getIdentifierValue(),
+		$identifier = match ($entity->getIdentifierKey()) {
+			'identifier' => $entity->getIdentifierValue(),
 			'account' => $this->identifyService->getUserManager()->get($entity->getIdentifierValue())
 				?->getEMailAddress(),
 			default => null,
 		};
-
-		if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [['message' => $this->identifyService->getL10n()->t('Invalid email')]],
-			]));
-		}
-
-		$emailLowercase = strtolower($email);
 
 		$code = $entity->getCode();
 		$identifiedAt = $entity->getIdentifiedAtDate();
@@ -61,14 +50,28 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 		$return['identifyMethod'] = $entity->getIdentifierKey();
 		$return['needCode'] = $needCode;
 		$return['hasConfirmCode'] = $hasConfirmCode;
-		$return['blurredEmail'] = $this->blurEmail($emailLowercase);
-		$return['hashOfEmail'] = md5($emailLowercase);
+		$return['blurredIdentifier'] = $this->blurIdentifier($identifier);
+		$return['hashOfIdentifier'] = md5($identifier);
 		return $return;
 	}
 
-	private function blurEmail(string $email): string {
-		$blur = new Blur($email);
-		return $blur->make();
+	private function blurIdentifier(
+		string $identifier,
+		int $visibleStart = self::VISIBILITY_START,
+		int $visibleEnd = self::VISIBILITY_END,
+	): string {
+		$length = mb_strlen($identifier);
+
+		if ($length <= $visibleStart + $visibleEnd) {
+			return str_repeat('*', $length);
+		}
+
+		$start = mb_substr($identifier, 0, $visibleStart);
+		$end = mb_substr($identifier, -$visibleEnd);
+
+		$maskedLength = $length - ($visibleStart + $visibleEnd);
+
+		return $start . str_repeat('*', $maskedLength) . $end;
 	}
 
 	public function requestCode(string $identifier, string $method): void {
@@ -78,7 +81,11 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 		if ($identifier === $displayName) {
 			$displayName = '';
 		}
-		$code = $this->tokenService->sendCodeByEmail($identifier, $displayName);
+		if ($method === 'email') {
+			$code = $this->tokenService->sendCodeByEmail($identifier, $displayName);
+		} else {
+			$code = $this->tokenService->sendCodeByGateway($identifier, $method);
+		}
 		$this->getEntity()->setCode($code);
 		$this->identifyService->save($this->getEntity());
 	}

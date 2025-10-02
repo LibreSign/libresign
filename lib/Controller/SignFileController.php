@@ -220,7 +220,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 *
 	 * @param string $uuid UUID of LibreSign file
 	 * @param 'account'|'email'|null $identifyMethod Identify signer method
-	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign
+	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign, sms, signal, telegram, whatsapp, xmpp
 	 * @param string|null $identify Identify value, i.e. the signer email, account or phone number
 	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
@@ -246,7 +246,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 *
 	 * @param int $fileId Id of LibreSign file
 	 * @param 'account'|'email'|null $identifyMethod Identify signer method
-	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign
+	 * @param string|null $signMethod Method used to sign the document, i.e. emailToken, account, clickToSign, sms, signal, telegram, whatsapp, xmpp
 	 * @param string|null $identify Identify value, i.e. the signer email, account or phone number
 	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *

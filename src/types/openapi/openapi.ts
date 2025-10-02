@@ -617,7 +617,7 @@ export type paths = {
         put?: never;
         /**
          * Send a file
-         * @description Send a new file to Nextcloud and return the fileId to request to sign usign fileId
+         * @description Send a new file to Nextcloud and return the fileId to request signature
          */
         post: operations["file-save"];
         delete?: never;
@@ -3073,6 +3073,8 @@ export interface operations {
             query?: {
                 /** @description search params */
                 search?: string;
+                /** @description filter by method (email, account, sms, signal, telegram, whatsapp, xmpp) */
+                method?: string;
                 /** @description the number of page to return. Default: 1 */
                 page?: number;
                 /** @description Total of elements to return. Default: 25 */
@@ -3801,7 +3803,7 @@ export interface operations {
                      * @enum {string|null}
                      */
                     identifyMethod?: "account" | "email" | null;
-                    /** @description Method used to sign the document, i.e. emailToken, account, clickToSign */
+                    /** @description Method used to sign the document, i.e. emailToken, account, clickToSign, sms, signal, telegram, whatsapp, xmpp */
                     signMethod?: string | null;
                     /** @description Identify value, i.e. the signer email, account or phone number */
                     identify?: string | null;
@@ -3865,7 +3867,7 @@ export interface operations {
                      * @enum {string|null}
                      */
                     identifyMethod?: "account" | "email" | null;
-                    /** @description Method used to sign the document, i.e. emailToken, account, clickToSign */
+                    /** @description Method used to sign the document, i.e. emailToken, account, clickToSign, sms, signal, telegram, whatsapp, xmpp */
                     signMethod?: string | null;
                     /** @description Identify value, i.e. the signer email, account or phone number */
                     identify?: string | null;
