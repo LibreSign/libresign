@@ -56,8 +56,7 @@ class TwofactorGateway extends AbstractIdentifyMethod {
 	}
 
 	public function isTwofactorGatewayEnabled(): bool {
-		$isAppEnabled = $this->appManager->isEnabledForAnyone('twofactor_gateway');
-		if (!$isAppEnabled) {
+		if (!$this->appManager->isInstalled('twofactor_gateway')) {
 			$this->logger->info('Twofactor Gateway app is not enabled');
 			return false;
 		}

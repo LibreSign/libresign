@@ -70,7 +70,7 @@ class TwofactorGatewayListener implements IEventListener {
 			if (!in_array($entity->getIdentifierKey(), ['sms', 'signal', 'telegram', 'whatsapp', 'xmpp'], true)) {
 				return;
 			}
-			if (!$this->appManager->isEnabledForAnyone('twofactor_gateway')) {
+			if (!$this->appManager->isInstalled('twofactor_gateway')) {
 				$this->logger->info('Twofactor Gateway app is not enabled');
 				return;
 			}
@@ -120,7 +120,7 @@ class TwofactorGatewayListener implements IEventListener {
 			if (!in_array($entity->getIdentifierKey(), ['sms', 'signal', 'telegram', 'whatsapp', 'xmpp'], true)) {
 				return;
 			}
-			if (!$this->appManager->isEnabledForAnyone('twofactor_gateway')) {
+			if (!$this->appManager->isInstalled('twofactor_gateway')) {
 				$this->logger->info('Twofactor Gateway app is not enabled');
 				return;
 			}
