@@ -54,13 +54,22 @@ return [
 			if (!str_contains($filePath, 'mpdf/mpdf')) {
 				return $content;
 			}
+			$searchReplacePairs = [
+				'\\\\Mpdf\\\\' => '\\\\' . $prefix . '\\\\Mpdf\\\\',
+				"'Mpdf\\\\" => "'" . $prefix . '\\\\Mpdf\\\\',
+				"'\\\\Mpdf\\\\" => "'\\\\" . $prefix . '\\\\Mpdf\\\\',
+				'@var \\\\Mpdf\\\\' => '@var \\\\' . $prefix . '\\\\Mpdf\\\\',
+				'use Mpdf\\\\' => 'use ' . $prefix . '\\\\Mpdf\\\\',
+				'namespace Mpdf\\\\' => 'namespace ' . $prefix . '\\\\Mpdf\\\\',
+			];
+			foreach ($searchReplacePairs as $search => $replace) {
+				$content = str_replace($search, $replace, $content);
+			}
 
 			$file = basename($filePath);
 
 			return match ($file) {
-				'Tag.php' => str_replace("'Mpdf\\\\Tag\\\\'", "'$prefix\\\\Mpdf\\\\Tag\\\\'", $content),
 				'FpdiTrait.php' => str_replace('use \\setasign\\', "use \\$prefix\\setasign\\", $content),
-				'Svg.php' => preg_replace("/$prefix\\\\(<svg[^>]*>)/", '$1', $content),
 				'Mpdf.php' => str_replace(["$prefix\\\\r\\\\n", "$prefix\\\\</t"], ['\\r\\n', '</t'], $content),
 				'functions.php' => str_replace("namespace $prefix;", '', $content),
 				'LoggerAwareInterface.php',
