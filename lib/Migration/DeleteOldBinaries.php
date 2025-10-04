@@ -108,7 +108,6 @@ class DeleteOldBinaries implements IRepairStep {
 	private function getSimpleFolderList(ISimpleFolder $node): array {
 		$reflection = new \ReflectionClass($node);
 		$reflectionProperty = $reflection->getProperty('folder');
-		$reflectionProperty->setAccessible(true);
 		$folder = $reflectionProperty->getValue($node);
 		$list = $folder->getDirectoryListing();
 		return $list;

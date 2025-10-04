@@ -35,8 +35,8 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 		$email = match ($entity->getIdentifierKey()) {
 			'email' => $entity->getIdentifierValue(),
 			'account' => $this->identifyService->getUserManager()->get($entity->getIdentifierValue())
-				?->getEMailAddress(),
-			default => null,
+				?->getEMailAddress() ?? '',
+			default => '',
 		};
 
 		if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {

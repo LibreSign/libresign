@@ -384,7 +384,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private static function getElement(array $attributes = [], string $imagePath = ''): VisibleElementAssoc {
 		$element = new FileElement();
 		foreach ($attributes as $attribute => $value) {
-			$method = 'set' . ucfirst($attribute);
+			$method = 'set' . ucfirst((string)$attribute);
 			$element->$method($value);
 		}
 		return new VisibleElementAssoc(

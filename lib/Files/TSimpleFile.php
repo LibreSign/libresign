@@ -19,12 +19,10 @@ trait TSimpleFile {
 		$reflection = new \ReflectionClass($node);
 		if ($reflection->hasProperty('parentFolder')) {
 			$reflectionProperty = $reflection->getProperty('parentFolder');
-			$reflectionProperty->setAccessible(true);
 			$folder = $reflectionProperty->getValue($node);
 			$path = $folder->getInternalPath() . '/' . $node->getName();
 		} elseif ($reflection->hasProperty('file')) {
 			$reflectionProperty = $reflection->getProperty('file');
-			$reflectionProperty->setAccessible(true);
 			$file = $reflectionProperty->getValue($node);
 			$path = $file->getPath();
 		}
@@ -37,7 +35,6 @@ trait TSimpleFile {
 	private function getInternalPathOfFolder(ISimpleFolder $node): string {
 		$reflection = new \ReflectionClass($node);
 		$reflectionProperty = $reflection->getProperty('folder');
-		$reflectionProperty->setAccessible(true);
 		$folder = $reflectionProperty->getValue($node);
 		$path = $folder->getInternalPath();
 		return $path;

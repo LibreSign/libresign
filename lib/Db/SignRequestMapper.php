@@ -221,6 +221,7 @@ class SignRequestMapper extends QBMapper {
 
 		$result = $qb->executeQuery();
 		try {
+			/** @var array<string, mixed> $row */
 			while ($row = $result->fetch()) {
 				$signRequest = new SignRequest();
 				$identifyMethod = new IdentifyMethod();

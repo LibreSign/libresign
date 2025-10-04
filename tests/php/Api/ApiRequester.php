@@ -65,7 +65,7 @@ class ApiRequester extends AbstractRequester {
 		}
 		$_SERVER = array_merge($_SERVER, $server);
 		foreach ($request->getHeaders() as $key => $value) {
-			$name = strtoupper($key);
+			$name = strtoupper((string)$key);
 			$name = str_replace('-', '_', $name);
 			$server['HTTP_' . $name] = $value[0];
 		}
@@ -106,7 +106,6 @@ class ApiRequester extends AbstractRequester {
 		$router = \OCP\Server::get(\OC\Route\Router::class);
 		$reflectionClass = new \ReflectionClass($router);
 		$property = $reflectionClass->getProperty('context');
-		$property->setAccessible(true);
 		$property->setValue($router, new RequestContext(
 			$server['SCRIPT_NAME'],
 			$server['REQUEST_METHOD'],

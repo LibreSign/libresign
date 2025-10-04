@@ -264,7 +264,6 @@ class SignSetupService {
 	private function getInternalPathOfFolder(ISimpleFolder $node): string {
 		$reflection = new \ReflectionClass($node);
 		$reflectionProperty = $reflection->getProperty('folder');
-		$reflectionProperty->setAccessible(true);
 		$folder = $reflectionProperty->getValue($node);
 		$path = $folder->getInternalPath();
 		return $path;
@@ -534,7 +533,7 @@ class SignSetupService {
 
 		return [
 			'hashes' => $hashes,
-			'signature' => base64_encode($signature),
+			'signature' => base64_encode((string)$signature),
 			'certificate' => $this->getCertificate()->saveX509($this->getCertificate()->getCurrentCert()),
 		];
 	}
