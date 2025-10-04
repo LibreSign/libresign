@@ -153,6 +153,7 @@ OC.L10N.register(
     "Click to sign" : "إضغَط للتوقيع",
     "Email token" : "أَمَارَة الإيميل email token",
     "Certificate with password" : "شهادة مصادقة مع كلمة المرور",
+    "%s is your LibreSign verification code." : "%sهو كود التحقق لتطبيق التوقيع الألكتروني الخاص بك LibreSign.",
     "Gateway %s not configured on Two-Factor Gateway." : "لم يتم تهيئة البوابة%s على البوابة ثنائية العوامل.",
     "LibreSign: Changes into a file for you to sign" : "تطبيق LibreSign: تغييرات فى ملف يلزم عليك القيام بالتوقيع عليه",
     "File to sign" : "ملف يحتاج لتوقيع",
