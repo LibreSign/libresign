@@ -33,8 +33,8 @@ class TwofactorGatewayToken extends AbstractSignatureMethod implements IToken {
 		$identifier = match ($entity->getIdentifierKey()) {
 			'identifier' => $entity->getIdentifierValue(),
 			'account' => $this->identifyService->getUserManager()->get($entity->getIdentifierValue())
-				?->getEMailAddress(),
-			default => null,
+				?->getEMailAddress() ?? '',
+			default => '',
 		};
 
 		$code = $entity->getCode();

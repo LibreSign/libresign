@@ -275,7 +275,6 @@ abstract class AEngineHandler implements IEngineHandler {
 	private function getInternalPathOfFolder(ISimpleFolder $node): string {
 		$reflection = new \ReflectionClass($node);
 		$reflectionProperty = $reflection->getProperty('folder');
-		$reflectionProperty->setAccessible(true);
 		$folder = $reflectionProperty->getValue($node);
 		$path = $folder->getInternalPath();
 		return $path;
