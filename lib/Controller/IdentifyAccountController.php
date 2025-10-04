@@ -86,7 +86,6 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 
 		$refObject = new \ReflectionObject($this->collaboratorSearch);
 		$refProperty = $refObject->getProperty('pluginList');
-		$refProperty->setAccessible(true);
 
 		$plugins = $refProperty->getValue($this->collaboratorSearch);
 		$plugins[SignerPlugin::TYPE_SIGNER] = [SignerPlugin::class];
