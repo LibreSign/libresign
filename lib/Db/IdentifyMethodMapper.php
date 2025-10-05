@@ -74,6 +74,9 @@ class IdentifyMethodMapper extends QBMapper {
 		}
 	}
 
+	/**
+	 * @return array<string, string>[]
+	 */
 	public function searchByIdentifierValue(string $search, string $userId, string $method, int $limit = 20, int $offset = 0): array {
 		$qb = $this->db->getQueryBuilder();
 

@@ -102,7 +102,6 @@ class FolderService {
 		$containerFolder = $this->appData->getFolder('/');
 		$reflection = new \ReflectionClass($containerFolder);
 		$reflectionProperty = $reflection->getProperty('folder');
-		$reflectionProperty->setAccessible(true);
 		return $reflectionProperty->getValue($containerFolder);
 	}
 
