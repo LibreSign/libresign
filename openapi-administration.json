@@ -225,6 +225,9 @@
                     },
                     "send_timer": {
                         "type": "string"
+                    },
+                    "next_run": {
+                        "type": "string"
                     }
                 }
             },
