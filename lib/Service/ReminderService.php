@@ -118,6 +118,9 @@ class ReminderService {
 			Reminder::class,
 		);
 
+		if ($startTime === '') {
+			return null;
+		}
 		$runAfter = $this->getStartTime($startTime);
 		if (!$runAfter) {
 			return null;
