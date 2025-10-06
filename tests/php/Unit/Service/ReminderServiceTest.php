@@ -140,6 +140,38 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				],
 				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 1, 'max' => 0, false,
 			],
+			'no notification, scheduled for today, between = 0' => [
+				[
+					'first' => (clone $now),
+					'last' => (clone $now),
+					'total' => 1,
+				],
+				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 0, 'max' => 5, false,
+			],
+			'no notification, scheduled for today, between = 1' => [
+				[
+					'first' => (clone $now),
+					'last' => (clone $now),
+					'total' => 1,
+				],
+				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 1, 'max' => 5, false,
+			],
+			'no notification, scheduled for yesterday, between = 0' => [
+				[
+					'first' => (clone $now)->modify('-1 day'),
+					'last' => (clone $now)->modify('-1 day'),
+					'total' => 1,
+				],
+				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 0, 'max' => 5, false,
+			],
+			'one notification, scheduled for yesterday, between = 1' => [
+				[
+					'first' => (clone $now)->modify('-1 day'),
+					'last' => (clone $now)->modify('-1 day'),
+					'total' => 1,
+				],
+				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 1, 'max' => 5, false,
+			],
 			'one notification, should send' => [
 				[
 					'first' => (clone $now)->modify('-2 days'),
