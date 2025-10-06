@@ -31,6 +31,7 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 		}
 	}
 
+	#[\Override]
 	public function getNbResults(): int {
 		$total = $this->countQueryBuilder->executeQuery()->fetchOne();
 
@@ -42,6 +43,7 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 	 *
 	 * @return array
 	 */
+	#[\Override]
 	public function getSlice(int $offset, int $length): iterable {
 		$qb = clone $this->queryBuilder;
 

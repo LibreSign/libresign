@@ -22,6 +22,7 @@ class Version8000Date20230730032402 extends SimpleMigrationStep {
 	) {
 	}
 
+	#[\Override]
 	public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		$this->installService->installPdftk();
 		if ($rootCert = $this->appConfig->getValueArray(Application::APP_ID, 'rootCert')) {

@@ -43,24 +43,29 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	/**
 	 * @return static
 	 */
+	#[\Override]
 	public function setInputFile(File $inputFile): self {
 		$this->inputFile = $inputFile;
 		return $this;
 	}
 
+	#[\Override]
 	public function getInputFile(): File {
 		return $this->inputFile;
 	}
 
+	#[\Override]
 	public function setCertificate(string $certificate): self {
 		$this->certificate = $certificate;
 		return $this;
 	}
 
+	#[\Override]
 	public function getCertificate(): string {
 		return $this->certificate;
 	}
 
+	#[\Override]
 	public function readCertificate(): array {
 		return $this->getCertificateEngine()
 			->readCertificate(
@@ -69,11 +74,13 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 			);
 	}
 
+	#[\Override]
 	public function setPassword(string $password): self {
 		$this->password = $password;
 		return $this;
 	}
 
+	#[\Override]
 	public function getPassword(): string {
 		return $this->password;
 	}
@@ -97,14 +104,17 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		return $this->visibleElements;
 	}
 
+	#[\Override]
 	public function getSignedContent(): string {
 		return $this->sign()->getContent();
 	}
 
+	#[\Override]
 	public function getSignatureParams(): array {
 		return $this->signatureParams;
 	}
 
+	#[\Override]
 	public function setSignatureParams(array $params): self {
 		$this->signatureParams = $params;
 		return $this;
@@ -205,6 +215,7 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		return $this->savePfx($uid, $content);
 	}
 
+	#[\Override]
 	public function getLastSignedDate(): \DateTime {
 		$stream = $this->getFileStream();
 

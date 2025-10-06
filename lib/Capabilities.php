@@ -33,6 +33,7 @@ class Capabilities implements IPublicCapability {
 	 *      libresign?: LibresignCapabilities,
 	 * }
 	 */
+	#[\Override]
 	public function getCapabilities(): array {
 		$capabilities = [
 			'features' => self::FEATURES,

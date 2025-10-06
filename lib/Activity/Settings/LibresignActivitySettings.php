@@ -15,6 +15,7 @@ abstract class LibresignActivitySettings extends ActivitySettings {
 	/**
 	 * {@inheritdoc}
 	 */
+	#[\Override]
 	public function getGroupIdentifier() {
 		return 'libresign';
 	}
@@ -22,6 +23,7 @@ abstract class LibresignActivitySettings extends ActivitySettings {
 	/**
 	 * {@inheritdoc}
 	 */
+	#[\Override]
 	public function getGroupName() {
 		return 'LibreSign';
 	}
@@ -29,30 +31,35 @@ abstract class LibresignActivitySettings extends ActivitySettings {
 	/**
 	 * {@inheritdoc}
 	 */
+	#[\Override]
 	public function getPriority(): int {
 		return 51;
 	}
 	/**
 	 * {@inheritdoc}
 	 */
+	#[\Override]
 	public function canChangeNotification(): bool {
 		return true;
 	}
 	/**
 	 * {@inheritdoc}
 	 */
+	#[\Override]
 	public function canChangeMail() {
 		return true;
 	}
 	/**
 	 * {@inheritdoc}
 	 */
+	#[\Override]
 	public function isDefaultEnabledMail() {
 		return true;
 	}
 	/**
 	 * {@inheritdoc}
 	 */
+	#[\Override]
 	public function isDefaultEnabledNotification(): bool {
 		return true;
 	}

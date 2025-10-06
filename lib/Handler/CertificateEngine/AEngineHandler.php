@@ -104,6 +104,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $certContent;
 	}
 
+	#[\Override]
 	public function updatePassword(string $certificate, string $currentPrivateKey, string $newPrivateKey): string {
 		if (empty($certificate) || empty($currentPrivateKey) || empty($newPrivateKey)) {
 			throw new EmptyCertificateException();
@@ -114,6 +115,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $certContent;
 	}
 
+	#[\Override]
 	public function readCertificate(string $certificate, string $privateKey): array {
 		if (empty($certificate) || empty($privateKey)) {
 			throw new EmptyCertificateException();
@@ -208,6 +210,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		$this->engine = $engine;
 	}
 
+	#[\Override]
 	public function getEngine(): string {
 		if ($this->engine) {
 			return $this->engine;
@@ -216,6 +219,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $this->engine;
 	}
 
+	#[\Override]
 	public function populateInstance(array $rootCert): IEngineHandler {
 		if (empty($rootCert)) {
 			$rootCert = $this->appConfig->getValueArray(Application::APP_ID, 'rootCert');
@@ -280,6 +284,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $path;
 	}
 
+	#[\Override]
 	public function setConfigPath(string $configPath): IEngineHandler {
 		if (!$configPath) {
 			$this->appConfig->deleteKey(Application::APP_ID, 'config_path');
@@ -322,6 +327,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return str_replace(' ', '+', $this->UID);
 	}
 
+	#[\Override]
 	public function expirity(): int {
 		$expirity = $this->appConfig->getValueInt(Application::APP_ID, 'expiry_in_days', 365);
 		if ($expirity < 0) {
@@ -330,10 +336,12 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $expirity;
 	}
 
+	#[\Override]
 	public function isSetupOk(): bool {
 		return strlen($this->appConfig->getValueString(Application::APP_ID, 'authkey', '')) > 0;
 	}
 
+	#[\Override]
 	public function configureCheck(): array {
 		throw new \Exception('Necessary to implement configureCheck method');
 	}
@@ -351,6 +359,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $return;
 	}
 
+	#[\Override]
 	public function toArray(): array {
 		$return = [
 			'configPath' => $this->getConfigPath(),

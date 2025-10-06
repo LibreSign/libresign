@@ -20,6 +20,7 @@ class SignedCallbackListener implements IEventListener {
 	) {
 	}
 
+	#[\Override]
 	public function handle(Event $event): void {
 		/** @var SignedEvent */
 		if (!($event instanceof SignedEvent)) {

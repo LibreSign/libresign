@@ -27,6 +27,7 @@ class Password extends AbstractSignatureMethod {
 		);
 	}
 
+	#[\Override]
 	public function validateToSign(): void {
 		$this->validateToIdentify();
 		try {
@@ -39,6 +40,7 @@ class Password extends AbstractSignatureMethod {
 		}
 	}
 
+	#[\Override]
 	public function validateToIdentify(): void {
 		$this->pkcs12Handler->setPassword($this->codeSentByUser);
 		$pfx = $this->pkcs12Handler->getPfxOfCurrentSigner($this->userSession->getUser()?->getUID());
@@ -47,6 +49,7 @@ class Password extends AbstractSignatureMethod {
 		}
 	}
 
+	#[\Override]
 	public function toArray(): array {
 		$return = parent::toArray();
 		$return['hasSignatureFile'] = $this->hasSignatureFile();

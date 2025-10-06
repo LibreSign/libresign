@@ -23,6 +23,7 @@ class LoadSidebarListener implements IEventListener {
 		private IAppManager $appManager,
 	) {
 	}
+	#[\Override]
 	public function handle(Event $event): void {
 		if (!($event instanceof LoadSidebar)) {
 			return;

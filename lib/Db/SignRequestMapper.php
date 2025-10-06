@@ -74,6 +74,7 @@ class SignRequestMapper extends QBMapper {
 	/**
 	 * @inheritDoc
 	 */
+	#[\Override]
 	public function update(Entity $entity): SignRequest {
 		/** @var SignRequest */
 		$signRequest = parent::update($entity);

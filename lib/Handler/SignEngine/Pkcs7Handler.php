@@ -12,6 +12,7 @@ use DateTime;
 use OCP\Files\File;
 
 class Pkcs7Handler extends SignEngineHandler {
+	#[\Override]
 	public function sign(): File {
 		$p7sFile = $this->getP7sFile();
 		openssl_pkcs12_read($this->getCertificate(), $certificateData, $this->getPassword());
@@ -37,6 +38,7 @@ class Pkcs7Handler extends SignEngineHandler {
 	/**
 	 * @todo Replace this method by a real implementation that retrieves the certificate chain and not just the file's last modified time.
 	 */
+	#[\Override]
 	public function getCertificateChain($resource): array {
 		$metadata = stream_get_meta_data($resource);
 		$lastModifiedTime = filemtime($metadata['uri']);

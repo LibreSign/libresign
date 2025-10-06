@@ -47,40 +47,49 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$this->cleanEntity();
 	}
 
+	#[\Override]
 	public static function getId(): string {
 		$id = lcfirst(substr(strrchr(static::class, '\\'), 1));
 		return $id;
 	}
 
+	#[\Override]
 	public function getName(): string {
 		return $this->name;
 	}
 
+	#[\Override]
 	public function getFriendlyName(): string {
 		return $this->friendlyName;
 	}
 
+	#[\Override]
 	public function setFriendlyName(string $friendlyName): void {
 		$this->friendlyName = $friendlyName;
 	}
 
+	#[\Override]
 	public function setCodeSentByUser(string $code): void {
 		$this->codeSentByUser = $code;
 	}
 
+	#[\Override]
 	public function cleanEntity(): void {
 		$this->entity = new IdentifyMethod();
 		$this->entity->setIdentifierKey($this->name);
 	}
 
+	#[\Override]
 	public function setEntity(IdentifyMethod $entity): void {
 		$this->entity = $entity;
 	}
 
+	#[\Override]
 	public function getEntity(): IdentifyMethod {
 		return $this->entity;
 	}
 
+	#[\Override]
 	public function signatureMethodsToArray(): array {
 		return array_map(fn (AbstractSignatureMethod $method) => [
 			'label' => $method->getFriendlyName(),
@@ -93,6 +102,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		return $this->availableSignatureMethods;
 	}
 
+	#[\Override]
 	public function getEmptyInstanceOfSignatureMethodByName(string $name): AbstractSignatureMethod {
 		if (!in_array($name, $this->getAvailableSignatureMethods())) {
 			throw new InvalidArgumentException(sprintf('%s is not a valid signature method of identify method %s', $name, $this->getName()));
@@ -110,15 +120,18 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	/**
 	 * @return AbstractSignatureMethod[]
 	 */
+	#[\Override]
 	public function getSignatureMethods(): array {
 		return $this->signatureMethods;
 	}
 
+	#[\Override]
 	public function getSettings(): array {
 		$this->getSettingsFromDatabase();
 		return $this->settings;
 	}
 
+	#[\Override]
 	public function notify(): bool {
 		if (!$this->willNotify) {
 			return false;
@@ -133,19 +146,24 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		return true;
 	}
 
+	#[\Override]
 	public function willNotifyUser(bool $willNotify): void {
 		$this->willNotify = $willNotify;
 	}
 
+	#[\Override]
 	public function validateToRequest(): void {
 	}
 
+	#[\Override]
 	public function validateToCreateAccount(string $value): void {
 	}
 
+	#[\Override]
 	public function validateToIdentify(): void {
 	}
 
+	#[\Override]
 	public function validateToSign(): void {
 	}
 
@@ -354,11 +372,13 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		return $customConfig;
 	}
 
+	#[\Override]
 	public function save(): void {
 		$this->identifyService->save($this->getEntity());
 		$this->notify();
 	}
 
+	#[\Override]
 	public function delete(): void {
 		$this->identifyService->delete($this->getEntity());
 	}
@@ -370,6 +390,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		}
 	}
 
+	#[\Override]
 	public function validateToRenew(?IUser $user = null): void {
 		$this->throwIfMaximumValidityExpired();
 		$this->throwIfAlreadySigned();

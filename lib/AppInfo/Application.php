@@ -45,6 +45,7 @@ class Application extends App implements IBootstrap {
 		parent::__construct(self::APP_ID);
 	}
 
+	#[\Override]
 	public function boot(IBootContext $context): void {
 		$server = $context->getServerContainer();
 
@@ -54,6 +55,7 @@ class Application extends App implements IBootstrap {
 		FilesTemplateLoader::register($dispatcher);
 	}
 
+	#[\Override]
 	public function register(IRegistrationContext $context): void {
 		$context->registerMiddleWare(GlobalInjectionMiddleware::class, true);
 		$context->registerMiddleWare(InjectionMiddleware::class);

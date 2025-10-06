@@ -25,10 +25,12 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 		);
 	}
 
+	#[\Override]
 	public function validateToSign(): void {
 		$this->throwIfInvalidToken();
 	}
 
+	#[\Override]
 	public function toArray(): array {
 		$entity = $this->getEntity();
 
@@ -71,6 +73,7 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 		return $blur->make();
 	}
 
+	#[\Override]
 	public function requestCode(string $identifier, string $method): void {
 		$signRequestMapper = $this->identifyService->getSignRequestMapper();
 		$signRequest = $signRequestMapper->getById($this->getEntity()->getSignRequestId());
