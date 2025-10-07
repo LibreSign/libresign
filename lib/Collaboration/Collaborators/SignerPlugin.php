@@ -31,6 +31,7 @@ class SignerPlugin implements ISearchPlugin {
 	/**
 	 * {@inheritdoc}
 	 */
+	#[\Override]
 	public function search($search, $limit, $offset, ISearchResult $searchResult): bool {
 		$user = $this->userSession->getUser()->getUID();
 

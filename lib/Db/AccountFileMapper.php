@@ -243,6 +243,7 @@ class AccountFileMapper extends QBMapper {
 		return $files;
 	}
 
+	#[\Override]
 	public function delete(Entity $entity): Entity {
 		$qb = $this->db->getQueryBuilder();
 

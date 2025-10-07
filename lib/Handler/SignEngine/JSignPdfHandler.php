@@ -147,12 +147,14 @@ class JSignPdfHandler extends Pkcs12Handler {
 		return 'SHA256';
 	}
 
+	#[\Override]
 	public function sign(): File {
 		$signedContent = $this->getSignedContent();
 		$this->getInputFile()->putContent($signedContent);
 		return $this->getInputFile();
 	}
 
+	#[\Override]
 	public function getSignedContent(): string {
 		$param = $this->getJSignParam()
 			->setCertificate($this->getCertificate())
@@ -278,6 +280,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 	}
 
 
+	#[\Override]
 	public function readCertificate(): array {
 		return $this->certificateEngineFactory
 			->getEngine()

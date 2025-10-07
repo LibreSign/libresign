@@ -55,10 +55,12 @@ class DeleteOldBinaries implements IRepairStep {
 		$this->appData = $appDataFactory->get('libresign');
 	}
 
+	#[\Override]
 	public function getName(): string {
 		return 'Delete old binaries';
 	}
 
+	#[\Override]
 	public function run(IOutput $output): void {
 		$this->scan();
 		$this->output = $output;

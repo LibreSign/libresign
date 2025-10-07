@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler\CertificateEngine;
 
 class NoneHandler extends AEngineHandler implements IEngineHandler {
+	#[\Override]
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
@@ -16,14 +17,17 @@ class NoneHandler extends AEngineHandler implements IEngineHandler {
 		return '';
 	}
 
+	#[\Override]
 	public function generateCertificate(string $certificate = '', string $privateKey = ''): string {
 		return '';
 	}
 
+	#[\Override]
 	public function isSetupOk(): bool {
 		return true;
 	}
 
+	#[\Override]
 	public function configureCheck(): array {
 		return [];
 	}

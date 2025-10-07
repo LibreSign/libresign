@@ -54,6 +54,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		$this->cfsslServerHandler->configCallback(fn () => $this->getConfigPath());
 	}
 
+	#[\Override]
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
@@ -81,6 +82,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		return $key;
 	}
 
+	#[\Override]
 	public function generateCertificate(): string {
 		$certKeys = $this->newCert();
 		return parent::exportToPkcs12(
@@ -96,6 +98,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		);
 	}
 
+	#[\Override]
 	public function isSetupOk(): bool {
 		if (!parent::isSetupOk()) {
 			return false;
@@ -114,6 +117,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		return false;
 	}
 
+	#[\Override]
 	public function configureCheck(): array {
 		$return = $this->checkBinaries();
 		$configPath = $this->getConfigPath();
@@ -134,6 +138,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		);
 	}
 
+	#[\Override]
 	public function toArray(): array {
 		$return = parent::toArray();
 		if (!empty($return['configPath'])) {

@@ -27,6 +27,7 @@ class Version12000Date20250517134200 extends SimpleMigrationStep {
 	 * @param Closure(): ISchemaWrapper $schemaClosure
 	 * @param array $options
 	 */
+	#[\Override]
 	public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		$keys = $this->config->getAppKeys(Application::APP_ID);
 		if (in_array('notify_unsigned_user', $keys)) {

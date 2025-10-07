@@ -30,6 +30,7 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 	 * @param array $options
 	 * @return null|ISchemaWrapper
 	 */
+	#[\Override]
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		/** @var ISchemaWrapper */
 		$schema = $schemaClosure();
@@ -89,6 +90,7 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 		return $schema;
 	}
 
+	#[\Override]
 	public function postSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
 		$query = $this->connection->getQueryBuilder();
 		$query->select('*')

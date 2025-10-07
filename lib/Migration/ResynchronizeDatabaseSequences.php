@@ -24,10 +24,12 @@ class ResynchronizeDatabaseSequences implements IRepairStep {
 	) {
 	}
 
+	#[\Override]
 	public function getName(): string {
 		return 'Resynchronize database sequences';
 	}
 
+	#[\Override]
 	public function run(IOutput $output): void {
 		if ($this->connection->getDatabasePlatform() instanceof PostgreSQLPlatform) {
 			$tools = new \OC\DB\PgSqlTools($this->config);

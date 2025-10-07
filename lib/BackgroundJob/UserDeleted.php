@@ -30,6 +30,7 @@ class UserDeleted extends QueuedJob {
 	/**
 	 * @param array $argument
 	 */
+	#[\Override]
 	public function run($argument): void {
 		if (!isset($argument['user_id'])) {
 			return;

@@ -83,6 +83,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	 * @throws LibresignException When is not a signed file
 	 * @return array
 	 */
+	#[\Override]
 	public function getCertificateChain($resource): array {
 		$signerCounter = 0;
 		$certificates = [];
@@ -317,6 +318,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		return $this->$property;
 	}
 
+	#[\Override]
 	public function sign(): File {
 		$signedContent = $this->getHandler()
 			->setCertificate($this->getCertificate())

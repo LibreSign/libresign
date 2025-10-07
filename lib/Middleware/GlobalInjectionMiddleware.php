@@ -15,6 +15,7 @@ use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Middleware;
 
 class GlobalInjectionMiddleware extends Middleware {
+	#[\Override]
 	public function afterController(Controller $controller, string $methodName, Response $response) {
 		if ($controller instanceof ViewController) {
 			$policy = new ContentSecurityPolicy();

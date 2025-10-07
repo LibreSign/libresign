@@ -16,6 +16,7 @@ class Signal extends TwofactorGateway {
 		ISignatureMethod::SIGNATURE_METHOD_SIGNAL,
 	];
 
+	#[\Override]
 	public function getFriendlyName(): string {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by Signal
 		return $this->identifyService->getL10n()->t('Signal');

@@ -32,6 +32,7 @@ class Admin implements ISettings {
 		private SignatureBackgroundService $signatureBackgroundService,
 	) {
 	}
+	#[\Override]
 	public function getForm(): TemplateResponse {
 		Util::addScript(Application::APP_ID, 'libresign-settings');
 		try {
@@ -66,6 +67,7 @@ class Admin implements ISettings {
 	/**
 	 * @psalm-return 'libresign'
 	 */
+	#[\Override]
 	public function getSection(): string {
 		return Application::APP_ID;
 	}
@@ -73,6 +75,7 @@ class Admin implements ISettings {
 	/**
 	 * @psalm-return 100
 	 */
+	#[\Override]
 	public function getPriority(): int {
 		return 100;
 	}
