@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\Install;
 
 use InvalidArgumentException;
-use LibreSign\WhatOSAmI\OperatingSystem;
 use OC;
 use OC\Archive\TAR;
 use OC\Archive\ZIP;
@@ -21,6 +20,7 @@ use OCA\Libresign\Handler\CertificateEngine\AEngineHandler;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
+use OCA\Libresign\Vendor\LibreSign\WhatOSAmI\OperatingSystem;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
