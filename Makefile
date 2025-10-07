@@ -112,12 +112,16 @@ appstore:
 		lib \
 		templates \
 		vendor \
+		3rdparty \
 		CHANGELOG.md \
 		openapi*.json \
 		$(appstore_sign_dir)/$(app_name)
-	rm $(appstore_sign_dir)/$(app_name)/vendor/endroid/qr-code/assets/*
-	find $(appstore_sign_dir)/$(app_name)/vendor/mpdf/mpdf/ttfonts -type f -not -name 'DejaVuSerifCondensed.ttf' -delete
 	rm -rf $(appstore_sign_dir)/$(app_name)/img/screenshot/
+	rm -rf $(appstore_sign_dir)/$(app_name)/3rdparty/.git
+	rm -rf $(appstore_sign_dir)/$(app_name)/3rdparty/.github
+	rm -rf $(appstore_sign_dir)/$(app_name)/3rdparty/vendor
+	rm -rf $(appstore_sign_dir)/$(app_name)/3rdparty/vendor-bin
+	rm -rf $(appstore_sign_dir)/$(app_name)/3rdparty/scoper.inc.php
 	mkdir -p $(appstore_sign_dir)/$(app_name)/tests/php/fixtures
 	cp tests/php/fixtures/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/php/fixtures
 
