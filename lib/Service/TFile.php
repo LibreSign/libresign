@@ -134,7 +134,7 @@ trait TFile {
 	 */
 	private function validatePdfStringWithFpdi($string): void {
 		try {
-			$parser = new \Smalot\PdfParser\Parser();
+			$parser = new \OCA\Libresign\Vendor\Smalot\PdfParser\Parser();
 			$parser->parseContent($string);
 		} catch (\Throwable $th) {
 			$this->logger->error($th->getMessage());
