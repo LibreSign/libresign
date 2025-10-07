@@ -1,18 +1,6 @@
 {
-	"require": {
-		"bamarni/composer-bin-plugin": "^1.8",
-		"endroid/qr-code": "^5.0",
-		"jsignpdf/jsignpdf-php": "^1.2",
-		"libresign/whatosami": "^0.0.2",
-		"mikehaertl/php-pdftk": "^0.14.0",
-		"mpdf/mpdf": "^8.2",
-		"pagerfanta/pagerfanta": "^4.5",
-		"phpseclib/phpseclib": "^3.0",
-		"smalot/pdfparser": "^2.4",
-		"twig/twig": "^3.20",
-		"wobeto/email-blur": "^1.0"
-	},
 	"require-dev": {
+		"bamarni/composer-bin-plugin": "^1.8",
 		"nextcloud/ocp": "dev-stable31",
 		"roave/security-advisories": "dev-latest"
 	},
@@ -34,19 +22,13 @@
 		"cs:check": "php-cs-fixer fix --dry-run --diff",
 		"cs:fix": "php-cs-fixer fix",
 		"openapi": "generate-spec --verbose && (npm run typescript:generate || echo 'Please manually regenerate the typescript OpenAPI models')",
-		"psalm": "psalm --threads=$(nproc)",
+		"psalm": "psalm --no-cache --threads=$(nproc)",
 		"psalm:update-baseline": "psalm --threads=$(nproc) --update-baseline --set-baseline=tests/psalm-baseline.xml",
-		"psalm:clear": "psalm --clear-cache && psalm --clear-global-cache",
-		"pre-autoload-dump": [
-			"mkdir -p lib/Vendor"
-		],
 		"post-install-cmd": [
 			"@composer bin all install --ansi",
-			"php -d error_reporting=E_ALL\\&~E_DEPRECATED\\&~E_USER_DEPRECATED vendor-bin/php-scoper/vendor/humbug/php-scoper/bin/php-scoper add-prefix --force && cp l10n/.gitkeep lib/Vendor/.gitkeep",
 			"composer dump-autoload -o"
 		],
 		"post-update-cmd": [
-			"php -d error_reporting=E_ALL\\&~E_DEPRECATED\\&~E_USER_DEPRECATED vendor-bin/php-scoper/vendor/humbug/php-scoper/bin/php-scoper add-prefix --force && cp l10n/.gitkeep lib/Vendor/.gitkeep",
 			"composer dump-autoload"
 		],
 		"test:unit": "vendor/bin/phpunit -c tests/php/phpunit.xml --no-coverage --colors=always --fail-on-warning --fail-on-risky --display-deprecations --display-phpunit-deprecations",
@@ -60,10 +42,11 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"OCA\\Libresign\\": "lib/"
+			"OCA\\Libresign\\": "lib/",
+			"OCA\\Libresign\\3rdparty\\": "3rdparty/composer/"
 		},
 		"classmap": [
-			"lib/Vendor/"
+			"3rdparty/composer/"
 		]
 	},
 	"autoload-dev": {
