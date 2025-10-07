@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Install;
 
-use LibreSign\WhatOSAmI\OperatingSystem;
 use OC\IntegrityCheck\Helpers\EnvironmentHelper;
 use OC\IntegrityCheck\Helpers\FileAccessHelper;
 use OCA\Libresign\AppInfo\Application;
@@ -17,6 +16,7 @@ use OCA\Libresign\Exception\InvalidSignatureException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\SignatureDataNotFoundException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateHelper;
+use OCA\Libresign\Vendor\LibreSign\WhatOSAmI\OperatingSystem;
 use OCA\Libresign\Vendor\phpseclib3\Crypt\PublicKeyLoader;
 use OCA\Libresign\Vendor\phpseclib3\Crypt\RSA;
 use OCA\Libresign\Vendor\phpseclib3\Crypt\RSA\PrivateKey;
