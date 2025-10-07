@@ -54,7 +54,7 @@ jobs:
               - 'lib/**'
               - 'templates/**'
               - 'tests/**'
-              - 'vendor/**'
+              - '3rdparty/**'
               - 'vendor-bin/**'
               - '.php-cs-fixer.dist.php'
               - 'composer.json'
@@ -105,6 +105,7 @@ jobs:
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           persist-credentials: false
+          submodules: true
           path: apps/${{ env.APP_NAME }}
 
       - name: Set up php ${{ matrix.php-versions }}
