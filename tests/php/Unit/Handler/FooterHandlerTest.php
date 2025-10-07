@@ -124,7 +124,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						<div style="font-size:8px;" dir="{{ direction }}">
 						qrcodeSize:{{ qrcodeSize }}<br />
 						signedBy:{{ signedBy|raw }}<br />
-						validateIn:{{ validateIn }}<br />
+						validateIn:{{ validateIn|raw }}<br />
 						qrcode:{{ qrcode }}
 						</div>
 						HTML,
@@ -148,7 +148,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'footer_template' => <<<'HTML'
 						<div style="font-size:8px;" dir="{{ direction }}">
 						signedBy:{{ signedBy|raw }}<br />
-						validateIn:{{ validateIn }}<br />
+						validateIn:{{ validateIn|raw }}<br />
 						</div>
 						HTML,
 				],
@@ -169,7 +169,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'footer_template' => <<<'HTML'
 						<div style="font-size:8px;" dir="{{ direction }}">
 						signedBy:{{ signedBy|raw }}<br />
-						validateIn:{{ validateIn }}<br />
+						validateIn:{{ validateIn|raw }}<br />
 						</div>
 						HTML,
 				],
@@ -186,17 +186,17 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'write_qrcode_on_footer' => false,
 					'footer_link_to_site' => 'https://libresign.coop',
 					'footer_signed_by' => 'Το αρχείο υπάρχει',
-					'footer_validate_in' => 'Validate in %s.',
+					'footer_validate_in' => 'Επικυρώστε στο %s.',
 					'footer_template' => <<<'HTML'
 						<div style="font-size:8px;" dir="{{ direction }}">
 						signedBy:{{ signedBy|raw }}<br />
-						validateIn:{{ validateIn }}<br />
+						validateIn:{{ validateIn|raw }}<br />
 						</div>
 						HTML,
 				],
 				[
 					'signedBy' => 'Το αρχείο υπάρχει',
-					'validateIn' => 'Validate in %s.',
+					'validateIn' => 'Επικυρώστε στο %s.',
 				]
 			],
 			'he' => [
@@ -211,7 +211,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'footer_template' => <<<'HTML'
 						<div style="font-size:8px;" dir="{{ direction }}">
 						signedBy:{{ signedBy|raw }}<br />
-						validateIn:{{ validateIn }}<br />
+						validateIn:{{ validateIn|raw }}<br />
 						</div>
 						HTML,
 				],
