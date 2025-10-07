@@ -205,12 +205,12 @@ class SignatureTextService {
 		if ($fonts) {
 			$draw->setFont($fonts[0]);
 		} else {
-			$fallbackFond = __DIR__ . '/../../vendor/mpdf/mpdf/ttfonts/DejaVuSerifCondensed.ttf';
+			$fallbackFond = __DIR__ . '/../../3rdparty/composer/mpdf/mpdf/ttfonts/DejaVuSerifCondensed.ttf';
 			if (!file_exists($fallbackFond)) {
 				$this->logger->error('No fonts available at system, and fallback font not found: ' . $fallbackFond);
 				throw new LibresignException('No fonts available at system, and fallback font not found: ' . $fallbackFond);
 			}
-			$draw->setFont(__DIR__ . '/../../vendor/mpdf/mpdf/ttfonts/DejaVuSerifCondensed.ttf');
+			$draw->setFont(__DIR__ . '/../../3rdparty/composer/mpdf/mpdf/ttfonts/DejaVuSerifCondensed.ttf');
 		}
 		if (!$fontSize) {
 			$fontSize = $this->getSignatureFontSize();

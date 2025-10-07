@@ -207,6 +207,6 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 	}
 
 	public function testHasFont(): void {
-		$this->assertFileExists($fallbackFond = __DIR__ . '/../../../../vendor/mpdf/mpdf/ttfonts/DejaVuSerifCondensed.ttf');
+		$this->assertFileExists($fallbackFond = __DIR__ . '/../../../../3rdparty/composer/mpdf/mpdf/ttfonts/DejaVuSerifCondensed.ttf');
 	}
 }
