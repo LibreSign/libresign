@@ -179,6 +179,7 @@ export default {
 			this.displaySuccessReminderDaysBefore = false
 			this.displaySuccessReminderDaysBetween = false
 			this.displaySuccessReminderSendTimer = false
+			this.loading = true
 
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/reminder'), {
 				daysBefore: parseInt(this.reminderDaysBefore),
@@ -209,6 +210,12 @@ export default {
 						setTimeout(() => { this.displaySuccessReminderSendTimer = false }, 2000)
 					}
 					this.nextRun = response.next_run
+				})
+				.catch(() => {
+					this.nextRun = null
+				})
+				.finally(() => {
+					this.loading = false
 				})
 		}, 1000),
 		formatHourMinute(date) {
