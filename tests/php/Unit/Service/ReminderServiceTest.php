@@ -142,32 +142,32 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			'no notification, scheduled for today, between = 0' => [
 				[
-					'first' => (clone $now),
-					'last' => (clone $now),
+					'first' => (clone $now)->setTime(0, 0),
+					'last' => (clone $now)->setTime(0, 0),
 					'total' => 1,
 				],
 				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 0, 'max' => 5, false,
 			],
 			'no notification, scheduled for today, between = 1' => [
 				[
-					'first' => (clone $now),
-					'last' => (clone $now),
+					'first' => (clone $now)->setTime(0, 0),
+					'last' => (clone $now)->setTime(0, 0),
 					'total' => 1,
 				],
 				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 1, 'max' => 5, false,
 			],
 			'no notification, scheduled for yesterday, between = 0' => [
 				[
-					'first' => (clone $now)->modify('-1 day'),
-					'last' => (clone $now)->modify('-1 day'),
+					'first' => (clone $now)->modify('-1 day')->setTime(0, 0),
+					'last' => (clone $now)->modify('-1 day')->setTime(0, 0),
 					'total' => 1,
 				],
 				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 0, 'max' => 5, false,
 			],
 			'one notification, scheduled for yesterday, between = 1' => [
 				[
-					'first' => (clone $now)->modify('-1 day')->setTime(11, 0),
-					'last' => (clone $now)->modify('-1 day')->setTime(11, 0),
+					'first' => (clone $now)->modify('-1 day')->setTime(0, 0),
+					'last' => (clone $now)->modify('-1 day')->setTime(0, 0),
 					'total' => 1,
 				],
 				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 1, 'max' => 5, true,
@@ -219,6 +219,102 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'total' => 2,
 				],
 				'now' => $now, 'daysBefore' => 0, 'daysBetween' => 0, 'max' => 5, false,
+			],
+			'one notification, exact daysBefore limit, should notify' => [
+				[
+					'first' => (clone $now)->modify('-1 day')->setTime(0, 0),
+					'last' => (clone $now)->modify('-1 day')->setTime(0, 0),
+					'total' => 1,
+				],
+				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 1, 'max' => 5, true,
+			],
+			'two notifications, exact daysBetween limit, should notify' => [
+				[
+					'first' => (clone $now)->modify('-3 days'),
+					'last' => (clone $now)->modify('-2 days')->setTime(0, 0),
+					'total' => 2,
+				],
+				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 2, 'max' => 5, true,
+			],
+			'no notifications, valid config but daysBetween = 0' => [
+				[
+					'first' => null,
+					'last' => null,
+					'total' => 0,
+				],
+				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 0, 'max' => 5, false,
+			],
+			'inconsistent data: total > 0 but null dates' => [
+				[
+					'first' => null,
+					'last' => null,
+					'total' => 1,
+				],
+				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 1, 'max' => 5, false,
+			],
+			'max = 0 means no limit, should send with valid config' => [
+				[
+					'first' => (clone $now)->modify('-2 days'),
+					'last' => (clone $now)->modify('-2 days'),
+					'total' => 1,
+				],
+				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 1, 'max' => 0, true,
+			],
+			'max = 0, high total count, should still send' => [
+				[
+					'first' => (clone $now)->modify('-10 days'),
+					'last' => (clone $now)->modify('-2 days'),
+					'total' => 100,
+				],
+				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 1, 'max' => 0, true,
+			],
+			'total exceeds max, should not send' => [
+				[
+					'first' => (clone $now)->modify('-5 days'),
+					'last' => (clone $now)->modify('-2 days'),
+					'total' => 6,
+				],
+				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 1, 'max' => 5, false,
+			],
+			'notification today, should not send' => [
+				[
+					'first' => (clone $now)->setTime(0, 0),
+					'last' => (clone $now)->setTime(0, 0),
+					'total' => 1,
+				],
+				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 1, 'max' => 5, false,
+			],
+			'multiple notifications, insufficient daysBetween' => [
+				[
+					'first' => (clone $now)->modify('-5 days'),
+					'last' => (clone $now)->setTime(0, 0),
+					'total' => 3,
+				],
+				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 2, 'max' => 5, false,
+			],
+			'negative daysBefore, should not send' => [
+				[
+					'first' => (clone $now)->modify('-2 days'),
+					'last' => (clone $now)->modify('-2 days'),
+					'total' => 1,
+				],
+				'now' => $now, 'daysBefore' => -1, 'daysBetween' => 1, 'max' => 5, false,
+			],
+			'negative daysBetween, should not send' => [
+				[
+					'first' => (clone $now)->modify('-5 days'),
+					'last' => (clone $now)->modify('-2 days'),
+					'total' => 2,
+				],
+				'now' => $now, 'daysBefore' => 1, 'daysBetween' => -1, 'max' => 5, false,
+			],
+			'negative max acts as no limit, should send' => [
+				[
+					'first' => (clone $now)->modify('-3 days'),
+					'last' => (clone $now)->modify('-2 days'),
+					'total' => 10,
+				],
+				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 1, 'max' => -1, true,
 			],
 		];
 	}
