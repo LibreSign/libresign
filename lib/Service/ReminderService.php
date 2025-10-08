@@ -184,6 +184,10 @@ class ReminderService {
 			return false;
 		}
 
+		if ($daysBetween === 0) {
+			return false;
+		}
+
 		if ($summarized['total'] === 1) {
 			return $this->shouldNotifyAfterSomeDays($summarized['first'], $now, $daysBefore);
 		}
