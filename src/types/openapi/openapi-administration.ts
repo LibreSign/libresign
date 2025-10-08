@@ -351,6 +351,7 @@ export type components = {
             /** Format: int64 */
             max: number;
             send_timer: string;
+            next_run?: string;
         };
         RootCertificate: {
             commonName: string;

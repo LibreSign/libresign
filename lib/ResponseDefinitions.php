@@ -240,6 +240,7 @@ namespace OCA\Libresign;
  *     days_between: non-negative-int,
  *     max: non-negative-int,
  *     send_timer: string,
+ *     next_run?: string,
  * }
  * @psalm-type LibresignCapabilities = array{
  *     features: list<string>,

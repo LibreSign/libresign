@@ -347,42 +347,97 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public static function providerSave(): array {
+		$now = (new DateTime());
 		return [
 			[
 				'daysBefore' => 0, 'daysBetween' => 0, 'max' => 0, 'sendTimer' => '',
-				'expected' => ['days_before' => 0, 'days_between' => 0, 'max' => 0, 'send_timer' => ''],
+				'expected' => [
+					'days_before' => 0,
+					'days_between' => 0,
+					'max' => 0,
+					'next_run' => null,
+					'send_timer' => '',
+				],
 			],
 			[
 				'daysBefore' => 0, 'daysBetween' => 0, 'max' => 1, 'sendTimer' => '',
-				'expected' => ['days_before' => 0, 'days_between' => 0, 'max' => 0, 'send_timer' => ''],
+				'expected' => [
+					'days_before' => 0,
+					'days_between' => 0,
+					'max' => 0,
+					'next_run' => null,
+					'send_timer' => '',
+				],
 			],
 			[
 				'daysBefore' => 0, 'daysBetween' => 1, 'max' => 0, 'sendTimer' => '',
-				'expected' => ['days_before' => 0, 'days_between' => 0, 'max' => 0, 'send_timer' => ''],
+				'expected' => [
+					'days_before' => 0,
+					'days_between' => 0,
+					'max' => 0,
+					'next_run' => null,
+					'send_timer' => '',
+				],
 			],
 			[
 				'daysBefore' => 0, 'daysBetween' => 1, 'max' => 1, 'sendTimer' => '',
-				'expected' => ['days_before' => 0, 'days_between' => 0, 'max' => 0, 'send_timer' => ''],
+				'expected' => [
+					'days_before' => 0,
+					'days_between' => 0,
+					'max' => 0,
+					'next_run' => null,
+					'send_timer' => '',
+				],
 			],
 			[
 				'daysBefore' => 1, 'daysBetween' => 0, 'max' => 0, 'sendTimer' => '',
-				'expected' => ['days_before' => 0, 'days_between' => 0, 'max' => 0, 'send_timer' => ''],
+				'expected' => [
+					'days_before' => 0,
+					'days_between' => 0,
+					'max' => 0,
+					'next_run' => null,
+					'send_timer' => '',
+				],
 			],
 			[
 				'daysBefore' => 1, 'daysBetween' => 1, 'max' => 0, 'sendTimer' => '',
-				'expected' => ['days_before' => 0, 'days_between' => 0, 'max' => 0, 'send_timer' => ''],
+				'expected' => [
+					'days_before' => 0,
+					'days_between' => 0,
+					'max' => 0,
+					'next_run' => null,
+					'send_timer' => '',
+				],
 			],
 			[
 				'daysBefore' => 1, 'daysBetween' => 1, 'max' => 1, 'sendTimer' => '',
-				'expected' => ['days_before' => 1, 'days_between' => 1, 'max' => 1, 'send_timer' => '10:00'],
+				'expected' => [
+					'days_before' => 1,
+					'days_between' => 1,
+					'max' => 1,
+					'next_run' => (clone $now)->modify('+1 day')->setTime(10, 0),
+					'send_timer' => '10:00',
+				],
 			],
 			[
-				'daysBefore' => 1, 'daysBetween' => 1, 'max' => 1, 'sendTimer' => '11:05:00',
-				'expected' => ['days_before' => 1, 'days_between' => 1, 'max' => 1, 'send_timer' => '10:00'],
+				'daysBefore' => 1, 'daysBetween' => 1, 'max' => 1, 'sendTimer' => '11:05:00', // Invalid timer, need to be HH:mm
+				'expected' => [
+					'days_before' => 1,
+					'days_between' => 1,
+					'max' => 1,
+					'next_run' => (clone $now)->modify('+1 day')->setTime(10, 0),
+					'send_timer' => '10:00',
+				],
 			],
 			[
 				'daysBefore' => 1, 'daysBetween' => 1, 'max' => 1, 'sendTimer' => '11:05',
-				'expected' => ['days_before' => 1, 'days_between' => 1, 'max' => 1, 'send_timer' => '11:05'],
+				'expected' => [
+					'days_before' => 1,
+					'days_between' => 1,
+					'max' => 1,
+					'next_run' => (clone $now)->modify('+1 day')->setTime(11, 5),
+					'send_timer' => '11:05',
+				],
 			],
 		];
 	}
