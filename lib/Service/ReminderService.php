@@ -184,6 +184,10 @@ class ReminderService {
 			return false;
 		}
 
+		if ($daysBetween === 0) {
+			return false;
+		}
+
 		if ($summarized['total'] === 1) {
 			return $this->shouldNotifyAfterSomeDays($summarized['first'], $now, $daysBefore);
 		}
@@ -197,7 +201,7 @@ class ReminderService {
 
 	private function shouldNotifyAfterSomeDays(?\DateTime $date, \DateTime $now, int $maxDays): bool {
 		$daysAfter = $date?->diff($now)?->days ?? 0;
-		return $daysAfter > $maxDays;
+		return $maxDays > 0 && $daysAfter >= $maxDays;
 	}
 
 	protected function getNotificationsSummarized(array $notifications): array {
