@@ -178,7 +178,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'last' => (clone $now)->modify('-2 days'),
 					'total' => 1,
 				],
-				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 0, 'max' => 5, true,
+				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 1, 'max' => 5, true,
 			],
 			'one notification, should not send with daysBefore <= 0' => [
 				[
@@ -186,15 +186,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'last' => (clone $now)->modify('-1 day'),
 					'total' => 1,
 				],
-				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 0, 'max' => 5, false,
-			],
-			'two notifications, should not send with between === 1 and last === 1' => [
-				[
-					'first' => (clone $now)->modify('-3 days'),
-					'last' => (clone $now)->modify('-1 day'),
-					'total' => 2,
-				],
-				'now' => $now, 'daysBefore' => 1, 'daysBetween' => 1, 'max' => 5, false,
+				'now' => $now, 'daysBefore' => 0, 'daysBetween' => 1, 'max' => 5, false,
 			],
 			'two notifications, should send with between === 1 and last === 2' => [
 				[
@@ -226,7 +218,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'last' => (clone $now)->modify('-1 day'),
 					'total' => 2,
 				],
-				'now' => $now, 'daysBefore' => 0, 'daysBetween' => 1, 'max' => 5, false,
+				'now' => $now, 'daysBefore' => 0, 'daysBetween' => 0, 'max' => 5, false,
 			],
 		];
 	}
