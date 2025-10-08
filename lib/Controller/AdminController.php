@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Controller;
 
+use DateTimeInterface;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
@@ -631,6 +632,9 @@ class AdminController extends AEnvironmentAwareController {
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/reminder', requirements: ['apiVersion' => '(v1)'])]
 	public function reminderFetch(): DataResponse {
 		$response = $this->reminderService->getSettings();
+		if ($response['next_run'] instanceof \DateTime) {
+			$response['next_run'] = $response['next_run']->format(DateTimeInterface::ATOM);
+		}
 		return new DataResponse($response);
 	}
 
@@ -653,6 +657,9 @@ class AdminController extends AEnvironmentAwareController {
 		string $sendTimer,
 	): DataResponse {
 		$response = $this->reminderService->save($daysBefore, $daysBetween, $max, $sendTimer);
+		if ($response['next_run'] instanceof \DateTime) {
+			$response['next_run'] = $response['next_run']->format(DateTimeInterface::ATOM);
+		}
 		return new DataResponse($response);
 	}
 }

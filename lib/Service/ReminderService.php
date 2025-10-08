@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use DateTime;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\BackgroundJob\Reminder;
 use OCA\Libresign\Db\SignRequestMapper;
@@ -29,12 +30,18 @@ class ReminderService {
 	}
 
 	public function getSettings(): array {
-		return [
+		$settings = [
 			'days_before' => $this->appConfig->getValueInt(Application::APP_ID, 'reminder_days_before', 0),
 			'days_between' => $this->appConfig->getValueInt(Application::APP_ID, 'reminder_days_between', 0),
 			'max' => $this->appConfig->getValueInt(Application::APP_ID, 'reminder_max', 0),
 			'send_timer' => $this->appConfig->getValueString(Application::APP_ID, 'reminder_send_timer', '10:00'),
+			'next_run' => null,
 		];
+		foreach ($this->jobList->getJobsIterator(Reminder::class, 1, 0) as $job) {
+			$details = $this->jobList->getDetailsById($job->getId());
+			$settings['next_run'] = new \DateTime('@' . $details['last_checked'], new \DateTimeZone('UTC'));
+		}
+		return $settings;
 	}
 
 	public function save(
@@ -44,7 +51,7 @@ class ReminderService {
 		string $sendTimer,
 	): array {
 		$config = $this->saveConfig($daysBefore, $daysBetween, $max, $sendTimer);
-		$this->scheduleJob($config['send_timer']);
+		$config['next_run'] = $this->scheduleJob($config['send_timer']);
 		return $config;
 	}
 
@@ -106,20 +113,24 @@ class ReminderService {
 		}
 	}
 
-	protected function scheduleJob(string $startTime): void {
+	protected function scheduleJob(string $startTime): ?DateTime {
 		$this->jobList->remove(
 			Reminder::class,
 		);
 
+		if ($startTime === '') {
+			return null;
+		}
 		$runAfter = $this->getStartTime($startTime);
 		if (!$runAfter) {
-			return;
+			return null;
 		}
 
 		$this->jobList->scheduleAfter(
 			Reminder::class,
 			$runAfter->getTimestamp(),
 		);
+		return $runAfter;
 	}
 
 	protected function getStartTime(string $startTime): ?\DateTime {

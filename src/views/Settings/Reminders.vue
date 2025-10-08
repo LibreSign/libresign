@@ -14,6 +14,7 @@
 				class="settings-section__loading-icon"
 				:size="20" />
 			<div v-if="reminderState">
+				{{ t('libresign', 'Next job execution: {date}', {date: nextRunFormatted}) }}
 				<NcTextField :value.sync="reminderDaysBefore"
 					:label="t('libresign', 'First reminder after (days)')"
 					:placeholder="t('libresign', 'First reminder after (days)')"
@@ -61,6 +62,7 @@ import debounce from 'debounce'
 
 import axios from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
+import Moment from '@nextcloud/moment'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import { NcDateTimePickerNative } from '@nextcloud/vue'
@@ -100,6 +102,7 @@ export default {
 			previousReminderMax: 0,
 			displaySuccessReminderMax: false,
 			reminderState: false,
+			nextRun: null,
 			loading: false,
 		}
 	},
@@ -110,6 +113,13 @@ export default {
 				// TRANSLATORS The reminder state to auto reminders, usage example: Turn {reminderState} auto reminders
 				reminderState: this.reminderState ? t('libresign', 'off') : t('libresign', 'on'),
 			})
+		},
+		nextRunFormatted() {
+			if (this.nextRun) {
+				return this.dateFromSqlAnsi(this.nextRun)
+			}
+			// TRANSLATORS No next reminder job to signers is scheduled
+			return t('libresign', 'Not scheduled')
 		},
 	},
 	watch: {
@@ -128,6 +138,9 @@ export default {
 		this.getData()
 	},
 	methods: {
+		dateFromSqlAnsi(date) {
+			return Moment(Date.parse(date)).format('LL LTS')
+		},
 		async getData() {
 			this.loading = true
 
@@ -148,6 +161,7 @@ export default {
 					this.reminderState = this.reminderDaysBefore > 0
 						|| this.reminderDaysBetween > 0
 						|| this.max > 0
+					this.nextRun = response.next_run
 				})
 				.finally(() => {
 					this.loading = false
@@ -194,6 +208,7 @@ export default {
 						this.displaySuccessReminderSendTimer = true
 						setTimeout(() => { this.displaySuccessReminderSendTimer = false }, 2000)
 					}
+					this.nextRun = response.next_run
 				})
 		}, 1000),
 		formatHourMinute(date) {
