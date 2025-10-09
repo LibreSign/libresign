@@ -382,6 +382,7 @@ OC.L10N.register(
     "Legal Information" : "Informations légales",
     "Reminders" : "Rappels",
     "on" : "le",
+    "Not scheduled" : "Non planifié",
     "Root certificate data" : "Données du certificat principal",
     "To generate new signatures, you must first generate the root certificate." : "Pour générer de nouvelles signatures, vous devez d'abord générer le certificat racine.",
     "Generate root certificate" : "Générer un certificat racine",

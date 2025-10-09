@@ -219,6 +219,7 @@ OC.L10N.register(
     "off" : "välja",
     "on" : "sisse",
     "Turn {reminderState} auto reminders" : "Lülita automaatsed meeldetuletused {reminderState}",
+    "Not scheduled" : "Pole ajastatud",
     "First reminder after (days)" : "Esimene meeldetuletus (päevades)",
     "Days between reminders" : "Päevi meeldetuletuste vahel",
     "Max reminders per signer" : "Maksimaalne meeldetuletuste arv allakirjutaja kohta",

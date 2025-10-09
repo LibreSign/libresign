@@ -236,6 +236,7 @@
     "Legal Information" : "Información legal",
     "Reminders" : "Recordatorios",
     "on" : "el",
+    "Not scheduled" : "No programado",
     "To generate new signatures, you must first generate the root certificate." : "Para generar nuevas firmas, primero debes generar el certificado raíz.",
     "Generating certificate." : "Generando certificado",
     "Could not generate certificate." : "No se pudo generar el certificado",

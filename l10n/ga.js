@@ -393,6 +393,7 @@ OC.L10N.register(
     "off" : "as",
     "on" : "ar",
     "Turn {reminderState} auto reminders" : "Cas meabhrúcháin uathoibríocha {reminderState}",
+    "Not scheduled" : "Gan sceidealta",
     "First reminder after (days)" : "An chéad meabhrúchán tar éis (laethanta)",
     "Days between reminders" : "Laethanta idir meabhrúcháin",
     "Max reminders per signer" : "Uasmhéid meabhrúchán in aghaidh an tsínitheora",

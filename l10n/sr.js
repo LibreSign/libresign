@@ -393,6 +393,7 @@ OC.L10N.register(
     "off" : "искључени",
     "on" : "дана",
     "Turn {reminderState} auto reminders" : "Аутоматски подсетници су {reminderState}",
+    "Not scheduled" : "Није заказано",
     "First reminder after (days)" : "Први подсетник након (дана)",
     "Days between reminders" : "Дана између подсетника",
     "Max reminders per signer" : "Максимални број подсетника по потписнику",
