@@ -18,6 +18,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJobList;
 use OCP\IAppConfig;
 use OCP\IDateTimeZone;
+use Psr\Log\LoggerInterface;
 
 class ReminderService {
 	public function __construct(
@@ -27,6 +28,7 @@ class ReminderService {
 		protected ITimeFactory $time,
 		protected SignRequestMapper $signRequestMapper,
 		protected IdentifyMethodService $identifyMethodService,
+		protected LoggerInterface $logger,
 	) {
 	}
 
@@ -142,7 +144,8 @@ class ReminderService {
 
 		try {
 			$time = new \DateTime($startTime, $timezone);
-		} catch (DateMalformedStringException) {
+		} catch (DateMalformedStringException $e) {
+			$this->logger->error('Failed to parse reminder send time: ' . $e->getMessage());
 			return null;
 		}
 		$dateTime->setTime((int)$time->format('G'), (int)$time->format('i'));
