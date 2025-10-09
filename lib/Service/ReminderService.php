@@ -136,14 +136,13 @@ class ReminderService {
 	protected function getStartTime(string $startTime): ?\DateTime {
 		$timezone = $this->dateTimeZone->getTimeZone();
 
-		$dateTime = new \DateTime($startTime, $timezone);
-		$dateTime->setTimezone(new \DateTimeZone('UTC'));
-
-		$now = new \DateTime('now', new \DateTimeZone('UTC'));
-		if ($dateTime > $now) {
-			return $dateTime;
-		}
+		$now = $this->time->getDateTime('now', new \DateTimeZone('UTC'));
+		$dateTime = clone $now;
 		$dateTime->modify('+1 day');
+
+		$time = new \DateTime($startTime, $timezone);
+		$dateTime->setTime((int)$time->format('H'), (int)$time->format('i'));
+		$dateTime->setTimezone(new \DateTimeZone('UTC'));
 
 		return $dateTime;
 	}
