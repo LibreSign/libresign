@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use DateMalformedStringException;
 use DateTime;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\BackgroundJob\Reminder;
@@ -17,6 +18,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJobList;
 use OCP\IAppConfig;
 use OCP\IDateTimeZone;
+use Psr\Log\LoggerInterface;
 
 class ReminderService {
 	public function __construct(
@@ -26,6 +28,7 @@ class ReminderService {
 		protected ITimeFactory $time,
 		protected SignRequestMapper $signRequestMapper,
 		protected IdentifyMethodService $identifyMethodService,
+		protected LoggerInterface $logger,
 	) {
 	}
 
@@ -136,14 +139,22 @@ class ReminderService {
 	protected function getStartTime(string $startTime): ?\DateTime {
 		$timezone = $this->dateTimeZone->getTimeZone();
 
-		$dateTime = new \DateTime($startTime, $timezone);
-		$dateTime->setTimezone(new \DateTimeZone('UTC'));
+		$now = $this->time->getDateTime('now', new \DateTimeZone('UTC'));
+		$dateTime = clone $now;
 
-		$now = new \DateTime('now', new \DateTimeZone('UTC'));
-		if ($dateTime > $now) {
-			return $dateTime;
+		try {
+			$time = new \DateTime($startTime, $timezone);
+		} catch (DateMalformedStringException $e) {
+			$this->logger->error('Failed to parse reminder send time: ' . $e->getMessage());
+			return null;
 		}
-		$dateTime->modify('+1 day');
+		// 'G' = 24-hour format hour (no leading zeros),
+		// 'i' = minutes with leading zeros
+		$dateTime->setTime((int)$time->format('G'), (int)$time->format('i'));
+		$dateTime->setTimezone(new \DateTimeZone('UTC'));
+		if ($dateTime <= $now) {
+			$dateTime->modify('+1 day');
+		}
 
 		return $dateTime;
 	}
