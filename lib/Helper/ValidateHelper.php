@@ -503,6 +503,50 @@ class ValidateHelper {
 		}
 	}
 
+	public function validateIdentifySigners(array $data): void {
+		$this->validateSignersDataStructure($data);
+
+		foreach ($data['users'] as $signer) {
+			$this->validateSignerData($signer);
+		}
+	}
+
+	private function validateSignersDataStructure(array $data): void {
+		if (empty($data) || !array_key_exists('users', $data) || !is_array($data['users'])) {
+			throw new LibresignException($this->l10n->t('No signers'));
+		}
+	}
+
+	private function validateSignerData(mixed $signer): void {
+		if (!is_array($signer) || empty($signer)) {
+			throw new LibresignException($this->l10n->t('No signers'));
+		}
+
+		$this->validateSignerIdentifyMethods($signer);
+	}
+
+	private function validateSignerIdentifyMethods(array $signer): void {
+		if (empty($signer['identify']) || !is_array($signer['identify'])) {
+			// It's an api error, don't translate
+			throw new LibresignException('No identify methods for signer');
+		}
+
+		foreach ($signer['identify'] as $name => $identifyValue) {
+			$this->validateIdentifyMethodForRequest($name, $identifyValue);
+		}
+	}
+
+	private function validateIdentifyMethodForRequest(string $name, string $identifyValue): void {
+		$identifyMethod = $this->identifyMethodService->getInstanceOfIdentifyMethod($name, $identifyValue);
+		$identifyMethod->validateToRequest();
+
+		$signatureMethods = $identifyMethod->getSignatureMethods();
+		if (empty($signatureMethods)) {
+			// It's an api error, don't translate
+			throw new LibresignException('No signature methods for identify method ' . $name);
+		}
+	}
+
 	public function validateExistingFile(array $data): void {
 		if (isset($data['uuid'])) {
 			$this->validateFileUuid($data);
