@@ -222,8 +222,8 @@ Feature: request-signature
       | users | [{"identify":{"account":"signer2"}}] |
       | name | document |
     Then the response should be a JSON array with the following mandatory values
-      | key                   | value           |
-      | (jq).ocs.data.message | User not found. |
+      | key                   | value        |
+      | (jq).ocs.data.message | Invalid user |
 
   Scenario: Request to sign with success using account as identifier
     Given as user "admin"
@@ -273,8 +273,8 @@ Feature: request-signature
       | name | document |
     Then the response should have a status code 422
     Then the response should be a JSON array with the following mandatory values
-      | key                   | value           |
-      | (jq).ocs.data.message | User not found. |
+      | key                   | value        |
+      | (jq).ocs.data.message | Invalid user |
 
   Scenario: Request to sign with error using email as account identifier
     Given as user "admin"
@@ -285,8 +285,8 @@ Feature: request-signature
       | name | document |
     Then the response should have a status code 422
     Then the response should be a JSON array with the following mandatory values
-      | key                   | value           |
-      | (jq).ocs.data.message | User not found. |
+      | key                   | value        |
+      | (jq).ocs.data.message | Invalid user |
 
   Scenario: Request to sign with success using email as identifier and URL as file
     Given as user "admin"
