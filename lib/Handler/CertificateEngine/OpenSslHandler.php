@@ -86,7 +86,11 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
 		]);
 
-		$csr = openssl_csr_new($this->getCsrNames(), $privateKey);
+		$csr = @openssl_csr_new($this->getCsrNames(), $privateKey);
+		if ($csr === false) {
+			$message = openssl_error_string();
+			throw new LibresignException('OpenSSL error: ' . $message);
+		}
 
 		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, $this->expirity(), [
 			'config' => $this->getFilenameToLeafCert(),

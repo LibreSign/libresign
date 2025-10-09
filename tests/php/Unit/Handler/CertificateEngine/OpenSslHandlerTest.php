@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\InvalidPasswordException;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCP\Files\AppData\IAppDataFactory;
@@ -70,6 +71,35 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		// Test invalid password
 		$this->expectException(InvalidPasswordException::class);
 		$signerInstance->readCertificate($certificateContent, 'invalid password');
+	}
+
+	public function testMaxLengthOfDistinguishedNamesWithSuccess(): void {
+		// Create root cert
+		$rootInstance = $this->getInstance();
+		$rootInstance->generateRootCert('', []);
+
+		// Create signer cert
+		$signerInstance = $this->getInstance();
+		$longName = str_repeat('a', 64);
+		$signerInstance->setCommonName($longName);
+		$signerInstance->setPassword('123456');
+		$certificateContent = $signerInstance->generateCertificate();
+		$parsed = $signerInstance->readCertificate($certificateContent, '123456');
+		$this->assertEquals($longName, $parsed['subject']['CN']);
+	}
+
+	public function testBiggerThanMaxLengthOfDistinguishedNamesWithError(): void {
+		// Create root cert
+		$rootInstance = $this->getInstance();
+		$rootInstance->generateRootCert('', []);
+
+		// Create signer cert
+		$signerInstance = $this->getInstance();
+		$longName = str_repeat('a', 65);
+		$signerInstance->setCommonName($longName);
+		$signerInstance->setPassword('123456');
+		$this->expectException(LibresignException::class);
+		$signerInstance->generateCertificate();
 	}
 
 	/**
