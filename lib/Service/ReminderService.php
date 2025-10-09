@@ -138,18 +138,20 @@ class ReminderService {
 		$timezone = $this->dateTimeZone->getTimeZone();
 
 		$now = $this->time->getDateTime('now', new \DateTimeZone('UTC'));
-		$tomorrow = clone $now;
-		$tomorrow->modify('+1 day');
+		$dateTime = clone $now;
 
 		try {
 			$time = new \DateTime($startTime, $timezone);
 		} catch (DateMalformedStringException) {
 			return null;
 		}
-		$tomorrow->setTime((int)$time->format('G'), (int)$time->format('i'));
-		$tomorrow->setTimezone(new \DateTimeZone('UTC'));
+		$dateTime->setTime((int)$time->format('G'), (int)$time->format('i'));
+		$dateTime->setTimezone(new \DateTimeZone('UTC'));
+		if ($dateTime <= $now) {
+			$dateTime->modify('+1 day');
+		}
 
-		return $tomorrow;
+		return $dateTime;
 	}
 
 	public function sendReminders(): void {
