@@ -18,22 +18,25 @@ use OCP\IDateTimeZone;
 use OCP\Server;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
 
 final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected IJobList|MockObject $jobList;
 	protected IAppConfig $appConfig;
 	protected IDateTimeZone $dateTimeZone;
-	protected ITimeFactory $time;
+	protected ITimeFactory|MockObject $time;
 	protected SignRequestMapper|MockObject $signRequestMapper;
 	protected IdentifyMethodService|MockObject $identifyMethodService;
+	protected LoggerInterface|MockObject $logger;
 
 	public function setUp(): void {
 		$this->jobList = $this->createMock(IJobList::class);
 		$this->appConfig = $this->getMockAppConfig();
 		$this->dateTimeZone = Server::get(IDateTimeZone::class);
-		$this->time = Server::get(ITimeFactory::class);
+		$this->time = $this->createMock(ITimeFactory::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->logger = $this->createMock(LoggerInterface::class);
 	}
 
 	private function getService(array $methods = []): ReminderService|MockObject {
@@ -46,6 +49,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->time,
 					$this->signRequestMapper,
 					$this->identifyMethodService,
+					$this->logger,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -57,6 +61,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->time,
 			$this->signRequestMapper,
 			$this->identifyMethodService,
+			$this->logger,
 		);
 	}
 
@@ -105,7 +110,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public static function providerWillNotify(): array {
-		$now = (new DateTime())->setTime(12, 0);
+		$now = new DateTime('2025-10-09 12:00:00', new \DateTimeZone('UTC'));
 
 		return [
 			'no notifications, should not send with all zero and null' => [
@@ -327,6 +332,11 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		string $sendTimer,
 		array $expected,
 	): void {
+		// Setup fixed time for consistent testing
+		$fixedTime = new DateTime('2025-10-09 09:00:00', new \DateTimeZone('UTC'));
+		$this->time->method('getDateTime')
+			->willReturn($fixedTime);
+
 		$service = $this->getService();
 		$actual = $service->save($daysBefore, $daysBetween, $max, $sendTimer);
 		$this->assertEquals($expected, $actual);
@@ -347,7 +357,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public static function providerSave(): array {
-		$now = (new DateTime());
+		$now = (new DateTime('2025-10-09 09:00:00', new \DateTimeZone('UTC')));
 		return [
 			[
 				'daysBefore' => 0, 'daysBetween' => 0, 'max' => 0, 'sendTimer' => '',
@@ -415,7 +425,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'days_before' => 1,
 					'days_between' => 1,
 					'max' => 1,
-					'next_run' => (clone $now)->modify('+1 day')->setTime(10, 0),
+					'next_run' => (clone $now)->setTime(10, 0),
 					'send_timer' => '10:00',
 				],
 			],
@@ -425,8 +435,18 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'days_before' => 1,
 					'days_between' => 1,
 					'max' => 1,
-					'next_run' => (clone $now)->modify('+1 day')->setTime(10, 0),
+					'next_run' => (clone $now)->setTime(10, 0),
 					'send_timer' => '10:00',
+				],
+			],
+			[
+				'daysBefore' => 1, 'daysBetween' => 1, 'max' => 1, 'sendTimer' => '08:05',
+				'expected' => [
+					'days_before' => 1,
+					'days_between' => 1,
+					'max' => 1,
+					'next_run' => (clone $now)->modify('+1 day')->setTime(8, 5),
+					'send_timer' => '08:05',
 				],
 			],
 			[
@@ -435,7 +455,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'days_before' => 1,
 					'days_between' => 1,
 					'max' => 1,
-					'next_run' => (clone $now)->modify('+1 day')->setTime(11, 5),
+					'next_run' => (clone $now)->setTime(11, 5),
 					'send_timer' => '11:05',
 				],
 			],
