@@ -146,7 +146,7 @@ class ReminderService {
 		} catch (DateMalformedStringException) {
 			return null;
 		}
-		$tomorrow->setTime((int)$time->format('H'), (int)$time->format('i'));
+		$tomorrow->setTime((int)$time->format('G'), (int)$time->format('i'));
 		$tomorrow->setTimezone(new \DateTimeZone('UTC'));
 
 		return $tomorrow;
