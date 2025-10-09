@@ -14,6 +14,7 @@
 			v-model="displayName"
 			aria-describedby="name-input"
 			autocapitalize="none"
+			maxlength="64"
 			:label="t('libresign', 'Signer name')"
 			:required="true"
 			:error="nameHaveError"
