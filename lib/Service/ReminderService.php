@@ -148,6 +148,8 @@ class ReminderService {
 			$this->logger->error('Failed to parse reminder send time: ' . $e->getMessage());
 			return null;
 		}
+		// 'G' = 24-hour format hour (no leading zeros),
+		// 'i' = minutes with leading zeros
 		$dateTime->setTime((int)$time->format('G'), (int)$time->format('i'));
 		$dateTime->setTimezone(new \DateTimeZone('UTC'));
 		if ($dateTime <= $now) {
