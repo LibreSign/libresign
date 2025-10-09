@@ -268,6 +268,7 @@ OC.L10N.register(
     "Legal Information" : "Jogi információk",
     "Reminders" : "Emlékeztetők",
     "on" : "be",
+    "Not scheduled" : "Nincs ütemezve",
     "To generate new signatures, you must first generate the root certificate." : "Új aláírások létrehozásához először elő kell állítania a gyökértanúsítványt.",
     "Generating certificate." : "Tanúsítvány előállítása.",
     "Could not generate certificate." : "Nem sikerült létrehozni a tanúsítványt.",

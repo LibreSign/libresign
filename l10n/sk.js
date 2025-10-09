@@ -344,6 +344,7 @@ OC.L10N.register(
     "Legal Information" : "Právne informácie",
     "Reminders" : "Pripomienky",
     "on" : "o",
+    "Not scheduled" : "Nenaplánované",
     "Root certificate data" : "Dáta koreňového certifikátu",
     "To generate new signatures, you must first generate the root certificate." : "Pre vygenerovanie nových podpisov naprv musíte vygenerovať koreňový certifikát.",
     "Generate root certificate" : "Vygenerovať koreňový certifikát",

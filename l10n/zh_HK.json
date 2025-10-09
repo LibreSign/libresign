@@ -385,6 +385,7 @@
     "off" : "關閉",
     "on" : "開啟",
     "Turn {reminderState} auto reminders" : "{reminderState}自動提醒",
+    "Not scheduled" : "未安排",
     "First reminder after (days)" : "第一次提醒將在 X 天後發送",
     "Days between reminders" : "提醒間隔天數",
     "Max reminders per signer" : "每個簽署者的最大提醒數",

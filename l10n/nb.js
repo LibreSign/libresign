@@ -316,6 +316,7 @@ OC.L10N.register(
     "Legal Information" : "Juridisk informasjon",
     "Reminders" : "Varsler",
     "on" : "på",
+    "Not scheduled" : "Ikke planlagt",
     "Root certificate data" : "Rotsertifikatdata",
     "To generate new signatures, you must first generate the root certificate." : "Hvis du vil generere nye signaturer, må du først generere rotsertifikatet.",
     "Generate root certificate" : "Generer rotsertifikat",

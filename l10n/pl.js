@@ -236,6 +236,7 @@ OC.L10N.register(
     "Legal Information" : "Informacje prawne",
     "Reminders" : "Przypomnienia",
     "on" : "o",
+    "Not scheduled" : "Nie planowane",
     "To generate new signatures, you must first generate the root certificate." : "Aby wygenerować nowe sygnatury, musisz najpierw wygenerować certyfikat główny.",
     "Generate root certificate" : "Wygeneruj certyfikat główny",
     "Generating certificate." : "Generowanie certyfikatu.",

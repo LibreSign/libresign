@@ -225,6 +225,7 @@ OC.L10N.register(
     "Legal Information" : "Juridische Informatie",
     "Reminders" : "Herinneringen",
     "on" : "op",
+    "Not scheduled" : "Niet ingepland",
     "To generate new signatures, you must first generate the root certificate." : "Om nieuwe handtekeningen te genereren, moet je eerst het rootcertificaat genereren.",
     "Generating certificate." : "Genereren certificaat.",
     "Could not generate certificate." : "Kon het certificaat niet genereren.",

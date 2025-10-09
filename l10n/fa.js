@@ -248,6 +248,7 @@ OC.L10N.register(
     "Legal Information" : "Legal Information",
     "Reminders" : "یادآوری ها",
     "on" : "بر",
+    "Not scheduled" : "Not scheduled",
     "To generate new signatures, you must first generate the root certificate." : "To generate new signatures, you must first generate the root certificate.",
     "Generating certificate." : "Generating certificate.",
     "Could not generate certificate." : "Could not generate certificate.",

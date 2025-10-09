@@ -393,6 +393,7 @@ OC.L10N.register(
     "off" : "aus",
     "on" : "an",
     "Turn {reminderState} auto reminders" : "Auto-Erinnerungen {reminderState}-schalten",
+    "Not scheduled" : "Nicht geplant",
     "First reminder after (days)" : "Erste Erinnerung nach (Tagen)",
     "Days between reminders" : "Tage zwischen den Erinnerungen",
     "Max reminders per signer" : "Maximale Anzahl von Erinnerungen pro Unterzeichner",

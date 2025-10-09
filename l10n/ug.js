@@ -311,6 +311,7 @@ OC.L10N.register(
     "Legal Information" : "قانۇن ئۇچۇرى",
     "Reminders" : "ئەسكەرتىش",
     "on" : "on",
+    "Not scheduled" : "پىلانلانمىدى",
     "Root certificate data" : "يىلتىز گۇۋاھنامىسى ئۇچۇرى",
     "To generate new signatures, you must first generate the root certificate." : "يېڭى ئىمزا ھاسىل قىلىش ئۈچۈن ، ئالدى بىلەن يىلتىز گۇۋاھنامىسى ھاسىل قىلىشىڭىز كېرەك.",
     "Generate root certificate" : "يىلتىز گۇۋاھنامىسى ھاسىل قىلىڭ",
