@@ -75,6 +75,7 @@ class IdentifyMethodService {
 		if ($identifyValue && isset($this->identifyMethods[$name])) {
 			foreach ($this->identifyMethods[$name] as $identifyMethod) {
 				if ($identifyMethod->getEntity()->getIdentifierValue() === $identifyValue) {
+					$identifyValue = $this->mergeWithCurrentIdentifyMethod($identifyMethod);
 					return $identifyMethod;
 				}
 			}
@@ -92,6 +93,18 @@ class IdentifyMethodService {
 		}
 
 		$this->identifyMethods[$name][] = $identifyMethod;
+		return $identifyMethod;
+	}
+
+	private function mergeWithCurrentIdentifyMethod(IIdentifyMethod $identifyMethod): IIdentifyMethod {
+		if ($this->currentIdentifyMethod === null) {
+			return $identifyMethod;
+		}
+		if ($this->currentIdentifyMethod->getIdentifierKey() === $identifyMethod->getEntity()->getIdentifierKey()
+			&& $this->currentIdentifyMethod->getIdentifierValue() === $identifyMethod->getEntity()->getIdentifierValue()
+		) {
+			$identifyMethod->setEntity($this->currentIdentifyMethod);
+		}
 		return $identifyMethod;
 	}
 
