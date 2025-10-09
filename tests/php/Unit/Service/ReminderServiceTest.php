@@ -23,7 +23,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected IJobList|MockObject $jobList;
 	protected IAppConfig $appConfig;
 	protected IDateTimeZone $dateTimeZone;
-	protected ITimeFactory $time;
+	protected ITimeFactory|MockObject $time;
 	protected SignRequestMapper|MockObject $signRequestMapper;
 	protected IdentifyMethodService|MockObject $identifyMethodService;
 
@@ -31,7 +31,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->jobList = $this->createMock(IJobList::class);
 		$this->appConfig = $this->getMockAppConfig();
 		$this->dateTimeZone = Server::get(IDateTimeZone::class);
-		$this->time = Server::get(ITimeFactory::class);
+		$this->time = $this->createMock(ITimeFactory::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 	}
@@ -105,7 +105,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public static function providerWillNotify(): array {
-		$now = (new DateTime())->setTime(12, 0);
+		$now = new DateTime('2025-10-09 12:00:00', new \DateTimeZone('UTC'));
 
 		return [
 			'no notifications, should not send with all zero and null' => [
@@ -327,6 +327,11 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		string $sendTimer,
 		array $expected,
 	): void {
+		// Setup fixed time for consistent testing
+		$fixedTime = new DateTime('2025-10-09 09:00:00', new \DateTimeZone('UTC'));
+		$this->time->method('getDateTime')
+			->willReturn($fixedTime);
+
 		$service = $this->getService();
 		$actual = $service->save($daysBefore, $daysBetween, $max, $sendTimer);
 		$this->assertEquals($expected, $actual);
@@ -347,7 +352,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public static function providerSave(): array {
-		$now = (new DateTime());
+		$now = (new DateTime('2025-10-09 09:00:00', new \DateTimeZone('UTC')));
 		return [
 			[
 				'daysBefore' => 0, 'daysBetween' => 0, 'max' => 0, 'sendTimer' => '',
