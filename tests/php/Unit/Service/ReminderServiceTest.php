@@ -18,6 +18,7 @@ use OCP\IDateTimeZone;
 use OCP\Server;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
 
 final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected IJobList|MockObject $jobList;
@@ -26,6 +27,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected ITimeFactory|MockObject $time;
 	protected SignRequestMapper|MockObject $signRequestMapper;
 	protected IdentifyMethodService|MockObject $identifyMethodService;
+	protected LoggerInterface|MockObject $logger;
 
 	public function setUp(): void {
 		$this->jobList = $this->createMock(IJobList::class);
@@ -34,6 +36,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->time = $this->createMock(ITimeFactory::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->logger = $this->createMock(LoggerInterface::class);
 	}
 
 	private function getService(array $methods = []): ReminderService|MockObject {
@@ -46,6 +49,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->time,
 					$this->signRequestMapper,
 					$this->identifyMethodService,
+					$this->logger,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -57,6 +61,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->time,
 			$this->signRequestMapper,
 			$this->identifyMethodService,
+			$this->logger,
 		);
 	}
 
