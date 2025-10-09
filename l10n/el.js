@@ -393,6 +393,7 @@ OC.L10N.register(
     "off" : "απενεργοποιημένο",
     "on" : "ενεργοποιημένο",
     "Turn {reminderState} auto reminders" : "Εναλλαγή {reminderState} αυτόματων υπενθυμίσεων",
+    "Not scheduled" : "Δεν έχει προγραμματιστεί",
     "First reminder after (days)" : "Πρώτη υπενθύμιση μετά (ημέρες)",
     "Days between reminders" : "Ημέρες μεταξύ υπενθυμίσεων",
     "Max reminders per signer" : "Μέγιστες υπενθυμίσεις ανά υπογράφοντα",

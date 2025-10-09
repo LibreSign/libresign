@@ -385,6 +385,7 @@
     "off" : "apagado",
     "on" : "activo",
     "Turn {reminderState} auto reminders" : "Cambiar a {reminderState} los recordatorios automáticos",
+    "Not scheduled" : "No está programado",
     "First reminder after (days)" : "El primer recordatorio sucede luego de (días)",
     "Days between reminders" : "Días entre recordatorios",
     "Max reminders per signer" : "Máx. de recordatorios por firmante",

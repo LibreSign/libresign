@@ -233,6 +233,7 @@ OC.L10N.register(
     "Legal Information" : "Юридическая информация",
     "Reminders" : "Напоминания",
     "on" : "в",
+    "Not scheduled" : "Не запланировано",
     "To generate new signatures, you must first generate the root certificate." : "Чтобы сгенерировать новые подписи, вы должны сначала сгенерировать корневой сертификат.",
     "Generating certificate." : "Генерация сертификата.",
     "Could not generate certificate." : "Не удалось создать сертификат",

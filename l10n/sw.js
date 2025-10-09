@@ -83,6 +83,7 @@ OC.L10N.register(
     "Message" : "Message",
     "Reminders" : "Vikumbusho",
     "on" : "Juu ya",
+    "Not scheduled" : "Haijapangwa",
     "Yes" : "Ndiyo",
     "No" : "Hapana",
     "Reset to default" : "Weka upya chaguo msingi",

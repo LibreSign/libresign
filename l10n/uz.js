@@ -54,6 +54,7 @@ OC.L10N.register(
     "New password" : "New password",
     "Remove" : "O'chirish",
     "on" : "da",
+    "Not scheduled" : "Rejalashtirilmagan",
     "Yes" : "Yes",
     "No" : "No",
     "Remove background" : "Fonni olib tashlash",

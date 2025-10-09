@@ -380,6 +380,7 @@ OC.L10N.register(
     "Legal Information" : "Juridisk information",
     "Reminders" : "Påminnelser",
     "on" : "den",
+    "Not scheduled" : "Inte schemalagd",
     "Root certificate data" : "Rotcertifikatdata",
     "To generate new signatures, you must first generate the root certificate." : "För att generera nya signaturer måste du först generera rotcertifikatet.",
     "Generate root certificate" : "Generera rotcertifikat",

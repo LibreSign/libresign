@@ -387,6 +387,7 @@ OC.L10N.register(
     "off" : "off",
     "on" : "on",
     "Turn {reminderState} auto reminders" : "Turn {reminderState} auto reminders",
+    "Not scheduled" : "Not scheduled",
     "First reminder after (days)" : "First reminder after (days)",
     "Days between reminders" : "Days between reminders",
     "Max reminders per signer" : "Max reminders per signer",
