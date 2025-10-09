@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Db\IdentifyMethod;
-use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
@@ -39,41 +38,6 @@ final class EmailTokenTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->identifyService,
 			$this->tokenService,
 		);
-	}
-
-	#[DataProvider('providerToArrayWithInvalidEmail')]
-	public function testToArrayWithInvalidEmail(mixed $email): void {
-		$instance = $this->getClass();
-		$identifyMethod = new IdentifyMethod();
-		$identifyMethod->fromRow([
-			'identifierValue' => $email
-		]);
-		$instance->setEntity($identifyMethod);
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage(json_encode([
-			'action' => 2000,
-			'errors' => [['message' => 'Invalid email']],
-		]));
-		$instance->toArray();
-	}
-
-	public static function providerToArrayWithInvalidEmail(): array {
-		return [
-			[''],
-			['user@domain'],           // Missing TLD
-			['user@.coop'],            // Invalid domain
-			['@domain.coop'],          // Missing username
-			['user@domain..coop'],     // Two consecutive dots
-			['user@domain.c'],         // TLD too short
-			['user@domain.corporate'], // Invalid TLD
-			['user@-domain.coop'],     // Domain starts with a hyphen
-			['user@domain.coop.'],     // Dot at the end
-			['user@.coop'],            // Dot before the domain
-			['user@domain,coop'],      // Comma instead of dot
-			['user@domain coop'],      // Space in the domain
-			['user@domain@coop'],      // Two @ symbols
-			['user@domain..coop'],     // Two consecutive dots
-		];
 	}
 
 	#[DataProvider('providerVaidateEmail')]

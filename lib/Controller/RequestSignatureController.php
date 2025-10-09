@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\ResponseDefinitions;
@@ -91,10 +92,23 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				],
 				Http::STATUS_OK
 			);
-		} catch (\Throwable $th) {
+		} catch (LibresignException $e) {
+			$errorMessage = $e->getMessage();
+			$decoded = json_decode($errorMessage, true);
+			if (json_last_error() === JSON_ERROR_NONE && isset($decoded['errors'])) {
+				$errorMessage = $decoded['errors'][0]['message'] ?? $errorMessage;
+			}
 			return new DataResponse(
 				[
-					'message' => $th->getMessage(),
+					'message' => $errorMessage,
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		} catch (\Throwable $th) {
+			$errorMessage = $th->getMessage();
+			return new DataResponse(
+				[
+					'message' => $errorMessage,
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
@@ -133,6 +147,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		try {
 			$this->validateHelper->validateExistingFile($data);
 			$this->validateHelper->validateFileStatus($data);
+			$this->validateHelper->validateIdentifySigners($data);
 			if (!empty($data['visibleElements'])) {
 				$this->validateHelper->validateVisibleElements($data['visibleElements'], $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
 			}
