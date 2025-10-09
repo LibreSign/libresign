@@ -75,7 +75,7 @@ class IdentifyMethodService {
 		if ($identifyValue && isset($this->identifyMethods[$name])) {
 			foreach ($this->identifyMethods[$name] as $identifyMethod) {
 				if ($identifyMethod->getEntity()->getIdentifierValue() === $identifyValue) {
-					$identifyValue = $this->mergeWithCurrentIdentifyMethod($identifyMethod);
+					$identifyMethod = $this->mergeWithCurrentIdentifyMethod($identifyMethod);
 					return $identifyMethod;
 				}
 			}
