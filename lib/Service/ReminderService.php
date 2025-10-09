@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use DateMalformedStringException;
 use DateTime;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\BackgroundJob\Reminder;
@@ -137,14 +138,18 @@ class ReminderService {
 		$timezone = $this->dateTimeZone->getTimeZone();
 
 		$now = $this->time->getDateTime('now', new \DateTimeZone('UTC'));
-		$dateTime = clone $now;
-		$dateTime->modify('+1 day');
+		$tomorrow = clone $now;
+		$tomorrow->modify('+1 day');
 
-		$time = new \DateTime($startTime, $timezone);
-		$dateTime->setTime((int)$time->format('H'), (int)$time->format('i'));
-		$dateTime->setTimezone(new \DateTimeZone('UTC'));
+		try {
+			$time = new \DateTime($startTime, $timezone);
+		} catch (DateMalformedStringException) {
+			return null;
+		}
+		$tomorrow->setTime((int)$time->format('H'), (int)$time->format('i'));
+		$tomorrow->setTimezone(new \DateTimeZone('UTC'));
 
-		return $dateTime;
+		return $tomorrow;
 	}
 
 	public function sendReminders(): void {
