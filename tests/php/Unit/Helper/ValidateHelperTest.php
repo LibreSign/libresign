@@ -19,6 +19,8 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\Files\IMimeTypeDetector;
@@ -30,6 +32,7 @@ use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\Security\IHasher;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -620,5 +623,120 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			['signal', false],
 			['telegram', false],
 		];
+	}
+
+	#[DataProvider('providerValidateSignersDataStructure')]
+	public function testValidateSignersDataStructure(array $data, ?string $expectedException, ?string $expectedMessage): void {
+		$validateHelper = $this->getValidateHelper();
+
+		if ($expectedException) {
+			$this->expectException($expectedException);
+			if ($expectedMessage) {
+				$this->expectExceptionMessage($expectedMessage);
+			}
+		}
+
+		// Use reflection to test private method
+		$method = new \ReflectionMethod($validateHelper, 'validateSignersDataStructure');
+		$method->invoke($validateHelper, $data);
+
+		if (!$expectedException) {
+			$this->assertTrue(true);
+		}
+	}
+
+	public static function providerValidateSignersDataStructure(): array {
+		return [
+			'Empty data' => [[], LibresignException::class, 'No signers'],
+			'No users key' => [['invalid' => 'data'], LibresignException::class, 'No signers'],
+			'Users is not array' => [['users' => 'invalid'], LibresignException::class, 'No signers'],
+			'Valid structure' => [['users' => []], null, null],
+		];
+	}
+
+	#[DataProvider('providerValidateSignerData')]
+	public function testValidateSignerData($signer, ?string $expectedException, ?string $expectedMessage): void {
+		$validateHelper = $this->getValidateHelper();
+
+		if ($expectedException) {
+			$this->expectException($expectedException);
+			if ($expectedMessage) {
+				$this->expectExceptionMessage($expectedMessage);
+			}
+		}
+
+		$method = new \ReflectionMethod($validateHelper, 'validateSignerData');
+		$method->invoke($validateHelper, $signer);
+
+		if (!$expectedException) {
+			$this->assertTrue(true);
+		}
+	}
+
+	public static function providerValidateSignerData(): array {
+		return [
+			'Signer is not array' => ['invalid', LibresignException::class, 'No signers'],
+			'Empty signer' => [[], LibresignException::class, 'No signers'],
+			'No identify methods' => [['name' => 'User'], LibresignException::class, 'No identify methods for signer'],
+			'Identify is not array' => [['identify' => 'invalid'], LibresignException::class, 'No identify methods for signer'],
+		];
+	}
+
+	public function testValidateIdentifyMethodForRequestWithNoSignatureMethods(): void {
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getSignatureMethods')->willReturn([]);
+		$identifyMethod->method('validateToRequest');
+
+		$this->identifyMethodService
+			->method('getInstanceOfIdentifyMethod')
+			->willReturn($identifyMethod);
+
+		$validateHelper = $this->getValidateHelper();
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('No signature methods for identify method account');
+
+		$method = new \ReflectionMethod($validateHelper, 'validateIdentifyMethodForRequest');
+		$method->invoke($validateHelper, 'account', 'user@example.com');
+	}
+
+	public function testValidateIdentifyMethodForRequestWithValidSignatureMethods(): void {
+		$signatureMethod = $this->createMock(ISignatureMethod::class);
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getSignatureMethods')->willReturn([$signatureMethod]);
+		$identifyMethod->method('validateToRequest');
+
+		$this->identifyMethodService
+			->method('getInstanceOfIdentifyMethod')
+			->willReturn($identifyMethod);
+
+		$validateHelper = $this->getValidateHelper();
+
+		$method = new \ReflectionMethod($validateHelper, 'validateIdentifyMethodForRequest');
+		$result = $method->invoke($validateHelper, 'account', 'user@example.com');
+
+		$this->assertNull($result);
+	}
+
+	public function testValidateIdentifySignersIntegration(): void {
+		$signatureMethod = $this->createMock(ISignatureMethod::class);
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getSignatureMethods')->willReturn([$signatureMethod]);
+		$identifyMethod->method('validateToRequest');
+
+		$this->identifyMethodService
+			->method('getInstanceOfIdentifyMethod')
+			->willReturn($identifyMethod);
+
+		$data = [
+			'users' => [
+				['identify' => ['account' => 'user@example.com']]
+			]
+		];
+
+		$validateHelper = $this->getValidateHelper();
+		$result = $validateHelper->validateIdentifySigners($data);
+
+		$this->assertNull($result);
 	}
 }
