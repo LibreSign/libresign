@@ -54,9 +54,27 @@ class Account extends AbstractIdentifyMethod {
 	}
 
 	public function validateToRequest(): void {
-		$signer = $this->userManager->get($this->entity->getIdentifierValue());
-		if (!$signer) {
-			throw new LibresignException($this->identifyService->getL10n()->t('User not found.'));
+		$signer = $this->getSigner();
+		$this->validateSignatureMethodsForRequest($signer);
+	}
+
+	private function validateSignatureMethodsForRequest(IUser $signer): void {
+		foreach ($this->getSignatureMethods() as $signatureMethod) {
+			if (!$signatureMethod->isEnabled()) {
+				continue;
+			}
+			if ($signatureMethod->getName() === ISignatureMethod::SIGNATURE_METHOD_EMAIL_TOKEN) {
+				$this->validateEmailForEmailToken($signer);
+			}
+		}
+	}
+
+	private function validateEmailForEmailToken(IUser $signer): void {
+		$email = $signer->getEMailAddress();
+		if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+			throw new LibresignException(
+				$this->identifyService->getL10n()->t('Signer without valid email address')
+			);
 		}
 	}
 

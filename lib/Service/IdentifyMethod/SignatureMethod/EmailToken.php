@@ -8,8 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
-use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Vendor\Wobeto\EmailBlur\Blur;
 
@@ -39,13 +37,6 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 			default => '',
 		};
 
-		if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [['message' => $this->identifyService->getL10n()->t('Invalid email')]],
-			]));
-		}
-
 		$emailLowercase = strtolower($email);
 
 		$code = $entity->getCode();
@@ -61,8 +52,8 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 		$return['identifyMethod'] = $entity->getIdentifierKey();
 		$return['needCode'] = $needCode;
 		$return['hasConfirmCode'] = $hasConfirmCode;
-		$return['blurredEmail'] = $this->blurEmail($emailLowercase);
-		$return['hashOfEmail'] = md5($emailLowercase);
+		$return['blurredEmail'] = $emailLowercase ? $this->blurEmail($emailLowercase) : '';
+		$return['hashOfEmail'] = $emailLowercase ? md5($emailLowercase) : '';
 		return $return;
 	}
 

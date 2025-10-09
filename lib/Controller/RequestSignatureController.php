@@ -133,6 +133,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		try {
 			$this->validateHelper->validateExistingFile($data);
 			$this->validateHelper->validateFileStatus($data);
+			$this->validateHelper->validateIdentifySigners($data);
 			if (!empty($data['visibleElements'])) {
 				$this->validateHelper->validateVisibleElements($data['visibleElements'], $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
 			}
