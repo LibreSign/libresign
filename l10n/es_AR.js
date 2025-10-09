@@ -68,6 +68,7 @@ OC.L10N.register(
     "Resource" : "Recurso",
     "Dependencies" : "Dependencias",
     "Reminders" : "Recordatorios",
+    "Not scheduled" : "No programado",
     "Yes" : "Si",
     "No" : "No",
     "Reset to default" : "Restablecer al predeterminado",

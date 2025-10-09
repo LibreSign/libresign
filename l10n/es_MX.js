@@ -91,6 +91,7 @@ OC.L10N.register(
     "Dependencies" : "Dependencias",
     "Reminders" : "Recordatorios",
     "on" : "el",
+    "Not scheduled" : "No programado",
     "Yes" : "Sí",
     "No" : "No",
     "Reset to default" : "Restablecer al predeterminado",

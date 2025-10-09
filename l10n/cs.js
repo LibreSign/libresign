@@ -387,6 +387,7 @@ OC.L10N.register(
     "off" : "vypnuto",
     "on" : "v",
     "Turn {reminderState} auto reminders" : " {reminderState} automatické připomínky",
+    "Not scheduled" : "Nenaplánováno",
     "First reminder after (days)" : "První připomínka po uplynutí (dnů)",
     "Days between reminders" : "Dnů mezi připomínkami",
     "Max reminders per signer" : "Nejvýše připomínek pro jednotlivého podepisujícího",

@@ -219,6 +219,7 @@ OC.L10N.register(
     "Legal Information" : "法律信息",
     "Reminders" : "提醒",
     "on" : "于",
+    "Not scheduled" : "未计划",
     "To generate new signatures, you must first generate the root certificate." : "要生成新的签名，你必须首先生成根证书。",
     "Generate root certificate" : "生成根证书",
     "Generating certificate." : "生成证书中",

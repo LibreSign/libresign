@@ -245,6 +245,7 @@
     "Legal Information" : "Правна информация",
     "Reminders" : "Напомняния",
     "on" : "на",
+    "Not scheduled" : "Не е планирано",
     "To generate new signatures, you must first generate the root certificate." : "За да генерирате нови подписи, първо трябва да генерирате основния сертификат.",
     "Generating certificate." : "Генериране на сертификат.",
     "Could not generate certificate." : "Неуспешно генериране на сертификат.",

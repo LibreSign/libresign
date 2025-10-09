@@ -261,6 +261,7 @@ OC.L10N.register(
     "Legal Information" : "Informació legal",
     "Reminders" : "Recordatoris",
     "on" : "a",
+    "Not scheduled" : "No planificat",
     "To generate new signatures, you must first generate the root certificate." : "Per generar noves signatures, primer heu de generar el certificat arrel.",
     "Generating certificate." : "S’estan generant el certificat.",
     "Could not generate certificate." : "No s'ha pogut generar el certificat.",

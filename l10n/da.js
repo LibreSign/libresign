@@ -96,6 +96,7 @@ OC.L10N.register(
     "Dependencies" : "Afhængigheder",
     "Reminders" : "Påmindelser",
     "on" : "på",
+    "Not scheduled" : "Ikke planlagt",
     "Yes" : "Ja",
     "No" : "Nej",
     "Reset to default" : "Nulstil",
