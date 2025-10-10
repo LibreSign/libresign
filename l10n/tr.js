@@ -394,6 +394,7 @@ OC.L10N.register(
     "on" : "aç",
     "Turn {reminderState} auto reminders" : "Otomatik anımsatıcıları {reminderState}",
     "Not scheduled" : "Zamanlanmamış",
+    "Next job execution: {date}" : "Görevin sonraki yürütülmesi: {date}",
     "First reminder after (days)" : "İlk anımsatıcının ne kadar sonra gönderileceği (gün)",
     "Days between reminders" : "Anımsatıcılar arasındaki gün sayısı",
     "Max reminders per signer" : "Her imzalayana gönderilecek en fazla anımsatıcı",
