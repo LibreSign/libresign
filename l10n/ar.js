@@ -344,6 +344,7 @@ OC.L10N.register(
     "Legal Information" : "المعلومات القانونية",
     "Reminders" : "تذكيرات",
     "on" : "في",
+    "Not scheduled" : "غير مُجدوَل",
     "Root certificate data" : "بيانات شهادة المصادقة الجذرية",
     "To generate new signatures, you must first generate the root certificate." : "لإنشاء توقيعات جديدة ، يجب أولاً إنشاء شهادة الدليل الأساسي.",
     "Generate root certificate" : "توليد شهادة مصادقة جذرية",
