@@ -394,6 +394,7 @@ OC.L10N.register(
     "on" : "activado",
     "Turn {reminderState} auto reminders" : "Cambiar a {reminderState} os lembretes automáticos",
     "Not scheduled" : "Sen programar",
+    "Next job execution: {date}" : "Seguinte execución do traballo: {date}",
     "First reminder after (days)" : "Primeiro lembrete após (días)",
     "Days between reminders" : "Días entre lembretes",
     "Max reminders per signer" : "Máximo de lembretes por asinante",
