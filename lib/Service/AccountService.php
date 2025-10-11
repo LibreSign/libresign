@@ -233,12 +233,20 @@ class AccountService {
 		$info['hasSignatureFile'] = $this->hasSignatureFile($user);
 		$info['phoneNumber'] = $this->getPhoneNumber($user);
 		$info['isApprover'] = $this->validateHelper->userCanApproveValidationDocuments($user, false);
-		$info['grid_view'] = $this->getUserConfigGridView($user);
+		$info['grid_view'] = $this->getUserConfigByKey($user, 'grid_view') === '1';;
 
 		return $info;
 	}
 
+	/**
+	 * @return array[]
+	 */
+	public function getConfigFilters(?IUser $user = null): array {
+		$info['filter_modified'] = $this->getUserConfigByKey($user, 'filter_modified');
+		$info['filter_status'] = $this->getUserConfigByKey($user, 'filter_status');
 
+		return $info;
+	}
 
 	private function getPhoneNumber(?IUser $user): string {
 		if (!$user) {
@@ -260,12 +268,12 @@ class AccountService {
 		}
 	}
 
-	private function getUserConfigGridView(?IUser $user = null): bool {
+	private function getUserConfigByKey(?IUser $user = null, string $key): string {
 		if (!$user) {
-			return false;
+			return '';
 		}
 
-		return $this->config->getUserValue($user->getUID(), Application::APP_ID, 'grid_view', false) === '1';
+		return $this->config->getUserValue($user->getUID(), Application::APP_ID, $key);
 	}
 
 	/**
