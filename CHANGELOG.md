@@ -19,6 +19,35 @@ Types of changes:
 <!-- changelog-linker -->
 <!-- changelog-linker -->
 
+## 11.5.0 - 2025-11-10
+### Features
+- feat(dependabot): add missing composer paths to config [#5466](https://github.com/LibreSign/libresign/pull/5466)
+- feat: sign usign twofactor_gateway [#5498](https://github.com/LibreSign/libresign/pull/5498)
+- feat: return next scheduled date [#5526](https://github.com/LibreSign/libresign/pull/5526)
+
+### Changes
+- Update translations
+- Bump dependencies
+- chore: add link to logs [#5456](https://github.com/LibreSign/libresign/pull/5456)
+- chore: gridViewButtonLabel [#5462](https://github.com/LibreSign/libresign/pull/5462)
+- chore: update workflows [#5485](https://github.com/LibreSign/libresign/pull/5485)
+- chore: replace vendor by 3rdparty [#5514](https://github.com/LibreSign/libresign/pull/5514)
+- chore: cover with more scenarios [#5525](https://github.com/LibreSign/libresign/pull/5525)
+- chore: handle error and cover with tests [#5536](https://github.com/LibreSign/libresign/pull/5536)
+
+### Fixes
+- fix: error at CI with PHP 8.3 [#5481](https://github.com/LibreSign/libresign/pull/5481)
+- fix: rollback previous commit [#5484](https://github.com/LibreSign/libresign/pull/5484)
+- fix: isolate all dependencies [#5490](https://github.com/LibreSign/libresign/pull/5490)
+- fix: patcher for mpdf [#5495](https://github.com/LibreSign/libresign/pull/5495)
+- fix: apply rector [#5501](https://github.com/LibreSign/libresign/pull/5501)
+- fix: unit test after translation update [#5516](https://github.com/LibreSign/libresign/pull/5516)
+- fix: unit test after implement submodule [#5521](https://github.com/LibreSign/libresign/pull/5521)
+- fix: error handler to prevent JS error when receive 4xx from API [#5531](https://github.com/LibreSign/libresign/pull/5531)
+- fix: make possible to test with dates [#5538](https://github.com/LibreSign/libresign/pull/5538)
+- fix: add maxlength [#5542](https://github.com/LibreSign/libresign/pull/5542)
+- fix: make the error message more specific [#5543](https://github.com/LibreSign/libresign/pull/5543)
+
 ## 11.4.1 - 2025-09-13
 ### Changes
 - Update translations
