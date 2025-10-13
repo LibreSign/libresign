@@ -44,6 +44,7 @@ OC.L10N.register(
     "Choose" : "Выбраць",
     "Choose from Files" : "Выбраць у Файлах",
     "Send" : "Адправіць",
+    "Previous" : "Папярэдняя",
     "Searching …" : "Пошук …",
     "No recommendations. Start typing." : "Няма рэкамендацый. Пачніце друкаваць.",
     "Sign" : "Знак",
