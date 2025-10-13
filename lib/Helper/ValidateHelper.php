@@ -512,7 +512,7 @@ class ValidateHelper {
 	}
 
 	private function validateSignersDataStructure(array $data): void {
-		if (empty($data) || !array_key_exists('users', $data) || !is_array($data['users'])) {
+		if (empty($data) || !array_key_exists('users', $data) || !is_array($data['users']) || empty($data['users'])) {
 			throw new LibresignException($this->l10n->t('No signers'));
 		}
 	}
