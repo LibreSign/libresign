@@ -739,4 +739,175 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->assertNull($result);
 	}
+
+	#[DataProvider('providerValidateIdentifySigners')]
+	public function testValidateIdentifySigners(array $data, bool $shouldThrow = false, string $expectedMessage = ''): void {
+		// Mock signature method for valid cases
+		$signatureMethod = $this->createMock(ISignatureMethod::class);
+		$identifyMethod = $this->createMock(IIdentifyMethod::class);
+		$identifyMethod->method('getSignatureMethods')->willReturn([$signatureMethod]);
+		$identifyMethod->method('validateToRequest');
+
+		$this->identifyMethodService
+			->method('getInstanceOfIdentifyMethod')
+			->willReturn($identifyMethod);
+
+		$validateHelper = $this->getValidateHelper();
+
+		if ($shouldThrow) {
+			$this->expectException(LibresignException::class);
+			if ($expectedMessage) {
+				$this->expectExceptionMessage($expectedMessage);
+			}
+		}
+
+		$validateHelper->validateIdentifySigners($data);
+
+		if (!$shouldThrow) {
+			$this->assertTrue(true); // If we get here without exception, test passed
+		}
+	}
+
+	public static function providerValidateIdentifySigners(): array {
+		return [
+			'valid data with identify structure single method' => [
+				[
+					'users' => [
+						[
+							'identify' => [
+								'account' => 'user@example.com'
+							]
+						]
+					]
+				],
+				false, // should not throw
+			],
+			'valid data with identify structure multiple methods' => [
+				[
+					'users' => [
+						[
+							'identify' => [
+								'account' => 'user@example.com',
+								'email' => 'user@example.com'
+							]
+						]
+					]
+				],
+				false, // should not throw
+			],
+			'valid data with identifyMethods structure single method' => [
+				[
+					'users' => [
+						[
+							'identifyMethods' => [
+								['method' => 'account', 'value' => 'user@example.com']
+							]
+						]
+					]
+				],
+				false, // should not throw
+			],
+			'valid data with identifyMethods structure multiple methods' => [
+				[
+					'users' => [
+						[
+							'identifyMethods' => [
+								['method' => 'account', 'value' => 'user@example.com'],
+								['method' => 'email', 'value' => 'user@example.com']
+							]
+						]
+					]
+				],
+				false, // should not throw
+			],
+			'mixed structures in same data' => [
+				[
+					'users' => [
+						[
+							'identify' => [
+								'account' => 'user1@example.com'
+							]
+						],
+						[
+							'identifyMethods' => [
+								['method' => 'email', 'value' => 'user2@example.com']
+							]
+						]
+					]
+				],
+				false, // should not throw
+			],
+			'empty data structure' => [
+				[],
+				true, // should throw
+				'No signers'
+			],
+			'missing users key' => [
+				['someOtherKey' => 'value'],
+				true, // should throw
+				'No signers'
+			],
+			'empty users array' => [
+				['users' => []],
+				true, // should throw
+				'No signers'
+			],
+			'users not array' => [
+				['users' => 'not-an-array'],
+				true, // should throw
+				'No signers'
+			],
+			'empty signer' => [
+				['users' => [[]]],
+				true, // should throw
+				'No signers'
+			],
+			'signer not array' => [
+				['users' => ['not-an-array']],
+				true, // should throw
+				'No signers'
+			],
+			'signer without identify methods' => [
+				['users' => [['someKey' => 'value']]],
+				true, // should throw
+				'No identify methods for signer'
+			],
+			'signer with empty identify' => [
+				['users' => [['identify' => []]]],
+				true, // should throw
+				'No identify methods for signer'
+			],
+			'signer with empty identifyMethods' => [
+				['users' => [['identifyMethods' => []]]],
+				true, // should throw
+				'No identify methods for signer'
+			],
+			'invalid identifyMethods structure - missing method' => [
+				[
+					'users' => [
+						[
+							'identifyMethods' => [
+								['value' => 'user@example.com'] // missing 'method'
+							]
+						]
+					]
+				],
+				true, // should throw
+				'Invalid identify method structure'
+			],
+			'invalid identifyMethods structure - missing value' => [
+				[
+					'users' => [
+						[
+							'identifyMethods' => [
+								['method' => 'email'] // missing 'value'
+							]
+						]
+					]
+				],
+				true, // should throw
+				'Invalid identify method structure'
+			],
+		];
+	}
 }
