@@ -522,7 +522,15 @@ class ValidateHelper {
 			throw new LibresignException($this->l10n->t('No signers'));
 		}
 
+		$this->validateSignerDisplayName($signer);
 		$this->validateSignerIdentifyMethods($signer);
+	}
+
+	private function validateSignerDisplayName(array $signer): void {
+		if (isset($signer['displayName']) && strlen($signer['displayName']) > 64) {
+			// It's an api error, don't translate
+			throw new LibresignException('Display name must not be longer than 64 characters');
+		}
 	}
 
 	private function validateSignerIdentifyMethods(array $signer): void {

@@ -851,6 +851,60 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				true, // should throw
 				'Invalid identify method structure'
 			],
+			'valid displayName within 64 characters' => [
+				[
+					'users' => [
+						[
+							'displayName' => 'Valid Display Name',
+							'identify' => [
+								'account' => 'user@example.com'
+							]
+						]
+					]
+				],
+				false, // should not throw
+			],
+			'displayName exactly 64 characters' => [
+				[
+					'users' => [
+						[
+							'displayName' => str_repeat('A', 64),
+							'identify' => [
+								'account' => 'user@example.com'
+							]
+						]
+					]
+				],
+				false, // should not throw
+			],
+			'displayName too long - 65 characters' => [
+				[
+					'users' => [
+						[
+							'displayName' => str_repeat('A', 65),
+							'identify' => [
+								'account' => 'user@example.com'
+							]
+						]
+					]
+				],
+				true, // should throw
+				'Display name must not be longer than 64 characters'
+			],
+			'displayName too long - 100 characters' => [
+				[
+					'users' => [
+						[
+							'displayName' => str_repeat('B', 100),
+							'identify' => [
+								'account' => 'user@example.com'
+							]
+						]
+					]
+				],
+				true, // should throw
+				'Display name must not be longer than 64 characters'
+			],
 		];
 	}
 }
