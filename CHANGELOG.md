@@ -18,6 +18,10 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 11.5.1 - 2025-11-13
+### Fixes
+- fix: prevent error when the response dont have data [#5553](https://github.com/LibreSign/libresign/pull/5553)
+- fix: workaround to make compatible with different structures [#5555](https://github.com/LibreSign/libresign/pull/5555)
 
 ## 11.5.0 - 2025-11-10
 ### Features
