@@ -318,7 +318,7 @@ export default {
 					return true
 				})
 				.catch(({ response }) => {
-					this.errorConfirmRequest = response.data.ocs.data.message
+					this.errorConfirmRequest = response?.data?.ocs?.data?.message || 'An error occurred'
 					this.loading = false
 					return false
 				})
