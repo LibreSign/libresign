@@ -526,14 +526,52 @@ class ValidateHelper {
 	}
 
 	private function validateSignerIdentifyMethods(array $signer): void {
-		if (empty($signer['identify']) || !is_array($signer['identify'])) {
-			// It's an api error, don't translate
+		$normalizedMethods = $this->normalizeIdentifyMethods($signer);
+
+		foreach ($normalizedMethods as $method) {
+			$this->validateIdentifyMethodForRequest($method['name'], $method['value']);
+		}
+	}
+
+	/**
+	 * @todo unify the key to be only 'identify' or only 'identifyMethods'
+	 */
+	private function normalizeIdentifyMethods(array $signer): array {
+		$key = array_key_exists('identifyMethods', $signer) ? 'identifyMethods' : 'identify';
+
+		if (empty($signer[$key]) || !is_array($signer[$key])) {
 			throw new LibresignException('No identify methods for signer');
 		}
 
-		foreach ($signer['identify'] as $name => $identifyValue) {
-			$this->validateIdentifyMethodForRequest($name, $identifyValue);
+		$normalizedMethods = [];
+
+		foreach ($signer[$key] as $name => $data) {
+			if ($key === 'identifyMethods') {
+				$normalizedMethods[] = $this->normalizeIdentifyMethodsStructure($data);
+			} else {
+				$normalizedMethods[] = $this->normalizeIdentifyStructure($name, $data);
+			}
 		}
+
+		return $normalizedMethods;
+	}
+
+	private function normalizeIdentifyMethodsStructure(mixed $data): array {
+		if (!is_array($data) || !array_key_exists('method', $data) || !array_key_exists('value', $data)) {
+			throw new LibresignException('Invalid identify method structure');
+		}
+
+		return [
+			'name' => $data['method'],
+			'value' => $data['value'],
+		];
+	}
+
+	private function normalizeIdentifyStructure(string $name, mixed $value): array {
+		return [
+			'name' => $name,
+			'value' => $value,
+		];
 	}
 
 	private function validateIdentifyMethodForRequest(string $name, string $identifyValue): void {
