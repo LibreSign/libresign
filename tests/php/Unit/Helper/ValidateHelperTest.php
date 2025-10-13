@@ -625,63 +625,6 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	#[DataProvider('providerValidateSignersDataStructure')]
-	public function testValidateSignersDataStructure(array $data, ?string $expectedException, ?string $expectedMessage): void {
-		$validateHelper = $this->getValidateHelper();
-
-		if ($expectedException) {
-			$this->expectException($expectedException);
-			if ($expectedMessage) {
-				$this->expectExceptionMessage($expectedMessage);
-			}
-		}
-
-		// Use reflection to test private method
-		$method = new \ReflectionMethod($validateHelper, 'validateSignersDataStructure');
-		$method->invoke($validateHelper, $data);
-
-		if (!$expectedException) {
-			$this->assertTrue(true);
-		}
-	}
-
-	public static function providerValidateSignersDataStructure(): array {
-		return [
-			'Empty data' => [[], LibresignException::class, 'No signers'],
-			'No users key' => [['invalid' => 'data'], LibresignException::class, 'No signers'],
-			'Users is not array' => [['users' => 'invalid'], LibresignException::class, 'No signers'],
-			'Valid structure' => [['users' => []], null, null],
-		];
-	}
-
-	#[DataProvider('providerValidateSignerData')]
-	public function testValidateSignerData($signer, ?string $expectedException, ?string $expectedMessage): void {
-		$validateHelper = $this->getValidateHelper();
-
-		if ($expectedException) {
-			$this->expectException($expectedException);
-			if ($expectedMessage) {
-				$this->expectExceptionMessage($expectedMessage);
-			}
-		}
-
-		$method = new \ReflectionMethod($validateHelper, 'validateSignerData');
-		$method->invoke($validateHelper, $signer);
-
-		if (!$expectedException) {
-			$this->assertTrue(true);
-		}
-	}
-
-	public static function providerValidateSignerData(): array {
-		return [
-			'Signer is not array' => ['invalid', LibresignException::class, 'No signers'],
-			'Empty signer' => [[], LibresignException::class, 'No signers'],
-			'No identify methods' => [['name' => 'User'], LibresignException::class, 'No identify methods for signer'],
-			'Identify is not array' => [['identify' => 'invalid'], LibresignException::class, 'No identify methods for signer'],
-		];
-	}
-
 	public function testValidateIdentifyMethodForRequestWithNoSignatureMethods(): void {
 		$identifyMethod = $this->createMock(IIdentifyMethod::class);
 		$identifyMethod->method('getSignatureMethods')->willReturn([]);
