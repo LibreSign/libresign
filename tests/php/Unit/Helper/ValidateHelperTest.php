@@ -707,7 +707,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$validateHelper->validateIdentifySigners($data);
 
 		if (!$shouldThrow) {
-			$this->assertTrue(true); // If we get here without exception, test passed
+			$this->addToAssertionCount(1); // If we get here without exception, test passed
 		}
 	}
 
