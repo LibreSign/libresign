@@ -546,14 +546,20 @@ class ValidateHelper {
 		$normalizedMethods = [];
 
 		foreach ($signer[$key] as $name => $data) {
-			if ($key === 'identifyMethods') {
-				$normalizedMethods[] = $this->normalizeIdentifyMethodsStructure($data);
-			} else {
-				$normalizedMethods[] = $this->normalizeIdentifyStructure($name, $data);
-			}
+			$normalizedMethods[] = $this->normalizeIdentifyMethodEntry($key, $name, $data);
 		}
-
 		return $normalizedMethods;
+	}
+
+	/**
+	 * Extracted from normalizeIdentifyMethods to reduce cyclomatic complexity.
+	 */
+	private function normalizeIdentifyMethodEntry(string $key, $name, $data): array {
+		if ($key === 'identifyMethods') {
+			return $this->normalizeIdentifyMethodsStructure($data);
+		} else {
+			return $this->normalizeIdentifyStructure($name, $data);
+		}
 	}
 
 	private function normalizeIdentifyMethodsStructure(mixed $data): array {
