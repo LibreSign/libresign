@@ -22,6 +22,8 @@ use OCP\Settings\ISettings;
 use OCP\Util;
 
 class Admin implements ISettings {
+	public const PASSWORD_PLACEHOLDER = '••••••••';
+
 	public function __construct(
 		private IInitialState $initialState,
 		private IdentifyMethodService $identifyMethodService,
@@ -60,6 +62,11 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('signature_text_template', $this->signatureTextService->getTemplate());
 		$this->initialState->provideInitialState('signature_width', $this->signatureTextService->getFullSignatureWidth());
 		$this->initialState->provideInitialState('template_font_size', $this->signatureTextService->getTemplateFontSize());
+		$this->initialState->provideInitialState('tsa_url', $this->appConfig->getValueString(Application::APP_ID, 'tsa_url', ''));
+		$this->initialState->provideInitialState('tsa_policy_oid', $this->appConfig->getValueString(Application::APP_ID, 'tsa_policy_oid', ''));
+		$this->initialState->provideInitialState('tsa_auth_type', $this->appConfig->getValueString(Application::APP_ID, 'tsa_auth_type', 'none'));
+		$this->initialState->provideInitialState('tsa_username', $this->appConfig->getValueString(Application::APP_ID, 'tsa_username', ''));
+		$this->initialState->provideInitialState('tsa_password', $this->appConfig->getValueString(Application::APP_ID, 'tsa_password', self::PASSWORD_PLACEHOLDER));
 		return new TemplateResponse(Application::APP_ID, 'admin_settings');
 	}
 
