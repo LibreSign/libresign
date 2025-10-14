@@ -12,6 +12,7 @@ use DateTimeInterface;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Settings\Admin;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\ResponseDefinitions;
@@ -661,5 +662,115 @@ class AdminController extends AEnvironmentAwareController {
 			$response['next_run'] = $response['next_run']->format(DateTimeInterface::ATOM);
 		}
 		return new DataResponse($response);
+	}
+
+	/**
+	 * Set TSA configuration values with proper sensitive data handling
+	 *
+	 * Only saves configuration if tsa_url is provided. Automatically manages
+	 * username/password fields based on authentication type.
+	 *
+	 * @param string|null $tsa_url TSA server URL (required for saving)
+	 * @param string|null $tsa_policy_oid TSA policy OID
+	 * @param string|null $tsa_auth_type Authentication type (none|basic), defaults to 'none'
+	 * @param string|null $tsa_username Username for basic authentication
+	 * @param string|null $tsa_password Password for basic authentication (stored as sensitive data)
+	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>
+	 *
+	 * 200: OK
+	 */
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/tsa', requirements: ['apiVersion' => '(v1)'])]
+	public function setTsaConfig(
+		?string $tsa_url = null,
+		?string $tsa_policy_oid = null,
+		?string $tsa_auth_type = null,
+		?string $tsa_username = null,
+		?string $tsa_password = null,
+	): DataResponse {
+		if (empty($tsa_url)) {
+			return $this->deleteTsaConfig();
+		}
+
+		$trimmedUrl = trim($tsa_url);
+		if (!filter_var($trimmedUrl, FILTER_VALIDATE_URL) ||
+			!in_array(parse_url($trimmedUrl, PHP_URL_SCHEME), ['http', 'https'])) {
+			return new DataResponse([
+				'status' => 'error',
+				'message' => 'Invalid URL format'
+			], Http::STATUS_BAD_REQUEST);
+		}
+
+		$this->appConfig->setValueString(Application::APP_ID, 'tsa_url', $trimmedUrl);
+
+		if (empty($tsa_policy_oid)) {
+			$this->appConfig->deleteKey(Application::APP_ID, 'tsa_policy_oid');
+		} else {
+			$trimmedOid = trim($tsa_policy_oid);
+			if (!preg_match('/^[0-9]+(\.[0-9]+)*$/', $trimmedOid)) {
+				return new DataResponse([
+					'status' => 'error',
+					'message' => 'Invalid OID format'
+				], Http::STATUS_BAD_REQUEST);
+			}
+			$this->appConfig->setValueString(Application::APP_ID, 'tsa_policy_oid', $trimmedOid);
+		}
+
+		$authType = $tsa_auth_type ?? 'none';
+		$this->appConfig->setValueString(Application::APP_ID, 'tsa_auth_type', $authType);
+
+		if ($authType === 'basic') {
+			$hasUsername = !empty($tsa_username);
+			$hasPassword = !empty($tsa_password) && $tsa_password !== Admin::PASSWORD_PLACEHOLDER;
+
+			if (!$hasUsername && !$hasPassword) {
+				return new DataResponse([
+					'status' => 'error',
+					'message' => 'Username and password are required for basic authentication'
+				], Http::STATUS_BAD_REQUEST);
+			} elseif (!$hasUsername) {
+				return new DataResponse([
+					'status' => 'error',
+					'message' => 'Username is required'
+				], Http::STATUS_BAD_REQUEST);
+			} elseif (!$hasPassword) {
+				return new DataResponse([
+					'status' => 'error',
+					'message' => 'Password is required'
+				], Http::STATUS_BAD_REQUEST);
+			}
+
+			$this->appConfig->setValueString(Application::APP_ID, 'tsa_username', trim($tsa_username));
+			$this->appConfig->setValueString(
+				Application::APP_ID,
+				key: 'tsa_password',
+				value: $tsa_password,
+				sensitive: true,
+			);
+		} else {
+			$this->appConfig->deleteKey(Application::APP_ID, 'tsa_username');
+			$this->appConfig->deleteKey(Application::APP_ID, 'tsa_password');
+		}
+
+		return new DataResponse(['status' => 'success']);
+	}
+
+	/**
+	 * Delete TSA configuration
+	 *
+	 * Delete all TSA configuration fields from the application settings.
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>
+	 *
+	 * 200: OK
+	 */
+	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/admin/tsa', requirements: ['apiVersion' => '(v1)'])]
+	public function deleteTsaConfig(): DataResponse {
+		$fields = ['tsa_url', 'tsa_policy_oid', 'tsa_auth_type', 'tsa_username', 'tsa_password'];
+
+		foreach ($fields as $field) {
+			$this->appConfig->deleteKey(Application::APP_ID, $field);
+		}
+
+		return new DataResponse(['status' => 'success']);
 	}
 }
