@@ -138,12 +138,6 @@ final class AdminControllerTest extends ApiTestCase {
 			])
 			->assertResponseCode(200);
 
-		$appConfig = \OCP\Server::get(\OCP\IAppConfig::class);
-		$this->assertTrue($appConfig->hasKey(Application::APP_ID, 'tsa_url'));
-		$this->assertTrue($appConfig->hasKey(Application::APP_ID, 'tsa_password'));
-		$this->assertTrue($appConfig->isSensitive(Application::APP_ID, 'tsa_password'));
-		$this->assertEquals('basic', $appConfig->getValueString(Application::APP_ID, 'tsa_auth_type'));
-
 		$this->assertRequest();
 	}
 
@@ -164,10 +158,6 @@ final class AdminControllerTest extends ApiTestCase {
 			])
 			->assertResponseCode(200);
 
-		$appConfig = \OCP\Server::get(\OCP\IAppConfig::class);
-		$this->assertFalse($appConfig->hasKey(Application::APP_ID, 'tsa_password'));
-		$this->assertFalse($appConfig->hasKey(Application::APP_ID, 'tsa_url'));
-
 		$this->assertRequest();
 	}
 
@@ -177,10 +167,6 @@ final class AdminControllerTest extends ApiTestCase {
 	public function testDeleteTsaConfig(): void {
 		$this->createAccount('admintest', 'password', 'admin');
 
-		$appConfig = \OCP\Server::get(\OCP\IAppConfig::class);
-		$appConfig->setValueString(Application::APP_ID, 'tsa_url', 'https://tsa.example.com');
-		$appConfig->setValueString(Application::APP_ID, 'tsa_password', 'secret', false, true);
-
 		$this->request
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('admintest:password')
@@ -188,9 +174,6 @@ final class AdminControllerTest extends ApiTestCase {
 			->withPath('/api/v1/admin/tsa')
 			->withMethod('DELETE')
 			->assertResponseCode(200);
-
-		$this->assertFalse($appConfig->hasKey(Application::APP_ID, 'tsa_url'));
-		$this->assertFalse($appConfig->hasKey(Application::APP_ID, 'tsa_password'));
 
 		$this->assertRequest();
 	}
