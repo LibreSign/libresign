@@ -54,7 +54,7 @@ class TSA {
 		if (!$tsaAny instanceof Element || !is_string($tsaAny->element)) {
 			return [];
 		}
-		$node = \phpseclib3\File\ASN1::decodeBER($tsaAny)[0] ?? null;
+		$node = ASN1::decodeBER($tsaAny)[0] ?? null;
 		if (!$node) {
 			return [];
 		}
