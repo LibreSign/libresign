@@ -406,17 +406,39 @@ class JSignPdfHandler extends Pkcs12Handler {
 		return $paramString;
 	}
 
+	private function getTsaParameters(): array {
+		$tsaUrl = $this->appConfig->getValueString(Application::APP_ID, 'tsa_url', '');
+		if (empty($tsaUrl)) {
+			return [];
+		}
+
+		$params = [
+			'--tsa-server-url' => $tsaUrl,
+			'--tsa-policy-oid' => $this->appConfig->getValueString(Application::APP_ID, 'tsa_policy_oid', ''),
+		];
+
+		$tsaAuthType = $this->appConfig->getValueString(Application::APP_ID, 'tsa_auth_type', 'none');
+		if ($tsaAuthType === 'basic') {
+			$tsaUsername = $this->appConfig->getValueString(Application::APP_ID, 'tsa_username', '');
+			$tsaPassword = $this->appConfig->getValueString(Application::APP_ID, 'tsa_password', '');
+
+			if (!empty($tsaUsername) && !empty($tsaPassword)) {
+				$params['--tsa-authentication'] = 'PASSWORD';
+				$params['--tsa-user'] = $tsaUsername;
+				$params['--tsa-password'] = $tsaPassword;
+			}
+		}
+
+		return $params;
+	}
+
 	private function signWrapper(JSignPDF $jSignPDF): string {
 		try {
 			$params = [
 				'--hash-algorithm' => $this->getHashAlgorithm(),
-				'--tsa-server-url' => $this->appConfig->getValueString(Application::APP_ID, 'tsa_url', ''),
-				'--tsa-policy-oid' => $this->appConfig->getValueString(Application::APP_ID, 'tsa_policy_oid', ''),
 			];
-			if (empty($params['--tsa-server-url'])) {
-				unset($params['--tsa-server-url']);
-				unset($params['--tsa-policy-oid']);
-			}
+
+			$params = array_merge($params, $this->getTsaParameters());
 			$param = $this->getJSignParam();
 			$param
 				->setJSignParameters(
