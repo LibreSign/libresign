@@ -17,16 +17,16 @@
 				:placeholder="t('libresign', 'Enter the timestamp server URL')"
 				:disabled="loading"
 				:loading="loading"
-				:error="errors.tsa_url"
+				:error="!!errors.tsa_url"
 				:helper-text="getHelperText('tsa_url')"
 				@update:value="(value) => updateField('tsa_url', value)" />
 
 			<NcTextField :value="tsa_policy_oid"
 				:label="t('libresign', 'TSA Policy OID')"
-				:placeholder="t('libresign', 'Enter the policy OID (optional)')"
+				:placeholder="t('libresign', 'Optional')"
 				:disabled="loading"
 				:loading="loading"
-				:error="errors.tsa_policy_oid"
+				:error="!!errors.tsa_policy_oid"
 				:helper-text="getHelperText('tsa_policy_oid')"
 				@update:value="(value) => updateField('tsa_policy_oid', value)" />
 
@@ -37,19 +37,23 @@
 				:loading="loading"
 				clearable />
 
-			<template v-if="tsa_auth_type === 'basic'">
+			<template v-if="tsa_auth_type === AUTH_TYPES.BASIC">
 				<NcTextField :value="tsa_username"
-					:label="t('libresign', 'TSA Username')"
-					:placeholder="t('libresign', 'Enter the TSA username')"
+					:label="t('libresign', 'Username')"
+					:placeholder="t('libresign', 'Username')"
 					:disabled="loading"
 					:loading="loading"
+					:error="!!errors.tsa_username"
+					:helper-text="getHelperText('tsa_username')"
 					@update:value="(value) => updateField('tsa_username', value)" />
 
 				<NcPasswordField :value="tsa_password"
-					:label="t('libresign', 'TSA Password')"
-					:placeholder="t('libresign', 'Enter the TSA password')"
+					:label="t('libresign', 'Password')"
+					:placeholder="t('libresign', 'Password')"
 					:disabled="loading"
 					:loading="loading"
+					:error="!!errors.tsa_password"
+					:helper-text="getHelperText('tsa_password')"
 					@update:value="(value) => updateField('tsa_password', value)" />
 			</template>
 		</div>
@@ -57,10 +61,11 @@
 </template>
 
 <script>
-import axios from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
 import { confirmPassword } from '@nextcloud/password-confirmation'
+import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
+import axios from '@nextcloud/axios'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
@@ -80,31 +85,46 @@ export default {
 		NcTextField,
 	},
 
-	data: () => ({
-		name: t('libresign', 'Timestamp Authority (TSA)'),
-		description: t('libresign', 'Timestamp Authority (TSA) settings for digitally signing documents.'),
-		enabled: false,
-		tsa_url: '',
-		tsa_policy_oid: '',
-		tsa_auth_type: 'none',
-		tsa_username: '',
-		tsa_password: '',
-		loading: false,
-		errors: {
-			tsa_url: false,
-			tsa_policy_oid: false,
-		},
-		authOptions: [
-			{
-				id: 'none',
-				label: t('libresign', 'Without authentication'),
+	data() {
+		const AUTH_TYPES = {
+			NONE: 'none',
+			BASIC: 'basic'
+		}
+
+		const DEFAULT_TSA_URL = 'https://freetsa.org/tsr'
+		const DEBOUNCE_DELAY = 1000
+
+		return {
+			AUTH_TYPES,
+			DEFAULT_TSA_URL,
+			DEBOUNCE_DELAY,
+			name: t('libresign', 'Timestamp Authority (TSA)'),
+			description: t('libresign', 'Timestamp Authority (TSA) settings for digitally signing documents.'),
+			enabled: loadState('libresign', 'tsa_url', '').length > 0,
+			tsa_url: loadState('libresign', 'tsa_url', ''),
+			tsa_policy_oid: loadState('libresign', 'tsa_policy_oid', ''),
+			tsa_auth_type: loadState('libresign', 'tsa_auth_type', AUTH_TYPES.NONE),
+			tsa_username: loadState('libresign', 'tsa_username', ''),
+			tsa_password: loadState('libresign', 'tsa_password', ''),
+			loading: false,
+			errors: {
+				tsa_url: '',
+				tsa_policy_oid: '',
+				tsa_username: '',
+				tsa_password: '',
 			},
-			{
-				id: 'basic',
-				label: t('libresign', 'Username / Password'),
-			},
-		],
-	}),
+			authOptions: [
+				{
+					id: AUTH_TYPES.NONE,
+					label: t('libresign', 'Without authentication'),
+				},
+				{
+					id: AUTH_TYPES.BASIC,
+					label: t('libresign', 'Username / Password'),
+				},
+			],
+		}
+	},
 
 	computed: {
 		selectedAuthType: {
@@ -112,23 +132,45 @@ export default {
 				return this.authOptions.find(option => option.id === this.tsa_auth_type) || this.authOptions[0]
 			},
 			set(value) {
-				this.tsa_auth_type = value?.id || 'none'
+				const newAuthType = value?.id || this.AUTH_TYPES.NONE
+
+				if (this.tsa_auth_type === this.AUTH_TYPES.NONE && newAuthType === this.AUTH_TYPES.NONE) {
+					return
+				}
+
+				this.tsa_auth_type = newAuthType
+
+				if (newAuthType === this.AUTH_TYPES.NONE) {
+					this.tsa_username = ''
+					this.tsa_password = ''
+				}
+
 				this.debouncedSaveField('tsa_auth_type')
 			}
 		}
 	},
 
-	mounted() {
-		this.getData()
-	},
 	methods: {
 		updateField(field, value) {
 			this[field] = value
+			this.clearFieldError(field)
 			this.validateField(field, value)
 			this.debouncedSaveField(field)
 		},
 
+		clearFieldError(field) {
+			this.errors[field] = ''
+		},
 
+		clearAllErrors() {
+			Object.keys(this.errors).forEach(field => {
+				this.errors[field] = ''
+			})
+		},
+
+		setFieldError(field, message) {
+			this.errors[field] = message
+		},
 
 		validateField(field, value) {
 			const validators = {
@@ -136,113 +178,152 @@ export default {
 				tsa_policy_oid: () => !!value && !this.isValidOid(value)
 			}
 
-			if (validators[field]) {
-				this.errors[field] = validators[field]()
+			if (validators[field] && validators[field]()) {
+				this.errors[field] = this.getFieldHelperTexts()[field]?.error || ''
+			} else {
+				this.errors[field] = ''
+			}
+		},
+
+		getFieldHelperTexts() {
+			return {
+				tsa_url: {
+					error: t('libresign', 'Invalid URL'),
+					normal: t('libresign', 'Format: https://example.com/tsa'),
+				},
+				tsa_policy_oid: {
+					error: t('libresign', 'Invalid OID format. Expected pattern: %s', '1.2.3.4.5'),
+					normal: t('libresign', 'Example: 1.2.3.4.5 or leave empty for default'),
+				},
+				tsa_username: {
+					error: t('libresign', 'Name is mandatory'),
+					normal: t('libresign', 'Username'),
+				},
+				tsa_password: {
+					error: t('libresign', 'Password is mandatory'),
+					normal: t('libresign', 'Password'),
+				}
 			}
 		},
 
 		getHelperText(field) {
-			const helperTexts = {
-				tsa_url: {
-					error: t('libresign', 'Please enter a valid URL'),
-					normal: t('libresign', 'Format: https://example.com/tsa')
-				},
-				tsa_policy_oid: {
-					error: t('libresign', 'Please enter a valid OID format (e.g., 1.2.3.4.5)'),
-					normal: t('libresign', 'Example: 1.2.3.4.5 or leave empty for server default')
-				}
+			if (this.errors[field] && this.errors[field] !== '●') {
+				return this.errors[field]
 			}
 
-			const config = helperTexts[field]
-			return config ? (this.errors[field] ? config.error : config.normal) : ''
-		},
-
-		async getData() {
-			this.loading = true
-			try {
-				const fields = ['tsa_url', 'tsa_policy_oid', 'tsa_auth_type', 'tsa_username', 'tsa_password']
-				const responses = await Promise.all(
-					fields.map(field => axios.get(generateOcsUrl(`/apps/provisioning_api/api/v1/config/apps/libresign/${field}`)))
-				)
-
-				fields.forEach((field, index) => {
-					const defaultValue = field === 'tsa_auth_type' ? 'none' : ''
-					this[field] = responses[index]?.data?.ocs?.data?.data ?? defaultValue
-				})
-
-				this.enabled = this.tsa_url.length > 0
-			} catch (error) {
-				console.error('Error loading TSA configuration:', error)
-			} finally {
-				this.loading = false
-			}
+			const config = this.getFieldHelperTexts()[field]
+			return config ? config.normal : ''
 		},
 
 		async toggleTsa() {
+			this.clearAllErrors()
 			if (!this.enabled) {
 				await this.clearTsaConfig()
-			} else if (!this.tsa_url) {
-				this.tsa_url = 'https://freetsa.org/tsr'
+			} else {
+				if (!this.tsa_url) {
+					this.tsa_url = this.DEFAULT_TSA_URL
+				}
+				await this.saveTsaConfig()
 			}
+		},
+
+		async saveTsaConfig() {
+			await confirmPassword()
+			this.loading = true
+			this.clearAllErrors()
+
+			const data = {
+				tsa_url: this.tsa_url,
+				tsa_policy_oid: this.tsa_policy_oid,
+				tsa_auth_type: this.tsa_auth_type,
+				tsa_username: this.tsa_username,
+				tsa_password: this.tsa_password,
+			}
+
+			axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/tsa'), data)
+				.then(() => {
+					this.clearAllErrors()
+				})
+				.catch(error => {
+					console.error(`Error saving TSA configuration:`, error)
+					this.handleSaveError(error)
+				})
+				.finally(() => {
+					this.loading = false
+				})
 		},
 
 		async saveField(field) {
 			if (this.errors[field]) {
 				return
 			}
-			if (field === 'tsa_url' && !this.tsa_url) {
-				return
+
+			await this.saveTsaConfig()
+		},
+
+		getErrorMappings() {
+			return {
+				'Username and password are required for basic authentication': [
+					{ field: 'tsa_username', message: t('libresign', 'Name is mandatory') },
+					{ field: 'tsa_password', message: t('libresign', 'Password is mandatory') }
+				],
+				'Username is required': [
+					{ field: 'tsa_username', message: t('libresign', 'Name is mandatory') }
+				],
+				'Password is required': [
+					{ field: 'tsa_password', message: t('libresign', 'Password is mandatory') }
+				],
+				'Invalid URL format': [
+					{ field: 'tsa_url', message: t('libresign', 'Invalid URL') }
+				],
+				'Invalid OID format': [
+					{ field: 'tsa_policy_oid', message: t('libresign', 'Invalid OID format. Expected pattern: %s', '1.2.3.4.5') }
+				]
 			}
-			if ((field === 'tsa_username' || field === 'tsa_password') && this.tsa_auth_type !== 'basic') {
-				return
-			}
+		},
 
-			await confirmPassword()
-			this.loading = true
+		handleSaveError(error) {
+			if (error.response?.status === 400) {
+				const message = error.response?.data?.ocs?.data?.message || ''
+				const errorMappings = this.getErrorMappings()
 
-			try {
-				const value = this[field]
+				const mapping = errorMappings[message] ||
+					Object.keys(errorMappings).find(key => message.includes(key))
 
-				if (field === 'tsa_auth_type') {
-					await OCP.AppConfig.setValue('libresign', field, value)
-					if (value === 'none') {
-						await Promise.all([
-							OCP.AppConfig.deleteKey('libresign', 'tsa_username'),
-							OCP.AppConfig.deleteKey('libresign', 'tsa_password')
-						])
-						this.tsa_username = ''
-						this.tsa_password = ''
-					}
+				if (mapping) {
+					const errors = errorMappings[mapping] || errorMappings[message]
+					errors.forEach(({ field, message: errorMessage }) => {
+						this.setFieldError(field, errorMessage)
+					})
 				} else {
-					if (value) {
-						await OCP.AppConfig.setValue('libresign', field, value)
-					} else {
-						await OCP.AppConfig.deleteKey('libresign', field)
-					}
+					this.setFieldError('tsa_url', message)
 				}
-			} catch (error) {
-				console.error(`Error saving ${field}:`, error)
-			} finally {
-				this.loading = false
+			} else {
+				this.setFieldError('tsa_url', '●')
 			}
 		},
 
 		async clearTsaConfig() {
 			await confirmPassword()
 			this.loading = true
+			this.clearAllErrors()
 
-			try {
-				const fields = ['tsa_url', 'tsa_policy_oid', 'tsa_auth_type', 'tsa_username', 'tsa_password']
-				await Promise.all(fields.map(field => OCP.AppConfig.deleteKey('libresign', field)))
-
-				fields.forEach(field => {
-					this[field] = field === 'tsa_auth_type' ? 'none' : ''
+			axios.delete(generateOcsUrl('/apps/libresign/api/v1/admin/tsa'))
+				.then(() => {
+					this.tsa_url = ''
+					this.tsa_policy_oid = ''
+					this.tsa_auth_type = this.AUTH_TYPES.NONE
+					this.tsa_username = ''
+					this.tsa_password = ''
+					this.clearAllErrors()
 				})
-			} catch (error) {
-				console.error('Error clearing TSA configuration:', error)
-			} finally {
-				this.loading = false
-			}
+				.catch(error => {
+					console.error('Error clearing TSA configuration:', error)
+					this.setFieldError('tsa_url', '●')
+				})
+				.finally(() => {
+					this.loading = false
+				})
 		},
 
 		isValidUrl(string) {
@@ -266,20 +347,20 @@ export default {
 			return function executedFunction(...args) {
 				const later = () => {
 					clearTimeout(timeout)
-					func(...args)
+					func.apply(this, args)
 				}
 				clearTimeout(timeout)
 				timeout = setTimeout(later, wait)
 			}
 		}
 
-		this.debouncedSaveField = debounce((field) => this.saveField(field), 1000)
+		this.debouncedSaveField = debounce((field) => this.saveField(field), this.DEBOUNCE_DELAY)
 	},
 
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .tsa-config-container {
 	margin-top: 16px;
 }
