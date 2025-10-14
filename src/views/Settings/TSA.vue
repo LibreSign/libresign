@@ -17,15 +17,41 @@
 				:placeholder="t('libresign', 'Enter the timestamp server URL')"
 				:disabled="loading"
 				:loading="loading"
-				@update:value="updateTsaUrl" />
+				:error="errors.tsa_url"
+				:helper-text="getHelperText('tsa_url')"
+				@update:value="(value) => updateField('tsa_url', value)" />
 
 			<NcTextField :value="tsa_policy_oid"
 				:label="t('libresign', 'TSA Policy OID')"
-				:placeholder="t('libresign', 'Enter the policy OID (optional')"
+				:placeholder="t('libresign', 'Enter the policy OID (optional)')"
 				:disabled="loading"
 				:loading="loading"
-				:helper-text="t('libresign', 'Example: 1.2.3.4.5 or leave empty for server default')"
-				@update:value="updateTsaPolicyOid" />
+				:error="errors.tsa_policy_oid"
+				:helper-text="getHelperText('tsa_policy_oid')"
+				@update:value="(value) => updateField('tsa_policy_oid', value)" />
+
+			<NcSelect v-model="selectedAuthType"
+				:options="authOptions"
+				input-label="TSA Authentication"
+				:disabled="loading"
+				:loading="loading"
+				clearable />
+
+			<template v-if="tsa_auth_type === 'basic'">
+				<NcTextField :value="tsa_username"
+					:label="t('libresign', 'TSA Username')"
+					:placeholder="t('libresign', 'Enter the TSA username')"
+					:disabled="loading"
+					:loading="loading"
+					@update:value="(value) => updateField('tsa_username', value)" />
+
+				<NcPasswordField :value="tsa_password"
+					:label="t('libresign', 'TSA Password')"
+					:placeholder="t('libresign', 'Enter the TSA password')"
+					:disabled="loading"
+					:loading="loading"
+					@update:value="(value) => updateField('tsa_password', value)" />
+			</template>
 		</div>
 	</NcSettingsSection>
 </template>
@@ -37,6 +63,8 @@ import { confirmPassword } from '@nextcloud/password-confirmation'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
+import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
+import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
@@ -46,6 +74,8 @@ export default {
 	name: 'TSA',
 	components: {
 		NcCheckboxRadioSwitch,
+		NcPasswordField,
+		NcSelect,
 		NcSettingsSection,
 		NcTextField,
 	},
@@ -56,33 +86,90 @@ export default {
 		enabled: false,
 		tsa_url: '',
 		tsa_policy_oid: '',
+		tsa_auth_type: 'none',
+		tsa_username: '',
+		tsa_password: '',
 		loading: false,
+		errors: {
+			tsa_url: false,
+			tsa_policy_oid: false,
+		},
+		authOptions: [
+			{
+				id: 'none',
+				label: t('libresign', 'Without authentication'),
+			},
+			{
+				id: 'basic',
+				label: t('libresign', 'Username / Password'),
+			},
+		],
 	}),
+
+	computed: {
+		selectedAuthType: {
+			get() {
+				return this.authOptions.find(option => option.id === this.tsa_auth_type) || this.authOptions[0]
+			},
+			set(value) {
+				this.tsa_auth_type = value?.id || 'none'
+				this.debouncedSaveField('tsa_auth_type')
+			}
+		}
+	},
 
 	mounted() {
 		this.getData()
 	},
 	methods: {
-		updateTsaUrl(value) {
-			this.tsa_url = value
-			this.debouncedSaveTsaUrl()
+		updateField(field, value) {
+			this[field] = value
+			this.validateField(field, value)
+			this.debouncedSaveField(field)
 		},
 
-		updateTsaPolicyOid(value) {
-			this.tsa_policy_oid = value
-			this.debouncedSaveTsaPolicyOid()
+
+
+		validateField(field, value) {
+			const validators = {
+				tsa_url: () => !!value && !this.isValidUrl(value),
+				tsa_policy_oid: () => !!value && !this.isValidOid(value)
+			}
+
+			if (validators[field]) {
+				this.errors[field] = validators[field]()
+			}
+		},
+
+		getHelperText(field) {
+			const helperTexts = {
+				tsa_url: {
+					error: t('libresign', 'Please enter a valid URL'),
+					normal: t('libresign', 'Format: https://example.com/tsa')
+				},
+				tsa_policy_oid: {
+					error: t('libresign', 'Please enter a valid OID format (e.g., 1.2.3.4.5)'),
+					normal: t('libresign', 'Example: 1.2.3.4.5 or leave empty for server default')
+				}
+			}
+
+			const config = helperTexts[field]
+			return config ? (this.errors[field] ? config.error : config.normal) : ''
 		},
 
 		async getData() {
 			this.loading = true
 			try {
-				const [tsaUrlResponse, tsaPolicyResponse] = await Promise.all([
-					axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/tsa_url')),
-					axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/tsa_policy_oid'))
-				])
+				const fields = ['tsa_url', 'tsa_policy_oid', 'tsa_auth_type', 'tsa_username', 'tsa_password']
+				const responses = await Promise.all(
+					fields.map(field => axios.get(generateOcsUrl(`/apps/provisioning_api/api/v1/config/apps/libresign/${field}`)))
+				)
 
-				this.tsa_url = tsaUrlResponse?.data?.ocs?.data?.data ?? ''
-				this.tsa_policy_oid = tsaPolicyResponse?.data?.ocs?.data?.data ?? ''
+				fields.forEach((field, index) => {
+					const defaultValue = field === 'tsa_auth_type' ? 'none' : ''
+					this[field] = responses[index]?.data?.ocs?.data?.data ?? defaultValue
+				})
+
 				this.enabled = this.tsa_url.length > 0
 			} catch (error) {
 				console.error('Error loading TSA configuration:', error)
@@ -99,9 +186,14 @@ export default {
 			}
 		},
 
-		async saveTsaUrl() {
-			if (!this.tsa_url || !this.isValidUrl(this.tsa_url)) {
-				this.$toast.error(t('libresign', 'Please enter a valid URL'))
+		async saveField(field) {
+			if (this.errors[field]) {
+				return
+			}
+			if (field === 'tsa_url' && !this.tsa_url) {
+				return
+			}
+			if ((field === 'tsa_username' || field === 'tsa_password') && this.tsa_auth_type !== 'basic') {
 				return
 			}
 
@@ -109,33 +201,27 @@ export default {
 			this.loading = true
 
 			try {
-				await OCP.AppConfig.setValue('libresign', 'tsa_url', this.tsa_url)
-			} catch (error) {
-				this.$toast.error(t('libresign', 'Error saving TSA URL'))
-				console.error('Error saving TSA URL:', error)
-			} finally {
-				this.loading = false
-			}
-		},
+				const value = this[field]
 
-		async saveTsaPolicyOid() {
-			if (this.tsa_policy_oid && !this.isValidOid(this.tsa_policy_oid)) {
-				this.$toast.error(t('libresign', 'Please enter a valid OID format (e.g., 1.2.3.4.5)'))
-				return
-			}
-
-			await confirmPassword()
-			this.loading = true
-
-			try {
-				if (this.tsa_policy_oid) {
-					await OCP.AppConfig.setValue('libresign', 'tsa_policy_oid', this.tsa_policy_oid)
+				if (field === 'tsa_auth_type') {
+					await OCP.AppConfig.setValue('libresign', field, value)
+					if (value === 'none') {
+						await Promise.all([
+							OCP.AppConfig.deleteKey('libresign', 'tsa_username'),
+							OCP.AppConfig.deleteKey('libresign', 'tsa_password')
+						])
+						this.tsa_username = ''
+						this.tsa_password = ''
+					}
 				} else {
-					await OCP.AppConfig.deleteKey('libresign', 'tsa_policy_oid')
+					if (value) {
+						await OCP.AppConfig.setValue('libresign', field, value)
+					} else {
+						await OCP.AppConfig.deleteKey('libresign', field)
+					}
 				}
 			} catch (error) {
-				this.$toast.error(t('libresign', 'Error saving TSA Policy OID'))
-				console.error('Error saving TSA Policy OID:', error)
+				console.error(`Error saving ${field}:`, error)
 			} finally {
 				this.loading = false
 			}
@@ -146,15 +232,13 @@ export default {
 			this.loading = true
 
 			try {
-				await Promise.all([
-					OCP.AppConfig.deleteKey('libresign', 'tsa_url'),
-					OCP.AppConfig.deleteKey('libresign', 'tsa_policy_oid')
-				])
-				this.tsa_url = ''
-				this.tsa_policy_oid = ''
-				this.$toast.success(t('libresign', 'TSA configuration cleared successfully'))
+				const fields = ['tsa_url', 'tsa_policy_oid', 'tsa_auth_type', 'tsa_username', 'tsa_password']
+				await Promise.all(fields.map(field => OCP.AppConfig.deleteKey('libresign', field)))
+
+				fields.forEach(field => {
+					this[field] = field === 'tsa_auth_type' ? 'none' : ''
+				})
 			} catch (error) {
-				this.$toast.error(t('libresign', 'Error clearing TSA configuration'))
 				console.error('Error clearing TSA configuration:', error)
 			} finally {
 				this.loading = false
@@ -189,8 +273,7 @@ export default {
 			}
 		}
 
-		this.debouncedSaveTsaUrl = debounce(this.saveTsaUrl, 1000)
-		this.debouncedSaveTsaPolicyOid = debounce(this.saveTsaPolicyOid, 1000)
+		this.debouncedSaveField = debounce((field) => this.saveField(field), 1000)
 	},
 
 }
