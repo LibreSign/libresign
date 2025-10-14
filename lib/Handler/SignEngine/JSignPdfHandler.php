@@ -408,9 +408,11 @@ class JSignPdfHandler extends Pkcs12Handler {
 			$params = [
 				'--hash-algorithm' => $this->getHashAlgorithm(),
 				'--tsa-server-url' => $this->appConfig->getValueString(Application::APP_ID, 'tsa_url', ''),
+				'--tsa-policy-oid' => $this->appConfig->getValueString(Application::APP_ID, 'tsa_policy_oid', ''),
 			];
 			if (empty($params['--tsa-server-url'])) {
 				unset($params['--tsa-server-url']);
+				unset($params['--tsa-policy-oid']);
 			}
 			$param = $this->getJSignParam();
 			$param
