@@ -192,8 +192,8 @@ export default {
 					normal: t('libresign', 'Format: https://example.com/tsa'),
 				},
 				tsa_policy_oid: {
-					error: t('libresign', 'Invalid OID format. Expected pattern: %s', '1.2.3.4.5'),
-					normal: t('libresign', 'Example: 1.2.3.4.5 or leave empty for default'),
+					error: t('libresign', 'Invalid OID format. Expected pattern: %s', '1.2.3.4.1'),
+					normal: t('libresign', 'Example: 1.2.3.4.1 or leave empty for default'),
 				},
 				tsa_username: {
 					error: t('libresign', 'Name is mandatory'),
@@ -277,7 +277,7 @@ export default {
 					{ field: 'tsa_url', message: t('libresign', 'Invalid URL') }
 				],
 				'Invalid OID format': [
-					{ field: 'tsa_policy_oid', message: t('libresign', 'Invalid OID format. Expected pattern: %s', '1.2.3.4.5') }
+					{ field: 'tsa_policy_oid', message: t('libresign', 'Invalid OID format. Expected pattern: %s', '1.2.3.4.1') }
 				]
 			}
 		},
