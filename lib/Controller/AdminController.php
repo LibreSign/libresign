@@ -680,6 +680,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * 200: OK
 	 * 400: Validation error
 	 */
+	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/tsa', requirements: ['apiVersion' => '(v1)'])]
 	public function setTsaConfig(
 		?string $tsa_url = null,
@@ -764,6 +765,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * 200: OK
 	 */
+	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/admin/tsa', requirements: ['apiVersion' => '(v1)'])]
 	public function deleteTsaConfig(): DataResponse {
 		$fields = ['tsa_url', 'tsa_policy_oid', 'tsa_auth_type', 'tsa_username', 'tsa_password'];
