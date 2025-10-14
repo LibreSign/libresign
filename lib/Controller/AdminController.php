@@ -675,9 +675,10 @@ class AdminController extends AEnvironmentAwareController {
 	 * @param string|null $tsa_auth_type Authentication type (none|basic), defaults to 'none'
 	 * @param string|null $tsa_username Username for basic authentication
 	 * @param string|null $tsa_password Password for basic authentication (stored as sensitive data)
-	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{status: 'success'}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{status: 'error', message: string}, array{}>
 	 *
 	 * 200: OK
+	 * 400: Validation error
 	 */
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/tsa', requirements: ['apiVersion' => '(v1)'])]
 	public function setTsaConfig(
