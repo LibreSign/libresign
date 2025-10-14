@@ -101,7 +101,10 @@ class Pkcs12Handler extends SignEngineHandler {
 			$tsa = new TSA();
 			$decoded = ASN1::decodeBER($signature);
 			try {
-				$certificates[$signerCounter]['timestamp'] = $tsa->extract($decoded);
+				$timestampData = $tsa->extract($decoded);
+				if (!empty($timestampData['genTime']) || !empty($timestampData['policy']) || !empty($timestampData['serialNumber'])) {
+					$certificates[$signerCounter]['timestamp'] = $timestampData;
+				}
 			} catch (\Throwable $e) {
 			}
 
