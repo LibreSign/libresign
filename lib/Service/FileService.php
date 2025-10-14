@@ -490,7 +490,9 @@ class FileService {
 			}
 			if (!empty($signer['timestamp'])) {
 				$this->fileData->signers[$index]['timestamp'] = $signer['timestamp'];
-				$this->fileData->signers[$index]['timestamp']['genTime'] = $signer['timestamp']['genTime']->format(DateTimeInterface::ATOM);
+				if ($signer['timestamp']['genTime'] instanceof \DateTimeInterface) {
+					$this->fileData->signers[$index]['timestamp']['genTime'] = $signer['timestamp']['genTime']->format(DateTimeInterface::ATOM);
+				}
 			}
 			for ($i = 1; $i < count($signer['chain']); $i++) {
 				$this->fileData->signers[$index]['chain'][] = [
