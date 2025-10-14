@@ -81,6 +81,7 @@ OC.L10N.register(
     "New password" : "Nenosiri jipya",
     "Remove" : "Ondoa",
     "Message" : "Message",
+    "Legal information" : "Taarifa za kisheria",
     "Reminders" : "Vikumbusho",
     "on" : "Juu ya",
     "Not scheduled" : "Haijapangwa",
