@@ -12,7 +12,6 @@ use DateTimeInterface;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
-use OCA\Libresign\Settings\Admin;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\ResponseDefinitions;
@@ -23,6 +22,7 @@ use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\ReminderService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
+use OCA\Libresign\Settings\Admin;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -692,8 +692,8 @@ class AdminController extends AEnvironmentAwareController {
 		}
 
 		$trimmedUrl = trim($tsa_url);
-		if (!filter_var($trimmedUrl, FILTER_VALIDATE_URL) ||
-			!in_array(parse_url($trimmedUrl, PHP_URL_SCHEME), ['http', 'https'])) {
+		if (!filter_var($trimmedUrl, FILTER_VALIDATE_URL)
+			|| !in_array(parse_url($trimmedUrl, PHP_URL_SCHEME), ['http', 'https'])) {
 			return new DataResponse([
 				'status' => 'error',
 				'message' => 'Invalid URL format'
