@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\SignEngine;
 
-use phpseclib3\File\ASN1;
-use phpseclib3\File\ASN1\Element;
-use phpseclib3\Math\BigInteger;
+use OCA\Libresign\Vendor\phpseclib3\File\ASN1;
+use OCA\Libresign\Vendor\phpseclib3\File\ASN1\Element;
+use OCA\Libresign\Vendor\phpseclib3\Math\BigInteger;
 
 class TSA {
 	private static bool $oidsLoaded = false;
