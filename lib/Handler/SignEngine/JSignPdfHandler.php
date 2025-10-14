@@ -414,6 +414,10 @@ class JSignPdfHandler extends Pkcs12Handler {
 			'--tsa-policy-oid' => $this->appConfig->getValueString(Application::APP_ID, 'tsa_policy_oid', ''),
 		];
 
+		if (!$params['--tsa-policy-oid']) {
+			unset($params['--tsa-policy-oid']);
+		}
+
 		$tsaAuthType = $this->appConfig->getValueString(Application::APP_ID, 'tsa_auth_type', 'none');
 		if ($tsaAuthType === 'basic') {
 			$tsaUsername = $this->appConfig->getValueString(Application::APP_ID, 'tsa_username', '');
