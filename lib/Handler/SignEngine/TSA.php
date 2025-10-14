@@ -451,6 +451,9 @@ class TSA {
 		}
 
 		$decodedResult = ASN1::decodeBER($asn1Data);
+		if ($decodedResult === null) {
+			$decodedResult = [];
+		}
 
 		if (count(self::$asn1DecodingCache) >= self::CACHE_SIZE_LIMIT) {
 			array_shift(self::$asn1DecodingCache);
