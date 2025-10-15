@@ -173,7 +173,6 @@ class TSA {
 
 				$tst = null;
 				if ($tstNode && ($tstNode['type'] ?? null) === ASN1::TYPE_SEQUENCE) {
-					// Use phpseclib3 optimized time format handling
 					ASN1::setTimeFormat('Y-m-d\TH:i:s\Z');
 					$tst = ASN1::asn1map($tstNode, self::$timestampInfoStructure);
 
@@ -187,13 +186,14 @@ class TSA {
 
 			if (is_array($tst)) {
 				$tsa['genTime'] = $tst['genTime'] ?? null;
-				$tsa['policy'] = $tst['policy'] ?? null;
+				$policyOid = $tst['policy'] ?? null;
+				$tsa['policy'] = $policyOid;
+				$tsa['policyName'] = $this->resolveTsaPolicyName($policyOid);
 				$tsa['serialNumber'] = $this->bigToString($tst['serialNumber'] ?? null);
 
 				if (!empty($tst['messageImprint'])) {
 					$algOid = $tst['messageImprint']['hashAlgorithm']['algorithm'] ?? null;
 					$tsa['hashAlgorithmOID'] = $algOid;
-					// Use phpseclib3 OID resolution with fallback
 					$tsa['hashAlgorithm'] = $this->resolveHashAlgorithm($algOid);
 
 					$hashed = $tst['messageImprint']['hashedMessage'] ?? null;
@@ -434,13 +434,55 @@ class TSA {
 	}
 
 	private function resolveHashAlgorithm(?string $oid): ?string {
-		return $oid ? (ASN1::getOID($oid) ?? [
-			'1.3.14.3.2.26' => 'sha1',
-			'2.16.840.1.101.3.4.2.1' => 'sha256',
-			'2.16.840.1.101.3.4.2.2' => 'sha384',
-			'2.16.840.1.101.3.4.2.3' => 'sha512',
-			'1.2.840.113549.2.5' => 'md5',
-		][$oid] ?? $oid) : null;
+		if (!$oid) {
+			return null;
+		}
+
+		$resolved = ASN1::getOID($oid);
+		if ($resolved && $resolved !== $oid) {
+			return match (strtolower($resolved)) {
+				'sha1withrsaencryption', 'ecdsa-with-sha1', 'id-dsa-with-sha1' => 'SHA-1',
+				'sha224withrsaencryption', 'ecdsa-with-sha224', 'id-dsa-with-sha224' => 'SHA-224',
+				'sha256withrsaencryption', 'ecdsa-with-sha256', 'id-dsa-with-sha256' => 'SHA-256',
+				'sha384withrsaencryption', 'ecdsa-with-sha384' => 'SHA-384',
+				'sha512withrsaencryption', 'ecdsa-with-sha512' => 'SHA-512',
+				'md2withrsaencryption' => 'MD2',
+				'md5withrsaencryption' => 'MD5',
+				default => strtoupper($resolved),
+			};
+		}
+
+		return match ($oid) {
+			'1.3.14.3.2.26' => 'SHA-1',
+			'2.16.840.1.101.3.4.2.4' => 'SHA-224',
+			'2.16.840.1.101.3.4.2.1' => 'SHA-256',
+			'2.16.840.1.101.3.4.2.2' => 'SHA-384',
+			'2.16.840.1.101.3.4.2.3' => 'SHA-512',
+			'1.2.840.113549.2.5' => 'MD5',
+			'1.2.840.113549.2.2' => 'MD2',
+			default => $oid,
+		};
+	}
+
+	private function resolveTsaPolicyName(?string $policyOid): ?string {
+		if (!$policyOid) {
+			return null;
+		}
+
+		$resolved = ASN1::getOID($policyOid);
+		if ($resolved && $resolved !== $policyOid) {
+			return $resolved;
+		}
+
+		return match ($policyOid) {
+			'1.2.3.4.1' => 'FreeTSA Policy',
+			'1.3.6.1.4.1.601.10.3.1' => 'VeriSign TSA Policy',
+			'1.3.6.1.4.1.311.3.2.1' => 'Microsoft TSA Policy',
+			'2.16.840.1.114412.7.1' => 'DigiCert TSA Policy',
+			'1.3.6.1.4.1.8302.3.1' => 'Comodo TSA Policy',
+			'2.16.840.1.113733.1.7.23.3' => 'Symantec TSA Policy',
+			default => null,
+		};
 	}
 
 	private function decodeWithCache(string $asn1Data): array {
