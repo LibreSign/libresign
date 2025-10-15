@@ -136,6 +136,7 @@ jobs:
         if: steps.check_composer.outputs.files_exists == 'true'
         working-directory: apps/${{ env.APP_NAME }}
         run: |
+          composer remove nextcloud/ocp --dev --no-scripts
           composer install --no-dev
           composer --working-dir=tests/integration install
 
