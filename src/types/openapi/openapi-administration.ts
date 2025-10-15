@@ -271,6 +271,32 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/tsa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set TSA configuration values with proper sensitive data handling
+         * @description Only saves configuration if tsa_url is provided. Automatically manages username/password fields based on authentication type.
+         *     This endpoint requires admin access
+         */
+        post: operations["admin-set-tsa-config"];
+        /**
+         * Delete TSA configuration
+         * @description Delete all TSA configuration fields from the application settings.
+         *     This endpoint requires admin access
+         */
+        delete: operations["admin-delete-tsa-config"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
         parameters: {
             query?: never;
@@ -1204,6 +1230,105 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: components["schemas"]["ReminderSettings"];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-set-tsa-config": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @description TSA server URL (required for saving) */
+                    tsa_url?: string | null;
+                    /** @description TSA policy OID */
+                    tsa_policy_oid?: string | null;
+                    /** @description Authentication type (none|basic), defaults to 'none' */
+                    tsa_auth_type?: string | null;
+                    /** @description Username for basic authentication */
+                    tsa_username?: string | null;
+                    /** @description Password for basic authentication (stored as sensitive data) */
+                    tsa_password?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** @enum {string} */
+                                status: "success";
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Validation error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** @enum {string} */
+                                status: "error";
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-delete-tsa-config": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** @enum {string} */
+                                status: "success";
+                            };
                         };
                     };
                 };
