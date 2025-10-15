@@ -125,10 +125,6 @@ jobs:
           composer install --no-dev
           composer --working-dir=tests/integration install
 
-      - name: Prevent Nextcloud OCP outdated
-        working-directory: apps/${{ env.APP_NAME }}
-        run: make updateocp
-
       - name: Set up Nextcloud
         env:
           DB_PORT: 4444
