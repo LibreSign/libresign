@@ -449,7 +449,23 @@ class JSignPdfHandler extends Pkcs12Handler {
 			$jSignPDF->setParam($param);
 			return $jSignPDF->sign();
 		} catch (\Throwable $th) {
-			$rows = str_getcsv($th->getMessage());
+			$errorMessage = $th->getMessage();
+			$rows = str_getcsv($errorMessage);
+
+			$tsaError = array_filter($rows, fn ($r) => str_contains((string)$r, 'Invalid TSA'));
+			if (!empty($tsaError)) {
+				$tsaErrorMsg = current($tsaError);
+				if (preg_match("/Invalid TSA '([^']+)'/", $tsaErrorMsg, $matches)) {
+					$friendlyMessage = 'Timestamp Authority (TSA) service is unavailable or misconfigured.' . "\n"
+						. 'Please check the TSA configuration.';
+				} else {
+					$friendlyMessage = 'Timestamp Authority (TSA) service error.' . "\n"
+						. 'Please check the TSA configuration.';
+				}
+				throw new LibresignException($friendlyMessage);
+			}
+
+			// Check for hash algorithm errors
 			$hashAlgorithm = array_filter($rows, fn ($r) => str_contains((string)$r, 'The chosen hash algorithm'));
 			if (!empty($hashAlgorithm)) {
 				$hashAlgorithm = current($hashAlgorithm);
@@ -458,8 +474,9 @@ class JSignPdfHandler extends Pkcs12Handler {
 				$hashAlgorithm = preg_replace('/\.( )/', ".\n", $hashAlgorithm);
 				throw new LibresignException($hashAlgorithm);
 			}
-			$this->logger->error('Error at JSignPdf side. LibreSign can not do nothing. Follow the error message: ' . $th->getMessage());
-			throw new \Exception($th->getMessage());
+
+			$this->logger->error('Error at JSignPdf side. LibreSign can not do nothing. Follow the error message: ' . $errorMessage);
+			throw new \Exception($errorMessage);
 		}
 	}
 }
