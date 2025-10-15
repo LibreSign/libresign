@@ -11,7 +11,6 @@ Feature: TSA Integration - End-to-End Workflow
   Scenario: TSA workflow - Successfully signs document with timestamp
     Given run the command "config:app:set libresign tsa_url --value=https://freetsa.org/tsr --type=string" with result code 0
     And run the command "config:app:set libresign tsa_auth_type --value=none --type=string" with result code 0
-    # And run the command "config:app:set libresign tsa_policy_oid --value=1.2.3.4.5 --type=string" with result code 0
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}},"signatureMethodEnabled":"clickToSign"}] |
     And the response should have a status code 200
