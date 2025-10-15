@@ -671,7 +671,6 @@ export default {
 			this.hasInfo = !this.hasInfo
 			this.uuidToValidate = this.$route.params.uuid
 		},
-
 	},
 }
 </script>
