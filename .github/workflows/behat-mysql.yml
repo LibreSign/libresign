@@ -28,7 +28,7 @@ jobs:
         id: versions
         uses: icewind1991/nextcloud-version-matrix@58becf3b4bb6dc6cef677b15e2fd8e7d48c0908f # v1.3.1
         with:
-          matrix: '{"mysql-versions": ["8.1"]}'
+          matrix: '{"mysql-versions": ["8.4"]}'
 
   changes:
     runs-on: ubuntu-latest
