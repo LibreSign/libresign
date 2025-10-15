@@ -34,7 +34,6 @@ class TSA {
 
 	public function __construct() {
 		$this->ensureOidsAreLoaded();
-		$this->initializeTimestampStructure();
 	}
 
 	private function processContentCandidate($content, ?string &$cmsDer): array {
@@ -70,12 +69,6 @@ class TSA {
 		]);
 
 		self::$areOidsInitialized = true;
-	}
-
-	private function initializeTimestampStructure(): void {
-		if (self::$timestampInfoStructure === null) {
-			self::$timestampInfoStructure = $this->buildTimestampInfoStructure();
-		}
 	}
 
 	private function convertDerToPkcs7Pem(string $derData): string {
@@ -140,7 +133,6 @@ class TSA {
 		$tstInfoOctets = null;
 		$cnHints = [];
 
-		// Optimized extraction with early termination
 		$values = $this->getAttributeValuesSetAfterOID($root, self::TIMESTAMP_OIDS['TIME_STAMP_TOKEN']);
 		if ($values) {
 			foreach ($values as $candidate) {
@@ -174,7 +166,7 @@ class TSA {
 				$tst = null;
 				if ($tstNode && ($tstNode['type'] ?? null) === ASN1::TYPE_SEQUENCE) {
 					ASN1::setTimeFormat('Y-m-d\TH:i:s\Z');
-					$tst = ASN1::asn1map($tstNode, self::$timestampInfoStructure);
+					$tst = ASN1::asn1map($tstNode, self::$timestampInfoStructure ??= $this->buildTimestampInfoStructure());
 
 					if (!is_array($tst)) {
 						$tst = $this->parseTstInfoFallback($tstInfoOctets);
@@ -193,8 +185,13 @@ class TSA {
 
 				if (!empty($tst['messageImprint'])) {
 					$algOid = $tst['messageImprint']['hashAlgorithm']['algorithm'] ?? null;
-					$tsa['hashAlgorithmOID'] = $algOid;
-					$tsa['hashAlgorithm'] = $this->resolveHashAlgorithm($algOid);
+
+					$friendlyName = $this->resolveHashAlgorithm($algOid);
+
+					$numericOid = $this->getNumericOid($algOid);
+
+					$tsa['hashAlgorithm'] = $friendlyName;
+					$tsa['hashAlgorithmOID'] = $numericOid;
 
 					$hashed = $tst['messageImprint']['hashedMessage'] ?? null;
 					if (is_string($hashed)) {
@@ -385,10 +382,12 @@ class TSA {
 
 	private function isStringValidUtf8(string $text): bool {
 		return mb_check_encoding($text, 'UTF-8')
-			   && preg_match('/[\P{C}]/u', $text)
-			   && !preg_match('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', $text);
-	}	private function generateDistinguishedNames(array $hints): string {
-		$map = [
+			&& preg_match('/[\P{C}]/u', $text)
+			&& !preg_match('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', $text);
+	}
+
+	private function generateDistinguishedNames(array $hints): string {
+		$mapping = [
 			'countryName' => 'C',
 			'stateOrProvinceName' => 'ST',
 			'localityName' => 'L',
@@ -399,25 +398,14 @@ class TSA {
 			'emailAddress' => 'emailAddress',
 		];
 
-		$order = [
-			'countryName',
-			'stateOrProvinceName',
-			'localityName',
-			'organizationName',
-			'organizationalUnitName',
-			'commonName',
-			'description',
-			'emailAddress',
-		];
-
-		$parts = [];
-		foreach ($order as $field) {
-			if (!empty($hints[$field])) {
-				$abbr = $map[$field];
-				$val = addcslashes($hints[$field], '/+<>"#;');
-				$parts[] = "$abbr=$val";
-			}
-		}
+		$parts = array_filter(
+			array_map(
+				fn ($field) => empty($hints[$field])
+					? null
+					: $mapping[$field] . '=' . addcslashes($hints[$field], '/+<>"#;'),
+				array_keys($mapping)
+			)
+		);
 
 		return '/' . implode('/', $parts);
 	}
@@ -434,25 +422,8 @@ class TSA {
 	}
 
 	private function resolveHashAlgorithm(?string $oid): ?string {
-		if (!$oid) {
-			return null;
-		}
-
-		$resolved = ASN1::getOID($oid);
-		if ($resolved && $resolved !== $oid) {
-			return match (strtolower($resolved)) {
-				'sha1withrsaencryption', 'ecdsa-with-sha1', 'id-dsa-with-sha1' => 'SHA-1',
-				'sha224withrsaencryption', 'ecdsa-with-sha224', 'id-dsa-with-sha224' => 'SHA-224',
-				'sha256withrsaencryption', 'ecdsa-with-sha256', 'id-dsa-with-sha256' => 'SHA-256',
-				'sha384withrsaencryption', 'ecdsa-with-sha384' => 'SHA-384',
-				'sha512withrsaencryption', 'ecdsa-with-sha512' => 'SHA-512',
-				'md2withrsaencryption' => 'MD2',
-				'md5withrsaencryption' => 'MD5',
-				default => strtoupper($resolved),
-			};
-		}
-
 		return match ($oid) {
+			null => null,
 			'1.3.14.3.2.26' => 'SHA-1',
 			'2.16.840.1.101.3.4.2.4' => 'SHA-224',
 			'2.16.840.1.101.3.4.2.1' => 'SHA-256',
@@ -460,7 +431,31 @@ class TSA {
 			'2.16.840.1.101.3.4.2.3' => 'SHA-512',
 			'1.2.840.113549.2.5' => 'MD5',
 			'1.2.840.113549.2.2' => 'MD2',
-			default => $oid,
+			'id-sha1', 'sha1withrsaencryption', 'ecdsa-with-sha1', 'id-dsa-with-sha1' => 'SHA-1',
+			'id-sha224', 'sha224withrsaencryption', 'ecdsa-with-sha224', 'id-dsa-with-sha224' => 'SHA-224',
+			'id-sha256', 'sha256withrsaencryption', 'ecdsa-with-sha256', 'id-dsa-with-sha256' => 'SHA-256',
+			'id-sha384', 'sha384withrsaencryption', 'ecdsa-with-sha384' => 'SHA-384',
+			'id-sha512', 'sha512withrsaencryption', 'ecdsa-with-sha512' => 'SHA-512',
+			'md2', 'md2withrsaencryption' => 'MD2',
+			'md5', 'md5withrsaencryption' => 'MD5',
+			default => $oid, // Return original if not mapped
+		};
+	}
+
+	private function getNumericOid(?string $oid): ?string {
+		if (!$oid || preg_match('/^\d+(\.\d+)*$/', $oid)) {
+			return $oid;
+		}
+
+		return match ($oid) {
+			'id-sha1', 'sha1withrsaencryption', 'ecdsa-with-sha1', 'id-dsa-with-sha1' => '1.3.14.3.2.26',
+			'id-sha224', 'sha224withrsaencryption', 'ecdsa-with-sha224', 'id-dsa-with-sha224' => '2.16.840.1.101.3.4.2.4',
+			'id-sha256', 'sha256withrsaencryption', 'ecdsa-with-sha256', 'id-dsa-with-sha256' => '2.16.840.1.101.3.4.2.1',
+			'id-sha384', 'sha384withrsaencryption', 'ecdsa-with-sha384' => '2.16.840.1.101.3.4.2.2',
+			'id-sha512', 'sha512withrsaencryption', 'ecdsa-with-sha512' => '2.16.840.1.101.3.4.2.3',
+			'md2', 'md2withrsaencryption' => '1.2.840.113549.2.2',
+			'md5', 'md5withrsaencryption' => '1.2.840.113549.2.5',
+			default => $oid, // Return original if not mapped
 		};
 	}
 
