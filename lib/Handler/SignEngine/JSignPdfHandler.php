@@ -403,18 +403,69 @@ class JSignPdfHandler extends Pkcs12Handler {
 		return $paramString;
 	}
 
+	private function getTsaParameters(): array {
+		$tsaUrl = $this->appConfig->getValueString(Application::APP_ID, 'tsa_url', '');
+		if (empty($tsaUrl)) {
+			return [];
+		}
+
+		$params = [
+			'--tsa-server-url' => $tsaUrl,
+			'--tsa-policy-oid' => $this->appConfig->getValueString(Application::APP_ID, 'tsa_policy_oid', ''),
+		];
+
+		if (!$params['--tsa-policy-oid']) {
+			unset($params['--tsa-policy-oid']);
+		}
+
+		$tsaAuthType = $this->appConfig->getValueString(Application::APP_ID, 'tsa_auth_type', 'none');
+		if ($tsaAuthType === 'basic') {
+			$tsaUsername = $this->appConfig->getValueString(Application::APP_ID, 'tsa_username', '');
+			$tsaPassword = $this->appConfig->getValueString(Application::APP_ID, 'tsa_password', '');
+
+			if (!empty($tsaUsername) && !empty($tsaPassword)) {
+				$params['--tsa-authentication'] = 'PASSWORD';
+				$params['--tsa-user'] = $tsaUsername;
+				$params['--tsa-password'] = $tsaPassword;
+			}
+		}
+
+		return $params;
+	}
+
 	private function signWrapper(JSignPDF $jSignPDF): string {
 		try {
+			$params = [
+				'--hash-algorithm' => $this->getHashAlgorithm(),
+			];
+
+			$params = array_merge($params, $this->getTsaParameters());
 			$param = $this->getJSignParam();
 			$param
 				->setJSignParameters(
 					$this->jSignParam->getJSignParameters()
-					. ' --hash-algorithm ' . $this->getHashAlgorithm()
+					. $this->listParamsToString($params)
 				);
 			$jSignPDF->setParam($param);
 			return $jSignPDF->sign();
 		} catch (\Throwable $th) {
-			$rows = str_getcsv($th->getMessage());
+			$errorMessage = $th->getMessage();
+			$rows = str_getcsv($errorMessage);
+
+			$tsaError = array_filter($rows, fn ($r) => str_contains((string)$r, 'Invalid TSA'));
+			if (!empty($tsaError)) {
+				$tsaErrorMsg = current($tsaError);
+				if (preg_match("/Invalid TSA '([^']+)'/", $tsaErrorMsg, $matches)) {
+					$friendlyMessage = 'Timestamp Authority (TSA) service is unavailable or misconfigured.' . "\n"
+						. 'Please check the TSA configuration.';
+				} else {
+					$friendlyMessage = 'Timestamp Authority (TSA) service error.' . "\n"
+						. 'Please check the TSA configuration.';
+				}
+				throw new LibresignException($friendlyMessage);
+			}
+
+			// Check for hash algorithm errors
 			$hashAlgorithm = array_filter($rows, fn ($r) => str_contains((string)$r, 'The chosen hash algorithm'));
 			if (!empty($hashAlgorithm)) {
 				$hashAlgorithm = current($hashAlgorithm);
@@ -423,8 +474,9 @@ class JSignPdfHandler extends Pkcs12Handler {
 				$hashAlgorithm = preg_replace('/\.( )/', ".\n", $hashAlgorithm);
 				throw new LibresignException($hashAlgorithm);
 			}
-			$this->logger->error('Error at JSignPdf side. LibreSign can not do nothing. Follow the error message: ' . $th->getMessage());
-			throw new \Exception($th->getMessage());
+
+			$this->logger->error('Error at JSignPdf side. LibreSign can not do nothing. Follow the error message: ' . $errorMessage);
+			throw new \Exception($errorMessage);
 		}
 	}
 }
