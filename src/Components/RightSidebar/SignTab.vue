@@ -67,8 +67,12 @@ export default {
 header {
 	text-align: center;
 	width: 100%;
-	margin-top: 1em;
-	margin-bottom: 3em;
+}
+@media (min-width: 513px) {
+	header {
+		margin-top: 1em;
+		margin-bottom: 3em;
+	}
 }
 main {
 	flex-direction: column;
