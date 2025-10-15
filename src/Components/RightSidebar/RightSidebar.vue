@@ -82,3 +82,16 @@ export default {
 	},
 }
 </script>
+<style lang="scss" scoped>
+
+@media (max-width: 512px) {
+	.app-sidebar {
+		height: unset;
+		top: unset;
+		bottom: 0;
+		::v-deep .app-sidebar-tabs__content{
+			min-height: unset;
+		}
+	}
+}
+</style>
