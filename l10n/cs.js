@@ -479,6 +479,7 @@ OC.L10N.register(
     "User agent:" : "Uživatelský agent:",
     "Notifications:" : "Notifikace:",
     "Hash algorithm:" : "Algoritmus vytvoření otisku:",
+    "Subject:" : "Předmět:",
     "Issuer:" : "Vydavatel:",
     "Return" : "Výkaz",
     "Open in LibreSign" : "Otevřít v LibreSign",

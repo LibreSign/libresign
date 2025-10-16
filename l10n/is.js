@@ -98,7 +98,12 @@ OC.L10N.register(
     "Yes" : "Já",
     "No" : "Nei",
     "Reset to default" : "Endurstilla á sjálfgefið",
+    "Invalid URL" : "Ógild slóð",
+    "Username" : "Notandanafn",
+    "Optional" : "Valkvætt",
     "Name:" : "Nafn:",
-    "No date" : "Engin dagsetning"
+    "No date" : "Engin dagsetning",
+    "Time:" : "Tími:",
+    "Unknown" : "Óþekkt"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

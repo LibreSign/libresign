@@ -230,6 +230,9 @@ OC.L10N.register(
     "Yes" : "是",
     "No" : "否",
     "Reset to default" : "重置为默认设置",
+    "Invalid URL" : "无效的 URL",
+    "Username" : "用户名",
+    "Optional" : "可选",
     "Validation URL" : "验证用 URL",
     "Sign with your email." : "用电子邮件签名",
     "Request code." : "请求代码",
@@ -251,6 +254,8 @@ OC.L10N.register(
     "Name:" : "姓名：",
     "Status:" : "状态：",
     "No date" : "无日期",
+    "Time:" : "时间：",
+    "Unknown" : "未知",
     "Return" : "返回",
     "Open in LibreSign" : "在 LibreSign 中打开",
     "Requested by {name}, at {date}" : "{name} 请求于 {date}"

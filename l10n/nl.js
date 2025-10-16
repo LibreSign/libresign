@@ -236,6 +236,9 @@ OC.L10N.register(
     "No" : "Nee",
     "Reset to default" : "Herstellen naar standaard",
     "Remove background" : "Achtergrond verwijderen",
+    "Invalid URL" : "Ongeldige URL",
+    "Username" : "Gebruikersnaam",
+    "Optional" : "Optioneel",
     "Validation URL" : "Validatie-URL",
     "Sign with your email." : "Onderteken met uw e-mail.",
     "Request code." : "Vraag code aan.",
@@ -258,6 +261,8 @@ OC.L10N.register(
     "Name:" : "Naam:",
     "Status:" : "Status:",
     "No date" : "Geen datum",
+    "Time:" : "Tijd:",
+    "Unknown" : "Onbekend",
     "Return" : "Terug",
     "Open in LibreSign" : "Openen in LibreSign",
     "Requested by {name}, at {date}" : "Aangevraagd door {name}, op {date}"

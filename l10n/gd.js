@@ -33,6 +33,9 @@ OC.L10N.register(
     "Password reset" : "Ath-shuidheachadh an fhacail-fhaire",
     "Remove" : "Thoir air falbh",
     "Yes" : "Tha",
-    "No" : "Chan eil"
+    "No" : "Chan eil",
+    "Invalid URL" : "URL mì-dhligheach",
+    "Username" : "Ainm-cleachdaiche",
+    "Unknown" : "Chan eil fhios"
 },
 "nplurals=4; plural=(n==1 || n==11) ? 0 : (n==2 || n==12) ? 1 : (n > 2 && n < 20) ? 2 : 3;");

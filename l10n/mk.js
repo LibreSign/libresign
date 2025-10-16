@@ -100,9 +100,14 @@ OC.L10N.register(
     "No" : "Не",
     "Reset to default" : "Ресетирај на стандардно",
     "Remove background" : "Избриши ја позадината",
+    "Invalid URL" : "Неправилна URL",
+    "Username" : "Корисничко име",
+    "Optional" : "Опционално",
     "Forgot password?" : "Заборавена лозинка?",
     "Name:" : "Име:",
     "Status:" : "Статус:",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Time:" : "Време:",
+    "Unknown" : "Непознат"
 },
 "nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;");

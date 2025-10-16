@@ -244,6 +244,9 @@
     "Full name of the main company or main user of this instance" : "Полное наименование основной компании или основного пользователя данного экземпляра",
     "Reset to default" : "Сбросить изменения",
     "Remove background" : "Удалить фон",
+    "Invalid URL" : "Неверный адрес",
+    "Username" : "Имя пользователя",
+    "Optional" : "Необязательно",
     "Validation URL" : "URL для проверки",
     "Sign with your email." : "Войти, используя свой адрес эл. почты.",
     "Request new code" : "Запросить новый код",
@@ -257,6 +260,8 @@
     "Name:" : "Имя:",
     "Status:" : "Статус:",
     "No date" : "Нет даты",
+    "Time:" : "Время:",
+    "Unknown" : "Неизвестно",
     "Return" : "Возврат",
     "Open in LibreSign" : "Открыть в LibreSign",
     "Requested by {name}, at {date}" : "Запрошено у {name} {date}"

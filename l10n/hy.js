@@ -40,7 +40,9 @@ OC.L10N.register(
     "Reminders" : "Հիշեցումներ",
     "Yes" : "Yes",
     "No" : "No",
+    "Username" : "Օգտանուն",
     "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Unknown" : "Անհայտ"
 },
 "nplurals=2; plural=(n != 1);");

@@ -36,6 +36,9 @@ OC.L10N.register(
     "Reminders" : "Memento",
     "Yes" : "Si",
     "No" : "No",
-    "No date" : "No date"
+    "Username" : "Nomine de usator",
+    "Optional" : "Optional",
+    "No date" : "No date",
+    "Unknown" : "Incognite"
 },
 "nplurals=2; plural=(n != 1);");

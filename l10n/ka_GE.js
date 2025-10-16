@@ -59,6 +59,9 @@ OC.L10N.register(
     "Yes" : "კი",
     "No" : "არა",
     "Reset to default" : "საწყის მდგომარეობაში დაბრუნება",
-    "No date" : "თარიღი არაა"
+    "Username" : "მომხმარებლის სახელი",
+    "Optional" : "არასავალდებულო",
+    "No date" : "თარიღი არაა",
+    "Unknown" : "უცნობია"
 },
 "nplurals=2; plural=(n!=1);");

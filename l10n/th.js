@@ -66,6 +66,10 @@ OC.L10N.register(
     "Reminders" : "การแจ้งเตือน",
     "Yes" : "ใช่",
     "No" : "ไม่",
-    "No date" : "ไม่มีวันที่"
+    "Invalid URL" : "URL ไม่ถูกต้อง",
+    "Username" : "ชื่อผู้ใช้",
+    "Optional" : "ไม่จำเป็น",
+    "No date" : "ไม่มีวันที่",
+    "Unknown" : "ไม่ทราบ"
 },
 "nplurals=1; plural=0;");

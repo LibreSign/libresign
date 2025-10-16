@@ -87,8 +87,13 @@ OC.L10N.register(
     "Yes" : "Có",
     "No" : "Không",
     "Reset to default" : "Đặt lại về mặc định",
+    "Invalid URL" : "URL không hợp lệ",
+    "Username" : "Tên đăng nhập",
+    "Optional" : "Tùy chọn",
     "Forgot password?" : "Quên mật khẩu sao?",
     "Name:" : "Tên:",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Time:" : "Thời gian:",
+    "Unknown" : "Không xác định"
 },
 "nplurals=1; plural=0;");

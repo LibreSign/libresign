@@ -35,6 +35,9 @@ OC.L10N.register(
     "Reminders" : "Erennërungen",
     "Yes" : "Yes",
     "No" : "No",
-    "No date" : "No date"
+    "Username" : "Benotzernumm",
+    "Optional" : "Fräiwëlleg",
+    "No date" : "No date",
+    "Unknown" : "Onbekannt"
 },
 "nplurals=2; plural=(n != 1);");

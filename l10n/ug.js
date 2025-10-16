@@ -327,6 +327,8 @@ OC.L10N.register(
     "Full name of the main company or main user of this instance" : "بۇ شىركەتتىكى ئاساسلىق شىركەت ياكى ئاساسلىق ئىشلەتكۈچىنىڭ تولۇق ئىسمى",
     "Define custom values to use {engine}" : "{engine} نى ئىشلىتىدىغان خاس قىممەتكە ئېنىقلىما بېرىڭ",
     "Reset to default" : "سۈكۈتتىكى ھالىتىگە قايتىڭ",
+    "Invalid URL" : "ئىناۋەتسىز URL",
+    "Username" : "ئىشلەتكۈچى ئىسمى",
     "Validation URL" : "دەلىللەش URL",
     "Make validation URL acessible only by authenticated users" : "دەلىللەش تور ئادرېسىنى پەقەت دەلىللەنگەن ئىشلەتكۈچىلەرلا قوبۇل قىلالايدۇ",
     "Add visible footer with signature details" : "ئىمزا تەپسىلاتلىرى بىلەن كۆرۈنگەن بەت ئاستىنى قوشۇڭ",
@@ -359,6 +361,8 @@ OC.L10N.register(
     "Status:" : "ھالىتى:",
     "Signatories:" : "ئىمزا قويغۇچىلار:",
     "No date" : "No date",
+    "Time:" : "ۋاقىت:",
+    "Unknown" : "نامەلۇم",
     "Return" : "قايتىش",
     "Open in LibreSign" : "LibreSign دا ئېچىڭ",
     "Requested by {name}, at {date}" : "{name} تەرىپىدىن تەلەپ قىلىنغان ، {date}"

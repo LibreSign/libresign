@@ -28,6 +28,7 @@ OC.L10N.register(
     "New password" : "Kata laluan baru",
     "Yes" : "Yes",
     "No" : "No",
+    "Username" : "Nama pengguna",
     "No date" : "No date"
 },
 "nplurals=1; plural=0;");

@@ -330,6 +330,9 @@
     "Full name of the main company or main user of this instance" : "Fullt navn på hovedfirmaet eller hovedbrukeren av denne forekomsten",
     "Define custom values to use {engine}" : "Definere egendefinerte verdier som skal brukes {engine}",
     "Reset to default" : "Tilbakestill til standard",
+    "Invalid URL" : "Ugyldig URL",
+    "Username" : "Brukernavn",
+    "Optional" : "Valgfri",
     "Validation URL" : "Validerings-URL",
     "Make validation URL acessible only by authenticated users" : "Gjør validerings-URL bare tilgjengelig for autentiserte brukere",
     "Add visible footer with signature details" : "Legg til synlig bunntekst med signaturdetaljer",
@@ -362,6 +365,8 @@
     "Status:" : "Status:",
     "Signatories:" : "Underskriverne:",
     "No date" : "Ingen dato",
+    "Time:" : "Tid:",
+    "Unknown" : "Ukjent",
     "Return" : "Returner",
     "Open in LibreSign" : "Åpne i LibreSign",
     "Requested by {name}, at {date}" : "Bedt av {name}, den {date}"

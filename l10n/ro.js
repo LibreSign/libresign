@@ -87,7 +87,12 @@ OC.L10N.register(
     "on" : "pe",
     "Yes" : "a",
     "No" : "Nu",
+    "Invalid URL" : "URL invalid",
+    "Username" : "Nume utilizator",
+    "Optional" : "Opțional",
     "Name:" : "Nume:",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Time:" : "Timp:",
+    "Unknown" : "Necunoscut"
 },
 "nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));");

@@ -89,8 +89,12 @@ OC.L10N.register(
     "Yes" : "Sim",
     "No" : "Não",
     "Reset to default" : "Repor original",
+    "Invalid URL" : "URL inválido",
+    "Username" : "Nome de utilizador",
+    "Optional" : "Opcional ",
     "Forgot password?" : "Senha esquecida?",
     "Name:" : "Nome:",
-    "No date" : "Sem data"
+    "No date" : "Sem data",
+    "Unknown" : "Desconhecido"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
