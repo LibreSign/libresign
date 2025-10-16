@@ -225,6 +225,9 @@ OC.L10N.register(
     "Yes" : "예",
     "No" : "아니오",
     "Reset to default" : "기본값으로 초기화",
+    "Invalid URL" : "잘못된 URL",
+    "Username" : "사용자 이름",
+    "Optional" : "선택적",
     "Validation URL" : "검증 URL",
     "Sign with your email." : "이메일로 서명하세요.",
     "Request code." : "코드 요청",
@@ -246,6 +249,8 @@ OC.L10N.register(
     "Congratulations you have digitally signed a document using LibreSign" : "축하합니다. LibreSign을 사용하여 문서에 디지털 서명했습니다.",
     "Name:" : "이름:",
     "No date" : "날짜 없음",
+    "Time:" : "시간:",
+    "Unknown" : "알 수 없음",
     "Return" : "반환",
     "Open in LibreSign" : "LibreSign으로 열기",
     "Requested by {name}, at {date}" : "{날짜}에 {이름}에 의해 요청됨"

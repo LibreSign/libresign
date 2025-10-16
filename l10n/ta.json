@@ -29,6 +29,8 @@
     "Remove" : "அகற்றுக",
     "Yes" : "Yes",
     "No" : "No",
-    "No date" : "No date"
+    "Username" : "பயனாளர் பெயர்",
+    "No date" : "No date",
+    "Unknown" : "தெரியாத"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

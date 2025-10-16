@@ -77,9 +77,13 @@
     "Yes" : "Jā",
     "No" : "Nē",
     "Reset to default" : "Atiestatīt",
+    "Username" : "Lietotājvārds",
+    "Optional" : "Neobligāts",
     "Forgot password?" : "Aizmirsta parole?",
     "Status:" : "Statuss:",
     "No date" : "No date",
+    "Time:" : "Laiks:",
+    "Unknown" : "Nezināms",
     "Open in LibreSign" : "Atvērt LibreSign",
     "Requested by {name}, at {date}" : "Pieprasīja {name} {date}"
 },"pluralForm" :"nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"

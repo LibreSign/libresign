@@ -248,6 +248,9 @@ OC.L10N.register(
     "No" : "Nie",
     "Reset to default" : "Przywróć domyślne",
     "Remove background" : "Usuń tło",
+    "Invalid URL" : "Nieprawidłowy adres URL",
+    "Username" : "Nazwa użytkownika",
+    "Optional" : "Opcjonalnie",
     "Validation URL" : "Walidacja adresu URL",
     "Sign with your email." : "Podpisz za pomocą swojego e-maila.",
     "Request code." : "Kod zapytania.",
@@ -272,6 +275,8 @@ OC.L10N.register(
     "Status:" : "Status:",
     "Signatories:" : "Sygnatariusze:",
     "No date" : "Brak daty",
+    "Time:" : "Czas:",
+    "Unknown" : "Nieznana",
     "Return" : "Powróć",
     "Open in LibreSign" : "Otwórz w LibreSign",
     "Requested by {name}, at {date}" : "Prośba złożona przez {name}, dnia {date}"

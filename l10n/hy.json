@@ -38,7 +38,9 @@
     "Reminders" : "Հիշեցումներ",
     "Yes" : "Yes",
     "No" : "No",
+    "Username" : "Օգտանուն",
     "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Unknown" : "Անհայտ"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

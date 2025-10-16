@@ -89,9 +89,13 @@ OC.L10N.register(
     "No" : "Hapana",
     "Reset to default" : "Weka upya chaguo msingi",
     "Remove background" : "Remove background",
+    "Invalid URL" : "URL batili",
+    "Username" : "Jina la mtumiaji",
     "Forgot password?" : "Umesahau nenosiri",
     "Name:" : "Jina:",
     "Status:" : "Status:",
+    "Time:" : "Muda",
+    "Unknown" : "Haijulikani",
     "Return" : "Rudi"
 },
 "nplurals=2; plural=(n != 1);");

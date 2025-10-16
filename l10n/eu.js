@@ -285,6 +285,9 @@ OC.L10N.register(
     "No" : "Ez",
     "Full name of the main company or main user of this instance" : "Instantzia honetako enpresa nagusiaren edo erabiltzaile nagusiaren izena",
     "Reset to default" : "Berezarri balio lehenetsira",
+    "Invalid URL" : "URL baliogabea",
+    "Username" : "Erabiltzaile-izena",
+    "Optional" : "Aukerakoa",
     "Validation URL" : "Egiaztapen URLa",
     "Add visible footer with signature details" : "Gehitu ikus daitekeen orri-oina sinaduraren xehetasunekin",
     "Write QR code on footer with validation URL" : "Idatzi QR kodea orri-oinan baliozkotze URLarekin",
@@ -313,6 +316,8 @@ OC.L10N.register(
     "Status:" : "Egoera:",
     "Signatories:" : "Sinatzaileak:",
     "No date" : "Datarik gabe",
+    "Time:" : "Noiz:",
+    "Unknown" : "Ezezaguna",
     "Return" : "Bueltatu",
     "Open in LibreSign" : "Ireki LibreSign-en",
     "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean"

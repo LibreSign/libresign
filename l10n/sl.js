@@ -330,6 +330,9 @@ OC.L10N.register(
     "Define custom values to use {engine}" : "Določitev vrednosti po meri za uporabo {engine}",
     "Reset to default" : "Ponastavi na privzeto",
     "Remove background" : "Odstrani ozadje",
+    "Invalid URL" : "Neveljaven naslov URL",
+    "Username" : "Uporabniško ime",
+    "Optional" : "Izbirno",
     "Validation URL" : "Naslov URL overjanja",
     "Make validation URL acessible only by authenticated users" : "Overitveni naslov URL naj bo dostopen samo overjenim uporabnikom",
     "Add visible footer with signature details" : "Dodaj vidno nogo s podrobnosti podpisa",
@@ -362,6 +365,8 @@ OC.L10N.register(
     "Status:" : "Stanje:",
     "Signatories:" : "Podpisniki:",
     "No date" : "Ni datuma",
+    "Time:" : "Čas:",
+    "Unknown" : "Neznano",
     "Return" : "Nazaj",
     "Open in LibreSign" : "Odpri v LibreSign",
     "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}"

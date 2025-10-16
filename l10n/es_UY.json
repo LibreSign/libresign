@@ -57,6 +57,9 @@
     "Yes" : "Sí",
     "No" : "No",
     "Reset to default" : "Restablecer al predeterminado",
-    "No date" : "Sin fecha"
+    "Username" : "Usuario",
+    "Optional" : "Opcional",
+    "No date" : "Sin fecha",
+    "Unknown" : "Desconocido"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

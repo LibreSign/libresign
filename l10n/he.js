@@ -78,8 +78,13 @@ OC.L10N.register(
     "Yes" : "כן",
     "No" : "לא",
     "Reset to default" : "איפוס לבררת מחדל",
+    "Invalid URL" : "כתובת שגויה",
+    "Username" : "שם משתמש",
+    "Optional" : "אופציונלי",
     "Forgot password?" : "שכחת ססמה?",
     "Name:" : "שם:",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Time:" : "שעה:",
+    "Unknown" : "לא ידוע"
 },
 "nplurals=3; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: 2;");

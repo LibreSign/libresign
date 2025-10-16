@@ -283,6 +283,9 @@ OC.L10N.register(
     "Define custom values to use {engine}" : "Egyéni értékek meghatározása a(z) {engine} használatához",
     "Reset to default" : "Visszaállítás alapértelmezettre",
     "Remove background" : "Háttér eltávolítása",
+    "Invalid URL" : "Érvénytelen webcím",
+    "Username" : "Felhasználónév",
+    "Optional" : "Nem kötelező",
     "Validation URL" : "Ellenőrzési URL",
     "Add visible footer with signature details" : "Látható lábléc hozzáadása az aláírás részleteivel",
     "Write QR code on footer with validation URL" : "QR-kód írása a láblécre az érvényesítési webcímmel",
@@ -309,6 +312,8 @@ OC.L10N.register(
     "Status:" : "Állapot:",
     "Signatories:" : "Aláírók:",
     "No date" : "Nincs dátum",
+    "Time:" : "Idő:",
+    "Unknown" : "Ismeretlen",
     "Return" : "Vissza",
     "Open in LibreSign" : "Megnyitás a LibreSignban",
     "Requested by {name}, at {date}" : "{name} kérte, ekkor: {date}"

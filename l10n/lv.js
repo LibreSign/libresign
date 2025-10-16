@@ -79,9 +79,13 @@ OC.L10N.register(
     "Yes" : "Jā",
     "No" : "Nē",
     "Reset to default" : "Atiestatīt",
+    "Username" : "Lietotājvārds",
+    "Optional" : "Neobligāts",
     "Forgot password?" : "Aizmirsta parole?",
     "Status:" : "Statuss:",
     "No date" : "No date",
+    "Time:" : "Laiks:",
+    "Unknown" : "Nezināms",
     "Open in LibreSign" : "Atvērt LibreSign",
     "Requested by {name}, at {date}" : "Pieprasīja {name} {date}"
 },
