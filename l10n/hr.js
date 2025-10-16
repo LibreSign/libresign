@@ -195,6 +195,9 @@ OC.L10N.register(
     "Yes" : "Da",
     "No" : "Ne",
     "Reset to default" : "Vrati na zadanu postavku",
+    "Invalid URL" : "Neispravan URL",
+    "Username" : "Korisničko ime",
+    "Optional" : "Neobavezno",
     "Validation URL" : "URL za potvrdu",
     "Sign the document." : "Potpišite dokument.",
     "Subscription password." : "Zaporka za pretplatu.",
@@ -205,6 +208,8 @@ OC.L10N.register(
     "Congratulations you have digitally signed a document using LibreSign" : "Čestitamo na digitalnom potpisivanju dokumenta s pomoću LibreSigna",
     "Name:" : "Naziv:",
     "No date" : "Nema datuma",
+    "Time:" : "Vrijeme:",
+    "Unknown" : "Nepoznata pogreška",
     "Return" : "Natrag",
     "Open in LibreSign" : "Otvori u sustavu LibreSign",
     "Requested by {name}, at {date}" : "Zatražio {name} na dan {date}"

@@ -58,6 +58,9 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Remove background" : "Fonni olib tashlash",
-    "Forgot password?" : "Parolni unutdingizmi?"
+    "Username" : "Foydalanuvchi nomi",
+    "Forgot password?" : "Parolni unutdingizmi?",
+    "Time:" : "Vaqt:",
+    "Unknown" : "Noma'lum"
 },
 "nplurals=1; plural=0;");

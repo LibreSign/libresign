@@ -31,6 +31,8 @@ OC.L10N.register(
     "Remove" : "அகற்றுக",
     "Yes" : "Yes",
     "No" : "No",
-    "No date" : "No date"
+    "Username" : "பயனாளர் பெயர்",
+    "No date" : "No date",
+    "Unknown" : "தெரியாத"
 },
 "nplurals=2; plural=(n != 1);");

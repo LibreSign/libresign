@@ -112,10 +112,15 @@ OC.L10N.register(
     "Yes" : "はい",
     "No" : "いいえ",
     "Reset to default" : "デフォルトに戻す",
+    "Invalid URL" : "無効なURL",
+    "Username" : "ユーザー名",
+    "Optional" : "オプション",
     "Forgot password?" : "パスワードをお忘れですか?",
     "Name:" : "名前: ",
     "Status:" : "ステータス:",
     "No date" : "日付なし",
+    "Time:" : "時刻:",
+    "Unknown" : "不明",
     "Open in LibreSign" : "LibreSignで開く"
 },
 "nplurals=1; plural=0;");

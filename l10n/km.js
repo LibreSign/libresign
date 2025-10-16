@@ -27,6 +27,7 @@ OC.L10N.register(
     "New password" : "ពាក្យ​សម្ងាត់​ថ្មី",
     "Yes" : "Yes",
     "No" : "No",
+    "Username" : "ឈ្មោះ​អ្នកប្រើ",
     "No date" : "No date"
 },
 "nplurals=1; plural=0;");

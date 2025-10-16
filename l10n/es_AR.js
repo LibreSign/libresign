@@ -72,7 +72,10 @@ OC.L10N.register(
     "Yes" : "Si",
     "No" : "No",
     "Reset to default" : "Restablecer al predeterminado",
+    "Invalid URL" : "URL invalida",
+    "Optional" : "Opcional",
     "Forgot password?" : "¿Contraseña olvidada?",
-    "No date" : "Sin fecha"
+    "No date" : "Sin fecha",
+    "Unknown" : "Desconocido"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

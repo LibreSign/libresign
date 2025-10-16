@@ -259,6 +259,9 @@
     "No" : "نه",
     "Full name of the main company or main user of this instance" : "Full name of the main company or main user of this instance",
     "Reset to default" : "بازنشانی به پیش‌گزیده",
+    "Invalid URL" : "نشانی وب نامعتبر است",
+    "Username" : "نام کاربری",
+    "Optional" : "اختیاری",
     "Validation URL" : "Validation URL",
     "Add visible footer with signature details" : "Add visible footer with signature details",
     "Write QR code on footer with validation URL" : "Write QR code on footer with validation URL",
@@ -285,6 +288,8 @@
     "Status:" : "Status:",
     "Signatories:" : "Signatories:",
     "No date" : "No date",
+    "Time:" : "Time:",
+    "Unknown" : "ناشناخته.",
     "Return" : "Return",
     "Open in LibreSign" : "Open in LibreSign",
     "Requested by {name}, at {date}" : "Requested by {name}, at {date}"

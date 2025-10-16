@@ -112,10 +112,13 @@ OC.L10N.register(
     "Generated certificate!" : "Certificat generat !",
     "Yes" : "Òc",
     "No" : "Non",
+    "Username" : "Nom d'utilizaire",
+    "Optional" : "Opcional",
     "Sign the document." : "Signar aqueste document.",
     "Forgot password?" : "Senhal oblidat ?",
     "This document is valid" : "Aqueste document es valid",
     "No date" : "Cap de data",
+    "Unknown" : "Desconegut",
     "Return" : "Tornar"
 },
 "nplurals=2; plural=(n > 1);");

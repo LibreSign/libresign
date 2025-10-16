@@ -248,6 +248,9 @@ OC.L10N.register(
     "Background image" : "Taustapilt",
     "Upload new background image" : "Laadi üles uus taustapilt",
     "Remove background" : "Eemalda taust",
+    "Invalid URL" : "Vigane võrguaadress",
+    "Username" : "Kasutajanimi",
+    "Optional" : "Valikuline",
     "Sign with your email." : "Allkirjasta oma e-posti aadressiga.",
     "Send code." : "Saada kood.",
     "Review the entered number." : "Kontrolli sisestatud numbrit.",
@@ -262,6 +265,8 @@ OC.L10N.register(
     "Status:" : "Seisund:",
     "Signatories:" : "Allkirjastajad:",
     "No date" : "No date",
+    "Time:" : "Aeg:",
+    "Unknown" : "Teadmata",
     "not a LibreSign file" : "pole LibreSigni fail"
 },
 "nplurals=2; plural=(n != 1);");

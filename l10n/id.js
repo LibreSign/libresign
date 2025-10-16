@@ -100,6 +100,9 @@ OC.L10N.register(
     "on" : "pada",
     "Yes" : "Ya",
     "No" : "Tidak",
-    "No date" : "No date"
+    "Invalid URL" : "URL Tidak Valid",
+    "Username" : "Username",
+    "No date" : "No date",
+    "Unknown" : "Tidak diketahui"
 },
 "nplurals=1; plural=0;");

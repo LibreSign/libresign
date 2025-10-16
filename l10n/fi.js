@@ -185,6 +185,9 @@ OC.L10N.register(
     "No" : "Ei",
     "Reset to default" : "Palauta oletukseksi",
     "Remove background" : "Poista taustakuva",
+    "Invalid URL" : "Virheellinen URL",
+    "Username" : "Käyttäjätunnus",
+    "Optional" : "Vapaaehtoinen",
     "Validation URL" : "Validoinnin URL",
     "Sign with your cellphone number." : "Allekirjoitus matkapuhelinnumerollasi.",
     "Save your number." : "Tallenna numerosi.",
@@ -197,6 +200,8 @@ OC.L10N.register(
     "Name:" : "Nimi:",
     "Status:" : "Tila:",
     "No date" : "Ei päiväystä",
+    "Time:" : "Aika:",
+    "Unknown" : "Tuntematon",
     "Return" : "Palaa",
     "Open in LibreSign" : "Avaa LibreSignissa",
     "Requested by {name}, at {date}" : "Pyytänyt {name} {date}"

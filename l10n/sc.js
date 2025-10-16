@@ -152,6 +152,9 @@ OC.L10N.register(
     "Yes" : "Si",
     "No" : "No",
     "Reset to default" : "Torra a sa cunfiguratzione predefinida",
+    "Invalid URL" : "URL non vàlidu",
+    "Username" : "Nùmene utente",
+    "Optional" : "A praghere",
     "Validation URL" : "URL de cunvàlida",
     "Request new code" : "Rechede unu còdighe nou",
     "Sign the document." : "Firma su documentu.",
@@ -163,6 +166,8 @@ OC.L10N.register(
     "Congratulations you have digitally signed a document using LibreSign" : "Augùrios, as postu sa firma digitale a unu documentu impreende LibreSign",
     "Name:" : "Nùmene:",
     "No date" : "Peruna data",
+    "Time:" : "Tempus:",
+    "Unknown" : "Disconnotu",
     "Return" : "Torra",
     "Open in LibreSign" : "Aberi in LibreSign",
     "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}"

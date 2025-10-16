@@ -36,6 +36,9 @@ OC.L10N.register(
     "Remove" : "ຍ້າຍອອກ",
     "Yes" : "ແມ່ນແລ້ວ",
     "No" : "ບໍ່",
-    "No date" : "ບໍ່ມີວັນທີ"
+    "Invalid URL" : "URL ທີ່ບໍ່ຖືກຕ້ອງ",
+    "Username" : "ຊື່ຜູ້ໃຊ້",
+    "No date" : "ບໍ່ມີວັນທີ",
+    "Unknown" : "ບໍ່ຮູ້"
 },
 "nplurals=1; plural=0;");
