@@ -46,8 +46,10 @@ trait OrderCertificatesTrait {
 
 	private function ensureValidStructure(array $certificates): void {
 		foreach ($certificates as $cert) {
-			if (!is_array($cert) || !isset($cert['subject'], $cert['issuer'], $cert['name'])
-				|| !is_array($cert['subject']) || !is_array($cert['issuer'])) {
+			if (!is_array($cert) || !isset($cert['subject'], $cert['issuer'], $cert['name'])) {
+				throw new InvalidArgumentException('Invalid certificate structure. Certificate must have "subject", "issuer", and "name".');
+			}
+			if (!is_array($cert['subject']) || !is_array($cert['issuer'])) {
 				throw new InvalidArgumentException('Invalid certificate structure. Certificate must have "subject", "issuer", and "name".');
 			}
 		}

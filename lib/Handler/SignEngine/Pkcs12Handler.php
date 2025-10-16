@@ -164,7 +164,8 @@ class Pkcs12Handler extends SignEngineHandler {
 			}
 		}
 
-		if (isset($popplerData['signature_validation'])) {
+		if (isset($popplerData['signature_validation']) &&
+			(!isset($leafCert['signature_validation']) || $leafCert['signature_validation']['id'] !== 1)) {
 			$leafCert['signature_validation'] = $popplerData['signature_validation'];
 		}
 	}
