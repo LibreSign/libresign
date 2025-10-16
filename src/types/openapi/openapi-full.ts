@@ -1293,6 +1293,8 @@ export type components = {
             subject: string;
             issuer: string;
             extensions: string;
+            serialNumber: string;
+            serialNumberHex: string;
             validate: {
                 from: string;
                 to: string;

@@ -106,6 +106,8 @@
                     "subject",
                     "issuer",
                     "extensions",
+                    "serialNumber",
+                    "serialNumberHex",
                     "validate"
                 ],
                 "properties": {
@@ -119,6 +121,12 @@
                         "type": "string"
                     },
                     "extensions": {
+                        "type": "string"
+                    },
+                    "serialNumber": {
+                        "type": "string"
+                    },
+                    "serialNumberHex": {
                         "type": "string"
                     },
                     "validate": {
