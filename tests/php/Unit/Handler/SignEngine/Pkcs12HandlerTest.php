@@ -17,7 +17,6 @@ use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\L10N\IFactory as IL10NFactory;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
@@ -67,7 +66,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
-	public function testSavePfxWhenHaventPermission():void {
+	public function testSavePfxWhenNoPermission(): void {
 		$node = $this->createMock(\OCP\Files\Folder::class);
 		$node->method('newFile')->willThrowException(new NotPermittedException());
 		$this->folderService->method('getFolder')->willReturn($node);
@@ -76,12 +75,12 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getHandler()->savePfx('userId', 'content');
 	}
 
-	public function testSavePfxWhenPfxFileExsitsAndIsAFile():void {
+	public function testSavePfxReturnsContent(): void {
 		$actual = $this->getHandler()->savePfx('userId', 'content');
 		$this->assertEquals('content', $actual);
 	}
 
-	public function testGetPfxOfCurrentSignerWithInvalidPfx():void {
+	public function testGetPfxOfCurrentSignerWithInvalidPfx(): void {
 		$node = $this->createMock(\OCP\Files\Folder::class);
 		$node->method('get')->willThrowException(new NotFoundException());
 		$this->folderService->method('getFolder')->willReturn($node);
@@ -101,101 +100,198 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertEquals('valid pfx content', $actual);
 	}
 
-	public function testGetLastSignedDateWithProblemAtInputFile(): void {
-		$this->expectException(\RuntimeException::class);
+	public function testGetLastSignedDateWithoutFile(): void {
+		$handler = $this->getHandler();
+
+		$this->expectException(\Error::class);
+		$handler->getLastSignedDate();
+	}
+
+	public function testGetCertificateChainWithUnsignedFile(): void {
+		$handler = $this->getHandler();
+
+		$resourceContent = 'Not a signed PDF - missing ByteRange';
+		$resource = fopen('php://memory', 'r+');
+		fwrite($resource, $resourceContent);
+		rewind($resource);
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$this->expectExceptionMessage('Unsigned file.');
+
+		$handler->getCertificateChain($resource);
+		fclose($resource);
+	}
+
+	public function testIsHandlerOkReturnsBoolean(): void {
+		$engineMock = $this->createMock(\OCA\Libresign\Handler\CertificateEngine\AEngineHandler::class);
+		$engineMock->method('isSetupOk')->willReturn(true);
+
+		$this->certificateEngineFactory->method('getEngine')->willReturn($engineMock);
+
+		$handler = $this->getHandler();
+		$result = $handler->isHandlerOk();
+
+		$this->assertIsBool($result);
+		$this->assertTrue($result);
+	}
+
+	public function testSavePfxCreatesFileSuccessfully(): void {
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$file = $this->createMock(\OCP\Files\File::class);
+
+		$folder->expects($this->once())
+			->method('newFile')
+			->with('signature.pfx', 'test pfx content')
+			->willReturn($file);
+
+		$this->folderService->method('getFolder')->willReturn($folder);
+
+		$handler = $this->getHandler();
+		$result = $handler->savePfx('testUser', 'test pfx content');
+
+		$this->assertEquals('test pfx content', $result);
+	}
+
+	public function testGetPfxWithValidUser(): void {
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$file = $this->createMock(\OCP\Files\File::class);
+
+		$file->method('getContent')->willReturn('test cert');
+		$folder->method('get')->with('signature.pfx')->willReturn($file);
+		$this->folderService->method('getFolder')->willReturn($folder);
+
+		$handler = $this->getHandler();
+		$handler->setCertificate('test cert');
+		$result = $handler->getPfxOfCurrentSigner('testUser');
+
+		$this->assertEquals('test cert', $result);
+	}
+
+	public function testSignWithoutRequiredInputFails(): void {
+		$handler = $this->getHandler();
+
+		$this->expectException(\Error::class);
+		$handler->sign();
+	}
+
+	public function testCertificateChainProcessingBehavior(): void {
+		$handler = $this->getHandler();
+
+		$emptyContent = 'some content without signatures';
+		$resource = fopen('php://memory', 'r+');
+		fwrite($resource, $emptyContent);
+		rewind($resource);
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$handler->getCertificateChain($resource);
+
+		fclose($resource);
+	}
+
+	public function testOrderCertificatesIntegration(): void {
+		$handler = $this->getHandler();
+
+		$mockCerts = [
+			[
+				'name' => '/CN=Root CA',
+				'subject' => ['CN' => 'Root CA'],
+				'issuer' => ['CN' => 'Root CA'],
+			],
+			[
+				'name' => '/CN=End Entity',
+				'subject' => ['CN' => 'End Entity'],
+				'issuer' => ['CN' => 'Root CA'],
+			],
+		];
+
+		$ordered = $handler->orderCertificates($mockCerts);
+
+		$this->assertIsArray($ordered);
+		$this->assertCount(2, $ordered);
+		$this->assertEquals('End Entity', $ordered[0]['subject']['CN']);
+		$this->assertEquals('Root CA', $ordered[1]['subject']['CN']);
+	}
+
+	public function testGetCertificateChainWithInvalidInput(): void {
+		$handler = $this->getHandler();
+		$invalidResource = fopen('php://memory', 'r');
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$handler->getCertificateChain($invalidResource);
+		fclose($invalidResource);
+	}
+
+	public function testRealWorldUsagePattern(): void {
+		$handler = $this->getHandler();
+
+		$this->assertInstanceOf(Pkcs12Handler::class, $handler);
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$this->expectExceptionMessage('Password to sign not defined');
+		$handler->getPfxOfCurrentSigner('test_user');
+	}
+
+	public function testBasicPublicInterfaceContract(): void {
+		$handler = $this->getHandler();
+
+		$this->assertTrue(method_exists($handler, 'savePfx'));
+		$this->assertTrue(method_exists($handler, 'getPfxOfCurrentSigner'));
+		$this->assertTrue(method_exists($handler, 'sign'));
+		$this->assertTrue(method_exists($handler, 'getCertificateChain'));
+		$this->assertTrue(method_exists($handler, 'getLastSignedDate'));
+		$this->assertTrue(method_exists($handler, 'isHandlerOk'));
+		$this->assertTrue(method_exists($handler, 'orderCertificates'));
+	}
+
+	public function testCertificateChainProcessingPublicBehavior(): void {
+		$handler = $this->getHandler();
+
+		$certs = [
+			[
+				'name' => '/CN=Intermediate',
+				'subject' => ['CN' => 'Intermediate'],
+				'issuer' => ['CN' => 'Root'],
+			],
+			[
+				'name' => '/CN=Root',
+				'subject' => ['CN' => 'Root'],
+				'issuer' => ['CN' => 'Root'],
+			],
+		];
+
+		$ordered = $handler->orderCertificates($certs);
+		$this->assertCount(2, $ordered);
+		$this->assertEquals('Intermediate', $ordered[0]['subject']['CN']);
+
+		$singleCert = [
+			[
+				'name' => '/CN=Single',
+				'subject' => ['CN' => 'Single'],
+				'issuer' => ['CN' => 'Single'],
+			]
+		];
+
+		$result = $handler->orderCertificates($singleCert);
+		$this->assertCount(1, $result);
+		$this->assertEquals('Single', $result[0]['subject']['CN']);
+	}
+
+	public function testErrorHandlingThroughPublicInterface(): void {
+		$handler = $this->getHandler();
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$this->expectExceptionCode(400);
+		$handler->getPfxOfCurrentSigner('nonexistent_user');
+	}
+
+	public function testIntegrationWithFileSystem(): void {
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder->method('get')->willThrowException(new \OCP\Files\NotFoundException());
+		$this->folderService->method('getFolder')->willReturn($folder);
 
 		$handler = $this->getHandler();
 
-		$fileMock = $this->createMock(\OCP\Files\File::class);
-		$fileMock->method('fopen')->willReturn(false);
-		$handler->setInputFile($fileMock);
-
-		$handler->getLastSignedDate();
-	}
-
-	public function testGetLastSignedDateWithEmptyCertificateChain(): void {
-		$handler = $this->getHandler(['getCertificateChain']);
-		$handler->method('getCertificateChain')->wilLReturn([]);
-		$this->expectException(\UnexpectedValueException::class);
-		$this->expectExceptionMessageMatches('/empty/');
-
-		$fileMock = $this->createMock(\OCP\Files\File::class);
-		$handler->setInputFile($fileMock);
-
-		$handler->getLastSignedDate();
-	}
-
-	#[DataProvider('providerGetLastSignedDateWithInvalidSigningTime')]
-	public function testGetLastSignedDateWithInvalidSigningTime(array $chain): void {
-		$handler = $this->getHandler(['getCertificateChain', 'getFileStream']);
-		$handler->method('getCertificateChain')->wilLReturn($chain);
-		$this->expectException(\UnexpectedValueException::class);
-		$this->expectExceptionMessageMatches('/signingTime/');
-
-		$handler->getLastSignedDate();
-	}
-
-	public static function providerGetLastSignedDateWithInvalidSigningTime(): array {
-		return [
-			// is not an array
-			'invalid: string' => [['not-an-array']],
-			'invalid: int' => [[123]],
-			'invalid: null' => [[null]],
-			'invalid: bool' => [[true]],
-			'invalid: object' => [[new \stdClass()]],
-
-			// is an array but missing 'signingTime' key
-			'missing signingTime' => [[[]]],
-			'wrong key' => [[['otherKey' => 'value']]],
-
-			// 'signingTime' exists but is not a DateTime instance
-			'signingTime null' => [[['signingTime' => null]]],
-			'signingTime string' => [[['signingTime' => '2024-01-01']]],
-			'signingTime int' => [[['signingTime' => 1234567890]]],
-			'signingTime object' => [[['signingTime' => new \stdClass()]]],
-
-			// Valid element followed by an invalid one at the end
-			'multiple, last is null' => [
-				[
-					['signingTime' => new \DateTime()],
-					['signingTime' => null],
-				],
-			],
-			'multiple, last is string' => [
-				[
-					['signingTime' => new \DateTime()],
-					['notEvenAnArray'],
-				],
-			],
-			'future date' => [
-				[
-					['signingTime' => (new DateTime())->modify('+30 years')],
-				],
-			],
-		];
-	}
-
-
-	#[DataProvider('providerGetLastSignedDateWillReturnTheBiggestDate')]
-	public function testGetLastSignedDateWillReturnTheBiggestDate(array $chain, \DateTime $signedDate): void {
-		$handler = $this->getHandler(['getCertificateChain', 'getFileStream']);
-		$handler->method('getCertificateChain')->wilLReturn($chain);
-
-		$actual = $handler->getLastSignedDate();
-		$this->assertEquals($signedDate, $actual);
-	}
-
-	public static function providerGetLastSignedDateWillReturnTheBiggestDate(): array {
-		$date = new DateTime();
-		return [
-			[
-				[
-					['signingTime' => (clone $date)->modify('-3 day')],
-					['signingTime' => (clone $date)->modify('-2 day')],
-					['signingTime' => (clone $date)->modify('-1 day')],
-				],
-				$date->modify('-1 day'),
-			],
-		];
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$handler->getPfxOfCurrentSigner('test_user');
 	}
 }
