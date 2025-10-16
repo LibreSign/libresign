@@ -68,6 +68,8 @@ namespace OCA\Libresign;
  *     subject: string,
  *     issuer: string,
  *     extensions: string,
+ *     serialNumber: string,
+ *     serialNumberHex: string,
  *     validate: array{
  *         from: string,
  *         to: string,
