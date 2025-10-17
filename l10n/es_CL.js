@@ -65,6 +65,7 @@ OC.L10N.register(
     "Yes" : "Sí",
     "No" : "No",
     "Reset to default" : "Restablecer al predeterminado",
+    "Username" : "Usuario",
     "Optional" : "Opcional",
     "Forgot password?" : "¿Olvidaste tu contraseña?",
     "No date" : "Sin fecha",
