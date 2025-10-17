@@ -47,6 +47,7 @@ OC.L10N.register(
     "New password" : "Yeni şifrə",
     "Yes" : "Yes",
     "No" : "No",
+    "Username" : "İstifadəçi adı",
     "Name:" : "Ad:",
     "No date" : "No date"
 },

@@ -248,8 +248,13 @@ OC.L10N.register(
     "Background image" : "Taustapilt",
     "Upload new background image" : "Laadi üles uus taustapilt",
     "Remove background" : "Eemalda taust",
+    "Without authentication" : "Ilma autentimata",
+    "Username / Password" : "Kasutajanimi / salasõna",
     "Invalid URL" : "Vigane võrguaadress",
+    "Format: https://example.com/tsa" : "Vorming: https://toresait.ee/tsa",
+    "Example: 1.2.3.4.1 or leave empty for default" : "Näide: 1.2.3.4.1 või jäta tühjaks vaikimisi väärtuse jaoks",
     "Username" : "Kasutajanimi",
+    "Use timestamp server" : "Kasuta ajatempli serverit",
     "Optional" : "Valikuline",
     "Sign with your email." : "Allkirjasta oma e-posti aadressiga.",
     "Send code." : "Saada kood.",
@@ -267,6 +272,8 @@ OC.L10N.register(
     "No date" : "No date",
     "Time:" : "Aeg:",
     "Unknown" : "Teadmata",
+    "Valid from:" : "Kehtib alates:",
+    "Valid to:" : "Kehtib kuni:",
     "not a LibreSign file" : "pole LibreSigni fail"
 },
 "nplurals=2; plural=(n != 1);");

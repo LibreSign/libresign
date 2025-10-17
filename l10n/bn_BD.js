@@ -33,6 +33,8 @@ OC.L10N.register(
     "New password" : "নতুন কূটশব্দ",
     "Yes" : "Yes",
     "No" : "No",
-    "No date" : "No date"
+    "Username" : "ব্যবহারকারী",
+    "No date" : "No date",
+    "Unknown" : "অজানা"
 },
 "nplurals=2; plural=(n != 1);");

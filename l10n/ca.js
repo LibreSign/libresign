@@ -274,6 +274,9 @@ OC.L10N.register(
     "No" : "No",
     "Full name of the main company or main user of this instance" : "Nom complet de l'empresa principal o usuari principal d'aquesta instància",
     "Reset to default" : "Reinicialitza els valors per defecte",
+    "Invalid URL" : "URL no vàlid",
+    "Username" : "Nom d'usuari",
+    "Optional" : "Opcional",
     "Validation URL" : "URL de validació",
     "Add visible footer with signature details" : "Afegiu un peu de pàgina visible amb els detalls de la signatura",
     "Write QR code on footer with validation URL" : "Escriu el codi QR al peu de pàgina amb l'URL de validació",
@@ -300,6 +303,8 @@ OC.L10N.register(
     "Status:" : "Estat:",
     "Signatories:" : "Signants:",
     "No date" : "Sense data",
+    "Time:" : "Hora:",
+    "Unknown" : "Desconegut",
     "Return" : "Retorn",
     "Open in LibreSign" : "Obre a LibreSign",
     "Requested by {name}, at {date}" : "Sol·licitat per {name}, a {date}"

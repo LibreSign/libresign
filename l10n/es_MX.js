@@ -96,10 +96,12 @@ OC.L10N.register(
     "No" : "No",
     "Reset to default" : "Restablecer al predeterminado",
     "Invalid URL" : "URL inválida",
+    "Username" : "Usuario",
     "Optional" : "Opcional",
     "Name:" : "Nombre:",
     "Status:" : "Estado:",
     "No date" : "Sin fecha",
+    "Time:" : "Hora:",
     "Unknown" : "Desconocido"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

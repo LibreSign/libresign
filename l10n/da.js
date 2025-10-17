@@ -101,10 +101,15 @@ OC.L10N.register(
     "No" : "Nej",
     "Reset to default" : "Nulstil",
     "Remove background" : "Fjern baggrund",
+    "Invalid URL" : "Ugyldig URL",
+    "Username" : "Brugernavn",
+    "Optional" : "Valgfri",
     "Forgot password?" : "Glemt adgangskode?",
     "Name:" : "Navn:",
     "Status:" : "Status:",
     "No date" : "Ingen dato",
+    "Time:" : "Tid:",
+    "Unknown" : "Ukendt",
     "Return" : "Aflever"
 },
 "nplurals=2; plural=(n != 1);");

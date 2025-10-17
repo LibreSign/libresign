@@ -93,8 +93,12 @@ OC.L10N.register(
     "Yes" : "Sí",
     "No" : "Non",
     "Reset to default" : "Reafitar los valores",
+    "Invalid URL" : "La URL ye inválisa",
+    "Username" : "Nome d'usuariu",
     "Forgot password?" : "¿Escaeciesti la contraseña?",
     "Name:" : "Nome:",
-    "Status:" : "Estáu:"
+    "Status:" : "Estáu:",
+    "Time:" : "Hora:",
+    "Unknown" : "Desconocí­u"
 },
 "nplurals=2; plural=(n != 1);");

@@ -74,9 +74,11 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Reset to default" : "Restarigi al defaŭltaj agordoj",
+    "Username" : "Uzantnomo",
     "Optional" : "Malnepra",
     "Forgot password?" : "Ĉu vi forgesis vian pasvorton?",
     "No date" : "No date",
+    "Time:" : "Tempo:",
     "Unknown" : "Nekonata"
 },
 "nplurals=2; plural=(n != 1);");
