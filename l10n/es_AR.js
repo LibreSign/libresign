@@ -73,6 +73,7 @@ OC.L10N.register(
     "No" : "No",
     "Reset to default" : "Restablecer al predeterminado",
     "Invalid URL" : "URL invalida",
+    "Username" : "Nombre de usuario",
     "Optional" : "Opcional",
     "Forgot password?" : "¿Contraseña olvidada?",
     "No date" : "Sin fecha",

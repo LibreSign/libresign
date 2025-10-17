@@ -261,6 +261,9 @@ OC.L10N.register(
     "Full name of the main company or main user of this instance" : "Пълно име на основната компания или основния потребител на този екземпляр",
     "Reset to default" : "Настройки по подразбиране",
     "Remove background" : "Премахване на фона",
+    "Invalid URL" : "Грешно URL",
+    "Username" : "Потребител",
+    "Optional" : "По избор",
     "Validation URL" : "Проверка на URL",
     "Add visible footer with signature details" : "Добавяне на видим колонтитул с подробности за подписа",
     "Write QR code on footer with validation URL" : "Напишете QR код в долния колонтитул с URL адрес за проверка",
@@ -287,6 +290,8 @@ OC.L10N.register(
     "Status:" : "Състояние:",
     "Signatories:" : "Подписалите се:",
     "No date" : "Няма дата",
+    "Time:" : "Час:",
+    "Unknown" : "Неизвестен",
     "Return" : "Връщане ",
     "Open in LibreSign" : "Отваряне в LibreSign",
     "Requested by {name}, at {date}" : "Поискано от {name}, на {date}"
