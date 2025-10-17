@@ -4,7 +4,6 @@
 -->
 <template>
 	<div v-if="Object.keys(certificate).length" class="certificate-content">
-		<!-- Owner Section -->
 		<NcSettingsSection :name="t('libresign', 'Owner of certificate')">
 			<div class="certificate-fields">
 				<div v-for="(value, customName) in orderList(certificate.subject)"
@@ -34,7 +33,7 @@
 				<div v-for="(extra, key) in certificate.extracerts"
 					:key="`extracerts-${key}`"
 					class="chain-certificate">
-					<h4 class="chain-title">
+					<h4 class="chain-certificate-title">
 						{{ getChainCertificateLabel(key, extra) }}
 					</h4>
 					<CertificateContent :certificate="extra" :index="index + '_' + key" />
@@ -81,26 +80,25 @@
 				<div v-for="(value, name) in certificate.extensions"
 					:key="name"
 					class="certificate-field">
-					<span class="field-label">{{ name }}</span>
+					<span class="field-label">{{ camelCaseToTitleCase(name) }}</span>
 					<span class="field-value">{{ value }}</span>
 				</div>
 			</div>
 		</NcSettingsSection>
 
-		<NcSettingsSection v-if="certificate.purposes && Object.keys(certificate.purposes).length && index === '0'"
+		<NcSettingsSection v-if="shouldShowPurposes"
 			:name="t('libresign', 'Certificate purposes')">
 			<div class="purposes-grid">
-				<div v-for="(purpose, purposeIndex) in certificate.purposes"
+				<NcNoteCard v-for="(purpose, purposeIndex) in certificate.purposes"
 					:key="purposeIndex"
-					class="purpose-item"
-					:class="{ 'purpose-allowed': purpose[0], 'purpose-denied': !purpose[0] }">
-					<div class="purpose-name">{{ formatPurposeName(purpose[2]) }}</div>
+					:type="purpose[0] ? 'success' : 'error'"
+					:heading="formatPurposeName(purpose[2])">
 					<div class="purpose-status">
-						<span v-if="purpose[0]" class="status-allowed">✓ {{ t('libresign', 'Allowed') }}</span>
-						<span v-else class="status-denied">✗ {{ t('libresign', 'Not allowed') }}</span>
-						<span v-if="purpose[1]" class="ca-badge">CA</span>
+						<span v-if="purpose[0]">{{ t('libresign', 'Allowed') }}</span>
+						<span v-else>{{ t('libresign', 'Not allowed') }}</span>
+						<NcChip v-if="purpose[1]" no-close>CA</NcChip>
 					</div>
-				</div>
+				</NcNoteCard>
 			</div>
 		</NcSettingsSection>
 	</div>
@@ -110,11 +108,15 @@
 
 import { selectCustonOption } from '../../helpers/certification.js'
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
+import NcChip from '@nextcloud/vue/dist/Components/NcChip.js'
 
 export default {
 	name: 'CertificateContent',
 	components: {
 		NcSettingsSection,
+		NcNoteCard,
+		NcChip,
 	},
 	props: {
 		certificate: {
@@ -129,6 +131,13 @@ export default {
 	},
 	data() {
 		return {}
+	},
+	computed: {
+		shouldShowPurposes() {
+			return this.certificate.purposes &&
+				Object.keys(this.certificate.purposes).length &&
+				this.index === '0'
+		},
 	},
 	methods: {
 		orderList(data) {
@@ -146,12 +155,25 @@ export default {
 			return sorted
 		},
 		getLabelFromId(id) {
-			try {
-				const item = selectCustonOption(id).unwrap()
-				return item.label
-			} catch (error) {
-				return id
+			const option = selectCustonOption(id)
+			if (option.isSome()) {
+				return this.camelCaseToTitleCase(option.unwrap().label)
 			}
+			return this.camelCaseToTitleCase(id)
+		},
+		camelCaseToTitleCase(text) {
+			if (text.includes(' ')) {
+				return text.replace(/^./, str => str.toUpperCase())
+			}
+
+			return text
+				// Handle acronyms (consecutive uppercase letters)
+				.replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+				// Add space before uppercase letters that follow lowercase
+				.replace(/([a-z])([A-Z])/g, '$1 $2')
+				// Capitalize first letter
+				.replace(/^./, str => str.toUpperCase())
+				.trim()
 		},
 		formatPurposeName(purpose) {
 			const purposeNames = {
@@ -183,44 +205,43 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.certificate-content {
-	max-width: 900px;
-}
+$border: 1px solid var(--color-border-dark);
+$desktop: 768px;
 
 .certificate-field {
 	display: flex;
 	flex-direction: column;
 	padding: 12px 0;
-	border-bottom: 1px solid var(--color-border-dark);
+	border-bottom: $border;
 	gap: 4px;
 
-	&:last-child {
-		border-bottom: none;
-	}
+	&:last-child { border-bottom: none; }
 
-	@media (min-width: 768px) {
+	@media (min-width: $desktop) {
 		flex-direction: row;
 		gap: 16px;
 	}
 }
 
-.field-label {
-	font-size: 12px;
-	color: var(--color-text-maxcontrast);
-	font-weight: 500;
+.field {
+	&-label {
+		color: var(--color-text-maxcontrast);
+		align-self: flex-start;
 
-	@media (min-width: 768px) {
-		min-width: 140px;
-		text-align: right;
-		padding-right: 16px;
-		border-right: 1px solid var(--color-border-dark);
+		@media (min-width: $desktop) {
+			min-width: 140px;
+			max-width: 140px;
+			text-align: right;
+			padding-right: 16px;
+			border-right: $border;
+			word-wrap: break-word;
+		}
 	}
-}
 
-.field-value {
-	color: var(--color-main-text);
-	word-break: break-all;
-	flex: 1;
+	&-value {
+		word-break: break-all;
+		align-self: flex-start;
+	}
 }
 
 .chain-certificate {
@@ -228,64 +249,26 @@ export default {
 	border-radius: var(--border-radius);
 	margin-bottom: 16px;
 
-	.chain-title {
+	&-title {
 		background: var(--color-background-dark);
 		padding: 12px 16px;
 		font-weight: 600;
 		border-radius: var(--border-radius) var(--border-radius) 0 0;
 	}
-
-	.certificate-content {
-		padding: 16px;
-	}
 }
 
-.purposes-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-	gap: 12px;
-}
+.purposes {
+	&-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		gap: 12px;
 
-.purpose-item {
-	background: var(--color-background-hover);
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius);
-	padding: 12px;
-
-	&.purpose-allowed {
-		border-left: 4px solid var(--color-success);
-	}
-
-	&.purpose-denied {
-		border-left: 4px solid var(--color-error);
+		:deep(.notecard__heading) { font-size: unset; }
 	}
 }
 
 .purpose-status {
 	display: flex;
-	align-items: center;
 	gap: 8px;
-	font-size: 12px;
-	margin-top: 4px;
-}
-
-.status-allowed {
-	color: var(--color-success);
-	font-weight: bold;
-}
-
-.status-denied {
-	color: var(--color-error);
-	font-weight: bold;
-}
-
-.ca-badge {
-	background: var(--color-warning);
-	color: white;
-	padding: 2px 6px;
-	border-radius: 10px;
-	font-size: 10px;
-	font-weight: bold;
-	text-transform: uppercase;
 }
 </style>
