@@ -211,7 +211,7 @@ $desktop: 768px;
 .certificate-field {
 	display: flex;
 	flex-direction: column;
-	padding: 12px 0;
+	padding: 6px 0;
 	border-bottom: $border;
 	gap: 4px;
 
