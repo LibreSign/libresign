@@ -59,7 +59,7 @@
 				<div class="section">
 					<div class="header">
 						<NcIconSvgWrapper :path="mdiInformationSlabCircle" :size="30" />
-						<h1>{{ t('libresign', 'Document informations') }}</h1>
+						<h1>{{ t('libresign', 'Document information') }}</h1>
 					</div>
 					<NcNoteCard v-if="isAfterSigned" type="success">
 						{{ t('libresign', 'Congratulations you have digitally signed a document using LibreSign') }}
