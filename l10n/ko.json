@@ -199,6 +199,8 @@
     "\"{displayName}\" batch action executed successfully" : "\"{displayName}\" 일괄 작업을 성공적으로 실행함",
     "\"{displayName}\" action failed" : "\"{displayName}\" 작업을 실패함",
     "(selected)" : "(선택됨)",
+    "Version" : "버전",
+    "Allowed" : "허용됨",
     "Request Signatures" : "서명 요청",
     "Password reset" : "암호 재설정",
     "Enter new password and then repeat it" : "새 암호를 입력한 후 반복합니다.",

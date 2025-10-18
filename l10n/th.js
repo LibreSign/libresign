@@ -58,6 +58,7 @@ OC.L10N.register(
     "Modified" : "แก้ไขเมื่อ",
     "1 file" : "1 ไฟล์",
     "Created at" : "สร้างเมื่อ",
+    "Version" : "รุ่น",
     "Password reset" : "ตั้งรหัสผ่านใหม่",
     "Current password" : "รหัสผ่านปัจจุบัน",
     "New password" : "รหัสผ่านใหม่",

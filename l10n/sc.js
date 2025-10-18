@@ -129,6 +129,8 @@ OC.L10N.register(
     "{fileCount} files" : "{fileCount} archìvios",
     "Created at" : "Creadu su",
     "(selected)" : "(seletzionados)",
+    "Version" : "Versione",
+    "Allowed" : "Cunsentidu",
     "Request Signatures" : "Rechede firmas",
     "Password reset" : "Riprìstinu de sa crae",
     "Enter new password and then repeat it" : "Pone sa crae noa e a pustis torra·dda a pònnere",

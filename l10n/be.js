@@ -91,6 +91,7 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "Не ўдалося выканаць дзеянне \"{displayName}\"",
     "(selected)" : "(выбраны)",
     "_{count} selected_::_{count} selected_" : ["Выбраны {count}","Выбраны {count}","Выбрана {count}","Выбрана {count}"],
+    "Valid from" : "Дзейнічае з",
     "Password reset" : "Скід пароля",
     "Current password" : "Бягучы пароль",
     "New password" : "Новы пароль",

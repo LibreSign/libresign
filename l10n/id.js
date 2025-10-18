@@ -90,6 +90,7 @@ OC.L10N.register(
     "Modified" : "Dimodifikasi",
     "1 file" : "1 berkas",
     "Created at" : "Dibuat saat",
+    "Version" : "Versi",
     "Password reset" : "Setel ulang kata sandi",
     "Current password" : "Kata sandi saat ini",
     "New password" : "Kata sandi baru",

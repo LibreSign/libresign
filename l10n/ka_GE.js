@@ -48,6 +48,7 @@ OC.L10N.register(
     "Today" : "დღეს",
     "Modified" : "შეიცვალა",
     "Created at" : "შეიქმნა",
+    "Version" : "ვერსია",
     "Password reset" : "პაროლის აღდგენა",
     "Current password" : "ამჟამინდელი პაროლი",
     "New password" : "ახალი პაროლი",

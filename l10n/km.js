@@ -23,6 +23,7 @@ OC.L10N.register(
     "Ok" : "ព្រម",
     "Today" : "ថ្ងៃ​នេះ",
     "Modified" : "បាន​កែ​ប្រែ",
+    "Version" : "កំណែ",
     "Current password" : "ពាក្យសម្ងាត់​បច្ចុប្បន្ន",
     "New password" : "ពាក្យ​សម្ងាត់​ថ្មី",
     "Yes" : "Yes",

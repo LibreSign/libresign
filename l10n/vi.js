@@ -76,6 +76,7 @@ OC.L10N.register(
     "\"{displayName}\" batch action executed successfully" : "Chỉnh sửa hàng loạt \"{displayName}\" được thực hiện thành công",
     "\"{displayName}\" action failed" : "Hành động \"{displayName}\" đã thực thi thất bại",
     "(selected)" : "(đã chọn)",
+    "Version" : "Phiên bản",
     "Password reset" : "Đặt lại mật khẩu",
     "Current password" : "Mật khẩu cũ",
     "New password" : "Mật khẩu mới",

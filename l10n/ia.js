@@ -30,6 +30,7 @@ OC.L10N.register(
     "Enter a password" : "Enter a password",
     "Today" : "Hodie",
     "Modified" : "Modificate",
+    "Version" : "Version",
     "Current password" : "Contrasigno actual",
     "New password" : "Nove contrasigno",
     "Resource" : "Ressource",

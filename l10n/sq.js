@@ -53,6 +53,7 @@ OC.L10N.register(
     "Modified" : "Modifikuar ",
     "1 file" : "1 skedar",
     "Created at" : "U krijua në",
+    "Version" : "Versioni",
     "Password reset" : "Fjalkalimi u rivendos",
     "Current password" : "Fjalëkalimi aktual",
     "New password" : "Fjalëkalim i ri",

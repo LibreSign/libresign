@@ -35,6 +35,7 @@ OC.L10N.register(
     "Enter a password" : "Unesite lozinku",
     "Ok" : "Ok",
     "Today" : "Danas",
+    "Version" : "Verzija",
     "Password reset" : "Resetovanje lozinke",
     "New password" : "Nova lozinka",
     "Yes" : "Da",

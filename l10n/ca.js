@@ -228,6 +228,7 @@ OC.L10N.register(
     "\"{displayName}\" batch action executed successfully" : "L'acció per lots «{displayName}» s'ha executat correctament",
     "\"{displayName}\" action failed" : "S'ha produït un error en l'acció «{displayName}»",
     "(selected)" : "(seleccionat)",
+    "Allowed" : "Permès",
     "Request Signatures" : "Demanar signatures",
     "Password reset" : "Restableix contrasenya",
     "Enter new password and then repeat it" : "Introduïu la nova contrasenya i després repetiu-la",

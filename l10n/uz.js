@@ -49,6 +49,7 @@ OC.L10N.register(
     "Remove filter" : "Filtrni olib tashlang",
     "{fileCount} files" : "{fileCount} fayllari",
     "_{count} selected_::_{count} selected_" : ["{count} tanlangan"],
+    "Version" : "Versiya",
     "Password reset" : "Password reset",
     "Current password" : "Current password",
     "New password" : "New password",

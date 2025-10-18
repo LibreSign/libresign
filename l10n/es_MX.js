@@ -80,6 +80,7 @@ OC.L10N.register(
     "\"{displayName}\" batch action executed successfully" : "La acción en lote \"{displayName}\" se ejecutó exitosamente",
     "\"{displayName}\" action failed" : "La acción \"{displayName}\" falló",
     "(selected)" : "(seleccionado)",
+    "Allowed" : "Permitido",
     "Password reset" : "Restablecer contraseña",
     "Current password" : "Contraseña actual",
     "New password" : "Nueva contraseña",
