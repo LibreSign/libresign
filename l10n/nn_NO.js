@@ -41,6 +41,7 @@ OC.L10N.register(
     "Today" : "I dag",
     "Modified" : "Endra",
     "Created at" : "Skapt den",
+    "Version" : "Utgåve",
     "Password reset" : "Passord omstilling",
     "Current password" : "Passord",
     "New password" : "Nytt passord",

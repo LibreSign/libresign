@@ -171,6 +171,8 @@ OC.L10N.register(
     "There are no documents" : "Nema dokumenata",
     "Choose the file to request signatures." : "Odaberite datoteku za traženje potpisa.",
     "Created at" : "Stvoreno",
+    "Version" : "Inačica",
+    "Allowed" : "Dopušteno",
     "Request Signatures" : "Zatraži potpise",
     "Password reset" : "Resetiranje zaporke",
     "Enter new password and then repeat it" : "Unesite novu zaporku, a zatim je ponovite",

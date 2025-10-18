@@ -207,6 +207,7 @@ OC.L10N.register(
     "\"{displayName}\" failed on some elements " : "La acción \"{displayName}\" falló en algunos elementos.",
     "\"{displayName}\" batch action executed successfully" : "La acción en lote \"{displayName}\" se ejecutó correctamente.",
     "\"{displayName}\" action failed" : "La acción \"{displayName}\" falló.",
+    "Allowed" : "Permitido",
     "Request Signatures" : "Solicitar firmas",
     "Password reset" : "Restablecer contraseña",
     "Enter new password and then repeat it" : "Ingresa la nueva contraseña y repítela",

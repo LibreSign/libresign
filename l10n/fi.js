@@ -164,6 +164,8 @@ OC.L10N.register(
     "\"{displayName}\" batch action executed successfully" : "\"{displayName}\" massatoiminto suoritettu",
     "(selected)" : "(valittu)",
     "_{count} selected_::_{count} selected_" : ["{count} valittu","{count} valittu"],
+    "Version" : "Versio",
+    "Allowed" : "Sallittu",
     "Request Signatures" : "Pyydä allekirjoituksia",
     "Password reset" : "Salasanan palautus",
     "Enter new password and then repeat it" : "Kirjoita uusi salasana ja toista se",

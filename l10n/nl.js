@@ -210,6 +210,8 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "\"{displayName}\" actie mislukt",
     "(selected)" : "(geselecteerd)",
     "_{count} selected_::_{count} selected_" : ["{count} geselecteerd","{count} geselecteerd"],
+    "Version" : "Versie",
+    "Allowed" : "Toegelaten",
     "Request Signatures" : "Aanvragen ondertekening",
     "Password reset" : "Wachtwoordherstel",
     "Enter new password and then repeat it" : "Voer een nieuw wachtwoord in en herhaal het",

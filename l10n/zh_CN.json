@@ -201,6 +201,8 @@
     "\"{displayName}\" action failed" : "“{displayName}”操作执行失败",
     "(selected)" : "（选中）",
     "_{count} selected_::_{count} selected_" : ["已选择 {count} 个"],
+    "Version" : "版本",
+    "Allowed" : "允许",
     "Request Signatures" : "请求签名",
     "Password reset" : "密码重置",
     "Enter new password and then repeat it" : "输入新密码并重复一次",

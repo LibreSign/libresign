@@ -88,6 +88,8 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "\"{displayName}\" акцијата не успеа",
     "(selected)" : "(означени)",
     "_{count} selected_::_{count} selected_" : ["{count} означена","{count} означени"],
+    "Version" : "Верзија",
+    "Allowed" : "Дозволено",
     "Password reset" : "Ресетирај лозинка",
     "Current password" : "Моментална лозинка",
     "New password" : "Нова лозинка",

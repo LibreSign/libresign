@@ -232,6 +232,8 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "A(z) „{displayName}” művelet sikertelen",
     "(selected)" : "(kijelölt)",
     "_{count} selected_::_{count} selected_" : ["{count} kijelölve","{count} kijelölve"],
+    "Version" : "Verzió",
+    "Allowed" : "Engedélyezett",
     "Request Signatures" : "Aláírások kérése",
     "Password reset" : "Jelszó-visszaállítás",
     "Enter new password and then repeat it" : "Adja meg az új jelszót, majd ismételje meg",

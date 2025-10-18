@@ -39,6 +39,7 @@ OC.L10N.register(
     "Today" : "өнөөдөр",
     "Modified" : "Өөрчлөгдсөн",
     "Created at" : "үүсгэгдсэн",
+    "Version" : "төрөл",
     "Password reset" : "Нууц үг солих",
     "Current password" : "одоогийн нууц үг",
     "New password" : "шинэ нууц үг",
