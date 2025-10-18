@@ -245,4 +245,57 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 		];
 	}
+
+	public function testSerialNumberGeneration(): void {
+		$rootInstance = $this->getInstance();
+		$rootInstance->generateRootCert('', []);
+
+		$signerInstance = $this->getInstance();
+		$signerInstance->setCommonName('Test User');
+		$signerInstance->setPassword('123456');
+
+		$certificate = $signerInstance->generateCertificate();
+		$parsed = $signerInstance->readCertificate($certificate, '123456');
+
+		$this->assertArrayHasKey('serialNumber', $parsed, 'Certificate should have serialNumber field');
+		$this->assertArrayHasKey('serialNumberHex', $parsed, 'Certificate should have serialNumberHex field');
+		$this->assertNotNull($parsed['serialNumber'], 'Serial number should not be null');
+		$this->assertNotNull($parsed['serialNumberHex'], 'Serial number hex should not be null');
+
+		$this->assertNotEquals('0', $parsed['serialNumber'], 'Serial number should not be zero');
+		$this->assertNotEquals('00', $parsed['serialNumberHex'], 'Serial number hex should not be zero');
+
+		$serialInt = (int)$parsed['serialNumber'];
+		$this->assertGreaterThanOrEqual(1000000, $serialInt, 'Serial number should be >= 1000000');
+		$this->assertLessThanOrEqual(2147483647, $serialInt, 'Serial number should be <= 2147483647');
+
+		$this->assertIsNumeric($parsed['serialNumber'], 'Serial number should be numeric');
+		$this->assertMatchesRegularExpression('/^[0-9A-Fa-f]+$/', $parsed['serialNumberHex'], 'Serial number hex should contain only hex characters');
+	}
+
+	public function testUniqueSerialNumbers(): void {
+		$rootInstance = $this->getInstance();
+		$rootInstance->generateRootCert('', []);
+
+		$serialNumbers = [];
+		$numCertificates = 3;
+
+		for ($i = 0; $i < $numCertificates; $i++) {
+			$signerInstance = $this->getInstance();
+			$signerInstance->setCommonName("Test Certificate $i");
+			$signerInstance->setPassword('123456');
+			$certificateContent = $signerInstance->generateCertificate();
+			$parsed = $signerInstance->readCertificate($certificateContent, '123456');
+
+			$serialNumber = $parsed['serialNumber'];
+
+			$this->assertNotEquals('0', $serialNumber, "Certificate $i should not have serial number 0");
+
+			$this->assertNotContains($serialNumber, $serialNumbers, "Certificate $i should have unique serial number");
+
+			$serialNumbers[] = $serialNumber;
+		}
+
+		$this->assertCount($numCertificates, array_unique($serialNumbers), 'All serial numbers should be unique');
+	}
 }
