@@ -76,6 +76,7 @@ OC.L10N.register(
     "\"{displayName}\" failed on some elements " : "\"{displayName}\" a eșuat asupra unor elemente ",
     "\"{displayName}\" batch action executed successfully" : "\"{displayName}\" acțiunea batch a fost executată cu succes",
     "\"{displayName}\" action failed" : "Acțiunea \"{displayName}\" a eșuat",
+    "Version" : "Versiune",
     "Password reset" : "Resetare parolă",
     "Current password" : "Parola curentă",
     "New password" : "Noua parolă",

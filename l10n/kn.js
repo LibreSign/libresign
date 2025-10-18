@@ -23,6 +23,7 @@ OC.L10N.register(
     "Ok" : "﻿ಸರಿ",
     "Today" : "Today",
     "Modified" : "﻿ಬದಲಾಯಿಸಿದ",
+    "Version" : "﻿ಆವೃತ್ತಿ",
     "Current password" : "ಪ್ರಸ್ತುತ ಗುಪ್ತಪದ",
     "New password" : "﻿ಹೊಸ ಗುಪ್ತಪದ",
     "Yes" : "Yes",

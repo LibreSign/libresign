@@ -65,6 +65,8 @@ OC.L10N.register(
     "Modified" : "מועד שינוי",
     "1 file" : "1 קובץ",
     "Created at" : "נוצר ב־",
+    "Version" : "גרסה",
+    "Allowed" : "מורשה",
     "Password reset" : "איפוס ססמה",
     "Current password" : "ססמה נוכחית",
     "New password" : "ססמה חדשה",

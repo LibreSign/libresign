@@ -101,6 +101,7 @@ OC.L10N.register(
     "Modified" : "Modificat",
     "1 file" : "1 fichièr",
     "Created at" : "Creat lo",
+    "Version" : "Version",
     "Password reset" : "Reïnicializacion de senhal",
     "Current password" : "Senhal actual",
     "New password" : "Senhal novèl",

@@ -74,6 +74,8 @@ OC.L10N.register(
     "\"{displayName}\" failed on some elements " : "\"{displayName}\" failed on some elements ",
     "\"{displayName}\" batch action executed successfully" : "\"{displayName}\" batch action executed successfully",
     "\"{displayName}\" action failed" : "\"{displayName}\" action failed",
+    "Version" : "ვერსია",
+    "Allowed" : "Allowed",
     "Password reset" : "Password reset",
     "Current password" : "Current password",
     "New password" : "New password",

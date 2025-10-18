@@ -84,6 +84,7 @@
     "\"{displayName}\" action failed" : "\"{displayName}\" massehandling mislykkedes",
     "(selected)" : "(valgt)",
     "_{count} selected_::_{count} selected_" : ["{count} valgt","{count} valgt"],
+    "Allowed" : "Tilladt",
     "Password reset" : "Nulstil adgangskode",
     "Current password" : "Nuværende adgangskode",
     "New password" : "Ny adgangskode",

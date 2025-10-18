@@ -49,6 +49,7 @@ OC.L10N.register(
     "Today" : "Hoy",
     "Modified" : "Modificado",
     "Created at" : "Creado en",
+    "Version" : "Versión",
     "Password reset" : "Restablecer contraseña",
     "Current password" : "Contraseña actual",
     "New password" : "Nueva contraseña",
