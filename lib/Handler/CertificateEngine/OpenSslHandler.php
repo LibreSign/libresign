@@ -47,7 +47,10 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 		$csr = openssl_csr_new($this->getCsrNames(), $privateKey, ['digest_alg' => 'sha256']);
 		$options = $this->getRootCertOptions();
-		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365 * 5, $options);
+
+		$serialNumber = random_int(1000000, 2147483647);
+
+		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365 * 5, $options, $serialNumber);
 
 		openssl_csr_export($csr, $csrout);
 		openssl_x509_export($x509, $certout);
@@ -92,12 +95,13 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			throw new LibresignException('OpenSSL error: ' . $message);
 		}
 
+		$serialNumber = random_int(1000000, 2147483647);
+
 		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, $this->expirity(), [
 			'config' => $this->getFilenameToLeafCert(),
-			// This will set "basicConstraints" to CA:FALSE, the default is CA:TRUE
-			// The signer certificate is not a Certificate Authority
 			'x509_extensions' => 'v3_req',
-		]);
+		], $serialNumber);
+
 		return parent::exportToPkcs12(
 			$x509,
 			$privateKey,
