@@ -391,7 +391,6 @@ OC.L10N.register(
     "From UUID" : "Od UUID",
     "Enter the ID or UUID of the document to validate." : "Vložte ID alebo UUID dokumentu pre overenie.",
     "Validation" : "Kontrola platnosti",
-    "Document informations" : "Informácie o dokumente",
     "Congratulations you have digitally signed a document using LibreSign" : "Blahoželáme vám, že ste digitálne podpísali dokument pomocou LibreSign",
     "Name:" : "Meno:",
     "Status:" : "Stav:",
@@ -418,6 +417,7 @@ OC.L10N.register(
     "Open in LibreSign" : "Otvoriť v LibreSign",
     "not a LibreSign file" : "toto nie je súbor LibreSign ",
     "New signature request" : "Nová žiadosť o podpis",
-    "Requested by {name}, at {date}" : "Vyžiadané od {name}, o {date}"
+    "Requested by {name}, at {date}" : "Vyžiadané od {name}, o {date}",
+    "Document informations" : "Informácie o dokumente"
 },
 "nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);");

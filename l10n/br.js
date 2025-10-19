@@ -42,6 +42,7 @@ OC.L10N.register(
     "Today" : "Hiziv",
     "Modified" : "Cheñchet",
     "Created at" : "Krouet da",
+    "Version" : "Stumm",
     "Password reset" : "Ger-tremen cheñchet",
     "Current password" : "Ger-tremen hiziv",
     "New password" : "Ger-tremen nevez",

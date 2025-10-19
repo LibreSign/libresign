@@ -286,6 +286,8 @@
     "Finish the setup" : "إنهاء الإعداد",
     "Owner of certificate" : "مالك الشهادة",
     "Issuer of certificate" : "مُصدِر الشهادة",
+    "Version" : "الإصدار",
+    "Allowed" : "مسموح",
     "Certificate data" : "بيانات الشهادة",
     "Certificate password" : "كلمة مرور الشهادة",
     "Request Signatures" : "طلب التوقيعات",
@@ -387,7 +389,6 @@
     "From UUID" : "من UUID",
     "Enter the ID or UUID of the document to validate." : "أدخل المعرف أو UUID الخاص بالمستند للتحقق من صحته.",
     "Validation" : "التصديق",
-    "Document informations" : "معلومات المستند",
     "Congratulations you have digitally signed a document using LibreSign" : "تهانينا، لقد قمت بالتوقيع على مستند رقميًا باستخدام تطبيق LibreSign",
     "Name:" : "الاسم:",
     "Status:" : "الحالة status:",
@@ -415,6 +416,7 @@
     "Open in LibreSign" : "فتح فى تطبيق التوقيع الرقمي LibreSign",
     "not a LibreSign file" : "ليس ملف LibreSign",
     "New signature request" : "طلب جديد للتوقيع",
-    "Requested by {name}, at {date}" : "مطلوب من قبل {name}، في {date}"
+    "Requested by {name}, at {date}" : "مطلوب من قبل {name}، في {date}",
+    "Document informations" : "معلومات المستند"
 },"pluralForm" :"nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;"
 }

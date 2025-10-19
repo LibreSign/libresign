@@ -460,7 +460,6 @@ OC.L10N.register(
     "From UUID" : "從 UUID",
     "Enter the ID or UUID of the document to validate." : "輸入要驗證的文檔的 ID 或 UUID。",
     "Validation" : "驗證",
-    "Document informations" : "文件資料",
     "Congratulations you have digitally signed a document using LibreSign" : "恭喜您已使用 LibreSign 對文件進行數字簽署",
     "Name:" : "姓名：",
     "Status:" : "狀態：",
@@ -488,6 +487,7 @@ OC.L10N.register(
     "Open in LibreSign" : "在 LibreSign 中打開",
     "not a LibreSign file" : "非 LibreSign 檔案",
     "New signature request" : "新簽名請求",
-    "Requested by {name}, at {date}" : "由 {name} 於 {date} 提出請求"
+    "Requested by {name}, at {date}" : "由 {name} 於 {date} 提出請求",
+    "Document informations" : "文件資料"
 },
 "nplurals=1; plural=0;");

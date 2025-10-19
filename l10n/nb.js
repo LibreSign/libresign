@@ -362,7 +362,6 @@ OC.L10N.register(
     "Validate signature" : "Valider signatur",
     "Enter the ID or UUID of the document to validate." : "Skriv inn ID eller UUID for dokumentet som skal valideres.",
     "Validation" : "Validering",
-    "Document informations" : "Dokumentinformasjon",
     "Congratulations you have digitally signed a document using LibreSign" : "Gratulerer med at du har signert et dokument digitalt med LibreSign",
     "Name:" : "Navn:",
     "Status:" : "Status:",
@@ -372,6 +371,7 @@ OC.L10N.register(
     "Unknown" : "Ukjent",
     "Return" : "Returner",
     "Open in LibreSign" : "Åpne i LibreSign",
-    "Requested by {name}, at {date}" : "Bedt av {name}, den {date}"
+    "Requested by {name}, at {date}" : "Bedt av {name}, den {date}",
+    "Document informations" : "Dokumentinformasjon"
 },
 "nplurals=2; plural=(n != 1);");

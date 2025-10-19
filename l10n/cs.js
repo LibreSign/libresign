@@ -327,6 +327,8 @@ OC.L10N.register(
     "Owner of certificate" : "Vlastník certifkátu",
     "Issuer of certificate" : "Vydavatel certifikátu",
     "Valid from" : "Platné od",
+    "Version" : "Verze",
+    "Fingerprint" : "Otisk",
     "Allowed" : "Umožněno",
     "Certificate data" : "Údaje certifkátu",
     "Certificate password" : "Heslo k certifikátu",
@@ -463,7 +465,6 @@ OC.L10N.register(
     "From UUID" : "Od UUID identif.",
     "Enter the ID or UUID of the document to validate." : "Zadejte identif. nebo nikde se neopakující identif. dokumentu, který ověřit.",
     "Validation" : "Ověření",
-    "Document informations" : "Informace o dokumentu",
     "Congratulations you have digitally signed a document using LibreSign" : "Blahopřejeme, s použitím LibreSign, jste podepsali dokument ",
     "Name:" : "Jméno:",
     "Status:" : "Stav:",
@@ -491,6 +492,7 @@ OC.L10N.register(
     "Open in LibreSign" : "Otevřít v LibreSign",
     "not a LibreSign file" : "není LibreSign soubor",
     "New signature request" : "Nový požadavek na podepsání",
-    "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}"
+    "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}",
+    "Document informations" : "Informace o dokumentu"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");
