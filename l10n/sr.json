@@ -467,7 +467,6 @@
     "From UUID" : "Из UUID",
     "Enter the ID or UUID of the document to validate." : "Унесите ID или UUID документа који се проверава.",
     "Validation" : "Провера",
-    "Document informations" : "Информације о документу",
     "Congratulations you have digitally signed a document using LibreSign" : "Честитамо, дигитално сте потписали документ помоћу LibreSign",
     "Name:" : "Име:",
     "Status:" : "Статус:",
@@ -494,6 +493,7 @@
     "Open in LibreSign" : "Отвори у LibreSign",
     "not a LibreSign file" : "није LibreSign фајл",
     "New signature request" : "Нови захтев за потпис",
-    "Requested by {name}, at {date}" : "Захтевао {name}, дана {date}"
+    "Requested by {name}, at {date}" : "Захтевао {name}, дана {date}",
+    "Document informations" : "Информације о документу"
 },"pluralForm" :"nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
 }

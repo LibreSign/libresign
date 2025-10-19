@@ -92,6 +92,8 @@ OC.L10N.register(
     "(selected)" : "(выбраны)",
     "_{count} selected_::_{count} selected_" : ["Выбраны {count}","Выбраны {count}","Выбрана {count}","Выбрана {count}"],
     "Valid from" : "Дзейнічае з",
+    "Version" : "Версія",
+    "Fingerprint" : "Лічбавы адбітак",
     "Password reset" : "Скід пароля",
     "Current password" : "Бягучы пароль",
     "New password" : "Новы пароль",

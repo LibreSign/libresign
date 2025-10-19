@@ -86,6 +86,7 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "\"{displayName}\" massehandling mislykkedes",
     "(selected)" : "(valgt)",
     "_{count} selected_::_{count} selected_" : ["{count} valgt","{count} valgt"],
+    "Version" : "Version",
     "Allowed" : "Tilladt",
     "Password reset" : "Nulstil adgangskode",
     "Current password" : "Nuværende adgangskode",

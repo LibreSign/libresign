@@ -328,6 +328,7 @@ OC.L10N.register(
     "Owner of certificate" : "Κάτοχος πιστοποιητικού",
     "Issuer of certificate" : "Εκδότης πιστοποιητικού",
     "Valid from" : "Έγκυρο από",
+    "Version" : "Έκδοση",
     "Fingerprint" : "Αποτύπωμα",
     "Allowed" : "Επετράπη",
     "Certificate data" : "Δεδομένα πιστοποιητικού",
@@ -465,7 +466,6 @@ OC.L10N.register(
     "From UUID" : "Από UUID",
     "Enter the ID or UUID of the document to validate." : "Εισάγετε το ID ή UUID του εγγράφου προς επικύρωση.",
     "Validation" : "Επικύρωση",
-    "Document informations" : "Πληροφορίες εγγράφου",
     "Congratulations you have digitally signed a document using LibreSign" : "Συγχαρητήρια, έχετε υπογράψει ψηφιακά ένα έγγραφο χρησιμοποιώντας το LibreSign",
     "Name:" : "Όνομα:",
     "Status:" : "Κατάσταση:",
@@ -492,6 +492,7 @@ OC.L10N.register(
     "Open in LibreSign" : "Άνοιγμα στο LibreSign",
     "not a LibreSign file" : "όχι αρχείο LibreSign",
     "New signature request" : "Νέο αίτημα υπογραφής",
-    "Requested by {name}, at {date}" : "Ζητήθηκε από {name}, στις {date}"
+    "Requested by {name}, at {date}" : "Ζητήθηκε από {name}, στις {date}",
+    "Document informations" : "Πληροφορίες εγγράφου"
 },
 "nplurals=2; plural=(n != 1);");

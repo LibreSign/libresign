@@ -356,7 +356,6 @@ OC.L10N.register(
     "Validate signature" : "ئىمزا ئىمزا",
     "Enter the ID or UUID of the document to validate." : "دەلىللەش ئۈچۈن ھۆججەتنىڭ كىملىكى ياكى UUID نى كىرگۈزۈڭ.",
     "Validation" : "دەلىللەش",
-    "Document informations" : "ھۆججەت ئۇچۇرى",
     "Congratulations you have digitally signed a document using LibreSign" : "LibreSign ئارقىلىق ھۆججەتكە رەقەملىك ئىمزا قويغانلىقىڭىزنى تەبرىكلەيمەن",
     "Name:" : "ئىسمى:",
     "Status:" : "ھالىتى:",
@@ -366,6 +365,7 @@ OC.L10N.register(
     "Unknown" : "نامەلۇم",
     "Return" : "قايتىش",
     "Open in LibreSign" : "LibreSign دا ئېچىڭ",
-    "Requested by {name}, at {date}" : "{name} تەرىپىدىن تەلەپ قىلىنغان ، {date}"
+    "Requested by {name}, at {date}" : "{name} تەرىپىدىن تەلەپ قىلىنغان ، {date}",
+    "Document informations" : "ھۆججەت ئۇچۇرى"
 },
 "nplurals=2; plural=(n != 1);");

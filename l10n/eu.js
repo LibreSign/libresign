@@ -311,7 +311,6 @@ OC.L10N.register(
     "Validate signature" : "Egiaztatu sinadura",
     "Enter the ID or UUID of the document to validate." : "Sartu dokumentuaren IDa edo UUIDa balioztatzeko",
     "Validation" : "Egiaztapena",
-    "Document informations" : "Dokumentuaren informazioak",
     "Congratulations you have digitally signed a document using LibreSign" : "Zorionak, LibreSign erabiliz dokumentu bat digitalki sinatu duzu",
     "Name:" : "Izena:",
     "Status:" : "Egoera:",
@@ -321,6 +320,7 @@ OC.L10N.register(
     "Unknown" : "Ezezaguna",
     "Return" : "Bueltatu",
     "Open in LibreSign" : "Ireki LibreSign-en",
-    "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean"
+    "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean",
+    "Document informations" : "Dokumentuaren informazioak"
 },
 "nplurals=2; plural=(n != 1);");

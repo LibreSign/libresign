@@ -59,6 +59,7 @@ OC.L10N.register(
     "Modified" : "Modificado",
     "1 file" : "1 archivo",
     "Created at" : "Creado en",
+    "Version" : "Versión",
     "Password reset" : "Restablecer contraseña",
     "Current password" : "Contraseña actual",
     "New password" : "Nueva contraseña",

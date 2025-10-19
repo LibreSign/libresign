@@ -458,7 +458,6 @@ OC.L10N.register(
     "From UUID" : "À partir de l'UUID",
     "Enter the ID or UUID of the document to validate." : "Saisir l’identifiant ou l’UUID du document pour valider.",
     "Validation" : "Validation",
-    "Document informations" : "Informations sur le document",
     "Congratulations you have digitally signed a document using LibreSign" : "Félicitations, vous avez signé numériquement un document avec LibreSign",
     "Name:" : "Nom :",
     "Status:" : "État :",
@@ -488,6 +487,7 @@ OC.L10N.register(
     "Open in LibreSign" : "Ouvrir dans LibreSign",
     "not a LibreSign file" : "n'est pas un fichier LibreSign",
     "New signature request" : "Nouvelle demande de signature",
-    "Requested by {name}, at {date}" : "Demandé par {name}, le {date}"
+    "Requested by {name}, at {date}" : "Demandé par {name}, le {date}",
+    "Document informations" : "Informations sur le document"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

@@ -29,6 +29,7 @@ OC.L10N.register(
     "Ok" : "তথাস্তু",
     "Today" : "আজ",
     "Modified" : "পরিবর্তিত",
+    "Version" : "ভার্সন",
     "Current password" : "বর্তমান কূটশব্দ",
     "New password" : "নতুন কূটশব্দ",
     "Yes" : "Yes",

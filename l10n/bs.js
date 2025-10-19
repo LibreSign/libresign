@@ -31,6 +31,7 @@ OC.L10N.register(
     "Ok" : "Ok",
     "Today" : "Danas",
     "Modified" : "Izmijenjeno",
+    "Version" : "Verzija",
     "Current password" : "Trenutna lozinka",
     "New password" : "Nova lozinka",
     "Yes" : "Yes",
