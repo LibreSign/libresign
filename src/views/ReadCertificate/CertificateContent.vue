@@ -67,6 +67,10 @@
 					<span class="field-label">{{ t('libresign', 'Serial number') }}</span>
 					<span class="field-value">{{ certificate.serialNumber }}</span>
 				</div>
+				<div v-if="certificate.serialNumberHex" class="certificate-field">
+					<span class="field-label">{{ t('libresign', 'Serial number (hex)') }}</span>
+					<span class="field-value">{{ certificate.serialNumberHex }}</span>
+				</div>
 			</div>
 		</NcSettingsSection>
 
