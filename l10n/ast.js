@@ -81,6 +81,7 @@ OC.L10N.register(
     "\"{displayName}\" failed on some elements " : "«{displayName}» falló con dalgún elementu",
     "\"{displayName}\" batch action executed successfully" : "L'aición per llotes «{displayName}» executóse correutamente",
     "\"{displayName}\" action failed" : "L'aición «{displayName}» falló",
+    "Version" : "Versión",
     "Password reset" : "Reaniciu de la contraseña",
     "Current password" : "Contraseña actual",
     "New password" : "Contraseña nueva",

@@ -358,7 +358,6 @@
     "Validate signature" : "Overi podpis",
     "Enter the ID or UUID of the document to validate." : "Vrednost ID oziroma UUID dokumenta za potrditev.",
     "Validation" : "Potrjevanje",
-    "Document informations" : "Podrobnosti dokumenta",
     "Congratulations you have digitally signed a document using LibreSign" : "Podpis dokumenta je uspešno zaključen z uporabo LibreSign.",
     "Name:" : "Ime:",
     "Status:" : "Stanje:",
@@ -368,6 +367,7 @@
     "Unknown" : "Neznano",
     "Return" : "Nazaj",
     "Open in LibreSign" : "Odpri v LibreSign",
-    "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}"
+    "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}",
+    "Document informations" : "Podrobnosti dokumenta"
 },"pluralForm" :"nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);"
 }

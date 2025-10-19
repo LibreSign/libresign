@@ -479,7 +479,6 @@ OC.L10N.register(
     "From UUID" : "Ó UUID",
     "Enter the ID or UUID of the document to validate." : "Cuir isteach ID nó UUID an doiciméid chun é a bhailíochtú.",
     "Validation" : "Bailíochtú",
-    "Document informations" : "Faisnéis doiciméad",
     "Congratulations you have digitally signed a document using LibreSign" : "Comhghairdeachas leat gur shínigh tú doiciméad go digiteach le LibreSign",
     "Name:" : "Ainm:",
     "Status:" : "Stádas:",
@@ -517,6 +516,7 @@ OC.L10N.register(
     "Open in LibreSign" : "Oscail i LibreSign",
     "not a LibreSign file" : "ní comhad LibreSign é",
     "New signature request" : "Iarratas sínithe nua",
-    "Requested by {name}, at {date}" : "Arna iarraidh ag {name}, ag {date}"
+    "Requested by {name}, at {date}" : "Arna iarraidh ag {name}, ag {date}",
+    "Document informations" : "Faisnéis doiciméad"
 },
 "nplurals=5; plural=(n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n<11 ? 3 : 4);");

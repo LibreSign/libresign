@@ -37,6 +37,7 @@ OC.L10N.register(
     "Today" : "Heddiw",
     "Modified" : "Addaswyd",
     "Created at" : "Crëwyd ar",
+    "Version" : "Fersiwn",
     "New password" : "Cyfrinair newydd",
     "Resource" : "Adnodd",
     "Dependencies" : "Dibyniaethau",

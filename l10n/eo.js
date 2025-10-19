@@ -63,6 +63,7 @@ OC.L10N.register(
     "Modified" : "Modifita",
     "1 file" : "1 dosiero",
     "Created at" : "Kreita je",
+    "Version" : "Versio",
     "Allowed" : "Permesita",
     "Password reset" : "Restarigi pasvorton",
     "Current password" : "Nuna pasvorto",

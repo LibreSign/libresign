@@ -78,6 +78,7 @@
     "\"{displayName}\" batch action executed successfully" : "La acción en lote \"{displayName}\" se ejecutó exitosamente",
     "\"{displayName}\" action failed" : "La acción \"{displayName}\" falló",
     "(selected)" : "(seleccionado)",
+    "Version" : "Versión",
     "Allowed" : "Permitido",
     "Password reset" : "Restablecer contraseña",
     "Current password" : "Contraseña actual",

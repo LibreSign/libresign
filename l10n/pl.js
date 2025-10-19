@@ -273,7 +273,6 @@ OC.L10N.register(
     "This document is valid" : "Ten dokument jest prawidłowy",
     "Enter the ID or UUID of the document to validate." : "Wprowadź ID lub UUID dokumentu, który chcesz zweryfikować.",
     "Validation" : "Walidacja",
-    "Document informations" : "Informacje o dokumencie",
     "Congratulations you have digitally signed a document using LibreSign" : "Gratulacje, podpisałeś cyfrowo dokument za pomocą LibreSign",
     "Name:" : "Nazwa:",
     "Status:" : "Status:",
@@ -283,6 +282,7 @@ OC.L10N.register(
     "Unknown" : "Nieznana",
     "Return" : "Powróć",
     "Open in LibreSign" : "Otwórz w LibreSign",
-    "Requested by {name}, at {date}" : "Prośba złożona przez {name}, dnia {date}"
+    "Requested by {name}, at {date}" : "Prośba złożona przez {name}, dnia {date}",
+    "Document informations" : "Informacje o dokumencie"
 },
 "nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);");

@@ -322,6 +322,7 @@ OC.L10N.register(
     "Owner of certificate" : "Owner of certificate",
     "Issuer of certificate" : "Issuer of certificate",
     "Valid from" : "Valid from",
+    "Version" : "Version",
     "Fingerprint" : "Fingerprint",
     "Allowed" : "Allowed",
     "Certificate data" : "Certificate data",
@@ -459,7 +460,6 @@ OC.L10N.register(
     "From UUID" : "From UUID",
     "Enter the ID or UUID of the document to validate." : "Enter the ID or UUID of the document to validate.",
     "Validation" : "Validation",
-    "Document informations" : "Document informations",
     "Congratulations you have digitally signed a document using LibreSign" : "Congratulations you have digitally signed a document using LibreSign",
     "Name:" : "Name:",
     "Status:" : "Status:",
@@ -487,6 +487,7 @@ OC.L10N.register(
     "Open in LibreSign" : "Open in LibreSign",
     "not a LibreSign file" : "not a LibreSign file",
     "New signature request" : "New signature request",
-    "Requested by {name}, at {date}" : "Requested by {name}, at {date}"
+    "Requested by {name}, at {date}" : "Requested by {name}, at {date}",
+    "Document informations" : "Document informations"
 },
 "nplurals=2; plural=(n != 1);");

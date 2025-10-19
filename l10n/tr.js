@@ -479,7 +479,6 @@ OC.L10N.register(
     "From UUID" : "UUID değerinden",
     "Enter the ID or UUID of the document to validate." : "Belgeyi doğrulamak için ID ya da UUID değerini yazın.",
     "Validation" : "Doğrulama",
-    "Document informations" : "Belge bilgileri",
     "Congratulations you have digitally signed a document using LibreSign" : "Tebrikler, LibreSign kullanarak bir belgeyi imzaladınız",
     "Name:" : "Ad:",
     "Status:" : "Durum:",
@@ -517,6 +516,7 @@ OC.L10N.register(
     "Open in LibreSign" : "LibreSign ile aç",
     "not a LibreSign file" : "Bir LibreSign dosyası değil",
     "New signature request" : "Yeni imza isteği",
-    "Requested by {name}, at {date}" : "{name} tarafından {date} tarihinde istendi"
+    "Requested by {name}, at {date}" : "{name} tarafından {date} tarihinde istendi",
+    "Document informations" : "Belge bilgileri"
 },
 "nplurals=2; plural=(n > 1);");
