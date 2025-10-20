@@ -492,7 +492,6 @@ OC.L10N.register(
     "Open in LibreSign" : "Άνοιγμα στο LibreSign",
     "not a LibreSign file" : "όχι αρχείο LibreSign",
     "New signature request" : "Νέο αίτημα υπογραφής",
-    "Requested by {name}, at {date}" : "Ζητήθηκε από {name}, στις {date}",
-    "Document informations" : "Πληροφορίες εγγράφου"
+    "Requested by {name}, at {date}" : "Ζητήθηκε από {name}, στις {date}"
 },
 "nplurals=2; plural=(n != 1);");

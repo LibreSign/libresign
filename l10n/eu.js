@@ -320,7 +320,6 @@ OC.L10N.register(
     "Unknown" : "Ezezaguna",
     "Return" : "Bueltatu",
     "Open in LibreSign" : "Ireki LibreSign-en",
-    "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean",
-    "Document informations" : "Dokumentuaren informazioak"
+    "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean"
 },
 "nplurals=2; plural=(n != 1);");

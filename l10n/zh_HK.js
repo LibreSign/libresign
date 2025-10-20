@@ -487,7 +487,6 @@ OC.L10N.register(
     "Open in LibreSign" : "在 LibreSign 中打開",
     "not a LibreSign file" : "非 LibreSign 檔案",
     "New signature request" : "新簽名請求",
-    "Requested by {name}, at {date}" : "由 {name} 於 {date} 提出請求",
-    "Document informations" : "文件資料"
+    "Requested by {name}, at {date}" : "由 {name} 於 {date} 提出請求"
 },
 "nplurals=1; plural=0;");

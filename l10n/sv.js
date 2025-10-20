@@ -477,7 +477,6 @@ OC.L10N.register(
     "Open in LibreSign" : "Öppna i LibreSign",
     "not a LibreSign file" : "inte en LibreSign-fil",
     "New signature request" : "Ny signaturförfrågan",
-    "Requested by {name}, at {date}" : "Begärd av {name}, den {date}",
-    "Document informations" : "Dokumentinformation"
+    "Requested by {name}, at {date}" : "Begärd av {name}, den {date}"
 },
 "nplurals=2; plural=(n != 1);");

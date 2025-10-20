@@ -371,7 +371,6 @@ OC.L10N.register(
     "Unknown" : "Ukjent",
     "Return" : "Returner",
     "Open in LibreSign" : "Åpne i LibreSign",
-    "Requested by {name}, at {date}" : "Bedt av {name}, den {date}",
-    "Document informations" : "Dokumentinformasjon"
+    "Requested by {name}, at {date}" : "Bedt av {name}, den {date}"
 },
 "nplurals=2; plural=(n != 1);");

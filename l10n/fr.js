@@ -487,7 +487,6 @@ OC.L10N.register(
     "Open in LibreSign" : "Ouvrir dans LibreSign",
     "not a LibreSign file" : "n'est pas un fichier LibreSign",
     "New signature request" : "Nouvelle demande de signature",
-    "Requested by {name}, at {date}" : "Demandé par {name}, le {date}",
-    "Document informations" : "Informations sur le document"
+    "Requested by {name}, at {date}" : "Demandé par {name}, le {date}"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

@@ -495,7 +495,6 @@ OC.L10N.register(
     "Open in LibreSign" : "Отвори у LibreSign",
     "not a LibreSign file" : "није LibreSign фајл",
     "New signature request" : "Нови захтев за потпис",
-    "Requested by {name}, at {date}" : "Захтевао {name}, дана {date}",
-    "Document informations" : "Информације о документу"
+    "Requested by {name}, at {date}" : "Захтевао {name}, дана {date}"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");
