@@ -84,7 +84,7 @@ Feature: account/signature
       | (jq).ocs.data.subject.OU                       | Organization Unit                                     |
       | (jq).ocs.data.extensions.basicConstraints      | CA:FALSE                                              |
       | (jq).ocs.data.extensions.subjectAltName        | email:signer@domain.test                              |
-      | (jq).ocs.data.extensions.keyUsage              | Digital Signature, Key Encipherment, Certificate Sign |
+      | (jq).ocs.data.extensions.keyUsage              | Digital Signature, Non Repudiation, Key Encipherment  |
       | (jq).ocs.data.extensions.extendedKeyUsage      | TLS Web Client Authentication, E-mail Protection      |
       | (jq).ocs.data.extensions                       | (jq).authorityKeyIdentifier \| test("([0-9A-F]{2}:)+[0-9A-F]{2}") |
       | (jq).ocs.data.extensions                       | (jq).subjectKeyIdentifier != ""                       |
@@ -136,7 +136,7 @@ Feature: account/signature
       | (jq).ocs.data.subject.UID                      | account:signer1                                       |
       | (jq).ocs.data.extensions.basicConstraints      | CA:FALSE                                              |
       | (jq).ocs.data.extensions.subjectAltName        | email:signer@domain.test                              |
-      | (jq).ocs.data.extensions.keyUsage              | Digital Signature, Key Encipherment, Certificate Sign |
+      | (jq).ocs.data.extensions.keyUsage              | Digital Signature, Non Repudiation, Key Encipherment  |
       | (jq).ocs.data.extensions.extendedKeyUsage      | TLS Web Client Authentication, E-mail Protection      |
       | (jq).ocs.data.extensions                       | (jq).authorityKeyIdentifier \| test("([0-9A-F]{2}:)+[0-9A-F]{2}") |
       | (jq).ocs.data.extensions                       | (jq).subjectKeyIdentifier != ""                       |
