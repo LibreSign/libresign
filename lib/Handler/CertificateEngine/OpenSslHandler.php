@@ -151,7 +151,6 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			],
 		];
 
-		// Add certificate policies for CA if available
 		$this->addCaPolicies($config);
 
 		return $config;
@@ -169,7 +168,6 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			],
 		];
 
-		// Add certificate policies for leaf certificates if available
 		$this->addLeafPolicies($config);
 
 		return $config;
