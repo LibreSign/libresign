@@ -687,4 +687,153 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 		$this->assertEquals('Test', $result[0]['subject']['CN']);
 		$this->assertEquals('Root', $result[1]['subject']['CN']);
 	}
+
+	public function testValidateChainExtensionsWithValidCertificates(): void {
+		$tempDir = sys_get_temp_dir() . '/cert_test_' . uniqid();
+		mkdir($tempDir, 0755, true);
+
+		try {
+			$caKey = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+			$caCsr = openssl_csr_new(['CN' => 'Test CA'], $caKey, ['digest_alg' => 'sha256']);
+			
+			$caConfig = "[v3_ca]\n" .
+						"basicConstraints = critical, CA:TRUE\n" .
+						"keyUsage = critical, digitalSignature, keyCertSign\n" .
+						"authorityKeyIdentifier = keyid:always\n" .
+						"subjectKeyIdentifier = hash";
+			
+			file_put_contents($tempDir . '/ca_config.cnf', $caConfig);
+			$caCert = openssl_csr_sign($caCsr, null, $caKey, 365, [
+				'digest_alg' => 'sha256',
+				'config' => $tempDir . '/ca_config.cnf',
+				'x509_extensions' => 'v3_ca'
+			]);
+			
+			openssl_x509_export($caCert, $caPem);
+			file_put_contents($tempDir . '/ca.pem', $caPem);
+
+			$leafKey = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+			$leafCsr = openssl_csr_new(['CN' => 'Test Leaf'], $leafKey, ['digest_alg' => 'sha256']);
+			
+			$leafConfig = "[v3_req]\n" .
+						  "basicConstraints = critical, CA:FALSE\n" .
+						  "keyUsage = critical, digitalSignature, keyEncipherment, nonRepudiation\n" .
+						  "authorityKeyIdentifier = keyid:always,issuer:always\n" .
+						  "subjectKeyIdentifier = hash";
+			
+			file_put_contents($tempDir . '/leaf_config.cnf', $leafConfig);
+			$leafCert = openssl_csr_sign($leafCsr, $caCert, $caKey, 365, [
+				'digest_alg' => 'sha256',
+				'config' => $tempDir . '/leaf_config.cnf',
+				'x509_extensions' => 'v3_req'
+			]);
+			
+			openssl_x509_export($leafCert, $leafPem);
+			file_put_contents($tempDir . '/leaf.pem', $leafPem);
+
+			$certificates = [
+				[
+					'name' => $tempDir . '/leaf.pem',
+					'subject' => ['CN' => 'Test Leaf'],
+					'issuer' => ['CN' => 'Test CA']
+				],
+				[
+					'name' => $tempDir . '/ca.pem',
+					'subject' => ['CN' => 'Test CA'],
+					'issuer' => ['CN' => 'Test CA']
+				]
+			];
+
+			$result = $this->orderCertificates->validateChainExtensions($certificates);
+
+			$this->assertTrue($result['valid'], 'Certificate chain should be valid');
+			$this->assertEmpty($result['errors'], 'No errors should be present');
+			$this->assertCount(2, $result['certificates'], 'Should validate 2 certificates');
+			
+			foreach ($result['certificates'] as $certResult) {
+				$this->assertTrue($certResult['valid'], 'Each certificate should be valid');
+				$this->assertArrayHasKey('extensions', $certResult);
+				$this->assertArrayHasKey('basicConstraints', $certResult['extensions']);
+				$this->assertArrayHasKey('keyUsage', $certResult['extensions']);
+				$this->assertArrayHasKey('subjectKeyIdentifier', $certResult['extensions']);
+			}
+		} finally {
+			if (file_exists($tempDir . '/ca.pem')) unlink($tempDir . '/ca.pem');
+			if (file_exists($tempDir . '/leaf.pem')) unlink($tempDir . '/leaf.pem');
+			if (file_exists($tempDir . '/ca_config.cnf')) unlink($tempDir . '/ca_config.cnf');
+			if (file_exists($tempDir . '/leaf_config.cnf')) unlink($tempDir . '/leaf_config.cnf');
+			if (is_dir($tempDir)) rmdir($tempDir);
+		}
+	}
+
+	public function testValidateChainExtensionsWithInvalidExtensions(): void {
+		$tempDir = sys_get_temp_dir() . '/cert_test_invalid_' . uniqid();
+		mkdir($tempDir, 0755, true);
+
+		try {
+			$key = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+			$csr = openssl_csr_new(['CN' => 'Invalid Cert'], $key, ['digest_alg' => 'sha256']);
+			
+			$invalidConfig = "[v3_req]\n" .
+							 "basicConstraints = CA:TRUE\n" .
+							 "keyUsage = dataEncipherment";
+			
+			file_put_contents($tempDir . '/invalid_config.cnf', $invalidConfig);
+			$cert = openssl_csr_sign($csr, null, $key, 365, [
+				'digest_alg' => 'sha256',
+				'config' => $tempDir . '/invalid_config.cnf',
+				'x509_extensions' => 'v3_req'
+			]);
+			
+			openssl_x509_export($cert, $certPem);
+			file_put_contents($tempDir . '/invalid.pem', $certPem);
+
+			$certificates = [
+				[
+					'name' => $tempDir . '/invalid.pem',
+					'subject' => ['CN' => 'Invalid Cert'],
+					'issuer' => ['CN' => 'Invalid Cert']
+				]
+			];
+
+			$result = $this->orderCertificates->validateChainExtensions($certificates);
+
+			$this->assertFalse($result['valid'], 'Certificate should be invalid due to improper extensions');
+			$this->assertNotEmpty($result['errors'], 'Errors should be present for invalid extensions');
+		} finally {
+			if (file_exists($tempDir . '/invalid.pem')) unlink($tempDir . '/invalid.pem');
+			if (file_exists($tempDir . '/invalid_config.cnf')) unlink($tempDir . '/invalid_config.cnf');
+			if (is_dir($tempDir)) rmdir($tempDir);
+		}
+	}
+
+	public function testValidateChainExtensionsWithInvalidFile(): void {
+		$certificates = [
+			[
+				'name' => '/nonexistent/file.pem',
+				'subject' => ['CN' => 'Test'],
+				'issuer' => ['CN' => 'Test']
+			]
+		];
+
+		$result = $this->orderCertificates->validateChainExtensions($certificates);
+
+		$this->assertFalse($result['valid']);
+		$this->assertNotEmpty($result['errors']);
+		$this->assertStringContainsString('Certificate file not found', $result['errors'][0]);
+	}
+
+	public function testValidateChainExtensionsWithMissingName(): void {
+		$certificates = [
+			[
+				'subject' => ['CN' => 'Test'],
+				'issuer' => ['CN' => 'Test']
+			]
+		];
+
+		$result = $this->orderCertificates->validateChainExtensions($certificates);
+
+		$this->assertFalse($result['valid']);
+		$this->assertContains('Certificate missing name field', $result['errors']);
+	}
 }
