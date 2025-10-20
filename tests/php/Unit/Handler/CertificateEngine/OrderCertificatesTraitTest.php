@@ -694,7 +694,14 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 
 		try {
 			$caKey = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+			if ($caKey === false) {
+				$this->fail('Failed to generate CA key: ' . openssl_error_string());
+			}
+
 			$caCsr = openssl_csr_new(['CN' => 'Test CA'], $caKey, ['digest_alg' => 'sha256']);
+			if ($caCsr === false) {
+				$this->fail('Failed to generate CA CSR: ' . openssl_error_string());
+			}
 
 			$caConfig = "[v3_ca]\n"
 						. "basicConstraints = critical, CA:TRUE\n"
@@ -717,7 +724,14 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 			file_put_contents($tempDir . '/ca.pem', $caPem);
 
 			$leafKey = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+			if ($leafKey === false) {
+				$this->fail('Failed to generate leaf key: ' . openssl_error_string());
+			}
+
 			$leafCsr = openssl_csr_new(['CN' => 'Test Leaf'], $leafKey, ['digest_alg' => 'sha256']);
+			if ($leafCsr === false) {
+				$this->fail('Failed to generate leaf CSR: ' . openssl_error_string());
+			}
 
 			$leafConfig = "[v3_req]\n"
 						  . "basicConstraints = critical, CA:FALSE\n"
