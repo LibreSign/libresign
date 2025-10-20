@@ -238,6 +238,7 @@ OC.L10N.register(
     "Fingerprint" : "Sõrmejälg",
     "Signature algorithm" : "Allkirjastamise algoritm",
     "Serial number" : "Seerianumber",
+    "Serial number (hex)" : "Seerianumber (kuueteistkümnendarv)",
     "Technical Details" : "Tehnilised andmed",
     "Certificate purposes" : "Sertifikaadi eesmärk",
     "Allowed" : "Lubatud",
@@ -319,6 +320,7 @@ OC.L10N.register(
     "Subscription password." : "Tellimuse salasõna.",
     "Forgot password?" : "Unustasid salasõna?",
     "Validate signature" : "Kontrolli allkirja",
+    "Document information" : "Dokumendi teave",
     "Name:" : "Nimi:",
     "Status:" : "Seisund:",
     "File size:" : "Failisuurus:",
@@ -342,7 +344,6 @@ OC.L10N.register(
     "Valid from:" : "Kehtib alates:",
     "Valid to:" : "Kehtib kuni:",
     "Issuer:" : "Väljastaja:",
-    "not a LibreSign file" : "pole LibreSigni fail",
-    "Document informations" : "Dokumendi teave"
+    "not a LibreSign file" : "pole LibreSigni fail"
 },
 "nplurals=2; plural=(n != 1);");

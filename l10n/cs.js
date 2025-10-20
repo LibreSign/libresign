@@ -492,7 +492,6 @@ OC.L10N.register(
     "Open in LibreSign" : "Otevřít v LibreSign",
     "not a LibreSign file" : "není LibreSign soubor",
     "New signature request" : "Nový požadavek na podepsání",
-    "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}",
-    "Document informations" : "Informace o dokumentu"
+    "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

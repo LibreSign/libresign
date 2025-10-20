@@ -514,7 +514,6 @@
     "Open in LibreSign" : "Oscail i LibreSign",
     "not a LibreSign file" : "ní comhad LibreSign é",
     "New signature request" : "Iarratas sínithe nua",
-    "Requested by {name}, at {date}" : "Arna iarraidh ag {name}, ag {date}",
-    "Document informations" : "Faisnéis doiciméad"
+    "Requested by {name}, at {date}" : "Arna iarraidh ag {name}, ag {date}"
 },"pluralForm" :"nplurals=5; plural=(n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n<11 ? 3 : 4);"
 }

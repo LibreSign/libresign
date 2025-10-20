@@ -350,6 +350,7 @@ OC.L10N.register(
     "Fingerprint" : "Impressão digital",
     "Signature algorithm" : "Algoritmo de assinatura",
     "Serial number" : "Número de série",
+    "Serial number (hex)" : "Número de série (hex)",
     "Technical Details" : "Detalhes Técnicos",
     "Certificate purposes" : "Finalidade de certificado",
     "Allowed" : "Permitido",
@@ -500,6 +501,7 @@ OC.L10N.register(
     "From UUID" : "De UUID",
     "Enter the ID or UUID of the document to validate." : "Insira o ID ou UUID do documento a ser validado.",
     "Validation" : "Validação",
+    "Document information" : "Informações do documento",
     "Congratulations you have digitally signed a document using LibreSign" : "Parabéns, você assinou digitalmente um documento usando LibreSign",
     "Name:" : "Nome:",
     "Status:" : "Status:",
@@ -537,7 +539,6 @@ OC.L10N.register(
     "Open in LibreSign" : "Abrir no LibreSign ",
     "not a LibreSign file" : "não é um arquivo LibreSign",
     "New signature request" : "Nova solicitação de assinatura",
-    "Requested by {name}, at {date}" : "Solicitada por {name}, em {date}",
-    "Document informations" : "Informações do documento"
+    "Requested by {name}, at {date}" : "Solicitada por {name}, em {date}"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

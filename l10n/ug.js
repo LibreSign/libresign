@@ -365,7 +365,6 @@ OC.L10N.register(
     "Unknown" : "نامەلۇم",
     "Return" : "قايتىش",
     "Open in LibreSign" : "LibreSign دا ئېچىڭ",
-    "Requested by {name}, at {date}" : "{name} تەرىپىدىن تەلەپ قىلىنغان ، {date}",
-    "Document informations" : "ھۆججەت ئۇچۇرى"
+    "Requested by {name}, at {date}" : "{name} تەرىپىدىن تەلەپ قىلىنغان ، {date}"
 },
 "nplurals=2; plural=(n != 1);");
