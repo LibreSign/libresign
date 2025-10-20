@@ -279,12 +279,18 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 
 	public function readCertificate(): array {
-		return $this->certificateEngineFactory
+		$result = $this->certificateEngineFactory
 			->getEngine()
 			->readCertificate(
 				$this->getCertificate(),
 				$this->getPassword()
 			);
+
+		if (!is_array($result)) {
+			throw new \RuntimeException('Failed to read certificate data');
+		}
+
+		return $result;
 	}
 
 	private function createTextImage(int $width, int $height, float $fontSize, float $scaleFactor): string {
@@ -293,7 +299,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 			$commonName = $params['SignerCommonName'];
 		} else {
 			$certificateData = $this->readCertificate();
-			$commonName = $certificateData['subject']['CN'];
+			$commonName = $certificateData['subject']['CN'] ?? throw new \RuntimeException('Certificate must have a Common Name (CN) in subject field');
 		}
 		$content = $this->signatureTextService->signerNameImage(
 			width: $width,
