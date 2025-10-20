@@ -199,7 +199,20 @@ trait OrderCertificatesTrait {
 			return $result;
 		}
 
-		$certData = openssl_x509_parse(file_get_contents($cert['name']));
+		if (!file_exists($cert['name'])) {
+			$result['errors'][] = 'Certificate file not found: ' . $cert['name'];
+			$result['valid'] = false;
+			return $result;
+		}
+
+		$certContent = file_get_contents($cert['name']);
+		if ($certContent === false) {
+			$result['errors'][] = 'Failed to read certificate file: ' . $cert['name'];
+			$result['valid'] = false;
+			return $result;
+		}
+
+		$certData = openssl_x509_parse($certContent);
 		if (!$certData) {
 			$result['errors'][] = 'Failed to parse certificate: ' . $cert['name'];
 			$result['valid'] = false;
