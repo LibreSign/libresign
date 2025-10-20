@@ -717,7 +717,11 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 			]);
 
 			if ($caCert === false) {
-				$this->fail('Failed to sign CA certificate: ' . openssl_error_string());
+				$errors = [];
+				while ($error = openssl_error_string()) {
+					$errors[] = $error;
+				}
+				$this->fail('Failed to sign CA certificate: ' . implode('; ', $errors ?: ['Unknown OpenSSL error']));
 			}
 
 			openssl_x509_export($caCert, $caPem);
