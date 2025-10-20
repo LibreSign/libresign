@@ -163,7 +163,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 				'keyUsage' => 'digitalSignature, keyEncipherment, nonRepudiation',
 				'extendedKeyUsage' => 'clientAuth, emailProtection',
 				'subjectAltName' => $this->getSubjectAltNames(),
-				'authorityKeyIdentifier' => 'keyid',
+				'authorityKeyIdentifier' => 'keyid:always,issuer:always',
 				'subjectKeyIdentifier' => 'hash',
 			],
 		];
