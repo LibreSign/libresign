@@ -327,6 +327,17 @@ OC.L10N.register(
     "_{count} selected_::_{count} selected_" : ["已選取 {count} 個"],
     "Welcome to LibreSign" : "歡迎使用 LibreSign",
     "Finish the setup" : "完成設定",
+    "SSL Client" : "SSL 客戶端",
+    "SSL Server" : "SSL 伺服器",
+    "Netscape SSL Server" : "Netscape SSL 伺服器",
+    "S/MIME Signing" : "S/MIME 簽署",
+    "S/MIME Encryption" : "S/MIME 加密",
+    "CRL Signing" : "CRL 簽署",
+    "Any Purpose" : "任何用途",
+    "OCSP Helper" : "OCSP 輔助程式",
+    "Timestamp Signing" : "時間戳簽署",
+    "Code Signing" : "程式碼簽署",
+    "Intermediate Certificate" : "中繼憑證",
     "Owner of certificate" : "憑證擁有者",
     "Issuer of certificate" : "憑證頒發者",
     "Valid from" : "發行日期",
@@ -516,7 +527,6 @@ OC.L10N.register(
     "Open in LibreSign" : "在 LibreSign 中開啟",
     "not a LibreSign file" : "非 LibreSign 檔案",
     "New signature request" : "新簽章請求",
-    "Requested by {name}, at {date}" : "由 {name} 請求於 {date}",
-    "Document informations" : "文件資訊"
+    "Requested by {name}, at {date}" : "由 {name} 請求於 {date}"
 },
 "nplurals=1; plural=0;");
