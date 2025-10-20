@@ -266,11 +266,11 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'name' => 'small_valid.pdf',
 					'signers' => [
 						[
-							'displayName' => 'admin',
-							'subject' => '/C=BR/ST=State of Company/L=City Name/O=Organization/OU=Organization Unit/UID=account:admin/CN=admin',
-							'valid_from' => '2025-01-04T21:09:00+00:00',
-							'valid_to' => '2026-01-04T21:09:00+00:00',
-							'signed' => '2025-01-04T21:09:02+00:00',
+							'displayName' => 'account:admin, admin',
+							'subject' => '/C=BR/ST=State of Company/L=City Name/O=Organization/OU=Organization Unit/CN=account:admin, admin',
+							'valid_from' => '2025-10-20T13:26:00+00:00',
+							'valid_to' => '2026-10-20T13:26:00+00:00',
+							'signed' => '2025-10-20T13:31:43+00:00',
 							'uid' => 'account:admin',
 							'signature_validation' => [
 								'id' => 1,
@@ -280,7 +280,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 								'id' => 3,
 								'label' => 'Certificate issuer is unknown.',
 							],
-							'hash_algorithm' => 'RSA-SHA1',
+							'hash_algorithm' => 'RSA-SHA256',
 						],
 					],
 				]

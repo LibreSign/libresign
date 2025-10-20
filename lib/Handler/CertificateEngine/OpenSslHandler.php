@@ -78,6 +78,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		$configFile = $this->generateLeafConfig();
 
 		return [
+			'digest_alg' => 'sha256',
 			'config' => $configFile,
 			'x509_extensions' => 'v3_req',
 		];
