@@ -706,8 +706,8 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 			$caConfig = "[v3_ca]\n"
 						. "basicConstraints = critical, CA:TRUE\n"
 						. "keyUsage = critical, digitalSignature, keyCertSign\n"
-						. "authorityKeyIdentifier = keyid:always\n"
-						. 'subjectKeyIdentifier = hash';
+						. "subjectKeyIdentifier = hash\n"
+						. 'authorityKeyIdentifier = keyid:always';
 
 			file_put_contents($tempDir . '/ca_config.cnf', $caConfig);
 			$caCert = openssl_csr_sign($caCsr, null, $caKey, 365, [
@@ -717,11 +717,7 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 			]);
 
 			if ($caCert === false) {
-				$errors = [];
-				while ($error = openssl_error_string()) {
-					$errors[] = $error;
-				}
-				$this->fail('Failed to sign CA certificate: ' . implode('; ', $errors ?: ['Unknown OpenSSL error']));
+				$this->fail('Failed to sign CA certificate: ' . openssl_error_string());
 			}
 
 			openssl_x509_export($caCert, $caPem);
