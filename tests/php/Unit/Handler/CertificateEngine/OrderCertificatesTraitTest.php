@@ -709,6 +709,10 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 				'x509_extensions' => 'v3_ca'
 			]);
 
+			if ($caCert === false) {
+				$this->fail('Failed to sign CA certificate: ' . openssl_error_string());
+			}
+
 			openssl_x509_export($caCert, $caPem);
 			file_put_contents($tempDir . '/ca.pem', $caPem);
 
@@ -727,6 +731,10 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 				'config' => $tempDir . '/leaf_config.cnf',
 				'x509_extensions' => 'v3_req'
 			]);
+
+			if ($leafCert === false) {
+				$this->fail('Failed to sign leaf certificate: ' . openssl_error_string());
+			}
 
 			openssl_x509_export($leafCert, $leafPem);
 			file_put_contents($tempDir . '/leaf.pem', $leafPem);
@@ -794,6 +802,10 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 				'config' => $tempDir . '/invalid_config.cnf',
 				'x509_extensions' => 'v3_req'
 			]);
+
+			if ($cert === false) {
+				$this->fail('Failed to sign invalid certificate: ' . openssl_error_string());
+			}
 
 			openssl_x509_export($cert, $certPem);
 			file_put_contents($tempDir . '/invalid.pem', $certPem);
@@ -874,6 +886,10 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 				'x509_extensions' => 'v3_ca'
 			]);
 
+			if ($rootCert === false) {
+				$this->fail('Failed to sign root certificate: ' . openssl_error_string());
+			}
+
 			openssl_x509_export($rootCert, $rootPem);
 			file_put_contents($tempDir . '/root.pem', $rootPem);
 
@@ -892,6 +908,10 @@ final class OrderCertificatesTraitTest extends \OCA\Libresign\Tests\Unit\TestCas
 				'config' => $tempDir . '/leaf_config.cnf',
 				'x509_extensions' => 'v3_req'
 			]);
+
+			if ($leafCert === false) {
+				$this->fail('Failed to sign leaf certificate in AKI test: ' . openssl_error_string());
+			}
 
 			openssl_x509_export($leafCert, $leafPem);
 			file_put_contents($tempDir . '/leaf.pem', $leafPem);
