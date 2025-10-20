@@ -158,7 +158,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	private function newCert(): array {
 		$json = [
 			'json' => [
-				'profile' => 'CA',
+				'profile' => 'client',
 				'request' => [
 					'hosts' => $this->getHosts(),
 					'CN' => $this->getCommonName(),
