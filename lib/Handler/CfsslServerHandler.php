@@ -95,6 +95,18 @@ class CfsslServerHandler {
 							'email protection'
 						],
 					],
+					'client' => [
+						'auth_key' => 'key1',
+						'expiry' => ($expirity * 24) . 'h',
+						'usages' => [
+							'signing',
+							'digital signature',
+							'content commitment',
+							'key encipherment',
+							'client auth',
+							'email protection'
+						],
+					],
 				],
 			],
 			'auth_keys' => [
@@ -108,6 +120,15 @@ class CfsslServerHandler {
 		$cps = $this->certificatePolicyService->getCps();
 		if ($oid && $cps) {
 			$config['signing']['profiles']['CA']['policies'][] = [
+				'id' => $oid,
+				'qualifiers' => [
+					[
+						'type' => 'id-qt-cps',
+						'value' => $cps,
+					],
+				],
+			];
+			$config['signing']['profiles']['client']['policies'][] = [
 				'id' => $oid,
 				'qualifiers' => [
 					[
@@ -147,6 +168,7 @@ class CfsslServerHandler {
 		}
 		$config = json_decode($jsonConfig, true);
 		$config['signing']['profiles']['CA']['expiry'] = ($expirity * 24) . 'h';
+		$config['signing']['profiles']['client']['expiry'] = ($expirity * 24) . 'h';
 		$this->saveConfig($config);
 	}
 }
