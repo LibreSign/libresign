@@ -79,6 +79,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		$configFile = $this->generateLeafConfig();
 
 		return [
+			'digest_alg' => 'sha256',
 			'config' => $configFile,
 			'x509_extensions' => 'v3_req',
 		];
@@ -98,7 +99,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
 		]);
 
-		$csr = @openssl_csr_new($this->getCsrNames(), $privateKey);
+		$csr = @openssl_csr_new($this->getCsrNames(), $privateKey, ['digest_alg' => 'sha256']);
 		if ($csr === false) {
 			$message = openssl_error_string();
 			throw new LibresignException('OpenSSL error: ' . $message);
