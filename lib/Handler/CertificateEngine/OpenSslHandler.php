@@ -66,15 +66,22 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 	}
 
 	private function getRootCertOptions(): array {
-		$this->generateRootCertConfig();
-		$configPath = $this->getConfigPath();
+		$configFile = $this->generateCaConfig();
 
-		$options = [
+		return [
 			'digest_alg' => 'sha256',
-			'config' => $configPath . DIRECTORY_SEPARATOR . 'openssl.cnf',
+			'config' => $configFile,
 			'x509_extensions' => 'v3_ca',
 		];
-		return $options;
+	}
+
+	private function getLeafCertOptions(): array {
+		$configFile = $this->generateLeafConfig();
+
+		return [
+			'config' => $configFile,
+			'x509_extensions' => 'v3_req',
+		];
 	}
 
 	#[\Override]
@@ -98,11 +105,9 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		}
 
 		$serialNumber = random_int(1000000, 2147483647);
+		$options = $this->getLeafCertOptions();
 
-		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, $this->expirity(), [
-			'config' => $this->getFilenameToLeafCert(),
-			'x509_extensions' => 'v3_req',
-		], $serialNumber);
+		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, $this->expirity(), $options, $serialNumber);
 
 		return parent::exportToPkcs12(
 			$x509,
@@ -117,41 +122,24 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		);
 	}
 
-	private function getFilenameToLeafCert(): string {
-		$temporaryFile = $this->tempManager->getTemporaryFile('.cfg');
-		if (!$temporaryFile) {
-			throw new LibresignException('Failure to create temporary file to OpenSSL .cfg file');
-		}
-		// More information about x509v3: https://www.openssl.org/docs/manmaster/man5/x509v3_config.html
-		$config = [
-			'v3_req' => [
-				'basicConstraints' => 'CA:FALSE',
-				'keyUsage' => 'digitalSignature, keyEncipherment, nonRepudiation',
-				'extendedKeyUsage' => 'clientAuth, emailProtection',
-				'subjectAltName' => $this->getSubjectAltNames(),
-				'authorityKeyIdentifier' => 'keyid',
-				'subjectKeyIdentifier' => 'hash',
-			],
-		];
-		$oid = $this->certificatePolicyService->getOid();
-		$cps = $this->certificatePolicyService->getCps();
-		if ($oid && $cps) {
-			$config['v3_req']['certificatePolicies'] = '@policy_section';
-			$config['policy_section'] = [
-				'policyIdentifier' => $oid,
-				'CPS.1' => $cps,
-			];
-		}
-		if (empty($config['v3_req']['subjectAltName'])) {
-			unset($config['v3_req']['subjectAltName']);
-		}
-		$config = CertificateHelper::arrayToIni($config);
-		file_put_contents($temporaryFile, $config);
-		return $temporaryFile;
+	private function generateCaConfig(): string {
+		$config = $this->buildCaCertificateConfig();
+		$this->cleanupCaConfig($config);
+
+		return $this->saveCaConfigFile($config);
 	}
 
-	private function generateRootCertConfig(): void {
-		// More information about x509v3: https://www.openssl.org/docs/manmaster/man5/x509v3_config.html
+	private function generateLeafConfig(): string {
+		$config = $this->buildLeafCertificateConfig();
+		$this->cleanupLeafConfig($config);
+
+		return $this->saveLeafConfigFile($config);
+	}
+
+	/**
+	 * More information about x509v3: https://www.openssl.org/docs/manmaster/man5/x509v3_config.html
+	 */
+	private function buildCaCertificateConfig(): array {
 		$config = [
 			'v3_ca' => [
 				'basicConstraints' => 'critical, CA:TRUE',
@@ -162,21 +150,88 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 				'subjectKeyIdentifier' => 'hash',
 			],
 		];
+
+		// Add certificate policies for CA if available
+		$this->addCaPolicies($config);
+
+		return $config;
+	}
+
+	private function buildLeafCertificateConfig(): array {
+		$config = [
+			'v3_req' => [
+				'basicConstraints' => 'CA:FALSE',
+				'keyUsage' => 'digitalSignature, keyEncipherment, nonRepudiation',
+				'extendedKeyUsage' => 'clientAuth, emailProtection',
+				'subjectAltName' => $this->getSubjectAltNames(),
+				'authorityKeyIdentifier' => 'keyid',
+				'subjectKeyIdentifier' => 'hash',
+			],
+		];
+
+		// Add certificate policies for leaf certificates if available
+		$this->addLeafPolicies($config);
+
+		return $config;
+	}
+
+	private function addCaPolicies(array &$config): void {
 		$oid = $this->certificatePolicyService->getOid();
 		$cps = $this->certificatePolicyService->getCps();
-		if ($oid && $cps) {
-			$config['v3_ca']['certificatePolicies'] = '@policy_section';
-			$config['policy_section'] = [
-				'policyIdentifier' => $oid,
-				'CPS.1' => $cps,
-			];
+
+		if (!$oid || !$cps) {
+			return;
 		}
+
+		$config['v3_ca']['certificatePolicies'] = '@policy_section';
+		$config['policy_section'] = [
+			'policyIdentifier' => $oid,
+			'CPS.1' => $cps,
+		];
+	}
+
+	private function addLeafPolicies(array &$config): void {
+		$oid = $this->certificatePolicyService->getOid();
+		$cps = $this->certificatePolicyService->getCps();
+
+		if (!$oid || !$cps) {
+			return;
+		}
+
+		$config['v3_req']['certificatePolicies'] = '@policy_section';
+		$config['policy_section'] = [
+			'policyIdentifier' => $oid,
+			'CPS.1' => $cps,
+		];
+	}
+
+	private function cleanupCaConfig(array &$config): void {
 		if (empty($config['v3_ca']['subjectAltName'])) {
 			unset($config['v3_ca']['subjectAltName']);
 		}
-		$configFile = $this->getConfigPath() . '/openssl.cnf';
+	}
+
+	private function cleanupLeafConfig(array &$config): void {
+		if (empty($config['v3_req']['subjectAltName'])) {
+			unset($config['v3_req']['subjectAltName']);
+		}
+	}
+
+	private function saveCaConfigFile(array $config): string {
 		$iniContent = CertificateHelper::arrayToIni($config);
+		$configFile = $this->getConfigPath() . '/openssl.cnf';
 		CertificateHelper::saveFile($configFile, $iniContent);
+		return $configFile;
+	}
+
+	private function saveLeafConfigFile(array $config): string {
+		$iniContent = CertificateHelper::arrayToIni($config);
+		$temporaryFile = $this->tempManager->getTemporaryFile('.cfg');
+		if (!$temporaryFile) {
+			throw new LibresignException('Failure to create temporary file to OpenSSL .cfg file');
+		}
+		file_put_contents($temporaryFile, $iniContent);
+		return $temporaryFile;
 	}
 
 	private function getSubjectAltNames(): string {
