@@ -21,6 +21,40 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/index.php/apps/libresign/crl": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Certificate Revocation List in DER format (RFC 5280 compliant) */
+        get: operations["crl-get-revocation-list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/index.php/apps/libresign/crl/check/{serialNumber}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Check certificate revocation status */
+        get: operations["crl-check-certificate-status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/index.php/apps/libresign/develop/pdf": {
         parameters: {
             query?: never;
@@ -1613,6 +1647,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+        };
+    };
+    "crl-get-revocation-list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description CRL retrieved successfully in DER format */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+            /** @description Failed to generate CRL */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    "crl-check-certificate-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Certificate serial number to check */
+                serialNumber: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Certificate status retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        serial_number: string;
+                        status: string;
+                        checked_at: string;
+                    };
+                };
+            };
+            /** @description Invalid serial number format */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        message: string;
+                    };
                 };
             };
         };
