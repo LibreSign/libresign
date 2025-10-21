@@ -12,6 +12,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCP\Files\AppData\IAppDataFactory;
@@ -341,11 +342,6 @@ abstract class AEngineHandler implements IEngineHandler {
 		return strlen($this->appConfig->getValueString(Application::APP_ID, 'authkey', '')) > 0;
 	}
 
-	#[\Override]
-	public function configureCheck(): array {
-		throw new \Exception('Necessary to implement configureCheck method');
-	}
-
 	private function getCertificatePolicy(): array {
 		$return = ['policySection' => []];
 		$oid = $this->certificatePolicyService->getOid();
@@ -357,6 +353,114 @@ abstract class AEngineHandler implements IEngineHandler {
 			];
 		}
 		return $return;
+	}
+
+	abstract protected function getConfigureCheckResourceName(): string;
+
+	abstract protected function getCertificateRegenerationTip(): string;
+
+	abstract protected function getEngineSpecificChecks(): array;
+
+	abstract protected function getSetupSuccessMessage(): string;
+
+	abstract protected function getSetupErrorMessage(): string;
+
+	abstract protected function getSetupErrorTip(): string;
+
+	#[\Override]
+	public function configureCheck(): array {
+		$checks = $this->getEngineSpecificChecks();
+
+		if (!$this->isSetupOk()) {
+			return array_merge($checks, [
+				(new ConfigureCheckHelper())
+					->setErrorMessage($this->getSetupErrorMessage())
+					->setResource($this->getConfigureCheckResourceName())
+					->setTip($this->getSetupErrorTip())
+			]);
+		}
+
+		$checks[] = (new ConfigureCheckHelper())
+			->setSuccessMessage($this->getSetupSuccessMessage())
+			->setResource($this->getConfigureCheckResourceName());
+
+		$modernFeaturesCheck = $this->checkRootCertificateModernFeatures();
+		if ($modernFeaturesCheck) {
+			$checks[] = $modernFeaturesCheck;
+		}
+
+		return $checks;
+	}
+
+	protected function checkRootCertificateModernFeatures(): ?ConfigureCheckHelper {
+		$configPath = $this->getConfigPath();
+		$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
+
+		try {
+			$certContent = file_get_contents($caCertPath);
+			if (!$certContent) {
+				return (new ConfigureCheckHelper())
+					->setErrorMessage('Failed to read root certificate file')
+					->setResource($this->getConfigureCheckResourceName())
+					->setTip('Check file permissions and disk space');
+			}
+
+			$x509Resource = openssl_x509_read($certContent);
+			if (!$x509Resource) {
+				return (new ConfigureCheckHelper())
+					->setErrorMessage('Failed to parse root certificate')
+					->setResource($this->getConfigureCheckResourceName())
+					->setTip('Root certificate file may be corrupted or invalid');
+			}
+
+			$parsed = openssl_x509_parse($x509Resource);
+			if (!$parsed) {
+				return (new ConfigureCheckHelper())
+					->setErrorMessage('Failed to extract root certificate information')
+					->setResource($this->getConfigureCheckResourceName())
+					->setTip('Root certificate may be in an unsupported format');
+			}
+
+			$issues = [];
+
+			if (isset($parsed['serialNumber'])) {
+				$serialNumber = $parsed['serialNumber'];
+				$serialDecimal = hexdec($serialNumber);
+				if ($serialDecimal <= 1) {
+					$issues[] = 'Serial number is too simple (zero or one)';
+				}
+			} else {
+				$issues[] = 'Serial number is missing';
+			}
+
+			if (!isset($parsed['extensions']['subjectKeyIdentifier'])) {
+				$issues[] = 'Subject Key Identifier (SKI) extension is missing';
+			}
+
+			if (!isset($parsed['extensions']['authorityKeyIdentifier'])) {
+				$issues[] = 'Authority Key Identifier (AKI) extension is missing';
+			}
+
+			if (!isset($parsed['extensions']['crlDistributionPoints'])) {
+				$issues[] = 'CRL Distribution Points extension is missing';
+			}
+
+			if (!empty($issues)) {
+				$issuesList = implode(', ', $issues);
+				return (new ConfigureCheckHelper())
+					->setInfoMessage("Root certificate lacks modern features: {$issuesList}")
+					->setResource($this->getConfigureCheckResourceName())
+					->setTip($this->getCertificateRegenerationTip());
+			}
+
+			return null;
+
+		} catch (\Exception $e) {
+			return (new ConfigureCheckHelper())
+				->setErrorMessage('Failed to analyze root certificate: ' . $e->getMessage())
+				->setResource($this->getConfigureCheckResourceName())
+				->setTip('Check if the root certificate file is valid');
+		}
 	}
 
 	#[\Override]

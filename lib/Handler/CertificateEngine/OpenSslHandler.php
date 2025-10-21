@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler\CertificateEngine;
 
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\SerialNumberService;
 use OCP\Files\AppData\IAppDataFactory;
@@ -324,22 +323,35 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 	}
 
 	#[\Override]
-	public function configureCheck(): array {
-		if ($this->isSetupOk()) {
-			return [(new ConfigureCheckHelper())
-				->setSuccessMessage('Root certificate setup is working fine.')
-				->setResource('openssl-configure')];
-		}
-		return [(new ConfigureCheckHelper())
-			->setErrorMessage('OpenSSL (root certificate) not configured.')
-			->setResource('openssl-configure')
-			->setTip('Run occ libresign:configure:openssl --help')];
+	protected function getConfigureCheckResourceName(): string {
+		return 'openssl-configure';
 	}
 
-	/**
-	 * Generate CRL in DER format using OpenSSL commands
-	 * This is OpenSSL-specific logic that belongs in the OpenSSL handler
-	 */
+	#[\Override]
+	protected function getCertificateRegenerationTip(): string {
+		return 'Consider regenerating the root certificate with: occ libresign:configure:openssl --cn="Your CA Name"';
+	}
+
+	#[\Override]
+	protected function getEngineSpecificChecks(): array {
+		return [];
+	}
+
+	#[\Override]
+	protected function getSetupSuccessMessage(): string {
+		return 'Root certificate setup is working fine.';
+	}
+
+	#[\Override]
+	protected function getSetupErrorMessage(): string {
+		return 'OpenSSL (root certificate) not configured.';
+	}
+
+	#[\Override]
+	protected function getSetupErrorTip(): string {
+		return 'Run occ libresign:configure:openssl --help';
+	}
+
 	#[\Override]
 	public function generateCrlDer(array $revokedCertificates): string {
 		$configPath = $this->getConfigPath();

@@ -118,24 +118,33 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	}
 
 	#[\Override]
-	public function configureCheck(): array {
-		$return = $this->checkBinaries();
-		$configPath = $this->getConfigPath();
-		if (is_dir($configPath)) {
-			return array_merge(
-				$return,
-				[(new ConfigureCheckHelper())
-					->setSuccessMessage('Root certificate config files found.')
-					->setResource('cfssl-configure')]
-			);
-		}
-		return array_merge(
-			$return,
-			[(new ConfigureCheckHelper())
-				->setErrorMessage('CFSSL (root certificate) not configured.')
-				->setResource('cfssl-configure')
-				->setTip('Run occ libresign:configure:cfssl --help')]
-		);
+	protected function getConfigureCheckResourceName(): string {
+		return 'cfssl-configure';
+	}
+
+	#[\Override]
+	protected function getCertificateRegenerationTip(): string {
+		return 'Consider regenerating the root certificate with: occ libresign:configure:cfssl --cn="Your CA Name"';
+	}
+
+	#[\Override]
+	protected function getEngineSpecificChecks(): array {
+		return $this->checkBinaries();
+	}
+
+	#[\Override]
+	protected function getSetupSuccessMessage(): string {
+		return 'Root certificate config files found.';
+	}
+
+	#[\Override]
+	protected function getSetupErrorMessage(): string {
+		return 'CFSSL (root certificate) not configured.';
+	}
+
+	#[\Override]
+	protected function getSetupErrorTip(): string {
+		return 'Run occ libresign:configure:cfssl --help';
 	}
 
 	#[\Override]
