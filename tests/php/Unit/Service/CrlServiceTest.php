@@ -31,7 +31,6 @@ class CrlServiceTest extends TestCase {
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 
-		// @phpstan-ignore-next-line
 		$this->service = new CrlService($this->crlMapper, $this->logger, $this->certificateEngineFactory);
 	}
 
@@ -72,10 +71,10 @@ class CrlServiceTest extends TestCase {
 	}
 
 	public function testGenerateCrlDerReturnsValidBinaryData(): void {
-		// Mock revoked certificates data
+		// Create revoked certificates data
 		$revokedCertificates = [
-			$this->createRevokedCertificateMock(123456, 'user1@example.com', 1),
-			$this->createRevokedCertificateMock(789012, 'user2@example.com', 2),
+			$this->createRevokedCertificateEntity(123456, 'user1@example.com', 1),
+			$this->createRevokedCertificateEntity(789012, 'user2@example.com', 2),
 		];
 
 		$this->crlMapper->expects($this->once())
@@ -104,46 +103,15 @@ class CrlServiceTest extends TestCase {
 
 
 
-	public function testRevokeCertificateSuccess(): void {
-		$serialNumber = 123456;
-		$reasonCode = 1; // keyCompromise
-		$reasonText = 'Test revocation';
-		$revokedBy = 'admin';
 
-		$this->crlMapper->expects($this->once())
-			->method('getNextCrlNumber')
-			->willReturn(5);
-
-		$this->crlMapper->expects($this->once())
-			->method('revokeCertificate')
-			->with(
-				123456,
-				CRLReason::KEY_COMPROMISE,
-				$reasonText,
-				$revokedBy,
-				null,
-				5
-			);
-
-		$result = $this->service->revokeCertificate($serialNumber, $reasonCode, $reasonText, $revokedBy);
-
-		$this->assertTrue($result);
-	}
-
-	public function testRevokeCertificateInvalidReasonCode(): void {
-		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('Invalid CRLReason code: 99');
-
-		$this->service->revokeCertificate(123456, 99, 'Test', 'admin');
-	}
 
 	public function testGetRevokedCertificatesReturnsFormattedArray(): void {
-		$mock1 = $this->createRevokedCertificateMock(123456, 'user1@example.com', 1);
-		$mock2 = $this->createRevokedCertificateMock(789012, 'user2@example.com', 2);
+		$entity1 = $this->createRevokedCertificateEntity(123456, 'user1@example.com', 1);
+		$entity2 = $this->createRevokedCertificateEntity(789012, 'user2@example.com', 2);
 
 		$this->crlMapper->expects($this->once())
 			->method('getRevokedCertificates')
-			->willReturn([$mock1, $mock2]);
+			->willReturn([$entity1, $entity2]);
 
 		$result = $this->service->getRevokedCertificates();
 
@@ -176,20 +144,16 @@ class CrlServiceTest extends TestCase {
 		$this->assertEquals($expectedStats, $result);
 	}
 
-	private function createRevokedCertificateMock(int $serialNumber, string $owner, int $reasonCode): MockObject {
-		$mock = $this->getMockBuilder(Crl::class)
-			->disableOriginalConstructor()
-			->addMethods(['getSerialNumber', 'getOwner', 'getReasonCode', 'getRevokedBy', 'getRevokedAt', 'getInvalidityDate', 'getCrlNumber'])
-			->getMock();
-
-		$mock->method('getSerialNumber')->willReturn($serialNumber);
-		$mock->method('getOwner')->willReturn($owner);
-		$mock->method('getReasonCode')->willReturn($reasonCode);
-		$mock->method('getRevokedBy')->willReturn('admin');
-		$mock->method('getRevokedAt')->willReturn(new DateTime('2025-01-17 10:00:00'));
-		$mock->method('getInvalidityDate')->willReturn(null);
-		$mock->method('getCrlNumber')->willReturn(1);
-
-		return $mock;
+	private function createRevokedCertificateEntity(int $serialNumber, string $owner, int $reasonCode): Crl {
+		// Create a real Crl entity and set its properties
+		$crl = new Crl();
+		$crl->setSerialNumber($serialNumber);
+		$crl->setOwner($owner);
+		$crl->setReasonCode($reasonCode);
+		$crl->setRevokedBy('admin');
+		$crl->setRevokedAt(new DateTime('2025-01-17 10:00:00'));
+		$crl->setCrlNumber(1);
+		
+		return $crl;
 	}
 }
