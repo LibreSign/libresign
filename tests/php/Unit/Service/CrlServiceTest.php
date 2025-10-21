@@ -176,28 +176,6 @@ class CrlServiceTest extends TestCase {
 		$this->assertEquals($expectedStats, $result);
 	}
 
-	private function createMockEntity(int $serialNumber, string $owner): MockObject {
-		$entity = $this->createMock(Crl::class);
-		$entity->method('isRevoked')->willReturn(false);
-		$entity->method('isExpired')->willReturn(false);
-		$entity->method('isValid')->willReturn(true);
-		$entity->method('getStatus')->willReturn(\OCA\Libresign\Enum\CRLStatus::ISSUED);
-		return $entity;
-	}
-
-	private function createMockRevokedEntity(int $serialNumber, string $owner, int $reasonCode): array {
-		return [
-			'serial_number' => $serialNumber,
-			'owner' => $owner,
-			'reason_code' => $reasonCode,
-			'revoked_at' => '2025-01-17 10:00:00',
-			'revoked_by' => 'admin',
-			'crl_number' => 1,
-			'invalidity_date' => null,
-			'reason_description' => $this->getReasonDescription($reasonCode),
-		];
-	}
-
 	private function createRevokedCertificateMock(int $serialNumber, string $owner, int $reasonCode): MockObject {
 		$mock = $this->getMockBuilder(Crl::class)
 			->disableOriginalConstructor()
@@ -213,21 +191,5 @@ class CrlServiceTest extends TestCase {
 		$mock->method('getCrlNumber')->willReturn(1);
 
 		return $mock;
-	}
-
-	private function getReasonDescription(int $reasonCode): string {
-		return match($reasonCode) {
-			0 => 'unspecified',
-			1 => 'keyCompromise',
-			2 => 'caCompromise',
-			3 => 'affiliationChanged',
-			4 => 'superseded',
-			5 => 'cessationOfOperation',
-			6 => 'certificateHold',
-			8 => 'removeFromCRL',
-			9 => 'privilegeWithdrawn',
-			10 => 'aACompromise',
-			default => 'unknown',
-		};
 	}
 }
