@@ -59,7 +59,7 @@ class Stats extends Command {
 			$revocationTable = [];
 			foreach ($revocationStats as $stat) {
 				$revocationTable[] = [
-					$stat['reason_description'] ?? 'Unknown',
+					$stat['description'] ?? 'Unknown',
 					$stat['count']
 				];
 			}
@@ -77,7 +77,7 @@ class Stats extends Command {
 				}
 				$recentTable[] = [
 					$cert['serial_number'],
-					$cert['reason_description'] ?? 'N/A',
+					$cert['description'] ?? 'N/A',
 					$cert['revoked_at'] ?? 'N/A',
 					$cert['revoked_by'] ?? 'N/A'
 				];

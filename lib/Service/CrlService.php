@@ -129,7 +129,7 @@ class CrlService {
 				'serial_number' => $certificate->getSerialNumber(),
 				'owner' => $certificate->getOwner(),
 				'reason_code' => $certificate->getReasonCode(),
-				'reason_description' => $certificate->getReasonCode() ? CRLReason::from($certificate->getReasonCode())->getDescription() : null,
+				'description' => $certificate->getReasonCode() ? CRLReason::from($certificate->getReasonCode())->getDescription() : null,
 				'revoked_by' => $certificate->getRevokedBy(),
 				'revoked_at' => $certificate->getRevokedAt()?->format('Y-m-d H:i:s'),
 				'invalidity_date' => $certificate->getInvalidityDate()?->format('Y-m-d H:i:s'),
