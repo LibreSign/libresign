@@ -25,7 +25,7 @@ class CrlMapperTest extends TestCase {
 
 		$this->assertEquals(123456, $certificate->getSerialNumber());
 		$this->assertEquals('test-owner', $certificate->getOwner());
-		$this->assertEquals(CRLStatus::ISSUED, $certificate->getStatus());
+		$this->assertEquals(CRLStatus::ISSUED->value, $certificate->getStatus());
 		$this->assertFalse($certificate->isRevoked());
 		$this->assertTrue($certificate->isValid());
 	}
