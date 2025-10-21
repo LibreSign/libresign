@@ -35,7 +35,7 @@ interface IEngineHandler {
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
-	): string;
+	): void;
 
 	public function populateInstance(array $rootCert): IEngineHandler;
 
@@ -51,7 +51,9 @@ interface IEngineHandler {
 
 	public function setConfigPath(string $configPath): IEngineHandler;
 
-	public function expirity(): int;
+	public function getLeafExpiryInDays(): int;
+
+	public function getCaExpiryInDays(): int;
 
 	public function configureCheck(): array;
 

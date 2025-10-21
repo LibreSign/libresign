@@ -23,6 +23,7 @@ use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
+use OCP\IURLGenerator;
 
 /**
  * Class CfsslHandler
@@ -48,8 +49,9 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		protected ITempManager $tempManager,
 		protected CfsslServerHandler $cfsslServerHandler,
 		protected CertificatePolicyService $certificatePolicyService,
+		protected IURLGenerator $urlGenerator,
 	) {
-		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager, $certificatePolicyService);
+		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager, $certificatePolicyService, $urlGenerator);
 
 		$this->cfsslServerHandler->configCallback(fn () => $this->getConfigPath());
 	}
@@ -57,17 +59,15 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
-	): string {
-		$key = bin2hex(random_bytes(16));
-
+	): void {
 		$this->cfsslServerHandler->createConfigServer(
 			$commonName,
 			$names,
-			$key,
-			$this->expirity()
+			$this->getCaExpiryInDays(),
+			$this->getCrlDistributionUrl(),
 		);
 
-		$this->genkey();
+		$this->gencert();
 
 		$this->stopIfRunning();
 
@@ -77,8 +77,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			}
 			sleep(2);
 		}
-
-		return $key;
 	}
 
 	public function generateCertificate(): string {
@@ -97,9 +95,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	}
 
 	public function isSetupOk(): bool {
-		if (!parent::isSetupOk()) {
-			return false;
-		};
 		$configPath = $this->getConfigPath();
 		$certificate = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
 		$privateKey = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
@@ -114,24 +109,28 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		return false;
 	}
 
-	public function configureCheck(): array {
-		$return = $this->checkBinaries();
-		$configPath = $this->getConfigPath();
-		if (is_dir($configPath)) {
-			return array_merge(
-				$return,
-				[(new ConfigureCheckHelper())
-					->setSuccessMessage('Root certificate config files found.')
-					->setResource('cfssl-configure')]
-			);
-		}
-		return array_merge(
-			$return,
-			[(new ConfigureCheckHelper())
-				->setErrorMessage('CFSSL (root certificate) not configured.')
-				->setResource('cfssl-configure')
-				->setTip('Run occ libresign:configure:cfssl --help')]
-		);
+	protected function getConfigureCheckResourceName(): string {
+		return 'cfssl-configure';
+	}
+
+	protected function getCertificateRegenerationTip(): string {
+		return 'Consider regenerating the root certificate with: occ libresign:configure:cfssl --cn="Your CA Name"';
+	}
+
+	protected function getEngineSpecificChecks(): array {
+		return $this->checkBinaries();
+	}
+
+	protected function getSetupSuccessMessage(): string {
+		return 'Root certificate config files found.';
+	}
+
+	protected function getSetupErrorMessage(): string {
+		return 'CFSSL (root certificate) not configured.';
+	}
+
+	protected function getSetupErrorTip(): string {
+		return 'Run occ libresign:configure:cfssl --help';
 	}
 
 	public function toArray(): array {
@@ -162,6 +161,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 						'size' => 2048,
 					],
 					'names' => [],
+					'crl_url' => $this->getCrlDistributionUrl(),
 				],
 			],
 		];
@@ -193,13 +193,26 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		return $responseDecoded['result'];
 	}
 
-	private function genkey(): void {
+	private function gencert(): void {
 		$binary = $this->getBinary();
 		$configPath = $this->getConfigPath();
-		$cmd = $binary . ' genkey '
-			. '-initca=true ' . $configPath . DIRECTORY_SEPARATOR . 'csr_server.json | '
-			. $binary . 'json -bare ' . $configPath . DIRECTORY_SEPARATOR . 'ca;';
-		shell_exec($cmd);
+		$csrFile = $configPath . '/csr_server.json';
+
+		$cmd = escapeshellcmd($binary) . ' gencert -initca ' . escapeshellarg($csrFile);
+		$output = shell_exec($cmd);
+
+		if (!$output) {
+			throw new \RuntimeException('cfssl without output.');
+		}
+
+		$json = json_decode($output, true);
+		if (!$json || !isset($json['cert'], $json['key'], $json['csr'])) {
+			throw new \RuntimeException('Error generating CA: invalid cfssl output.');
+		}
+
+		file_put_contents($configPath . '/ca.pem', $json['cert']);
+		file_put_contents($configPath . '/ca-key.pem', $json['key']);
+		file_put_contents($configPath . '/ca.csr', $json['csr']);
 	}
 
 	private function getClient(): Client {
@@ -257,7 +270,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		if (!$configPath) {
 			throw new LibresignException('CFSSL not configured.');
 		}
-		$this->cfsslServerHandler->updateExpirity($this->expirity());
+		$this->cfsslServerHandler->updateExpirity($this->getCaExpiryInDays());
 		$cmd = 'nohup ' . $binary . ' serve -address=127.0.0.1 '
 			. '-ca-key ' . $configPath . DIRECTORY_SEPARATOR . 'ca-key.pem '
 			. '-ca ' . $configPath . DIRECTORY_SEPARATOR . 'ca.pem '
@@ -438,7 +451,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		return $return;
 	}
 
-	#[\Override]
 	public function generateCrlDer(array $revokedCertificates): string {
 		try {
 			$queryParams = [];
