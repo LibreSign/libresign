@@ -56,7 +56,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected SignRequestMapper $signRequestMapper;
 	protected FileElementMapper $fileElementMapper;
 	protected FileElementService $fileElementService;
-	protected FolderService|MockObject $folderService;
+	protected FolderService $folderService;
 	protected ValidateHelper $validateHelper;
 	protected PdfParserService $pdfParserService;
 	private AccountService&MockObject $accountService;
@@ -76,6 +76,9 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected vfsDirectory $tempFolder;
 
 	public function setUp(): void {
+		// Disable lazy objects to avoid PHP 8.4 dependency injection issues in tests
+		\OC\AppFramework\Utility\SimpleContainer::$useLazyObjects = false;
+
 		$this->tempFolder = vfsStream::setup('uploaded');
 		$appConfig = $this->getMockAppConfig();
 		$appConfig->setValueInt(Application::APP_ID, 'length_of_page', 100);
