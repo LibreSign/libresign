@@ -57,10 +57,11 @@ class ApiTestCase extends TestCase {
 		$this->request = new \OCA\Libresign\Tests\Api\ApiRequester();
 	}
 
-	private function removeBasePath(array $data): array {
+	protected function removeBasePath(array $data): array {
 		$cleaned = [];
 		foreach ($data['paths'] as $key => $value) {
 			$key = preg_replace('~^/ocs/v2.php/apps/libresign~', '', (string)$key);
+			$key = preg_replace('~^/index.php/apps/libresign~', '', (string)$key);
 			$cleaned[$key] = $value;
 		}
 		$data['paths'] = $cleaned;

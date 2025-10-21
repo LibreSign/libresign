@@ -63,6 +63,9 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
 		<command>OCA\Libresign\Command\Configure\Check</command>
 		<command>OCA\Libresign\Command\Configure\Cfssl</command>
 		<command>OCA\Libresign\Command\Configure\OpenSsl</command>
+		<command>OCA\Libresign\Command\Crl\Stats</command>
+		<command>OCA\Libresign\Command\Crl\Cleanup</command>
+		<command>OCA\Libresign\Command\Crl\Revoke</command>
 		<command>OCA\Libresign\Command\Developer\Reset</command>
 		<command>OCA\Libresign\Command\Developer\SignSetup</command>
 		<command>OCA\Libresign\Command\Install</command>
