@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler\CertificateEngine;
 
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\SerialNumberService;
 use OCP\Files\AppData\IAppDataFactory;
@@ -330,10 +329,6 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			->setTip('Run occ libresign:configure:openssl --help')];
 	}
 
-	/**
-	 * Generate CRL in DER format using OpenSSL commands
-	 * This is OpenSSL-specific logic that belongs in the OpenSSL handler
-	 */
 	#[\Override]
 	public function generateCrlDer(array $revokedCertificates): string {
 		$configPath = $this->getConfigPath();
