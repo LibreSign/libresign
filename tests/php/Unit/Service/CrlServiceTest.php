@@ -153,7 +153,7 @@ class CrlServiceTest extends TestCase {
 		$crl->setRevokedBy('admin');
 		$crl->setRevokedAt(new DateTime('2025-01-17 10:00:00'));
 		$crl->setCrlNumber(1);
-		
+
 		return $crl;
 	}
 }
