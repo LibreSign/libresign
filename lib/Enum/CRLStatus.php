@@ -9,9 +9,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Enum;
 
-/**
- * Certificate status in CRL
- */
 enum CRLStatus: string {
 	case ISSUED = 'issued';
 	case REVOKED = 'revoked';
