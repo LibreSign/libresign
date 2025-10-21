@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use DateMalformedStringException;
 use DateTime;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\BackgroundJob\Reminder;
@@ -144,7 +143,7 @@ class ReminderService {
 
 		try {
 			$time = new \DateTime($startTime, $timezone);
-		} catch (DateMalformedStringException $e) {
+		} catch (\Exception $e) {
 			$this->logger->error('Failed to parse reminder send time: ' . $e->getMessage());
 			return null;
 		}
