@@ -56,4 +56,12 @@ interface IEngineHandler {
 	public function configureCheck(): array;
 
 	public function toArray(): array;
+
+	/**
+	 * Generate Certificate Revocation List in DER format
+	 * @param array $revokedCertificates Array of revoked certificate entities
+	 * @return string DER-encoded CRL data
+	 * @throws \RuntimeException If CRL generation is not supported or fails
+	 */
+	public function generateCrlDer(array $revokedCertificates): string;
 }

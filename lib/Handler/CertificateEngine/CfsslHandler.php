@@ -352,7 +352,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		if ($uri = $this->appConfig->getValueString(Application::APP_ID, 'cfssl_uri')) {
 			return $uri;
 		}
-		// In case config is an empty string
 		$this->appConfig->deleteKey(Application::APP_ID, 'cfssl_uri');
 
 		$this->cfsslUri = self::CFSSL_URI;
@@ -442,5 +441,100 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			->setSuccessMessage('Runtime: ' . $matches['version'][1])
 			->setResource('cfssl');
 		return $return;
+	}
+
+	#[\Override]
+	public function generateCrlDer(array $revokedCertificates): string {
+		try {
+			$queryParams = [];
+			$queryParams['expiry'] = '168h'; // 7 days * 24 hours
+
+			$response = $this->getClient()->request('GET', 'crl', [
+				'query' => $queryParams
+			]);
+
+			$responseData = json_decode((string)$response->getBody(), true);
+
+			if (!isset($responseData['success']) || !$responseData['success']) {
+				$errorMessage = isset($responseData['errors'])
+					? implode(', ', array_column($responseData['errors'], 'message'))
+					: 'Unknown CFSSL error';
+				throw new \RuntimeException('CFSSL CRL generation failed: ' . $errorMessage);
+			}
+
+			if (isset($responseData['result']) && is_string($responseData['result'])) {
+				return $responseData['result'];
+			}
+
+			throw new \RuntimeException('No CRL data returned from CFSSL');
+
+		} catch (RequestException|ConnectException $e) {
+			throw new \RuntimeException('Failed to communicate with CFSSL server: ' . $e->getMessage());
+		} catch (\Throwable $e) {
+			throw new \RuntimeException('CFSSL CRL generation error: ' . $e->getMessage());
+		}
+	}
+
+	/**
+	 * Get Authority Key Identifier from certificate (needed for CFSSL revocation)
+	 *
+	 * @param string $certificatePem PEM encoded certificate
+	 * @return string Authority Key Identifier in lowercase without colons
+	 */
+	public function getAuthorityKeyId(string $certificatePem): string {
+		$cert = openssl_x509_read($certificatePem);
+		if (!$cert) {
+			throw new \RuntimeException('Invalid certificate format');
+		}
+
+		$parsed = openssl_x509_parse($cert);
+		if (!$parsed || !isset($parsed['extensions']['authorityKeyIdentifier'])) {
+			throw new \RuntimeException('Certificate does not contain Authority Key Identifier');
+		}
+
+		$authKeyId = $parsed['extensions']['authorityKeyIdentifier'];
+
+		if (preg_match('/keyid:([A-Fa-f0-9:]+)/', $authKeyId, $matches)) {
+			return strtolower(str_replace(':', '', $matches[1]));
+		}
+
+		throw new \RuntimeException('Could not parse Authority Key Identifier');
+	}
+
+	/**
+	 * Revoke a certificate using CFSSL API
+	 *
+	 * @param string $serialNumber Certificate serial number in decimal format
+	 * @param string $authorityKeyId Authority key identifier (lowercase, no colons)
+	 * @param string $reason CRLReason description string (e.g., 'superseded', 'keyCompromise')
+	 */
+	public function revokeCertificate(string $serialNumber, string $authorityKeyId, string $reason): bool {
+		try {
+			$json = [
+				'json' => [
+					'serial' => $serialNumber,
+					'authority_key_id' => $authorityKeyId,
+					'reason' => $reason,
+				],
+			];
+
+			$response = $this->getClient()->request('POST', 'revoke', $json);
+
+			$responseData = json_decode((string)$response->getBody(), true);
+
+			if (!isset($responseData['success'])) {
+				$errorMessage = isset($responseData['errors'])
+					? implode(', ', array_column($responseData['errors'], 'message'))
+					: 'Unknown CFSSL error';
+				throw new \RuntimeException('CFSSL revocation failed: ' . $errorMessage);
+			}
+
+			return $responseData['success'];
+
+		} catch (RequestException|ConnectException $e) {
+			throw new \RuntimeException('Failed to communicate with CFSSL server: ' . $e->getMessage());
+		} catch (\Throwable $e) {
+			throw new \RuntimeException('CFSSL certificate revocation error: ' . $e->getMessage());
+		}
 	}
 }

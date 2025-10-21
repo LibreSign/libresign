@@ -11,11 +11,13 @@ use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Service\CertificatePolicyService;
+use OCA\Libresign\Service\SerialNumberService;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
+use OCP\IURLGenerator;
 
 final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IConfig $config;
@@ -25,6 +27,8 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ITempManager $tempManager;
 	private OpenSslHandler $openSslHandler;
 	protected CertificatePolicyService $certificatePolicyService;
+	private SerialNumberService $serialNumberService;
+	private IURLGenerator $urlGenerator;
 	private string $tempDir;
 	public function setUp(): void {
 		$this->config = \OCP\Server::get(IConfig::class);
@@ -32,21 +36,23 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appDataFactory = \OCP\Server::get(IAppDataFactory::class);
 		$this->dateTimeFormatter = \OCP\Server::get(IDateTimeFormatter::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
-		$this->certificatePolicyService = \OCP\Server::get(certificatePolicyService::class);
+		$this->certificatePolicyService = \OCP\Server::get(CertificatePolicyService::class);
+		$this->serialNumberService = \OCP\Server::get(SerialNumberService::class);
+		$this->urlGenerator = \OCP\Server::get(IURLGenerator::class);
 		$this->tempDir = $this->tempManager->getTemporaryFolder('certificate');
 	}
 
-	private function getInstance(): OpenSslHandler {
-		$this->openSslHandler = new OpenSslHandler(
+	private function getInstance() {
+		return new OpenSslHandler(
 			$this->config,
 			$this->appConfig,
 			$this->appDataFactory,
 			$this->dateTimeFormatter,
 			$this->tempManager,
 			$this->certificatePolicyService,
+			$this->urlGenerator,
+			$this->serialNumberService,
 		);
-		$this->openSslHandler->setConfigPath($this->tempDir);
-		return $this->openSslHandler;
 	}
 
 	public function testEmptyCertificate(): void {
@@ -60,10 +66,11 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testInvalidPassword(): void {
 		// Create root cert
 		$rootInstance = $this->getInstance();
-		$rootInstance->generateRootCert('', []);
+		$rootInstance->generateRootCert('Test Root CA', []);
 
 		// Create signer cert
 		$signerInstance = $this->getInstance();
+		$signerInstance->setCommonName('Test User');
 		$signerInstance->setHosts(['user@email.tld']);
 		$signerInstance->setPassword('right password');
 		$certificateContent = $signerInstance->generateCertificate();
@@ -76,7 +83,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testMaxLengthOfDistinguishedNamesWithSuccess(): void {
 		// Create root cert
 		$rootInstance = $this->getInstance();
-		$rootInstance->generateRootCert('', []);
+		$rootInstance->generateRootCert('Test Root CA', []);
 
 		// Create signer cert
 		$signerInstance = $this->getInstance();
@@ -91,7 +98,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testBiggerThanMaxLengthOfDistinguishedNamesWithError(): void {
 		// Create root cert
 		$rootInstance = $this->getInstance();
-		$rootInstance->generateRootCert('', []);
+		$rootInstance->generateRootCert('Test Root CA', []);
 
 		// Create signer cert
 		$signerInstance = $this->getInstance();
@@ -139,6 +146,9 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signerInstance->setFriendlyName($signerName);
 		if (isset($csrNames['CN'])) {
 			$signerInstance->setCommonName($csrNames['CN']);
+		} else {
+			$signerInstance->setCommonName($signerName);
+			$csrNames['CN'] = $signerName; // Add to expected values for comparison
 		}
 		if (isset($csrNames['C'])) {
 			$signerInstance->setCountry($csrNames['C']);
@@ -248,7 +258,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testSerialNumberGeneration(): void {
 		$rootInstance = $this->getInstance();
-		$rootInstance->generateRootCert('', []);
+		$rootInstance->generateRootCert('Test Root CA', []);
 
 		$signerInstance = $this->getInstance();
 		$signerInstance->setCommonName('Test User');
@@ -275,7 +285,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testUniqueSerialNumbers(): void {
 		$rootInstance = $this->getInstance();
-		$rootInstance->generateRootCert('', []);
+		$rootInstance->generateRootCert('Test Root CA', []);
 
 		$serialNumbers = [];
 		$numCertificates = 3;

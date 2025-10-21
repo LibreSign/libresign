@@ -25,7 +25,7 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
 
 * [Donate with GitHub Sponsor: ![Donate using GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/libresign)
 	]]></description>
-	<version>13.0.0-dev.0</version>
+	<version>13.0.0-dev.1</version>
 	<licence>agpl</licence>
 	<author mail="contact@librecode.coop" homepage="https://librecode.coop">LibreCode</author>
 	<documentation>
@@ -63,6 +63,9 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
 		<command>OCA\Libresign\Command\Configure\Check</command>
 		<command>OCA\Libresign\Command\Configure\Cfssl</command>
 		<command>OCA\Libresign\Command\Configure\OpenSsl</command>
+		<command>OCA\Libresign\Command\Crl\Stats</command>
+		<command>OCA\Libresign\Command\Crl\Cleanup</command>
+		<command>OCA\Libresign\Command\Crl\Revoke</command>
 		<command>OCA\Libresign\Command\Developer\Reset</command>
 		<command>OCA\Libresign\Command\Developer\SignSetup</command>
 		<command>OCA\Libresign\Command\Install</command>
