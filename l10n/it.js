@@ -479,6 +479,12 @@ OC.L10N.register(
     "Open in LibreSign" : "Apri in LibreSign",
     "not a LibreSign file" : "non è un file LibreSign",
     "New signature request" : "Nuova richiesta di firma",
-    "Requested by {name}, at {date}" : "Richiesta da {name}, il {date}"
+    "Requested by {name}, at {date}" : "Richiesta da {name}, il {date}",
+    "Support LibreSign" : "Sostieni LibreSign",
+    "Help us continue developing and maintaining LibreSign" : "Aiutaci a continuare a sviluppare e mantenere LibreSign",
+    "LibreSign is developed with ❤️ by LibreCode coop. Your support helps us maintain and improve this free and open-source project." : "LibreSign è sviluppato con ❤️ da LibreCode coop. Il tuo supporto ci aiuta a mantenere e migliorare questo progetto libero e open source.",
+    "Sponsor on GitHub" : "Sponsorizza su GitHub",
+    "Donate via Stripe" : "Dona tramite Stripe",
+    "Learn more" : "Scopri di più"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
