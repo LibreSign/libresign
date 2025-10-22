@@ -233,7 +233,8 @@ class AccountService {
 		$info['hasSignatureFile'] = $this->hasSignatureFile($user);
 		$info['phoneNumber'] = $this->getPhoneNumber($user);
 		$info['isApprover'] = $this->validateHelper->userCanApproveValidationDocuments($user, false);
-		$info['grid_view'] = $this->getUserConfigByKey($user, 'grid_view') === '1';;
+		$info['grid_view'] = $this->getUserConfigByKey($user, 'grid_view') === '1';
+		;
 
 		return $info;
 	}

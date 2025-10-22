@@ -5,7 +5,8 @@
 <template>
 	<FileListFilter :is-active="isActive"
 		:filter-name="t('libresign', 'Modified')"
-		@reset-filter="resetFilter">
+		@reset-filter="resetFilter"
+		@set-marked-filter="setMarkedFilter">
 		<template #icon>
 			<NcIconSvgWrapper :path="mdiCalendarRange" />
 		</template>
@@ -132,8 +133,32 @@ export default {
 				this.selectedOption = null
 				this.timeRangeEnd = null
 				this.timeRangeStart = null
+				this.filtersStore.onFilterUpdateChipsAndSave({ detail: '', id: 'modified' })
 			}
 		},
+		setMarkedFilter(){
+
+			const chips = []
+
+			let preset = this.currentPreset
+
+			if (preset) {
+
+				chips.push({
+					start: preset.start,
+					end: preset.end,
+					icon: calendarSvg,
+					text: preset.label,
+					id: preset.id,
+					onclick: () => this.setPreset(),
+				})
+
+			} else {
+				this.resetFilter()
+			}
+
+			this.filtersStore.onFilterUpdateChipsAndSave({ detail: chips, id: 'modified' })
+		}
 	},
 }
 </script>

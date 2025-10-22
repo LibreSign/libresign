@@ -551,13 +551,13 @@ class SignRequestMapper extends QBMapper {
 				);
 			}
 			if (!empty($filter['start'])) {
-				$start = (new \DateTime('@'.$filter['start']))->format('Y-m-d H:i:s');
+				$start = (new \DateTime('@' . $filter['start'], new \DateTimeZone('UTC')))->format('Y-m-d H:i:s');
 				$qb->andWhere(
 					$qb->expr()->gte('f.created_at', $qb->createNamedParameter($start, IQueryBuilder::PARAM_STR))
 				);
 			}
 			if (!empty($filter['end'])) {
-				$end = (new \DateTime('@'.$filter['end']))->format('Y-m-d H:i:s');
+				$end = (new \DateTime('@' . $filter['end'], new \DateTimeZone('UTC')))->format('Y-m-d H:i:s');
 				$qb->andWhere(
 					$qb->expr()->lte('f.created_at', $qb->createNamedParameter($end, IQueryBuilder::PARAM_STR))
 				);
