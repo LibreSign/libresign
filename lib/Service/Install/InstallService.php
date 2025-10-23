@@ -604,8 +604,7 @@ class InstallService {
 		$checksumUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/cfssl_' . self::CFSSL_VERSION . '_checksums.txt';
 		$hash = $this->getHash($file, $checksumUrl);
 
-		$file = $folder->newFile('cfssl');
-		$fullPath = $this->getInternalPathOfFile($file);
+		$fullPath = $this->getInternalPathOfFile($folder->newFile('cfssl'));
 
 		$dependencyName = 'cfssl ' . $architecture;
 		$this->download($baseUrl . $file, $dependencyName, $fullPath, $hash, 'sha256');
