@@ -39,8 +39,6 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager, $certificatePolicyService, $urlGenerator);
 	}
 
-
-
 	#[\Override]
 	public function generateRootCert(
 		string $commonName,
