@@ -418,20 +418,22 @@ abstract class AEngineHandler implements IEngineHandler {
 					->setTip('Root certificate may be in an unsupported format');
 			}
 
-			$issues = [];
+			$criticalIssues = [];
+			$minorIssues = [];
 
 			if (isset($parsed['serialNumber'])) {
 				$serialNumber = $parsed['serialNumber'];
 				$serialDecimal = hexdec($serialNumber);
 				if ($serialDecimal <= 1) {
-					$issues[] = 'Serial number is too simple (zero or one)';
+					$minorIssues[] = 'Serial number is simple (zero or one)';
 				}
 			} else {
-				$issues[] = 'Serial number is missing';
+				$criticalIssues[] = 'Serial number is missing';
 			}
 
+			$missingExtensions = [];
 			if (!isset($parsed['extensions']['subjectKeyIdentifier'])) {
-				$issues[] = 'Subject Key Identifier (SKI) extension is missing';
+				$missingExtensions[] = 'Subject Key Identifier (SKI)';
 			}
 
 			if (!isset($parsed['extensions']['authorityKeyIdentifier'])) {
@@ -439,15 +441,28 @@ abstract class AEngineHandler implements IEngineHandler {
 			}
 
 			if (!isset($parsed['extensions']['crlDistributionPoints'])) {
-				$issues[] = 'CRL Distribution Points extension is missing';
+				$missingExtensions[] = 'CRL Distribution Points';
 			}
 
-			if (!empty($issues)) {
-				$issuesList = implode(', ', $issues);
+			if (!empty($missingExtensions)) {
+				$extensionsList = implode(', ', $missingExtensions);
+				$minorIssues[] = "Missing modern extensions: {$extensionsList}";
+			}
+
+			if (!empty($criticalIssues)) {
+				$issuesList = implode(', ', $criticalIssues);
 				return (new ConfigureCheckHelper())
-					->setInfoMessage("Root certificate lacks modern features: {$issuesList}")
+					->setErrorMessage("Root certificate has critical issues: {$issuesList}")
 					->setResource($this->getConfigureCheckResourceName())
 					->setTip($this->getCertificateRegenerationTip());
+			}
+
+			if (!empty($minorIssues)) {
+				$issuesList = implode(', ', $minorIssues);
+				return (new ConfigureCheckHelper())
+					->setInfoMessage("Root certificate could benefit from modern features: {$issuesList}")
+					->setResource($this->getConfigureCheckResourceName())
+					->setTip($this->getCertificateRegenerationTip() . ' (recommended but not required)');
 			}
 
 			return null;
