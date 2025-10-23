@@ -96,6 +96,8 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			throw new LibresignException('Invalid root certificate');
 		}
 
+		$this->inheritRootSubjectFields($rootCertificate);
+
 		$privateKey = openssl_pkey_new([
 			'private_key_bits' => 2048,
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
@@ -126,6 +128,27 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 				],
 			],
 		);
+	}
+
+	private function inheritRootSubjectFields(string $rootCertificate): void {
+		$parsedRoot = openssl_x509_parse($rootCertificate);
+		if ($parsedRoot && isset($parsedRoot['subject']) && is_array($parsedRoot['subject'])) {
+			$map = [
+				'C' => 'country',
+				'ST' => 'state',
+				'L' => 'locality',
+				'O' => 'organization',
+				'OU' => 'organizationalUnit',
+			];
+			foreach ($parsedRoot['subject'] as $k => $v) {
+				if (isset($map[$k])) {
+					$setter = 'set' . ucfirst($map[$k]);
+					if (method_exists($this, $setter)) {
+						$this->$setter($v);
+					}
+				}
+			}
+		}
 	}
 
 	private function generateCaConfig(): string {
