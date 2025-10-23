@@ -64,7 +64,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			$this->expirity()
 		);
 
-		$this->genkey();
+		$this->gencert();
 
 		$this->stopIfRunning();
 
@@ -185,13 +185,26 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		return $responseDecoded['result'];
 	}
 
-	private function genkey(): void {
+	private function gencert(): void {
 		$binary = $this->getBinary();
 		$configPath = $this->getConfigPath();
-		$cmd = $binary . ' genkey '
-			. '-initca=true ' . $configPath . DIRECTORY_SEPARATOR . 'csr_server.json | '
-			. $binary . 'json -bare ' . $configPath . DIRECTORY_SEPARATOR . 'ca;';
-		shell_exec($cmd);
+		$csrFile = $configPath . '/csr_server.json';
+
+		$cmd = escapeshellcmd($binary) . ' gencert -initca ' . escapeshellarg($csrFile);
+		$output = shell_exec($cmd);
+
+		if (!$output) {
+			throw new \RuntimeException('cfssl without output.');
+		}
+
+		$json = json_decode($output, true);
+		if (!$json || !isset($json['cert'], $json['key'], $json['csr'])) {
+			throw new \RuntimeException('Error generating CA: invalid cfssl output.');
+		}
+
+		file_put_contents($configPath . '/ca.pem', $json['cert']);
+		file_put_contents($configPath . '/ca-key.pem', $json['key']);
+		file_put_contents($configPath . '/ca.csr', $json['csr']);
 	}
 
 	private function getClient(): Client {
