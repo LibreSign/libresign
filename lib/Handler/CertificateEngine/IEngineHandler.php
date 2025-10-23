@@ -35,7 +35,7 @@ interface IEngineHandler {
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
-	): string;
+	): void;
 
 	public function populateInstance(array $rootCert): IEngineHandler;
 
@@ -51,9 +51,19 @@ interface IEngineHandler {
 
 	public function setConfigPath(string $configPath): IEngineHandler;
 
-	public function expirity(): int;
+	public function getLeafExpiryInDays(): int;
+
+	public function getCaExpiryInDays(): int;
 
 	public function configureCheck(): array;
 
 	public function toArray(): array;
+
+	/**
+	 * Generate Certificate Revocation List in DER format
+	 * @param array $revokedCertificates Array of revoked certificate entities
+	 * @return string DER-encoded CRL data
+	 * @throws \RuntimeException If CRL generation is not supported or fails
+	 */
+	public function generateCrlDer(array $revokedCertificates): string;
 }

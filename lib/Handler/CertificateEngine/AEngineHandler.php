@@ -12,6 +12,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCP\Files\AppData\IAppDataFactory;
@@ -21,6 +22,7 @@ use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
+use OCP\IURLGenerator;
 use OpenSSLAsymmetricKey;
 use OpenSSLCertificate;
 use ReflectionClass;
@@ -73,6 +75,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		protected IDateTimeFormatter $dateTimeFormatter,
 		protected ITempManager $tempManager,
 		protected CertificatePolicyService $certificatePolicyService,
+		protected IURLGenerator $urlGenerator,
 	) {
 		$this->appData = $appDataFactory->get('libresign');
 	}
@@ -328,22 +331,15 @@ abstract class AEngineHandler implements IEngineHandler {
 	}
 
 	#[\Override]
-	public function expirity(): int {
-		$expirity = $this->appConfig->getValueInt(Application::APP_ID, 'expiry_in_days', 365);
-		if ($expirity < 0) {
-			return 365;
-		}
-		return $expirity;
+	public function getLeafExpiryInDays(): int {
+		$exp = $this->appConfig->getValueInt(Application::APP_ID, 'expiry_in_days', 365);
+		return $exp > 0 ? $exp : 365;
 	}
 
 	#[\Override]
-	public function isSetupOk(): bool {
-		return strlen($this->appConfig->getValueString(Application::APP_ID, 'authkey', '')) > 0;
-	}
-
-	#[\Override]
-	public function configureCheck(): array {
-		throw new \Exception('Necessary to implement configureCheck method');
+	public function getCaExpiryInDays(): int {
+		$exp = $this->appConfig->getValueInt(Application::APP_ID, 'ca_expiry_in_days', 3650); // 10 years
+		return $exp > 0 ? $exp : 3650;
 	}
 
 	private function getCertificatePolicy(): array {
@@ -357,6 +353,137 @@ abstract class AEngineHandler implements IEngineHandler {
 			];
 		}
 		return $return;
+	}
+
+	abstract protected function getConfigureCheckResourceName(): string;
+
+	abstract protected function getCertificateRegenerationTip(): string;
+
+	abstract protected function getEngineSpecificChecks(): array;
+
+	abstract protected function getSetupSuccessMessage(): string;
+
+	abstract protected function getSetupErrorMessage(): string;
+
+	abstract protected function getSetupErrorTip(): string;
+
+	#[\Override]
+	public function configureCheck(): array {
+		$checks = $this->getEngineSpecificChecks();
+
+		if (!$this->isSetupOk()) {
+			return array_merge($checks, [
+				(new ConfigureCheckHelper())
+					->setErrorMessage($this->getSetupErrorMessage())
+					->setResource($this->getConfigureCheckResourceName())
+					->setTip($this->getSetupErrorTip())
+			]);
+		}
+
+		$checks[] = (new ConfigureCheckHelper())
+			->setSuccessMessage($this->getSetupSuccessMessage())
+			->setResource($this->getConfigureCheckResourceName());
+
+		$modernFeaturesCheck = $this->checkRootCertificateModernFeatures();
+		if ($modernFeaturesCheck) {
+			$checks[] = $modernFeaturesCheck;
+		}
+
+		return $checks;
+	}
+
+	protected function checkRootCertificateModernFeatures(): ?ConfigureCheckHelper {
+		$configPath = $this->getConfigPath();
+		$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
+
+		try {
+			$certContent = file_get_contents($caCertPath);
+			if (!$certContent) {
+				return (new ConfigureCheckHelper())
+					->setErrorMessage('Failed to read root certificate file')
+					->setResource($this->getConfigureCheckResourceName())
+					->setTip('Check file permissions and disk space');
+			}
+
+			$x509Resource = openssl_x509_read($certContent);
+			if (!$x509Resource) {
+				return (new ConfigureCheckHelper())
+					->setErrorMessage('Failed to parse root certificate')
+					->setResource($this->getConfigureCheckResourceName())
+					->setTip('Root certificate file may be corrupted or invalid');
+			}
+
+			$parsed = openssl_x509_parse($x509Resource);
+			if (!$parsed) {
+				return (new ConfigureCheckHelper())
+					->setErrorMessage('Failed to extract root certificate information')
+					->setResource($this->getConfigureCheckResourceName())
+					->setTip('Root certificate may be in an unsupported format');
+			}
+
+			$criticalIssues = [];
+			$minorIssues = [];
+
+			if (isset($parsed['serialNumber'])) {
+				$serialNumber = $parsed['serialNumber'];
+				$serialDecimal = hexdec($serialNumber);
+				if ($serialDecimal <= 1) {
+					$minorIssues[] = 'Serial number is simple (zero or one)';
+				}
+			} else {
+				$criticalIssues[] = 'Serial number is missing';
+			}
+
+			$missingExtensions = [];
+			if (!isset($parsed['extensions']['subjectKeyIdentifier'])) {
+				$missingExtensions[] = 'Subject Key Identifier (SKI)';
+			}
+
+			$isSelfSigned = (isset($parsed['issuer']) && isset($parsed['subject'])
+							&& $parsed['issuer'] === $parsed['subject']);
+
+			/**
+			 * @todo workarround for missing AKI at certificates generated by CFSSL.
+			 *
+			 * CFSSL does not add Authority Key Identifier (AKI) to self-signed root certificates.
+			 */
+			if (!$isSelfSigned && !isset($parsed['extensions']['authorityKeyIdentifier'])) {
+				$missingExtensions[] = 'Authority Key Identifier (AKI)';
+			}
+
+			if (!isset($parsed['extensions']['crlDistributionPoints'])) {
+				$missingExtensions[] = 'CRL Distribution Points';
+			}
+
+			if (!empty($missingExtensions)) {
+				$extensionsList = implode(', ', $missingExtensions);
+				$minorIssues[] = "Missing modern extensions: {$extensionsList}";
+			}
+
+			if (!empty($criticalIssues)) {
+				$issuesList = implode(', ', $criticalIssues);
+				return (new ConfigureCheckHelper())
+					->setErrorMessage("Root certificate has critical issues: {$issuesList}")
+					->setResource($this->getConfigureCheckResourceName())
+					->setTip($this->getCertificateRegenerationTip());
+			}
+
+			if (!empty($minorIssues)) {
+				$issuesList = implode(', ', $minorIssues);
+				return (new ConfigureCheckHelper())
+					->setInfoMessage("Root certificate could benefit from modern features: {$issuesList}")
+					->setResource($this->getConfigureCheckResourceName())
+					->setTip($this->getCertificateRegenerationTip() . ' (recommended but not required)');
+			}
+
+			return null;
+
+		} catch (\Exception $e) {
+			return (new ConfigureCheckHelper())
+				->setErrorMessage('Failed to analyze root certificate: ' . $e->getMessage())
+				->setResource($this->getConfigureCheckResourceName())
+				->setTip('Check if the root certificate file is valid');
+		}
 	}
 
 	#[\Override]
@@ -381,5 +508,9 @@ abstract class AEngineHandler implements IEngineHandler {
 			];
 		}
 		return $return;
+	}
+
+	protected function getCrlDistributionUrl(): string {
+		return $this->urlGenerator->linkToRouteAbsolute('libresign.crl.getRevocationList');
 	}
 }
