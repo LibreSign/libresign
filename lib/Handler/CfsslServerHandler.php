@@ -71,6 +71,7 @@ class CfsslServerHandler {
 			'ca' => [
 				'expiry' => ($expirityInDays * 24) . 'h',
 			],
+			'names' => [],
 		];
 		if (!empty($crlUrl)) {
 			$content['crl_url'] = $crlUrl;
