@@ -23,6 +23,7 @@ use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
+use OCP\IURLGenerator;
 
 /**
  * Class CfsslHandler
@@ -48,8 +49,9 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		protected ITempManager $tempManager,
 		protected CfsslServerHandler $cfsslServerHandler,
 		protected CertificatePolicyService $certificatePolicyService,
+		protected IURLGenerator $urlGenerator,
 	) {
-		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager, $certificatePolicyService);
+		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager, $certificatePolicyService, $urlGenerator);
 
 		$this->cfsslServerHandler->configCallback(fn () => $this->getConfigPath());
 	}
@@ -62,7 +64,8 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		$this->cfsslServerHandler->createConfigServer(
 			$commonName,
 			$names,
-			$this->expirity()
+			$this->expirity(),
+			$this->getCrlDistributionUrl(),
 		);
 
 		$this->gencert();
@@ -168,6 +171,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 						'size' => 2048,
 					],
 					'names' => [],
+					'crl_url' => $this->getCrlDistributionUrl(),
 				],
 			],
 		];
