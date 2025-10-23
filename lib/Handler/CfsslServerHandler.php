@@ -70,6 +70,12 @@ class CfsslServerHandler {
 			],
 			'ca' => [
 				'expiry' => ($expirityInDays * 24) . 'h',
+				/**
+				 * Look the RFC about pathlen constraint
+				 *
+				 * @link https://www.rfc-editor.org/rfc/rfc5280#section-4.2.1.9
+				 */
+				'pathlen' => 1,
 			],
 			'names' => [],
 		];
