@@ -64,7 +64,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		$this->cfsslServerHandler->createConfigServer(
 			$commonName,
 			$names,
-			$this->expirity(),
+			$this->getCaExpiryInDays(),
 			$this->getCrlDistributionUrl(),
 		);
 
@@ -280,7 +280,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		if (!$configPath) {
 			throw new LibresignException('CFSSL not configured.');
 		}
-		$this->cfsslServerHandler->updateExpirity($this->expirity());
+		$this->cfsslServerHandler->updateExpirity($this->getCaExpiryInDays());
 		$cmd = 'nohup ' . $binary . ' serve -address=127.0.0.1 '
 			. '-ca-key ' . $configPath . DIRECTORY_SEPARATOR . 'ca-key.pem '
 			. '-ca ' . $configPath . DIRECTORY_SEPARATOR . 'ca.pem '

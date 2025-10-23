@@ -331,12 +331,15 @@ abstract class AEngineHandler implements IEngineHandler {
 	}
 
 	#[\Override]
-	public function expirity(): int {
-		$expirity = $this->appConfig->getValueInt(Application::APP_ID, 'expiry_in_days', 365);
-		if ($expirity < 0) {
-			return 365;
-		}
-		return $expirity;
+	public function getLeafExpiryInDays(): int {
+		$exp = $this->appConfig->getValueInt(Application::APP_ID, 'expiry_in_days', 365);
+		return $exp > 0 ? $exp : 365;
+	}
+
+	#[\Override]
+	public function getCaExpiryInDays(): int {
+		$exp = $this->appConfig->getValueInt(Application::APP_ID, 'ca_expiry_in_days', 3650); // 10 years
+		return $exp > 0 ? $exp : 3650;
 	}
 
 	private function getCertificatePolicy(): array {
