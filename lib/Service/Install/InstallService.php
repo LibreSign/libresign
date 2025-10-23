@@ -731,7 +731,7 @@ class InstallService {
 		$engine->setConfigPath($properties['configPath'] ?? '');
 
 		/** @var IEngineHandler $engine */
-		$privateKey = $engine->generateRootCert(
+		$engine->generateRootCert(
 			$commonName,
 			$names
 		);

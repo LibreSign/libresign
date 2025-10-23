@@ -44,20 +44,22 @@ class CfsslServerHandler {
 	public function createConfigServer(
 		string $commonName,
 		array $names,
-		int $expirity,
+		int $expirityInDays,
 		string $crlUrl = '',
 	): void {
 		$this->putCsrServer(
 			$commonName,
 			$names,
+			$expirityInDays,
 			$crlUrl,
 		);
-		$this->saveNewConfig($expirity);
+		$this->saveNewConfig($expirityInDays);
 	}
 
 	private function putCsrServer(
 		string $commonName,
 		array $names,
+		int $expirityInDays,
 		string $crlUrl,
 	): void {
 		$content = [
@@ -65,6 +67,9 @@ class CfsslServerHandler {
 			'key' => [
 				'algo' => 'rsa',
 				'size' => 2048,
+			],
+			'ca' => [
+				'expiry' => ($expirityInDays * 24) . 'h',
 			],
 		];
 		if (!empty($crlUrl)) {

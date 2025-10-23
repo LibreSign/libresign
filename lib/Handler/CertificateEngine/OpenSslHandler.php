@@ -51,12 +51,13 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		$csr = openssl_csr_new($this->getCsrNames(), $privateKey, ['digest_alg' => 'sha256']);
 		$options = $this->getRootCertOptions();
 
+		$caDays = $this->getCaExpiryInDays();
 		$serialNumber = $this->serialNumberService->generateUniqueSerial(
 			$commonName,
-			new \DateTime('+5 years')
+			new \DateTime('+' . $caDays . ' days')
 		);
 
-		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365 * 5, $options, $serialNumber);
+		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = $caDays, $options, $serialNumber);
 
 		openssl_csr_export($csr, $csrout);
 		openssl_x509_export($x509, $certout);
@@ -111,11 +112,11 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 		$serialNumber = $this->serialNumberService->generateUniqueSerial(
 			$this->getCommonName(),
-			new \DateTime('+' . $this->expirity() . ' days')
+			new \DateTime('+' . $this->getLeafExpiryInDays() . ' days')
 		);
 		$options = $this->getLeafCertOptions();
 
-		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, $this->expirity(), $options, $serialNumber);
+		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, $this->getLeafExpiryInDays(), $options, $serialNumber);
 
 		return parent::exportToPkcs12(
 			$x509,
