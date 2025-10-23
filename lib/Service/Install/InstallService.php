@@ -748,7 +748,6 @@ class InstallService {
 		);
 
 		$this->appConfig->setValueArray(Application::APP_ID, 'rootCert', $rootCert);
-		$this->appConfig->setValueString(Application::APP_ID, 'authkey', $privateKey);
 		/** @var AEngineHandler $engine */
 		if ($engine instanceof CfsslHandler) {
 			$this->appConfig->setValueString(Application::APP_ID, 'config_path', $engine->getConfigPath());
