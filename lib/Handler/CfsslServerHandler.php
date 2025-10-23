@@ -45,10 +45,12 @@ class CfsslServerHandler {
 		string $commonName,
 		array $names,
 		int $expirity,
+		string $crlUrl = '',
 	): void {
 		$this->putCsrServer(
 			$commonName,
 			$names,
+			$crlUrl,
 		);
 		$this->saveNewConfig($expirity);
 	}
@@ -56,6 +58,7 @@ class CfsslServerHandler {
 	private function putCsrServer(
 		string $commonName,
 		array $names,
+		string $crlUrl,
 	): void {
 		$content = [
 			'CN' => $commonName,
@@ -64,6 +67,9 @@ class CfsslServerHandler {
 				'size' => 2048,
 			],
 		];
+		if (!empty($crlUrl)) {
+			$content['crl_url'] = $crlUrl;
+		}
 		foreach ($names as $id => $name) {
 			$content['names'][0][$id] = $name['value'];
 		}

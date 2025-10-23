@@ -22,6 +22,7 @@ use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
+use OCP\IURLGenerator;
 use OpenSSLAsymmetricKey;
 use OpenSSLCertificate;
 use ReflectionClass;
@@ -74,6 +75,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		protected IDateTimeFormatter $dateTimeFormatter,
 		protected ITempManager $tempManager,
 		protected CertificatePolicyService $certificatePolicyService,
+		protected IURLGenerator $urlGenerator,
 	) {
 		$this->appData = $appDataFactory->get('libresign');
 	}
@@ -373,5 +375,9 @@ abstract class AEngineHandler implements IEngineHandler {
 			];
 		}
 		return $return;
+	}
+
+	protected function getCrlDistributionUrl(): string {
+		return $this->urlGenerator->linkToRouteAbsolute('libresign.crl.getRevocationList');
 	}
 }

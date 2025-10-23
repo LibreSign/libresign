@@ -36,7 +36,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		protected IURLGenerator $urlGenerator,
 		protected SerialNumberService $serialNumberService,
 	) {
-		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager, $certificatePolicyService);
+		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager, $certificatePolicyService, $urlGenerator);
 	}
 
 	public function generateRootCert(
@@ -224,10 +224,6 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		$this->addLeafPolicies($config);
 
 		return $config;
-	}
-
-	private function getCrlDistributionUrl(): string {
-		return $this->urlGenerator->linkToRouteAbsolute('libresign.crl.getRevocationList');
 	}
 
 	private function addCaPolicies(array &$config): void {
