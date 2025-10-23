@@ -599,29 +599,18 @@ class InstallService {
 			return;
 		}
 		$folder = $this->getFolder($this->resource);
-		$downloads = [
-			[
-				'file' => 'cfssl_' . self::CFSSL_VERSION . '_linux_' . $architecture,
-				'destination' => 'cfssl',
-			],
-			[
-				'file' => 'cfssljson_' . self::CFSSL_VERSION . '_linux_' . $architecture,
-				'destination' => 'cfssljson',
-			],
-		];
+		$file = 'cfssl_' . self::CFSSL_VERSION . '_linux_' . $architecture;
 		$baseUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/';
 		$checksumUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/cfssl_' . self::CFSSL_VERSION . '_checksums.txt';
-		foreach ($downloads as $download) {
-			$hash = $this->getHash($download['file'], $checksumUrl);
+		$hash = $this->getHash($file, $checksumUrl);
 
-			$file = $folder->newFile($download['destination']);
-			$fullPath = $this->getInternalPathOfFile($file);
+		$file = $folder->newFile('cfssl');
+		$fullPath = $this->getInternalPathOfFile($file);
 
-			$dependencyName = $download['destination'] . ' ' . $architecture;
-			$this->download($baseUrl . $download['file'], $dependencyName, $fullPath, $hash, 'sha256');
+		$dependencyName = 'cfssl ' . $architecture;
+		$this->download($baseUrl . $file, $dependencyName, $fullPath, $hash, 'sha256');
 
-			chmod($fullPath, 0700);
-		}
+		chmod($fullPath, 0700);
 		$cfsslBinPath = $this->getInternalPathOfFolder($folder) . '/cfssl';
 		$this->appConfig->setValueString(Application::APP_ID, 'cfssl_bin', $cfsslBinPath);
 		$this->writeAppSignature();
