@@ -17,10 +17,6 @@ use OCP\IAppConfig;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
-/**
- * Creates CRL (Certificate Revocation List) table for unique serial number management
- * and RFC-compliant certificate revocation tracking
- */
 class Version13000Date20250117140000 extends SimpleMigrationStep {
 	public function __construct(
 		private IAppConfig $appConfig,
