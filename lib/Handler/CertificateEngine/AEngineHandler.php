@@ -337,11 +337,6 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $expirity;
 	}
 
-	#[\Override]
-	public function isSetupOk(): bool {
-		return strlen($this->appConfig->getValueString(Application::APP_ID, 'authkey', '')) > 0;
-	}
-
 	private function getCertificatePolicy(): array {
 		$return = ['policySection' => []];
 		$oid = $this->certificatePolicyService->getOid();

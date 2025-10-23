@@ -35,7 +35,7 @@ interface IEngineHandler {
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
-	): string;
+	): void;
 
 	public function populateInstance(array $rootCert): IEngineHandler;
 

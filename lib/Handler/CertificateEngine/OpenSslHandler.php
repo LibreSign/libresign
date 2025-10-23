@@ -45,7 +45,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
-	): string {
+	): void {
 		$privateKey = openssl_pkey_new([
 			'private_key_bits' => 2048,
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
@@ -69,8 +69,6 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		CertificateHelper::saveFile($configPath . '/ca.csr', $csrout);
 		CertificateHelper::saveFile($configPath . '/ca.pem', $certout);
 		CertificateHelper::saveFile($configPath . '/ca-key.pem', $pkeyout);
-
-		return $pkeyout;
 	}
 
 	private function getRootCertOptions(): array {
@@ -312,10 +310,6 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 	#[\Override]
 	public function isSetupOk(): bool {
-		$ok = parent::isSetupOk();
-		if (!$ok) {
-			return false;
-		}
 		$configPath = $this->getConfigPath();
 		$certificate = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
 		$privateKey = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');

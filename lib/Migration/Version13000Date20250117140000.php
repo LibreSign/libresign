@@ -10,8 +10,10 @@ declare(strict_types=1);
 namespace OCA\Libresign\Migration;
 
 use Closure;
+use OCA\Libresign\AppInfo\Application;
 use OCP\DB\ISchemaWrapper;
 use OCP\DB\Types;
+use OCP\IAppConfig;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
@@ -20,6 +22,11 @@ use OCP\Migration\SimpleMigrationStep;
  * and RFC-compliant certificate revocation tracking
  */
 class Version13000Date20250117140000 extends SimpleMigrationStep {
+	public function __construct(
+		private IAppConfig $appConfig,
+	) {
+	}
+
 	/**
 	 * @param IOutput $output
 	 * @param Closure(): ISchemaWrapper $schemaClosure
@@ -91,6 +98,8 @@ class Version13000Date20250117140000 extends SimpleMigrationStep {
 			$table->addIndex(['valid_to'], 'libresign_crl_valid_to_idx');
 			$table->addIndex(['reason_code'], 'libresign_crl_reason_code_idx');
 		}
+
+		$this->appConfig->deleteKey(Application::APP_ID, 'authkey');
 
 		return $schema;
 	}
