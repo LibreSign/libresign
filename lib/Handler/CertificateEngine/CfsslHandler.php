@@ -57,13 +57,10 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
-	): string {
-		$key = bin2hex(random_bytes(16));
-
+	): void {
 		$this->cfsslServerHandler->createConfigServer(
 			$commonName,
 			$names,
-			$key,
 			$this->expirity()
 		);
 
@@ -77,8 +74,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			}
 			sleep(2);
 		}
-
-		return $key;
 	}
 
 	public function generateCertificate(): string {
@@ -97,9 +92,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	}
 
 	public function isSetupOk(): bool {
-		if (!parent::isSetupOk()) {
-			return false;
-		};
 		$configPath = $this->getConfigPath();
 		$certificate = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
 		$privateKey = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');

@@ -44,14 +44,13 @@ class CfsslServerHandler {
 	public function createConfigServer(
 		string $commonName,
 		array $names,
-		string $key,
 		int $expirity,
 	): void {
 		$this->putCsrServer(
 			$commonName,
 			$names,
 		);
-		$this->saveNewConfig($key, $expirity);
+		$this->saveNewConfig($expirity);
 	}
 
 	private function putCsrServer(
@@ -78,13 +77,11 @@ class CfsslServerHandler {
 			);
 		}
 	}
-
-	private function saveNewConfig(string $key, int $expirity): void {
+	private function saveNewConfig(int $expirity): void {
 		$config = [
 			'signing' => [
 				'profiles' => [
 					'client' => [
-						'auth_key' => 'key1',
 						'expiry' => ($expirity * 24) . 'h',
 						'usages' => [
 							'signing',
@@ -94,13 +91,10 @@ class CfsslServerHandler {
 							'client auth',
 							'email protection'
 						],
+						'ca_constraint' => [
+							'is_ca' => false
+						],
 					],
-				],
-			],
-			'auth_keys' => [
-				'key1' => [
-					'key' => $key,
-					'type' => 'standard',
 				],
 			],
 		];

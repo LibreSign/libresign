@@ -12,8 +12,7 @@ class NoneHandler extends AEngineHandler implements IEngineHandler {
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
-	): string {
-		return '';
+	): void {
 	}
 
 	public function generateCertificate(string $certificate = '', string $privateKey = ''): string {
