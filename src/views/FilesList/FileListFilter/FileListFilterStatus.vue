@@ -6,7 +6,8 @@
 	<FileListFilter class="file-list-filter-status"
 		:is-active="isActive"
 		:filter-name="t('libresign', 'Status')"
-		@reset-filter="resetFilter">
+		@reset-filter="resetFilter"
+		@set-marked-filter="setMarkedFilter">
 		<template #icon>
 			<NcIconSvgWrapper :path="mdiListStatus" />
 		</template>
@@ -50,7 +51,7 @@ export default {
 	},
 	data() {
 		return {
-			selectedOptions: [],
+			selectedOptions: this.filtersStore.filterStatusArray || [],
 		}
 	},
 	computed: {
@@ -60,6 +61,11 @@ export default {
 		fileStatus() {
 			return fileStatus.filter(item => [0, 1, 2, 3].includes(item.id))
 		},
+	},
+	mounted() {
+		if (this.selectedOptions.length > 0) {
+			this.setPreset(this.selectedOptions)
+		}
 	},
 	watch: {
 		selectedOptions(newValue, oldValue) {
@@ -91,6 +97,7 @@ export default {
 			if (this.selectedOptions.length > 0) {
 				this.selectedOptions = []
 			}
+			this.filtersStore.onFilterUpdateChipsAndSave({ detail: '', id: 'status' })
 		},
 		toggleOption(option) {
 			const idx = this.selectedOptions.indexOf(option)
@@ -99,7 +106,34 @@ export default {
 			} else {
 				this.selectedOptions.push(option)
 			}
+
+			console.log('toggleOption')
+			console.log(this.selectedOptions)
 		},
+		setMarkedFilter(){
+
+			const chips = []
+
+			let presets = this.selectedOptions
+
+			if (presets && presets.length > 0) {
+				for (const preset of presets) {
+					chips.push({
+						id: preset.id,
+						icon: preset.icon,
+						text: preset.label,
+						onclick: () => this.setPreset(presets.filter(({ id }) => id !== preset.id)),
+					})
+				}
+			}  else {
+				this.resetFilter()
+			}
+
+			console.log('setMarkedFilter')
+			console.log(presets)
+
+			this.filtersStore.onFilterUpdateChipsAndSave({ detail: chips, id: 'status' })
+		}
 	},
 }
 </script>
