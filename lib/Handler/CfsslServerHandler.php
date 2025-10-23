@@ -83,18 +83,6 @@ class CfsslServerHandler {
 		$config = [
 			'signing' => [
 				'profiles' => [
-					'CA' => [
-						'auth_key' => 'key1',
-						'expiry' => ($expirity * 24) . 'h',
-						'usages' => [
-							'signing',
-							'digital signature',
-							'cert sign',
-							'key encipherment',
-							'client auth',
-							'email protection'
-						],
-					],
 					'client' => [
 						'auth_key' => 'key1',
 						'expiry' => ($expirity * 24) . 'h',
@@ -119,15 +107,6 @@ class CfsslServerHandler {
 		$oid = $this->certificatePolicyService->getOid();
 		$cps = $this->certificatePolicyService->getCps();
 		if ($oid && $cps) {
-			$config['signing']['profiles']['CA']['policies'][] = [
-				'id' => $oid,
-				'qualifiers' => [
-					[
-						'type' => 'id-qt-cps',
-						'value' => $cps,
-					],
-				],
-			];
 			$config['signing']['profiles']['client']['policies'][] = [
 				'id' => $oid,
 				'qualifiers' => [
