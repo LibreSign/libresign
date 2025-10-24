@@ -331,16 +331,28 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		return $certificate && $privateKey;
 	}
 
-	public function configureCheck(): array {
-		if ($this->isSetupOk()) {
-			return [(new ConfigureCheckHelper())
-				->setSuccessMessage('Root certificate setup is working fine.')
-				->setResource('openssl-configure')];
-		}
-		return [(new ConfigureCheckHelper())
-			->setErrorMessage('OpenSSL (root certificate) not configured.')
-			->setResource('openssl-configure')
-			->setTip('Run occ libresign:configure:openssl --help')];
+	protected function getConfigureCheckResourceName(): string {
+		return 'openssl-configure';
+	}
+
+	protected function getCertificateRegenerationTip(): string {
+		return 'Consider regenerating the root certificate with: occ libresign:configure:openssl --cn="Your CA Name"';
+	}
+
+	protected function getEngineSpecificChecks(): array {
+		return [];
+	}
+
+	protected function getSetupSuccessMessage(): string {
+		return 'Root certificate setup is working fine.';
+	}
+
+	protected function getSetupErrorMessage(): string {
+		return 'OpenSSL (root certificate) not configured.';
+	}
+
+	protected function getSetupErrorTip(): string {
+		return 'Run occ libresign:configure:openssl --help';
 	}
 
 	#[\Override]

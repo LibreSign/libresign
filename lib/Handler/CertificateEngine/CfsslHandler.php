@@ -109,24 +109,28 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		return false;
 	}
 
-	public function configureCheck(): array {
-		$return = $this->checkBinaries();
-		$configPath = $this->getConfigPath();
-		if (is_dir($configPath)) {
-			return array_merge(
-				$return,
-				[(new ConfigureCheckHelper())
-					->setSuccessMessage('Root certificate config files found.')
-					->setResource('cfssl-configure')]
-			);
-		}
-		return array_merge(
-			$return,
-			[(new ConfigureCheckHelper())
-				->setErrorMessage('CFSSL (root certificate) not configured.')
-				->setResource('cfssl-configure')
-				->setTip('Run occ libresign:configure:cfssl --help')]
-		);
+	protected function getConfigureCheckResourceName(): string {
+		return 'cfssl-configure';
+	}
+
+	protected function getCertificateRegenerationTip(): string {
+		return 'Consider regenerating the root certificate with: occ libresign:configure:cfssl --cn="Your CA Name"';
+	}
+
+	protected function getEngineSpecificChecks(): array {
+		return $this->checkBinaries();
+	}
+
+	protected function getSetupSuccessMessage(): string {
+		return 'Root certificate config files found.';
+	}
+
+	protected function getSetupErrorMessage(): string {
+		return 'CFSSL (root certificate) not configured.';
+	}
+
+	protected function getSetupErrorTip(): string {
+		return 'Run occ libresign:configure:cfssl --help';
 	}
 
 	public function toArray(): array {
@@ -447,7 +451,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		return $return;
 	}
 
-	#[\Override]
 	public function generateCrlDer(array $revokedCertificates): string {
 		try {
 			$queryParams = [];
