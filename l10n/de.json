@@ -486,12 +486,5 @@
     "Open in LibreSign" : "In LibreSign öffnen",
     "not a LibreSign file" : "Keine LibreSign-Datei",
     "New signature request" : "Neue Signaturanfrage",
-    "Requested by {name}, at {date}" : "Angefordert von {name}, am {date}",
-    "Support LibreSign" : "LibreSign unterstützen",
-    "Help us continue developing and maintaining LibreSign" : "Helfen Sie uns, LibreSign weiterzuentwickeln und zu pflegen",
-    "LibreSign is developed with ❤️ by LibreCode coop. Your support helps us maintain and improve this free and open-source project." : "LibreSign wird mit ❤️ von LibreCode coop entwickelt. Ihre Unterstützung hilft uns, dieses freie und quelloffene Projekt zu pflegen und zu verbessern.",
-    "Sponsor on GitHub" : "Auf GitHub sponsern",
-    "Donate via Stripe" : "Per Stripe spenden",
-    "Learn more" : "Mehr erfahren"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
