@@ -22,6 +22,7 @@
 		<DefaultUserFolder />
 		<Reminders />
 		<SupportProject />
+		<TSA />
 	</NcSettingsSection>
 </template>
 
@@ -44,6 +45,7 @@ import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
 import SignatureHashAlgorithm from './SignatureHashAlgorithm.vue'
 import SignatureStamp from './SignatureStamp.vue'
 import SupportProject from './SupportProject.vue'
+import TSA from './TSA.vue'
 import Validation from './Validation.vue'
 
 export default {
@@ -65,6 +67,7 @@ export default {
 		SignatureHashAlgorithm,
 		SignatureStamp,
 		SupportProject,
+		TSA,
 		Validation,
 		Reminders,
 	},

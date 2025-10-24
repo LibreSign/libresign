@@ -30,12 +30,16 @@ OC.L10N.register(
     "Enter a password" : "Enter a password",
     "Today" : "Hodie",
     "Modified" : "Modificate",
+    "Version" : "Version",
     "Current password" : "Contrasigno actual",
     "New password" : "Nove contrasigno",
     "Resource" : "Ressource",
     "Reminders" : "Memento",
     "Yes" : "Si",
     "No" : "No",
-    "No date" : "No date"
+    "Username" : "Nomine de usator",
+    "Optional" : "Optional",
+    "No date" : "No date",
+    "Unknown" : "Incognite"
 },
 "nplurals=2; plural=(n != 1);");

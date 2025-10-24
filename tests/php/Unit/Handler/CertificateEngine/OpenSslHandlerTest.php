@@ -11,11 +11,13 @@ use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Service\CertificatePolicyService;
+use OCA\Libresign\Service\SerialNumberService;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
+use OCP\IURLGenerator;
 
 final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IConfig $config;
@@ -25,6 +27,8 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ITempManager $tempManager;
 	private OpenSslHandler $openSslHandler;
 	protected CertificatePolicyService $certificatePolicyService;
+	private SerialNumberService $serialNumberService;
+	private IURLGenerator $urlGenerator;
 	private string $tempDir;
 	public function setUp(): void {
 		$this->config = \OCP\Server::get(IConfig::class);
@@ -32,21 +36,23 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appDataFactory = \OCP\Server::get(IAppDataFactory::class);
 		$this->dateTimeFormatter = \OCP\Server::get(IDateTimeFormatter::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
-		$this->certificatePolicyService = \OCP\Server::get(certificatePolicyService::class);
+		$this->certificatePolicyService = \OCP\Server::get(CertificatePolicyService::class);
+		$this->serialNumberService = \OCP\Server::get(SerialNumberService::class);
+		$this->urlGenerator = \OCP\Server::get(IURLGenerator::class);
 		$this->tempDir = $this->tempManager->getTemporaryFolder('certificate');
 	}
 
-	private function getInstance(): OpenSslHandler {
-		$this->openSslHandler = new OpenSslHandler(
+	private function getInstance() {
+		return new OpenSslHandler(
 			$this->config,
 			$this->appConfig,
 			$this->appDataFactory,
 			$this->dateTimeFormatter,
 			$this->tempManager,
 			$this->certificatePolicyService,
+			$this->urlGenerator,
+			$this->serialNumberService,
 		);
-		$this->openSslHandler->setConfigPath($this->tempDir);
-		return $this->openSslHandler;
 	}
 
 	public function testEmptyCertificate(): void {
@@ -60,10 +66,11 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testInvalidPassword(): void {
 		// Create root cert
 		$rootInstance = $this->getInstance();
-		$rootInstance->generateRootCert('', []);
+		$rootInstance->generateRootCert('Test Root CA', []);
 
 		// Create signer cert
 		$signerInstance = $this->getInstance();
+		$signerInstance->setCommonName('Test User');
 		$signerInstance->setHosts(['user@email.tld']);
 		$signerInstance->setPassword('right password');
 		$certificateContent = $signerInstance->generateCertificate();
@@ -76,7 +83,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testMaxLengthOfDistinguishedNamesWithSuccess(): void {
 		// Create root cert
 		$rootInstance = $this->getInstance();
-		$rootInstance->generateRootCert('', []);
+		$rootInstance->generateRootCert('Test Root CA', []);
 
 		// Create signer cert
 		$signerInstance = $this->getInstance();
@@ -91,7 +98,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testBiggerThanMaxLengthOfDistinguishedNamesWithError(): void {
 		// Create root cert
 		$rootInstance = $this->getInstance();
-		$rootInstance->generateRootCert('', []);
+		$rootInstance->generateRootCert('Test Root CA', []);
 
 		// Create signer cert
 		$signerInstance = $this->getInstance();
@@ -139,6 +146,9 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signerInstance->setFriendlyName($signerName);
 		if (isset($csrNames['CN'])) {
 			$signerInstance->setCommonName($csrNames['CN']);
+		} else {
+			$signerInstance->setCommonName($signerName);
+			$csrNames['CN'] = $signerName; // Add to expected values for comparison
 		}
 		if (isset($csrNames['C'])) {
 			$signerInstance->setCountry($csrNames['C']);
@@ -244,5 +254,58 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				],
 			],
 		];
+	}
+
+	public function testSerialNumberGeneration(): void {
+		$rootInstance = $this->getInstance();
+		$rootInstance->generateRootCert('Test Root CA', []);
+
+		$signerInstance = $this->getInstance();
+		$signerInstance->setCommonName('Test User');
+		$signerInstance->setPassword('123456');
+
+		$certificate = $signerInstance->generateCertificate();
+		$parsed = $signerInstance->readCertificate($certificate, '123456');
+
+		$this->assertArrayHasKey('serialNumber', $parsed, 'Certificate should have serialNumber field');
+		$this->assertArrayHasKey('serialNumberHex', $parsed, 'Certificate should have serialNumberHex field');
+		$this->assertNotNull($parsed['serialNumber'], 'Serial number should not be null');
+		$this->assertNotNull($parsed['serialNumberHex'], 'Serial number hex should not be null');
+
+		$this->assertNotEquals('0', $parsed['serialNumber'], 'Serial number should not be zero');
+		$this->assertNotEquals('00', $parsed['serialNumberHex'], 'Serial number hex should not be zero');
+
+		$serialInt = (int)$parsed['serialNumber'];
+		$this->assertGreaterThanOrEqual(1000000, $serialInt, 'Serial number should be >= 1000000');
+		$this->assertLessThanOrEqual(2147483647, $serialInt, 'Serial number should be <= 2147483647');
+
+		$this->assertIsNumeric($parsed['serialNumber'], 'Serial number should be numeric');
+		$this->assertMatchesRegularExpression('/^[0-9A-Fa-f]+$/', $parsed['serialNumberHex'], 'Serial number hex should contain only hex characters');
+	}
+
+	public function testUniqueSerialNumbers(): void {
+		$rootInstance = $this->getInstance();
+		$rootInstance->generateRootCert('Test Root CA', []);
+
+		$serialNumbers = [];
+		$numCertificates = 3;
+
+		for ($i = 0; $i < $numCertificates; $i++) {
+			$signerInstance = $this->getInstance();
+			$signerInstance->setCommonName("Test Certificate $i");
+			$signerInstance->setPassword('123456');
+			$certificateContent = $signerInstance->generateCertificate();
+			$parsed = $signerInstance->readCertificate($certificateContent, '123456');
+
+			$serialNumber = $parsed['serialNumber'];
+
+			$this->assertNotEquals('0', $serialNumber, "Certificate $i should not have serial number 0");
+
+			$this->assertNotContains($serialNumber, $serialNumbers, "Certificate $i should have unique serial number");
+
+			$serialNumbers[] = $serialNumber;
+		}
+
+		$this->assertCount($numCertificates, array_unique($serialNumbers), 'All serial numbers should be unique');
 	}
 }

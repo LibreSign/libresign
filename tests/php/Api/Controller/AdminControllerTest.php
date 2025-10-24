@@ -117,4 +117,64 @@ final class AdminControllerTest extends ApiTestCase {
 		// Make and test request mach with schema
 		$this->assertRequest();
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testSetTsaConfigSensitivePassword(): void {
+		$this->createAccount('admintest', 'password', 'admin');
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('admintest:password')
+			])
+			->withPath('/api/v1/admin/tsa')
+			->withMethod('POST')
+			->withRequestBody([
+				'tsa_url' => 'https://tsa.example.com',
+				'tsa_auth_type' => 'basic',
+				'tsa_username' => 'testuser',
+				'tsa_password' => 'secret_password'
+			])
+			->assertResponseCode(200);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testSetTsaConfigWithoutUrlDoesNothing(): void {
+		$this->createAccount('admintest', 'password', 'admin');
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('admintest:password')
+			])
+			->withPath('/api/v1/admin/tsa')
+			->withMethod('POST')
+			->withRequestBody([
+				'tsa_password' => 'secret_password'
+			])
+			->assertResponseCode(200);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testDeleteTsaConfig(): void {
+		$this->createAccount('admintest', 'password', 'admin');
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('admintest:password')
+			])
+			->withPath('/api/v1/admin/tsa')
+			->withMethod('DELETE')
+			->assertResponseCode(200);
+
+		$this->assertRequest();
+	}
 }

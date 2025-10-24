@@ -44,19 +44,23 @@ class CfsslServerHandler {
 	public function createConfigServer(
 		string $commonName,
 		array $names,
-		string $key,
-		int $expirity,
+		int $expirityInDays,
+		string $crlUrl = '',
 	): void {
 		$this->putCsrServer(
 			$commonName,
 			$names,
+			$expirityInDays,
+			$crlUrl,
 		);
-		$this->saveNewConfig($key, $expirity);
+		$this->saveNewConfig($expirityInDays);
 	}
 
 	private function putCsrServer(
 		string $commonName,
 		array $names,
+		int $expirityInDays,
+		string $crlUrl,
 	): void {
 		$content = [
 			'CN' => $commonName,
@@ -64,7 +68,20 @@ class CfsslServerHandler {
 				'algo' => 'rsa',
 				'size' => 2048,
 			],
+			'ca' => [
+				'expiry' => ($expirityInDays * 24) . 'h',
+				/**
+				 * Look the RFC about pathlen constraint
+				 *
+				 * @link https://www.rfc-editor.org/rfc/rfc5280#section-4.2.1.9
+				 */
+				'pathlen' => 1,
+			],
+			'names' => [],
 		];
+		if (!empty($crlUrl)) {
+			$content['crl_url'] = $crlUrl;
+		}
 		foreach ($names as $id => $name) {
 			$content['names'][0][$id] = $name['value'];
 		}
@@ -78,36 +95,31 @@ class CfsslServerHandler {
 			);
 		}
 	}
-
-	private function saveNewConfig(string $key, int $expirity): void {
+	private function saveNewConfig(int $expirity): void {
 		$config = [
 			'signing' => [
 				'profiles' => [
-					'CA' => [
-						'auth_key' => 'key1',
+					'client' => [
 						'expiry' => ($expirity * 24) . 'h',
 						'usages' => [
 							'signing',
 							'digital signature',
-							'cert sign',
+							'content commitment',
 							'key encipherment',
 							'client auth',
 							'email protection'
 						],
+						'ca_constraint' => [
+							'is_ca' => false
+						],
 					],
-				],
-			],
-			'auth_keys' => [
-				'key1' => [
-					'key' => $key,
-					'type' => 'standard',
 				],
 			],
 		];
 		$oid = $this->certificatePolicyService->getOid();
 		$cps = $this->certificatePolicyService->getCps();
 		if ($oid && $cps) {
-			$config['signing']['profiles']['CA']['policies'][] = [
+			$config['signing']['profiles']['client']['policies'][] = [
 				'id' => $oid,
 				'qualifiers' => [
 					[
@@ -147,6 +159,7 @@ class CfsslServerHandler {
 		}
 		$config = json_decode($jsonConfig, true);
 		$config['signing']['profiles']['CA']['expiry'] = ($expirity * 24) . 'h';
+		$config['signing']['profiles']['client']['expiry'] = ($expirity * 24) . 'h';
 		$this->saveConfig($config);
 	}
 }

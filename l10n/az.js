@@ -42,11 +42,13 @@ OC.L10N.register(
     "Ok" : "Oldu",
     "Today" : "Bu gün",
     "Modified" : "Dəyişdirildi",
+    "Version" : "Versiya",
     "Password reset" : "Parolun sıfırlanması",
     "Current password" : "Hazırkı şifrə",
     "New password" : "Yeni şifrə",
     "Yes" : "Yes",
     "No" : "No",
+    "Username" : "İstifadəçi adı",
     "Name:" : "Ad:",
     "No date" : "No date"
 },

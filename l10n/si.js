@@ -32,10 +32,12 @@ OC.L10N.register(
     "Signature" : "අත්සන",
     "Password" : "මුර පදය",
     "Today" : "අද",
+    "Version" : "අනුවාදය",
     "New password" : "නව මුරපදය",
     "Remove" : "ඉවත් කරන්න",
     "Message" : "පණිවිඩය",
     "Yes" : "ඔව්",
-    "No" : "නැහැ"
+    "No" : "නැහැ",
+    "Time:" : "වේලාව:"
 },
 "nplurals=2; plural=(n != 1);");

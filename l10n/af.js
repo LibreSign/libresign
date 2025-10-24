@@ -49,6 +49,7 @@ OC.L10N.register(
     "Page not found" : "Blad nie gevind nie",
     "Modified" : "Gewysig",
     "Created at" : "Geskep om",
+    "Version" : "Weergawe",
     "Password reset" : "Wagwoord herstel",
     "Current password" : "Huidige wagwoord",
     "New password" : "Nuwe wagwoord",
@@ -58,6 +59,8 @@ OC.L10N.register(
     "Yes" : "Ja",
     "No" : "Nee",
     "Reset to default" : "Herstel na verstek",
+    "Username" : "Gebruikernaam",
+    "Optional" : "Opsioneel",
     "Forgot password?" : "Wagwoord vergeet?",
     "No date" : "Geen datum"
 },

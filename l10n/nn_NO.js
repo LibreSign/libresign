@@ -41,6 +41,7 @@ OC.L10N.register(
     "Today" : "I dag",
     "Modified" : "Endra",
     "Created at" : "Skapt den",
+    "Version" : "Utgåve",
     "Password reset" : "Passord omstilling",
     "Current password" : "Passord",
     "New password" : "Nytt passord",
@@ -48,6 +49,9 @@ OC.L10N.register(
     "Reminders" : "Påminningar",
     "Yes" : "Ja",
     "No" : "Nei",
-    "No date" : "No date"
+    "Username" : "Brukarnamn",
+    "Optional" : "Valfritt",
+    "No date" : "No date",
+    "Unknown" : "Ukjend"
 },
 "nplurals=2; plural=(n != 1);");

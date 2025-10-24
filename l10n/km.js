@@ -23,10 +23,12 @@ OC.L10N.register(
     "Ok" : "ព្រម",
     "Today" : "ថ្ងៃ​នេះ",
     "Modified" : "បាន​កែ​ប្រែ",
+    "Version" : "កំណែ",
     "Current password" : "ពាក្យសម្ងាត់​បច្ចុប្បន្ន",
     "New password" : "ពាក្យ​សម្ងាត់​ថ្មី",
     "Yes" : "Yes",
     "No" : "No",
+    "Username" : "ឈ្មោះ​អ្នកប្រើ",
     "No date" : "No date"
 },
 "nplurals=1; plural=0;");

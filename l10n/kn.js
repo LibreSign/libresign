@@ -23,10 +23,12 @@ OC.L10N.register(
     "Ok" : "﻿ಸರಿ",
     "Today" : "Today",
     "Modified" : "﻿ಬದಲಾಯಿಸಿದ",
+    "Version" : "﻿ಆವೃತ್ತಿ",
     "Current password" : "ಪ್ರಸ್ತುತ ಗುಪ್ತಪದ",
     "New password" : "﻿ಹೊಸ ಗುಪ್ತಪದ",
     "Yes" : "Yes",
     "No" : "No",
+    "Username" : "﻿ಬಳಕೆಯ ಹೆಸರು",
     "No date" : "No date"
 },
 "nplurals=2; plural=(n > 1);");

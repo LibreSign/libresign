@@ -53,6 +53,7 @@ OC.L10N.register(
     "Modified" : "Modifikuar ",
     "1 file" : "1 skedar",
     "Created at" : "U krijua në",
+    "Version" : "Versioni",
     "Password reset" : "Fjalkalimi u rivendos",
     "Current password" : "Fjalëkalimi aktual",
     "New password" : "Fjalëkalim i ri",
@@ -65,7 +66,11 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "Jo",
     "Reset to default" : "Rivendos tek të paracaktuarat",
+    "Invalid URL" : "URL e pavlefshme",
+    "Username" : "Emri i përdoruesit",
+    "Optional" : "Jo i detyrueshëm",
     "Name:" : "Emri",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Unknown" : "I panjohur"
 },
 "nplurals=2; plural=(n != 1);");

@@ -63,6 +63,8 @@ OC.L10N.register(
     "Modified" : "Modifita",
     "1 file" : "1 dosiero",
     "Created at" : "Kreita je",
+    "Version" : "Versio",
+    "Allowed" : "Permesita",
     "Password reset" : "Restarigi pasvorton",
     "Current password" : "Nuna pasvorto",
     "New password" : "Nova pasvorto",
@@ -74,7 +76,11 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Reset to default" : "Restarigi al defaŭltaj agordoj",
+    "Username" : "Uzantnomo",
+    "Optional" : "Malnepra",
     "Forgot password?" : "Ĉu vi forgesis vian pasvorton?",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Time:" : "Tempo:",
+    "Unknown" : "Nekonata"
 },
 "nplurals=2; plural=(n != 1);");

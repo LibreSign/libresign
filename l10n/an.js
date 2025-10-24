@@ -25,9 +25,11 @@ OC.L10N.register(
     "Password" : "Clau",
     "Today" : "Hue",
     "Modified" : "Modificau",
+    "Allowed" : "Permitiu",
     "Password reset" : "Restablimiento d'a clau",
     "New password" : "Nueva clau",
     "Yes" : "Si",
-    "No" : "No"
+    "No" : "No",
+    "Username" : "Nombre d'usuario"
 },
 "nplurals=2; plural=(n != 1);");

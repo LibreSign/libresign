@@ -85,6 +85,8 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "\"{displayName}\" aðgerð mistókst",
     "(selected)" : "(valið)",
     "_{count} selected_::_{count} selected_" : ["{count} valið","{count} valið"],
+    "Version" : "Útgáfa",
+    "Allowed" : "Leyft",
     "Password reset" : "Endurstilling lykilorðs",
     "Current password" : "Núverandi lykilorð",
     "New password" : "Nýtt lykilorð",
@@ -98,7 +100,12 @@ OC.L10N.register(
     "Yes" : "Já",
     "No" : "Nei",
     "Reset to default" : "Endurstilla á sjálfgefið",
+    "Invalid URL" : "Ógild slóð",
+    "Username" : "Notandanafn",
+    "Optional" : "Valkvætt",
     "Name:" : "Nafn:",
-    "No date" : "Engin dagsetning"
+    "No date" : "Engin dagsetning",
+    "Time:" : "Tími:",
+    "Unknown" : "Óþekkt"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

@@ -148,7 +148,8 @@ OC.L10N.register(
     "{fileCount} files" : "{fileCount} failas",
     "Created at" : "Sukurta",
     "Owner of certificate" : "Liudijimo savininkas",
-    "Extra information" : "Papildoma informacija",
+    "Version" : "Versija",
+    "Allowed" : "Leista",
     "Certificate data" : "Liudijimo duomenys",
     "Certificate password" : "Liudijimo slaptažodis",
     "Password reset" : "Slaptažodžio atstatymas",
@@ -169,11 +170,16 @@ OC.L10N.register(
     "Reset to default" : "Atstatyti į numatytąjį",
     "Upload new background image" : "Įkelti naują fono paveikslėlį",
     "Remove background" : "Šalinti foną",
+    "Invalid URL" : "Neteisingas URL",
+    "Username" : "Naudotojo vardas",
+    "Optional" : "Nebūtina",
     "Unable to sign." : "Nepavyko pasirašyti.",
     "Subscription password." : "Prenumeratos slaptažodis.",
     "Forgot password?" : "Pamiršote slaptažodį?",
     "Name:" : "Pavadinimas:",
     "Status:" : "Būsena:",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Time:" : "Laikas:",
+    "Unknown" : "Nežinoma"
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");

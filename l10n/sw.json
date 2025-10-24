@@ -74,6 +74,10 @@
     "\"{displayName}\" action failed" : "\"{displayName}\" matendo yameshindwa",
     "(selected)" : "(iliyochaguliwa)",
     "_{count} selected_::_{count} selected_" : ["{count} selected","{count} selected"],
+    "Valid from" : "Fomu halali",
+    "Version" : "Toleo",
+    "Fingerprint" : "Alama za vidole",
+    "Allowed" : "Inaruhusiwa",
     "Password reset" : "Uwekaji mpya wa nenosiri",
     "Current password" : "Current password",
     "New password" : "Nenosiri jipya",
@@ -87,9 +91,13 @@
     "No" : "Hapana",
     "Reset to default" : "Weka upya chaguo msingi",
     "Remove background" : "Remove background",
+    "Invalid URL" : "URL batili",
+    "Username" : "Jina la mtumiaji",
     "Forgot password?" : "Umesahau nenosiri",
     "Name:" : "Jina:",
     "Status:" : "Status:",
+    "Time:" : "Muda",
+    "Unknown" : "Haijulikani",
     "Return" : "Rudi"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

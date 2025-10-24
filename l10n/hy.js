@@ -34,13 +34,16 @@ OC.L10N.register(
     "Today" : "Այսօր",
     "Modified" : "Փոփոխված",
     "1 file" : "1 ֆայլ",
+    "Version" : "Տարբերակ",
     "Password reset" : "Վերականգնել գաղտնաբառը",
     "New password" : "Նոր գաղտնաբառ",
     "Resource" : "Ռեսուրս",
     "Reminders" : "Հիշեցումներ",
     "Yes" : "Yes",
     "No" : "No",
+    "Username" : "Օգտանուն",
     "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Unknown" : "Անհայտ"
 },
 "nplurals=2; plural=(n != 1);");

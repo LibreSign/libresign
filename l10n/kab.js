@@ -50,6 +50,8 @@ OC.L10N.register(
     "Message" : "Izen",
     "Yes" : "Ih",
     "No" : "Uhu",
-    "Forgot password?" : "Tettud awal uffir?"
+    "Username" : "Isem n useqdac",
+    "Forgot password?" : "Tettud awal uffir?",
+    "Unknown" : "Arussin"
 },
 "nplurals=2; plural=(n != 1);");
