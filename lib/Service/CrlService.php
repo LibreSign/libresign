@@ -35,11 +35,14 @@ class CrlService {
 
 	public function revokeCertificate(
 		int $serialNumber,
-		int $reasonCode = CRLReason::UNSPECIFIED->value,
+		?int $reasonCode = null,
 		?string $reasonText = null,
 		?string $revokedBy = null,
 		?DateTime $invalidityDate = null,
 	): bool {
+		if ($reasonCode === null) {
+			$reasonCode = CRLReason::UNSPECIFIED->value;
+		}
 		if (!self::isValidReasonCode($reasonCode)) {
 			throw new \InvalidArgumentException("Invalid CRLReason code: {$reasonCode}");
 		}
