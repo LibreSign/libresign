@@ -88,10 +88,14 @@ export default {
 	.app-sidebar {
 		height: unset;
 		top: unset;
+		right: unset;
+		left: unset;
 		bottom: 0;
 		::v-deep .app-sidebar-tabs__content{
 			min-height: unset;
 		}
+		transform: translateY(-1%) !important;
+		transition: transform 0.5s ease-in !important;
 	}
 }
 </style>
