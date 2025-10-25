@@ -72,7 +72,7 @@ export const useFilesStore = function(...args) {
 			},
 			async flushSelectedFile() {
 				const files = await this.getAllFiles({
-					nodeId: this.selectedNodeId,
+					'nodeIds[]': [this.selectedNodeId],
 				})
 				this.addFile(files[this.selectedNodeId])
 			},
