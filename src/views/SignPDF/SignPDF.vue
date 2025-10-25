@@ -20,7 +20,7 @@
 			:wide="true"
 			variant="primary"
 			@click.prevent="toggleSidebar">	
-			Assinar
+			{{ t('libresign', 'Sign') }}
 			</NcButton>
 		</div>
 		<NcNoteCard v-for="(error, index) in signStore.errors"
