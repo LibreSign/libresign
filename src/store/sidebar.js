@@ -41,5 +41,8 @@ export const useSidebarStore = defineStore('sidebar', {
 		hideSidebar() {
 			set(this, 'show', false)
 		},
+		toggleSidebar() {
+			set(this, 'show', !this.show)
+		},
 	},
 })

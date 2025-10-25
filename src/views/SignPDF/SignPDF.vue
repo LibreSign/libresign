@@ -4,7 +4,9 @@
 -->
 <template>
 	<div class="main-view">
-		<TopBar :sidebar-toggle="true" />
+		<TopBar
+			v-if="!isMobile" 
+			:sidebar-toggle="true" />
 		<PdfEditor v-if="mounted && !signStore.errors.length && pdfBlob"
 			ref="pdfEditor"
 			width="100%"
@@ -12,6 +14,15 @@
 			:file="pdfBlob"
 			:read-only="true"
 			@pdf-editor:end-init="updateSigners" />
+		<div class="button-wrapper">
+			<NcButton
+			v-if="isMobile"
+			:wide="true"
+			variant="primary"
+			@click.prevent="toggleSidebar">	
+			{{ t('libresign', 'Sign') }}
+			</NcButton>
+		</div>
 		<NcNoteCard v-for="(error, index) in signStore.errors"
 			:key="index"
 			:heading="error.title || ''"
@@ -23,6 +34,7 @@
 
 <script>
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
+import NcButton from '@nextcloud/vue/components/NcButton'
 
 import PdfEditor from '../../Components/PdfEditor/PdfEditor.vue'
 import TopBar from '../../Components/TopBar/TopBar.vue'
@@ -36,6 +48,7 @@ export default {
 	name: 'SignPDF',
 	components: {
 		NcNoteCard,
+		NcButton,
 		TopBar,
 		PdfEditor,
 	},
@@ -44,7 +57,8 @@ export default {
 		const fileStore = useFilesStore()
 		const sidebarStore = useSidebarStore()
 		const signMethodsStore = useSignMethodsStore()
-		return { signStore, fileStore, sidebarStore, signMethodsStore }
+		const isMobile = window.innerWidth <= 512
+		return { signStore, fileStore, sidebarStore, signMethodsStore, isMobile }
 	},
 	data() {
 		return {
@@ -57,6 +71,10 @@ export default {
 			await this.initSignExternal()
 		} else if (this.$route.name === 'SignPDF') {
 			await this.initSignInternal()
+		}
+
+		if (this.isMobile){
+			this.toggleSidebar();
 		}
 	},
 	methods: {
@@ -115,6 +133,9 @@ export default {
 			})
 			this.signStore.mounted = true
 		},
+		toggleSidebar() {
+			this.sidebarStore.toggleSidebar()
+		}
 	},
 }
 </script>
@@ -137,5 +158,8 @@ export default {
 		max-width: 600px;
 		margin: 0 auto;
 	}
+}
+.button-wrapper {
+	padding: 5px 16px;
 }
 </style>
