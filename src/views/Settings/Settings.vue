@@ -5,6 +5,7 @@
 
 <template>
 	<NcSettingsSection :name="name">
+		<SupportProject />
 		<CertificateEngine />
 		<DownloadBinaries />
 		<ConfigureCheck />
@@ -21,7 +22,6 @@
 		<SignatureHashAlgorithm />
 		<DefaultUserFolder />
 		<Reminders />
-		<SupportProject />
 		<TSA />
 	</NcSettingsSection>
 </template>
