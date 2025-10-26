@@ -5,6 +5,7 @@
 
 <template>
 	<NcSettingsSection :name="name">
+		<SupportProject />
 		<CertificateEngine />
 		<DownloadBinaries />
 		<ConfigureCheck />
