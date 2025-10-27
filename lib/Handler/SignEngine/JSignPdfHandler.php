@@ -319,7 +319,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 	private function mergeBackgroundWithSignature(string $backgroundPath, string $signaturePath, float $scaleFactor): string {
 		if (!extension_loaded('imagick')) {
-			throw new Exception('Extension imagick is not loaded.');
+			throw new \Exception('Extension imagick is not loaded.');
 		}
 		$baseWidth = $this->signatureTextService->getFullSignatureWidth();
 		$baseHeight = $this->signatureTextService->getFullSignatureHeight();
