@@ -199,7 +199,7 @@ class ReminderService {
 					$entityIdentifyMethod->getIdentifierValue(),
 				);
 			} catch (LibresignException $e) {
-				$this->logger->error('Failed to get instance of identify method' , [
+				$this->logger->error('Failed to get instance of identify method', [
 					'error' => $e->getMessage(),
 					'identifier_key' => $entityIdentifyMethod->getIdentifierKey(),
 					'identifier_value' => $entityIdentifyMethod->getIdentifierValue(),
