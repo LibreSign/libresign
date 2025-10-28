@@ -16,7 +16,10 @@ on:
 
 jobs:
   update_release_draft:
-    if: github.event.pull_request.merged == true || github.event_name == 'push'
+    if: >
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/main')) ||
+      (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true)
+
     runs-on: ubuntu-latest
     steps:
       - uses: release-drafter/release-drafter@v6
