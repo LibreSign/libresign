@@ -82,7 +82,7 @@ version-resolver:
   default: patch
 
 template: |
-  ## [$RESOLVED_VERSION] – $DATE
+  ## $RESOLVED_VERSION - $DATE
 
   $CHANGES
 
