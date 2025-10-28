@@ -216,7 +216,8 @@ jobs:
         run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-sqlite.result != 'success' }}; then exit 1; fi
 
   finish-coverage:
-    needs: upload-coverage
+    if: env.xdebug_mode == 'coverage'
+    needs: phpunit-sqlite
     runs-on: ubuntu-latest
     steps:
       - name: Let Coveralls know that all tests have finished
