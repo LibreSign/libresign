@@ -49,6 +49,26 @@ categories:
 
 change-template: '- $TITLE [#$NUMBER]($URL)'
 
+autolabeler:
+  - label: 'fix'
+    title:
+      - '/^fix/i'
+  - label: 'feature'
+    title:
+      - '/^feat/i'
+  - label: 'chore'
+    title:
+      - '/^chore/i'
+  - label: 'docs'
+    title:
+      - '/^docs/i'
+  - label: 'refactor'
+    title:
+      - '/^refactor/i'
+  - label: 'test'
+    title:
+      - '/^test/i'
+
 version-resolver:
   major:
     labels:
