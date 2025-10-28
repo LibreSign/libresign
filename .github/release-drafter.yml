@@ -25,6 +25,8 @@ categories:
   - title: '🧪 Tests'
     labels:
       - 'test'
+  - title: '🔧 Other Changes'
+    labels: []
 
 change-template: '- $TITLE [#$NUMBER]($URL)'
 
