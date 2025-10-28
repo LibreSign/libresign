@@ -39,7 +39,7 @@ jobs:
         with:
           filters: |
             src:
-              - '.github/workflows/**'
+              - '.github/workflows/behat*'
               - 'appinfo/**'
               - 'lib/**'
               - 'templates/**'
