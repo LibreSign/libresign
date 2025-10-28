@@ -18,6 +18,68 @@ Types of changes:
 
 <!-- changelog-linker -->
 <!-- changelog-linker -->
+## 12.1.0 - 2025-11-28
+### Features
+- feat: implement TSA [#5582](https://github.com/LibreSign/libresign/pull/5582)
+- feat: display more informatin about certificate [#5590](https://github.com/LibreSign/libresign/pull/5590)
+- feat: implement serial number with random number [#5595](https://github.com/LibreSign/libresign/pull/5595)
+- feat: implement crl [#5626](https://github.com/LibreSign/libresign/pull/5626)
+- Add suport message and button [#5640](https://github.com/LibreSign/libresign/pull/5640)
+- feat: implement aki and ski [#5612](https://github.com/LibreSign/libresign/pull/5612)
+
+### Changes
+- Update translations
+- Bump dependencies
+- chore: valdiate display name at API side [#5564](https://github.com/LibreSign/libresign/pull/5564)
+- chore: Refactor certificate chain processing with ordering [#5586](https://github.com/LibreSign/libresign/pull/5586)
+- refactor: separate CA and leaf certificate configuration in OpenSSL e… [#5602](https://github.com/LibreSign/libresign/pull/5602)
+- chore: remove unnecessary comment [#5609](https://github.com/LibreSign/libresign/pull/5609)
+- chore: improve UX at sign screen [#5630](https://github.com/LibreSign/libresign/pull/5630)
+- chore: improve error handler about Imagick [#5636](https://github.com/LibreSign/libresign/pull/5636)
+- chore: remove to-do [#5647](https://github.com/LibreSign/libresign/pull/5647)
+
+### Fixes
+- fix: disable ocp at behat tests [#5581](https://github.com/LibreSign/libresign/pull/5581)
+- fix(i18n): Fixed grammar [#5593](https://github.com/LibreSign/libresign/pull/5593)
+- fix: replace keyCertSign with nonRepudiation in leaf certificate keyUsage [#5600](https://github.com/LibreSign/libresign/pull/5600)
+- fix: use sha256 insteadof sha1 to leaf cert [#5608](https://github.com/LibreSign/libresign/pull/5608)
+- fix: unit tests at PHP >= 8.4 [#5616](https://github.com/LibreSign/libresign/pull/5616)
+- fix: prevent warning when send notifications [#5619](https://github.com/LibreSign/libresign/pull/5619)
+- fix: use only classes compatible with old Nextcloud server versions [#5622](https://github.com/LibreSign/libresign/pull/5622)
+- fix: prevent error when send reminders [#5637](https://github.com/LibreSign/libresign/pull/5637)
+- fix: Only accept pfx files. [#5644](https://github.com/LibreSign/libresign/pull/5644)
+
+## 11.6.0 - 2025-11-28
+### Features
+- feat: implement TSA [#5583](https://github.com/LibreSign/libresign/pull/5583)
+- feat: display more informatin about certificate [#5589](https://github.com/LibreSign/libresign/pull/5589)
+- feat: implement serial number with random number [#5594](https://github.com/LibreSign/libresign/pull/5594)
+- feat: implement crl [#5629](https://github.com/LibreSign/libresign/pull/5629)
+- Add support message and button [#5639](https://github.com/LibreSign/libresign/pull/5639)
+- feat: implement aki and ski [#5611](https://github.com/LibreSign/libresign/pull/5611)
+
+### Changes
+- Update translations
+- Bump dependencies
+- chore: valdiate display name at API side [#5563](https://github.com/LibreSign/libresign/pull/5563)
+- chore: Refactor certificate chain processing with ordering [#5585](https://github.com/LibreSign/libresign/pull/5585)
+- refactor: separate CA and leaf certificate configuration in OpenSSL e… [#5603](https://github.com/LibreSign/libresign/pull/5603)
+- chore: remov eunecessary comment [#5610](https://github.com/LibreSign/libresign/pull/5610)
+- chore: improve UX at sign screen [#5631](https://github.com/LibreSign/libresign/pull/5631)
+- chore: improve error handler about Imagick [#5635](https://github.com/LibreSign/libresign/pull/5635)
+- chore: remove to-do [#5646](https://github.com/LibreSign/libresign/pull/5646)
+
+### Fixes
+- fix: update to newest version of eslint [#5571](https://github.com/LibreSign/libresign/pull/5571)
+- fix: disable ocp at behat tests [#5580](https://github.com/LibreSign/libresign/pull/5580)
+- fix(i18n): Fixed grammar [#5592](https://github.com/LibreSign/libresign/pull/5592)
+- fix: replace keyCertSign with nonRepudiation in leaf certificate keyUsage [#5599](https://github.com/LibreSign/libresign/pull/5599)
+- fix: use sha256 insteadof sha1 to leaf cert [#5607](https://github.com/LibreSign/libresign/pull/5607)
+- fix: prevent warning when send notifications [#5618](https://github.com/LibreSign/libresign/pull/5618)
+- fix: use only classes compatible with old Nextcloud server versions [#5621](https://github.com/LibreSign/libresign/pull/5621)
+- fix: prevent error when send reminders [#5638](https://github.com/LibreSign/libresign/pull/5638)
+- fix: Only accept pfx files. [#5643](https://github.com/LibreSign/libresign/pull/5643)
+
 ## 12.0.1 - 2025-11-13
 ### Fixes
 - fix: prevent error when the response dont have data [#5554](https://github.com/LibreSign/libresign/pull/5554)
