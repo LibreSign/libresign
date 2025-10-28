@@ -10,14 +10,14 @@ permissions:
 on:
   push:
     branches:
-      - main
+      - stable*
   pull_request_target:
     types: [closed]
 
 jobs:
   update_release_draft:
     if: >
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/main')) ||
+      github.event_name == 'push' ||
       (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true)
 
     runs-on: ubuntu-latest
