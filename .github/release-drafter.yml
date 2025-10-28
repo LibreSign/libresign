@@ -5,27 +5,46 @@ name-template: 'v$RESOLVED_VERSION'
 tag-template: 'v$RESOLVED_VERSION'
 
 categories:
-  - title: '🚀 Features'
+  - title: '### Added'
     labels:
       - 'feature'
       - 'feat'
-  - title: '🐛 Bug Fixes'
+      - 'enhancement'
+
+  - title: '### Changed'
+    labels:
+      - 'chore'
+      - 'refactor'
+      - 'improvement'
+
+  - title: '### Fixed'
     labels:
       - 'fix'
       - 'bugfix'
       - 'bug'
-  - title: '🛠️ Changes'
+
+  - title: '### Removed'
     labels:
-      - 'chore'
-      - 'refactor'
-      - 'docs'
-  - title: '📦 Dependencies'
+      - 'removed'
+      - 'deprecated'
+
+  - title: '### Security'
     labels:
-      - 'dependencies'
-  - title: '🧪 Tests'
+      - 'security'
+
+  - title: '### Tests'
     labels:
       - 'test'
-  - title: '🔧 Other Changes'
+
+  - title: '### Dependencies'
+    labels:
+      - 'dependencies'
+
+  - title: '### Documentation'
+    labels:
+      - 'docs'
+
+  - title: '### Other'
     labels: []
 
 change-template: '- $TITLE [#$NUMBER]($URL)'
@@ -43,9 +62,8 @@ version-resolver:
   default: patch
 
 template: |
-  ## What’s Changed
+  ## [$RESOLVED_VERSION] – $DATE
 
   $CHANGES
 
-  Milestone: $RESOLVED_VERSION
-  **Full Changelog**: https://github.com/LibreSign/libresign/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+  **Full Changelog:** https://github.com/LibreSign/libresign/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
