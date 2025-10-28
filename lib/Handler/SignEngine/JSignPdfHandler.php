@@ -102,7 +102,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 	 */
 	private function getHome(): string {
 		$jSignPdfHome = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_home', '');
-		if ($jSignPdfHome) {
+		if ($jSignPdfHome && is_dir($jSignPdfHome)) {
 			return $jSignPdfHome;
 		}
 		$jsignpdfTempFolder = $this->tempManager->getTemporaryFolder('jsignpdf');
