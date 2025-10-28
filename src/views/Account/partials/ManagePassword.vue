@@ -100,7 +100,6 @@ export default {
 	methods: {
 		uploadCertificate() {
 			const input = document.createElement('input')
-			// @todo PFX file, didn't worked, wrong code
 			input.accept = '.pfx'
 			input.type = 'file'
 
