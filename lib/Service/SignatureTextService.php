@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use DateTimeInterface;
+use Exception;
 use Imagick;
 use ImagickDraw;
 use ImagickPixel;
@@ -192,6 +193,9 @@ class SignatureTextService {
 		bool $isDarkTheme = false,
 		float $scale = 5,
 	): string {
+		if (!extension_loaded('imagick')) {
+			throw new Exception('Extension imagick is not loaded.');
+		}
 		$width *= $scale;
 		$height *= $scale;
 

@@ -65,6 +65,9 @@ class SignatureBackgroundService {
 	}
 
 	private function optmizeImage(string $content, float $opacity = 1): string {
+		if (!extension_loaded('imagick')) {
+			throw new Exception('Extension imagick is not loaded.');
+		}
 		$image = new Imagick();
 		$image->setBackgroundColor(new ImagickPixel('transparent'));
 		$image->readImageBlob($content);
