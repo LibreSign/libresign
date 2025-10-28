@@ -4,19 +4,22 @@
 name: Release Drafter
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
 
 on:
   push:
     branches:
       - main
-  pull_request:
+  pull_request_target:
     types: [closed]
 
 jobs:
   update_release_draft:
-    if: github.event.pull_request.merged == true || github.event_name == 'push'
+    if: >
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/main')) ||
+      (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true)
+
     runs-on: ubuntu-latest
     steps:
       - uses: release-drafter/release-drafter@v6
