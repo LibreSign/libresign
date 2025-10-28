@@ -72,9 +72,15 @@ jobs:
         server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
         xdebug_mode: [debug, coverage]
 
-    name: SQLite PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
+    name: SQLite PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }} ${{ matrix.xdebug_mode }}
 
     steps:
+      - name: Abort if not PR to main with coverage
+        if: ${{ matrix.xdebug_mode == 'coverage' && github.event.pull_request.base.ref != 'main' }}
+        run: |
+          echo "Coverage only runs on PRs to main"
+          exit 0
+
       - name: Set app env
         if: ${{ env.APP_NAME == '' }}
         run: |
@@ -165,6 +171,7 @@ jobs:
         run: composer run test:coverage
 
       - name: Upload coverage results to Coveralls
+        if: matrix.xdebug_mode == 'coverage'
         working-directory: apps/${{ env.APP_NAME }}
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -202,10 +209,6 @@ jobs:
           echo 'Neither PHPUnit nor PHPUnit integration tests are specified in composer.json scripts'
           exit 1
 
-      - name: Set xdebug_mode output
-        id: set-xdebug-mode
-        run: echo "xdebug_mode=${{ matrix.xdebug_mode }}" >> $GITHUB_OUTPUT
-
   summary:
     permissions:
       contents: none
@@ -221,7 +224,7 @@ jobs:
         run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-sqlite.result != 'success' }}; then exit 1; fi
 
   finish-coverage:
-    if: ${{ needs.phpunit-sqlite.outputs.xdebug_mode == 'coverage' }}
+    if: ${{ github.event.pull_request.base.ref == 'main' }}
     needs: phpunit-sqlite
     runs-on: ubuntu-latest
     steps:
