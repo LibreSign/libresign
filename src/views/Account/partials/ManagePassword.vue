@@ -101,7 +101,7 @@ export default {
 		uploadCertificate() {
 			const input = document.createElement('input')
 			// @todo PFX file, didn't worked, wrong code
-			input.accept = 'application/x-pkcs12'
+			input.accept = '.pfx'
 			input.type = 'file'
 
 			input.onchange = async (ev) => {
