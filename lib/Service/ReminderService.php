@@ -12,6 +12,7 @@ use DateTime;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\BackgroundJob\Reminder;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJobList;
@@ -192,10 +193,21 @@ class ReminderService {
 			}
 
 			$this->identifyMethodService->setCurrentIdentifyMethod($entityIdentifyMethod);
-			$identifyMethod = $this->identifyMethodService->getInstanceOfIdentifyMethod(
-				$entityIdentifyMethod->getIdentifierKey(),
-				$entityIdentifyMethod->getIdentifierValue(),
-			);
+			try {
+				$identifyMethod = $this->identifyMethodService->getInstanceOfIdentifyMethod(
+					$entityIdentifyMethod->getIdentifierKey(),
+					$entityIdentifyMethod->getIdentifierValue(),
+				);
+			} catch (LibresignException $e) {
+				$this->logger->error('Failed to get instance of identify method', [
+					'error' => $e->getMessage(),
+					'identifier_key' => $entityIdentifyMethod->getIdentifierKey(),
+					'identifier_value' => $entityIdentifyMethod->getIdentifierValue(),
+					'sign_request_id' => $entityIdentifyMethod->getSignRequestId(),
+					'metadata' => $metadata,
+				]);
+				continue;
+			}
 			yield $identifyMethod;
 		};
 	}
