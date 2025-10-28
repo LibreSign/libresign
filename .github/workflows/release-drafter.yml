@@ -19,11 +19,40 @@ jobs:
     if: >
       github.event_name == 'push' ||
       (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true)
-
     runs-on: ubuntu-latest
+
     steps:
-      - uses: release-drafter/release-drafter@v6
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch tags for this branch
+        run: git fetch --tags origin ${{ github.ref_name }}
+
+      - name: Get last tag from this branch
+        id: lasttag
+        run: |
+          last_tag=$(git describe --tags --abbrev=0 || echo "v0.0.0")
+          echo "LAST_TAG=$last_tag" >> $GITHUB_ENV
+
+      - name: Compute next version (robust)
+        id: nexttag
+        run: |
+          last="${LAST_TAG#v}"
+          # Remove qualquer sufixo como -rc1, -beta, etc.
+          clean=$(echo "$last" | sed 's/[^0-9.].*$//')
+          IFS='.' read -r major minor patch <<< "$clean"
+          major=${major:-0}
+          minor=${minor:-0}
+          patch=${patch:-0}
+          patch=$((patch + 1))
+          next="v${major}.${minor}.${patch}"
+          echo "NEXT_TAG=$next" >> $GITHUB_ENV
+
+      - name: Draft release for this branch
+        uses: release-drafter/release-drafter@v6
         with:
           config-name: release-drafter.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RESOLVED_VERSION: ${{ env.NEXT_TAG }}
