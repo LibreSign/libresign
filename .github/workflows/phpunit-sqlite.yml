@@ -202,6 +202,10 @@ jobs:
           echo 'Neither PHPUnit nor PHPUnit integration tests are specified in composer.json scripts'
           exit 1
 
+      - name: Set xdebug_mode output
+        id: set-xdebug-mode
+        run: echo "xdebug_mode=${{ matrix.xdebug_mode }}" >> $GITHUB_OUTPUT
+
   summary:
     permissions:
       contents: none
@@ -217,7 +221,7 @@ jobs:
         run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-sqlite.result != 'success' }}; then exit 1; fi
 
   finish-coverage:
-    if: ${{ matrix.xdebug_mode == 'coverage' }}
+    if: ${{ needs.phpunit-sqlite.outputs.xdebug_mode == 'coverage' }}
     needs: phpunit-sqlite
     runs-on: ubuntu-latest
     steps:
