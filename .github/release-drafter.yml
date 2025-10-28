@@ -5,46 +5,46 @@ name-template: 'v$RESOLVED_VERSION'
 tag-template: 'v$RESOLVED_VERSION'
 
 categories:
-  - title: '### Added'
+  - title: 'Added'
     labels:
       - 'feature'
       - 'feat'
       - 'enhancement'
 
-  - title: '### Changed'
+  - title: 'Changed'
     labels:
       - 'chore'
       - 'refactor'
       - 'improvement'
 
-  - title: '### Fixed'
+  - title: 'Fixed'
     labels:
       - 'fix'
       - 'bugfix'
       - 'bug'
 
-  - title: '### Removed'
+  - title: 'Removed'
     labels:
       - 'removed'
       - 'deprecated'
 
-  - title: '### Security'
+  - title: 'Security'
     labels:
       - 'security'
 
-  - title: '### Tests'
+  - title: 'Tests'
     labels:
       - 'test'
 
-  - title: '### Dependencies'
+  - title: 'Dependencies'
     labels:
       - 'dependencies'
 
-  - title: '### Documentation'
+  - title: 'Documentation'
     labels:
       - 'docs'
 
-  - title: '### Other'
+  - title: 'Other'
     labels: []
 
 change-template: '- $TITLE [#$NUMBER]($URL)'
