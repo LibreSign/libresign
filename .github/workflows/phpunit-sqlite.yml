@@ -72,7 +72,7 @@ jobs:
         server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
         xdebug_mode: [debug, coverage]
 
-    name: SQLite PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
+    name: SQLite PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }} ${{ matrix.xdebug_mode }}
 
     steps:
       - name: Abort if not PR to main with coverage
