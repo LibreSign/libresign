@@ -286,6 +286,7 @@ OC.L10N.register(
     "No" : "Ez",
     "Full name of the main company or main user of this instance" : "Instantzia honetako enpresa nagusiaren edo erabiltzaile nagusiaren izena",
     "Reset to default" : "Berezarri balio lehenetsira",
+    "Learn more" : "Ikasi gehiago",
     "Invalid URL" : "URL baliogabea",
     "Username" : "Erabiltzaile-izena",
     "Optional" : "Aukerakoa",

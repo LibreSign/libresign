@@ -460,6 +460,7 @@ OC.L10N.register(
     "Remove background" : "Arka planı kaldır",
     "Zoom level" : "Yakınlaştırma düzeyi",
     "If no background image or signature template is provided, no visible signature will be added to the document." : "Arka plan görseli veya imza kalıbı belirtilmezse, belgeye görünür bir imza eklenmez.",
+    "Learn more" : "Ayrıntılı bilgi alın",
     "Timestamp Authority (TSA)" : "Zaman damgası yetkilisi (TSA)",
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Sayısal belge imzalama için zaman damgası yetkilisi (TSA) ayarları.",
     "Without authentication" : "Kimlik doğrulaması olmadan",

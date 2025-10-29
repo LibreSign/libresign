@@ -66,6 +66,7 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "Jo",
     "Reset to default" : "Rivendos tek të paracaktuarat",
+    "Learn more" : "Mësoni më shumë",
     "Invalid URL" : "URL e pavlefshme",
     "Username" : "Emri i përdoruesit",
     "Optional" : "Jo i detyrueshëm",

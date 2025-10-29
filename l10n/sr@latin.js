@@ -40,6 +40,7 @@ OC.L10N.register(
     "New password" : "Nova lozinka",
     "Yes" : "Da",
     "No" : "Ne",
+    "Learn more" : "Saznajte više",
     "Username" : "Korisničko ime",
     "No date" : "No date"
 },

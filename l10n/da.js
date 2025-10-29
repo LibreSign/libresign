@@ -103,6 +103,7 @@ OC.L10N.register(
     "No" : "Nej",
     "Reset to default" : "Nulstil",
     "Remove background" : "Fjern baggrund",
+    "Learn more" : "Lær mere",
     "Invalid URL" : "Ugyldig URL",
     "Username" : "Brugernavn",
     "Optional" : "Valgfri",

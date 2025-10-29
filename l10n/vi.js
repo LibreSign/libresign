@@ -88,6 +88,7 @@ OC.L10N.register(
     "Yes" : "Có",
     "No" : "Không",
     "Reset to default" : "Đặt lại về mặc định",
+    "Learn more" : "Đọc nhiều hơn",
     "Invalid URL" : "URL không hợp lệ",
     "Username" : "Tên đăng nhập",
     "Optional" : "Tùy chọn",

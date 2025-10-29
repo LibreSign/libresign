@@ -81,6 +81,7 @@ OC.L10N.register(
     "Yes" : "Jā",
     "No" : "Nē",
     "Reset to default" : "Atiestatīt",
+    "Learn more" : "Uzzināt vairāk",
     "Username" : "Lietotājvārds",
     "Optional" : "Neobligāts",
     "Forgot password?" : "Aizmirsta parole?",

@@ -232,6 +232,7 @@ OC.L10N.register(
     "Yes" : "是",
     "No" : "否",
     "Reset to default" : "重置为默认设置",
+    "Learn more" : "了解更多",
     "Invalid URL" : "无效的 URL",
     "Username" : "用户名",
     "Optional" : "可选",

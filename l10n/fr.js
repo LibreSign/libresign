@@ -426,6 +426,7 @@ OC.L10N.register(
     "Remove background" : "Retirer l'arrière-plan",
     "Zoom level" : "Niveau de zoom:",
     "If no background image or signature template is provided, no visible signature will be added to the document." : "Si aucune image d'arrière-plan ou aucun modèle de signature n'est fourni, aucune signature visible ne sera ajoutée au document.",
+    "Learn more" : "En savoir plus",
     "Username / Password" : "Nom d'utilisateur / Mot de passe",
     "Invalid URL" : "URL invalide",
     "Username" : "Nom d'utilisateur",

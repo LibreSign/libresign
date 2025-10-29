@@ -80,6 +80,7 @@ OC.L10N.register(
     "Yes" : "כן",
     "No" : "לא",
     "Reset to default" : "איפוס לבררת מחדל",
+    "Learn more" : "לקריאה נוספת",
     "Invalid URL" : "כתובת שגויה",
     "Username" : "שם משתמש",
     "Optional" : "אופציונלי",

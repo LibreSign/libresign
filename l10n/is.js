@@ -100,6 +100,7 @@ OC.L10N.register(
     "Yes" : "Já",
     "No" : "Nei",
     "Reset to default" : "Endurstilla á sjálfgefið",
+    "Learn more" : "Læra meira",
     "Invalid URL" : "Ógild slóð",
     "Username" : "Notandanafn",
     "Optional" : "Valkvætt",

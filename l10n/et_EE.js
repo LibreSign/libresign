@@ -316,6 +316,7 @@ OC.L10N.register(
     "Upload new background image" : "Laadi üles uus taustapilt",
     "Remove background" : "Eemalda taust",
     "Zoom level" : "Suumitase",
+    "Learn more" : "Lisateave",
     "Timestamp Authority (TSA)" : "Ajatempliallikas (TSA):",
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Ajatempliallika (TSA) seadistused dokumentide digitaalseks allkirjastamiseks.",
     "Without authentication" : "Ilma autentimata",

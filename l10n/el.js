@@ -435,6 +435,7 @@ OC.L10N.register(
     "Remove background" : "Αφαίρεση φόντου",
     "Zoom level" : "Επίπεδο εστίασης",
     "If no background image or signature template is provided, no visible signature will be added to the document." : "Εάν δεν παρέχεται εικόνα φόντου ή πρότυπο υπογραφής, δεν θα προστεθεί ορατή υπογραφή στο έγγραφο.",
+    "Learn more" : "Μάθετε περισσότερα",
     "Invalid URL" : "Μη έγκυρη διεύθυνση URL",
     "Username" : "Όνομα χρήστη",
     "Optional" : "Προαιρετικό",

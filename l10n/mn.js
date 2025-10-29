@@ -48,6 +48,7 @@ OC.L10N.register(
     "Yes" : "Тийм",
     "No" : "Үгүй",
     "Reset to default" : "Анхны байдлаар сэргээх",
+    "Learn more" : "Илүү их судалгаа",
     "Username" : "Хэрэглэгчийн нэр",
     "Optional" : "Сайн дурын",
     "No date" : "No date",

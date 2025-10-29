@@ -197,6 +197,7 @@ OC.L10N.register(
     "Yes" : "Da",
     "No" : "Ne",
     "Reset to default" : "Vrati na zadanu postavku",
+    "Learn more" : "Saznajte više",
     "Invalid URL" : "Neispravan URL",
     "Username" : "Korisničko ime",
     "Optional" : "Neobavezno",
