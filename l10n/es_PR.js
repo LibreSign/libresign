@@ -60,6 +60,7 @@ OC.L10N.register(
     "Yes" : "Sí",
     "No" : "No",
     "Reset to default" : "Restablecer al predeterminado",
+    "Learn more" : "Conoce más",
     "Username" : "Usuario",
     "Optional" : "Opcional",
     "No date" : "Sin fecha",

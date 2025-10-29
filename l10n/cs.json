@@ -457,6 +457,7 @@
     "Remove background" : "Odebrat obrázek na pozadí",
     "Zoom level" : "Zvětšení/zmenšení",
     "If no background image or signature template is provided, no visible signature will be added to the document." : "Pokud nebude poskytnut žádný obrázek na pozadí nebo šablona podpisu, nebude do dokumentu přidán žádný viditelný podpis.",
+    "Learn more" : "Zjistit více",
     "Timestamp Authority (TSA)" : "Autorita časového razítka (TSA)",
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Nastavení autority časových razítek (TSA) pro elektronické podepisování dokumentů.",
     "Without authentication" : "Bez ověřování se",

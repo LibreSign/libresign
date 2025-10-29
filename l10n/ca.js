@@ -276,6 +276,7 @@ OC.L10N.register(
     "No" : "No",
     "Full name of the main company or main user of this instance" : "Nom complet de l'empresa principal o usuari principal d'aquesta instància",
     "Reset to default" : "Reinicialitza els valors per defecte",
+    "Learn more" : "Més informació",
     "Invalid URL" : "URL no vàlid",
     "Username" : "Nom d'usuari",
     "Optional" : "Opcional",

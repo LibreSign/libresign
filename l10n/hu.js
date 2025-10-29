@@ -285,6 +285,7 @@ OC.L10N.register(
     "Define custom values to use {engine}" : "Egyéni értékek meghatározása a(z) {engine} használatához",
     "Reset to default" : "Visszaállítás alapértelmezettre",
     "Remove background" : "Háttér eltávolítása",
+    "Learn more" : "Tudjon meg többet",
     "Invalid URL" : "Érvénytelen webcím",
     "Username" : "Felhasználónév",
     "Optional" : "Nem kötelező",

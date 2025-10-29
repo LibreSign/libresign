@@ -265,6 +265,7 @@ OC.L10N.register(
     "No" : "نه",
     "Full name of the main company or main user of this instance" : "Full name of the main company or main user of this instance",
     "Reset to default" : "بازنشانی به پیش‌گزیده",
+    "Learn more" : "بیشتر بدانید",
     "Invalid URL" : "نشانی وب نامعتبر است",
     "Username" : "نام کاربری",
     "Optional" : "اختیاری",

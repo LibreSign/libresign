@@ -460,6 +460,7 @@ OC.L10N.register(
     "Remove background" : "移除背景",
     "Zoom level" : "縮放層級",
     "If no background image or signature template is provided, no visible signature will be added to the document." : "若未提供背景圖片或簽名範本，則不會在文件中新增可見的簽名。",
+    "Learn more" : "瞭解更多",
     "Timestamp Authority (TSA)" : "時間戳認證機構 (TSA)",
     "Timestamp Authority (TSA) settings for digitally signing documents." : "數位簽署文件的時間戳認證機構 (TSA)",
     "Without authentication" : "沒有驗證",

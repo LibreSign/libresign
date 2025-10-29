@@ -252,6 +252,7 @@ OC.L10N.register(
     "No" : "Nie",
     "Reset to default" : "Przywróć domyślne",
     "Remove background" : "Usuń tło",
+    "Learn more" : "Dowiedz się więcej",
     "Invalid URL" : "Nieprawidłowy adres URL",
     "Username" : "Nazwa użytkownika",
     "Optional" : "Opcjonalnie",

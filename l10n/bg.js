@@ -263,6 +263,7 @@ OC.L10N.register(
     "Full name of the main company or main user of this instance" : "Пълно име на основната компания или основния потребител на този екземпляр",
     "Reset to default" : "Настройки по подразбиране",
     "Remove background" : "Премахване на фона",
+    "Learn more" : "Научете повече",
     "Invalid URL" : "Грешно URL",
     "Username" : "Потребител",
     "Optional" : "По избор",

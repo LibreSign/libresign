@@ -253,6 +253,7 @@ OC.L10N.register(
     "No" : "No",
     "Full name of the main company or main user of this instance" : "Nombre completo de la empresa principal o del usuario principal de esta instancia",
     "Reset to default" : "Restablecer al predeterminado",
+    "Learn more" : "Conoce más",
     "Invalid URL" : "URL no válida",
     "Username" : "Usuario",
     "Optional" : "Opcional",

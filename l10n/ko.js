@@ -227,6 +227,7 @@ OC.L10N.register(
     "Yes" : "예",
     "No" : "아니오",
     "Reset to default" : "기본값으로 초기화",
+    "Learn more" : "자세히 알아보기",
     "Invalid URL" : "잘못된 URL",
     "Username" : "사용자 이름",
     "Optional" : "선택적",

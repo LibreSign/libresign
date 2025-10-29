@@ -114,6 +114,7 @@ OC.L10N.register(
     "Yes" : "はい",
     "No" : "いいえ",
     "Reset to default" : "デフォルトに戻す",
+    "Learn more" : "もっと見る",
     "Invalid URL" : "無効なURL",
     "Username" : "ユーザー名",
     "Optional" : "オプション",

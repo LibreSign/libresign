@@ -88,6 +88,7 @@ OC.L10N.register(
     "on" : "pe",
     "Yes" : "a",
     "No" : "Nu",
+    "Learn more" : "Află mai mult",
     "Invalid URL" : "URL invalid",
     "Username" : "Nume utilizator",
     "Optional" : "Opțional",

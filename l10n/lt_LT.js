@@ -170,6 +170,7 @@ OC.L10N.register(
     "Reset to default" : "Atstatyti į numatytąjį",
     "Upload new background image" : "Įkelti naują fono paveikslėlį",
     "Remove background" : "Šalinti foną",
+    "Learn more" : "Sužinoti daugiau",
     "Invalid URL" : "Neteisingas URL",
     "Username" : "Naudotojo vardas",
     "Optional" : "Nebūtina",

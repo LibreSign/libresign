@@ -101,6 +101,7 @@ OC.L10N.register(
     "on" : "pada",
     "Yes" : "Ya",
     "No" : "Tidak",
+    "Learn more" : "Pelajari lebih lanjut",
     "Invalid URL" : "URL Tidak Valid",
     "Username" : "Username",
     "No date" : "No date",
