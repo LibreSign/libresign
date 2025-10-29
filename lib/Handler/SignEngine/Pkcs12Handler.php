@@ -311,6 +311,9 @@ class Pkcs12Handler extends SignEngineHandler {
 
 		foreach ($pairs as $pair) {
 			[$key, $value] = explode('=', $pair, 2);
+			if (empty($key) || empty($value)) {
+				throw new LibresignException($this->l10n->t('Invalid Distinguished Name format. Identified value: %s.', [$pair]));
+			}
 			$key = trim($key);
 			$value = trim($value);
 			$value = trim($value, '"');
