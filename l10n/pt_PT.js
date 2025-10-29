@@ -91,6 +91,7 @@ OC.L10N.register(
     "Yes" : "Sim",
     "No" : "Não",
     "Reset to default" : "Repor original",
+    "Learn more" : "Conheça melhor",
     "Invalid URL" : "URL inválido",
     "Username" : "Nome de utilizador",
     "Optional" : "Opcional ",

@@ -250,6 +250,7 @@ OC.L10N.register(
     "Full name of the main company or main user of this instance" : "Полное наименование основной компании или основного пользователя данного экземпляра",
     "Reset to default" : "Сбросить изменения",
     "Remove background" : "Удалить фон",
+    "Learn more" : "Узнать больше",
     "Invalid URL" : "Неверный адрес",
     "Username" : "Имя пользователя",
     "Optional" : "Необязательно",

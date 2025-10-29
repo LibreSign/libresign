@@ -76,6 +76,7 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Reset to default" : "Restarigi al defaŭltaj agordoj",
+    "Learn more" : "Scii pli",
     "Username" : "Uzantnomo",
     "Optional" : "Malnepra",
     "Forgot password?" : "Ĉu vi forgesis vian pasvorton?",

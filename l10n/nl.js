@@ -238,6 +238,7 @@ OC.L10N.register(
     "No" : "Nee",
     "Reset to default" : "Herstellen naar standaard",
     "Remove background" : "Achtergrond verwijderen",
+    "Learn more" : "Meer weten",
     "Invalid URL" : "Ongeldige URL",
     "Username" : "Gebruikersnaam",
     "Optional" : "Optioneel",

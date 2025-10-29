@@ -187,6 +187,7 @@ OC.L10N.register(
     "No" : "Ei",
     "Reset to default" : "Palauta oletukseksi",
     "Remove background" : "Poista taustakuva",
+    "Learn more" : "Opi lisää",
     "Invalid URL" : "Virheellinen URL",
     "Username" : "Käyttäjätunnus",
     "Optional" : "Vapaaehtoinen",

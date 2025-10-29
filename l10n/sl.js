@@ -331,6 +331,7 @@ OC.L10N.register(
     "Define custom values to use {engine}" : "Določitev vrednosti po meri za uporabo {engine}",
     "Reset to default" : "Ponastavi na privzeto",
     "Remove background" : "Odstrani ozadje",
+    "Learn more" : "Prikaži več",
     "Invalid URL" : "Neveljaven naslov URL",
     "Username" : "Uporabniško ime",
     "Optional" : "Izbirno",

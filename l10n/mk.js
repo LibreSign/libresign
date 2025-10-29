@@ -102,6 +102,7 @@ OC.L10N.register(
     "No" : "Не",
     "Reset to default" : "Ресетирај на стандардно",
     "Remove background" : "Избриши ја позадината",
+    "Learn more" : "Научи повеќе",
     "Invalid URL" : "Неправилна URL",
     "Username" : "Корисничко име",
     "Optional" : "Опционално",

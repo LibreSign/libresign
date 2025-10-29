@@ -333,6 +333,7 @@ OC.L10N.register(
     "Full name of the main company or main user of this instance" : "Fullt navn på hovedfirmaet eller hovedbrukeren av denne forekomsten",
     "Define custom values to use {engine}" : "Definere egendefinerte verdier som skal brukes {engine}",
     "Reset to default" : "Tilbakestill til standard",
+    "Learn more" : "Lær mer",
     "Invalid URL" : "Ugyldig URL",
     "Username" : "Brukernavn",
     "Optional" : "Valgfri",

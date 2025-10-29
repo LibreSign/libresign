@@ -460,6 +460,7 @@ OC.L10N.register(
     "Remove background" : "Retirar o fondo",
     "Zoom level" : "Nivel de achegamento",
     "If no background image or signature template is provided, no visible signature will be added to the document." : "Se non se fornece ningunha imaxe de fondo ou modelo de sinatura, non se engadirá ningunha sinatura visíbel ao documento.",
+    "Learn more" : "Máis información",
     "Timestamp Authority (TSA)" : "Autoridade de Selado de Tempo (TSA polas siglas en inglés)",
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Configuración da Autoridade de Selado de Tempo (TSA polas siglas en inglés) para a sinatura dixital de documentos.",
     "Without authentication" : "Sen autenticación",

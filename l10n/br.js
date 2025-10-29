@@ -48,6 +48,7 @@ OC.L10N.register(
     "New password" : "Ger-tremen nevez",
     "Yes" : "Ya",
     "No" : "Nann",
+    "Learn more" : "Deskiñ muioc'h",
     "Invalid URL" : "URL fall",
     "Username" : "anv implijer",
     "Forgot password?" : "Ger-tremen ankouaet?",

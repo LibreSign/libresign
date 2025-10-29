@@ -112,6 +112,7 @@ OC.L10N.register(
     "Yes" : "Так",
     "No" : "Не",
     "Description only" : "Толькі апісанне",
+    "Learn more" : "Больш падрабязна",
     "Username" : "Імя карыстальніка",
     "Forgot password?" : "Забылі пароль?",
     "File size:" : "Памер файла:",

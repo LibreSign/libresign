@@ -419,6 +419,7 @@ OC.L10N.register(
     "Remove background" : "Ta bort bakgrund",
     "Zoom level" : "Zoomnivå",
     "If no background image or signature template is provided, no visible signature will be added to the document." : "Om ingen bakgrundsbild eller signaturmall anges kommer ingen synlig signatur att läggas till i dokumentet.",
+    "Learn more" : "Läs mer",
     "Invalid URL" : "Ogiltig URL",
     "Username" : "Användarnamn",
     "Optional" : "Valfritt",

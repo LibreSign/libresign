@@ -460,6 +460,7 @@ OC.L10N.register(
     "Remove background" : "Remove background",
     "Zoom level" : "Zoom level",
     "If no background image or signature template is provided, no visible signature will be added to the document." : "If no background image or signature template is provided, no visible signature will be added to the document.",
+    "Learn more" : "Learn more",
     "Timestamp Authority (TSA)" : "Timestamp Authority (TSA)",
     "Timestamp Authority (TSA) settings for digitally signing documents." : "Timestamp Authority (TSA) settings for digitally signing documents.",
     "Without authentication" : "Without authentication",
