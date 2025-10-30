@@ -66,6 +66,7 @@
     "Enter a password" : "Внесете лозинка",
     "Page not found" : "Страницата не е пронајдена",
     "Ok" : "Во ред",
+    "Toggle selection for file \"{displayName}\"" : "Префрли избор за датотека \"{displayName}\"",
     "File is loading" : "Датотеката се вчитува",
     "Clear filter" : "Исчисти филтри",
     "Today" : "Денес",
