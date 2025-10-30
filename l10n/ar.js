@@ -361,6 +361,7 @@ OC.L10N.register(
     "Hash algorithm used for signature." : "خوارزمية الاختزال المستخدمة في التوقيع",
     "Reset to default" : "اعادة تعيين الافتراضيات",
     "Remove background" : "حذف الخلفية",
+    "Learn more" : "تعلم المزيد",
     "Invalid URL" : "رابط غير صالح",
     "Username" : "اسم المستخدم",
     "Optional" : "اختياري",
