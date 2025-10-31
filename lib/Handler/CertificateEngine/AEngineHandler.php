@@ -242,6 +242,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $this;
 	}
 
+	#[\Override]
 	public function getConfigPath(): string {
 		if ($this->configPath) {
 			return $this->configPath;
