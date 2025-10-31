@@ -45,6 +45,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	 * @throws LibresignException When is not a signed file
 	 */
 	private function getSignatures($resource): iterable {
+		rewind($resource);
 		$content = stream_get_contents($resource);
 		preg_match_all(
 			'/ByteRange\s*\[\s*(?<offset1>\d+)\s+(?<length1>\d+)\s+(?<offset2>\d+)\s+(?<length2>\d+)\s*\]/',
