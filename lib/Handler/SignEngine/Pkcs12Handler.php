@@ -28,6 +28,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	private array $signaturesFromPoppler = [];
 	private ?JSignPdfHandler $jSignPdfHandler = null;
 	private string $rootCertificatePem = '';
+	private bool $isLibreSignFile = false;
 
 	public function __construct(
 		private FolderService $folderService,
@@ -74,6 +75,10 @@ class Pkcs12Handler extends SignEngineHandler {
 		$this->tempManager->clean();
 	}
 
+	public function setIsLibreSignFile(): void {
+		$this->isLibreSignFile = true;
+	}
+
 	/**
 	 * @param resource $resource
 	 * @throws LibresignException When is not a signed file
@@ -114,7 +119,9 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 
 		foreach ($signer['chain'] as $key => $cert) {
-			if ($cert['isLibreSignRootCA'] && $cert['certificate_validation']['id'] !== 1) {
+			if ($cert['isLibreSignRootCA']
+				&& $cert['certificate_validation']['id'] !== 1
+			) {
 				$signer['chain'][$key]['certificate_validation'] = [
 					'id' => 1,
 					'label' => $this->l10n->t('Certificate is trusted.'),
@@ -166,8 +173,8 @@ class Pkcs12Handler extends SignEngineHandler {
 				$chain[$index] = $parsed;
 			}
 		}
-		if ($isLibreSignRootCA) {
-			foreach ($chain as $index => $cert) {
+		if ($isLibreSignRootCA || $this->isLibreSignFile) {
+			foreach ($chain as &$cert) {
 				$cert['isLibreSignRootCA'] = true;
 			}
 		}
