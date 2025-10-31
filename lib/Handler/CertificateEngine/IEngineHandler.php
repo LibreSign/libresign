@@ -49,6 +49,8 @@ interface IEngineHandler {
 
 	public function isSetupOk(): bool;
 
+	public function getConfigPath(): string;
+
 	public function setConfigPath(string $configPath): IEngineHandler;
 
 	public function getLeafExpiryInDays(): int;
