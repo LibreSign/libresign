@@ -310,6 +310,9 @@ class Pkcs12Handler extends SignEngineHandler {
 
 		foreach ($pairs as $pair) {
 			[$key, $value] = explode('=', $pair, 2);
+			if (empty($key) || empty($value)) {
+				throw new LibresignException($this->l10n->t('Invalid value: %s.', ['Signer full Distinguished Name: ' . $pair]));
+			}
 			$key = trim($key);
 			$value = trim($value);
 			$value = trim($value, '"');
