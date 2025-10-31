@@ -34,9 +34,10 @@ Feature: validate
       | key                                           | value                                                                                                                |
       | (jq).ocs.data.signers[0].me                   | false                                                                                                                |
       | (jq).ocs.data.signers[0].identifyMethods      | [{"method": "account","value": "signer1","mandatory": 1}]                                                            |
-      | (jq).ocs.data.signers[0].subject              | /C=BR/ST=State of Company/L=City Name/O=Organization/OU=Organization Unit/UID=account:signer1/CN=signer1-displayname |
+      | (jq).ocs.data.signers[0].name                 | /C=BR/ST=State of Company/L=City Name/O=Organization/OU=Organization Unit/UID=account:signer1/CN=signer1-displayname |
+      | (jq).ocs.data.signers[0].subject              | {"C":"BR","ST":"State of Company","L":"City Name","O":"Organization","OU":"Organization Unit","UID":"account:signer1","CN":"signer1-displayname"} |
       | (jq).ocs.data.signers[0].signature_validation | {"id":1,"label":"Signature is valid."}                                                                               |
-      | (jq).ocs.data.signers[0].hash_algorithm       | RSA-SHA256                                                                                                           |
+      | (jq).ocs.data.signers[0].signatureTypeSN      | RSA-SHA256                                                                                                           |
 
   Scenario Outline: Unauthenticated user can fetch the validation ednpoint
     Given as user "admin"
