@@ -27,6 +27,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	protected string $certificate = '';
 	private array $signaturesFromPoppler = [];
 	private ?JSignPdfHandler $jSignPdfHandler = null;
+	private string $rootCertificatePem = '';
 
 	public function __construct(
 		private FolderService $folderService,
@@ -103,7 +104,25 @@ class Pkcs12Handler extends SignEngineHandler {
 			$result['chain'] = $this->orderCertificates($chain);
 			$result = $this->enrichLeafWithPopplerData($resource, $result);
 		}
+		$result = $this->applyLibreSignRootCAFlag($result);
 		return $result;
+	}
+
+	private function applyLibreSignRootCAFlag(array $signer): array {
+		if (empty($signer['chain'])) {
+			return $signer;
+		}
+
+		foreach ($signer['chain'] as $key => $cert) {
+			if ($cert['isLibreSignRootCA'] && $cert['certificate_validation']['id'] !== 1) {
+				$signer['chain'][$key]['certificate_validation'] = [
+					'id' => 1,
+					'label' => $this->l10n->t('Certificate is trusted.'),
+				];
+			}
+		}
+
+		return $signer;
 	}
 
 	private function extractTimestampData(array $decoded, array $result): array {
@@ -132,6 +151,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 
 		$chain = [];
+		$isLibreSignRootCA = false;
 		foreach ($pemCertificates as $index => $pemCertificate) {
 			$parsed = openssl_x509_parse($pemCertificate);
 			if ($parsed) {
@@ -139,11 +159,46 @@ class Pkcs12Handler extends SignEngineHandler {
 					'id' => 1,
 					'label' => $this->l10n->t('Signature is valid.'),
 				];
+				if (!$isLibreSignRootCA) {
+					$isLibreSignRootCA = $this->isLibreSignRootCA($pemCertificate);
+				}
+				$parsed['isLibreSignRootCA'] = $isLibreSignRootCA;
 				$chain[$index] = $parsed;
+			}
+		}
+		if ($isLibreSignRootCA) {
+			foreach ($chain as $index => $cert) {
+				$cert['isLibreSignRootCA'] = true;
 			}
 		}
 
 		return $chain;
+	}
+
+	private function isLibreSignRootCA(string $certificate): bool {
+		$rootCertificatePem = $this->getRootCertificatePem();
+		if (empty($rootCertificatePem)) {
+			return false;
+		}
+		$rootFingerprint = openssl_x509_fingerprint($rootCertificatePem, 'sha256');
+		$fingerprint = openssl_x509_fingerprint($certificate, 'sha256');
+		return $rootFingerprint === $fingerprint;
+	}
+
+	private function getRootCertificatePem(): string {
+		if (!empty($this->rootCertificatePem)) {
+			return $this->rootCertificatePem;
+		}
+		$configPath = $this->appConfig->getValueString(Application::APP_ID, 'config_path');
+		if (empty($configPath)) {
+			return '';
+		}
+		$rootCertificatePem = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
+		if ($rootCertificatePem === false) {
+			return '';
+		}
+		$this->rootCertificatePem = $rootCertificatePem;
+		return $this->rootCertificatePem;
 	}
 
 	private function enrichLeafWithPopplerData($resource, array $result): array {
