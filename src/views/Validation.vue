@@ -255,13 +255,13 @@
 									{{ dateFromSqlAnsi(signer.valid_to) }}
 								</template>
 							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.hash_algorithm"
+							<NcListItem v-if="signer.opened && signer.signatureTypeSN"
 								class="extra"
 								compact
 								:name="t('libresign', 'Hash algorithm:')">
 								<template #name>
 									<strong>{{ t('libresign', 'Hash algorithm:') }}</strong>
-									{{ signer.hash_algorithm }}
+									{{ signer.signatureTypeSN }}
 								</template>
 							</NcListItem>
 							<NcListItem v-if="signer.opened && signer.timestamp.displayName"
@@ -379,11 +379,11 @@
 								:name="t('libresign', 'Certificate chain:')">
 								<template #name>
 									<strong>{{ t('libresign', 'Certificate chain:') }}</strong>
-									{{ signer.subject }}
+									{{ signer.name }}
 								</template>
 							</NcListItem>
 							<div v-if="signer.opened && signer.chain">
-								<NcListItem v-for="(issuer, issuerIndex) in signer.chain"
+								<NcListItem v-for="(issuer, issuerIndex) in signer.chain.filter(i => i.serialNumber !== signer.serialNumber)"
 									:key="issuerIndex"
 									class="extra-chain"
 									compact

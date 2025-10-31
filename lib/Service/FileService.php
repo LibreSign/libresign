@@ -438,84 +438,75 @@ class FileService {
 	private function loadSignersFromCertData(): void {
 		$this->loadCertDataFromLibreSignFile();
 		foreach ($this->certData as $index => $signer) {
-			if (!empty($signer['chain'][0]['name'])) {
-				$this->fileData->signers[$index]['subject'] = $signer['chain'][0]['name'];
+			if (isset($signer['timestamp'])) {
+				$this->fileData->signers[$index]['timestamp'] = $signer['timestamp'];
+				if (isset($signer['timestamp']['genTime']) && $signer['timestamp']['genTime'] instanceof DateTimeInterface) {
+					$this->fileData->signers[$index]['timestamp']['genTime'] = $signer['timestamp']['genTime']->format(DateTimeInterface::ATOM);
+				}
 			}
-			if (!empty($signer['chain'][0]['field'])) {
-				$this->fileData->signers[$index]['field'] = $signer['chain'][0]['field'];
-			}
-			if (!empty($signer['chain'][0]['validFrom_time_t'])) {
-				$this->fileData->signers[$index]['valid_from'] = (new DateTime('@' . $signer['chain'][0]['validFrom_time_t'], new \DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
-			}
-			if (!empty($signer['chain'][0]['validTo_time_t'])) {
-				$this->fileData->signers[$index]['valid_to'] = (new DateTime('@' . $signer['chain'][0]['validTo_time_t'], new \DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
-			}
-			if (!empty($signer['signingTime'])) {
+			if (isset($signer['signingTime']) && $signer['signingTime'] instanceof DateTimeInterface) {
+				$this->fileData->signers[$index]['signingTime'] = $signer['signingTime'];
 				$this->fileData->signers[$index]['signed'] = $signer['signingTime']->format(DateTimeInterface::ATOM);
 			}
-			$this->fileData->signers[$index]['signature_validation'] = $signer['chain'][0]['signature_validation'];
-			if (!empty($signer['chain'][0]['certificate_validation'])) {
-				$this->fileData->signers[$index]['certificate_validation'] = $signer['chain'][0]['certificate_validation'];
+			foreach ($signer['chain'] as $chainIndex => $chainItem) {
+				$chainArr = $chainItem;
+				if (isset($chainItem['validFrom_time_t']) && is_numeric($chainItem['validFrom_time_t'])) {
+					$chainArr['valid_from'] = (new DateTime('@' . $chainItem['validFrom_time_t'], new \DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
+				}
+				if (isset($chainItem['validTo_time_t']) && is_numeric($chainItem['validTo_time_t'])) {
+					$chainArr['valid_to'] = (new DateTime('@' . $chainItem['validTo_time_t'], new \DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
+				}
+				$chainArr['displayName'] = $chainArr['name'] ?? ($chainArr['subject']['CN'] ?? '');
+				$this->fileData->signers[$index]['chain'][$chainIndex] = $chainArr;
+				if ($chainIndex === 0) {
+					$this->fileData->signers[$index] = array_merge($chainArr, $this->fileData->signers[$index] ?? []);
+					$this->fileData->signers[$index]['uid'] = $this->resolveUid($chainArr);
+				}
 			}
-			if (!empty($signer['chain'][0]['signatureTypeSN'])) {
-				$this->fileData->signers[$index]['hash_algorithm'] = $signer['chain'][0]['signatureTypeSN'];
-			}
-			if (!empty($signer['chain'][0]['subject']['UID'])) {
-				$this->fileData->signers[$index]['uid'] = $signer['chain'][0]['subject']['UID'];
-			} elseif (!empty($signer['chain'][0]['subject']['CN']) && preg_match('/^(?<key>.*):(?<value>.*), /', (string)$signer['chain'][0]['subject']['CN'], $matches)) {
-				// Used by CFSSL
-				$this->fileData->signers[$index]['uid'] = $matches['key'] . ':' . $matches['value'];
-			} elseif (!empty($signer['chain'][0]['extensions']['subjectAltName'])) {
-				// Used by old certs of LibreSign
-				preg_match('/^(?<key>(email|account)):(?<value>.*)$/', (string)$signer['chain'][0]['extensions']['subjectAltName'], $matches);
-				if ($matches) {
-					if (str_ends_with($matches['value'], $this->host)) {
-						$uid = str_replace('@' . $this->host, '', $matches['value']);
-						$userFound = $this->userManager->get($uid);
-						if ($userFound) {
-							$this->fileData->signers[$index]['uid'] = 'account:' . $uid;
-						} else {
-							$userFound = $this->userManager->getByEmail($matches['value']);
-							if ($userFound) {
-								$userFound = current($userFound);
-								$this->fileData->signers[$index]['uid'] = 'account:' . $userFound->getUID();
-							} else {
-								$this->fileData->signers[$index]['uid'] = 'email:' . $matches['value'];
-							}
-						}
+		}
+	}
+
+	private function resolveUid(array $chainArr): ?string {
+		if (!empty($chainArr['subject']['UID'])) {
+			return $chainArr['subject']['UID'];
+		}
+		if (!empty($chainArr['subject']['CN']) && preg_match('/^(?<key>.*):(?<value>.*), /', (string)$chainArr['subject']['CN'], $matches)) {
+			return $matches['key'] . ':' . $matches['value'];
+		}
+		if (!empty($chainArr['extensions']['subjectAltName'])) {
+			preg_match('/^(?<key>(email|account)):(?<value>.*)$/', (string)$chainArr['extensions']['subjectAltName'], $matches);
+			if ($matches) {
+				if (str_ends_with($matches['value'], $this->host)) {
+					$uid = str_replace('@' . $this->host, '', $matches['value']);
+					$userFound = $this->userManager->get($uid);
+					if ($userFound) {
+						return 'account:' . $uid;
 					} else {
 						$userFound = $this->userManager->getByEmail($matches['value']);
 						if ($userFound) {
 							$userFound = current($userFound);
-							$this->fileData->signers[$index]['uid'] = 'account:' . $userFound->getUID();
+							return 'account:' . $userFound->getUID();
 						} else {
-							$userFound = $this->userManager->get($matches['value']);
-							if ($userFound) {
-								$this->fileData->signers[$index]['uid'] = 'account:' . $userFound->getUID();
-							} else {
-								$this->fileData->signers[$index]['uid'] = $matches['key'] . ':' . $matches['value'];
-							}
+							return 'email:' . $matches['value'];
+						}
+					}
+				} else {
+					$userFound = $this->userManager->getByEmail($matches['value']);
+					if ($userFound) {
+						$userFound = current($userFound);
+						return 'account:' . $userFound->getUID();
+					} else {
+						$userFound = $this->userManager->get($matches['value']);
+						if ($userFound) {
+							return 'account:' . $userFound->getUID();
+						} else {
+							return $matches['key'] . ':' . $matches['value'];
 						}
 					}
 				}
 			}
-			if (!empty($signer['chain'][0]['subject']['CN'])) {
-				$this->fileData->signers[$index]['displayName'] = $signer['chain'][0]['subject']['CN'];
-			} elseif (!empty($this->fileData->signers[$index]['uid'])) {
-				$this->fileData->signers[$index]['displayName'] = $this->fileData->signers[$index]['uid'];
-			}
-			if (!empty($signer['timestamp'])) {
-				$this->fileData->signers[$index]['timestamp'] = $signer['timestamp'];
-				if ($signer['timestamp']['genTime'] instanceof \DateTimeInterface) {
-					$this->fileData->signers[$index]['timestamp']['genTime'] = $signer['timestamp']['genTime']->format(DateTimeInterface::ATOM);
-				}
-			}
-			for ($i = 1; $i < count($signer['chain']); $i++) {
-				$this->fileData->signers[$index]['chain'][] = [
-					'displayName' => $signer['chain'][$i]['name'],
-				];
-			}
 		}
+		return null;
 	}
 
 	private function loadSigners(): void {
