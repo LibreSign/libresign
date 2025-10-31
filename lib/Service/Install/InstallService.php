@@ -738,10 +738,10 @@ class InstallService {
 		$this->appConfig->setValueArray(Application::APP_ID, 'rootCert', $rootCert);
 		/** @var AEngineHandler $engine */
 		if ($engine instanceof CfsslHandler) {
-			$this->appConfig->setValueString(Application::APP_ID, 'config_path', $engine->getConfigPath());
 			$this->appConfig->setValueString(Application::APP_ID, 'certificate_engine', 'cfssl');
 		} else {
 			$this->appConfig->setValueString(Application::APP_ID, 'certificate_engine', 'openssl');
 		}
+		$this->appConfig->setValueString(Application::APP_ID, 'config_path', $engine->getConfigPath());
 	}
 }
