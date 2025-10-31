@@ -289,8 +289,21 @@ class FileService {
 		$file = $this->getFile();
 
 		$resource = $file->fopen('rb');
+		$sha256 = $this->getSha256FromResource($resource);
+		if ($sha256 === $this->file->getSignedHash()) {
+			$this->pkcs12Handler->setIsLibreSignFile();
+		}
 		$this->certData = $this->pkcs12Handler->getCertificateChain($resource);
 		fclose($resource);
+	}
+
+	private function getSha256FromResource($resource): string {
+		$hashContext = hash_init('sha256');
+		while (!feof($resource)) {
+			$buffer = fread($resource, 8192); // 8192 bytes = 8 KB
+			hash_update($hashContext, $buffer);
+		}
+		return hash_final($hashContext);
 	}
 
 	private function loadLibreSignSigners(): void {
