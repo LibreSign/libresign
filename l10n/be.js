@@ -87,6 +87,7 @@ OC.L10N.register(
     "1 file" : "1 файл",
     "{fileCount} files" : "{fileCount} файлы",
     "Total rows summary" : "Зводка па ўсіх радках",
+    "Created at" : "Створана",
     "\"{displayName}\" batch action executed successfully" : "Пакетнае дзеянне \"{displayName}\" паспяхова выканана",
     "\"{displayName}\" action failed" : "Не ўдалося выканаць дзеянне \"{displayName}\"",
     "(selected)" : "(выбраны)",
