@@ -194,6 +194,15 @@
 									{{ signer.certificate_validation.label }}
 								</template>
 							</NcListItem>
+							<NcListItem v-if="signer.opened && signer.field"
+								class="extra"
+								compact
+								:name="t('libresign', 'Field:')">
+								<template #name>
+									<strong>{{ t('libresign', 'Field:') }}</strong>
+									{{ signer.field }}
+								</template>
+							</NcListItem>
 							<NcListItem v-if="signer.opened && signer.remote_address"
 								class="extra"
 								compact
