@@ -80,18 +80,15 @@ class Pkcs12Handler extends SignEngineHandler {
 	#[\Override]
 	public function getCertificateChain($resource): array {
 		$certificates = [];
-		$signerCounter = 0;
 
 		foreach ($this->getSignatures($resource) as $signature) {
-			$certificates[$signerCounter] = $this->processSignature($resource, $signature, $signerCounter);
-			$signerCounter++;
+			$certificates[] = $this->processSignature($resource, $signature);
 		}
 		return $certificates;
 	}
 
-	private function processSignature($resource, ?string $signature, int $signerCounter): array {
-		$fromFallback = $this->popplerUtilsPdfSignFallback($resource, $signerCounter);
-		$result = $fromFallback ?: [];
+	private function processSignature($resource, ?string $signature): array {
+		$result = [];
 
 		if (!$signature) {
 			$result['chain'][0]['signature_validation'] = $this->getReadableSigState('Digest Mismatch.');
@@ -104,7 +101,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		$chain = $this->extractCertificateChain($signature);
 		if (!empty($chain)) {
 			$result['chain'] = $this->orderCertificates($chain);
-			$this->enrichLeafWithPopplerData($result, $fromFallback);
+			$result = $this->enrichLeafWithPopplerData($resource, $result);
 		}
 		return $result;
 	}
@@ -149,33 +146,64 @@ class Pkcs12Handler extends SignEngineHandler {
 		return $chain;
 	}
 
-	private function enrichLeafWithPopplerData(array &$result, array $fromFallback): void {
-		if (empty($fromFallback['chain'][0]) || empty($result['chain'][0])) {
-			return;
+	private function enrichLeafWithPopplerData($resource, array $result): array {
+		if (empty($result['chain'])) {
+			return $result;
 		}
-
-		$popplerData = $fromFallback['chain'][0];
-		$leafCert = &$result['chain'][0];
 
 		$popplerOnlyFields = ['field', 'range', 'certificate_validation'];
+		if (!isset($result['chain'][0]['subject'])) {
+			return $result;
+		}
+		$needPoppler = false;
 		foreach ($popplerOnlyFields as $field) {
-			if (isset($popplerData[$field])) {
-				$leafCert[$field] = $popplerData[$field];
+			if (empty($result['chain'][0][$field])) {
+				$needPoppler = true;
+				break;
 			}
 		}
-
-		if (isset($popplerData['signature_validation'])
-			&& (!isset($leafCert['signature_validation']) || $leafCert['signature_validation']['id'] !== 1)) {
-			$leafCert['signature_validation'] = $popplerData['signature_validation'];
+		if (!isset($result['chain'][0]['signature_validation']) || $result['chain'][0]['signature_validation']['id'] !== 1) {
+			$needPoppler = true;
 		}
+		if (!$needPoppler) {
+			return $result;
+		}
+		$popplerChain = $this->chainFromPoppler($result['chain'][0]['subject'], $resource);
+		if (empty($popplerChain)) {
+			return $result;
+		}
+		foreach ($popplerOnlyFields as $field) {
+			if (isset($popplerChain[$field])) {
+				$result['chain'][0][$field] = $popplerChain[$field];
+			}
+		}
+		if (!isset($result['chain'][0]['signature_validation']) || $result['chain'][0]['signature_validation']['id'] !== 1) {
+			if (isset($popplerChain['signature_validation'])) {
+				$result['chain'][0]['signature_validation'] = $popplerChain['signature_validation'];
+			}
+		}
+		return $result;
 	}
 
-	private function popplerUtilsPdfSignFallback($resource, int $signerCounter): array {
-		if (shell_exec('which pdfsig') === null) {
-			return [];
+	private function chainFromPoppler(array $subject, $resource): array {
+		$fromFallback = $this->popplerUtilsPdfSignFallback($resource);
+		foreach ($fromFallback as $popplerSig) {
+			if (!isset($popplerSig['chain'][0]['subject'])) {
+				continue;
+			}
+			if ($popplerSig['chain'][0]['subject'] == $subject) {
+				return $popplerSig['chain'][0];
+			}
 		}
+		return [];
+	}
+
+	private function popplerUtilsPdfSignFallback($resource): array {
 		if (!empty($this->signaturesFromPoppler)) {
-			return $this->signaturesFromPoppler[$signerCounter] ?? [];
+			return $this->signaturesFromPoppler;
+		}
+		if (shell_exec('which pdfsig') === null) {
+			return $this->signaturesFromPoppler;
 		}
 		rewind($resource);
 		$content = stream_get_contents($resource);
@@ -184,7 +212,7 @@ class Pkcs12Handler extends SignEngineHandler {
 
 		$content = shell_exec('env TZ=UTC pdfsig ' . $tempFile);
 		if (empty($content)) {
-			return [];
+			return $this->signaturesFromPoppler;
 		}
 		$lines = explode("\n", $content);
 
@@ -218,13 +246,14 @@ class Pkcs12Handler extends SignEngineHandler {
 						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['certificate_validation'] = $this->getReadableCertState($match['value']);
 						break;
 					case 'Signed Ranges':
-						preg_match('/\[(\d+) - (\d+)\], \[(\d+) - (\d+)\]/', $match['value'], $ranges);
-						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['range'] = [
-							'offset1' => (int)$ranges[1],
-							'length1' => (int)$ranges[2],
-							'offset2' => (int)$ranges[3],
-							'length2' => (int)$ranges[4],
-						];
+						if (preg_match('/\[(\d+) - (\d+)\], \[(\d+) - (\d+)\]/', $match['value'], $ranges)) {
+							$this->signaturesFromPoppler[$lastSignature]['chain'][0]['range'] = [
+								'offset1' => (int)$ranges[1],
+								'length1' => (int)$ranges[2],
+								'offset2' => (int)$ranges[3],
+								'length2' => (int)$ranges[4],
+							];
+						}
 						break;
 					case 'Signature Field Name':
 						$this->signaturesFromPoppler[$lastSignature]['chain'][0]['field'] = $match['value'];
@@ -238,7 +267,7 @@ class Pkcs12Handler extends SignEngineHandler {
 				}
 			}
 		}
-		return $this->signaturesFromPoppler[$signerCounter] ?? [];
+		return $this->signaturesFromPoppler;
 	}
 
 	private function getReadableSigState(string $status) {
@@ -312,7 +341,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		foreach ($pairs as $pair) {
 			[$key, $value] = explode('=', $pair, 2);
 			if (empty($key) || empty($value)) {
-				throw new LibresignException($this->l10n->t('Invalid value: %s.', ['Signer full Distinguished Name: ' . $pair]));
+				return $result;
 			}
 			$key = trim($key);
 			$value = trim($value);
