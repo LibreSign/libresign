@@ -264,7 +264,7 @@
 									{{ signer.hash_algorithm }}
 								</template>
 							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.timestamp.displayName"
+							<NcListItem v-if="signer.opened && signer.timestamp && signer.timestamp.displayName"
 								class="extra"
 								compact
 								:name="t('libresign', 'Timestamp Authority:')">
@@ -273,7 +273,7 @@
 									{{ signer.timestamp.displayName }}
 								</template>
 							</NcListItem>
-							<div v-if="signer.opened && signer.timestamp.displayName">
+							<div v-if="signer.opened && signer.timestamp && signer.timestamp.displayName">
 								<NcListItem class="extra-chain"
 									compact
 									:name="t('libresign', 'Time:')">
