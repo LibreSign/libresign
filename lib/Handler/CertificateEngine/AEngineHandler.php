@@ -247,7 +247,10 @@ abstract class AEngineHandler implements IEngineHandler {
 			return $this->configPath;
 		}
 		$this->configPath = $this->appConfig->getValueString(Application::APP_ID, 'config_path');
-		if ($this->configPath && str_ends_with($this->configPath, $this->getName() . '_config')) {
+		if ($this->configPath
+			&& str_ends_with($this->configPath, $this->getName() . '_config')
+			&& is_dir($this->configPath)
+		) {
 			return $this->configPath;
 		}
 		try {
