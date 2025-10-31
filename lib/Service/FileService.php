@@ -428,6 +428,9 @@ class FileService {
 			if (!empty($signer['chain'][0]['name'])) {
 				$this->fileData->signers[$index]['subject'] = $signer['chain'][0]['name'];
 			}
+			if (!empty($signer['chain'][0]['field'])) {
+				$this->fileData->signers[$index]['field'] = $signer['chain'][0]['field'];
+			}
 			if (!empty($signer['chain'][0]['validFrom_time_t'])) {
 				$this->fileData->signers[$index]['valid_from'] = (new DateTime('@' . $signer['chain'][0]['validFrom_time_t'], new \DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
 			}
