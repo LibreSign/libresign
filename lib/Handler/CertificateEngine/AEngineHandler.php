@@ -44,8 +44,8 @@ use ReflectionClass;
  * @method string getLocality()
  * @method IEngineHandler setOrganization(string $organization)
  * @method string getOrganization()
- * @method IEngineHandler setOrganizationalUnit(string $organizationalUnit)
- * @method string getOrganizationalUnit()
+ * @method IEngineHandler setOrganizationalUnit(arrray $organizationalUnit)
+ * @method array getOrganizationalUnit()
  * @method IEngineHandler setUID(string $UID)
  * @method string getName()
  */
@@ -60,7 +60,7 @@ abstract class AEngineHandler implements IEngineHandler {
 	protected string $state = '';
 	protected string $locality = '';
 	protected string $organization = '';
-	protected string $organizationalUnit = '';
+	protected array $organizationalUnit = [];
 	protected string $UID = '';
 	protected string $password = '';
 	protected string $configPath = '';
