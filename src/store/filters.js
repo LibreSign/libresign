@@ -39,12 +39,6 @@ export const useFiltersStore = defineStore('filter', {
 			emit('libresign:filters:update')
 			logger.debug('File list filter chips updated', { chips: event.detail })
 
-
-			console.log('onFilterUpdateChips')
-
-
-			console.log(this.chips)
-			console.log(event.id)
 		},
 
 		async onFilterUpdateChipsAndSave(event) {
@@ -62,12 +56,8 @@ export const useFiltersStore = defineStore('filter', {
 			}
 
 			if(event.id == 'status'){
-				//let value = this.chips['status'][0]?.id || '';
 
-				const value = event.detail != "" ? JSON.stringify(event.detail) : '';
-
-				console.log(this.chips)
-				console.log(event.detail)
+				const value = event.detail.length > 0 ? JSON.stringify(event.detail.map(item => item.id)) : '';
 
 				await axios.put(generateOcsUrl('/apps/libresign/api/v1/account/config/{key}', { key: 'filter_status' }), {
 					value,
@@ -78,9 +68,6 @@ export const useFiltersStore = defineStore('filter', {
 
 
 			logger.debug('File list filter chips updated', { chips: event.detail })
-
-			console.log('onFilterUpdateChipsAndSave')
-			console.log(event.id)
 		},
 	},
 })
