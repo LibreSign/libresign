@@ -520,6 +520,7 @@ OC.L10N.register(
     "Requested on:" : "Solicitada em:",
     "Signature validation:" : "Validação da assinatura:",
     "Certificate validation:" : "Validação do certificado:",
+    "Field:" : "Campo:",
     "Remote address:" : "Endereço remoto:",
     "User agent:" : "Agente do usuário:",
     "Notifications:" : "Notificações:",

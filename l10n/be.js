@@ -118,6 +118,7 @@ OC.L10N.register(
     "Forgot password?" : "Забылі пароль?",
     "File size:" : "Памер файла:",
     "No date" : "Няма даты",
+    "Field:" : "Поле:",
     "Time:" : "Час:",
     "Unknown" : "Невядомы"
 },
