@@ -464,6 +464,11 @@ abstract class AEngineHandler implements IEngineHandler {
 				$minorIssues[] = "Missing modern extensions: {$extensionsList}";
 			}
 
+			$hasLibresignCaUuid = $this->validateLibresignCaUuidInCertificate($parsed);
+			if (!$hasLibresignCaUuid) {
+				$minorIssues[] = 'LibreSign CA UUID not found in Organizational Unit';
+			}
+
 			if (!empty($criticalIssues)) {
 				$issuesList = implode(', ', $criticalIssues);
 				return (new ConfigureCheckHelper())
@@ -488,6 +493,45 @@ abstract class AEngineHandler implements IEngineHandler {
 				->setResource($this->getConfigureCheckResourceName())
 				->setTip('Check if the root certificate file is valid');
 		}
+	}
+
+	private function validateLibresignCaUuidInCertificate(array $parsed): bool {
+		if (!isset($parsed['subject']['OU'])) {
+			return false;
+		}
+
+		$instanceId = $this->getInstanceId();
+		if (empty($instanceId)) {
+			return false;
+		}
+
+		$organizationalUnits = $parsed['subject']['OU'];
+
+		if (is_string($organizationalUnits)) {
+			if (str_contains($organizationalUnits, '|')) {
+				$organizationalUnits = explode('|', $organizationalUnits);
+			} else {
+				$organizationalUnits = [$organizationalUnits];
+			}
+		}
+
+		$expectedCaUuid = 'libresign-ca-uuid:' . $instanceId;
+
+		foreach ($organizationalUnits as $ou) {
+			if (trim($ou) === $expectedCaUuid) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private function getInstanceId(): string {
+		$instanceId = $this->appConfig->getValueString(Application::APP_ID, 'instance_id', '');
+		if (strlen($instanceId) === 10) {
+			return $instanceId;
+		}
+		return '';
 	}
 
 	#[\Override]
