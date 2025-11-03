@@ -46,6 +46,8 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 			}
 		}
 
+		$this->convertRootCertOuStringToArray();
+
 		if ($schema->hasTable('libresign_crl')) {
 			$crlTable = $schema->getTable('libresign_crl');
 			if (!$crlTable->hasColumn('engine')) {
@@ -53,5 +55,19 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 			}
 		}
 		return $schema;
+	}
+
+	private function convertRootCertOuStringToArray(): void {
+		$rootCert = $this->appConfig->getValueArray(Application::APP_ID, 'rootCert');
+		if (!$rootCert || !isset($rootCert['names']['OU']['value'])) {
+			return;
+		}
+
+		$ouValue = $rootCert['names']['OU']['value'];
+
+		if (is_string($ouValue)) {
+			$rootCert['names']['OU']['value'] = [$ouValue];
+			$this->appConfig->setValueArray(Application::APP_ID, 'rootCert', $rootCert);
+		}
 	}
 }
