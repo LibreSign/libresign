@@ -44,7 +44,7 @@ use ReflectionClass;
  * @method string getLocality()
  * @method IEngineHandler setOrganization(string $organization)
  * @method string getOrganization()
- * @method IEngineHandler setOrganizationalUnit(arrray $organizationalUnit)
+ * @method IEngineHandler setOrganizationalUnit(array $organizationalUnit)
  * @method array getOrganizationalUnit()
  * @method IEngineHandler setUID(string $UID)
  * @method string getName()
