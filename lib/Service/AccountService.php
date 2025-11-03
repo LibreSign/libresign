@@ -239,9 +239,6 @@ class AccountService {
 		return $info;
 	}
 
-	/**
-	 * @return array[]
-	 */
 	public function getConfigFilters(?IUser $user = null): array {
 		$info['filter_modified'] = $this->getUserConfigByKey($user, 'filter_modified');
 		$info['filter_status'] = $this->getUserConfigByKey($user, 'filter_status');

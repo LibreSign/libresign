@@ -14,8 +14,8 @@
 		<NcActionButton v-for="status of fileStatus"
 			:key="status.id"
 			type="checkbox"
-			:model-value="selectedOptions.includes(status)"
-			@click="toggleOption(status)">
+			:model-value="selectedOptions.includes(status.id)"
+			@click="toggleOption(status.id)">
 			<template #icon>
 				<NcIconSvgWrapper :svg="status.icon" />
 			</template>
@@ -64,7 +64,7 @@ export default {
 	},
 	mounted() {
 		if (this.selectedOptions.length > 0) {
-			this.setPreset(this.selectedOptions)
+			this.setMarkedFilter()
 		}
 	},
 	watch: {
@@ -80,12 +80,17 @@ export default {
 		setPreset(presets) {
 			const chips = []
 			if (presets && presets.length > 0) {
-				for (const preset of presets) {
+				for (const id of presets) {
+					const status = fileStatus.find(item => item.id === id)
+					if (!status) continue
+
 					chips.push({
-						id: preset.id,
-						icon: preset.icon,
-						text: preset.label,
-						onclick: () => this.setPreset(presets.filter(({ id }) => id !== preset.id)),
+						id: status.id,
+						icon: status.icon || '',
+						text: status.label,
+						onclick: () => {
+							this.selectedOptions = this.selectedOptions.filter(v => v !== status.id)
+						},
 					})
 				}
 			} else {
@@ -94,10 +99,13 @@ export default {
 			this.filtersStore.onFilterUpdateChips({ detail: chips, id: 'status' })
 		},
 		resetFilter() {
-			if (this.selectedOptions.length > 0) {
+
+			if( this.selectedOptions.length > 0) {
 				this.selectedOptions = []
+
+				this.filtersStore.onFilterUpdateChipsAndSave({ detail: [], id: 'status' })
 			}
-			this.filtersStore.onFilterUpdateChipsAndSave({ detail: '', id: 'status' })
+
 		},
 		toggleOption(option) {
 			const idx = this.selectedOptions.indexOf(option)
@@ -106,9 +114,6 @@ export default {
 			} else {
 				this.selectedOptions.push(option)
 			}
-
-			console.log('toggleOption')
-			console.log(this.selectedOptions)
 		},
 		setMarkedFilter(){
 
@@ -117,20 +122,24 @@ export default {
 			let presets = this.selectedOptions
 
 			if (presets && presets.length > 0) {
-				for (const preset of presets) {
+
+				for (const id of this.selectedOptions) {
+					const status = fileStatus.find(item => item.id === id)
+					if (!status) continue
+
 					chips.push({
-						id: preset.id,
-						icon: preset.icon,
-						text: preset.label,
-						onclick: () => this.setPreset(presets.filter(({ id }) => id !== preset.id)),
+						id: status.id,
+						icon: status.icon || '',
+						text: status.label,
+						onclick: () => {
+							this.selectedOptions = this.selectedOptions.filter(v => v !== id)
+						},
 					})
 				}
+
 			}  else {
 				this.resetFilter()
 			}
-
-			console.log('setMarkedFilter')
-			console.log(presets)
 
 			this.filtersStore.onFilterUpdateChipsAndSave({ detail: chips, id: 'status' })
 		}
