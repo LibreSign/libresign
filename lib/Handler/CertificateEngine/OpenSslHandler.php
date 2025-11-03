@@ -484,6 +484,4 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 		return $configFile;
 	}
-
-
 }
