@@ -455,6 +455,11 @@ abstract class AEngineHandler implements IEngineHandler {
 				$minorIssues[] = "Missing modern extensions: {$extensionsList}";
 			}
 
+			$hasLibresignCaUuid = $this->validateLibresignCaUuidInCertificate($parsed);
+			if (!$hasLibresignCaUuid) {
+				$minorIssues[] = 'LibreSign CA UUID not found in Organizational Unit';
+			}
+
 			if (!empty($criticalIssues)) {
 				$issuesList = implode(', ', $criticalIssues);
 				return (new ConfigureCheckHelper())
