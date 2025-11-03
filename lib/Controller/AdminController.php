@@ -69,7 +69,7 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Generate certificate using CFSSL engine
 	 *
-	 * @param array{commonName: string, names: array<string, array{value:string}>} $rootCert fields of root certificate
+	 * @param array{commonName: string, names: array<string, array{value:string|array<string>}>} $rootCert fields of root certificate
 	 * @param string $cfsslUri URI of CFSSL API
 	 * @param string $configPath Path of config files of CFSSL
 	 * @return DataResponse<Http::STATUS_OK, array{data: LibresignEngineHandler}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
@@ -106,7 +106,7 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Generate certificate using OpenSSL engine
 	 *
-	 * @param array{commonName: string, names: array<string, array{value:string}>} $rootCert fields of root certificate
+	 * @param array{commonName: string, names: array<string, array{value:string|array<string>}>} $rootCert fields of root certificate
 	 * @param string $configPath Path of config files of CFSSL
 	 * @return DataResponse<Http::STATUS_OK, array{data: LibresignEngineHandler}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
 	 *
@@ -145,7 +145,12 @@ class AdminController extends AEnvironmentAwareController {
 		if (isset($rootCert['names'])) {
 			$this->validateService->validateNames($rootCert['names']);
 			foreach ($rootCert['names'] as $item) {
-				$names[$item['id']]['value'] = trim((string)$item['value']);
+				if (is_array($item['value'])) {
+					$trimmedValues = array_map('trim', $item['value']);
+					$names[$item['id']]['value'] = array_filter($trimmedValues, fn ($val) => $val !== '');
+				} else {
+					$names[$item['id']]['value'] = trim((string)$item['value']);
+				}
 			}
 		}
 		$this->validateService->validate('CN', $rootCert['commonName']);

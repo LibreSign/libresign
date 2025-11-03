@@ -86,6 +86,7 @@ final class RulesServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			[
 				'CN', [
+					'type' => 'string',
 					'required' => true,
 					'min' => 1,
 					'max' => 64,
@@ -93,32 +94,40 @@ final class RulesServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			[
 				'C', [
+					'type' => 'string',
 					'min' => 2,
 					'max' => 2,
 				],
 			],
 			[
 				'ST', [
+					'type' => 'string',
 					'min' => 1,
 					'max' => 128,
 				],
 			],
 			[
 				'L', [
+					'type' => 'string',
 					'min' => 1,
 					'max' => 128,
 				],
 			],
 			[
 				'O', [
+					'type' => 'string',
 					'min' => 1,
 					'max' => 64,
 				],
 			],
 			[
 				'OU', [
+					'type' => 'array',
+					'required' => false,
 					'min' => 1,
 					'max' => 64,
+					'minItems' => 0,
+					'maxItems' => 10,
 				],
 			],
 		];
@@ -144,5 +153,74 @@ final class RulesServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			['O5'],
 			['OU6'],
 		];
+	}
+
+	#[DataProvider('providerGetRuleTypeValidation')]
+	public function testGetRuleTypeValidation(string $fieldName, string $expectedType): void {
+		$service = $this->getService();
+		$rule = $service->getRule($fieldName);
+
+		$this->assertArrayHasKey('type', $rule, "Field $fieldName should have a type defined");
+		$this->assertSame($expectedType, $rule['type'], "Field $fieldName should be of type $expectedType");
+	}
+
+	public static function providerGetRuleTypeValidation(): array {
+		return [
+			['CN', 'string'],
+			['C', 'string'],
+			['ST', 'string'],
+			['L', 'string'],
+			['O', 'string'],
+			['OU', 'array'],
+		];
+	}
+
+	#[DataProvider('providerGetRuleArraySpecificValidation')]
+	public function testGetRuleArraySpecificValidation(string $fieldName, array $expectedProperties): void {
+		$service = $this->getService();
+		$rule = $service->getRule($fieldName);
+
+		foreach ($expectedProperties as $property => $expectedValue) {
+			$this->assertArrayHasKey($property, $rule, "Field $fieldName should have property $property");
+			$this->assertSame($expectedValue, $rule[$property], "Field $fieldName property $property should be $expectedValue");
+		}
+	}
+
+	public static function providerGetRuleArraySpecificValidation(): array {
+		return [
+			[
+				'OU', [
+					'type' => 'array',
+					'minItems' => 0,
+					'maxItems' => 10,
+					'required' => false,
+				]
+			],
+		];
+	}
+
+	public function testStringFieldsDoNotHaveArrayProperties(): void {
+		$service = $this->getService();
+		$stringFields = ['CN', 'C', 'ST', 'L', 'O'];
+
+		foreach ($stringFields as $fieldName) {
+			$rule = $service->getRule($fieldName);
+			$this->assertArrayNotHasKey('minItems', $rule, "String field $fieldName should not have minItems property");
+			$this->assertArrayNotHasKey('maxItems', $rule, "String field $fieldName should not have maxItems property");
+			$this->assertSame('string', $rule['type'], "Field $fieldName should be of type string");
+		}
+	}
+
+	public function testArrayFieldsHaveArrayProperties(): void {
+		$service = $this->getService();
+		$rule = $service->getRule('OU');
+
+		$this->assertSame('array', $rule['type'], 'OU field should be of type array');
+		$this->assertArrayHasKey('minItems', $rule, 'Array field OU should have minItems property');
+		$this->assertArrayHasKey('maxItems', $rule, 'Array field OU should have maxItems property');
+		$this->assertIsInt($rule['minItems'], 'minItems should be an integer');
+		$this->assertIsInt($rule['maxItems'], 'maxItems should be an integer');
+		$this->assertGreaterThanOrEqual(0, $rule['minItems'], 'minItems should be >= 0');
+		$this->assertGreaterThan($rule['minItems'], $rule['maxItems'], 'maxItems should be > minItems');
 	}
 }
