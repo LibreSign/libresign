@@ -321,7 +321,9 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			$longName = lcfirst($longName) . 'Name';
 
 			if (is_array($value)) {
-				$distinguishedNames[$longName] = implode('|', $value);
+				if (!empty($value)) {
+					$distinguishedNames[$longName] = implode('|', $value);
+				}
 			} else {
 				$distinguishedNames[$longName] = $value;
 			}
