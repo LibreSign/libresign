@@ -140,6 +140,14 @@ abstract class AEngineHandler implements IEngineHandler {
 
 		$return = self::convertArrayToUtf8($parsed);
 
+		if (isset($return['subject']['OU']) && is_string($return['subject']['OU'])) {
+			if (str_contains($return['subject']['OU'], '|')) {
+				$return['subject']['OU'] = explode('|', $return['subject']['OU']);
+			} else {
+				$return['subject']['OU'] = [$return['subject']['OU']];
+			}
+		}
+
 		$return['valid_from'] = $this->dateTimeFormatter->formatDateTime($parsed['validFrom_time_t']);
 		$return['valid_to'] = $this->dateTimeFormatter->formatDateTime($parsed['validTo_time_t']);
 		return $return;
