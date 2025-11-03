@@ -192,6 +192,9 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private function csrArrayToString(array $csr): string {
 		$return = '';
 		foreach ($csr as $key => $value) {
+			if (is_array($value)) {
+				$value = implode('|', $value);
+			}
 			$return .= "/$key=$value";
 		}
 		return $return;
@@ -220,14 +223,14 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'C' => 'CT',
 					'ST' => 'Some-State',
 					'O' => 'Organization Name',
-					'OU' => 'Organization Unit',
+					'OU' => ['Organization Unit'],
 					'CN' => 'Common Name',
 				],
 				[
 					'C' => 'RT',
 					'ST' => 'Root-State',
 					'O' => 'Root Organization Name',
-					'OU' => 'Root Organization Unit',
+					'OU' => ['Root Organization Unit'],
 					'CN' => 'Root Common Name',
 					'UID' => 'account:test'
 				],
@@ -241,14 +244,14 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'C' => 'CT',
 					'ST' => 'Some-State',
 					'O' => 'Organization Name',
-					'OU' => 'Organization Unit',
+					'OU' => ['Organization Unit'],
 					'CN' => 'Common Name',
 				],
 				[
 					'C' => 'RT',
 					'ST' => 'Root-State',
 					'O' => 'Root Organization Name',
-					'OU' => 'Root Organization Unit',
+					'OU' => ['Root Organization Unit'],
 					'CN' => 'Root Common Name',
 					'UID' => 'email:user@domain.tld'
 				],
