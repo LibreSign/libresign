@@ -8588,7 +8588,17 @@
                                                     ],
                                                     "properties": {
                                                         "value": {
-                                                            "type": "string"
+                                                            "oneOf": [
+                                                                {
+                                                                    "type": "string"
+                                                                },
+                                                                {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                        "type": "string"
+                                                                    }
+                                                                }
+                                                            ]
                                                         }
                                                     }
                                                 }
@@ -8760,7 +8770,17 @@
                                                     ],
                                                     "properties": {
                                                         "value": {
-                                                            "type": "string"
+                                                            "oneOf": [
+                                                                {
+                                                                    "type": "string"
+                                                                },
+                                                                {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                        "type": "string"
+                                                                    }
+                                                                }
+                                                            ]
                                                         }
                                                     }
                                                 }
