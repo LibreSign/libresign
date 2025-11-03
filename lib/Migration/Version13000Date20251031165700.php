@@ -45,6 +45,13 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 				$engine->setConfigPath($engine->getConfigPath());
 			}
 		}
+
+		if ($schema->hasTable('libresign_crl')) {
+			$crlTable = $schema->getTable('libresign_crl');
+			if (!$crlTable->hasColumn('engine')) {
+				$crlTable->addColumn('engine', 'string', ['default' => $engineName]);
+			}
+		}
 		return $schema;
 	}
 }
