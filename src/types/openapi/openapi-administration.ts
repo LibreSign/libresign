@@ -416,7 +416,7 @@ export interface operations {
                         commonName: string;
                         names: {
                             [key: string]: {
-                                value: string;
+                                value: string | string[];
                             };
                         };
                     };
@@ -488,7 +488,7 @@ export interface operations {
                         commonName: string;
                         names: {
                             [key: string]: {
-                                value: string;
+                                value: string | string[];
                             };
                         };
                     };
