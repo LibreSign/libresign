@@ -83,7 +83,7 @@ class CfsslServerHandler {
 			$content['crl_url'] = $crlUrl;
 		}
 		foreach ($names as $id => $name) {
-			$content['names'][0][$id] = $name['value'];
+			$content['names'][0][$id] = is_array($name['value']) ? implode('|', $name['value']) : $name['value'];
 		}
 		($this->getConfigPath)();
 		$response = file_put_contents($this->csrServerFile, json_encode($content));
