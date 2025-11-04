@@ -167,7 +167,7 @@ class Pkcs12Handler extends SignEngineHandler {
 					'label' => $this->l10n->t('Signature is valid.'),
 				];
 				if (!$isLibreSignRootCA) {
-					$isLibreSignRootCA = $this->isLibreSignRootCA($pemCertificate);
+					$isLibreSignRootCA = $this->isLibreSignRootCA($pemCertificate, $parsed);
 				}
 				$parsed['isLibreSignRootCA'] = $isLibreSignRootCA;
 				$chain[$index] = $parsed;
@@ -182,14 +182,35 @@ class Pkcs12Handler extends SignEngineHandler {
 		return $chain;
 	}
 
-	private function isLibreSignRootCA(string $certificate): bool {
+	private function isLibreSignRootCA(string $certificate, array $parsed): bool {
 		$rootCertificatePem = $this->getRootCertificatePem();
 		if (empty($rootCertificatePem)) {
 			return false;
 		}
+
 		$rootFingerprint = openssl_x509_fingerprint($rootCertificatePem, 'sha256');
 		$fingerprint = openssl_x509_fingerprint($certificate, 'sha256');
-		return $rootFingerprint === $fingerprint;
+		if ($rootFingerprint === $fingerprint) {
+			return true;
+		}
+
+		return $this->hasLibreSignCaId($parsed);
+	}
+
+	private function hasLibreSignCaId(array $parsed): bool {
+		$instanceId = $this->appConfig->getValueString(Application::APP_ID, 'instance_id', '');
+		if (strlen($instanceId) !== 10 || !isset($parsed['subject']['OU'])) {
+			return false;
+		}
+
+		$expectedCaUuid = 'libresign-ca-id:' . $instanceId;
+		$organizationalUnits = $parsed['subject']['OU'];
+
+		if (is_string($organizationalUnits)) {
+			return str_contains($organizationalUnits, $expectedCaUuid);
+		}
+
+		return in_array($expectedCaUuid, array_map('trim', $organizationalUnits));
 	}
 
 	private function getRootCertificatePem(): string {
