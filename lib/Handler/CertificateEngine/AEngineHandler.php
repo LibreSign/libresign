@@ -516,8 +516,8 @@ abstract class AEngineHandler implements IEngineHandler {
 		$organizationalUnits = $parsed['subject']['OU'];
 
 		if (is_string($organizationalUnits)) {
-			if (str_contains($organizationalUnits, '|')) {
-				$organizationalUnits = explode('|', $organizationalUnits);
+			if (str_contains($organizationalUnits, ', ')) {
+				$organizationalUnits = explode(', ', $organizationalUnits);
 			} else {
 				$organizationalUnits = [$organizationalUnits];
 			}
