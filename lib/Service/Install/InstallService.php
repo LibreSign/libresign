@@ -737,9 +737,12 @@ class InstallService {
 			$names['OU']['value'] = [$names['OU']['value']];
 		}
 
-		if (!in_array($caUUID, $names['OU']['value'], true)) {
-			$names['OU']['value'][] = $caUUID;
-		}
+		$names['OU']['value'] = array_filter(
+			$names['OU']['value'],
+			fn($value) => !str_starts_with($value, 'libresign-ca-uuid:')
+		);
+
+		$names['OU']['value'][] = $caUUID;
 
 		return $names;
 	}
