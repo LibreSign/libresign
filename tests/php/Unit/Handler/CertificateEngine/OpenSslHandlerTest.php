@@ -135,7 +135,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$rootInstance->setOrganization($root['O']);
 		}
 		if (isset($root['OU'])) {
-			$rootInstance->setOrganizationalUnit($root['OU']);
+			$rootInstance->setOrganizationalUnit([$root['OU']]);
 		}
 		$rootInstance->generateRootCert($commonName, $root);
 
@@ -160,7 +160,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$signerInstance->setOrganization($csrNames['O']);
 		}
 		if (isset($csrNames['OU'])) {
-			$signerInstance->setOrganizationalUnit($csrNames['OU']);
+			$signerInstance->setOrganizationalUnit([$csrNames['OU']]);
 		}
 		$certificateContent = $signerInstance->generateCertificate();
 
@@ -223,14 +223,14 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'C' => 'CT',
 					'ST' => 'Some-State',
 					'O' => 'Organization Name',
-					'OU' => ['Organization Unit'],
+					'OU' => 'Organization Unit',
 					'CN' => 'Common Name',
 				],
 				[
 					'C' => 'RT',
 					'ST' => 'Root-State',
 					'O' => 'Root Organization Name',
-					'OU' => ['Root Organization Unit'],
+					'OU' => 'Root Organization Unit',
 					'CN' => 'Root Common Name',
 					'UID' => 'account:test'
 				],
@@ -244,14 +244,14 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'C' => 'CT',
 					'ST' => 'Some-State',
 					'O' => 'Organization Name',
-					'OU' => ['Organization Unit'],
+					'OU' => 'Organization Unit',
 					'CN' => 'Common Name',
 				],
 				[
 					'C' => 'RT',
 					'ST' => 'Root-State',
 					'O' => 'Root Organization Name',
-					'OU' => ['Root Organization Unit'],
+					'OU' => 'Root Organization Unit',
 					'CN' => 'Root Common Name',
 					'UID' => 'email:user@domain.tld'
 				],
