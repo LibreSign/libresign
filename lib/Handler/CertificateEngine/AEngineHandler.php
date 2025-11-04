@@ -525,7 +525,7 @@ abstract class AEngineHandler implements IEngineHandler {
 			}
 		}
 
-		$expectedCaUuid = 'libresign-ca-uuid:' . $instanceId;
+		$expectedCaUuid = 'libresign-ca-id:' . $instanceId;
 
 		foreach ($organizationalUnits as $ou) {
 			if (trim($ou) === $expectedCaUuid) {

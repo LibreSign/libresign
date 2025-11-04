@@ -721,7 +721,7 @@ class InstallService {
 	}
 
 	private function populateNamesWithInstanceId(array $names): array {
-		$caUUID = 'libresign-ca-uuid:' . $this->getInstanceId();
+		$caUUID = 'libresign-ca-id:' . $this->getInstanceId();
 
 		if (empty($names['OU'])) {
 			$names['OU']['value'] = [$caUUID];
