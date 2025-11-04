@@ -138,11 +138,13 @@ abstract class AEngineHandler implements IEngineHandler {
 
 		$return = self::convertArrayToUtf8($parsed);
 
-		if (isset($return['subject']['OU']) && is_string($return['subject']['OU'])) {
-			if (str_contains($return['subject']['OU'], '|')) {
-				$return['subject']['OU'] = explode('|', $return['subject']['OU']);
-			} else {
-				$return['subject']['OU'] = [$return['subject']['OU']];
+		foreach (['subject', 'issuer'] as $actor) {
+			foreach ($return[$actor] as $part => $value) {
+				if (is_string($value) && str_contains($value, ', ')) {
+					$return[$actor][$part] = explode(', ', $value);
+				} else {
+					$return[$actor][$part] = $value;
+				}
 			}
 		}
 
