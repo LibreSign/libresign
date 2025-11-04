@@ -22,7 +22,7 @@
 					:key="value"
 					class="certificate-field">
 					<span class="field-label">{{ getLabelFromId(customName) }}</span>
-					<span class="field-value">{{ value }}</span>
+					<span class="field-value">{{ Array.isArray(value) ? value.join(', ') : value }}</span>
 				</div>
 			</div>
 		</NcSettingsSection>
