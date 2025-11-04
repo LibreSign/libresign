@@ -7,7 +7,11 @@
 	<ul>
 		<NcAppNavigationItem icon="icon-user"
 			:name="t('libresign', 'Account')"
-			:to=" {name: 'Account'} " />
+			:to=" {name: 'Account'} ">
+			<template #icon>
+				<AccountIcon :size="20" />
+			</template>
+		</NcAppNavigationItem>
 		<NcAppNavigationItem v-if="isAdmin"
 			:name="t('libresign', 'Administration')"
 			:href="getAdminRoute()">
@@ -25,6 +29,7 @@
 </template>
 
 <script>
+import AccountIcon from 'vue-material-design-icons/Account.vue'
 import StarIcon from 'vue-material-design-icons/Star.vue'
 import TuneIcon from 'vue-material-design-icons/Tune.vue'
 
@@ -37,6 +42,7 @@ export default {
 	name: 'Settings',
 	components: {
 		NcAppNavigationItem,
+		AccountIcon,
 		StarIcon,
 		TuneIcon,
 	},
