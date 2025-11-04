@@ -14,29 +14,38 @@ class RulesService {
 
 	private array $rules = [
 		'CN' => [
+			'type' => 'string',
 			'required' => true,
 			'min' => 1,
 			'max' => 64,
 		],
 		'C' => [
+			'type' => 'string',
 			'min' => 2,
 			'max' => 2,
 		],
 		'ST' => [
+			'type' => 'string',
 			'min' => 1,
 			'max' => 128,
 		],
 		'L' => [
+			'type' => 'string',
 			'min' => 1,
 			'max' => 128,
 		],
 		'O' => [
+			'type' => 'string',
 			'min' => 1,
 			'max' => 64,
 		],
 		'OU' => [
+			'type' => 'array',
+			'required' => false,
 			'min' => 1,
 			'max' => 64,
+			'minItems' => 0,
+			'maxItems' => 10,
 		],
 	];
 

@@ -135,7 +135,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$rootInstance->setOrganization($root['O']);
 		}
 		if (isset($root['OU'])) {
-			$rootInstance->setOrganizationalUnit($root['OU']);
+			$rootInstance->setOrganizationalUnit([$root['OU']]);
 		}
 		$rootInstance->generateRootCert($commonName, $root);
 
@@ -160,7 +160,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$signerInstance->setOrganization($csrNames['O']);
 		}
 		if (isset($csrNames['OU'])) {
-			$signerInstance->setOrganizationalUnit($csrNames['OU']);
+			$signerInstance->setOrganizationalUnit([$csrNames['OU']]);
 		}
 		$certificateContent = $signerInstance->generateCertificate();
 
@@ -192,6 +192,9 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private function csrArrayToString(array $csr): string {
 		$return = '';
 		foreach ($csr as $key => $value) {
+			if (is_array($value)) {
+				$value = implode('|', $value);
+			}
 			$return .= "/$key=$value";
 		}
 		return $return;

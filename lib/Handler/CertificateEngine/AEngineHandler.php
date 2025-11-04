@@ -44,8 +44,8 @@ use ReflectionClass;
  * @method string getLocality()
  * @method IEngineHandler setOrganization(string $organization)
  * @method string getOrganization()
- * @method IEngineHandler setOrganizationalUnit(string $organizationalUnit)
- * @method string getOrganizationalUnit()
+ * @method IEngineHandler setOrganizationalUnit(array $organizationalUnit)
+ * @method array getOrganizationalUnit()
  * @method IEngineHandler setUID(string $UID)
  * @method string getName()
  */
@@ -60,7 +60,7 @@ abstract class AEngineHandler implements IEngineHandler {
 	protected string $state = '';
 	protected string $locality = '';
 	protected string $organization = '';
-	protected string $organizationalUnit = '';
+	protected array $organizationalUnit = [];
 	protected string $UID = '';
 	protected string $password = '';
 	protected string $configPath = '';
@@ -139,6 +139,16 @@ abstract class AEngineHandler implements IEngineHandler {
 		$parsed = openssl_x509_parse(openssl_x509_read($x509));
 
 		$return = self::convertArrayToUtf8($parsed);
+
+		foreach (['subject', 'issuer'] as $actor) {
+			foreach ($return[$actor] as $part => $value) {
+				if (is_string($value) && str_contains($value, ', ')) {
+					$return[$actor][$part] = explode(', ', $value);
+				} else {
+					$return[$actor][$part] = $value;
+				}
+			}
+		}
 
 		$return['valid_from'] = $this->dateTimeFormatter->formatDateTime($parsed['validFrom_time_t']);
 		$return['valid_to'] = $this->dateTimeFormatter->formatDateTime($parsed['validTo_time_t']);
@@ -464,6 +474,11 @@ abstract class AEngineHandler implements IEngineHandler {
 				$minorIssues[] = "Missing modern extensions: {$extensionsList}";
 			}
 
+			$hasLibresignCaUuid = $this->validateLibresignCaUuidInCertificate($parsed);
+			if (!$hasLibresignCaUuid) {
+				$minorIssues[] = 'LibreSign CA UUID not found in Organizational Unit';
+			}
+
 			if (!empty($criticalIssues)) {
 				$issuesList = implode(', ', $criticalIssues);
 				return (new ConfigureCheckHelper())
@@ -488,6 +503,45 @@ abstract class AEngineHandler implements IEngineHandler {
 				->setResource($this->getConfigureCheckResourceName())
 				->setTip('Check if the root certificate file is valid');
 		}
+	}
+
+	private function validateLibresignCaUuidInCertificate(array $parsed): bool {
+		if (!isset($parsed['subject']['OU'])) {
+			return false;
+		}
+
+		$instanceId = $this->getInstanceId();
+		if (empty($instanceId)) {
+			return false;
+		}
+
+		$organizationalUnits = $parsed['subject']['OU'];
+
+		if (is_string($organizationalUnits)) {
+			if (str_contains($organizationalUnits, ', ')) {
+				$organizationalUnits = explode(', ', $organizationalUnits);
+			} else {
+				$organizationalUnits = [$organizationalUnits];
+			}
+		}
+
+		$expectedCaUuid = 'libresign-ca-id:' . $instanceId;
+
+		foreach ($organizationalUnits as $ou) {
+			if (trim($ou) === $expectedCaUuid) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private function getInstanceId(): string {
+		$instanceId = $this->appConfig->getValueString(Application::APP_ID, 'instance_id', '');
+		if (strlen($instanceId) === 10) {
+			return $instanceId;
+		}
+		return '';
 	}
 
 	#[\Override]

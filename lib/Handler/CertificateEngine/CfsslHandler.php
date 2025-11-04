@@ -177,6 +177,11 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		];
 
 		$names = $this->getNames();
+		foreach ($names as $key => $value) {
+			if (!empty($value) && is_array($value)) {
+				$names[$key] = implode(', ', $value);
+			}
+		}
 		if (!empty($names)) {
 			$json['json']['request']['names'][] = $names;
 		}
