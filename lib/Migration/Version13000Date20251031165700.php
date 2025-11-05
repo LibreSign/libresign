@@ -43,18 +43,12 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
-		$engineName = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', '');
-		if ($engineName === 'openssl') {
-			$engine = $this->certificateEngineFactory->getEngine();
-			$configPath = $this->appConfig->getValueString(Application::APP_ID, 'config_path', '');
-			if ($configPath === '') {
-				$engine->setConfigPath($engine->getConfigPath());
-			}
-		}
 
+		$this->addConfigPathToOpenSsl();
 		$this->convertRootCertOuStringToArray();
 		$this->migrateToNewestConfigFormat();
 
+		$engineName = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', '');
 		if ($schema->hasTable('libresign_crl')) {
 			$crlTable = $schema->getTable('libresign_crl');
 			if (!$crlTable->hasColumn('engine')) {
@@ -62,6 +56,18 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 			}
 		}
 		return $schema;
+	}
+
+	private function addConfigPathToOpenSsl(): void {
+		$engineName = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', '');
+		if ($engineName !== 'openssl') {
+			return;
+		}
+		$engine = $this->certificateEngineFactory->getEngine();
+		$configPath = $this->appConfig->getValueString(Application::APP_ID, 'config_path', '');
+		if (empty($configPath)) {
+			$engine->setConfigPath($engine->getConfigPath());
+		}
 	}
 
 	private function migrateToNewestConfigFormat(): void {
