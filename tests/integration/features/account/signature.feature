@@ -213,9 +213,10 @@ Feature: account/signature
       | (jq).ocs.data.message | Certificate file deleted with success. |
 
   Scenario: Create password to guest
-    Given guest "guest@test.coop" exists
+    Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name" with result code 0
+    And guest "guest@test.coop" exists
     And run the command "config:app:set guests whitelist --value=libresign" with result code 0
-    And as user "guest@test.coop"
+    When as user "guest@test.coop"
     And sending "post" to ocs "/apps/libresign/api/v1/account/signature"
       | signPassword | password |
     Then the response should have a status code 200
