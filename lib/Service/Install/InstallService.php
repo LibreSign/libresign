@@ -20,6 +20,7 @@ use OCA\Libresign\Handler\CertificateEngine\AEngineHandler;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
+use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Vendor\LibreSign\WhatOSAmI\OperatingSystem;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
@@ -76,6 +77,7 @@ class InstallService {
 		private LoggerInterface $logger,
 		private SignSetupService $signSetupService,
 		protected IAppDataFactory $appDataFactory,
+		private CaIdentifierService $caIdentifierService,
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign-setup');
 		$this->appData = $appDataFactory->get('libresign');
@@ -710,7 +712,7 @@ class InstallService {
 		return $matches['hash'];
 	}
 
-	private function getInstanceId(): string {
+	public function getInstanceId(): string {
 		$instanceId = $this->appConfig->getValueString(Application::APP_ID, 'instance_id', '');
 		if (strlen($instanceId) === 10) {
 			return $instanceId;
@@ -720,8 +722,8 @@ class InstallService {
 		return $instanceId;
 	}
 
-	private function populateNamesWithInstanceId(array $names): array {
-		$caUUID = 'libresign-ca-id:' . $this->getInstanceId();
+	private function populateNamesWithInstanceId(array $names, string $engineName): array {
+		$caUUID = $this->caIdentifierService->generateCaId($this->getInstanceId(), $engineName);
 
 		if (empty($names['OU'])) {
 			$names['OU']['value'] = [$caUUID];
@@ -752,15 +754,17 @@ class InstallService {
 	 */
 	public function generate(
 		string $commonName,
+		string $engineName = '',
 		array $names = [],
 		array $properties = [],
 	): void {
-		$names = $this->populateNamesWithInstanceId($names);
+		$names = $this->populateNamesWithInstanceId($names, $engineName);
 		$rootCert = [
 			'commonName' => $commonName,
 			'names' => $names
 		];
-		$engine = $this->certificateEngineFactory->getEngine($properties['engine'] ?? '', $rootCert);
+		$engine = $this->certificateEngineFactory->getEngine($engineName, $rootCert);
+
 		if ($engine instanceof CfsslHandler) {
 			/** @var CfsslHandler $engine */
 			$engine->setCfsslUri($properties['cfsslUri']);
@@ -781,6 +785,5 @@ class InstallService {
 		} else {
 			$this->appConfig->setValueString(Application::APP_ID, 'certificate_engine', 'openssl');
 		}
-		$this->appConfig->setValueString(Application::APP_ID, 'config_path', $engine->getConfigPath());
 	}
 }

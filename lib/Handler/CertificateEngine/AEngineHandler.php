@@ -14,6 +14,7 @@ use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
+use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
@@ -66,6 +67,7 @@ abstract class AEngineHandler implements IEngineHandler {
 	protected string $configPath = '';
 	protected string $engine = '';
 	protected string $certificate = '';
+	protected string $currentCaId = '';
 	protected IAppData $appData;
 
 	public function __construct(
@@ -76,6 +78,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		protected ITempManager $tempManager,
 		protected CertificatePolicyService $certificatePolicyService,
 		protected IURLGenerator $urlGenerator,
+		protected CaIdentifierService $caIdentifierService,
 	) {
 		$this->appData = $appDataFactory->get('libresign');
 	}
@@ -131,6 +134,10 @@ abstract class AEngineHandler implements IEngineHandler {
 			$return['extracerts'] = $this->orderCertificates($return['extracerts']);
 		}
 		return $return;
+	}
+
+	public function getCaId(): string {
+		return $this->caIdentifierService->getCaId();
 	}
 
 	private function parseX509(string $x509): array {
@@ -256,33 +263,48 @@ abstract class AEngineHandler implements IEngineHandler {
 		if ($this->configPath) {
 			return $this->configPath;
 		}
-		$this->configPath = $this->appConfig->getValueString(Application::APP_ID, 'config_path');
-		if ($this->configPath
-			&& str_ends_with($this->configPath, $this->getName() . '_config')
-			&& is_dir($this->configPath)
-		) {
+
+		$customConfigPath = $this->appConfig->getValueString(Application::APP_ID, 'config_path');
+		if ($customConfigPath && is_dir($customConfigPath)) {
+			$this->configPath = $customConfigPath;
 			return $this->configPath;
 		}
-		try {
-			$folder = $this->appData->getFolder($this->getName() . '_config');
-			if (!$folder->fileExists('/')) {
-				throw new \Exception();
-			}
-		} catch (\Throwable) {
-			$folder = $this->appData->newFolder($this->getName() . '_config');
-		}
-		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
-		$this->configPath = $dataDir . '/' . $this->getInternalPathOfFolder($folder);
-		if (!is_dir($this->configPath)) {
-			$currentFile = realpath(__DIR__);
-			$owner = posix_getpwuid(fileowner($currentFile));
-			$fullCommand = 'mkdir -p "' . $this->configPath . '"';
-			if (posix_getuid() !== $owner['uid']) {
-				$fullCommand = 'runuser -u ' . $owner['name'] . ' -- ' . $fullCommand;
-			}
-			exec($fullCommand);
-		}
+
+		$this->configPath = $this->initializePkiConfigPath();
+		$this->appConfig->setValueString(Application::APP_ID, 'config_path', $this->configPath);
 		return $this->configPath;
+	}
+
+	private function initializePkiConfigPath(): string {
+		$caId = $this->getCaId();
+		$pkiDirName = $this->caIdentifierService->generatePkiDirectoryName($caId);
+		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
+		$instanceId = $this->config->getSystemValue('instanceid');
+		$pkiPath = $dataDir . '/appdata_' . $instanceId . '/libresign/' . $pkiDirName;
+
+		if (!is_dir($pkiPath)) {
+			$this->createDirectoryWithCorrectOwnership($pkiPath);
+		}
+
+		return $pkiPath;
+	}
+
+	private function createDirectoryWithCorrectOwnership(string $path): void {
+		$ownerInfo = $this->getFilesOwnerInfo();
+		$fullCommand = 'mkdir -p "' . $path . '"';
+
+		if (posix_getuid() !== $ownerInfo['uid']) {
+			$fullCommand = 'runuser -u ' . $ownerInfo['name'] . ' -- ' . $fullCommand;
+		}
+
+		exec($fullCommand);
+	}
+
+	private function getFilesOwnerInfo(): array {
+		$currentFile = realpath(__DIR__);
+		$ownerInfo = posix_getpwuid(fileowner($currentFile));
+
+		return $ownerInfo;
 	}
 
 	/**
@@ -516,10 +538,9 @@ abstract class AEngineHandler implements IEngineHandler {
 			}
 		}
 
-		$expectedCaUuid = 'libresign-ca-id:' . $instanceId;
-
 		foreach ($organizationalUnits as $ou) {
-			if (trim($ou) === $expectedCaUuid) {
+			$ou = trim($ou);
+			if ($this->caIdentifierService->isValidCaId($ou, $instanceId)) {
 				return true;
 			}
 		}

@@ -108,9 +108,9 @@ class Cfssl extends Base {
 
 		$this->installService->generate(
 			(string)$commonName,
+			'cfssl',
 			$names,
 			[
-				'engine' => 'cfssl',
 				'configPath' => $configPath,
 				'cfsslUri' => $cfsslUri,
 			]
