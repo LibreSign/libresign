@@ -37,9 +37,6 @@ class CaIdentifierService {
 
 	public function getCaId(): string {
 		$caId = $this->appConfig->getValueString(Application::APP_ID, 'ca_id');
-		if (empty($caId)) {
-			throw new \RuntimeException('CA ID was not generated yet');
-		}
 		return $caId;
 	}
 

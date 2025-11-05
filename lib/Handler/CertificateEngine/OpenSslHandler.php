@@ -18,7 +18,6 @@ use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
-use RuntimeException;
 
 /**
  * Class FileMapper
@@ -348,9 +347,8 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 	#[\Override]
 	public function isSetupOk(): bool {
-		try {
-			$configPath = $this->getConfigPath();
-		} catch (RuntimeException) {
+		$configPath = $this->getConfigPath();
+		if (empty($configPath)) {
 			return false;
 		}
 		$certificate = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca.pem');

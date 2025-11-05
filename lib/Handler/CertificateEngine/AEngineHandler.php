@@ -276,12 +276,17 @@ abstract class AEngineHandler implements IEngineHandler {
 		}
 
 		$this->configPath = $this->initializePkiConfigPath();
-		$this->appConfig->setValueString(Application::APP_ID, 'config_path', $this->configPath);
+		if (!empty($this->configPath)) {
+			$this->appConfig->setValueString(Application::APP_ID, 'config_path', $this->configPath);
+		}
 		return $this->configPath;
 	}
 
 	private function initializePkiConfigPath(): string {
 		$caId = $this->getCaId();
+		if (empty($caId)) {
+			return '';
+		}
 		$pkiDirName = $this->caIdentifierService->generatePkiDirectoryName($caId);
 		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
 		$instanceId = $this->config->getSystemValue('instanceid');
