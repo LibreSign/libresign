@@ -38,7 +38,7 @@ Feature: validate
       | (jq).ocs.data.signers[0]                      | (jq).name \|test("/ST=State of Company")                                                   |
       | (jq).ocs.data.signers[0]                      | (jq).name \|test("/L=City Name")                                                           |
       | (jq).ocs.data.signers[0]                      | (jq).name \|test("/O=Organization")                                                        |
-      | (jq).ocs.data.signers[0]                      | (jq).name \|test("/OU=Organization Unit, libresign-ca-id:[a-z0-9]{10}(-ca:g\\d+-e:[oc])?") |
+      | (jq).ocs.data.signers[0]                      | (jq).name \|test("/OU=Organization Unit, libresign-ca-id:[a-z0-9]{10}-ca:g[0-9]+-e:[oc]?") |
       | (jq).ocs.data.signers[0]                      | (jq).name \|test("/CN=signer1-displayname")                                                |
       | (jq).ocs.data.signers[0].subject.CN           | signer1-displayname                                                                        |
       | (jq).ocs.data.signers[0].subject.C            | BR                                                                                         |
