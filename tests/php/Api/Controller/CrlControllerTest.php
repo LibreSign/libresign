@@ -38,13 +38,9 @@ class CrlControllerTest extends ApiTestCase {
 	}
 
 	private function setupCertificateEngine(): void {
-		/** @var \OCA\Libresign\Service\Install\InstallService */
-		$installService = \OCP\Server::get(\OCA\Libresign\Service\Install\InstallService::class);
-		$instanceId = $installService->getInstanceId();
-
 		/** @var \OCA\Libresign\Service\CaIdentifierService */
 		$caIdentifierService = \OCP\Server::get(\OCA\Libresign\Service\CaIdentifierService::class);
-		$caIdentifierService->generateCaId($instanceId, 'openssl');
+		$caIdentifierService->generateCaId('openssl');
 
 		$factory = \OCP\Server::get(\OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory::class);
 		$engine = $factory->getEngine();
