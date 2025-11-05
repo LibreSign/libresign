@@ -14,6 +14,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\OrderCertificatesTrait;
 use OCA\Libresign\Handler\FooterHandler;
+use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Vendor\phpseclib3\File\ASN1;
 use OCP\Files\File;
@@ -38,6 +39,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		private FooterHandler $footerHandler,
 		private ITempManager $tempManager,
 		private LoggerInterface $logger,
+		private CaIdentifierService $caIdentifierService,
 	) {
 		parent::__construct($l10n, $folderService, $logger);
 	}
@@ -203,14 +205,19 @@ class Pkcs12Handler extends SignEngineHandler {
 			return false;
 		}
 
-		$expectedCaUuid = 'libresign-ca-id:' . $instanceId;
 		$organizationalUnits = $parsed['subject']['OU'];
-
 		if (is_string($organizationalUnits)) {
-			return str_contains($organizationalUnits, $expectedCaUuid);
+			$organizationalUnits = [$organizationalUnits];
 		}
 
-		return in_array($expectedCaUuid, array_map('trim', $organizationalUnits));
+		foreach ($organizationalUnits as $ou) {
+			$ou = trim($ou);
+			if ($this->caIdentifierService->isValidCaId($ou, $instanceId)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private function getRootCertificatePem(): string {
