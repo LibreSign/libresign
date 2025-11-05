@@ -22,7 +22,7 @@ class CertificateEngineFactory {
 	) {
 	}
 	public function getEngine(string $engineName = '', array $rootCert = []): IEngineHandler {
-		if (self::$engine) {
+		if (self::$engine && !empty($engineName) && self::$engine->getName() === $engineName) {
 			return self::$engine;
 		}
 		if (!$engineName) {
