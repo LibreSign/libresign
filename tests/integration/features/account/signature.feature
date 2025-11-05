@@ -17,7 +17,7 @@ Feature: account/signature
       | (jq).ocs.data.rootCert.names[4].id            | OU                                                                      |
       | (jq).ocs.data.rootCert.names[4].value\|length | 2                                                                       |
       | (jq).ocs.data.rootCert.names[4].value[0]      | Organizational Unit                                                     |
-      | (jq).ocs.data.rootCert.names[4].value         | (jq)any(.[]; test("^libresign-ca-id:[a-z0-9]{10}-ca:g[0-9]+-e:[oc]?$")) |
+      | (jq).ocs.data.rootCert.names[4].value         | (jq)any(.[]; test("^libresign-ca-id:[a-z0-9]{10}_ca:g[0-9]+_e:[oc]?$")) |
       | (jq).ocs.data.generated                       | true                                                                    |
 
   Scenario: Create root certificate with CFSSL engine using API
@@ -40,7 +40,7 @@ Feature: account/signature
       | (jq).ocs.data.rootCert.names[4].id            | OU                                                                      |
       | (jq).ocs.data.rootCert.names[4].value\|length | 2                                                                       |
       | (jq).ocs.data.rootCert.names[4].value[0]      | Organizational Unit                                                     |
-      | (jq).ocs.data.rootCert.names[4].value         | (jq)any(.[]; test("^libresign-ca-id:[a-z0-9]{10}-ca:g[0-9]+-e:[oc]?$")) |
+      | (jq).ocs.data.rootCert.names[4].value         | (jq)any(.[]; test("^libresign-ca-id:[a-z0-9]{10}_ca:g[0-9]+_e:[oc]?$")) |
       | (jq).ocs.data.generated                       | true                                                                    |
 
   Scenario: Create pfx with success using CFSSL
@@ -77,7 +77,7 @@ Feature: account/signature
       | (jq).ocs.data                             | (jq).name \|test("/ST=State of Company")                                                   |
       | (jq).ocs.data                             | (jq).name \|test("/L=City Name")                                                           |
       | (jq).ocs.data                             | (jq).name \|test("/O=Organization")                                                        |
-      | (jq).ocs.data                             | (jq).name \|test("/OU=Organization Unit, libresign-ca-id:[a-z0-9]{10}-ca:g[0-9]+-e:[oc]?") |
+      | (jq).ocs.data                             | (jq).name \|test("/OU=Organization Unit, libresign-ca-id:[a-z0-9]{10}_ca:g[0-9]+_e:[oc]?") |
       | (jq).ocs.data                             | (jq).name \|test("/CN=account:signer1, signer1-displayname")                               |
       | (jq).ocs.data.issuer\|length              | 6                                                                                          |
       | (jq).ocs.data.issuer.CN                   | Common Name                                                                                |
@@ -87,7 +87,7 @@ Feature: account/signature
       | (jq).ocs.data.issuer.O                    | Organization                                                                               |
       | (jq).ocs.data.issuer.OU\|length           | 2                                                                                          |
       | (jq).ocs.data.issuer.OU                   | (jq) .[0] \|test("^Organization Unit$")                                                    |
-      | (jq).ocs.data.issuer.OU                   | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]{10}-ca:g[0-9]+-e:[oc]?$")                      |
+      | (jq).ocs.data.issuer.OU                   | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]{10}_ca:g[0-9]+_e:[oc]?$")                      |
       | (jq).ocs.data.subject\|length             | 6                                                                                          |
       | (jq).ocs.data.subject.CN                  | (jq) .[0] \|test("^account:signer1$")                                                      |
       | (jq).ocs.data.subject.CN                  | (jq) .[1] \|test("^signer1-displayname$")                                                  |
@@ -97,7 +97,7 @@ Feature: account/signature
       | (jq).ocs.data.subject.O                   | Organization                                                                               |
       | (jq).ocs.data.issuer.OU\|length           | 2                                                                                          |
       | (jq).ocs.data.issuer.OU                   | (jq) .[0] \|test("^Organization Unit$")                                                    |
-      | (jq).ocs.data.issuer.OU                   | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]{10}-ca:g[0-9]+-e:[oc]?$")                      |
+      | (jq).ocs.data.issuer.OU                   | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]{10}_ca:g[0-9]+_e:[oc]?$")                      |
       | (jq).ocs.data.extensions.basicConstraints | CA:FALSE                                                                                   |
       | (jq).ocs.data.extensions.subjectAltName   | email:signer@domain.test                                                                   |
       | (jq).ocs.data.extensions.keyUsage         | Digital Signature, Non Repudiation, Key Encipherment                                       |
@@ -138,7 +138,7 @@ Feature: account/signature
       | (jq).ocs.data                             | (jq).name \|test("/ST=State of Company")                                                   |
       | (jq).ocs.data                             | (jq).name \|test("/L=City Name")                                                           |
       | (jq).ocs.data                             | (jq).name \|test("/O=Organization")                                                        |
-      | (jq).ocs.data                             | (jq).name \|test("/OU=Organization Unit, libresign-ca-id:[a-z0-9]{10}-ca:g[0-9]+-e:[oc]?") |
+      | (jq).ocs.data                             | (jq).name \|test("/OU=Organization Unit, libresign-ca-id:[a-z0-9]{10}_ca:g[0-9]+_e:[oc]?") |
       | (jq).ocs.data                             | (jq).name \|test("/UID=account:signer1")                                                   |
       | (jq).ocs.data                             | (jq).name \|test("/CN=signer1-displayname")                                                |
       | (jq).ocs.data.issuer\|length              | 6                                                                                          |
@@ -149,7 +149,7 @@ Feature: account/signature
       | (jq).ocs.data.issuer.O                    | Organization                                                                               |
       | (jq).ocs.data.issuer.OU\|length           | 2                                                                                          |
       | (jq).ocs.data.issuer.OU                   | (jq) .[0] \|test("^Organization Unit$")                                                    |
-      | (jq).ocs.data.issuer.OU                   | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]{10}-ca:g[0-9]+-e:[oc]?$")                      |
+      | (jq).ocs.data.issuer.OU                   | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]{10}_ca:g[0-9]+_e:[oc]?$")                      |
       | (jq).ocs.data.subject\|length             | 7                                                                                          |
       | (jq).ocs.data.subject.CN                  | signer1-displayname                                                                        |
       | (jq).ocs.data.subject.C                   | BR                                                                                         |
@@ -158,7 +158,7 @@ Feature: account/signature
       | (jq).ocs.data.subject.O                   | Organization                                                                               |
       | (jq).ocs.data.subject.OU \|length         | 2                                                                                          |
       | (jq).ocs.data.subject.OU                  | (jq) .[0] \|test("^Organization Unit$")                                                    |
-      | (jq).ocs.data.subject.OU                  | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]{10}-ca:g[0-9]+-e:[oc]?$")                      |
+      | (jq).ocs.data.subject.OU                  | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]{10}_ca:g[0-9]+_e:[oc]?$")                      |
       | (jq).ocs.data.subject.UID                 | account:signer1                                                                            |
       | (jq).ocs.data.extensions.basicConstraints | CA:FALSE                                                                                   |
       | (jq).ocs.data.extensions.subjectAltName   | email:signer@domain.test                                                                   |
