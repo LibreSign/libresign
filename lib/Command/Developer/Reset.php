@@ -10,7 +10,6 @@ namespace OCA\Libresign\Command\Developer;
 
 use OC\Core\Command\Base;
 use OCA\Libresign\AppInfo\Application;
-use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IDBConnection;
