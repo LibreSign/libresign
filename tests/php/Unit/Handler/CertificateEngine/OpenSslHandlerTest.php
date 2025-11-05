@@ -192,9 +192,6 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private function csrArrayToString(array $csr): string {
 		$return = '';
 		foreach ($csr as $key => $value) {
-			if (is_array($value)) {
-				$value = implode('|', $value);
-			}
 			$return .= "/$key=$value";
 		}
 		return $return;
