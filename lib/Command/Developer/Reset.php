@@ -10,7 +10,7 @@ namespace OCA\Libresign\Command\Developer;
 
 use OC\Core\Command\Base;
 use OCA\Libresign\AppInfo\Application;
-use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use Psr\Log\LoggerInterface;
@@ -21,6 +21,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 class Reset extends Base {
 	public function __construct(
 		private IConfig $config,
+		private IAppConfig $appConfig,
 		private IDBConnection $db,
 		private LoggerInterface $logger,
 	) {
@@ -224,11 +225,13 @@ class Reset extends Base {
 
 	private function resetConfig(): void {
 		try {
-			$delete = $this->db->getQueryBuilder();
-			$delete->delete('appconfig')
-				->where($delete->expr()->eq('appid', $delete->createNamedParameter(Application::APP_ID)))
-				->andWhere($delete->expr()->notIn('configkey', $delete->createNamedParameter(['enabled', 'installed_version'], IQueryBuilder::PARAM_STR_ARRAY)))
-				->executeStatement();
+			$keys = $this->appConfig->getKeys(Application::APP_ID);
+			foreach ($keys as $key) {
+				if ($key === 'enabled' || $key === 'installed_version') {
+					continue;
+				}
+				$this->appConfig->deleteKey(Application::APP_ID, $key);
+			}
 		} catch (\Throwable) {
 		}
 	}
