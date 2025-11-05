@@ -11,7 +11,7 @@ Feature: admin/certificate_openssl
       | (jq).ocs.data.rootCert.commonName     | Common Name                                                          |
       | (jq).ocs.data.rootCert.names\|length  | 1                                                                    |
       | (jq).ocs.data.rootCert.names[0].id    | OU                                                                   |
-      | (jq).ocs.data.rootCert.names[0].value | (jq) .[] \|test("^libresign-ca-id:[a-z0-9]{10}-ca:g[0-9]+-e:[oc]?$") |
+      | (jq).ocs.data.rootCert.names[0].value | (jq) .[] \|test("^libresign-ca-id:[a-z0-9]{10}_ca:g[0-9]+_e:[oc]?$") |
       | (jq).ocs.data.generated               | true                                                                 |
 
   Scenario: Generate root cert with fail without CN
@@ -46,7 +46,7 @@ Feature: admin/certificate_openssl
       | (jq).ocs.data.rootCert.names[0].id    | C                                                                    |
       | (jq).ocs.data.rootCert.names[0].value | BR                                                                   |
       | (jq).ocs.data.rootCert.names[1].id    | OU                                                                   |
-      | (jq).ocs.data.rootCert.names[1].value | (jq) .[] \|test("^libresign-ca-id:[a-z0-9]{10}-ca:g[0-9]+-e:[oc]?$") |
+      | (jq).ocs.data.rootCert.names[1].value | (jq) .[] \|test("^libresign-ca-id:[a-z0-9]{10}_ca:g[0-9]+_e:[oc]?$") |
       | (jq).ocs.data.generated               | true                                                                 |
 
   Scenario: Generate root cert with fail when country have less then 2 characters
