@@ -83,6 +83,7 @@ OC.L10N.register(
     "Password reset" : "Uwekaji mpya wa nenosiri",
     "Current password" : "Current password",
     "New password" : "Nenosiri jipya",
+    "Add new" : "Ongeza mpya",
     "Remove" : "Ondoa",
     "Message" : "Message",
     "Legal information" : "Taarifa za kisheria",

@@ -91,6 +91,7 @@ OC.L10N.register(
     "Current password" : "Núverandi lykilorð",
     "New password" : "Nýtt lykilorð",
     "Repeat password" : "Endurtaktu lykilorð",
+    "Add new" : "Bæta við nýju",
     "Remove" : "Fjarlægja",
     "Message" : "Skilaboð",
     "Resource" : "Tilfang",

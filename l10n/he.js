@@ -71,6 +71,7 @@ OC.L10N.register(
     "Current password" : "ססמה נוכחית",
     "New password" : "ססמה חדשה",
     "Repeat password" : "חזרה על הססמה",
+    "Add new" : "הוסף חדש",
     "Remove" : "הסרה",
     "Message" : "הודעה",
     "Resource" : "משאב",

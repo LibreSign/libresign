@@ -39,6 +39,7 @@ OC.L10N.register(
     "Created at" : "Crëwyd ar",
     "Version" : "Fersiwn",
     "New password" : "Cyfrinair newydd",
+    "Add new" : "Ychwanegu newydd",
     "Resource" : "Adnodd",
     "Dependencies" : "Dibyniaethau",
     "Reminders" : "Nodau atgoffa",
