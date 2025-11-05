@@ -32,6 +32,7 @@ use OCP\IAppConfig;
 use OCP\ICache;
 use OCP\ICacheFactory;
 use OCP\IConfig;
+use OCP\Security\ISecureRandom;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -709,6 +710,43 @@ class InstallService {
 		return $matches['hash'];
 	}
 
+	private function getInstanceId(): string {
+		$instanceId = $this->appConfig->getValueString(Application::APP_ID, 'instance_id', '');
+		if (strlen($instanceId) === 10) {
+			return $instanceId;
+		}
+		$instanceId = \OC::$server->get(ISecureRandom::class)->generate(10, ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
+		$this->appConfig->setValueString(Application::APP_ID, 'instance_id', $instanceId);
+		return $instanceId;
+	}
+
+	private function populateNamesWithInstanceId(array $names): array {
+		$caUUID = 'libresign-ca-id:' . $this->getInstanceId();
+
+		if (empty($names['OU'])) {
+			$names['OU']['value'] = [$caUUID];
+			return $names;
+		}
+
+		if (!isset($names['OU']['value'])) {
+			$names['OU']['value'] = [$caUUID];
+			return $names;
+		}
+
+		if (!is_array($names['OU']['value'])) {
+			$names['OU']['value'] = [$names['OU']['value']];
+		}
+
+		$names['OU']['value'] = array_filter(
+			$names['OU']['value'],
+			fn ($value) => !str_starts_with($value, 'libresign-ca-uuid:')
+		);
+
+		$names['OU']['value'][] = $caUUID;
+
+		return $names;
+	}
+
 	/**
 	 * @todo Use an custom array for engine options
 	 */
@@ -717,6 +755,7 @@ class InstallService {
 		array $names = [],
 		array $properties = [],
 	): void {
+		$names = $this->populateNamesWithInstanceId($names);
 		$rootCert = [
 			'commonName' => $commonName,
 			'names' => $names

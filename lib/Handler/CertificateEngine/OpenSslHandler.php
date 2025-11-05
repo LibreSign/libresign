@@ -314,9 +314,17 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 				$distinguishedNames['UID'] = $value;
 				continue;
 			}
+
 			$longName = $this->translateToLong($name);
 			$longName = lcfirst($longName) . 'Name';
-			$distinguishedNames[$longName] = $value;
+
+			if (is_array($value)) {
+				if (!empty($value)) {
+					$distinguishedNames[$longName] = implode(', ', $value);
+				}
+			} else {
+				$distinguishedNames[$longName] = $value;
+			}
 		}
 		if ($this->getCommonName()) {
 			$distinguishedNames['commonName'] = $this->getCommonName();
@@ -484,6 +492,4 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 		return $configFile;
 	}
-
-
 }
