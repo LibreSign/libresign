@@ -7,18 +7,18 @@ Feature: account/signature
     And sending "get" to ocs "/apps/libresign/api/v1/admin/certificate"
     And the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                                           | value                                                |
-      | (jq).ocs.data.rootCert.commonName             | Common Name                                          |
-      | (jq).ocs.data.rootCert.names\|length          | 5                                                    |
-      | (jq).ocs.data.rootCert.names[0]               | {"id":"C","value":"BR"}                              |
-      | (jq).ocs.data.rootCert.names[1]               | {"id":"ST","value":"State of Company"}               |
-      | (jq).ocs.data.rootCert.names[2]               | {"id":"L","value":"City name"}                       |
-      | (jq).ocs.data.rootCert.names[3]               | {"id":"O","value":"Organization"}                    |
-      | (jq).ocs.data.rootCert.names[4].id            | OU                                                   |
-      | (jq).ocs.data.rootCert.names[4].value\|length | 2                                                    |
-      | (jq).ocs.data.rootCert.names[4].value[0]      | Organizational Unit                                  |
-      | (jq).ocs.data.rootCert.names[4].value         | (jq)any(.[]; test("^libresign-ca-id:[a-z0-9]{10}$")) |
-      | (jq).ocs.data.generated                       | true                                                 |
+      | key                                           | value                                                                 |
+      | (jq).ocs.data.rootCert.commonName             | Common Name                                                           |
+      | (jq).ocs.data.rootCert.names\|length          | 5                                                                     |
+      | (jq).ocs.data.rootCert.names[0]               | {"id":"C","value":"BR"}                                               |
+      | (jq).ocs.data.rootCert.names[1]               | {"id":"ST","value":"State of Company"}                                |
+      | (jq).ocs.data.rootCert.names[2]               | {"id":"L","value":"City name"}                                        |
+      | (jq).ocs.data.rootCert.names[3]               | {"id":"O","value":"Organization"}                                     |
+      | (jq).ocs.data.rootCert.names[4].id            | OU                                                                    |
+      | (jq).ocs.data.rootCert.names[4].value\|length | 2                                                                     |
+      | (jq).ocs.data.rootCert.names[4].value[0]      | Organizational Unit                                                   |
+      | (jq).ocs.data.rootCert.names[4].value         | (jq)any(.[]; test("^libresign-ca-id:[a-z0-9]{10}_g:[0-9]+_e:[oc]?$")) |
+      | (jq).ocs.data.generated                       | true                                                                  |
 
   Scenario: Create root certificate with CFSSL engine using API
     Given as user "admin"
@@ -30,18 +30,18 @@ Feature: account/signature
     And sending "get" to ocs "/apps/libresign/api/v1/admin/certificate"
     And the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key                                           | value                                                |
-      | (jq).ocs.data.rootCert.commonName             | Common Name                                          |
-      | (jq).ocs.data.rootCert.names\|length          | 5                                                    |
-      | (jq).ocs.data.rootCert.names[0]               | {"id":"C","value":"BR"}                              |
-      | (jq).ocs.data.rootCert.names[1]               | {"id":"ST","value":"State of Company"}               |
-      | (jq).ocs.data.rootCert.names[2]               | {"id":"L","value":"City name"}                       |
-      | (jq).ocs.data.rootCert.names[3]               | {"id":"O","value":"Organization"}                    |
-      | (jq).ocs.data.rootCert.names[4].id            | OU                                                   |
-      | (jq).ocs.data.rootCert.names[4].value\|length | 2                                                    |
-      | (jq).ocs.data.rootCert.names[4].value[0]      | Organizational Unit                                  |
-      | (jq).ocs.data.rootCert.names[4].value         | (jq)any(.[]; test("^libresign-ca-id:[a-z0-9]{10}$")) |
-      | (jq).ocs.data.generated                       | true                                                 |
+      | key                                           | value                                                                 |
+      | (jq).ocs.data.rootCert.commonName             | Common Name                                                           |
+      | (jq).ocs.data.rootCert.names\|length          | 5                                                                     |
+      | (jq).ocs.data.rootCert.names[0]               | {"id":"C","value":"BR"}                                               |
+      | (jq).ocs.data.rootCert.names[1]               | {"id":"ST","value":"State of Company"}                                |
+      | (jq).ocs.data.rootCert.names[2]               | {"id":"L","value":"City name"}                                        |
+      | (jq).ocs.data.rootCert.names[3]               | {"id":"O","value":"Organization"}                                     |
+      | (jq).ocs.data.rootCert.names[4].id            | OU                                                                    |
+      | (jq).ocs.data.rootCert.names[4].value\|length | 2                                                                     |
+      | (jq).ocs.data.rootCert.names[4].value[0]      | Organizational Unit                                                   |
+      | (jq).ocs.data.rootCert.names[4].value         | (jq)any(.[]; test("^libresign-ca-id:[a-z0-9]{10}_g:[0-9]+_e:[oc]?$")) |
+      | (jq).ocs.data.generated                       | true                                                                  |
 
   Scenario: Create pfx with success using CFSSL
     Given user "signer1" exists
@@ -72,38 +72,38 @@ Feature: account/signature
       | key      | value    |
       | password | password |
     Then the response should be a JSON array with the following mandatory values
-      | key                                       | value                                                                   |
-      | (jq).ocs.data                             | (jq).name \|test("/C=BR")                                               |
-      | (jq).ocs.data                             | (jq).name \|test("/ST=State of Company")                                |
-      | (jq).ocs.data                             | (jq).name \|test("/L=City Name")                                        |
-      | (jq).ocs.data                             | (jq).name \|test("/O=Organization")                                     |
-      | (jq).ocs.data                             | (jq).name \|test("/OU=Organization Unit, libresign-ca-id:[a-z0-9]{10}") |
-      | (jq).ocs.data                             | (jq).name \|test("/CN=account:signer1, signer1-displayname")            |
-      | (jq).ocs.data.issuer\|length              | 6                                                                       |
-      | (jq).ocs.data.issuer.CN                   | Common Name                                                             |
-      | (jq).ocs.data.issuer.C                    | BR                                                                      |
-      | (jq).ocs.data.issuer.ST                   | State of Company                                                        |
-      | (jq).ocs.data.issuer.L                    | City Name                                                               |
-      | (jq).ocs.data.issuer.O                    | Organization                                                            |
-      | (jq).ocs.data.issuer.OU\|length           | 2                                                                       |
-      | (jq).ocs.data.issuer.OU                   | (jq) .[0] \|test("^Organization Unit$")                                 |
-      | (jq).ocs.data.issuer.OU                   | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]{10}$")                      |
-      | (jq).ocs.data.subject\|length             | 6                                                                       |
-      | (jq).ocs.data.subject.CN                  | (jq) .[0] \|test("^account:signer1$")                                   |
-      | (jq).ocs.data.subject.CN                  | (jq) .[1] \|test("^signer1-displayname$")                               |
-      | (jq).ocs.data.subject.C                   | BR                                                                      |
-      | (jq).ocs.data.subject.ST                  | State of Company                                                        |
-      | (jq).ocs.data.subject.L                   | City Name                                                               |
-      | (jq).ocs.data.subject.O                   | Organization                                                            |
-      | (jq).ocs.data.issuer.OU\|length           | 2                                                                       |
-      | (jq).ocs.data.issuer.OU                   | (jq) .[0] \|test("^Organization Unit$")                                 |
-      | (jq).ocs.data.issuer.OU                   | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]{10}$")                      |
-      | (jq).ocs.data.extensions.basicConstraints | CA:FALSE                                                                |
-      | (jq).ocs.data.extensions.subjectAltName   | email:signer@domain.test                                                |
-      | (jq).ocs.data.extensions.keyUsage         | Digital Signature, Non Repudiation, Key Encipherment                    |
-      | (jq).ocs.data.extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection                        |
-      | (jq).ocs.data.extensions                  | (jq).authorityKeyIdentifier \|test("([0-9A-F]{2}:)+[0-9A-F]{2}")        |
-      | (jq).ocs.data.extensions                  | (jq).subjectKeyIdentifier != ""                                         |
+      | key                                       | value                                                                                    |
+      | (jq).ocs.data                             | (jq).name \|test("/C=BR")                                                                |
+      | (jq).ocs.data                             | (jq).name \|test("/ST=State of Company")                                                 |
+      | (jq).ocs.data                             | (jq).name \|test("/L=City Name")                                                         |
+      | (jq).ocs.data                             | (jq).name \|test("/O=Organization")                                                      |
+      | (jq).ocs.data                             | (jq).name \|test("/OU=Organization Unit, libresign-ca-id:[a-z0-9]{10}_g:[0-9]+_e:[oc]?") |
+      | (jq).ocs.data                             | (jq).name \|test("/CN=account:signer1, signer1-displayname")                             |
+      | (jq).ocs.data.issuer\|length              | 6                                                                                        |
+      | (jq).ocs.data.issuer.CN                   | Common Name                                                                              |
+      | (jq).ocs.data.issuer.C                    | BR                                                                                       |
+      | (jq).ocs.data.issuer.ST                   | State of Company                                                                         |
+      | (jq).ocs.data.issuer.L                    | City Name                                                                                |
+      | (jq).ocs.data.issuer.O                    | Organization                                                                             |
+      | (jq).ocs.data.issuer.OU\|length           | 2                                                                                        |
+      | (jq).ocs.data.issuer.OU                   | (jq) .[0] \|test("^Organization Unit$")                                                  |
+      | (jq).ocs.data.issuer.OU                   | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]{10}_g:[0-9]+_e:[oc]?$")                      |
+      | (jq).ocs.data.subject\|length             | 6                                                                                        |
+      | (jq).ocs.data.subject.CN                  | (jq) .[0] \|test("^account:signer1$")                                                    |
+      | (jq).ocs.data.subject.CN                  | (jq) .[1] \|test("^signer1-displayname$")                                                |
+      | (jq).ocs.data.subject.C                   | BR                                                                                       |
+      | (jq).ocs.data.subject.ST                  | State of Company                                                                         |
+      | (jq).ocs.data.subject.L                   | City Name                                                                                |
+      | (jq).ocs.data.subject.O                   | Organization                                                                             |
+      | (jq).ocs.data.issuer.OU\|length           | 2                                                                                        |
+      | (jq).ocs.data.issuer.OU                   | (jq) .[0] \|test("^Organization Unit$")                                                  |
+      | (jq).ocs.data.issuer.OU                   | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]{10}_g:[0-9]+_e:[oc]?$")                      |
+      | (jq).ocs.data.extensions.basicConstraints | CA:FALSE                                                                                 |
+      | (jq).ocs.data.extensions.subjectAltName   | email:signer@domain.test                                                                 |
+      | (jq).ocs.data.extensions.keyUsage         | Digital Signature, Non Repudiation, Key Encipherment                                     |
+      | (jq).ocs.data.extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection                                         |
+      | (jq).ocs.data.extensions                  | (jq).authorityKeyIdentifier \|test("([0-9A-F]{2}:)+[0-9A-F]{2}")                         |
+      | (jq).ocs.data.extensions                  | (jq).subjectKeyIdentifier != ""                                                          |
 
   Scenario: Create pfx with success using OpenSSL
     Given user "signer1" exists
@@ -133,39 +133,39 @@ Feature: account/signature
       | key      | value    |
       | password | password |
     Then the response should be a JSON array with the following mandatory values
-      | key                                       | value                                                                   |
-      | (jq).ocs.data                             | (jq).name \|test("/C=BR")                                               |
-      | (jq).ocs.data                             | (jq).name \|test("/ST=State of Company")                                |
-      | (jq).ocs.data                             | (jq).name \|test("/L=City Name")                                        |
-      | (jq).ocs.data                             | (jq).name \|test("/O=Organization")                                     |
-      | (jq).ocs.data                             | (jq).name \|test("/OU=Organization Unit, libresign-ca-id:[a-z0-9]{10}") |
-      | (jq).ocs.data                             | (jq).name \|test("/UID=account:signer1")                                |
-      | (jq).ocs.data                             | (jq).name \|test("/CN=signer1-displayname")                             |
-      | (jq).ocs.data.issuer\|length              | 6                                                                       |
-      | (jq).ocs.data.issuer.CN                   | Common Name                                                             |
-      | (jq).ocs.data.issuer.C                    | BR                                                                      |
-      | (jq).ocs.data.issuer.ST                   | State of Company                                                        |
-      | (jq).ocs.data.issuer.L                    | City Name                                                               |
-      | (jq).ocs.data.issuer.O                    | Organization                                                            |
-      | (jq).ocs.data.issuer.OU\|length           | 2                                                                       |
-      | (jq).ocs.data.issuer.OU                   | (jq) .[0] \|test("^Organization Unit$")                                 |
-      | (jq).ocs.data.issuer.OU                   | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]{10}$")                      |
-      | (jq).ocs.data.subject\|length             | 7                                                                       |
-      | (jq).ocs.data.subject.CN                  | signer1-displayname                                                     |
-      | (jq).ocs.data.subject.C                   | BR                                                                      |
-      | (jq).ocs.data.subject.ST                  | State of Company                                                        |
-      | (jq).ocs.data.subject.L                   | City Name                                                               |
-      | (jq).ocs.data.subject.O                   | Organization                                                            |
-      | (jq).ocs.data.subject.OU \|length         | 2                                                                       |
-      | (jq).ocs.data.subject.OU                  | (jq) .[0] \|test("^Organization Unit$")                                 |
-      | (jq).ocs.data.subject.OU                  | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]{10}$")                      |
-      | (jq).ocs.data.subject.UID                 | account:signer1                                                         |
-      | (jq).ocs.data.extensions.basicConstraints | CA:FALSE                                                                |
-      | (jq).ocs.data.extensions.subjectAltName   | email:signer@domain.test                                                |
-      | (jq).ocs.data.extensions.keyUsage         | Digital Signature, Non Repudiation, Key Encipherment                    |
-      | (jq).ocs.data.extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection                        |
-      | (jq).ocs.data.extensions                  | (jq).authorityKeyIdentifier \|test("([0-9A-F]{2}:)+[0-9A-F]{2}")        |
-      | (jq).ocs.data.extensions                  | (jq).subjectKeyIdentifier != ""                                         |
+      | key                                       | value                                                                                    |
+      | (jq).ocs.data                             | (jq).name \|test("/C=BR")                                                                |
+      | (jq).ocs.data                             | (jq).name \|test("/ST=State of Company")                                                 |
+      | (jq).ocs.data                             | (jq).name \|test("/L=City Name")                                                         |
+      | (jq).ocs.data                             | (jq).name \|test("/O=Organization")                                                      |
+      | (jq).ocs.data                             | (jq).name \|test("/OU=Organization Unit, libresign-ca-id:[a-z0-9]{10}_g:[0-9]+_e:[oc]?") |
+      | (jq).ocs.data                             | (jq).name \|test("/UID=account:signer1")                                                 |
+      | (jq).ocs.data                             | (jq).name \|test("/CN=signer1-displayname")                                              |
+      | (jq).ocs.data.issuer\|length              | 6                                                                                        |
+      | (jq).ocs.data.issuer.CN                   | Common Name                                                                              |
+      | (jq).ocs.data.issuer.C                    | BR                                                                                       |
+      | (jq).ocs.data.issuer.ST                   | State of Company                                                                         |
+      | (jq).ocs.data.issuer.L                    | City Name                                                                                |
+      | (jq).ocs.data.issuer.O                    | Organization                                                                             |
+      | (jq).ocs.data.issuer.OU\|length           | 2                                                                                        |
+      | (jq).ocs.data.issuer.OU                   | (jq) .[0] \|test("^Organization Unit$")                                                  |
+      | (jq).ocs.data.issuer.OU                   | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]{10}_g:[0-9]+_e:[oc]?$")                      |
+      | (jq).ocs.data.subject\|length             | 7                                                                                        |
+      | (jq).ocs.data.subject.CN                  | signer1-displayname                                                                      |
+      | (jq).ocs.data.subject.C                   | BR                                                                                       |
+      | (jq).ocs.data.subject.ST                  | State of Company                                                                         |
+      | (jq).ocs.data.subject.L                   | City Name                                                                                |
+      | (jq).ocs.data.subject.O                   | Organization                                                                             |
+      | (jq).ocs.data.subject.OU \|length         | 2                                                                                        |
+      | (jq).ocs.data.subject.OU                  | (jq) .[0] \|test("^Organization Unit$")                                                  |
+      | (jq).ocs.data.subject.OU                  | (jq) .[1] \|test("^libresign-ca-id:[a-z0-9]{10}_g:[0-9]+_e:[oc]?$")                      |
+      | (jq).ocs.data.subject.UID                 | account:signer1                                                                          |
+      | (jq).ocs.data.extensions.basicConstraints | CA:FALSE                                                                                 |
+      | (jq).ocs.data.extensions.subjectAltName   | email:signer@domain.test                                                                 |
+      | (jq).ocs.data.extensions.keyUsage         | Digital Signature, Non Repudiation, Key Encipherment                                     |
+      | (jq).ocs.data.extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection                                         |
+      | (jq).ocs.data.extensions                  | (jq).authorityKeyIdentifier \|test("([0-9A-F]{2}:)+[0-9A-F]{2}")                         |
+      | (jq).ocs.data.extensions                  | (jq).subjectKeyIdentifier != ""                                                          |
 
   Scenario: Upload PFX file with error
     Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name" with result code 0
@@ -213,9 +213,10 @@ Feature: account/signature
       | (jq).ocs.data.message | Certificate file deleted with success. |
 
   Scenario: Create password to guest
-    Given guest "guest@test.coop" exists
+    Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name" with result code 0
+    And guest "guest@test.coop" exists
     And run the command "config:app:set guests whitelist --value=libresign" with result code 0
-    And as user "guest@test.coop"
+    When as user "guest@test.coop"
     And sending "post" to ocs "/apps/libresign/api/v1/account/signature"
       | signPassword | password |
     Then the response should have a status code 200
