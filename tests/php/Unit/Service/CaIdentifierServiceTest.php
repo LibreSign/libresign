@@ -66,10 +66,10 @@ final class CaIdentifierServiceTest extends TestCase {
 	public function testIsValidCaId(): void {
 		$instanceId = 'abc1234567';
 
-		$this->assertTrue($this->service->isValidCaId('libresign-ca-id:abc1234567_g:1_e:o', $instanceId));
-		$this->assertTrue($this->service->isValidCaId('libresign-ca-id:abc1234567_g:999_e:c', $instanceId));
-		$this->assertFalse($this->service->isValidCaId('libresign-ca-id:xyz9876543_g:1_e:o', $instanceId));
-		$this->assertFalse($this->service->isValidCaId('libresign-ca-id:abc1234567_g:1_e:x', $instanceId));
+		$this->assertTrue($this->service->isValidCaId("libresign-ca-id:$instanceId:1_e:o", $instanceId));
+		$this->assertTrue($this->service->isValidCaId("libresign-ca-id:$instanceId:999_e:c", $instanceId));
+		$this->assertFalse($this->service->isValidCaId("libresign-ca-id:$instanceId:1_e:o", $instanceId));
+		$this->assertFalse($this->service->isValidCaId("libresign-ca-id:$instanceId:1_e:x", $instanceId));
 	}
 
 	public function testGeneratePkiDirectoryName(): void {
