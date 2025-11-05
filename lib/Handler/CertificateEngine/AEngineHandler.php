@@ -316,7 +316,11 @@ abstract class AEngineHandler implements IEngineHandler {
 
 	private function getFilesOwnerInfo(): array {
 		$currentFile = realpath(__DIR__);
-		$ownerInfo = posix_getpwuid(fileowner($currentFile));
+		$owner = fileowner($currentFile);
+		if ($owner === false) {
+			throw new \RuntimeException('Unable to get file information');
+		}
+		$ownerInfo = posix_getpwuid($owner);
 		if ($ownerInfo === false) {
 			throw new \RuntimeException('Unable to get file owner information');
 		}
