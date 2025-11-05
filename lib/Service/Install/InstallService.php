@@ -33,7 +33,6 @@ use OCP\IAppConfig;
 use OCP\ICache;
 use OCP\ICacheFactory;
 use OCP\IConfig;
-use OCP\Security\ISecureRandom;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\Console\Helper\ProgressBar;
