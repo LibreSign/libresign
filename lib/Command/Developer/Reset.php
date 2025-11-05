@@ -79,6 +79,12 @@ class Reset extends Base {
 				description: 'Reset file element'
 			)
 			->addOption(
+				name: 'crl',
+				shortcut: null,
+				mode: InputOption::VALUE_NONE,
+				description: 'Reset crl',
+			)
+			->addOption(
 				name: 'userelement',
 				shortcut: null,
 				mode: InputOption::VALUE_NONE,
@@ -120,6 +126,10 @@ class Reset extends Base {
 			}
 			if ($input->getOption('fileelement') || $all) {
 				$this->resetFileElement();
+				$ok = true;
+			}
+			if ($input->getOption('crl') || $all) {
+				$this->resetCrl();
 				$ok = true;
 			}
 			if ($input->getOption('userelement') || $all) {
@@ -209,6 +219,15 @@ class Reset extends Base {
 		try {
 			$delete = $this->db->getQueryBuilder();
 			$delete->delete('libresign_file_element')
+				->executeStatement();
+		} catch (\Throwable) {
+		}
+	}
+
+	private function resetCrl(): void {
+		try {
+			$delete = $this->db->getQueryBuilder();
+			$delete->delete('libresign_crl')
 				->executeStatement();
 		} catch (\Throwable) {
 		}
