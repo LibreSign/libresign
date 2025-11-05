@@ -40,10 +40,9 @@ final class CaIdentifierServiceTest extends TestCase {
 			->method('setValueInt')
 			->with('libresign', 'ca_generation_counter', 1);
 
-		$instanceId = 'abc1234567';
-		$result = $this->service->generateCaId($instanceId, 'openssl');
+		$result = $this->service->generateCaId('openssl');
 
-		$this->assertEquals('libresign-ca-id:abc1234567_g:1_e:o', $result);
+		$this->assertMatchesRegularExpression('/^libresign-ca-id:[a-z0-9]{10}_g:\d+_e:o$/', $result);
 	}
 
 	public function testGenerateCaIdWithCFSSL(): void {
