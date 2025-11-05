@@ -23,12 +23,12 @@ class CaIdentifierService {
 	}
 
 	public function generateCaId(string $instanceId, string $engineName): string {
-		$caNumber = $this->getNextCaNumber();
+		$generation = $this->getNextGeneration();
 
 		$caId = sprintf(
-			'libresign-ca-id:%s_ca:g%d_e:%s',
+			'libresign-ca-id:%s_g:%d_e:%s',
 			$instanceId,
-			$caNumber,
+			$generation,
 			self::ENGINE_TYPES[$engineName],
 		);
 		$this->appConfig->setValueString(Application::APP_ID, 'ca_id', $caId);
@@ -42,7 +42,7 @@ class CaIdentifierService {
 	public function isValidCaId(string $caId, string $instanceId): bool {
 		$enginePattern = '[' . implode('', array_values(self::ENGINE_TYPES)) . ']';
 
-		$newPattern = '/^libresign-ca-id:' . preg_quote($instanceId, '/') . '_ca:g\d+_e:' . $enginePattern . '$/';
+		$newPattern = '/^libresign-ca-id:' . preg_quote($instanceId, '/') . '_g:\d+_e:' . $enginePattern . '$/';
 		if (preg_match($newPattern, $caId)) {
 			return true;
 		}
@@ -51,20 +51,20 @@ class CaIdentifierService {
 
 	public function generatePkiDirectoryName(string $caId): string {
 		$parsed = $this->parseCaId($caId);
-		return 'pki/' . $parsed['instanceId'] . '_' . $parsed['caNumber'] . '_' . $parsed['engineName'];
+		return 'pki/' . $parsed['instanceId'] . '_' . $parsed['generation'] . '_' . $parsed['engineName'];
 	}
 
 	private function parseCaId(string $caId): array {
-		$pattern = '/^libresign-ca-id:(?P<instanceId>[a-z0-9]+)_ca:g(?P<caNumber>\d+)_e:(?P<engineType>[' . implode('', array_values(self::ENGINE_TYPES)) . '])$/';
+		$pattern = '/^libresign-ca-id:(?P<instanceId>[a-z0-9]+)_g:(?P<generation>\d+)_e:(?P<engineType>[' . implode('', array_values(self::ENGINE_TYPES)) . '])$/';
 		preg_match($pattern, $caId, $matches);
 		$parsed['engineName'] = array_search($matches['engineType'], self::ENGINE_TYPES, true);
 		$parsed['instanceId'] = $matches['instanceId'];
-		$parsed['caNumber'] = (int)$matches['caNumber'];
+		$parsed['generation'] = (int)$matches['generation'];
 		$parsed['engineType'] = $matches['engineType'];
 		return $parsed;
 	}
 
-	private function getNextCaNumber(): int {
+	private function getNextGeneration(): int {
 		$currentNumber = $this->appConfig->getValueInt(Application::APP_ID, 'ca_generation_counter', 0);
 		$nextNumber = $currentNumber + 1;
 		$this->appConfig->setValueInt(Application::APP_ID, 'ca_generation_counter', $nextNumber);
