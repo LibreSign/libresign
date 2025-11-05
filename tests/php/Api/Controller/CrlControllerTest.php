@@ -27,26 +27,21 @@ class CrlControllerTest extends ApiTestCase {
 		$schema = \ByJG\ApiTools\Base\Schema::getInstance($data);
 		$this->setSchema($schema);
 
-		// Optmize loading time
 		$systemConfig = \OCP\Server::get(\OC\SystemConfig::class);
 		$systemConfig->setValue('auth.bruteforce.protection.enabled', false);
 
-		// Reset settings
 		$this->getMockAppConfig()->setValueBool(Application::APP_ID, 'identification_documents', false);
 
-		// Setup CA certificate for CRL tests
 		$this->setupCertificateEngine();
 
 		$this->request = new \OCA\Libresign\Tests\Api\ApiRequester();
 	}
 
 	private function setupCertificateEngine(): void {
-		// Clean up any existing CRL data that might have invalid reason codes
 		$crlMapper = \OCP\Server::get(\OCA\Libresign\Db\CrlMapper::class);
 		$connection = \OC::$server->getDatabaseConnection();
 		$connection->executeStatement('DELETE FROM oc_libresign_crl');
 
-		// Create a root certificate for testing
 		$factory = \OCP\Server::get(\OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory::class);
 		$engine = $factory->getEngine();
 		$engine->generateRootCert('Test Root CA', []);
