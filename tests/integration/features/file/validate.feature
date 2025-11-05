@@ -31,22 +31,22 @@ Feature: validate
     And sending "get" to ocs "/apps/libresign/api/v1/file/validate/uuid/<FILE_UUID>"
     Then the response should have a status code 200
     Then the response should be a JSON array with the following mandatory values
-      | key                                           | value                                                                   |
-      | (jq).ocs.data.signers[0].me                   | false                                                                   |
-      | (jq).ocs.data.signers[0].identifyMethods      | [{"method": "account","value": "signer1","mandatory": 1}]               |
-      | (jq).ocs.data.signers[0]                      | (jq).name \|test("/C=BR")                                               |
-      | (jq).ocs.data.signers[0]                      | (jq).name \|test("/ST=State of Company")                                |
-      | (jq).ocs.data.signers[0]                      | (jq).name \|test("/L=City Name")                                        |
-      | (jq).ocs.data.signers[0]                      | (jq).name \|test("/O=Organization")                                     |
-      | (jq).ocs.data.signers[0]                      | (jq).name \|test("/OU=Organization Unit, libresign-ca-id:[a-z0-9]{10}") |
-      | (jq).ocs.data.signers[0]                      | (jq).name \|test("/CN=signer1-displayname")                             |
-      | (jq).ocs.data.signers[0].subject.CN           | signer1-displayname                                                     |
-      | (jq).ocs.data.signers[0].subject.C            | BR                                                                      |
-      | (jq).ocs.data.signers[0].subject.ST           | State of Company                                                        |
-      | (jq).ocs.data.signers[0].subject.L            | City Name                                                               |
-      | (jq).ocs.data.signers[0].subject.O            | Organization                                                            |
-      | (jq).ocs.data.signers[0].signature_validation | {"id":1,"label":"Signature is valid."}                                  |
-      | (jq).ocs.data.signers[0].signatureTypeSN      | RSA-SHA256                                                              |
+      | key                                           | value                                                                                    |
+      | (jq).ocs.data.signers[0].me                   | false                                                                                    |
+      | (jq).ocs.data.signers[0].identifyMethods      | [{"method": "account","value": "signer1","mandatory": 1}]                                |
+      | (jq).ocs.data.signers[0]                      | (jq).name \|test("/C=BR")                                                                |
+      | (jq).ocs.data.signers[0]                      | (jq).name \|test("/ST=State of Company")                                                 |
+      | (jq).ocs.data.signers[0]                      | (jq).name \|test("/L=City Name")                                                         |
+      | (jq).ocs.data.signers[0]                      | (jq).name \|test("/O=Organization")                                                      |
+      | (jq).ocs.data.signers[0]                      | (jq).name \|test("/OU=Organization Unit, libresign-ca-id:[a-z0-9]{10}(-ca:g\\d+-[oc])?") |
+      | (jq).ocs.data.signers[0]                      | (jq).name \|test("/CN=signer1-displayname")                                              |
+      | (jq).ocs.data.signers[0].subject.CN           | signer1-displayname                                                                      |
+      | (jq).ocs.data.signers[0].subject.C            | BR                                                                                       |
+      | (jq).ocs.data.signers[0].subject.ST           | State of Company                                                                         |
+      | (jq).ocs.data.signers[0].subject.L            | City Name                                                                                |
+      | (jq).ocs.data.signers[0].subject.O            | Organization                                                                             |
+      | (jq).ocs.data.signers[0].signature_validation | {"id":1,"label":"Signature is valid."}                                                   |
+      | (jq).ocs.data.signers[0].signatureTypeSN      | RSA-SHA256                                                                               |
 
   Scenario Outline: Unauthenticated user can fetch the validation ednpoint
     Given as user "admin"
