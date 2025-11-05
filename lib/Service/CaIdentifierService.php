@@ -26,7 +26,7 @@ class CaIdentifierService {
 		$caNumber = $this->getNextCaNumber();
 
 		$caId = sprintf(
-			'libresign-ca-id:%s-ca:g%d-%s',
+			'libresign-ca-id:%s-ca:g%d-e:%s',
 			$instanceId,
 			$caNumber,
 			self::ENGINE_TYPES[$engineName],
@@ -42,7 +42,7 @@ class CaIdentifierService {
 	public function isValidCaId(string $caId, string $instanceId): bool {
 		$enginePattern = '[' . implode('', array_values(self::ENGINE_TYPES)) . ']';
 
-		$newPattern = '/^libresign-ca-id:' . preg_quote($instanceId, '/') . '-ca:g\d+-' . $enginePattern . '$/';
+		$newPattern = '/^libresign-ca-id:' . preg_quote($instanceId, '/') . '-ca:g\d+-e:' . $enginePattern . '$/';
 		if (preg_match($newPattern, $caId)) {
 			return true;
 		}
@@ -55,7 +55,7 @@ class CaIdentifierService {
 	}
 
 	private function parseCaId(string $caId): array {
-		$pattern = '/^libresign-ca-id:(?P<instanceId>[a-z0-9]+)-ca:g(?P<caNumber>\d+)-(?P<engineType>[' . implode('', array_values(self::ENGINE_TYPES)) . '])$/';
+		$pattern = '/^libresign-ca-id:(?P<instanceId>[a-z0-9]+)-ca:g(?P<caNumber>\d+)-e:(?P<engineType>[' . implode('', array_values(self::ENGINE_TYPES)) . '])$/';
 		preg_match($pattern, $caId, $matches);
 		$parsed['engineName'] = array_search($matches['engineType'], self::ENGINE_TYPES, true);
 		$parsed['instanceId'] = $matches['instanceId'];
