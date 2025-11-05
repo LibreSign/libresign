@@ -16,7 +16,14 @@
 					</tr>
 					<tr v-for="(customName) in certificate.rootCert.names" :key="customName.id" class="customNames">
 						<td>{{ getLabelFromId(customName.id) }} ({{ customName.id }})</td>
-						<td>{{ customName.value }}</td>
+						<td>
+							<ul v-if="Array.isArray(customName.value)" class="certificate-list">
+								<li v-for="(item, index) in customName.value" :key="index">
+									{{ item }}
+								</li>
+							</ul>
+							<span v-else>{{ customName.value }}</span>
+						</td>
 					</tr>
 					<tr>
 						<td>{{ t('libresign', 'CFSSL API URI') }}</td>
@@ -323,6 +330,14 @@ export default {
 		.button-vue {
 			margin-left: 10px;
 		}
+	}
+}
+
+.certificate-list {
+	margin: 0;
+	padding-left: 16px;
+	li {
+		margin: 2px 0;
 	}
 }
 
