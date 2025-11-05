@@ -85,10 +85,8 @@ class OpenSsl extends Base {
 		}
 		$this->installService->generate(
 			(string)$commonName,
+			'openssl',
 			$names,
-			[
-				'engine' => 'openssl'
-			]
 		);
 		return 0;
 	}

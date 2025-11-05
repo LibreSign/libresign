@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler\CertificateEngine;
 
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\SerialNumberService;
 use OCP\Files\AppData\IAppDataFactory;
@@ -35,8 +36,18 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		protected CertificatePolicyService $certificatePolicyService,
 		protected IURLGenerator $urlGenerator,
 		protected SerialNumberService $serialNumberService,
+		protected CaIdentifierService $caIdentifierService,
 	) {
-		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager, $certificatePolicyService, $urlGenerator);
+		parent::__construct(
+			$config,
+			$appConfig,
+			$appDataFactory,
+			$dateTimeFormatter,
+			$tempManager,
+			$certificatePolicyService,
+			$urlGenerator,
+			$caIdentifierService,
+		);
 	}
 
 	#[\Override]
