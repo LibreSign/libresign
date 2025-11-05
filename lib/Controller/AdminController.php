@@ -156,6 +156,7 @@ class AdminController extends AEnvironmentAwareController {
 		$this->validateService->validate('CN', $rootCert['commonName']);
 		$this->installService->generate(
 			trim((string)$rootCert['commonName']),
+			$properties['engine'],
 			$names,
 			$properties,
 		);

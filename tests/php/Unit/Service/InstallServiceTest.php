@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use bovigo\vfs\vfsStream;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\Install\SignSetupService;
 use OCP\Files\AppData\IAppDataFactory;
@@ -30,6 +31,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private LoggerInterface&MockObject $logger;
 	private SignSetupService&MockObject $ignSetupService;
 	private IAppDataFactory&MockObject $appDataFactory;
+	private CaIdentifierService&MockObject $caIdentifierService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -44,6 +46,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->ignSetupService = $this->createMock(SignSetupService::class);
 		$this->appDataFactory = $this->createMock(IAppDataFactory::class);
+		$this->caIdentifierService = $this->createMock(CaIdentifierService::class);
 		return new InstallService(
 			$this->cacheFactory,
 			$this->clientService,
@@ -52,7 +55,8 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->appConfig,
 			$this->logger,
 			$this->ignSetupService,
-			$this->appDataFactory
+			$this->appDataFactory,
+			$this->caIdentifierService,
 		);
 	}
 

@@ -10,6 +10,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
+use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
@@ -29,6 +30,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ITempManager $tempManager;
 	private LoggerInterface&MockObject $logger;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
+	private CaIdentifierService&MockObject $caIdentifierService;
 
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
@@ -38,6 +40,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->caIdentifierService = $this->createMock(CaIdentifierService::class);
 	}
 
 	private function getHandler(array $methods = []): Pkcs12Handler|MockObject {
@@ -63,6 +66,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->footerHandler,
 			$this->tempManager,
 			$this->logger,
+			$this->caIdentifierService,
 		);
 	}
 
