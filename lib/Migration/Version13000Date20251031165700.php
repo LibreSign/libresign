@@ -43,7 +43,7 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
-		$engineName = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', 'openssl');
+		$engineName = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', '');
 		if ($engineName === 'openssl') {
 			$engine = $this->certificateEngineFactory->getEngine();
 			$configPath = $this->appConfig->getValueString(Application::APP_ID, 'config_path', '');
