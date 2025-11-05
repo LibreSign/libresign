@@ -104,6 +104,7 @@ OC.L10N.register(
     "Current password" : "現在のパスワード",
     "New password" : "新たなパスワード",
     "Repeat password" : "パスワードをもう一度入力",
+    "Add new" : "新規作成",
     "Remove" : "削除",
     "Message" : "メッセージ",
     "Resource" : "リソース",

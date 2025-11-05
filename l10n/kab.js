@@ -46,6 +46,7 @@ OC.L10N.register(
     "{fileCount} files" : "{fileCount} n ifuyla",
     "Password reset" : "Awennez n wawal uffir",
     "New password" : "Awal uffir amaynut",
+    "Add new" : "Rnu amaynut",
     "Remove" : "Kkes",
     "Message" : "Izen",
     "Yes" : "Ih",

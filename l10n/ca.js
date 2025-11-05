@@ -240,6 +240,7 @@ OC.L10N.register(
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Seleccioneu grups autoritzats que poden sol·licitar signar documents. El grup d'administració és el grup predeterminat i no cal definir-lo.",
     "Optional attributes" : "Atributs opcionals",
     "Select a custom name" : "Seleccioneu un nom personalitzat",
+    "Add new" : "Afegeix nou/nova",
     "Remove custom name entry from root certificate" : "Elimina l'entrada de nom personalitzada del certificat arrel",
     "Remove" : "Suprimir",
     "Collect signers' metadata" : "Recull les metadades dels signants",

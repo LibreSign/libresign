@@ -137,6 +137,7 @@ OC.L10N.register(
     "Current password" : "Crae currente",
     "New password" : "Crae noa",
     "Repeat password" : "Torra a pònnere sa crae",
+    "Add new" : "Agiunghe nou",
     "Remove" : "Boga",
     "Message" : "Messàgiu",
     "Dependencies" : "Dipendèntzias",

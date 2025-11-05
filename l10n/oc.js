@@ -105,6 +105,7 @@ OC.L10N.register(
     "Password reset" : "Reïnicializacion de senhal",
     "Current password" : "Senhal actual",
     "New password" : "Senhal novèl",
+    "Add new" : "Apondre novèl",
     "Remove" : "Suprimir",
     "Resource" : "Ressorsa",
     "Reminders" : "Rapèls",

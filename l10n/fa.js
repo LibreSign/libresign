@@ -230,6 +230,7 @@ OC.L10N.register(
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined.",
     "Optional attributes" : "Optional attributes",
     "Select a custom name" : "Select a custom name",
+    "Add new" : "افزودن مورد تازه",
     "Remove custom name entry from root certificate" : "Remove custom name entry from root certificate",
     "Remove" : "حذف",
     "Collect signers' metadata" : "Collect signers' metadata",

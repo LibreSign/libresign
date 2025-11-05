@@ -94,6 +94,7 @@ OC.L10N.register(
     "Password reset" : "Setel ulang kata sandi",
     "Current password" : "Kata sandi saat ini",
     "New password" : "Kata sandi baru",
+    "Add new" : "Tambahkan baru",
     "Remove" : "Hapus",
     "Message" : "Pesan",
     "Dependencies" : "Ketergantungan",

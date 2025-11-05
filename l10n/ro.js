@@ -80,6 +80,7 @@ OC.L10N.register(
     "Password reset" : "Resetare parolă",
     "Current password" : "Parola curentă",
     "New password" : "Noua parolă",
+    "Add new" : "Adaugă nou",
     "Remove" : "Elimină",
     "Message" : "Mesaj",
     "Resource" : "Resursă",

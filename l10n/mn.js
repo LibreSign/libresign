@@ -43,6 +43,7 @@ OC.L10N.register(
     "Password reset" : "Нууц үг солих",
     "Current password" : "одоогийн нууц үг",
     "New password" : "шинэ нууц үг",
+    "Add new" : "Шинээр нэмэх",
     "Resource" : "Нөөц",
     "Reminders" : "Сануулагууд",
     "Yes" : "Тийм",
