@@ -739,7 +739,7 @@ class InstallService {
 
 		$names['OU']['value'] = array_filter(
 			$names['OU']['value'],
-			fn ($value) => !str_starts_with($value, 'libresign-ca-uuid:')
+			fn ($value) => !str_starts_with($value, 'libresign-ca-id:')
 		);
 
 		$names['OU']['value'][] = $caUUID;
