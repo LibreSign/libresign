@@ -712,18 +712,8 @@ class InstallService {
 		return $matches['hash'];
 	}
 
-	public function getInstanceId(): string {
-		$instanceId = $this->appConfig->getValueString(Application::APP_ID, 'instance_id', '');
-		if (strlen($instanceId) === 10) {
-			return $instanceId;
-		}
-		$instanceId = \OC::$server->get(ISecureRandom::class)->generate(10, ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
-		$this->appConfig->setValueString(Application::APP_ID, 'instance_id', $instanceId);
-		return $instanceId;
-	}
-
 	private function populateNamesWithInstanceId(array $names, string $engineName): array {
-		$caUUID = $this->caIdentifierService->generateCaId($this->getInstanceId(), $engineName);
+		$caUUID = $this->caIdentifierService->generateCaId($engineName);
 
 		if (empty($names['OU'])) {
 			$names['OU']['value'] = [$caUUID];

@@ -13,7 +13,6 @@ use Closure;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\CaIdentifierService;
-use OCA\Libresign\Service\Install\InstallService;
 use OCP\DB\ISchemaWrapper;
 use OCP\IAppConfig;
 use OCP\IConfig;
@@ -27,7 +26,6 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 		private IAppConfig $appConfig,
 		private CertificateEngineFactory $certificateEngineFactory,
 		private CaIdentifierService $caIdentifierService,
-		private InstallService $installService,
 	) {
 	}
 
@@ -77,12 +75,11 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 			return;
 		}
 
-		$instanceId = $this->installService->getInstanceId();
 		$originalCaId = $this->appConfig->getValueString(Application::APP_ID, 'ca_id');
 		if (empty($originalCaId)) {
 			$engineName = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine');
 			if ($engineName) {
-				$originalCaId = $this->caIdentifierService->generateCaId($instanceId, $engineName);
+				$originalCaId = $this->caIdentifierService->generateCaId($engineName);
 			}
 		}
 		$generatedNewCaId = false;
@@ -97,7 +94,7 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 
 			if (empty($originalCaId) || !str_ends_with($originalCaId, '-e:' . $engineType)) {
 				$generatedNewCaId = true;
-				$this->caIdentifierService->generateCaId($instanceId, $engineName);
+				$this->caIdentifierService->generateCaId($engineName);
 			}
 
 			$this->appConfig->deleteKey(Application::APP_ID, 'config_path');
