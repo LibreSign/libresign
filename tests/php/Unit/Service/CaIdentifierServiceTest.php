@@ -59,7 +59,7 @@ final class CaIdentifierServiceTest extends TestCase {
 
 		$result = $this->service->generateCaId('cfssl');
 
-		$this->assertMatchesRegularExpression('/^libresign-ca-id:[a-z0-9]{10}_g:\d+_e:o$/', $result);
+		$this->assertMatchesRegularExpression('/^libresign-ca-id:[a-z0-9]{10}_g:\d+_e:c$/', $result);
 	}
 
 	public function testIsValidCaId(): void {
