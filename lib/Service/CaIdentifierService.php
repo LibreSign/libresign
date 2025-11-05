@@ -70,7 +70,9 @@ class CaIdentifierService {
 
 	private function parseCaId(string $caId): array {
 		$pattern = '/^libresign-ca-id:(?P<instanceId>[a-z0-9]+)_g:(?P<generation>\d+)_e:(?P<engineType>[' . implode('', array_values(self::ENGINE_TYPES)) . '])$/';
-		preg_match($pattern, $caId, $matches);
+		if (!preg_match($pattern, $caId, $matches)) {
+			throw new \InvalidArgumentException('Invalid CA ID format');
+		}
 		$parsed['engineName'] = array_search($matches['engineType'], self::ENGINE_TYPES, true);
 		$parsed['instanceId'] = $matches['instanceId'];
 		$parsed['generation'] = (int)$matches['generation'];
