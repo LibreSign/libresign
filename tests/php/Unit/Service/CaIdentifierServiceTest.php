@@ -43,7 +43,7 @@ final class CaIdentifierServiceTest extends TestCase {
 		$instanceId = 'abc1234567';
 		$result = $this->service->generateCaId($instanceId, 'openssl');
 
-		$this->assertEquals('libresign-ca-id:abc1234567-ca:g1-e:o', $result);
+		$this->assertEquals('libresign-ca-id:abc1234567_ca:g1_e:o', $result);
 	}
 
 	public function testGenerateCaIdWithCFSSL(): void {
@@ -61,20 +61,20 @@ final class CaIdentifierServiceTest extends TestCase {
 		$instanceId = 'xyz9876543';
 		$result = $this->service->generateCaId($instanceId, 'cfssl');
 
-		$this->assertEquals('libresign-ca-id:xyz9876543-ca:g3-e:c', $result);
+		$this->assertEquals('libresign-ca-id:xyz9876543_ca:g3_e:c', $result);
 	}
 
 	public function testIsValidCaId(): void {
 		$instanceId = 'abc1234567';
 
-		$this->assertTrue($this->service->isValidCaId('libresign-ca-id:abc1234567-ca:g1-e:o', $instanceId));
-		$this->assertTrue($this->service->isValidCaId('libresign-ca-id:abc1234567-ca:g999-e:c', $instanceId));
-		$this->assertFalse($this->service->isValidCaId('libresign-ca-id:xyz9876543-ca:g1-e:o', $instanceId));
-		$this->assertFalse($this->service->isValidCaId('libresign-ca-id:abc1234567-ca:g1-e:x', $instanceId));
+		$this->assertTrue($this->service->isValidCaId('libresign-ca-id:abc1234567_ca:g1_e:o', $instanceId));
+		$this->assertTrue($this->service->isValidCaId('libresign-ca-id:abc1234567_ca:g999_e:c', $instanceId));
+		$this->assertFalse($this->service->isValidCaId('libresign-ca-id:xyz9876543_ca:g1_e:o', $instanceId));
+		$this->assertFalse($this->service->isValidCaId('libresign-ca-id:abc1234567_ca:g1_e:x', $instanceId));
 	}
 
 	public function testGeneratePkiDirectoryName(): void {
-		$caId = 'libresign-ca-id:abc1234567-ca:g1-e:o';
+		$caId = 'libresign-ca-id:abc1234567_ca:g1_e:o';
 		$result = $this->service->generatePkiDirectoryName($caId);
 
 		$this->assertEquals('pki/abc1234567_1_openssl', $result);
