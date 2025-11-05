@@ -501,7 +501,7 @@ abstract class AEngineHandler implements IEngineHandler {
 			return false;
 		}
 
-		$instanceId = $this->getInstanceId();
+		$instanceId = $this->getLibreSignInstanceId();
 		if (empty($instanceId)) {
 			return false;
 		}
@@ -527,7 +527,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return false;
 	}
 
-	private function getInstanceId(): string {
+	private function getLibreSignInstanceId(): string {
 		$instanceId = $this->appConfig->getValueString(Application::APP_ID, 'instance_id', '');
 		if (strlen($instanceId) === 10) {
 			return $instanceId;
