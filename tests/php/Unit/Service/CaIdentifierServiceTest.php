@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
-use OCA\Libresign\Service\CaEngineType;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCP\IAppConfig;
 use PHPUnit\Framework\MockObject\MockObject;
