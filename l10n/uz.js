@@ -53,6 +53,7 @@ OC.L10N.register(
     "Password reset" : "Password reset",
     "Current password" : "Current password",
     "New password" : "New password",
+    "Add new" : "Yangi yaratish",
     "Remove" : "O'chirish",
     "on" : "da",
     "Not scheduled" : "Rejalashtirilmagan",

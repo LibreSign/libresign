@@ -209,6 +209,7 @@ OC.L10N.register(
     "Current password" : "현재 암호",
     "New password" : "새 암호",
     "Repeat password" : "암호 확인",
+    "Add new" : "새로 추가",
     "Remove" : "삭제",
     "Message" : "메시지",
     "Resource" : "자원",

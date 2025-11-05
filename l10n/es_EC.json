@@ -217,6 +217,7 @@
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Seleccionar grupos autorizados que pueden solicitar firmas de documentos. El grupo de administradores es el grupo predeterminado y no necesita ser definido.",
     "Optional attributes" : "Atributos opcionales",
     "Select a custom name" : "Seleccionar un nombre personalizado",
+    "Add new" : "Agregar nuevo",
     "Remove custom name entry from root certificate" : "Eliminar la entrada de nombre personalizado del certificado raíz",
     "Collect signers' metadata" : "Recopilar metadatos de los firmantes",
     "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "Al habilitar esta función, cada vez que un documento se firme, LibreSign almacenará la dirección IP y el agente de usuario del firmante.",

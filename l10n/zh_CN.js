@@ -211,6 +211,7 @@ OC.L10N.register(
     "Current password" : "当前密码",
     "New password" : "新密码",
     "Repeat password" : "重复密码",
+    "Add new" : "新增",
     "Remove" : "移除",
     "Configuration check" : "配置检查",
     "Message" : "消息",

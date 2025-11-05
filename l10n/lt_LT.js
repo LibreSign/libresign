@@ -156,6 +156,7 @@ OC.L10N.register(
     "Current password" : "Dabartinis slaptažodis",
     "New password" : "Naujas slaptažodis",
     "Repeat password" : "Pakartoti slaptažodį",
+    "Add new" : "Pridėti naują",
     "Remove" : "Šalinti",
     "Status of setup" : "Sąrankos būsena",
     "Message" : "Žinutė",
