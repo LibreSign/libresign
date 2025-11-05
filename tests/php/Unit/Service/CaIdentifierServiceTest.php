@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Service\CaIdentifierService;
 use OCP\IAppConfig;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -62,13 +63,20 @@ final class CaIdentifierServiceTest extends TestCase {
 		$this->assertMatchesRegularExpression('/^libresign-ca-id:[a-z0-9]{10}_g:\d+_e:c$/', $result);
 	}
 
-	public function testIsValidCaId(): void {
-		$instanceId = 'abc1234567';
+	#[DataProvider('providerIsValidCaId')]
+	public function testIsValidCaId(string $caId, string $instanceId, bool $expected): void {
+		$this->assertEquals($expected, $this->service->isValidCaId($caId, $instanceId));
+	}
 
-		$this->assertTrue($this->service->isValidCaId("libresign-ca-id:$instanceId:1_e:o", $instanceId));
-		$this->assertTrue($this->service->isValidCaId("libresign-ca-id:$instanceId:999_e:c", $instanceId));
-		$this->assertFalse($this->service->isValidCaId("libresign-ca-id:$instanceId:1_e:o", $instanceId));
-		$this->assertFalse($this->service->isValidCaId("libresign-ca-id:$instanceId:1_e:x", $instanceId));
+	public static function providerIsValidCaId(): array {
+		return [
+			['libresign-ca-id:abc1234567_g:1_e:o', 'abc1234567', true],
+			['libresign-ca-id:abc1234567_g:42_e:c', 'abc1234567', true],
+			['libresign-ca-id:abc1234567_g:425468_e:c', 'abc1234567', true],
+			['libresign-ca-id:abc1234567_g:1_e:x', 'abc1234567', false],
+			['invalid-ca-id-format', 'abc1234567', false],
+			['libresign-ca-id:wronginstance_g:1_e:o', 'abc1234567', false],
+		];
 	}
 
 	public function testGeneratePkiDirectoryName(): void {
