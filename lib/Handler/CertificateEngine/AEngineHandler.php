@@ -300,7 +300,7 @@ abstract class AEngineHandler implements IEngineHandler {
 
 	private function createDirectoryWithCorrectOwnership(string $path): void {
 		$ownerInfo = $this->getFilesOwnerInfo();
-		$fullCommand = 'mkdir -p "' . $path . '"';
+		$fullCommand = 'mkdir -p ' . escapeshellarg($path);
 
 		if (posix_getuid() !== $ownerInfo['uid']) {
 			$fullCommand = 'runuser -u ' . $ownerInfo['name'] . ' -- ' . $fullCommand;
