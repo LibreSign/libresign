@@ -42,7 +42,7 @@ class CaIdentifierService {
 			'libresign-ca-id:%s_g:%d_e:%s',
 			$instanceId,
 			$generation,
-			self::ENGINE_TYPES[$engineName],
+			self::ENGINE_TYPES[$engineName] ?? throw new \InvalidArgumentException("Invalid engine name: $engineName"),
 		);
 		$this->appConfig->setValueString(Application::APP_ID, 'ca_id', $caId);
 		return $caId;
