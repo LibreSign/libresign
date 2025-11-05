@@ -496,6 +496,45 @@ abstract class AEngineHandler implements IEngineHandler {
 		}
 	}
 
+	private function validateLibresignCaUuidInCertificate(array $parsed): bool {
+		if (!isset($parsed['subject']['OU'])) {
+			return false;
+		}
+
+		$instanceId = $this->getInstanceId();
+		if (empty($instanceId)) {
+			return false;
+		}
+
+		$organizationalUnits = $parsed['subject']['OU'];
+
+		if (is_string($organizationalUnits)) {
+			if (str_contains($organizationalUnits, ', ')) {
+				$organizationalUnits = explode(', ', $organizationalUnits);
+			} else {
+				$organizationalUnits = [$organizationalUnits];
+			}
+		}
+
+		$expectedCaUuid = 'libresign-ca-id:' . $instanceId;
+
+		foreach ($organizationalUnits as $ou) {
+			if (trim($ou) === $expectedCaUuid) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private function getInstanceId(): string {
+		$instanceId = $this->appConfig->getValueString(Application::APP_ID, 'instance_id', '');
+		if (strlen($instanceId) === 10) {
+			return $instanceId;
+		}
+		return '';
+	}
+
 	public function toArray(): array {
 		$return = [
 			'configPath' => $this->getConfigPath(),
