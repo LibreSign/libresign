@@ -286,6 +286,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $this->configPath;
 	}
 
+	#[\Override]
 	public function getConfigPathByParams(string $instanceId, int $generation): string {
 		$engineName = $this->getName();
 
@@ -621,6 +622,11 @@ abstract class AEngineHandler implements IEngineHandler {
 	}
 
 	protected function getCrlDistributionUrl(): string {
-		return $this->urlGenerator->linkToRouteAbsolute('libresign.crl.getRevocationList');
+		$caIdParsed = $this->caIdentifierService->getCaIdParsed();
+		return $this->urlGenerator->linkToRouteAbsolute('libresign.crl.getRevocationList', [
+			'instanceId' => $caIdParsed['instanceId'],
+			'generation' => $caIdParsed['generation'],
+			'engineType' => $caIdParsed['engineType'],
+		]);
 	}
 }

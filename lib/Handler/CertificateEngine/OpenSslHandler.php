@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\CertificateEngine;
 
+use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
@@ -18,6 +19,7 @@ use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class FileMapper
@@ -37,6 +39,8 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		protected IURLGenerator $urlGenerator,
 		protected SerialNumberService $serialNumberService,
 		protected CaIdentifierService $caIdentifierService,
+		protected CrlMapper $crlMapper,
+		protected LoggerInterface $logger,
 	) {
 		parent::__construct(
 			$config,
@@ -64,10 +68,13 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		$options = $this->getRootCertOptions();
 
 		$caDays = $this->getCaExpiryInDays();
-		$serialNumber = $this->serialNumberService->generateUniqueSerial(
+		$serialNumberString = $this->serialNumberService->generateUniqueSerial(
 			$commonName,
-			new \DateTime('+' . $caDays . ' days')
+			$this->caIdentifierService->getInstanceId(),
+			new \DateTime('+' . $caDays . ' days'),
+			'openssl',
 		);
+		$serialNumber = (int)$serialNumberString;
 
 		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = $caDays, $options, $serialNumber);
 
@@ -123,10 +130,13 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			throw new LibresignException('OpenSSL error: ' . $message);
 		}
 
-		$serialNumber = $this->serialNumberService->generateUniqueSerial(
+		$serialNumberString = $this->serialNumberService->generateUniqueSerial(
 			$this->getCommonName(),
-			new \DateTime('+' . $this->getLeafExpiryInDays() . ' days')
+			$this->caIdentifierService->getInstanceId(),
+			new \DateTime('+' . $this->getLeafExpiryInDays() . ' days'),
+			'openssl',
 		);
+		$serialNumber = (int)$serialNumberString;
 		$options = $this->getLeafCertOptions();
 
 		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, $this->getLeafExpiryInDays(), $options, $serialNumber);

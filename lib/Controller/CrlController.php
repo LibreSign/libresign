@@ -44,10 +44,10 @@ class CrlController extends Controller {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	#[FrontpageRoute(verb: 'GET', url: '/crl/{instanceId}/{generation}/crl.der')]
-	public function getRevocationList(string $instanceId, int $generation): DataDownloadResponse|DataResponse {
+	#[FrontpageRoute(verb: 'GET', url: '/crl/{instanceId}/{generation}/{engineType}/crl.der')]
+	public function getRevocationList(string $instanceId, int $generation, string $engineType): DataDownloadResponse|DataResponse {
 		try {
-			$crlDer = $this->crlService->generateCrlDer($instanceId, $generation);
+			$crlDer = $this->crlService->generateCrlDer($instanceId, $generation, $engineType);
 
 			return new DataDownloadResponse(
 				$crlDer,
@@ -78,13 +78,27 @@ class CrlController extends Controller {
 	#[PublicPage]
 	#[FrontpageRoute(verb: 'GET', url: '/crl/check/{serialNumber}')]
 	public function checkCertificateStatus(string $serialNumber): DataResponse {
-		if (!is_numeric($serialNumber) || (int)$serialNumber <= 0) {
+		if (!$this->isValidHexSerial($serialNumber)) {
 			return new DataResponse(
-				['error' => 'Invalid serial number', 'message' => 'Serial number must be a positive integer'],
+				['error' => 'Invalid serial number', 'message' => 'Serial number must be in hex format (no 0x prefix)'],
 				Http::STATUS_BAD_REQUEST
 			);
 		}
 
-		return new DataResponse($this->crlService->getCertificateStatusResponse((int)$serialNumber));
+		return new DataResponse($this->crlService->getCertificateStatusResponse($serialNumber));
+	}
+
+	private function isValidHexSerial(string $serialNumber): bool {
+		$serialNumber = trim($serialNumber);
+
+		if (empty($serialNumber)) {
+			return false;
+		}
+
+		if (str_starts_with(strtolower($serialNumber), '0x')) {
+			return false;
+		}
+
+		return ctype_xdigit($serialNumber);
 	}
 }

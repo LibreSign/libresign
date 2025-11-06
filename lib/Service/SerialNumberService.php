@@ -12,31 +12,37 @@ namespace OCA\Libresign\Service;
 use DateTime;
 use OCA\Libresign\Db\CrlMapper;
 use OCP\DB\Exception as DBException;
+use OCP\Security\ISecureRandom;
 use Psr\Log\LoggerInterface;
 
 class SerialNumberService {
 	private const MAX_RETRY_ATTEMPTS = 10;
-	private const MIN_SERIAL = 1000000;
-	private const MAX_32BIT_SERIAL = 2147483647;
+	private const SERIAL_MAX_VALUE = 9223372036854775807;
 
 	public function __construct(
 		private CrlMapper $crlMapper,
 		private LoggerInterface $logger,
+		private ISecureRandom $secureRandom,
 	) {
 	}
 
-	public function generateUniqueSerial(?string $certificateOwner = null, ?DateTime $expiresAt = null): int {
+	public function generateUniqueSerial(string $certificateOwner, string $instanceId, DateTime $expiresAt, string $engineName): string {
 		for ($attempts = 0; $attempts < self::MAX_RETRY_ATTEMPTS; $attempts++) {
-			$serial = random_int(self::MIN_SERIAL, self::MAX_32BIT_SERIAL);
+			$serialInt = random_int(1, self::SERIAL_MAX_VALUE);
+
+			$serialString = (string)$serialInt;
 
 			try {
 				$this->crlMapper->createCertificate(
-					$serial,
+					$serialString,
 					$certificateOwner ?? 'Unknown',
+					$engineName,
+					$instanceId,
 					new DateTime(),
 					$expiresAt
 				);
-				return $serial;
+
+				return $serialString;
 
 			} catch (DBException $e) {
 				if ($e->getReason() === DBException::REASON_UNIQUE_CONSTRAINT_VIOLATION) {
