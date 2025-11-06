@@ -1018,7 +1018,7 @@
                 }
             }
         },
-        "/index.php/apps/libresign/crl": {
+        "/index.php/apps/libresign/crl/{instanceId}/{generation}/{engineType}/crl.der": {
             "get": {
                 "operationId": "crl-get-revocation-list",
                 "summary": "Get Certificate Revocation List in DER format (RFC 5280 compliant)",
@@ -1032,6 +1032,36 @@
                     },
                     {
                         "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "instanceId",
+                        "in": "path",
+                        "description": "Instance identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "generation",
+                        "in": "path",
+                        "description": "Generation identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "engineType",
+                        "in": "path",
+                        "description": "Engine type identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
