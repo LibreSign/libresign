@@ -19,6 +19,8 @@ use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
+use Psr\Log\LoggerInterface;
+use OCA\Libresign\Db\CrlMapper;
 
 final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IConfig $config;
@@ -31,6 +33,8 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SerialNumberService $serialNumberService;
 	private IURLGenerator $urlGenerator;
 	private CaIdentifierService $caIdentifierService;
+	private CrlMapper $crlMapper;
+	private LoggerInterface $logger;
 	private string $tempDir;
 	public function setUp(): void {
 		$this->config = \OCP\Server::get(IConfig::class);
@@ -43,6 +47,8 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->urlGenerator = \OCP\Server::get(IURLGenerator::class);
 		$this->tempDir = $this->tempManager->getTemporaryFolder('certificate');
 		$this->caIdentifierService = \OCP\Server::get(CaIdentifierService::class);
+		$this->crlMapper = \OCP\Server::get(CrlMapper::class);
+		$this->logger = \OCP\Server::get(LoggerInterface::class);
 	}
 
 	private function getInstance() {
@@ -56,6 +62,8 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			$this->serialNumberService,
 			$this->caIdentifierService,
+			$this->crlMapper,
+			$this->logger,
 		);
 	}
 
