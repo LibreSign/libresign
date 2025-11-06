@@ -49,7 +49,7 @@ interface IEngineHandler {
 
 	public function isSetupOk(): bool;
 
-	public function getConfigPath(): string;
+	public function getCurrentConfigPath(): string;
 
 	public function setConfigPath(string $configPath): IEngineHandler;
 

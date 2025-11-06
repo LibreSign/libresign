@@ -64,7 +64,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			$caIdentifierService,
 		);
 
-		$this->cfsslServerHandler->configCallback(fn () => $this->getConfigPath());
+		$this->cfsslServerHandler->configCallback(fn () => $this->getCurrentConfigPath());
 	}
 
 	#[\Override]
@@ -109,7 +109,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 
 	#[\Override]
 	public function isSetupOk(): bool {
-		$configPath = $this->getConfigPath();
+		$configPath = $this->getCurrentConfigPath();
 		$certificate = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
 		$privateKey = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
 		if (!$certificate || !$privateKey) {
@@ -221,7 +221,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 
 	private function gencert(): void {
 		$binary = $this->getBinary();
-		$configPath = $this->getConfigPath();
+		$configPath = $this->getCurrentConfigPath();
 		$csrFile = $configPath . '/csr_server.json';
 
 		$cmd = escapeshellcmd($binary) . ' gencert -initca ' . escapeshellarg($csrFile);
@@ -292,7 +292,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			return;
 		}
 		$binary = $this->getBinary();
-		$configPath = $this->getConfigPath();
+		$configPath = $this->getCurrentConfigPath();
 		if (!$configPath) {
 			throw new LibresignException('CFSSL not configured.');
 		}
