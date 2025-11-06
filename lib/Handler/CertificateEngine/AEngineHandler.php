@@ -436,7 +436,7 @@ abstract class AEngineHandler implements IEngineHandler {
 	}
 
 	protected function checkRootCertificateModernFeatures(): ?ConfigureCheckHelper {
-		$configPath = $this->getConfigPath();
+		$configPath = $this->getCurrentConfigPath();
 		$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
 
 		try {
@@ -574,7 +574,7 @@ abstract class AEngineHandler implements IEngineHandler {
 
 	public function toArray(): array {
 		$return = [
-			'configPath' => $this->getConfigPath(),
+			'configPath' => $this->getCurrentConfigPath(),
 			'generated' => $this->isSetupOk(),
 			'rootCert' => [
 				'commonName' => $this->getCommonName(),
