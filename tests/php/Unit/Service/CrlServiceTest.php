@@ -37,7 +37,7 @@ class CrlServiceTest extends TestCase {
 
 
 	public function testRevokeCertificateWithValidReasonCode(): void {
-		$serialNumber = 123456;
+		$serialNumber = '123456';
 		$reasonCode = 1; // keyCompromise
 		$reasonText = 'Certificate compromised';
 		$revokedBy = 'admin';
@@ -50,7 +50,7 @@ class CrlServiceTest extends TestCase {
 		$this->crlMapper->expects($this->once())
 			->method('revokeCertificate')
 			->with(
-				123456,
+				'123456',
 				CRLReason::KEY_COMPROMISE,
 				$reasonText,
 				$revokedBy,
