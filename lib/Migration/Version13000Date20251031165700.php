@@ -24,6 +24,7 @@ use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 use Override;
+use Psr\Log\LoggerInterface;
 
 class Version13000Date20251031165700 extends SimpleMigrationStep {
 	protected IAppData $appData;
@@ -36,6 +37,7 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 		private InstallService $installService,
 		private IDBConnection $connection,
 		private IAppDataFactory $appDataFactory,
+		private LoggerInterface $logger,
 	) {
 		$this->appData = $appDataFactory->get('libresign');
 	}
@@ -227,6 +229,7 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 			$qb->executeStatement();
 
 		} catch (\Exception $e) {
+			$this->logger->error('Error creating backup folder for CRL data during migration: ' . $e->getMessage(), ['exception' => $e]);
 			return;
 		}
 	}
@@ -274,6 +277,7 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 			return new \DateTime('@' . $parsed['validFrom_time_t']);
 
 		} catch (\Exception $e) {
+			$this->logger->error('Error parsing certificate for creation date during migration: ' . $e->getMessage(), ['exception' => $e]);
 			return null;
 		}
 	}
@@ -286,6 +290,7 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 
 			$this->persistData($qb, 'backup-table-libresign_crl_Version13000Date20251031165700.csv');
 		} catch (\Exception $e) {
+			$this->logger->error('Error backing up CRL data to disk during migration: ' . $e->getMessage(), ['exception' => $e]);
 		}
 	}
 
@@ -354,6 +359,7 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 			$file->delete();
 
 		} catch (\Exception $e) {
+			$this->logger->error('Error restoring CRL data from disk during migration: ' . $e->getMessage(), ['exception' => $e]);
 		}
 	}
 }
