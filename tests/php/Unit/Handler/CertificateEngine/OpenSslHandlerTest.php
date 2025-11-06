@@ -6,6 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
@@ -20,7 +21,6 @@ use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
 use Psr\Log\LoggerInterface;
-use OCA\Libresign\Db\CrlMapper;
 
 final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IConfig $config;
