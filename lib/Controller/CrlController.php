@@ -79,9 +79,9 @@ class CrlController extends Controller {
 	#[PublicPage]
 	#[FrontpageRoute(verb: 'GET', url: '/crl/check/{serialNumber}')]
 	public function checkCertificateStatus(string $serialNumber): DataResponse {
-		if (!$this->isValidHexSerial($serialNumber)) {
+		if (!$this->isValidSerial($serialNumber)) {
 			return new DataResponse(
-				['error' => 'Invalid serial number', 'message' => 'Serial number must be in hex format (no 0x prefix)'],
+				['error' => 'Invalid serial number', 'message' => 'Serial number must be numeric (decimal or hex format, no 0x prefix)'],
 				Http::STATUS_BAD_REQUEST
 			);
 		}
@@ -89,15 +89,19 @@ class CrlController extends Controller {
 		return new DataResponse($this->crlService->getCertificateStatusResponse($serialNumber));
 	}
 
-	private function isValidHexSerial(string $serialNumber): bool {
+	private function isValidSerial(string $serialNumber): bool {
 		$serialNumber = trim($serialNumber);
 
-		if (empty($serialNumber)) {
+		if ($serialNumber === '') {
 			return false;
 		}
 
 		if (str_starts_with(strtolower($serialNumber), '0x')) {
 			return false;
+		}
+
+		if (ctype_digit($serialNumber)) {
+			return true;
 		}
 
 		return ctype_xdigit($serialNumber);

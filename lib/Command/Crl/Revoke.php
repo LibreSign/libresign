@@ -39,7 +39,7 @@ class Revoke extends Command {
 			->addArgument(
 				'serial-number',
 				InputArgument::REQUIRED,
-				'Serial number of the certificate to revoke (hex format without 0x prefix)'
+				'Serial number of the certificate to revoke (decimal or hex format, no 0x prefix)'
 			)
 			->addOption(
 				'reason',
@@ -76,8 +76,8 @@ class Revoke extends Command {
 
 		$io->title('LibreSign CRL Certificate Revocation');
 
-		if (!$this->isValidHexSerial($serialNumber)) {
-			$io->error("Invalid serial number: {$serialNumber}. Must be in hex format (no 0x prefix).");
+		if (!$this->isValidSerial($serialNumber)) {
+			$io->error("Invalid serial number: {$serialNumber}. Must be in decimal or hex format (no 0x prefix).");
 			return Command::FAILURE;
 		}
 
@@ -170,15 +170,19 @@ class Revoke extends Command {
 		return Command::SUCCESS;
 	}
 
-	private function isValidHexSerial(string $serialNumber): bool {
+	private function isValidSerial(string $serialNumber): bool {
 		$serialNumber = trim($serialNumber);
 
-		if (empty($serialNumber)) {
+		if ($serialNumber === '') {
 			return false;
 		}
 
 		if (str_starts_with(strtolower($serialNumber), '0x')) {
 			return false;
+		}
+
+		if (ctype_digit($serialNumber)) {
+			return true;
 		}
 
 		return ctype_xdigit($serialNumber);
