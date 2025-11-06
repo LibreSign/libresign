@@ -74,7 +74,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		openssl_x509_export($x509, $certout);
 		openssl_pkey_export($privateKey, $pkeyout);
 
-		$configPath = $this->getConfigPath();
+		$configPath = $this->getCurrentConfigPath();
 		CertificateHelper::saveFile($configPath . '/ca.csr', $csrout);
 		CertificateHelper::saveFile($configPath . '/ca.pem', $certout);
 		CertificateHelper::saveFile($configPath . '/ca-key.pem', $pkeyout);
@@ -101,7 +101,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 	}
 
 	public function generateCertificate(): string {
-		$configPath = $this->getConfigPath();
+		$configPath = $this->getCurrentConfigPath();
 		$rootCertificate = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
 		$rootPrivateKey = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
 		if (empty($rootCertificate) || empty($rootPrivateKey)) {
@@ -282,7 +282,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 	private function saveCaConfigFile(array $config): string {
 		$iniContent = CertificateHelper::arrayToIni($config);
-		$configFile = $this->getConfigPath() . '/openssl.cnf';
+		$configFile = $this->getCurrentConfigPath() . '/openssl.cnf';
 		CertificateHelper::saveFile($configFile, $iniContent);
 		return $configFile;
 	}
@@ -344,7 +344,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 	}
 
 	public function isSetupOk(): bool {
-		$configPath = $this->getConfigPath();
+		$configPath = $this->getCurrentConfigPath();
 		if (empty($configPath)) {
 			return false;
 		}
@@ -453,7 +453,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 	}
 
 	private function createCrlConfig(array $revokedCertificates): string {
-		$configPath = $this->getConfigPath();
+		$configPath = $this->getCurrentConfigPath();
 		$indexFile = $configPath . DIRECTORY_SEPARATOR . 'index.txt';
 		$crlNumberFile = $configPath . DIRECTORY_SEPARATOR . 'crlnumber';
 		$configFile = $configPath . DIRECTORY_SEPARATOR . 'crl.conf';

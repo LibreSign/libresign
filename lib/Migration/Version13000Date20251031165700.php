@@ -64,7 +64,7 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 		$engine = $this->certificateEngineFactory->getEngine();
 		$configPath = $this->appConfig->getValueString(Application::APP_ID, 'config_path', '');
 		if (empty($configPath)) {
-			$engine->setConfigPath($engine->getConfigPath());
+			$engine->setConfigPath($engine->getCurrentConfigPath());
 		}
 	}
 
@@ -98,7 +98,7 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 			}
 
 			$this->appConfig->deleteKey(Application::APP_ID, 'config_path');
-			$configPath = $engine->getConfigPath();
+			$configPath = $engine->getCurrentConfigPath();
 			$configFiles = glob($rootPath . $engineName . '_config/*');
 
 			if (!empty($configFiles) && empty(glob($configPath . '/*'))) {

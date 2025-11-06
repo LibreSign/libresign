@@ -16,7 +16,7 @@ class CfsslServerHandler {
 	private string $csrServerFile = '';
 	private string $configServerFile = '';
 	private string $configServerFileHash = '';
-	private Closure $getConfigPath;
+	private Closure $getCurrentConfigPath;
 
 	public function __construct(
 		private CertificatePolicyService $certificatePolicyService,
@@ -29,8 +29,8 @@ class CfsslServerHandler {
 	 * try to create the config path if not exists.
 	 */
 	public function configCallback(Closure $callback): void {
-		$this->getConfigPath = $callback;
-		$this->getConfigPath = function () use ($callback): void {
+		$this->getCurrentConfigPath = $callback;
+		$this->getCurrentConfigPath = function () use ($callback): void {
 			if ($this->csrServerFile) {
 				return;
 			}
@@ -85,7 +85,7 @@ class CfsslServerHandler {
 		foreach ($names as $id => $name) {
 			$content['names'][0][$id] = is_array($name['value']) ? implode(', ', $name['value']) : $name['value'];
 		}
-		($this->getConfigPath)();
+		($this->getCurrentConfigPath)();
 		$response = file_put_contents($this->csrServerFile, json_encode($content));
 		if ($response === false) {
 			throw new LibresignException(
@@ -134,7 +134,7 @@ class CfsslServerHandler {
 
 	private function saveConfig(array $config): void {
 		$jsonConfig = json_encode($config);
-		($this->getConfigPath)();
+		($this->getCurrentConfigPath)();
 		$response = file_put_contents($this->configServerFile, $jsonConfig);
 		if ($response === false) {
 			throw new LibresignException('Error while writing config server file!', 500);
@@ -144,7 +144,7 @@ class CfsslServerHandler {
 	}
 
 	public function updateExpirity(int $expirity): void {
-		($this->getConfigPath)();
+		($this->getCurrentConfigPath)();
 		if (file_exists($this->configServerFileHash)) {
 			$hashes = file_get_contents($this->configServerFileHash);
 			preg_match('/(?<hash>\w*) +config_server.json/', $hashes, $matches);
