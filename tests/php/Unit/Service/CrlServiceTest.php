@@ -93,7 +93,7 @@ class CrlServiceTest extends TestCase {
 			->method('getEngine')
 			->willReturn($mockEngine);
 
-		$result = $this->service->generateCrlDer();
+		$result = $this->service->generateCrlDer('test-instance', 1, 'openssl');
 
 		$this->assertIsString($result);
 		$this->assertNotEmpty($result);
