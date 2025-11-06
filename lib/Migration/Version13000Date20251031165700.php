@@ -339,12 +339,11 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 				}
 
 				$id = (int)$row[$idIndex];
-				$originalSerial = (int)$row[$serialIndex];
-				$hexSerial = strtoupper(str_pad(dechex($originalSerial), 16, '0', STR_PAD_LEFT));
+				$serialNumber = $row[$serialIndex];
 
 				$qb = $this->connection->getQueryBuilder();
 				$qb->update('libresign_crl')
-					->set('serial_number', $qb->createNamedParameter($hexSerial))
+					->set('serial_number', $qb->createNamedParameter($serialNumber))
 					->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
 
 				$qb->executeStatement();
