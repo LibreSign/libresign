@@ -65,7 +65,11 @@ class CaIdentifierService {
 
 	public function generatePkiDirectoryName(string $caId): string {
 		$parsed = $this->parseCaId($caId);
-		return 'pki/' . $parsed['instanceId'] . '_' . $parsed['generation'] . '_' . $parsed['engineName'];
+		return $this->generatePkiDirectoryNameFromParams($parsed['instanceId'], $parsed['generation'], $parsed['engineName']);
+	}
+
+	public function generatePkiDirectoryNameFromParams(string $instanceId, int $generation, string $engineName): string {
+		return 'pki/' . $instanceId . '_' . $generation . '_' . $engineName;
 	}
 
 	private function parseCaId(string $caId): array {
