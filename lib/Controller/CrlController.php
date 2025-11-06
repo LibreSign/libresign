@@ -36,6 +36,7 @@ class CrlController extends Controller {
 	 *
 	 * @param string $instanceId Instance identifier
 	 * @param int $generation Generation identifier
+	 * @param string $engineType Engine type identifier
 	 * @return DataDownloadResponse<Http::STATUS_OK, string, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string, message: string}, array{}>
 	 *
 	 * 200: CRL retrieved successfully in DER format
