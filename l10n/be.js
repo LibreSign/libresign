@@ -98,6 +98,7 @@ OC.L10N.register(
     "Password reset" : "Скід пароля",
     "Current password" : "Бягучы пароль",
     "New password" : "Новы пароль",
+    "Item {index}" : "Элемент {index}",
     "Remove" : "Выдаліць",
     "I will not use root certificate" : "Я не буду выкарыстоўваць каранёвы сертыфікат",
     "Message" : "Паведамленне",
