@@ -478,7 +478,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	}
 
 	#[\Override]
-	public function generateCrlDer(array $revokedCertificates): string {
+	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation): string {
 		try {
 			$queryParams = [];
 			$queryParams['expiry'] = '168h'; // 7 days * 24 hours

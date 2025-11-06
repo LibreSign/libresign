@@ -34,6 +34,8 @@ class CrlController extends Controller {
 	/**
 	 * Get Certificate Revocation List in DER format (RFC 5280 compliant)
 	 *
+	 * @param string $instanceId Instance identifier
+	 * @param int $generation Generation identifier
 	 * @return DataDownloadResponse<Http::STATUS_OK, string, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string, message: string}, array{}>
 	 *
 	 * 200: CRL retrieved successfully in DER format
@@ -42,10 +44,10 @@ class CrlController extends Controller {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	#[FrontpageRoute(verb: 'GET', url: '/crl')]
-	public function getRevocationList(): DataDownloadResponse|DataResponse {
+	#[FrontpageRoute(verb: 'GET', url: '/crl/{instanceId}/{generation}/crl.der')]
+	public function getRevocationList(string $instanceId, int $generation): DataDownloadResponse|DataResponse {
 		try {
-			$crlDer = $this->crlService->generateCrlDer();
+			$crlDer = $this->crlService->generateCrlDer($instanceId, $generation);
 
 			return new DataDownloadResponse(
 				$crlDer,

@@ -286,6 +286,21 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $this->configPath;
 	}
 
+	public function getConfigPathByParams(string $instanceId, int $generation): string {
+		$engineName = $this->getName();
+
+		$pkiDirName = $this->caIdentifierService->generatePkiDirectoryNameFromParams($instanceId, $generation, $engineName);
+		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
+		$systemInstanceId = $this->config->getSystemValue('instanceid');
+		$pkiPath = $dataDir . '/appdata_' . $systemInstanceId . '/libresign/' . $pkiDirName;
+
+		if (!is_dir($pkiPath)) {
+			throw new \RuntimeException("Config path does not exist for instanceId: {$instanceId}, generation: {$generation}");
+		}
+
+		return $pkiPath;
+	}
+
 	private function initializePkiConfigPath(): string {
 		$caId = $this->getCaId();
 		if (empty($caId)) {

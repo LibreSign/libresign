@@ -57,7 +57,7 @@ class NoneHandler extends AEngineHandler implements IEngineHandler {
 	}
 
 	#[\Override]
-	public function generateCrlDer(array $revokedCertificates): string {
+	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation): string {
 		throw new \RuntimeException('CRL generation is not supported by None handler');
 	}
 }

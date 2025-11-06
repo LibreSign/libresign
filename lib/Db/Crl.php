@@ -36,6 +36,12 @@ use OCP\DB\Types;
  * @method ?\DateTime getValidTo()
  * @method void setComment(?string $comment)
  * @method ?string getComment()
+ * @method void setEngine(string $engine)
+ * @method string getEngine()
+ * @method void setInstanceId(?string $instanceId)
+ * @method ?string getInstanceId()
+ * @method void setGeneration(?int $generation)
+ * @method ?int getGeneration()
  */
 class Crl extends Entity {
 	protected int $serialNumber = 0;
@@ -49,6 +55,9 @@ class Crl extends Entity {
 	protected ?\DateTime $issuedAt = null;
 	protected ?\DateTime $validTo = null;
 	protected ?string $comment = null;
+	protected string $engine = '';
+	protected ?string $instanceId = null;
+	protected ?int $generation = null;
 
 	public function __construct() {
 		$this->addType('id', Types::BIGINT);
@@ -61,6 +70,9 @@ class Crl extends Entity {
 		$this->addType('issuedAt', Types::DATETIME);
 		$this->addType('validTo', Types::DATETIME);
 		$this->addType('comment', Types::STRING);
+		$this->addType('engine', Types::STRING);
+		$this->addType('instanceId', Types::STRING);
+		$this->addType('generation', Types::BIGINT);
 	}
 
 	public function getStatus(): string {
