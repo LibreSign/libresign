@@ -39,7 +39,7 @@ class Revoke extends Command {
 			->addArgument(
 				'serial-number',
 				InputArgument::REQUIRED,
-				'Serial number of the certificate to revoke'
+				'Serial number of the certificate to revoke (hex format without 0x prefix)'
 			)
 			->addOption(
 				'reason',
@@ -76,8 +76,8 @@ class Revoke extends Command {
 
 		$io->title('LibreSign CRL Certificate Revocation');
 
-		if (!is_numeric($serialNumber) || (int)$serialNumber <= 0) {
-			$io->error("Invalid serial number: {$serialNumber}. Must be a positive integer.");
+		if (!$this->isValidHexSerial($serialNumber)) {
+			$io->error("Invalid serial number: {$serialNumber}. Must be in hex format (no 0x prefix).");
 			return Command::FAILURE;
 		}
 
@@ -102,7 +102,7 @@ class Revoke extends Command {
 		);
 
 		try {
-			$status = $this->crlService->getCertificateStatus((int)$serialNumber);
+			$status = $this->crlService->getCertificateStatus($serialNumber);
 
 			$io->section('Current Certificate Status');
 			$io->text("Status: {$status['status']}");
@@ -144,7 +144,7 @@ class Revoke extends Command {
 		$io->section('Performing Revocation');
 		try {
 			$success = $this->crlService->revokeCertificate(
-				(int)$serialNumber,
+				$serialNumber,
 				$reasonCode,
 				$reasonText,
 				'cli-admin'
@@ -168,5 +168,19 @@ class Revoke extends Command {
 		}
 
 		return Command::SUCCESS;
+	}
+
+	private function isValidHexSerial(string $serialNumber): bool {
+		$serialNumber = trim($serialNumber);
+
+		if (empty($serialNumber)) {
+			return false;
+		}
+
+		if (str_starts_with(strtolower($serialNumber), '0x')) {
+			return false;
+		}
+
+		return ctype_xdigit($serialNumber);
 	}
 }

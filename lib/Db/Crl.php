@@ -16,8 +16,8 @@ use OCP\DB\Types;
 /**
  * @method void setId(int $id)
  * @method int getId()
- * @method void setSerialNumber(int $serialNumber)
- * @method int getSerialNumber()
+ * @method void setSerialNumber(string $serialNumber)
+ * @method string getSerialNumber()
  * @method void setOwner(string $owner)
  * @method string getOwner()
  * @method void setReasonCode(?int $reasonCode)
@@ -44,7 +44,7 @@ use OCP\DB\Types;
  * @method ?int getGeneration()
  */
 class Crl extends Entity {
-	protected int $serialNumber = 0;
+	protected string $serialNumber = '';
 	protected string $owner = '';
 	protected string $status = 'issued';
 	protected ?int $reasonCode = null;
@@ -61,7 +61,7 @@ class Crl extends Entity {
 
 	public function __construct() {
 		$this->addType('id', Types::BIGINT);
-		$this->addType('serialNumber', Types::BIGINT);
+		$this->addType('serialNumber', Types::STRING);
 		$this->addType('status', Types::STRING);
 		$this->addType('reasonCode', Types::SMALLINT);
 		$this->addType('crlNumber', Types::BIGINT);

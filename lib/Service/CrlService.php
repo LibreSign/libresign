@@ -66,7 +66,7 @@ class CrlService {
 		}
 	}
 
-	public function getCertificateStatus(int $serialNumber, ?DateTime $checkDate = null): array {
+	public function getCertificateStatus(string $serialNumber, ?DateTime $checkDate = null): array {
 		try {
 			$certificate = $this->crlMapper->findBySerialNumber($serialNumber);
 
@@ -92,11 +92,11 @@ class CrlService {
 		}
 	}
 
-	public function getCertificateStatusResponse(int $serialNumber): array {
+	public function getCertificateStatusResponse(string $serialNumber): array {
 		$statusInfo = $this->getCertificateStatus($serialNumber);
 
 		$response = [
-			'serial_number' => (string)$serialNumber,
+			'serial_number' => $serialNumber,
 			'status' => $statusInfo['status'],
 			'checked_at' => (new \DateTime())->format('Y-m-d\TH:i:s\Z'),
 		];
@@ -119,12 +119,12 @@ class CrlService {
 		return $response;
 	}
 
-	public function isInvalidAt(int $serialNumber, ?DateTime $checkDate = null): bool {
+	public function isInvalidAt(string $serialNumber, ?DateTime $checkDate = null): bool {
 		return $this->crlMapper->isInvalidAt($serialNumber, $checkDate);
 	}
 
-	public function getRevokedCertificates(string $instanceId = '', int $generation = 0): array {
-		$certificates = $this->crlMapper->getRevokedCertificates($instanceId, $generation);
+	public function getRevokedCertificates(string $instanceId = '', int $generation = 0, string $engine = ''): array {
+		$certificates = $this->crlMapper->getRevokedCertificates($instanceId, $generation, $engine);
 
 		$result = [];
 		foreach ($certificates as $certificate) {
@@ -159,9 +159,9 @@ class CrlService {
 		return $this->crlMapper->getRevocationStatistics();
 	}
 
-	public function generateCrlDer(string $instanceId, int $generation): string {
+	public function generateCrlDer(string $instanceId, int $generation, string $engineType): string {
 		try {
-			$revokedCertificates = $this->crlMapper->getRevokedCertificates($instanceId, $generation);
+			$revokedCertificates = $this->crlMapper->getRevokedCertificates($instanceId, $generation, $engineType);
 
 			$engine = $this->certificateEngineFactory->getEngine();
 
