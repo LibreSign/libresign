@@ -49,6 +49,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->caIdentifierService = \OCP\Server::get(CaIdentifierService::class);
 		$this->crlMapper = \OCP\Server::get(CrlMapper::class);
 		$this->logger = \OCP\Server::get(LoggerInterface::class);
+		$this->caIdentifierService->generateCaId('openssl');
 	}
 
 	private function getInstance() {

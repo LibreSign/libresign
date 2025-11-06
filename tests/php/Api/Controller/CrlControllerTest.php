@@ -53,7 +53,7 @@ class CrlControllerTest extends ApiTestCase {
 	public function testGetRevocationListReturnsValidResponse(): void {
 		$this->request
 			->withMethod('GET')
-			->withPath('/crl/test-instance/1/openssl/crl.der');
+			->withPath('/crl/check/' . self::VALID_CERT_SERIAL);
 
 		$this->assertRequest();
 	}
@@ -109,9 +109,10 @@ class CrlControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testCrlEndpointsArePublic(): void {
+		// Test another endpoint that doesn't require CA
 		$this->request
 			->withMethod('GET')
-			->withPath('/crl/test-instance/1/openssl/crl.der');
+			->withPath('/crl/check/' . self::VALID_CERT_SERIAL);
 
 		$this->assertRequest();
 	}
