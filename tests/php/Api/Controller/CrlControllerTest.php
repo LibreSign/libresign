@@ -96,10 +96,10 @@ class CrlControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testCheckCertificateStatusWithZeroSerial(): void {
+	public function testCheckCertificateStatusWithNonHexOrNumeric(): void {
 		$this->request
 			->withMethod('GET')
-			->withPath('/crl/check/0')
+			->withPath('/crl/check/$')
 			->assertResponseCode(400);
 
 		$this->assertRequest();
