@@ -302,6 +302,7 @@ OC.L10N.register(
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "تحديد المجموعات المُصرَّح لها بطلب توقيع المستندات. مجموعة المسئولين هي المجموعة الافتراضية ولا تحتاج إلى تعيين.",
     "Optional attributes" : "صفات attributes اختيارية",
     "Select a custom name" : "حدد اسمًا مخصصًا",
+    "Add new" : "إضافة جديد",
     "Remove custom name entry from root certificate" : "إزالة إدخال الاسم المخصص من شهادة الجذر",
     "Remove" : "حذف",
     "Certificate engine" : "محرك شهادات المصادقة",
