@@ -39,6 +39,7 @@ class CrlMapper extends QBMapper {
 	public function createCertificate(
 		int $serialNumber,
 		string $owner,
+		string $engine,
 		DateTime $issuedAt,
 		?DateTime $validTo = null,
 	): Crl {
@@ -48,6 +49,7 @@ class CrlMapper extends QBMapper {
 		$certificate->setStatus(CRLStatus::ISSUED);
 		$certificate->setIssuedAt($issuedAt);
 		$certificate->setValidTo($validTo);
+		$certificate->setEngine($engine);
 
 		/** @var Crl */
 		return $this->insert($certificate);
@@ -79,13 +81,20 @@ class CrlMapper extends QBMapper {
 		return $this->update($certificate);
 	}
 
-	public function getRevokedCertificates(): array {
+	public function getRevokedCertificates(string $instanceId = '', int $generation = 0): array {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
 			->from($this->getTableName())
 			->where($qb->expr()->eq('status', $qb->createNamedParameter(CRLStatus::REVOKED->value)))
 			->orderBy('revoked_at', 'DESC');
+
+		if ($instanceId !== '') {
+			$qb->andWhere($qb->expr()->eq('instance_id', $qb->createNamedParameter($instanceId)));
+		}
+		if ($generation !== 0) {
+			$qb->andWhere($qb->expr()->eq('generation', $qb->createNamedParameter($generation, IQueryBuilder::PARAM_INT)));
+		}
 
 		return $this->findEntities($qb);
 	}

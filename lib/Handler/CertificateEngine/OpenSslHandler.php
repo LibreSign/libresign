@@ -378,8 +378,8 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 	}
 
 	#[\Override]
-	public function generateCrlDer(array $revokedCertificates): string {
-		$configPath = $this->getConfigPath();
+	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation): string {
+		$configPath = $this->getConfigPathByParams($instanceId, $generation);
 		$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
 		$caKeyPath = $configPath . DIRECTORY_SEPARATOR . 'ca-key.pem';
 		$crlDerPath = $configPath . DIRECTORY_SEPARATOR . 'crl.der';

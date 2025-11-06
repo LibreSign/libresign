@@ -123,8 +123,8 @@ class CrlService {
 		return $this->crlMapper->isInvalidAt($serialNumber, $checkDate);
 	}
 
-	public function getRevokedCertificates(): array {
-		$certificates = $this->crlMapper->getRevokedCertificates();
+	public function getRevokedCertificates(string $instanceId = '', int $generation = 0): array {
+		$certificates = $this->crlMapper->getRevokedCertificates($instanceId, $generation);
 
 		$result = [];
 		foreach ($certificates as $certificate) {
@@ -159,20 +159,17 @@ class CrlService {
 		return $this->crlMapper->getRevocationStatistics();
 	}
 
-	/**
-	 * @inheritDoc
-	 */
-	public function generateCrlDer(): string {
+	public function generateCrlDer(string $instanceId, int $generation): string {
 		try {
-			$revokedCertificates = $this->crlMapper->getRevokedCertificates();
+			$revokedCertificates = $this->crlMapper->getRevokedCertificates($instanceId, $generation);
 
 			$engine = $this->certificateEngineFactory->getEngine();
 
-			if (method_exists($engine, 'generateCrlDer')) {
-				return $engine->generateCrlDer($revokedCertificates);
+			if (!method_exists($engine, 'generateCrlDer')) {
+				throw new \RuntimeException('Current certificate engine does not support CRL generation');
 			}
 
-			throw new \RuntimeException('Current certificate engine does not support CRL generation');
+			return $engine->generateCrlDer($revokedCertificates, $instanceId, $generation);
 		} catch (\Throwable $e) {
 			$this->logger->error('Failed to generate CRL', [
 				'exception' => $e,

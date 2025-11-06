@@ -13,9 +13,12 @@ use Closure;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\CaIdentifierService;
+use OCA\Libresign\Service\Install\InstallService;
 use OCP\DB\ISchemaWrapper;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IAppConfig;
 use OCP\IConfig;
+use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 use Override;
@@ -26,11 +29,26 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 		private IAppConfig $appConfig,
 		private CertificateEngineFactory $certificateEngineFactory,
 		private CaIdentifierService $caIdentifierService,
+		private InstallService $installService,
+		private IDBConnection $connection,
 	) {
 	}
 
 	/**
-	 * Fix config path for OpenSSL engine when this info does not exist
+	 * Prepare operations before schema changes
+	 *
+	 * @param IOutput $output
+	 * @param Closure(): ISchemaWrapper $schemaClosure
+	 * @param array $options
+	 */
+	#[Override]
+	public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
+		$this->addConfigPathToOpenSsl();
+		$this->convertRootCertOuStringToArray();
+	}
+
+	/**
+	 * Apply schema changes to the database
 	 *
 	 * @param IOutput $output
 	 * @param Closure(): ISchemaWrapper $schemaClosure
@@ -42,18 +60,33 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
 
-		$this->addConfigPathToOpenSsl();
-		$this->convertRootCertOuStringToArray();
-		$this->migrateToNewestConfigFormat();
-
 		$engineName = $this->appConfig->getValueString(Application::APP_ID, 'certificate_engine', '');
 		if ($schema->hasTable('libresign_crl')) {
 			$crlTable = $schema->getTable('libresign_crl');
 			if (!$crlTable->hasColumn('engine')) {
 				$crlTable->addColumn('engine', 'string', ['default' => $engineName]);
 			}
+			if (!$crlTable->hasColumn('instance_id')) {
+				$crlTable->addColumn('instance_id', 'string', ['notnull' => false]);
+			}
+			if (!$crlTable->hasColumn('generation')) {
+				$crlTable->addColumn('generation', 'integer', ['notnull' => false]);
+			}
 		}
 		return $schema;
+	}
+
+	/**
+	 * Execute operations that depend on the new schema
+	 *
+	 * @param IOutput $output
+	 * @param Closure(): ISchemaWrapper $schemaClosure
+	 * @param array $options
+	 */
+	#[Override]
+	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
+		$this->migrateToNewestConfigFormat();
+		$this->populateCrlInstanceAndGeneration();
 	}
 
 	private function addConfigPathToOpenSsl(): void {
@@ -137,6 +170,76 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 		if (is_string($ouValue)) {
 			$rootCert['names']['OU']['value'] = [$ouValue];
 			$this->appConfig->setValueArray(Application::APP_ID, 'rootCert', $rootCert);
+		}
+	}
+
+	private function populateCrlInstanceAndGeneration(): void {
+		if (!$this->connection->tableExists('libresign_crl')) {
+			return;
+		}
+
+		$currentCaId = $this->appConfig->getValueString(Application::APP_ID, 'ca_id');
+		if (empty($currentCaId)) {
+			return;
+		}
+
+		try {
+			$pattern = '/^libresign-ca-id:(?P<instanceId>[a-z0-9]+)_g:(?P<generation>\d+)_e:(?P<engineType>[oc])$/';
+			if (!preg_match($pattern, $currentCaId, $matches)) {
+				return;
+			}
+
+			$instanceId = $matches['instanceId'];
+			$generation = (int)$matches['generation'];
+
+			$rootCertCreationDate = $this->getRootCertificateCreationDate();
+			if ($rootCertCreationDate === null) {
+				return;
+			}
+
+			$qb = $this->connection->getQueryBuilder();
+			$qb->update('libresign_crl')
+				->set('instance_id', $qb->createNamedParameter($instanceId))
+				->set('generation', $qb->createNamedParameter($generation, IQueryBuilder::PARAM_INT))
+				->where($qb->expr()->gte('issued_at', $qb->createNamedParameter($rootCertCreationDate->getTimestamp(), IQueryBuilder::PARAM_INT)))
+				->andWhere($qb->expr()->isNull('instance_id')); // Only update records that don't have instance_id set
+
+			$qb->executeStatement();
+
+		} catch (\Exception $e) {
+			return;
+		}
+	}
+
+	private function getRootCertificateCreationDate(): ?\DateTime {
+		try {
+			$engine = $this->certificateEngineFactory->getEngine();
+			$configPath = $engine->getCurrentConfigPath();
+			$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
+
+			if (!file_exists($caCertPath)) {
+				return null;
+			}
+
+			$certContent = file_get_contents($caCertPath);
+			if (!$certContent) {
+				return null;
+			}
+
+			$x509Resource = openssl_x509_read($certContent);
+			if (!$x509Resource) {
+				return null;
+			}
+
+			$parsed = openssl_x509_parse($x509Resource);
+			if (!$parsed || !isset($parsed['validFrom_time_t'])) {
+				return null;
+			}
+
+			return new \DateTime('@' . $parsed['validFrom_time_t']);
+
+		} catch (\Exception $e) {
+			return null;
 		}
 	}
 }
