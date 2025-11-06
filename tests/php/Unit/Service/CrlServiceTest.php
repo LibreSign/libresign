@@ -67,7 +67,7 @@ class CrlServiceTest extends TestCase {
 		$this->expectException(\InvalidArgumentException::class);
 		$this->expectExceptionMessage('Invalid CRLReason code: 99');
 
-		$this->service->revokeCertificate(123456, 99, 'Test', 'admin');
+		$this->service->revokeCertificate('123456', 99, 'Test', 'admin');
 	}
 
 	public function testGenerateCrlDerReturnsValidBinaryData(): void {
