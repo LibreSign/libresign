@@ -53,7 +53,7 @@ class CrlControllerTest extends ApiTestCase {
 	public function testGetRevocationListReturnsValidResponse(): void {
 		$this->request
 			->withMethod('GET')
-			->withPath('/crl');
+			->withPath('/crl/test-instance/1/openssl/crl.der');
 
 		$this->assertRequest();
 	}
@@ -111,7 +111,7 @@ class CrlControllerTest extends ApiTestCase {
 	public function testCrlEndpointsArePublic(): void {
 		$this->request
 			->withMethod('GET')
-			->withPath('/crl');
+			->withPath('/crl/test-instance/1/openssl/crl.der');
 
 		$this->assertRequest();
 	}
