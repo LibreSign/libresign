@@ -289,7 +289,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$serialInt = (int)$parsed['serialNumber'];
 		$this->assertGreaterThanOrEqual(1000000, $serialInt, 'Serial number should be >= 1000000');
-		$this->assertLessThanOrEqual(2147483647, $serialInt, 'Serial number should be <= 2147483647');
+		$this->assertLessThanOrEqual(PHP_INT_MAX, $serialInt, 'Serial number should be <= PHP_INT_MAX');
 
 		$this->assertIsNumeric($parsed['serialNumber'], 'Serial number should be numeric');
 		$this->assertMatchesRegularExpression('/^[0-9A-Fa-f]+$/', $parsed['serialNumberHex'], 'Serial number hex should contain only hex characters');
