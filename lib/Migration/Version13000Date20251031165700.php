@@ -174,10 +174,6 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 	}
 
 	private function populateCrlInstanceAndGeneration(): void {
-		if (!$this->connection->tableExists('libresign_crl')) {
-			return;
-		}
-
 		$currentCaId = $this->appConfig->getValueString(Application::APP_ID, 'ca_id');
 		if (empty($currentCaId)) {
 			return;
@@ -191,6 +187,8 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 
 			$instanceId = $matches['instanceId'];
 			$generation = (int)$matches['generation'];
+			$engineType = $matches['engineType'];
+			$engineName = $engineType === 'o' ? 'openssl' : 'cfssl';
 
 			$rootCertCreationDate = $this->getRootCertificateCreationDate();
 			if ($rootCertCreationDate === null) {
@@ -201,8 +199,9 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 			$qb->update('libresign_crl')
 				->set('instance_id', $qb->createNamedParameter($instanceId))
 				->set('generation', $qb->createNamedParameter($generation, IQueryBuilder::PARAM_INT))
+				->set('engine', $qb->createNamedParameter($engineName))
 				->where($qb->expr()->gte('issued_at', $qb->createNamedParameter($rootCertCreationDate->getTimestamp(), IQueryBuilder::PARAM_INT)))
-				->andWhere($qb->expr()->isNull('instance_id')); // Only update records that don't have instance_id set
+				->andWhere($qb->expr()->isNull('instance_id'));
 
 			$qb->executeStatement();
 
@@ -213,8 +212,23 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 
 	private function getRootCertificateCreationDate(): ?\DateTime {
 		try {
-			$engine = $this->certificateEngineFactory->getEngine();
-			$configPath = $engine->getCurrentConfigPath();
+			$currentCaId = $this->appConfig->getValueString(Application::APP_ID, 'ca_id');
+			if (empty($currentCaId)) {
+				return null;
+			}
+
+			$pattern = '/^libresign-ca-id:(?P<instanceId>[a-z0-9]+)_g:(?P<generation>\d+)_e:(?P<engineType>[oc])$/';
+			if (!preg_match($pattern, $currentCaId, $matches)) {
+				return null;
+			}
+
+			$instanceId = $matches['instanceId'];
+			$generation = (int)$matches['generation'];
+			$engineType = $matches['engineType'];
+			$engineName = $engineType === 'o' ? 'openssl' : 'cfssl';
+
+			$engine = $this->certificateEngineFactory->getEngine($engineName);
+			$configPath = $engine->getConfigPathByParams($instanceId, $generation);
 			$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
 
 			if (!file_exists($caCertPath)) {
