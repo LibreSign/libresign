@@ -25,6 +25,7 @@ OC.L10N.register(
     "Cancel" : "Bekor qilish",
     "Files" : "Fayllar",
     "Settings" : "Sozlamalar",
+    "Loading …" : "Yuklanmoqda…",
     "Name" : "Name",
     "Update" : "Update",
     "Choose" : "Choose",
