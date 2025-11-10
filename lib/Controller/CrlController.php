@@ -45,14 +45,14 @@ class CrlController extends Controller {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	#[FrontpageRoute(verb: 'GET', url: '/crl/{instanceId}/{generation}/{engineType}/crl.der')]
+	#[FrontpageRoute(verb: 'GET', url: '/crl/libresign_{instanceId}_{generation}_{engineType}.crl')]
 	public function getRevocationList(string $instanceId, int $generation, string $engineType): DataDownloadResponse|DataResponse {
 		try {
 			$crlDer = $this->crlService->generateCrlDer($instanceId, $generation, $engineType);
 
 			return new DataDownloadResponse(
 				$crlDer,
-				'crl.crl',
+				'libresign_' . $instanceId . '_' . $generation . '_' . $engineType . '.crl',
 				'application/pkix-crl'
 			);
 		} catch (\Throwable $e) {
