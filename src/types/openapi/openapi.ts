@@ -21,7 +21,7 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/index.php/apps/libresign/crl/{instanceId}/{generation}/{engineType}/crl.der": {
+    "/index.php/apps/libresign/crl/libresign_{instanceId}_{generation}_{engineType}.crl": {
         parameters: {
             query?: never;
             header?: never;
