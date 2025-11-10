@@ -12,7 +12,7 @@
 				:spellcheck="false"
 				:success="dislaySuccessOID"
 				:disabled="loading || disabled"
-				:error="!OID"
+				:error="!OID && !CPS"
 				@update:modelValue="saveOID" />
 		</fieldset>
 		<fieldset class="settings-section__row">
@@ -104,7 +104,7 @@ export default {
 	},
 	computed: {
 		certificatePolicyValid() {
-			return this.OID && this.CPS
+			return this.CPS
 		},
 	},
 	mounted() {
