@@ -49,7 +49,16 @@
 				</div>
 				<div v-if="index === '0'" class="certificate-field">
 					<span class="field-label">{{ t('libresign', 'Valid to') }}</span>
-					<span class="field-value">{{ certificate.valid_to }}</span>
+					<span class="field-value">
+						<div class="certificate-validity">
+							<NcChip
+								:text="certificateValidityStatus.text"
+								:variant="certificateValidityStatus.variant"
+								:icon-path="certificateValidityStatus.icon"
+								no-close />
+							{{ certificate.valid_to }}
+						</div>
+					</span>
 				</div>
 				<div v-if="certificate.version !== undefined" class="certificate-field">
 					<span class="field-label">{{ t('libresign', 'Version') }}</span>
@@ -114,6 +123,12 @@ import { selectCustonOption } from '../../helpers/certification.js'
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
 import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import NcChip from '@nextcloud/vue/dist/Components/NcChip.js'
+import {
+	mdiCheckCircle,
+	mdiCancel,
+	mdiAlertCircleOutline,
+	mdiHelpCircle,
+} from '@mdi/js'
 
 export default {
 	name: 'CertificateContent',
@@ -134,13 +149,29 @@ export default {
 		},
 	},
 	data() {
-		return {}
+		return {
+			mdiCheckCircle,
+			mdiCancel,
+			mdiAlertCircleOutline,
+			mdiHelpCircle,
+			EXPIRATION_WARNING_DAYS: 30,
+		}
 	},
 	computed: {
 		shouldShowPurposes() {
 			return this.certificate.purposes &&
 				Object.keys(this.certificate.purposes).length &&
 				this.index === '0'
+		},
+		certificateValidityStatus() {
+			const statusMap = {
+				unknown: { text: this.t('libresign', 'Unknown'), variant: 'tertiary', icon: this.mdiHelpCircle },
+				expired: { text: this.t('libresign', 'Expired'), variant: 'error', icon: this.mdiCancel },
+				expiring: { text: this.t('libresign', 'Expires Soon'), variant: 'warning', icon: this.mdiAlertCircleOutline },
+				valid: { text: this.t('libresign', 'Valid'), variant: 'success', icon: this.mdiCheckCircle }
+			}
+
+			return statusMap[this.getValidityStatus()]
 		},
 	},
 	methods: {
@@ -203,6 +234,30 @@ export default {
 				return this.t('libresign', 'Root Certificate (CA)')
 			}
 			return this.t('libresign', 'Certificate {number}', { number: index + 1 })
+		},
+		getValidityStatus() {
+			if (!this.certificate.validTo_time_t) {
+				return 'unknown'
+			}
+
+			const now = new Date()
+			const expirationDate = this.unixTimestampToDate(this.certificate.validTo_time_t)
+
+			if (expirationDate <= now) {
+				return 'expired'
+			}
+
+			const warningDate = new Date()
+			warningDate.setDate(now.getDate() + this.EXPIRATION_WARNING_DAYS)
+
+			if (expirationDate <= warningDate) {
+				return 'expiring'
+			}
+
+			return 'valid'
+		},
+		unixTimestampToDate(unixTimestamp) {
+			return new Date(unixTimestamp * 1000)
 		},
 	},
 }
@@ -273,6 +328,12 @@ $desktop: 768px;
 
 .purpose-status {
 	display: flex;
+	gap: 8px;
+}
+
+.certificate-validity {
+	display: flex;
+	align-items: center;
 	gap: 8px;
 }
 </style>
