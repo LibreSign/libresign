@@ -12,8 +12,6 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\PdfParserService;
-use OCA\Libresign\Vendor\BaconQrCode\Encoder\Encoder;
-use OCA\Libresign\Vendor\Endroid\QrCode\Bacon\ErrorCorrectionLevelConverter;
 use OCA\Libresign\Vendor\Endroid\QrCode\Color\Color;
 use OCA\Libresign\Vendor\Endroid\QrCode\Encoding\Encoding;
 use OCA\Libresign\Vendor\Endroid\QrCode\ErrorCorrectionLevel;
@@ -162,14 +160,16 @@ class FooterHandler {
 	}
 
 	private function getQrCodeImageBase64(string $text): string {
-		$this->qrCode = QrCode::create($text)
-			->setEncoding(new Encoding('UTF-8'))
-			->setErrorCorrectionLevel(ErrorCorrectionLevel::Low)
-			->setMargin(4)
-			->setRoundBlockSizeMode(RoundBlockSizeMode::Margin)
-			->setForegroundColor(new Color(0, 0, 0))
-			->setBackgroundColor(new Color(255, 255, 255));
-		$this->setQrCodeSize();
+		$this->qrCode = new QrCode(
+			data: $text,
+			encoding: new Encoding('UTF-8'),
+			errorCorrectionLevel: ErrorCorrectionLevel::Low,
+			size: self::MIN_QRCODE_SIZE,
+			margin: 4,
+			roundBlockSizeMode: RoundBlockSizeMode::Margin,
+			foregroundColor: new Color(0, 0, 0),
+			backgroundColor: new Color(255, 255, 255)
+		);
 		$writer = new PngWriter();
 		$result = $writer->write($this->qrCode);
 		$qrcode = base64_encode($result->getString());
@@ -177,35 +177,5 @@ class FooterHandler {
 		$this->templateVars['qrcodeSize'] = $this->qrCode->getSize() + $this->qrCode->getMargin() * 2;
 
 		return $qrcode;
-	}
-
-	private function setQrCodeSize(): void {
-		$blockValues = $this->getQrCodeBlocks();
-		$this->qrCode->setSize(self::MIN_QRCODE_SIZE);
-		$blockSize = $this->qrCode->getSize() / count($blockValues);
-		if ($blockSize < 1) {
-			$this->qrCode->setSize(count($blockValues));
-		}
-	}
-
-	/**
-	 * @return int[][]
-	 *
-	 * @psalm-return array<0|positive-int, array<0|positive-int, int>>
-	 */
-	private function getQrCodeBlocks(): array {
-		$baconErrorCorrectionLevel = ErrorCorrectionLevelConverter::convertToBaconErrorCorrectionLevel($this->qrCode->getErrorCorrectionLevel());
-		$baconMatrix = Encoder::encode($this->qrCode->getData(), $baconErrorCorrectionLevel, strval($this->qrCode->getEncoding()))->getMatrix();
-
-		$blockValues = [];
-		$columnCount = $baconMatrix->getWidth();
-		$rowCount = $baconMatrix->getHeight();
-		for ($rowIndex = 0; $rowIndex < $rowCount; ++$rowIndex) {
-			$blockValues[$rowIndex] = [];
-			for ($columnIndex = 0; $columnIndex < $columnCount; ++$columnIndex) {
-				$blockValues[$rowIndex][$columnIndex] = $baconMatrix->get($columnIndex, $rowIndex);
-			}
-		}
-		return $blockValues;
 	}
 }
