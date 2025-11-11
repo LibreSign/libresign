@@ -41,6 +41,7 @@ class CrlMapper extends QBMapper {
 		string $owner,
 		string $engine,
 		string $instanceId,
+		int $generation,
 		DateTime $issuedAt,
 		?DateTime $validTo = null,
 	): Crl {
@@ -52,6 +53,7 @@ class CrlMapper extends QBMapper {
 		$certificate->setValidTo($validTo);
 		$certificate->setEngine($engine);
 		$certificate->setInstanceId($instanceId);
+		$certificate->setGeneration($generation);
 
 		/** @var Crl */
 		return $this->insert($certificate);
