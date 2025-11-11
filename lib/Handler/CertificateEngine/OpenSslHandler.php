@@ -76,7 +76,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		);
 		$serialNumber = (int)$serialNumberString;
 
-		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = $caDays, $options, $serialNumber);
+		$x509 = openssl_csr_sign($csr, null, $privateKey, $caDays, $options, $serialNumber);
 
 		openssl_csr_export($csr, $csrout);
 		openssl_x509_export($x509, $certout);
