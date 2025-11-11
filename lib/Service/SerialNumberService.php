@@ -26,7 +26,13 @@ class SerialNumberService {
 	) {
 	}
 
-	public function generateUniqueSerial(string $certificateOwner, string $instanceId, DateTime $expiresAt, string $engineName): string {
+	public function generateUniqueSerial(
+		string $certificateOwner,
+		string $instanceId,
+		int $generation,
+		DateTime $expiresAt,
+		string $engineName,
+	): string {
 		for ($attempts = 0; $attempts < self::MAX_RETRY_ATTEMPTS; $attempts++) {
 			$serialInt = random_int(1, self::SERIAL_MAX_VALUE);
 
@@ -38,6 +44,7 @@ class SerialNumberService {
 					$certificateOwner ?? 'Unknown',
 					$engineName,
 					$instanceId,
+					$generation,
 					new DateTime(),
 					$expiresAt
 				);
