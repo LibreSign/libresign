@@ -34,7 +34,7 @@ class CrlService {
 
 
 	public function revokeCertificate(
-		int $serialNumber,
+		string $serialNumber,
 		?int $reasonCode = null,
 		?string $reasonText = null,
 		?string $revokedBy = null,

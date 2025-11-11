@@ -263,7 +263,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $this;
 	}
 
-	public function getConfigPath(): string {
+	public function getCurrentConfigPath(): string {
 		if ($this->configPath) {
 			return $this->configPath;
 		}
@@ -281,7 +281,6 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $this->configPath;
 	}
 
-	#[\Override]
 	public function getConfigPathByParams(string $instanceId, int $generation): string {
 		$engineName = $this->getName();
 
