@@ -238,6 +238,8 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		file_put_contents($configPath . '/ca.pem', $json['cert']);
 		file_put_contents($configPath . '/ca-key.pem', $json['key']);
 		file_put_contents($configPath . '/ca.csr', $json['csr']);
+
+		$this->persistRootCertificateFromData($json['cert']);
 	}
 
 	private function getClient(): Client {
@@ -589,6 +591,41 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			$owner,
 			'cfssl',
 			$this->caIdentifierService->getInstanceId(),
+			$this->caIdentifierService->getCaIdParsed()['generation'],
+			new \DateTime(),
+			$expiresAt
+		);
+	}
+
+	private function persistRootCertificateFromData(string $certPem): void {
+		$x509Resource = openssl_x509_read($certPem);
+		if (!$x509Resource) {
+			throw new \RuntimeException('Failed to parse root certificate');
+		}
+
+		$parsed = openssl_x509_parse($x509Resource);
+		if (!$parsed) {
+			throw new \RuntimeException('Failed to extract root certificate information');
+		}
+
+		$serialNumber = $parsed['serialNumberHex'] ?? '';
+		if (empty($serialNumber)) {
+			throw new \RuntimeException('Root certificate has no serial number');
+		}
+
+		$owner = $this->getCommonName() ?? 'Root CA';
+
+		$expiresAt = null;
+		if (isset($parsed['validTo_time_t'])) {
+			$expiresAt = new \DateTime('@' . $parsed['validTo_time_t']);
+		}
+
+		$this->crlMapper->createCertificate(
+			$serialNumber,
+			$owner,
+			'cfssl',
+			$this->caIdentifierService->getInstanceId(),
+			$this->caIdentifierService->getCaIdParsed()['generation'],
 			new \DateTime(),
 			$expiresAt
 		);
