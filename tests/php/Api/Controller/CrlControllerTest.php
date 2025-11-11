@@ -53,7 +53,7 @@ class CrlControllerTest extends ApiTestCase {
 	public function testGetRevocationListReturnsValidResponse(): void {
 		$this->request
 			->withMethod('GET')
-			->withPath('/crl');
+			->withPath('/crl/check/' . self::VALID_CERT_SERIAL);
 
 		$this->assertRequest();
 	}
@@ -96,10 +96,10 @@ class CrlControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testCheckCertificateStatusWithZeroSerial(): void {
+	public function testCheckCertificateStatusWithNonHexOrNumeric(): void {
 		$this->request
 			->withMethod('GET')
-			->withPath('/crl/check/0')
+			->withPath('/crl/check/$')
 			->assertResponseCode(400);
 
 		$this->assertRequest();
@@ -109,9 +109,10 @@ class CrlControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testCrlEndpointsArePublic(): void {
+		// Test another endpoint that doesn't require CA
 		$this->request
 			->withMethod('GET')
-			->withPath('/crl');
+			->withPath('/crl/check/' . self::VALID_CERT_SERIAL);
 
 		$this->assertRequest();
 	}

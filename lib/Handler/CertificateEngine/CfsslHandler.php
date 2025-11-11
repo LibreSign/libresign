@@ -13,6 +13,7 @@ use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslServerHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
@@ -25,6 +26,7 @@ use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class CfsslHandler
@@ -52,6 +54,8 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		protected CertificatePolicyService $certificatePolicyService,
 		protected IURLGenerator $urlGenerator,
 		protected CaIdentifierService $caIdentifierService,
+		protected CrlMapper $crlMapper,
+		protected LoggerInterface $logger,
 	) {
 		parent::__construct(
 			$config,
@@ -64,7 +68,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			$caIdentifierService,
 		);
 
-		$this->cfsslServerHandler->configCallback(fn () => $this->getConfigPath());
+		$this->cfsslServerHandler->configCallback(fn () => $this->getCurrentConfigPath());
 	}
 
 	public function generateRootCert(
@@ -92,7 +96,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 
 	public function generateCertificate(): string {
 		$certKeys = $this->newCert();
-		return parent::exportToPkcs12(
+		$pkcs12 = parent::exportToPkcs12(
 			$certKeys['certificate'],
 			$certKeys['private_key'],
 			[
@@ -103,10 +107,15 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 				],
 			],
 		);
+
+		$parsed = $this->readCertificate($pkcs12, $this->getPassword());
+		$this->persistSerialNumberToCrl($parsed);
+
+		return $pkcs12;
 	}
 
 	public function isSetupOk(): bool {
-		$configPath = $this->getConfigPath();
+		$configPath = $this->getCurrentConfigPath();
 		$certificate = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
 		$privateKey = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
 		if (!$certificate || !$privateKey) {
@@ -211,7 +220,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 
 	private function gencert(): void {
 		$binary = $this->getBinary();
-		$configPath = $this->getConfigPath();
+		$configPath = $this->getCurrentConfigPath();
 		$csrFile = $configPath . '/csr_server.json';
 
 		$cmd = escapeshellcmd($binary) . ' gencert -initca ' . escapeshellarg($csrFile);
@@ -282,7 +291,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			return;
 		}
 		$binary = $this->getBinary();
-		$configPath = $this->getConfigPath();
+		$configPath = $this->getCurrentConfigPath();
 		if (!$configPath) {
 			throw new LibresignException('CFSSL not configured.');
 		}
@@ -467,7 +476,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		return $return;
 	}
 
-	public function generateCrlDer(array $revokedCertificates): string {
+	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation): string {
 		try {
 			$queryParams = [];
 			$queryParams['expiry'] = '168h'; // 7 days * 24 hours
@@ -559,5 +568,29 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		} catch (\Throwable $e) {
 			throw new \RuntimeException('CFSSL certificate revocation error: ' . $e->getMessage());
 		}
+	}
+
+	private function persistSerialNumberToCrl(array $parsed): void {
+		if (!isset($parsed['serialNumberHex']) || !isset($parsed['valid_to'])) {
+			return;
+		}
+
+		$serialNumber = $parsed['serialNumberHex'];
+
+		$owner = $this->getCommonName() ?? 'Unknown';
+
+		$expiresAt = null;
+		if (isset($parsed['validTo_time_t'])) {
+			$expiresAt = new \DateTime('@' . $parsed['validTo_time_t']);
+		}
+
+		$this->crlMapper->createCertificate(
+			$serialNumber,
+			$owner,
+			'cfssl',
+			$this->caIdentifierService->getInstanceId(),
+			new \DateTime(),
+			$expiresAt
+		);
 	}
 }

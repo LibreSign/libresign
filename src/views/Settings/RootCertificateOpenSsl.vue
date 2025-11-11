@@ -163,7 +163,7 @@ export default {
 			OID,
 			CPS,
 			toggleCertificatePolicy: !!(OID || CPS),
-			certificatePolicyValid: !!OID && !!CPS,
+			certificatePolicyValid: !!CPS || (!!CPS && !!OID),
 		}
 	},
 	computed: {

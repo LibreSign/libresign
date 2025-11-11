@@ -25,20 +25,22 @@ class CrlMapper extends QBMapper {
 		parent::__construct($db, 'libresign_crl');
 	}
 
-	public function findBySerialNumber(int $serialNumber): Crl {
+	public function findBySerialNumber(string $serialNumber): Crl {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
 			->from($this->getTableName())
-			->where($qb->expr()->eq('serial_number', $qb->createNamedParameter($serialNumber, IQueryBuilder::PARAM_INT)));
+			->where($qb->expr()->eq('serial_number', $qb->createNamedParameter($serialNumber)));
 
 		/** @var Crl */
 		return $this->findEntity($qb);
 	}
 
 	public function createCertificate(
-		int $serialNumber,
+		string $serialNumber,
 		string $owner,
+		string $engine,
+		string $instanceId,
 		DateTime $issuedAt,
 		?DateTime $validTo = null,
 	): Crl {
@@ -48,13 +50,15 @@ class CrlMapper extends QBMapper {
 		$certificate->setStatus(CRLStatus::ISSUED);
 		$certificate->setIssuedAt($issuedAt);
 		$certificate->setValidTo($validTo);
+		$certificate->setEngine($engine);
+		$certificate->setInstanceId($instanceId);
 
 		/** @var Crl */
 		return $this->insert($certificate);
 	}
 
 	public function revokeCertificate(
-		int $serialNumber,
+		string $serialNumber,
 		CRLReason $reason = CRLReason::UNSPECIFIED,
 		?string $comment = null,
 		?string $revokedBy = null,
@@ -79,7 +83,7 @@ class CrlMapper extends QBMapper {
 		return $this->update($certificate);
 	}
 
-	public function getRevokedCertificates(): array {
+	public function getRevokedCertificates(string $instanceId = '', int $generation = 0, string $engineType = ''): array {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
@@ -87,10 +91,26 @@ class CrlMapper extends QBMapper {
 			->where($qb->expr()->eq('status', $qb->createNamedParameter(CRLStatus::REVOKED->value)))
 			->orderBy('revoked_at', 'DESC');
 
+		if ($instanceId !== '') {
+			$qb->andWhere($qb->expr()->eq('instance_id', $qb->createNamedParameter($instanceId)));
+		}
+		if ($generation !== 0) {
+			$qb->andWhere($qb->expr()->eq('generation', $qb->createNamedParameter($generation, IQueryBuilder::PARAM_INT)));
+		}
+		if ($engineType !== '') {
+			$engineName = match($engineType) {
+				'o' => 'openssl',
+				'c' => 'cfssl',
+				'openssl', 'cfssl' => $engineType,
+				default => throw new \InvalidArgumentException("Invalid engine type: $engineType"),
+			};
+			$qb->andWhere($qb->expr()->eq('engine', $qb->createNamedParameter($engineName)));
+		}
+
 		return $this->findEntities($qb);
 	}
 
-	public function isInvalidAt(int $serialNumber, ?DateTime $checkDate = null): bool {
+	public function isInvalidAt(string $serialNumber, ?DateTime $checkDate = null): bool {
 		$checkDate = $checkDate ?? new DateTime();
 
 		try {

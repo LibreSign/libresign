@@ -21,7 +21,7 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/index.php/apps/libresign/crl": {
+    "/index.php/apps/libresign/crl/libresign_{instanceId}_{generation}_{engineType}.crl": {
         parameters: {
             query?: never;
             header?: never;
@@ -1655,7 +1655,14 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** @description Instance identifier */
+                instanceId: string;
+                /** @description Generation identifier */
+                generation: number;
+                /** @description Engine type identifier */
+                engineType: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
