@@ -70,6 +70,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		$serialNumberString = $this->serialNumberService->generateUniqueSerial(
 			$commonName,
 			$this->caIdentifierService->getInstanceId(),
+			$this->caIdentifierService->getCaIdParsed()['generation'],
 			new \DateTime('+' . $caDays . ' days'),
 			'openssl',
 		);
@@ -131,6 +132,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		$serialNumberString = $this->serialNumberService->generateUniqueSerial(
 			$this->getCommonName(),
 			$this->caIdentifierService->getInstanceId(),
+			$this->caIdentifierService->getCaIdParsed()['generation'],
 			new \DateTime('+' . $this->getLeafExpiryInDays() . ' days'),
 			'openssl',
 		);
