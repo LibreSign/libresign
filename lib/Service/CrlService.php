@@ -34,7 +34,7 @@ class CrlService {
 
 
 	public function revokeCertificate(
-		int $serialNumber,
+		string $serialNumber,
 		int $reasonCode = CRLReason::UNSPECIFIED->value,
 		?string $reasonText = null,
 		?string $revokedBy = null,
@@ -63,7 +63,7 @@ class CrlService {
 		}
 	}
 
-	public function getCertificateStatus(int $serialNumber, ?DateTime $checkDate = null): array {
+	public function getCertificateStatus(string $serialNumber, ?DateTime $checkDate = null): array {
 		try {
 			$certificate = $this->crlMapper->findBySerialNumber($serialNumber);
 
@@ -89,11 +89,11 @@ class CrlService {
 		}
 	}
 
-	public function getCertificateStatusResponse(int $serialNumber): array {
+	public function getCertificateStatusResponse(string $serialNumber): array {
 		$statusInfo = $this->getCertificateStatus($serialNumber);
 
 		$response = [
-			'serial_number' => (string)$serialNumber,
+			'serial_number' => $serialNumber,
 			'status' => $statusInfo['status'],
 			'checked_at' => (new \DateTime())->format('Y-m-d\TH:i:s\Z'),
 		];
@@ -116,12 +116,12 @@ class CrlService {
 		return $response;
 	}
 
-	public function isInvalidAt(int $serialNumber, ?DateTime $checkDate = null): bool {
+	public function isInvalidAt(string $serialNumber, ?DateTime $checkDate = null): bool {
 		return $this->crlMapper->isInvalidAt($serialNumber, $checkDate);
 	}
 
-	public function getRevokedCertificates(): array {
-		$certificates = $this->crlMapper->getRevokedCertificates();
+	public function getRevokedCertificates(string $instanceId = '', int $generation = 0, string $engine = ''): array {
+		$certificates = $this->crlMapper->getRevokedCertificates($instanceId, $generation, $engine);
 
 		$result = [];
 		foreach ($certificates as $certificate) {
@@ -156,20 +156,17 @@ class CrlService {
 		return $this->crlMapper->getRevocationStatistics();
 	}
 
-	/**
-	 * @inheritDoc
-	 */
-	public function generateCrlDer(): string {
+	public function generateCrlDer(string $instanceId, int $generation, string $engineType): string {
 		try {
-			$revokedCertificates = $this->crlMapper->getRevokedCertificates();
+			$revokedCertificates = $this->crlMapper->getRevokedCertificates($instanceId, $generation, $engineType);
 
 			$engine = $this->certificateEngineFactory->getEngine();
 
-			if (method_exists($engine, 'generateCrlDer')) {
-				return $engine->generateCrlDer($revokedCertificates);
+			if (!method_exists($engine, 'generateCrlDer')) {
+				throw new \RuntimeException('Current certificate engine does not support CRL generation');
 			}
 
-			throw new \RuntimeException('Current certificate engine does not support CRL generation');
+			return $engine->generateCrlDer($revokedCertificates, $instanceId, $generation);
 		} catch (\Throwable $e) {
 			$this->logger->error('Failed to generate CRL', [
 				'exception' => $e,

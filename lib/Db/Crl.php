@@ -16,8 +16,8 @@ use OCP\DB\Types;
 /**
  * @method void setId(int $id)
  * @method int getId()
- * @method void setSerialNumber(int $serialNumber)
- * @method int getSerialNumber()
+ * @method void setSerialNumber(string $serialNumber)
+ * @method string getSerialNumber()
  * @method void setOwner(string $owner)
  * @method string getOwner()
  * @method void setReasonCode(?int $reasonCode)
@@ -36,9 +36,15 @@ use OCP\DB\Types;
  * @method ?\DateTime getValidTo()
  * @method void setComment(?string $comment)
  * @method ?string getComment()
+ * @method void setEngine(string $engine)
+ * @method string getEngine()
+ * @method void setInstanceId(?string $instanceId)
+ * @method ?string getInstanceId()
+ * @method void setGeneration(?int $generation)
+ * @method ?int getGeneration()
  */
 class Crl extends Entity {
-	protected int $serialNumber = 0;
+	protected string $serialNumber = '';
 	protected string $owner = '';
 	protected string $status = 'issued';
 	protected ?int $reasonCode = null;
@@ -49,10 +55,13 @@ class Crl extends Entity {
 	protected ?\DateTime $issuedAt = null;
 	protected ?\DateTime $validTo = null;
 	protected ?string $comment = null;
+	protected string $engine = '';
+	protected ?string $instanceId = null;
+	protected ?int $generation = null;
 
 	public function __construct() {
 		$this->addType('id', Types::BIGINT);
-		$this->addType('serialNumber', Types::BIGINT);
+		$this->addType('serialNumber', Types::STRING);
 		$this->addType('status', Types::STRING);
 		$this->addType('reasonCode', Types::SMALLINT);
 		$this->addType('crlNumber', Types::BIGINT);
@@ -61,6 +70,9 @@ class Crl extends Entity {
 		$this->addType('issuedAt', Types::DATETIME);
 		$this->addType('validTo', Types::DATETIME);
 		$this->addType('comment', Types::STRING);
+		$this->addType('engine', Types::STRING);
+		$this->addType('instanceId', Types::STRING);
+		$this->addType('generation', Types::BIGINT);
 	}
 
 	public function getStatus(): string {

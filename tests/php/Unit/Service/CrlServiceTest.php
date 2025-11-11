@@ -37,7 +37,7 @@ class CrlServiceTest extends TestCase {
 
 
 	public function testRevokeCertificateWithValidReasonCode(): void {
-		$serialNumber = 123456;
+		$serialNumber = '123456';
 		$reasonCode = 1; // keyCompromise
 		$reasonText = 'Certificate compromised';
 		$revokedBy = 'admin';
@@ -50,7 +50,7 @@ class CrlServiceTest extends TestCase {
 		$this->crlMapper->expects($this->once())
 			->method('revokeCertificate')
 			->with(
-				123456,
+				'123456',
 				CRLReason::KEY_COMPROMISE,
 				$reasonText,
 				$revokedBy,
@@ -67,7 +67,7 @@ class CrlServiceTest extends TestCase {
 		$this->expectException(\InvalidArgumentException::class);
 		$this->expectExceptionMessage('Invalid CRLReason code: 99');
 
-		$this->service->revokeCertificate(123456, 99, 'Test', 'admin');
+		$this->service->revokeCertificate('123456', 99, 'Test', 'admin');
 	}
 
 	public function testGenerateCrlDerReturnsValidBinaryData(): void {
@@ -93,7 +93,7 @@ class CrlServiceTest extends TestCase {
 			->method('getEngine')
 			->willReturn($mockEngine);
 
-		$result = $this->service->generateCrlDer();
+		$result = $this->service->generateCrlDer('test-instance', 1, 'openssl');
 
 		$this->assertIsString($result);
 		$this->assertNotEmpty($result);

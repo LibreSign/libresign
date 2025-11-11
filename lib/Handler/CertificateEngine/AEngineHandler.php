@@ -268,7 +268,7 @@ abstract class AEngineHandler implements IEngineHandler {
 	}
 
 	#[\Override]
-	public function getConfigPath(): string {
+	public function getCurrentConfigPath(): string {
 		if ($this->configPath) {
 			return $this->configPath;
 		}
@@ -284,6 +284,22 @@ abstract class AEngineHandler implements IEngineHandler {
 			$this->appConfig->setValueString(Application::APP_ID, 'config_path', $this->configPath);
 		}
 		return $this->configPath;
+	}
+
+	#[\Override]
+	public function getConfigPathByParams(string $instanceId, int $generation): string {
+		$engineName = $this->getName();
+
+		$pkiDirName = $this->caIdentifierService->generatePkiDirectoryNameFromParams($instanceId, $generation, $engineName);
+		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
+		$systemInstanceId = $this->config->getSystemValue('instanceid');
+		$pkiPath = $dataDir . '/appdata_' . $systemInstanceId . '/libresign/' . $pkiDirName;
+
+		if (!is_dir($pkiPath)) {
+			throw new \RuntimeException("Config path does not exist for instanceId: {$instanceId}, generation: {$generation}");
+		}
+
+		return $pkiPath;
 	}
 
 	private function initializePkiConfigPath(): string {
@@ -445,7 +461,7 @@ abstract class AEngineHandler implements IEngineHandler {
 	}
 
 	protected function checkRootCertificateModernFeatures(): ?ConfigureCheckHelper {
-		$configPath = $this->getConfigPath();
+		$configPath = $this->getCurrentConfigPath();
 		$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
 
 		try {
@@ -584,7 +600,7 @@ abstract class AEngineHandler implements IEngineHandler {
 	#[\Override]
 	public function toArray(): array {
 		$return = [
-			'configPath' => $this->getConfigPath(),
+			'configPath' => $this->getCurrentConfigPath(),
 			'generated' => $this->isSetupOk(),
 			'rootCert' => [
 				'commonName' => $this->getCommonName(),
@@ -606,6 +622,11 @@ abstract class AEngineHandler implements IEngineHandler {
 	}
 
 	protected function getCrlDistributionUrl(): string {
-		return $this->urlGenerator->linkToRouteAbsolute('libresign.crl.getRevocationList');
+		$caIdParsed = $this->caIdentifierService->getCaIdParsed();
+		return $this->urlGenerator->linkToRouteAbsolute('libresign.crl.getRevocationList', [
+			'instanceId' => $caIdParsed['instanceId'],
+			'generation' => $caIdParsed['generation'],
+			'engineType' => $caIdParsed['engineType'],
+		]);
 	}
 }

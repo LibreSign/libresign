@@ -6,6 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
@@ -19,6 +20,7 @@ use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
+use Psr\Log\LoggerInterface;
 
 final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IConfig $config;
@@ -31,6 +33,8 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SerialNumberService $serialNumberService;
 	private IURLGenerator $urlGenerator;
 	private CaIdentifierService $caIdentifierService;
+	private CrlMapper $crlMapper;
+	private LoggerInterface $logger;
 	private string $tempDir;
 	public function setUp(): void {
 		$this->config = \OCP\Server::get(IConfig::class);
@@ -43,6 +47,9 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->urlGenerator = \OCP\Server::get(IURLGenerator::class);
 		$this->tempDir = $this->tempManager->getTemporaryFolder('certificate');
 		$this->caIdentifierService = \OCP\Server::get(CaIdentifierService::class);
+		$this->crlMapper = \OCP\Server::get(CrlMapper::class);
+		$this->logger = \OCP\Server::get(LoggerInterface::class);
+		$this->caIdentifierService->generateCaId('openssl');
 	}
 
 	private function getInstance() {
@@ -56,6 +63,8 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			$this->serialNumberService,
 			$this->caIdentifierService,
+			$this->crlMapper,
+			$this->logger,
 		);
 	}
 
@@ -281,7 +290,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$serialInt = (int)$parsed['serialNumber'];
 		$this->assertGreaterThanOrEqual(1000000, $serialInt, 'Serial number should be >= 1000000');
-		$this->assertLessThanOrEqual(2147483647, $serialInt, 'Serial number should be <= 2147483647');
+		$this->assertLessThanOrEqual(PHP_INT_MAX, $serialInt, 'Serial number should be <= PHP_INT_MAX');
 
 		$this->assertIsNumeric($parsed['serialNumber'], 'Serial number should be numeric');
 		$this->assertMatchesRegularExpression('/^[0-9A-Fa-f]+$/', $parsed['serialNumberHex'], 'Serial number hex should contain only hex characters');
