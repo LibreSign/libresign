@@ -96,6 +96,16 @@
 					<span class="field-label">{{ camelCaseToTitleCase(name) }}</span>
 					<span class="field-value">{{ value }}</span>
 				</div>
+				<div v-if="certificate.crl_validation !== undefined" class="certificate-field">
+					<span class="field-label">{{ t('libresign', 'CRL Validation Status') }}</span>
+					<span class="field-value">
+						<NcChip
+							:text="crlValidationStatus.text"
+							:variant="crlValidationStatus.variant"
+							:icon-path="crlValidationStatus.icon"
+							no-close />
+					</span>
+				</div>
 			</div>
 		</NcSettingsSection>
 
@@ -128,6 +138,9 @@ import {
 	mdiCancel,
 	mdiAlertCircleOutline,
 	mdiHelpCircle,
+	mdiShieldCheck,
+	mdiShieldAlert,
+	mdiShieldOff,
 } from '@mdi/js'
 
 export default {
@@ -154,6 +167,9 @@ export default {
 			mdiCancel,
 			mdiAlertCircleOutline,
 			mdiHelpCircle,
+			mdiShieldCheck,
+			mdiShieldAlert,
+			mdiShieldOff,
 			EXPIRATION_WARNING_DAYS: 30,
 		}
 	},
@@ -163,15 +179,34 @@ export default {
 				Object.keys(this.certificate.purposes).length &&
 				this.index === '0'
 		},
-		certificateValidityStatus() {
-			const statusMap = {
+		validityStatusMap() {
+			return {
 				unknown: { text: this.t('libresign', 'Unknown'), variant: 'tertiary', icon: this.mdiHelpCircle },
 				expired: { text: this.t('libresign', 'Expired'), variant: 'error', icon: this.mdiCancel },
 				expiring: { text: this.t('libresign', 'Expires Soon'), variant: 'warning', icon: this.mdiAlertCircleOutline },
 				valid: { text: this.t('libresign', 'Valid'), variant: 'success', icon: this.mdiCheckCircle }
 			}
-
-			return statusMap[this.getValidityStatus()]
+		},
+		crlStatusMap() {
+			return {
+				valid: { text: this.t('libresign', 'Valid (Not Revoked)'), variant: 'success', icon: this.mdiShieldCheck },
+				revoked: { text: this.t('libresign', 'Revoked'), variant: 'error', icon: this.mdiShieldOff },
+				missing: { text: this.t('libresign', 'No CRL Information'), variant: 'warning', icon: this.mdiShieldAlert },
+				no_urls: { text: this.t('libresign', 'No CRL URLs Found'), variant: 'warning', icon: this.mdiShieldAlert },
+				urls_inaccessible: { text: this.t('libresign', 'CRL URLs Inaccessible'), variant: 'tertiary', icon: this.mdiHelpCircle },
+				validation_failed: { text: this.t('libresign', 'CRL Validation Failed'), variant: 'tertiary', icon: this.mdiHelpCircle },
+				validation_error: { text: this.t('libresign', 'CRL Validation Error'), variant: 'tertiary', icon: this.mdiHelpCircle }
+			}
+		},
+		certificateValidityStatus() {
+			return this.validityStatusMap[this.getValidityStatus()]
+		},
+		crlValidationStatus() {
+			return this.crlStatusMap[this.certificate.crl_validation] || {
+				text: this.t('libresign', 'Unknown Status'),
+				variant: 'tertiary',
+				icon: this.mdiHelpCircle
+			}
 		},
 	},
 	methods: {
