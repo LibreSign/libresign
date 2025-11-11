@@ -23,7 +23,7 @@ class CaIdentifierService {
 	) {
 	}
 
-	private function getInstanceId(): string {
+	public function getInstanceId(): string {
 		$instanceId = $this->appConfig->getValueString(Application::APP_ID, 'instance_id', '');
 		if (strlen($instanceId) === 10) {
 			return $instanceId;
@@ -65,7 +65,16 @@ class CaIdentifierService {
 
 	public function generatePkiDirectoryName(string $caId): string {
 		$parsed = $this->parseCaId($caId);
-		return 'pki/' . $parsed['instanceId'] . '_' . $parsed['generation'] . '_' . $parsed['engineName'];
+		return $this->generatePkiDirectoryNameFromParams($parsed['instanceId'], $parsed['generation'], $parsed['engineName']);
+	}
+
+	public function generatePkiDirectoryNameFromParams(string $instanceId, int $generation, string $engineName): string {
+		return 'pki/' . $instanceId . '_' . $generation . '_' . $engineName;
+	}
+
+	public function getCaIdParsed(): array {
+		$caId = $this->getCaId();
+		return $this->parseCaId($caId);
 	}
 
 	private function parseCaId(string $caId): array {

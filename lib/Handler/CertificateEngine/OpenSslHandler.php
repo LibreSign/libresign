@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\CertificateEngine;
 
+use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
@@ -18,6 +19,7 @@ use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class FileMapper
@@ -37,6 +39,8 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		protected IURLGenerator $urlGenerator,
 		protected SerialNumberService $serialNumberService,
 		protected CaIdentifierService $caIdentifierService,
+		protected CrlMapper $crlMapper,
+		protected LoggerInterface $logger,
 	) {
 		parent::__construct(
 			$config,
@@ -63,10 +67,13 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		$options = $this->getRootCertOptions();
 
 		$caDays = $this->getCaExpiryInDays();
-		$serialNumber = $this->serialNumberService->generateUniqueSerial(
+		$serialNumberString = $this->serialNumberService->generateUniqueSerial(
 			$commonName,
-			new \DateTime('+' . $caDays . ' days')
+			$this->caIdentifierService->getInstanceId(),
+			new \DateTime('+' . $caDays . ' days'),
+			'openssl',
 		);
+		$serialNumber = (int)$serialNumberString;
 
 		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = $caDays, $options, $serialNumber);
 
@@ -74,7 +81,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		openssl_x509_export($x509, $certout);
 		openssl_pkey_export($privateKey, $pkeyout);
 
-		$configPath = $this->getConfigPath();
+		$configPath = $this->getCurrentConfigPath();
 		CertificateHelper::saveFile($configPath . '/ca.csr', $csrout);
 		CertificateHelper::saveFile($configPath . '/ca.pem', $certout);
 		CertificateHelper::saveFile($configPath . '/ca-key.pem', $pkeyout);
@@ -101,7 +108,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 	}
 
 	public function generateCertificate(): string {
-		$configPath = $this->getConfigPath();
+		$configPath = $this->getCurrentConfigPath();
 		$rootCertificate = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
 		$rootPrivateKey = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
 		if (empty($rootCertificate) || empty($rootPrivateKey)) {
@@ -121,10 +128,13 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			throw new LibresignException('OpenSSL error: ' . $message);
 		}
 
-		$serialNumber = $this->serialNumberService->generateUniqueSerial(
+		$serialNumberString = $this->serialNumberService->generateUniqueSerial(
 			$this->getCommonName(),
-			new \DateTime('+' . $this->getLeafExpiryInDays() . ' days')
+			$this->caIdentifierService->getInstanceId(),
+			new \DateTime('+' . $this->getLeafExpiryInDays() . ' days'),
+			'openssl',
 		);
+		$serialNumber = (int)$serialNumberString;
 		$options = $this->getLeafCertOptions();
 
 		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, $this->getLeafExpiryInDays(), $options, $serialNumber);
@@ -282,7 +292,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 	private function saveCaConfigFile(array $config): string {
 		$iniContent = CertificateHelper::arrayToIni($config);
-		$configFile = $this->getConfigPath() . '/openssl.cnf';
+		$configFile = $this->getCurrentConfigPath() . '/openssl.cnf';
 		CertificateHelper::saveFile($configFile, $iniContent);
 		return $configFile;
 	}
@@ -344,7 +354,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 	}
 
 	public function isSetupOk(): bool {
-		$configPath = $this->getConfigPath();
+		$configPath = $this->getCurrentConfigPath();
 		if (empty($configPath)) {
 			return false;
 		}
@@ -378,8 +388,8 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 	}
 
 	#[\Override]
-	public function generateCrlDer(array $revokedCertificates): string {
-		$configPath = $this->getConfigPath();
+	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation): string {
+		$configPath = $this->getConfigPathByParams($instanceId, $generation);
 		$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
 		$caKeyPath = $configPath . DIRECTORY_SEPARATOR . 'ca-key.pem';
 		$crlDerPath = $configPath . DIRECTORY_SEPARATOR . 'crl.der';
@@ -453,7 +463,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 	}
 
 	private function createCrlConfig(array $revokedCertificates): string {
-		$configPath = $this->getConfigPath();
+		$configPath = $this->getCurrentConfigPath();
 		$indexFile = $configPath . DIRECTORY_SEPARATOR . 'index.txt';
 		$crlNumberFile = $configPath . DIRECTORY_SEPARATOR . 'crlnumber';
 		$configFile = $configPath . DIRECTORY_SEPARATOR . 'crl.conf';

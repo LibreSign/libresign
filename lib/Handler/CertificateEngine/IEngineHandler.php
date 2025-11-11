@@ -49,7 +49,9 @@ interface IEngineHandler {
 
 	public function isSetupOk(): bool;
 
-	public function getConfigPath(): string;
+	public function getCurrentConfigPath(): string;
+
+	public function getConfigPathByParams(string $instanceId, int $generation): string;
 
 	public function setConfigPath(string $configPath): IEngineHandler;
 
@@ -64,8 +66,10 @@ interface IEngineHandler {
 	/**
 	 * Generate Certificate Revocation List in DER format
 	 * @param array $revokedCertificates Array of revoked certificate entities
+	 * @param string $instanceId Instance identifier
+	 * @param int $generation Generation identifier
 	 * @return string DER-encoded CRL data
 	 * @throws \RuntimeException If CRL generation is not supported or fails
 	 */
-	public function generateCrlDer(array $revokedCertificates): string;
+	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation): string;
 }
