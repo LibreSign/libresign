@@ -31,6 +31,7 @@ OC.L10N.register(
     "Enter a password" : "ໃສ່ລະຫັດຜ່ານ",
     "Today" : "ມື້ນີ້",
     "Modified" : "ດັດແປງ",
+    "Unknown" : "ບໍ່ຮູ້",
     "Password reset" : "ປ່ຽນບະຫັດຜ່ານ",
     "New password" : "ລະຫັດຜ່ານໃຫມ່",
     "Remove" : "ຍ້າຍອອກ",
@@ -38,7 +39,6 @@ OC.L10N.register(
     "No" : "ບໍ່",
     "Invalid URL" : "URL ທີ່ບໍ່ຖືກຕ້ອງ",
     "Username" : "ຊື່ຜູ້ໃຊ້",
-    "No date" : "ບໍ່ມີວັນທີ",
-    "Unknown" : "ບໍ່ຮູ້"
+    "No date" : "ບໍ່ມີວັນທີ"
 },
 "nplurals=1; plural=0;");

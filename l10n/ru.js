@@ -206,6 +206,8 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "Действие «{displayName}» завершилось неудачно",
     "(selected)" : "(выбранный)",
     "_{count} selected_::_{count} selected_" : ["Выбран {count}","Выбрано {count}","Выбрано {count}","Выбрано {count}"],
+    "Unknown" : "Неизвестно",
+    "Expired" : "Истёкший",
     "Valid from" : "Действителен с:",
     "Version" : "Версия",
     "Fingerprint" : "Отпечаток:",
@@ -269,7 +271,6 @@ OC.L10N.register(
     "Status:" : "Статус:",
     "No date" : "Нет даты",
     "Time:" : "Время:",
-    "Unknown" : "Неизвестно",
     "Return" : "Возврат",
     "Open in LibreSign" : "Открыть в LibreSign",
     "Requested by {name}, at {date}" : "Запрошено у {name} {date}"

@@ -44,6 +44,7 @@ OC.L10N.register(
     "Last year ({year})" : "Ilindi ({year})",
     "Modified" : "Yettwabeddel",
     "{fileCount} files" : "{fileCount} n ifuyla",
+    "Unknown" : "Arussin",
     "Password reset" : "Awennez n wawal uffir",
     "New password" : "Awal uffir amaynut",
     "Add new" : "Rnu amaynut",
@@ -52,7 +53,6 @@ OC.L10N.register(
     "Yes" : "Ih",
     "No" : "Uhu",
     "Username" : "Isem n useqdac",
-    "Forgot password?" : "Tettud awal uffir?",
-    "Unknown" : "Arussin"
+    "Forgot password?" : "Tettud awal uffir?"
 },
 "nplurals=2; plural=(n != 1);");

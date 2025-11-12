@@ -171,6 +171,8 @@ OC.L10N.register(
     "There are no documents" : "Nema dokumenata",
     "Choose the file to request signatures." : "Odaberite datoteku za traženje potpisa.",
     "Created at" : "Stvoreno",
+    "Unknown" : "Nepoznata pogreška",
+    "Expired" : "Istekao",
     "Version" : "Inačica",
     "Allowed" : "Dopušteno",
     "Request Signatures" : "Zatraži potpise",
@@ -212,7 +214,6 @@ OC.L10N.register(
     "Name:" : "Naziv:",
     "No date" : "Nema datuma",
     "Time:" : "Vrijeme:",
-    "Unknown" : "Nepoznata pogreška",
     "Return" : "Natrag",
     "Open in LibreSign" : "Otvori u sustavu LibreSign",
     "Requested by {name}, at {date}" : "Zatražio {name} na dan {date}"

@@ -129,6 +129,8 @@ OC.L10N.register(
     "{fileCount} files" : "{fileCount} archìvios",
     "Created at" : "Creadu su",
     "(selected)" : "(seletzionados)",
+    "Unknown" : "Disconnotu",
+    "Expired" : "Iscadidu",
     "Version" : "Versione",
     "Allowed" : "Cunsentidu",
     "Request Signatures" : "Rechede firmas",
@@ -170,7 +172,6 @@ OC.L10N.register(
     "Name:" : "Nùmene:",
     "No date" : "Peruna data",
     "Time:" : "Tempus:",
-    "Unknown" : "Disconnotu",
     "Return" : "Torra",
     "Open in LibreSign" : "Aberi in LibreSign",
     "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}"

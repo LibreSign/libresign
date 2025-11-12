@@ -92,6 +92,7 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "Не ўдалося выканаць дзеянне \"{displayName}\"",
     "(selected)" : "(выбраны)",
     "_{count} selected_::_{count} selected_" : ["Выбраны {count}","Выбраны {count}","Выбрана {count}","Выбрана {count}"],
+    "Unknown" : "Невядомы",
     "Valid from" : "Дзейнічае з",
     "Version" : "Версія",
     "Fingerprint" : "Лічбавы адбітак",
@@ -120,7 +121,6 @@ OC.L10N.register(
     "File size:" : "Памер файла:",
     "No date" : "Няма даты",
     "Field:" : "Поле:",
-    "Time:" : "Час:",
-    "Unknown" : "Невядомы"
+    "Time:" : "Час:"
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");

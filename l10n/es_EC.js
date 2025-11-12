@@ -207,6 +207,8 @@ OC.L10N.register(
     "\"{displayName}\" failed on some elements " : "La acción \"{displayName}\" falló en algunos elementos.",
     "\"{displayName}\" batch action executed successfully" : "La acción en lote \"{displayName}\" se ejecutó correctamente.",
     "\"{displayName}\" action failed" : "La acción \"{displayName}\" falló.",
+    "Unknown" : "Desconocido",
+    "Expired" : "Expirado",
     "Version" : "Versión",
     "Allowed" : "Permitido",
     "Request Signatures" : "Solicitar firmas",
@@ -284,7 +286,6 @@ OC.L10N.register(
     "Signatories:" : "Firmantes:",
     "No date" : "Sin fecha",
     "Time:" : "Hora:",
-    "Unknown" : "Desconocido",
     "Return" : "Regresar",
     "Open in LibreSign" : "Abrir en LibreSign",
     "Requested by {name}, at {date}" : "Solicitado por {nombre}, el {fecha}"

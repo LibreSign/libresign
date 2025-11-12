@@ -98,6 +98,8 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "\"{displayName}\" アクションは失敗しました",
     "(selected)" : "(選択済み)",
     "_{count} selected_::_{count} selected_" : ["{count}選択されています"],
+    "Unknown" : "不明",
+    "Expired" : "有効期限切れ",
     "Version" : "バージョン",
     "Allowed" : "許可",
     "Password reset" : "パスワードのリセット",
@@ -124,7 +126,6 @@ OC.L10N.register(
     "Status:" : "ステータス:",
     "No date" : "日付なし",
     "Time:" : "時刻:",
-    "Unknown" : "不明",
     "Open in LibreSign" : "LibreSignで開く"
 },
 "nplurals=1; plural=0;");

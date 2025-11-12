@@ -199,6 +199,8 @@
     "\"{displayName}\" batch action executed successfully" : "\"{displayName}\" 일괄 작업을 성공적으로 실행함",
     "\"{displayName}\" action failed" : "\"{displayName}\" 작업을 실패함",
     "(selected)" : "(선택됨)",
+    "Unknown" : "알 수 없음",
+    "Expired" : "만료됨",
     "Version" : "버전",
     "Allowed" : "허용됨",
     "Request Signatures" : "서명 요청",
@@ -252,7 +254,6 @@
     "Name:" : "이름:",
     "No date" : "날짜 없음",
     "Time:" : "시간:",
-    "Unknown" : "알 수 없음",
     "Return" : "반환",
     "Open in LibreSign" : "LibreSign으로 열기",
     "Requested by {name}, at {date}" : "{날짜}에 {이름}에 의해 요청됨"

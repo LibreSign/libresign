@@ -37,6 +37,7 @@ OC.L10N.register(
     "Today" : "Heddiw",
     "Modified" : "Addaswyd",
     "Created at" : "Crëwyd ar",
+    "Unknown" : "Anhysbys",
     "Version" : "Fersiwn",
     "New password" : "Cyfrinair newydd",
     "Add new" : "Ychwanegu newydd",
@@ -50,7 +51,6 @@ OC.L10N.register(
     "Optional" : "Dewisol",
     "Forgot password?" : "Anghofio cyfrinair?",
     "No date" : "No date",
-    "Time:" : "Dewis amser",
-    "Unknown" : "Anhysbys"
+    "Time:" : "Dewis amser"
 },
 "nplurals=4; plural=(n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != 11) ? 2 : 3;");

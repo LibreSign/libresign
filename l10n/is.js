@@ -85,6 +85,8 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "\"{displayName}\" aðgerð mistókst",
     "(selected)" : "(valið)",
     "_{count} selected_::_{count} selected_" : ["{count} valið","{count} valið"],
+    "Unknown" : "Óþekkt",
+    "Expired" : "Útrunnið",
     "Version" : "Útgáfa",
     "Allowed" : "Leyft",
     "Password reset" : "Endurstilling lykilorðs",
@@ -107,7 +109,6 @@ OC.L10N.register(
     "Optional" : "Valkvætt",
     "Name:" : "Nafn:",
     "No date" : "Engin dagsetning",
-    "Time:" : "Tími:",
-    "Unknown" : "Óþekkt"
+    "Time:" : "Tími:"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

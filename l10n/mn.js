@@ -39,6 +39,7 @@ OC.L10N.register(
     "Today" : "өнөөдөр",
     "Modified" : "Өөрчлөгдсөн",
     "Created at" : "үүсгэгдсэн",
+    "Unknown" : "Үл танигдах зүйл",
     "Version" : "төрөл",
     "Password reset" : "Нууц үг солих",
     "Current password" : "одоогийн нууц үг",
@@ -52,7 +53,6 @@ OC.L10N.register(
     "Learn more" : "Илүү их судалгаа",
     "Username" : "Хэрэглэгчийн нэр",
     "Optional" : "Сайн дурын",
-    "No date" : "No date",
-    "Unknown" : "Үл танигдах зүйл"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

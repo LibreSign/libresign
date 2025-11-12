@@ -59,6 +59,7 @@ OC.L10N.register(
     "Modified" : "Modificado",
     "1 file" : "1 archivo",
     "Created at" : "Creado en",
+    "Unknown" : "Desconocido",
     "Version" : "Versión",
     "Password reset" : "Restablecer contraseña",
     "Current password" : "Contraseña actual",
@@ -78,7 +79,6 @@ OC.L10N.register(
     "Username" : "Nombre de usuario",
     "Optional" : "Opcional",
     "Forgot password?" : "¿Contraseña olvidada?",
-    "No date" : "Sin fecha",
-    "Unknown" : "Desconocido"
+    "No date" : "Sin fecha"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

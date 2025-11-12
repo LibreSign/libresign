@@ -26,13 +26,13 @@ OC.L10N.register(
     "Ok" : "Ok",
     "Today" : "இன்று",
     "Modified" : "மாற்றப்பட்டது",
+    "Unknown" : "தெரியாத",
     "Current password" : "தற்போதைய கடவுச்சொல்",
     "New password" : "புதிய கடவுச்சொல்",
     "Remove" : "அகற்றுக",
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "பயனாளர் பெயர்",
-    "No date" : "No date",
-    "Unknown" : "தெரியாத"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

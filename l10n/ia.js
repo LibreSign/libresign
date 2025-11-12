@@ -30,6 +30,7 @@ OC.L10N.register(
     "Enter a password" : "Enter a password",
     "Today" : "Hodie",
     "Modified" : "Modificate",
+    "Unknown" : "Incognite",
     "Version" : "Version",
     "Current password" : "Contrasigno actual",
     "New password" : "Nove contrasigno",
@@ -39,7 +40,6 @@ OC.L10N.register(
     "No" : "No",
     "Username" : "Nomine de usator",
     "Optional" : "Optional",
-    "No date" : "No date",
-    "Unknown" : "Incognite"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

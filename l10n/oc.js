@@ -101,6 +101,8 @@ OC.L10N.register(
     "Modified" : "Modificat",
     "1 file" : "1 fichièr",
     "Created at" : "Creat lo",
+    "Unknown" : "Desconegut",
+    "Expired" : "Expirat",
     "Version" : "Version",
     "Password reset" : "Reïnicializacion de senhal",
     "Current password" : "Senhal actual",
@@ -120,7 +122,6 @@ OC.L10N.register(
     "Forgot password?" : "Senhal oblidat ?",
     "This document is valid" : "Aqueste document es valid",
     "No date" : "Cap de data",
-    "Unknown" : "Desconegut",
     "Return" : "Tornar"
 },
 "nplurals=2; plural=(n > 1);");

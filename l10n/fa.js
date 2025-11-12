@@ -216,6 +216,8 @@ OC.L10N.register(
     "\"{displayName}\" batch action executed successfully" : "عملکرد دسته‌ای \"{displayName}\" با موفقیت اجرا شد",
     "\"{displayName}\" action failed" : "اقدام \"{displayName}\" ناموفق بود",
     "(selected)" : "(selected)",
+    "Unknown" : "ناشناخته.",
+    "Expired" : "منقضی شده",
     "Valid from" : "معتبر از",
     "Version" : "نسخه",
     "Fingerprint" : "اثر انگشت",
@@ -297,7 +299,6 @@ OC.L10N.register(
     "Signatories:" : "Signatories:",
     "No date" : "No date",
     "Time:" : "Time:",
-    "Unknown" : "ناشناخته.",
     "Return" : "Return",
     "Open in LibreSign" : "Open in LibreSign",
     "Requested by {name}, at {date}" : "Requested by {name}, at {date}"
