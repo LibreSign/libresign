@@ -161,7 +161,25 @@ abstract class AEngineHandler implements IEngineHandler {
 
 		$return['valid_from'] = $this->dateTimeFormatter->formatDateTime($parsed['validFrom_time_t']);
 		$return['valid_to'] = $this->dateTimeFormatter->formatDateTime($parsed['validTo_time_t']);
+
+		$this->addCrlValidationInfo($return, $x509);
+
 		return $return;
+	}
+
+	private function addCrlValidationInfo(array &$certData, string $certPem): void {
+		if (isset($certData['extensions']['crlDistributionPoints'])) {
+			$crlDistributionPoints = $certData['extensions']['crlDistributionPoints'];
+
+			preg_match_all('/URI:([^\s,\n]+)/', $crlDistributionPoints, $matches);
+			$extractedUrls = $matches[1] ?? [];
+
+			$certData['crl_urls'] = $extractedUrls;
+			$certData['crl_validation'] = $this->validateCrlFromUrls($extractedUrls, $certPem);
+		} else {
+			$certData['crl_validation'] = 'missing';
+			$certData['crl_urls'] = [];
+		}
 	}
 
 	private static function convertArrayToUtf8($array) {
@@ -617,5 +635,117 @@ abstract class AEngineHandler implements IEngineHandler {
 			'generation' => $caIdParsed['generation'],
 			'engineType' => $caIdParsed['engineType'],
 		]);
+	}
+
+	private function validateCrlFromUrls(array $crlUrls, string $certPem): string {
+		if (empty($crlUrls)) {
+			return 'no_urls';
+		}
+
+		$accessibleUrls = 0;
+		foreach ($crlUrls as $crlUrl) {
+			try {
+				$validationResult = $this->downloadAndValidateCrl($crlUrl, $certPem);
+				if ($validationResult === 'valid') {
+					return 'valid';
+				}
+				if ($validationResult === 'revoked') {
+					return 'revoked';
+				}
+				$accessibleUrls++;
+			} catch (\Exception $e) {
+				continue;
+			}
+		}
+
+		if ($accessibleUrls === 0) {
+			return 'urls_inaccessible';
+		}
+
+		return 'validation_failed';
+	}
+
+	private function downloadAndValidateCrl(string $crlUrl, string $certPem): string {
+		try {
+			$crlContent = $this->downloadCrlContent($crlUrl);
+			if (!$crlContent) {
+				throw new \Exception('Failed to download CRL');
+			}
+
+			return $this->checkCertificateInCrl($certPem, $crlContent);
+
+		} catch (\Exception $e) {
+			return 'validation_error';
+		}
+	}
+
+	private function downloadCrlContent(string $url): ?string {
+		if (!filter_var($url, FILTER_VALIDATE_URL) || !in_array(parse_url($url, PHP_URL_SCHEME), ['http', 'https'])) {
+			return null;
+		}
+
+		$context = stream_context_create([
+			'http' => [
+				'timeout' => 30,
+				'user_agent' => 'LibreSign/1.0 CRL Validator',
+				'follow_location' => 1,
+				'max_redirects' => 3,
+			]
+		]);
+
+		$url = str_replace('localhost', 'nginx', $url);
+		$content = @file_get_contents($url, false, $context);
+		return $content !== false ? $content : null;
+	}
+
+	private function checkCertificateInCrl(string $certPem, string $crlContent): string {
+		try {
+			$certResource = openssl_x509_read($certPem);
+			if (!$certResource) {
+				return 'validation_error';
+			}
+
+			$certData = openssl_x509_parse($certResource);
+			if (!isset($certData['serialNumber'])) {
+				return 'validation_error';
+			}
+
+			$serialNumber = $certData['serialNumber'];
+
+			$tempCrlFile = $this->tempManager->getTemporaryFile('.crl');
+			file_put_contents($tempCrlFile, $crlContent);
+
+			try {
+				$crlTextCmd = sprintf(
+					'openssl crl -in %s -inform DER -text 2>/dev/null || openssl crl -in %s -inform PEM -text 2>/dev/null',
+					escapeshellarg($tempCrlFile),
+					escapeshellarg($tempCrlFile)
+				);
+
+				exec($crlTextCmd, $output, $exitCode);
+
+				if ($exitCode === 0) {
+					$crlText = implode("\n", $output);
+
+					if (strpos($crlText, 'Serial Number: ' . strtoupper($serialNumber)) !== false
+						|| strpos($crlText, 'Serial Number: ' . $serialNumber) !== false
+						|| strpos($crlText, $serialNumber) !== false) {
+						return 'revoked';
+					}
+
+					return 'valid';
+				}
+
+				return 'validation_error';
+
+			} finally {
+				if (file_exists($tempCrlFile)) {
+					unlink($tempCrlFile);
+				}
+			}
+
+		} catch (\Exception $e) {
+			return 'validation_error';
+		}
 	}
 }
