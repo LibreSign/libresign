@@ -53,6 +53,7 @@ OC.L10N.register(
     "Modified" : "Modifikuar ",
     "1 file" : "1 skedar",
     "Created at" : "U krijua në",
+    "Unknown" : "I panjohur",
     "Version" : "Versioni",
     "Password reset" : "Fjalkalimi u rivendos",
     "Current password" : "Fjalëkalimi aktual",
@@ -71,7 +72,6 @@ OC.L10N.register(
     "Username" : "Emri i përdoruesit",
     "Optional" : "Jo i detyrueshëm",
     "Name:" : "Emri",
-    "No date" : "No date",
-    "Unknown" : "I panjohur"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

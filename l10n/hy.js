@@ -34,6 +34,7 @@ OC.L10N.register(
     "Today" : "Այսօր",
     "Modified" : "Փոփոխված",
     "1 file" : "1 ֆայլ",
+    "Unknown" : "Անհայտ",
     "Version" : "Տարբերակ",
     "Password reset" : "Վերականգնել գաղտնաբառը",
     "New password" : "Նոր գաղտնաբառ",
@@ -43,7 +44,6 @@ OC.L10N.register(
     "No" : "No",
     "Username" : "Օգտանուն",
     "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։",
-    "No date" : "No date",
-    "Unknown" : "Անհայտ"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

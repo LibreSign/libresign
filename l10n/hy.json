@@ -32,6 +32,7 @@
     "Today" : "Այսօր",
     "Modified" : "Փոփոխված",
     "1 file" : "1 ֆայլ",
+    "Unknown" : "Անհայտ",
     "Version" : "Տարբերակ",
     "Password reset" : "Վերականգնել գաղտնաբառը",
     "New password" : "Նոր գաղտնաբառ",
@@ -41,7 +42,6 @@
     "No" : "No",
     "Username" : "Օգտանուն",
     "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։",
-    "No date" : "No date",
-    "Unknown" : "Անհայտ"
+    "No date" : "No date"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

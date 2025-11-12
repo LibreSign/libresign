@@ -48,6 +48,8 @@ OC.L10N.register(
     "Today" : "დღეს",
     "Modified" : "შეიცვალა",
     "Created at" : "შეიქმნა",
+    "Unknown" : "უცნობია",
+    "Expired" : "გაუქმდა",
     "Version" : "ვერსია",
     "Password reset" : "პაროლის აღდგენა",
     "Current password" : "ამჟამინდელი პაროლი",
@@ -63,7 +65,6 @@ OC.L10N.register(
     "Learn more" : "შეიტყვეთ მეტი",
     "Username" : "მომხმარებლის სახელი",
     "Optional" : "არასავალდებულო",
-    "No date" : "თარიღი არაა",
-    "Unknown" : "უცნობია"
+    "No date" : "თარიღი არაა"
 },
 "nplurals=2; plural=(n!=1);");

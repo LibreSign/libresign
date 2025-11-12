@@ -76,6 +76,8 @@ OC.L10N.register(
     "\"{displayName}\" batch action executed successfully" : "Chỉnh sửa hàng loạt \"{displayName}\" được thực hiện thành công",
     "\"{displayName}\" action failed" : "Hành động \"{displayName}\" đã thực thi thất bại",
     "(selected)" : "(đã chọn)",
+    "Unknown" : "Không xác định",
+    "Expired" : "Đã hết hạn",
     "Version" : "Phiên bản",
     "Password reset" : "Đặt lại mật khẩu",
     "Current password" : "Mật khẩu cũ",
@@ -96,7 +98,6 @@ OC.L10N.register(
     "Forgot password?" : "Quên mật khẩu sao?",
     "Name:" : "Tên:",
     "No date" : "No date",
-    "Time:" : "Thời gian:",
-    "Unknown" : "Không xác định"
+    "Time:" : "Thời gian:"
 },
 "nplurals=1; plural=0;");

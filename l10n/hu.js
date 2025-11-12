@@ -232,6 +232,8 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "A(z) „{displayName}” művelet sikertelen",
     "(selected)" : "(kijelölt)",
     "_{count} selected_::_{count} selected_" : ["{count} kijelölve","{count} kijelölve"],
+    "Unknown" : "Ismeretlen",
+    "Expired" : "Elévült",
     "Version" : "Verzió",
     "Allowed" : "Engedélyezett",
     "Request Signatures" : "Aláírások kérése",
@@ -317,7 +319,6 @@ OC.L10N.register(
     "Signatories:" : "Aláírók:",
     "No date" : "Nincs dátum",
     "Time:" : "Idő:",
-    "Unknown" : "Ismeretlen",
     "Return" : "Vissza",
     "Open in LibreSign" : "Megnyitás a LibreSignban",
     "Requested by {name}, at {date}" : "{name} kérte, ekkor: {date}"

@@ -210,6 +210,8 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "\"{displayName}\" actie mislukt",
     "(selected)" : "(geselecteerd)",
     "_{count} selected_::_{count} selected_" : ["{count} geselecteerd","{count} geselecteerd"],
+    "Unknown" : "Onbekend",
+    "Expired" : "Vervallen",
     "Version" : "Versie",
     "Allowed" : "Toegelaten",
     "Request Signatures" : "Aanvragen ondertekening",
@@ -266,7 +268,6 @@ OC.L10N.register(
     "Status:" : "Status:",
     "No date" : "Geen datum",
     "Time:" : "Tijd:",
-    "Unknown" : "Onbekend",
     "Return" : "Terug",
     "Open in LibreSign" : "Openen in LibreSign",
     "Requested by {name}, at {date}" : "Aangevraagd door {name}, op {date}"

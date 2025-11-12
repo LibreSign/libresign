@@ -77,6 +77,8 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "\"{displayName}\" a ação falhou",
     "(selected)" : "(selecionado)",
     "_{count} selected_::_{count} selected_" : ["{count} selecionado","{count} selecionado","{count} selecionado"],
+    "Unknown" : "Desconhecido",
+    "Expired" : "Expirado",
     "Version" : "Versão",
     "Allowed" : "Permitido",
     "Password reset" : "Reposição da senha",
@@ -98,7 +100,6 @@ OC.L10N.register(
     "Optional" : "Opcional ",
     "Forgot password?" : "Senha esquecida?",
     "Name:" : "Nome:",
-    "No date" : "Sem data",
-    "Unknown" : "Desconhecido"
+    "No date" : "Sem data"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

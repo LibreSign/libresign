@@ -66,6 +66,7 @@ OC.L10N.register(
     "{fileCount} files" : "{fileCount} datņu",
     "Created at" : "Izveidots plkst.",
     "_{count} selected_::_{count} selected_" : ["{count} atlasītas","{count} atlasīta","{count} atlasītas"],
+    "Unknown" : "Nezināms",
     "Version" : "Versija",
     "Allowed" : "Atļauts",
     "Password reset" : "Parole atiestatīta",
@@ -89,7 +90,6 @@ OC.L10N.register(
     "Status:" : "Statuss:",
     "No date" : "No date",
     "Time:" : "Laiks:",
-    "Unknown" : "Nezināms",
     "Open in LibreSign" : "Atvērt LibreSign",
     "Requested by {name}, at {date}" : "Pieprasīja {name} {date}"
 },

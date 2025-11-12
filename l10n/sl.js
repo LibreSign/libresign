@@ -260,6 +260,8 @@ OC.L10N.register(
     "(selected)" : "(izbrano)",
     "Welcome to LibreSign" : "Dobrodošli v program LibreSign",
     "Finish the setup" : "Končaj nastavitev",
+    "Unknown" : "Neznano",
+    "Expired" : "Preteklo",
     "Owner of certificate" : "Lastnik digitalnega potrdila",
     "Issuer of certificate" : "Izdajatelj digitalnega potrdila",
     "Version" : "Različica",
@@ -368,7 +370,6 @@ OC.L10N.register(
     "Signatories:" : "Podpisniki:",
     "No date" : "Ni datuma",
     "Time:" : "Čas:",
-    "Unknown" : "Neznano",
     "Return" : "Nazaj",
     "Open in LibreSign" : "Odpri v LibreSign",
     "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}"

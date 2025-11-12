@@ -201,6 +201,8 @@
     "\"{displayName}\" action failed" : "“{displayName}”操作执行失败",
     "(selected)" : "（选中）",
     "_{count} selected_::_{count} selected_" : ["已选择 {count} 个"],
+    "Unknown" : "未知",
+    "Expired" : "已过期",
     "Version" : "版本",
     "Allowed" : "允许",
     "Request Signatures" : "请求签名",
@@ -257,7 +259,6 @@
     "Status:" : "状态：",
     "No date" : "无日期",
     "Time:" : "时间：",
-    "Unknown" : "未知",
     "Return" : "返回",
     "Open in LibreSign" : "在 LibreSign 中打开",
     "Requested by {name}, at {date}" : "{name} 请求于 {date}"

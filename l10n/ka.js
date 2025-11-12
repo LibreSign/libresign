@@ -74,6 +74,8 @@ OC.L10N.register(
     "\"{displayName}\" failed on some elements " : "\"{displayName}\" failed on some elements ",
     "\"{displayName}\" batch action executed successfully" : "\"{displayName}\" batch action executed successfully",
     "\"{displayName}\" action failed" : "\"{displayName}\" action failed",
+    "Unknown" : "Unknown",
+    "Expired" : "Expired",
     "Version" : "ვერსია",
     "Allowed" : "Allowed",
     "Password reset" : "Password reset",
@@ -94,7 +96,6 @@ OC.L10N.register(
     "Forgot password?" : "Forgot password?",
     "Name:" : "Name:",
     "Status:" : "Status:",
-    "Time:" : "Time:",
-    "Unknown" : "Unknown"
+    "Time:" : "Time:"
 },
 "nplurals=2; plural=(n!=1);");

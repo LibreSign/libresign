@@ -231,6 +231,8 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "\"{displayName}\" ekintzak huts egin du",
     "(selected)" : "(hautatuta)",
     "_{count} selected_::_{count} selected_" : ["{count} hautatuta","{count} hautatuta"],
+    "Unknown" : "Ezezaguna",
+    "Expired" : "Iraungita",
     "Version" : "Bertsioa",
     "Allowed" : "Baimenduta",
     "Certificate data" : "Ziurtagiriaren datuak",
@@ -319,7 +321,6 @@ OC.L10N.register(
     "Signatories:" : "Sinatzaileak:",
     "No date" : "Datarik gabe",
     "Time:" : "Noiz:",
-    "Unknown" : "Ezezaguna",
     "Return" : "Bueltatu",
     "Open in LibreSign" : "Ireki LibreSign-en",
     "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean"
