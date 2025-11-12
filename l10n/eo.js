@@ -63,6 +63,8 @@ OC.L10N.register(
     "Modified" : "Modifita",
     "1 file" : "1 dosiero",
     "Created at" : "Kreita je",
+    "Unknown" : "Nekonata",
+    "Expired" : "Senvalidiĝis",
     "Version" : "Versio",
     "Allowed" : "Permesita",
     "Password reset" : "Restarigi pasvorton",
@@ -81,7 +83,6 @@ OC.L10N.register(
     "Optional" : "Malnepra",
     "Forgot password?" : "Ĉu vi forgesis vian pasvorton?",
     "No date" : "No date",
-    "Time:" : "Tempo:",
-    "Unknown" : "Nekonata"
+    "Time:" : "Tempo:"
 },
 "nplurals=2; plural=(n != 1);");

@@ -263,6 +263,8 @@ OC.L10N.register(
     "_{count} selected_::_{count} selected_" : ["{count} valgt","{count} valgt"],
     "Welcome to LibreSign" : "Velkommen til LibreSign",
     "Finish the setup" : "Fullfør oppsettet",
+    "Unknown" : "Ukjent",
+    "Expired" : "Utløpt",
     "Owner of certificate" : "Eier av sertifikat",
     "Issuer of certificate" : "Utsteder av sertifikat",
     "Version" : "Versjon",
@@ -370,7 +372,6 @@ OC.L10N.register(
     "Signatories:" : "Underskriverne:",
     "No date" : "Ingen dato",
     "Time:" : "Tid:",
-    "Unknown" : "Ukjent",
     "Return" : "Returner",
     "Open in LibreSign" : "Åpne i LibreSign",
     "Requested by {name}, at {date}" : "Bedt av {name}, den {date}"

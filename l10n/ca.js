@@ -228,6 +228,8 @@ OC.L10N.register(
     "\"{displayName}\" batch action executed successfully" : "L'acció per lots «{displayName}» s'ha executat correctament",
     "\"{displayName}\" action failed" : "S'ha produït un error en l'acció «{displayName}»",
     "(selected)" : "(seleccionat)",
+    "Unknown" : "Desconegut",
+    "Expired" : "Caducat",
     "Version" : "Versió",
     "Allowed" : "Permès",
     "Request Signatures" : "Demanar signatures",
@@ -308,7 +310,6 @@ OC.L10N.register(
     "Signatories:" : "Signants:",
     "No date" : "Sense data",
     "Time:" : "Hora:",
-    "Unknown" : "Desconegut",
     "Return" : "Retorn",
     "Open in LibreSign" : "Obre a LibreSign",
     "Requested by {name}, at {date}" : "Sol·licitat per {name}, a {date}"

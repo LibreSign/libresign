@@ -37,6 +37,7 @@
     "Today" : "өнөөдөр",
     "Modified" : "Өөрчлөгдсөн",
     "Created at" : "үүсгэгдсэн",
+    "Unknown" : "Үл танигдах зүйл",
     "Version" : "төрөл",
     "Password reset" : "Нууц үг солих",
     "Current password" : "одоогийн нууц үг",
@@ -50,7 +51,6 @@
     "Learn more" : "Илүү их судалгаа",
     "Username" : "Хэрэглэгчийн нэр",
     "Optional" : "Сайн дурын",
-    "No date" : "No date",
-    "Unknown" : "Үл танигдах зүйл"
+    "No date" : "No date"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

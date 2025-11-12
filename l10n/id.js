@@ -90,6 +90,7 @@ OC.L10N.register(
     "Modified" : "Dimodifikasi",
     "1 file" : "1 berkas",
     "Created at" : "Dibuat saat",
+    "Unknown" : "Tidak diketahui",
     "Version" : "Versi",
     "Password reset" : "Setel ulang kata sandi",
     "Current password" : "Kata sandi saat ini",
@@ -105,7 +106,6 @@ OC.L10N.register(
     "Learn more" : "Pelajari lebih lanjut",
     "Invalid URL" : "URL Tidak Valid",
     "Username" : "Username",
-    "No date" : "No date",
-    "Unknown" : "Tidak diketahui"
+    "No date" : "No date"
 },
 "nplurals=1; plural=0;");

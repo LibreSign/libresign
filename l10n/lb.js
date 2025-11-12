@@ -29,6 +29,7 @@ OC.L10N.register(
     "Today" : "Haut",
     "Modified" : "Geännert",
     "1 file" : "1 Fichier",
+    "Unknown" : "Onbekannt",
     "Current password" : "Momentan 't Passwuert",
     "New password" : "Neit Passwuert",
     "Resource" : "Ressource",
@@ -37,7 +38,6 @@ OC.L10N.register(
     "No" : "No",
     "Username" : "Benotzernumm",
     "Optional" : "Fräiwëlleg",
-    "No date" : "No date",
-    "Unknown" : "Onbekannt"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

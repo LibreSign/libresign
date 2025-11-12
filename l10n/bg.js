@@ -214,6 +214,8 @@ OC.L10N.register(
     "\"{displayName}\" failed on some elements " : "„{displayName}“ не успя да се изпълни за някои елементи ",
     "\"{displayName}\" batch action executed successfully" : " Пакетното действие „{displayName}“ е изпълнено успешно",
     "\"{displayName}\" action failed" : "Действието „{displayName}“ е неуспешно",
+    "Unknown" : "Неизвестен",
+    "Expired" : "Изтекъл",
     "Version" : "Версия",
     "Allowed" : "Позволен",
     "Request Signatures" : "Искане на подписи",
@@ -295,7 +297,6 @@ OC.L10N.register(
     "Signatories:" : "Подписалите се:",
     "No date" : "Няма дата",
     "Time:" : "Час:",
-    "Unknown" : "Неизвестен",
     "Return" : "Връщане ",
     "Open in LibreSign" : "Отваряне в LibreSign",
     "Requested by {name}, at {date}" : "Поискано от {name}, на {date}"

@@ -65,6 +65,8 @@ OC.L10N.register(
     "Modified" : "מועד שינוי",
     "1 file" : "1 קובץ",
     "Created at" : "נוצר ב־",
+    "Unknown" : "לא ידוע",
+    "Expired" : "פג",
     "Version" : "גרסה",
     "Allowed" : "מורשה",
     "Password reset" : "איפוס ססמה",
@@ -88,7 +90,6 @@ OC.L10N.register(
     "Forgot password?" : "שכחת ססמה?",
     "Name:" : "שם:",
     "No date" : "No date",
-    "Time:" : "שעה:",
-    "Unknown" : "לא ידוע"
+    "Time:" : "שעה:"
 },
 "nplurals=3; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: 2;");

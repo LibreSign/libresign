@@ -89,6 +89,8 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "\"{displayName}\" акцијата не успеа",
     "(selected)" : "(означени)",
     "_{count} selected_::_{count} selected_" : ["{count} означена","{count} означени"],
+    "Unknown" : "Непознат",
+    "Expired" : "Истечен",
     "Version" : "Верзија",
     "Allowed" : "Дозволено",
     "Password reset" : "Ресетирај лозинка",
@@ -112,7 +114,6 @@ OC.L10N.register(
     "Name:" : "Име:",
     "Status:" : "Статус:",
     "No date" : "No date",
-    "Time:" : "Време:",
-    "Unknown" : "Непознат"
+    "Time:" : "Време:"
 },
 "nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;");

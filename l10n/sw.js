@@ -76,6 +76,8 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "\"{displayName}\" matendo yameshindwa",
     "(selected)" : "(iliyochaguliwa)",
     "_{count} selected_::_{count} selected_" : ["{count} selected","{count} selected"],
+    "Unknown" : "Haijulikani",
+    "Expired" : "Imeisha  muda",
     "Valid from" : "Fomu halali",
     "Version" : "Toleo",
     "Fingerprint" : "Alama za vidole",
@@ -100,7 +102,6 @@ OC.L10N.register(
     "Name:" : "Jina:",
     "Status:" : "Status:",
     "Time:" : "Muda",
-    "Unknown" : "Haijulikani",
     "Return" : "Rudi"
 },
 "nplurals=2; plural=(n != 1);");

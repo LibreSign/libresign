@@ -46,6 +46,8 @@
     "Today" : "დღეს",
     "Modified" : "შეიცვალა",
     "Created at" : "შეიქმნა",
+    "Unknown" : "უცნობია",
+    "Expired" : "გაუქმდა",
     "Version" : "ვერსია",
     "Password reset" : "პაროლის აღდგენა",
     "Current password" : "ამჟამინდელი პაროლი",
@@ -61,7 +63,6 @@
     "Learn more" : "შეიტყვეთ მეტი",
     "Username" : "მომხმარებლის სახელი",
     "Optional" : "არასავალდებულო",
-    "No date" : "თარიღი არაა",
-    "Unknown" : "უცნობია"
+    "No date" : "თარიღი არაა"
 },"pluralForm" :"nplurals=2; plural=(n!=1);"
 }

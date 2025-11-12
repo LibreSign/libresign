@@ -58,6 +58,7 @@ OC.L10N.register(
     "Modified" : "แก้ไขเมื่อ",
     "1 file" : "1 ไฟล์",
     "Created at" : "สร้างเมื่อ",
+    "Unknown" : "ไม่ทราบ",
     "Version" : "รุ่น",
     "Password reset" : "ตั้งรหัสผ่านใหม่",
     "Current password" : "รหัสผ่านปัจจุบัน",
@@ -70,7 +71,6 @@ OC.L10N.register(
     "Invalid URL" : "URL ไม่ถูกต้อง",
     "Username" : "ชื่อผู้ใช้",
     "Optional" : "ไม่จำเป็น",
-    "No date" : "ไม่มีวันที่",
-    "Unknown" : "ไม่ทราบ"
+    "No date" : "ไม่มีวันที่"
 },
 "nplurals=1; plural=0;");

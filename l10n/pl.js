@@ -218,6 +218,8 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "Akcja \"{displayName}\" nie powiodła się",
     "(selected)" : "(wybrany)",
     "_{count} selected_::_{count} selected_" : ["wybrano {count}","wybrano {count}","wybrano {count}","wybrano {count}"],
+    "Unknown" : "Nieznana",
+    "Expired" : "Wygasł",
     "Valid from" : "Ważny od",
     "Version" : "Wersja",
     "Fingerprint" : "Fingerprint",
@@ -281,7 +283,6 @@ OC.L10N.register(
     "Signatories:" : "Sygnatariusze:",
     "No date" : "Brak daty",
     "Time:" : "Czas:",
-    "Unknown" : "Nieznana",
     "Return" : "Powróć",
     "Open in LibreSign" : "Otwórz w LibreSign",
     "Requested by {name}, at {date}" : "Prośba złożona przez {name}, dnia {date}"

@@ -258,6 +258,8 @@ OC.L10N.register(
     "(selected)" : "(تاللانغان)",
     "Welcome to LibreSign" : "LibreSign غا خۇش كەپسىز",
     "Finish the setup" : "تەڭشەشنى تاماملاڭ",
+    "Unknown" : "نامەلۇم",
+    "Expired" : "ۋاقتى توشتى",
     "Owner of certificate" : "گۇۋاھنامە ئىگىسى",
     "Issuer of certificate" : "گۇۋاھنامە بەرگۈچى",
     "Version" : "نەشرى",
@@ -363,7 +365,6 @@ OC.L10N.register(
     "Signatories:" : "ئىمزا قويغۇچىلار:",
     "No date" : "No date",
     "Time:" : "ۋاقىت:",
-    "Unknown" : "نامەلۇم",
     "Return" : "قايتىش",
     "Open in LibreSign" : "LibreSign دا ئېچىڭ",
     "Requested by {name}, at {date}" : "{name} تەرىپىدىن تەلەپ قىلىنغان ، {date}"

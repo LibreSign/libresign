@@ -147,6 +147,8 @@ OC.L10N.register(
     "1 file" : "1 failas",
     "{fileCount} files" : "{fileCount} failas",
     "Created at" : "Sukurta",
+    "Unknown" : "Nežinoma",
+    "Expired" : "Nebegalioja",
     "Owner of certificate" : "Liudijimo savininkas",
     "Version" : "Versija",
     "Allowed" : "Leista",
@@ -181,7 +183,6 @@ OC.L10N.register(
     "Name:" : "Pavadinimas:",
     "Status:" : "Būsena:",
     "No date" : "No date",
-    "Time:" : "Laikas:",
-    "Unknown" : "Nežinoma"
+    "Time:" : "Laikas:"
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");

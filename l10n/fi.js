@@ -164,6 +164,8 @@ OC.L10N.register(
     "\"{displayName}\" batch action executed successfully" : "\"{displayName}\" massatoiminto suoritettu",
     "(selected)" : "(valittu)",
     "_{count} selected_::_{count} selected_" : ["{count} valittu","{count} valittu"],
+    "Unknown" : "Tuntematon",
+    "Expired" : "Vanhentunut",
     "Version" : "Versio",
     "Allowed" : "Sallittu",
     "Request Signatures" : "Pyydä allekirjoituksia",
@@ -205,7 +207,6 @@ OC.L10N.register(
     "Status:" : "Tila:",
     "No date" : "Ei päiväystä",
     "Time:" : "Aika:",
-    "Unknown" : "Tuntematon",
     "Return" : "Palaa",
     "Open in LibreSign" : "Avaa LibreSignissa",
     "Requested by {name}, at {date}" : "Pyytänyt {name} {date}"

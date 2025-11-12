@@ -30,13 +30,13 @@ OC.L10N.register(
     "Password" : "Facal-faire",
     "Enter a password" : "Cuir a-steach facal-faire",
     "Today" : "An-diugh",
+    "Unknown" : "Chan eil fhios",
     "Version" : "Tionndadh",
     "Password reset" : "Ath-shuidheachadh an fhacail-fhaire",
     "Remove" : "Thoir air falbh",
     "Yes" : "Tha",
     "No" : "Chan eil",
     "Invalid URL" : "URL mì-dhligheach",
-    "Username" : "Ainm-cleachdaiche",
-    "Unknown" : "Chan eil fhios"
+    "Username" : "Ainm-cleachdaiche"
 },
 "nplurals=4; plural=(n==1 || n==11) ? 0 : (n==2 || n==12) ? 1 : (n > 2 && n < 20) ? 2 : 3;");
