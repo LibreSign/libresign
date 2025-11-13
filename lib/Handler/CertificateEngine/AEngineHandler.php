@@ -700,6 +700,12 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $content !== false ? $content : null;
 	}
 
+	private function isSerialNumberInCrl(string $crlText, string $serialNumber): bool {
+		return strpos($crlText, 'Serial Number: ' . strtoupper($serialNumber)) !== false
+			|| strpos($crlText, 'Serial Number: ' . $serialNumber) !== false
+			|| strpos($crlText, $serialNumber) !== false;
+	}
+
 	private function checkCertificateInCrl(string $certPem, string $crlContent): string {
 		try {
 			$certResource = openssl_x509_read($certPem);
@@ -711,8 +717,6 @@ abstract class AEngineHandler implements IEngineHandler {
 			if (!isset($certData['serialNumber'])) {
 				return 'validation_error';
 			}
-
-			$serialNumber = $certData['serialNumber'];
 
 			$tempCrlFile = $this->tempManager->getTemporaryFile('.crl');
 			file_put_contents($tempCrlFile, $crlContent);
@@ -729,9 +733,8 @@ abstract class AEngineHandler implements IEngineHandler {
 				if ($exitCode === 0) {
 					$crlText = implode("\n", $output);
 
-					if (strpos($crlText, 'Serial Number: ' . strtoupper($serialNumber)) !== false
-						|| strpos($crlText, 'Serial Number: ' . $serialNumber) !== false
-						|| strpos($crlText, $serialNumber) !== false) {
+					if ($this->isSerialNumberInCrl($crlText, $certData['serialNumber']) ||
+						(!empty($certData['serialNumberHex']) && $this->isSerialNumberInCrl($crlText, $certData['serialNumberHex']))) {
 						return 'revoked';
 					}
 
