@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\CertificateEngine;
 
-use DateTime;
 use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\CaIdentifierService;
