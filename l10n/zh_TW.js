@@ -329,6 +329,8 @@ OC.L10N.register(
     "Finish the setup" : "完成設定",
     "Unknown" : "未知",
     "Expired" : "已過期",
+    "Expires Soon" : "即將過期",
+    "Valid" : "有效期",
     "SSL Client" : "SSL 客戶端",
     "SSL Server" : "SSL 伺服器",
     "Netscape SSL Server" : "Netscape SSL 伺服器",
