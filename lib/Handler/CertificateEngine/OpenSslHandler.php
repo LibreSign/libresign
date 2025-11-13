@@ -40,8 +40,8 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		protected IURLGenerator $urlGenerator,
 		protected SerialNumberService $serialNumberService,
 		protected CaIdentifierService $caIdentifierService,
-		protected CrlMapper $crlMapper,
 		protected LoggerInterface $logger,
+		protected CrlMapper $crlMapper,
 	) {
 		parent::__construct(
 			$config,
@@ -52,6 +52,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			$certificatePolicyService,
 			$urlGenerator,
 			$caIdentifierService,
+			$logger,
 		);
 	}
 
@@ -397,91 +398,5 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 	#[\Override]
 	protected function getSetupErrorTip(): string {
 		return 'Run occ libresign:configure:openssl --help';
-	}
-
-	#[\Override]
-	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation, int $crlNumber): string {
-		$configPath = $this->getConfigPathByParams($instanceId, $generation);
-		$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
-		$caKeyPath = $configPath . DIRECTORY_SEPARATOR . 'ca-key.pem';
-		$crlDerPath = $configPath . DIRECTORY_SEPARATOR . 'crl.der';
-
-		if (!file_exists($caCertPath) || !file_exists($caKeyPath)) {
-			throw new \RuntimeException('CA certificate or private key not found. Run: occ libresign:configure:openssl');
-		}
-
-		try {
-			$caCert = file_get_contents($caCertPath);
-			$caKey = file_get_contents($caKeyPath);
-
-			if (!$caCert || !$caKey) {
-				throw new \RuntimeException('Failed to read CA certificate or private key');
-			}
-
-			$issuer = new \OCA\Libresign\Vendor\phpseclib3\File\X509();
-			$issuer->loadX509($caCert);
-			$caPrivateKey = \OCA\Libresign\Vendor\phpseclib3\Crypt\PublicKeyLoader::load($caKey);
-
-			if (!$caPrivateKey instanceof \OCA\Libresign\Vendor\phpseclib3\Crypt\Common\PrivateKey) {
-				throw new \RuntimeException('Loaded key is not a private key');
-			}
-
-			$issuer->setPrivateKey($caPrivateKey);
-
-			$utc = new \DateTimeZone('UTC');
-			$now = (new \DateTime())->setTimezone($utc);
-			$nextWeek = (new \DateTime('+7 days'))->setTimezone($utc);
-
-			$revokedList = [];
-			foreach ($revokedCertificates as $cert) {
-				$revokedList[] = [
-					'userCertificate' => new \OCA\Libresign\Vendor\phpseclib3\Math\BigInteger($cert->getSerialNumber(), 16),
-					'revocationDate' => ['utcTime' => $cert->getRevokedAt()->format('D, d M Y H:i:s O')],
-				];
-			}
-
-			$crlStructure = [
-				'tbsCertList' => [
-					'version' => 'v2',
-					'signature' => ['algorithm' => 'sha256WithRSAEncryption'],
-					'issuer' => $issuer->getSubjectDN(\OCA\Libresign\Vendor\phpseclib3\File\X509::DN_ARRAY),
-					'thisUpdate' => ['utcTime' => $now],
-					'nextUpdate' => ['utcTime' => $nextWeek],
-					'revokedCertificates' => $revokedList,
-				],
-				'signatureAlgorithm' => ['algorithm' => 'sha256WithRSAEncryption'],
-			];
-
-			$crl = new \OCA\Libresign\Vendor\phpseclib3\File\X509();
-			$crl->loadCRL($crlStructure);
-			$crl->setSerialNumber($crlNumber);
-			$crl->setStartDate(new \DateTime('-1 minute'));
-			$crl->setEndDate(new \DateTime('+7 days'));
-
-			$signedCrl = $crl->signCRL($issuer, $crl, 'sha256WithRSAEncryption');
-
-			if ($signedCrl === false) {
-				throw new \RuntimeException('Failed to sign CRL with phpseclib3');
-			}
-
-			if (!isset($signedCrl['signatureAlgorithm'])) {
-				$signedCrl['signatureAlgorithm'] = ['algorithm' => 'sha256WithRSAEncryption'];
-			}
-
-			$crlDerData = $crl->saveCRL($signedCrl, \OCA\Libresign\Vendor\phpseclib3\File\X509::FORMAT_DER);
-
-			if ($crlDerData === false) {
-				throw new \RuntimeException('Failed to save CRL in DER format');
-			}
-
-			if (file_put_contents($crlDerPath, $crlDerData) === false) {
-				throw new \RuntimeException('Failed to write CRL DER file');
-			}
-
-			return $crlDerData;
-		} catch (\Exception $e) {
-			$this->logger->error('CRL generation failed: ' . $e->getMessage(), ['exception' => $e]);
-			throw new \RuntimeException('Failed to generate CRL: ' . $e->getMessage(), 0, $e);
-		}
 	}
 }

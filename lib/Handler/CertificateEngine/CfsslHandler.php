@@ -66,6 +66,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			$certificatePolicyService,
 			$urlGenerator,
 			$caIdentifierService,
+			$logger,
 		);
 
 		$this->cfsslServerHandler->configCallback(fn () => $this->getCurrentConfigPath());
@@ -486,38 +487,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			->setSuccessMessage('Runtime: ' . $matches['version'][1])
 			->setResource('cfssl');
 		return $return;
-	}
-
-	#[\Override]
-	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation, int $crlNumber): string {
-		try {
-			$queryParams = [];
-			$queryParams['expiry'] = '168h'; // 7 days * 24 hours
-
-			$response = $this->getClient()->request('GET', 'crl', [
-				'query' => $queryParams
-			]);
-
-			$responseData = json_decode((string)$response->getBody(), true);
-
-			if (!isset($responseData['success']) || !$responseData['success']) {
-				$errorMessage = isset($responseData['errors'])
-					? implode(', ', array_column($responseData['errors'], 'message'))
-					: 'Unknown CFSSL error';
-				throw new \RuntimeException('CFSSL CRL generation failed: ' . $errorMessage);
-			}
-
-			if (isset($responseData['result']) && is_string($responseData['result'])) {
-				return $responseData['result'];
-			}
-
-			throw new \RuntimeException('No CRL data returned from CFSSL');
-
-		} catch (RequestException|ConnectException $e) {
-			throw new \RuntimeException('Failed to communicate with CFSSL server: ' . $e->getMessage());
-		} catch (\Throwable $e) {
-			throw new \RuntimeException('CFSSL CRL generation error: ' . $e->getMessage());
-		}
 	}
 
 	/**
