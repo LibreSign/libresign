@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\CertificateEngine;
 
+use DateTime;
 use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\CaIdentifierService;
@@ -422,8 +423,8 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 					'version' => 'v2',
 					'signature' => ['algorithm' => 'sha256WithRSAEncryption'],
 					'issuer' => $issuer->getSubjectDN(\OCA\Libresign\Vendor\phpseclib3\File\X509::DN_ARRAY),
-					'thisUpdate' => ['utcTime' => date('ymdHis\Z')],
-					'nextUpdate' => ['utcTime' => date('ymdHis\Z', strtotime('+7 days'))],
+					'thisUpdate' => ['utcTime' => (new DateTime())->setTimezone(new \DateTimeZone('UTC'))],
+					'nextUpdate' => ['utcTime' => new DateTime('+7 days', new \DateTimeZone('UTC'))],
 					'revokedCertificates' => [],
 				],
 				'signatureAlgorithm' => ['algorithm' => 'sha256WithRSAEncryption'],
@@ -435,13 +436,16 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 				$crlStructure['tbsCertList']['revokedCertificates'][] = [
 					'userCertificate' => new \OCA\Libresign\Vendor\phpseclib3\Math\BigInteger($serialHex, 16),
-					'revocationDate' => ['utcTime' => $revokedAt->format('ymdHis\Z')],
+					'revocationDate' => ['utcTime' => $revokedAt->format('D, d M Y H:i:s O')],
 				];
 			}
 
 			$crl = new \OCA\Libresign\Vendor\phpseclib3\File\X509();
 			$crl->loadCRL($crlStructure);
 			$crl->setSerialNumber($crlNumber);
+
+			$crl->setStartDate(new \DateTime('-1 minute')); // Valid from 1 minute ago to avoid clock skew
+			$crl->setEndDate(new \DateTime('+7 days'));     // Valid for 7 days
 
 			$signedCrl = $crl->signCRL($issuer, $crl, 'sha256WithRSAEncryption');
 
