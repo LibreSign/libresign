@@ -16,6 +16,7 @@ use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
+use OCA\Libresign\Service\CrlService;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\SimpleFS\ISimpleFolder;
@@ -669,15 +670,68 @@ abstract class AEngineHandler implements IEngineHandler {
 
 	private function downloadAndValidateCrl(string $crlUrl, string $certPem): string {
 		try {
-			$crlContent = $this->downloadCrlContent($crlUrl);
+			if ($this->isLocalCrlUrl($crlUrl)) {
+				$crlContent = $this->generateLocalCrl($crlUrl);
+			} else {
+				$crlContent = $this->downloadCrlContent($crlUrl);
+			}
+
 			if (!$crlContent) {
-				throw new \Exception('Failed to download CRL');
+				throw new \Exception('Failed to get CRL content');
 			}
 
 			return $this->checkCertificateInCrl($certPem, $crlContent);
 
 		} catch (\Exception $e) {
 			return 'validation_error';
+		}
+	}
+
+	private function isLocalCrlUrl(string $url): bool {
+		$host = parse_url($url, PHP_URL_HOST);
+		if (!$host) {
+			return false;
+		}
+
+		$trustedDomains = $this->config->getSystemValue('trusted_domains', []);
+
+		return in_array($host, $trustedDomains, true);
+	}
+
+	private function generateLocalCrl(string $crlUrl): ?string {
+		try {
+			$templateUrl = $this->urlGenerator->linkToRouteAbsolute('libresign.crl.getRevocationList', [
+				'instanceId' => 'INSTANCEID',
+				'generation' => 999999,
+				'engineType' => 'ENGINETYPE',
+			]);
+
+			$patternUrl = str_replace('INSTANCEID', '([^/_]+)', $templateUrl);
+			$patternUrl = str_replace('999999', '(\d+)', $patternUrl);
+			$patternUrl = str_replace('ENGINETYPE', '([^/_]+)', $patternUrl);
+
+			$escapedPattern = str_replace([':', '/', '.'], ['\:', '\/', '\.'], $patternUrl);
+			$pattern = '/^' . $escapedPattern . '$/';
+
+			if (preg_match($pattern, $crlUrl, $matches)) {
+				$instanceId = $matches[1];
+				$generation = (int)$matches[2];
+				$engineType = $matches[3];
+
+				/** @var CrlService */
+				$crlService = \OC::$server->get(CrlService::class);
+
+				$crlData = $crlService->generateCrlDer($instanceId, $generation, $engineType);
+
+				return $crlData;
+			}
+
+			$this->logger->debug('CRL URL does not match expected pattern', ['url' => $crlUrl, 'pattern' => $pattern]);
+			return null;
+
+		} catch (\Exception $e) {
+			$this->logger->warning('Failed to generate local CRL: ' . $e->getMessage());
+			return null;
 		}
 	}
 
@@ -695,7 +749,6 @@ abstract class AEngineHandler implements IEngineHandler {
 			]
 		]);
 
-		$url = str_replace('localhost', 'nginx', $url);
 		$content = @file_get_contents($url, false, $context);
 		return $content !== false ? $content : null;
 	}
