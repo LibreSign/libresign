@@ -68,8 +68,9 @@ interface IEngineHandler {
 	 * @param array $revokedCertificates Array of revoked certificate entities
 	 * @param string $instanceId Instance identifier
 	 * @param int $generation Generation identifier
+	 * @param int $crlNumber Sequential CRL number for X.509 CRL versioning
 	 * @return string DER-encoded CRL data
 	 * @throws \RuntimeException If CRL generation is not supported or fails
 	 */
-	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation): string;
+	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation, int $crlNumber): string;
 }
