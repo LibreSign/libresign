@@ -329,6 +329,8 @@ OC.L10N.register(
     "Finish the setup" : "Einrichtung abschließen",
     "Unknown" : "Unbekannt",
     "Expired" : "Abgelaufen",
+    "Expires Soon" : "Läuft bald ab",
+    "Valid" : "Gültig",
     "SSL Client" : "SSL-Client",
     "SSL Server" : "SSL-Server",
     "Netscape SSL Server" : "Netscape SSL-Server",
