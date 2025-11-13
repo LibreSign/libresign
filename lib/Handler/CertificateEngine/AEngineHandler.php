@@ -809,7 +809,7 @@ abstract class AEngineHandler implements IEngineHandler {
 
 			$crl = new \OCA\Libresign\Vendor\phpseclib3\File\X509();
 			$crl->loadCRL($crlStructure);
-			$crl->setSerialNumber($crlNumber);
+			$crl->setSerialNumber((string)$crlNumber);
 			$crl->setStartDate(new \DateTime('-1 minute'));
 			$crl->setEndDate(new \DateTime('+7 days'));
 
