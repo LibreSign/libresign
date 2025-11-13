@@ -428,34 +428,35 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 			$issuer->setPrivateKey($caPrivateKey);
 
+			$utc = new \DateTimeZone('UTC');
+			$now = (new \DateTime())->setTimezone($utc);
+			$nextWeek = (new \DateTime('+7 days'))->setTimezone($utc);
+
+			$revokedList = [];
+			foreach ($revokedCertificates as $cert) {
+				$revokedList[] = [
+					'userCertificate' => new \OCA\Libresign\Vendor\phpseclib3\Math\BigInteger($cert->getSerialNumber(), 16),
+					'revocationDate' => ['utcTime' => $cert->getRevokedAt()->format('D, d M Y H:i:s O')],
+				];
+			}
+
 			$crlStructure = [
 				'tbsCertList' => [
 					'version' => 'v2',
 					'signature' => ['algorithm' => 'sha256WithRSAEncryption'],
 					'issuer' => $issuer->getSubjectDN(\OCA\Libresign\Vendor\phpseclib3\File\X509::DN_ARRAY),
-					'thisUpdate' => ['utcTime' => (new DateTime())->setTimezone(new \DateTimeZone('UTC'))],
-					'nextUpdate' => ['utcTime' => new DateTime('+7 days', new \DateTimeZone('UTC'))],
-					'revokedCertificates' => [],
+					'thisUpdate' => ['utcTime' => $now],
+					'nextUpdate' => ['utcTime' => $nextWeek],
+					'revokedCertificates' => $revokedList,
 				],
 				'signatureAlgorithm' => ['algorithm' => 'sha256WithRSAEncryption'],
 			];
 
-			foreach ($revokedCertificates as $cert) {
-				$serialHex = $cert->getSerialNumber();
-				$revokedAt = $cert->getRevokedAt();
-
-				$crlStructure['tbsCertList']['revokedCertificates'][] = [
-					'userCertificate' => new \OCA\Libresign\Vendor\phpseclib3\Math\BigInteger($serialHex, 16),
-					'revocationDate' => ['utcTime' => $revokedAt->format('D, d M Y H:i:s O')],
-				];
-			}
-
 			$crl = new \OCA\Libresign\Vendor\phpseclib3\File\X509();
 			$crl->loadCRL($crlStructure);
 			$crl->setSerialNumber($crlNumber);
-
-			$crl->setStartDate(new \DateTime('-1 minute')); // Valid from 1 minute ago to avoid clock skew
-			$crl->setEndDate(new \DateTime('+7 days'));     // Valid for 7 days
+			$crl->setStartDate(new \DateTime('-1 minute'));
+			$crl->setEndDate(new \DateTime('+7 days'));
 
 			$signedCrl = $crl->signCRL($issuer, $crl, 'sha256WithRSAEncryption');
 
@@ -467,8 +468,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 				$signedCrl['signatureAlgorithm'] = ['algorithm' => 'sha256WithRSAEncryption'];
 			}
 
-			$saver = new \OCA\Libresign\Vendor\phpseclib3\File\X509();
-			$crlDerData = $saver->saveCRL($signedCrl, \OCA\Libresign\Vendor\phpseclib3\File\X509::FORMAT_DER);
+			$crlDerData = $crl->saveCRL($signedCrl, \OCA\Libresign\Vendor\phpseclib3\File\X509::FORMAT_DER);
 
 			if ($crlDerData === false) {
 				throw new \RuntimeException('Failed to save CRL in DER format');
