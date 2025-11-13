@@ -733,8 +733,8 @@ abstract class AEngineHandler implements IEngineHandler {
 				if ($exitCode === 0) {
 					$crlText = implode("\n", $output);
 
-					if ($this->isSerialNumberInCrl($crlText, $certData['serialNumber']) ||
-						(!empty($certData['serialNumberHex']) && $this->isSerialNumberInCrl($crlText, $certData['serialNumberHex']))) {
+					if ($this->isSerialNumberInCrl($crlText, $certData['serialNumber'])
+						|| (!empty($certData['serialNumberHex']) && $this->isSerialNumberInCrl($crlText, $certData['serialNumberHex']))) {
 						return 'revoked';
 					}
 
