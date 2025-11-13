@@ -16,6 +16,7 @@ use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
+use OCA\Libresign\Service\CrlService;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\SimpleFS\ISimpleFolder;
@@ -26,6 +27,7 @@ use OCP\ITempManager;
 use OCP\IURLGenerator;
 use OpenSSLAsymmetricKey;
 use OpenSSLCertificate;
+use Psr\Log\LoggerInterface;
 use ReflectionClass;
 
 /**
@@ -79,6 +81,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		protected CertificatePolicyService $certificatePolicyService,
 		protected IURLGenerator $urlGenerator,
 		protected CaIdentifierService $caIdentifierService,
+		protected LoggerInterface $logger,
 	) {
 		$this->appData = $appDataFactory->get('libresign');
 	}
@@ -163,7 +166,25 @@ abstract class AEngineHandler implements IEngineHandler {
 
 		$return['valid_from'] = $this->dateTimeFormatter->formatDateTime($parsed['validFrom_time_t']);
 		$return['valid_to'] = $this->dateTimeFormatter->formatDateTime($parsed['validTo_time_t']);
+
+		$this->addCrlValidationInfo($return, $x509);
+
 		return $return;
+	}
+
+	private function addCrlValidationInfo(array &$certData, string $certPem): void {
+		if (isset($certData['extensions']['crlDistributionPoints'])) {
+			$crlDistributionPoints = $certData['extensions']['crlDistributionPoints'];
+
+			preg_match_all('/URI:([^\s,\n]+)/', $crlDistributionPoints, $matches);
+			$extractedUrls = $matches[1] ?? [];
+
+			$certData['crl_urls'] = $extractedUrls;
+			$certData['crl_validation'] = $this->validateCrlFromUrls($extractedUrls, $certPem);
+		} else {
+			$certData['crl_validation'] = 'missing';
+			$certData['crl_urls'] = [];
+		}
 	}
 
 	private static function convertArrayToUtf8($array) {
@@ -628,5 +649,258 @@ abstract class AEngineHandler implements IEngineHandler {
 			'generation' => $caIdParsed['generation'],
 			'engineType' => $caIdParsed['engineType'],
 		]);
+	}
+
+	private function validateCrlFromUrls(array $crlUrls, string $certPem): string {
+		if (empty($crlUrls)) {
+			return 'no_urls';
+		}
+
+		$accessibleUrls = 0;
+		foreach ($crlUrls as $crlUrl) {
+			try {
+				$validationResult = $this->downloadAndValidateCrl($crlUrl, $certPem);
+				if ($validationResult === 'valid') {
+					return 'valid';
+				}
+				if ($validationResult === 'revoked') {
+					return 'revoked';
+				}
+				$accessibleUrls++;
+			} catch (\Exception $e) {
+				continue;
+			}
+		}
+
+		if ($accessibleUrls === 0) {
+			return 'urls_inaccessible';
+		}
+
+		return 'validation_failed';
+	}
+
+	private function downloadAndValidateCrl(string $crlUrl, string $certPem): string {
+		try {
+			if ($this->isLocalCrlUrl($crlUrl)) {
+				$crlContent = $this->generateLocalCrl($crlUrl);
+			} else {
+				$crlContent = $this->downloadCrlContent($crlUrl);
+			}
+
+			if (!$crlContent) {
+				throw new \Exception('Failed to get CRL content');
+			}
+
+			return $this->checkCertificateInCrl($certPem, $crlContent);
+
+		} catch (\Exception $e) {
+			return 'validation_error';
+		}
+	}
+
+	private function isLocalCrlUrl(string $url): bool {
+		$host = parse_url($url, PHP_URL_HOST);
+		if (!$host) {
+			return false;
+		}
+
+		$trustedDomains = $this->config->getSystemValue('trusted_domains', []);
+
+		return in_array($host, $trustedDomains, true);
+	}
+
+	private function generateLocalCrl(string $crlUrl): ?string {
+		try {
+			$templateUrl = $this->urlGenerator->linkToRouteAbsolute('libresign.crl.getRevocationList', [
+				'instanceId' => 'INSTANCEID',
+				'generation' => 999999,
+				'engineType' => 'ENGINETYPE',
+			]);
+
+			$patternUrl = str_replace('INSTANCEID', '([^/_]+)', $templateUrl);
+			$patternUrl = str_replace('999999', '(\d+)', $patternUrl);
+			$patternUrl = str_replace('ENGINETYPE', '([^/_]+)', $patternUrl);
+
+			$escapedPattern = str_replace([':', '/', '.'], ['\:', '\/', '\.'], $patternUrl);
+			$pattern = '/^' . $escapedPattern . '$/';
+
+			if (preg_match($pattern, $crlUrl, $matches)) {
+				$instanceId = $matches[1];
+				$generation = (int)$matches[2];
+				$engineType = $matches[3];
+
+				/** @var CrlService */
+				$crlService = \OC::$server->get(CrlService::class);
+
+				$crlData = $crlService->generateCrlDer($instanceId, $generation, $engineType);
+
+				return $crlData;
+			}
+
+			$this->logger->debug('CRL URL does not match expected pattern', ['url' => $crlUrl, 'pattern' => $pattern]);
+			return null;
+
+		} catch (\Exception $e) {
+			$this->logger->warning('Failed to generate local CRL: ' . $e->getMessage());
+			return null;
+		}
+	}
+
+	private function downloadCrlContent(string $url): ?string {
+		if (!filter_var($url, FILTER_VALIDATE_URL) || !in_array(parse_url($url, PHP_URL_SCHEME), ['http', 'https'])) {
+			return null;
+		}
+
+		$context = stream_context_create([
+			'http' => [
+				'timeout' => 30,
+				'user_agent' => 'LibreSign/1.0 CRL Validator',
+				'follow_location' => 1,
+				'max_redirects' => 3,
+			]
+		]);
+
+		$content = @file_get_contents($url, false, $context);
+		return $content !== false ? $content : null;
+	}
+
+	private function isSerialNumberInCrl(string $crlText, string $serialNumber): bool {
+		return strpos($crlText, 'Serial Number: ' . strtoupper($serialNumber)) !== false
+			|| strpos($crlText, 'Serial Number: ' . $serialNumber) !== false
+			|| strpos($crlText, $serialNumber) !== false;
+	}
+
+	private function checkCertificateInCrl(string $certPem, string $crlContent): string {
+		try {
+			$certResource = openssl_x509_read($certPem);
+			if (!$certResource) {
+				return 'validation_error';
+			}
+
+			$certData = openssl_x509_parse($certResource);
+			if (!isset($certData['serialNumber'])) {
+				return 'validation_error';
+			}
+
+			$tempCrlFile = $this->tempManager->getTemporaryFile('.crl');
+			file_put_contents($tempCrlFile, $crlContent);
+
+			try {
+				$crlTextCmd = sprintf(
+					'openssl crl -in %s -inform DER -text 2>/dev/null || openssl crl -in %s -inform PEM -text 2>/dev/null',
+					escapeshellarg($tempCrlFile),
+					escapeshellarg($tempCrlFile)
+				);
+
+				exec($crlTextCmd, $output, $exitCode);
+
+				if ($exitCode === 0) {
+					$crlText = implode("\n", $output);
+
+					if ($this->isSerialNumberInCrl($crlText, $certData['serialNumber'])
+						|| (!empty($certData['serialNumberHex']) && $this->isSerialNumberInCrl($crlText, $certData['serialNumberHex']))) {
+						return 'revoked';
+					}
+
+					return 'valid';
+				}
+
+				return 'validation_error';
+
+			} finally {
+				if (file_exists($tempCrlFile)) {
+					unlink($tempCrlFile);
+				}
+			}
+
+		} catch (\Exception $e) {
+			return 'validation_error';
+		}
+	}
+
+	#[\Override]
+	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation, int $crlNumber): string {
+		$configPath = $this->getConfigPathByParams($instanceId, $generation);
+		$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
+		$caKeyPath = $configPath . DIRECTORY_SEPARATOR . 'ca-key.pem';
+		$crlDerPath = $configPath . DIRECTORY_SEPARATOR . 'crl.der';
+
+		if (!file_exists($caCertPath) || !file_exists($caKeyPath)) {
+			throw new \RuntimeException('CA certificate or private key not found. Run: occ libresign:configure:openssl');
+		}
+
+		try {
+			$caCert = file_get_contents($caCertPath);
+			$caKey = file_get_contents($caKeyPath);
+
+			if (!$caCert || !$caKey) {
+				throw new \RuntimeException('Failed to read CA certificate or private key');
+			}
+
+			$issuer = new \OCA\Libresign\Vendor\phpseclib3\File\X509();
+			$issuer->loadX509($caCert);
+			$caPrivateKey = \OCA\Libresign\Vendor\phpseclib3\Crypt\PublicKeyLoader::load($caKey);
+
+			if (!$caPrivateKey instanceof \OCA\Libresign\Vendor\phpseclib3\Crypt\Common\PrivateKey) {
+				throw new \RuntimeException('Loaded key is not a private key');
+			}
+
+			$issuer->setPrivateKey($caPrivateKey);
+
+			$utc = new \DateTimeZone('UTC');
+			$now = (new \DateTime())->setTimezone($utc);
+			$nextWeek = (new \DateTime('+7 days'))->setTimezone($utc);
+
+			$revokedList = [];
+			foreach ($revokedCertificates as $cert) {
+				$revokedList[] = [
+					'userCertificate' => new \OCA\Libresign\Vendor\phpseclib3\Math\BigInteger($cert->getSerialNumber(), 16),
+					'revocationDate' => ['utcTime' => $cert->getRevokedAt()->format('D, d M Y H:i:s O')],
+				];
+			}
+
+			$crlStructure = [
+				'tbsCertList' => [
+					'version' => 'v2',
+					'signature' => ['algorithm' => 'sha256WithRSAEncryption'],
+					'issuer' => $issuer->getSubjectDN(\OCA\Libresign\Vendor\phpseclib3\File\X509::DN_ARRAY),
+					'thisUpdate' => ['utcTime' => $now],
+					'nextUpdate' => ['utcTime' => $nextWeek],
+					'revokedCertificates' => $revokedList,
+				],
+				'signatureAlgorithm' => ['algorithm' => 'sha256WithRSAEncryption'],
+			];
+
+			$crl = new \OCA\Libresign\Vendor\phpseclib3\File\X509();
+			$crl->loadCRL($crlStructure);
+			$crl->setSerialNumber((string)$crlNumber);
+			$crl->setStartDate(new \DateTime('-1 minute'));
+			$crl->setEndDate(new \DateTime('+7 days'));
+
+			$signedCrl = $crl->signCRL($issuer, $crl, 'sha256WithRSAEncryption');
+
+			if ($signedCrl === false) {
+				throw new \RuntimeException('Failed to sign CRL with phpseclib3');
+			}
+
+			if (!isset($signedCrl['signatureAlgorithm'])) {
+				$signedCrl['signatureAlgorithm'] = ['algorithm' => 'sha256WithRSAEncryption'];
+			}
+
+			$crlDerData = $crl->saveCRL($signedCrl, \OCA\Libresign\Vendor\phpseclib3\File\X509::FORMAT_DER);
+
+			if ($crlDerData === false) {
+				throw new \RuntimeException('Failed to save CRL in DER format');
+			}
+
+			if (file_put_contents($crlDerPath, $crlDerData) === false) {
+				throw new \RuntimeException('Failed to write CRL DER file');
+			}
+
+			return $crlDerData;
+		} catch (\Exception $e) {
+			$this->logger->error('CRL generation failed: ' . $e->getMessage(), ['exception' => $e]);
+			throw new \RuntimeException('Failed to generate CRL: ' . $e->getMessage(), 0, $e);
+		}
 	}
 }

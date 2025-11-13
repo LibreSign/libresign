@@ -712,15 +712,15 @@ class InstallService {
 	}
 
 	private function populateNamesWithInstanceId(array $names, string $engineName): array {
-		$caUUID = $this->caIdentifierService->generateCaId($engineName);
+		$caId = $this->caIdentifierService->generateCaId($engineName);
 
 		if (empty($names['OU'])) {
-			$names['OU']['value'] = [$caUUID];
+			$names['OU']['value'] = [$caId];
 			return $names;
 		}
 
 		if (!isset($names['OU']['value'])) {
-			$names['OU']['value'] = [$caUUID];
+			$names['OU']['value'] = [$caId];
 			return $names;
 		}
 
@@ -733,7 +733,7 @@ class InstallService {
 			fn ($value) => !str_starts_with($value, 'libresign-ca-id:')
 		);
 
-		$names['OU']['value'][] = $caUUID;
+		$names['OU']['value'][] = $caId;
 
 		return $names;
 	}
