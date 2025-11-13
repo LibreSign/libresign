@@ -63,8 +63,8 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			$this->serialNumberService,
 			$this->caIdentifierService,
-			$this->crlMapper,
 			$this->logger,
+			$this->crlMapper,
 		);
 	}
 

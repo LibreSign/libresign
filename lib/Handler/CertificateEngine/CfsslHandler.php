@@ -66,6 +66,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			$certificatePolicyService,
 			$urlGenerator,
 			$caIdentifierService,
+			$logger,
 		);
 
 		$this->cfsslServerHandler->configCallback(fn () => $this->getCurrentConfigPath());
