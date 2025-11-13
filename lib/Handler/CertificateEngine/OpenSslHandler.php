@@ -40,8 +40,8 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		protected IURLGenerator $urlGenerator,
 		protected SerialNumberService $serialNumberService,
 		protected CaIdentifierService $caIdentifierService,
-		protected CrlMapper $crlMapper,
 		protected LoggerInterface $logger,
+		protected CrlMapper $crlMapper,
 	) {
 		parent::__construct(
 			$config,
@@ -52,6 +52,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			$certificatePolicyService,
 			$urlGenerator,
 			$caIdentifierService,
+			$logger,
 		);
 	}
 
