@@ -198,6 +198,7 @@ OC.L10N.register(
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Съжаляваме, но страницата, която търсите, не съществува, премахната е, преместена или временно не е достъпна.",
     "Page not found" : "Страницата не е намерена",
     "Ok" : "Добре",
+    "Toggle selection for file \"{displayName}\"" : "Превключване на избора за файл \"{displayName}\"",
     "Clear filter" : "Изчстиване на филтър",
     "Today" : "Днес",
     "Last 7 days" : "Последни 7 дни",
