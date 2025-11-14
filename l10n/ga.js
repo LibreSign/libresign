@@ -329,6 +329,8 @@ OC.L10N.register(
     "Finish the setup" : "Críochnaigh an socrú",
     "Unknown" : "Anaithnid",
     "Expired" : "Imithe in éag",
+    "Expires Soon" : "Éagaíonn go luath",
+    "Valid" : "Bailí",
     "SSL Client" : "Cliant SSL",
     "SSL Server" : "Freastalaí SSL",
     "Netscape SSL Server" : "Freastalaí SSL Netscape",
