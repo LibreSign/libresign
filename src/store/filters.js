@@ -24,7 +24,7 @@ export const useFiltersStore = defineStore('filter', {
 		},
 		filterStatusArray(state) {
 			try {
-				return state.filter_status ? JSON.parse(state.filter_status) : []
+				return state.filter_status != '' ? JSON.parse(state.filter_status) : []
 			} catch (e) {
 				console.error('Erro ao converter filter_status:', e)
 				return []
@@ -63,11 +63,14 @@ export const useFiltersStore = defineStore('filter', {
 					value,
 				})
 
+				this.filter_status = value
+
 				emit('libresign:filters:update')
 			}
 
 
 			logger.debug('File list filter chips updated', { chips: event.detail })
 		},
+
 	},
 })

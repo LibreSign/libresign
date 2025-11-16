@@ -106,6 +106,10 @@ export default {
 				this.filtersStore.onFilterUpdateChipsAndSave({ detail: [], id: 'status' })
 			}
 
+			console.log("-------------- TESTE:")
+			console.log(this.selectedOptions)
+			console.log(this.filtersStore.filterStatusArray)
+
 		},
 		toggleOption(option) {
 			const idx = this.selectedOptions.indexOf(option)
@@ -117,11 +121,16 @@ export default {
 		},
 		setMarkedFilter(){
 
+			console.log("Aqui aqui")
+
 			const chips = []
 
 			let presets = this.selectedOptions
 
 			if (presets && presets.length > 0) {
+
+				console.log('Caiu no nao reset')
+				console.log(presets)
 
 				for (const id of this.selectedOptions) {
 					const status = fileStatus.find(item => item.id === id)
@@ -137,11 +146,14 @@ export default {
 					})
 				}
 
+				this.filtersStore.onFilterUpdateChipsAndSave({ detail: chips, id: 'status' })
+
 			}  else {
+				console.log('Caiu no reset')
 				this.resetFilter()
 			}
 
-			this.filtersStore.onFilterUpdateChipsAndSave({ detail: chips, id: 'status' })
+
 		}
 	},
 }
