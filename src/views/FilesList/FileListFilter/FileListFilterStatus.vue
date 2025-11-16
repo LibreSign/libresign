@@ -6,15 +6,16 @@
 	<FileListFilter class="file-list-filter-status"
 		:is-active="isActive"
 		:filter-name="t('libresign', 'Status')"
-		@reset-filter="resetFilter">
+		@reset-filter="resetFilter"
+		@set-marked-filter="setMarkedFilter">
 		<template #icon>
 			<NcIconSvgWrapper :path="mdiListStatus" />
 		</template>
 		<NcActionButton v-for="status of fileStatus"
 			:key="status.id"
 			type="checkbox"
-			:model-value="selectedOptions.includes(status)"
-			@click="toggleOption(status)">
+			:model-value="selectedOptions.includes(status.id)"
+			@click="toggleOption(status.id)">
 			<template #icon>
 				<NcIconSvgWrapper :svg="status.icon" />
 			</template>
@@ -50,7 +51,7 @@ export default {
 	},
 	data() {
 		return {
-			selectedOptions: [],
+			selectedOptions: this.filtersStore.filterStatusArray || [],
 		}
 	},
 	computed: {
@@ -60,6 +61,11 @@ export default {
 		fileStatus() {
 			return fileStatus.filter(item => [0, 1, 2, 3].includes(item.id))
 		},
+	},
+	mounted() {
+		if (this.selectedOptions.length > 0) {
+			this.setMarkedFilter()
+		}
 	},
 	watch: {
 		selectedOptions(newValue, oldValue) {
@@ -74,12 +80,17 @@ export default {
 		setPreset(presets) {
 			const chips = []
 			if (presets && presets.length > 0) {
-				for (const preset of presets) {
+				for (const id of presets) {
+					const status = fileStatus.find(item => item.id === id)
+					if (!status) continue
+
 					chips.push({
-						id: preset.id,
-						icon: preset.icon,
-						text: preset.label,
-						onclick: () => this.setPreset(presets.filter(({ id }) => id !== preset.id)),
+						id: status.id,
+						icon: status.icon || '',
+						text: status.label,
+						onclick: () => {
+							this.selectedOptions = this.selectedOptions.filter(v => v !== status.id)
+						},
 					})
 				}
 			} else {
@@ -88,9 +99,17 @@ export default {
 			this.filtersStore.onFilterUpdateChips({ detail: chips, id: 'status' })
 		},
 		resetFilter() {
-			if (this.selectedOptions.length > 0) {
+
+			if( this.selectedOptions.length > 0) {
 				this.selectedOptions = []
+
+				this.filtersStore.onFilterUpdateChipsAndSave({ detail: [], id: 'status' })
 			}
+
+			console.log("-------------- TESTE:")
+			console.log(this.selectedOptions)
+			console.log(this.filtersStore.filterStatusArray)
+
 		},
 		toggleOption(option) {
 			const idx = this.selectedOptions.indexOf(option)
@@ -100,6 +119,42 @@ export default {
 				this.selectedOptions.push(option)
 			}
 		},
+		setMarkedFilter(){
+
+			console.log("Aqui aqui")
+
+			const chips = []
+
+			let presets = this.selectedOptions
+
+			if (presets && presets.length > 0) {
+
+				console.log('Caiu no nao reset')
+				console.log(presets)
+
+				for (const id of this.selectedOptions) {
+					const status = fileStatus.find(item => item.id === id)
+					if (!status) continue
+
+					chips.push({
+						id: status.id,
+						icon: status.icon || '',
+						text: status.label,
+						onclick: () => {
+							this.selectedOptions = this.selectedOptions.filter(v => v !== id)
+						},
+					})
+				}
+
+				this.filtersStore.onFilterUpdateChipsAndSave({ detail: chips, id: 'status' })
+
+			}  else {
+				console.log('Caiu no reset')
+				this.resetFilter()
+			}
+
+
+		}
 	},
 }
 </script>
