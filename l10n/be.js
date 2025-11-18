@@ -93,6 +93,7 @@ OC.L10N.register(
     "(selected)" : "(выбраны)",
     "_{count} selected_::_{count} selected_" : ["Выбраны {count}","Выбраны {count}","Выбрана {count}","Выбрана {count}"],
     "Unknown" : "Невядомы",
+    "Expired" : "Скончыўся тэрмін дзеяння",
     "Valid from" : "Дзейнічае з",
     "Version" : "Версія",
     "Fingerprint" : "Лічбавы адбітак",

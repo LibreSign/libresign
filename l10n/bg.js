@@ -199,6 +199,7 @@ OC.L10N.register(
     "Page not found" : "Страницата не е намерена",
     "Ok" : "Добре",
     "Toggle selection for file \"{displayName}\"" : "Превключване на избора за файл \"{displayName}\"",
+    "File is loading" : "Файлът се зарежда",
     "Clear filter" : "Изчстиване на филтър",
     "Today" : "Днес",
     "Last 7 days" : "Последни 7 дни",
