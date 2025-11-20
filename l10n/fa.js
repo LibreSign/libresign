@@ -216,6 +216,7 @@ OC.L10N.register(
     "\"{displayName}\" batch action executed successfully" : "عملکرد دسته‌ای \"{displayName}\" با موفقیت اجرا شد",
     "\"{displayName}\" action failed" : "اقدام \"{displayName}\" ناموفق بود",
     "(selected)" : "(selected)",
+    "_{count} selected_::_{count} selected_" : ["{count} انتخاب شده","{count} انتخاب شده"],
     "Unknown" : "ناشناخته.",
     "Expired" : "منقضی شده",
     "Valid from" : "معتبر از",
