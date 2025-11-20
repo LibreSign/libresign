@@ -335,7 +335,7 @@ OC.L10N.register(
     "SSL Server" : "Servidor SSL",
     "Netscape SSL Server" : "Servidor SSL de Netscape",
     "S/MIME Signing" : "Sinatura de S/MIME",
-    "S/MIME Encryption" : "Cifrado S/MIME",
+    "S/MIME Encryption" : "Cifraxe S/MIME",
     "CRL Signing" : "Sinatura de CRL",
     "Any Purpose" : "Calquera propósito",
     "OCSP Helper" : "OCSP Helper",
