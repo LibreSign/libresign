@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Handler\SignEngine;
 
 use OCA\Libresign\Handler\SignEngine\TSA;
-use OCA\Libresign\Vendor\phpseclib3\File\ASN1;
+use phpseclib3\File\ASN1;
 use PHPUnit\Framework\TestCase;
 
 class TSATest extends TestCase {
