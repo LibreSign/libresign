@@ -53,5 +53,8 @@
 		"psr-4": {
 			"OCP\\": "vendor/nextcloud/ocp/OCP"
 		}
+	},
+	"require": {
+		"phpseclib/phpseclib": "^3.0"
 	}
 }
