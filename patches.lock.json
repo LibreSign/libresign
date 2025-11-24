@@ -1,0 +1,17 @@
+{
+    "_hash": "ab356137968384649e209979dfb836f69e34d12fc79faf576840ce575607c97d",
+    "patches": {
+        "phpseclib/phpseclib": [
+            {
+                "package": "phpseclib/phpseclib",
+                "description": "Fix loadCRL method parameter type annotation",
+                "url": ".patches/x509-loadcrl-param-fix.diff",
+                "sha256": "902d4ccdbc5178bba4d27f4ee3b57d8e41227492ced56e2252e05da0d65a4956",
+                "depth": 1,
+                "extra": {
+                    "provenance": "patches-file:patches.json"
+                }
+            }
+        ]
+    }
+}

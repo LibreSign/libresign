@@ -10,7 +10,8 @@
 		"classmap-authoritative": true,
 		"sort-packages": true,
 		"allow-plugins": {
-			"bamarni/composer-bin-plugin": true
+			"bamarni/composer-bin-plugin": true,
+			"cweagans/composer-patches": true
 		},
 		"platform": {
 			"php": "8.1"
@@ -38,7 +39,8 @@
 		"bamarni-bin": {
 			"bin-links": true,
 			"forward-command": true
-		}
+		},
+		"patches-file": "patches.json"
 	},
 	"autoload": {
 		"psr-4": {
@@ -55,6 +57,7 @@
 		}
 	},
 	"require": {
+		"cweagans/composer-patches": "^2.0",
 		"phpseclib/phpseclib": "^3.0"
 	}
 }
