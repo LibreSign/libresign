@@ -866,7 +866,7 @@ abstract class AEngineHandler implements IEngineHandler {
 			$crl->setStartDate(new \DateTime('-1 minute'));
 			$crl->setEndDate(new \DateTime('+7 days'));
 
-			$signedCrl = $crl->signCRL($issuer, $crl, 'sha256WithRSAEncryption');
+			$signedCrl = $crl->signCRL($issuer, $crl);
 
 			if ($signedCrl === false) {
 				throw new \RuntimeException('Failed to sign CRL with phpseclib3');
