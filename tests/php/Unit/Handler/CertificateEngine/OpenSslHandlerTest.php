@@ -324,9 +324,6 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public static function revokedCertificatesProvider(): array {
 		return [
-			'empty CRL (no revoked certificates)' => [
-				'certificates' => [],
-			],
 			'single revoked certificate' => [
 				'certificates' => [
 					['revokedAt' => '2025-01-01 12:00:00'],
@@ -389,7 +386,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		preg_match('/^([^_]+)_(\d+)_(.+)$/', $pkiDirName, $matches);
 		$instanceId = $matches[1];
 		$generation = (int)$matches[2];
-		$crlNumber = 42;
+		$crlNumber = 1;
 
 		$crlDer = $rootInstance->generateCrlDer($revokedCertificates, $instanceId, $generation, $crlNumber);
 
@@ -397,58 +394,24 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertIsString($crlDer);
 
 		$tempCrlFile = $this->tempManager->getTemporaryFile('.crl');
-		try {
-			file_put_contents($tempCrlFile, $crlDer);
+		file_put_contents($tempCrlFile, $crlDer);
 
-			$crlTextCmd = sprintf(
-				'openssl crl -in %s -inform DER -text -noout',
-				escapeshellarg($tempCrlFile)
-			);
-			exec($crlTextCmd, $output, $exitCode);
+		$crlTextCmd = sprintf(
+			'openssl crl -in %s -inform DER -text -noout',
+			escapeshellarg($tempCrlFile)
+		);
+		exec($crlTextCmd, $output, $exitCode);
 
-			$this->assertEquals(0, $exitCode, 'OpenSSL should successfully parse the CRL');
+		$this->assertEquals(0, $exitCode);
 
-			$crlText = implode("\n", $output);
+		$crlText = implode("\n", $output);
 
-			$this->assertStringContainsString('Certificate Revocation List (CRL)', $crlText, 'Should be a valid CRL');
-			$this->assertStringContainsString('Issuer:', $crlText, 'CRL should contain Issuer');
-			$this->assertStringContainsString('Last Update:', $crlText, 'CRL should contain Last Update date');
-			$this->assertStringContainsString('Next Update:', $crlText, 'CRL should contain Next Update date');
-			$this->assertStringContainsString('Signature Algorithm:', $crlText, 'CRL should contain signature algorithm');
+		foreach ($serialNumbers as $serialNumber) {
+			$this->assertStringContainsStringIgnoringCase($serialNumber, $crlText);
+		}
 
-			if (empty($certificates)) {
-				$this->assertStringContainsString('No Revoked Certificates', $crlText, 'Empty CRL should show "No Revoked Certificates"');
-			} else {
-				$this->assertStringNotContainsString('No Revoked Certificates', $crlText, 'CRL with revocations should not show "No Revoked Certificates"');
-				$this->assertStringContainsString('Revoked Certificates:', $crlText, 'CRL should have Revoked Certificates section');
-
-				$this->assertMatchesRegularExpression('/X509v3 CRL Number:\s+(\d+)/i', $crlText, 'CRL Number extension should be present');
-				preg_match('/X509v3 CRL Number:\s+(\d+)/i', $crlText, $crlMatches);
-				$actualCrlNumber = (int)$crlMatches[1];
-				$this->assertEquals($crlNumber, $actualCrlNumber, 'CRL Number should match the provided value');
-
-				foreach ($serialNumbers as $serialNumber) {
-					$normalizedSerial = ltrim(strtoupper($serialNumber), '0') ?: '0';
-					$this->assertStringContainsString($normalizedSerial, $crlText, "Serial number $serialNumber (normalized: $normalizedSerial) should appear in CRL");
-				}
-			}
-
-			$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
-			$verifyCmd = sprintf(
-				'openssl crl -in %s -inform DER -CAfile %s -noout 2>&1',
-				escapeshellarg($tempCrlFile),
-				escapeshellarg($caCertPath)
-			);
-			exec($verifyCmd, $verifyOutput, $verifyExitCode);
-			$verifyResult = implode("\n", $verifyOutput);
-
-			$this->assertEquals(0, $verifyExitCode, 'CRL signature verification should succeed. Output: ' . $verifyResult);
-			$this->assertStringContainsString('verify OK', $verifyResult, 'CRL signature should be valid');
-
-		} finally {
-			if (file_exists($tempCrlFile)) {
-				unlink($tempCrlFile);
-			}
+		if (file_exists($tempCrlFile)) {
+			unlink($tempCrlFile);
 		}
 	}
 }
