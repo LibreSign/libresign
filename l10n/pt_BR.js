@@ -329,7 +329,7 @@ OC.L10N.register(
     "Finish the setup" : "Conclua a configuração",
     "Unknown" : "Desconhecido",
     "Expired" : "Expirado",
-    "Expires Soon" : "Expirará em breve",
+    "Expires Soon" : "Expirará em Breve",
     "Valid" : "Válido",
     "SSL Client" : "Cliente SSL",
     "SSL Server" : "Servidor SSL",
