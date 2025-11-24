@@ -826,11 +826,11 @@ abstract class AEngineHandler implements IEngineHandler {
 				throw new \RuntimeException('Failed to read CA certificate or private key');
 			}
 
-			$issuer = new \OCA\Libresign\Vendor\phpseclib3\File\X509();
+			$issuer = new \phpseclib\File\X509();
 			$issuer->loadX509($caCert);
-			$caPrivateKey = \OCA\Libresign\Vendor\phpseclib3\Crypt\PublicKeyLoader::load($caKey);
+			$caPrivateKey = \phpseclib\Crypt\PublicKeyLoader::load($caKey);
 
-			if (!$caPrivateKey instanceof \OCA\Libresign\Vendor\phpseclib3\Crypt\Common\PrivateKey) {
+			if (!$caPrivateKey instanceof \phpseclib\Crypt\Common\PrivateKey) {
 				throw new \RuntimeException('Loaded key is not a private key');
 			}
 
@@ -843,7 +843,7 @@ abstract class AEngineHandler implements IEngineHandler {
 			$revokedList = [];
 			foreach ($revokedCertificates as $cert) {
 				$revokedList[] = [
-					'userCertificate' => new \OCA\Libresign\Vendor\phpseclib3\Math\BigInteger($cert->getSerialNumber(), 16),
+					'userCertificate' => new \phpseclib\Math\BigInteger($cert->getSerialNumber(), 16),
 					'revocationDate' => ['utcTime' => $cert->getRevokedAt()->format('D, d M Y H:i:s O')],
 				];
 			}
@@ -852,7 +852,7 @@ abstract class AEngineHandler implements IEngineHandler {
 				'tbsCertList' => [
 					'version' => 'v2',
 					'signature' => ['algorithm' => 'sha256WithRSAEncryption'],
-					'issuer' => $issuer->getSubjectDN(\OCA\Libresign\Vendor\phpseclib3\File\X509::DN_ARRAY),
+					'issuer' => $issuer->getSubjectDN(\phpseclib\File\X509::DN_ARRAY),
 					'thisUpdate' => ['utcTime' => $now],
 					'nextUpdate' => ['utcTime' => $nextWeek],
 					'revokedCertificates' => $revokedList,
@@ -860,7 +860,7 @@ abstract class AEngineHandler implements IEngineHandler {
 				'signatureAlgorithm' => ['algorithm' => 'sha256WithRSAEncryption'],
 			];
 
-			$crl = new \OCA\Libresign\Vendor\phpseclib3\File\X509();
+			$crl = new \phpseclib\File\X509();
 			$crl->loadCRL($crlStructure);
 			$crl->setSerialNumber((string)$crlNumber);
 			$crl->setStartDate(new \DateTime('-1 minute'));
@@ -876,7 +876,7 @@ abstract class AEngineHandler implements IEngineHandler {
 				$signedCrl['signatureAlgorithm'] = ['algorithm' => 'sha256WithRSAEncryption'];
 			}
 
-			$crlDerData = $crl->saveCRL($signedCrl, \OCA\Libresign\Vendor\phpseclib3\File\X509::FORMAT_DER);
+			$crlDerData = $crl->saveCRL($signedCrl, \phpseclib\File\X509::FORMAT_DER);
 
 			if ($crlDerData === false) {
 				throw new \RuntimeException('Failed to save CRL in DER format');
