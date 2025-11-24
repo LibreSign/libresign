@@ -821,86 +821,100 @@ abstract class AEngineHandler implements IEngineHandler {
 	#[\Override]
 	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation, int $crlNumber): string {
 		$configPath = $this->getConfigPathByParams($instanceId, $generation);
+		$issuer = $this->loadCaIssuer($configPath);
+		$signedCrl = $this->createAndSignCrl($issuer, $revokedCertificates, $crlNumber);
+		$crlDerData = $this->saveCrlToDer($signedCrl, $configPath);
+
+		return $crlDerData;
+	}
+
+	private function loadCaIssuer(string $configPath): \phpseclib3\File\X509 {
 		$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
 		$caKeyPath = $configPath . DIRECTORY_SEPARATOR . 'ca-key.pem';
-		$crlDerPath = $configPath . DIRECTORY_SEPARATOR . 'crl.der';
 
 		if (!file_exists($caCertPath) || !file_exists($caKeyPath)) {
+			$this->logger->error('CA certificate or private key not found', ['caCertPath' => $caCertPath, 'caKeyPath' => $caKeyPath]);
 			throw new \RuntimeException('CA certificate or private key not found. Run: occ libresign:configure:openssl');
 		}
 
-		try {
-			$caCert = file_get_contents($caCertPath);
-			$caKey = file_get_contents($caKeyPath);
+		$caCert = file_get_contents($caCertPath);
+		$caKey = file_get_contents($caKeyPath);
 
-			if (!$caCert || !$caKey) {
-				throw new \RuntimeException('Failed to read CA certificate or private key');
-			}
-
-			$issuer = new \phpseclib3\File\X509();
-			$issuer->loadX509($caCert);
-			$caPrivateKey = \phpseclib3\Crypt\PublicKeyLoader::load($caKey);
-
-			if (!$caPrivateKey instanceof \phpseclib3\Crypt\Common\PrivateKey) {
-				throw new \RuntimeException('Loaded key is not a private key');
-			}
-
-			$issuer->setPrivateKey($caPrivateKey);
-
-			$utc = new \DateTimeZone('UTC');
-			$now = (new \DateTime())->setTimezone($utc);
-			$nextWeek = (new \DateTime('+7 days'))->setTimezone($utc);
-
-			$revokedList = [];
-			foreach ($revokedCertificates as $cert) {
-				$revokedList[] = [
-					'userCertificate' => new \phpseclib3\Math\BigInteger($cert->getSerialNumber(), 16),
-					'revocationDate' => ['utcTime' => $cert->getRevokedAt()->format('D, d M Y H:i:s O')],
-				];
-			}
-
-			$crlStructure = [
-				'tbsCertList' => [
-					'version' => 'v2',
-					'signature' => ['algorithm' => 'sha256WithRSAEncryption'],
-					'issuer' => $issuer->getSubjectDN(\phpseclib3\File\X509::DN_ARRAY),
-					'thisUpdate' => ['utcTime' => $now->format('D, d M Y H:i:s O')],
-					'nextUpdate' => ['utcTime' => $nextWeek->format('D, d M Y H:i:s O')],
-					'revokedCertificates' => $revokedList,
-				],
-				'signatureAlgorithm' => ['algorithm' => 'sha256WithRSAEncryption'],
-			];
-
-			$crl = new \phpseclib3\File\X509();
-			$crl->loadCRL($crlStructure);
-			$crl->setSerialNumber((string)$crlNumber);
-			$crl->setStartDate(new \DateTime('-1 minute'));
-			$crl->setEndDate(new \DateTime('+7 days'));
-
-			$signedCrl = $crl->signCRL($issuer, $crl);
-
-			if ($signedCrl === false) {
-				throw new \RuntimeException('Failed to sign CRL with phpseclib3');
-			}
-
-			if (!isset($signedCrl['signatureAlgorithm'])) {
-				$signedCrl['signatureAlgorithm'] = ['algorithm' => 'sha256WithRSAEncryption'];
-			}
-
-			$crlDerData = $crl->saveCRL($signedCrl, \phpseclib3\File\X509::FORMAT_DER);
-
-			if ($crlDerData === false) {
-				throw new \RuntimeException('Failed to save CRL in DER format');
-			}
-
-			if (file_put_contents($crlDerPath, $crlDerData) === false) {
-				throw new \RuntimeException('Failed to write CRL DER file');
-			}
-
-			return $crlDerData;
-		} catch (\Exception $e) {
-			$this->logger->error('CRL generation failed: ' . $e->getMessage(), ['exception' => $e]);
-			throw new \RuntimeException('Failed to generate CRL: ' . $e->getMessage(), 0, $e);
+		if (!$caCert || !$caKey) {
+			$this->logger->error('Failed to read CA certificate or private key', ['caCertPath' => $caCertPath, 'caKeyPath' => $caKeyPath]);
+			throw new \RuntimeException('Failed to read CA certificate or private key');
 		}
+
+		$issuer = new \phpseclib3\File\X509();
+		$issuer->loadX509($caCert);
+		$caPrivateKey = \phpseclib3\Crypt\PublicKeyLoader::load($caKey);
+
+		if (!$caPrivateKey instanceof \phpseclib3\Crypt\Common\PrivateKey) {
+			$this->logger->error('Loaded key is not a private key', ['keyType' => get_class($caPrivateKey)]);
+			throw new \RuntimeException('Loaded key is not a private key');
+		}
+
+		$issuer->setPrivateKey($caPrivateKey);
+		return $issuer;
+	}
+
+	private function createAndSignCrl(\phpseclib3\File\X509 $issuer, array $revokedCertificates, int $crlNumber): array {
+		$utcZone = new \DateTimeZone('UTC');
+		$crlToSign = new \phpseclib3\File\X509();
+		$crlToSign->setSerialNumber((string)$crlNumber);
+		$crlToSign->setStartDate(new \DateTime('now', $utcZone));
+		$crlToSign->setEndDate(new \DateTime('+7 days', $utcZone));
+
+		if (empty($revokedCertificates)) {
+			$signedCrl = $crlToSign->signCRL($issuer, $crlToSign);
+		} else {
+			$emptyCrl = $crlToSign->signCRL($issuer, $crlToSign);
+			if ($emptyCrl === false) {
+				$this->logger->error('Failed to create CRL structure');
+				throw new \RuntimeException('Failed to create CRL structure');
+			}
+
+			$crlToSign->loadCRL($crlToSign->saveCRL($emptyCrl));
+
+			$dateFormat = 'D, d M Y H:i:s O';
+			foreach ($revokedCertificates as $cert) {
+				$crlToSign->revoke(
+					new \phpseclib3\Math\BigInteger($cert->getSerialNumber(), 16),
+					$cert->getRevokedAt()->format($dateFormat)
+				);
+			}
+
+			$signedCrl = $crlToSign->signCRL($issuer, $crlToSign);
+		}
+
+		if ($signedCrl === false) {
+			$this->logger->error('Failed to sign CRL', ['crlNumber' => $crlNumber]);
+			throw new \RuntimeException('Failed to sign CRL');
+		}
+
+		if (!isset($signedCrl['signatureAlgorithm'])) {
+			$signedCrl['signatureAlgorithm'] = ['algorithm' => 'sha256WithRSAEncryption'];
+		}
+
+		return $signedCrl;
+	}
+
+	private function saveCrlToDer(array $signedCrl, string $configPath): string {
+		$crlDerPath = $configPath . DIRECTORY_SEPARATOR . 'crl.der';
+		$crlToSign = new \phpseclib3\File\X509();
+
+		$crlDerData = $crlToSign->saveCRL($signedCrl, \phpseclib3\File\X509::FORMAT_DER);
+
+		if ($crlDerData === false) {
+			$this->logger->error('Failed to save CRL in DER format');
+			throw new \RuntimeException('Failed to save CRL in DER format');
+		}
+
+		if (file_put_contents($crlDerPath, $crlDerData) === false) {
+			$this->logger->error('Failed to write CRL DER file', ['path' => $crlDerPath]);
+			throw new \RuntimeException('Failed to write CRL DER file');
+		}
+
+		return $crlDerData;
 	}
 }
