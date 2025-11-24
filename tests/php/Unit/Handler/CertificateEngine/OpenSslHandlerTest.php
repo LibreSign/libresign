@@ -321,4 +321,97 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->assertCount($numCertificates, array_unique($serialNumbers), 'All serial numbers should be unique');
 	}
+
+	public static function revokedCertificatesProvider(): array {
+		return [
+			'single revoked certificate' => [
+				'certificates' => [
+					['revokedAt' => '2025-01-01 12:00:00'],
+				],
+			],
+			'two revoked certificates' => [
+				'certificates' => [
+					['revokedAt' => '2025-01-01 12:00:00'],
+					['revokedAt' => '2025-01-02 15:30:00'],
+				],
+			],
+			'three revoked certificates' => [
+				'certificates' => [
+					['revokedAt' => '2025-01-01 12:00:00'],
+					['revokedAt' => '2025-01-02 15:30:00'],
+					['revokedAt' => '2025-01-03 18:45:00'],
+				],
+			],
+			'five revoked certificates' => [
+				'certificates' => [
+					['revokedAt' => '2025-01-01 12:00:00'],
+					['revokedAt' => '2025-01-02 15:30:00'],
+					['revokedAt' => '2025-01-03 18:45:00'],
+					['revokedAt' => '2025-01-04 09:15:00'],
+					['revokedAt' => '2025-01-05 14:20:00'],
+				],
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider revokedCertificatesProvider
+	 */
+	public function testGenerateCrlDerWithRevokedCertificates(array $certificates): void {
+		$this->caIdentifierService->generateCaId('openssl');
+
+		$rootInstance = $this->getInstance();
+		$rootInstance->generateRootCert('Test Root CA', []);
+
+		$revokedCertificates = [];
+		$serialNumbers = [];
+
+		foreach ($certificates as $certData) {
+			$serialNumber = bin2hex(random_bytes(10));
+			$serialNumbers[] = $serialNumber;
+
+			$revokedCert = new \OCA\Libresign\Db\Crl();
+			$revokedCert->setSerialNumber($serialNumber);
+			$revokedCert->setRevokedAt(new \DateTime($certData['revokedAt']));
+			$revokedCertificates[] = $revokedCert;
+		}
+
+		$configPath = $rootInstance->getCurrentConfigPath();
+		$this->assertDirectoryExists($configPath);
+		$this->assertFileExists($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
+		$this->assertFileExists($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
+
+		$pkiDirName = basename($configPath);
+		$this->assertMatchesRegularExpression('/^[^_]+_\d+_.+$/', $pkiDirName);
+		preg_match('/^([^_]+)_(\d+)_(.+)$/', $pkiDirName, $matches);
+		$instanceId = $matches[1];
+		$generation = (int)$matches[2];
+		$crlNumber = 1;
+
+		$crlDer = $rootInstance->generateCrlDer($revokedCertificates, $instanceId, $generation, $crlNumber);
+
+		$this->assertNotEmpty($crlDer);
+		$this->assertIsString($crlDer);
+
+		$tempCrlFile = $this->tempManager->getTemporaryFile('.crl');
+		file_put_contents($tempCrlFile, $crlDer);
+
+		$crlTextCmd = sprintf(
+			'openssl crl -in %s -inform DER -text -noout',
+			escapeshellarg($tempCrlFile)
+		);
+		exec($crlTextCmd, $output, $exitCode);
+
+		$this->assertEquals(0, $exitCode);
+
+		$crlText = implode("\n", $output);
+
+		foreach ($serialNumbers as $serialNumber) {
+			$this->assertStringContainsStringIgnoringCase($serialNumber, $crlText);
+		}
+
+		if (file_exists($tempCrlFile)) {
+			unlink($tempCrlFile);
+		}
+	}
 }
