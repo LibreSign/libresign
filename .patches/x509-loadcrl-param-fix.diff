@@ -1,0 +1,11 @@
+--- a/phpseclib/File/X509.php
++++ b/phpseclib/File/X509.php
+@@ -2393,7 +2393,7 @@ class X509
+     /**
+      * Load a Certificate Revocation List
+      *
+-     * @param string $crl
++     * @param string|array $crl
+      * @param int $mode
+      * @return mixed
+      */

@@ -1,0 +1,10 @@
+{
+	"patches": {
+		"phpseclib/phpseclib": [
+			{
+				"description": "Fix loadCRL method parameter type annotation",
+				"url": ".patches/x509-loadcrl-param-fix.diff"
+			}
+		]
+	}
+}

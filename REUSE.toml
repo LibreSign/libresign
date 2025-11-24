@@ -17,6 +17,7 @@ SPDX-License-Identifier = "CC0-1.0"
 [[annotations]]
 path = [
     ".devcontainer/devcontainer.json",
+    ".patches/**",
     "appinfo/info.xml",
     "composer.json",
     "composer.lock",
@@ -38,6 +39,8 @@ path = [
     "openapi.json",
     "package-lock.json",
     "package.json",
+    "patches.json",
+    "patches.lock.json",
     "tests/php/phpunit.xml",
     "psalm.xml",
     "src/types/openapi/openapi-administration.ts",
