@@ -428,7 +428,8 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->assertEquals($crlNumber, $actualCrlNumber, 'CRL Number should match the provided value');
 
 				foreach ($serialNumbers as $serialNumber) {
-					$this->assertStringContainsStringIgnoringCase($serialNumber, $crlText, "Serial number $serialNumber should appear in CRL");
+					$normalizedSerial = ltrim(strtoupper($serialNumber), '0') ?: '0';
+					$this->assertStringContainsString($normalizedSerial, $crlText, "Serial number $serialNumber (normalized: $normalizedSerial) should appear in CRL");
 				}
 			}
 
