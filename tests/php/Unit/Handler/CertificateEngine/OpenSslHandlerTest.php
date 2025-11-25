@@ -422,6 +422,11 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->assertStringNotContainsString('No Revoked Certificates', $crlText, 'CRL with revocations should not show "No Revoked Certificates"');
 				$this->assertStringContainsString('Revoked Certificates:', $crlText, 'CRL should have Revoked Certificates section');
 
+				$this->assertMatchesRegularExpression('/X509v3 CRL Number:\s+(\d+)/i', $crlText, 'CRL Number extension should be present');
+				preg_match('/X509v3 CRL Number:\s+(\d+)/i', $crlText, $crlMatches);
+				$actualCrlNumber = (int)$crlMatches[1];
+				$this->assertEquals($crlNumber, $actualCrlNumber, 'CRL Number should match the provided value');
+
 				foreach ($serialNumbers as $serialNumber) {
 					$this->assertStringContainsStringIgnoringCase($serialNumber, $crlText, "Serial number $serialNumber should appear in CRL");
 				}
