@@ -470,11 +470,21 @@ class FileService {
 		if (!empty($chainArr['subject']['UID'])) {
 			return $chainArr['subject']['UID'];
 		}
-		if (!empty($chainArr['subject']['CN']) && preg_match('/^(?<key>.*):(?<value>.*), /', (string)$chainArr['subject']['CN'], $matches)) {
-			return $matches['key'] . ':' . $matches['value'];
+		if (!empty($chainArr['subject']['CN'])) {
+			$cn = $chainArr['subject']['CN'];
+			if (is_array($cn)) {
+				$cn = $cn[0];
+			}
+			if (preg_match('/^(?<key>.*):(?<value>.*), /', (string)$cn, $matches)) {
+				return $matches['key'] . ':' . $matches['value'];
+			}
 		}
 		if (!empty($chainArr['extensions']['subjectAltName'])) {
-			preg_match('/^(?<key>(email|account)):(?<value>.*)$/', (string)$chainArr['extensions']['subjectAltName'], $matches);
+			$subjectAltName = $chainArr['extensions']['subjectAltName'];
+			if (is_array($subjectAltName)) {
+				$subjectAltName = $subjectAltName[0];
+			}
+			preg_match('/^(?<key>(email|account)):(?<value>.*)$/', (string)$subjectAltName, $matches);
 			if ($matches) {
 				if (str_ends_with($matches['value'], $this->host)) {
 					$uid = str_replace('@' . $this->host, '', $matches['value']);

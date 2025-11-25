@@ -162,8 +162,10 @@ class Pkcs12Handler extends SignEngineHandler {
 
 		$chain = [];
 		$isLibreSignRootCA = false;
+		$certificateEngine = $this->getCertificateEngine();
+
 		foreach ($pemCertificates as $index => $pemCertificate) {
-			$parsed = openssl_x509_parse($pemCertificate);
+			$parsed = $certificateEngine->parseCertificate($pemCertificate);
 			if ($parsed) {
 				$parsed['signature_validation'] = [
 					'id' => 1,

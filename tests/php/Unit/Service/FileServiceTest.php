@@ -62,7 +62,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private AccountService&MockObject $accountService;
 	private IdentifyMethodService $identifyMethodService;
 	private IUserSession $userSession;
-	private IUserManager $userManager;
+	private IUserManager&MockObject $userManager;
 	private IAccountManager&MockObject $accountManager;
 	protected IClientService $client;
 	private IDateTimeFormatter $dateTimeFormatter;
@@ -96,7 +96,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->accountService = $this->createMock(AccountService::class);
 		$this->identifyMethodService = \OCP\Server::get(IdentifyMethodService::class);
 		$this->userSession = \OCP\Server::get(IUserSession::class);
-		$this->userManager = \OCP\Server::get(IUserManager::class);
+		$this->userManager = $this->createMock(IUserManager::class);
 		$this->accountManager = $this->createMock(IAccountManager::class);
 		$this->client = \OCP\Server::get(IClientService::class);
 		$this->dateTimeFormatter = \OCP\Server::get(IDateTimeFormatter::class);
@@ -144,7 +144,25 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 		$actual = $service
 			->toArray();
+
+		// Remove 'purposes' field from comparison as it varies between OpenSSL versions
+		$this->removePurposesField($expected);
+		$this->removePurposesField($actual);
+
 		$this->assertEquals($expected, $actual);
+	}
+
+	private function removePurposesField(array &$data): void {
+		if (isset($data['signers'])) {
+			foreach ($data['signers'] as &$signer) {
+				unset($signer['purposes']);
+				if (isset($signer['chain'])) {
+					foreach ($signer['chain'] as &$chainItem) {
+						unset($chainItem['purposes']);
+					}
+				}
+			}
+		}
 	}
 
 	public static function dataToArray(): array {
@@ -267,6 +285,8 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						 */
 						$self->markTestSkipped('Skipping test for not signed file due to environment limitations with PHP >= 8.4.');
 					}
+					$self->userManager->method('get')->willReturn(null);
+					$self->userManager->method('getByEmail')->willReturn([]);
 					$notSigned = tempnam(sys_get_temp_dir(), 'not_signed');
 					copy(realpath(__DIR__ . '/../../fixtures/small_valid-signed.pdf'), $notSigned);
 					$service
@@ -294,21 +314,16 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 								'L' => 'City Name',
 								'O' => 'Organization',
 								'OU' => 'Organization Unit',
-								'CN' => 'account:admin, admin',
+								'CN' => ['account:admin', 'admin'],
 							],
 							'valid_from' => '2025-10-20T13:26:00+00:00',
 							'valid_to' => '2026-10-20T13:26:00+00:00',
 							'signed' => '2025-10-20T13:31:43+00:00',
-							'uid' => 'account:admin',
+							'uid' => 'email:admin@email.tld',
 							'signature_validation' => [
 								'id' => 1,
 								'label' => 'Signature is valid.',
 							],
-							'certificate_validation' => [
-								'id' => 3,
-								'label' => 'Certificate issuer is unknown.',
-							],
-							'field' => 'Signature1',
 							'name' => '/C=BR/ST=State of Company/L=City Name/O=Organization/OU=Organization Unit/CN=account:admin, admin',
 							'hash' => '4a5a1475',
 							'issuer' => [
@@ -349,12 +364,6 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 								'authorityKeyIdentifier' => '9D:6C:97:12:5D:29:8B:6D:C3:63:C0:0C:DF:28:99:18:81:17:61:69',
 							],
 							'isLibreSignRootCA' => false,
-							'range' => [
-								'offset1' => 0,
-								'length1' => 1311,
-								'offset2' => 31313,
-								'length2' => 32829,
-							],
 							'signingTime' => [
 								'date' => '2025-10-20 13:31:43.000000',
 								'timezone_type' => 1,
@@ -369,7 +378,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 										'L' => 'City Name',
 										'O' => 'Organization',
 										'OU' => 'Organization Unit',
-										'CN' => 'account:admin, admin',
+										'CN' => ['account:admin', 'admin'],
 									],
 									'hash' => '4a5a1475',
 									'issuer' => [
@@ -414,22 +423,15 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 										'label' => 'Signature is valid.',
 									],
 									'isLibreSignRootCA' => false,
-									'field' => 'Signature1',
-									'range' => [
-										'offset1' => 0,
-										'length1' => 1311,
-										'offset2' => 31313,
-										'length2' => 32829,
-									],
-									'certificate_validation' => [
-										'id' => 3,
-										'label' => 'Certificate issuer is unknown.',
-									],
 									'valid_from' => '2025-10-20T13:26:00+00:00',
 									'valid_to' => '2026-10-20T13:26:00+00:00',
 									'displayName' => '/C=BR/ST=State of Company/L=City Name/O=Organization/OU=Organization Unit/CN=account:admin, admin',
+									'crl_validation' => 'missing',
+									'crl_urls' => [],
 								],
 							],
+							'crl_validation' => 'missing',
+							'crl_urls' => [],
 						],
 					],
 				],

@@ -73,4 +73,11 @@ interface IEngineHandler {
 	 * @throws \RuntimeException If CRL generation is not supported or fails
 	 */
 	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation, int $crlNumber): string;
+
+	/**
+	 * Parse an X.509 certificate and return its details with CRL validation
+	 * @param string $certificate PEM-encoded certificate
+	 * @return array Parsed certificate data including CRL validation information
+	 */
+	public function parseCertificate(string $certificate): array;
 }
