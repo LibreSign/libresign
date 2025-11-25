@@ -863,7 +863,7 @@ abstract class AEngineHandler implements IEngineHandler {
 	private function createAndSignCrl(\phpseclib3\File\X509 $issuer, array $revokedCertificates, int $crlNumber): array {
 		$utcZone = new \DateTimeZone('UTC');
 		$crlToSign = new \phpseclib3\File\X509();
-		$crlToSign->setSerialNumber((string)$crlNumber);
+		$crlToSign->setSerialNumber((string)$crlNumber, 10);
 		$crlToSign->setStartDate(new \DateTime('now', $utcZone));
 		$crlToSign->setEndDate(new \DateTime('+7 days', $utcZone));
 
