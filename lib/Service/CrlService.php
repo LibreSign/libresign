@@ -48,9 +48,15 @@ class CrlService {
 		}
 
 		$reason = CRLReason::from($reasonCode);
-		$crlNumber = $this->getNextCrlNumber();
 
 		try {
+			$certificate = $this->crlMapper->findBySerialNumber($serialNumber);
+			$instanceId = $certificate->getInstanceId();
+			$generation = $certificate->getGeneration();
+			$engineType = $certificate->getEngine();
+
+			$crlNumber = $this->getNextCrlNumber($instanceId, $generation, $engineType);
+
 			$this->crlMapper->revokeCertificate(
 				$serialNumber,
 				$reason,
@@ -143,8 +149,10 @@ class CrlService {
 		return $result;
 	}
 
-	public function getNextCrlNumber(): int {
-		return $this->crlMapper->getNextCrlNumber();
+	private function getNextCrlNumber(string $instanceId, int $generation, string $engineType): int {
+		$lastCrlNumber = $this->crlMapper->getLastCrlNumber($instanceId, $generation, $engineType);
+
+		return $lastCrlNumber + 1;
 	}
 
 	public function cleanupExpiredCertificates(?DateTime $before = null): int {
@@ -169,7 +177,9 @@ class CrlService {
 				throw new \RuntimeException('Current certificate engine does not support CRL generation');
 			}
 
-			return $engine->generateCrlDer($revokedCertificates, $instanceId, $generation);
+			$crlNumber = $this->getNextCrlNumber($instanceId, $generation, $engineType);
+
+			return $engine->generateCrlDer($revokedCertificates, $instanceId, $generation, $crlNumber);
 		} catch (\Throwable $e) {
 			$this->logger->error('Failed to generate CRL', [
 				'exception' => $e,

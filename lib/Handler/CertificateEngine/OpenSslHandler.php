@@ -39,8 +39,8 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		protected IURLGenerator $urlGenerator,
 		protected SerialNumberService $serialNumberService,
 		protected CaIdentifierService $caIdentifierService,
-		protected CrlMapper $crlMapper,
 		protected LoggerInterface $logger,
+		protected CrlMapper $crlMapper,
 	) {
 		parent::__construct(
 			$config,
@@ -51,6 +51,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			$certificatePolicyService,
 			$urlGenerator,
 			$caIdentifierService,
+			$logger,
 		);
 	}
 
@@ -70,12 +71,13 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		$serialNumberString = $this->serialNumberService->generateUniqueSerial(
 			$commonName,
 			$this->caIdentifierService->getInstanceId(),
+			$this->caIdentifierService->getCaIdParsed()['generation'],
 			new \DateTime('+' . $caDays . ' days'),
 			'openssl',
 		);
 		$serialNumber = (int)$serialNumberString;
 
-		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = $caDays, $options, $serialNumber);
+		$x509 = openssl_csr_sign($csr, null, $privateKey, $caDays, $options, $serialNumber);
 
 		openssl_csr_export($csr, $csrout);
 		openssl_x509_export($x509, $certout);
@@ -131,6 +133,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		$serialNumberString = $this->serialNumberService->generateUniqueSerial(
 			$this->getCommonName(),
 			$this->caIdentifierService->getInstanceId(),
+			$this->caIdentifierService->getCaIdParsed()['generation'],
 			new \DateTime('+' . $this->getLeafExpiryInDays() . ' days'),
 			'openssl',
 		);
@@ -385,134 +388,5 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 	protected function getSetupErrorTip(): string {
 		return 'Run occ libresign:configure:openssl --help';
-	}
-
-	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation): string {
-		$configPath = $this->getConfigPathByParams($instanceId, $generation);
-		$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
-		$caKeyPath = $configPath . DIRECTORY_SEPARATOR . 'ca-key.pem';
-		$crlDerPath = $configPath . DIRECTORY_SEPARATOR . 'crl.der';
-
-		if (!file_exists($caCertPath) || !file_exists($caKeyPath)) {
-			throw new \RuntimeException('CA certificate or private key not found. Run: occ libresign:configure:openssl');
-		}
-
-		if ($this->isCrlUpToDate($crlDerPath, $revokedCertificates)) {
-			$content = file_get_contents($crlDerPath);
-			if ($content === false) {
-				throw new \RuntimeException('Failed to read existing CRL file');
-			}
-			return $content;
-		}
-
-		$crlConfigPath = $this->createCrlConfig($revokedCertificates);
-		$crlPemPath = $configPath . DIRECTORY_SEPARATOR . 'crl.pem';
-
-		try {
-			$command = sprintf(
-				'openssl ca -gencrl -out %s -config %s -cert %s -keyfile %s',
-				escapeshellarg($crlPemPath),
-				escapeshellarg($crlConfigPath),
-				escapeshellarg($caCertPath),
-				escapeshellarg($caKeyPath)
-			);
-
-			$output = [];
-			$returnCode = 0;
-			exec($command . ' 2>&1', $output, $returnCode);
-
-			if ($returnCode !== 0) {
-				throw new \RuntimeException('Failed to generate CRL: ' . implode("\n", $output));
-			}
-
-			$convertCommand = sprintf(
-				'openssl crl -in %s -outform DER -out %s',
-				escapeshellarg($crlPemPath),
-				escapeshellarg($crlDerPath)
-			);
-
-			exec($convertCommand . ' 2>&1', $output, $returnCode);
-
-			if ($returnCode !== 0) {
-				throw new \RuntimeException('Failed to convert CRL to DER format: ' . implode("\n", $output));
-			}
-
-			$derContent = file_get_contents($crlDerPath);
-			if ($derContent === false) {
-				throw new \RuntimeException('Failed to read generated CRL DER file');
-			}
-
-			return $derContent;
-		} catch (\Exception $e) {
-			throw new \RuntimeException('Failed to generate CRL: ' . $e->getMessage(), 0, $e);
-		}
-	}
-
-	private function isCrlUpToDate(string $crlDerPath, array $revokedCertificates): bool {
-		if (!file_exists($crlDerPath)) {
-			return false;
-		}
-
-		$crlAge = time() - filemtime($crlDerPath);
-		if ($crlAge > 86400) { // 24 hours
-			return false;
-		}
-
-		return true;
-	}
-
-	private function createCrlConfig(array $revokedCertificates): string {
-		$configPath = $this->getCurrentConfigPath();
-		$indexFile = $configPath . DIRECTORY_SEPARATOR . 'index.txt';
-		$crlNumberFile = $configPath . DIRECTORY_SEPARATOR . 'crlnumber';
-		$configFile = $configPath . DIRECTORY_SEPARATOR . 'crl.conf';
-
-		$existingContent = file_exists($indexFile) ? file_get_contents($indexFile) : '';
-		$existingSerials = [];
-
-		if ($existingContent) {
-			foreach (explode("\n", trim($existingContent)) as $line) {
-				if (preg_match('/^R\t.*\t.*\t([A-F0-9]+)\t/', $line, $matches)) {
-					$existingSerials[] = $matches[1];
-				}
-			}
-		}
-
-		$newContent = '';
-		foreach ($revokedCertificates as $cert) {
-			$serialHex = strtoupper(dechex($cert->getSerialNumber()));
-
-			if (in_array($serialHex, $existingSerials)) {
-				continue;
-			}
-
-			$revokedAt = new \DateTime($cert->getRevokedAt()->format('Y-m-d H:i:s'));
-			$reasonCode = $cert->getReasonCode() ?? 0;
-			$newContent .= sprintf(
-				"R\t%s\t%s,%02d\t%s\tunknown\t/CN=%s\n",
-				$cert->getValidTo() ? $cert->getValidTo()->format('ymdHis\Z') : '501231235959Z',
-				$revokedAt->format('ymdHis\Z'),
-				$reasonCode,
-				$serialHex,
-				$cert->getOwner()
-			);
-		}
-
-		file_put_contents($indexFile, $existingContent . $newContent);
-
-		if (!file_exists($crlNumberFile)) {
-			file_put_contents($crlNumberFile, "01\n");
-		}
-
-		$crlConfig = $this->buildCaCertificateConfig();
-
-		$crlConfig['CA_default']['dir'] = dirname($indexFile);
-		$crlConfig['CA_default']['database'] = $indexFile;
-		$crlConfig['CA_default']['crlnumber'] = $crlNumberFile;
-
-		$configContent = CertificateHelper::arrayToIni($crlConfig);
-		file_put_contents($configFile, $configContent);
-
-		return $configFile;
 	}
 }
