@@ -20,6 +20,7 @@ use OCP\IConfig;
 use OCP\IDateTimeFormatter;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
 
 final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -428,7 +429,8 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->assertEquals($crlNumber, $actualCrlNumber, 'CRL Number should match the provided value');
 
 				foreach ($serialNumbers as $serialNumber) {
-					$this->assertStringContainsStringIgnoringCase($serialNumber, $crlText, "Serial number $serialNumber should appear in CRL");
+					$normalizedSerial = ltrim(strtoupper($serialNumber), '0') ?: '0';
+					$this->assertStringContainsString($normalizedSerial, $crlText, "Serial number $serialNumber (normalized: $normalizedSerial) should appear in CRL");
 				}
 			}
 
@@ -443,6 +445,114 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 			$this->assertEquals(0, $verifyExitCode, 'CRL signature verification should succeed. Output: ' . $verifyResult);
 			$this->assertStringContainsString('verify OK', $verifyResult, 'CRL signature should be valid');
+
+		} finally {
+			if (file_exists($tempCrlFile)) {
+				unlink($tempCrlFile);
+			}
+		}
+	}
+
+	public static function dataCrlSerialNumberNormalization(): array {
+		return [
+			'Serial with leading zeros (20 chars)' => [
+				'serialNumber' => '00e7a0b277a1008f5fe3',
+				'expectedInCrl' => 'E7A0B277A1008F5FE3'
+			],
+			'Serial without leading zeros (20 chars)' => [
+				'serialNumber' => 'e7a0b277a1008f5fe3',
+				'expectedInCrl' => 'E7A0B277A1008F5FE3'
+			],
+			'Serial with multiple leading zeros (8 chars)' => [
+				'serialNumber' => '00000001',
+				'expectedInCrl' => '01' // OpenSSL maintains at least 2 digits
+			],
+			'Serial number 1 (single char)' => [
+				'serialNumber' => '1',
+				'expectedInCrl' => '01' // OpenSSL maintains at least 2 digits
+			],
+			'Serial 0xFF with leading zeros' => [
+				'serialNumber' => '000000FF',
+				'expectedInCrl' => 'FF'
+			],
+			'Long serial with leading zeros (40 chars)' => [
+				'serialNumber' => '0023EE47B385E2D71D5B30A09AE34887D5AF595694',
+				'expectedInCrl' => '23EE47B385E2D71D5B30A09AE34887D5AF595694'
+			],
+			'Long serial without leading zeros (40 chars)' => [
+				'serialNumber' => '23EE47B385E2D71D5B30A09AE34887D5AF595694',
+				'expectedInCrl' => '23EE47B385E2D71D5B30A09AE34887D5AF595694'
+			],
+			'Very long serial with leading zeros (42 chars)' => [
+				'serialNumber' => '00A1B2C3D4E5F6789012345678901234567890ABCD',
+				'expectedInCrl' => 'A1B2C3D4E5F6789012345678901234567890ABCD'
+			],
+			'Serial starting with letter, no zeros' => [
+				'serialNumber' => 'FEDCBA9876543210',
+				'expectedInCrl' => 'FEDCBA9876543210'
+			],
+			'Serial starting with letter, with zeros' => [
+				'serialNumber' => '00FEDCBA9876543210',
+				'expectedInCrl' => 'FEDCBA9876543210'
+			],
+			'Lowercase long serial with zeros' => [
+				'serialNumber' => '00abcdef1234567890abcdef1234567890',
+				'expectedInCrl' => 'ABCDEF1234567890ABCDEF1234567890'
+			],
+			'Mixed case long serial' => [
+				'serialNumber' => '00AaBbCcDdEeFf1122334455',
+				'expectedInCrl' => 'AABBCCDDEEFF1122334455'
+			],
+		];
+	}
+
+	#[DataProvider('dataCrlSerialNumberNormalization')]
+	public function testCrlSerialNumberNormalization(string $serialNumber, string $expectedInCrl): void {
+		$this->caIdentifierService->generateCaId('openssl');
+
+		$rootInstance = $this->getInstance();
+		$rootInstance->generateRootCert('Test Root CA', []);
+
+		$revokedCert = new \OCA\Libresign\Db\Crl();
+		$revokedCert->setSerialNumber($serialNumber);
+		$revokedCert->setRevokedAt(new \DateTime('2025-01-01 12:00:00'));
+
+		$configPath = $rootInstance->getCurrentConfigPath();
+		$pkiDirName = basename($configPath);
+		preg_match('/^([^_]+)_(\d+)_(.+)$/', $pkiDirName, $matches);
+		$instanceId = $matches[1];
+		$generation = (int)$matches[2];
+		$crlNumber = 42;
+
+		$crlDer = $rootInstance->generateCrlDer([$revokedCert], $instanceId, $generation, $crlNumber);
+
+		$this->assertNotEmpty($crlDer, "CRL should be generated for serial: {$serialNumber}");
+
+		$tempCrlFile = $this->tempManager->getTemporaryFile('.crl');
+		try {
+			file_put_contents($tempCrlFile, $crlDer);
+
+			$crlTextCmd = sprintf(
+				'openssl crl -in %s -inform DER -text -noout',
+				escapeshellarg($tempCrlFile)
+			);
+			exec($crlTextCmd, $output, $exitCode);
+
+			$this->assertEquals(0, $exitCode, "OpenSSL should parse CRL for serial: {$serialNumber}");
+
+			$crlText = implode("\n", $output);
+
+			$this->assertStringContainsString(
+				$expectedInCrl,
+				$crlText,
+				"Expected serial '{$expectedInCrl}' should appear in CRL (input: '{$serialNumber}')"
+			);
+
+			$this->assertStringContainsString(
+				'Serial Number: ' . $expectedInCrl,
+				$crlText,
+				"Serial should appear with 'Serial Number:' prefix (input: '{$serialNumber}')"
+			);
 
 		} finally {
 			if (file_exists($tempCrlFile)) {
