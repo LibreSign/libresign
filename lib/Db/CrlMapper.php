@@ -41,6 +41,7 @@ class CrlMapper extends QBMapper {
 		string $owner,
 		string $engine,
 		string $instanceId,
+		int $generation,
 		DateTime $issuedAt,
 		?DateTime $validTo = null,
 	): Crl {
@@ -52,6 +53,7 @@ class CrlMapper extends QBMapper {
 		$certificate->setValidTo($validTo);
 		$certificate->setEngine($engine);
 		$certificate->setInstanceId($instanceId);
+		$certificate->setGeneration($generation);
 
 		/** @var Crl */
 		return $this->insert($certificate);
@@ -130,19 +132,6 @@ class CrlMapper extends QBMapper {
 		return false;
 	}
 
-	public function getNextCrlNumber(): int {
-		$qb = $this->db->getQueryBuilder();
-
-		$result = $qb->select($qb->func()->max('crl_number'))
-			->from($this->getTableName())
-			->executeQuery();
-
-		$maxCrlNumber = $result->fetchOne();
-		$result->closeCursor();
-
-		return ($maxCrlNumber ?? 0) + 1;
-	}
-
 	public function cleanupExpiredCertificates(?DateTime $before = null): int {
 		$before = $before ?? new DateTime('-1 year');
 
@@ -194,5 +183,22 @@ class CrlMapper extends QBMapper {
 
 		$result->closeCursor();
 		return $stats;
+	}
+
+	public function getLastCrlNumber(string $instanceId, int $generation, string $engineType): int {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select($qb->func()->max('crl_number'))
+			->from($this->getTableName())
+			->where($qb->expr()->eq('instance_id', $qb->createNamedParameter($instanceId)))
+			->andWhere($qb->expr()->eq('generation', $qb->createNamedParameter($generation, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('engine', $qb->createNamedParameter($engineType)))
+			->andWhere($qb->expr()->isNotNull('crl_number'));
+
+		$result = $qb->executeQuery();
+		$maxCrlNumber = $result->fetchOne();
+		$result->closeCursor();
+
+		return (int)($maxCrlNumber ?? 0);
 	}
 }
