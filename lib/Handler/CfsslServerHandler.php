@@ -16,6 +16,7 @@ class CfsslServerHandler {
 	private string $csrServerFile = '';
 	private string $configServerFile = '';
 	private string $configServerFileHash = '';
+	private string $crlUrl = '';
 	private Closure $getCurrentConfigPath;
 
 	public function __construct(
@@ -47,6 +48,7 @@ class CfsslServerHandler {
 		int $expirityInDays,
 		string $crlUrl = '',
 	): void {
+		$this->crlUrl = $crlUrl;
 		$this->putCsrServer(
 			$commonName,
 			$names,
@@ -116,6 +118,11 @@ class CfsslServerHandler {
 				],
 			],
 		];
+
+		if (!empty($this->crlUrl)) {
+			$config['signing']['profiles']['client']['crl_url'] = $this->crlUrl;
+		}
+
 		$oid = $this->certificatePolicyService->getOid();
 		$cps = $this->certificatePolicyService->getCps();
 		if ($oid && $cps) {

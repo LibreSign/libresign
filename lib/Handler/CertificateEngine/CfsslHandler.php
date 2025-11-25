@@ -66,6 +66,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			$certificatePolicyService,
 			$urlGenerator,
 			$caIdentifierService,
+			$logger,
 		);
 
 		$this->cfsslServerHandler->configCallback(fn () => $this->getCurrentConfigPath());
@@ -248,6 +249,8 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		file_put_contents($configPath . '/ca.pem', $json['cert']);
 		file_put_contents($configPath . '/ca-key.pem', $json['key']);
 		file_put_contents($configPath . '/ca.csr', $json['csr']);
+
+		$this->persistRootCertificateFromData($json['cert']);
 	}
 
 	private function getClient(): Client {
@@ -486,38 +489,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		return $return;
 	}
 
-	#[\Override]
-	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation): string {
-		try {
-			$queryParams = [];
-			$queryParams['expiry'] = '168h'; // 7 days * 24 hours
-
-			$response = $this->getClient()->request('GET', 'crl', [
-				'query' => $queryParams
-			]);
-
-			$responseData = json_decode((string)$response->getBody(), true);
-
-			if (!isset($responseData['success']) || !$responseData['success']) {
-				$errorMessage = isset($responseData['errors'])
-					? implode(', ', array_column($responseData['errors'], 'message'))
-					: 'Unknown CFSSL error';
-				throw new \RuntimeException('CFSSL CRL generation failed: ' . $errorMessage);
-			}
-
-			if (isset($responseData['result']) && is_string($responseData['result'])) {
-				return $responseData['result'];
-			}
-
-			throw new \RuntimeException('No CRL data returned from CFSSL');
-
-		} catch (RequestException|ConnectException $e) {
-			throw new \RuntimeException('Failed to communicate with CFSSL server: ' . $e->getMessage());
-		} catch (\Throwable $e) {
-			throw new \RuntimeException('CFSSL CRL generation error: ' . $e->getMessage());
-		}
-	}
-
 	/**
 	 * Get Authority Key Identifier from certificate (needed for CFSSL revocation)
 	 *
@@ -600,6 +571,41 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			$owner,
 			'cfssl',
 			$this->caIdentifierService->getInstanceId(),
+			$this->caIdentifierService->getCaIdParsed()['generation'],
+			new \DateTime(),
+			$expiresAt
+		);
+	}
+
+	private function persistRootCertificateFromData(string $certPem): void {
+		$x509Resource = openssl_x509_read($certPem);
+		if (!$x509Resource) {
+			throw new \RuntimeException('Failed to parse root certificate');
+		}
+
+		$parsed = openssl_x509_parse($x509Resource);
+		if (!$parsed) {
+			throw new \RuntimeException('Failed to extract root certificate information');
+		}
+
+		$serialNumber = $parsed['serialNumberHex'] ?? '';
+		if (empty($serialNumber)) {
+			throw new \RuntimeException('Root certificate has no serial number');
+		}
+
+		$owner = $this->getCommonName() ?? 'Root CA';
+
+		$expiresAt = null;
+		if (isset($parsed['validTo_time_t'])) {
+			$expiresAt = new \DateTime('@' . $parsed['validTo_time_t']);
+		}
+
+		$this->crlMapper->createCertificate(
+			$serialNumber,
+			$owner,
+			'cfssl',
+			$this->caIdentifierService->getInstanceId(),
+			$this->caIdentifierService->getCaIdParsed()['generation'],
 			new \DateTime(),
 			$expiresAt
 		);

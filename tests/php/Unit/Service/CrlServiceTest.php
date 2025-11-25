@@ -42,10 +42,20 @@ class CrlServiceTest extends TestCase {
 		$reasonText = 'Certificate compromised';
 		$revokedBy = 'admin';
 
-		// Mock the dependencies for successful revocation
+		$certificate = new Crl();
+		$certificate->setInstanceId('test-instance');
+		$certificate->setGeneration(1);
+		$certificate->setEngine('openssl');
+
 		$this->crlMapper->expects($this->once())
-			->method('getNextCrlNumber')
-			->willReturn(5);
+			->method('findBySerialNumber')
+			->with($serialNumber)
+			->willReturn($certificate);
+
+		$this->crlMapper->expects($this->once())
+			->method('getLastCrlNumber')
+			->with('test-instance', 1, 'openssl')
+			->willReturn(4);
 
 		$this->crlMapper->expects($this->once())
 			->method('revokeCertificate')
@@ -86,12 +96,18 @@ class CrlServiceTest extends TestCase {
 		$mockCrlDer = "\x30\x82\x01\x00"; // Valid DER sequence
 		$mockEngine->expects($this->once())
 			->method('generateCrlDer')
-			->with($revokedCertificates)
+			->with($revokedCertificates, 'test-instance', 1, 1)
 			->willReturn($mockCrlDer);
 
 		$this->certificateEngineFactory->expects($this->once())
 			->method('getEngine')
 			->willReturn($mockEngine);
+
+		// Mock the getLastCrlNumber method
+		$this->crlMapper->expects($this->once())
+			->method('getLastCrlNumber')
+			->with('test-instance', 1, 'openssl')
+			->willReturn(0);
 
 		$result = $this->service->generateCrlDer('test-instance', 1, 'openssl');
 
