@@ -321,4 +321,134 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->assertCount($numCertificates, array_unique($serialNumbers), 'All serial numbers should be unique');
 	}
+
+	public static function revokedCertificatesProvider(): array {
+		return [
+			'empty CRL (no revoked certificates)' => [
+				'certificates' => [],
+			],
+			'single revoked certificate' => [
+				'certificates' => [
+					['revokedAt' => '2025-01-01 12:00:00'],
+				],
+			],
+			'two revoked certificates' => [
+				'certificates' => [
+					['revokedAt' => '2025-01-01 12:00:00'],
+					['revokedAt' => '2025-01-02 15:30:00'],
+				],
+			],
+			'three revoked certificates' => [
+				'certificates' => [
+					['revokedAt' => '2025-01-01 12:00:00'],
+					['revokedAt' => '2025-01-02 15:30:00'],
+					['revokedAt' => '2025-01-03 18:45:00'],
+				],
+			],
+			'five revoked certificates' => [
+				'certificates' => [
+					['revokedAt' => '2025-01-01 12:00:00'],
+					['revokedAt' => '2025-01-02 15:30:00'],
+					['revokedAt' => '2025-01-03 18:45:00'],
+					['revokedAt' => '2025-01-04 09:15:00'],
+					['revokedAt' => '2025-01-05 14:20:00'],
+				],
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider revokedCertificatesProvider
+	 */
+	public function testGenerateCrlDerWithRevokedCertificates(array $certificates): void {
+		$this->caIdentifierService->generateCaId('openssl');
+
+		$rootInstance = $this->getInstance();
+		$rootInstance->generateRootCert('Test Root CA', []);
+
+		$revokedCertificates = [];
+		$serialNumbers = [];
+
+		foreach ($certificates as $certData) {
+			$serialNumber = bin2hex(random_bytes(10));
+			$serialNumbers[] = $serialNumber;
+
+			$revokedCert = new \OCA\Libresign\Db\Crl();
+			$revokedCert->setSerialNumber($serialNumber);
+			$revokedCert->setRevokedAt(new \DateTime($certData['revokedAt']));
+			$revokedCertificates[] = $revokedCert;
+		}
+
+		$configPath = $rootInstance->getCurrentConfigPath();
+		$this->assertDirectoryExists($configPath);
+		$this->assertFileExists($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
+		$this->assertFileExists($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
+
+		$pkiDirName = basename($configPath);
+		$this->assertMatchesRegularExpression('/^[^_]+_\d+_.+$/', $pkiDirName);
+		preg_match('/^([^_]+)_(\d+)_(.+)$/', $pkiDirName, $matches);
+		$instanceId = $matches[1];
+		$generation = (int)$matches[2];
+		$crlNumber = 42;
+
+		$crlDer = $rootInstance->generateCrlDer($revokedCertificates, $instanceId, $generation, $crlNumber);
+
+		$this->assertNotEmpty($crlDer);
+		$this->assertIsString($crlDer);
+
+		$tempCrlFile = $this->tempManager->getTemporaryFile('.crl');
+		try {
+			file_put_contents($tempCrlFile, $crlDer);
+
+			$crlTextCmd = sprintf(
+				'openssl crl -in %s -inform DER -text -noout',
+				escapeshellarg($tempCrlFile)
+			);
+			exec($crlTextCmd, $output, $exitCode);
+
+			$this->assertEquals(0, $exitCode, 'OpenSSL should successfully parse the CRL');
+
+			$crlText = implode("\n", $output);
+
+			$this->assertStringContainsString('Certificate Revocation List (CRL)', $crlText, 'Should be a valid CRL');
+			$this->assertStringContainsString('Issuer:', $crlText, 'CRL should contain Issuer');
+			$this->assertStringContainsString('Last Update:', $crlText, 'CRL should contain Last Update date');
+			$this->assertStringContainsString('Next Update:', $crlText, 'CRL should contain Next Update date');
+			$this->assertStringContainsString('Signature Algorithm:', $crlText, 'CRL should contain signature algorithm');
+
+			if (empty($certificates)) {
+				$this->assertStringContainsString('No Revoked Certificates', $crlText, 'Empty CRL should show "No Revoked Certificates"');
+			} else {
+				$this->assertStringNotContainsString('No Revoked Certificates', $crlText, 'CRL with revocations should not show "No Revoked Certificates"');
+				$this->assertStringContainsString('Revoked Certificates:', $crlText, 'CRL should have Revoked Certificates section');
+
+				$this->assertMatchesRegularExpression('/X509v3 CRL Number:\s+(\d+)/i', $crlText, 'CRL Number extension should be present');
+				preg_match('/X509v3 CRL Number:\s+(\d+)/i', $crlText, $crlMatches);
+				$actualCrlNumber = (int)$crlMatches[1];
+				$this->assertEquals($crlNumber, $actualCrlNumber, 'CRL Number should match the provided value');
+
+				foreach ($serialNumbers as $serialNumber) {
+					$normalizedSerial = ltrim(strtoupper($serialNumber), '0') ?: '0';
+					$this->assertStringContainsString($normalizedSerial, $crlText, "Serial number $serialNumber (normalized: $normalizedSerial) should appear in CRL");
+				}
+			}
+
+			$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
+			$verifyCmd = sprintf(
+				'openssl crl -in %s -inform DER -CAfile %s -noout 2>&1',
+				escapeshellarg($tempCrlFile),
+				escapeshellarg($caCertPath)
+			);
+			exec($verifyCmd, $verifyOutput, $verifyExitCode);
+			$verifyResult = implode("\n", $verifyOutput);
+
+			$this->assertEquals(0, $verifyExitCode, 'CRL signature verification should succeed. Output: ' . $verifyResult);
+			$this->assertStringContainsString('verify OK', $verifyResult, 'CRL signature should be valid');
+
+		} finally {
+			if (file_exists($tempCrlFile)) {
+				unlink($tempCrlFile);
+			}
+		}
+	}
 }
