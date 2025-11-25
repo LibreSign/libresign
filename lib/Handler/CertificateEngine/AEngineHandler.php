@@ -874,19 +874,17 @@ abstract class AEngineHandler implements IEngineHandler {
 		$crlToSign->setStartDate(new \DateTime('now', $utcZone));
 		$crlToSign->setEndDate(new \DateTime('+7 days', $utcZone));
 
-		if (empty($revokedCertificates)) {
-			$signedCrl = $crlToSign->signCRL($issuer, $crlToSign);
-		} else {
-			$emptyCrl = $crlToSign->signCRL($issuer, $crlToSign);
-			if ($emptyCrl === false) {
-				$this->logger->error('Failed to create CRL structure');
-				throw new \RuntimeException('Failed to create CRL structure');
-			}
+		$initialCrl = $crlToSign->signCRL($issuer, $crlToSign);
+		if ($initialCrl === false) {
+			$this->logger->error('Failed to create initial CRL structure');
+			throw new \RuntimeException('Failed to create initial CRL structure');
+		}
 
-			$savedCrl = $crlToSign->saveCRL($emptyCrl);
+		if (!empty($revokedCertificates)) {
+			$savedCrl = $crlToSign->saveCRL($initialCrl);
 			if ($savedCrl === false) {
-				$this->logger->error('Failed to save empty CRL structure');
-				throw new \RuntimeException('Failed to save empty CRL structure');
+				$this->logger->error('Failed to save initial CRL structure');
+				throw new \RuntimeException('Failed to save initial CRL structure');
 			}
 
 			$crlToSign->loadCRL($savedCrl);
@@ -900,6 +898,8 @@ abstract class AEngineHandler implements IEngineHandler {
 			}
 
 			$signedCrl = $crlToSign->signCRL($issuer, $crlToSign);
+		} else {
+			$signedCrl = $initialCrl;
 		}
 
 		if ($signedCrl === false) {
