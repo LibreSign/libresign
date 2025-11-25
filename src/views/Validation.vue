@@ -175,59 +175,74 @@
 									<strong>{{ t('libresign', 'Requested on:') }}</strong>
 									{{ dateFromSqlAnsi(signer.request_sign_date) }}
 								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.signature_validation"
-								class="extra"
-								compact
-								:name="t('libresign', 'Signature validation:')">
-								<template #name>
-									<strong>{{ t('libresign', 'Signature validation:') }}</strong>
-									{{ signer.signature_validation.label }}
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.certificate_validation"
-								class="extra"
-								compact
-								:name="t('libresign', 'Certificate validation:')">
-								<template #name>
-									<strong>{{ t('libresign', 'Certificate validation:') }}</strong>
-									{{ signer.certificate_validation.label }}
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.field"
-								class="extra"
-								compact
-								:name="t('libresign', 'Field:')">
-								<template #name>
-									<strong>{{ t('libresign', 'Field:') }}</strong>
-									{{ signer.field }}
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.remote_address"
-								class="extra"
-								compact
-								:name="t('libresign', 'Remote address:')">
-								<template #name>
-									<strong>{{ t('libresign', 'Remote address:') }}</strong>
-									{{ signer.remote_address }}
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.user_agent"
-								class="extra"
-								compact
-								:name="t('libresign', 'User agent:')">
-								<template #name>
-									<strong>{{ t('libresign', 'User agent:') }}</strong>
-									{{ signer.user_agent }}
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.notify"
-								class="extra"
-								compact
-								:name="t('libresign', 'Notifications:')">
-								<template #name>
-									<strong>{{ t('libresign', 'Notifications:') }}</strong>
-								</template>
+						</NcListItem>
+						<NcListItem v-if="signer.opened"
+							class="extra"
+							compact
+							:name="t('libresign', 'Validation status:')">
+							<template #name>
+								<strong>{{ t('libresign', 'Validation status:') }}</strong>
+							</template>
+							<template #subname>
+								<div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+									<NcChip v-if="signer.signature_validation"
+										:text="signer.signature_validation.id === 1 ? t('libresign', 'Document integrity verified') : t('libresign', 'Signature: ') + signer.signature_validation.label"
+										:variant="signer.signature_validation.id === 1 ? 'success' : 'error'"
+										:icon-path="signer.signature_validation.id === 1 ? mdiCheckCircle : mdiAlertCircle"
+										no-close />
+
+									<NcChip v-if="signer.certificate_validation"
+										:text="getCertificateTrustMessage(signer)"
+										:variant="signer.certificate_validation.id === 1 ? 'success' : 'error'"
+										:icon-path="signer.certificate_validation.id === 1 ? mdiShieldCheck : mdiAlertCircle"
+										no-close />
+									<NcChip v-if="signer.valid_from && signer.valid_to && signer.signed"
+										:text="getValidityStatusAtSigning(signer) === 'valid' ? t('libresign', 'Valid at signing time') : t('libresign', 'NOT valid at signing time')"
+										:variant="getValidityStatusAtSigning(signer) === 'valid' ? 'success' : 'error'"
+										:icon-path="getValidityStatusAtSigning(signer) === 'valid' ? mdiCheckCircle : mdiCancel"
+										no-close />
+									<NcChip v-if="signer.crl_validation"
+										:text="crlStatusMap[signer.crl_validation]?.text || signer.crl_validation"
+										:variant="crlStatusMap[signer.crl_validation]?.variant || 'tertiary'"
+										:icon-path="crlStatusMap[signer.crl_validation]?.icon || mdiHelpCircle"
+										no-close />
+								</div>
+							</template>
+						</NcListItem>
+						<NcListItem v-if="signer.opened && signer.field"
+							class="extra"
+							compact
+							:name="t('libresign', 'Field:')">
+							<template #name>
+								<strong>{{ t('libresign', 'Field:') }}</strong>
+								{{ signer.field }}
+							</template>
+						</NcListItem>
+						<NcListItem v-if="signer.opened && signer.remote_address"
+							class="extra"
+							compact
+							:name="t('libresign', 'Remote address:')">
+							<template #name>
+								<strong>{{ t('libresign', 'Remote address:') }}</strong>
+								{{ signer.remote_address }}
+							</template>
+						</NcListItem>
+						<NcListItem v-if="signer.opened && signer.user_agent"
+							class="extra"
+							compact
+							:name="t('libresign', 'User agent:')">
+							<template #name>
+								<strong>{{ t('libresign', 'User agent:') }}</strong>
+								{{ signer.user_agent }}
+							</template>
+						</NcListItem>
+						<NcListItem v-if="signer.opened && signer.notify"
+							class="extra"
+							compact
+							:name="t('libresign', 'Notifications:')">
+							<template #name>
+								<strong>{{ t('libresign', 'Notifications:') }}</strong>
+							</template>
 								<template #subname>
 									<ul>
 										<li v-for="(notify, notifyIndex) in signer.notify"
@@ -235,24 +250,6 @@
 											<strong>{{ notify.method }}</strong>: {{ dateFromSqlAnsi(notify.date) }}
 										</li>
 									</ul>
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.valid_from"
-								class="extra"
-								compact
-								:name="t('libresign', 'Certificate valid from:')">
-								<template #name>
-									<strong>{{ t('libresign', 'Certificate valid from:') }}</strong>
-									{{ dateFromSqlAnsi(signer.valid_from) }}
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.valid_to"
-								class="extra"
-								compact
-								:name="t('libresign', 'Certificate valid to:')">
-								<template #name>
-									<strong>{{ t('libresign', 'Certificate valid to:') }}</strong>
-									{{ dateFromSqlAnsi(signer.valid_to) }}
 								</template>
 							</NcListItem>
 							<NcListItem v-if="signer.opened && signer.signatureTypeSN"
@@ -264,16 +261,97 @@
 									{{ signer.signatureTypeSN }}
 								</template>
 							</NcListItem>
+							<NcListItem v-if="signer.opened && (signer.serialNumber || signer.serialNumberHex)"
+								class="extra"
+								compact
+								:name="t('libresign', 'Serial number:')">
+								<template #name>
+									<strong>{{ t('libresign', 'Serial number:') }}</strong>
+									{{ signer.serialNumber }}
+									<span v-if="signer.serialNumberHex" style="opacity: 0.7;">
+										(0x{{ signer.serialNumberHex }})
+									</span>
+								</template>
+							</NcListItem>
+							<NcListItem v-if="signer.opened && signer.hash"
+								class="extra"
+								compact
+								:name="t('libresign', 'Certificate hash:')">
+								<template #name>
+									<strong>{{ t('libresign', 'Certificate hash:') }}</strong>
+									{{ signer.hash }}
+								</template>
+							</NcListItem>
+							<NcListItem v-if="signer.opened && signer.extensions"
+								class="extra"
+								compact
+								:name="t('libresign', 'Certificate Extensions')"
+								:aria-expanded="extensionsOpenState[signerIndex] ? 'true' : 'false'"
+								:aria-label="extensionsOpenState[signerIndex] ? t('libresign', 'Certificate Extensions, expanded. Click to collapse') : t('libresign', 'Certificate Extensions, collapsed. Click to expand')"
+								role="button"
+								@click="$set(extensionsOpenState, signerIndex, !extensionsOpenState[signerIndex])">
+								<template #name>
+									<strong>{{ t('libresign', 'Technical details') }}</strong>
+								</template>
+								<template #extra-actions>
+									<NcButton variant="tertiary"
+										:aria-label="extensionsOpenState[signerIndex] ? t('libresign', 'Collapse extensions') : t('libresign', 'Expand extensions')"
+										@click.stop="$set(extensionsOpenState, signerIndex, !extensionsOpenState[signerIndex])">
+										<template #icon>
+											<NcIconSvgWrapper v-if="extensionsOpenState[signerIndex]"
+												:path="mdiUnfoldLessHorizontal"
+												:size="20" />
+											<NcIconSvgWrapper v-else
+												:path="mdiUnfoldMoreHorizontal"
+												:size="20" />
+										</template>
+									</NcButton>
+								</template>
+							</NcListItem>
+							<div v-if="signer.opened && signer.extensions && extensionsOpenState[signerIndex]"
+								role="region"
+								:aria-label="t('libresign', 'Certificate Extensions details')">
+								<NcListItem v-for="(value, key) in signer.extensions"
+									:key="key"
+									class="extra-chain"
+									compact
+									:name="camelCaseToTitleCase(key)">
+									<template #name>
+										<strong>{{ camelCaseToTitleCase(key) }}:</strong>
+										<span style="white-space: pre-wrap;">{{ value }}</span>
+									</template>
+								</NcListItem>
+							</div>
 							<NcListItem v-if="signer.opened && signer.timestamp && signer.timestamp.displayName"
 								class="extra"
 								compact
-								:name="t('libresign', 'Timestamp Authority:')">
+								:name="t('libresign', 'Timestamp Authority')"
+								:aria-expanded="tsaOpenState[signerIndex] ? 'true' : 'false'"
+								:aria-label="tsaOpenState[signerIndex] ? t('libresign', 'Timestamp Authority, expanded. Click to collapse') : t('libresign', 'Timestamp Authority, collapsed. Click to expand')"
+								role="button"
+								@click="$set(tsaOpenState, signerIndex, !tsaOpenState[signerIndex])">
 								<template #name>
-									<strong>{{ t('libresign', 'Timestamp Authority:') }}</strong>
+									<strong>{{ t('libresign', 'Timestamp Authority') }}</strong>
 									{{ signer.timestamp.displayName }}
 								</template>
+								<template #extra-actions>
+									<NcButton variant="tertiary"
+										:aria-label="tsaOpenState[signerIndex] ? t('libresign', 'Collapse timestamp details') : t('libresign', 'Expand timestamp details')"
+										@click.stop="$set(tsaOpenState, signerIndex, !tsaOpenState[signerIndex])">
+										<template #icon>
+											<NcIconSvgWrapper v-if="tsaOpenState[signerIndex]"
+												:path="mdiUnfoldLessHorizontal"
+												:size="20" />
+											<NcIconSvgWrapper v-else
+												:path="mdiUnfoldMoreHorizontal"
+												:size="20" />
+										</template>
+									</NcButton>
+								</template>
 							</NcListItem>
-							<div v-if="signer.opened && signer.timestamp && signer.timestamp.displayName">
+							<div v-if="signer.opened && signer.timestamp && signer.timestamp.displayName && tsaOpenState[signerIndex]"
+								role="region"
+								:aria-label="t('libresign', 'Timestamp Authority details')">
 								<NcListItem class="extra-chain"
 									compact
 									:name="t('libresign', 'Time:')">
@@ -410,9 +488,16 @@
 <script>
 import {
 	mdiAlertCircle,
+	mdiAlertCircleOutline,
+	mdiCancel,
 	mdiCheckboxMarkedCircle,
+	mdiCheckCircle,
+	mdiHelpCircle,
 	mdiInformationSlabCircle,
 	mdiKey,
+	mdiShieldAlert,
+	mdiShieldCheck,
+	mdiShieldOff,
 	mdiSignatureFreehand,
 	mdiUnfoldLessHorizontal,
 	mdiUnfoldMoreHorizontal,
@@ -432,6 +517,7 @@ import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcChip from '@nextcloud/vue/components/NcChip'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
@@ -453,6 +539,7 @@ export default {
 		NcActions,
 		NcAvatar,
 		NcButton,
+		NcChip,
 		NcDialog,
 		NcIconSvgWrapper,
 		NcListItem,
@@ -464,9 +551,16 @@ export default {
 	setup() {
 		return {
 			mdiAlertCircle,
+			mdiAlertCircleOutline,
+			mdiCancel,
 			mdiCheckboxMarkedCircle,
+			mdiCheckCircle,
+			mdiHelpCircle,
 			mdiInformationSlabCircle,
 			mdiKey,
+			mdiShieldAlert,
+			mdiShieldCheck,
+			mdiShieldOff,
 			mdiSignatureFreehand,
 			mdiUnfoldLessHorizontal,
 			mdiUnfoldMoreHorizontal,
@@ -485,6 +579,9 @@ export default {
 			getUUID: false,
 			getUploadedFile: false,
 			urlQrCode: '',
+			EXPIRATION_WARNING_DAYS: 30,
+			extensionsOpenState: {},
+			tsaOpenState: {},
 		}
 	},
 	computed: {
@@ -510,6 +607,25 @@ export default {
 				return fileStatus.find(item => item.id === -1).label
 			}
 			return actual.label
+		},
+		validityStatusMap() {
+			return {
+				unknown: { text: t('libresign', 'Unknown validity'), variant: 'tertiary', icon: this.mdiHelpCircle },
+				expired: { text: t('libresign', 'Expired'), variant: 'error', icon: this.mdiCancel },
+				expiring: { text: t('libresign', 'Expiring soon'), variant: 'warning', icon: this.mdiAlertCircleOutline },
+				valid: { text: t('libresign', 'Currently valid'), variant: 'success', icon: this.mdiCheckCircle },
+			}
+		},
+		crlStatusMap() {
+			return {
+				valid: { text: t('libresign', 'Not revoked'), variant: 'success', icon: this.mdiShieldCheck },
+				revoked: { text: t('libresign', 'Certificate revoked'), variant: 'error', icon: this.mdiShieldOff },
+				missing: { text: t('libresign', 'No CRL information'), variant: 'warning', icon: this.mdiShieldAlert },
+				no_urls: { text: t('libresign', 'No CRL URLs found'), variant: 'warning', icon: this.mdiShieldAlert },
+				urls_inaccessible: { text: t('libresign', 'CRL URLs inaccessible'), variant: 'tertiary', icon: this.mdiHelpCircle },
+				validation_failed: { text: t('libresign', 'CRL validation failed'), variant: 'tertiary', icon: this.mdiHelpCircle },
+				validation_error: { text: t('libresign', 'CRL validation error'), variant: 'tertiary', icon: this.mdiHelpCircle },
+			}
 		},
 	},
 	watch: {
@@ -664,7 +780,6 @@ export default {
 			}
 		},
 		goBack() {
-			// Redirect if have path to go back
 			const urlParams = new URLSearchParams(window.location.search)
 			if (urlParams.has('path')) {
 				try {
@@ -679,6 +794,86 @@ export default {
 			}
 			this.hasInfo = !this.hasInfo
 			this.uuidToValidate = this.$route.params.uuid
+		},
+		getValidityStatus(signer) {
+			if (!signer.valid_to) {
+				return 'unknown'
+			}
+
+			const now = new Date()
+			const expirationDate = new Date(signer.valid_to)
+
+			if (expirationDate <= now) {
+				return 'expired'
+			}
+
+			const warningDate = new Date()
+			warningDate.setDate(now.getDate() + this.EXPIRATION_WARNING_DAYS)
+
+			if (expirationDate <= warningDate) {
+				return 'expiring'
+			}
+
+			return 'valid'
+		},
+		getValidityStatusAtSigning(signer) {
+			if (!signer.signed || !signer.valid_from || !signer.valid_to) {
+				return 'unknown'
+			}
+
+			const signedDate = new Date(signer.signed)
+			const validFrom = new Date(signer.valid_from)
+			const validTo = new Date(signer.valid_to)
+
+			if (signedDate < validFrom || signedDate > validTo) {
+				return 'expired'
+			}
+
+			return 'valid'
+		},
+		getCertificateTrustMessage(signer) {
+			if (!signer.certificate_validation) {
+				return t('libresign', 'Trust Chain: Unknown')
+			}
+
+			if (signer.certificate_validation.id === 1) {
+				if (signer.isLibreSignRootCA) {
+					return t('libresign', 'Trust Chain: Trusted (LibreSign CA)')
+				}
+				return t('libresign', 'Trust Chain: Trusted')
+			}
+
+			return t('libresign', 'Trust Chain: ') + signer.certificate_validation.label
+		},
+		camelCaseToTitleCase(text) {
+			if (text.includes(' ')) {
+				return text.replace(/^./, str => str.toUpperCase())
+			}
+
+			return text
+				.replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+				.replace(/([a-z])([A-Z])/g, '$1 $2')
+				.replace(/^./, str => str.toUpperCase())
+				.trim()
+		},
+		hasValidationIssues(signer) {
+			if (signer.signature_validation && signer.signature_validation.id !== 1) {
+				return true
+			}
+			if (signer.certificate_validation && signer.certificate_validation.id !== 1) {
+				return true
+			}
+			if (signer.crl_validation === 'revoked') {
+				return true
+			}
+			if (signer.valid_from && signer.valid_to && signer.signed && this.getValidityStatusAtSigning(signer) !== 'valid') {
+				return true
+			}
+			const currentStatus = this.getValidityStatus(signer)
+			if (currentStatus === 'expired' || currentStatus === 'expiring') {
+				return true
+			}
+			return false
 		},
 	},
 }
@@ -777,6 +972,13 @@ export default {
 				.extra, .extra-chain {
 					:deep(.list-item-content__name) {
 						white-space: unset;
+						display: flex;
+						align-items: center;
+						gap: 8px;
+
+						.nc-chip {
+							display: inline-flex;
+						}
 					}
 					:deep(.list-item__anchor) {
 						height: unset;
