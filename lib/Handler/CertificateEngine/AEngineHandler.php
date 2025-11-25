@@ -865,7 +865,13 @@ abstract class AEngineHandler implements IEngineHandler {
 				throw new \RuntimeException('Failed to create CRL structure');
 			}
 
-			$crlToSign->loadCRL($crlToSign->saveCRL($emptyCrl));
+			$savedCrl = $crlToSign->saveCRL($emptyCrl);
+			if ($savedCrl === false) {
+				$this->logger->error('Failed to save empty CRL structure');
+				throw new \RuntimeException('Failed to save empty CRL structure');
+			}
+
+			$crlToSign->loadCRL($savedCrl);
 
 			$dateFormat = 'D, d M Y H:i:s O';
 			foreach ($revokedCertificates as $cert) {
