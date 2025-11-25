@@ -711,8 +711,10 @@ abstract class AEngineHandler implements IEngineHandler {
 			$patternUrl = str_replace('ENGINETYPE', '([^/_]+)', $patternUrl);
 
 			$escapedPattern = str_replace([':', '/', '.'], ['\:', '\/', '\.'], $patternUrl);
-			$pattern = '/^' . $escapedPattern . '$/';
 
+			$escapedPattern = str_replace('\/apps\/', '(?:\/index\.php)?\/apps\/', $escapedPattern);
+
+			$pattern = '/^' . $escapedPattern . '$/';
 			if (preg_match($pattern, $crlUrl, $matches)) {
 				$instanceId = $matches[1];
 				$generation = (int)$matches[2];
