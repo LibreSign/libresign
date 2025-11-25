@@ -209,6 +209,115 @@
 								</div>
 							</template>
 						</NcListItem>
+						<NcListItem v-if="signer.opened && signer.signatureTypeSN"
+							class="extra"
+							compact
+							:name="t('libresign', 'Hash algorithm:')">
+							<template #name>
+								<strong>{{ t('libresign', 'Hash algorithm:') }}</strong>
+								{{ signer.signatureTypeSN }}
+							</template>
+						</NcListItem>
+						<NcListItem v-if="signer.opened && signer.chain && signer.chain[0]"
+							class="extra"
+							compact
+							:name="t('libresign', 'Signer certificate:')">
+							<template #name>
+								<div style="display: flex; flex-direction: column; gap: 8px;">
+									<div>
+										<strong>{{ t('libresign', 'Subject:') }}</strong>
+										{{ signer.chain[0].subject?.CN || signer.chain[0].name || signer.name }}
+									</div>
+									<div v-if="signer.chain[0].issuer?.CN" style="font-size: 0.9em; opacity: 0.8;">
+										<strong>{{ t('libresign', 'Issued by:') }}</strong>
+										{{ signer.chain[0].issuer.CN }}
+									</div>
+									<div v-if="signer.chain[0].serialNumber">
+										<strong>{{ t('libresign', 'Serial Number:') }}</strong>
+										{{ signer.chain[0].serialNumber }}
+										<span v-if="signer.chain[0].serialNumberHex" style="opacity: 0.7; margin-left: 8px;">
+											(hex: {{ signer.chain[0].serialNumberHex }})
+										</span>
+									</div>
+								</div>
+							</template>
+						</NcListItem>
+						<NcListItem v-if="signer.opened && signer.hash"
+							class="extra"
+							compact
+							:name="t('libresign', 'Certificate hash:')">
+							<template #name>
+								<strong>{{ t('libresign', 'Certificate hash:') }}</strong>
+								{{ signer.hash }}
+							</template>
+						</NcListItem>
+						<NcListItem v-if="signer.opened && signer.extensions"
+							class="extra"
+							compact
+							:name="t('libresign', 'Certificate Extensions')"
+							:aria-expanded="extensionsOpenState[signerIndex] ? 'true' : 'false'"
+							:aria-label="extensionsOpenState[signerIndex] ? t('libresign', 'Certificate Extensions, expanded. Click to collapse') : t('libresign', 'Certificate Extensions, collapsed. Click to expand')"
+							role="button"
+							@click="$set(extensionsOpenState, signerIndex, !extensionsOpenState[signerIndex])">
+							<template #name>
+								<strong>{{ t('libresign', 'Certificate Extensions') }}</strong>
+							</template>
+							<template #extra-actions>
+								<NcButton variant="tertiary"
+									:aria-label="extensionsOpenState[signerIndex] ? t('libresign', 'Collapse extensions') : t('libresign', 'Expand extensions')"
+									@click.stop="$set(extensionsOpenState, signerIndex, !extensionsOpenState[signerIndex])">
+									<template #icon>
+										<NcIconSvgWrapper v-if="extensionsOpenState[signerIndex]"
+											:path="mdiUnfoldLessHorizontal"
+											:size="20" />
+										<NcIconSvgWrapper v-else
+											:path="mdiUnfoldMoreHorizontal"
+											:size="20" />
+									</template>
+								</NcButton>
+							</template>
+						</NcListItem>
+						<div v-if="signer.opened && signer.extensions && extensionsOpenState[signerIndex]"
+							role="region"
+							:aria-label="t('libresign', 'Certificate Extensions details')">
+							<NcListItem v-for="(value, key) in signer.extensions"
+								:key="key"
+								class="extra-chain"
+								compact
+								:name="camelCaseToTitleCase(key)">
+								<template #name>
+									<strong>{{ camelCaseToTitleCase(key) }}:</strong>
+									<span style="white-space: pre-wrap;">{{ value }}</span>
+								</template>
+							</NcListItem>
+						</div>
+						<NcListItem v-if="signer.opened && signer.timestamp && signer.timestamp.displayName"
+							class="extra"
+							compact
+							:name="t('libresign', 'Timestamp Authority')"
+							:aria-expanded="tsaOpenState[signerIndex] ? 'true' : 'false'"
+							:aria-label="tsaOpenState[signerIndex] ? t('libresign', 'Timestamp Authority, expanded. Click to collapse') : t('libresign', 'Timestamp Authority, collapsed. Click to expand')"
+							role="button"
+							@click="$set(tsaOpenState, signerIndex, !tsaOpenState[signerIndex])">
+							<template #name>
+								<strong>{{ t('libresign', 'Timestamp Authority') }}</strong>
+								{{ signer.timestamp.displayName }}
+							</template>
+							<template #extra-actions>
+								<NcButton variant="tertiary"
+									:aria-label="tsaOpenState[signerIndex] ? t('libresign', 'Collapse timestamp details') : t('libresign', 'Expand timestamp details')"
+									@click.stop="$set(tsaOpenState, signerIndex, !tsaOpenState[signerIndex])">
+									<template #icon>
+										<NcIconSvgWrapper v-if="tsaOpenState[signerIndex]"
+											:path="mdiUnfoldLessHorizontal"
+											:size="20" />
+										<NcIconSvgWrapper v-else
+											:path="mdiUnfoldMoreHorizontal"
+											:size="20" />
+									</template>
+								</NcButton>
+							</template>
+						</NcListItem>
 						<NcListItem v-if="signer.opened && signer.field"
 							class="extra"
 							compact
@@ -243,112 +352,15 @@
 							<template #name>
 								<strong>{{ t('libresign', 'Notifications:') }}</strong>
 							</template>
-								<template #subname>
-									<ul>
-										<li v-for="(notify, notifyIndex) in signer.notify"
-											:key="notifyIndex">
-											<strong>{{ notify.method }}</strong>: {{ dateFromSqlAnsi(notify.date) }}
-										</li>
-									</ul>
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.signatureTypeSN"
-								class="extra"
-								compact
-								:name="t('libresign', 'Hash algorithm:')">
-								<template #name>
-									<strong>{{ t('libresign', 'Hash algorithm:') }}</strong>
-									{{ signer.signatureTypeSN }}
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && (signer.serialNumber || signer.serialNumberHex)"
-								class="extra"
-								compact
-								:name="t('libresign', 'Serial number:')">
-								<template #name>
-									<strong>{{ t('libresign', 'Serial number:') }}</strong>
-									{{ signer.serialNumber }}
-									<span v-if="signer.serialNumberHex" style="opacity: 0.7;">
-										(0x{{ signer.serialNumberHex }})
-									</span>
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.hash"
-								class="extra"
-								compact
-								:name="t('libresign', 'Certificate hash:')">
-								<template #name>
-									<strong>{{ t('libresign', 'Certificate hash:') }}</strong>
-									{{ signer.hash }}
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.extensions"
-								class="extra"
-								compact
-								:name="t('libresign', 'Certificate Extensions')"
-								:aria-expanded="extensionsOpenState[signerIndex] ? 'true' : 'false'"
-								:aria-label="extensionsOpenState[signerIndex] ? t('libresign', 'Certificate Extensions, expanded. Click to collapse') : t('libresign', 'Certificate Extensions, collapsed. Click to expand')"
-								role="button"
-								@click="$set(extensionsOpenState, signerIndex, !extensionsOpenState[signerIndex])">
-								<template #name>
-									<strong>{{ t('libresign', 'Technical details') }}</strong>
-								</template>
-								<template #extra-actions>
-									<NcButton variant="tertiary"
-										:aria-label="extensionsOpenState[signerIndex] ? t('libresign', 'Collapse extensions') : t('libresign', 'Expand extensions')"
-										@click.stop="$set(extensionsOpenState, signerIndex, !extensionsOpenState[signerIndex])">
-										<template #icon>
-											<NcIconSvgWrapper v-if="extensionsOpenState[signerIndex]"
-												:path="mdiUnfoldLessHorizontal"
-												:size="20" />
-											<NcIconSvgWrapper v-else
-												:path="mdiUnfoldMoreHorizontal"
-												:size="20" />
-										</template>
-									</NcButton>
-								</template>
-							</NcListItem>
-							<div v-if="signer.opened && signer.extensions && extensionsOpenState[signerIndex]"
-								role="region"
-								:aria-label="t('libresign', 'Certificate Extensions details')">
-								<NcListItem v-for="(value, key) in signer.extensions"
-									:key="key"
-									class="extra-chain"
-									compact
-									:name="camelCaseToTitleCase(key)">
-									<template #name>
-										<strong>{{ camelCaseToTitleCase(key) }}:</strong>
-										<span style="white-space: pre-wrap;">{{ value }}</span>
-									</template>
-								</NcListItem>
-							</div>
-							<NcListItem v-if="signer.opened && signer.timestamp && signer.timestamp.displayName"
-								class="extra"
-								compact
-								:name="t('libresign', 'Timestamp Authority')"
-								:aria-expanded="tsaOpenState[signerIndex] ? 'true' : 'false'"
-								:aria-label="tsaOpenState[signerIndex] ? t('libresign', 'Timestamp Authority, expanded. Click to collapse') : t('libresign', 'Timestamp Authority, collapsed. Click to expand')"
-								role="button"
-								@click="$set(tsaOpenState, signerIndex, !tsaOpenState[signerIndex])">
-								<template #name>
-									<strong>{{ t('libresign', 'Timestamp Authority') }}</strong>
-									{{ signer.timestamp.displayName }}
-								</template>
-								<template #extra-actions>
-									<NcButton variant="tertiary"
-										:aria-label="tsaOpenState[signerIndex] ? t('libresign', 'Collapse timestamp details') : t('libresign', 'Expand timestamp details')"
-										@click.stop="$set(tsaOpenState, signerIndex, !tsaOpenState[signerIndex])">
-										<template #icon>
-											<NcIconSvgWrapper v-if="tsaOpenState[signerIndex]"
-												:path="mdiUnfoldLessHorizontal"
-												:size="20" />
-											<NcIconSvgWrapper v-else
-												:path="mdiUnfoldMoreHorizontal"
-												:size="20" />
-										</template>
-									</NcButton>
-								</template>
-							</NcListItem>
+							<template #subname>
+								<ul>
+									<li v-for="(notify, notifyIndex) in signer.notify"
+										:key="notifyIndex">
+										<strong>{{ notify.method }}</strong>: {{ dateFromSqlAnsi(notify.date) }}
+									</li>
+								</ul>
+							</template>
+						</NcListItem>
 							<div v-if="signer.opened && signer.timestamp && signer.timestamp.displayName && tsaOpenState[signerIndex]"
 								role="region"
 								:aria-label="t('libresign', 'Timestamp Authority details')">
@@ -451,16 +463,38 @@
 									</NcListItem>
 								</div>
 							</div>
-							<NcListItem v-if="signer.opened && signer.subject"
+							<NcListItem v-if="signer.opened && signer.chain && signer.chain[0]"
 								class="extra"
 								compact
-								:name="t('libresign', 'Certificate chain:')">
+								:name="t('libresign', 'Signer certificate:')">
 								<template #name>
-									<strong>{{ t('libresign', 'Certificate chain:') }}</strong>
-									{{ signer.name }}
+									<div style="display: flex; flex-direction: column; gap: 8px;">
+										<div>
+											<strong>{{ t('libresign', 'Subject:') }}</strong>
+											{{ signer.chain[0].subject?.CN || signer.chain[0].name || signer.name }}
+										</div>
+										<div v-if="signer.chain[0].issuer?.CN" style="font-size: 0.9em; opacity: 0.8;">
+											<strong>{{ t('libresign', 'Issued by:') }}</strong>
+											{{ signer.chain[0].issuer.CN }}
+										</div>
+										<div v-if="signer.chain[0].serialNumber">
+											<strong>{{ t('libresign', 'Serial Number:') }}</strong>
+											{{ signer.chain[0].serialNumber }}
+											<span v-if="signer.chain[0].serialNumberHex" style="opacity: 0.7; margin-left: 8px;">
+												(hex: {{ signer.chain[0].serialNumberHex }})
+											</span>
+										</div>
+									</div>
 								</template>
 							</NcListItem>
-							<div v-if="signer.opened && signer.chain">
+							<div v-if="signer.opened && signer.chain && signer.chain.length > 1">
+								<NcListItem class="extra"
+									compact
+									:name="t('libresign', 'Certificate chain:')">
+									<template #name>
+										<strong>{{ t('libresign', 'Certificate chain:') }}</strong>
+									</template>
+								</NcListItem>
 								<NcListItem v-for="(issuer, issuerIndex) in signer.chain.filter(i => i.serialNumber !== signer.serialNumber)"
 									:key="issuerIndex"
 									class="extra-chain"
