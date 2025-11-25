@@ -767,9 +767,16 @@ abstract class AEngineHandler implements IEngineHandler {
 	}
 
 	private function isSerialNumberInCrl(string $crlText, string $serialNumber): bool {
-		return strpos($crlText, 'Serial Number: ' . strtoupper($serialNumber)) !== false
-			|| strpos($crlText, 'Serial Number: ' . $serialNumber) !== false
-			|| strpos($crlText, $serialNumber) !== false;
+		// Normalize: uppercase, remove leading zeros, but keep at least 2 digits (OpenSSL format)
+		$normalizedSerial = strtoupper($serialNumber);
+		$normalizedSerial = ltrim($normalizedSerial, '0') ?: '0';
+
+		// OpenSSL displays serial numbers with at least 2 hex digits
+		if (strlen($normalizedSerial) === 1) {
+			$normalizedSerial = '0' . $normalizedSerial;
+		}
+
+		return strpos($crlText, 'Serial Number: ' . $normalizedSerial) !== false;
 	}
 
 	private function checkCertificateInCrl(string $certPem, string $crlContent): string {
