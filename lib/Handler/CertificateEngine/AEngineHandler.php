@@ -149,6 +149,11 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $caId;
 	}
 
+	#[\Override]
+	public function parseCertificate(string $certificate): array {
+		return $this->parseX509($certificate);
+	}
+
 	private function parseX509(string $x509): array {
 		$parsed = openssl_x509_parse(openssl_x509_read($x509));
 
