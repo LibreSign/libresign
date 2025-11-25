@@ -62,7 +62,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private AccountService&MockObject $accountService;
 	private IdentifyMethodService $identifyMethodService;
 	private IUserSession $userSession;
-	private IUserManager $userManager;
+	private IUserManager&MockObject $userManager;
 	private IAccountManager&MockObject $accountManager;
 	protected IClientService $client;
 	private IDateTimeFormatter $dateTimeFormatter;
@@ -96,7 +96,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->accountService = $this->createMock(AccountService::class);
 		$this->identifyMethodService = \OCP\Server::get(IdentifyMethodService::class);
 		$this->userSession = \OCP\Server::get(IUserSession::class);
-		$this->userManager = \OCP\Server::get(IUserManager::class);
+		$this->userManager = $this->createMock(IUserManager::class);
 		$this->accountManager = $this->createMock(IAccountManager::class);
 		$this->client = \OCP\Server::get(IClientService::class);
 		$this->dateTimeFormatter = \OCP\Server::get(IDateTimeFormatter::class);
@@ -267,6 +267,8 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						 */
 						$self->markTestSkipped('Skipping test for not signed file due to environment limitations with PHP >= 8.4.');
 					}
+					$self->userManager->method('get')->willReturn(null);
+					$self->userManager->method('getByEmail')->willReturn([]);
 					$notSigned = tempnam(sys_get_temp_dir(), 'not_signed');
 					copy(realpath(__DIR__ . '/../../fixtures/small_valid-signed.pdf'), $notSigned);
 					$service
