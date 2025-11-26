@@ -25,7 +25,7 @@
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
-					@click="signMethodsStore.showModal('uploadCertificate')">
+					@click="showModalAndResetErrors('uploadCertificate')">
 					{{ t('libresign', 'Upload certificate') }}
 				</NcButton>
 			</div>
@@ -36,7 +36,7 @@
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
-					@click="signMethodsStore.showModal('createPassword')">
+					@click="showModalAndResetErrors('createPassword')">
 					{{ t('libresign', 'Define a password and sign the document.') }}
 				</NcButton>
 			</div>
@@ -47,7 +47,7 @@
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
-					@click="signMethodsStore.showModal('createSignature')">
+					@click="showModalAndResetErrors('createSignature')">
 					{{ t('libresign', 'Define your signature.') }}
 				</NcButton>
 			</div>
@@ -100,7 +100,8 @@
 				<NcPasswordField v-model="signPassword" type="password" />
 			</form>
 			<a id="lost-password" @click="toggleManagePassword">{{ t('libresign', 'Forgot password?') }}</a>
-			<ManagePassword v-if="showManagePassword" />
+			<ManagePassword v-if="showManagePassword"
+				@certificate:uploaded="onSignatureFileCreated" />
 			<template #actions>
 				<NcButton :disabled="signPassword.length < 3 || loading"
 					type="submit"
@@ -121,36 +122,16 @@
 			type="signature"
 			@save="saveSignature"
 			@close="signMethodsStore.closeModal('createSignature')" />
-		<NcDialog v-if="signMethodsStore.modal.uploadCertificate"
-			:name="t('libresign', 'Upload certificate')"
-			@closing="signMethodsStore.closeModal('uploadCertificate')">
-			<NcNoteCard v-for="(error, index) in errors"
-				:key="index"
-				:heading="error.title || ''"
-				type="error">
-				<NcRichText :text="error.message"
-					:use-markdown="true" />
-			</NcNoteCard>
-			<p>
-				{{ t('libresign', 'Select your certificate file to upload.') }}
-			</p>
-			<template #actions>
-				<NcButton @click="signMethodsStore.closeModal('uploadCertificate')">
-					{{ t('libresign', 'Cancel') }}
-				</NcButton>
-				<NcButton variant="primary"
-					@click="uploadCertificate">
-					{{ t('libresign', 'Choose file') }}
-				</NcButton>
-			</template>
-		</NcDialog>
-		<CreatePassword @password:created="signMethodsStore.setHasSignatureFile" />
+		<CreatePassword @password:created="onSignatureFileCreated" />
+		<UploadCertificate
+			:useModal="true"
+			:errors="errors"
+			@certificate:uploaded="onSignatureFileCreated" />
 		<SMSManager v-if="signMethodsStore.modal.sms"
 			:phone-number="user?.account?.phoneNumber"
 			@change="signWithSMSCode"
 			@update:phone="val => $emit('update:phone', val)"
 			@close="signMethodsStore.closeModal('sms')" />
-
 		<EmailManager v-if="signMethodsStore.modal.emailToken"
 			@change="signWithEmailToken"
 			@close="signMethodsStore.closeModal('emailToken')" />
@@ -177,6 +158,7 @@ import Draw from '../../../Components/Draw/Draw.vue'
 import Signatures from '../../../views/Account/partials/Signatures.vue'
 import CreatePassword from '../../../views/CreatePassword.vue'
 import ManagePassword from '../../Account/partials/ManagePassword.vue'
+import UploadCertificate from '../../../views/UploadCertificate.vue'
 
 import { useSidebarStore } from '../../../store/sidebar.js'
 import { useSignStore } from '../../../store/sign.js'
@@ -198,6 +180,7 @@ export default {
 		Signatures,
 		Draw,
 		ManagePassword,
+		UploadCertificate,
 	},
 	setup() {
 		const signStore = useSignStore()
@@ -293,38 +276,13 @@ export default {
 			this.showManagePassword = false
 			this.signMethodsStore.closeModal('password')
 		},
-		uploadCertificate() {
-			const input = document.createElement('input')
-			input.accept = '.pfx'
-			input.type = 'file'
-
-			input.onchange = async (ev) => {
-				const file = ev.target.files[0]
-
-				if (file) {
-					this.doUpload(file)
-				}
-
-				input.remove()
-			}
-
-			input.click()
+		showModalAndResetErrors(modalCode) {
+			this.errors = []
+			this.signMethodsStore.showModal(modalCode)
 		},
-		async doUpload(file) {
-			const formData = new FormData()
-			formData.append('file', file)
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/pfx'), formData)
-				.then(({ data }) => {
-					showSuccess(data.ocs.data.message)
-					this.signMethodsStore.setHasSignatureFile(true)
-					this.errors = []
-					this.signMethodsStore.closeModal('uploadCertificate')
-				})
-				.catch(({ response }) => {
-					if (response?.data?.ocs?.data?.message) {
-						showError(response.data.ocs.data.message)
-					}
-				})
+		onSignatureFileCreated() {
+			this.errors = []
+			this.showManagePassword = false
 		},
 		saveSignature() {
 			if (this.signatureElementsStore.success.length) {
@@ -390,46 +348,46 @@ export default {
 					}
 				})
 				.catch((err) => {
-					this.errors = err.response?.data?.ocs?.data?.errors ?? []
 					const action = err.response?.data?.ocs?.data?.action
 					if (action === 4000) {
 						if (this.signMethodsStore.certificateEngine === 'none') {
-							this.signMethodsStore.showModal('uploadCertificate')
+							this.showModalAndResetErrors('uploadCertificate')
 						} else {
-							this.signMethodsStore.showModal('createPassword')
+							this.showModalAndResetErrors('createPassword')
 						}
 					}
+					this.errors = err.response?.data?.ocs?.data?.errors ?? []
 				})
 			this.loading = false
 		},
 		confirmSignDocument() {
 			this.errors = []
 			if (this.signMethodsStore.needEmailCode()) {
-				this.signMethodsStore.showModal('emailToken')
+				this.showModalAndResetErrors('emailToken')
 				return
 			}
 			if (this.needCreateSignature) {
-				this.signMethodsStore.showModal('createSignature')
+				this.showModalAndResetErrors('createSignature')
 				return
 			}
 			if (this.signMethodsStore.needSmsCode()) {
-				this.signMethodsStore.showModal('sms')
+				this.showModalAndResetErrors('sms')
 				return
 			}
 			if (this.signMethodsStore.needCertificate()) {
-				this.signMethodsStore.showModal('uploadCertificate')
+				this.showModalAndResetErrors('uploadCertificate')
 				return
 			}
 			if (this.signMethodsStore.needCreatePassword()) {
-				this.signMethodsStore.showModal('createPassword')
+				this.showModalAndResetErrors('createPassword')
 				return
 			}
 			if (this.signMethodsStore.needSignWithPassword()) {
-				this.signMethodsStore.showModal('password')
+				this.showModalAndResetErrors('password')
 				return
 			}
 			if (this.signMethodsStore.needClickToSign()) {
-				this.signMethodsStore.showModal('clickToSign')
+				this.showModalAndResetErrors('clickToSign')
 			}
 		},
 	},
