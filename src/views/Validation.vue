@@ -345,7 +345,7 @@
 									:name="camelCaseToTitleCase(key)">
 									<template #name>
 										<strong>{{ camelCaseToTitleCase(key) }}:</strong>
-										<span style="white-space: pre-wrap;">{{ value }}</span>
+										<span style="white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">{{ value }}</span>
 									</template>
 								</NcListItem>
 							</div>
@@ -1049,6 +1049,9 @@ export default {
 		align-items: center;
 		justify-content: center;
 		padding: 0 20px;
+		@media screen and (max-width: 700px) {
+			padding: 0;
+		}
 		h1 {
 			font-size: 24px;
 			font-weight: bold;
@@ -1078,7 +1081,6 @@ export default {
 		}
 		button {
 			float: inline-end;
-			margin-top: 20px;
 			align-self: flex-end;
 		}
 		.infor-container {
@@ -1178,18 +1180,19 @@ export default {
 			.section {
 				width: unset;
 				box-shadow: none;
+				padding: 10px !important;
 
 				.signers {
 					.date-signed-desktop {
 						display: none;
 					}
 					.extra {
-						margin-inline-start: 16px !important;
-						padding-inline-end: 16px !important;
+						margin-inline-start: 8px !important;
+						padding-inline-end: 8px !important;
 					}
 					.extra-chain {
-						margin-inline-start: 32px !important;
-						padding-inline-end: 16px !important;
+						margin-inline-start: 16px !important;
+						padding-inline-end: 8px !important;
 					}
 				}
 			}
