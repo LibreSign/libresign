@@ -192,6 +192,7 @@ export default {
 			signPassword: '',
 			showManagePassword: false,
 			isModal: window.self !== window.top,
+			errors: [],
 		}
 	},
 	computed: {
