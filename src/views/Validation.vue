@@ -165,7 +165,7 @@
 									<NcIconSvgWrapper v-if="signer.signature_validation"
 										:name="signer.signature_validation.label"
 										:path="getIconValidityPath(signer)"
-										:style="{color: signer.signature_validation?.id === 1? 'green' : 'red'}"
+										:class="signer.signature_validation?.id === 1 ? 'icon-success' : 'icon-error'"
 										:size="20" />
 								</template>
 							</NcListItem>
@@ -224,7 +224,7 @@
 									compact>
 									<template #icon>
 										<NcIconSvgWrapper :path="signer.signature_validation.id === 1 ? mdiCheckCircle : mdiAlertCircle"
-											:style="getSignatureValidationIconStyle(signer)" />
+											:class="signer.signature_validation?.id === 1 ? 'icon-success' : 'icon-error'" />
 									</template>
 									<template #name>
 										{{ signer.signature_validation.id === 1 ? t('libresign', 'Document integrity verified') : t('libresign', 'Signature: ') + signer.signature_validation.label }}
@@ -235,7 +235,7 @@
 									compact>
 									<template #icon>
 										<NcIconSvgWrapper :path="signer.certificate_validation.id === 1 ? mdiCheckCircle : mdiAlertCircle"
-											:style="getCertificateValidationIconStyle(signer)" />
+											:class="signer.certificate_validation?.id === 1 ? 'icon-success' : 'icon-error'" />
 									</template>
 									<template #name>
 										{{ getCertificateTrustMessage(signer) }}
@@ -246,7 +246,7 @@
 									compact>
 									<template #icon>
 										<NcIconSvgWrapper :path="getValidityStatusAtSigning(signer) === 'valid' ? mdiCheckCircle : mdiCancel"
-											:style="getValidityAtSigningIconStyle(signer)" />
+											:class="getValidityStatusAtSigning(signer) === 'valid' ? 'icon-success' : 'icon-error'" />
 									</template>
 									<template #name>
 										{{ getValidityStatusAtSigning(signer) === 'valid' ? t('libresign', 'Valid at signing time') : t('libresign', 'NOT valid at signing time') }}
@@ -257,7 +257,7 @@
 									compact>
 									<template #icon>
 										<NcIconSvgWrapper :path="crlStatusMap[signer.crl_validation]?.icon || mdiHelpCircle"
-											:style="getCrlValidationIconStyle(signer)" />
+											:class="getCrlValidationIconClass(signer)" />
 									</template>
 									<template #name>
 										{{ crlStatusMap[signer.crl_validation]?.text || signer.crl_validation }}
@@ -345,7 +345,7 @@
 									:name="camelCaseToTitleCase(key)">
 									<template #name>
 										<strong>{{ camelCaseToTitleCase(key) }}:</strong>
-										<span style="white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">{{ value }}</span>
+										<span class="extension-value">{{ value }}</span>
 									</template>
 								</NcListItem>
 							</div>
@@ -558,19 +558,19 @@
 									compact
 									:name="certIndex === 0 ? t('libresign', 'Signer:') : t('libresign', 'Issuer:')">
 									<template #name>
-										<div style="display: flex; flex-direction: column; gap: 8px;">
+										<div class="cert-details">
 											<div>
 												<strong>{{ certIndex === 0 ? t('libresign', 'Signer:') : t('libresign', 'Issuer:') }}</strong>
 												{{ cert.subject?.CN || cert.name || cert.displayName }}
 											</div>
-											<div v-if="cert.issuer?.CN" style="font-size: 0.9em; opacity: 0.8;">
+											<div v-if="cert.issuer?.CN" class="cert-issuer">
 												<strong>{{ t('libresign', 'Issued by:') }}</strong>
 												{{ cert.issuer.CN }}
 											</div>
 											<div v-if="cert.serialNumber">
 												<strong>{{ t('libresign', 'Serial Number:') }}</strong>
 												{{ cert.serialNumber }}
-												<span v-if="cert.serialNumberHex" style="opacity: 0.7; margin-left: 8px;">
+												<span v-if="cert.serialNumberHex" class="serial-hex">
 													(hex: {{ cert.serialNumberHex }})
 												</span>
 											</div>
@@ -960,21 +960,12 @@ export default {
 
 			return t('libresign', 'Trust Chain: ') + signer.certificate_validation.label
 		},
-		getSignatureValidationIconStyle(signer) {
-			return { color: signer.signature_validation?.id === 1 ? 'green' : 'var(--color-error)' }
-		},
-		getCertificateValidationIconStyle(signer) {
-			return { color: signer.certificate_validation?.id === 1 ? 'green' : 'var(--color-error)' }
-		},
-		getValidityAtSigningIconStyle(signer) {
-			return { color: this.getValidityStatusAtSigning(signer) === 'valid' ? 'green' : 'var(--color-error)' }
-		},
-		getCrlValidationIconStyle(signer) {
+		getCrlValidationIconClass(signer) {
 			const variant = this.crlStatusMap[signer.crl_validation]?.variant
-			if (variant === 'success') return { color: 'green' }
-			if (variant === 'error') return { color: 'var(--color-error)' }
-			if (variant === 'warning') return { color: 'var(--color-warning)' }
-			return { color: 'var(--color-text-maxcontrast)' }
+			if (variant === 'success') return 'icon-success'
+			if (variant === 'error') return 'icon-error'
+			if (variant === 'warning') return 'icon-warning'
+			return 'icon-default'
 		},
 		camelCaseToTitleCase(text) {
 			if (text.includes(' ')) {
@@ -1171,6 +1162,36 @@ export default {
 						flex-direction: column;
 						gap: 8px;
 						margin: 8px 0 8px 64px;
+					}
+					.icon-success {
+						color: green;
+					}
+					.icon-error {
+						color: var(--color-error);
+					}
+					.icon-warning {
+						color: var(--color-warning);
+					}
+					.icon-default {
+						color: var(--color-text-maxcontrast);
+					}
+					.extension-value {
+						white-space: pre-wrap;
+						word-break: break-word;
+						overflow-wrap: break-word;
+					}
+					.cert-details {
+						display: flex;
+						flex-direction: column;
+						gap: 8px;
+					}
+					.cert-issuer {
+						font-size: 0.9em;
+						opacity: 0.8;
+					}
+					.serial-hex {
+						opacity: 0.7;
+						margin-left: 8px;
 					}
 				}
 
