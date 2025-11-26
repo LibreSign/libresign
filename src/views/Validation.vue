@@ -689,8 +689,6 @@ export default {
 			legalInformation: loadState('libresign', 'legal_information', ''),
 			clickedValidate: false,
 			getUUID: false,
-			getUploadedFile: false,
-			urlQrCode: '',
 			EXPIRATION_WARNING_DAYS: 30,
 			validationStatusOpenState: {},
 			extensionsOpenState: {},
