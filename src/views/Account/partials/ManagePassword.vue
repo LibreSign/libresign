@@ -5,7 +5,7 @@
 <template>
 	<div class="user-display-password">
 		<NcButton :wide="true"
-			@click="uploadCertificate()">
+			@click="$refs.uploadCertificate.triggerUpload()">
 			{{ t('libresign', 'Upload certificate') }}
 			<template #icon>
 				<CloudUploadIcon :size="20" />
@@ -46,6 +46,8 @@
 		<CreatePassword v-if="mounted" />
 		<ReadCertificate v-if="mounted" />
 		<ResetPassword v-if="mounted" />
+		<UploadCertificate ref="uploadCertificate" v-if="mounted" :use-modal="false"
+			@certificate:uploaded="onCertificateUploaded" />
 	</div>
 </template>
 
@@ -57,7 +59,7 @@ import FileReplaceIcon from 'vue-material-design-icons/FileReplace.vue'
 import LockOpenCheckIcon from 'vue-material-design-icons/LockOpenCheck.vue'
 
 import axios from '@nextcloud/axios'
-import { showError, showSuccess } from '@nextcloud/dialogs'
+import { showSuccess } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
@@ -66,6 +68,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import CreatePassword from '../../CreatePassword.vue'
 import ReadCertificate from '../../ReadCertificate/ReadCertificate.vue'
 import ResetPassword from '../../ResetPassword.vue'
+import UploadCertificate from '../../UploadCertificate.vue'
 
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 
@@ -81,6 +84,7 @@ export default {
 		CreatePassword,
 		ReadCertificate,
 		ResetPassword,
+		UploadCertificate,
 	},
 	setup() {
 		const signMethodsStore = useSignMethodsStore()
@@ -98,36 +102,8 @@ export default {
 		this.mounted = true
 	},
 	methods: {
-		uploadCertificate() {
-			const input = document.createElement('input')
-			input.accept = '.pfx'
-			input.type = 'file'
-
-			input.onchange = async (ev) => {
-				const file = ev.target.files[0]
-
-				if (file) {
-					this.doUpload(file)
-				}
-
-				input.remove()
-			}
-
-			input.click()
-		},
-		async doUpload(file) {
-			const formData = new FormData()
-			formData.append('file', file)
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/pfx'), formData)
-				.then(({ data }) => {
-					showSuccess(data.ocs.data.message)
-					this.signMethodsStore.setHasSignatureFile(true)
-				})
-				.catch(({ response }) => {
-					if (response?.data?.ocs?.data?.message) {
-						showError(response.data.ocs.data.message)
-					}
-				})
+		onCertificateUploaded() {
+			this.$emit('certificate:uploaded')
 		},
 		async deleteCertificate() {
 			await axios.delete(generateOcsUrl('/apps/libresign/api/v1/account/pfx'))
