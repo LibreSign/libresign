@@ -864,7 +864,7 @@ export default {
 			return signer.displayName || signer.email || signer.signature_validation?.label || t('libresign', 'Unknown')
 		},
 		getIconValidityPath(signer) {
-			if (signer.signature_validation.id === 1) {
+			if (signer.signature_validation?.id === 1) {
 				return mdiCheckboxMarkedCircle
 			}
 			return mdiAlertCircle
