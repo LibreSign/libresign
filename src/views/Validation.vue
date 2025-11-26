@@ -108,7 +108,8 @@
 						</NcListItem>
 					</ul>
 					<div class="info-document">
-						<NcRichText class="legal-information"
+						<NcRichText v-if="document.signers && document.signers.length > 0"
+							class="legal-information"
 							:text="legalInformation"
 							:use-markdown="true" />
 
@@ -121,7 +122,7 @@
 						</NcButton>
 					</div>
 				</div>
-				<div v-if="document.signers" class="section">
+				<div v-if="document.signers && document.signers.length > 0" class="section">
 					<div class="header">
 						<NcIconSvgWrapper :path="mdiSignatureFreehand" :size="30" />
 						<h1>{{ t('libresign', 'Signatories:') }}</h1>
