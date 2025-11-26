@@ -1206,7 +1206,6 @@ export default {
 					}
 					.extension-value {
 						white-space: pre-wrap;
-						word-break: break-word;
 						overflow-wrap: break-word;
 					}
 					.cert-details {
