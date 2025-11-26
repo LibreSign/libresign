@@ -1067,7 +1067,6 @@ export default {
 	}
 	#dataUUID {
 		width: 100%;
-		max-width: 1200px;
 		display: flex;
 		align-items: flex-start;
 		justify-content: center;
