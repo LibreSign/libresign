@@ -18,6 +18,17 @@
 				</template>
 				{{ t('libresign', 'Sign the document.') }}
 			</NcButton>
+			<div v-else-if="signMethodsStore.needCertificate()">
+				<p>
+					{{ t('libresign', 'You need to upload your certificate to sign the document.') }}
+				</p>
+				<NcButton :wide="true"
+					:disabled="loading"
+					variant="primary"
+					@click="showModalAndResetErrors('uploadCertificate')">
+					{{ t('libresign', 'Upload certificate') }}
+				</NcButton>
+			</div>
 			<div v-else-if="signMethodsStore.needCreatePassword()">
 				<p>
 					{{ t('libresign', 'Please define your sign password') }}
@@ -25,7 +36,7 @@
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
-					@click="signMethodsStore.showModal('createPassword')">
+					@click="showModalAndResetErrors('createPassword')">
 					{{ t('libresign', 'Define a password and sign the document.') }}
 				</NcButton>
 			</div>
@@ -36,7 +47,7 @@
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
-					@click="signMethodsStore.showModal('createSignature')">
+					@click="showModalAndResetErrors('createSignature')">
 					{{ t('libresign', 'Define your signature.') }}
 				</NcButton>
 			</div>
@@ -89,7 +100,8 @@
 				<NcPasswordField v-model="signPassword" type="password" />
 			</form>
 			<a id="lost-password" @click="toggleManagePassword">{{ t('libresign', 'Forgot password?') }}</a>
-			<ManagePassword v-if="showManagePassword" />
+			<ManagePassword v-if="showManagePassword"
+				@certificate:uploaded="onSignatureFileCreated" />
 			<template #actions>
 				<NcButton :disabled="signPassword.length < 3 || loading"
 					type="submit"
@@ -110,13 +122,16 @@
 			type="signature"
 			@save="saveSignature"
 			@close="signMethodsStore.closeModal('createSignature')" />
-		<CreatePassword @password:created="signMethodsStore.setHasSignatureFile" />
+		<CreatePassword @password:created="onSignatureFileCreated" />
+		<UploadCertificate
+			:useModal="true"
+			:errors="errors"
+			@certificate:uploaded="onSignatureFileCreated" />
 		<SMSManager v-if="signMethodsStore.modal.sms"
 			:phone-number="user?.account?.phoneNumber"
 			@change="signWithSMSCode"
 			@update:phone="val => $emit('update:phone', val)"
 			@close="signMethodsStore.closeModal('sms')" />
-
 		<EmailManager v-if="signMethodsStore.modal.emailToken"
 			@change="signWithEmailToken"
 			@close="signMethodsStore.closeModal('emailToken')" />
@@ -143,6 +158,7 @@ import Draw from '../../../Components/Draw/Draw.vue'
 import Signatures from '../../../views/Account/partials/Signatures.vue'
 import CreatePassword from '../../../views/CreatePassword.vue'
 import ManagePassword from '../../Account/partials/ManagePassword.vue'
+import UploadCertificate from '../../../views/UploadCertificate.vue'
 
 import { useSidebarStore } from '../../../store/sidebar.js'
 import { useSignStore } from '../../../store/sign.js'
@@ -164,6 +180,7 @@ export default {
 		Signatures,
 		Draw,
 		ManagePassword,
+		UploadCertificate,
 	},
 	setup() {
 		const signStore = useSignStore()
@@ -181,6 +198,7 @@ export default {
 			signPassword: '',
 			showManagePassword: false,
 			isModal: window.self !== window.top,
+			errors: [],
 		}
 	},
 	computed: {
@@ -258,6 +276,14 @@ export default {
 			this.showManagePassword = false
 			this.signMethodsStore.closeModal('password')
 		},
+		showModalAndResetErrors(modalCode) {
+			this.errors = []
+			this.signMethodsStore.showModal(modalCode)
+		},
+		onSignatureFileCreated() {
+			this.errors = []
+			this.showManagePassword = false
+		},
 		saveSignature() {
 			if (this.signatureElementsStore.success.length) {
 				showSuccess(this.signatureElementsStore.success)
@@ -322,34 +348,46 @@ export default {
 					}
 				})
 				.catch((err) => {
-					this.errors = err.response?.data?.ocs?.data?.errors
+					const action = err.response?.data?.ocs?.data?.action
+					if (action === 4000) {
+						if (this.signMethodsStore.certificateEngine === 'none') {
+							this.showModalAndResetErrors('uploadCertificate')
+						} else {
+							this.showModalAndResetErrors('createPassword')
+						}
+					}
+					this.errors = err.response?.data?.ocs?.data?.errors ?? []
 				})
 			this.loading = false
 		},
 		confirmSignDocument() {
 			this.errors = []
 			if (this.signMethodsStore.needEmailCode()) {
-				this.signMethodsStore.showModal('emailToken')
+				this.showModalAndResetErrors('emailToken')
 				return
 			}
 			if (this.needCreateSignature) {
-				this.signMethodsStore.showModal('createSignature')
+				this.showModalAndResetErrors('createSignature')
 				return
 			}
 			if (this.signMethodsStore.needSmsCode()) {
-				this.signMethodsStore.showModal('sms')
+				this.showModalAndResetErrors('sms')
+				return
+			}
+			if (this.signMethodsStore.needCertificate()) {
+				this.showModalAndResetErrors('uploadCertificate')
 				return
 			}
 			if (this.signMethodsStore.needCreatePassword()) {
-				this.signMethodsStore.showModal('createPassword')
+				this.showModalAndResetErrors('createPassword')
 				return
 			}
 			if (this.signMethodsStore.needSignWithPassword()) {
-				this.signMethodsStore.showModal('password')
+				this.showModalAndResetErrors('password')
 				return
 			}
 			if (this.signMethodsStore.needClickToSign()) {
-				this.signMethodsStore.showModal('clickToSign')
+				this.showModalAndResetErrors('clickToSign')
 			}
 		},
 	},

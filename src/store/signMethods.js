@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { loadState } from '@nextcloud/initial-state'
 import { defineStore } from 'pinia'
 import { set } from 'vue'
 
@@ -14,9 +15,12 @@ export const useSignMethodsStore = defineStore('signMethods', {
 			createPassword: false,
 			signPassword: false,
 			createSignature: false,
+			password: false,
 			sms: false,
+			uploadCertificate: false,
 		},
 		settings: [],
+		certificateEngine: loadState('libresign', 'certificate_engine', ''),
 	}),
 	actions: {
 		closeModal(modalCode) {
@@ -72,6 +76,9 @@ export const useSignMethodsStore = defineStore('signMethods', {
 		needSmsCode() {
 			return Object.hasOwn(this.settings, 'sms')
 				&& this.settings.sms.needCode
+		},
+		needCertificate() {
+			return this.certificateEngine === 'none' && !this.hasSignatureFile()
 		},
 	},
 })
