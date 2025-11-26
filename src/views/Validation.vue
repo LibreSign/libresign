@@ -554,7 +554,7 @@
 								:aria-label="t('libresign', 'Certificate chain details')">
 								<NcListItem v-for="(cert, certIndex) in signer.chain"
 									:key="certIndex"
-									class="extra-chain"
+									class="extra-chain certificate-item"
 									compact
 									:name="certIndex === 0 ? t('libresign', 'Signer:') : t('libresign', 'Issuer:')">
 									<template #name>
@@ -1147,6 +1147,16 @@ export default {
 				.signers {
 					:deep(.list-item__wrapper) {
 						box-sizing: border-box;
+					}
+					.certificate-item {
+						border-bottom: 1px solid var(--color-border);
+						padding-bottom: 12px;
+						margin-bottom: 12px;
+						&:last-child {
+							border-bottom: none;
+							margin-bottom: 0;
+							padding-bottom: 0;
+						}
 					}
 					.extra {
 						margin-inline-start: 44px;
