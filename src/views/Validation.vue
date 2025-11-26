@@ -539,7 +539,6 @@
 								</template>
 								<template #extra-actions>
 									<NcButton variant="tertiary"
-										type="tertiary"
 										:aria-label="chainOpenState[signerIndex] ? t('libresign', 'Collapse certificate chain') : t('libresign', 'Expand certificate chain')">
 										<template #icon>
 											<NcIconSvgWrapper v-if="chainOpenState[signerIndex]"
