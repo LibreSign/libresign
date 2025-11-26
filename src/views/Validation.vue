@@ -1096,6 +1096,12 @@ export default {
 						margin-inline-start: 88px;
 						padding-inline-end: 88px;
 					}
+					.validation-chips {
+						display: flex;
+						flex-direction: column;
+						gap: 8px;
+						margin: 8px 0 8px 64px;
+					}
 				}
 
 			}
@@ -1114,8 +1120,22 @@ export default {
 			.section {
 				width: unset;
 				box-shadow: none;
+
+				.signers {
+					.extra {
+						margin-inline-start: 16px !important;
+						padding-inline-end: 16px !important;
+					}
+					.extra-chain {
+						margin-inline-start: 32px !important;
+						padding-inline-end: 16px !important;
+					}
+				}
 			}
 		}
+	}
+	.validation-chips {
+		margin: 8px 0 8px 32px !important;
 	}
 }
 </style>
