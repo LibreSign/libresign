@@ -1052,7 +1052,6 @@ export default {
 			max-width: 422px;
 		}
 		@media screen and (max-width: 1400px) {
-			width: 100%;
 			padding: 20px 0;
 			img {
 				width: 60%;
@@ -1103,7 +1102,6 @@ export default {
 		}
 		.infor-container {
 			width: 100%;
-			max-width: 100%;
 			margin: 20px 0;
 			.section {
 				background-color: var(--color-main-background);
@@ -1220,7 +1218,6 @@ export default {
 						opacity: 0.7;
 					}
 				}
-
 			}
 		}
 	}
@@ -1233,7 +1230,7 @@ export default {
 			font-size: 1.3rem;
 		}
 		.infor-container {
-			margin-inline-end: 0px;
+			margin-inline-end: 0;
 			.section {
 				width: unset;
 				box-shadow: none;
