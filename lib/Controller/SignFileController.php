@@ -143,8 +143,8 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				Http::STATUS_OK
 			);
 		} catch (LibresignException $e) {
-			$message = $e->getMessage();
-			if ($message === 'Password to sign not defined. Create a password to sign') {
+			$code = $e->getCode();
+			if ($code === 400) {
 				$action = JSActions::ACTION_CREATE_SIGNATURE_PASSWORD;
 			} else {
 				$action = JSActions::ACTION_DO_NOTHING;
