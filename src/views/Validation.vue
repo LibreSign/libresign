@@ -771,7 +771,11 @@ export default {
 					this.handleValidationSuccess(data.ocs.data)
 				})
 				.catch(({ response }) => {
-					showError(response.data.ocs.data.errors[0].message)
+					if (response?.data?.ocs?.data?.errors?.length > 0) {
+						showError(response.data.ocs.data.errors[0].message)
+					} else {
+						showError(t('libresign', 'Failed to validate document'))
+					}
 				})
 		},
 		async uploadFile() {
@@ -817,7 +821,9 @@ export default {
 					this.handleValidationSuccess(data.ocs.data)
 				})
 				.catch(({ response }) => {
-					showError(response.data.ocs.data.errors[0].message)
+					if (response?.data?.ocs?.data?.errors?.length > 0) {
+						showError(response.data.ocs.data.errors[0].message)
+					}
 				})
 			this.loading = false
 		},
