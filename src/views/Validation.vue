@@ -150,6 +150,7 @@
 								</template>
 								<template #extra-actions>
 									<NcButton variant="tertiary"
+										:aria-label="signer.opened ? t('libresign', 'Collapse details') : t('libresign', 'Expand details')"
 										@click="toggleDetail(signer)">
 										<template #icon>
 											<NcIconSvgWrapper v-if="signer.opened"
