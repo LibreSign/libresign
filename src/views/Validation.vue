@@ -758,7 +758,7 @@ export default {
 		},
 	},
 	created() {
-		this.$set(this, 'document', loadState('libresign', 'file_info', {}))
+		this.document = loadState('libresign', 'file_info', {})
 		this.hasInfo = !!this.document?.name
 		if (this.hasInfo && this.document.signers) {
 			this.document.signers.forEach(signer => {
@@ -1018,7 +1018,7 @@ export default {
 		},
 		handleValidationSuccess(data) {
 			this.documentValidMessage = t('libresign', 'This document is valid')
-			this.$set(this, 'document', data)
+			this.document = data
 			this.document.signers?.forEach(signer => {
 				this.$set(signer, 'opened', false)
 			})
