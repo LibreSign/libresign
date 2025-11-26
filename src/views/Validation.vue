@@ -205,28 +205,50 @@
 							<div v-if="signer.opened && validationStatusOpenState[signerIndex]"
 								role="region"
 								:aria-label="t('libresign', 'Validation status details')">
-								<div style="display: flex; flex-direction: column; gap: 8px; margin: 8px 0 8px 64px;">
-									<NcChip v-if="signer.signature_validation"
-										:text="signer.signature_validation.id === 1 ? t('libresign', 'Document integrity verified') : t('libresign', 'Signature: ') + signer.signature_validation.label"
-										:variant="signer.signature_validation.id === 1 ? 'success' : 'error'"
-										:icon-path="signer.signature_validation.id === 1 ? mdiCheckCircle : mdiAlertCircle"
-										no-close />
-									<NcChip v-if="signer.certificate_validation"
-										:text="getCertificateTrustMessage(signer)"
-										:variant="signer.certificate_validation.id === 1 ? 'success' : 'error'"
-										:icon-path="signer.certificate_validation.id === 1 ? mdiShieldCheck : mdiAlertCircle"
-										no-close />
-									<NcChip v-if="signer.valid_from && signer.valid_to && signer.signed"
-										:text="getValidityStatusAtSigning(signer) === 'valid' ? t('libresign', 'Valid at signing time') : t('libresign', 'NOT valid at signing time')"
-										:variant="getValidityStatusAtSigning(signer) === 'valid' ? 'success' : 'error'"
-										:icon-path="getValidityStatusAtSigning(signer) === 'valid' ? mdiCheckCircle : mdiCancel"
-										no-close />
-									<NcChip v-if="signer.crl_validation"
-										:text="crlStatusMap[signer.crl_validation]?.text || signer.crl_validation"
-										:variant="crlStatusMap[signer.crl_validation]?.variant || 'tertiary'"
-										:icon-path="crlStatusMap[signer.crl_validation]?.icon || mdiHelpCircle"
-										no-close />
-								</div>
+								<NcListItem v-if="signer.signature_validation"
+									class="extra-chain"
+									compact>
+									<template #icon>
+										<NcIconSvgWrapper :path="signer.signature_validation.id === 1 ? mdiCheckCircle : mdiAlertCircle"
+											:style="getSignatureValidationIconStyle(signer)" />
+									</template>
+									<template #name>
+										{{ signer.signature_validation.id === 1 ? t('libresign', 'Document integrity verified') : t('libresign', 'Signature: ') + signer.signature_validation.label }}
+									</template>
+								</NcListItem>
+								<NcListItem v-if="signer.certificate_validation"
+									class="extra-chain"
+									compact>
+									<template #icon>
+										<NcIconSvgWrapper :path="signer.certificate_validation.id === 1 ? mdiCheckCircle : mdiAlertCircle"
+											:style="getCertificateValidationIconStyle(signer)" />
+									</template>
+									<template #name>
+										{{ getCertificateTrustMessage(signer) }}
+									</template>
+								</NcListItem>
+								<NcListItem v-if="signer.valid_from && signer.valid_to && signer.signed"
+									class="extra-chain"
+									compact>
+									<template #icon>
+										<NcIconSvgWrapper :path="getValidityStatusAtSigning(signer) === 'valid' ? mdiCheckCircle : mdiCancel"
+											:style="getValidityAtSigningIconStyle(signer)" />
+									</template>
+									<template #name>
+										{{ getValidityStatusAtSigning(signer) === 'valid' ? t('libresign', 'Valid at signing time') : t('libresign', 'NOT valid at signing time') }}
+									</template>
+								</NcListItem>
+								<NcListItem v-if="signer.crl_validation"
+									class="extra-chain"
+									compact>
+									<template #icon>
+										<NcIconSvgWrapper :path="crlStatusMap[signer.crl_validation]?.icon || mdiHelpCircle"
+											:style="getCrlValidationIconStyle(signer)" />
+									</template>
+									<template #name>
+										{{ crlStatusMap[signer.crl_validation]?.text || signer.crl_validation }}
+									</template>
+								</NcListItem>
 							</div>
 							<NcListItem v-if="signer.opened && signer.signatureTypeSN"
 								class="extra"
@@ -575,7 +597,6 @@ import {
 	mdiInformationSlabCircle,
 	mdiKey,
 	mdiShieldAlert,
-	mdiShieldCheck,
 	mdiShieldOff,
 	mdiSignatureFreehand,
 	mdiUnfoldLessHorizontal,
@@ -596,7 +617,6 @@ import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import NcChip from '@nextcloud/vue/components/NcChip'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
@@ -618,7 +638,6 @@ export default {
 		NcActions,
 		NcAvatar,
 		NcButton,
-		NcChip,
 		NcDialog,
 		NcIconSvgWrapper,
 		NcListItem,
@@ -638,7 +657,7 @@ export default {
 			mdiInformationSlabCircle,
 			mdiKey,
 			mdiShieldAlert,
-			mdiShieldCheck,
+			mdiCheckCircle,
 			mdiShieldOff,
 			mdiSignatureFreehand,
 			mdiUnfoldLessHorizontal,
@@ -700,7 +719,7 @@ export default {
 		},
 		crlStatusMap() {
 			return {
-				valid: { text: t('libresign', 'Not revoked'), variant: 'success', icon: this.mdiShieldCheck },
+				valid: { text: t('libresign', 'Not revoked'), variant: 'success', icon: this.mdiCheckCircle },
 				revoked: { text: t('libresign', 'Certificate revoked'), variant: 'error', icon: this.mdiShieldOff },
 				missing: { text: t('libresign', 'No CRL information'), variant: 'warning', icon: this.mdiShieldAlert },
 				no_urls: { text: t('libresign', 'No CRL URLs found'), variant: 'warning', icon: this.mdiShieldAlert },
@@ -926,6 +945,22 @@ export default {
 			}
 
 			return t('libresign', 'Trust Chain: ') + signer.certificate_validation.label
+		},
+		getSignatureValidationIconStyle(signer) {
+			return { color: signer.signature_validation?.id === 1 ? 'green' : 'var(--color-error)' }
+		},
+		getCertificateValidationIconStyle(signer) {
+			return { color: signer.certificate_validation?.id === 1 ? 'green' : 'var(--color-error)' }
+		},
+		getValidityAtSigningIconStyle(signer) {
+			return { color: this.getValidityStatusAtSigning(signer) === 'valid' ? 'green' : 'var(--color-error)' }
+		},
+		getCrlValidationIconStyle(signer) {
+			const variant = this.crlStatusMap[signer.crl_validation]?.variant
+			if (variant === 'success') return { color: 'green' }
+			if (variant === 'error') return { color: 'var(--color-error)' }
+			if (variant === 'warning') return { color: 'var(--color-warning)' }
+			return { color: 'var(--color-text-maxcontrast)' }
 		},
 		camelCaseToTitleCase(text) {
 			if (text.includes(' ')) {
