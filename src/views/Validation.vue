@@ -1196,13 +1196,13 @@ export default {
 						color: green;
 					}
 					.icon-error {
-						color: var(--color-error);
+						color: red;
 					}
 					.icon-warning {
-						color: var(--color-warning);
+						color: orange;
 					}
 					.icon-default {
-						color: var(--color-text-maxcontrast);
+						color: gray;
 					}
 					.extension-value {
 						white-space: pre-wrap;
