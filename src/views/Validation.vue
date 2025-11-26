@@ -768,16 +768,7 @@ export default {
 			})
 				.then(({ data }) => {
 					this.clickedValidate = true
-					showSuccess(t('libresign', 'This document is valid'))
-					this.$set(this, 'document', data.ocs.data)
-					this.document.signers?.forEach(signer => {
-						this.$set(signer, 'opened', false)
-					})
-					this.hasInfo = true
-					if (this.isAfterSigned) {
-						const jsConfetti = new JSConfetti()
-						jsConfetti.addConfetti()
-					}
+					this.handleValidationSuccess(data.ocs.data)
 				})
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.errors[0].message)
@@ -823,16 +814,7 @@ export default {
 			this.loading = true
 			await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${uuid}`))
 				.then(({ data }) => {
-					showSuccess(t('libresign', 'This document is valid'))
-					this.$set(this, 'document', data.ocs.data)
-					this.document.signers.forEach(signer => {
-						this.$set(signer, 'opened', false)
-					})
-					this.hasInfo = true
-					if (this.isAfterSigned) {
-						const jsConfetti = new JSConfetti()
-						jsConfetti.addConfetti()
-					}
+					this.handleValidationSuccess(data.ocs.data)
 				})
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.errors[0].message)
@@ -843,16 +825,7 @@ export default {
 			this.loading = true
 			await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${nodeId}`))
 				.then(({ data }) => {
-					showSuccess(t('libresign', 'This document is valid'))
-					this.$set(this, 'document', data.ocs.data)
-					this.document.signers.forEach(signer => {
-						this.$set(signer, 'opened', false)
-					})
-					this.hasInfo = true
-					if (this.isAfterSigned) {
-						const jsConfetti = new JSConfetti()
-						jsConfetti.addConfetti()
-					}
+					this.handleValidationSuccess(data.ocs.data)
 				})
 				.catch(({ response }) => {
 					if (response?.data?.ocs?.data?.errors?.length > 0) {
@@ -1004,6 +977,18 @@ export default {
 		},
 		toggleState(stateObject, index) {
 			this.$set(stateObject, index, !stateObject[index])
+		},
+		handleValidationSuccess(data) {
+			showSuccess(t('libresign', 'This document is valid'))
+			this.$set(this, 'document', data)
+			this.document.signers?.forEach(signer => {
+				this.$set(signer, 'opened', false)
+			})
+			this.hasInfo = true
+			if (this.isAfterSigned) {
+				const jsConfetti = new JSConfetti()
+				jsConfetti.addConfetti()
+			}
 		},
 	},
 }
