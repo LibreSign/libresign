@@ -889,8 +889,8 @@ export default {
 			const urlParams = new URLSearchParams(window.location.search)
 			if (urlParams.has('path')) {
 				try {
-					const redirectPath = window.atob(urlParams.get('path')).toString()
-					if (redirectPath.startsWith('/apps')) {
+					const redirectPath = window.atob(urlParams.get('path'))
+					if (redirectPath && redirectPath.startsWith('/apps')) {
 						window.location = generateUrl(redirectPath)
 						return
 					}
