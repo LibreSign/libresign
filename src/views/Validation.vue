@@ -1040,7 +1040,7 @@ export default {
 
 	@media screen and (max-width: 1400px) {
 		flex-direction: column;
-		align-items: center;
+		justify-content: flex-start;
 	}
 
 	.logo {
