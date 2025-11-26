@@ -320,13 +320,13 @@
 							<NcListItem v-if="signer.opened && signer.extensions"
 								class="extra"
 								compact
-								:name="t('libresign', 'Certificate Extensions')"
+								:name="t('libresign', 'Certificate extensions')"
 								:aria-expanded="extensionsOpenState[signerIndex] ? 'true' : 'false'"
-								:aria-label="extensionsOpenState[signerIndex] ? t('libresign', 'Certificate Extensions, expanded. Click to collapse') : t('libresign', 'Certificate Extensions, collapsed. Click to expand')"
+								:aria-label="extensionsOpenState[signerIndex] ? t('libresign', 'Certificate extensions, expanded. Click to collapse') : t('libresign', 'Certificate extensions, collapsed. Click to expand')"
 								role="button"
 								@click="toggleState(extensionsOpenState, signerIndex)">
 								<template #name>
-									<strong>{{ t('libresign', 'Certificate Extensions') }}</strong>
+									<strong>{{ t('libresign', 'Certificate extensions') }}</strong>
 								</template>
 								<template #extra-actions>
 									<NcButton variant="tertiary"
@@ -345,7 +345,7 @@
 							</NcListItem>
 							<div v-if="signer.opened && signer.extensions && extensionsOpenState[signerIndex]"
 								role="region"
-								:aria-label="t('libresign', 'Certificate Extensions details')">
+								:aria-label="t('libresign', 'Certificate extensions details')">
 								<NcListItem v-for="(value, key) in signer.extensions"
 									:key="key"
 									class="extra-chain"
