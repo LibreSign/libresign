@@ -140,11 +140,13 @@
 										:display-name="getName(signer)" />
 								</template>
 								<template #subname>
-									<strong>{{ t('libresign', 'Date signed:') }}</strong>
-									<span v-if="signer.signed" class="data-signed">
-										{{ dateFromSqlAnsi(signer.signed) }}
+									<span class="date-signed-desktop">
+										<strong>{{ t('libresign', 'Date signed:') }}</strong>
+										<span v-if="signer.signed" class="data-signed">
+											{{ dateFromSqlAnsi(signer.signed) }}
+										</span>
+										<span v-else>{{ t('libresign', 'No date') }}</span>
 									</span>
-									<span v-else>{{ t('libresign', 'No date') }}</span>
 								</template>
 								<template #extra-actions>
 									<NcButton variant="tertiary"
@@ -174,6 +176,18 @@
 								<template #name>
 									<strong>{{ t('libresign', 'Requested on:') }}</strong>
 									{{ dateFromSqlAnsi(signer.request_sign_date) }}
+								</template>
+							</NcListItem>
+							<NcListItem v-if="signer.opened"
+								class="extra"
+								compact
+								:name="t('libresign', 'Date signed:')">
+								<template #name>
+									<strong>{{ t('libresign', 'Date signed:') }}</strong>
+									<span v-if="signer.signed">
+										{{ dateFromSqlAnsi(signer.signed) }}
+									</span>
+									<span v-else>{{ t('libresign', 'No date') }}</span>
 								</template>
 							</NcListItem>
 							<NcListItem v-if="signer.opened"
@@ -1157,6 +1171,9 @@ export default {
 				box-shadow: none;
 
 				.signers {
+					.date-signed-desktop {
+						display: none;
+					}
 					.extra {
 						margin-inline-start: 16px !important;
 						padding-inline-end: 16px !important;
