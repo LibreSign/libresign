@@ -478,10 +478,10 @@
 											<br>
 											<small>
 												<strong>{{ t('libresign', 'Valid from:') }}</strong>
-												{{ cert.validFrom_time_t ? new Date(cert.validFrom_time_t * 1000).toLocaleString() : t('libresign', 'Unknown') }}
+												{{ formatTimestamp(cert.validFrom_time_t) || t('libresign', 'Unknown') }}
 												<br>
 												<strong>{{ t('libresign', 'Valid to:') }}</strong>
-												{{ cert.validTo_time_t ? new Date(cert.validTo_time_t * 1000).toLocaleString() : t('libresign', 'Unknown') }}
+												{{ formatTimestamp(cert.validTo_time_t) || t('libresign', 'Unknown') }}
 											</small>
 										</template>
 									</NcListItem>
@@ -577,10 +577,10 @@
 											<div v-if="cert.validFrom_time_t || cert.validTo_time_t">
 												<small>
 													<strong v-if="cert.validFrom_time_t">{{ t('libresign', 'Valid from:') }}</strong>
-													{{ cert.validFrom_time_t ? new Date(cert.validFrom_time_t * 1000).toLocaleString() : '' }}
+													{{ formatTimestamp(cert.validFrom_time_t) }}
 													<br v-if="cert.validFrom_time_t && cert.validTo_time_t">
 													<strong v-if="cert.validTo_time_t">{{ t('libresign', 'Valid to:') }}</strong>
-													{{ cert.validTo_time_t ? new Date(cert.validTo_time_t * 1000).toLocaleString() : '' }}
+													{{ formatTimestamp(cert.validTo_time_t) }}
 												</small>
 											</div>
 										</div>
@@ -996,6 +996,9 @@ export default {
 				return true
 			}
 			return false
+		},
+		formatTimestamp(timestamp) {
+			return timestamp ? new Date(timestamp * 1000).toLocaleString() : ''
 		},
 	},
 }
