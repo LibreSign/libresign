@@ -5,7 +5,7 @@
 <template>
 	<div class="container">
 		<div class="logo">
-			<img :src="logo" draggable="false">
+			<img :src="logo" :alt="t('libresign', 'LibreSign logo')" draggable="false">
 		</div>
 		<div id="dataUUID">
 			<div v-show="!hasInfo" class="infor-container">
