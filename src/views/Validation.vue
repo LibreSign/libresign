@@ -61,6 +61,9 @@
 						<NcIconSvgWrapper :path="mdiInformationSlabCircle" :size="30" />
 						<h1>{{ t('libresign', 'Document information') }}</h1>
 					</div>
+					<NcNoteCard v-if="validationMessage && validationMessage.length > 0" :type="validationMessageType">
+						{{ validationMessage }}
+					</NcNoteCard>
 					<NcNoteCard v-if="isAfterSigned" type="success">
 						{{ t('libresign', 'Congratulations you have digitally signed a document using LibreSign') }}
 					</NcNoteCard>
@@ -621,7 +624,6 @@ import {
 import JSConfetti from 'js-confetti'
 
 import axios from '@nextcloud/axios'
-import { showError, showSuccess } from '@nextcloud/dialogs'
 import { formatFileSize } from '@nextcloud/files'
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
@@ -695,6 +697,8 @@ export default {
 			tsaOpenState: {},
 			chainOpenState: {},
 			notificationsOpenState: {},
+			validationMessage: null,
+			validationMessageType: 'success',
 		}
 	},
 	computed: {
@@ -771,10 +775,11 @@ export default {
 					this.handleValidationSuccess(data.ocs.data)
 				})
 				.catch(({ response }) => {
+					this.validationMessageType = 'error'
 					if (response?.data?.ocs?.data?.errors?.length > 0) {
-						showError(response.data.ocs.data.errors[0].message)
+						this.validationMessage = response.data.ocs.data.errors[0].message
 					} else {
-						showError(t('libresign', 'Failed to validate document'))
+						this.validationMessage = t('libresign', 'Failed to validate document')
 					}
 				})
 		},
@@ -804,8 +809,10 @@ export default {
 			this.$set(signer, 'opened', !signer.opened)
 		},
 		validate(id) {
+			this.validationMessage = null
 			if (id === this.document?.uuid) {
-				showSuccess(t('libresign', 'This document is valid'))
+				this.validationMessageType = 'success'
+				this.validationMessage = t('libresign', 'This document is valid')
 				this.hasInfo = true
 			} else if (id.length === 36) {
 				this.validateByUUID(id)
@@ -822,7 +829,8 @@ export default {
 				})
 				.catch(({ response }) => {
 					if (response?.data?.ocs?.data?.errors?.length > 0) {
-						showError(response.data.ocs.data.errors[0].message)
+						this.validationMessageType = 'error'
+						this.validationMessage = response.data.ocs.data.errors[0].message
 					}
 				})
 			this.loading = false
@@ -835,7 +843,8 @@ export default {
 				})
 				.catch(({ response }) => {
 					if (response?.data?.ocs?.data?.errors?.length > 0) {
-						showError(response.data.ocs.data.errors[0].message)
+						this.validationMessageType = 'error'
+						this.validationMessage = response.data.ocs.data.errors[0].message
 					}
 				})
 			this.loading = false
@@ -985,7 +994,8 @@ export default {
 			this.$set(stateObject, index, !stateObject[index])
 		},
 		handleValidationSuccess(data) {
-			showSuccess(t('libresign', 'This document is valid'))
+			this.validationMessageType = 'success'
+			this.validationMessage = t('libresign', 'This document is valid')
 			this.$set(this, 'document', data)
 			this.document.signers?.forEach(signer => {
 				this.$set(signer, 'opened', false)
