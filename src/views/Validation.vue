@@ -898,8 +898,10 @@ export default {
 					logger.error('Failed going back', { error })
 				}
 			}
-			this.hasInfo = !this.hasInfo
-			this.uuidToValidate = this.$route.params.uuid
+			this.hasInfo = false
+			this.uuidToValidate = this.$route.params?.uuid ?? ''
+			this.validationErrorMessage = null
+			this.documentValidMessage = null
 		},
 		getValidityStatus(signer) {
 			if (!signer.valid_to) {
