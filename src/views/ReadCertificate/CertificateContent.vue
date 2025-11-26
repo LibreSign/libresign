@@ -84,7 +84,7 @@
 		</NcSettingsSection>
 
 		<NcSettingsSection v-if="index === '0'"
-			:name="t('libresign', 'Technical Details')">
+			:name="t('libresign', 'Technical details')">
 			<div class="certificate-fields">
 				<div class="certificate-field">
 					<span class="field-label">Name</span>
