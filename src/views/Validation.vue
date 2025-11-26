@@ -1031,15 +1031,15 @@ export default {
 <style lang="scss" scoped>
 .container {
 	display: flex;
-	align-items: center;
+	flex-direction: row;
+	align-items: stretch;
 	justify-content: center;
-	overflow-y: auto;
 	width: 100%;
-	min-height: 100%;
-	padding-top: 20px;
+	min-height: 100vh;
 
 	@media screen and (max-width: 1400px) {
 		flex-direction: column;
+		align-items: center;
 	}
 
 	.logo {
@@ -1047,11 +1047,16 @@ export default {
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		position: sticky;
+		top: 0;
+		height: 100vh;
 		img {
 			width: 50%;
 			max-width: 422px;
 		}
 		@media screen and (max-width: 1400px) {
+			position: static;
+			height: auto;
 			padding: 20px 0;
 			img {
 				width: 60%;
