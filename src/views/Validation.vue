@@ -218,30 +218,6 @@
 								{{ signer.signatureTypeSN }}
 							</template>
 						</NcListItem>
-						<NcListItem v-if="signer.opened && signer.chain && signer.chain[0]"
-							class="extra"
-							compact
-							:name="t('libresign', 'Signer certificate:')">
-							<template #name>
-								<div style="display: flex; flex-direction: column; gap: 8px;">
-									<div>
-										<strong>{{ t('libresign', 'Subject:') }}</strong>
-										{{ signer.chain[0].subject?.CN || signer.chain[0].name || signer.name }}
-									</div>
-									<div v-if="signer.chain[0].issuer?.CN" style="font-size: 0.9em; opacity: 0.8;">
-										<strong>{{ t('libresign', 'Issued by:') }}</strong>
-										{{ signer.chain[0].issuer.CN }}
-									</div>
-									<div v-if="signer.chain[0].serialNumber">
-										<strong>{{ t('libresign', 'Serial Number:') }}</strong>
-										{{ signer.chain[0].serialNumber }}
-										<span v-if="signer.chain[0].serialNumberHex" style="opacity: 0.7; margin-left: 8px;">
-											(hex: {{ signer.chain[0].serialNumberHex }})
-										</span>
-									</div>
-								</div>
-							</template>
-						</NcListItem>
 						<NcListItem v-if="signer.opened && signer.hash"
 							class="extra"
 							compact
@@ -316,9 +292,111 @@
 											:size="20" />
 									</template>
 								</NcButton>
+						</template>
+					</NcListItem>
+					<div v-if="signer.opened && signer.timestamp && signer.timestamp.displayName && tsaOpenState[signerIndex]"
+						role="region"
+						:aria-label="t('libresign', 'Timestamp Authority details')">
+						<NcListItem class="extra-chain"
+							compact
+							:name="t('libresign', 'Time:')">
+							<template #name>
+								<strong>{{ t('libresign', 'Time:') }}</strong>
+								{{ dateFromSqlAnsi(signer.timestamp.genTime) }}
 							</template>
 						</NcListItem>
-						<NcListItem v-if="signer.opened && signer.field"
+						<NcListItem v-if="signer.timestamp.policy"
+							class="extra-chain"
+							compact
+							:name="t('libresign', 'TSA Policy:')">
+							<template #name>
+								<strong>{{ t('libresign', 'TSA Policy:') }}</strong>
+								<span v-if="signer.timestamp.policyName">
+									{{ signer.timestamp.policyName }} ({{ signer.timestamp.policy }})
+								</span>
+								<span v-else>
+									{{ signer.timestamp.policy }}
+								</span>
+							</template>
+						</NcListItem>
+						<NcListItem v-if="signer.timestamp.serialNumber"
+							class="extra-chain"
+							compact
+							:name="t('libresign', 'TSA Serial:')">
+							<template #name>
+								<strong>{{ t('libresign', 'TSA Serial:') }}</strong>
+								{{ signer.timestamp.serialNumber }}
+							</template>
+						</NcListItem>
+						<NcListItem v-if="signer.timestamp.hashAlgorithm"
+							class="extra-chain"
+							compact
+							:name="t('libresign', 'TSA Hash Algorithm:')">
+							<template #name>
+								<strong>{{ t('libresign', 'TSA Hash Algorithm:') }}</strong>
+								<span>{{ signer.timestamp.hashAlgorithm || signer.timestamp.hashAlgorithmOID }}</span>
+								<span v-if="signer.timestamp.hashAlgorithmOID && signer.timestamp.hashAlgorithm && signer.timestamp.hashAlgorithm !== signer.timestamp.hashAlgorithmOID">
+									({{ signer.timestamp.hashAlgorithmOID }})
+								</span>
+							</template>
+						</NcListItem>
+						<NcListItem v-if="signer.timestamp.accuracy && (signer.timestamp.accuracy.seconds || signer.timestamp.accuracy.millis || signer.timestamp.accuracy.micros)"
+							class="extra-chain"
+							compact
+							:name="t('libresign', 'TSA Accuracy:')">
+							<template #name>
+								<strong>{{ t('libresign', 'TSA Accuracy:') }}</strong>
+								<span v-if="signer.timestamp.accuracy.seconds">{{ signer.timestamp.accuracy.seconds }}s</span>
+								<span v-if="signer.timestamp.accuracy.millis"> {{ signer.timestamp.accuracy.millis }}ms</span>
+								<span v-if="signer.timestamp.accuracy.micros"> {{ signer.timestamp.accuracy.micros }}μs</span>
+							</template>
+						</NcListItem>
+						<NcListItem v-if="signer.timestamp.ordering !== undefined"
+							class="extra-chain"
+							compact
+							:name="t('libresign', 'TSA Ordering:')">
+							<template #name>
+								<strong>{{ t('libresign', 'TSA Ordering:') }}</strong>
+								{{ signer.timestamp.ordering ? t('libresign', 'Yes') : t('libresign', 'No') }}
+							</template>
+						</NcListItem>
+						<NcListItem v-if="signer.timestamp.nonce"
+							class="extra-chain"
+							compact
+							:name="t('libresign', 'TSA Nonce:')">
+							<template #name>
+								<strong>{{ t('libresign', 'TSA Nonce:') }}</strong>
+								{{ signer.timestamp.nonce }}
+							</template>
+						</NcListItem>
+						<div v-if="signer.timestamp.chain && signer.timestamp.chain.length > 0">
+							<NcListItem class="extra-chain"
+								compact
+								:name="t('libresign', 'TSA Certificate Chain:')">
+								<template #name>
+									<strong>{{ t('libresign', 'TSA Certificate Chain:') }}</strong>
+								</template>
+							</NcListItem>
+							<NcListItem v-for="(cert, certIndex) in signer.timestamp.chain"
+								:key="`tsa-cert-${certIndex}`"
+								class="extra-chain"
+								compact>
+								<template #name>
+									<strong>{{ t('libresign', 'Subject:') }}</strong>
+									{{ cert.name || cert.subject?.CN || t('libresign', 'Unknown') }}
+									<br>
+									<small>
+										<strong>{{ t('libresign', 'Valid from:') }}</strong>
+										{{ cert.validFrom_time_t ? new Date(cert.validFrom_time_t * 1000).toLocaleString() : t('libresign', 'Unknown') }}
+										<br>
+										<strong>{{ t('libresign', 'Valid to:') }}</strong>
+										{{ cert.validTo_time_t ? new Date(cert.validTo_time_t * 1000).toLocaleString() : t('libresign', 'Unknown') }}
+									</small>
+								</template>
+							</NcListItem>
+						</div>
+					</div>
+					<NcListItem v-if="signer.opened && signer.field"
 							class="extra"
 							compact
 							:name="t('libresign', 'Field:')">
@@ -361,148 +439,64 @@
 								</ul>
 							</template>
 						</NcListItem>
-							<div v-if="signer.opened && signer.timestamp && signer.timestamp.displayName && tsaOpenState[signerIndex]"
-								role="region"
-								:aria-label="t('libresign', 'Timestamp Authority details')">
-								<NcListItem class="extra-chain"
-									compact
-									:name="t('libresign', 'Time:')">
-									<template #name>
-										<strong>{{ t('libresign', 'Time:') }}</strong>
-										{{ dateFromSqlAnsi(signer.timestamp.genTime) }}
-									</template>
-								</NcListItem>
-								<NcListItem v-if="signer.timestamp.policy"
-									class="extra-chain"
-									compact
-									:name="t('libresign', 'TSA Policy:')">
-									<template #name>
-										<strong>{{ t('libresign', 'TSA Policy:') }}</strong>
-										<span v-if="signer.timestamp.policyName">
-											{{ signer.timestamp.policyName }} ({{ signer.timestamp.policy }})
-										</span>
-										<span v-else>
-											{{ signer.timestamp.policy }}
-										</span>
-									</template>
-								</NcListItem>
-								<NcListItem v-if="signer.timestamp.serialNumber"
-									class="extra-chain"
-									compact
-									:name="t('libresign', 'TSA Serial:')">
-									<template #name>
-										<strong>{{ t('libresign', 'TSA Serial:') }}</strong>
-										{{ signer.timestamp.serialNumber }}
-									</template>
-								</NcListItem>
-								<NcListItem v-if="signer.timestamp.hashAlgorithm"
-									class="extra-chain"
-									compact
-									:name="t('libresign', 'TSA Hash Algorithm:')">
-									<template #name>
-										<strong>{{ t('libresign', 'TSA Hash Algorithm:') }}</strong>
-										<span>{{ signer.timestamp.hashAlgorithm || signer.timestamp.hashAlgorithmOID }}</span>
-										<span v-if="signer.timestamp.hashAlgorithmOID && signer.timestamp.hashAlgorithm && signer.timestamp.hashAlgorithm !== signer.timestamp.hashAlgorithmOID">
-											({{ signer.timestamp.hashAlgorithmOID }})
-										</span>
-									</template>
-								</NcListItem>
-								<NcListItem v-if="signer.timestamp.accuracy && (signer.timestamp.accuracy.seconds || signer.timestamp.accuracy.millis || signer.timestamp.accuracy.micros)"
-									class="extra-chain"
-									compact
-									:name="t('libresign', 'TSA Accuracy:')">
-									<template #name>
-										<strong>{{ t('libresign', 'TSA Accuracy:') }}</strong>
-										<span v-if="signer.timestamp.accuracy.seconds">{{ signer.timestamp.accuracy.seconds }}s</span>
-										<span v-if="signer.timestamp.accuracy.millis"> {{ signer.timestamp.accuracy.millis }}ms</span>
-										<span v-if="signer.timestamp.accuracy.micros"> {{ signer.timestamp.accuracy.micros }}μs</span>
-									</template>
-								</NcListItem>
-								<NcListItem v-if="signer.timestamp.ordering !== undefined"
-									class="extra-chain"
-									compact
-									:name="t('libresign', 'TSA Ordering:')">
-									<template #name>
-										<strong>{{ t('libresign', 'TSA Ordering:') }}</strong>
-										{{ signer.timestamp.ordering ? t('libresign', 'Yes') : t('libresign', 'No') }}
-									</template>
-								</NcListItem>
-								<NcListItem v-if="signer.timestamp.nonce"
-									class="extra-chain"
-									compact
-									:name="t('libresign', 'TSA Nonce:')">
-									<template #name>
-										<strong>{{ t('libresign', 'TSA Nonce:') }}</strong>
-										{{ signer.timestamp.nonce }}
-									</template>
-								</NcListItem>
-								<div v-if="signer.timestamp.chain && signer.timestamp.chain.length > 0">
-									<NcListItem class="extra-chain"
-										compact
-										:name="t('libresign', 'TSA Certificate Chain:')">
-										<template #name>
-											<strong>{{ t('libresign', 'TSA Certificate Chain:') }}</strong>
-										</template>
-									</NcListItem>
-									<NcListItem v-for="(cert, certIndex) in signer.timestamp.chain"
-										:key="`tsa-cert-${certIndex}`"
-										class="extra-chain"
-										compact>
-										<template #name>
-											<strong>{{ t('libresign', 'Subject:') }}</strong>
-											{{ cert.name || cert.subject?.CN || t('libresign', 'Unknown') }}
-											<br>
-											<small>
-												<strong>{{ t('libresign', 'Valid from:') }}</strong>
-												{{ cert.validFrom_time_t ? new Date(cert.validFrom_time_t * 1000).toLocaleString() : t('libresign', 'Unknown') }}
-												<br>
-												<strong>{{ t('libresign', 'Valid to:') }}</strong>
-												{{ cert.validTo_time_t ? new Date(cert.validTo_time_t * 1000).toLocaleString() : t('libresign', 'Unknown') }}
-											</small>
-										</template>
-									</NcListItem>
-								</div>
-							</div>
-							<NcListItem v-if="signer.opened && signer.chain && signer.chain[0]"
+						<NcListItem v-if="signer.opened && signer.chain && signer.chain.length > 0"
 								class="extra"
 								compact
-								:name="t('libresign', 'Signer certificate:')">
+								:name="t('libresign', 'Certificate chain')"
+								:aria-expanded="chainOpenState[signerIndex] ? 'true' : 'false'"
+								role="button"
+								@click="$set(chainOpenState, signerIndex, !chainOpenState[signerIndex])">
 								<template #name>
-									<div style="display: flex; flex-direction: column; gap: 8px;">
-										<div>
-											<strong>{{ t('libresign', 'Subject:') }}</strong>
-											{{ signer.chain[0].subject?.CN || signer.chain[0].name || signer.name }}
-										</div>
-										<div v-if="signer.chain[0].issuer?.CN" style="font-size: 0.9em; opacity: 0.8;">
-											<strong>{{ t('libresign', 'Issued by:') }}</strong>
-											{{ signer.chain[0].issuer.CN }}
-										</div>
-										<div v-if="signer.chain[0].serialNumber">
-											<strong>{{ t('libresign', 'Serial Number:') }}</strong>
-											{{ signer.chain[0].serialNumber }}
-											<span v-if="signer.chain[0].serialNumberHex" style="opacity: 0.7; margin-left: 8px;">
-												(hex: {{ signer.chain[0].serialNumberHex }})
-											</span>
-										</div>
-									</div>
+									<strong>{{ t('libresign', 'Certificate chain') }}</strong>
+								</template>
+								<template #extra-actions>
+									<NcButton variant="tertiary"
+										type="tertiary"
+										:aria-label="chainOpenState[signerIndex] ? t('libresign', 'Collapse certificate chain') : t('libresign', 'Expand certificate chain')">
+										<template #icon>
+											<NcIconSvgWrapper v-if="chainOpenState[signerIndex]"
+												:path="mdiUnfoldLessHorizontal" />
+											<NcIconSvgWrapper v-else
+												:path="mdiUnfoldMoreHorizontal" />
+										</template>
+									</NcButton>
 								</template>
 							</NcListItem>
-							<div v-if="signer.opened && signer.chain && signer.chain.length > 1">
-								<NcListItem class="extra"
-									compact
-									:name="t('libresign', 'Certificate chain:')">
-									<template #name>
-										<strong>{{ t('libresign', 'Certificate chain:') }}</strong>
-									</template>
-								</NcListItem>
-								<NcListItem v-for="(issuer, issuerIndex) in signer.chain.filter(i => i.serialNumber !== signer.serialNumber)"
-									:key="issuerIndex"
+							<div v-if="signer.opened && signer.chain && chainOpenState[signerIndex]"
+								role="region"
+								:aria-label="t('libresign', 'Certificate chain details')">
+								<NcListItem v-for="(cert, certIndex) in signer.chain"
+									:key="certIndex"
 									class="extra-chain"
 									compact
-									:name="t('libresign', 'Issuer:')">
+									:name="certIndex === 0 ? t('libresign', 'Signer:') : t('libresign', 'Issuer:')">
 									<template #name>
-										<strong>{{ t('libresign', 'Issuer:') }}</strong>
-										{{ issuer.displayName }}
+										<div style="display: flex; flex-direction: column; gap: 8px;">
+											<div>
+												<strong>{{ certIndex === 0 ? t('libresign', 'Signer:') : t('libresign', 'Issuer:') }}</strong>
+												{{ cert.subject?.CN || cert.name || cert.displayName }}
+											</div>
+											<div v-if="cert.issuer?.CN" style="font-size: 0.9em; opacity: 0.8;">
+												<strong>{{ t('libresign', 'Issued by:') }}</strong>
+												{{ cert.issuer.CN }}
+											</div>
+											<div v-if="cert.serialNumber">
+												<strong>{{ t('libresign', 'Serial Number:') }}</strong>
+												{{ cert.serialNumber }}
+												<span v-if="cert.serialNumberHex" style="opacity: 0.7; margin-left: 8px;">
+													(hex: {{ cert.serialNumberHex }})
+												</span>
+											</div>
+											<div v-if="cert.validFrom_time_t || cert.validTo_time_t">
+												<small>
+													<strong v-if="cert.validFrom_time_t">{{ t('libresign', 'Valid from:') }}</strong>
+													{{ cert.validFrom_time_t ? new Date(cert.validFrom_time_t * 1000).toLocaleString() : '' }}
+													<br v-if="cert.validFrom_time_t && cert.validTo_time_t">
+													<strong v-if="cert.validTo_time_t">{{ t('libresign', 'Valid to:') }}</strong>
+													{{ cert.validTo_time_t ? new Date(cert.validTo_time_t * 1000).toLocaleString() : '' }}
+												</small>
+											</div>
+										</div>
 									</template>
 								</NcListItem>
 							</div>
@@ -616,6 +610,7 @@ export default {
 			EXPIRATION_WARNING_DAYS: 30,
 			extensionsOpenState: {},
 			tsaOpenState: {},
+			chainOpenState: {},
 		}
 	},
 	computed: {
