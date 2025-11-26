@@ -196,6 +196,7 @@ OC.L10N.register(
     "Ok" : "Ok",
     "Clear filter" : "Borrar filtro",
     "Today" : "Hoy",
+    "Last 7 days" : "Últimos 7 días",
     "Modified" : "Modificado",
     "Active filters" : "Filtros activos",
     "Remove filter" : "Eliminar filtro",
