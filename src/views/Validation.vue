@@ -323,7 +323,6 @@
 								@click="$set(tsaOpenState, signerIndex, !tsaOpenState[signerIndex])">
 								<template #name>
 									<strong>{{ t('libresign', 'Timestamp Authority') }}</strong>
-									{{ signer.timestamp.displayName }}
 								</template>
 								<template #extra-actions>
 									<NcButton variant="tertiary"
@@ -343,6 +342,15 @@
 							<div v-if="signer.opened && signer.timestamp && signer.timestamp.displayName && tsaOpenState[signerIndex]"
 								role="region"
 								:aria-label="t('libresign', 'Timestamp Authority details')">
+								<NcListItem v-if="signer.timestamp.displayName"
+									class="extra-chain"
+									compact
+									:name="t('libresign', 'TSA:')">
+									<template #name>
+										<strong>{{ t('libresign', 'TSA:') }}</strong>
+										{{ signer.timestamp.displayName }}
+									</template>
+								</NcListItem>
 								<NcListItem class="extra-chain"
 									compact
 									:name="t('libresign', 'Time:')">
