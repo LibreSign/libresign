@@ -861,13 +861,7 @@ export default {
 			this.loading = false
 		},
 		getName(signer) {
-			if (signer.displayName) {
-				return signer.displayName
-			} else if (signer.email) {
-				return signer.email
-			}
-
-			return signer.signature_validation.label
+			return signer.displayName || signer.email || signer.signature_validation?.label || t('libresign', 'Unknown')
 		},
 		getIconValidityPath(signer) {
 			if (signer.signature_validation.id === 1) {
