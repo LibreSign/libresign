@@ -41,7 +41,7 @@
 						<NcTextField v-model="uuidToValidate"
 							:label="t('libresign', 'Enter the ID or UUID of the document to validate.')"
 							:helper-text="helperTextValidation"
-							:error="uuidToValidate.length > 0 && !canValidate" />
+							:error="uuidToValidate && uuidToValidate.length > 0 && !canValidate" />
 						<template #actions>
 							<NcButton variant="primary"
 								:disabled="loading || !canValidate"
@@ -706,11 +706,15 @@ export default {
 			return this.$route.params.isAfterSigned ?? false
 		},
 		canValidate() {
+			if (!this.uuidToValidate) {
+				return false
+			}
+			const isNumericId = /^\d+$/.test(this.uuidToValidate)
 			const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-			return this.uuidToValidate.length === 36 && uuidRegex.test(this.uuidToValidate)
+			return isNumericId || (this.uuidToValidate.length === 36 && uuidRegex.test(this.uuidToValidate))
 		},
 		helperTextValidation() {
-			if (this.uuidToValidate.length > 0 && !this.canValidate) {
+			if (this.uuidToValidate && this.uuidToValidate.length > 0 && !this.canValidate) {
 				return t('libresign', 'Invalid UUID')
 			}
 			return ''
