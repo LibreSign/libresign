@@ -1017,7 +1017,12 @@ export default {
 	justify-content: center;
 	overflow-y: auto;
 	width: 100%;
-	height: 100%;
+	min-height: 100%;
+	padding-top: 20px;
+
+	@media screen and (max-width: 1400px) {
+		flex-direction: column;
+	}
 
 	.logo {
 		width: 100%;
@@ -1028,19 +1033,22 @@ export default {
 			width: 50%;
 			max-width: 422px;
 		}
-		@media screen and (max-width: 900px) {
-			display: none;
-			width: 0%;
+		@media screen and (max-width: 1400px) {
+			width: 100%;
+			padding: 20px 0;
+			img {
+				width: 60%;
+				max-width: 300px;
+			}
 		}
 	}
 	#dataUUID {
 		width: 100%;
+		max-width: 1200px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		@media screen and (max-width: 900px){
-			width: 100%;
-		}
+		padding: 0 20px;
 		h1 {
 			font-size: 24px;
 			font-weight: bold;
@@ -1075,7 +1083,8 @@ export default {
 		}
 		.infor-container {
 			width: 100%;
-			margin: 20px;
+			max-width: 100%;
+			margin: 20px 0;
 			.section {
 				background-color: var(--color-main-background);
 				padding: 20px;
