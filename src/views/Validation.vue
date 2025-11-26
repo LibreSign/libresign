@@ -1102,7 +1102,6 @@ export default {
 		}
 		.infor-container {
 			width: 100%;
-			margin: 20px 0;
 			.section {
 				background-color: var(--color-main-background);
 				padding: 20px;
