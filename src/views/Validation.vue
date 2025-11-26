@@ -45,7 +45,7 @@
 						<template #actions>
 							<NcButton variant="primary"
 								:disabled="loading || !canValidate"
-								@click.prevent="clickedValidate = true;validate(uuidToValidate)">
+								@click.prevent="validateAndProceed">
 								<template #icon>
 									<NcLoadingIcon v-if="loading" :size="20" />
 								</template>
@@ -198,14 +198,14 @@
 								:aria-expanded="validationStatusOpenState[signerIndex] ? 'true' : 'false'"
 								:aria-label="validationStatusOpenState[signerIndex] ? t('libresign', 'Validation status, expanded. Click to collapse') : t('libresign', 'Validation status, collapsed. Click to expand')"
 								role="button"
-								@click="$set(validationStatusOpenState, signerIndex, !validationStatusOpenState[signerIndex])">
+								@click="toggleState(validationStatusOpenState, signerIndex)">
 								<template #name>
 									<strong>{{ t('libresign', 'Validation status') }}</strong>
 								</template>
 								<template #extra-actions>
 									<NcButton variant="tertiary"
 										:aria-label="validationStatusOpenState[signerIndex] ? t('libresign', 'Collapse validation status') : t('libresign', 'Expand validation status')"
-										@click.stop="$set(validationStatusOpenState, signerIndex, !validationStatusOpenState[signerIndex])">
+										@click.stop="toggleState(validationStatusOpenState, signerIndex)">
 										<template #icon>
 											<NcIconSvgWrapper v-if="validationStatusOpenState[signerIndex]"
 												:path="mdiUnfoldLessHorizontal"
@@ -317,14 +317,14 @@
 								:aria-expanded="extensionsOpenState[signerIndex] ? 'true' : 'false'"
 								:aria-label="extensionsOpenState[signerIndex] ? t('libresign', 'Certificate Extensions, expanded. Click to collapse') : t('libresign', 'Certificate Extensions, collapsed. Click to expand')"
 								role="button"
-								@click="$set(extensionsOpenState, signerIndex, !extensionsOpenState[signerIndex])">
+								@click="toggleState(extensionsOpenState, signerIndex)">
 								<template #name>
 									<strong>{{ t('libresign', 'Certificate Extensions') }}</strong>
 								</template>
 								<template #extra-actions>
 									<NcButton variant="tertiary"
 										:aria-label="extensionsOpenState[signerIndex] ? t('libresign', 'Collapse extensions') : t('libresign', 'Expand extensions')"
-										@click.stop="$set(extensionsOpenState, signerIndex, !extensionsOpenState[signerIndex])">
+										@click.stop="toggleState(extensionsOpenState, signerIndex)">
 										<template #icon>
 											<NcIconSvgWrapper v-if="extensionsOpenState[signerIndex]"
 												:path="mdiUnfoldLessHorizontal"
@@ -357,14 +357,14 @@
 								:aria-expanded="tsaOpenState[signerIndex] ? 'true' : 'false'"
 								:aria-label="tsaOpenState[signerIndex] ? t('libresign', 'Timestamp Authority, expanded. Click to collapse') : t('libresign', 'Timestamp Authority, collapsed. Click to expand')"
 								role="button"
-								@click="$set(tsaOpenState, signerIndex, !tsaOpenState[signerIndex])">
+								@click="toggleState(tsaOpenState, signerIndex)">
 								<template #name>
 									<strong>{{ t('libresign', 'Timestamp Authority') }}</strong>
 								</template>
 								<template #extra-actions>
 									<NcButton variant="tertiary"
 										:aria-label="tsaOpenState[signerIndex] ? t('libresign', 'Collapse timestamp details') : t('libresign', 'Expand timestamp details')"
-										@click.stop="$set(tsaOpenState, signerIndex, !tsaOpenState[signerIndex])">
+										@click.stop="toggleState(tsaOpenState, signerIndex)">
 										<template #icon>
 											<NcIconSvgWrapper v-if="tsaOpenState[signerIndex]"
 												:path="mdiUnfoldLessHorizontal"
@@ -494,14 +494,14 @@
 								:aria-expanded="notificationsOpenState[signerIndex] ? 'true' : 'false'"
 								:aria-label="notificationsOpenState[signerIndex] ? t('libresign', 'Notifications, expanded. Click to collapse') : t('libresign', 'Notifications, collapsed. Click to expand')"
 								role="button"
-								@click="$set(notificationsOpenState, signerIndex, !notificationsOpenState[signerIndex])">
+								@click="toggleState(notificationsOpenState, signerIndex)">
 								<template #name>
 									<strong>{{ t('libresign', 'Notifications') }}</strong>
 								</template>
 								<template #extra-actions>
 									<NcButton variant="tertiary"
 										:aria-label="notificationsOpenState[signerIndex] ? t('libresign', 'Collapse notifications') : t('libresign', 'Expand notifications')"
-										@click.stop="$set(notificationsOpenState, signerIndex, !notificationsOpenState[signerIndex])">
+										@click.stop="toggleState(notificationsOpenState, signerIndex)">
 										<template #icon>
 											<NcIconSvgWrapper v-if="notificationsOpenState[signerIndex]"
 												:path="mdiUnfoldLessHorizontal"
@@ -533,7 +533,7 @@
 								:name="t('libresign', 'Certificate chain')"
 								:aria-expanded="chainOpenState[signerIndex] ? 'true' : 'false'"
 								role="button"
-								@click="$set(chainOpenState, signerIndex, !chainOpenState[signerIndex])">
+								@click="toggleState(chainOpenState, signerIndex)">
 								<template #name>
 									<strong>{{ t('libresign', 'Certificate chain') }}</strong>
 								</template>
@@ -999,6 +999,13 @@ export default {
 		},
 		formatTimestamp(timestamp) {
 			return timestamp ? new Date(timestamp * 1000).toLocaleString() : ''
+		},
+		validateAndProceed() {
+			this.clickedValidate = true
+			this.validate(this.uuidToValidate)
+		},
+		toggleState(stateObject, index) {
+			this.$set(stateObject, index, !stateObject[index])
 		},
 	},
 }
