@@ -11,12 +11,15 @@
 			<div v-show="!hasInfo" class="infor-container">
 				<div class="section">
 					<h1>{{ t('libresign', 'Validate signature') }}</h1>
+					<NcNoteCard v-if="validationErrorMessage" type="error">
+						{{ validationErrorMessage }}
+					</NcNoteCard>
 					<NcActions :menu-name="t('libresign', 'Validate signature')"
 						:inline="3"
 						:force-name="true">
 						<NcActionButton :wide="true"
 							:disabled="loading"
-							@click="getUUID = true">
+							@click="openUuidDialog()">
 							{{ t('libresign', 'From UUID') }}
 							<template #icon>
 								<NcLoadingIcon v-if="loading" :size="20" />
@@ -41,7 +44,7 @@
 						<NcTextField v-model="uuidToValidate"
 							:label="t('libresign', 'Enter the ID or UUID of the document to validate.')"
 							:helper-text="helperTextValidation"
-							:error="uuidToValidate && uuidToValidate.length > 0 && !canValidate" />
+							:error="!!uuidToValidate && !canValidate" />
 						<template #actions>
 							<NcButton variant="primary"
 								:disabled="loading || !canValidate"
@@ -61,8 +64,8 @@
 						<NcIconSvgWrapper :path="mdiInformationSlabCircle" :size="30" />
 						<h1>{{ t('libresign', 'Document information') }}</h1>
 					</div>
-					<NcNoteCard v-if="validationMessage && validationMessage.length > 0" :type="validationMessageType">
-						{{ validationMessage }}
+					<NcNoteCard v-if="documentValidMessage" type="success">
+						{{ documentValidMessage }}
 					</NcNoteCard>
 					<NcNoteCard v-if="isAfterSigned" type="success">
 						{{ t('libresign', 'Congratulations you have digitally signed a document using LibreSign') }}
@@ -697,8 +700,8 @@ export default {
 			tsaOpenState: {},
 			chainOpenState: {},
 			notificationsOpenState: {},
-			validationMessage: null,
-			validationMessageType: 'success',
+			validationErrorMessage: null,
+			documentValidMessage: null,
 		}
 	},
 	computed: {
@@ -779,12 +782,10 @@ export default {
 					this.handleValidationSuccess(data.ocs.data)
 				})
 				.catch(({ response }) => {
-					this.validationMessageType = 'error'
-					if (response?.data?.ocs?.data?.errors?.length > 0) {
-						this.validationMessage = response.data.ocs.data.errors[0].message
-					} else {
-						this.validationMessage = t('libresign', 'Failed to validate document')
-					}
+					const errorMsg = response?.data?.ocs?.data?.errors?.length > 0
+						? response.data.ocs.data.errors[0].message
+						: t('libresign', 'Failed to validate document')
+					this.setValidationError(errorMsg)
 				})
 		},
 		async uploadFile() {
@@ -813,10 +814,10 @@ export default {
 			this.$set(signer, 'opened', !signer.opened)
 		},
 		validate(id) {
-			this.validationMessage = null
+			this.validationErrorMessage = null
+			this.documentValidMessage = null
 			if (id === this.document?.uuid) {
-				this.validationMessageType = 'success'
-				this.validationMessage = t('libresign', 'This document is valid')
+				this.documentValidMessage = t('libresign', 'This document is valid')
 				this.hasInfo = true
 			} else if (id.length === 36) {
 				this.validateByUUID(id)
@@ -832,9 +833,12 @@ export default {
 					this.handleValidationSuccess(data.ocs.data)
 				})
 				.catch(({ response }) => {
-					if (response?.data?.ocs?.data?.errors?.length > 0) {
-						this.validationMessageType = 'error'
-						this.validationMessage = response.data.ocs.data.errors[0].message
+					if (response?.status === 404) {
+						this.setValidationError(t('libresign', 'Document not found'))
+					} else if (response?.data?.ocs?.data?.errors?.length > 0) {
+						this.setValidationError(response.data.ocs.data.errors[0].message)
+					} else {
+						this.setValidationError(t('libresign', 'Failed to validate document'))
 					}
 				})
 			this.loading = false
@@ -846,9 +850,12 @@ export default {
 					this.handleValidationSuccess(data.ocs.data)
 				})
 				.catch(({ response }) => {
-					if (response?.data?.ocs?.data?.errors?.length > 0) {
-						this.validationMessageType = 'error'
-						this.validationMessage = response.data.ocs.data.errors[0].message
+					if (response?.status === 404) {
+						this.setValidationError(t('libresign', 'Document not found'))
+					} else if (response?.data?.ocs?.data?.errors?.length > 0) {
+						this.setValidationError(response.data.ocs.data.errors[0].message)
+					} else {
+						this.setValidationError(t('libresign', 'Failed to validate document'))
 					}
 				})
 			this.loading = false
@@ -997,9 +1004,20 @@ export default {
 		toggleState(stateObject, index) {
 			this.$set(stateObject, index, !stateObject[index])
 		},
+		setValidationError(message, timeout = 5000) {
+			this.validationErrorMessage = message
+			if (timeout > 0) {
+				setTimeout(() => {
+					this.validationErrorMessage = null
+				}, timeout)
+			}
+		},
+		openUuidDialog() {
+			this.validationErrorMessage = null
+			this.getUUID = true
+		},
 		handleValidationSuccess(data) {
-			this.validationMessageType = 'success'
-			this.validationMessage = t('libresign', 'This document is valid')
+			this.documentValidMessage = t('libresign', 'This document is valid')
 			this.$set(this, 'document', data)
 			this.document.signers?.forEach(signer => {
 				this.$set(signer, 'opened', false)
