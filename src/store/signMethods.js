@@ -15,6 +15,7 @@ export const useSignMethodsStore = defineStore('signMethods', {
 			createPassword: false,
 			signPassword: false,
 			createSignature: false,
+			password: false,
 			sms: false,
 			uploadCertificate: false,
 		},
