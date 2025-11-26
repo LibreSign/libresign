@@ -227,6 +227,33 @@
 								{{ signer.hash }}
 							</template>
 						</NcListItem>
+						<NcListItem v-if="signer.opened && signer.field"
+							class="extra"
+							compact
+							:name="t('libresign', 'Field:')">
+							<template #name>
+								<strong>{{ t('libresign', 'Field:') }}</strong>
+								{{ signer.field }}
+							</template>
+						</NcListItem>
+						<NcListItem v-if="signer.opened && signer.remote_address"
+							class="extra"
+							compact
+							:name="t('libresign', 'Remote address:')">
+							<template #name>
+								<strong>{{ t('libresign', 'Remote address:') }}</strong>
+								{{ signer.remote_address }}
+							</template>
+						</NcListItem>
+						<NcListItem v-if="signer.opened && signer.user_agent"
+							class="extra"
+							compact
+							:name="t('libresign', 'User agent:')">
+							<template #name>
+								<strong>{{ t('libresign', 'User agent:') }}</strong>
+								{{ signer.user_agent }}
+							</template>
+						</NcListItem>
 						<NcListItem v-if="signer.opened && signer.extensions"
 							class="extra"
 							compact
@@ -396,49 +423,46 @@
 							</NcListItem>
 						</div>
 					</div>
-					<NcListItem v-if="signer.opened && signer.field"
-							class="extra"
+					<NcListItem v-if="signer.opened && signer.notify"
+						class="extra"
+						compact
+						:name="t('libresign', 'Notifications')"
+						:aria-expanded="notificationsOpenState[signerIndex] ? 'true' : 'false'"
+						:aria-label="notificationsOpenState[signerIndex] ? t('libresign', 'Notifications, expanded. Click to collapse') : t('libresign', 'Notifications, collapsed. Click to expand')"
+						role="button"
+						@click="$set(notificationsOpenState, signerIndex, !notificationsOpenState[signerIndex])">
+						<template #name>
+							<strong>{{ t('libresign', 'Notifications') }}</strong>
+						</template>
+						<template #extra-actions>
+							<NcButton variant="tertiary"
+								:aria-label="notificationsOpenState[signerIndex] ? t('libresign', 'Collapse notifications') : t('libresign', 'Expand notifications')"
+								@click.stop="$set(notificationsOpenState, signerIndex, !notificationsOpenState[signerIndex])">
+								<template #icon>
+									<NcIconSvgWrapper v-if="notificationsOpenState[signerIndex]"
+										:path="mdiUnfoldLessHorizontal"
+										:size="20" />
+									<NcIconSvgWrapper v-else
+										:path="mdiUnfoldMoreHorizontal"
+										:size="20" />
+								</template>
+							</NcButton>
+						</template>
+					</NcListItem>
+					<div v-if="signer.opened && signer.notify && notificationsOpenState[signerIndex]"
+						role="region"
+						:aria-label="t('libresign', 'Notifications details')">
+						<NcListItem v-for="(notify, notifyIndex) in signer.notify"
+							:key="notifyIndex"
+							class="extra-chain"
 							compact
-							:name="t('libresign', 'Field:')">
+							:name="notify.method">
 							<template #name>
-								<strong>{{ t('libresign', 'Field:') }}</strong>
-								{{ signer.field }}
+								<strong>{{ notify.method }}:</strong>
+								{{ dateFromSqlAnsi(notify.date) }}
 							</template>
 						</NcListItem>
-						<NcListItem v-if="signer.opened && signer.remote_address"
-							class="extra"
-							compact
-							:name="t('libresign', 'Remote address:')">
-							<template #name>
-								<strong>{{ t('libresign', 'Remote address:') }}</strong>
-								{{ signer.remote_address }}
-							</template>
-						</NcListItem>
-						<NcListItem v-if="signer.opened && signer.user_agent"
-							class="extra"
-							compact
-							:name="t('libresign', 'User agent:')">
-							<template #name>
-								<strong>{{ t('libresign', 'User agent:') }}</strong>
-								{{ signer.user_agent }}
-							</template>
-						</NcListItem>
-						<NcListItem v-if="signer.opened && signer.notify"
-							class="extra"
-							compact
-							:name="t('libresign', 'Notifications:')">
-							<template #name>
-								<strong>{{ t('libresign', 'Notifications:') }}</strong>
-							</template>
-							<template #subname>
-								<ul>
-									<li v-for="(notify, notifyIndex) in signer.notify"
-										:key="notifyIndex">
-										<strong>{{ notify.method }}</strong>: {{ dateFromSqlAnsi(notify.date) }}
-									</li>
-								</ul>
-							</template>
-						</NcListItem>
+					</div>
 						<NcListItem v-if="signer.opened && signer.chain && signer.chain.length > 0"
 								class="extra"
 								compact
@@ -611,6 +635,7 @@ export default {
 			extensionsOpenState: {},
 			tsaOpenState: {},
 			chainOpenState: {},
+			notificationsOpenState: {},
 		}
 	},
 	computed: {
