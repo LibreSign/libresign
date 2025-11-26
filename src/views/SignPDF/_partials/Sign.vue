@@ -18,6 +18,17 @@
 				</template>
 				{{ t('libresign', 'Sign the document.') }}
 			</NcButton>
+			<div v-else-if="signMethodsStore.needCertificate()">
+				<p>
+					{{ t('libresign', 'You need to upload your certificate to sign the document.') }}
+				</p>
+				<NcButton :wide="true"
+					:disabled="loading"
+					variant="primary"
+					@click="signMethodsStore.showModal('uploadCertificate')">
+					{{ t('libresign', 'Upload certificate') }}
+				</NcButton>
+			</div>
 			<div v-else-if="signMethodsStore.needCreatePassword()">
 				<p>
 					{{ t('libresign', 'Please define your sign password') }}
@@ -258,6 +269,39 @@ export default {
 			this.showManagePassword = false
 			this.signMethodsStore.closeModal('password')
 		},
+		uploadCertificate() {
+			const input = document.createElement('input')
+			input.accept = '.pfx'
+			input.type = 'file'
+
+			input.onchange = async (ev) => {
+				const file = ev.target.files[0]
+
+				if (file) {
+					this.doUpload(file)
+				}
+
+				input.remove()
+			}
+
+			input.click()
+		},
+		async doUpload(file) {
+			const formData = new FormData()
+			formData.append('file', file)
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/pfx'), formData)
+				.then(({ data }) => {
+					showSuccess(data.ocs.data.message)
+					this.signMethodsStore.setHasSignatureFile(true)
+					this.errors = []
+					this.signMethodsStore.closeModal('uploadCertificate')
+				})
+				.catch(({ response }) => {
+					if (response?.data?.ocs?.data?.message) {
+						showError(response.data.ocs.data.message)
+					}
+				})
+		},
 		saveSignature() {
 			if (this.signatureElementsStore.success.length) {
 				showSuccess(this.signatureElementsStore.success)
@@ -338,6 +382,10 @@ export default {
 			}
 			if (this.signMethodsStore.needSmsCode()) {
 				this.signMethodsStore.showModal('sms')
+				return
+			}
+			if (this.signMethodsStore.needCertificate()) {
+				this.signMethodsStore.showModal('uploadCertificate')
 				return
 			}
 			if (this.signMethodsStore.needCreatePassword()) {
