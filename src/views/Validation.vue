@@ -672,7 +672,6 @@ export default {
 			mdiInformationSlabCircle,
 			mdiKey,
 			mdiShieldAlert,
-			mdiCheckCircle,
 			mdiShieldOff,
 			mdiSignatureFreehand,
 			mdiUnfoldLessHorizontal,
