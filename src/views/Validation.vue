@@ -127,7 +127,7 @@
 						<h1>{{ t('libresign', 'Signatories:') }}</h1>
 					</div>
 					<ul class="signers">
-						<span v-for="(signer, signerIndex) in document.signers"
+						<li v-for="(signer, signerIndex) in document.signers"
 							:key="signerIndex">
 							<NcListItem :name="getName(signer)"
 								:active="signer.opened"
@@ -588,7 +588,7 @@
 									</template>
 								</NcListItem>
 							</div>
-						</span>
+						</li>
 					</ul>
 				</div>
 				<NcButton v-if="clickedValidate"
