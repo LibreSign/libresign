@@ -7,7 +7,7 @@
 		<div class="logo">
 			<img :src="logo" :alt="t('libresign', 'LibreSign logo')" draggable="false">
 		</div>
-		<div id="dataUUID">
+		<div id="validation-content">
 			<div v-show="!hasInfo" class="infor-container">
 				<div class="section">
 					<h1>{{ t('libresign', 'Validate signature') }}</h1>
@@ -1065,7 +1065,7 @@ export default {
 			}
 		}
 	}
-	#dataUUID {
+	#validation-content {
 		width: 100%;
 		display: flex;
 		align-items: flex-start;
