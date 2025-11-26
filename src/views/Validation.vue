@@ -1034,8 +1034,9 @@ export default {
 	flex-direction: row;
 	align-items: stretch;
 	justify-content: center;
+	overflow-y: auto;
 	width: 100%;
-	min-height: 100vh;
+	height: 100%;
 
 	@media screen and (max-width: 1400px) {
 		flex-direction: column;
@@ -1068,7 +1069,7 @@ export default {
 		width: 100%;
 		max-width: 1200px;
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		justify-content: center;
 		padding: 20px;
 		@media screen and (max-width: 700px) {
@@ -1151,12 +1152,12 @@ export default {
 					color: var(--color-main-text);
 					display: flex;
 					flex-direction: column;
-					overflow: scroll;
+					overflow: auto;
 					.legal-information {
 						opacity: 0.8;
 						align-self: center;
 						font-size: 1rem;
-						overflow: scroll;
+						overflow: auto;
 					}
 
 					p {
