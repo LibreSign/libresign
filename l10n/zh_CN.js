@@ -218,6 +218,7 @@ OC.L10N.register(
     "Configuration check" : "配置检查",
     "Message" : "消息",
     "Resource" : "源",
+    "Tip" : "提示",
     "Dependencies" : "附属",
     "Legal information" : "法律信息",
     "This information will appear on the validation page" : "该信息将出现在验证页面上",
