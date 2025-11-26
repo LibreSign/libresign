@@ -121,6 +121,29 @@
 			type="signature"
 			@save="saveSignature"
 			@close="signMethodsStore.closeModal('createSignature')" />
+		<NcDialog v-if="signMethodsStore.modal.uploadCertificate"
+			:name="t('libresign', 'Upload certificate')"
+			@closing="signMethodsStore.closeModal('uploadCertificate')">
+			<NcNoteCard v-for="(error, index) in errors"
+				:key="index"
+				:heading="error.title || ''"
+				type="error">
+				<NcRichText :text="error.message"
+					:use-markdown="true" />
+			</NcNoteCard>
+			<p>
+				{{ t('libresign', 'Select your certificate file to upload.') }}
+			</p>
+			<template #actions>
+				<NcButton @click="signMethodsStore.closeModal('uploadCertificate')">
+					{{ t('libresign', 'Cancel') }}
+				</NcButton>
+				<NcButton variant="primary"
+					@click="uploadCertificate">
+					{{ t('libresign', 'Choose file') }}
+				</NcButton>
+			</template>
+		</NcDialog>
 		<CreatePassword @password:created="signMethodsStore.setHasSignatureFile" />
 		<SMSManager v-if="signMethodsStore.modal.sms"
 			:phone-number="user?.account?.phoneNumber"
@@ -367,7 +390,15 @@ export default {
 					}
 				})
 				.catch((err) => {
-					this.errors = err.response?.data?.ocs?.data?.errors
+					this.errors = err.response?.data?.ocs?.data?.errors ?? []
+					const action = err.response?.data?.ocs?.data?.action
+					if (action === 4000) {
+						if (this.signMethodsStore.certificateEngine === 'none') {
+							this.signMethodsStore.showModal('uploadCertificate')
+						} else {
+							this.signMethodsStore.showModal('createPassword')
+						}
+					}
 				})
 			this.loading = false
 		},
