@@ -1192,7 +1192,6 @@ export default {
 					}
 					.serial-hex {
 						opacity: 0.7;
-						margin-left: 8px;
 					}
 				}
 
