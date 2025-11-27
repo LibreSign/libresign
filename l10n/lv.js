@@ -90,6 +90,7 @@ OC.L10N.register(
     "Status:" : "Statuss:",
     "No date" : "No date",
     "Time:" : "Laiks:",
+    "Issued by:" : "Izsniedza:",
     "Open in LibreSign" : "Atvērt LibreSign",
     "Requested by {name}, at {date}" : "Pieprasīja {name} {date}"
 },

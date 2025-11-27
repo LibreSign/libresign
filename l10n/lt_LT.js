@@ -188,10 +188,9 @@ OC.L10N.register(
     "Name:" : "Pavadinimas:",
     "Status:" : "Būsena:",
     "No date" : "No date",
-    "Remote address:" : "Nuotolinis adresas:",
-    "Certificate valid from:" : "Liudijimas galioja nuo:",
-    "Certificate valid to:" : "Liudijimas galioja iki:",
     "Hash algorithm:" : "Maišos algoritmas:",
-    "Time:" : "Laikas:"
+    "Remote address:" : "Nuotolinis adresas:",
+    "Time:" : "Laikas:",
+    "Issued by:" : "Išdavė:"
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");

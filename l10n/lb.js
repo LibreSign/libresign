@@ -38,6 +38,7 @@ OC.L10N.register(
     "No" : "No",
     "Username" : "Benotzernumm",
     "Optional" : "Fräiwëlleg",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Issued by:" : "Ausgestallt vun:"
 },
 "nplurals=2; plural=(n != 1);");

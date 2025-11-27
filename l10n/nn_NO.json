@@ -50,6 +50,8 @@
     "No" : "Nei",
     "Username" : "Brukarnamn",
     "Optional" : "Valfritt",
-    "No date" : "No date"
+    "Close" : "Lat att",
+    "No date" : "No date",
+    "Notifications" : "Varsel"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

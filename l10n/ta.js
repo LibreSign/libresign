@@ -33,6 +33,8 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "பயனாளர் பெயர்",
-    "No date" : "No date"
+    "Close" : "மூடுக",
+    "No date" : "No date",
+    "Issued by:" : "ஆல் வழங்கப்பட்டது:"
 },
 "nplurals=2; plural=(n != 1);");

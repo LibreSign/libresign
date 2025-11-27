@@ -83,6 +83,7 @@ OC.L10N.register(
     "Optional" : "Malnepra",
     "Forgot password?" : "Ĉu vi forgesis vian pasvorton?",
     "No date" : "No date",
-    "Time:" : "Tempo:"
+    "Time:" : "Tempo:",
+    "Issued by:" : "Eldonita de:"
 },
 "nplurals=2; plural=(n != 1);");

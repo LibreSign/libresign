@@ -37,6 +37,8 @@ OC.L10N.register(
     "Yes" : "Tha",
     "No" : "Chan eil",
     "Invalid URL" : "URL mì-dhligheach",
-    "Username" : "Ainm-cleachdaiche"
+    "Username" : "Ainm-cleachdaiche",
+    "Notifications" : "Brathan",
+    "Issued by:" : "Air fhoillseachadh le:"
 },
 "nplurals=4; plural=(n==1 || n==11) ? 0 : (n==2 || n==12) ? 1 : (n > 2 && n < 20) ? 2 : 3;");

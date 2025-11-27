@@ -33,11 +33,13 @@ OC.L10N.register(
     "Password" : "මුර පදය",
     "Today" : "අද",
     "Version" : "අනුවාදය",
+    "Technical details" : "තාක්ෂණික විස්තර",
     "New password" : "නව මුරපදය",
     "Remove" : "ඉවත් කරන්න",
     "Message" : "පණිවිඩය",
     "Yes" : "ඔව්",
     "No" : "නැහැ",
+    "Close" : "වසන්න",
     "Time:" : "වේලාව:"
 },
 "nplurals=2; plural=(n != 1);");

@@ -78,6 +78,7 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "Acțiunea \"{displayName}\" a eșuat",
     "Unknown" : "Necunoscut",
     "Version" : "Versiune",
+    "Technical details" : "Detalii tehnice",
     "Password reset" : "Resetare parolă",
     "Current password" : "Parola curentă",
     "New password" : "Noua parolă",
@@ -94,8 +95,11 @@ OC.L10N.register(
     "Invalid URL" : "URL invalid",
     "Username" : "Nume utilizator",
     "Optional" : "Opțional",
+    "Close" : "Închide",
     "Name:" : "Nume:",
     "No date" : "No date",
-    "Time:" : "Timp:"
+    "Time:" : "Timp:",
+    "Notifications" : "Notificări",
+    "Issued by:" : "Emis de:"
 },
 "nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));");

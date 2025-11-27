@@ -52,6 +52,7 @@ OC.L10N.register(
     "_{count} selected_::_{count} selected_" : ["{count} tanlangan"],
     "Unknown" : "Noma'lum",
     "Version" : "Versiya",
+    "Technical details" : "Texnik tafsilotlar",
     "Password reset" : "Password reset",
     "Current password" : "Current password",
     "New password" : "New password",
@@ -64,6 +65,8 @@ OC.L10N.register(
     "Remove background" : "Fonni olib tashlash",
     "Username" : "Foydalanuvchi nomi",
     "Forgot password?" : "Parolni unutdingizmi?",
-    "Time:" : "Vaqt:"
+    "Close" : "Yopish",
+    "Time:" : "Vaqt:",
+    "Notifications" : "Bildirishnomalar"
 },
 "nplurals=1; plural=0;");

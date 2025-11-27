@@ -207,6 +207,8 @@ OC.L10N.register(
     "Status:" : "Tila:",
     "No date" : "Ei päiväystä",
     "Time:" : "Aika:",
+    "Notifications" : "Ilmoitukset",
+    "Issued by:" : "Myöntäjä:",
     "Return" : "Palaa",
     "Open in LibreSign" : "Avaa LibreSignissa",
     "Requested by {name}, at {date}" : "Pyytänyt {name} {date}"

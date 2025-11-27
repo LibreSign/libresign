@@ -88,6 +88,7 @@
     "Status:" : "Statuss:",
     "No date" : "No date",
     "Time:" : "Laiks:",
+    "Issued by:" : "Izsniedza:",
     "Open in LibreSign" : "Atvērt LibreSign",
     "Requested by {name}, at {date}" : "Pieprasīja {name} {date}"
 },"pluralForm" :"nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"

@@ -68,6 +68,7 @@
     "Learn more" : "Conoce más",
     "Username" : "Usuario",
     "Optional" : "Opcional",
-    "No date" : "Sin fecha"
+    "No date" : "Sin fecha",
+    "Issued by:" : "Emitido por:"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

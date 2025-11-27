@@ -214,6 +214,8 @@ OC.L10N.register(
     "Name:" : "Naziv:",
     "No date" : "Nema datuma",
     "Time:" : "Vrijeme:",
+    "Notifications" : "Obavijesti",
+    "Issued by:" : "Izdavatelj:",
     "Return" : "Natrag",
     "Open in LibreSign" : "Otvori u sustavu LibreSign",
     "Requested by {name}, at {date}" : "Zatražio {name} na dan {date}"

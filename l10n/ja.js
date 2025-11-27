@@ -126,6 +126,8 @@ OC.L10N.register(
     "Status:" : "ステータス:",
     "No date" : "日付なし",
     "Time:" : "時刻:",
+    "Notifications" : "通知",
+    "Issued by:" : "発行元:",
     "Open in LibreSign" : "LibreSignで開く"
 },
 "nplurals=1; plural=0;");

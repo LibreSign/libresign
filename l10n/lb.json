@@ -36,6 +36,7 @@
     "No" : "No",
     "Username" : "Benotzernumm",
     "Optional" : "Fräiwëlleg",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Issued by:" : "Ausgestallt vun:"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

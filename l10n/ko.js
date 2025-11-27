@@ -256,6 +256,7 @@ OC.L10N.register(
     "Name:" : "이름:",
     "No date" : "날짜 없음",
     "Time:" : "시간:",
+    "Issued by:" : "발급자:",
     "Return" : "반환",
     "Open in LibreSign" : "LibreSign으로 열기",
     "Requested by {name}, at {date}" : "{날짜}에 {이름}에 의해 요청됨"

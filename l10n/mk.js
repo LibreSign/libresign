@@ -111,9 +111,11 @@ OC.L10N.register(
     "Username" : "Корисничко име",
     "Optional" : "Опционално",
     "Forgot password?" : "Заборавена лозинка?",
+    "Close" : "Затвори",
     "Name:" : "Име:",
     "Status:" : "Статус:",
     "No date" : "No date",
-    "Time:" : "Време:"
+    "Time:" : "Време:",
+    "Issued by:" : "Издаден од:"
 },
 "nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;");

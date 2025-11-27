@@ -52,6 +52,8 @@ OC.L10N.register(
     "No" : "Nei",
     "Username" : "Brukarnamn",
     "Optional" : "Valfritt",
-    "No date" : "No date"
+    "Close" : "Lat att",
+    "No date" : "No date",
+    "Notifications" : "Varsel"
 },
 "nplurals=2; plural=(n != 1);");

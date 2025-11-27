@@ -80,6 +80,7 @@ OC.L10N.register(
     "Unknown" : "Desconhecido",
     "Expired" : "Expirado",
     "Version" : "Versão",
+    "Technical details" : "Detalhes técnicos",
     "Allowed" : "Permitido",
     "Password reset" : "Reposição da senha",
     "Current password" : "Palavra-passe atual",
@@ -99,7 +100,9 @@ OC.L10N.register(
     "Username" : "Nome de utilizador",
     "Optional" : "Opcional ",
     "Forgot password?" : "Senha esquecida?",
+    "Close" : "Fechar",
     "Name:" : "Nome:",
-    "No date" : "Sem data"
+    "No date" : "Sem data",
+    "Issued by:" : "Emitido por:"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
