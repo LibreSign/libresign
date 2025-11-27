@@ -100,7 +100,7 @@ class CrlService {
 	/**
 	 * Revoke a list of certificates
 	 *
-	 * @param array<Crl> $certificates Array of Crl entities
+	 * @param array<\OCA\Libresign\Db\Crl> $certificates Array of Crl entities
 	 * @param CRLReason $reason Revocation reason
 	 * @param string|null $reasonText Optional text describing the reason
 	 * @param string|null $revokedBy Who is revoking the certificates
