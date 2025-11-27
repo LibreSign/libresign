@@ -37,6 +37,18 @@ class Password extends AbstractSignatureMethod {
 		} catch (InvalidPasswordException) {
 			throw new LibresignException($this->identifyService->getL10n()->t('Invalid user or password'));
 		}
+
+		$this->validateCertificateRevocation($certificateData);
+		$this->validateCertificateExpiration($certificateData);
+	}
+
+	private function validateCertificateRevocation(array $certificateData): void {
+		if (isset($certificateData['crl_validation']) && $certificateData['crl_validation'] !== 'valid') {
+			throw new LibresignException($this->identifyService->getL10n()->t('Certificate has been revoked'), 400);
+		}
+	}
+
+	private function validateCertificateExpiration(array $certificateData): void {
 		if (isset($certificateData['valid_to'])) {
 			$validTo = \DateTime::createFromFormat('F j, Y, g:i:s A', $certificateData['valid_to']);
 			if ($validTo === false) {
