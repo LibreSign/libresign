@@ -75,7 +75,7 @@ class CrlMapper extends QBMapper {
 
 		$certificate->setStatus(CRLStatus::REVOKED);
 		$certificate->setReasonCode($reason->value);
-		$certificate->setComment($comment);
+		$certificate->setComment($comment !== '' ? $comment : null);
 		$certificate->setRevokedBy($revokedBy);
 		$certificate->setRevokedAt(new DateTime());
 		$certificate->setInvalidityDate($invalidityDate);
@@ -200,5 +200,115 @@ class CrlMapper extends QBMapper {
 		$result->closeCursor();
 
 		return (int)($maxCrlNumber ?? 0);
+	}
+
+	/**
+	 * List CRL entries with pagination and filters
+	 *
+	 * @param int $page Page number (1-based)
+	 * @param int $length Number of items per page
+	 * @param array<string, mixed> $filter Filters to apply (status, engine, instance_id, owner, etc.)
+	 * @param array<string, string> $sort Sort fields and directions ['field' => 'ASC|DESC']
+	 * @return array{data: array<Crl>, total: int}
+	 */
+	public function listWithPagination(
+		int $page = 1,
+		int $length = 100,
+		array $filter = [],
+		array $sort = [],
+	): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName());
+
+		if (!empty($filter['status'])) {
+			$qb->andWhere($qb->expr()->eq('status', $qb->createNamedParameter($filter['status'])));
+		}
+
+		if (!empty($filter['engine'])) {
+			$qb->andWhere($qb->expr()->eq('engine', $qb->createNamedParameter($filter['engine'])));
+		}
+
+		if (!empty($filter['instance_id'])) {
+			$qb->andWhere($qb->expr()->eq('instance_id', $qb->createNamedParameter($filter['instance_id'])));
+		}
+
+		if (!empty($filter['generation'])) {
+			$qb->andWhere($qb->expr()->eq('generation', $qb->createNamedParameter((int)$filter['generation'], IQueryBuilder::PARAM_INT)));
+		}
+
+		if (!empty($filter['owner'])) {
+			$qb->andWhere($qb->expr()->like('owner', $qb->createNamedParameter('%' . $this->db->escapeLikeParameter($filter['owner']) . '%')));
+		}
+
+		if (!empty($filter['serial_number'])) {
+			$qb->andWhere($qb->expr()->like('serial_number', $qb->createNamedParameter('%' . $this->db->escapeLikeParameter($filter['serial_number']) . '%')));
+		}
+
+		if (!empty($filter['revoked_by'])) {
+			$qb->andWhere($qb->expr()->like('revoked_by', $qb->createNamedParameter('%' . $this->db->escapeLikeParameter($filter['revoked_by']) . '%')));
+		}
+
+		$countQb = $this->db->getQueryBuilder();
+		$countQb->select($countQb->func()->count('*', 'count'))
+			->from($this->getTableName());
+
+		if (!empty($filter['status'])) {
+			$countQb->andWhere($countQb->expr()->eq('status', $countQb->createNamedParameter($filter['status'])));
+		}
+		if (!empty($filter['engine'])) {
+			$countQb->andWhere($countQb->expr()->eq('engine', $countQb->createNamedParameter($filter['engine'])));
+		}
+		if (!empty($filter['instance_id'])) {
+			$countQb->andWhere($countQb->expr()->eq('instance_id', $countQb->createNamedParameter($filter['instance_id'])));
+		}
+		if (!empty($filter['generation'])) {
+			$countQb->andWhere($countQb->expr()->eq('generation', $countQb->createNamedParameter((int)$filter['generation'], IQueryBuilder::PARAM_INT)));
+		}
+		if (!empty($filter['owner'])) {
+			$countQb->andWhere($countQb->expr()->like('owner', $countQb->createNamedParameter('%' . $this->db->escapeLikeParameter($filter['owner']) . '%')));
+		}
+		if (!empty($filter['serial_number'])) {
+			$countQb->andWhere($countQb->expr()->like('serial_number', $countQb->createNamedParameter('%' . $this->db->escapeLikeParameter($filter['serial_number']) . '%')));
+		}
+		if (!empty($filter['revoked_by'])) {
+			$countQb->andWhere($countQb->expr()->like('revoked_by', $countQb->createNamedParameter('%' . $this->db->escapeLikeParameter($filter['revoked_by']) . '%')));
+		}
+
+		$total = (int)$countQb->executeQuery()->fetchOne();
+
+		$allowedSortFields = [
+			'serial_number',
+			'owner',
+			'status',
+			'engine',
+			'issued_at',
+			'valid_to',
+			'revoked_at',
+			'reason_code',
+		];
+
+		if (!empty($sort)) {
+			foreach ($sort as $field => $direction) {
+				if (!in_array($field, $allowedSortFields, true)) {
+					continue;
+				}
+				$direction = strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC';
+				$qb->addOrderBy($field, $direction);
+			}
+		} else {
+			$qb->orderBy('revoked_at', 'DESC')
+				->addOrderBy('issued_at', 'DESC');
+		}
+
+		$offset = ($page - 1) * $length;
+		$qb->setFirstResult($offset)
+			->setMaxResults($length);
+
+		return [
+			'data' => $this->findEntities($qb),
+			'total' => $total,
+		];
 	}
 }
