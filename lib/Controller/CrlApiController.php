@@ -41,11 +41,11 @@ class CrlApiController extends AEnvironmentAwareController {
 	 * @param string|null $revokedBy Filter by who revoked the certificate
 	 * @param string|null $sortBy Sort field (e.g., 'revoked_at', 'issued_at', 'serial_number')
 	 * @param string|null $sortOrder Sort order (ASC or DESC)
-	 * @return DataResponse<Http::STATUS_OK, array{data: array, total: int, page: int, length: int}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{data: array<string, mixed>, total: int, page: int, length: int}, array{}>
 	 *
 	 * 200: CRL entries retrieved successfully
 	 */
-	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/crl/list', defaults: ['apiVersion' => 'v1'])]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/crl/list', requirements: ['apiVersion' => '(v1)'])]
 	public function list(
 		?int $page = null,
 		?int $length = null,
@@ -67,7 +67,7 @@ class CrlApiController extends AEnvironmentAwareController {
 			'owner' => $owner,
 			'serial_number' => $serialNumber,
 			'revoked_by' => $revokedBy,
-		], fn($value) => $value !== null);
+		], fn ($value) => $value !== null);
 
 		$sort = [];
 		if ($sortBy !== null) {
@@ -91,7 +91,7 @@ class CrlApiController extends AEnvironmentAwareController {
 	 * 400: Invalid parameters
 	 * 404: Certificate not found
 	 */
-	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/crl/revoke', defaults: ['apiVersion' => 'v1'])]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/crl/revoke', requirements: ['apiVersion' => '(v1)'])]
 	public function revoke(
 		string $serialNumber,
 		?int $reasonCode = null,
@@ -148,4 +148,3 @@ class CrlApiController extends AEnvironmentAwareController {
 		}
 	}
 }
-
