@@ -72,6 +72,78 @@ class CrlService {
 		}
 	}
 
+	/**
+	 * Revoke all issued certificates owned by a user
+	 *
+	 * @param string $userId User ID whose certificates should be revoked
+	 * @param CRLReason $reason Revocation reason
+	 * @param string|null $reasonText Optional text describing the reason
+	 * @param string|null $revokedBy Who is revoking the certificates
+	 * @return int Number of certificates revoked
+	 */
+	public function revokeUserCertificates(
+		string $userId,
+		CRLReason $reason = CRLReason::UNSPECIFIED,
+		?string $reasonText = null,
+		?string $revokedBy = null,
+	): int {
+		$certificates = $this->crlMapper->findIssuedByOwner($userId);
+
+		return $this->revokeCertificateList(
+			$certificates,
+			$reason,
+			$reasonText,
+			$revokedBy
+		);
+	}
+
+	/**
+	 * Revoke a list of certificates
+	 *
+	 * @param array<Crl> $certificates Array of Crl entities
+	 * @param CRLReason $reason Revocation reason
+	 * @param string|null $reasonText Optional text describing the reason
+	 * @param string|null $revokedBy Who is revoking the certificates
+	 * @return int Number of certificates successfully revoked
+	 */
+	private function revokeCertificateList(
+		array $certificates,
+		CRLReason $reason,
+		?string $reasonText = null,
+		?string $revokedBy = null,
+	): int {
+		$revokedCount = 0;
+
+		foreach ($certificates as $certificate) {
+			try {
+				$instanceId = $certificate->getInstanceId();
+				$generation = $certificate->getGeneration();
+				$engineType = $certificate->getEngine();
+				$serialNumber = $certificate->getSerialNumber();
+
+				$crlNumber = $this->getNextCrlNumber($instanceId, $generation, $engineType);
+
+				$this->crlMapper->revokeCertificate(
+					$serialNumber,
+					$reason,
+					$reasonText,
+					$revokedBy,
+					null,
+					$crlNumber
+				);
+
+				$revokedCount++;
+			} catch (\Exception $e) {
+				$this->logger->warning('Failed to revoke certificate {serial}', [
+					'serial' => $certificate->getSerialNumber(),
+					'error' => $e->getMessage(),
+				]);
+			}
+		}
+
+		return $revokedCount;
+	}
+
 	public function getCertificateStatus(string $serialNumber, ?DateTime $checkDate = null): array {
 		try {
 			$certificate = $this->crlMapper->findBySerialNumber($serialNumber);
