@@ -81,7 +81,7 @@ class CrlServiceTest extends TestCase {
 		int $certificateCount,
 		?int $failOnIndex,
 		int $expectedRevoked,
-		bool $expectWarning
+		bool $expectWarning,
 	): void {
 		$certificates = [];
 		for ($i = 1; $i <= $certificateCount; $i++) {
@@ -111,7 +111,7 @@ class CrlServiceTest extends TestCase {
 					if ($failOnIndex !== null && $callCount === $failOnIndex) {
 						throw new \Exception('Database error');
 					}
-					
+
 					$cert = new Crl();
 					$cert->setSerialNumber($serialNumber);
 					return $cert;
@@ -123,7 +123,7 @@ class CrlServiceTest extends TestCase {
 				->method('warning')
 				->with(
 					'Failed to revoke certificate {serial}',
-					$this->callback(fn($context) => isset($context['serial']) && isset($context['error']))
+					$this->callback(fn ($context) => isset($context['serial']) && isset($context['error']))
 				);
 		} else {
 			$this->logger->expects($this->never())
