@@ -17,6 +17,7 @@ SPDX-License-Identifier = "CC0-1.0"
 [[annotations]]
 path = [
     ".devcontainer/devcontainer.json",
+    ".github/copilot-instructions.md",
     ".patches/**",
     "appinfo/info.xml",
     "composer.json",
