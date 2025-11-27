@@ -111,6 +111,7 @@ class CrlApiController extends AEnvironmentAwareController {
 				'message' => "Invalid reason code: {$reasonCode}. Must be between 0-10 (excluding 7).",
 			], Http::STATUS_BAD_REQUEST);
 		}
+		assert($reason instanceof CRLReason);
 
 		$user = $this->userSession->getUser();
 		$revokedBy = $user ? $user->getUID() : 'system';
