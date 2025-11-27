@@ -81,6 +81,7 @@ OC.L10N.register(
     "Valid from" : "Fomu halali",
     "Version" : "Toleo",
     "Fingerprint" : "Alama za vidole",
+    "Technical details" : "Maelezo ya kiufundi",
     "Allowed" : "Inaruhusiwa",
     "Password reset" : "Uwekaji mpya wa nenosiri",
     "Current password" : "Current password",
@@ -99,9 +100,12 @@ OC.L10N.register(
     "Invalid URL" : "URL batili",
     "Username" : "Jina la mtumiaji",
     "Forgot password?" : "Umesahau nenosiri",
+    "Close" : "Funga",
     "Name:" : "Jina:",
     "Status:" : "Status:",
     "Time:" : "Muda",
+    "Notifications" : "Arifa",
+    "Issued by:" : "Imetolewa na:",
     "Return" : "Rudi"
 },
 "nplurals=2; plural=(n != 1);");

@@ -106,6 +106,8 @@ OC.L10N.register(
     "Learn more" : "Pelajari lebih lanjut",
     "Invalid URL" : "URL Tidak Valid",
     "Username" : "Username",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Notifications" : "Notifikasi",
+    "Issued by:" : "Diterbitkan oleh:"
 },
 "nplurals=1; plural=0;");

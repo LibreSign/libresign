@@ -260,6 +260,7 @@ OC.L10N.register(
     "Define your signature." : "Definieer uw handtekening",
     "Unable to sign." : "Signeren was niet mogelijk.",
     "Subscription password." : "Abonnementswachtwoord.",
+    "Close" : "Sluiten",
     "This document is valid" : "Dit document is geldig",
     "Enter the ID or UUID of the document to validate." : "Voer de ID of UUID van het te valideren document in.",
     "Validation" : "Validatie",
@@ -268,6 +269,8 @@ OC.L10N.register(
     "Status:" : "Status:",
     "No date" : "Geen datum",
     "Time:" : "Tijd:",
+    "Notifications" : "Meldingen",
+    "Issued by:" : "Uitgegeven door:",
     "Return" : "Terug",
     "Open in LibreSign" : "Openen in LibreSign",
     "Requested by {name}, at {date}" : "Aangevraagd door {name}, op {date}"

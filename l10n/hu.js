@@ -319,6 +319,8 @@ OC.L10N.register(
     "Signatories:" : "Aláírók:",
     "No date" : "Nincs dátum",
     "Time:" : "Idő:",
+    "Notifications" : "Értesítések",
+    "Issued by:" : "Kibocsátó:",
     "Return" : "Vissza",
     "Open in LibreSign" : "Megnyitás a LibreSignban",
     "Requested by {name}, at {date}" : "{name} kérte, ekkor: {date}"

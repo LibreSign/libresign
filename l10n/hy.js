@@ -44,6 +44,7 @@ OC.L10N.register(
     "No" : "No",
     "Username" : "Օգտանուն",
     "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Notifications" : "Ծանուցում"
 },
 "nplurals=2; plural=(n != 1);");

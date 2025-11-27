@@ -362,6 +362,7 @@ OC.L10N.register(
     "Unable to sign." : "Ikke i stand til å signere.",
     "Subscription password." : "Passord for abonnement.",
     "Forgot password?" : "Glemt passord?",
+    "Close" : "Lukk",
     "This document is valid" : "Dette dokumentet er gyldig",
     "Validate signature" : "Valider signatur",
     "Enter the ID or UUID of the document to validate." : "Skriv inn ID eller UUID for dokumentet som skal valideres.",
@@ -372,6 +373,8 @@ OC.L10N.register(
     "Signatories:" : "Underskriverne:",
     "No date" : "Ingen dato",
     "Time:" : "Tid:",
+    "Notifications" : "Varsel",
+    "Issued by:" : "Utstedt av:",
     "Return" : "Returner",
     "Open in LibreSign" : "Åpne i LibreSign",
     "Requested by {name}, at {date}" : "Bedt av {name}, den {date}"

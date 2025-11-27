@@ -65,6 +65,7 @@ OC.L10N.register(
     "Learn more" : "შეიტყვეთ მეტი",
     "Username" : "მომხმარებლის სახელი",
     "Optional" : "არასავალდებულო",
-    "No date" : "თარიღი არაა"
+    "No date" : "თარიღი არაა",
+    "Issued by:" : "გაცემულია მიერ:"
 },
 "nplurals=2; plural=(n!=1);");

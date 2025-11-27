@@ -96,6 +96,8 @@ OC.L10N.register(
     "Forgot password?" : "Forgot password?",
     "Name:" : "Name:",
     "Status:" : "Status:",
-    "Time:" : "Time:"
+    "Time:" : "Time:",
+    "Notifications" : "შეტყობინებები",
+    "Issued by:" : "Issued by:"
 },
 "nplurals=2; plural=(n!=1);");
