@@ -104,9 +104,8 @@ class CrlApiController extends AEnvironmentAwareController {
 			], Http::STATUS_BAD_REQUEST);
 		}
 
-		$reasonCode = $reasonCode ?? CRLReason::UNSPECIFIED->value;
-
-		if (!CRLReason::isValid($reasonCode)) {
+		$reason = CRLReason::tryFrom($reasonCode);
+		if ($reason === null) {
 			return new DataResponse([
 				'success' => false,
 				'message' => "Invalid reason code: {$reasonCode}. Must be between 0-10 (excluding 7).",
@@ -119,7 +118,7 @@ class CrlApiController extends AEnvironmentAwareController {
 		try {
 			$success = $this->crlService->revokeCertificate(
 				$serialNumber,
-				$reasonCode,
+				$reason,
 				$reasonText,
 				$revokedBy
 			);
