@@ -11,6 +11,8 @@ namespace OCA\Libresign\BackgroundJob;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Enum\CRLReason;
+use OCA\Libresign\Service\CrlService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\QueuedJob;
 
@@ -21,6 +23,7 @@ class UserDeleted extends QueuedJob {
 		protected FileMapper $fileMapper,
 		protected IdentifyMethodMapper $identifyMethodMapper,
 		protected UserElementMapper $userElementMapper,
+		protected CrlService $crlService,
 		protected ITimeFactory $time,
 		protected LoggerInterface $logger,
 	) {
@@ -40,6 +43,35 @@ class UserDeleted extends QueuedJob {
 		$this->logger->info('Neutralizing data for deleted user {user}', [
 			'user' => $userId
 		]);
+
+		$this->revokeCertificates($userId);
+		$this->neutralizeUserData($userId, $displayName);
+	}
+
+	private function revokeCertificates(string $userId): void {
+		try {
+			$revokedCount = $this->crlService->revokeUserCertificates(
+				$userId,
+				CRLReason::CESSATION_OF_OPERATION,
+				'User account deleted',
+				'system'
+			);
+
+			if ($revokedCount > 0) {
+				$this->logger->info('Revoked {count} certificate(s) for deleted user {user}', [
+					'count' => $revokedCount,
+					'user' => $userId
+				]);
+			}
+		} catch (\Exception $e) {
+			$this->logger->error('Failed to revoke certificates for deleted user {user}: {error}', [
+				'user' => $userId,
+				'error' => $e->getMessage()
+			]);
+		}
+	}
+
+	private function neutralizeUserData(string $userId, string $displayName): void {
 		$this->fileMapper->neutralizeDeletedUser($userId, $displayName);
 		$this->identifyMethodMapper->neutralizeDeletedUser($userId, $displayName);
 		$this->userElementMapper->neutralizeDeletedUser($userId, $displayName);
