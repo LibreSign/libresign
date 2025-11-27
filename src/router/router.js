@@ -181,6 +181,11 @@ const router = new Router({
 			component: () => import('../views/Documents/AccountValidation.vue'),
 		},
 		{
+			path: '/f/crl/management',
+			name: 'CrlManagement',
+			component: () => import('../views/CrlManagement/CrlManagement.vue'),
+		},
+		{
 			path: '/f/create-password',
 			name: 'CreatePassword',
 			component: () => import('../views/CreatePassword.vue'),
