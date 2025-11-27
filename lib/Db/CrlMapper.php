@@ -36,6 +36,23 @@ class CrlMapper extends QBMapper {
 		return $this->findEntity($qb);
 	}
 
+	/**
+	 * Find all issued (non-revoked) certificates owned by a user
+	 *
+	 * @param string $owner User ID
+	 * @return array<Crl>
+	 */
+	public function findIssuedByOwner(string $owner): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('owner', $qb->createNamedParameter($owner)))
+			->andWhere($qb->expr()->eq('status', $qb->createNamedParameter(CRLStatus::ISSUED->value)));
+
+		return $this->findEntities($qb);
+	}
+
 	public function createCertificate(
 		string $serialNumber,
 		string $owner,

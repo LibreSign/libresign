@@ -16,6 +16,7 @@ use OCA\Libresign\Enum\CRLReason;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
 use OCA\Libresign\Service\CrlService;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -34,11 +35,114 @@ class CrlServiceTest extends TestCase {
 		$this->service = new CrlService($this->crlMapper, $this->logger, $this->certificateEngineFactory);
 	}
 
+	public static function revokeUserCertificatesProvider(): array {
+		return [
+			'multiple certificates success' => [
+				'certificateCount' => 2,
+				'failOnIndex' => null,
+				'expectedRevoked' => 2,
+				'expectWarning' => false,
+			],
+			'single certificate' => [
+				'certificateCount' => 1,
+				'failOnIndex' => null,
+				'expectedRevoked' => 1,
+				'expectWarning' => false,
+			],
+			'three certificates all success' => [
+				'certificateCount' => 3,
+				'failOnIndex' => null,
+				'expectedRevoked' => 3,
+				'expectWarning' => false,
+			],
+			'partial failure - second fails' => [
+				'certificateCount' => 2,
+				'failOnIndex' => 2,
+				'expectedRevoked' => 1,
+				'expectWarning' => true,
+			],
+			'partial failure - third of three fails' => [
+				'certificateCount' => 3,
+				'failOnIndex' => 3,
+				'expectedRevoked' => 2,
+				'expectWarning' => true,
+			],
+			'no certificates' => [
+				'certificateCount' => 0,
+				'failOnIndex' => null,
+				'expectedRevoked' => 0,
+				'expectWarning' => false,
+			],
+		];
+	}
 
+	#[DataProvider('revokeUserCertificatesProvider')]
+	public function testRevokeUserCertificates(
+		int $certificateCount,
+		?int $failOnIndex,
+		int $expectedRevoked,
+		bool $expectWarning,
+	): void {
+		$certificates = [];
+		for ($i = 1; $i <= $certificateCount; $i++) {
+			$cert = new Crl();
+			$cert->setSerialNumber((string)(123456 + $i));
+			$cert->setInstanceId('test-instance');
+			$cert->setGeneration(1);
+			$cert->setEngine('openssl');
+			$certificates[] = $cert;
+		}
+
+		$this->crlMapper->expects($this->once())
+			->method('findIssuedByOwner')
+			->with('testuser')
+			->willReturn($certificates);
+
+		if ($certificateCount > 0) {
+			$this->crlMapper->expects($this->exactly($certificateCount))
+				->method('getLastCrlNumber')
+				->willReturn(0);
+
+			$callCount = 0;
+			$this->crlMapper->expects($this->exactly($certificateCount))
+				->method('revokeCertificate')
+				->willReturnCallback(function ($serialNumber) use (&$callCount, $failOnIndex) {
+					$callCount++;
+					if ($failOnIndex !== null && $callCount === $failOnIndex) {
+						throw new \Exception('Database error');
+					}
+
+					$cert = new Crl();
+					$cert->setSerialNumber($serialNumber);
+					return $cert;
+				});
+		}
+
+		if ($expectWarning) {
+			$this->logger->expects($this->once())
+				->method('warning')
+				->with(
+					'Failed to revoke certificate {serial}',
+					$this->callback(fn ($context) => isset($context['serial']) && isset($context['error']))
+				);
+		} else {
+			$this->logger->expects($this->never())
+				->method('warning');
+		}
+
+		$revokedCount = $this->service->revokeUserCertificates(
+			'testuser',
+			CRLReason::CESSATION_OF_OPERATION,
+			'User account deleted',
+			'system'
+		);
+
+		$this->assertEquals($expectedRevoked, $revokedCount);
+	}
 
 	public function testRevokeCertificateWithValidReasonCode(): void {
 		$serialNumber = '123456';
-		$reasonCode = 1; // keyCompromise
+		$reason = CRLReason::KEY_COMPROMISE;
 		$reasonText = 'Certificate compromised';
 		$revokedBy = 'admin';
 
@@ -68,16 +172,9 @@ class CrlServiceTest extends TestCase {
 				5
 			);
 
-		$result = $this->service->revokeCertificate($serialNumber, $reasonCode, $reasonText, $revokedBy);
+		$result = $this->service->revokeCertificate($serialNumber, $reason, $reasonText, $revokedBy);
 
 		$this->assertTrue($result);
-	}
-
-	public function testRevokeCertificateWithInvalidReasonCode(): void {
-		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('Invalid CRLReason code: 99');
-
-		$this->service->revokeCertificate('123456', 99, 'Test', 'admin');
 	}
 
 	public function testGenerateCrlDerReturnsValidBinaryData(): void {
