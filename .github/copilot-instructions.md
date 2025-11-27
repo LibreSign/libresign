@@ -102,6 +102,42 @@ Use `Tasks: Run Task` command or `Ctrl+Shift+P > Tasks: Run Task` to execute the
 
 **All tasks automatically run inside the Docker container** - no need to manually exec into container.
 
+## Code Style and Quality
+
+### Write Clear, Self-Documenting Code
+**Prefer clarity over comments.** The code itself should be readable and self-explanatory.
+
+**Good practices:**
+- Use descriptive variable and method names that communicate intent
+- Extract complex logic into well-named methods
+- Use type hints for all parameters and return types
+- Keep methods focused on a single responsibility
+
+**When to comment:**
+- Explain **why** something is done (not what - the code shows that)
+- Document business rules or complex algorithms
+- Add PHPDoc for public APIs
+
+**Example - Avoid:**
+```php
+// Get certificates and revoke them
+$certs = $mapper->find($userId);
+foreach ($certs as $c) {
+    // Revoke the certificate
+    $service->revoke($c->getSerial());
+}
+```
+
+**Example - Prefer:**
+```php
+public function revokeUserCertificates(string $userId): int {
+    $certificates = $this->crlMapper->findIssuedByOwner($userId);
+    return $this->revokeCertificateList($certificates, $userId);
+}
+```
+
+The second example is clear without comments because the method names describe exactly what happens.
+
 ## Project-Specific Conventions
 
 ### PHP Namespace Structure
@@ -166,10 +202,30 @@ npm run typescript:generate  # Generate TypeScript types from spec
 ## Testing Patterns
 
 ### PHPUnit Structure
-- `tests/php/Unit/`: Unit tests with mocked dependencies
+
+**Unit test organization mirrors source code structure:**
+- The folder structure in `tests/php/Unit/` **reflects the structure of `lib/`**
+- For every class in `lib/`, create a corresponding test in `tests/php/Unit/` with the same path
+
+**Examples:**
+```
+lib/Service/CrlService.php
+  → tests/php/Unit/Service/CrlServiceTest.php
+
+lib/Controller/CrlApiController.php
+  → tests/php/Unit/Controller/CrlApiControllerTest.php
+
+lib/Db/CrlMapper.php
+  → tests/php/Unit/Db/CrlMapperTest.php
+```
+
+This convention makes it easy to locate tests for any class and maintain consistency.
+
+**Test directories:**
+- `tests/php/Unit/`: Unit tests with mocked dependencies (mirrors `lib/` structure)
 - `tests/php/Api/`: API integration tests
 - `tests/php/Integration/`: Full integration scenarios
-- Fixtures in `tests/php/fixtures/` (e.g., `small_valid.pdf`)
+- `tests/php/fixtures/`: Test fixtures (e.g., `small_valid.pdf`)
 
 ### Mocking Convention
 Use PHPUnit `createMock()` for dependencies:
