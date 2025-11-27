@@ -297,6 +297,46 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/crl/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List CRL entries with pagination and filters
+         * @description This endpoint requires admin access
+         */
+        get: operations["crl_api-list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/crl/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke a certificate by serial number
+         * @description This endpoint requires admin access
+         */
+        post: operations["crl_api-revoke"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/setting/has-root-cert": {
         parameters: {
             query?: never;
@@ -1328,6 +1368,150 @@ export interface operations {
                             data: {
                                 /** @enum {string} */
                                 status: "success";
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "crl_api-list": {
+        parameters: {
+            query?: {
+                /** @description Page number (1-based) */
+                page?: number | null;
+                /** @description Number of items per page */
+                length?: number | null;
+                /** @description Filter by status (issued, revoked, expired) */
+                status?: string | null;
+                /** @description Filter by engine type */
+                engine?: string | null;
+                /** @description Filter by instance ID */
+                instanceId?: string | null;
+                /** @description Filter by generation */
+                generation?: number | null;
+                /** @description Filter by owner */
+                owner?: string | null;
+                /** @description Filter by serial number (partial match) */
+                serialNumber?: string | null;
+                /** @description Filter by who revoked the certificate */
+                revokedBy?: string | null;
+                /** @description Sort field (e.g., 'revoked_at', 'issued_at', 'serial_number') */
+                sortBy?: string | null;
+                /** @description Sort order (ASC or DESC) */
+                sortOrder?: string | null;
+            };
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description CRL entries retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                data: {
+                                    [key: string]: Record<string, never>;
+                                };
+                                /** Format: int64 */
+                                total: number;
+                                /** Format: int64 */
+                                page: number;
+                                /** Format: int64 */
+                                length: number;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "crl_api-revoke": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Certificate serial number to revoke */
+                    serialNumber: string;
+                    /**
+                     * Format: int64
+                     * @description Revocation reason code (0-10, see RFC 5280)
+                     */
+                    reasonCode?: number | null;
+                    /** @description Optional text describing the reason */
+                    reasonText?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Certificate revoked successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                success: boolean;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Invalid parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                success: boolean;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Certificate not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                success: boolean;
+                                message: string;
                             };
                         };
                     };
