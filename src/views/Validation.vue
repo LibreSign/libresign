@@ -1064,7 +1064,7 @@ export default {
 	#validation-content {
 		width: 100%;
 		display: flex;
-		align-items: flex-start;
+		align-items: center;
 		justify-content: center;
 		padding: 20px;
 		@media screen and (max-width: 700px) {
