@@ -300,6 +300,7 @@ OC.L10N.register(
     "Signatories:" : "Signatories:",
     "No date" : "No date",
     "Time:" : "Time:",
+    "Issued by:" : "صدور بوسیله:",
     "Return" : "Return",
     "Open in LibreSign" : "Open in LibreSign",
     "Requested by {name}, at {date}" : "Requested by {name}, at {date}"

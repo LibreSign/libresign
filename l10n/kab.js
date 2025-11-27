@@ -53,6 +53,7 @@ OC.L10N.register(
     "Yes" : "Ih",
     "No" : "Uhu",
     "Username" : "Isem n useqdac",
-    "Forgot password?" : "Tettud awal uffir?"
+    "Forgot password?" : "Tettud awal uffir?",
+    "Notifications" : "Ilɣa"
 },
 "nplurals=2; plural=(n != 1);");

@@ -107,6 +107,7 @@ OC.L10N.register(
     "Name:" : "Nombre:",
     "Status:" : "Estado:",
     "No date" : "Sin fecha",
-    "Time:" : "Hora:"
+    "Time:" : "Hora:",
+    "Issued by:" : "Emitido por:"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

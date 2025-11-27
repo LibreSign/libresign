@@ -287,6 +287,7 @@ OC.L10N.register(
     "Signatories:" : "Firmantes:",
     "No date" : "Sin fecha",
     "Time:" : "Hora:",
+    "Issued by:" : "Emitido por:",
     "Return" : "Regresar",
     "Open in LibreSign" : "Abrir en LibreSign",
     "Requested by {name}, at {date}" : "Solicitado por {nombre}, el {fecha}"

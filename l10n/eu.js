@@ -321,6 +321,7 @@ OC.L10N.register(
     "Signatories:" : "Sinatzaileak:",
     "No date" : "Datarik gabe",
     "Time:" : "Noiz:",
+    "Issued by:" : "Honek bidalita:",
     "Return" : "Bueltatu",
     "Open in LibreSign" : "Ireki LibreSign-en",
     "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean"

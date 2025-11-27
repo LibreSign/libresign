@@ -79,6 +79,7 @@ OC.L10N.register(
     "Unknown" : "Không xác định",
     "Expired" : "Đã hết hạn",
     "Version" : "Phiên bản",
+    "Technical details" : "Chi tiết kỹ thuật",
     "Password reset" : "Đặt lại mật khẩu",
     "Current password" : "Mật khẩu cũ",
     "New password" : "Mật khẩu mới",
@@ -96,8 +97,11 @@ OC.L10N.register(
     "Username" : "Tên đăng nhập",
     "Optional" : "Tùy chọn",
     "Forgot password?" : "Quên mật khẩu sao?",
+    "Close" : "Đóng",
     "Name:" : "Tên:",
     "No date" : "No date",
-    "Time:" : "Thời gian:"
+    "Time:" : "Thời gian:",
+    "Notifications" : "Thông báo",
+    "Issued by:" : "Nơi cấp:"
 },
 "nplurals=1; plural=0;");

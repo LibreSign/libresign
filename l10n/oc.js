@@ -104,6 +104,7 @@ OC.L10N.register(
     "Unknown" : "Desconegut",
     "Expired" : "Expirat",
     "Version" : "Version",
+    "Technical details" : "Detalhs tecnics",
     "Password reset" : "Reïnicializacion de senhal",
     "Current password" : "Senhal actual",
     "New password" : "Senhal novèl",
@@ -120,8 +121,11 @@ OC.L10N.register(
     "Optional" : "Opcional",
     "Sign the document." : "Signar aqueste document.",
     "Forgot password?" : "Senhal oblidat ?",
+    "Close" : "Plegar",
     "This document is valid" : "Aqueste document es valid",
     "No date" : "Cap de data",
+    "Notifications" : "Notificacions",
+    "Issued by:" : "Desliurat per :",
     "Return" : "Tornar"
 },
 "nplurals=2; plural=(n > 1);");

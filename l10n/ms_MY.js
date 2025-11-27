@@ -29,6 +29,8 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "Nama pengguna",
-    "No date" : "No date"
+    "Close" : "Tutup",
+    "No date" : "No date",
+    "Notifications" : "Pemberitahuan"
 },
 "nplurals=1; plural=0;");

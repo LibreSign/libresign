@@ -109,6 +109,7 @@ OC.L10N.register(
     "Optional" : "Valkvætt",
     "Name:" : "Nafn:",
     "No date" : "Engin dagsetning",
-    "Time:" : "Tími:"
+    "Time:" : "Tími:",
+    "Issued by:" : "Gefið út af"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

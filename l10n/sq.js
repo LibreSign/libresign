@@ -55,6 +55,7 @@ OC.L10N.register(
     "Created at" : "U krijua në",
     "Unknown" : "I panjohur",
     "Version" : "Versioni",
+    "Technical details" : "Detaje teknike",
     "Password reset" : "Fjalkalimi u rivendos",
     "Current password" : "Fjalëkalimi aktual",
     "New password" : "Fjalëkalim i ri",
@@ -71,7 +72,10 @@ OC.L10N.register(
     "Invalid URL" : "URL e pavlefshme",
     "Username" : "Emri i përdoruesit",
     "Optional" : "Jo i detyrueshëm",
+    "Close" : "Mbylleni",
     "Name:" : "Emri",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Notifications" : "Njoftime",
+    "Issued by:" : "Lëshuar nga:"
 },
 "nplurals=2; plural=(n != 1);");
