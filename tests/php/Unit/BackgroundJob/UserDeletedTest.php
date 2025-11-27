@@ -94,7 +94,7 @@ class UserDeletedTest extends TestCase {
 		bool $throwException,
 		bool $expectNeutralization,
 		int $expectInfoLogs,
-		bool $expectErrorLog
+		bool $expectErrorLog,
 	): void {
 		$userId = $argument['user_id'] ?? null;
 		$displayName = $argument['display_name'] ?? null;
@@ -112,7 +112,7 @@ class UserDeletedTest extends TestCase {
 				->method('error')
 				->with(
 					'Failed to revoke certificates for deleted user {user}: {error}',
-					$this->callback(fn($context) => isset($context['user']) && isset($context['error']))
+					$this->callback(fn ($context) => isset($context['user']) && isset($context['error']))
 				);
 		} else {
 			$this->logger->expects($this->never())
