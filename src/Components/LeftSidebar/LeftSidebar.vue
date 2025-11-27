@@ -39,6 +39,15 @@
 					<AccountCheckIcon :size="20" />
 				</template>
 			</NcAppNavigationItem>
+
+			<NcAppNavigationItem v-if="isAdmin"
+				:to="{name: 'CrlManagement'}"
+				:name="t('libresign', 'CRL Management')"
+				@click="unselectFile">
+				<template #icon>
+					<ShieldLockIcon :size="20" />
+				</template>
+			</NcAppNavigationItem>
 		</template>
 		<template #footer>
 			<NcAppNavigationSettings :title="t('libresign', 'Settings')">
@@ -53,6 +62,7 @@ import AccountCheckIcon from 'vue-material-design-icons/AccountCheck.vue'
 import FileCheckIcon from 'vue-material-design-icons/FileCheck.vue'
 import FileSignIcon from 'vue-material-design-icons/FileSign.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
+import ShieldLockIcon from 'vue-material-design-icons/ShieldLock.vue'
 
 import { getCurrentUser } from '@nextcloud/auth'
 import { loadState } from '@nextcloud/initial-state'
@@ -75,6 +85,7 @@ export default {
 		FileCheckIcon,
 		FolderIcon,
 		FileSignIcon,
+		ShieldLockIcon,
 		Settings,
 	},
 	setup() {
@@ -91,6 +102,10 @@ export default {
 		}
 	},
 	computed: {
+		isAdmin() {
+			const user = getCurrentUser()
+			return user?.isAdmin ?? false
+		},
 		showLeftSidebar() {
 			if (this.$route.name === 'Incomplete'
 				|| this.$route.name === 'IncompleteExternal'
