@@ -185,4 +185,52 @@ class CrlService {
 		}
 	}
 
+	/**
+	 * List CRL entries with pagination and filters
+	 *
+	 * @param int|null $page Page number (1-based), defaults to 1
+	 * @param int|null $length Number of items per page, defaults to 100
+	 * @param array<string, mixed> $filter Filters to apply (status, engine, instance_id, owner, serial_number, revoked_by, generation)
+	 * @param array<string, string> $sort Sort fields and directions ['field' => 'ASC|DESC']
+	 * @return array{data: array<array<string, mixed>>, total: int, page: int, length: int}
+	 */
+	public function listCrlEntries(
+		?int $page = null,
+		?int $length = null,
+		array $filter = [],
+		array $sort = [],
+	): array {
+		$page ??= 1;
+		$length ??= 100;
+
+		$result = $this->crlMapper->listWithPagination($page, $length, $filter, $sort);
+
+		$formattedData = array_map(function ($entity) {
+			return [
+				'id' => $entity->getId(),
+				'serial_number' => $entity->getSerialNumber(),
+				'owner' => $entity->getOwner(),
+				'status' => $entity->getStatus(),
+				'engine' => $entity->getEngine(),
+				'instance_id' => $entity->getInstanceId(),
+				'generation' => $entity->getGeneration(),
+				'issued_at' => $entity->getIssuedAt()?->format('Y-m-d H:i:s'),
+				'valid_to' => $entity->getValidTo()?->format('Y-m-d H:i:s'),
+				'revoked_at' => $entity->getRevokedAt()?->format('Y-m-d H:i:s'),
+				'reason_code' => $entity->getReasonCode(),
+				'comment' => $entity->getComment(),
+				'revoked_by' => $entity->getRevokedBy(),
+				'invalidity_date' => $entity->getInvalidityDate()?->format('Y-m-d H:i:s'),
+				'crl_number' => $entity->getCrlNumber(),
+			];
+		}, $result['data']);
+
+		return [
+			'data' => $formattedData,
+			'total' => $result['total'],
+			'page' => $page,
+			'length' => $length,
+		];
+	}
+
 }
