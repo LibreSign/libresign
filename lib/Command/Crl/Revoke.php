@@ -88,6 +88,7 @@ class Revoke extends Command {
 		}
 
 		$reason = CRLReason::from($reasonCode);
+		assert($reason instanceof CRLReason);
 		$reasonDescription = $reason->getDescription();
 
 		$io->section('Revocation Details');
