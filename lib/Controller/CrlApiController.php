@@ -118,7 +118,7 @@ class CrlApiController extends AEnvironmentAwareController {
 		try {
 			$success = $this->crlService->revokeCertificate(
 				$serialNumber,
-				$reason,
+				$reason->value,
 				$reasonText,
 				$revokedBy
 			);
