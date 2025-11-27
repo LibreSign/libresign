@@ -145,7 +145,7 @@ class Revoke extends Command {
 		try {
 			$success = $this->crlService->revokeCertificate(
 				$serialNumber,
-				$reasonCode,
+				$reason,
 				$reasonText,
 				'cli-admin'
 			);
