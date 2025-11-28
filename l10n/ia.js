@@ -28,10 +28,13 @@ OC.L10N.register(
     "Create account" : "Crear conto",
     "Password" : "Contrasigno",
     "Enter a password" : "Enter a password",
+    "Unknown" : "Incognite",
+    "Comment" : "Commentario",
+    "Revoke" : "Revocar",
     "Today" : "Hodie",
     "Modified" : "Modificate",
-    "Unknown" : "Incognite",
     "Version" : "Version",
+    "Technical details" : "Detalios technic",
     "Current password" : "Contrasigno actual",
     "New password" : "Nove contrasigno",
     "Resource" : "Ressource",
@@ -40,6 +43,7 @@ OC.L10N.register(
     "No" : "No",
     "Username" : "Nomine de usator",
     "Optional" : "Optional",
+    "Close" : "Clauder",
     "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

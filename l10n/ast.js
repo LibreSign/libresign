@@ -64,6 +64,8 @@ OC.L10N.register(
     "Password" : "Contraseña",
     "Confirm password" : "Confirmar la contraseña",
     "Enter a password" : "Introduz una contraseña",
+    "Expired" : "Caducó",
+    "Unknown" : "Desconocí­u",
     "Page not found" : "Nun s'atopó la páxina",
     "Ok" : "D'acuerdu",
     "Toggle selection for file \"{displayName}\"" : "Alternar la seleición del ficheru «{displayName}»",
@@ -81,9 +83,8 @@ OC.L10N.register(
     "\"{displayName}\" failed on some elements " : "«{displayName}» falló con dalgún elementu",
     "\"{displayName}\" batch action executed successfully" : "L'aición per llotes «{displayName}» executóse correutamente",
     "\"{displayName}\" action failed" : "L'aición «{displayName}» falló",
-    "Unknown" : "Desconocí­u",
-    "Expired" : "Caducó",
     "Version" : "Versión",
+    "Technical details" : "Detalles téunicos",
     "Password reset" : "Reaniciu de la contraseña",
     "Current password" : "Contraseña actual",
     "New password" : "Contraseña nueva",
@@ -100,8 +101,11 @@ OC.L10N.register(
     "Invalid URL" : "La URL ye inválisa",
     "Username" : "Nome d'usuariu",
     "Forgot password?" : "¿Escaeciesti la contraseña?",
+    "Close" : "Zarrar",
     "Name:" : "Nome:",
     "Status:" : "Estáu:",
-    "Time:" : "Hora:"
+    "Time:" : "Hora:",
+    "Notifications" : "Avisos",
+    "Issued by:" : "Emitíu por:"
 },
 "nplurals=2; plural=(n != 1);");

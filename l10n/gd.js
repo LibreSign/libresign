@@ -29,8 +29,8 @@ OC.L10N.register(
     "Type" : "Seòrsa",
     "Password" : "Facal-faire",
     "Enter a password" : "Cuir a-steach facal-faire",
-    "Today" : "An-diugh",
     "Unknown" : "Chan eil fhios",
+    "Today" : "An-diugh",
     "Version" : "Tionndadh",
     "Password reset" : "Ath-shuidheachadh an fhacail-fhaire",
     "Remove" : "Thoir air falbh",
@@ -38,6 +38,7 @@ OC.L10N.register(
     "No" : "Chan eil",
     "Invalid URL" : "URL mì-dhligheach",
     "Username" : "Ainm-cleachdaiche",
+    "Close" : "Dùin",
     "Notifications" : "Brathan",
     "Issued by:" : "Air fhoillseachadh le:"
 },

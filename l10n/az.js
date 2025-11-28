@@ -49,7 +49,9 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "İstifadəçi adı",
+    "Close" : "Bağla",
     "Name:" : "Ad:",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Issued by:" : "Tərəfindən verilib:"
 },
 "nplurals=2; plural=(n != 1);");
