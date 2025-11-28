@@ -30,6 +30,8 @@ OC.L10N.register(
     "New password" : "Nueva clau",
     "Yes" : "Si",
     "No" : "No",
-    "Username" : "Nombre d'usuario"
+    "Username" : "Nombre d'usuario",
+    "Close" : "Zarrar",
+    "Notifications" : "Notificacions"
 },
 "nplurals=2; plural=(n != 1);");

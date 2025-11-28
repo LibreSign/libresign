@@ -32,12 +32,14 @@ OC.L10N.register(
     "Password" : "Cyfrinair",
     "Confirm password" : "Cadarnhau'r cyfrinair",
     "Enter a password" : "Enter a password",
+    "Unknown" : "Anhysbys",
+    "Owner" : "Perchennog",
+    "Comment" : "Sylw",
     "Page not found" : "Heb ganfod y dudalen",
     "Ok" : "Iawn",
     "Today" : "Heddiw",
     "Modified" : "Addaswyd",
     "Created at" : "Crëwyd ar",
-    "Unknown" : "Anhysbys",
     "Version" : "Fersiwn",
     "New password" : "Cyfrinair newydd",
     "Add new" : "Ychwanegu newydd",
@@ -50,7 +52,9 @@ OC.L10N.register(
     "Username" : "Enw defnyddiwr",
     "Optional" : "Dewisol",
     "Forgot password?" : "Anghofio cyfrinair?",
+    "Close" : "Cau",
     "No date" : "No date",
-    "Time:" : "Dewis amser"
+    "Time:" : "Dewis amser",
+    "Issued by:" : "Rhoddwyd gan:"
 },
 "nplurals=4; plural=(n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != 11) ? 2 : 3;");

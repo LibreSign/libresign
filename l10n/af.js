@@ -50,6 +50,7 @@ OC.L10N.register(
     "Modified" : "Gewysig",
     "Created at" : "Geskep om",
     "Version" : "Weergawe",
+    "Technical details" : "Tegniese besonderhede",
     "Password reset" : "Wagwoord herstel",
     "Current password" : "Huidige wagwoord",
     "New password" : "Nuwe wagwoord",

@@ -36,6 +36,9 @@ OC.L10N.register(
     "Create account" : "Snulfu-d amiḍan",
     "Password" : "Awal uffir",
     "Enter a password" : "Sekcem awal n uɛeddi",
+    "Unknown" : "Arussin",
+    "Owner" : "Bab-is",
+    "Comment" : "Awennit",
     "Page not found" : "Ulac asebter",
     "Ok" : "Ih",
     "Today" : "Ass-a",
@@ -44,7 +47,7 @@ OC.L10N.register(
     "Last year ({year})" : "Ilindi ({year})",
     "Modified" : "Yettwabeddel",
     "{fileCount} files" : "{fileCount} n ifuyla",
-    "Unknown" : "Arussin",
+    "Technical details" : "Talqayt tatiknikant",
     "Password reset" : "Awennez n wawal uffir",
     "New password" : "Awal uffir amaynut",
     "Add new" : "Rnu amaynut",
@@ -54,6 +57,7 @@ OC.L10N.register(
     "No" : "Uhu",
     "Username" : "Isem n useqdac",
     "Forgot password?" : "Tettud awal uffir?",
+    "Close" : "Mdel",
     "Notifications" : "Ilɣa"
 },
 "nplurals=2; plural=(n != 1);");

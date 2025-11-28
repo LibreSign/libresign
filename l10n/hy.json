@@ -28,11 +28,12 @@
     "Create account" : "Ստեղծել հաշիվ",
     "Password" : "Գաղտնաբառ",
     "Enter a password" : "Enter a password",
+    "Unknown" : "Անհայտ",
+    "Comment" : "Մեկնաբանել",
     "Ok" : "Լավ",
     "Today" : "Այսօր",
     "Modified" : "Փոփոխված",
     "1 file" : "1 ֆայլ",
-    "Unknown" : "Անհայտ",
     "Version" : "Տարբերակ",
     "Password reset" : "Վերականգնել գաղտնաբառը",
     "New password" : "Նոր գաղտնաբառ",
@@ -42,6 +43,7 @@
     "No" : "No",
     "Username" : "Օգտանուն",
     "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։",
+    "Close" : "Փակել",
     "No date" : "No date",
     "Notifications" : "Ծանուցում"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
