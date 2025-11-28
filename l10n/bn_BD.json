@@ -24,16 +24,19 @@
     "Create account" : "একাউন্ট তেরী কর",
     "Password" : "কূটশব্দ",
     "Enter a password" : "Enter a password",
+    "Unknown" : "অজানা",
+    "Comment" : "মন্তব্য",
     "Ok" : "তথাস্তু",
     "Today" : "আজ",
     "Modified" : "পরিবর্তিত",
-    "Unknown" : "অজানা",
     "Version" : "ভার্সন",
     "Current password" : "বর্তমান কূটশব্দ",
     "New password" : "নতুন কূটশব্দ",
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "ব্যবহারকারী",
-    "No date" : "No date"
+    "Close" : "বন্ধ",
+    "No date" : "No date",
+    "Issued by:" : "প্রদান করলেন:"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

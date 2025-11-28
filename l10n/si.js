@@ -31,6 +31,8 @@ OC.L10N.register(
     "Change password" : "මුරපදය වෙනස් කරන්න",
     "Signature" : "අත්සන",
     "Password" : "මුර පදය",
+    "Owner" : "හිමිකරු",
+    "Comment" : "අදහස",
     "Today" : "අද",
     "Version" : "අනුවාදය",
     "Technical details" : "තාක්ෂණික විස්තර",

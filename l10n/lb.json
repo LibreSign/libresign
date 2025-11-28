@@ -23,11 +23,12 @@
     "Create account" : "Kont uleeën",
     "Password" : "Passwuert",
     "Enter a password" : "Enter a password",
+    "Unknown" : "Onbekannt",
+    "Comment" : "Kommentar",
     "Ok" : "OK",
     "Today" : "Haut",
     "Modified" : "Geännert",
     "1 file" : "1 Fichier",
-    "Unknown" : "Onbekannt",
     "Current password" : "Momentan 't Passwuert",
     "New password" : "Neit Passwuert",
     "Resource" : "Ressource",
@@ -36,6 +37,7 @@
     "No" : "No",
     "Username" : "Benotzernumm",
     "Optional" : "Fräiwëlleg",
+    "Close" : "Zoumaachen",
     "No date" : "No date",
     "Issued by:" : "Ausgestallt vun:"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

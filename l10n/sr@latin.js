@@ -33,6 +33,8 @@ OC.L10N.register(
     "Create account" : "Novi nalog",
     "Password" : "Lozinka",
     "Enter a password" : "Unesite lozinku",
+    "Owner" : "Vlasnik",
+    "Comment" : "Komentar",
     "Ok" : "Ok",
     "Today" : "Danas",
     "Version" : "Verzija",
