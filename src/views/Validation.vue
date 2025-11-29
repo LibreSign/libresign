@@ -235,7 +235,7 @@
 											:class="signer.signature_validation?.id === 1 ? 'icon-success' : 'icon-error'" />
 									</template>
 									<template #name>
-										{{ signer.signature_validation.id === 1 ? t('libresign', 'Document integrity verified') : t('libresign', 'Signature: ') + signer.signature_validation.label }}
+										{{ getSignatureValidationMessage(signer) }}
 									</template>
 								</NcListItem>
 								<NcListItem v-if="signer.certificate_validation"
@@ -935,6 +935,13 @@ export default {
 
 			return 'valid'
 		},
+		getSignatureValidationMessage(signer) {
+			if (signer.signature_validation.id === 1) {
+				return t('libresign', 'Document integrity verified')
+			}
+			// TRANSLATORS validationStatus is the signature validation status (e.g., "Valid", "Invalid")
+			return t('libresign', 'Signature: {validationStatus}', { validationStatus: signer.signature_validation.label })
+		},
 		getCertificateTrustMessage(signer) {
 			if (!signer.certificate_validation) {
 				return t('libresign', 'Trust Chain: Unknown')
@@ -947,7 +954,8 @@ export default {
 				return t('libresign', 'Trust Chain: Trusted')
 			}
 
-			return t('libresign', 'Trust Chain: ') + signer.certificate_validation.label
+			// TRANSLATORS validationStatus is the certificate chain validation status (e.g., "Trusted", "Untrusted")
+			return t('libresign', 'Trust chain: {validationStatus}', { validationStatus: signer.certificate_validation.label })
 		},
 		getCrlValidationIconClass(signer) {
 			const variant = this.crlStatusMap[signer.crl_validation]?.variant
