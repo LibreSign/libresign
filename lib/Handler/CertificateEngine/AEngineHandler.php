@@ -795,8 +795,7 @@ abstract class AEngineHandler implements IEngineHandler {
 
 			try {
 				$crlTextCmd = sprintf(
-					'openssl crl -in %s -inform DER -text 2>/dev/null || openssl crl -in %s -inform PEM -text 2>/dev/null',
-					escapeshellarg($tempCrlFile),
+					'openssl crl -in %s -inform DER -text -noout',
 					escapeshellarg($tempCrlFile)
 				);
 
