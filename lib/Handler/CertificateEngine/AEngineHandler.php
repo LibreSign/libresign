@@ -761,16 +761,10 @@ abstract class AEngineHandler implements IEngineHandler {
 	}
 
 	private function isSerialNumberInCrl(string $crlText, string $serialNumber): bool {
-		// Normalize: uppercase, remove leading zeros, but keep at least 2 digits (OpenSSL format)
 		$normalizedSerial = strtoupper($serialNumber);
 		$normalizedSerial = ltrim($normalizedSerial, '0') ?: '0';
 
-		// OpenSSL displays serial numbers with at least 2 hex digits
-		if (strlen($normalizedSerial) === 1) {
-			$normalizedSerial = '0' . $normalizedSerial;
-		}
-
-		return strpos($crlText, 'Serial Number: ' . $normalizedSerial) !== false;
+		return preg_match('/Serial Number: 0*' . preg_quote($normalizedSerial, '/') . '/', $crlText) === 1;
 	}
 
 	private function checkCertificateInCrl(string $certPem, string $crlContent): string {
@@ -885,8 +879,10 @@ abstract class AEngineHandler implements IEngineHandler {
 
 			$dateFormat = 'D, d M Y H:i:s O';
 			foreach ($revokedCertificates as $cert) {
+				$serialNumber = $cert->getSerialNumber();
+				$normalizedSerial = ltrim($serialNumber, '0') ?: '0';
 				$crlToSign->revoke(
-					new \phpseclib3\Math\BigInteger($cert->getSerialNumber(), 16),
+					new \phpseclib3\Math\BigInteger($normalizedSerial, 16),
 					$cert->getRevokedAt()->format($dateFormat)
 				);
 			}
