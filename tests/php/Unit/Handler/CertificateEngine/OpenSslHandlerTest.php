@@ -323,6 +323,41 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertCount($numCertificates, array_unique($serialNumbers), 'All serial numbers should be unique');
 	}
 
+	public function testRealCertificateRevocationInCrl(): void {
+		$this->caIdentifierService->generateCaId('openssl');
+
+		$rootInstance = $this->getInstance();
+		$rootInstance->generateRootCert('Test Root CA', []);
+
+		$signerInstance = $this->getInstance();
+		$signerInstance->setCommonName('Test User for Revocation');
+		$signerInstance->setPassword('123456');
+		$certificateContent = $signerInstance->generateCertificate();
+
+		$parsed = $signerInstance->readCertificate($certificateContent, '123456');
+
+		$revokedCert = new \OCA\Libresign\Db\Crl();
+		$revokedCert->setSerialNumber($parsed['serialNumberHex']);
+		$revokedCert->setRevokedAt(new \DateTime('2025-01-01 12:00:00'));
+
+		$configPath = $rootInstance->getCurrentConfigPath();
+		$pkiDirName = basename($configPath);
+		preg_match('/^([^_]+)_(\d+)_(.+)$/', $pkiDirName, $matches);
+
+		$crlDer = $rootInstance->generateCrlDer([$revokedCert], $matches[1], (int)$matches[2], 1);
+
+		$tempCrlFile = $this->tempManager->getTemporaryFile('.crl');
+		file_put_contents($tempCrlFile, $crlDer);
+
+		exec(sprintf('openssl crl -in %s -inform DER -text -noout', escapeshellarg($tempCrlFile)), $output);
+
+		$crlText = implode("\n", $output);
+
+		$this->assertMatchesRegularExpression('/Serial Number: 0*' . preg_quote($parsed['serialNumberHex'], '/') . '/', $crlText);
+
+		unlink($tempCrlFile);
+	}
+
 	public static function revokedCertificatesProvider(): array {
 		return [
 			'empty CRL (no revoked certificates)' => [
