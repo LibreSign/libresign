@@ -42,6 +42,7 @@ OC.L10N.register(
     "Expired" : "Termenet",
     "Unknown" : "Dianv",
     "Comment" : "Displegadenn",
+    "Revoke" : "Digargañ",
     "Today" : "Hiziv",
     "Modified" : "Cheñchet",
     "Created at" : "Krouet da",
