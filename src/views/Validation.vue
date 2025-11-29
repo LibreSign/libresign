@@ -1064,7 +1064,6 @@ export default {
 	#validation-content {
 		width: 100%;
 		display: flex;
-		align-items: center;
 		justify-content: center;
 		padding: 20px;
 		@media screen and (max-width: 700px) {
@@ -1103,6 +1102,7 @@ export default {
 		}
 		.infor-container {
 			width: 100%;
+			margin: auto 0;
 			.section {
 				background-color: var(--color-main-background);
 				padding: 20px;
