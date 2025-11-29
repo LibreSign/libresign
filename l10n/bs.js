@@ -29,6 +29,7 @@ OC.L10N.register(
     "Password" : "Lozinka",
     "Enter a password" : "Enter a password",
     "Unknown" : "Nepoznato",
+    "Owner" : "Vlasnik",
     "Comment" : "Komentar",
     "Ok" : "Ok",
     "Today" : "Danas",
