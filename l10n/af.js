@@ -46,6 +46,7 @@ OC.L10N.register(
     "Password" : "Wagwoord",
     "Confirm password" : "Bevestig wagwoord",
     "Enter a password" : "Gee ’n wagwoord",
+    "Comment" : "Kommentaar",
     "Page not found" : "Blad nie gevind nie",
     "Modified" : "Gewysig",
     "Created at" : "Geskep om",

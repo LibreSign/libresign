@@ -39,6 +39,7 @@ OC.L10N.register(
     "Create account" : "Hesab yarat",
     "Password" : "Şifrə",
     "Enter a password" : "Enter a password",
+    "Comment" : "Komentariya",
     "Ok" : "Oldu",
     "Today" : "Bu gün",
     "Modified" : "Dəyişdirildi",
