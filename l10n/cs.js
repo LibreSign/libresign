@@ -541,7 +541,6 @@ OC.L10N.register(
     "Date signed:" : "Datum podpisu:",
     "No date" : "Žádné datum",
     "Requested on:" : "Kdy požádáno:",
-    "Signature: " : "Podpis:",
     "Hash algorithm:" : "Algoritmus vytvoření otisku:",
     "Field:" : "Kolonka:",
     "Remote address:" : "Vzdálená adresa:",
