@@ -921,19 +921,6 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $crlDerData;
 	}
 
-	/**
-	 * Validates the root certificate and triggers renewal if needed
-	 *
-	 * The renewal logic ensures that:
-	 * 1. Root certificate remains valid long enough to sign CRLs for all issued leaf certificates
-	 * 2. New root certificate is generated before the old one expires
-	 * 3. Both certificates remain valid during the transition period
-	 *
-	 * Timeline example:
-	 * - Leaf cert validity: 365 days (getLeafExpiryInDays)
-	 * - Root cert should be renewed when remaining validity <= leaf validity
-	 * - This ensures the root cert can sign CRLs for all issued leaf certs
-	 */
 	#[\Override]
 	public function validateRootCertificate(): void {
 		$configPath = $this->getCurrentConfigPath();
