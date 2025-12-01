@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler\CertificateEngine;
 
 use OCA\Libresign\Db\CrlMapper;
+use OCA\Libresign\Enum\CertificateType;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
@@ -69,12 +70,20 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		$options = $this->getRootCertOptions();
 
 		$caDays = $this->getCaExpiryInDays();
+
+		$subject = parent::getNames();
+		$subject['CN'] = $commonName;
+		$issuer = $subject;
+
 		$serialNumberString = $this->serialNumberService->generateUniqueSerial(
 			$commonName,
 			$this->caIdentifierService->getInstanceId(),
 			$this->caIdentifierService->getCaIdParsed()['generation'],
 			new \DateTime('+' . $caDays . ' days'),
 			'openssl',
+			$issuer,
+			$subject,
+			CertificateType::ROOT->value,
 		);
 		$serialNumber = (int)$serialNumberString;
 
@@ -134,12 +143,22 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			throw new LibresignException('OpenSSL error: ' . $message);
 		}
 
+		$parsedRoot = openssl_x509_parse($rootCertificate);
+		/** @var array<string, mixed> $issuer */
+		$issuer = $parsedRoot['subject'] ?? [];
+
+		$subject = parent::getNames();
+		$subject['CN'] = $this->getCommonName();
+
 		$serialNumberString = $this->serialNumberService->generateUniqueSerial(
 			$this->getCommonName(),
 			$this->caIdentifierService->getInstanceId(),
 			$this->caIdentifierService->getCaIdParsed()['generation'],
 			new \DateTime('+' . $this->getLeafExpiryInDays() . ' days'),
 			'openssl',
+			$issuer,
+			$subject,
+			CertificateType::LEAF->value,
 		);
 		$serialNumber = (int)$serialNumberString;
 		$options = $this->getLeafCertOptions();
