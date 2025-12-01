@@ -945,12 +945,12 @@ abstract class AEngineHandler implements IEngineHandler {
 		$rootCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
 
 		if (!file_exists($rootCertPath)) {
-			throw new LibresignException('Root certificate not found');
+			return;
 		}
 
 		$rootCert = file_get_contents($rootCertPath);
 		if (empty($rootCert)) {
-			throw new LibresignException('Root certificate is empty');
+			return;
 		}
 
 		$certInfo = openssl_x509_parse(openssl_x509_read($rootCert));
