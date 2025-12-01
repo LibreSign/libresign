@@ -948,6 +948,10 @@ abstract class AEngineHandler implements IEngineHandler {
 	 */
 	public function validateRootCertificate(): void {
 		$configPath = $this->getCurrentConfigPath();
+		if (empty($configPath)) {
+			return;
+		}
+
 		$rootCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
 
 		if (!file_exists($rootCertPath)) {
@@ -955,6 +959,10 @@ abstract class AEngineHandler implements IEngineHandler {
 		}
 
 		$rootCert = file_get_contents($rootCertPath);
+		if (empty($rootCert)) {
+			throw new LibresignException('Root certificate is empty');
+		}
+
 		$certInfo = openssl_x509_parse(openssl_x509_read($rootCert));
 
 		if ($this->checkCertificateRevoked($certInfo['serialNumber'])) {
