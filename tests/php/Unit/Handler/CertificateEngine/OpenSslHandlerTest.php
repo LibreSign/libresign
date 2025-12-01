@@ -631,7 +631,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		int $leafExpiryDays,
 		int $ageInDays,
 		bool $needsRenewal,
-		string $description
+		string $description,
 	): void {
 		$this->appConfig->setValueInt('libresign', 'ca_expiry_in_days', $caExpiryDays);
 		$this->appConfig->setValueInt('libresign', 'expiry_in_days', $leafExpiryDays);
@@ -654,7 +654,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$certInfo = openssl_x509_parse(openssl_x509_read($certContent));
 
 		$secondsPerDay = 60 * 60 * 24;
-		$remainingDays = (int) ceil(($certInfo['validTo_time_t'] - time()) / $secondsPerDay);
+		$remainingDays = (int)ceil(($certInfo['validTo_time_t'] - time()) / $secondsPerDay);
 
 		if ($needsRenewal) {
 			$this->assertLessThanOrEqual($leafExpiryDays, $remainingDays,
@@ -756,7 +756,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertIsArray($dn, 'DN must be an array');
 
 		$secondsPerDay = 60 * 60 * 24;
-		$originalValidity = (int) ceil(($certData['validTo_time_t'] - $certData['validFrom_time_t']) / $secondsPerDay);
+		$originalValidity = (int)ceil(($certData['validTo_time_t'] - $certData['validFrom_time_t']) / $secondsPerDay);
 		$newValidity = $originalValidity - $ageInDays;
 
 		$this->assertGreaterThan(0, $newValidity, "Cannot age certificate by {$ageInDays} days - would be expired");
