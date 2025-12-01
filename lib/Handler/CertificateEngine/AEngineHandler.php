@@ -979,7 +979,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		}
 
 		$secondsPerDay = 60 * 60 * 24;
-		$remainingDays = (int) ceil(($certInfo['validTo_time_t'] - time()) / $secondsPerDay);
+		$remainingDays = (int)ceil(($certInfo['validTo_time_t'] - time()) / $secondsPerDay);
 		$leafExpiryDays = $this->getLeafExpiryInDays();
 
 		if ($remainingDays <= $leafExpiryDays) {

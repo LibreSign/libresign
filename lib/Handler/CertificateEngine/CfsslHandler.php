@@ -99,7 +99,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	#[\Override]
 	public function generateCertificate(): string {
 		$this->validateRootCertificate();
-		
+
 		$certKeys = $this->newCert();
 		$pkcs12 = parent::exportToPkcs12(
 			$certKeys['certificate'],
