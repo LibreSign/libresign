@@ -14,6 +14,7 @@ use GuzzleHttp\Exception\RequestException;
 use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\CrlMapper;
+use OCA\Libresign\Enum\CertificateType;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslServerHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
@@ -568,6 +569,9 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			$expiresAt = new \DateTime('@' . $parsed['validTo_time_t']);
 		}
 
+		$issuer = $parsed['issuer'] ?? [];
+		$subject = $parsed['subject'] ?? [];
+
 		$this->crlMapper->createCertificate(
 			$serialNumber,
 			$owner,
@@ -575,7 +579,10 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			$this->caIdentifierService->getInstanceId(),
 			$this->caIdentifierService->getCaIdParsed()['generation'],
 			new \DateTime(),
-			$expiresAt
+			$expiresAt,
+			$issuer,
+			$subject,
+			CertificateType::LEAF->value,
 		);
 	}
 
@@ -602,6 +609,11 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			$expiresAt = new \DateTime('@' . $parsed['validTo_time_t']);
 		}
 
+		/** @var array<string, mixed> $issuer */
+		$issuer = $parsed['issuer'] ?? [];
+		/** @var array<string, mixed> $subject */
+		$subject = $parsed['subject'] ?? [];
+
 		$this->crlMapper->createCertificate(
 			$serialNumber,
 			$owner,
@@ -609,7 +621,10 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			$this->caIdentifierService->getInstanceId(),
 			$this->caIdentifierService->getCaIdParsed()['generation'],
 			new \DateTime(),
-			$expiresAt
+			$expiresAt,
+			$issuer,
+			$subject,
+			CertificateType::ROOT->value,
 		);
 	}
 }
