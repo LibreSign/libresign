@@ -58,6 +58,7 @@
 									{{ sortOrder === 'ASC' ? '▲' : '▼' }}
 								</span>
 							</th>
+							<th>{{ t('libresign', 'Type') }}</th>
 							<th class="sortable" @click="sortColumn('owner')">
 								{{ t('libresign', 'Owner') }}
 								<span v-if="sortBy === 'owner'" class="sort-indicator">
@@ -107,7 +108,28 @@
 					<tbody>
 						<tr v-for="(entry, index) in entries" :key="`${entry.serial_number}-${entry.issued_at}-${index}`" class="crl-table__row">
 							<td class="crl-table__cell--monospace">{{ entry.serial_number }}</td>
-							<td>{{ entry.owner }}</td>
+							<td>
+								<span v-if="entry.certificate_type === 'root'" class="certificate-type certificate-type--root">
+									<ShieldLockIcon :size="16" />
+									{{ t('libresign', 'Root CA') }}
+								</span>
+								<span v-else-if="entry.certificate_type === 'intermediate'" class="certificate-type certificate-type--intermediate">
+									<ShieldLockIcon :size="16" />
+									{{ t('libresign', 'Intermediate CA') }}
+								</span>
+								<span v-else class="certificate-type certificate-type--user">
+									{{ t('libresign', 'User') }}
+								</span>
+							</td>
+							<td>
+								<div class="owner-cell">
+									<NcAvatar v-if="entry.certificate_type === 'leaf'"
+										:user="entry.owner"
+										:size="32"
+										:display-name="entry.owner" />
+									<span>{{ entry.owner }}</span>
+								</div>
+							</td>
 							<td>
 								<span :class="'status-badge status-badge--' + entry.status">
 									{{ entry.status }}
@@ -116,14 +138,14 @@
 							<td>{{ entry.engine }}</td>
 							<td>{{ formatDate(entry.issued_at) }}</td>
 							<td>{{ formatDate(entry.valid_to) }}</td>
-						<td>{{ formatDate(entry.revoked_at) }}</td>
-						<td>{{ getReasonText(entry.reason_code) }}</td>
-						<td class="crl-table__cell--comment">
-							<span v-if="entry.comment" :title="entry.comment">{{ entry.comment }}</span>
-							<span v-else class="crl-table__cell--empty">-</span>
-						</td>
-						<td>
-							<NcButton v-if="entry.status === 'issued'"
+							<td>{{ formatDate(entry.revoked_at) }}</td>
+							<td>{{ getReasonText(entry.reason_code) }}</td>
+							<td class="crl-table__cell--comment">
+								<span v-if="entry.comment" :title="entry.comment">{{ entry.comment }}</span>
+								<span v-else class="crl-table__cell--empty">-</span>
+							</td>
+							<td>
+								<NcButton v-if="entry.status === 'issued'"
 									type="error"
 									@click="openRevokeDialog(entry)">
 									{{ t('libresign', 'Revoke') }}
@@ -153,9 +175,14 @@
 					{{ t('libresign', 'This action cannot be undone. The certificate will be permanently revoked.') }}
 				</NcNoteCard>
 
+				<NcNoteCard v-if="revokeDialog.entry?.certificate_type === 'root' || revokeDialog.entry?.certificate_type === 'intermediate'" type="error">
+					{{ t('libresign', 'WARNING: This is a CERTIFICATE AUTHORITY! Revoking it will affect the certificate chain and may invalidate certificates issued by this CA.') }}
+				</NcNoteCard>
+
 				<div class="revoke-dialog__info">
 					<p><strong>{{ t('libresign', 'Serial Number:') }}</strong> {{ revokeDialog.entry?.serial_number }}</p>
 					<p><strong>{{ t('libresign', 'Owner:') }}</strong> {{ revokeDialog.entry?.owner }}</p>
+					<p v-if="revokeDialog.entry?.certificate_type !== 'leaf'"><strong>{{ t('libresign', 'Type:') }}</strong> {{ getCertificateTypeLabel(revokeDialog.entry?.certificate_type) }}</p>
 				</div>
 
 				<div class="revoke-dialog__form">
@@ -200,6 +227,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
+import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
@@ -215,6 +243,7 @@ export default {
 		Magnify,
 		ShieldLockIcon,
 		NcAppContent,
+		NcAvatar,
 		NcButton,
 		NcDialog,
 		NcEmptyContent,
@@ -370,6 +399,14 @@ export default {
 			}
 			return this.reasonCodes[reasonCode] || this.t('libresign', 'Unknown')
 		},
+		getCertificateTypeLabel(type) {
+			const labels = {
+				root: this.t('libresign', 'Root Certificate (CA)'),
+				intermediate: this.t('libresign', 'Intermediate Certificate (CA)'),
+				leaf: this.t('libresign', 'User Certificate'),
+			}
+			return labels[type] || type
+		},
 		sortColumn(column) {
 			if (this.sortBy === column) {
 				if (this.sortOrder === 'DESC') {
@@ -385,6 +422,17 @@ export default {
 			this.loadEntries()
 		},
 		openRevokeDialog(entry) {
+			// If it's a CA certificate (root or intermediate), require extra confirmation
+			if (entry.certificate_type === 'root' || entry.certificate_type === 'intermediate') {
+				const typeLabel = entry.certificate_type === 'root' ? 'ROOT' : 'INTERMEDIATE'
+				const confirmed = confirm(
+					this.t('libresign', 'You are about to revoke a {type} CERTIFICATE AUTHORITY. This is a critical operation that may invalidate certificates issued by this CA. Are you absolutely sure you want to proceed?', { type: typeLabel })
+				)
+				if (!confirmed) {
+					return
+				}
+			}
+
 			this.revokeDialog.open = true
 			this.revokeDialog.entry = entry
 			this.revokeDialog.reasonCode = this.reasonCodeOptions[0]
@@ -580,6 +628,37 @@ export default {
 		background-color: #fff3cd;
 		color: #856404;
 	}
+}
+
+.certificate-type {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 8px;
+	border-radius: 12px;
+	font-size: 12px;
+	font-weight: 600;
+
+	&--root {
+		background-color: #e3f2fd;
+		color: #1565c0;
+	}
+
+	&--intermediate {
+		background-color: #fff3e0;
+		color: #e65100;
+	}
+
+	&--user {
+		background-color: #f3e5f5;
+		color: #6a1b9a;
+	}
+}
+
+.owner-cell {
+	display: flex;
+	align-items: center;
+	gap: 8px;
 }
 
 .revoke-dialog {
