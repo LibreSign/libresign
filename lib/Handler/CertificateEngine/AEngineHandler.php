@@ -16,7 +16,6 @@ use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
-use OCA\Libresign\Service\CrlService;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\SimpleFS\ISimpleFolder;
@@ -147,7 +146,6 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $caId;
 	}
 
-	#[\Override]
 	public function parseCertificate(string $certificate): array {
 		return $this->parseX509($certificate);
 	}
@@ -473,6 +471,11 @@ abstract class AEngineHandler implements IEngineHandler {
 			$checks[] = $modernFeaturesCheck;
 		}
 
+		$expiryCheck = $this->checkRootCertificateExpiry();
+		if ($expiryCheck) {
+			$checks[] = $expiryCheck;
+		}
+
 		return $checks;
 	}
 
@@ -613,6 +616,69 @@ abstract class AEngineHandler implements IEngineHandler {
 		return '';
 	}
 
+	private function calculateRemainingDays(int $validToTimestamp): int {
+		$secondsPerDay = 60 * 60 * 24;
+		$remainingSeconds = $validToTimestamp - time();
+		return (int)ceil($remainingSeconds / $secondsPerDay);
+	}
+
+	protected function checkRootCertificateExpiry(): ?ConfigureCheckHelper {
+		$configPath = $this->getCurrentConfigPath();
+		$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
+
+		if (!file_exists($caCertPath)) {
+			return null;
+		}
+
+		$certContent = file_get_contents($caCertPath);
+		if (!$certContent) {
+			return null;
+		}
+
+		$x509Resource = openssl_x509_read($certContent);
+		if (!$x509Resource) {
+			return null;
+		}
+
+		$parsed = openssl_x509_parse($x509Resource);
+		if (!$parsed) {
+			return null;
+		}
+
+		$remainingDays = $this->calculateRemainingDays($parsed['validTo_time_t']);
+		$leafExpiryDays = $this->getLeafExpiryInDays();
+
+		if ($remainingDays < 0) {
+			return (new ConfigureCheckHelper())
+				->setErrorMessage('Root certificate has expired')
+				->setResource($this->getConfigureCheckResourceName())
+				->setTip($this->getCertificateRegenerationTip() . ' URGENT: Certificate is expired!');
+		}
+
+		if ($remainingDays <= 7) {
+			return (new ConfigureCheckHelper())
+				->setErrorMessage("Root certificate expires in {$remainingDays} days")
+				->setResource($this->getConfigureCheckResourceName())
+				->setTip($this->getCertificateRegenerationTip() . ' URGENT: Renew immediately!');
+		}
+
+		if ($remainingDays <= 30) {
+			return (new ConfigureCheckHelper())
+				->setErrorMessage("Root certificate expires in {$remainingDays} days")
+				->setResource($this->getConfigureCheckResourceName())
+				->setTip($this->getCertificateRegenerationTip() . ' Renewal recommended soon.');
+		}
+
+		if ($remainingDays <= $leafExpiryDays) {
+			return (new ConfigureCheckHelper())
+				->setInfoMessage("Root certificate expires in {$remainingDays} days (leaf validity: {$leafExpiryDays} days)")
+				->setResource($this->getConfigureCheckResourceName())
+				->setTip('Root certificate should be renewed to ensure it can sign CRLs for all issued leaf certificates.');
+		}
+
+		return null;
+	}
+
 	public function toArray(): array {
 		$return = [
 			'configPath' => $this->getCurrentConfigPath(),
@@ -725,8 +791,8 @@ abstract class AEngineHandler implements IEngineHandler {
 				$generation = (int)$matches[2];
 				$engineType = $matches[3];
 
-				/** @var CrlService */
-				$crlService = \OC::$server->get(CrlService::class);
+				/** @var \OCA\Libresign\Service\CrlService */
+				$crlService = \OC::$server->get(\OCA\Libresign\Service\CrlService::class);
 
 				$crlData = $crlService->generateCrlDer($instanceId, $generation, $engineType);
 
@@ -919,5 +985,81 @@ abstract class AEngineHandler implements IEngineHandler {
 		}
 
 		return $crlDerData;
+	}
+
+	public function validateRootCertificate(): void {
+		$configPath = $this->getCurrentConfigPath();
+		if (empty($configPath)) {
+			return;
+		}
+
+		if (!is_dir($configPath)) {
+			return;
+		}
+
+		$rootCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
+
+		if (!file_exists($rootCertPath)) {
+			return;
+		}
+
+		$rootCert = file_get_contents($rootCertPath);
+		if (empty($rootCert)) {
+			return;
+		}
+
+		$certificate = openssl_x509_read($rootCert);
+		if ($certificate === false) {
+			throw new LibresignException('Invalid root certificate content');
+		}
+		$certInfo = openssl_x509_parse($certificate);
+		if ($certInfo === false) {
+			throw new LibresignException('Failed to parse root certificate');
+		}
+
+		if ($this->checkCertificateRevoked($certInfo['serialNumber'])) {
+			$this->logger->error('Root certificate has been revoked', [
+				'ca_id' => $this->getCaId(),
+				'impact' => 'all_leaf_certificates_invalid',
+			]);
+			throw new LibresignException(
+				'Root certificate has been revoked. Please regenerate your signing certificate.',
+				\OC\AppFramework\Http::STATUS_PRECONDITION_FAILED
+			);
+		}
+
+		if ($certInfo['validTo_time_t'] < time()) {
+			$this->logger->error('Root certificate has expired', [
+				'ca_id' => $this->getCaId(),
+			]);
+			throw new LibresignException(
+				'Root certificate expired. Please regenerate your signing certificate.',
+				\OC\AppFramework\Http::STATUS_PRECONDITION_FAILED
+			);
+		}
+
+		$remainingDays = $this->calculateRemainingDays($certInfo['validTo_time_t']);
+		$leafExpiryDays = $this->getLeafExpiryInDays();
+
+		if ($remainingDays <= $leafExpiryDays) {
+			$this->logger->warning('Root certificate renewal needed', [
+				'remaining_days' => $remainingDays,
+				'leaf_expiry_days' => $leafExpiryDays,
+			]);
+		}
+	}
+
+	private function checkCertificateRevoked(string $serialNumber): bool {
+		try {
+			/** @var \OCA\Libresign\Service\CrlService */
+			$crlService = \OC::$server->get(\OCA\Libresign\Service\CrlService::class);
+			$status = $crlService->getCertificateStatus($serialNumber);
+			return $status['status'] === 'revoked';
+		} catch (\Exception $e) {
+			$this->logger->warning('Failed to check root certificate revocation status', [
+				'error' => $e->getMessage()
+			]);
+			return false;
+		}
 	}
 }
