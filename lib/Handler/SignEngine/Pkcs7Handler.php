@@ -13,6 +13,8 @@ use OCP\Files\File;
 
 class Pkcs7Handler extends SignEngineHandler {
 	public function sign(): File {
+		$this->beforeSign();
+
 		$p7sFile = $this->getP7sFile();
 		openssl_pkcs12_read($this->getCertificate(), $certificateData, $this->getPassword());
 		openssl_pkcs7_sign(
