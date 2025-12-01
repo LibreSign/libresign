@@ -112,6 +112,8 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 	#[\Override]
 	public function generateCertificate(): string {
+		$this->validateRootCertificate();
+
 		$configPath = $this->getCurrentConfigPath();
 		$rootCertificate = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
 		$rootPrivateKey = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
