@@ -39,7 +39,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private string $tempDir;
 	public function setUp(): void {
 		$this->config = \OCP\Server::get(IConfig::class);
-		$this->appConfig = \OCP\Server::get(IAppConfig::class);
+		$this->appConfig = $this->getMockAppConfig();
 		$this->appDataFactory = \OCP\Server::get(IAppDataFactory::class);
 		$this->dateTimeFormatter = \OCP\Server::get(IDateTimeFormatter::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
@@ -209,6 +209,19 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$return .= "/$key=$value";
 		}
 		return $return;
+	}
+
+	private function parseDnString(string $dn): array {
+		$result = [];
+		// Parse DN string like "/C=US/ST=State/O=Org/CN=Name"
+		$parts = explode('/', trim($dn, '/'));
+		foreach ($parts as $part) {
+			if (strpos($part, '=') !== false) {
+				[$key, $value] = explode('=', $part, 2);
+				$result[$key] = $value;
+			}
+		}
+		return $result;
 	}
 
 	public static function dataReadCertificate(): array {
@@ -594,5 +607,168 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				unlink($tempCrlFile);
 			}
 		}
+	}
+
+	public function testValidateRootCertificateNotFound(): void {
+		$handler = $this->getInstance();
+
+		$configPath = $handler->getCurrentConfigPath();
+		$rootCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
+
+		if (file_exists($rootCertPath)) {
+			unlink($rootCertPath);
+		}
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('Root certificate not found');
+
+		$handler->validateRootCertificate();
+	}
+
+	#[DataProvider('expiryScenarioProvider')]
+	public function testRootCertificateExpiryScenarios(
+		int $caExpiryDays,
+		int $leafExpiryDays,
+		int $ageInDays,
+		bool $needsRenewal,
+		string $description
+	): void {
+		$this->appConfig->setValueInt('libresign', 'ca_expiry_in_days', $caExpiryDays);
+		$this->appConfig->setValueInt('libresign', 'expiry_in_days', $leafExpiryDays);
+
+		$handler = $this->getInstance();
+
+		$handler->generateRootCert('Test Root CA for ' . $description, []);
+
+		if ($ageInDays > 0) {
+			$this->simulateCertificateAging($handler, $ageInDays);
+		}
+
+		$handler->validateRootCertificate();
+
+		$configPath = $handler->getCurrentConfigPath();
+		$rootCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
+		$this->assertFileExists($rootCertPath);
+
+		$certContent = file_get_contents($rootCertPath);
+		$certInfo = openssl_x509_parse(openssl_x509_read($certContent));
+
+		$secondsPerDay = 60 * 60 * 24;
+		$remainingDays = (int) ceil(($certInfo['validTo_time_t'] - time()) / $secondsPerDay);
+
+		if ($needsRenewal) {
+			$this->assertLessThanOrEqual($leafExpiryDays, $remainingDays,
+				"Certificate should need renewal: remaining days ({$remainingDays}) <= leaf expiry days ({$leafExpiryDays})");
+		} else {
+			$this->assertGreaterThan($leafExpiryDays, $remainingDays,
+				"Certificate should NOT need renewal: remaining days ({$remainingDays}) > leaf expiry days ({$leafExpiryDays})");
+		}
+	}
+
+	public static function expiryScenarioProvider(): array {
+		return [
+			'newly_created' => [
+				'caExpiryDays' => 3650,      // 10 years
+				'leafExpiryDays' => 365,     // 1 year
+				'ageInDays' => 0,            // No aging
+				'needsRenewal' => false,
+				'description' => 'Newly created certificate with 10 years validity',
+			],
+			'two_years_remaining' => [
+				'caExpiryDays' => 3650,
+				'leafExpiryDays' => 365,
+				'ageInDays' => 2920,         // ~8 years passed, 2 years remaining
+				'needsRenewal' => false,
+				'description' => 'Certificate with 2 years remaining (no renewal needed)',
+			],
+			'at_renewal_threshold' => [
+				'caExpiryDays' => 3650,
+				'leafExpiryDays' => 365,
+				'ageInDays' => 3285,         // Exactly 365 days remaining
+				'needsRenewal' => true,
+				'description' => 'Certificate at renewal threshold (365 days = leaf validity)',
+			],
+			'below_renewal_threshold' => [
+				'caExpiryDays' => 3650,
+				'leafExpiryDays' => 365,
+				'ageInDays' => 3380,         // 270 days remaining
+				'needsRenewal' => true,
+				'description' => 'Certificate needing renewal (270 days < 365 days)',
+			],
+			'short_ca_valid' => [
+				'caExpiryDays' => 730,       // 2 years
+				'leafExpiryDays' => 90,      // 3 months
+				'ageInDays' => 0,
+				'needsRenewal' => false,
+				'description' => 'Short-lived CA (2 years) with short-lived leaf (90 days)',
+			],
+			'short_ca_needs_renewal' => [
+				'caExpiryDays' => 730,
+				'leafExpiryDays' => 90,
+				'ageInDays' => 650,          // 80 days remaining
+				'needsRenewal' => true,
+				'description' => 'Short-lived CA needing renewal (80 days < 90 days)',
+			],
+			'very_close_to_expiry' => [
+				'caExpiryDays' => 3650,
+				'leafExpiryDays' => 365,
+				'ageInDays' => 3620,         // 30 days remaining
+				'needsRenewal' => true,
+				'description' => 'Certificate very close to expiry (30 days < 365 days)',
+			],
+			'almost_expired' => [
+				'caExpiryDays' => 365,
+				'leafExpiryDays' => 90,
+				'ageInDays' => 357,          // 8 days remaining
+				'needsRenewal' => true,
+				'description' => 'Certificate almost expired (8 days < 90 days)',
+			],
+			'long_leaf_short_ca' => [
+				'caExpiryDays' => 730,       // 2 years CA
+				'leafExpiryDays' => 365,     // 1 year leaf
+				'ageInDays' => 0,
+				'needsRenewal' => false,
+				'description' => 'Long-lived leaf (365 days) with 2-year CA (730 days)',
+			],
+			'ca_shorter_than_leaf' => [
+				'caExpiryDays' => 180,       // 6 months CA
+				'leafExpiryDays' => 365,     // 1 year leaf
+				'ageInDays' => 0,
+				'needsRenewal' => true,  // CA will expire before leaf validity period
+				'description' => 'Edge case: CA (180 days) expires before leaf validity (365 days)',
+			],
+		];
+	}
+
+	private function simulateCertificateAging(OpenSslHandler $handler, int $ageInDays): void {
+		$configPath = $handler->getCurrentConfigPath();
+		$certPath = $configPath . '/ca.pem';
+		$keyPath = $configPath . '/ca-key.pem';
+
+		$cert = openssl_x509_read(file_get_contents($certPath));
+		$certData = openssl_x509_parse($cert);
+		$this->assertIsArray($certData, 'Failed to parse certificate');
+		$this->assertArrayHasKey('subject', $certData, 'Certificate must have subject field');
+
+		$privateKey = openssl_pkey_get_private(file_get_contents($keyPath));
+
+		$dn = is_array($certData['subject']) ? $certData['subject'] : $this->parseDnString($certData['subject']);
+		$this->assertIsArray($dn, 'DN must be an array');
+
+		$secondsPerDay = 60 * 60 * 24;
+		$originalValidity = (int) ceil(($certData['validTo_time_t'] - $certData['validFrom_time_t']) / $secondsPerDay);
+		$newValidity = $originalValidity - $ageInDays;
+
+		$this->assertGreaterThan(0, $newValidity, "Cannot age certificate by {$ageInDays} days - would be expired");
+
+		$csr = openssl_csr_new($dn, $privateKey, ['digest_alg' => 'sha256']);
+		$x509 = openssl_csr_sign($csr, null, $privateKey, $newValidity, [
+			'digest_alg' => 'sha256',
+			'config' => $configPath . '/openssl.cnf',
+			'x509_extensions' => 'v3_ca',
+		], random_int(1000000, PHP_INT_MAX));
+
+		openssl_x509_export($x509, $newCert);
+		file_put_contents($certPath, $newCert);
 	}
 }
