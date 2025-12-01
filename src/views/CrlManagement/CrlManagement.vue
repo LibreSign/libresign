@@ -52,6 +52,13 @@
 				<table class="crl-table">
 					<thead>
 						<tr>
+							<th class="crl-table__cell--spacer" />
+							<th class="sortable" @click="sortColumn('owner')">
+								{{ t('libresign', 'Owner') }}
+								<span v-if="sortBy === 'owner'" class="sort-indicator">
+									{{ sortOrder === 'ASC' ? '▲' : '▼' }}
+								</span>
+							</th>
 							<th class="sortable" @click="sortColumn('serial_number')">
 								{{ t('libresign', 'Serial Number') }}
 								<span v-if="sortBy === 'serial_number'" class="sort-indicator">
@@ -59,12 +66,6 @@
 								</span>
 							</th>
 							<th>{{ t('libresign', 'Type') }}</th>
-							<th class="sortable" @click="sortColumn('owner')">
-								{{ t('libresign', 'Owner') }}
-								<span v-if="sortBy === 'owner'" class="sort-indicator">
-									{{ sortOrder === 'ASC' ? '▲' : '▼' }}
-								</span>
-							</th>
 							<th class="sortable" @click="sortColumn('status')">
 								{{ t('libresign', 'Status') }}
 								<span v-if="sortBy === 'status'" class="sort-indicator">
@@ -107,6 +108,14 @@
 					</thead>
 					<tbody>
 						<tr v-for="(entry, index) in entries" :key="`${entry.serial_number}-${entry.issued_at}-${index}`" class="crl-table__row">
+							<td class="crl-table__cell--spacer">
+								<NcAvatar v-if="entry.certificate_type === 'leaf'"
+									:user="entry.owner"
+									:size="32"
+									:display-name="entry.owner"
+									:disable-menu="true" />
+							</td>
+							<td>{{ entry.owner }}</td>
 							<td class="crl-table__cell--monospace">{{ entry.serial_number }}</td>
 							<td>
 								<span v-if="entry.certificate_type === 'root'" class="certificate-type certificate-type--root">
@@ -120,15 +129,6 @@
 								<span v-else class="certificate-type certificate-type--user">
 									{{ t('libresign', 'User') }}
 								</span>
-							</td>
-							<td>
-								<div class="owner-cell">
-									<NcAvatar v-if="entry.certificate_type === 'leaf'"
-										:user="entry.owner"
-										:size="32"
-										:display-name="entry.owner" />
-									<span>{{ entry.owner }}</span>
-								</div>
 							</td>
 							<td>
 								<span :class="'status-badge status-badge--' + entry.status">
@@ -603,6 +603,14 @@ export default {
 
 	&__cell--empty {
 		color: var(--color-text-maxcontrast);
+	}
+
+	&__cell--spacer {
+		width: 44px;
+		min-width: 44px;
+		max-width: 44px;
+		padding: 6px;
+		text-align: center;
 	}
 }
 
