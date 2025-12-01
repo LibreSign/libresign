@@ -259,4 +259,8 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		return \OCP\Server::get(CertificateEngineFactory::class)
 			->getEngine();
 	}
+
+	protected function beforeSign(): void {
+		$this->getCertificateEngine()->validateRootCertificate();
+	}
 }
