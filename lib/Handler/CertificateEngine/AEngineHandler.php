@@ -482,6 +482,11 @@ abstract class AEngineHandler implements IEngineHandler {
 			$checks[] = $modernFeaturesCheck;
 		}
 
+		$expiryCheck = $this->checkRootCertificateExpiry();
+		if ($expiryCheck) {
+			$checks[] = $expiryCheck;
+		}
+
 		return $checks;
 	}
 
@@ -620,6 +625,69 @@ abstract class AEngineHandler implements IEngineHandler {
 			return $instanceId;
 		}
 		return '';
+	}
+
+	private function calculateRemainingDays(int $validToTimestamp): int {
+		$secondsPerDay = 60 * 60 * 24;
+		$remainingSeconds = $validToTimestamp - time();
+		return (int)ceil($remainingSeconds / $secondsPerDay);
+	}
+
+	protected function checkRootCertificateExpiry(): ?ConfigureCheckHelper {
+		$configPath = $this->getCurrentConfigPath();
+		$caCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
+
+		if (!file_exists($caCertPath)) {
+			return null;
+		}
+
+		$certContent = file_get_contents($caCertPath);
+		if (!$certContent) {
+			return null;
+		}
+
+		$x509Resource = openssl_x509_read($certContent);
+		if (!$x509Resource) {
+			return null;
+		}
+
+		$parsed = openssl_x509_parse($x509Resource);
+		if (!$parsed) {
+			return null;
+		}
+
+		$remainingDays = $this->calculateRemainingDays($parsed['validTo_time_t']);
+		$leafExpiryDays = $this->getLeafExpiryInDays();
+
+		if ($remainingDays < 0) {
+			return (new ConfigureCheckHelper())
+				->setErrorMessage('Root certificate has expired')
+				->setResource($this->getConfigureCheckResourceName())
+				->setTip($this->getCertificateRegenerationTip() . ' URGENT: Certificate is expired!');
+		}
+
+		if ($remainingDays <= 7) {
+			return (new ConfigureCheckHelper())
+				->setErrorMessage("Root certificate expires in {$remainingDays} days")
+				->setResource($this->getConfigureCheckResourceName())
+				->setTip($this->getCertificateRegenerationTip() . ' URGENT: Renew immediately!');
+		}
+
+		if ($remainingDays <= 30) {
+			return (new ConfigureCheckHelper())
+				->setErrorMessage("Root certificate expires in {$remainingDays} days")
+				->setResource($this->getConfigureCheckResourceName())
+				->setTip($this->getCertificateRegenerationTip() . ' Renewal recommended soon.');
+		}
+
+		if ($remainingDays <= $leafExpiryDays) {
+			return (new ConfigureCheckHelper())
+				->setInfoMessage("Root certificate expires in {$remainingDays} days (leaf validity: {$leafExpiryDays} days)")
+				->setResource($this->getConfigureCheckResourceName())
+				->setTip('Root certificate should be renewed to ensure it can sign CRLs for all issued leaf certificates.');
+		}
+
+		return null;
 	}
 
 	#[\Override]
@@ -984,8 +1052,7 @@ abstract class AEngineHandler implements IEngineHandler {
 			);
 		}
 
-		$secondsPerDay = 60 * 60 * 24;
-		$remainingDays = (int)ceil(($certInfo['validTo_time_t'] - time()) / $secondsPerDay);
+		$remainingDays = $this->calculateRemainingDays($certInfo['validTo_time_t']);
 		$leafExpiryDays = $this->getLeafExpiryInDays();
 
 		if ($remainingDays <= $leafExpiryDays) {
