@@ -472,6 +472,11 @@ abstract class AEngineHandler implements IEngineHandler {
 			$checks[] = $modernFeaturesCheck;
 		}
 
+		$expiryCheck = $this->checkRootCertificateExpiry();
+		if ($expiryCheck) {
+			$checks[] = $expiryCheck;
+		}
+
 		return $checks;
 	}
 
@@ -973,8 +978,7 @@ abstract class AEngineHandler implements IEngineHandler {
 			);
 		}
 
-		$secondsPerDay = 60 * 60 * 24;
-		$remainingDays = (int)ceil(($certInfo['validTo_time_t'] - time()) / $secondsPerDay);
+		$remainingDays = $this->calculateRemainingDays($certInfo['validTo_time_t']);
 		$leafExpiryDays = $this->getLeafExpiryInDays();
 
 		if ($remainingDays <= $leafExpiryDays) {

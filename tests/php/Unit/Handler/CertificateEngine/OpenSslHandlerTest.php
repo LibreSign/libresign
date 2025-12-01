@@ -770,4 +770,100 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		openssl_x509_export($x509, $newCert);
 		file_put_contents($certPath, $newCert);
 	}
+
+	#[DataProvider('configureCheckExpiryProvider')]
+	public function testConfigureCheckExpiryWarnings(
+		int $caExpiryDays,
+		int $leafExpiryDays,
+		int $ageInDays,
+		?string $expectedLevel,
+		string $description,
+	): void {
+		$this->appConfig->setValueInt('libresign', 'ca_expiry_in_days', $caExpiryDays);
+		$this->appConfig->setValueInt('libresign', 'expiry_in_days', $leafExpiryDays);
+
+		$handler = $this->getInstance();
+		$handler->generateRootCert('Test Root CA for ' . $description, []);
+
+		if ($ageInDays > 0) {
+			$this->simulateCertificateAging($handler, $ageInDays);
+		}
+
+		$checks = $handler->configureCheck();
+		$this->assertIsArray($checks);
+
+		$expiryCheck = null;
+		foreach ($checks as $check) {
+			$checkArray = $check->jsonSerialize();
+			if (isset($checkArray['message']) && str_contains($checkArray['message'], 'expires')) {
+				$expiryCheck = $checkArray;
+				break;
+			}
+			if (isset($checkArray['message']) && str_contains($checkArray['message'], 'expired')) {
+				$expiryCheck = $checkArray;
+				break;
+			}
+		}
+
+		if ($expectedLevel === null) {
+			$this->assertNull($expiryCheck, 'No expiry warning expected for: ' . $description);
+		} else {
+			$this->assertNotNull($expiryCheck, 'Expiry warning expected for: ' . $description);
+			$this->assertEquals($expectedLevel, $expiryCheck['status'], 'Expected level: ' . $expectedLevel . ' for: ' . $description);
+		}
+	}
+
+	public static function configureCheckExpiryProvider(): array {
+		return [
+			'newly_created_no_warning' => [
+				'caExpiryDays' => 3650,
+				'leafExpiryDays' => 365,
+				'ageInDays' => 0,
+				'expectedLevel' => null,
+				'description' => 'Newly created - no warning',
+			],
+			'two_years_remaining_no_warning' => [
+				'caExpiryDays' => 3650,
+				'leafExpiryDays' => 365,
+				'ageInDays' => 2920,
+				'expectedLevel' => null,
+				'description' => '2 years remaining - no warning',
+			],
+			'at_leaf_validity_info' => [
+				'caExpiryDays' => 3650,
+				'leafExpiryDays' => 365,
+				'ageInDays' => 3285,
+				'expectedLevel' => 'info',
+				'description' => 'At leaf validity threshold - info',
+			],
+			'below_leaf_validity_info' => [
+				'caExpiryDays' => 3650,
+				'leafExpiryDays' => 365,
+				'ageInDays' => 3380,
+				'expectedLevel' => 'info',
+				'description' => 'Below leaf validity - info',
+			],
+			'29_days_warning' => [
+				'caExpiryDays' => 3650,
+				'leafExpiryDays' => 365,
+				'ageInDays' => 3621,
+				'expectedLevel' => 'error',
+				'description' => '29 days remaining - error',
+			],
+			'7_days_error' => [
+				'caExpiryDays' => 365,
+				'leafExpiryDays' => 90,
+				'ageInDays' => 358,
+				'expectedLevel' => 'error',
+				'description' => '7 days remaining - error',
+			],
+			'1_day_error' => [
+				'caExpiryDays' => 365,
+				'leafExpiryDays' => 90,
+				'ageInDays' => 364,
+				'expectedLevel' => 'error',
+				'description' => '1 day remaining - error',
+			],
+		];
+	}
 }
