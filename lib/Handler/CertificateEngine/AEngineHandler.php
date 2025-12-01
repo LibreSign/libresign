@@ -938,7 +938,14 @@ abstract class AEngineHandler implements IEngineHandler {
 			return;
 		}
 
-		$certInfo = openssl_x509_parse(openssl_x509_read($rootCert));
+		$certificate = openssl_x509_read($rootCert);
+		if ($certificate === false) {
+			throw new LibresignException('Invalid root certificate content');
+		}
+		$certInfo = openssl_x509_parse($certificate);
+		if ($certInfo === false) {
+			throw new LibresignException('Failed to parse root certificate');
+		}
 
 		if ($this->checkCertificateRevoked($certInfo['serialNumber'])) {
 			$this->logger->error('Root certificate has been revoked', [
