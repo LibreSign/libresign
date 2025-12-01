@@ -16,7 +16,6 @@ use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
-use OCA\Libresign\Service\CrlService;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\SimpleFS\ISimpleFolder;
@@ -726,7 +725,7 @@ abstract class AEngineHandler implements IEngineHandler {
 				$engineType = $matches[3];
 
 				/** @var \OCA\Libresign\Service\CrlService */
-				$crlService = \OC::$server->get(CrlService::class);
+				$crlService = \OC::$server->get(\OCA\Libresign\Service\CrlService::class);
 
 				$crlData = $crlService->generateCrlDer($instanceId, $generation, $engineType);
 
@@ -990,7 +989,7 @@ abstract class AEngineHandler implements IEngineHandler {
 	private function checkCertificateRevoked(string $serialNumber): bool {
 		try {
 			/** @var \OCA\Libresign\Service\CrlService */
-			$crlService = \OC::$server->get(CrlService::class);
+			$crlService = \OC::$server->get(\OCA\Libresign\Service\CrlService::class);
 			$status = $crlService->getCertificateStatus($serialNumber);
 			return $status['status'] === 'revoked';
 		} catch (\Exception $e) {
