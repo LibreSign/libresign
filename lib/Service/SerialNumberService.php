@@ -12,8 +12,6 @@ namespace OCA\Libresign\Service;
 use DateTime;
 use OCA\Libresign\Db\CrlMapper;
 use OCP\DB\Exception as DBException;
-use OCP\Security\ISecureRandom;
-use Psr\Log\LoggerInterface;
 
 class SerialNumberService {
 	private const MAX_RETRY_ATTEMPTS = 10;
@@ -21,8 +19,6 @@ class SerialNumberService {
 
 	public function __construct(
 		private CrlMapper $crlMapper,
-		private LoggerInterface $logger,
-		private ISecureRandom $secureRandom,
 	) {
 	}
 
