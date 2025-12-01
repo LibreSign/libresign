@@ -16,6 +16,7 @@ use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\Install\InstallService;
 use OCP\DB\ISchemaWrapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\DB\Types;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\IAppConfig;
@@ -76,20 +77,19 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 			if ($crlTable->hasColumn('serial_number')) {
 				$crlTable->dropColumn('serial_number');
 			}
-			$crlTable->addColumn('serial_number', 'string', [
+			$crlTable->addColumn('serial_number', Types::STRING, [
 				'length' => 64,
 			]);
 
 			if (!$crlTable->hasColumn('engine')) {
-				$crlTable->addColumn('engine', 'string', ['default' => $engineName]);
+				$crlTable->addColumn('engine', Types::STRING, ['default' => $engineName]);
 			}
 			if (!$crlTable->hasColumn('instance_id')) {
-				$crlTable->addColumn('instance_id', 'string', ['notnull' => false]);
+				$crlTable->addColumn('instance_id', Types::STRING, ['notnull' => false]);
 			}
 			if (!$crlTable->hasColumn('generation')) {
-				$crlTable->addColumn('generation', 'integer', ['notnull' => false]);
+				$crlTable->addColumn('generation', Types::INTEGER, ['notnull' => false]);
 			}
-
 			if ($crlTable->hasIndex('libresign_crl_serial_uk')) {
 				$crlTable->dropIndex('libresign_crl_serial_uk');
 			}
