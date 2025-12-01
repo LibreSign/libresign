@@ -17,6 +17,7 @@
 				</NcTextField>
 
 				<NcSelect v-model="filters.status"
+					:input-label="t('libresign', 'Status')"
 					:options="statusOptions"
 					:placeholder="t('libresign', 'Filter by status')"
 					:clearable="true"
