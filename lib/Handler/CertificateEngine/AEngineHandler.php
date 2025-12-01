@@ -927,6 +927,10 @@ abstract class AEngineHandler implements IEngineHandler {
 			return;
 		}
 
+		if (!is_dir($configPath)) {
+			return;
+		}
+
 		$rootCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
 
 		if (!file_exists($rootCertPath)) {

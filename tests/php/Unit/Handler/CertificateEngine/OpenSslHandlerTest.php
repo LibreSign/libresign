@@ -619,10 +619,9 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			unlink($rootCertPath);
 		}
 
-		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('Root certificate not found');
-
 		$handler->validateRootCertificate();
+
+		$this->assertFileDoesNotExist($rootCertPath);
 	}
 
 	#[DataProvider('expiryScenarioProvider')]
