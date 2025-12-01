@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
+use OCA\Libresign\Enum\CertificateType;
 use OCA\Libresign\Enum\CRLStatus;
 use OCP\AppFramework\Db\Entity;
 use OCP\DB\Types;
@@ -42,6 +43,10 @@ use OCP\DB\Types;
  * @method ?string getInstanceId()
  * @method void setGeneration(?int $generation)
  * @method ?int getGeneration()
+ * @method void setIssuer(?string $issuer)
+ * @method ?string getIssuer()
+ * @method void setSubject(?string $subject)
+ * @method ?string getSubject()
  */
 class Crl extends Entity {
 	protected string $serialNumber = '';
@@ -58,6 +63,9 @@ class Crl extends Entity {
 	protected string $engine = '';
 	protected ?string $instanceId = null;
 	protected ?int $generation = null;
+	protected ?string $issuer = null;
+	protected ?string $subject = null;
+	protected string $certificateType = 'leaf';
 
 	public function __construct() {
 		$this->addType('id', Types::BIGINT);
@@ -73,6 +81,9 @@ class Crl extends Entity {
 		$this->addType('engine', Types::STRING);
 		$this->addType('instanceId', Types::STRING);
 		$this->addType('generation', Types::BIGINT);
+		$this->addType('issuer', Types::TEXT);
+		$this->addType('subject', Types::TEXT);
+		$this->addType('certificateType', Types::STRING);
 	}
 
 	public function getStatus(): string {
@@ -82,6 +93,67 @@ class Crl extends Entity {
 	public function setStatus(CRLStatus|string $status): void {
 		$value = $status instanceof CRLStatus ? $status->value : $status;
 		$this->setter('status', [$value]);
+	}
+
+	public function getCertificateTypeEnum(): CertificateType {
+		return CertificateType::from($this->certificateType);
+	}
+
+	public function getCertificateType(): string {
+		return $this->certificateType;
+	}
+
+	public function setCertificateType(CertificateType|string $type): void {
+		$value = $type instanceof CertificateType ? $type->value : $type;
+		$this->setter('certificateType', [$value]);
+	}
+
+	public function getIssuer(): ?string {
+		return $this->issuer;
+	}
+
+	public function getIssuerData(): ?array {
+		if ($this->issuer === null) {
+			return null;
+		}
+		$decoded = json_decode($this->issuer, true);
+		return is_array($decoded) ? $decoded : null;
+	}
+
+	public function setIssuer(?string $issuer): void {
+		$this->setter('issuer', [$issuer]);
+	}
+
+	public function setIssuerFromArray(?array $issuer): void {
+		if ($issuer === null) {
+			$this->setter('issuer', [null]);
+			return;
+		}
+		$this->setter('issuer', [json_encode($issuer)]);
+	}
+
+	public function getSubject(): ?string {
+		return $this->subject;
+	}
+
+	public function getSubjectData(): ?array {
+		if ($this->subject === null) {
+			return null;
+		}
+		$decoded = json_decode($this->subject, true);
+		return is_array($decoded) ? $decoded : null;
+	}
+
+	public function setSubject(?string $subject): void {
+		$this->setter('subject', [$subject]);
+	}
+
+	public function setSubjectFromArray(?array $subject): void {
+		if ($subject === null) {
+			$this->setter('subject', [null]);
+			return;
+		}
+		$this->setter('subject', [json_encode($subject)]);
 	}
 
 	public function isRevoked(): bool {

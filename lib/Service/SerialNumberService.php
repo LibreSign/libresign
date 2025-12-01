@@ -28,6 +28,9 @@ class SerialNumberService {
 		int $generation,
 		DateTime $expiresAt,
 		string $engineName,
+		?array $issuer = null,
+		?array $subject = null,
+		string $certificateType = 'leaf',
 	): string {
 		for ($attempts = 0; $attempts < self::MAX_RETRY_ATTEMPTS; $attempts++) {
 			$serialInt = random_int(1, self::SERIAL_MAX_VALUE);
@@ -42,7 +45,10 @@ class SerialNumberService {
 					$instanceId,
 					$generation,
 					new DateTime(),
-					$expiresAt
+					$expiresAt,
+					$issuer,
+					$subject,
+					$certificateType,
 				);
 
 				return $serialString;
