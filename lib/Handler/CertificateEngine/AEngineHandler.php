@@ -934,6 +934,7 @@ abstract class AEngineHandler implements IEngineHandler {
 	 * - Root cert should be renewed when remaining validity <= leaf validity
 	 * - This ensures the root cert can sign CRLs for all issued leaf certs
 	 */
+	#[\Override]
 	public function validateRootCertificate(): void {
 		$configPath = $this->getCurrentConfigPath();
 		if (empty($configPath)) {
