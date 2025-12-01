@@ -80,4 +80,11 @@ interface IEngineHandler {
 	 * @return array Parsed certificate data including CRL validation information
 	 */
 	public function parseCertificate(string $certificate): array;
+
+	/**
+	 * Validates the root certificate checking for expiration and revocation
+	 * Also checks if renewal is needed to maintain CRL signing capability
+	 * @throws \OCA\Libresign\Exception\LibresignException If certificate is expired or revoked
+	 */
+	public function validateRootCertificate(): void;
 }

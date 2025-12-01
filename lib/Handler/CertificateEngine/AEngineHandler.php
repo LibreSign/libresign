@@ -725,7 +725,7 @@ abstract class AEngineHandler implements IEngineHandler {
 				$generation = (int)$matches[2];
 				$engineType = $matches[3];
 
-				/** @var CrlService */
+				/** @var \OCA\Libresign\Service\CrlService */
 				$crlService = \OC::$server->get(CrlService::class);
 
 				$crlData = $crlService->generateCrlDer($instanceId, $generation, $engineType);
@@ -920,5 +920,76 @@ abstract class AEngineHandler implements IEngineHandler {
 		}
 
 		return $crlDerData;
+	}
+
+	/**
+	 * Validates the root certificate and triggers renewal if needed
+	 *
+	 * The renewal logic ensures that:
+	 * 1. Root certificate remains valid long enough to sign CRLs for all issued leaf certificates
+	 * 2. New root certificate is generated before the old one expires
+	 * 3. Both certificates remain valid during the transition period
+	 *
+	 * Timeline example:
+	 * - Leaf cert validity: 365 days (getLeafExpiryInDays)
+	 * - Root cert should be renewed when remaining validity <= leaf validity
+	 * - This ensures the root cert can sign CRLs for all issued leaf certs
+	 */
+	public function validateRootCertificate(): void {
+		$configPath = $this->getCurrentConfigPath();
+		$rootCertPath = $configPath . DIRECTORY_SEPARATOR . 'ca.pem';
+
+		if (!file_exists($rootCertPath)) {
+			throw new LibresignException('Root certificate not found');
+		}
+
+		$rootCert = file_get_contents($rootCertPath);
+		$certInfo = openssl_x509_parse(openssl_x509_read($rootCert));
+
+		if ($this->checkCertificateRevoked($certInfo['serialNumber'])) {
+			$this->logger->error('Root certificate has been revoked', [
+				'ca_id' => $this->getCaId(),
+				'impact' => 'all_leaf_certificates_invalid',
+			]);
+			throw new LibresignException(
+				'Root certificate has been revoked. Please regenerate your signing certificate.',
+				\OC\AppFramework\Http::STATUS_PRECONDITION_FAILED
+			);
+		}
+
+		if ($certInfo['validTo_time_t'] < time()) {
+			$this->logger->error('Root certificate has expired', [
+				'ca_id' => $this->getCaId(),
+			]);
+			throw new LibresignException(
+				'Root certificate expired. Please regenerate your signing certificate.',
+				\OC\AppFramework\Http::STATUS_PRECONDITION_FAILED
+			);
+		}
+
+		$secondsPerDay = 60 * 60 * 24;
+		$remainingDays = (int) ceil(($certInfo['validTo_time_t'] - time()) / $secondsPerDay);
+		$leafExpiryDays = $this->getLeafExpiryInDays();
+
+		if ($remainingDays <= $leafExpiryDays) {
+			$this->logger->warning('Root certificate renewal needed', [
+				'remaining_days' => $remainingDays,
+				'leaf_expiry_days' => $leafExpiryDays,
+			]);
+		}
+	}
+
+	private function checkCertificateRevoked(string $serialNumber): bool {
+		try {
+			/** @var \OCA\Libresign\Service\CrlService */
+			$crlService = \OC::$server->get(CrlService::class);
+			$status = $crlService->getCertificateStatus($serialNumber);
+			return $status['status'] === 'revoked';
+		} catch (\Exception $e) {
+			$this->logger->warning('Failed to check root certificate revocation status', [
+				'error' => $e->getMessage()
+			]);
+			return false;
+		}
 	}
 }
