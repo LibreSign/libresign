@@ -278,6 +278,7 @@ class CrlService {
 				'serial_number' => $entity->getSerialNumber(),
 				'owner' => $entity->getOwner(),
 				'status' => $entity->getStatus(),
+				'certificate_type' => $entity->getCertificateType(),
 				'engine' => $entity->getEngine(),
 				'instance_id' => $entity->getInstanceId(),
 				'generation' => $entity->getGeneration(),

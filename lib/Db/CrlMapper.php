@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Db;
 
 use DateTime;
+use OCA\Libresign\Enum\CertificateType;
 use OCA\Libresign\Enum\CRLReason;
 use OCA\Libresign\Enum\CRLStatus;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -61,16 +62,22 @@ class CrlMapper extends QBMapper {
 		int $generation,
 		DateTime $issuedAt,
 		?DateTime $validTo = null,
+		?array $issuer = null,
+		?array $subject = null,
+		CertificateType|string $certificateType = 'leaf',
 	): Crl {
 		$certificate = new Crl();
 		$certificate->setSerialNumber($serialNumber);
 		$certificate->setOwner($owner);
-		$certificate->setStatus(CRLStatus::ISSUED);
+		$certificate->setStatus(CRLStatus::ISSUED->value);
 		$certificate->setIssuedAt($issuedAt);
 		$certificate->setValidTo($validTo);
 		$certificate->setEngine($engine);
 		$certificate->setInstanceId($instanceId);
 		$certificate->setGeneration($generation);
+		$certificate->setIssuerFromArray($issuer);
+		$certificate->setSubjectFromArray($subject);
+		$certificate->setCertificateType($certificateType);
 
 		/** @var Crl */
 		return $this->insert($certificate);
@@ -90,7 +97,7 @@ class CrlMapper extends QBMapper {
 			throw new \InvalidArgumentException('Certificate is not in issued status');
 		}
 
-		$certificate->setStatus(CRLStatus::REVOKED);
+		$certificate->setStatus(CRLStatus::REVOKED->value);
 		$certificate->setReasonCode($reason->value);
 		$certificate->setComment($comment !== '' ? $comment : null);
 		$certificate->setRevokedBy($revokedBy);
