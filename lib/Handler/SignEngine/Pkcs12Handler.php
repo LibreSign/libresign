@@ -477,6 +477,8 @@ class Pkcs12Handler extends SignEngineHandler {
 
 	#[\Override]
 	public function sign(): File {
+		$this->beforeSign();
+
 		$signedContent = $this->getHandler()
 			->setCertificate($this->getCertificate())
 			->setInputFile($this->getInputFile())

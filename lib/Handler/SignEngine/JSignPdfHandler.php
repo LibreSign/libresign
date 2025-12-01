@@ -149,6 +149,8 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 	#[\Override]
 	public function sign(): File {
+		$this->beforeSign();
+
 		$signedContent = $this->getSignedContent();
 		$this->getInputFile()->putContent($signedContent);
 		return $this->getInputFile();
