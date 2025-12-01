@@ -90,6 +90,18 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 			if (!$crlTable->hasColumn('generation')) {
 				$crlTable->addColumn('generation', Types::INTEGER, ['notnull' => false]);
 			}
+			if (!$crlTable->hasColumn('issuer')) {
+				$crlTable->addColumn('issuer', Types::TEXT, ['notnull' => false]);
+			}
+			if (!$crlTable->hasColumn('subject')) {
+				$crlTable->addColumn('subject', Types::TEXT, ['notnull' => false]);
+			}
+			if (!$crlTable->hasColumn('certificate_type')) {
+				$crlTable->addColumn('certificate_type', Types::STRING, [
+					'length' => 20,
+					'default' => 'leaf',
+				]);
+			}
 			if ($crlTable->hasIndex('libresign_crl_serial_uk')) {
 				$crlTable->dropIndex('libresign_crl_serial_uk');
 			}
