@@ -53,8 +53,8 @@
 				<table class="crl-table">
 					<thead>
 						<tr>
-							<th class="crl-table__cell--spacer" />
-							<th class="sortable" @click="sortColumn('owner')">
+							<th class="crl-table__cell--spacer crl-table__cell--frozen-left crl-table__cell--frozen-spacer" />
+							<th class="sortable crl-table__cell--frozen-left crl-table__cell--frozen-owner" @click="sortColumn('owner')">
 								{{ t('libresign', 'Owner') }}
 								<span v-if="sortBy === 'owner'" class="sort-indicator">
 									{{ sortOrder === 'ASC' ? '▲' : '▼' }}
@@ -103,20 +103,20 @@
 									{{ sortOrder === 'ASC' ? '▲' : '▼' }}
 								</span>
 							</th>
-							<th>{{ t('libresign', 'Comment') }}</th>
-							<th>{{ t('libresign', 'Actions') }}</th>
+						<th>{{ t('libresign', 'Comment') }}</th>
+						<th class="crl-table__cell--frozen-right">{{ t('libresign', 'Actions') }}</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr v-for="(entry, index) in entries" :key="`${entry.serial_number}-${entry.issued_at}-${index}`" class="crl-table__row">
-							<td class="crl-table__cell--spacer">
+							<td class="crl-table__cell--spacer crl-table__cell--frozen-left crl-table__cell--frozen-spacer">
 								<NcAvatar v-if="entry.certificate_type === 'leaf'"
 									:user="entry.owner"
 									:size="32"
 									:display-name="entry.owner"
 									:disable-menu="true" />
 							</td>
-							<td>{{ entry.owner }}</td>
+							<td class="crl-table__cell--frozen-left crl-table__cell--frozen-owner">{{ entry.owner }}</td>
 							<td class="crl-table__cell--monospace">{{ entry.serial_number }}</td>
 							<td>
 								<span v-if="entry.certificate_type === 'root'" class="certificate-type certificate-type--root">
@@ -145,7 +145,7 @@
 								<span v-if="entry.comment" :title="entry.comment">{{ entry.comment }}</span>
 								<span v-else class="crl-table__cell--empty">-</span>
 							</td>
-							<td>
+							<td class="crl-table__cell--frozen-right">
 								<NcButton v-if="entry.status === 'issued'"
 									type="error"
 									@click="openRevokeDialog(entry)">
@@ -541,17 +541,36 @@ export default {
 }
 
 .crl-table {
+	$spacer-width: 44px;
+	$cell-padding: 12px;
+	$frozen-z-body: 2;
+	$frozen-z-head: 20;
+	$sticky-z-head: 10;
+
 	width: 100%;
 	border-collapse: collapse;
 
-	thead {
-		position: sticky;
+	@mixin frozen-separator($side) {
+		content: '';
+		position: absolute;
 		top: 0;
-		background-color: var(--color-main-background);
-		z-index: 1;
+		bottom: 0;
+		width: 1px;
+		background-color: var(--color-border);
+		@if $side == 'right' {
+			right: 0;
+		} @else {
+			left: 0;
+		}
+	}
 
+	thead {
 		th {
-			padding: 12px;
+			position: sticky;
+			top: 0;
+			background-color: var(--color-main-background);
+			z-index: $sticky-z-head;
+			padding: $cell-padding;
 			text-align: left;
 			font-weight: 600;
 			border-bottom: 2px solid var(--color-border);
@@ -572,6 +591,12 @@ export default {
 					color: var(--color-primary);
 				}
 			}
+
+			&.crl-table__cell--frozen-spacer,
+			&.crl-table__cell--frozen-owner,
+			&.crl-table__cell--frozen-right {
+				z-index: $frozen-z-head;
+			}
 		}
 	}
 
@@ -581,11 +606,16 @@ export default {
 
 			&:hover {
 				background-color: var(--color-background-hover);
+
+				.crl-table__cell--frozen-left,
+				.crl-table__cell--frozen-right {
+					background-color: var(--color-background-hover);
+				}
 			}
 		}
 
 		td {
-			padding: 12px;
+			padding: $cell-padding;
 			font-size: 14px;
 		}
 	}
@@ -607,11 +637,38 @@ export default {
 	}
 
 	&__cell--spacer {
-		width: 44px;
-		min-width: 44px;
-		max-width: 44px;
+		width: $spacer-width;
+		min-width: $spacer-width;
+		max-width: $spacer-width;
 		padding: 6px;
 		text-align: center;
+	}
+
+	&__cell--frozen-left,
+	&__cell--frozen-right {
+		position: sticky;
+		z-index: $frozen-z-body;
+		background-color: var(--color-main-background);
+	}
+
+	&__cell--frozen-left::after {
+		@include frozen-separator('right');
+	}
+
+	&__cell--frozen-right {
+		right: 0;
+
+		&::before {
+			@include frozen-separator('left');
+		}
+	}
+
+	&__cell--frozen-spacer {
+		left: 0;
+	}
+
+	&__cell--frozen-owner {
+		left: $spacer-width;
 	}
 }
 
