@@ -163,8 +163,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testSignUsingFileIdWithoutPfx():void {
-		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
+	public function testSignUsingUuidWithEmptyToken():void {
 		$user = $this->createAccount('username', 'password');
 
 		$user->setEMailAddress('person@test.coop');
@@ -190,16 +189,12 @@ final class SignFileControllerTest extends ApiTestCase {
 			])
 			->withPath('/api/v1/sign/uuid/' . $signers[0]->getUuid())
 			->withRequestBody([
-				'password' => ''
+				'method' => 'password',
+				'token' => '',
 			])
 			->assertResponseCode(422);
 
-		$response = $this->assertRequest();
-		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals(200, $body['ocs']['data']['action']);
-		$this->assertCount(1, $body['ocs']['data']['errors']);
-		$this->assertArrayHasKey(0, $body['ocs']['data']['errors']);
-		$this->assertEquals('Empty identify data.', $body['ocs']['data']['errors'][0]['message']);
+		$this->assertRequest();
 	}
 
 	/**
