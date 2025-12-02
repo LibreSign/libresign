@@ -16,6 +16,10 @@
 		<table class="libre-table is-fullwidth">
 			<thead>
 				<tr>
+					<td />
+					<td>
+						{{ t('libresign', 'Owner') }}
+					</td>
 					<td>
 						{{ t('libresign', 'Type') }}
 					</td>
@@ -29,6 +33,15 @@
 			</thead>
 			<tbody>
 				<tr v-for="(doc, index) in documentList" :key="`doc-${index}-${doc.nodeId}-${doc.file_type.key}`">
+					<td>
+						<NcAvatar :user="doc.account?.uid"
+							:display-name="doc.account?.display_name || doc.account?.uid"
+							:size="32"
+							:disable-menu="true" />
+					</td>
+					<td>
+						{{ doc.account?.display_name || doc.account?.uid || '-' }}
+					</td>
 					<td>
 						{{ doc.file_type.name }}
 					</td>
@@ -69,6 +82,7 @@ import { showError } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
 import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
+import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 
@@ -85,6 +99,7 @@ export default {
 		FileDocumentIcon,
 		NcActions,
 		NcActionButton,
+		NcAvatar,
 		NcEmptyContent,
 		NcLoadingIcon,
 		PencilIcon,
