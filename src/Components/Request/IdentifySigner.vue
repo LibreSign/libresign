@@ -109,9 +109,9 @@ export default {
 	},
 	methods: {
 		updateSigner(signer) {
-			this.signer = signer
-			this.displayName = signer.displayName ?? ''
-			this.identify = signer.id ?? ''
+			this.signer = signer ?? {}
+			this.displayName = signer?.displayName ?? ''
+			this.identify = signer?.id ?? ''
 		},
 		saveSigner() {
 			if (!this.signer?.method || !this.signer?.id) {
