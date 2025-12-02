@@ -195,15 +195,11 @@ class AccountService {
 		$info['phoneNumber'] = $this->getPhoneNumber($user);
 		$info['isApprover'] = $this->validateHelper->userCanApproveValidationDocuments($user, false);
 		$info['grid_view'] = $this->getUserConfigGridView($user);
+		$info['id_docs_filters'] = $this->getUserConfigIdDocsFilters($user);
+		$info['crl_filters'] = $this->getUserConfigCrlFilters($user);
+		$info['crl_sort'] = $this->getUserConfigCrlSort($user);
 
-		if ($user && $this->groupManager->isAdmin($user->getUID())) {
-			$info = array_filter(array_merge($info, [
-				'crl_filters' => $this->getUserConfigCrlFilters($user),
-				'crl_sort' => $this->getUserConfigCrlSort($user),
-			]));
-		}
-
-		return $info;
+		return array_filter($info);
 	}
 
 
@@ -252,8 +248,22 @@ class AccountService {
 		return $this->config->getUserValue($user->getUID(), Application::APP_ID, 'grid_view', false) === '1';
 	}
 
-	private function getUserConfigCrlFilters(?IUser $user = null): array {
+	private function getUserConfigIdDocsFilters(?IUser $user = null): array {
 		if (!$user) {
+			return [];
+		}
+
+		$value = $this->config->getUserValue($user->getUID(), Application::APP_ID, 'id_docs_filters', '');
+		if (empty($value)) {
+			return [];
+		}
+
+		$decoded = json_decode($value, true);
+		return is_array($decoded) ? $decoded : [];
+	}
+
+	private function getUserConfigCrlFilters(?IUser $user = null): array {
+		if (!$user || !$this->groupManager->isAdmin($user->getUID())) {
 			return [];
 		}
 
@@ -267,7 +277,7 @@ class AccountService {
 	}
 
 	private function getUserConfigCrlSort(?IUser $user = null): array {
-		if (!$user) {
+		if (!$user || !$this->groupManager->isAdmin($user->getUID())) {
 			return ['sortBy' => 'revoked_at', 'sortOrder' => 'DESC'];
 		}
 
