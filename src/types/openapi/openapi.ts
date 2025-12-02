@@ -700,8 +700,24 @@ export type paths = {
         put?: never;
         /** Add identification documents to user profile */
         post: operations["id_docs-add-files"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/id-docs/{nodeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
         /** Delete file from account */
-        delete: operations["id_docs-delete-file"];
+        delete: operations["id_docs-delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -3079,18 +3095,17 @@ export interface operations {
             };
         };
     };
-    "id_docs-delete-file": {
+    "id_docs-delete": {
         parameters: {
-            query: {
-                /** @description the nodeId of file to be delete */
-                nodeId: number;
-            };
+            query?: never;
             header: {
                 /** @description Required to be true for the API request to pass */
                 "OCS-APIRequest": boolean;
             };
             path: {
                 apiVersion: "v1";
+                /** @description the nodeId of file to be delete */
+                nodeId: number;
             };
             cookie?: never;
         };
