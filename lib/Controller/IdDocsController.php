@@ -143,7 +143,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 		?string $userId = null,
 		?int $signRequestId = null,
 		?int $page = null,
-		?int $length = null
+		?int $length = null,
 	): DataResponse {
 		try {
 			if ($user = $this->userSession->getUser()) {
@@ -190,7 +190,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 		?string $userId = null,
 		?int $signRequestId = null,
 		?int $page = null,
-		?int $length = null
+		?int $length = null,
 	): DataResponse {
 		try {
 			$this->validateHelper->userCanApproveValidationDocuments($this->userSession->getUser());

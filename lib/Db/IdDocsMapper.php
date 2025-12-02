@@ -259,19 +259,19 @@ class IdDocsMapper extends QBMapper {
 			$files[$key]['file']['signers'] = [];
 			foreach ($signers as $signerKey => $signer) {
 				if ($signer->getFileId() === $file['id']) {
-				$data = [
-					'description' => $signer->getDescription(),
-					'displayName' => $signer->getDisplayName(),
-					'request_sign_date' => (new \DateTime())
-						->setTimestamp($signer->getCreatedAt()->getTimestamp())
-						->format('Y-m-d H:i:s'),
-					'sign_date' => null,
-					'signRequestId' => $signer->getId(),
-				];
-				if ($signer->getSigned()) {
-					$data['sign_date'] = (new \DateTime())
-						->setTimestamp($signer->getSigned()->getTimestamp())
-						->format('Y-m-d H:i:s');
+					$data = [
+						'description' => $signer->getDescription(),
+						'displayName' => $signer->getDisplayName(),
+						'request_sign_date' => (new \DateTime())
+							->setTimestamp($signer->getCreatedAt()->getTimestamp())
+							->format('Y-m-d H:i:s'),
+						'sign_date' => null,
+						'signRequestId' => $signer->getId(),
+					];
+					if ($signer->getSigned()) {
+						$data['sign_date'] = (new \DateTime())
+							->setTimestamp($signer->getSigned()->getTimestamp())
+							->format('Y-m-d H:i:s');
 						$totalSigned++;
 					}
 					$files[$key]['file']['signers'][] = $data;
