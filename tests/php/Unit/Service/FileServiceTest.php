@@ -24,6 +24,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -59,6 +60,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected FolderService|MockObject $folderService;
 	protected ValidateHelper $validateHelper;
 	protected PdfParserService $pdfParserService;
+	protected IdDocsMapper $idDocsMapper;
 	private AccountService&MockObject $accountService;
 	private IdentifyMethodService $identifyMethodService;
 	private IUserSession $userSession;
@@ -90,6 +92,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folderService = \OCP\Server::get(FolderService::class);
 		$this->validateHelper = \OCP\Server::get(ValidateHelper::class);
 		$this->pdfParserService = \OCP\Server::get(PdfParserService::class);
+		$this->idDocsMapper = \OCP\Server::get(IdDocsMapper::class);
 		$this->accountService = $this->createMock(AccountService::class);
 		$this->identifyMethodService = \OCP\Server::get(IdentifyMethodService::class);
 		$this->userSession = \OCP\Server::get(IUserSession::class);
@@ -112,6 +115,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->folderService,
 			$this->validateHelper,
 			$this->pdfParserService,
+			$this->idDocsMapper,
 			$this->accountService,
 			$this->identifyMethodService,
 			$this->userSession,

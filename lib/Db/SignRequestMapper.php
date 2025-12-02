@@ -481,7 +481,8 @@ class SignRequestMapper extends QBMapper {
 		$qb = $this->db->getQueryBuilder();
 		$qb->from('libresign_file', 'f')
 			->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id')
-			->leftJoin('f', 'libresign_identify_method', 'im', $qb->expr()->eq('sr.id', 'im.sign_request_id'));
+			->leftJoin('f', 'libresign_identify_method', 'im', $qb->expr()->eq('sr.id', 'im.sign_request_id'))
+			->leftJoin('f', 'libresign_id_docs', 'id', 'id.file_id = f.id');
 		if ($count) {
 			$qb->select($qb->func()->count())
 				->setFirstResult(0)
@@ -526,7 +527,7 @@ class SignRequestMapper extends QBMapper {
 				$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($userId))
 			)
 		];
-		$qb->where($qb->expr()->orX(...$or));
+		$qb->where($qb->expr()->orX(...$or))->andWhere($qb->expr()->isNull('id.id'));
 		if ($filter) {
 			if (isset($filter['email']) && filter_var($filter['email'], FILTER_VALIDATE_EMAIL)) {
 				$or[] = $qb->expr()->andX(
