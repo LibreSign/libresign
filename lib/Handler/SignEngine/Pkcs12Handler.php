@@ -70,8 +70,17 @@ class Pkcs12Handler extends SignEngineHandler {
 			rewind($resource);
 
 			$signature = stream_get_contents($resource, $signatureLength, $signatureStart);
+			if ($signature === false) {
+				yield null;
+				continue;
+			}
 
-			yield hex2bin($signature);
+			$decodedSignature = @hex2bin($signature);
+			if ($decodedSignature === false) {
+				yield null;
+				continue;
+			}
+			yield $decodedSignature;
 		}
 
 		$this->tempManager->clean();
