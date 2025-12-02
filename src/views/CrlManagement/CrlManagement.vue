@@ -202,6 +202,35 @@
 			</div>
 		</div>
 
+		<NcDialog v-if="caWarningDialog.open"
+			:name="t('libresign', 'Warning: Certificate Authority')"
+			@update:open="closeCaWarningDialog">
+			<div class="ca-warning-dialog">
+				<NcNoteCard type="error">
+					{{ t('libresign', 'You are about to revoke a {type} CERTIFICATE AUTHORITY. This is a critical operation that may invalidate certificates issued by this CA.', { type: caWarningDialog.typeLabel }) }}
+				</NcNoteCard>
+
+				<div class="ca-warning-dialog__info">
+					<p><strong>{{ t('libresign', 'Serial Number:') }}</strong> {{ caWarningDialog.entry?.serial_number }}</p>
+					<p><strong>{{ t('libresign', 'Owner:') }}</strong> {{ caWarningDialog.entry?.owner }}</p>
+					<p><strong>{{ t('libresign', 'Type:') }}</strong> {{ getCertificateTypeLabel(caWarningDialog.entry?.certificate_type) }}</p>
+				</div>
+
+				<p class="ca-warning-dialog__question">
+					{{ t('libresign', 'Are you absolutely sure you want to proceed?') }}
+				</p>
+
+				<div class="ca-warning-dialog__actions">
+					<NcButton @click="closeCaWarningDialog">
+						{{ t('libresign', 'Cancel') }}
+					</NcButton>
+					<NcButton type="error" @click="proceedToRevokeDialog">
+						{{ t('libresign', 'Yes, revoke CA') }}
+					</NcButton>
+				</div>
+			</div>
+		</NcDialog>
+
 		<!-- Revoke Certificate Dialog -->
 		<NcDialog v-if="revokeDialog.open"
 			:name="t('libresign', 'Revoke Certificate')"
@@ -326,6 +355,11 @@ export default {
 			},
 			sortBy: 'revoked_at',
 			sortOrder: 'DESC',
+			caWarningDialog: {
+				open: false,
+				entry: null,
+				typeLabel: '',
+			},
 			revokeDialog: {
 				open: false,
 				entry: null,
@@ -508,16 +542,26 @@ export default {
 			this.loadEntries()
 		},
 		openRevokeDialog(entry) {
-			// If it's a CA certificate (root or intermediate), require extra confirmation
 			if (entry.certificate_type === 'root' || entry.certificate_type === 'intermediate') {
-				const typeLabel = entry.certificate_type === 'root' ? 'ROOT' : 'INTERMEDIATE'
-				const confirmed = confirm(
-					this.t('libresign', 'You are about to revoke a {type} CERTIFICATE AUTHORITY. This is a critical operation that may invalidate certificates issued by this CA. Are you absolutely sure you want to proceed?', { type: typeLabel })
-				)
-				if (!confirmed) {
-					return
-				}
+				this.caWarningDialog.open = true
+				this.caWarningDialog.entry = entry
+				this.caWarningDialog.typeLabel = entry.certificate_type === 'root' ? 'ROOT' : 'INTERMEDIATE'
+				return
 			}
+
+			this.revokeDialog.open = true
+			this.revokeDialog.entry = entry
+			this.revokeDialog.reasonCode = this.reasonCodeOptions[0]
+			this.revokeDialog.reasonText = ''
+		},
+		closeCaWarningDialog() {
+			this.caWarningDialog.open = false
+			this.caWarningDialog.entry = null
+			this.caWarningDialog.typeLabel = ''
+		},
+		proceedToRevokeDialog() {
+			const entry = this.caWarningDialog.entry
+			this.closeCaWarningDialog()
 
 			this.revokeDialog.open = true
 			this.revokeDialog.entry = entry
@@ -820,6 +864,38 @@ export default {
 	display: flex;
 	align-items: center;
 	gap: 8px;
+}
+
+.ca-warning-dialog {
+	padding: 20px;
+
+	&__info {
+		margin: 20px 0;
+		padding: 12px;
+		background-color: var(--color-background-dark);
+		border-radius: var(--border-radius);
+
+		p {
+			margin: 8px 0;
+		}
+	}
+
+	&__question {
+		margin: 20px 0;
+		padding: 12px;
+		font-weight: bold;
+		text-align: center;
+		background-color: var(--color-error-hover);
+		border-left: 4px solid var(--color-error);
+		border-radius: var(--border-radius);
+	}
+
+	&__actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 8px;
+		margin-top: 20px;
+	}
 }
 
 .revoke-dialog {
