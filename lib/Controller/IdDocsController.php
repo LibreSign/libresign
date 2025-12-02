@@ -29,6 +29,8 @@ use Psr\Log\LoggerInterface;
 
 /**
  * @psalm-import-type LibresignIdDocs from ResponseDefinitions
+ * @psalm-import-type LibresignPagination from ResponseDefinitions
+ * @psalm-import-type LibresignFile from ResponseDefinitions
  */
 class IdDocsController extends AEnvironmentAwareController implements ISignatureUuid {
 	use LibresignTrait;
@@ -123,7 +125,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	/**
 	 * List files of unauthenticated account
 	 *
-	 * @param string $filter Filter params as JSON string
+	 * @param array<string, mixed> $filter Filter params
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
 	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: LibresignFile[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
@@ -141,7 +143,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 			if ($user = $this->userSession->getUser()) {
 				$filter['userId'] = $user->getUID();
 			} elseif ($signRequest = $this->getSignRequestEntity()) {
-				$filter['singRequestId'] = $signRequest->getId();
+				$filter['signRequestId'] = $signRequest->getId();
 			} else {
 				throw new Exception('Invalid data');
 			}
@@ -161,7 +163,7 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	/**
 	 * List files that need to be approved
 	 *
-	 * @param string $filter Filter params as JSON string
+	 * @param array<string, mixed> $filter Filter params
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
 	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
