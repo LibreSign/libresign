@@ -17,6 +17,7 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
@@ -74,6 +75,7 @@ class FileService {
 		protected FolderService $folderService,
 		protected ValidateHelper $validateHelper,
 		protected PdfParserService $pdfParserService,
+		private IdDocsMapper $idDocsMapper,
 		private AccountService $accountService,
 		private IdentifyMethodService $identifyMethodService,
 		private IUserSession $userSession,
@@ -902,6 +904,7 @@ class FileService {
 		foreach ($list as $signRequest) {
 			$this->signRequestMapper->delete($signRequest);
 		}
+		$this->idDocsMapper->deleteByFileId($file->getId());
 		$this->fileMapper->delete($file);
 		if ($file->getSignedNodeId()) {
 			$signedNextcloudFile = $this->folderService->getFileById($file->getSignedNodeId());
