@@ -69,7 +69,7 @@
 								</template>
 								{{ t('libresign', 'View') }}
 							</NcActionButton>
-							<NcActionButton v-if="doc.status !== 4" @click="openApprove(doc)">
+							<NcActionButton v-if="doc.file?.status !== 3" @click="openApprove(doc)">
 								<template #icon>
 									<PencilIcon :size="20" />
 								</template>
