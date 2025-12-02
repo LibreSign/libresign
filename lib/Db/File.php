@@ -22,7 +22,7 @@ use OCP\DB\Types;
  * @method ?string getSignedHash()
  * @method void setUserId(string $userId)
  * @method ?string getUserId()
- * @method void setSignRequestId(string $signRequestId)
+ * @method void setSignRequestId(int $signRequestId)
  * @method ?int getSignRequestId()
  * @method void setUuid(string $uuid)
  * @method string getUuid()
