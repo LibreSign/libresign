@@ -9,11 +9,11 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Helper;
 
 use OC\User\NoUserException;
-use OCA\Libresign\Db\IdDocs;
-use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
+use OCA\Libresign\Db\IdDocs;
+use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
