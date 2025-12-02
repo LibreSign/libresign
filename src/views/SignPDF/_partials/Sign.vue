@@ -334,7 +334,7 @@ export default {
 			}
 			let url = ''
 			if (this.signStore.document.fileId > 0) {
-				url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{nodeId}', { fileId: this.signStore.document.nodeId })
+				url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{nodeId}', { nodeId: this.signStore.document.nodeId })
 			} else {
 				url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: this.signRequestUuid })
 			}
