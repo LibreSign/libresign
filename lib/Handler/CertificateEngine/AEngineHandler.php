@@ -1037,7 +1037,7 @@ abstract class AEngineHandler implements IEngineHandler {
 				'impact' => 'all_leaf_certificates_invalid',
 			]);
 			throw new LibresignException(
-				'Root certificate has been revoked. Please regenerate your signing certificate.',
+				'Root certificate has been revoked. Please contact the administrator to regenerate the signing certificate.',
 				\OC\AppFramework\Http::STATUS_PRECONDITION_FAILED
 			);
 		}
@@ -1047,7 +1047,7 @@ abstract class AEngineHandler implements IEngineHandler {
 				'ca_id' => $this->getCaId(),
 			]);
 			throw new LibresignException(
-				'Root certificate expired. Please regenerate your signing certificate.',
+				'Root certificate has expired. Please contact the administrator to regenerate the signing certificate.',
 				\OC\AppFramework\Http::STATUS_PRECONDITION_FAILED
 			);
 		}

@@ -136,6 +136,8 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 				->setUID($user['uid'])
 				->setPassword($signPassword)
 				->generateCertificate();
+		} catch (LibresignException $e) {
+			throw $e;
 		} catch (EmptyCertificateException) {
 			throw new LibresignException($this->l10n->t('Empty root certificate data'));
 		} catch (InvalidArgumentException) {
