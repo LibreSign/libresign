@@ -32,17 +32,29 @@
 					</td>
 					<td class="actions">
 						<template v-if="doc.status === -1">
-							<button @click="toggleFilePicker(doc.file_type.key)">
-								<div class="icon-folder" />
-							</button>
-							<button @click="inputFile(doc.file_type.key)">
-								<div class="icon-upload" />
-							</button>
+							<NcButton type="secondary"
+								:aria-label="t('libresign', 'Choose from Files')"
+								@click="toggleFilePicker(doc.file_type.key)">
+								<template #icon>
+									<FolderIcon :size="20" />
+								</template>
+							</NcButton>
+							<NcButton type="secondary"
+								:aria-label="t('libresign', 'Upload file')"
+								@click="inputFile(doc.file_type.key)">
+								<template #icon>
+									<UploadIcon :size="20" />
+								</template>
+							</NcButton>
 						</template>
 						<template v-else>
-							<button @click="deleteFile(doc)">
-								<div class="icon-delete" />
-							</button>
+							<NcButton type="error"
+								:aria-label="t('libresign', 'Delete file')"
+								@click="deleteFile(doc)">
+								<template #icon>
+									<DeleteIcon :size="20" />
+								</template>
+							</NcButton>
 						</template>
 					</td>
 				</tr>
@@ -63,6 +75,11 @@ import { showError, showWarning, showSuccess } from '@nextcloud/dialogs'
 import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+
+import DeleteIcon from 'vue-material-design-icons/Delete.vue'
+import FolderIcon from 'vue-material-design-icons/Folder.vue'
+import UploadIcon from 'vue-material-design-icons/Upload.vue'
 
 import ProgressBar from '../../../Components/ProgressBar.vue'
 
@@ -97,8 +114,12 @@ const loadFileToBase64 = file => {
 export default {
 	name: 'Documents',
 	components: {
+		DeleteIcon,
 		FilePicker,
+		FolderIcon,
+		NcButton,
 		ProgressBar,
+		UploadIcon,
 	},
 	props: {
 		signRequestUuid: {
@@ -264,10 +285,9 @@ export default {
 		display: block;
 	}
 
-	td.actions button {
-		padding: 3px 8px;
-		margin-top: 0;
-		margin-bottom: 0;
+	td.actions {
+		display: flex;
+		gap: 4px;
 	}
 }
 </style>
