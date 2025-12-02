@@ -10,15 +10,14 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use OC\AppFramework\Utility\TimeFactory;
 use OC\Http\Client\ClientService;
-use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
+use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
-use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
@@ -31,7 +30,6 @@ use OCA\Libresign\Service\SignFileService;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
 use OCP\Files\Config\IMountProviderCollection;
-use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\IAppConfig;
@@ -248,8 +246,8 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$signRequest = $this->createMock(SignRequest::class);
 					$signRequest
 						->method('__call')
-						->willReturnCallback(fn (string $method) =>
-							match ($method) {
+						->willReturnCallback(fn (string $method)
+							=> match ($method) {
 								'getEmail' => 'valid@test.coop',
 								'getFileId' => 171,
 								'getUserId' => 'username',
@@ -346,8 +344,8 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signRequest = $this->createMock(\OCA\Libresign\Db\SignRequest::class);
 		$signRequest
 			->method('__call')
-			->willReturnCallback(fn (string $method) =>
-				match ($method) {
+			->willReturnCallback(fn (string $method)
+				=> match ($method) {
 					'getDisplayName' => 'John Doe',
 					'getId' => 1,
 				}
