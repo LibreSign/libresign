@@ -15,6 +15,7 @@ use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
+use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElement;
@@ -67,6 +68,7 @@ class AccountService {
 		private IMountProviderCollection $mountProviderCollection,
 		private NewUserMailHelper $newUserMail,
 		private IdentifyMethodService $identifyMethodService,
+		private IdentifyMethodMapper $identifyMethodMapper,
 		private ValidateHelper $validateHelper,
 		private IURLGenerator $urlGenerator,
 		private Pkcs12Handler $pkcs12Handler,
@@ -186,17 +188,7 @@ class AccountService {
 		$newUser->setDisplayName($signRequest->getDisplayName());
 		$newUser->setSystemEMailAddress($email);
 
-		// @todo implement this logic, the follow code is complex and dont work
-		// $identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
-		// foreach ($identifyMethods as $name => $identifyMethod) {
-		// 	if ($name === IdentifyMethodService::IDENTIFY_ACCOUNT) {
-		// 		$entity = $identifyMethod->getEntity();
-		// 		if ($entity->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
-		// 			$identifyMethod->getEntity()->setIdentifierValue($newUser->getUID());
-		// 			$this->identifyMethodService->save($signRequest, false);
-		// 		}
-		// 	}
-		// }
+		$this->updateIdentifyMethodToAccount($signRequest->getId(), $email, $newUser->getUID());
 
 		if ($this->config->getAppValue('core', 'newUser.sendEmail', 'yes') === 'yes') {
 			try {
@@ -246,6 +238,22 @@ class AccountService {
 	}
 
 
+
+	private function updateIdentifyMethodToAccount(int $signRequestId, string $email, string $uid): void {
+		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequestId);
+		foreach ($identifyMethods as $name => $methods) {
+			if ($name === IdentifyMethodService::IDENTIFY_EMAIL) {
+				foreach ($methods as $identifyMethod) {
+					$entity = $identifyMethod->getEntity();
+					if ($entity->getIdentifierValue() === $email) {
+						$entity->setIdentifierKey(IdentifyMethodService::IDENTIFY_ACCOUNT);
+						$entity->setIdentifierValue($uid);
+						$this->identifyMethodMapper->update($entity);
+					}
+				}
+			}
+		}
+	}
 
 	private function getPhoneNumber(?IUser $user): string {
 		if (!$user) {
