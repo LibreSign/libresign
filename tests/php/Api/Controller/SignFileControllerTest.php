@@ -9,10 +9,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Api\Controller;
 
 use DateTime;
-use donatj\MockWebServer\Response;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Tests\Api\ApiTestCase;
-use OCA\Libresign\Vendor\Jeidison\JSignPDF\JSignPDF;
 
 /**
  * @group DB
