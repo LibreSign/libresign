@@ -225,6 +225,31 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		fclose($invalidResource);
 	}
 
+	public function testGetCertificateChainWithCorruptedSignature(): void {
+		$handler = $this->getHandler();
+
+		$corruptedPdf = "%PDF-1.4\n"
+			. "1 0 obj<</Type/Sig/ByteRange [0 10 50 10]>>endobj\n"
+			. "ZZZZZZZZ\n" // Invalid hex data - will cause hex2bin to fail
+			. str_repeat('x', 100);
+
+		$resource = fopen('php://memory', 'r+');
+		fwrite($resource, $corruptedPdf);
+		rewind($resource);
+
+		$result = $handler->getCertificateChain($resource);
+
+		$this->assertIsArray($result);
+		$this->assertCount(1, $result);
+		$this->assertArrayHasKey('chain', $result[0]);
+		$this->assertArrayHasKey('signature_validation', $result[0]['chain'][0]);
+		$this->assertIsArray($result[0]['chain'][0]['signature_validation']);
+		$this->assertEquals(3, $result[0]['chain'][0]['signature_validation']['id']); // Digest Mismatch
+		$this->assertStringContainsString('Digest mismatch', $result[0]['chain'][0]['signature_validation']['label']);
+
+		fclose($resource);
+	}
+
 	public function testRealWorldUsagePattern(): void {
 		$handler = $this->getHandler();
 
