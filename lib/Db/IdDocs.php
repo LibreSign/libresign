@@ -23,10 +23,10 @@ use OCP\AppFramework\Db\Entity;
  * @method string getFileType()
  */
 class IdDocs extends Entity {
-	protected int $fileId;
+	protected int $fileId = 0;
 	protected ?int $signRequestId = null;
 	protected ?string $userId = null;
-	protected string $fileType;
+	protected string $fileType = '';
 
 	public function __construct() {
 		$this->addType('id', 'integer');
