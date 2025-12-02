@@ -159,32 +159,22 @@ class IdDocsMapper extends QBMapper {
 		$qb
 			->from($this->getTableName(), 'id')
 			->join('id', 'libresign_file', 'f', 'f.id = id.file_id');
-		if (!empty($filter['signRequestId'])) {
-			if (!$count) {
-				$qb->addSelect('im.identifier_key')
-					->addSelect('im.identifier_value')
-					->addGroupBy('im.identifier_key')
-					->addGroupBy('im.identifier_value');
-			}
-			$qb
-				->join('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id')
-				->join('sr', 'libresign_identify_method', 'im', 'im.sign_request_id = sr.id')
-				->where(
-					$qb->expr()->eq('sr.id', $qb->createNamedParameter($filter['signRequestId'])),
-				);
-		}
-		if (!empty($filter['userId'])) {
+
+		if (!$count || !empty($filter['userId'])) {
 			if (!$count) {
 				$qb->selectAlias('u.uid_lower', 'account_uid')
 					->selectAlias('u.displayname', 'account_displayname')
 					->addGroupBy('u.uid_lower')
 					->addGroupBy('u.displayname');
 			}
-			$qb
-				->join('id', 'users', 'u', 'id.user_id = u.uid')
-				->where(
-					$qb->expr()->eq('id.user_id', $qb->createNamedParameter($filter['userId'])),
-				);
+			$joinType = !empty($filter['userId']) ? 'join' : 'leftJoin';
+			$qb->$joinType('id', 'users', 'u', 'id.user_id = u.uid');
+		}
+
+		if (!empty($filter['userId'])) {
+			$qb->where(
+				$qb->expr()->eq('id.user_id', $qb->createNamedParameter($filter['userId'])),
+			);
 		}
 		if (!empty($filter['approved'])) {
 			if ($filter['approved'] === 'yes') {
