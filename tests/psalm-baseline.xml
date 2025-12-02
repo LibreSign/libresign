@@ -122,11 +122,6 @@
       <code><![CDATA[$this->connection->getDatabasePlatform()]]></code>
     </UndefinedDocblockClass>
   </file>
-  <file src="lib/Migration/Version8000Date20231103003922.php">
-    <UndefinedDocblockClass>
-      <code><![CDATA[$schema->dropTable('libresign_file_user')]]></code>
-    </UndefinedDocblockClass>
-  </file>
   <file src="lib/Migration/Version8000Date20240405142042.php">
     <UndefinedClass>
       <code><![CDATA[JsonType]]></code>

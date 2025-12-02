@@ -64,6 +64,7 @@ class Version8000Date20231103003922 extends SimpleMigrationStep {
 		}
 
 		if ($schema->hasTable('libresign_file_user')) {
+			/** @psalm-suppress UndefinedDocblockClass */
 			$schema->dropTable('libresign_file_user');
 		}
 
