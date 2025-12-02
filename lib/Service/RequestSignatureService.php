@@ -60,7 +60,7 @@ class RequestSignatureService {
 	/**
 	 * Save file data
 	 *
-	 * @param array{userManager: IUser, name: string, callback: string, uuid?: ?string, status: int, file?: array{fileId?: int, fileNode?: Node}} $data
+	 * @param array{?userManager: IUser, ?signRequest: SignRequest, name: string, callback: string, uuid?: ?string, status: int, file?: array{fileId?: int, fileNode?: Node}} $data
 	 */
 	public function saveFile(array $data): FileEntity {
 		if (!empty($data['uuid'])) {
@@ -85,7 +85,11 @@ class RequestSignatureService {
 
 		$file = new FileEntity();
 		$file->setNodeId($node->getId());
-		$file->setUserId($data['userManager']->getUID());
+		if ($data['userManager'] instanceof IUser) {
+			$file->setUserId($data['userManager']->getUID());
+		} elseif ($data['signRequest'] instanceof SignRequestEntity) {
+			$file->setSignRequestId($data['signRequest']->getId());
+		}
 		$file->setUuid(UUIDUtil::getUUID());
 		$file->setCreatedAt(new \DateTime('now', new \DateTimeZone('UTC')));
 		$file->setName($data['name']);

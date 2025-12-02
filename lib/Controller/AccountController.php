@@ -12,13 +12,11 @@ use InvalidArgumentException;
 use OC\Authentication\Login\Chain;
 use OC\Authentication\Login\LoginData;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\ResponseDefinitions;
-use OCA\Libresign\Service\AccountFileService;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -40,7 +38,6 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
- * @psalm-import-type LibresignAccountFile from ResponseDefinitions
  * @psalm-import-type LibresignCertificatePfxData from ResponseDefinitions
  * @psalm-import-type LibresignFile from ResponseDefinitions
  * @psalm-import-type LibresignPagination from ResponseDefinitions
@@ -52,8 +49,6 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		protected IL10N $l10n,
 		private IAccountManager $accountManager,
 		private AccountService $accountService,
-		private AccountFileService $accountFileService,
-		private AccountFileMapper $accountFileMapper,
 		protected SignFileService $signFileService,
 		private SignerElementsService $signerElementsService,
 		private Pkcs12Handler $pkcs12Handler,
@@ -188,73 +183,6 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	}
 
 	/**
-	 * Add files to account profile
-	 *
-	 * @param LibresignAccountFile[] $files The list of files to add to profile
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{file: ?int, type: 'info'|'warning'|'danger', message: string}, array{}>
-	 *
-	 * 200: Certificate saved with success
-	 * 401: No file provided or other problem with provided file
-	 */
-	#[NoAdminRequired]
-	#[NoCSRFRequired]
-	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/account/files', requirements: ['apiVersion' => '(v1)'])]
-	public function addFiles(array $files): DataResponse {
-		try {
-			$this->accountService->addFilesToAccount($files, $this->userSession->getUser());
-			return new DataResponse([], Http::STATUS_OK);
-		} catch (\Exception $exception) {
-			$exceptionData = json_decode($exception->getMessage());
-			if (isset($exceptionData->file)) {
-				$message = [
-					'file' => $exceptionData->file,
-					'type' => $exceptionData->type,
-					'message' => $exceptionData->message
-				];
-			} else {
-				$message = [
-					'file' => null,
-					'type' => null,
-					'message' => $exception->getMessage()
-				];
-			}
-			return new DataResponse(
-				$message,
-				Http::STATUS_UNAUTHORIZED
-			);
-		}
-	}
-
-	/**
-	 * Delete file from account
-	 *
-	 * @param int $nodeId the nodeId of file to be delete
-	 *
-	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{messages: string[]}, array{}>
-	 *
-	 * 200: File deleted with success
-	 * 401: Failure to delete file from account
-	 */
-	#[NoAdminRequired]
-	#[NoCSRFRequired]
-	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/account/files', requirements: ['apiVersion' => '(v1)'])]
-	public function deleteFile(int $nodeId): DataResponse {
-		try {
-			$this->accountService->deleteFileFromAccount($nodeId, $this->userSession->getUser());
-			return new DataResponse([], Http::STATUS_OK);
-		} catch (\Exception $exception) {
-			return new DataResponse(
-				[
-					'messages' => [
-						$exception->getMessage(),
-					],
-				],
-				Http::STATUS_UNAUTHORIZED,
-			);
-		}
-	}
-
-	/**
 	 * Who am I
 	 *
 	 * Validates API access data and returns the authenticated user's data.
@@ -291,64 +219,6 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 			],
 			Http::STATUS_OK
 		);
-	}
-
-	/**
-	 * List account files of authenticated account
-	 *
-	 * @param array{approved?: 'yes'}|null $filter Filter params
-	 * @param int|null $page the number of page to return
-	 * @param int|null $length Total of elements to return
-	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: LibresignFile[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
-	 *
-	 * 200: Certificate saved with success
-	 * 404: No file provided or other problem with provided file
-	 */
-	#[NoAdminRequired]
-	#[NoCSRFRequired]
-	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/account/files', requirements: ['apiVersion' => '(v1)'])]
-	public function accountFileListToOwner(array $filter = [], ?int $page = null, ?int $length = null): DataResponse {
-		try {
-			$filter['userId'] = $this->userSession->getUser()->getUID();
-			$return = $this->accountFileService->accountFileList($filter, $page, $length);
-			return new DataResponse($return, Http::STATUS_OK);
-		} catch (\Throwable $th) {
-			return new DataResponse(
-				[
-					'message' => $th->getMessage()
-				],
-				Http::STATUS_NOT_FOUND
-			);
-		}
-	}
-
-	/**
-	 * List account files that need to be approved
-	 *
-	 * @param array{approved?: 'yes'}|null $filter Filter params
-	 * @param int|null $page the number of page to return
-	 * @param int|null $length Total of elements to return
-	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
-	 *
-	 * 200: OK
-	 * 404: Account not found
-	 */
-	#[NoAdminRequired]
-	#[NoCSRFRequired]
-	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/account/files/approval/list', requirements: ['apiVersion' => '(v1)'])]
-	public function accountFileListToApproval(array $filter = [], ?int $page = null, ?int $length = null): DataResponse {
-		try {
-			$this->validateHelper->userCanApproveValidationDocuments($this->userSession->getUser());
-			$return = $this->accountFileService->accountFileList($filter, $page, $length);
-			return new DataResponse($return, Http::STATUS_OK);
-		} catch (\Throwable $th) {
-			return new DataResponse(
-				[
-					'message' => $th->getMessage()
-				],
-				Http::STATUS_NOT_FOUND
-			);
-		}
 	}
 
 	/**

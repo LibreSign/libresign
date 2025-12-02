@@ -11,7 +11,6 @@ namespace OCA\Libresign\Service;
 use InvalidArgumentException;
 use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
@@ -59,7 +58,6 @@ class AccountService {
 		private IMimeTypeDetector $mimeTypeDetector,
 		private FileMapper $fileMapper,
 		private FileTypeMapper $fileTypeMapper,
-		private AccountFileMapper $accountFileMapper,
 		private SignFileService $signFileService,
 		private RequestSignatureService $requestSignatureService,
 		private CertificateEngineFactory $certificateEngineFactory,
@@ -73,7 +71,7 @@ class AccountService {
 		private IURLGenerator $urlGenerator,
 		private Pkcs12Handler $pkcs12Handler,
 		private IGroupManager $groupManager,
-		private AccountFileService $accountFileService,
+		private IdDocsService $idDocsService,
 		private SignerElementsService $signerElementsService,
 		private UserElementMapper $userElementMapper,
 		private FolderService $folderService,
@@ -139,35 +137,6 @@ class AccountService {
 		}
 		if (empty($data['signPassword'])) {
 			throw new LibresignException($this->l10n->t('Password to sign is mandatory'), 1);
-		}
-	}
-
-	public function validateAccountFiles(array $files, IUser $user): void {
-		foreach ($files as $fileIndex => $file) {
-			$this->validateAccountFile($fileIndex, $file, $user);
-		}
-	}
-
-	private function validateAccountFile(int $fileIndex, array $file, IUser $user): void {
-		$profileFileTypes = $this->fileTypeMapper->getTypes();
-		if (!array_key_exists($file['type'], $profileFileTypes)) {
-			throw new LibresignException(json_encode([
-				'type' => 'danger',
-				'file' => $fileIndex,
-				'message' => $this->l10n->t('Invalid file type.')
-			]));
-		}
-
-		try {
-			$this->validateHelper->validateFileTypeExists($file['type']);
-			$this->validateHelper->validateNewFile($file, ValidateHelper::TYPE_ACCOUNT_DOCUMENT, $user);
-			$this->validateHelper->validateUserHasNoFileWithThisType($user->getUID(), $file['type']);
-		} catch (\Exception $e) {
-			throw new LibresignException(json_encode([
-				'type' => 'danger',
-				'file' => $fileIndex,
-				'message' => $e->getMessage()
-			]));
 		}
 	}
 
@@ -363,21 +332,11 @@ class AccountService {
 	}
 
 	public function addFilesToAccount(array $files, IUser $user): void {
-		$this->validateAccountFiles($files, $user);
-		foreach ($files as $fileData) {
-			$dataToSave = $fileData;
-			$dataToSave['userManager'] = $user;
-			$dataToSave['name'] = $fileData['name'] ?? $fileData['type'];
-			$file = $this->requestSignatureService->saveFile($dataToSave);
-
-			$this->accountFileService->addFile($file, $user, $fileData['type']);
-		}
+		$this->idDocsService->addIdDocs($files, $user);
 	}
 
 	public function deleteFileFromAccount(int $nodeId, IUser $user): void {
-		$this->validateHelper->validateAccountFileIsOwnedByUser($nodeId, $user->getUID());
-		$accountFile = $this->accountFileMapper->getByUserIdAndNodeId($user->getUID(), $nodeId);
-		$this->accountFileService->deleteFile($accountFile->getFileId(), $user->getUID());
+		$this->idDocsService->deleteIdDoc($nodeId, $user);
 	}
 
 	public function saveVisibleElements(array $elements, string $sessionId, ?IUser $user): void {
