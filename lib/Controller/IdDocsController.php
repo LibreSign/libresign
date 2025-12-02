@@ -125,7 +125,8 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	/**
 	 * List files of unauthenticated account
 	 *
-	 * @param array<string, mixed> $filter Filter params
+	 * @param string|null $userId User ID to filter by
+	 * @param int|null $signRequestId Sign request ID to filter by
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
 	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: LibresignFile[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
@@ -138,15 +139,25 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/id-docs', requirements: ['apiVersion' => '(v1)'])]
-	public function listOfUnauthenticatedSigner(array $filter = [], ?int $page = null, ?int $length = null): DataResponse {
+	public function listOfUnauthenticatedSigner(
+		?string $userId = null,
+		?int $signRequestId = null,
+		?int $page = null,
+		?int $length = null
+	): DataResponse {
 		try {
 			if ($user = $this->userSession->getUser()) {
-				$filter['userId'] = $user->getUID();
+				$userId = $user->getUID();
 			} elseif ($signRequest = $this->getSignRequestEntity()) {
-				$filter['signRequestId'] = $signRequest->getId();
-			} else {
+				$signRequestId = $signRequest->getId();
+			} elseif (!$userId && !$signRequestId) {
 				throw new Exception('Invalid data');
 			}
+
+			$filter = array_filter([
+				'userId' => $userId,
+				'signRequestId' => $signRequestId,
+			], static fn ($var) => $var !== null);
 
 			$return = $this->idDocsService->list($filter, $page, $length);
 			return new DataResponse($return, Http::STATUS_OK);
@@ -163,7 +174,8 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	/**
 	 * List files that need to be approved
 	 *
-	 * @param array<string, mixed> $filter Filter params
+	 * @param string|null $userId User ID to filter by
+	 * @param int|null $signRequestId Sign request ID to filter by
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
 	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
@@ -174,9 +186,18 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/id-docs/approval/list', requirements: ['apiVersion' => '(v1)'])]
-	public function listToApproval(array $filter = [], ?int $page = null, ?int $length = null): DataResponse {
+	public function listToApproval(
+		?string $userId = null,
+		?int $signRequestId = null,
+		?int $page = null,
+		?int $length = null
+	): DataResponse {
 		try {
 			$this->validateHelper->userCanApproveValidationDocuments($this->userSession->getUser());
+			$filter = array_filter([
+				'userId' => $userId,
+				'signRequestId' => $signRequestId,
+			], static fn ($var) => $var !== null);
 			$return = $this->idDocsService->list($filter, $page, $length);
 			return new DataResponse($return, Http::STATUS_OK);
 		} catch (\Throwable $th) {
