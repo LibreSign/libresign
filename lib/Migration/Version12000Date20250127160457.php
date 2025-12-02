@@ -67,14 +67,14 @@ class Version12000Date20250127160457 extends SimpleMigrationStep {
 	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		if ($this->db->tableExists('libresign_account_file')) {
 			$output->info('Migrating data from libresign_account_file to libresign_id_docs');
-			
+
 			$qbSelect = $this->db->getQueryBuilder();
 			$qbSelect->select('user_id', 'file_id', 'file_type')
 				->from('libresign_account_file');
-			
+
 			$result = $qbSelect->executeQuery();
 			$migratedCount = 0;
-			
+
 			while ($row = $result->fetch()) {
 				$qbInsert = $this->db->getQueryBuilder();
 				$qbInsert->insert('libresign_id_docs')
@@ -84,7 +84,7 @@ class Version12000Date20250127160457 extends SimpleMigrationStep {
 						'file_type' => $qbInsert->createNamedParameter($row['file_type']),
 						'sign_request_id' => $qbInsert->createNamedParameter(null, IQueryBuilder::PARAM_NULL),
 					]);
-				
+
 				try {
 					$qbInsert->executeStatement();
 					$migratedCount++;
@@ -93,7 +93,7 @@ class Version12000Date20250127160457 extends SimpleMigrationStep {
 				}
 			}
 			$result->closeCursor();
-			
+
 			$output->info("Migrated $migratedCount records from libresign_account_file to libresign_id_docs");
 		}
 	}
