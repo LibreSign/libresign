@@ -188,20 +188,7 @@ class AccountService {
 		$newUser->setDisplayName($signRequest->getDisplayName());
 		$newUser->setSystemEMailAddress($email);
 
-		// Update identify method from email to account after user creation
-		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
-		foreach ($identifyMethods as $name => $methods) {
-			if ($name === IdentifyMethodService::IDENTIFY_EMAIL) {
-				foreach ($methods as $identifyMethod) {
-					$entity = $identifyMethod->getEntity();
-					if ($entity->getIdentifierValue() === $email) {
-						$entity->setIdentifierKey(IdentifyMethodService::IDENTIFY_ACCOUNT);
-						$entity->setIdentifierValue($newUser->getUID());
-						$this->identifyMethodMapper->update($entity);
-					}
-				}
-			}
-		}
+		$this->updateIdentifyMethodToAccount($signRequest->getId(), $email, $newUser->getUID());
 
 		if ($this->config->getAppValue('core', 'newUser.sendEmail', 'yes') === 'yes') {
 			try {
@@ -251,6 +238,22 @@ class AccountService {
 	}
 
 
+
+	private function updateIdentifyMethodToAccount(int $signRequestId, string $email, string $uid): void {
+		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequestId);
+		foreach ($identifyMethods as $name => $methods) {
+			if ($name === IdentifyMethodService::IDENTIFY_EMAIL) {
+				foreach ($methods as $identifyMethod) {
+					$entity = $identifyMethod->getEntity();
+					if ($entity->getIdentifierValue() === $email) {
+						$entity->setIdentifierKey(IdentifyMethodService::IDENTIFY_ACCOUNT);
+						$entity->setIdentifierValue($uid);
+						$this->identifyMethodMapper->update($entity);
+					}
+				}
+			}
+		}
+	}
 
 	private function getPhoneNumber(?IUser $user): string {
 		if (!$user) {
