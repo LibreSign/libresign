@@ -6,31 +6,67 @@
 <template>
 	<NcAppContent>
 		<div class="crl-management">
-			<div class="crl-management__filters">
-				<NcTextField :value.sync="filters.serialNumber"
-					:label="t('libresign', 'Serial Number')"
-					:placeholder="t('libresign', 'Search by serial number...')"
-					@update:value="onFilterChange">
-					<template #trailing-button-icon>
-						<Magnify :size="20" />
-					</template>
-				</NcTextField>
+			<div class="crl-management__toolbar">
+				<div class="filter-wrapper" :class="{ 'filter-wrapper--active': hasActiveFilters }">
+					<NcActions :aria-label="hasActiveFilters ? t('libresign', 'Filters ({count})', { count: activeFilterCount }) : t('libresign', 'Filters')">
+						<template #icon>
+							<FilterIcon :size="20" />
+						</template>
+						<NcActionInput :value.sync="filters.serialNumber"
+							:label="t('libresign', 'Serial Number')"
+							@update:value="onFilterChange">
+							<template #icon>
+								<Magnify :size="20" />
+							</template>
+						</NcActionInput>
 
-				<NcSelect v-model="filters.status"
-					:input-label="t('libresign', 'Status')"
-					:options="statusOptions"
-					:placeholder="t('libresign', 'Filter by status')"
-					:clearable="true"
-					@input="onFilterChange">
-					<template #selected-option="option">
-						{{ option.label }}
-					</template>
-				</NcSelect>
+						<NcActionInput :value.sync="filters.owner"
+							:label="t('libresign', 'Owner')"
+							@update:value="onFilterChange">
+							<template #icon>
+								<AccountIcon :size="20" />
+							</template>
+						</NcActionInput>
 
-				<NcTextField :value.sync="filters.owner"
-					:label="t('libresign', 'Owner')"
-					:placeholder="t('libresign', 'Filter by owner...')"
-					@update:value="onFilterChange" />
+						<NcActionButton type="radio"
+							:model-value="filters.status?.value === 'issued'"
+							@update:modelValue="setStatusFilter('issued', $event)">
+							<template #icon>
+								<CheckCircleIcon :size="20" />
+							</template>
+							{{ t('libresign', 'Issued') }}
+						</NcActionButton>
+
+						<NcActionButton type="radio"
+							:model-value="filters.status?.value === 'revoked'"
+							@update:modelValue="setStatusFilter('revoked', $event)">
+							<template #icon>
+								<CancelIcon :size="20" />
+							</template>
+							{{ t('libresign', 'Revoked') }}
+						</NcActionButton>
+
+						<NcActionButton type="radio"
+							:model-value="filters.status?.value === 'expired'"
+							@update:modelValue="setStatusFilter('expired', $event)">
+							<template #icon>
+								<ClockAlertIcon :size="20" />
+							</template>
+							{{ t('libresign', 'Expired') }}
+						</NcActionButton>
+
+						<NcActionSeparator v-if="hasActiveFilters" />
+
+						<NcActionButton v-if="hasActiveFilters"
+							@click="clearFilters">
+							<template #icon>
+								<CloseIcon :size="20" />
+							</template>
+							{{ t('libresign', 'Clear filters') }}
+						</NcActionButton>
+					</NcActions>
+					<span v-if="hasActiveFilters" class="filter-badge" aria-hidden="true">{{ activeFilterCount }}</span>
+				</div>
 			</div>
 
 			<div v-if="loading && entries.length === 0" class="crl-management__loading">
@@ -221,12 +257,22 @@
 
 <script>
 import Magnify from 'vue-material-design-icons/Magnify.vue'
+import FilterIcon from 'vue-material-design-icons/Filter.vue'
+import AccountIcon from 'vue-material-design-icons/Account.vue'
+import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue'
+import CancelIcon from 'vue-material-design-icons/Cancel.vue'
+import ClockAlertIcon from 'vue-material-design-icons/ClockAlert.vue'
+import CloseIcon from 'vue-material-design-icons/Close.vue'
 import ShieldLockIcon from 'vue-material-design-icons/ShieldLock.vue'
 
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 
+import NcActions from '@nextcloud/vue/components/NcActions'
+import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import NcActionInput from '@nextcloud/vue/components/NcActionInput'
+import NcActionSeparator from '@nextcloud/vue/components/NcActionSeparator'
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -242,7 +288,17 @@ export default {
 	name: 'CrlManagement',
 	components: {
 		Magnify,
+		FilterIcon,
+		AccountIcon,
+		CheckCircleIcon,
+		CancelIcon,
+		ClockAlertIcon,
+		CloseIcon,
 		ShieldLockIcon,
+		NcActions,
+		NcActionButton,
+		NcActionInput,
+		NcActionSeparator,
 		NcAppContent,
 		NcAvatar,
 		NcButton,
@@ -307,6 +363,18 @@ export default {
 				{ value: 10, label: this.t('libresign', 'AA Compromise') },
 			],
 		}
+	},
+	computed: {
+		hasActiveFilters() {
+			return !!(this.filters.serialNumber || this.filters.status || this.filters.owner)
+		},
+		activeFilterCount() {
+			let count = 0
+			if (this.filters.serialNumber) count++
+			if (this.filters.status) count++
+			if (this.filters.owner) count++
+			return count
+		},
 	},
 	mounted() {
 		this.loadEntries()
@@ -408,6 +476,23 @@ export default {
 			}
 			return labels[type] || type
 		},
+		clearFilters() {
+			this.filters.serialNumber = ''
+			this.filters.status = null
+			this.filters.owner = ''
+			this.loadEntries()
+		},
+		setStatusFilter(status, value) {
+			if (value) {
+				// Set the filter to the selected status
+				const option = this.statusOptions.find(opt => opt.value === status)
+				this.filters.status = option
+			} else {
+				// Uncheck - clear the filter
+				this.filters.status = null
+			}
+			this.onFilterChange()
+		},
 		sortColumn(column) {
 			if (this.sortBy === column) {
 				if (this.sortOrder === 'DESC') {
@@ -484,37 +569,48 @@ export default {
 	display: flex;
 	flex-direction: column;
 
-	&__header {
-		margin-bottom: 20px;
-
-		h2 {
-			font-size: 24px;
-			font-weight: 600;
-		}
-	}
-
-	&__filters {
+	&__toolbar {
 		display: flex;
-		gap: 12px;
-		margin-bottom: 20px;
-		flex-wrap: wrap;
-
-		> * {
-			flex: 1;
-			min-width: 200px;
-		}
-	}
-
-	&__loading {
-		display: flex;
-		justify-content: center;
 		align-items: center;
-		flex: 1;
+		justify-content: flex-end;
+		gap: 8px;
+		margin-bottom: 12px;
+
+		.filter-wrapper {
+			position: relative;
+
+			&--active :deep(button) {
+				background-color: var(--color-primary-element-light) !important;
+
+				&:hover {
+					background-color: var(--color-primary-element-light-hover) !important;
+				}
+			}
+		}
+
+		.filter-badge {
+			position: absolute;
+			top: -8px;
+			right: -8px;
+			z-index: 100;
+			min-width: 18px;
+			height: 18px;
+			padding: 0 5px;
+			background-color: var(--color-primary-element);
+			color: var(--color-primary-element-text);
+			border-radius: 9px;
+			font-size: 11px;
+			font-weight: 600;
+			line-height: 18px;
+			box-shadow: 0 0 0 2px var(--color-main-background);
+			pointer-events: none;
+		}
 	}
 
+	&__loading,
 	&__empty {
-		flex: 1;
 		display: flex;
+		flex: 1;
 		align-items: center;
 		justify-content: center;
 	}
@@ -527,14 +623,13 @@ export default {
 	}
 
 	&__loading-more {
-		display: flex;
-		justify-content: center;
 		padding: 20px;
+		text-align: center;
 	}
 
 	&__end {
-		text-align: center;
 		padding: 20px;
+		text-align: center;
 		color: var(--color-text-maxcontrast);
 		font-size: 14px;
 	}
