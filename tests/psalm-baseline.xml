@@ -163,6 +163,11 @@
       <code><![CDATA[Process]]></code>
     </UndefinedClass>
   </file>
+  <file src="lib/Service/IdDocsService.php">
+    <UndefinedClass>
+      <code><![CDATA[UUIDUtil]]></code>
+    </UndefinedClass>
+  </file>
   <file src="lib/Service/RequestSignatureService.php">
     <UndefinedClass>
       <code><![CDATA[UUIDUtil]]></code>
@@ -171,7 +176,6 @@
   </file>
   <file src="lib/Service/SignFileService.php">
     <UndefinedClass>
-      <code><![CDATA[UUIDUtil]]></code>
       <code><![CDATA[UUIDUtil]]></code>
     </UndefinedClass>
   </file>
