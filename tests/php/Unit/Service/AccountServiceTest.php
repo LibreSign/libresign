@@ -353,7 +353,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			);
 		$this->signRequestMapper->method('getByUuid')->willReturn($signRequest);
 		$userToSign = $this->createMock(\OCP\IUser::class);
+		$userToSign->method('getUID')->willReturn('username');
 		$this->userManager->method('createUser')->willReturn($userToSign);
+		$this->identifyMethodService->method('getIdentifyMethodsFromSignRequestId')->willReturn([]);
 		$this->config->method('getAppValue')->willReturn('yes');
 		$template = $this->createMock(\OCP\Mail\IEMailTemplate::class);
 		$this->newUserMail->method('generateTemplate')->willReturn($template);
