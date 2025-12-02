@@ -83,12 +83,12 @@ export default {
 		},
 
 		openApprove(doc) {
-			const route = this.$router.resolve({ name: 'IdDocsApprove', params: { uuid: doc.uuid } })
-			const url = new URL(window.location.toString())
-
-			url.pathname = route.href
-
-			window.open(url.toString())
+			const uuid = doc.file?.uuid || doc.uuid
+			if (!uuid) {
+				showError(this.t('libresign', 'Document UUID not found'))
+				return
+			}
+			this.$router.push({ name: 'IdDocsApprove', params: { uuid } })
 		},
 	},
 }
