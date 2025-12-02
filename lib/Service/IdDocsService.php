@@ -118,9 +118,6 @@ class IdDocsService {
 		$this->fileMapper->delete($file);
 	}
 
-	/**
-	 * Get all identification documents from a user
-	 */
 	public function getIdDocsByUser(IUser $user): array {
 		$idDocs = $this->idDocsMapper->getByUserId($user->getUID());
 		$files = [];
