@@ -39,6 +39,7 @@ OC.L10N.register(
     "Unknown" : "Arussin",
     "Owner" : "Bab-is",
     "Comment" : "Awennit",
+    "User" : "Aseqdac",
     "Page not found" : "Ulac asebter",
     "Ok" : "Ih",
     "Today" : "Ass-a",

@@ -27,6 +27,8 @@ OC.L10N.register(
     "Enter a password" : "Enter a password",
     "Unknown" : "Onbekannt",
     "Comment" : "Kommentar",
+    "User" : "User",
+    "Type:" : "Typ:",
     "Ok" : "OK",
     "Today" : "Haut",
     "Modified" : "Geännert",

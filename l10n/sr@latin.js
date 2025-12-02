@@ -35,6 +35,8 @@ OC.L10N.register(
     "Enter a password" : "Unesite lozinku",
     "Owner" : "Vlasnik",
     "Comment" : "Komentar",
+    "User" : "Korisnik",
+    "Type:" : "Tip:",
     "Ok" : "Ok",
     "Today" : "Danas",
     "Version" : "Verzija",

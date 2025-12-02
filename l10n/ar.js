@@ -257,7 +257,6 @@ OC.L10N.register(
     "Expired" : "منتهي",
     "Unspecified" : "غير محدد",
     "Unknown" : "غير معروف",
-    "Filter by status" : "تصفية بحسب الحالة",
     "Owner" : "المالك",
     "Reason" : "السبب",
     "Comment" : "تعليق",

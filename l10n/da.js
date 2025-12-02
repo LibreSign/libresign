@@ -65,6 +65,7 @@ OC.L10N.register(
     "Expired" : "Udløbet",
     "Unspecified" : "Uspecificeret",
     "Unknown" : "Ukendt",
+    "Filters" : "Filtre",
     "Owner" : "Ejer",
     "Reason" : "Grund",
     "Comment" : "Kommentér",

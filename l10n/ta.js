@@ -25,6 +25,8 @@ OC.L10N.register(
     "Enter a password" : "Enter a password",
     "Unknown" : "தெரியாத",
     "Owner" : "Owner",
+    "User" : "User",
+    "Type:" : "வகை:",
     "Ok" : "Ok",
     "Today" : "இன்று",
     "Modified" : "மாற்றப்பட்டது",
