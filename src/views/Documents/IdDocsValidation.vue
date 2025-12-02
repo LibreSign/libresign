@@ -36,7 +36,13 @@
 						{{ doc.statusText }}
 					</td>
 					<td class="actions">
-						<NcActions>
+						<NcActions :force-menu="true">
+							<NcActionButton @click="openValidationURL(doc)">
+								<template #icon>
+									<EyeIcon :size="20" />
+								</template>
+								{{ t('libresign', 'View') }}
+							</NcActionButton>
 							<NcActionButton v-if="doc.status !== 4" @click="openApprove(doc)">
 								<template #icon>
 									<CheckIcon :size="20" />
@@ -48,7 +54,7 @@
 									<DeleteIcon :size="20" />
 								</template>
 								{{ t('libresign', 'Delete') }}
-							</NcActionButton>
+							</NcActionButton>E
 						</NcActions>
 					</td>
 				</tr>
@@ -68,6 +74,7 @@ import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import DeleteIcon from 'vue-material-design-icons/Delete.vue'
+import EyeIcon from 'vue-material-design-icons/Eye.vue'
 import FileDocumentIcon from 'vue-material-design-icons/FileDocument.vue'
 
 export default {
@@ -75,6 +82,7 @@ export default {
 	components: {
 		CheckIcon,
 		DeleteIcon,
+		EyeIcon,
 		FileDocumentIcon,
 		NcActions,
 		NcActionButton,
@@ -120,6 +128,18 @@ export default {
 			} catch (error) {
 				showError(error.response?.data?.ocs?.data?.message || this.t('libresign', 'Failed to delete document'))
 			}
+		},
+
+		openValidationURL(doc) {
+			const uuid = doc.file?.uuid || doc.uuid
+			if (!uuid) {
+				showError(this.t('libresign', 'Document UUID not found'))
+				return
+			}
+			this.$router.push({
+				name: 'ValidationFile',
+				params: { uuid },
+			})
 		},
 	},
 }
