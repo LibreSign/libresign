@@ -12,7 +12,7 @@
 						<template #icon>
 							<FilterIcon :size="20" />
 						</template>
-						<NcActionInput :value.sync="filters.serialNumber"
+						<NcActionInput v-model="filters.serialNumber"
 							:label="t('libresign', 'Serial Number')"
 							@update:value="onFilterChange">
 							<template #icon>
@@ -20,7 +20,7 @@
 							</template>
 						</NcActionInput>
 
-						<NcActionInput :value.sync="filters.owner"
+						<NcActionInput v-model="filters.owner"
 							:label="t('libresign', 'Owner')"
 							@update:value="onFilterChange">
 							<template #icon>
