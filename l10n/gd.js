@@ -30,6 +30,7 @@ OC.L10N.register(
     "Password" : "Facal-faire",
     "Enter a password" : "Cuir a-steach facal-faire",
     "Unknown" : "Chan eil fhios",
+    "User" : "Cleachdaiche",
     "Today" : "An-diugh",
     "Version" : "Tionndadh",
     "Password reset" : "Ath-shuidheachadh an fhacail-fhaire",
