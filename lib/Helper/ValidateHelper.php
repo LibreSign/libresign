@@ -12,12 +12,12 @@ use InvalidArgumentException;
 use OC\AppFramework\Http;
 use OC\User\NoUserException;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
+use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
@@ -65,7 +65,7 @@ class ValidateHelper {
 		private FileMapper $fileMapper,
 		private FileTypeMapper $fileTypeMapper,
 		private FileElementMapper $fileElementMapper,
-		private AccountFileMapper $accountFileMapper,
+		private IdDocsMapper $idDocsMapper,
 		private UserElementMapper $userElementMapper,
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private IdentifyMethodService $identifyMethodService,
@@ -354,9 +354,9 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateAccountFileIsOwnedByUser(int $nodeId, string $uid): void {
+	public function validateIdDocIsOwnedByUser(int $nodeId, string $uid): void {
 		try {
-			$this->accountFileMapper->getByUserIdAndNodeId($uid, $nodeId);
+			$this->idDocsMapper->getByUserIdAndNodeId($uid, $nodeId);
 		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('This file is not yours'));
 		}
@@ -767,11 +767,8 @@ class ValidateHelper {
 	}
 
 	public function validateUserHasNoFileWithThisType(string $uid, string $type): void {
-		try {
-			$exists = $this->accountFileMapper->getByUserAndType($uid, $type);
-		} catch (\Throwable) {
-		}
-		if (!empty($exists)) {
+		$exists = $this->idDocsMapper->getByUserAndType($uid, $type);
+		if ($exists !== null) {
 			throw new LibresignException($this->l10n->t('A file of this type has been associated.'));
 		}
 	}
