@@ -109,6 +109,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->timeFactory = $this->createMock(TimeFactory::class);
 	}
 
+	private function getService(): AccountService {
 		return new AccountService(
 			$this->l10n,
 			$this->signRequestMapper,
@@ -138,7 +139,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->folderService,
 			$this->clientService,
 			$this->timeFactory
-		);this->timeFactory
 		);
 	}
 
