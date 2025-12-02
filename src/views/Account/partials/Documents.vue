@@ -6,7 +6,7 @@
 	<div v-if="enabledFlow" class="documents">
 		<h2>{{ t('libresign', 'Your profile documents') }}</h2>
 
-		<ProgressBar v-if="loading" infinity />
+		<NcLoadingIcon v-if="loading" :size="44" />
 
 		<ul v-else class="documents-list">
 			<NcListItem v-for="(doc, index) in list"
@@ -62,12 +62,11 @@ import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 
 import DeleteIcon from 'vue-material-design-icons/Delete.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
 import UploadIcon from 'vue-material-design-icons/Upload.vue'
-
-import ProgressBar from '../../../Components/ProgressBar.vue'
 
 const FILE_TYPE_INFO = {
 	IDENTIFICATION: {
@@ -105,7 +104,7 @@ export default {
 		FolderIcon,
 		NcActionButton,
 		NcListItem,
-		ProgressBar,
+		NcLoadingIcon,
 		UploadIcon,
 	},
 	props: {
