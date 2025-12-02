@@ -105,8 +105,8 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/id-docs', requirements: ['apiVersion' => '(v1)'])]
-	public function deleteFile(int $nodeId): DataResponse {
+	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/id-docs/{nodeId}', requirements: ['apiVersion' => '(v1)'])]
+	public function delete(int $nodeId): DataResponse {
 		try {
 			$this->idDocsService->deleteIdDoc($nodeId, $this->userSession->getUser());
 			return new DataResponse([], Http::STATUS_OK);
