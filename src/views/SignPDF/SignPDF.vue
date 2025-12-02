@@ -81,6 +81,10 @@ export default {
 			this.toggleSidebar();
 		}
 	},
+	beforeRouteLeave(to, from, next) {
+		this.sidebarStore.hideSidebar()
+		next()
+	},
 	methods: {
 		async initSignExternal() {
 			this.signStore.initFromState()
