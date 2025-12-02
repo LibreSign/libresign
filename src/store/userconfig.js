@@ -10,9 +10,14 @@ import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
 export const useUserConfigStore = defineStore('userconfig', {
-	state: () => ({
-		grid_view: loadState('libresign', 'config', { grid_view: false }).grid_view,
-	}),
+	state: () => {
+		const config = loadState('libresign', 'config', {})
+		return {
+			grid_view: config.grid_view || false,
+			crl_filters: config.crl_filters || {},
+			crl_sort: config.crl_sort || { sortBy: 'revoked_at', sortOrder: 'DESC' },
+		}
+	},
 	actions: {
 		onUpdate(key, value) {
 			this[key] = value
