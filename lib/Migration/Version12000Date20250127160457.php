@@ -13,15 +13,20 @@ use Closure;
 use OCP\DB\ISchemaWrapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\DB\Types;
+use OCP\Files\AppData\IAppDataFactory;
+use OCP\Files\IAppData;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 class Version12000Date20250127160457 extends SimpleMigrationStep {
+	protected IAppData $appData;
 
 	public function __construct(
 		private IDBConnection $db,
+		private IAppDataFactory $appDataFactory,
 	) {
+		$this->appData = $appDataFactory->get('libresign');
 	}
 
 	/**
@@ -62,12 +67,22 @@ class Version12000Date20250127160457 extends SimpleMigrationStep {
 			$table->addIndex(['user_id']);
 			$table->addUniqueIndex(['sign_request_id', 'user_id', 'file_type'], 'libresign_id_docs_unique');
 		}
+
+		// Drop old table after creating the new one
+		if ($schema->hasTable('libresign_account_file')) {
+			/** @psalm-suppress UndefinedDocblockClass */
+			$schema->dropTable('libresign_account_file');
+		}
+
 		return $schema;
 	}
 
 	#[\Override]
 	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		if ($this->db->tableExists('libresign_account_file')) {
+			$output->info('Backing up libresign_account_file table');
+			$this->backupAccountFileTable();
+
 			$output->info('Migrating data from libresign_account_file to libresign_id_docs');
 
 			$qbSelect = $this->db->getQueryBuilder();
@@ -98,5 +113,33 @@ class Version12000Date20250127160457 extends SimpleMigrationStep {
 
 			$output->info("Migrated $migratedCount records from libresign_account_file to libresign_id_docs");
 		}
+	}
+
+	private function backupAccountFileTable(): void {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')
+			->from('libresign_account_file')
+			->orderBy('user_id');
+
+		$result = $qb->executeQuery();
+		$row = $result->fetch();
+		if (!$row) {
+			$result->closeCursor();
+			return;
+		}
+
+		$folder = $this->appData->getFolder('/');
+		$file = $folder->newFile('backup-table-libresign_account_file_Version12000Date20250127160457.csv');
+		$fp = $file->write();
+
+		fputcsv($fp, array_keys($row));
+		fputcsv($fp, $row);
+
+		while ($row = $result->fetch()) {
+			fputcsv($fp, $row);
+		}
+
+		fclose($fp);
+		$result->closeCursor();
 	}
 }
