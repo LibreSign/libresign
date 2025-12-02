@@ -298,6 +298,8 @@ import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 
+import { useUserConfigStore } from '../../store/userconfig.js'
+
 import NcActions from '@nextcloud/vue/components/NcActions'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActionInput from '@nextcloud/vue/components/NcActionInput'
@@ -340,7 +342,10 @@ export default {
 		NcTextField,
 	},
 	data() {
+		const userConfigStore = useUserConfigStore()
+
 		return {
+			userConfigStore,
 			entries: [],
 			loading: false,
 			loadingMore: false,
@@ -349,12 +354,12 @@ export default {
 			total: 0,
 			hasMore: true,
 			filters: {
-				serialNumber: '',
-				status: null,
-				owner: '',
+				serialNumber: userConfigStore.crl_filters.serialNumber || '',
+				status: userConfigStore.crl_filters.status || null,
+				owner: userConfigStore.crl_filters.owner || '',
 			},
-			sortBy: 'revoked_at',
-			sortOrder: 'DESC',
+			sortBy: userConfigStore.crl_sort.sortBy || 'revoked_at',
+			sortOrder: userConfigStore.crl_sort.sortOrder || 'DESC',
 			caWarningDialog: {
 				open: false,
 				entry: null,
@@ -472,8 +477,32 @@ export default {
 		onFilterChange() {
 			clearTimeout(this.filterTimeout)
 			this.filterTimeout = setTimeout(() => {
+				this.saveFilters()
 				this.loadEntries()
 			}, 500)
+		},
+		async saveFilters() {
+			try {
+				const filters = {
+					serialNumber: this.filters.serialNumber,
+					status: this.filters.status,
+					owner: this.filters.owner,
+				}
+				await this.userConfigStore.update('crl_filters', filters)
+			} catch (error) {
+				console.error('Failed to save filters:', error)
+			}
+		},
+		async saveSort() {
+			try {
+				const sort = {
+					sortBy: this.sortBy,
+					sortOrder: this.sortOrder,
+				}
+				await this.userConfigStore.update('crl_sort', sort)
+			} catch (error) {
+				console.error('Failed to save sort:', error)
+			}
 		},
 		onScroll(event) {
 			if (this.loadingMore || !this.hasMore) {
@@ -514,15 +543,14 @@ export default {
 			this.filters.serialNumber = ''
 			this.filters.status = null
 			this.filters.owner = ''
+			this.saveFilters()
 			this.loadEntries()
 		},
 		setStatusFilter(status, value) {
 			if (value) {
-				// Set the filter to the selected status
 				const option = this.statusOptions.find(opt => opt.value === status)
 				this.filters.status = option
 			} else {
-				// Uncheck - clear the filter
 				this.filters.status = null
 			}
 			this.onFilterChange()
@@ -539,6 +567,7 @@ export default {
 				this.sortBy = column
 				this.sortOrder = 'DESC'
 			}
+			this.saveSort()
 			this.loadEntries()
 		},
 		openRevokeDialog(entry) {
