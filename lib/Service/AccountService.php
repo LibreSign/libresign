@@ -235,6 +235,13 @@ class AccountService {
 		$info['isApprover'] = $this->validateHelper->userCanApproveValidationDocuments($user, false);
 		$info['grid_view'] = $this->getUserConfigGridView($user);
 
+		if ($user && $this->groupManager->isAdmin($user->getUID())) {
+			$info = array_filter(array_merge($info, [
+				'crl_filters' => $this->getUserConfigCrlFilters($user),
+				'crl_sort' => $this->getUserConfigCrlSort($user),
+			]));
+		}
+
 		return $info;
 	}
 
@@ -266,6 +273,34 @@ class AccountService {
 		}
 
 		return $this->config->getUserValue($user->getUID(), Application::APP_ID, 'grid_view', false) === '1';
+	}
+
+	private function getUserConfigCrlFilters(?IUser $user = null): array {
+		if (!$user) {
+			return [];
+		}
+
+		$value = $this->config->getUserValue($user->getUID(), Application::APP_ID, 'crl_filters', '');
+		if (empty($value)) {
+			return [];
+		}
+
+		$decoded = json_decode($value, true);
+		return is_array($decoded) ? $decoded : [];
+	}
+
+	private function getUserConfigCrlSort(?IUser $user = null): array {
+		if (!$user) {
+			return ['sortBy' => 'revoked_at', 'sortOrder' => 'DESC'];
+		}
+
+		$value = $this->config->getUserValue($user->getUID(), Application::APP_ID, 'crl_sort', '');
+		if (empty($value)) {
+			return ['sortBy' => 'revoked_at', 'sortOrder' => 'DESC'];
+		}
+
+		$decoded = json_decode($value, true);
+		return is_array($decoded) ? $decoded : ['sortBy' => 'revoked_at', 'sortOrder' => 'DESC'];
 	}
 
 	/**
