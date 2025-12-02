@@ -38,6 +38,8 @@ OC.L10N.register(
     "Enter a password" : "Skriv inn eit passord",
     "Unknown" : "Ukjend",
     "Comment" : "Kommentér",
+    "User" : "Bruker",
+    "Type:" : "Type:",
     "Page not found" : "Fann ikkje sida",
     "Ok" : "Greitt",
     "Today" : "I dag",

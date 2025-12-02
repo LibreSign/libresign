@@ -33,6 +33,7 @@ OC.L10N.register(
     "Password" : "මුර පදය",
     "Owner" : "හිමිකරු",
     "Comment" : "අදහස",
+    "User" : "පරිශීලක",
     "Today" : "අද",
     "Version" : "අනුවාදය",
     "Technical details" : "තාක්ෂණික විස්තර",

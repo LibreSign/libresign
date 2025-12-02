@@ -32,6 +32,8 @@ OC.L10N.register(
     "Enter a password" : "Enter a password",
     "Unknown" : "Անհայտ",
     "Comment" : "Մեկնաբանել",
+    "User" : "User",
+    "Type:" : "Տիպ.",
     "Ok" : "Լավ",
     "Today" : "Այսօր",
     "Modified" : "Փոփոխված",
