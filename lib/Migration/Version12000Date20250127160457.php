@@ -30,6 +30,7 @@ class Version12000Date20250127160457 extends SimpleMigrationStep {
 	 * @param array $options
 	 * @return null|ISchemaWrapper
 	 */
+	#[\Override]
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		/** @var ISchemaWrapper */
 		$schema = $schemaClosure();
@@ -64,6 +65,7 @@ class Version12000Date20250127160457 extends SimpleMigrationStep {
 		return $schema;
 	}
 
+	#[\Override]
 	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		if ($this->db->tableExists('libresign_account_file')) {
 			$output->info('Migrating data from libresign_account_file to libresign_id_docs');
