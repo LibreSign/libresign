@@ -233,7 +233,7 @@ class FileController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * List account files that need to be approved
+	 * List identification documents that need to be approved
 	 *
 	 * @param string|null $signer_uuid Signer UUID
 	 * @param string|null $nodeId The nodeId (also called fileId). Is the id of a file at Nextcloud
