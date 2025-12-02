@@ -238,14 +238,26 @@ export default {
 			this.stopAddSigner()
 		},
 		addSignerToPosition(event, page) {
-			const rect = event.target.getBoundingClientRect()
-			const x = event.clientX - rect.left
-			const y = event.clientY - rect.top
+			const canvas = event.target
+			const rect = canvas.getBoundingClientRect()
+			const scale = this.$refs.pdfEditor.$refs.vuePdfEditor.scale || 1
+
+			let clickX = event.clientX - rect.left
+			let clickY = event.clientY - rect.top
+
+			if (Math.abs(rect.width - canvas.width) > 1) {
+				clickX = clickX * (canvas.width / rect.width)
+				clickY = clickY * (canvas.height / rect.height)
+			}
+
+			const normalizedX = clickX / scale
+			const normalizedY = clickY / scale
+
 			this.signerSelected.element = {
 				coordinates: {
 					page: page + 1,
-					llx: x - this.width / 2,
-					ury: y - this.height / 2,
+					llx: normalizedX - this.width / 2,
+					ury: normalizedY - this.height / 2,
 					width: this.width,
 					height: this.height,
 				},
@@ -281,9 +293,11 @@ export default {
 			this.loading = true
 			this.errorConfirmRequest = ''
 			const visibleElements = []
+			const scale = this.$refs.pdfEditor.$refs.vuePdfEditor.scale || 1
 			Object.entries(this.$refs.pdfEditor.$refs.vuePdfEditor.allObjects).forEach(entry => {
 				const [pageNumber, page] = entry
 				const measurement = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs['page' + pageNumber][0].getCanvasMeasurement()
+				const normalizedCanvasHeight = measurement.canvasHeight / scale
 				page.forEach(function(element) {
 					visibleElements.push({
 						type: 'signature',
@@ -294,8 +308,8 @@ export default {
 							width: parseInt(element.width),
 							height: parseInt(element.height),
 							llx: parseInt(element.x),
-							lly: parseInt(measurement.canvasHeight - element.y),
-							ury: parseInt(measurement.canvasHeight - element.y - element.height),
+							lly: parseInt(normalizedCanvasHeight - element.y),
+							ury: parseInt(normalizedCanvasHeight - element.y - element.height),
 							urx: parseInt(element.x + element.width),
 						},
 					})
