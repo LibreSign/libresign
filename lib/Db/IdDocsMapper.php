@@ -210,6 +210,9 @@ class IdDocsMapper extends QBMapper {
 	}
 
 	private function formatListRow(array $row, string $url): array {
+		$row['nodeId'] = (int)$row['node_id'];
+		$row['status'] = (int)$row['status'];
+		$row['statusText'] = $this->fileMapper->getTextOfStatus((int)$row['status']);
 		$row['account'] = [
 			'uid' => $row['account_uid'],
 			'displayName' => $row['account_displayname']
@@ -218,6 +221,7 @@ class IdDocsMapper extends QBMapper {
 			'type' => $row['file_type'],
 			'name' => $this->fileTypeMapper->getNameOfType($row['file_type']),
 			'description' => $this->fileTypeMapper->getDescriptionOfType($row['file_type']),
+			'key' => $row['file_type'],
 		];
 		$row['created_at'] = (new \DateTime())
 			->setTimestamp((int)$row['created_at'])
@@ -238,8 +242,6 @@ class IdDocsMapper extends QBMapper {
 		unset(
 			$row['node_id'],
 			$row['name'],
-			$row['status'],
-			$row['created_at'],
 			$row['account_displayname'],
 			$row['account_uid'],
 			$row['callback'],
