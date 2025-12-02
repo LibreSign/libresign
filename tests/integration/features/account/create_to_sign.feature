@@ -49,3 +49,17 @@ Feature: account/create_to_sign
       | email | signer1@domain.test |
       | password | 123456 |
     And the response should have a status code 200
+    # Verify that the new user can login and see the document
+    When as user "signer1@domain.test"
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                                        | value                   |
+      | (jq).ocs.data.data\|length                                 | 1                       |
+      | (jq).ocs.data.data[0].name                                 | document                |
+      | (jq).ocs.data.data[0].statusText                           | available for signature |
+      | (jq).ocs.data.data[0].signers\|length                      | 1                       |
+      | (jq).ocs.data.data[0].signers[0].me                        | true                    |
+      | (jq).ocs.data.data[0].signers[0].identifyMethods\|length   | 1                       |
+      | (jq).ocs.data.data[0].signers[0].identifyMethods[0].method | account                 |
+      | (jq).ocs.data.data[0].signers[0].identifyMethods[0].value  | signer1@domain.test     |
