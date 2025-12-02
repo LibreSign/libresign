@@ -9,6 +9,9 @@
 		@submit.prevent="send()"
 		@closing="signMethodsStore.closeModal('createPassword')">
 		<p>{{ t('libresign', 'For security reasons, you must create a password to sign the documents. Enter your new password in the field below.') }}</p>
+		<NcNoteCard v-if="errorMessage" type="error">
+			{{ errorMessage }}
+		</NcNoteCard>
 		<NcPasswordField v-model="password"
 			:disabled="hasLoading"
 			:label="t('libresign', 'Enter a password')"
@@ -29,20 +32,21 @@
 
 <script>
 import axios from '@nextcloud/axios'
-import { showError, showSuccess } from '@nextcloud/dialogs'
+import { showSuccess } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
+import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 
 import { useSignMethodsStore } from '../store/signMethods.js'
-
 export default {
 	name: 'CreatePassword',
 	components: {
 		NcDialog,
+		NcNoteCard,
 		NcPasswordField,
 		NcButton,
 		NcLoadingIcon,
@@ -55,11 +59,13 @@ export default {
 		return {
 			hasLoading: false,
 			password: '',
+			errorMessage: '',
 		}
 	},
 	methods: {
 		async send() {
 			this.hasLoading = true
+			this.errorMessage = ''
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/signature'), {
 				signPassword: this.password,
 			})
@@ -73,9 +79,9 @@ export default {
 				.catch(({ response }) => {
 					this.signMethodsStore.setHasSignatureFile(false)
 					if (response.data?.ocs?.data?.message) {
-						showError(response.data.ocs.data.message)
+						this.errorMessage = response.data.ocs.data.message
 					} else {
-						showError(t('libresign', 'Error creating new password, please contact the administrator'))
+						this.errorMessage = t('libresign', 'Error creating new password, please contact the administrator')
 					}
 					this.$emit('password:created', false)
 				})
