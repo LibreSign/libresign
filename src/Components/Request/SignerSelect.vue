@@ -132,6 +132,9 @@ export default {
 				return {
 					...item,
 					...(icon ? { iconSvg: icon } : {}),
+					label: item.label ?? '',
+					displayName: item.displayName ?? '',
+					subname: item.subname ?? '',
 				}
 			})
 		},
