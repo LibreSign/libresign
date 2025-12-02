@@ -5213,12 +5213,22 @@
                         }
                     },
                     {
-                        "name": "filter",
+                        "name": "userId",
                         "in": "query",
-                        "description": "Filter params as JSON string",
+                        "description": "User ID to filter by",
                         "schema": {
                             "type": "string",
-                            "default": []
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "signRequestId",
+                        "in": "query",
+                        "description": "Sign request ID to filter by",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true
                         }
                     },
                     {
@@ -5368,12 +5378,22 @@
                         }
                     },
                     {
-                        "name": "filter",
+                        "name": "userId",
                         "in": "query",
-                        "description": "Filter params as JSON string",
+                        "description": "User ID to filter by",
                         "schema": {
                             "type": "string",
-                            "default": []
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "signRequestId",
+                        "in": "query",
+                        "description": "Sign request ID to filter by",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true
                         }
                     },
                     {
