@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use bovigo\vfs\vfsStream;
 use OC\User\NoUserException;
-use OCA\Libresign\Db\AccountFileMapper;
+use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
@@ -61,7 +61,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FooterHandler&MockObject $footerHandler;
 	private FileMapper&MockObject $fileMapper;
 	private SignRequestMapper&MockObject $signRequestMapper;
-	private AccountFileMapper&MockObject $accountFileMapper;
+	private IdDocsMapper&MockObject $idDocsMapper;
 	private IClientService&MockObject $clientService;
 	private IUserManager&MockObject $userManager;
 	private FolderService&MockObject $folderService;
@@ -94,7 +94,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturnArgument(0);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
-		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
+		$this->idDocsMapper = $this->createMock(IdDocsMapper::class);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->clientService = $this->createMock(IClientService::class);
 		$this->userManager = $this->createMock(IUserManager::class);
@@ -128,7 +128,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->l10n,
 					$this->fileMapper,
 					$this->signRequestMapper,
-					$this->accountFileMapper,
+					$this->idDocsMapper,
 					$this->footerHandler,
 					$this->folderService,
 					$this->clientService,
@@ -160,7 +160,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->fileMapper,
 			$this->signRequestMapper,
-			$this->accountFileMapper,
+			$this->idDocsMapper,
 			$this->footerHandler,
 			$this->folderService,
 			$this->clientService,
