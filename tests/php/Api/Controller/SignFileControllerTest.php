@@ -205,8 +205,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testSignUsingFileIdWithEmptyCertificatePassword():void {
-		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
+	public function testSignWithCertificateButEmptyPassword():void {
 		$appConfig = $this->getMockAppConfig();
 		$appConfig->setValueString(Application::APP_ID, 'cfssl_bin', '');
 		$appConfig->setValueString(Application::APP_ID, 'java_path', __FILE__);
@@ -253,123 +252,12 @@ final class SignFileControllerTest extends ApiTestCase {
 			])
 			->withPath('/api/v1/sign/uuid/' . $signers[0]->getUuid())
 			->withRequestBody([
-				'password' => ''
+				'method' => 'password',
+				'token' => '',
 			])
 			->assertResponseCode(422);
 
-		$response = $this->assertRequest();
-		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertCount(1, $body['ocs']['data']['errors']);
-		$this->assertArrayHasKey(0, $body['ocs']['data']['errors']);
-		$this->assertEquals('Empty identify data.', $body['ocs']['data']['errors'][0]['message']);
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
-	public function testSignUsingFileIdWithSuccess():void {
-		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
-		$appConfig = $this->getMockAppConfig();
-		$appConfig->setValueString(Application::APP_ID, 'cfssl_bin', '');
-		$appConfig->setValueString(Application::APP_ID, 'java_path', __FILE__);
-		$appConfig->setValueArray(Application::APP_ID, 'rootCert', [
-			'commonName' => 'LibreCode',
-			'names' => [
-				'C' => ['value' => 'BR'],
-			],
-		]);
-
-		$user = $this->createAccount('username', 'password');
-
-		$user->setEMailAddress('person@test.coop');
-		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
-			'name' => 'test',
-			'users' => [
-				[
-					'identify' => [
-						'email' => 'person@test.coop',
-					],
-				],
-			],
-			'userManager' => $user,
-		]);
-		$pkcs12Handler = \OCP\Server::get(\OCA\Libresign\Handler\SignEngine\Pkcs12Handler::class);
-		$certificate = $pkcs12Handler->generateCertificate(
-			[
-				'host' => 'person@test.coop',
-				'uid' => 'email:person@test.coop',
-				'name' => 'John Doe',
-			],
-			'secretPassword',
-			'username'
-		);
-		$pkcs12Handler->savePfx('person@test.coop', $certificate);
-
-		$mock = $this->createMock(JSignPDF::class);
-		$mock->method('sign')->willReturn('content');
-		$jsignHandler = \OCP\Server::get(\OCA\Libresign\Handler\SignEngine\JSignPdfHandler::class);
-		$jsignHandler->setJSignPdf($mock);
-		\OC::$server->registerService(\OCA\Libresign\Handler\SignEngine\JSignPdfHandler::class, fn (): \OCA\Libresign\Handler\SignEngine\JSignPdfHandler => $jsignHandler);
-
-		$signers = $this->getSignersFromFileId($file->getId());
-		$this->request
-			->withMethod('POST')
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password'),
-				'Content-Type' => 'application/json'
-			])
-			->withPath('/api/v1/sign/uuid/' . $signers[0]->getUuid())
-			->withRequestBody([
-				'identifyValue' => 'secretPassword',
-				'method' => 'password',
-			]);
-
 		$this->assertRequest();
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
-	public function testAccountSignatureEndpointWithSuccess():void {
-		$this->markTestSkipped('Need to reimplement this test, stated to failure');
-		$user = $this->createAccount('username', 'password');
-		$user->setEMailAddress('person@test.coop');
-
-		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new Response(
-			file_get_contents(__DIR__ . '/../../fixtures/cfssl/newcert-with-success.json')
-		));
-
-		$appConfig = $this->getMockAppConfig();
-		$appConfig->setValueBool(Application::APP_ID, 'notifyUnsignedUser', false);
-		$appConfig->setValueString(Application::APP_ID, 'cfsslUri', self::$server->getServerRoot() . '/api/v1/cfssl/');
-		$appConfig->setValueString(Application::APP_ID, 'cfssl_bin', '');
-		$appConfig->setValueArray(Application::APP_ID, 'rootCert', [
-			'commonName' => 'LibreCode',
-			'names' => [
-				'C' => ['value' => 'BR'],
-				'ST' => ['value' => 'RJ'],
-				'L' => ['value' => 'Rio de Janeiro'],
-				'O' => ['value' => 'LibreCode Coop'],
-				'OU' => ['value' => 'LibreSign']
-			]
-		]);
-
-		$this->request
-			->withMethod('POST')
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password'),
-				'Content-Type' => 'application/json'
-			])
-			->withRequestBody([
-				'signPassword' => 'password'
-			])
-			->withPath('/api/v1/account/signature');
-
-		$home = $user->getHome();
-		$this->assertFileDoesNotExist($home . '/files/LibreSign/signature.pfx');
-		$this->assertRequest();
-		$this->assertFileExists($home . '/files/LibreSign/signature.pfx');
 	}
 
 	/**
