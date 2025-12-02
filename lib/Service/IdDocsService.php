@@ -105,7 +105,7 @@ class IdDocsService {
 			$identifyMethod->setMandatory(true);
 			$this->identifyMethodMapper->insert($identifyMethod);
 
-			$this->idDocsMapper->save($file->getId(), null, $user->getUID(), $fileData['type']);
+			$this->idDocsMapper->save($file->getId(), $signRequest->getId(), $user->getUID(), $fileData['type']);
 		}
 	}
 
