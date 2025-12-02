@@ -12,7 +12,7 @@
 						<template #icon>
 							<FilterIcon :size="20" />
 						</template>
-						<NcActionInput :value.sync="filters.serialNumber"
+						<NcActionInput v-model="filters.serialNumber"
 							:label="t('libresign', 'Serial Number')"
 							@update:value="onFilterChange">
 							<template #icon>
@@ -20,7 +20,7 @@
 							</template>
 						</NcActionInput>
 
-						<NcActionInput :value.sync="filters.owner"
+						<NcActionInput v-model="filters.owner"
 							:label="t('libresign', 'Owner')"
 							@update:value="onFilterChange">
 							<template #icon>
@@ -230,7 +230,7 @@
 						label="label"
 						track-by="value" />
 
-					<NcTextArea :value.sync="revokeDialog.reasonText"
+					<NcTextArea v-model="revokeDialog.reasonText"
 						:label="t('libresign', 'Reason Description (optional)')"
 						:disabled="revokeDialog.loading"
 						:maxlength="255"
