@@ -12,7 +12,6 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\ResponseDefinitions;
-use OCA\Libresign\Service\AccountFileService;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignatureTextService;
@@ -45,7 +44,6 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		IRequest $request,
 		protected IL10N $l10n,
 		private AccountService $accountService,
-		private AccountFileService $accountFileService,
 		private SignerElementsService $signerElementsService,
 		protected SignatureTextService $signatureTextService,
 		protected IUserSession $userSession,
