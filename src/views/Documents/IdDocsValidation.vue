@@ -27,6 +27,9 @@
 						{{ t('libresign', 'Status') }}
 					</td>
 					<td>
+						{{ t('libresign', 'Approved by') }}
+					</td>
+					<td>
 						{{ t('libresign', 'Actions') }}
 					</td>
 				</tr>
@@ -36,7 +39,6 @@
 					<td>
 						<NcAvatar :user="doc.account?.uid"
 							:display-name="doc.account?.display_name || doc.account?.uid"
-							:size="32"
 							:disable-menu="true" />
 					</td>
 					<td>
@@ -47,6 +49,17 @@
 					</td>
 					<td>
 						{{ doc.statusText }}
+					</td>
+					<td>
+						<template v-if="doc.file?.signers?.length > 0 && doc.file.signers[0].sign_date">
+							<NcAvatar :user="doc.account?.uid"
+								:display-name="doc.file.signers[0].displayName"
+								:disable-menu="true" />
+							{{ doc.file.signers[0].displayName }}
+						</template>
+						<template v-else>
+							-
+						</template>
 					</td>
 					<td class="actions">
 						<NcActions :force-name="true" :inline="3">
