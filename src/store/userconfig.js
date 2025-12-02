@@ -10,9 +10,7 @@ import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
 export const useUserConfigStore = defineStore('userconfig', {
-	state: () => ({
-		grid_view: loadState('libresign', 'config', { grid_view: false }).grid_view,
-	}),
+	state: () => loadState('libresign', 'config', {}),
 	actions: {
 		onUpdate(key, value) {
 			this[key] = value

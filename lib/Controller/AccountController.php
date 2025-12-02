@@ -545,6 +545,8 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 
 			if (is_bool($value)) {
 				$value = $value ? '1' : '0';
+			} elseif (is_array($value)) {
+				$value = json_encode($value);
 			}
 
 			$this->config->setUserValue($user->getUID(), Application::APP_ID, $key, $value);
