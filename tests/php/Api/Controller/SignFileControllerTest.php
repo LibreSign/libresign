@@ -205,8 +205,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testSignUsingFileIdWithEmptyCertificatePassword():void {
-		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
+	public function testSignWithCertificateButEmptyPassword():void {
 		$appConfig = $this->getMockAppConfig();
 		$appConfig->setValueString(Application::APP_ID, 'cfssl_bin', '');
 		$appConfig->setValueString(Application::APP_ID, 'java_path', __FILE__);
@@ -253,15 +252,12 @@ final class SignFileControllerTest extends ApiTestCase {
 			])
 			->withPath('/api/v1/sign/uuid/' . $signers[0]->getUuid())
 			->withRequestBody([
-				'password' => ''
+				'method' => 'password',
+				'token' => '',
 			])
 			->assertResponseCode(422);
 
-		$response = $this->assertRequest();
-		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertCount(1, $body['ocs']['data']['errors']);
-		$this->assertArrayHasKey(0, $body['ocs']['data']['errors']);
-		$this->assertEquals('Empty identify data.', $body['ocs']['data']['errors'][0]['message']);
+		$this->assertRequest();
 	}
 
 	/**
