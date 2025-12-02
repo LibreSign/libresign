@@ -43,56 +43,6 @@ final class AccountControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testAccountCreateWithSuccess():void {
-		$this->markTestSkipped('Need to reimplement this test, stated to failure after add multiple certificate engine');
-		$appConfig = $this->getMockAppConfig();
-		$appConfig->setValueString(Application::APP_ID, 'cfssl_bin', '');
-		$appConfig->setValueArray(Application::APP_ID, 'rootCert', [
-			'commonName' => 'LibreCode',
-			'names' => [
-				'C' => ['value' => 'BR'],
-			]
-		]);
-		$appConfig->setValueString(Application::APP_ID, 'certificate_engine', 'openssl');
-
-		$user = $this->createAccount('username', 'password');
-
-		$user->setEMailAddress('person@test.coop');
-		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
-			'name' => 'test',
-			'users' => [
-				[
-					'identify' => [
-						'email' => 'guest-user@test.coop',
-					],
-				],
-			],
-			'userManager' => $user,
-		]);
-		$this->deleteUserIfExists('guest-user@test.coop');
-
-		$signers = $this->getSignersFromFileId($file->getId());
-		$this->request
-			->withMethod('POST')
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password'),
-				'Content-Type' => 'application/json'
-			])
-			->withRequestBody([
-				'email' => 'guest-user@test.coop',
-				'password' => 'secret',
-				'signPassword' => 'secretToSign'
-			])
-			->withPath('/api/v1/account/create/' . $signers[0]->getUuid());
-		$this->markUserExists('guest-user@test.coop');
-
-		$this->assertRequest();
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
 	public function testPostProfileFilesWithInvalidData():void {
 		$this->createAccount('username', 'password');
 

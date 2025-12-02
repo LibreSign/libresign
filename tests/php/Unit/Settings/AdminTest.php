@@ -57,11 +57,4 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGetPriority():void {
 		$this->assertEquals($this->admin->getPriority(), 100);
 	}
-
-	public function testGetFormReturnObject():void {
-		$this->markTestSkipped('Need to reimplement this test, stated to failure');
-		$actual = $this->admin->getForm();
-		$this->assertIsObject($actual);
-		$this->assertInstanceOf(\OCP\AppFramework\Http\TemplateResponse::class, $actual);
-	}
 }
