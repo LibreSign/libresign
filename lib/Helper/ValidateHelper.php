@@ -774,18 +774,12 @@ class ValidateHelper {
 	}
 
 	public function canSignWithIdentificationDocumentStatus(?IUser $user, int $status): void {
-		// User that can approve validation documents don't need to have a valid
-		// document attached to their profile. If this were required, nobody
-		// would be able to sign any document
-		if ($this->userCanApproveValidationDocuments($user, false)) {
-			return;
-		}
 		$allowedStatus = [
 			FileService::IDENTIFICATION_DOCUMENTS_DISABLED,
 			FileService::IDENTIFICATION_DOCUMENTS_APPROVED,
 		];
 		if (!in_array($status, $allowedStatus)) {
-			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
+			throw new LibresignException($this->l10n->t('You need to have an approved identification document to sign.'));
 		}
 	}
 
