@@ -774,6 +774,10 @@ class ValidateHelper {
 	}
 
 	public function canSignWithIdentificationDocumentStatus(?IUser $user, int $status): void {
+		if ($user && $this->userCanApproveValidationDocuments($user, false)) {
+			return;
+		}
+
 		$allowedStatus = [
 			FileService::IDENTIFICATION_DOCUMENTS_DISABLED,
 			FileService::IDENTIFICATION_DOCUMENTS_APPROVED,
