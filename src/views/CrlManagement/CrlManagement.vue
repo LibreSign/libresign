@@ -231,7 +231,6 @@
 			</div>
 		</NcDialog>
 
-		<!-- Revoke Certificate Dialog -->
 		<NcDialog v-if="revokeDialog.open"
 			:name="t('libresign', 'Revoke Certificate')"
 			:can-close="!revokeDialog.loading"
