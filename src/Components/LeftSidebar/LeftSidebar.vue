@@ -33,7 +33,7 @@
 			</NcAppNavigationItem>
 
 			<NcAppNavigationItem v-if="config.identificationDocumentsFlow && config.isApprover"
-				:to="{name: 'DocsAccountValidation'}"
+				:to="{name: 'DocsIdDocsValidation'}"
 				:name="t('libresign', 'Documents Validation')">
 				<template #icon>
 					<AccountCheckIcon :size="20" />

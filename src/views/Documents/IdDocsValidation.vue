@@ -46,7 +46,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import ProgressBar from '../../Components/ProgressBar.vue'
 
 export default {
-	name: 'AccountValidation',
+	name: 'IdDocsValidation',
 	components: {
 		ProgressBar,
 	},
@@ -60,7 +60,7 @@ export default {
 	methods: {
 		async loadDocuments() {
 			this.loading = true
-			await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/files/approval/list'))
+			await axios.get(generateOcsUrl('/apps/libresign/api/v1/id-docs/approval/list'))
 				.then(({ data }) => {
 					this.documentList = data.ocs.data.data
 				})
@@ -71,7 +71,7 @@ export default {
 		},
 
 		openApprove(doc) {
-			const route = this.$router.resolve({ name: 'AccountFileApprove', params: { uuid: doc.uuid } })
+			const route = this.$router.resolve({ name: 'IdDocsApprove', params: { uuid: doc.uuid } })
 			const url = new URL(window.location.toString())
 
 			url.pathname = route.href

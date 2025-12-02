@@ -24,8 +24,8 @@ export const selectAction = (action, to, from) => {
 		return 'SignPDF' + external
 	case 2625: // ACTION_SIGN_INTERNAL
 		return 'SignPDF' + external
-	case 2750: // ACTION_SIGN_ACCOUNT_FILE
-		return 'AccountFileApprove' + external
+	case 2750: // ACTION_SIGN_ID_DOC
+		return 'IdDocsApprove' + external
 	case 3000: // ACTION_SHOW_ERROR
 		return 'DefaultPageError' + external
 	case 3500: // ACTION_SIGNED
