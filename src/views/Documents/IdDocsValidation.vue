@@ -36,7 +36,7 @@
 						{{ doc.statusText }}
 					</td>
 					<td class="actions">
-						<NcActions :force-menu="true">
+						<NcActions :force-name="true" :inline="3">
 							<NcActionButton @click="openValidationURL(doc)">
 								<template #icon>
 									<EyeIcon :size="20" />
@@ -54,7 +54,7 @@
 									<DeleteIcon :size="20" />
 								</template>
 								{{ t('libresign', 'Delete') }}
-							</NcActionButton>E
+							</NcActionButton>
 						</NcActions>
 					</td>
 				</tr>
