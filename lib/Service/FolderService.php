@@ -158,7 +158,6 @@ class FolderService {
 					}
 					break;
 				case 'userId':
-					// Handle IUser object or string
 					if ($identifier instanceof \OCP\IUser) {
 						$folderName[] = $identifier->getUID();
 					} else {

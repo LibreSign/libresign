@@ -35,7 +35,6 @@ export const useIdentificationDocumentStore = function(...args) {
 
 	const identificationDocumentStore = store(...args)
 
-	// Make sure we only register the listeners once
 	if (!identificationDocumentStore._initialized) {
 		identificationDocumentStore._initialized = true
 	}
