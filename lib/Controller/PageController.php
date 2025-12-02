@@ -347,19 +347,19 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
-	#[FrontpageRoute(verb: 'GET', url: '/p/account/files/approve/{uuid}')]
-	#[FrontpageRoute(verb: 'GET', url: '/p/account/files/approve/{uuid}/{path}', requirements: ['path' => '.+'], postfix: 'private')]
-	public function signAccountFile($uuid): TemplateResponse {
+	#[FrontpageRoute(verb: 'GET', url: '/p/id-docs/approve/{uuid}')]
+	#[FrontpageRoute(verb: 'GET', url: '/p/id-docs/approve/{uuid}/{path}', requirements: ['path' => '.+'], postfix: 'private')]
+	public function signIdDoc($uuid): TemplateResponse {
 		try {
 			$fileEntity = $this->signFileService->getFileByUuid($uuid);
-			$this->signFileService->getAccountFileById($fileEntity->getId());
+			$this->signFileService->getIdDocById($fileEntity->getId());
 		} catch (DoesNotExistException) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $this->l10n->t('Invalid UUID')]],
 			]), Http::STATUS_NOT_FOUND);
 		}
-		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN_ACCOUNT_FILE);
+		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN_ID_DOC);
 		$this->initialState->provideInitialState('config',
 			$this->accountService->getConfig($this->userSession->getUser())
 		);
