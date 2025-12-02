@@ -14,7 +14,7 @@ final class JSActions {
 	public const ACTION_DO_NOTHING = 2000;
 	public const ACTION_SIGN = 2500;
 	public const ACTION_SIGN_INTERNAL = 2625;
-	public const ACTION_SIGN_ACCOUNT_FILE = 2750;
+	public const ACTION_SIGN_ID_DOC = 2750;
 	public const ACTION_SHOW_ERROR = 3000;
 	public const ACTION_SIGNED = 3500;
 	public const ACTION_CREATE_SIGNATURE_PASSWORD = 4000;
