@@ -36,9 +36,20 @@
 						{{ doc.statusText }}
 					</td>
 					<td class="actions">
-						<button @click="openApprove(doc)">
-							{{ t('libresign', 'Validate') }}
-						</button>
+						<NcActions>
+							<NcActionButton v-if="doc.status !== 4" @click="openApprove(doc)">
+								<template #icon>
+									<CheckIcon :size="20" />
+								</template>
+								{{ t('libresign', 'Validate') }}
+							</NcActionButton>
+							<NcActionButton @click="deleteDocument(doc)">
+								<template #icon>
+									<DeleteIcon :size="20" />
+								</template>
+								{{ t('libresign', 'Delete') }}
+							</NcActionButton>
+						</NcActions>
 					</td>
 				</tr>
 			</tbody>
@@ -50,15 +61,23 @@
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
+import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
+import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 
+import CheckIcon from 'vue-material-design-icons/Check.vue'
+import DeleteIcon from 'vue-material-design-icons/Delete.vue'
 import FileDocumentIcon from 'vue-material-design-icons/FileDocument.vue'
 
 export default {
 	name: 'IdDocsValidation',
 	components: {
+		CheckIcon,
+		DeleteIcon,
 		FileDocumentIcon,
+		NcActions,
+		NcActionButton,
 		NcEmptyContent,
 		NcLoadingIcon,
 	},
@@ -88,7 +107,19 @@ export default {
 				showError(this.t('libresign', 'Document UUID not found'))
 				return
 			}
-			this.$router.push({ name: 'IdDocsApprove', params: { uuid } })
+			this.$router.push({
+				name: 'IdDocsApprove',
+				params: { uuid },
+			})
+		},
+
+		async deleteDocument(doc) {
+			try {
+				await axios.delete(generateOcsUrl('/apps/libresign/api/v1/id-docs/{nodeId}', { nodeId: doc.nodeId }))
+				await this.loadDocuments()
+			} catch (error) {
+				showError(error.response?.data?.ocs?.data?.message || this.t('libresign', 'Failed to delete document'))
+			}
 		},
 	},
 }
