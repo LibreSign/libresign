@@ -13,6 +13,7 @@ use OC\Http\Client\ClientService;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
+use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
@@ -60,6 +61,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IMountProviderCollection&MockObject $mountProviderCollection;
 	private NewUserMailHelper&MockObject $newUserMail;
 	private IdentifyMethodService&MockObject $identifyMethodService;
+	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
 	private ValidateHelper&MockObject $validateHelper;
 	private IURLGenerator&MockObject $urlGenerator;
 	private IGroupManager&MockObject $groupManager;
@@ -94,6 +96,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mountProviderCollection = $this->createMock(IMountProviderCollection::class);
 		$this->newUserMail = $this->createMock(NewUserMailHelper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->validateHelper = $this->createMock(ValidateHelper::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
@@ -106,7 +109,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->timeFactory = $this->createMock(TimeFactory::class);
 	}
 
-	private function getService(): AccountService {
 		return new AccountService(
 			$this->l10n,
 			$this->signRequestMapper,
@@ -125,6 +127,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->mountProviderCollection,
 			$this->newUserMail,
 			$this->identifyMethodService,
+			$this->identifyMethodMapper,
 			$this->validateHelper,
 			$this->urlGenerator,
 			$this->pkcs12Handler,
@@ -135,6 +138,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->folderService,
 			$this->clientService,
 			$this->timeFactory
+		);this->timeFactory
 		);
 	}
 
