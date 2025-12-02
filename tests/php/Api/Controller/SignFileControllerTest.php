@@ -199,16 +199,6 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testSignWithCertificateButEmptyPassword():void {
-		$appConfig = $this->getMockAppConfig();
-		$appConfig->setValueString(Application::APP_ID, 'cfssl_bin', '');
-		$appConfig->setValueString(Application::APP_ID, 'java_path', __FILE__);
-		$appConfig->setValueArray(Application::APP_ID, 'rootCert', [
-			'commonName' => 'LibreCode',
-			'names' => [
-				'C' => ['value' => 'BR'],
-			],
-		]);
-
 		$user = $this->createAccount('username', 'password');
 
 		$user->setEMailAddress('person@test.coop');
@@ -224,17 +214,6 @@ final class SignFileControllerTest extends ApiTestCase {
 			],
 			'userManager' => $user,
 		]);
-		$pkcs12Handler = \OCP\Server::get(\OCA\Libresign\Handler\SignEngine\Pkcs12Handler::class);
-		$certificate = $pkcs12Handler->generateCertificate(
-			[
-				'host' => 'person@test.coop',
-				'uid' => 'email:person@test.coop',
-				'name' => 'John Doe',
-			],
-			'secretPassword',
-			'username'
-		);
-		$pkcs12Handler->savePfx('person@test.coop', $certificate);
 
 		$signers = $this->getSignersFromFileId($file->getId());
 		$this->request
