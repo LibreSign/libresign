@@ -3,7 +3,15 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<ProgressBar v-if="loading" infinity />
+	<NcLoadingIcon v-if="loading" :size="44" />
+
+	<NcEmptyContent v-else-if="documentList.length === 0"
+		:name="t('libresign', 'No documents to validate')">
+		<template #icon>
+			<FileDocumentIcon :size="64" />
+		</template>
+	</NcEmptyContent>
+
 	<div v-else class="is-fullwidth container-account-docs-to-validate with-sidebar--full">
 		<table class="libre-table is-fullwidth">
 			<thead>
@@ -42,13 +50,17 @@
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
+import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 
-import ProgressBar from '../../Components/ProgressBar.vue'
+import FileDocumentIcon from 'vue-material-design-icons/FileDocument.vue'
 
 export default {
 	name: 'IdDocsValidation',
 	components: {
-		ProgressBar,
+		FileDocumentIcon,
+		NcEmptyContent,
+		NcLoadingIcon,
 	},
 	data: () => ({
 		documentList: [],
