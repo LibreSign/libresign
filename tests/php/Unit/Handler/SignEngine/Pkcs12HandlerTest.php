@@ -228,10 +228,10 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGetCertificateChainWithCorruptedSignature(): void {
 		$handler = $this->getHandler();
 
-		$corruptedPdf = "%PDF-1.4\n" .
-			"1 0 obj<</Type/Sig/ByteRange [0 10 50 10]>>endobj\n" .
-			"ZZZZZZZZ\n" . // Invalid hex data - will cause hex2bin to fail
-			str_repeat("x", 100);
+		$corruptedPdf = "%PDF-1.4\n"
+			. "1 0 obj<</Type/Sig/ByteRange [0 10 50 10]>>endobj\n"
+			. "ZZZZZZZZ\n" // Invalid hex data - will cause hex2bin to fail
+			. str_repeat('x', 100);
 
 		$resource = fopen('php://memory', 'r+');
 		fwrite($resource, $corruptedPdf);
