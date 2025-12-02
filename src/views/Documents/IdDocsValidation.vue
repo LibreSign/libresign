@@ -45,9 +45,9 @@
 							</NcActionButton>
 							<NcActionButton v-if="doc.status !== 4" @click="openApprove(doc)">
 								<template #icon>
-									<CheckIcon :size="20" />
+									<PencilIcon :size="20" />
 								</template>
-								{{ t('libresign', 'Validate') }}
+								{{ t('libresign', 'Sign') }}
 							</NcActionButton>
 							<NcActionButton @click="deleteDocument(doc)">
 								<template #icon>
@@ -72,15 +72,14 @@ import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 
-import CheckIcon from 'vue-material-design-icons/Check.vue'
 import DeleteIcon from 'vue-material-design-icons/Delete.vue'
 import EyeIcon from 'vue-material-design-icons/Eye.vue'
 import FileDocumentIcon from 'vue-material-design-icons/FileDocument.vue'
+import PencilIcon from 'vue-material-design-icons/Pencil.vue'
 
 export default {
 	name: 'IdDocsValidation',
 	components: {
-		CheckIcon,
 		DeleteIcon,
 		EyeIcon,
 		FileDocumentIcon,
@@ -88,6 +87,7 @@ export default {
 		NcActionButton,
 		NcEmptyContent,
 		NcLoadingIcon,
+		PencilIcon,
 	},
 	data: () => ({
 		documentList: [],
