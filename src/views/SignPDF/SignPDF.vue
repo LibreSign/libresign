@@ -5,7 +5,7 @@
 <template>
 	<div class="main-view">
 		<TopBar
-			v-if="!isMobile" 
+			v-if="!isMobile"
 			:sidebar-toggle="true" />
 		<PdfEditor v-if="mounted && !signStore.errors.length && pdfBlob"
 			ref="pdfEditor"
@@ -19,7 +19,7 @@
 			v-if="isMobile"
 			:wide="true"
 			variant="primary"
-			@click.prevent="toggleSidebar">	
+			@click.prevent="toggleSidebar">
 			{{ t('libresign', 'Sign') }}
 			</NcButton>
 		</div>
@@ -43,6 +43,8 @@ import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import { useSignMethodsStore } from '../../store/signMethods.js'
+import { generateOcsUrl } from '@nextcloud/router'
+import axios from '@nextcloud/axios'
 
 export default {
 	name: 'SignPDF',
@@ -71,6 +73,8 @@ export default {
 			await this.initSignExternal()
 		} else if (this.$route.name === 'SignPDF') {
 			await this.initSignInternal()
+		} else if (this.$route.name === 'IdDocsApprove') {
+			await this.initIdDocsApprove()
 		}
 
 		if (this.isMobile){
@@ -100,6 +104,15 @@ export default {
 					return
 				}
 			}
+		},
+		async initIdDocsApprove() {
+			const response = await axios.get(
+				generateOcsUrl('/apps/libresign/api/v1/file/validate/uuid/{uuid}', { uuid: this.$route.params.uuid })
+			)
+			this.signStore.setDocumentToSign(response.data.ocs.data)
+			this.fileStore.selectedNodeId = response.data.ocs.data.nodeId
+			await this.fetchPdfAsBlob(this.signStore.document.url)
+			this.mounted = true
 		},
 		async fetchPdfAsBlob(url) {
 			const response = await fetch(url)
