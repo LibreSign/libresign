@@ -101,7 +101,7 @@ class IdDocsService {
 			$identifyMethod->setSignRequestId($signRequest->getId());
 			$identifyMethod->setIdentifierKey(IdentifyMethodService::IDENTIFY_ACCOUNT);
 			$identifyMethod->setIdentifierValue($user->getUID());
-			$identifyMethod->setMandatory(true);
+			$identifyMethod->setMandatory(1);
 			$this->identifyMethodMapper->insert($identifyMethod);
 
 			$this->idDocsMapper->save($file->getId(), $signRequest->getId(), $user->getUID(), $fileData['type']);
