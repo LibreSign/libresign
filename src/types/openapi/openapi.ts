@@ -2967,8 +2967,10 @@ export interface operations {
     "id_docs-list-of-unauthenticated-signer": {
         parameters: {
             query?: {
-                /** @description Filter params as JSON string */
-                filter?: string;
+                /** @description User ID to filter by */
+                userId?: string | null;
+                /** @description Sign request ID to filter by */
+                signRequestId?: number | null;
                 /** @description the number of page to return */
                 page?: number | null;
                 /** @description Total of elements to return */
@@ -3129,8 +3131,10 @@ export interface operations {
     "id_docs-list-to-approval": {
         parameters: {
             query?: {
-                /** @description Filter params as JSON string */
-                filter?: string;
+                /** @description User ID to filter by */
+                userId?: string | null;
+                /** @description Sign request ID to filter by */
+                signRequestId?: number | null;
                 /** @description the number of page to return */
                 page?: number | null;
                 /** @description Total of elements to return */
