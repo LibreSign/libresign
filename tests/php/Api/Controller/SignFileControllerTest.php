@@ -120,7 +120,6 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testSignUsingFileIdWithNotFoundFile():void {
-		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
 		$user = $this->createAccount('username', 'password');
 
 		$user->setEMailAddress('person@test.coop');
