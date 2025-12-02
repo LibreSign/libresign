@@ -352,8 +352,13 @@ export default {
 
 .action-buttons{
 	display: flex;
-	box-sizing: border-box;
-	grid-gap: 10px;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 12px;
+
+	button {
+		margin: 0 !important;
+	}
 }
 
 .iframe {
