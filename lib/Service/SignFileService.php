@@ -659,20 +659,10 @@ class SignFileService {
 			if ($signRequest->getSigned()) {
 				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
 			}
+			return $signRequest;
 		} catch (DoesNotExistException) {
-			try {
-				$idDoc = $this->idDocsMapper->getByFileId($libresignFile->getId());
-			} catch (\Throwable) {
-				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
-			}
-			$this->validateHelper->userCanApproveValidationDocuments($user);
-			$signRequest = new SignRequestEntity();
-			$signRequest->setFileId($libresignFile->getId());
-			$signRequest->setDisplayName($user->getDisplayName());
-			$signRequest->setUuid(UUIDUtil::getUUID());
-			$signRequest->setCreatedAt(new \DateTime('now', new \DateTimeZone('UTC')));
+			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 		}
-		return $signRequest;
 	}
 
 	protected function getPdfToSign(File $originalFile): File {

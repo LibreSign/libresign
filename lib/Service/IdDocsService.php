@@ -12,12 +12,19 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\IdDocsMapper;
+use OCA\Libresign\Db\IdentifyMethod;
+use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Db\SignRequest as SignRequestEntity;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\IdentifyMethodService;
+use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IUser;
+use Sabre\DAV\UUIDUtil;
 
 class IdDocsService {
 
@@ -28,6 +35,9 @@ class IdDocsService {
 		private RequestSignatureService $requestSignatureService,
 		private IdDocsMapper $idDocsMapper,
 		private FileMapper $fileMapper,
+		private SignRequestMapper $signRequestMapper,
+		private IdentifyMethodMapper $identifyMethodMapper,
+		private ITimeFactory $timeFactory,
 		private IAppConfig $appConfig,
 	) {
 	}
@@ -80,6 +90,20 @@ class IdDocsService {
 			$dataToSave['userManager'] = $user;
 			$dataToSave['name'] = $fileData['name'] ?? $fileData['type'];
 			$file = $this->requestSignatureService->saveFile($dataToSave);
+
+			$signRequest = new SignRequestEntity();
+			$signRequest->setFileId($file->getId());
+			$signRequest->setDisplayName($user->getDisplayName());
+			$signRequest->setUuid(UUIDUtil::getUUID());
+			$signRequest->setCreatedAt($this->timeFactory->getDateTime());
+			$this->signRequestMapper->insert($signRequest);
+
+			$identifyMethod = new IdentifyMethod();
+			$identifyMethod->setSignRequestId($signRequest->getId());
+			$identifyMethod->setIdentifierKey(IdentifyMethodService::IDENTIFY_ACCOUNT);
+			$identifyMethod->setIdentifierValue($user->getUID());
+			$identifyMethod->setMandatory(true);
+			$this->identifyMethodMapper->insert($identifyMethod);
 
 			$this->idDocsMapper->save($file->getId(), null, $user->getUID(), $fileData['type']);
 		}
