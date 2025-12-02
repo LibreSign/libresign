@@ -230,7 +230,7 @@
 						label="label"
 						track-by="value" />
 
-					<NcTextArea :value.sync="revokeDialog.reasonText"
+					<NcTextArea v-model="revokeDialog.reasonText"
 						:label="t('libresign', 'Reason Description (optional)')"
 						:disabled="revokeDialog.loading"
 						:maxlength="255"
