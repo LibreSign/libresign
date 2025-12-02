@@ -143,10 +143,10 @@ class FolderService {
 				'name' => 'name'
 			];
 			$data['settings']['folderPatterns'][] = [
-				'name' => 'identifier'
+				'name' => 'userId'
 			];
 		}
-		$folderName = null;
+		$folderName = [];
 		foreach ($data['settings']['folderPatterns'] as $pattern) {
 			switch ($pattern['name']) {
 				case 'date':
@@ -157,7 +157,7 @@ class FolderService {
 						$folderName[] = $data['name'];
 					}
 					break;
-				case 'identifier':
+				case 'userId':
 					// Handle IUser object or string
 					if ($identifier instanceof \OCP\IUser) {
 						$folderName[] = $identifier->getUID();
