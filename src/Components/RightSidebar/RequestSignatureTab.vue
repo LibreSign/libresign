@@ -61,6 +61,7 @@
 			size="full"
 			:name="fileName"
 			:close-button-contained="false"
+			:close-button-outside="true"
 			@close="closeModal()">
 			<iframe :src="modalSrc" class="iframe" />
 		</NcModal>
