@@ -103,6 +103,12 @@
 					</td>
 					<td class="id-docs-table__cell--frozen-right">
 						<NcActions :force-name="true" :inline="3">
+							<NcActionButton @click="openFile(doc)">
+								<template #icon>
+									<FileDocumentOutlineIcon :size="20" />
+								</template>
+								{{ t('libresign', 'Open file') }}
+							</NcActionButton>
 							<NcActionButton @click="openValidationURL(doc)">
 								<template #icon>
 									<EyeIcon :size="20" />
@@ -152,6 +158,7 @@ import CloseIcon from 'vue-material-design-icons/Close.vue'
 import DeleteIcon from 'vue-material-design-icons/Delete.vue'
 import EyeIcon from 'vue-material-design-icons/Eye.vue'
 import FileDocumentIcon from 'vue-material-design-icons/FileDocument.vue'
+import FileDocumentOutlineIcon from 'vue-material-design-icons/FileDocumentOutline.vue'
 import FilterIcon from 'vue-material-design-icons/Filter.vue'
 import PencilIcon from 'vue-material-design-icons/Pencil.vue'
 
@@ -163,6 +170,7 @@ export default {
 		ClockAlertIcon,
 		CloseIcon,
 		DeleteIcon,
+		FileDocumentOutlineIcon,
 		EyeIcon,
 		FileDocumentIcon,
 		FilterIcon,
@@ -256,6 +264,30 @@ export default {
 				await this.loadDocuments()
 			} catch (error) {
 				showError(error.response?.data?.ocs?.data?.message || this.t('libresign', 'Failed to delete document'))
+			}
+		},
+
+		openFile(doc) {
+			const fileUrl = doc.file?.file?.url
+
+			if (!fileUrl) {
+				showError(t('libresign', 'File not found'))
+				return
+			}
+
+			if (OCA?.Viewer !== undefined) {
+				const fileInfo = {
+					source: fileUrl,
+					basename: doc.file.name,
+					mime: 'application/pdf',
+					fileid: doc.nodeId,
+				}
+				OCA.Viewer.open({
+					fileInfo,
+					list: [fileInfo],
+				})
+			} else {
+				window.open(`${fileUrl}?_t=${Date.now()}`)
 			}
 		},
 
