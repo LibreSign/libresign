@@ -127,9 +127,12 @@ class IdDocsService {
 		$length = $length ?? (int)$this->appConfig->getValueInt(Application::APP_ID, 'length_of_page', 100);
 		$data = $this->idDocsMapper->list($filter, $page, $length);
 		$data['pagination']->setRouteName('ocs.libresign.File.list');
+		$pagination = $data['pagination']->getPagination($page, $length, $filter);
 		return [
 			'data' => $data['data'],
-			'pagination' => $data['pagination']->getPagination($page, $length, $filter)
+			'total' => $pagination['total'],
+			'page' => $page,
+			'length' => $length,
 		];
 	}
 
