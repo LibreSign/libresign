@@ -187,7 +187,7 @@ class AccountService {
 	}
 
 	/**
-	 * @return array[]
+	 * @return array<string, mixed>
 	 */
 	public function getConfig(?IUser $user = null): array {
 		$info['identificationDocumentsFlow'] = $this->appConfig->getValueBool(Application::APP_ID, 'identification_documents', false);
