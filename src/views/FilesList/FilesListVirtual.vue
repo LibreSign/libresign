@@ -3,19 +3,26 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<VirtualList :data-component="userConfigStore.grid_view ? FileEntryGrid : FileEntry"
-		:loading="loading">
+	<VirtualList ref="table"
+		:data-component="userConfigStore.grid_view ? FileEntryGrid : FileEntry"
+		:loading="loading"
+		:caption="caption">
 		<template #filters>
 			<FileListFilters />
 		</template>
 		<template v-if="!isNoneSelected" #header-overlay>
-			<span class="files-list__selected">{{ n('libresign', '{count} selected', '{count} selected', selectionStore.selected.length, { count: selectionStore.selected.length }) }}</span>
+			<span class="files-list__selected">
+				{{ n('libresign', '{count} selected', '{count} selected', selectedNodes.length, { count: selectedNodes.length }) }}
+			</span>
 			<FilesListTableHeaderActions />
 		</template>
 		<template #header>
 			<!-- Table header and sort buttons -->
 			<FilesListTableHeader ref="thead"
 				:nodes="nodes" />
+		</template>
+		<template #empty>
+			<slot name="empty" />
 		</template>
 		<template #footer>
 			<FilesListTableFooter />
@@ -76,8 +83,14 @@ export default {
 		}
 	},
 	computed: {
+		selectedNodes() {
+			return this.selectionStore.selected
+		},
 		isNoneSelected() {
-			return this.selectionStore.selected.length === 0
+			return this.selectedNodes.length === 0
+		},
+		caption() {
+			return t('libresign', 'List of files. Column headers with buttons are sortable.')
 		},
 	},
 }
