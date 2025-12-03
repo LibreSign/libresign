@@ -77,6 +77,12 @@ export const useSignMethodsStore = defineStore('signMethods', {
 			return Object.hasOwn(this.settings, 'sms')
 				&& this.settings.sms.needCode
 		},
+		needTokenCode() {
+			const tokenMethods = ['sms', 'whatsapp', 'signal', 'telegram', 'xmpp']
+			return tokenMethods.some(method =>
+				Object.hasOwn(this.settings, method) && this.settings[method].needCode
+			)
+		},
 		needCertificate() {
 			return this.certificateEngine === 'none' && !this.hasSignatureFile()
 		},
