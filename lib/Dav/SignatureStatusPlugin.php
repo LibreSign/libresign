@@ -21,16 +21,20 @@ class SignatureStatusPlugin extends ServerPlugin {
 	}
 
 	public function propFind(PropFind $propFind, INode $node): void {
-		if ($node instanceof File) {
-			$fileService = OC::$server->get(FileService::class);
-			$nodeId = $node->getId();
-
-			if ($fileService->isLibresignFile($nodeId)) {
-				$fileService->setFileByType('FileId', $nodeId);
-
-				$propFind->handle('{http://nextcloud.org/ns}signature-status', $fileService->getStatus());
-				$propFind->handle('{http://nextcloud.org/ns}signed-node-id', $fileService->getSignedNodeId());
-			}
+		if (!$node instanceof File) {
+			return;
 		}
+
+		$fileService = OC::$server->get(FileService::class);
+		$nodeId = $node->getId();
+
+		if (!$fileService->isLibresignFile($nodeId)) {
+			return;
+		}
+
+		$fileService->setFileByType('FileId', $nodeId);
+
+		$propFind->handle('{http://nextcloud.org/ns}signature-status', $fileService->getStatus());
+		$propFind->handle('{http://nextcloud.org/ns}signed-node-id', $fileService->getSignedNodeId());
 	}
 }
