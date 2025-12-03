@@ -636,7 +636,7 @@ export default {
 
 <style lang="scss" scoped>
 .crl-management {
-	padding: 20px;
+	padding: 20px 0;
 	height: 100%;
 	display: flex;
 	flex-direction: column;
@@ -646,6 +646,8 @@ export default {
 		align-items: center;
 		justify-content: flex-end;
 		gap: 8px;
+		margin-top: 12px;
+		margin-right: 12px;
 		margin-bottom: 12px;
 
 		.filter-wrapper {
