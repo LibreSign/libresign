@@ -67,11 +67,24 @@
 			<thead>
 				<tr>
 					<th class="id-docs-table__cell--spacer id-docs-table__cell--frozen-left id-docs-table__cell--frozen-spacer" />
-					<th class="id-docs-table__cell--frozen-left id-docs-table__cell--frozen-owner">
+					<th class="sortable id-docs-table__cell--frozen-left id-docs-table__cell--frozen-owner" @click="sortColumn('owner')">
 						{{ t('libresign', 'Owner') }}
+						<span v-if="sortBy === 'owner'" class="sort-indicator">
+							{{ sortOrder === 'ASC' ? '▲' : '▼' }}
+						</span>
 					</th>
-					<th>{{ t('libresign', 'Type') }}</th>
-					<th>{{ t('libresign', 'Status') }}</th>
+					<th class="sortable" @click="sortColumn('file_type')">
+						{{ t('libresign', 'Type') }}
+						<span v-if="sortBy === 'file_type'" class="sort-indicator">
+							{{ sortOrder === 'ASC' ? '▲' : '▼' }}
+						</span>
+					</th>
+					<th class="sortable" @click="sortColumn('status')">
+						{{ t('libresign', 'Status') }}
+						<span v-if="sortBy === 'status'" class="sort-indicator">
+							{{ sortOrder === 'ASC' ? '▲' : '▼' }}
+						</span>
+					</th>
 					<th>{{ t('libresign', 'Approved by') }}</th>
 					<th class="id-docs-table__cell--frozen-right">{{ t('libresign', 'Actions') }}</th>
 				</tr>
@@ -206,9 +219,11 @@ export default {
 			length: 50,
 			total: 0,
 			hasMore: true,
+			sortBy: userConfigStore.id_docs_sort?.sortBy || null,
+			sortOrder: userConfigStore.id_docs_sort?.sortOrder || null,
 			filters: {
-				owner: userConfigStore.id_docs_filters.owner || '',
-				status: userConfigStore.id_docs_filters.status || null,
+				owner: userConfigStore.id_docs_filters?.owner || '',
+				status: userConfigStore.id_docs_filters?.status || null,
 			},
 			statusOptions: [
 				{ value: 'signed', label: 'Signed' },
@@ -263,6 +278,11 @@ export default {
 				const params = {
 					page: this.page,
 					length: this.length,
+				}
+
+				if (this.sortBy) {
+					params.sortBy = this.sortBy
+					params.sortOrder = this.sortOrder
 				}
 
 				const response = await axios.get(
@@ -396,6 +416,34 @@ export default {
 			}
 			this.onFilterChange()
 		},
+
+		sortColumn(column) {
+			if (this.sortBy === column) {
+				if (this.sortOrder === 'DESC') {
+					this.sortOrder = 'ASC'
+				} else if (this.sortOrder === 'ASC') {
+					this.sortBy = null
+					this.sortOrder = null
+				}
+			} else {
+				this.sortBy = column
+				this.sortOrder = 'DESC'
+			}
+			this.saveSort()
+			this.loadDocuments()
+		},
+
+		async saveSort() {
+			try {
+				const sort = {
+					sortBy: this.sortBy,
+					sortOrder: this.sortOrder,
+				}
+				await this.userConfigStore.update('id_docs_sort', sort)
+			} catch (error) {
+				console.error('Failed to save sort:', error)
+			}
+		},
 	},
 }
 </script>
@@ -506,6 +554,22 @@ export default {
 			&.id-docs-table__cell--frozen-owner,
 			&.id-docs-table__cell--frozen-right {
 				z-index: $frozen-z-head;
+			}
+
+			&.sortable {
+				cursor: pointer;
+				user-select: none;
+				transition: background-color 0.2s;
+
+				&:hover {
+					background-color: var(--color-background-hover);
+				}
+
+				.sort-indicator {
+					margin-left: 4px;
+					font-size: 10px;
+					color: var(--color-primary);
+				}
 			}
 		}
 	}
