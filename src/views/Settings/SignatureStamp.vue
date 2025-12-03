@@ -214,12 +214,14 @@
 				type="file"
 				@change="onChangeBackground">
 			<div v-if="displayPreview" class="settings-section__zoom">
-				<NcButton @click="changeZoomLevel(-10)">
+				<NcButton :aria-label="t('libresign', 'Decrease zoom level')"
+					@click="changeZoomLevel(-10)">
 					<template #icon>
 						<MagnifyMinusOutline :size="20" />
 					</template>
 				</NcButton>
-				<NcButton @click="changeZoomLevel(+10)">
+				<NcButton :aria-label="t('libresign', 'Increase zoom level')"
+					@click="changeZoomLevel(+10)">
 					<template #icon>
 						<MagnifyPlusOutline :size="20" />
 					</template>
