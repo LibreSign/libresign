@@ -630,6 +630,7 @@ class SignRequestMapper extends QBMapper {
 		}
 
 		$extensionPattern = '/\.' . preg_quote($metadata['extension'], '/') . '$/i';
-		return preg_replace($extensionPattern, '', $name);
+		$result = preg_replace($extensionPattern, '', $name);
+		return $result ?? $name;
 	}
 }

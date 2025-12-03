@@ -139,7 +139,8 @@ class RequestSignatureService {
 			return $name;
 		}
 		$extensionPattern = '/\.' . preg_quote($metadata['extension'], '/') . '$/i';
-		return preg_replace($extensionPattern, '', $name);
+		$result = preg_replace($extensionPattern, '', $name);
+		return $result ?? $name;
 	}
 
 	private function deleteIdentifyMethodIfNotExits(array $users, int $fileId): void {
