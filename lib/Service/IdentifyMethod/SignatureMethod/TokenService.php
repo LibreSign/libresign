@@ -47,8 +47,8 @@ class TokenService {
 			throw new LibresignException('App Two-Factor Gateway is not installed.');
 
 		}
-		$gateway = $factory->getGateway($gatewayName);
-		if (!$gateway->getConfig()->isComplete()) {
+		$gateway = $factory->get($gatewayName);
+		if (!$gateway->isComplete()) {
 			throw new OCSForbiddenException($this->l10n->t('Gateway %s not configured on Two-Factor Gateway.', $gatewayName));
 		}
 		return $gateway;
