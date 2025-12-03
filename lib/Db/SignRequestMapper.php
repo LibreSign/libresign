@@ -609,10 +609,27 @@ class SignRequestMapper extends QBMapper {
 		$row['created_at'] = (new \DateTime($row['created_at']))->setTimezone(new \DateTimeZone('UTC'))->format(DateTimeInterface::ATOM);
 		$row['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $row['uuid']]);
 		$row['nodeId'] = (int)$row['node_id'];
+
+		$row['name'] = $this->removeExtensionFromName($row['name'], $row['metadata']);
+
 		unset(
 			$row['user_id'],
 			$row['node_id'],
 		);
 		return $row;
+	}
+
+	private function removeExtensionFromName(string $name, ?string $metadataJson): string {
+		if (empty($name) || empty($metadataJson)) {
+			return $name;
+		}
+
+		$metadata = json_decode($metadataJson, true);
+		if (!isset($metadata['extension'])) {
+			return $name;
+		}
+
+		$extensionPattern = '/\.' . preg_quote($metadata['extension'], '/') . '$/i';
+		return preg_replace($extensionPattern, '', $name);
 	}
 }
