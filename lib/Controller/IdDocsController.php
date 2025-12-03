@@ -178,6 +178,8 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 	 * @param int|null $signRequestId Sign request ID to filter by
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
+	 * @param string|null $sortBy Sort field (e.g., 'owner', 'file_type', 'status')
+	 * @param string|null $sortOrder Sort order (ASC or DESC)
 	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
 	 *
 	 * 200: OK
@@ -191,6 +193,8 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 		?int $signRequestId = null,
 		?int $page = null,
 		?int $length = null,
+		?string $sortBy = null,
+		?string $sortOrder = null,
 	): DataResponse {
 		try {
 			$this->validateHelper->userCanApproveValidationDocuments($this->userSession->getUser());
@@ -198,7 +202,11 @@ class IdDocsController extends AEnvironmentAwareController implements ISignature
 				'userId' => $userId,
 				'signRequestId' => $signRequestId,
 			], static fn ($var) => $var !== null);
-			$return = $this->idDocsService->list($filter, $page, $length);
+			$sort = [];
+			if ($sortBy !== null) {
+				$sort[$sortBy] = $sortOrder ?? 'DESC';
+			}
+			$return = $this->idDocsService->list($filter, $page, $length, $sort);
 			return new DataResponse($return, Http::STATUS_OK);
 		} catch (\Throwable $th) {
 			return new DataResponse(
