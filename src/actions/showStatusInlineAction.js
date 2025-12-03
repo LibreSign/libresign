@@ -15,10 +15,10 @@ const action = new FileAction({
 	title: (nodes) => {
 		const node = nodes[0]
 
-		const signedNodeId = node.attributes['signed-node-id']
+		const signedNodeId = node.attributes['libresign-signed-node-id']
 
 		if (!signedNodeId || node.fileid === signedNodeId) {
-			const status = fileStatus.find(status => status.id === node.attributes['signature-status'])
+			const status = fileStatus.find(status => status.id === node.attributes['libresign-signature-status'])
 			return status?.label ?? ''
 		}
 		return t('libresign', 'original file')
@@ -31,10 +31,10 @@ const action = new FileAction({
 	iconSvgInline: (nodes) => {
 		const node = nodes[0]
 
-		const signedNodeId = node.attributes['signed-node-id']
+		const signedNodeId = node.attributes['libresign-signed-node-id']
 
 		if (!signedNodeId || node.fileid === signedNodeId) {
-			const status = fileStatus.find(status => status.id === node.attributes['signature-status'])
+			const status = fileStatus.find(status => status.id === node.attributes['libresign-signature-status'])
 			return status?.icon ?? ''
 		}
 		const ableToSignStatus = fileStatus.find(status => status.id === SIGN_STATUS.ABLE_TO_SIGN)
@@ -45,9 +45,9 @@ const action = new FileAction({
 		return loadState('libresign', 'certificate_ok')
 			&& nodes.length > 0
 			&& nodes
-				.map(node => node.mime)
-				.every(mime => mime === 'application/pdf')
-			&& nodes.every(node => node.attributes['signature-status'])
+			.map(node => node.mime)
+			.every(mime => mime === 'application/pdf')
+		&& nodes.every(node => node.attributes['libresign-signature-status'])
 	},
 	order: -1,
 })

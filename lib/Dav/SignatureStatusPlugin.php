@@ -34,7 +34,7 @@ class SignatureStatusPlugin extends ServerPlugin {
 
 		$fileService->setFileByType('FileId', $nodeId);
 
-		$propFind->handle('{http://nextcloud.org/ns}signature-status', $fileService->getStatus());
-		$propFind->handle('{http://nextcloud.org/ns}signed-node-id', $fileService->getSignedNodeId());
+		$propFind->handle('{http://nextcloud.org/ns}libresign-signature-status', $fileService->getStatus());
+		$propFind->handle('{http://nextcloud.org/ns}libresign-signed-node-id', $fileService->getSignedNodeId());
 	}
 }
