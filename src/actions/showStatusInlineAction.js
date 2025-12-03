@@ -23,7 +23,11 @@ const action = new FileAction({
 		}
 		return t('libresign', 'original file')
 	},
-	exec: async () => null,
+	exec: async (node) => {
+		await window.OCA.Files.Sidebar.open(node.path)
+		OCA.Files.Sidebar.setActiveTab('libresign')
+		return null
+	},
 	iconSvgInline: (nodes) => {
 		const node = nodes[0]
 
