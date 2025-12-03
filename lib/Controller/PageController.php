@@ -199,6 +199,23 @@ class PageController extends AEnvironmentPageAwareController {
 					'errors' => [['message' => $this->l10n->t('Invalid UUID')]],
 				]), Http::STATUS_NOT_FOUND);
 			}
+		} elseif (preg_match('/sign\/(?<uuid>[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/', $path, $matches)) {
+			try {
+				$signRequest = $this->signFileService->getSignRequestByUuid($matches['uuid']);
+				$file = $this->fileService
+					->setFile($this->signFileService->getFile($signRequest->getFileId()))
+					->setMe($this->userSession->getUser())
+					->setSignRequest($signRequest)
+					->showSettings()
+					->toArray();
+				$this->initialState->provideInitialState('needIdentificationDocuments', $file['settings']['needIdentificationDocuments'] ?? false);
+				$this->initialState->provideInitialState('identificationDocumentsWaitingApproval', $file['settings']['identificationDocumentsWaitingApproval'] ?? false);
+			} catch (\Throwable $e) {
+				throw new LibresignException(json_encode([
+					'action' => JSActions::ACTION_DO_NOTHING,
+					'errors' => [['message' => $this->l10n->t('Invalid UUID')]],
+				]), Http::STATUS_NOT_FOUND);
+			}
 		}
 		return $this->index();
 	}
