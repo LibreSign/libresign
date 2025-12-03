@@ -130,9 +130,9 @@
 			:useModal="true"
 			:errors="errors"
 			@certificate:uploaded="onSignatureFileCreated" />
-		<SMSManager v-if="signMethodsStore.modal.sms"
-			:phone-number="user?.account?.phoneNumber"
-			@change="signWithSMSCode"
+		<TokenManager v-if="signMethodsStore.modal.sms"
+			:phone-number="user?.account?.phoneNumber || ''"
+			@change="signWithTokenCode"
 			@update:phone="val => $emit('update:phone', val)"
 			@close="signMethodsStore.closeModal('sms')" />
 		<EmailManager v-if="signMethodsStore.modal.emailToken"
@@ -156,7 +156,7 @@ import NcPasswordField from '@nextcloud/vue/components/NcPasswordField'
 import NcRichText from '@nextcloud/vue/components/NcRichText'
 
 import EmailManager from './ModalEmailManager.vue'
-import SMSManager from './ModalSMSManager.vue'
+import TokenManager from './ModalTokenManager.vue'
 import Draw from '../../../Components/Draw/Draw.vue'
 import Documents from '../../../views/Account/partials/Documents.vue'
 import Signatures from '../../../views/Account/partials/Signatures.vue'
@@ -180,7 +180,7 @@ export default {
 		NcPasswordField,
 		NcRichText,
 		CreatePassword,
-		SMSManager,
+		TokenManager,
 		EmailManager,
 		Documents,
 		Signatures,
@@ -324,9 +324,14 @@ export default {
 				token: this.signPassword,
 			})
 		},
-		async signWithSMSCode(token) {
+		async signWithTokenCode(token) {
+			const tokenMethods = ['sms', 'whatsapp', 'signal', 'telegram', 'xmpp']
+			const activeMethod = tokenMethods.find(method =>
+				Object.hasOwn(this.signMethodsStore.settings, method)
+			) || 'sms'
+
 			await this.signDocument({
-				method: 'sms',
+				method: activeMethod,
 				token,
 			})
 		},
@@ -395,7 +400,7 @@ export default {
 				this.showModalAndResetErrors('createSignature')
 				return
 			}
-			if (this.signMethodsStore.needSmsCode()) {
+			if (this.signMethodsStore.needTokenCode()) {
 				this.showModalAndResetErrors('sms')
 				return
 			}
