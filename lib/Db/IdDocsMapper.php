@@ -101,9 +101,10 @@ class IdDocsMapper extends QBMapper {
 		}
 	}
 
-	public function list(array $filter, ?int $page = null, ?int $length = null): array {
+	public function list(array $filter, ?int $page = null, ?int $length = null, array $sort = []): array {
 		$filter['length'] = $length;
 		$filter['page'] = $page;
+		$filter['sort'] = $sort;
 		$pagination = $this->getDocs($filter);
 		$pagination->setMaxPerPage($length);
 		$pagination->setCurrentPage($page);
@@ -157,12 +158,33 @@ class IdDocsMapper extends QBMapper {
 				$qb->setFirstResult($filter['length'] * ($filter['page'] - 1));
 				$qb->setMaxResults($filter['length']);
 			}
+
+			if (!empty($filter['sort'])) {
+				$allowedSortFields = [
+					'owner' => 'u.displayname',
+					'file_type' => 'id.file_type',
+					'status' => 'f.status',
+					'created_at' => 'f.created_at',
+				];
+
+				foreach ($filter['sort'] as $field => $direction) {
+					if (!isset($allowedSortFields[$field])) {
+						continue;
+					}
+					$direction = strtoupper($direction) === 'ASC' ? 'ASC' : 'DESC';
+					$qb->addOrderBy($allowedSortFields[$field], $direction);
+				}
+			} else {
+				$qb->orderBy('f.created_at', 'DESC');
+			}
 		}
 		$qb
 			->from($this->getTableName(), 'id')
 			->join('id', 'libresign_file', 'f', 'f.id = id.file_id');
 
-		if (!$count || !empty($filter['userId'])) {
+		$needsUserJoin = !$count || !empty($filter['userId']) || (!empty($filter['sort']) && isset($filter['sort']['owner']));
+
+		if ($needsUserJoin) {
 			if (!$count) {
 				$qb->selectAlias('u.uid_lower', 'account_uid')
 					->selectAlias('u.displayname', 'account_displayname')
