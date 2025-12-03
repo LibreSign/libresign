@@ -92,8 +92,9 @@ class RequestSignatureService {
 		}
 		$file->setUuid(UUIDUtil::getUUID());
 		$file->setCreatedAt(new \DateTime('now', new \DateTimeZone('UTC')));
-		$file->setName($data['name']);
-		$file->setMetadata($this->getFileMetadata($node));
+		$metadata = $this->getFileMetadata($node);
+		$file->setName($this->removeExtensionFromName($data['name'], $metadata));
+		$file->setMetadata($metadata);
 		if (!empty($data['callback'])) {
 			$file->setCallback($data['callback']);
 		}
@@ -131,6 +132,14 @@ class RequestSignatureService {
 			}
 		}
 		return $metadata;
+	}
+
+	private function removeExtensionFromName(string $name, array $metadata): string {
+		if (!isset($metadata['extension'])) {
+			return $name;
+		}
+		$extensionPattern = '/\.' . preg_quote($metadata['extension'], '/') . '$/i';
+		return preg_replace($extensionPattern, '', $name);
 	}
 
 	private function deleteIdentifyMethodIfNotExits(array $users, int $fileId): void {
