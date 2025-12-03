@@ -557,9 +557,14 @@ export default {
 			if (!wrapper) {
 				return
 			}
+			const mainWrapper = wrapper.$el.querySelector('.textarea__main-wrapper')
 			const textarea = wrapper.$el.querySelector('textarea')
-			textarea.style.height = 'auto'
-			textarea.style.height = `${textarea.scrollHeight + 4}px`
+
+			if (mainWrapper && textarea) {
+				mainWrapper.style.height = 'auto'
+				mainWrapper.style.height = `${textarea.scrollHeight + 4}px`
+			}
+
 			this.checkPreviewOverflow()
 		}, 100),
 		async resetRenderMode() {
@@ -631,6 +636,13 @@ export default {
 	&__row {
 		display: flex;
 		gap: 0 4px;
+		align-items: flex-start;
+		:deep(.textarea) {
+			flex: 1;
+			textarea {
+				height: 100%;
+			}
+		}
 		&_template-only {
 			width: 100%;
 			display: flex;
