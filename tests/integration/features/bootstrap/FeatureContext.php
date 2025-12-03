@@ -160,4 +160,65 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');
 		$this->fields['SIGN_UUID'] = $matches['uuid'];
 	}
+
+	#[Given('user :user uploads file :source to :path')]
+	public function userUploadsFileTo(string $user, string $source, string $path): void {
+		$this->setCurrentUser($user);
+		$filePath = __DIR__ . '/../assets/' . $source;
+		$content = file_exists($filePath) ? file_get_contents($filePath) : "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R/Resources<<>>>>endobj\nxref\n0 4\n0000000000 65535 f\n0000000009 00000 n\n0000000052 00000 n\n0000000101 00000 n\ntrailer<</Size 4/Root 1 0 R>>\nstartxref\n178\n%%EOF";
+		$this->davRequest($user, 'PUT', $path, $content);
+		Assert::assertContains($this->response->getStatusCode(), [201, 204], 'Failed to upload file');
+	}
+
+	#[Given('user :user gets WebDAV properties for :path')]
+	public function userGetsWebDavPropertiesFor(string $user, string $path): void {
+		$this->setCurrentUser($user);
+		$body = <<<XML
+			<?xml version="1.0"?>
+			<d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns" xmlns:oc="http://owncloud.org/ns">
+			  <d:prop>
+			    <nc:fileid/>
+			    <nc:libresign-signature-status/>
+			    <nc:libresign-signed-node-id/>
+			  </d:prop>
+			</d:propfind>
+			XML;
+		$this->davRequest($user, 'PROPFIND', $path, $body, ['Depth' => '0']);
+	}
+
+	#[Given('the WebDAV response should contain property :property with value :value')]
+	public function theWebDavResponseShouldContainPropertyWithValue(string $property, string $value): void {
+		$result = $this->parseXml()->xpath("//nc:$property");
+		Assert::assertNotEmpty($result, "Property nc:$property not found in WebDAV response");
+		Assert::assertEquals($this->parseText($value), (string)$result[0], "Property nc:$property has unexpected value");
+	}
+
+	#[Given('fetch WebDAV property :property to :alias')]
+	public function fetchWebDavPropertyTo(string $property, string $alias): void {
+		$result = $this->parseXml()->xpath("//nc:$property");
+		Assert::assertNotEmpty($result, "Property nc:$property not found in WebDAV response");
+		$this->fields[$alias] = (string)$result[0];
+	}
+
+	private function davRequest(string $user, string $method, string $path, ?string $body = null, array $headers = []): void {
+		$client = new \GuzzleHttp\Client();
+		try {
+			$this->response = $client->request($method, $this->baseUrl . '/remote.php/dav/files/' . $user . '/' . $path, [
+				'auth' => [$user === 'admin' ? 'admin' : $user, $user === 'admin' ? $this->adminPassword : $this->testPassword],
+				'headers' => $headers,
+				'body' => $body,
+			]);
+		} catch (\GuzzleHttp\Exception\ClientException $ex) {
+			$this->response = $ex->getResponse();
+		}
+	}
+
+	private function parseXml(): \SimpleXMLElement {
+		Assert::assertEquals(207, $this->response->getStatusCode(), 'Expected HTTP 207 Multi-Status');
+		$this->response->getBody()->rewind();
+		$xml = simplexml_load_string($this->response->getBody()->getContents());
+		Assert::assertNotFalse($xml, 'Failed to parse XML response');
+		$xml->registerXPathNamespace('nc', 'http://nextcloud.org/ns');
+		return $xml;
+	}
 }
