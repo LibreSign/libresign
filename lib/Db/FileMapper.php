@@ -175,9 +175,9 @@ class FileMapper extends QBMapper {
 
 		$qb->select('lf.*')
 			->from($this->getTableName(), 'lf')
-			->join('lf', 'libresign_account_file', 'laf', 'laf.file_id = lf.id')
+			->join('lf', 'libresign_id_docs', 'lid', 'lid.file_id = lf.id')
 			->where(
-				$qb->expr()->eq('laf.user_id', $qb->createNamedParameter($userId))
+				$qb->expr()->eq('lid.user_id', $qb->createNamedParameter($userId))
 			);
 
 		$cursor = $qb->executeQuery();

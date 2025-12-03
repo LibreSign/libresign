@@ -34,7 +34,7 @@ namespace OCA\Libresign;
  *     fileId?: non-negative-int,
  *     url?: string,
  * }
- * @psalm-type LibresignAccountFile = array{
+ * @psalm-type LibresignIdDocs = array{
  *     file: LibresignNewFile,
  *     name?: string,
  *     type?: string,

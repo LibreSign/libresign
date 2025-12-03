@@ -4,50 +4,53 @@
 -->
 <template>
 	<div v-if="enabledFlow" class="documents">
-		<h1>{{ t('libresign', 'Your profile documents') }}</h1>
+		<h2>{{ t('libresign', 'Identification documents') }}</h2>
 
-		<ProgressBar v-if="loading" infinity />
+		<NcLoadingIcon v-if="loading" :size="44" />
 
-		<table v-else class="libre-table is-fullwidth">
-			<thead>
-				<tr>
-					<td>
-						{{ t('libresign', 'Type') }}
-					</td>
-					<td>
-						{{ t('libresign', 'Status') }}
-					</td>
-					<td>
-						{{ t('libresign', 'Actions') }}
-					</td>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-for="(doc, index) in list" :key="`doc-${index}-${doc.nodeId}-${doc.file_type.key}`">
-					<td>
-						{{ doc.file_type.name }}
-					</td>
-					<td>
+		<template v-else>
+			<NcNoteCard v-if="hasDocumentsWaitingApproval" type="info">
+				{{ t('libresign', 'Your identification documents are waiting for approval.') }}
+			</NcNoteCard>
+
+			<ul class="documents-list">
+				<NcListItem v-for="(doc, index) in list"
+					:key="`doc-${index}-${doc.nodeId}-${doc.file_type.key}`"
+					:name="doc.file_type.name"
+					:bold="false">
+					<template #subname>
 						{{ doc.statusText }}
-					</td>
-					<td class="actions">
-						<template v-if="doc.status === -1">
-							<button @click="toggleFilePicker(doc.file_type.key)">
-								<div class="icon-folder" />
-							</button>
-							<button @click="inputFile(doc.file_type.key)">
-								<div class="icon-upload" />
-							</button>
-						</template>
-						<template v-else>
-							<button @click="deleteFile(doc)">
-								<div class="icon-delete" />
-							</button>
-						</template>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+					</template>
+					<template #actions>
+						<NcActionButton v-if="doc.status === -1"
+							:aria-label="t('libresign', 'Choose from Files')"
+							@click="toggleFilePicker(doc.file_type.key)">
+							<template #icon>
+								<FolderIcon :size="20" />
+							</template>
+							{{ t('libresign', 'Choose from Files') }}
+						</NcActionButton>
+						<NcActionButton v-if="doc.status === -1"
+							:aria-label="t('libresign', 'Upload file')"
+							@click="inputFile(doc.file_type.key)">
+							<template #icon>
+								<UploadIcon :size="20" />
+							</template>
+							{{ t('libresign', 'Upload file') }}
+						</NcActionButton>
+						<NcActionButton v-if="doc.status !== -1"
+							:aria-label="t('libresign', 'Delete file')"
+							@click="deleteFile(doc)">
+							<template #icon>
+								<DeleteIcon :size="20" />
+							</template>
+							{{ t('libresign', 'Delete file') }}
+						</NcActionButton>
+					</template>
+				</NcListItem>
+			</ul>
+		</template>
+
 		<FilePicker v-if="showFilePicker"
 			:name="t('libresign', 'Select your file')"
 			:multiselect="false"
@@ -58,32 +61,20 @@
 </template>
 
 <script>
+import { translate as t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
 import { showError, showWarning, showSuccess } from '@nextcloud/dialogs'
 import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
+import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
+import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 
-import ProgressBar from '../../../Components/ProgressBar.vue'
-
-const FILE_TYPE_INFO = {
-	IDENTIFICATION: {
-		key: 'IDENTIFICATION',
-		name: t('libresign', 'Identification Document'),
-		description: t('libresign', 'Identification Document'),
-	},
-}
-
-const findDocumentByType = (list, type) => {
-	return list.find(row => row?.file_type?.type === type) || {
-		nodeId: 0,
-		uuid: '',
-		status: -1,
-		statusText: t('libresign', 'Not sent yet'),
-		name: t('libresign', 'Not defined yet'),
-		file_type: FILE_TYPE_INFO[type] || { type },
-	}
-}
+import DeleteIcon from 'vue-material-design-icons/Delete.vue'
+import FolderIcon from 'vue-material-design-icons/Folder.vue'
+import UploadIcon from 'vue-material-design-icons/Upload.vue'
 
 const loadFileToBase64 = file => {
 	return new Promise((resolve, reject) => {
@@ -97,8 +88,21 @@ const loadFileToBase64 = file => {
 export default {
 	name: 'Documents',
 	components: {
+		DeleteIcon,
 		FilePicker,
-		ProgressBar,
+		FolderIcon,
+		NcActionButton,
+		NcListItem,
+		NcLoadingIcon,
+		NcNoteCard,
+		UploadIcon,
+	},
+	props: {
+		signRequestUuid: {
+			type: String,
+			required: false,
+			default: '',
+		},
 	},
 	data() {
 		return {
@@ -116,29 +120,56 @@ export default {
 				type: 'primary',
 			}]
 		},
+		fileTypeInfo() {
+			return {
+				IDENTIFICATION: {
+					key: 'IDENTIFICATION',
+					name: t('libresign', 'Identification Document'),
+					description: t('libresign', 'Identification Document'),
+				},
+			}
+		},
 		documents() {
 			return {
-				default: findDocumentByType(this.documentList, 'IDENTIFICATION'),
+				default: this.findDocumentByType(this.documentList, 'IDENTIFICATION'),
 			}
 		},
 		list() {
 			return Object.values(this.documents)
 		},
+		hasDocumentsWaitingApproval() {
+			return this.list.some(doc => doc.status === 2)
+		},
 		enabledFlow() {
-			return loadState('libresign', 'config').identificationDocumentsFlow
+			const config = loadState('libresign', 'config', {})
+			return config.identificationDocumentsFlow || false
 		},
 	},
 	mounted() {
 		this.loadDocuments()
 	},
 	methods: {
+		findDocumentByType(list, type) {
+			return list.find(row => row?.file_type?.type === type) || {
+				nodeId: 0,
+				uuid: '',
+				status: -1,
+				statusText: t('libresign', 'Not sent yet'),
+				name: t('libresign', 'Not defined yet'),
+				file_type: this.fileTypeInfo[type] || { type },
+			}
+		},
 		toggleFilePicker(type) {
 			this.selectedType = type
 			this.showFilePicker = !this.showFilePicker
 		},
 		async loadDocuments() {
 			this.loading = true
-			await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/files'))
+			const params = {};
+			if (this.signRequestUuid) {
+				params.uuid = this.signRequestUuid
+			}
+			await axios.get(generateOcsUrl('/apps/libresign/api/v1/id-docs'), { params })
 				.then(({ data }) => {
 					this.documentList = data.ocs.data.data
 				})
@@ -156,7 +187,7 @@ export default {
 
 			this.loading = true
 
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/files'), {
+			const params = {
 				files: [{
 					type: this.selectedType,
 					name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
@@ -164,9 +195,15 @@ export default {
 						path,
 					},
 				}],
-			})
-				.then(() => {
+			}
+			if (this.signRequestUuid) {
+				params.uuid = this.signRequestUuid
+			}
+
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/id-docs'), params)
+				.then(async () => {
 					showSuccess(t('libresign', 'File was sent.'))
+					await this.loadDocuments()
 				})
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.message)
@@ -176,7 +213,7 @@ export default {
 		async uploadFile(type, inputFile) {
 			this.loading = true
 			const raw = await loadFileToBase64(inputFile)
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/files'), {
+			const params = {
 				files: [{
 					type,
 					name: inputFile.name,
@@ -184,9 +221,14 @@ export default {
 						base64: raw,
 					},
 				}],
-			})
-				.then(() => {
+			}
+			if (this.signRequestUuid) {
+				params.uuid = this.signRequestUuid
+			}
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/id-docs'), params)
+				.then(async () => {
 					showSuccess(t('libresign', 'File was sent.'))
+					await this.loadDocuments()
 				})
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.message)
@@ -194,9 +236,8 @@ export default {
 			this.loading = false
 		},
 		async deleteFile({ nodeId }) {
-			await axios.delete(generateOcsUrl('/apps/libresign/api/v1/account/files'), {
-				data: { nodeId },
-			})
+			this.loading = true
+			await axios.delete(generateOcsUrl(`/apps/libresign/api/v1/id-docs/${nodeId}`))
 				.then(async () => {
 					showSuccess(t('libresign', 'File was deleted.'))
 					await this.loadDocuments()
@@ -228,26 +269,10 @@ export default {
 
 <style lang="scss" scoped>
 .documents {
-	align-items: flex-start;
-	width: 100%;
-
-	table td {
-		vertical-align: middle;
-	}
-
-	h1{
-		font-size: 1.3rem;
-		font-weight: bold;
-		border-bottom: 1px solid #000;
-		padding-left: 5px;
-		width: 100%;
-		display: block;
-	}
-
-	td.actions button {
-		padding: 3px 8px;
-		margin-top: 0;
-		margin-bottom: 0;
+	h2 {
+		font-size: 1.25rem;
+		font-weight: 600;
+		margin-bottom: 12px;
 	}
 }
 </style>

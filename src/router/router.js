@@ -165,8 +165,8 @@ const router = new Router({
 			props: true,
 		},
 		{
-			path: '/f/account/files/approve/:uuid',
-			name: 'AccountFileApprove',
+			path: '/f/id-docs/approve/:uuid',
+			name: 'IdDocsApprove',
 			component: () => import('../views/SignPDF/SignPDF.vue'),
 			props: true,
 		},
@@ -176,9 +176,9 @@ const router = new Router({
 			component: () => import('../views/Account/Account.vue'),
 		},
 		{
-			path: '/f/docs/accounts/validation',
-			name: 'DocsAccountValidation',
-			component: () => import('../views/Documents/AccountValidation.vue'),
+			path: '/f/docs/id-docs/validation',
+			name: 'DocsIdDocsValidation',
+			component: () => import('../views/Documents/IdDocsValidation.vue'),
 		},
 		{
 			path: '/f/crl/management',
