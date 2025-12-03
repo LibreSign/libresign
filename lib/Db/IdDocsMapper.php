@@ -13,6 +13,7 @@ use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\DB\Types;
 use OCP\IDBConnection;
+use OCP\IL10N;
 use OCP\IURLGenerator;
 
 /**
@@ -28,6 +29,7 @@ class IdDocsMapper extends QBMapper {
 		private FileMapper $fileMapper,
 		private SignRequestMapper $signRequestMapper,
 		private FileTypeMapper $fileTypeMapper,
+		private IL10N $l10n,
 	) {
 		parent::__construct($db, 'libresign_id_docs');
 	}
@@ -202,7 +204,7 @@ class IdDocsMapper extends QBMapper {
 	private function formatListRow(array $row, string $url): array {
 		$row['nodeId'] = (int)$row['node_id'];
 		$row['status'] = (int)$row['status'];
-		$row['statusText'] = $this->fileMapper->getTextOfStatus((int)$row['status']);
+		$row['statusText'] = $this->getIdDocStatusText((int)$row['status']);
 		$row['account'] = [
 			'uid' => $row['account_uid'],
 			'displayName' => $row['account_displayname']
@@ -219,7 +221,7 @@ class IdDocsMapper extends QBMapper {
 		$row['file'] = [
 			'name' => $row['name'],
 			'status' => $row['status'],
-			'statusText' => $this->fileMapper->getTextOfStatus((int)$row['status']),
+			'statusText' => $this->getIdDocStatusText((int)$row['status']),
 			'created_at' => $row['created_at'],
 			'file' => [
 				'type' => 'pdf',
@@ -273,5 +275,13 @@ class IdDocsMapper extends QBMapper {
 			unset($files[$key]['id']);
 		}
 		return $files;
+	}
+
+	private function getIdDocStatusText(int $status): string {
+		return match ($status) {
+			File::STATUS_ABLE_TO_SIGN => $this->l10n->t('waiting for approval'),
+			File::STATUS_SIGNED => $this->l10n->t('approved'),
+			default => $this->fileMapper->getTextOfStatus($status),
+		};
 	}
 }
