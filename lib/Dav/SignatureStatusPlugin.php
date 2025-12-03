@@ -16,10 +16,7 @@ use Sabre\DAV\Server;
 use Sabre\DAV\ServerPlugin;
 
 class SignatureStatusPlugin extends ServerPlugin {
-	protected $server;
-
 	public function initialize(Server $server): void {
-		$this->server = $server;
 		$server->on('propFind', [$this, 'propFind']);
 	}
 
