@@ -9,6 +9,15 @@
 
 .is-fullwidth{width: 100%;}
 
+.hidden-visually {
+	position: absolute;
+	left: -10000px;
+	top: auto;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
+
 .button.is-warning{
 	background-color: var(--color-warning, #eca700);
 	border-color: var(--color-warning-hover, #f0b933);
