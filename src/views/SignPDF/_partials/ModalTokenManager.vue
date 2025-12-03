@@ -4,15 +4,14 @@
 -->
 <template>
 	<NcDialog v-if="signMethodsStore.modal.sms"
-		:name="t('libresign', 'Sign with your cellphone number.')"
+		:name="t('libresign', 'Sign with your phone number.')"
 		@closing="signMethodsStore.closeModal('sms')">
-		<div v-if="newPhoneNumber" class="code-request">
+		<div v-if="tokenRequested" class="code-request">
 			<h3 class="phone">
 				{{ newPhoneNumber }}
 			</h3>
 
-			<NcTextField v-if="tokenRequested"
-				v-model="token"
+			<NcTextField v-model="token"
 				:disabled="loading"
 				name="code"
 				type="text" />
@@ -26,23 +25,17 @@
 				@change="sanitizeNumber" />
 		</div>
 		<template #actions>
-			<NcButton v-if="newPhoneNumber && !tokenRequested" :disabled="loading" @click="requestCode">
+			<NcButton v-if="!tokenRequested" :disabled="loading || newPhoneNumber.length < 10" @click="requestCode">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 				</template>
 				{{ t('libresign', 'Request code.') }}
 			</NcButton>
-			<NcButton v-if="newPhoneNumber && tokenRequested" :disabled="loading" @click="sendCode">
+			<NcButton v-else :disabled="loading || token.length < 3" @click="sendCode">
 				<template #icon>
 					<NcLoadingIcon v-if="loading" :size="20" />
 				</template>
 				{{ t('libresign', 'Send code.') }}
-			</NcButton>
-			<NcButton v-if="!newPhoneNumber" :disabled="loading || newPhoneNumber.length < 10" @click="saveNumber">
-				<template #icon>
-					<NcLoadingIcon v-if="loading" :size="20" />
-				</template>
-				{{ t('libresign', 'Save your number.') }}
 			</NcButton>
 		</template>
 	</NcDialog>
@@ -61,6 +54,7 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import { settingsService } from '../../../domains/settings/index.js'
 import { useSignStore } from '../../../store/sign.js'
+import { useSignMethodsStore } from '../../../store/signMethods.js'
 
 const sanitizeNumber = val => {
 	val = val.replace(/\D/g, '')
@@ -68,7 +62,7 @@ const sanitizeNumber = val => {
 }
 
 export default {
-	name: 'ModalSMSManager',
+	name: 'ModalTokenManager',
 	components: {
 		NcDialog,
 		NcLoadingIcon,
@@ -78,19 +72,34 @@ export default {
 	props: {
 		phoneNumber: {
 			type: String,
-			required: true,
+			required: false,
+			default: '',
 		},
 	},
 	setup() {
 		const signStore = useSignStore()
-		return { signStore }
+		const signMethodsStore = useSignMethodsStore()
+		return { signStore, signMethodsStore }
 	},
-	data: () => ({
-		token: '',
-		newPhoneNumber: this.phoneNumber,
-		tokenRequested: false,
-		loading: false,
-	}),
+	data() {
+		return {
+			token: '',
+			newPhoneNumber: this.phoneNumber || '',
+			tokenRequested: false,
+			loading: false,
+		}
+	},
+	computed: {
+		activeTokenMethod() {
+			const tokenMethods = ['sms', 'whatsapp', 'signal', 'telegram', 'xmpp']
+			return tokenMethods.find(method =>
+				Object.hasOwn(this.signMethodsStore.settings, method)
+			) || 'sms'
+		},
+		activeIdentifyMethod() {
+			return this.activeTokenMethod
+		},
+	},
 	methods: {
 		async saveNumber() {
 			this.loading = true
@@ -123,22 +132,40 @@ export default {
 			await this.$nextTick()
 
 			try {
+				const params = {
+					identifyMethod: this.activeIdentifyMethod,
+					signMethod: this.activeTokenMethod,
+				}
+
 				if (this.signStore.document.fileId) {
-					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', {
-						fileId: this.signStore.document.fileId,
-					}))
+					const { data } = await axios.post(
+						generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', {
+							fileId: this.signStore.document.fileId,
+						}),
+						params
+					)
 					showSuccess(data.ocs.data.message)
 				} else {
-					const signer = this.signStore.document.signers.find(row => row.me) || {}
-					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{fileId}/code', {
+				const signer = this.signStore.document.signers.find(row => row.me) || {}
+				const { data } = await axios.post(
+					generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', {
 						uuid: signer.sign_uuid,
-					}))
+					}),
+					params
+				)
 					showSuccess(data.ocs.data.message)
 				}
-				this.tokenRequested = true
-			} catch (err) {
-				showError(err.response.data.ocs.data.message)
-			} finally {
+			this.tokenRequested = true
+		} catch (err) {
+			const errorMessage = err.response?.data?.ocs?.data?.message || err.response?.data?.message || err.message
+
+			if (errorMessage && errorMessage.includes('Invalid configuration')) {
+				const method = this.activeTokenMethod.charAt(0).toUpperCase() + this.activeTokenMethod.slice(1)
+				showError(t('libresign', '{method} is not configured. Please contact your administrator.', { method }))
+			} else {
+				showError(errorMessage)
+			}
+		} finally {
 				this.loading = false
 			}
 		},
