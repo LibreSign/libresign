@@ -223,17 +223,17 @@ export default {
 		openFile() {
 			if (OCA?.Viewer !== undefined) {
 				const fileInfo = {
-					source: this.document.file,
-					basename: this.document.name,
+					source: this.source.file,
+					basename: this.source.name,
 					mime: 'application/pdf',
-					fileid: this.document.nodeId,
+					fileid: this.source.nodeId,
 				}
 				OCA.Viewer.open({
 					fileInfo,
 					list: [fileInfo],
 				})
 			} else {
-				window.open(`${this.document.file}?_t=${Date.now()}`)
+				window.open(`${this.source.file}?_t=${Date.now()}`)
 			}
 		},
 	},
