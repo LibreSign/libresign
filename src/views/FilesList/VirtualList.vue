@@ -3,7 +3,9 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div class="files-list">
+	<div class="files-list"
+		:class="{ 'files-list--grid': userConfigStore.grid_view }"
+		data-cy-files-list>
 		<div class="files-list__filters">
 			<slot name="filters" />
 		</div>
@@ -12,9 +14,26 @@
 			<slot name="header-overlay" />
 		</div>
 
-		<table class="files-list__table" :class="{ 'files-list__table--with-thead-overlay': !!$scopedSlots['header-overlay'] }">
+		<div
+			v-if="filesStore.filesSorted().length === 0"
+			class="files-list__empty">
+			<slot name="empty" />
+		</div>
+
+		<table
+			:aria-hidden="filesStore.filesSorted().length === 0"
+			class="files-list__table"
+			:class="{
+				'files-list__table--with-thead-overlay': !!$scopedSlots['header-overlay'],
+				'files-list__table--hidden': filesStore.filesSorted().length === 0,
+			}">
+			<!-- Accessibility table caption for screen readers -->
+			<caption v-if="caption" class="hidden-visually">
+				{{ caption }}
+			</caption>
+
 			<!-- Header -->
-			<thead ref="thead" class="files-list__thead">
+			<thead ref="thead" class="files-list__thead" data-cy-files-list-thead>
 				<slot name="header" />
 			</thead>
 			<!-- Body -->
@@ -54,6 +73,13 @@ export default {
 		loading: {
 			type: Boolean,
 			required: true,
+		},
+		/**
+		 * Visually hidden caption for the table accessibility
+		 */
+		caption: {
+			type: String,
+			default: '',
 		},
 	},
 	setup() {
@@ -98,3 +124,22 @@ export default {
 	},
 }
 </script>
+
+<style scoped lang="scss">
+.files-list {
+	&__empty {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		height: 100%;
+		min-height: 300px;
+	}
+
+	&__table {
+		&--hidden {
+			display: none;
+		}
+	}
+}
+</style>
