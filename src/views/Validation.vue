@@ -198,7 +198,7 @@
 									<span v-else>{{ t('libresign', 'No date') }}</span>
 								</template>
 							</NcListItem>
-							<NcListItem v-if="signer.opened"
+							<NcListItem v-if="signer.opened && hasValidationStatus(signer)"
 								class="extra"
 								compact
 								:name="t('libresign', 'Validation status')"
@@ -1003,6 +1003,12 @@ export default {
 		},
 		toggleState(stateObject, index) {
 			this.$set(stateObject, index, !stateObject[index])
+		},
+		hasValidationStatus(signer) {
+			return signer.signature_validation
+				|| signer.certificate_validation
+				|| (signer.valid_from && signer.valid_to && signer.signed)
+				|| signer.crl_validation
 		},
 		setValidationError(message, timeout = 5000) {
 			this.validationErrorMessage = message
