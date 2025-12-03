@@ -47,6 +47,11 @@
       <code><![CDATA[$storage]]></code>
     </UndefinedDocblockClass>
   </file>
+  <file src="lib/Dav/SignatureStatusPlugin.php">
+    <UndefinedClass>
+      <code><![CDATA[ServerPlugin]]></code>
+    </UndefinedClass>
+  </file>
   <file src="lib/Db/PagerFantaQueryAdapter.php">
     <MissingTemplateParam>
       <code><![CDATA[AdapterInterface]]></code>
