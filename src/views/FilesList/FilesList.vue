@@ -37,23 +37,28 @@
 				</template>
 			</NcButton>
 		</div>
-		<NcLoadingIcon v-if="loading && !isRefreshing"
-			class="files-list__loading-icon"
-			:size="38"
-			:name="t('libresign', 'Loading …')" />
-		<NcEmptyContent v-else-if="!loading && isEmptyDir && filtersStore.activeChips.length === 0"
-			:name="t('libresign', 'There are no documents')"
-			:description="canRequestSign ? t('libresign', 'Choose the file to request signatures.') : ''">
-			<template #action>
-				<RequestPicker />
+		<FilesListVirtual :nodes="dirContentsSorted"
+			:loading="loading">
+			<template #empty>
+				<NcLoadingIcon
+					v-if="loading && !isRefreshing"
+					class="files-list__loading-icon"
+					:size="38"
+					:name="t('libresign', 'Loading …')" />
+
+				<NcEmptyContent
+					v-else-if="!loading && isEmptyDir && filtersStore.activeChips.length === 0"
+					:name="t('libresign', 'There are no documents')"
+					:description="canRequestSign ? t('libresign', 'Choose the file to request signatures.') : ''">
+					<template #action>
+						<RequestPicker />
+					</template>
+					<template #icon>
+						<FolderIcon />
+					</template>
+				</NcEmptyContent>
 			</template>
-			<template #icon>
-				<FolderIcon />
-			</template>
-		</NcEmptyContent>
-		<FilesListVirtual v-else
-			:nodes="dirContentsSorted"
-			:loading="loading" />
+		</FilesListVirtual>
 	</NcAppContent>
 </template>
 
@@ -126,13 +131,10 @@ export default {
 				: t('libresign', 'Switch to grid view')
 		},
 		dirContentsSorted() {
-			if (!this.isEmptyDir) {
-				return []
-			}
-			return this.dirContentsFiltered
+			return this.filesStore.filesSorted()
 		},
 		isEmptyDir() {
-			return Object.keys(this.filesStore.files).length === 0
+			return this.filesStore.filesSorted().length === 0
 		},
 		isRefreshing() {
 			return !this.isEmptyDir
