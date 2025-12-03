@@ -5428,6 +5428,24 @@
                         }
                     },
                     {
+                        "name": "sortBy",
+                        "in": "query",
+                        "description": "Sort field (e.g., 'owner', 'file_type', 'status')",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "sortOrder",
+                        "in": "query",
+                        "description": "Sort order (ASC or DESC)",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
+                    },
+                    {
                         "name": "OCS-APIRequest",
                         "in": "header",
                         "description": "Required to be true for the API request to pass",

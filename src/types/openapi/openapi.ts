@@ -3156,6 +3156,10 @@ export interface operations {
                 page?: number | null;
                 /** @description Total of elements to return */
                 length?: number | null;
+                /** @description Sort field (e.g., 'owner', 'file_type', 'status') */
+                sortBy?: string | null;
+                /** @description Sort order (ASC or DESC) */
+                sortOrder?: string | null;
             };
             header: {
                 /** @description Required to be true for the API request to pass */
