@@ -130,9 +130,7 @@ class IdDocsService {
 		$pagination = $data['pagination']->getPagination($page, $length, $filter);
 		return [
 			'data' => $data['data'],
-			'total' => $pagination['total'],
-			'page' => $page,
-			'length' => $length,
+			'pagination' => $pagination,
 		];
 	}
 
