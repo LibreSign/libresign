@@ -8,11 +8,10 @@
 			<NcColorPicker ref="colorPicker"
 				v-model="color"
 				:palette="customPalette"
-				:palette-only="true"
-				@input="updateColor">
-				<NcButton>
+				@submit="updateColor">
+				<NcButton type="tertiary">
 					<template #icon>
-						<PaletteIcon :size="20" />
+						<PaletteIcon :size="20" :fill-color="color" />
 					</template>
 					{{ t('libresign', 'Change color') }}
 				</NcButton>
