@@ -109,7 +109,7 @@ class IdDocsMapper extends QBMapper {
 		$pagination->setCurrentPage($page);
 		$currentPageResults = $pagination->getCurrentPageResults();
 
-		$url = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => '_replace_']);
+		$url = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => '_replace_']);
 		$url = str_replace('_replace_', '', $url);
 
 		$data = [];
