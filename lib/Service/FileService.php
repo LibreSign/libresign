@@ -257,6 +257,19 @@ class FileService {
 		return $fileToValidate;
 	}
 
+	public function getStatus(): int {
+		return $this->file->getStatus();
+	}
+
+	public function getSignedNodeId(): ?int {
+		$status = $this->file->getStatus();
+
+		if (!in_array($status, [File::STATUS_PARTIAL_SIGNED, File::STATUS_SIGNED])) {
+			return null;
+		}
+		return $this->file->getSignedNodeId();
+	}
+
 	private function getFileContent(): string {
 		if ($this->fileContent) {
 			return $this->fileContent;
@@ -270,6 +283,14 @@ class FileService {
 			}
 		}
 		return '';
+	}
+
+	public function isLibresignFile(int $nodeId): bool {
+		try {
+			return $this->fileMapper->fileIdExists($nodeId);
+		} catch (\Throwable) {
+			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
+		}
 	}
 
 	private function loadFileMetadata(): void {
