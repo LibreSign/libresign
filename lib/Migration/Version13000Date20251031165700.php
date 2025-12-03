@@ -52,8 +52,8 @@ class Version13000Date20251031165700 extends SimpleMigrationStep {
 	 */
 	#[Override]
 	public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
-		$this->addConfigPathToOpenSsl();
 		$this->convertRootCertOuStringToArray();
+		$this->addConfigPathToOpenSsl();
 		$this->backupCrlDataToDisk();
 	}
 
