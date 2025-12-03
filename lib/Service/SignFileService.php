@@ -16,12 +16,12 @@ use OC\AppFramework\Http as AppFrameworkHttp;
 use OC\User\NoUserException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
-use OCA\Libresign\Db\AccountFile;
-use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\IdDocs;
+use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
@@ -78,7 +78,7 @@ class SignFileService {
 		protected IL10N $l10n,
 		private FileMapper $fileMapper,
 		private SignRequestMapper $signRequestMapper,
-		private AccountFileMapper $accountFileMapper,
+		private IdDocsMapper $idDocsMapper,
 		private FooterHandler $footerHandler,
 		protected FolderService $folderService,
 		private IClientService $client,
@@ -659,20 +659,10 @@ class SignFileService {
 			if ($signRequest->getSigned()) {
 				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
 			}
+			return $signRequest;
 		} catch (DoesNotExistException) {
-			try {
-				$accountFile = $this->accountFileMapper->getByFileId($libresignFile->getId());
-			} catch (\Throwable) {
-				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
-			}
-			$this->validateHelper->userCanApproveValidationDocuments($user);
-			$signRequest = new SignRequestEntity();
-			$signRequest->setFileId($libresignFile->getId());
-			$signRequest->setDisplayName($user->getDisplayName());
-			$signRequest->setUuid(UUIDUtil::getUUID());
-			$signRequest->setCreatedAt(new \DateTime('now', new \DateTimeZone('UTC')));
+			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 		}
-		return $signRequest;
 	}
 
 	protected function getPdfToSign(File $originalFile): File {
@@ -772,8 +762,8 @@ class SignFileService {
 		return $this->fileMapper->getByUuid($uuid);
 	}
 
-	public function getAccountFileById(int $fileId): AccountFile {
-		return $this->accountFileMapper->getByFileId($fileId);
+	public function getIdDocById(int $fileId): IdDocs {
+		return $this->idDocsMapper->getByFileId($fileId);
 	}
 
 	public function getNextcloudFile(FileEntity $fileData): File {
@@ -827,7 +817,7 @@ class SignFileService {
 				break;
 			case 'url':
 				try {
-					$this->accountFileMapper->getByFileId($fileEntity->getId());
+					$this->idDocsMapper->getByFileId($fileEntity->getId());
 					$url = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $uuid])];
 				} catch (DoesNotExistException) {
 					$url = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $uuid])];

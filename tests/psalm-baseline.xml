@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="6.5.0@38fc8444edf0cebc9205296ee6e30e906ade783b">
+<files psalm-version="6.13.1@1e3b7f0a8ab32b23197b91107adc0a7ed8a05b51">
   <file src="lib/AppInfo/Application.php">
     <InvalidArgument>
       <code><![CDATA[LoadAdditionalListener::class]]></code>
@@ -122,11 +122,6 @@
       <code><![CDATA[$this->connection->getDatabasePlatform()]]></code>
     </UndefinedDocblockClass>
   </file>
-  <file src="lib/Migration/Version8000Date20231103003922.php">
-    <UndefinedDocblockClass>
-      <code><![CDATA[$schema->dropTable('libresign_file_user')]]></code>
-    </UndefinedDocblockClass>
-  </file>
   <file src="lib/Migration/Version8000Date20240405142042.php">
     <UndefinedClass>
       <code><![CDATA[JsonType]]></code>
@@ -168,6 +163,11 @@
       <code><![CDATA[Process]]></code>
     </UndefinedClass>
   </file>
+  <file src="lib/Service/IdDocsService.php">
+    <UndefinedClass>
+      <code><![CDATA[UUIDUtil]]></code>
+    </UndefinedClass>
+  </file>
   <file src="lib/Service/RequestSignatureService.php">
     <UndefinedClass>
       <code><![CDATA[UUIDUtil]]></code>
@@ -176,7 +176,6 @@
   </file>
   <file src="lib/Service/SignFileService.php">
     <UndefinedClass>
-      <code><![CDATA[UUIDUtil]]></code>
       <code><![CDATA[UUIDUtil]]></code>
     </UndefinedClass>
   </file>

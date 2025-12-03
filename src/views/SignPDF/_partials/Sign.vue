@@ -51,6 +51,9 @@
 					{{ t('libresign', 'Define your signature.') }}
 				</NcButton>
 			</div>
+			<div v-else-if="needIdentificationDocuments" class="no-identification-warning">
+				<Documents :sign-request-uuid="signRequestUuid" />
+			</div>
 			<div v-else>
 				<p>
 					{{ t('libresign', 'Unable to sign.') }}
@@ -155,6 +158,7 @@ import NcRichText from '@nextcloud/vue/components/NcRichText'
 import EmailManager from './ModalEmailManager.vue'
 import SMSManager from './ModalSMSManager.vue'
 import Draw from '../../../Components/Draw/Draw.vue'
+import Documents from '../../../views/Account/partials/Documents.vue'
 import Signatures from '../../../views/Account/partials/Signatures.vue'
 import CreatePassword from '../../../views/CreatePassword.vue'
 import ManagePassword from '../../Account/partials/ManagePassword.vue'
@@ -164,6 +168,7 @@ import { useSidebarStore } from '../../../store/sidebar.js'
 import { useSignStore } from '../../../store/sign.js'
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
+import { useIdentificationDocumentStore } from '../../../store/identificationDocument.js'
 
 export default {
 	name: 'Sign',
@@ -177,6 +182,7 @@ export default {
 		CreatePassword,
 		SMSManager,
 		EmailManager,
+		Documents,
 		Signatures,
 		Draw,
 		ManagePassword,
@@ -187,7 +193,8 @@ export default {
 		const signMethodsStore = useSignMethodsStore()
 		const signatureElementsStore = useSignatureElementsStore()
 		const sidebarStore = useSidebarStore()
-		return { signStore, signMethodsStore, signatureElementsStore, sidebarStore }
+		const identificationDocumentStore = useIdentificationDocumentStore()
+		return { signStore, signMethodsStore, signatureElementsStore, sidebarStore, identificationDocumentStore }
 	},
 	data() {
 		return {
@@ -226,6 +233,17 @@ export default {
 				&& !this.hasSignatures
 				&& this.canCreateSignature
 		},
+		needIdentificationDocuments() {
+			const needsFromStore = this.identificationDocumentStore.needIdentificationDocument()
+
+			const hasError = this.errors.some(error =>
+				error.message && error.message.includes('approved identification document')
+			)
+
+			const isWaitingApproval = this.identificationDocumentStore.enabled && this.identificationDocumentStore.waitingApproval
+
+			return needsFromStore || hasError || isWaitingApproval
+		},
 		canCreateSignature() {
 			return getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true
 		},
@@ -234,6 +252,9 @@ export default {
 				return false
 			}
 			if (this.needCreateSignature) {
+				return false
+			}
+			if (this.needIdentificationDocuments) {
 				return false
 			}
 			if (this.signStore.errors.length > 0) {
@@ -334,7 +355,7 @@ export default {
 			}
 			let url = ''
 			if (this.signStore.document.fileId > 0) {
-				url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{nodeId}', { fileId: this.signStore.document.nodeId })
+				url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{nodeId}', { nodeId: this.signStore.document.nodeId })
 			} else {
 				url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: this.signRequestUuid })
 			}
@@ -362,6 +383,10 @@ export default {
 		},
 		confirmSignDocument() {
 			this.errors = []
+			if (this.needIdentificationDocuments) {
+				this.showModalAndResetErrors('uploadDocuments')
+				return
+			}
 			if (this.signMethodsStore.needEmailCode()) {
 				this.showModalAndResetErrors('emailToken')
 				return
@@ -396,6 +421,10 @@ export default {
 
 <style lang="scss" scoped>
 .no-signature-warning {
+	margin-top: 1em;
+}
+
+.no-identification-warning {
 	margin-top: 1em;
 }
 

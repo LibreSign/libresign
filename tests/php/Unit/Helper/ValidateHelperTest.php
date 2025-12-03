@@ -9,11 +9,11 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Helper;
 
 use OC\User\NoUserException;
-use OCA\Libresign\Db\AccountFile;
-use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
+use OCA\Libresign\Db\IdDocs;
+use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
@@ -41,7 +41,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FileMapper&MockObject $fileMapper;
 	private FileTypeMapper&MockObject $fileTypeMapper;
 	private FileElementMapper&MockObject $fileElementMapper;
-	private AccountFileMapper&MockObject $accountFileMapper;
+	private IdDocsMapper&MockObject $idDocsMapper;
 	private UserElementMapper&MockObject $userElementMapper;
 	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
 	private IdentifyMethodService&MockObject $identifyMethodService;
@@ -62,7 +62,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->fileTypeMapper = $this->createMock(FileTypeMapper::class);
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
-		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
+		$this->idDocsMapper = $this->createMock(IdDocsMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
@@ -82,7 +82,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileMapper,
 			$this->fileTypeMapper,
 			$this->fileElementMapper,
-			$this->accountFileMapper,
+			$this->idDocsMapper,
 			$this->userElementMapper,
 			$this->identifyMethodMapper,
 			$this->identifyMethodService,
@@ -437,19 +437,17 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testUserHasFileWithType():void {
 		$this->expectExceptionMessage('A file of this type has been associated.');
-		$file = $this->createMock(AccountFile::class);
-		$this->accountFileMapper
+		$file = $this->createMock(IdDocs::class);
+		$this->idDocsMapper
 			->method('getByUserAndType')
 			->willReturn($file);
 		$this->getValidateHelper()->validateUserHasNoFileWithThisType('username', (string)ValidateHelper::TYPE_TO_SIGN);
 	}
 
 	public function testUserHasNoFileWithThisType():void {
-		$this->accountFileMapper
+		$this->idDocsMapper
 			->method('getByUserAndType')
-			->willReturnCallback(function ():void {
-				throw new \Exception('not found');
-			});
+			->willReturn(null);
 		$actual = $this->getValidateHelper()->validateUserHasNoFileWithThisType('username', (string)ValidateHelper::TYPE_TO_SIGN);
 		$this->assertNull($actual);
 	}

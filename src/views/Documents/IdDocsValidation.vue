@@ -1,0 +1,460 @@
+<!--
+  - SPDX-FileCopyrightText: 2024 LibreCode coop and LibreCode contributors
+  - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<template>
+	<div class="id-docs-validation">
+		<div class="id-docs-validation__toolbar">
+			<div class="filter-wrapper" :class="{ 'filter-wrapper--active': hasActiveFilters }">
+				<NcActions :aria-label="hasActiveFilters ? t('libresign', 'Filters ({count})', { count: activeFilterCount }) : t('libresign', 'Filters')">
+					<template #icon>
+						<FilterIcon :size="20" />
+					</template>
+					<NcActionInput v-model="filters.owner"
+						:label="t('libresign', 'Owner')"
+						@update:value="onFilterChange">
+						<template #icon>
+							<AccountIcon :size="20" />
+						</template>
+					</NcActionInput>
+
+					<NcActionButton type="radio"
+						:model-value="filters.status?.value === 'signed'"
+						@update:modelValue="setStatusFilter('signed', $event)">
+						<template #icon>
+							<CheckCircleIcon :size="20" />
+						</template>
+						{{ t('libresign', 'Signed') }}
+					</NcActionButton>
+
+					<NcActionButton type="radio"
+						:model-value="filters.status?.value === 'pending'"
+						@update:modelValue="setStatusFilter('pending', $event)">
+						<template #icon>
+							<ClockAlertIcon :size="20" />
+						</template>
+						{{ t('libresign', 'Pending') }}
+					</NcActionButton>
+
+					<NcActionSeparator v-if="hasActiveFilters" />
+
+					<NcActionButton v-if="hasActiveFilters"
+						@click="clearFilters">
+						<template #icon>
+							<CloseIcon :size="20" />
+						</template>
+						{{ t('libresign', 'Clear filters') }}
+					</NcActionButton>
+				</NcActions>
+				<span v-if="hasActiveFilters" class="filter-badge" aria-hidden="true">{{ activeFilterCount }}</span>
+			</div>
+		</div>
+
+		<NcLoadingIcon v-if="loading" :size="44" />
+
+		<NcEmptyContent v-else-if="filteredDocuments.length === 0"
+			:name="t('libresign', 'No documents to validate')">
+			<template #icon>
+				<FileDocumentIcon :size="64" />
+			</template>
+		</NcEmptyContent>
+
+		<div v-else class="is-fullwidth container-account-docs-to-validate with-sidebar--full">
+		<table class="id-docs-table">
+			<thead>
+				<tr>
+					<th class="id-docs-table__cell--spacer id-docs-table__cell--frozen-left id-docs-table__cell--frozen-spacer" />
+					<th class="id-docs-table__cell--frozen-left id-docs-table__cell--frozen-owner">
+						{{ t('libresign', 'Owner') }}
+					</th>
+					<th>{{ t('libresign', 'Type') }}</th>
+					<th>{{ t('libresign', 'Status') }}</th>
+					<th>{{ t('libresign', 'Approved by') }}</th>
+					<th class="id-docs-table__cell--frozen-right">{{ t('libresign', 'Actions') }}</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr v-for="(doc, index) in filteredDocuments" :key="`doc-${index}-${doc.nodeId}-${doc.file_type.key}`">
+					<td class="id-docs-table__cell--spacer id-docs-table__cell--frozen-left id-docs-table__cell--frozen-spacer">
+						<NcAvatar :user="doc.account?.uid"
+							:display-name="doc.account?.display_name || doc.account?.uid"
+							:size="32"
+							:disable-menu="true" />
+					</td>
+					<td class="id-docs-table__cell--frozen-left id-docs-table__cell--frozen-owner">
+						{{ doc.account?.display_name || doc.account?.uid || '-' }}
+					</td>
+					<td>
+						{{ doc.file_type.name }}
+					</td>
+					<td>
+						{{ doc.statusText }}
+					</td>
+					<td>
+						<template v-if="doc.file?.signers?.length > 0 && doc.file.signers[0].sign_date">
+							<NcAvatar :user="doc.account?.uid"
+								:display-name="doc.file.signers[0].displayName"
+								:disable-menu="true" />
+							{{ doc.file.signers[0].displayName }}
+						</template>
+						<template v-else>
+							-
+						</template>
+					</td>
+					<td class="id-docs-table__cell--frozen-right">
+						<NcActions :force-name="true" :inline="3">
+							<NcActionButton @click="openValidationURL(doc)">
+								<template #icon>
+									<EyeIcon :size="20" />
+								</template>
+								{{ t('libresign', 'View') }}
+							</NcActionButton>
+							<NcActionButton v-if="doc.file?.status !== 3" @click="openApprove(doc)">
+								<template #icon>
+									<PencilIcon :size="20" />
+								</template>
+								{{ t('libresign', 'Sign') }}
+							</NcActionButton>
+							<NcActionButton @click="deleteDocument(doc)">
+								<template #icon>
+									<DeleteIcon :size="20" />
+								</template>
+								{{ t('libresign', 'Delete') }}
+							</NcActionButton>
+						</NcActions>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		</div>
+	</div>
+</template>
+
+<script>
+import axios from '@nextcloud/axios'
+import { showError } from '@nextcloud/dialogs'
+import { generateOcsUrl } from '@nextcloud/router'
+
+import { useUserConfigStore } from '../../store/userconfig.js'
+
+import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
+import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
+import NcActionInput from '@nextcloud/vue/dist/Components/NcActionInput.js'
+import NcActionSeparator from '@nextcloud/vue/dist/Components/NcActionSeparator.js'
+import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
+import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+
+import AccountIcon from 'vue-material-design-icons/Account.vue'
+import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue'
+import ClockAlertIcon from 'vue-material-design-icons/ClockAlert.vue'
+import CloseIcon from 'vue-material-design-icons/Close.vue'
+import DeleteIcon from 'vue-material-design-icons/Delete.vue'
+import EyeIcon from 'vue-material-design-icons/Eye.vue'
+import FileDocumentIcon from 'vue-material-design-icons/FileDocument.vue'
+import FilterIcon from 'vue-material-design-icons/Filter.vue'
+import PencilIcon from 'vue-material-design-icons/Pencil.vue'
+
+export default {
+	name: 'IdDocsValidation',
+	components: {
+		AccountIcon,
+		CheckCircleIcon,
+		ClockAlertIcon,
+		CloseIcon,
+		DeleteIcon,
+		EyeIcon,
+		FileDocumentIcon,
+		FilterIcon,
+		NcActions,
+		NcActionButton,
+		NcActionInput,
+		NcActionSeparator,
+		NcAvatar,
+		NcEmptyContent,
+		NcLoadingIcon,
+		PencilIcon,
+	},
+	data() {
+		const userConfigStore = useUserConfigStore()
+
+		return {
+			userConfigStore,
+			documentList: [],
+			loading: true,
+			filters: {
+				owner: userConfigStore.id_docs_filters.owner || '',
+				status: userConfigStore.id_docs_filters.status || null,
+			},
+			statusOptions: [
+				{ value: 'signed', label: 'Signed' },
+				{ value: 'pending', label: 'Pending' },
+			],
+		}
+	},
+	computed: {
+		hasActiveFilters() {
+			return !!(this.filters.owner || this.filters.status)
+		},
+		activeFilterCount() {
+			let count = 0
+			if (this.filters.owner) count++
+			if (this.filters.status) count++
+			return count
+		},
+		filteredDocuments() {
+			let docs = [...this.documentList]
+
+			if (this.filters.owner) {
+				const ownerLower = this.filters.owner.toLowerCase()
+				docs = docs.filter(doc => {
+					const displayName = doc.account?.display_name || doc.account?.uid || ''
+					return displayName.toLowerCase().includes(ownerLower)
+				})
+			}
+
+			if (this.filters.status?.value === 'signed') {
+				docs = docs.filter(doc => doc.file?.status === 3)
+			} else if (this.filters.status?.value === 'pending') {
+				docs = docs.filter(doc => doc.file?.status !== 3)
+			}
+
+			return docs
+		},
+	},
+	mounted() {
+		this.loadDocuments()
+	},
+	methods: {
+		async loadDocuments() {
+			this.loading = true
+			await axios.get(generateOcsUrl('/apps/libresign/api/v1/id-docs/approval/list'))
+				.then(({ data }) => {
+					this.documentList = data.ocs.data.data
+				})
+				.catch(({ response }) => {
+					showError(response.data.ocs.data.message)
+				})
+			this.loading = false
+		},
+
+		openApprove(doc) {
+			const uuid = doc.file?.uuid || doc.uuid
+			if (!uuid) {
+				showError(this.t('libresign', 'Document UUID not found'))
+				return
+			}
+			this.$router.push({
+				name: 'IdDocsApprove',
+				params: { uuid },
+			})
+		},
+
+		async deleteDocument(doc) {
+			try {
+				await axios.delete(generateOcsUrl('/apps/libresign/api/v1/id-docs/{nodeId}', { nodeId: doc.nodeId }))
+				await this.loadDocuments()
+			} catch (error) {
+				showError(error.response?.data?.ocs?.data?.message || this.t('libresign', 'Failed to delete document'))
+			}
+		},
+
+		openValidationURL(doc) {
+			const uuid = doc.file?.uuid || doc.uuid
+			if (!uuid) {
+				showError(this.t('libresign', 'Document UUID not found'))
+				return
+			}
+			this.$router.push({
+				name: 'ValidationFile',
+				params: { uuid },
+			})
+		},
+
+		onFilterChange() {
+			clearTimeout(this.filterTimeout)
+			this.filterTimeout = setTimeout(() => {
+				this.saveFilters()
+			}, 500)
+		},
+
+		async saveFilters() {
+			try {
+				const filters = {
+					owner: this.filters.owner,
+					status: this.filters.status,
+				}
+				console.log('Saving id_docs_filters:', filters)
+				await this.userConfigStore.update('id_docs_filters', filters)
+				console.log('Filters saved successfully')
+			} catch (error) {
+				console.error('Failed to save filters:', error)
+			}
+		},
+
+		clearFilters() {
+			this.filters.owner = ''
+			this.filters.status = null
+			this.saveFilters()
+		},
+
+		setStatusFilter(status, value) {
+			if (value) {
+				const option = this.statusOptions.find(opt => opt.value === status)
+				this.filters.status = option
+			} else {
+				this.filters.status = null
+			}
+			this.onFilterChange()
+		},
+	},
+}
+</script>
+
+<style lang="scss" scoped>
+.id-docs-validation {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+
+	&__toolbar {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 8px;
+		margin-top: 12px;
+		margin-right: 12px;
+		margin-bottom: 12px;
+
+		.filter-wrapper {
+			position: relative;
+
+			&--active :deep(button) {
+				background-color: var(--color-primary-element-light) !important;
+
+				&:hover {
+					background-color: var(--color-primary-element-light-hover) !important;
+				}
+			}
+		}
+
+		.filter-badge {
+			position: absolute;
+			top: -8px;
+			right: -8px;
+			z-index: 100;
+			min-width: 18px;
+			height: 18px;
+			padding: 0 5px;
+			background-color: var(--color-primary-element);
+			color: var(--color-primary-element-text);
+			border-radius: 9px;
+			font-size: 11px;
+			font-weight: 600;
+			line-height: 18px;
+			box-shadow: 0 0 0 2px var(--color-main-background);
+			pointer-events: none;
+		}
+	}
+}
+
+.id-docs-table {
+	$spacer-width: 44px;
+	$cell-padding: 12px;
+	$frozen-z-body: 2;
+	$frozen-z-head: 20;
+	$sticky-z-head: 10;
+
+	width: 100%;
+	border-collapse: collapse;
+
+	@mixin frozen-separator($side) {
+		content: '';
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		width: 1px;
+		background-color: var(--color-border);
+		@if $side == 'right' {
+			right: 0;
+		} @else {
+			left: 0;
+		}
+	}
+
+	thead {
+		th {
+			position: sticky;
+			top: 0;
+			background-color: var(--color-main-background);
+			z-index: $sticky-z-head;
+			padding: $cell-padding;
+			text-align: left;
+			font-weight: 600;
+			border-bottom: 2px solid var(--color-border);
+			white-space: nowrap;
+
+			&.id-docs-table__cell--frozen-spacer,
+			&.id-docs-table__cell--frozen-owner,
+			&.id-docs-table__cell--frozen-right {
+				z-index: $frozen-z-head;
+			}
+		}
+	}
+
+	tbody {
+		tr {
+			border-bottom: 1px solid var(--color-border);
+
+			&:hover {
+				background-color: var(--color-background-hover);
+
+				.id-docs-table__cell--frozen-left,
+				.id-docs-table__cell--frozen-right {
+					background-color: var(--color-background-hover);
+				}
+			}
+		}
+
+		td {
+			padding: $cell-padding;
+			font-size: 14px;
+		}
+	}
+
+	&__cell--spacer {
+		width: $spacer-width;
+		min-width: $spacer-width;
+		max-width: $spacer-width;
+		padding: 6px;
+		text-align: center;
+	}
+
+	&__cell--frozen-left,
+	&__cell--frozen-right {
+		position: sticky;
+		z-index: $frozen-z-body;
+		background-color: var(--color-main-background);
+	}
+
+	&__cell--frozen-left::after {
+		@include frozen-separator('right');
+	}
+
+	&__cell--frozen-right {
+		right: 0;
+
+		&::before {
+			@include frozen-separator('left');
+		}
+	}
+
+	&__cell--frozen-spacer {
+		left: 0;
+	}
+
+	&__cell--frozen-owner {
+		left: $spacer-width;
+	}
+}
+</style>

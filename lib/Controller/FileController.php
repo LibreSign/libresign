@@ -233,7 +233,7 @@ class FileController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * List account files that need to be approved
+	 * List identification documents that need to be approved
 	 *
 	 * @param string|null $signer_uuid Signer UUID
 	 * @param string|null $nodeId The nodeId (also called fileId). Is the id of a file at Nextcloud
@@ -273,9 +273,24 @@ class FileController extends AEnvironmentAwareController {
 			'sortBy' => $sortBy,
 			'sortDirection' => $sortDirection,
 		];
-		$return = $this->fileService
-			->setMe($this->userSession->getUser())
-			->listAssociatedFilesOfSignFlow($page, $length, $filter, $sort);
+
+		$user = $this->userSession->getUser();
+		$this->fileService->setMe($user);
+		$return = $this->fileService->listAssociatedFilesOfSignFlow($page, $length, $filter, $sort);
+
+		if ($user && !empty($return['data'])) {
+			$firstFile = $return['data'][0];
+			$fileSettings = $this->fileService
+				->setFileByType('FileId', $firstFile['nodeId'])
+				->showSettings()
+				->toArray();
+
+			$return['settings'] = [
+				'needIdentificationDocuments' => $fileSettings['settings']['needIdentificationDocuments'] ?? false,
+				'identificationDocumentsWaitingApproval' => $fileSettings['settings']['identificationDocumentsWaitingApproval'] ?? false,
+			];
+		}
+
 		return new DataResponse($return, Http::STATUS_OK);
 	}
 

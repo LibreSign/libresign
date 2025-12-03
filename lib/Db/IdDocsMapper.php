@@ -8,78 +8,103 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
-use DateTimeInterface;
 use OCA\Libresign\Helper\Pagination;
-use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\DB\Types;
 use OCP\IDBConnection;
+use OCP\IL10N;
 use OCP\IURLGenerator;
 
 /**
  * Class FileMapper
  *
  * @package OCA\Libresign\DB
- * @template-extends QBMapper<AccountFile>
+ * @template-extends QBMapper<IdDocs>
  */
-class AccountFileMapper extends QBMapper {
+class IdDocsMapper extends QBMapper {
 	public function __construct(
 		IDBConnection $db,
 		private IURLGenerator $urlGenerator,
 		private FileMapper $fileMapper,
 		private SignRequestMapper $signRequestMapper,
 		private FileTypeMapper $fileTypeMapper,
+		private IL10N $l10n,
 	) {
-		parent::__construct($db, 'libresign_account_file');
+		parent::__construct($db, 'libresign_id_docs');
 	}
 
-	public function getByUserAndType(string $userId, string $type): AccountFile {
-		$qb = $this->db->getQueryBuilder();
+	public function save(int $fileId, ?int $signRequestId, ?string $userId, string $fileType): IdDocs {
+		$idDocs = new IdDocs();
+		$idDocs->setFileId($fileId);
+		$idDocs->setSignRequestId($signRequestId);
+		$idDocs->setUserId($userId);
+		$idDocs->setFileType($fileType);
+		return $this->insert($idDocs);
+	}
 
+	public function getByUserIdAndFileId(string $userId, int $fileId): IdDocs {
+		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')
 			->from($this->getTableName())
-			->where(
-				$qb->expr()->eq('user_id', $qb->createNamedParameter($userId)),
-				$qb->expr()->eq('file_type', $qb->createNamedParameter($type))
-			);
-
-		/** @var AccountFile */
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)));
 		return $this->findEntity($qb);
 	}
 
-	public function getByUserIdAndNodeId(string $userId, int $nodeId): AccountFile {
+	/**
+	 * @return IdDocs[]
+	 */
+	public function getByUserId(string $userId): array {
 		$qb = $this->db->getQueryBuilder();
-
-		$qb->select('laf.*')
-			->from($this->getTableName(), 'laf')
-			->join('laf', 'libresign_file', 'lf', 'laf.file_id = lf.id')
-			->where(
-				$qb->expr()->eq('laf.user_id', $qb->createNamedParameter($userId)),
-				$qb->expr()->eq('lf.node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT))
-			);
-
-		/** @var AccountFile */
-		return $this->findEntity($qb);
-	}
-
-	public function getByFileId(int $fileId): AccountFile {
-		$qb = $this->db->getQueryBuilder();
-
 		$qb->select('*')
 			->from($this->getTableName())
-			->where(
-				$qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
-			);
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
+		return $this->findEntities($qb);
+	}
 
-		/** @var AccountFile */
+	public function getByUserIdAndNodeId(string $userId, int $nodeId): IdDocs {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('id.*')
+			->from($this->getTableName(), 'id')
+			->join('id', 'libresign_file', 'f', 'f.id = id.file_id')
+			->where($qb->expr()->eq('id.user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->eq('f.node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)));
 		return $this->findEntity($qb);
 	}
 
-	public function accountFileList(array $filter, ?int $page = null, ?int $length = null): array {
+	public function getByFileId(int $fileId): IdDocs {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)));
+		return $this->findEntity($qb);
+	}
+
+	public function deleteByFileId(int $fileId): void {
+		$qb = $this->db->getQueryBuilder();
+		$qb->delete($this->getTableName())
+			->where($qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)));
+		$qb->executeStatement();
+	}
+
+	public function getByUserAndType(string $userId, string $fileType): ?IdDocs {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->eq('file_type', $qb->createNamedParameter($fileType)));
+		try {
+			return $this->findEntity($qb);
+		} catch (\Throwable) {
+			return null;
+		}
+	}
+
+	public function list(array $filter, ?int $page = null, ?int $length = null): array {
 		$filter['length'] = $length;
 		$filter['page'] = $page;
-		$pagination = $this->getUserAccountFile($filter);
+		$pagination = $this->getDocs($filter);
 		$pagination->setMaxPerPage($length);
 		$pagination->setCurrentPage($page);
 		$currentPageResults = $pagination->getCurrentPageResults();
@@ -115,11 +140,9 @@ class AccountFileMapper extends QBMapper {
 					'f.callback',
 					'f.status',
 					'f.node_id',
-					'af.file_type',
+					'id.file_type',
 					'f.created_at',
 				)
-				->selectAlias('u.uid_lower', 'account_uid')
-				->selectAlias('u.displayname', 'account_displayname')
 				->groupBy(
 					'f.id',
 					'f.uuid',
@@ -128,9 +151,7 @@ class AccountFileMapper extends QBMapper {
 					'f.status',
 					'f.node_id',
 					'f.created_at',
-					'af.file_type',
-					'u.uid_lower',
-					'u.displayname'
+					'id.file_type',
 				);
 			if (isset($filter['length']) && isset($filter['page'])) {
 				$qb->setFirstResult($filter['length'] * ($filter['page'] - 1));
@@ -138,13 +159,23 @@ class AccountFileMapper extends QBMapper {
 			}
 		}
 		$qb
-			->from($this->getTableName(), 'af')
-			->join('af', 'libresign_file', 'f', 'f.id = af.file_id')
-			->join('af', 'users', 'u', 'af.user_id = u.uid')
-			->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id');
+			->from($this->getTableName(), 'id')
+			->join('id', 'libresign_file', 'f', 'f.id = id.file_id');
+
+		if (!$count || !empty($filter['userId'])) {
+			if (!$count) {
+				$qb->selectAlias('u.uid_lower', 'account_uid')
+					->selectAlias('u.displayname', 'account_displayname')
+					->addGroupBy('u.uid_lower')
+					->addGroupBy('u.displayname');
+			}
+			$joinType = !empty($filter['userId']) ? 'join' : 'leftJoin';
+			$qb->$joinType('id', 'users', 'u', 'id.user_id = u.uid');
+		}
+
 		if (!empty($filter['userId'])) {
 			$qb->where(
-				$qb->expr()->eq('af.user_id', $qb->createNamedParameter($filter['userId'])),
+				$qb->expr()->eq('id.user_id', $qb->createNamedParameter($filter['userId'])),
 			);
 		}
 		if (!empty($filter['approved'])) {
@@ -154,15 +185,10 @@ class AccountFileMapper extends QBMapper {
 				);
 			}
 		}
-		if (!empty($filter['userId'])) {
-			$qb->andWhere(
-				$qb->expr()->eq('af.user_id', $qb->createNamedParameter($filter['userId'])),
-			);
-		}
 		return $qb;
 	}
 
-	private function getUserAccountFile(array $filter = []): Pagination {
+	private function getDocs(array $filter = []): Pagination {
 		$qb = $this->getQueryBuilder(
 			filter: $filter,
 		);
@@ -176,6 +202,9 @@ class AccountFileMapper extends QBMapper {
 	}
 
 	private function formatListRow(array $row, string $url): array {
+		$row['nodeId'] = (int)$row['node_id'];
+		$row['status'] = (int)$row['status'];
+		$row['statusText'] = $this->getIdDocStatusText((int)$row['status']);
 		$row['account'] = [
 			'uid' => $row['account_uid'],
 			'displayName' => $row['account_displayname']
@@ -184,12 +213,15 @@ class AccountFileMapper extends QBMapper {
 			'type' => $row['file_type'],
 			'name' => $this->fileTypeMapper->getNameOfType($row['file_type']),
 			'description' => $this->fileTypeMapper->getDescriptionOfType($row['file_type']),
+			'key' => $row['file_type'],
 		];
-		$row['created_at'] = $row['created_at']->format(DateTimeInterface::ATOM);
+		$row['created_at'] = (new \DateTime())
+			->setTimestamp((int)$row['created_at'])
+			->format('Y-m-d H:i:s');
 		$row['file'] = [
 			'name' => $row['name'],
 			'status' => $row['status'],
-			'statusText' => $this->fileMapper->getTextOfStatus((int)$row['status']),
+			'statusText' => $this->getIdDocStatusText((int)$row['status']),
 			'created_at' => $row['created_at'],
 			'file' => [
 				'type' => 'pdf',
@@ -202,8 +234,6 @@ class AccountFileMapper extends QBMapper {
 		unset(
 			$row['node_id'],
 			$row['name'],
-			$row['status'],
-			$row['created_at'],
 			$row['account_displayname'],
 			$row['account_uid'],
 			$row['callback'],
@@ -226,12 +256,16 @@ class AccountFileMapper extends QBMapper {
 					$data = [
 						'description' => $signer->getDescription(),
 						'displayName' => $signer->getDisplayName(),
-						'request_sign_date' => $signer->getCreatedAt()->format(DateTimeInterface::ATOM),
-						'sign_date' => $signer->getSigned(),
+						'request_sign_date' => (new \DateTime())
+							->setTimestamp($signer->getCreatedAt()->getTimestamp())
+							->format('Y-m-d H:i:s'),
+						'sign_date' => null,
 						'signRequestId' => $signer->getId(),
 					];
-					if ($data['sign_date']) {
-						$data['sign_date'] = $data['sign_date']->format(DateTimeInterface::ATOM);
+					if ($signer->getSigned()) {
+						$data['sign_date'] = (new \DateTime())
+							->setTimestamp($signer->getSigned()->getTimestamp())
+							->format('Y-m-d H:i:s');
 						$totalSigned++;
 					}
 					$files[$key]['file']['signers'][] = $data;
@@ -243,22 +277,11 @@ class AccountFileMapper extends QBMapper {
 		return $files;
 	}
 
-	#[\Override]
-	public function delete(Entity $entity): Entity {
-		$qb = $this->db->getQueryBuilder();
-
-		$qb->delete($this->tableName)
-			->where(
-				$qb->expr()->eq('user_id', $qb->createNamedParameter($entity->getUserId(), Types::STRING)),
-				$qb->expr()->eq('file_id', $qb->createNamedParameter($entity->getFileId(), Types::INTEGER))
-			);
-		$qb->executeStatement();
-		$qb->resetQueryParts();
-		$qb->delete('libresign_file')
-			->where(
-				$qb->expr()->eq('id', $qb->createNamedParameter($entity->getFileId(), Types::INTEGER))
-			);
-		$qb->executeStatement();
-		return $entity;
+	private function getIdDocStatusText(int $status): string {
+		return match ($status) {
+			File::STATUS_ABLE_TO_SIGN => $this->l10n->t('waiting for approval'),
+			File::STATUS_SIGNED => $this->l10n->t('approved'),
+			default => $this->fileMapper->getTextOfStatus($status) ?? '',
+		};
 	}
 }
