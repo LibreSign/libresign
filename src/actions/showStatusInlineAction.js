@@ -17,9 +17,11 @@ const action = new FileAction({
 
 		const signedNodeId = node.attributes['signed-node-id']
 
-		return !signedNodeId || node.fileid === signedNodeId
-			? fileStatus.find(status => status.id === node.attributes['signature-status']).label
-			: t('libresign', 'original file')
+		if (!signedNodeId || node.fileid === signedNodeId) {
+			const status = fileStatus.find(status => status.id === node.attributes['signature-status'])
+			return status?.label ?? ''
+		}
+		return t('libresign', 'original file')
 	},
 	exec: async () => null,
 	iconSvgInline: (nodes) => {
@@ -27,9 +29,12 @@ const action = new FileAction({
 
 		const signedNodeId = node.attributes['signed-node-id']
 
-		return !signedNodeId || node.fileid === signedNodeId
-			? fileStatus.find(status => status.id === node.attributes['signature-status']).icon
-			: fileStatus.find(status => status.id === SIGN_STATUS.ABLE_TO_SIGN).icon
+		if (!signedNodeId || node.fileid === signedNodeId) {
+			const status = fileStatus.find(status => status.id === node.attributes['signature-status'])
+			return status?.icon ?? ''
+		}
+		const ableToSignStatus = fileStatus.find(status => status.id === SIGN_STATUS.ABLE_TO_SIGN)
+		return ableToSignStatus?.icon ?? ''
 	},
 	inline: () => true,
 	enabled: (nodes) => {
