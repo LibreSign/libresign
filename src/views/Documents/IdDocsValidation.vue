@@ -141,7 +141,7 @@
 		</div>
 
 		<div v-if="!hasMore && documentList.length > 0" class="id-docs-validation__end">
-			{{ t('libresign', 'No more documents to load') }}
+			{{ t('libresign', 'No more entries to load') }}
 		</div>
 		</div>
 	</div>
