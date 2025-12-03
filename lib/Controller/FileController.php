@@ -273,9 +273,24 @@ class FileController extends AEnvironmentAwareController {
 			'sortBy' => $sortBy,
 			'sortDirection' => $sortDirection,
 		];
-		$return = $this->fileService
-			->setMe($this->userSession->getUser())
-			->listAssociatedFilesOfSignFlow($page, $length, $filter, $sort);
+
+		$user = $this->userSession->getUser();
+		$this->fileService->setMe($user);
+		$return = $this->fileService->listAssociatedFilesOfSignFlow($page, $length, $filter, $sort);
+
+		if ($user && !empty($return['data'])) {
+			$firstFile = $return['data'][0];
+			$fileSettings = $this->fileService
+				->setFileByType('FileId', $firstFile['nodeId'])
+				->showSettings()
+				->toArray();
+
+			$return['settings'] = [
+				'needIdentificationDocuments' => $fileSettings['settings']['needIdentificationDocuments'] ?? false,
+				'identificationDocumentsWaitingApproval' => $fileSettings['settings']['identificationDocumentsWaitingApproval'] ?? false,
+			];
+		}
+
 		return new DataResponse($return, Http::STATUS_OK);
 	}
 
