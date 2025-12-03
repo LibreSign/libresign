@@ -15,6 +15,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 
 import { useFilesSortingStore } from './filesSorting.js'
 import { useFiltersStore } from './filters.js'
+import { useIdentificationDocumentStore } from './identificationDocument.js'
 import { useSidebarStore } from './sidebar.js'
 import { useSignStore } from './sign.js'
 
@@ -336,6 +337,13 @@ export const useFilesStore = function(...args) {
 				response.data.ocs.data.data.forEach((file) => {
 					this.addFile(file)
 				})
+
+				if (response.data.ocs.data.settings) {
+					const identificationDocumentStore = useIdentificationDocumentStore()
+					identificationDocumentStore.setEnabled(response.data.ocs.data.settings.needIdentificationDocuments)
+					identificationDocumentStore.setWaitingApproval(response.data.ocs.data.settings.identificationDocumentsWaitingApproval)
+				}
+
 				this.loading = false
 				emit('libresign:files:updated')
 				return this.files
