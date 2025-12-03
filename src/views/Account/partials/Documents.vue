@@ -4,46 +4,52 @@
 -->
 <template>
 	<div v-if="enabledFlow" class="documents">
-		<h2>{{ t('libresign', 'Your profile documents') }}</h2>
+		<h2>{{ t('libresign', 'Identification documents') }}</h2>
 
 		<NcLoadingIcon v-if="loading" :size="44" />
 
-		<ul v-else class="documents-list">
-			<NcListItem v-for="(doc, index) in list"
-				:key="`doc-${index}-${doc.nodeId}-${doc.file_type.key}`"
-				:name="doc.file_type.name"
-				:bold="false">
-				<template #subname>
-					{{ doc.statusText }}
-				</template>
-				<template #actions>
-					<NcActionButton v-if="doc.status === -1"
-						:aria-label="t('libresign', 'Choose from Files')"
-						@click="toggleFilePicker(doc.file_type.key)">
-						<template #icon>
-							<FolderIcon :size="20" />
-						</template>
-						{{ t('libresign', 'Choose from Files') }}
-					</NcActionButton>
-					<NcActionButton v-if="doc.status === -1"
-						:aria-label="t('libresign', 'Upload file')"
-						@click="inputFile(doc.file_type.key)">
-						<template #icon>
-							<UploadIcon :size="20" />
-						</template>
-						{{ t('libresign', 'Upload file') }}
-					</NcActionButton>
-					<NcActionButton v-if="doc.status !== -1"
-						:aria-label="t('libresign', 'Delete file')"
-						@click="deleteFile(doc)">
-						<template #icon>
-							<DeleteIcon :size="20" />
-						</template>
-						{{ t('libresign', 'Delete file') }}
-					</NcActionButton>
-				</template>
-			</NcListItem>
-		</ul>
+		<template v-else>
+			<NcNoteCard v-if="hasDocumentsWaitingApproval" type="info">
+				{{ t('libresign', 'Your identification documents are waiting for approval.') }}
+			</NcNoteCard>
+
+			<ul class="documents-list">
+				<NcListItem v-for="(doc, index) in list"
+					:key="`doc-${index}-${doc.nodeId}-${doc.file_type.key}`"
+					:name="doc.file_type.name"
+					:bold="false">
+					<template #subname>
+						{{ doc.statusText }}
+					</template>
+					<template #actions>
+						<NcActionButton v-if="doc.status === -1"
+							:aria-label="t('libresign', 'Choose from Files')"
+							@click="toggleFilePicker(doc.file_type.key)">
+							<template #icon>
+								<FolderIcon :size="20" />
+							</template>
+							{{ t('libresign', 'Choose from Files') }}
+						</NcActionButton>
+						<NcActionButton v-if="doc.status === -1"
+							:aria-label="t('libresign', 'Upload file')"
+							@click="inputFile(doc.file_type.key)">
+							<template #icon>
+								<UploadIcon :size="20" />
+							</template>
+							{{ t('libresign', 'Upload file') }}
+						</NcActionButton>
+						<NcActionButton v-if="doc.status !== -1"
+							:aria-label="t('libresign', 'Delete file')"
+							@click="deleteFile(doc)">
+							<template #icon>
+								<DeleteIcon :size="20" />
+							</template>
+							{{ t('libresign', 'Delete file') }}
+						</NcActionButton>
+					</template>
+				</NcListItem>
+			</ul>
+		</template>
 
 		<FilePicker v-if="showFilePicker"
 			:name="t('libresign', 'Select your file')"
@@ -55,6 +61,7 @@
 </template>
 
 <script>
+import { translate as t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
 import { showError, showWarning, showSuccess } from '@nextcloud/dialogs'
 import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
@@ -63,29 +70,11 @@ import { generateOcsUrl } from '@nextcloud/router'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 
 import DeleteIcon from 'vue-material-design-icons/Delete.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
 import UploadIcon from 'vue-material-design-icons/Upload.vue'
-
-const FILE_TYPE_INFO = {
-	IDENTIFICATION: {
-		key: 'IDENTIFICATION',
-		name: t('libresign', 'Identification Document'),
-		description: t('libresign', 'Identification Document'),
-	},
-}
-
-const findDocumentByType = (list, type) => {
-	return list.find(row => row?.file_type?.type === type) || {
-		nodeId: 0,
-		uuid: '',
-		status: -1,
-		statusText: t('libresign', 'Not sent yet'),
-		name: t('libresign', 'Not defined yet'),
-		file_type: FILE_TYPE_INFO[type] || { type },
-	}
-}
 
 const loadFileToBase64 = file => {
 	return new Promise((resolve, reject) => {
@@ -105,6 +94,7 @@ export default {
 		NcActionButton,
 		NcListItem,
 		NcLoadingIcon,
+		NcNoteCard,
 		UploadIcon,
 	},
 	props: {
@@ -130,22 +120,45 @@ export default {
 				type: 'primary',
 			}]
 		},
+		fileTypeInfo() {
+			return {
+				IDENTIFICATION: {
+					key: 'IDENTIFICATION',
+					name: t('libresign', 'Identification Document'),
+					description: t('libresign', 'Identification Document'),
+				},
+			}
+		},
 		documents() {
 			return {
-				default: findDocumentByType(this.documentList, 'IDENTIFICATION'),
+				default: this.findDocumentByType(this.documentList, 'IDENTIFICATION'),
 			}
 		},
 		list() {
 			return Object.values(this.documents)
 		},
+		hasDocumentsWaitingApproval() {
+			return this.list.some(doc => doc.status === 2)
+		},
 		enabledFlow() {
-			return loadState('libresign', 'config').identificationDocumentsFlow
+			const config = loadState('libresign', 'config', {})
+			return config.identificationDocumentsFlow || false
 		},
 	},
 	mounted() {
 		this.loadDocuments()
 	},
 	methods: {
+		findDocumentByType(list, type) {
+			return list.find(row => row?.file_type?.type === type) || {
+				nodeId: 0,
+				uuid: '',
+				status: -1,
+				statusText: t('libresign', 'Not sent yet'),
+				name: t('libresign', 'Not defined yet'),
+				file_type: this.fileTypeInfo[type] || { type },
+			}
+		},
 		toggleFilePicker(type) {
 			this.selectedType = type
 			this.showFilePicker = !this.showFilePicker
