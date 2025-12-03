@@ -167,9 +167,6 @@ class FileMapper extends QBMapper {
 		return $file;
 	}
 
-	/**
-	 * Check if file exists
-	 */
 	public function fileIdExists(int $nodeId): bool {
 		$exists = array_filter($this->file, fn ($f) => $f->getNodeId() === $nodeId || $f->getSignedNodeId() === $nodeId);
 		if (!empty($exists)) {
