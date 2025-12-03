@@ -196,6 +196,7 @@ class AccountService {
 		$info['isApprover'] = $this->validateHelper->userCanApproveValidationDocuments($user, false);
 		$info['grid_view'] = $this->getUserConfigGridView($user);
 		$info['id_docs_filters'] = $this->getUserConfigIdDocsFilters($user);
+		$info['id_docs_sort'] = $this->getUserConfigIdDocsSort($user);
 		$info['crl_filters'] = $this->getUserConfigCrlFilters($user);
 		$info['crl_sort'] = $this->getUserConfigCrlSort($user);
 
@@ -276,7 +277,7 @@ class AccountService {
 		return is_array($decoded) ? $decoded : [];
 	}
 
-	private function getUserConfigCrlSort(?IUser $user = null): array {
+	private function getUserConfigCrlSort(?IUser $user): array {
 		if (!$user || !$this->groupManager->isAdmin($user->getUID())) {
 			return ['sortBy' => 'revoked_at', 'sortOrder' => 'DESC'];
 		}
@@ -288,6 +289,20 @@ class AccountService {
 
 		$decoded = json_decode($value, true);
 		return is_array($decoded) ? $decoded : ['sortBy' => 'revoked_at', 'sortOrder' => 'DESC'];
+	}
+
+	private function getUserConfigIdDocsSort(?IUser $user): array {
+		if (!$user || !$this->validateHelper->userCanApproveValidationDocuments($user, false)) {
+			return ['sortBy' => null, 'sortOrder' => null];
+		}
+
+		$value = $this->config->getUserValue($user->getUID(), Application::APP_ID, 'id_docs_sort', '');
+		if (empty($value)) {
+			return ['sortBy' => null, 'sortOrder' => null];
+		}
+
+		$decoded = json_decode($value, true);
+		return is_array($decoded) ? $decoded : ['sortBy' => null, 'sortOrder' => null];
 	}
 
 	/**
