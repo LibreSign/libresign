@@ -28,6 +28,9 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
 	<version>12.1.0</version>
 	<licence>agpl</licence>
 	<author mail="contact@librecode.coop" homepage="https://librecode.coop">LibreCode</author>
+	<types>
+		<dav/>
+	</types>
 	<documentation>
 		<admin>https://github.com/LibreSign/libresign/blob/master/README.md</admin>
 	</documentation>
@@ -94,4 +97,9 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
 			<route>libresign.page.index</route>
 		</navigation>
 	</navigations>
+	<sabre>
+		<plugins>
+			<plugin>OCA\Libresign\Dav\SignatureStatusPlugin</plugin>
+		</plugins>
+	</sabre>
 </info>
