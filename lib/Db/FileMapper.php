@@ -175,7 +175,7 @@ class FileMapper extends QBMapper {
 
 		$qb = $this->db->getQueryBuilder();
 
-		$qb->select('id')
+		$qb->select('*')
 			->from($this->getTableName())
 			->where(
 				$qb->expr()->orX(
@@ -185,7 +185,13 @@ class FileMapper extends QBMapper {
 			);
 
 		$files = $this->findEntities($qb);
-		return !empty($files);
+		if (!empty($files)) {
+			foreach ($files as $file) {
+				$this->file[] = $file;
+			}
+			return true;
+		}
+		return false;
 	}
 
 	/**
