@@ -102,7 +102,7 @@
 						</template>
 					</td>
 					<td class="id-docs-table__cell--frozen-right">
-						<NcActions :force-name="true" :inline="3">
+						<NcActions :force-name="true" :inline="4">
 							<NcActionButton @click="openFile(doc)">
 								<template #icon>
 									<FileDocumentOutlineIcon :size="20" />
