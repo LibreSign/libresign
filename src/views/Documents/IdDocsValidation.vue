@@ -59,7 +59,10 @@
 			</template>
 		</NcEmptyContent>
 
-		<div v-else class="is-fullwidth container-account-docs-to-validate with-sidebar--full">
+		<div v-else
+			ref="scrollContainer"
+			class="is-fullwidth container-account-docs-to-validate with-sidebar--full"
+			@scroll="onScroll">
 		<table class="id-docs-table">
 			<thead>
 				<tr>
@@ -132,6 +135,14 @@
 				</tr>
 			</tbody>
 		</table>
+
+		<div v-if="loadingMore" class="id-docs-validation__loading-more">
+			<NcLoadingIcon :size="32" />
+		</div>
+
+		<div v-if="!hasMore && documentList.length > 0" class="id-docs-validation__end">
+			{{ t('libresign', 'No more documents to load') }}
+		</div>
 		</div>
 	</div>
 </template>
@@ -190,6 +201,11 @@ export default {
 			userConfigStore,
 			documentList: [],
 			loading: true,
+			loadingMore: false,
+			page: 1,
+			length: 50,
+			total: 0,
+			hasMore: true,
 			filters: {
 				owner: userConfigStore.id_docs_filters.owner || '',
 				status: userConfigStore.id_docs_filters.status || null,
@@ -234,16 +250,57 @@ export default {
 		this.loadDocuments()
 	},
 	methods: {
-		async loadDocuments() {
-			this.loading = true
-			await axios.get(generateOcsUrl('/apps/libresign/api/v1/id-docs/approval/list'))
-				.then(({ data }) => {
-					this.documentList = data.ocs.data.data
-				})
-				.catch(({ response }) => {
-					showError(response.data.ocs.data.message)
-				})
-			this.loading = false
+		async loadDocuments(append = false) {
+			if (!append) {
+				this.loading = true
+				this.page = 1
+				this.documentList = []
+			} else {
+				this.loadingMore = true
+			}
+
+			try {
+				const params = {
+					page: this.page,
+					length: this.length,
+				}
+
+				const response = await axios.get(
+					generateOcsUrl('/apps/libresign/api/v1/id-docs/approval/list'),
+					{ params }
+				)
+
+				const data = response.data.ocs.data
+
+				if (append) {
+					this.documentList.push(...data.data)
+				} else {
+					this.documentList = data.data
+				}
+
+				this.total = data.total || data.data.length
+				this.hasMore = this.documentList.length < this.total
+			} catch (error) {
+				showError(error.response?.data?.ocs?.data?.message || this.t('libresign', 'Failed to load documents'))
+			} finally {
+				this.loading = false
+				this.loadingMore = false
+			}
+		},
+
+		onScroll(event) {
+			if (this.loadingMore || !this.hasMore) {
+				return
+			}
+
+			const container = event.target
+			const scrollPosition = container.scrollTop + container.clientHeight
+			const scrollHeight = container.scrollHeight
+
+			if (scrollPosition >= scrollHeight * 0.8) {
+				this.page++
+				this.loadDocuments(true)
+			}
 		},
 
 		openApprove(doc) {
@@ -388,6 +445,25 @@ export default {
 			pointer-events: none;
 		}
 	}
+
+	&__loading-more {
+		padding: 20px;
+		text-align: center;
+	}
+
+	&__end {
+		padding: 20px;
+		text-align: center;
+		color: var(--color-text-maxcontrast);
+		font-size: 14px;
+	}
+}
+
+.container-account-docs-to-validate {
+	flex: 1;
+	overflow-y: auto;
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius-large);
 }
 
 .id-docs-table {
