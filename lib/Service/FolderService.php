@@ -128,7 +128,7 @@ class FolderService {
 	 * @param array{settings: array, name: string} $data
 	 * @param IUser $owner
 	 */
-	public function getFolderName(array $data, IUser $owner): string {
+	public function getFolderName(array $data, $identifier): string {
 		if (isset($data['settings']['folderName'])) {
 			return $data['settings']['folderName'];
 		}
@@ -146,7 +146,7 @@ class FolderService {
 				'name' => 'userId'
 			];
 		}
-		$folderName = null;
+		$folderName = [];
 		foreach ($data['settings']['folderPatterns'] as $pattern) {
 			switch ($pattern['name']) {
 				case 'date':
@@ -158,7 +158,11 @@ class FolderService {
 					}
 					break;
 				case 'userId':
-					$folderName[] = $owner->getUID();
+					if ($identifier instanceof \OCP\IUser) {
+						$folderName[] = $identifier->getUID();
+					} else {
+						$folderName[] = $identifier;
+					}
 					break;
 			}
 		}
