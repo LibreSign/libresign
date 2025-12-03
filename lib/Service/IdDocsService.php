@@ -122,10 +122,10 @@ class IdDocsService {
 		}
 	}
 
-	public function list(array $filter, ?int $page = null, ?int $length = null): array {
+	public function list(array $filter, ?int $page = null, ?int $length = null, array $sort = []): array {
 		$page = $page ?? 1;
 		$length = $length ?? (int)$this->appConfig->getValueInt(Application::APP_ID, 'length_of_page', 100);
-		$data = $this->idDocsMapper->list($filter, $page, $length);
+		$data = $this->idDocsMapper->list($filter, $page, $length, $sort);
 		$data['pagination']->setRouteName('ocs.libresign.File.list');
 		$pagination = $data['pagination']->getPagination($page, $length, $filter);
 		return [
