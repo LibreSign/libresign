@@ -228,6 +228,8 @@
     "File was sent." : "تم إرسال الملف.",
     "File was deleted." : "تم حذف الملف.",
     "Identification documents" : "وثائق الهوية",
+    "Upload file" : "رفع ملف",
+    "Delete file" : "حذف الملف",
     "Upload certificate" : "رفع شهادة مصادقة",
     "Read certificate" : "إقرأ الشهادة",
     "Delete certificate" : "حذف الشهادة",
@@ -266,6 +268,9 @@
     "Type:" : "النوع:",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "نأسف ولكن الصفحة التي تبحث عنها غير موجودة أو تمت إزالتها أو نقلها أو أنها غير متاحة مؤقتًا.",
     "Page not found" : "الصفحة غير موجودة",
+    "Signed" : "مُوقع",
+    "Pending" : "مُعلّق",
+    "Approved by" : "تمّ قبوله من قِبَل ",
     "The signature request will be deleted. Do you confirm this action?" : "طلب التوقيع سيتم حذفه. هل تؤكد هذا الإجراء؟",
     "Also delete the file." : "و احذف الملف كذلك.",
     "Ok" : "موافق",
@@ -388,8 +393,6 @@
     "Send code." : "أرسل الكود.",
     "Review the entered number." : "راجع الرقم المُدخل.",
     "Phone stored." : "مُخزن علي الهاتف.",
-    "Sign with your cellphone number." : "وقع باستخدام برقم هاتفك المحمول.",
-    "Save your number." : "احفظ رقمك.",
     "Sign the document." : "توقيع الوثيقة.",
     "Please define your sign password" : "يرجى تعيين كلمة المرور الخاصة بك",
     "Define a password and sign the document." : "تعيين كلمة مرور وتوقيع الوثيقة.",
@@ -426,7 +429,6 @@
     "Open in LibreSign" : "فتح فى تطبيق التوقيع الرقمي LibreSign",
     "not a LibreSign file" : "ليس ملف LibreSign",
     "New signature request" : "طلب جديد للتوقيع",
-    "Requested by {name}, at {date}" : "مطلوب من قبل {name}، في {date}",
-    "Your profile documents" : "وثائق ملف التعريف الخاص بك"
+    "Requested by {name}, at {date}" : "مطلوب من قبل {name}، في {date}"
 },"pluralForm" :"nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;"
 }

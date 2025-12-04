@@ -315,8 +315,6 @@ OC.L10N.register(
     "Send code." : "Kód küldése.",
     "Review the entered number." : "Ellenőrizze a megadott számot.",
     "Phone stored." : "Telefonszám tárolva.",
-    "Sign with your cellphone number." : "Aláírás az Ön telefonszámával.",
-    "Save your number." : "Mentse el a számát.",
     "Sign the document." : "Dokumentum aláírása.",
     "Please define your sign password" : "Határozza meg az aláírási jelszavát",
     "Define a password and sign the document." : "Határozzon meg egy jelszót, és írja alá a dokumentumot.",
@@ -339,7 +337,6 @@ OC.L10N.register(
     "Issued by:" : "Kibocsátó:",
     "Return" : "Vissza",
     "Open in LibreSign" : "Megnyitás a LibreSignban",
-    "Requested by {name}, at {date}" : "{name} kérte, ekkor: {date}",
-    "Your profile documents" : "Az Ön profildokumentumai"
+    "Requested by {name}, at {date}" : "{name} kérte, ekkor: {date}"
 },
 "nplurals=2; plural=(n != 1);");

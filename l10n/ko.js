@@ -253,8 +253,6 @@ OC.L10N.register(
     "Send code." : "코드 전송",
     "Review the entered number." : "입력한 번호를 검토합니다.",
     "Phone stored." : "핸드폰 저장됨.",
-    "Sign with your cellphone number." : "핸드폰 번호로 서명하세요.",
-    "Save your number." : "번호를 저장하세요.",
     "Sign the document." : "문서에 서명하다.",
     "Please define your sign password" : "서명 암호를 정의하십시오.",
     "Define a password and sign the document." : "암호를 정의하고 문서에 서명합니다.",

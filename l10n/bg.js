@@ -175,6 +175,7 @@ OC.L10N.register(
     "File was sent." : "Файлът беше изпратен.",
     "File was deleted." : "Файлът беше изтрит.",
     "Identification documents" : "Документи за самоличност",
+    "Delete file" : "Изтриване на файлове",
     "Delete certificate" : "Изтриване на сертификат",
     "Change password" : "Промяна на парола",
     "Your signatures" : "Вашите подписи",
@@ -208,6 +209,9 @@ OC.L10N.register(
     "Type:" : "Тип:",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Съжаляваме, но страницата, която търсите, не съществува, премахната е, преместена или временно не е достъпна.",
     "Page not found" : "Страницата не е намерена",
+    "Signed" : "Подписан",
+    "Pending" : "Чакащо",
+    "Approved by" : "Одобрен от",
     "Ok" : "Добре",
     "Toggle selection for file \"{displayName}\"" : "Превключване на избора за файл \"{displayName}\"",
     "File is loading" : "Файлът се зарежда",
@@ -293,8 +297,6 @@ OC.L10N.register(
     "Send code." : "Изпращане на код.",
     "Review the entered number." : "Преглед на въведения номер.",
     "Phone stored." : "Телефонът е съхранен.",
-    "Sign with your cellphone number." : "Подпишете се с номера на мобилния си телефон.",
-    "Save your number." : "Запишете номера си.",
     "Sign the document." : "Подпишете документа.",
     "Please define your sign password" : "Моля, определете вашата парола за подпис",
     "Define a password and sign the document." : "Определете парола и подпишете документа.",
@@ -317,7 +319,6 @@ OC.L10N.register(
     "Issued by:" : "Издаден от:",
     "Return" : "Връщане ",
     "Open in LibreSign" : "Отваряне в LibreSign",
-    "Requested by {name}, at {date}" : "Поискано от {name}, на {date}",
-    "Your profile documents" : "Документите на вашия профил"
+    "Requested by {name}, at {date}" : "Поискано от {name}, на {date}"
 },
 "nplurals=2; plural=(n != 1);");

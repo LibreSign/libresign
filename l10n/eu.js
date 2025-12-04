@@ -316,8 +316,6 @@ OC.L10N.register(
     "Send code." : "Bidali kodea.",
     "Review the entered number." : "Egiaztatu sartutako zenbakia.",
     "Phone stored." : "Telefonoa gordeta.",
-    "Sign with your cellphone number." : "Sinatu zure mugikorraren zenbakiarekin.",
-    "Save your number." : "Gorde zure zenbakia.",
     "Sign the document." : "Sinatu dokumentua.",
     "Please define your sign password" : "Ezarri zure saio pasahitza mesedez.",
     "Define a password and sign the document." : "Definitu pasahitz bat eta sinatu dokumentua.",
@@ -341,7 +339,6 @@ OC.L10N.register(
     "Issued by:" : "Honek bidalita:",
     "Return" : "Bueltatu",
     "Open in LibreSign" : "Ireki LibreSign-en",
-    "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean",
-    "Your profile documents" : "Zure profilaren dokumentuak"
+    "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean"
 },
 "nplurals=2; plural=(n != 1);");

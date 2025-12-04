@@ -504,8 +504,6 @@ OC.L10N.register(
     "Send code." : "Kodu gönder.",
     "Review the entered number." : "Yazdığınız numarayı gözden geçirin.",
     "Phone stored." : "Telefon kaydedildi.",
-    "Sign with your cellphone number." : "Cep telefonu numarasıyla imzalayın.",
-    "Save your number." : "Numaranızı kaydedin.",
     "Sign the document." : "Belgeyi imzala.",
     "Please define your sign password" : "Lütfen imzalama parolanızı tanımlayın",
     "Define a password and sign the document." : "Bir parola tanımlayın ve belgeyi imzalayın.",
@@ -552,7 +550,6 @@ OC.L10N.register(
     "Open in LibreSign" : "LibreSign ile aç",
     "not a LibreSign file" : "Bir LibreSign dosyası değil",
     "New signature request" : "Yeni imza isteği",
-    "Requested by {name}, at {date}" : "{name} tarafından {date} tarihinde istendi",
-    "Your profile documents" : "Profil belgeleriniz"
+    "Requested by {name}, at {date}" : "{name} tarafından {date} tarihinde istendi"
 },
 "nplurals=2; plural=(n > 1);");

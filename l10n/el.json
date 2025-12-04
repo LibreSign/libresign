@@ -308,6 +308,7 @@
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Λυπούμαστε αλλά η σελίδα που ψάχνετε δεν υπάρχει, έχει αφαιρεθεί, μετακινηθεί ή είναι προσωρινά μη διαθέσιμη.",
     "Page not found" : "Δεν βρέθηκε η σελίδα",
     "Pending" : "Εκκρεμεί",
+    "Approved by" : "Εγκρίθηκε από",
     "The signature request will be deleted. Do you confirm this action?" : "Το αίτημα υπογραφής θα διαγραφεί. Επιβεβαιώνετε αυτήν την ενέργεια;",
     "Also delete the file." : "Διαγραφή και του αρχείου.",
     "Ok" : "ΟΚ",
@@ -466,8 +467,6 @@
     "Send code." : "Αποστολή κωδικού.",
     "Review the entered number." : "Ελέγξτε τον εισαγόμενο αριθμό.",
     "Phone stored." : "Αποθηκεύτηκε το τηλέφωνο.",
-    "Sign with your cellphone number." : "Υπογράψτε με τον αριθμό του κινητού σας τηλεφώνου.",
-    "Save your number." : "Αποθηκεύστε τον αριθμό σας.",
     "Sign the document." : "Υπογραφή του εγγράφου.",
     "Please define your sign password" : "Παρακαλώ ορίστε τον κωδικό πρόσβασης υπογραφής σας",
     "Define a password and sign the document." : "Ορίστε έναν κωδικό πρόσβασης και υπογράψτε το έγγραφο.",
@@ -503,7 +502,6 @@
     "Open in LibreSign" : "Άνοιγμα στο LibreSign",
     "not a LibreSign file" : "όχι αρχείο LibreSign",
     "New signature request" : "Νέο αίτημα υπογραφής",
-    "Requested by {name}, at {date}" : "Ζητήθηκε από {name}, στις {date}",
-    "Your profile documents" : "Τα έγγραφα προφίλ σας"
+    "Requested by {name}, at {date}" : "Ζητήθηκε από {name}, στις {date}"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

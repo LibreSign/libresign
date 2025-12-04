@@ -397,8 +397,6 @@ OC.L10N.register(
     "Send code." : "Poslať kód.",
     "Review the entered number." : "Skontrolujte zadané číslo.",
     "Phone stored." : "Telefón uložený.",
-    "Sign with your cellphone number." : "Podpis vaším mobilným číslom.",
-    "Save your number." : "Uložiť vaše číslo.",
     "Sign the document." : "Podpísať dokument.",
     "Please define your sign password" : "Definujte svoje prihlasovacie heslo",
     "Define a password and sign the document." : "Definujte heslo a podpíšte dokument.",
@@ -434,7 +432,6 @@ OC.L10N.register(
     "Open in LibreSign" : "Otvoriť v LibreSign",
     "not a LibreSign file" : "toto nie je súbor LibreSign ",
     "New signature request" : "Nová žiadosť o podpis",
-    "Requested by {name}, at {date}" : "Vyžiadané od {name}, o {date}",
-    "Your profile documents" : "Dokumenty vášho profilu"
+    "Requested by {name}, at {date}" : "Vyžiadané od {name}, o {date}"
 },
 "nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);");

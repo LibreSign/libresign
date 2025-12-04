@@ -209,8 +209,6 @@ OC.L10N.register(
     "Username" : "Käyttäjätunnus",
     "Optional" : "Vapaaehtoinen",
     "Validation URL" : "Validoinnin URL",
-    "Sign with your cellphone number." : "Allekirjoitus matkapuhelinnumerollasi.",
-    "Save your number." : "Tallenna numerosi.",
     "Sign the document." : "Allekirjoita asiakirja.",
     "Subscription password." : "Tilauksen salasana.",
     "Forgot password?" : "Unohditko salasanasi?",
