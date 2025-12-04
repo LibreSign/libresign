@@ -46,8 +46,18 @@ class FooterService {
 			$this->saveTemplate($template);
 		}
 
+		// Generate a realistic UUID format for preview (36 chars with hyphens, same as real UUIDs)
+		// This ensures QR code size matches the final document
+		$previewUuid = sprintf(
+			'preview-%04x-%04x-%04x-%012x',
+			random_int(0, 0xffff),
+			random_int(0, 0xffff),
+			random_int(0, 0xffff),
+			random_int(0, 0xffffffffffff)
+		);
+
 		return $this->footerHandler
-			->setTemplateVar('uuid', 'preview-' . bin2hex(random_bytes(8)))
+			->setTemplateVar('uuid', $previewUuid)
 			->setTemplateVar('signers', [
 				[
 					'displayName' => 'Preview Signer',
