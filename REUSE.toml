@@ -33,6 +33,7 @@ path = [
     "jsconfig.json",
     "l10n/*.js",
     "l10n/*.json",
+    "lib/Handler/Templates/footer.twig",
     "Makefile",
     "lib/Vendor/.gitkeep",
     "openapi-administration.json",
