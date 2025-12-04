@@ -28,12 +28,16 @@ class FooterService {
 		return $this->footerHandler->getTemplate();
 	}
 
-	public function saveTemplate(string $template): void {
-		$this->appConfig->setValueString(Application::APP_ID, 'footer_template', $template);
+	public function saveTemplate(string $template = ''): void {
+		if (empty($template)) {
+			$this->appConfig->deleteKey(Application::APP_ID, 'footer_template');
+		} else {
+			$this->appConfig->setValueString(Application::APP_ID, 'footer_template', $template);
+		}
 	}
 
-	public function renderPreviewPdf(?string $template = null, int $width = 595, int $height = 50): string {
-		if ($template !== null) {
+	public function renderPreviewPdf(string $template = '', int $width = 595, int $height = 50): string {
+		if (!empty($template)) {
 			$this->saveTemplate($template);
 		}
 
