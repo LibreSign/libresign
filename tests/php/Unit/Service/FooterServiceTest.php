@@ -56,7 +56,7 @@ class FooterServiceTest extends TestCase {
 
 	public function testSaveTemplateEqualToDefaultDeletesKey(): void {
 		$defaultTemplate = '<div>Default Footer</div>';
-		
+
 		$this->footerHandler
 			->expects($this->once())
 			->method('getDefaultTemplate')
