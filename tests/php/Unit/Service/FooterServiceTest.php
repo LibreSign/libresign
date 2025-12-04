@@ -58,13 +58,24 @@ class FooterServiceTest extends TestCase {
 		$template = '<div>Custom template</div>';
 		$this->appConfig->setValueString(Application::APP_ID, 'footer_template', $template);
 
+		$this->footerHandler
+			->expects($this->once())
+			->method('getTemplate')
+			->willReturn($template);
+
 		$this->assertSame($template, $this->service->getTemplate());
 	}
 
-	public function testGetTemplateReturnsEmptyWhenNotSet(): void {
+	public function testGetTemplateReturnsDefaultWhenNotSet(): void {
 		$this->appConfig->deleteKey(Application::APP_ID, 'footer_template');
 
-		$this->assertSame('', $this->service->getTemplate());
+		$defaultTemplate = '<div>Default footer template</div>';
+		$this->footerHandler
+			->expects($this->once())
+			->method('getTemplate')
+			->willReturn($defaultTemplate);
+
+		$this->assertSame($defaultTemplate, $this->service->getTemplate());
 	}
 
 	#[DataProvider('provideRenderPreviewPdfScenarios')]

@@ -173,7 +173,7 @@ class FooterHandler {
 		return $vars;
 	}
 
-	private function getTemplate(): string {
+	public function getTemplate(): string {
 		$footerTemplate = $this->appConfig->getValueString(Application::APP_ID, 'footer_template', '');
 		if ($footerTemplate) {
 			return $footerTemplate;
