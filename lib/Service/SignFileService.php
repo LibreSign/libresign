@@ -673,13 +673,14 @@ class SignFileService {
 		}
 		$metadata = $this->footerHandler->getMetadata($originalFile, $this->libreSignFile);
 		$footer = $this->footerHandler
+			->setTemplateVar('uuid', $this->libreSignFile->getUuid())
 			->setTemplateVar('signers', array_map(fn (SignRequestEntity $signer) => [
 				'displayName' => $signer->getDisplayName(),
 				'signed' => $signer->getSigned()
 					? $signer->getSigned()->format(DateTimeInterface::ATOM)
 					: null,
 			], $this->getSigners()))
-			->getFooter($metadata['d'], $this->libreSignFile);
+			->getFooter($metadata['d']);
 		if ($footer) {
 			$stamp = $this->tempManager->getTemporaryFile('stamp.pdf');
 			file_put_contents($stamp, $footer);
