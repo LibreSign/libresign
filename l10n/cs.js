@@ -268,6 +268,7 @@ OC.L10N.register(
     "File was sent." : "Soubor bylo odeslán.",
     "File was deleted." : "Soubor byl smazán.",
     "Identification documents" : "Identifikační doklady",
+    "Upload file" : "Nahrát soubor",
     "Delete file" : "Smazat soubor",
     "Upload certificate" : "Nahrát certifikát",
     "Read certificate" : "Načíst certifikát",
@@ -311,7 +312,9 @@ OC.L10N.register(
     "Type:" : "Typ:",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Je nám líto, ale stránka kterou hledáte neexistuje, byla odebrána, přesunuta nebo je dočasně nedostupná.",
     "Page not found" : "Stránka nenalezena",
+    "Signed" : "Podepsáno",
     "Pending" : "Čeká",
+    "Approved by" : "Schválil(a)",
     "The signature request will be deleted. Do you confirm this action?" : "Požadavek na podepsání bude smazán. Potvrzujete tuto akci?",
     "Also delete the file." : "Také smazat soubor.",
     "Ok" : "OK",
@@ -518,8 +521,6 @@ OC.L10N.register(
     "Send code." : "Odeslat kód.",
     "Review the entered number." : "Zkontrolujte zadané číslo.",
     "Phone stored." : "Telefon uložen.",
-    "Sign with your cellphone number." : "Přihlaste se svým mobilním číslem.",
-    "Save your number." : "Uložit si vaše číslo.",
     "Sign the document." : "Podepsat dokument.",
     "Please define your sign password" : "Definujte si své heslo pro podepisování",
     "Define a password and sign the document." : "Nastavit heslo a podepsat dokument.",
@@ -569,7 +570,6 @@ OC.L10N.register(
     "Open in LibreSign" : "Otevřít v LibreSign",
     "not a LibreSign file" : "není LibreSign soubor",
     "New signature request" : "Nový požadavek na podepsání",
-    "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}",
-    "Your profile documents" : "Dokumenty ve vašem profilu"
+    "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

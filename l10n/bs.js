@@ -32,6 +32,7 @@ OC.L10N.register(
     "Comment" : "Komentar",
     "Actions" : "Radnje",
     "User" : "User",
+    "Pending" : "Na čekanju",
     "Ok" : "Ok",
     "Today" : "Danas",
     "Modified" : "Izmijenjeno",

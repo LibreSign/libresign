@@ -343,6 +343,7 @@ OC.L10N.register(
     "Welcome to LibreSign" : "Bienvenue sur LibreSign",
     "Finish the setup" : "Terminer la configuration",
     "Valid" : "Valide",
+    "Unknown Status" : "Statut inconnu",
     "Owner of certificate" : "Propriétaire du certificat",
     "Issuer of certificate" : "Émetteur du certificat",
     "Valid from" : "Valide depuis",
@@ -463,8 +464,6 @@ OC.L10N.register(
     "Send code." : "Envoyer le code.",
     "Review the entered number." : "Examinez le nombre entré.",
     "Phone stored." : "Téléphone enregistré.",
-    "Sign with your cellphone number." : "Connectez-vous avec votre numéro de téléphone.",
-    "Save your number." : "Enregistrez votre numéro.",
     "Sign the document." : "Signer le document.",
     "Please define your sign password" : "Merci de définir votre mot de passe pour cette signature.",
     "Define a password and sign the document." : "Définissez un mot de passe et signez le document.",
@@ -481,7 +480,7 @@ OC.L10N.register(
     "Validation" : "Validation",
     "Congratulations you have digitally signed a document using LibreSign" : "Félicitations, vous avez signé numériquement un document avec LibreSign",
     "Name:" : "Nom :",
-    "Status:" : "État :",
+    "Status:" : "Statut :",
     "Total pages:" : "Nombre total de pages:",
     "File size:" : "Taille du fichier:",
     "PDF version:" : "Version PDF:",
@@ -504,7 +503,6 @@ OC.L10N.register(
     "Open in LibreSign" : "Ouvrir dans LibreSign",
     "not a LibreSign file" : "n'est pas un fichier LibreSign",
     "New signature request" : "Nouvelle demande de signature",
-    "Requested by {name}, at {date}" : "Demandé par {name}, le {date}",
-    "Your profile documents" : "Vos documents de profil"
+    "Requested by {name}, at {date}" : "Demandé par {name}, le {date}"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

@@ -367,8 +367,6 @@ OC.L10N.register(
     "Send code." : "Send kode.",
     "Review the entered number." : "Se gjennom det angitte nummeret.",
     "Phone stored." : "Telefon lagret.",
-    "Sign with your cellphone number." : "Signer med telefonnummeret ditt.",
-    "Save your number." : "Lagre nummeret ditt.",
     "Sign the document." : "Signer dokumentet.",
     "Please define your sign password" : "Vennligst definer passordet ditt for signering",
     "Define a password and sign the document." : "Definer et passord og signer dokumentet.",
@@ -392,7 +390,6 @@ OC.L10N.register(
     "Issued by:" : "Utstedt av:",
     "Return" : "Returner",
     "Open in LibreSign" : "Åpne i LibreSign",
-    "Requested by {name}, at {date}" : "Bedt av {name}, den {date}",
-    "Your profile documents" : "Dine profildokumenter"
+    "Requested by {name}, at {date}" : "Bedt av {name}, den {date}"
 },
 "nplurals=2; plural=(n != 1);");

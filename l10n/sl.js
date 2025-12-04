@@ -364,8 +364,6 @@ OC.L10N.register(
     "Send code." : "Pošlji kodo.",
     "Review the entered number." : "Preglej vpisano številko.",
     "Phone stored." : "Telefonska številka je shranjena.",
-    "Sign with your cellphone number." : "Podpiši s telefonsko številko.",
-    "Save your number." : "Shrani številko",
     "Sign the document." : "Podpiši dokument.",
     "Please define your sign password" : "Določite geslo za podpisovanje",
     "Define a password and sign the document." : "Določite geslo in podpišite dokument.",
@@ -389,7 +387,6 @@ OC.L10N.register(
     "Issued by:" : "Izdajatelj:",
     "Return" : "Nazaj",
     "Open in LibreSign" : "Odpri v LibreSign",
-    "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}",
-    "Your profile documents" : "Dokumenti profila"
+    "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}"
 },
 "nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);");

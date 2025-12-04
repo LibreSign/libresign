@@ -551,8 +551,6 @@ OC.L10N.register(
     "Send code." : "Seol cód.",
     "Review the entered number." : "Déan athbhreithniú ar an uimhir iontrála.",
     "Phone stored." : "Fón a stóráil.",
-    "Sign with your cellphone number." : "Sínigh le d'uimhir fón póca.",
-    "Save your number." : "Sábháil d'uimhir.",
     "Sign the document." : "Sínigh an doiciméad.",
     "You need to upload your certificate to sign the document." : "Ní mór duit do theastas a uaslódáil chun an doiciméad a shíniú.",
     "Please define your sign password" : "Sainmhínigh do phasfhocal sínithe le do thoil",
@@ -651,7 +649,6 @@ OC.L10N.register(
     "Open in LibreSign" : "Oscail i LibreSign",
     "not a LibreSign file" : "ní comhad LibreSign é",
     "New signature request" : "Iarratas sínithe nua",
-    "Requested by {name}, at {date}" : "Arna iarraidh ag {name}, ag {date}",
-    "Your profile documents" : "Do dhoiciméid phróifíle"
+    "Requested by {name}, at {date}" : "Arna iarraidh ag {name}, ag {date}"
 },
 "nplurals=5; plural=(n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n<11 ? 3 : 4);");

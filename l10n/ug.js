@@ -365,8 +365,6 @@ OC.L10N.register(
     "Send code." : "كود ئەۋەتىڭ.",
     "Review the entered number." : "كىرگۈزۈلگەن نومۇرنى تەكشۈرۈڭ.",
     "Phone stored." : "تېلېفون ساقلاندى.",
-    "Sign with your cellphone number." : "يان تېلېفون نومۇرىڭىز بىلەن ئىمزا قويۇڭ.",
-    "Save your number." : "نومۇرىڭىزنى ساقلاڭ.",
     "Sign the document." : "ھۆججەتكە ئىمزا قويۇڭ.",
     "Please define your sign password" : "ئىمزا پارولىڭىزنى ئېنىقلاڭ",
     "Define a password and sign the document." : "پارولغا ئېنىقلىما بېرىپ ھۆججەتكە ئىمزا قويۇڭ.",
@@ -390,7 +388,6 @@ OC.L10N.register(
     "Issued by:" : "تارقاتقان:",
     "Return" : "قايتىش",
     "Open in LibreSign" : "LibreSign دا ئېچىڭ",
-    "Requested by {name}, at {date}" : "{name} تەرىپىدىن تەلەپ قىلىنغان ، {date}",
-    "Your profile documents" : "ئارخىپ ھۆججەتلىرىڭىز"
+    "Requested by {name}, at {date}" : "{name} تەرىپىدىن تەلەپ قىلىنغان ، {date}"
 },
 "nplurals=2; plural=(n != 1);");
