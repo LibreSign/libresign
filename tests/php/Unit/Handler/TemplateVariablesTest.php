@@ -117,7 +117,7 @@ final class TemplateVariablesTest extends TestCase {
 
 	public function testRejectsInvalidMethod(): void {
 		$this->expectException(\BadMethodCallException::class);
-		$this->expectExceptionMessage("Method invalidMethod does not exist");
+		$this->expectExceptionMessage('Method invalidMethod does not exist');
 
 		$this->variables->invalidMethod();
 	}

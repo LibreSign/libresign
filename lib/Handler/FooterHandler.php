@@ -11,7 +11,6 @@ namespace OCA\Libresign\Handler;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\TemplateVariables;
 use OCA\Libresign\Service\PdfParserService;
 use OCA\Libresign\Vendor\BaconQrCode\Encoder\Encoder;
 use OCA\Libresign\Vendor\Endroid\QrCode\Bacon\ErrorCorrectionLevelConverter;
