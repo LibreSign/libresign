@@ -31,7 +31,6 @@ use OCP\L10N\IFactory;
 
 class FooterHandler {
 	private QrCode $qrCode;
-	private FileEntity $fileEntity;
 	private const MIN_QRCODE_SIZE = 100;
 	private const POINT_TO_MILIMETER = 0.3527777778;
 	private array $templateVars = [];
@@ -46,8 +45,7 @@ class FooterHandler {
 	) {
 	}
 
-	public function getFooter(array $dimensions, FileEntity $fileEntity): string {
-		$this->fileEntity = $fileEntity;
+	public function getFooter(array $dimensions): string {
 		$add_footer = (bool)$this->appConfig->getValueBool(Application::APP_ID, 'add_footer', true);
 		if (!$add_footer) {
 			return '';
@@ -115,24 +113,36 @@ class FooterHandler {
 	}
 
 	private function getTemplateVars(): array {
-		$this->templateVars['signedBy'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_signed_by', $this->l10n->t('Digitally signed by LibreSign.'));
-
-		$this->templateVars['direction'] = $this->l10nFactory->getLanguageDirection($this->l10n->getLanguageCode());
-
-		$this->templateVars['linkToSite'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_link_to_site', 'https://libresign.coop');
-
-		$this->templateVars['validationSite'] = $this->appConfig->getValueString(Application::APP_ID, 'validation_site');
-		if ($this->templateVars['validationSite']) {
-			$this->templateVars['validationSite'] = rtrim($this->templateVars['validationSite'], '/') . '/' . $this->fileEntity->getUuid();
-		} else {
-			$this->templateVars['validationSite'] = $this->urlGenerator->linkToRouteAbsolute('libresign.page.validationFileWithShortUrl', [
-				'uuid' => $this->fileEntity->getUuid(),
-			]);
+		if (!isset($this->templateVars['signedBy'])) {
+			$this->templateVars['signedBy'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_signed_by', $this->l10n->t('Digitally signed by LibreSign.'));
 		}
 
-		$this->templateVars['validateIn'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_validate_in', 'Validate in %s.');
-		if ($this->templateVars['validateIn'] === 'Validate in %s.') {
-			$this->templateVars['validateIn'] = $this->l10n->t('Validate in %s.', ['%s']);
+		if (!isset($this->templateVars['direction'])) {
+			$this->templateVars['direction'] = $this->l10nFactory->getLanguageDirection($this->l10n->getLanguageCode());
+		}
+
+		if (!isset($this->templateVars['linkToSite'])) {
+			$this->templateVars['linkToSite'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_link_to_site', 'https://libresign.coop');
+		}
+
+		if (!isset($this->templateVars['validationSite']) && isset($this->templateVars['uuid'])) {
+			$validationSite = $this->appConfig->getValueString(Application::APP_ID, 'validation_site');
+			if ($validationSite) {
+				$this->templateVars['validationSite'] = rtrim($validationSite, '/') . '/' . $this->templateVars['uuid'];
+			} else {
+				$this->templateVars['validationSite'] = $this->urlGenerator->linkToRouteAbsolute('libresign.page.validationFileWithShortUrl', [
+					'uuid' => $this->templateVars['uuid'],
+				]);
+			}
+		}
+
+		if (!isset($this->templateVars['validateIn'])) {
+			$validateIn = $this->appConfig->getValueString(Application::APP_ID, 'footer_validate_in', 'Validate in %s.');
+			if ($validateIn === 'Validate in %s.') {
+				$this->templateVars['validateIn'] = $this->l10n->t('Validate in %s.', ['%s']);
+			} else {
+				$this->templateVars['validateIn'] = $validateIn;
+			}
 		}
 
 		foreach ($this->templateVars as $key => $value) {
