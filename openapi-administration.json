@@ -2700,18 +2700,16 @@
                     }
                 ],
                 "requestBody": {
-                    "required": true,
+                    "required": false,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "type": "object",
-                                "required": [
-                                    "template"
-                                ],
                                 "properties": {
                                     "template": {
                                         "type": "string",
-                                        "description": "The Twig template to save"
+                                        "default": "",
+                                        "description": "The Twig template to save (empty to reset to default)"
                                     },
                                     "width": {
                                         "type": "integer",
