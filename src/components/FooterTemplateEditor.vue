@@ -22,30 +22,58 @@
 			@keypress="resizeHeight" />
 		<div v-if="pdfPreviewFile" class="footer-preview">
 			<h4>{{ t('libresign', 'Preview') }}</h4>
-			<div class="footer-preview__zoom-controls">
-				<NcButton :aria-label="t('libresign', 'Decrease zoom level')"
-					@click="changeZoomLevel(-10)">
-					<template #icon>
-						<MagnifyMinusOutline :size="20" />
-					</template>
-				</NcButton>
-				<NcButton :aria-label="t('libresign', 'Increase zoom level')"
-					@click="changeZoomLevel(+10)">
-					<template #icon>
-						<MagnifyPlusOutline :size="20" />
-					</template>
-				</NcButton>
-			<NcTextField
-				v-model="zoomLevel"
-				class="footer-preview__zoom-level"
-				:label="t('libresign', 'Zoom level')"
-				type="number"
-				:min="10"
-				:step="10"
-				:spellcheck="false"
-				@input="onZoomInput" />
+			<div class="footer-preview__controls">
+				<div class="footer-preview__zoom-controls">
+					<NcButton :aria-label="t('libresign', 'Decrease zoom level')"
+						@click="changeZoomLevel(-10)">
+						<template #icon>
+							<MagnifyMinusOutline :size="20" />
+						</template>
+					</NcButton>
+					<NcButton :aria-label="t('libresign', 'Increase zoom level')"
+						@click="changeZoomLevel(+10)">
+						<template #icon>
+							<MagnifyPlusOutline :size="20" />
+						</template>
+					</NcButton>
+					<NcTextField
+						v-model="zoomLevel"
+						class="footer-preview__zoom-level"
+						:label="t('libresign', 'Zoom level')"
+						type="number"
+						:min="10"
+						:step="10"
+						:spellcheck="false"
+						@input="onZoomInput" />
+				</div>
+				<div class="footer-preview__dimension-controls">
+					<NcTextField
+						v-model="previewWidth"
+						:label="t('libresign', 'Width')"
+						type="number"
+						:min="100"
+						:max="2000"
+						:spellcheck="false"
+						@input="debouncedSaveFooterTemplate" />
+					<NcTextField
+						v-model="previewHeight"
+						:label="t('libresign', 'Height')"
+						type="number"
+						:min="10"
+						:max="500"
+						:spellcheck="false"
+						@input="debouncedSaveFooterTemplate" />
+					<NcButton v-if="showResetDimensions"
+						:aria-label="t('libresign', 'Reset dimensions')"
+						type="tertiary"
+						@click="resetDimensions">
+						<template #icon>
+							<Undo :size="20" />
+						</template>
+					</NcButton>
+				</div>
 			</div>
-			<div ref="pdfContainer" class="footer-preview__pdf" :style="previewHeight ? `min-height: ${previewHeight}px` : ''">
+			<div ref="pdfContainer" class="footer-preview__pdf" :style="containerHeight ? `min-height: ${containerHeight}px` : ''">
 				<div v-if="loadingPreview" class="footer-preview__loading">
 					<NcLoadingIcon :size="64" />
 				</div>
@@ -84,6 +112,7 @@ import VuePdfEditor from '@libresign/vue-pdf-editor'
 
 import MagnifyMinusOutline from 'vue-material-design-icons/MagnifyMinusOutline.vue'
 import MagnifyPlusOutline from 'vue-material-design-icons/MagnifyPlusOutline.vue'
+import Undo from 'vue-material-design-icons/UndoVariant.vue'
 
 export default {
 	name: 'FooterTemplateEditor',
@@ -95,6 +124,7 @@ export default {
 		VuePdfEditor,
 		MagnifyMinusOutline,
 		MagnifyPlusOutline,
+		Undo,
 	},
 	props: {
 		initialTemplate: {
@@ -114,8 +144,15 @@ export default {
 			loadingPreview: false,
 			pdfKey: 0,
 			zoomLevel: loadState('libresign', 'footer_preview_zoom_level', 100),
-			previewHeight: null,
+			previewWidth: loadState('libresign', 'footer_preview_width', 595),
+			previewHeight: loadState('libresign', 'footer_preview_height', 80),
+			containerHeight: null,
 		}
+	},
+	computed: {
+		showResetDimensions() {
+			return Number(this.previewWidth) !== 595 || Number(this.previewHeight) !== 80
+		},
 	},
 	watch: {
 		initialTemplate(newValue) {
@@ -127,10 +164,19 @@ export default {
 		initialIsDefault(newValue) {
 			this.isDefaultFooterTemplate = newValue
 		},
+		previewWidth() {
+			this.debouncedSaveDimensions()
+			this.debouncedSaveFooterTemplate()
+		},
+		previewHeight() {
+			this.debouncedSaveDimensions()
+			this.debouncedSaveFooterTemplate()
+		},
 	},
 	created() {
 		this.debouncedSaveFooterTemplate = debounce(this.saveFooterTemplate, 500)
 		this.debouncedUpdateScale = debounce(this.updateScale, 300)
+		this.debouncedSaveDimensions = debounce(this.saveDimensions, 500)
 	},
 	mounted() {
 		this.resizeHeight()
@@ -141,10 +187,29 @@ export default {
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'))
 			this.$emit('template-reset')
 		},
+		resetDimensions() {
+			this.previewWidth = 595
+			this.previewHeight = 80
+			this.saveDimensions()
+			this.saveFooterTemplate()
+		},
+		saveDimensions() {
+			if (Number(this.previewWidth) === 595 && Number(this.previewHeight) === 80) {
+				OCP.AppConfig.deleteKey('libresign', 'footer_preview_width')
+				OCP.AppConfig.deleteKey('libresign', 'footer_preview_height')
+			} else {
+				OCP.AppConfig.setValue('libresign', 'footer_preview_width', this.previewWidth)
+				OCP.AppConfig.setValue('libresign', 'footer_preview_height', this.previewHeight)
+			}
+		},
 		saveFooterTemplate() {
 			axios.post(
 				generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'),
-				{ template: this.footerTemplate, width: 595, height: 80 },
+				{
+					template: this.footerTemplate,
+					width: Number(this.previewWidth),
+					height: Number(this.previewHeight),
+				},
 				{ responseType: 'blob' }
 			).then(response => {
 				this.isDefaultFooterTemplate = false
@@ -158,7 +223,7 @@ export default {
 			this.loadingPreview = true
 
 			if (this.$refs.pdfContainer) {
-				this.previewHeight = this.$refs.pdfContainer.offsetHeight
+				this.containerHeight = this.$refs.pdfContainer.offsetHeight
 			}
 
 			this.$nextTick(() => {
@@ -170,7 +235,7 @@ export default {
 		},
 		onPdfReady() {
 			this.loadingPreview = false
-			this.previewHeight = null
+			this.containerHeight = null
 		},
 		changeZoomLevel(delta) {
 			this.zoomLevel = Number(this.zoomLevel) + delta
@@ -242,11 +307,23 @@ export default {
 		font-size: 14px;
 	}
 
+	&__controls {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px;
+		margin-bottom: 10px;
+	}
+
 	&__zoom-controls {
 		display: flex;
 		gap: 8px;
 		align-items: center;
-		margin-bottom: 10px;
+	}
+
+	&__dimension-controls {
+		display: flex;
+		gap: 8px;
+		align-items: center;
 	}
 
 	&__zoom-level {
