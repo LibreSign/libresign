@@ -116,13 +116,13 @@ class FooterServiceTest extends TestCase {
 	public static function provideRenderPreviewPdfScenarios(): array {
 		return [
 			'with custom template and default dimensions' => ['<div>Custom</div>', 595, 50, true],
-			'without template uses default' => [null, 595, 50, false],
+			'without template uses default' => ['', 595, 50, false],
 			'with custom dimensions' => ['<div>Test</div>', 800, 100, true],
-			'A4 width with custom height' => [null, 595, 75, false],
-			'empty string template' => ['', 595, 50, true],
+			'A4 width with custom height' => ['', 595, 75, false],
+			'empty string template' => ['', 595, 50, false],
 			'template with unicode characters' => ['<div>签名 подпись توقيع</div>', 595, 50, true],
 			'minimum dimensions' => ['<div>Min</div>', 1, 1, true],
-			'large dimensions' => [null, 2000, 500, false],
+			'large dimensions' => ['', 2000, 500, false],
 		];
 	}
 }
