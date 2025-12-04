@@ -274,4 +274,36 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertStringContainsString('https://custom.validation.site', $text);
 		$this->assertStringNotContainsString('https://default.site', $text);
 	}
+
+	public function testGetTemplateReturnsCustomTemplate(): void {
+		$customTemplate = '<div>Custom footer template {{ uuid }}</div>';
+		$this->appConfig->setValueString(Application::APP_ID, 'footer_template', $customTemplate);
+		$this->l10n = $this->l10nFactory->get(Application::APP_ID, 'en');
+
+		$template = $this->getClass()->getTemplate();
+
+		$this->assertSame($customTemplate, $template);
+	}
+
+	public function testGetTemplateReturnsDefaultWhenNotSet(): void {
+		$this->appConfig->deleteKey(Application::APP_ID, 'footer_template');
+		$this->l10n = $this->l10nFactory->get(Application::APP_ID, 'en');
+
+		$template = $this->getClass()->getTemplate();
+
+		$defaultTemplate = file_get_contents(__DIR__ . '/../../../../lib/Handler/Templates/footer.twig');
+		$this->assertNotEmpty($template);
+		$this->assertSame($defaultTemplate, $template);
+	}
+
+	public function testGetTemplateReturnsDefaultWhenEmpty(): void {
+		$this->appConfig->setValueString(Application::APP_ID, 'footer_template', '');
+		$this->l10n = $this->l10nFactory->get(Application::APP_ID, 'en');
+
+		$template = $this->getClass()->getTemplate();
+
+		$this->assertNotEmpty($template);
+		$defaultTemplate = file_get_contents(__DIR__ . '/../../../../lib/Handler/Templates/footer.twig');
+		$this->assertSame($defaultTemplate, $template);
+	}
 }
