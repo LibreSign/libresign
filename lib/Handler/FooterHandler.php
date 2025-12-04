@@ -31,10 +31,10 @@ use OCP\L10N\IFactory;
 
 class FooterHandler {
 	private QrCode $qrCode;
-	private FileEntity $fileEntity;
 	private const MIN_QRCODE_SIZE = 100;
 	private const POINT_TO_MILIMETER = 0.3527777778;
-	private array $templateVars = [];
+
+	private TemplateVariables $templateVars;
 
 	public function __construct(
 		private IAppConfig $appConfig,
@@ -44,10 +44,10 @@ class FooterHandler {
 		private IFactory $l10nFactory,
 		private ITempManager $tempManager,
 	) {
+		$this->templateVars = new TemplateVariables();
 	}
 
-	public function getFooter(array $dimensions, FileEntity $fileEntity): string {
-		$this->fileEntity = $fileEntity;
+	public function getFooter(array $dimensions): string {
 		$add_footer = (bool)$this->appConfig->getValueBool(Application::APP_ID, 'add_footer', true);
 		if (!$add_footer) {
 			return '';
@@ -70,7 +70,7 @@ class FooterHandler {
 						$dimension['h'] * self::POINT_TO_MILIMETER,
 					],
 				]);
-				$pdf->SetDirectionality($this->templateVars['direction']);
+				$pdf->SetDirectionality($this->templateVars->getDirection());
 			}
 			$pdf->AddPage(
 				orientation: 'P',
@@ -103,49 +103,72 @@ class FooterHandler {
 			);
 			return $twigEnvironment
 				->createTemplate($this->getTemplate())
-				->render($this->getTemplateVars());
+				->render($this->prepareTemplateVars());
 		} catch (SyntaxError $e) {
 			throw new LibresignException($e->getMessage());
 		}
 	}
 
 	public function setTemplateVar(string $name, mixed $value): self {
-		$this->templateVars[$name] = $value;
+		$this->templateVars->merge([$name => $value]);
 		return $this;
 	}
 
-	private function getTemplateVars(): array {
-		$this->templateVars['signedBy'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_signed_by', $this->l10n->t('Digitally signed by LibreSign.'));
-
-		$this->templateVars['direction'] = $this->l10nFactory->getLanguageDirection($this->l10n->getLanguageCode());
-
-		$this->templateVars['linkToSite'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_link_to_site', 'https://libresign.coop');
-
-		$this->templateVars['validationSite'] = $this->appConfig->getValueString(Application::APP_ID, 'validation_site');
-		if ($this->templateVars['validationSite']) {
-			$this->templateVars['validationSite'] = rtrim($this->templateVars['validationSite'], '/') . '/' . $this->fileEntity->getUuid();
-		} else {
-			$this->templateVars['validationSite'] = $this->urlGenerator->linkToRouteAbsolute('libresign.page.validationFileWithShortUrl', [
-				'uuid' => $this->fileEntity->getUuid(),
-			]);
+	private function prepareTemplateVars(): array {
+		if (!$this->templateVars->getSignedBy()) {
+			$this->templateVars->setSignedBy(
+				$this->appConfig->getValueString(Application::APP_ID, 'footer_signed_by', $this->l10n->t('Digitally signed by LibreSign.'))
+			);
 		}
 
-		$this->templateVars['validateIn'] = $this->appConfig->getValueString(Application::APP_ID, 'footer_validate_in', 'Validate in %s.');
-		if ($this->templateVars['validateIn'] === 'Validate in %s.') {
-			$this->templateVars['validateIn'] = $this->l10n->t('Validate in %s.', ['%s']);
+		if (!$this->templateVars->getDirection()) {
+			$this->templateVars->setDirection(
+				$this->l10nFactory->getLanguageDirection($this->l10n->getLanguageCode())
+			);
 		}
 
-		foreach ($this->templateVars as $key => $value) {
-			if (is_string($value)) {
-				$this->templateVars[$key] = htmlentities($value, ENT_NOQUOTES | ENT_SUBSTITUTE | ENT_HTML401);
+		if (!$this->templateVars->getLinkToSite()) {
+			$this->templateVars->setLinkToSite(
+				$this->appConfig->getValueString(Application::APP_ID, 'footer_link_to_site', 'https://libresign.coop')
+			);
+		}
+
+		if (!$this->templateVars->getValidationSite() && $this->templateVars->getUuid()) {
+			$validationSite = $this->appConfig->getValueString(Application::APP_ID, 'validation_site');
+			if ($validationSite) {
+				$this->templateVars->setValidationSite(
+					rtrim($validationSite, '/') . '/' . $this->templateVars->getUuid()
+				);
+			} else {
+				$this->templateVars->setValidationSite(
+					$this->urlGenerator->linkToRouteAbsolute('libresign.page.validationFileWithShortUrl', [
+						'uuid' => $this->templateVars->getUuid(),
+					])
+				);
 			}
 		}
 
-		if ($this->appConfig->getValueBool(Application::APP_ID, 'write_qrcode_on_footer', true)) {
-			$this->templateVars['qrcode'] = $this->getQrCodeImageBase64($this->templateVars['validationSite']);
+		if (!$this->templateVars->getValidateIn()) {
+			$validateIn = $this->appConfig->getValueString(Application::APP_ID, 'footer_validate_in', 'Validate in %s.');
+			if ($validateIn === 'Validate in %s.') {
+				$this->templateVars->setValidateIn($this->l10n->t('Validate in %s.', ['%s']));
+			} else {
+				$this->templateVars->setValidateIn($validateIn);
+			}
 		}
 
-		return $this->templateVars;
+		if ($this->appConfig->getValueBool(Application::APP_ID, 'write_qrcode_on_footer', true) && $this->templateVars->getValidationSite()) {
+			$this->templateVars->setQrcode($this->getQrCodeImageBase64($this->templateVars->getValidationSite()));
+		}
+
+		$vars = $this->templateVars->toArray();
+		foreach ($vars as $key => $value) {
+			if (is_string($value)) {
+				$vars[$key] = htmlentities($value, ENT_NOQUOTES | ENT_SUBSTITUTE | ENT_HTML401);
+			}
+		}
+
+		return $vars;
 	}
 
 	private function getTemplate(): string {
@@ -171,7 +194,7 @@ class FooterHandler {
 		$result = $writer->write($this->qrCode);
 		$qrcode = base64_encode($result->getString());
 
-		$this->templateVars['qrcodeSize'] = $this->qrCode->getSize() + $this->qrCode->getMargin() * 2;
+		$this->templateVars->setQrcodeSize($this->qrCode->getSize() + $this->qrCode->getMargin() * 2);
 
 		return $qrcode;
 	}
