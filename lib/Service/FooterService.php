@@ -31,6 +31,11 @@ class FooterService {
 	public function saveTemplate(string $template = ''): void {
 		if (empty($template)) {
 			$this->appConfig->deleteKey(Application::APP_ID, 'footer_template');
+			return;
+		}
+
+		if ($template === $this->footerHandler->getDefaultTemplate()) {
+			$this->appConfig->deleteKey(Application::APP_ID, 'footer_template');
 		} else {
 			$this->appConfig->setValueString(Application::APP_ID, 'footer_template', $template);
 		}

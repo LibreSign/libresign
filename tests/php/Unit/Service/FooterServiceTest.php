@@ -54,6 +54,22 @@ class FooterServiceTest extends TestCase {
 		);
 	}
 
+	public function testSaveTemplateEqualToDefaultDeletesKey(): void {
+		$defaultTemplate = '<div>Default Footer</div>';
+
+		$this->footerHandler
+			->expects($this->once())
+			->method('getDefaultTemplate')
+			->willReturn($defaultTemplate);
+
+		$this->service->saveTemplate($defaultTemplate);
+
+		$this->assertSame(
+			'',
+			$this->appConfig->getValueString(Application::APP_ID, 'footer_template', '')
+		);
+	}
+
 	public function testGetTemplate(): void {
 		$template = '<div>Custom template</div>';
 		$this->appConfig->setValueString(Application::APP_ID, 'footer_template', $template);
