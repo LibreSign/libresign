@@ -153,7 +153,7 @@ class FooterHandler {
 			}
 		}
 
-		if ($this->appConfig->getValueBool(Application::APP_ID, 'write_qrcode_on_footer', true)) {
+		if ($this->appConfig->getValueBool(Application::APP_ID, 'write_qrcode_on_footer', true) && isset($this->templateVars['validationSite'])) {
 			$this->templateVars['qrcode'] = $this->getQrCodeImageBase64($this->templateVars['validationSite']);
 		}
 
