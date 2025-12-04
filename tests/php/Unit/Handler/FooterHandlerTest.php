@@ -48,10 +48,10 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testGetFooterWithoutValidationSite(): void {
 		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', false);
-		$file = $this->createMock(\OCP\Files\File::class);
+		$dimensions = [['w' => 595, 'h' => 842]];
 		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 		$this->l10n = $this->l10nFactory->get(Application::APP_ID);
-		$actual = $this->getClass()->getFooter($file, $libresignFile);
+		$actual = $this->getClass()->getFooter($dimensions, $libresignFile);
 		$this->assertEmpty($actual);
 	}
 
@@ -68,18 +68,18 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			}
 		}
 
-		$file = $this->createMock(\OCP\Files\File::class);
+		$dimensions = [
+			[
+				'w' => 842,
+				'h' => 595,
+			],
+		];
 		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 		$libresignFile
 			->method('__call')
 			->willReturnCallback(fn ($key, $default): array|string => match ($key) {
 				'getMetadata' => [
-					'd' => [
-						[
-							'w' => 842,
-							'h' => 595,
-						],
-					],
+					'd' => $dimensions,
 				],
 				'getUuid' => 'uuid',
 				default => '',
@@ -88,7 +88,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->l10n = $this->l10nFactory->get(Application::APP_ID, $language);
 
 		$pdf = $this->getClass()
-			->getFooter($file, $libresignFile);
+			->getFooter($dimensions, $libresignFile);
 		if ($settings['add_footer']) {
 			$actual = $this->extractPdfContent(
 				$pdf,
