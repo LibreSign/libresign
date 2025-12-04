@@ -25,7 +25,7 @@ class FooterService {
 	}
 
 	public function getTemplate(): string {
-		return $this->appConfig->getValueString(Application::APP_ID, 'footer_template', '');
+		return $this->footerHandler->getTemplate();
 	}
 
 	public function saveTemplate(string $template): void {
