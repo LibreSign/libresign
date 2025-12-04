@@ -12,14 +12,10 @@
 				{{ t('libresign', 'Reset to default') }}
 			</NcButton>
 		</div>
-		<NcTextArea ref="textareaEditor"
+		<CodeEditor
 			v-model="footerTemplate"
-			label=""
-			placeholder="A twig template to be used at footer of PDF. Will be rendered by mPDF."
-			resize="vertical"
-			@input="debouncedSaveFooterTemplate"
-			@mousemove="resizeHeight"
-			@keypress="resizeHeight" />
+			:placeholder="t('libresign', 'A twig template to be used at footer of PDF. Will be rendered by mPDF.')"
+			@input="debouncedSaveFooterTemplate" />
 		<div v-if="pdfPreviewFile" class="footer-preview">
 			<h4>{{ t('libresign', 'Preview') }}</h4>
 			<div class="footer-preview__controls">
@@ -105,10 +101,11 @@ import { generateOcsUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
-import NcTextArea from '@nextcloud/vue/components/NcTextArea'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 // eslint-disable-next-line import/default
 import VuePdfEditor from '@libresign/vue-pdf-editor'
+
+import CodeEditor from './CodeEditor.vue'
 
 import MagnifyMinusOutline from 'vue-material-design-icons/MagnifyMinusOutline.vue'
 import MagnifyPlusOutline from 'vue-material-design-icons/MagnifyPlusOutline.vue'
@@ -117,9 +114,9 @@ import Undo from 'vue-material-design-icons/UndoVariant.vue'
 export default {
 	name: 'FooterTemplateEditor',
 	components: {
+		CodeEditor,
 		NcButton,
 		NcLoadingIcon,
-		NcTextArea,
 		NcTextField,
 		VuePdfEditor,
 		MagnifyMinusOutline,
@@ -179,7 +176,6 @@ export default {
 		this.debouncedSaveDimensions = debounce(this.saveDimensions, 500)
 	},
 	mounted() {
-		this.resizeHeight()
 		this.saveFooterTemplate()
 	},
 	methods: {
@@ -253,19 +249,6 @@ export default {
 			this.zoomLevel = Math.round(newScale * 100)
 			OCP.AppConfig.setValue('libresign', 'footer_preview_zoom_level', this.zoomLevel)
 		},
-
-		resizeHeight: debounce(function() {
-			const wrapper = this.$refs.textareaEditor
-			if (!wrapper || !wrapper.$el) {
-				return
-			}
-			const mainWrapper = wrapper.$el.querySelector('.textarea__main-wrapper')
-			const textarea = wrapper.$el.querySelector('textarea')
-			if (mainWrapper && textarea) {
-				mainWrapper.style.height = 'auto'
-				mainWrapper.style.height = `${textarea.scrollHeight + 4}px`
-			}
-		}, 100),
 	},
 }
 </script>
@@ -284,12 +267,6 @@ export default {
 		label {
 			font-weight: bold;
 			font-size: 14px;
-		}
-	}
-
-	:deep(.textarea) {
-		textarea {
-			height: 100%;
 		}
 	}
 }
