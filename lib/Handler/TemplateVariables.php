@@ -10,24 +10,24 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler;
 
 /**
- * @method self setUuid(string $value)
- * @method self setSigners(array $value)
- * @method self setSignedBy(string $value)
  * @method self setDirection(string $value)
  * @method self setLinkToSite(string $value)
- * @method self setValidationSite(string $value)
- * @method self setValidateIn(string $value)
  * @method self setQrcode(string $value)
  * @method self setQrcodeSize(int $value)
- * @method string|null getUuid()
- * @method array|null getSigners()
- * @method string|null getSignedBy()
+ * @method self setSignedBy(string $value)
+ * @method self setSigners(array $value)
+ * @method self setUuid(string $value)
+ * @method self setValidateIn(string $value)
+ * @method self setValidationSite(string $value)
  * @method string|null getDirection()
  * @method string|null getLinkToSite()
- * @method string|null getValidationSite()
- * @method string|null getValidateIn()
  * @method string|null getQrcode()
  * @method int|null getQrcodeSize()
+ * @method string|null getSignedBy()
+ * @method array|null getSigners()
+ * @method string|null getUuid()
+ * @method string|null getValidateIn()
+ * @method string|null getValidationSite()
  */
 class TemplateVariables {
 	private array $variables = [];
@@ -36,15 +36,15 @@ class TemplateVariables {
 	 * Allowed template variable names with their expected types
 	 */
 	private const ALLOWED_VARIABLES = [
-		'uuid' => 'string',
-		'signers' => 'array',
-		'signedBy' => 'string',
 		'direction' => 'string',
 		'linkToSite' => 'string',
-		'validationSite' => 'string',
-		'validateIn' => 'string',
 		'qrcode' => 'string',
 		'qrcodeSize' => 'integer',
+		'signedBy' => 'string',
+		'signers' => 'array',
+		'uuid' => 'string',
+		'validateIn' => 'string',
+		'validationSite' => 'string',
 	];
 
 	/**
