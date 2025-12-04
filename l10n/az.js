@@ -42,6 +42,7 @@ OC.L10N.register(
     "Actions" : "İşlər",
     "User" : "User",
     "Type:" : "Tip:",
+    "Pending" : "Gözləmə",
     "Ok" : "Oldu",
     "Today" : "Bu gün",
     "Modified" : "Dəyişdirildi",

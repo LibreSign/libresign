@@ -50,6 +50,7 @@ OC.L10N.register(
     "User" : "Gebruiker",
     "Type:" : "Tipe:",
     "Page not found" : "Blad nie gevind nie",
+    "Pending" : "Hangend",
     "Modified" : "Gewysig",
     "Created at" : "Geskep om",
     "Version" : "Weergawe",

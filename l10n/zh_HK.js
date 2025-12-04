@@ -562,8 +562,6 @@ OC.L10N.register(
     "Send code." : "傳送代碼。",
     "Review the entered number." : "查看輸入的號碼。",
     "Phone stored." : "已儲存電話號碼",
-    "Sign with your cellphone number." : "用手機號碼簽名。",
-    "Save your number." : "保存您的號碼。",
     "Sign the document." : "在文件上簽署。",
     "You need to upload your certificate to sign the document." : "你需要上載你的憑證才能簽署文件。",
     "Please define your sign password" : "請定義您的簽名密碼",
@@ -664,7 +662,6 @@ OC.L10N.register(
     "Open in LibreSign" : "在 LibreSign 中打開",
     "not a LibreSign file" : "非 LibreSign 檔案",
     "New signature request" : "新簽名請求",
-    "Requested by {name}, at {date}" : "由 {name} 於 {date} 提出請求",
-    "Your profile documents" : "您的簡介文件"
+    "Requested by {name}, at {date}" : "由 {name} 於 {date} 提出請求"
 },
 "nplurals=1; plural=0;");

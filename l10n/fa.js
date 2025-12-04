@@ -296,8 +296,6 @@ OC.L10N.register(
     "Send code." : "Send code.",
     "Review the entered number." : "Review the entered number.",
     "Phone stored." : "Phone stored.",
-    "Sign with your cellphone number." : "Sign with your cellphone number.",
-    "Save your number." : "Save your number.",
     "Sign the document." : "Sign the document.",
     "Please define your sign password" : "Please define your sign password",
     "Define a password and sign the document." : "Define a password and sign the document.",
@@ -320,7 +318,6 @@ OC.L10N.register(
     "Issued by:" : "صدور بوسیله:",
     "Return" : "Return",
     "Open in LibreSign" : "Open in LibreSign",
-    "Requested by {name}, at {date}" : "Requested by {name}, at {date}",
-    "Your profile documents" : "مستندات نمایهٔ شما"
+    "Requested by {name}, at {date}" : "Requested by {name}, at {date}"
 },
 "nplurals=2; plural=(n > 1);");

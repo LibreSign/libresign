@@ -511,8 +511,6 @@ OC.L10N.register(
     "Send code." : "Пошаљи кôд.",
     "Review the entered number." : "Прегледај унети број.",
     "Phone stored." : "Телефон је сачуван.",
-    "Sign with your cellphone number." : "Потпишите бројем свој мобилног телефона.",
-    "Save your number." : "Сачувајте свој број.",
     "Sign the document." : "Потпиши документ.",
     "Please define your sign password" : "Молимо вас да дефинишете своју лозинку за потписивање",
     "Define a password and sign the document." : "Дефинишите лозинку и потпишите документ.",
@@ -560,7 +558,6 @@ OC.L10N.register(
     "Open in LibreSign" : "Отвори у LibreSign",
     "not a LibreSign file" : "није LibreSign фајл",
     "New signature request" : "Нови захтев за потпис",
-    "Requested by {name}, at {date}" : "Захтевао {name}, дана {date}",
-    "Your profile documents" : "Ваши документи профила"
+    "Requested by {name}, at {date}" : "Захтевао {name}, дана {date}"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");

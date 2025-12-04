@@ -511,8 +511,6 @@ OC.L10N.register(
     "Send code." : "ສົ່ງລະຫັດ.",
     "Review the entered number." : "ກວດສອບເບີທີ່ປ້ອນ.",
     "Phone stored." : "ເບີໂທຖືກບັນທຶກແລ້ວ.",
-    "Sign with your cellphone number." : "ເຊັນດ້ວຍເບີໂທລະສັບມືຖືຂອງທ່ານ.",
-    "Save your number." : "ບັນທຶກເບີຂອງທ່ານ.",
     "Sign the document." : "ເຊັນເອກະສານ.",
     "Please define your sign password" : "ກະລຸນາກຳນົດລະຫັດຜ່ານການເຊັນຂອງທ່ານ",
     "Define a password and sign the document." : "ກຳນົດລະຫັດຜ່ານ ແລະ ເຊັນເອກະສານ.",
@@ -560,7 +558,6 @@ OC.L10N.register(
     "Open in LibreSign" : "ເປີດໃນ LibreSign",
     "not a LibreSign file" : "ບໍ່ແມ່ນໄຟລ໌ LibreSign",
     "New signature request" : "ຄຳຮ້ອງຂໍລາຍເຊັນໃໝ່",
-    "Requested by {name}, at {date}" : "ຮ້ອງຂໍໂດຍ {name}, ເມື່ອ {date}",
-    "Your profile documents" : "ເອກະສານໂປຣໄຟລ໌ຂອງທ່ານ"
+    "Requested by {name}, at {date}" : "ຮ້ອງຂໍໂດຍ {name}, ເມື່ອ {date}"
 },
 "nplurals=1; plural=0;");

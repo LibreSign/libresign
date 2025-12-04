@@ -452,8 +452,6 @@ OC.L10N.register(
     "Send code." : "Skicka kod.",
     "Review the entered number." : "Granska det angivna numret.",
     "Phone stored." : "Telefon lagrad.",
-    "Sign with your cellphone number." : "Signera med ditt mobilnummer.",
-    "Save your number." : "Spara ditt nummer.",
     "Sign the document." : "Signera dokumentet.",
     "Please define your sign password" : "Ange ditt lösenord för signering",
     "Define a password and sign the document." : "Ange ett lösenord och signera dokumentet.",
@@ -490,7 +488,6 @@ OC.L10N.register(
     "Open in LibreSign" : "Öppna i LibreSign",
     "not a LibreSign file" : "inte en LibreSign-fil",
     "New signature request" : "Ny signaturförfrågan",
-    "Requested by {name}, at {date}" : "Begärd av {name}, den {date}",
-    "Your profile documents" : "Dina profildokument"
+    "Requested by {name}, at {date}" : "Begärd av {name}, den {date}"
 },
 "nplurals=2; plural=(n != 1);");

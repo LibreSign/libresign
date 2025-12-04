@@ -464,8 +464,6 @@ OC.L10N.register(
     "Send code." : "Enviar código.",
     "Review the entered number." : "Revisar el número introducido.",
     "Phone stored." : "Teléfono guardado.",
-    "Sign with your cellphone number." : "Firma con tu número de teléfono móvil.",
-    "Save your number." : "Guarde su número telefónico.",
     "Sign the document." : "Firma el documento.",
     "Please define your sign password" : "Por favor, defina su contraseña de firma",
     "Define a password and sign the document." : "Defina una contraseña y firme el documento.",
@@ -502,7 +500,6 @@ OC.L10N.register(
     "Open in LibreSign" : "Abrir en LibreSign",
     "not a LibreSign file" : " no es un archivo LibreSign",
     "New signature request" : "Nueva solicitud de firma",
-    "Requested by {name}, at {date}" : "Solicitada por {name}, el {date}",
-    "Your profile documents" : "Documentos en su perfil"
+    "Requested by {name}, at {date}" : "Solicitada por {name}, el {date}"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
