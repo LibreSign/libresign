@@ -17,6 +17,7 @@ use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\Certificate\ValidateService;
 use OCA\Libresign\Service\CertificatePolicyService;
+use OCA\Libresign\Service\FooterService;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\ReminderService;
@@ -27,6 +28,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
+use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\Files\SimpleFS\InMemoryFile;
@@ -61,6 +63,7 @@ class AdminController extends AEnvironmentAwareController {
 		private CertificatePolicyService $certificatePolicyService,
 		private ValidateService $validateService,
 		private ReminderService $reminderService,
+		private FooterService $footerService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->eventSource = $this->eventSourceFactory->create();
@@ -781,5 +784,75 @@ class AdminController extends AEnvironmentAwareController {
 		}
 
 		return new DataResponse(['status' => 'success']);
+	}
+
+	/**
+	 * Get footer template
+	 *
+	 * Returns the current footer template if set, otherwise returns the default template.
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{template: string, isDefault: bool}, array{}>
+	 *
+	 * 200: OK
+	 */
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/footer-template', requirements: ['apiVersion' => '(v1)'])]
+	public function getFooterTemplate(): DataResponse {
+		return new DataResponse([
+			'template' => $this->footerService->getTemplate(),
+			'isDefault' => $this->footerService->isDefaultTemplate(),
+		]);
+	}
+
+	/**
+	 * Save footer template and render preview
+	 *
+	 * Saves the footer template and returns the rendered PDF preview.
+	 *
+	 * @param string $template The Twig template to save
+	 * @param int $width Width of preview in points (default: 595 - A4 width)
+	 * @param int $height Height of preview in points (default: 50)
+	 * @return DataDownloadResponse<Http::STATUS_OK, 'application/pdf', array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 *
+	 * 200: OK
+	 * 400: Bad request
+	 */
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/footer-template', requirements: ['apiVersion' => '(v1)'])]
+	public function saveFooterTemplate(string $template, int $width = 595, int $height = 50) {
+		try {
+			$this->footerService->saveTemplate($template);
+			$pdf = $this->footerService->renderPreviewPdf(null, $width, $height);
+
+			return new DataDownloadResponse($pdf, 'footer-preview.pdf', 'application/pdf');
+		} catch (\Exception $e) {
+			return new DataResponse([
+				'error' => $e->getMessage(),
+			], Http::STATUS_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Preview footer template as PDF
+	 *
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 *
+	 * @param string $template Template to preview
+	 * @param int $width Width of preview in points (default: 595 - A4 width)
+	 * @param int $height Height of preview in points (default: 50)
+	 * @return DataDownloadResponse<Http::STATUS_OK, 'application/pdf', array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 *
+	 * 200: OK
+	 * 400: Bad request
+	 */
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/footer-template/preview-pdf', requirements: ['apiVersion' => '(v1)'])]
+	public function footerTemplatePreviewPdf(string $template = '', int $width = 595, int $height = 50) {
+		try {
+			$pdf = $this->footerService->renderPreviewPdf($template ?: null, $width, $height);
+			return new DataDownloadResponse($pdf, 'footer-preview.pdf', 'application/pdf');
+		} catch (\Exception $e) {
+			return new DataResponse([
+				'error' => $e->getMessage(),
+			], Http::STATUS_BAD_REQUEST);
+		}
 	}
 }
