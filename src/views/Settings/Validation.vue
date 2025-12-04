@@ -25,7 +25,7 @@
 				{{ t('libresign', 'Write QR code on footer with validation URL') }}
 			</NcCheckboxRadioSwitch>
 		</p>
-		<p v-if="addFooter">
+		<p v-if="addFooter && writeQrcodeOnFooter">
 			{{ t('libresign', 'To validate the signature of the documents. Only change this value if you want to replace the default validation URL with a different one.') }}
 			<input id="validation_site"
 				ref="urlInput"
@@ -35,12 +35,18 @@
 				@click="fillValidationUrl()"
 				@keypress.enter="validationUrlEnter()">
 		</p>
-		<p v-if="addFooter && isExtraSettingsEnabled">
-			<NcTextArea v-model="footerTemplate"
-				label="Footer template"
-				placeholder="A twig template to be used at footer of PDF. Will be rendered by mPDF."
-				@update:value="saveFooterTemplate" />
+		<p v-if="addFooter">
+			<NcCheckboxRadioSwitch type="switch"
+				:checked.sync="customizeFooter"
+				@update:checked="toggleCustomizeFooter">
+				{{ t('libresign', 'Customize footer template') }}
+			</NcCheckboxRadioSwitch>
 		</p>
+		<FooterTemplateEditor v-if="addFooter && customizeFooter"
+			:initial-template="footerTemplate"
+			:initial-is-default="isDefaultFooterTemplate"
+			@template-saved="onTemplateSaved"
+			@template-reset="onTemplateReset" />
 	</NcSettingsSection>
 </template>
 <script>
@@ -50,14 +56,15 @@ import { generateOcsUrl } from '@nextcloud/router'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
-import NcTextArea from '@nextcloud/vue/components/NcTextArea'
+
+import FooterTemplateEditor from '../../components/FooterTemplateEditor.vue'
 
 export default {
 	name: 'Validation',
 	components: {
 		NcSettingsSection,
 		NcCheckboxRadioSwitch,
-		NcTextArea,
+		FooterTemplateEditor,
 	},
 	data() {
 		return {
@@ -67,8 +74,9 @@ export default {
 			url: null,
 			addFooter: true,
 			writeQrcodeOnFooter: true,
-			isExtraSettingsEnabled: false,
+			customizeFooter: false,
 			footerTemplate: '',
+			isDefaultFooterTemplate: true,
 		}
 	},
 	created() {
@@ -83,14 +91,7 @@ export default {
 			this.getAddFooterData()
 			this.getWriteQrcodeOnFooter()
 			this.getValidationUrlData()
-			this.getExtraSettingsEnabled()
-		},
-		async getExtraSettingsEnabled() {
-			const isExtraSettingsEnabled = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/extra_settings'))
-			this.isExtraSettingsEnabled = !!isExtraSettingsEnabled.data.ocs.data.data
-			if (this.isExtraSettingsEnabled) {
-				this.getFooterTemplate()
-			}
+			this.getFooterTemplate()
 		},
 		async getMakeValidationUrlPrivate() {
 			const response = await axios.get(
@@ -121,15 +122,30 @@ export default {
 		},
 		async getFooterTemplate() {
 			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/footer_template',
-				))
-			this.footerTemplate = response.data.ocs.data.data
+				generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'),
+			)
+			this.footerTemplate = response.data.ocs.data.template
+			this.isDefaultFooterTemplate = response.data.ocs.data.isDefault
+			this.customizeFooter = !response.data.ocs.data.isDefault
+		},
+		onTemplateSaved(template) {
+			this.footerTemplate = template
+			this.isDefaultFooterTemplate = false
+		},
+		async onTemplateReset() {
+			await this.getFooterTemplate()
 		},
 		saveValidationiUrl() {
 			OCP.AppConfig.setValue('libresign', 'validation_site', this.$refs.urlInput.value.trim())
 		},
 		async toggleSetting(setting, value) {
 			OCP.AppConfig.setValue('libresign', setting, value ? 1 : 0)
+		},
+		toggleCustomizeFooter(value) {
+			this.customizeFooter = value
+			if (!value) {
+				OCP.AppConfig.deleteKey('libresign', 'footer_template')
+			}
 		},
 		placeHolderValidationUrl(data) {
 			if (data !== '') {
@@ -145,16 +161,11 @@ export default {
 				}
 			}
 		},
-		saveFooterTemplate() {
-			OCP.AppConfig.setValue('libresign', 'footer_template', this.footerTemplate)
-		},
 	},
 }
 </script>
-<style scoped>
-
-input{
+<style lang="scss" scoped>
+input {
 	width: 100%;
 }
-
 </style>
