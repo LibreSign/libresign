@@ -31,7 +31,6 @@ use OCP\L10N\IFactory;
 
 class FooterHandler {
 	private QrCode $qrCode;
-	private File $file;
 	private FileEntity $fileEntity;
 	private const MIN_QRCODE_SIZE = 100;
 	private const POINT_TO_MILIMETER = 0.3527777778;
@@ -47,8 +46,7 @@ class FooterHandler {
 	) {
 	}
 
-	public function getFooter(File $file, FileEntity $fileEntity): string {
-		$this->file = $file;
+	public function getFooter(array $dimensions, FileEntity $fileEntity): string {
 		$this->fileEntity = $fileEntity;
 		$add_footer = (bool)$this->appConfig->getValueBool(Application::APP_ID, 'add_footer', true);
 		if (!$add_footer) {
@@ -56,8 +54,7 @@ class FooterHandler {
 		}
 
 		$htmlFooter = $this->getRenderedHtmlFooter();
-		$metadata = $this->getMetadata();
-		foreach ($metadata['d'] as $dimension) {
+		foreach ($dimensions as $dimension) {
 			if (!isset($pdf)) {
 				$pdf = new Mpdf([
 					'tempDir' => $this->tempManager->getTempBaseDir(),
@@ -89,11 +86,11 @@ class FooterHandler {
 		return $pdf->Output('', 'S');
 	}
 
-	private function getMetadata(): array {
-		$metadata = $this->fileEntity->getMetadata();
+	public function getMetadata(File $file, FileEntity $fileEntity): array {
+		$metadata = $fileEntity->getMetadata();
 		if (!is_array($metadata) || !isset($metadata['d'])) {
 			$metadata = $this->pdfParserService
-				->setFile($this->file)
+				->setFile($file)
 				->getPageDimensions();
 		}
 		return $metadata;
