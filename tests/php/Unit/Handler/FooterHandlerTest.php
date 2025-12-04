@@ -49,9 +49,10 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGetFooterWithoutValidationSite(): void {
 		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', false);
 		$dimensions = [['w' => 595, 'h' => 842]];
-		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 		$this->l10n = $this->l10nFactory->get(Application::APP_ID);
-		$actual = $this->getClass()->getFooter($dimensions, $libresignFile);
+		$actual = $this->getClass()
+			->setTemplateVar('uuid', 'test-uuid')
+			->getFooter($dimensions);
 		$this->assertEmpty($actual);
 	}
 
@@ -74,21 +75,12 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'h' => 595,
 			],
 		];
-		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
-		$libresignFile
-			->method('__call')
-			->willReturnCallback(fn ($key, $default): array|string => match ($key) {
-				'getMetadata' => [
-					'd' => $dimensions,
-				],
-				'getUuid' => 'uuid',
-				default => '',
-			});
 
 		$this->l10n = $this->l10nFactory->get(Application::APP_ID, $language);
 
 		$pdf = $this->getClass()
-			->getFooter($dimensions, $libresignFile);
+			->setTemplateVar('uuid', 'uuid')
+			->getFooter($dimensions);
 		if ($settings['add_footer']) {
 			$actual = $this->extractPdfContent(
 				$pdf,
@@ -244,5 +236,42 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$content = array_filter($content, fn ($row) => in_array($row[$columnKey], $keys));
 		$this->assertNotEmpty($content, 'Fields not found at PDF file');
 		return array_column($content, $columnValue, $columnKey);
+	}
+
+	public function testGetFooterWithoutUuid(): void {
+		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', true);
+		$this->appConfig->setValueBool(Application::APP_ID, 'write_qrcode_on_footer', true);
+		$this->appConfig->setValueString(Application::APP_ID, 'footer_template', '<div>{{ signedBy|raw }}</div>');
+
+		$dimensions = [['w' => 595, 'h' => 100]];
+		$this->l10n = $this->l10nFactory->get(Application::APP_ID, 'en');
+
+		$pdf = $this->getClass()->getFooter($dimensions);
+		$this->assertNotEmpty($pdf);
+
+		$parser = new \Smalot\PdfParser\Parser();
+		$pdfParsed = $parser->parseContent($pdf);
+		$text = $pdfParsed->getText();
+		$this->assertNotEmpty($text);
+	}
+
+	public function testCustomValidationSiteNotOverwritten(): void {
+		$this->appConfig->setValueBool(Application::APP_ID, 'add_footer', true);
+		$this->appConfig->setValueString(Application::APP_ID, 'validation_site', 'https://default.site');
+		$this->appConfig->setValueString(Application::APP_ID, 'footer_template', '<div>{{ validationSite }}</div>');
+
+		$dimensions = [['w' => 595, 'h' => 100]];
+		$this->l10n = $this->l10nFactory->get(Application::APP_ID, 'en');
+
+		$pdf = $this->getClass()
+			->setTemplateVar('validationSite', 'https://custom.validation.site')
+			->getFooter($dimensions);
+
+		$this->assertNotEmpty($pdf);
+		$parser = new \Smalot\PdfParser\Parser();
+		$pdfParsed = $parser->parseContent($pdf);
+		$text = $pdfParsed->getText();
+		$this->assertStringContainsString('https://custom.validation.site', $text);
+		$this->assertStringNotContainsString('https://default.site', $text);
 	}
 }
