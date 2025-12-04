@@ -808,7 +808,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * Saves the footer template and returns the rendered PDF preview.
 	 *
-	 * @param string $template The Twig template to save
+	 * @param string $template The Twig template to save (empty to reset to default)
 	 * @param int $width Width of preview in points (default: 595 - A4 width)
 	 * @param int $height Height of preview in points (default: 50)
 	 * @return DataDownloadResponse<Http::STATUS_OK, 'application/pdf', array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
@@ -817,10 +817,10 @@ class AdminController extends AEnvironmentAwareController {
 	 * 400: Bad request
 	 */
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/footer-template', requirements: ['apiVersion' => '(v1)'])]
-	public function saveFooterTemplate(string $template, int $width = 595, int $height = 50) {
+	public function saveFooterTemplate(string $template = '', int $width = 595, int $height = 50) {
 		try {
 			$this->footerService->saveTemplate($template);
-			$pdf = $this->footerService->renderPreviewPdf(null, $width, $height);
+			$pdf = $this->footerService->renderPreviewPdf('', $width, $height);
 
 			return new DataDownloadResponse($pdf, 'footer-preview.pdf', 'application/pdf');
 		} catch (\Exception $e) {

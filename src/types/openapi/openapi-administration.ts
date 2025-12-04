@@ -1446,11 +1446,14 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
+        requestBody?: {
             content: {
                 "application/json": {
-                    /** @description The Twig template to save */
-                    template: string;
+                    /**
+                     * @description The Twig template to save (empty to reset to default)
+                     * @default
+                     */
+                    template?: string;
                     /**
                      * Format: int64
                      * @description Width of preview in points (default: 595 - A4 width)
