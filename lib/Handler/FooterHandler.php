@@ -178,6 +178,10 @@ class FooterHandler {
 		if ($footerTemplate) {
 			return $footerTemplate;
 		}
+		return $this->getDefaultTemplate();
+	}
+
+	public function getDefaultTemplate(): string {
 		return (string)file_get_contents(__DIR__ . '/Templates/footer.twig');
 	}
 
