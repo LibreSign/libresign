@@ -66,4 +66,8 @@ class FooterService {
 			])
 			->getFooter([['w' => $width, 'h' => $height]]);
 	}
+
+	public function getTemplateVariablesMetadata(): array {
+		return $this->footerHandler->getTemplateVariablesMetadata();
+	}
 }
