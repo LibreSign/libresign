@@ -25,7 +25,7 @@ final class TemplateVariablesTest extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 		$this->l10n = $this->createMock(IL10N::class);
-		$this->l10n->method('t')->willReturnCallback(fn($text) => $text);
+		$this->l10n->method('t')->willReturnCallback(fn ($text) => $text);
 
 		$this->variables = new TemplateVariables($this->l10n);
 	}
