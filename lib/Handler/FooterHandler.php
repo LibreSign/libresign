@@ -201,6 +201,10 @@ class FooterHandler {
 		return $qrcode;
 	}
 
+	public function getTemplateVariablesMetadata(): array {
+		return $this->templateVars->getVariablesMetadata();
+	}
+
 	private function setQrCodeSize(): void {
 		$blockValues = $this->getQrCodeBlocks();
 		$this->qrCode->setSize(self::MIN_QRCODE_SIZE);
