@@ -45,6 +45,8 @@ OC.L10N.register(
     "signed" : "已簽署",
     "deleted" : "已刪除",
     "Identification Document" : "身份證明文件",
+    "waiting for approval" : "正在等待核准",
+    "approved" : "已核准",
     "User not found." : "未找到用戶。",
     "Digitally signed by LibreSign." : "透過 LibreSign 數位簽署。",
     "Validate in %s." : "在 %s 中驗證。",
