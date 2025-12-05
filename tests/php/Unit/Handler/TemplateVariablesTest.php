@@ -11,17 +11,23 @@ namespace OCA\Libresign\Tests\Unit\Handler;
 
 use OCA\Libresign\Handler\TemplateVariables;
 use OCA\Libresign\Tests\Unit\TestCase;
+use OCP\IL10N;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * @internal
  */
 final class TemplateVariablesTest extends TestCase {
 	private TemplateVariables $variables;
+	private IL10N&MockObject $l10n;
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->variables = new TemplateVariables();
+		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10n->method('t')->willReturnCallback(fn($text) => $text);
+
+		$this->variables = new TemplateVariables($this->l10n);
 	}
 
 	public static function provideValidValues(): array {
@@ -120,5 +126,60 @@ final class TemplateVariablesTest extends TestCase {
 		$this->expectExceptionMessage('Method invalidMethod does not exist');
 
 		$this->variables->invalidMethod();
+	}
+
+	public function testGetVariablesMetadataStructure(): void {
+		$metadata = $this->variables->getVariablesMetadata();
+
+		$this->assertIsArray($metadata);
+		$this->assertCount(9, $metadata);
+
+		$expectedVariables = [
+			'direction', 'linkToSite', 'qrcode', 'qrcodeSize',
+			'signedBy', 'signers', 'uuid', 'validateIn', 'validationSite'
+		];
+		foreach ($expectedVariables as $varName) {
+			$this->assertArrayHasKey($varName, $metadata);
+			$this->assertArrayHasKey('type', $metadata[$varName]);
+			$this->assertArrayHasKey('description', $metadata[$varName]);
+			$this->assertArrayHasKey('example', $metadata[$varName]);
+		}
+	}
+
+	public static function provideVariablesWithDefaults(): array {
+		return [
+			'linkToSite' => ['linkToSite', 'https://libresign.coop'],
+			'signedBy' => ['signedBy', 'Digitally signed by LibreSign.'],
+			'validateIn' => ['validateIn', 'Validate in %s.'],
+		];
+	}
+
+	#[DataProvider('provideVariablesWithDefaults')]
+	public function testMetadataDefaultValues(string $variable, string $expectedDefault): void {
+		$metadata = $this->variables->getVariablesMetadata();
+
+		$this->assertArrayHasKey('default', $metadata[$variable]);
+		$this->assertSame($expectedDefault, $metadata[$variable]['default']);
+	}
+
+	public static function provideVariableTypes(): array {
+		return [
+			'direction is string' => ['direction', 'string'],
+			'linkToSite is string' => ['linkToSite', 'string'],
+			'qrcode is string' => ['qrcode', 'string'],
+			'qrcodeSize is integer' => ['qrcodeSize', 'integer'],
+			'signedBy is string' => ['signedBy', 'string'],
+			'signers is array' => ['signers', 'array'],
+			'uuid is string' => ['uuid', 'string'],
+			'validateIn is string' => ['validateIn', 'string'],
+			'validationSite is string' => ['validationSite', 'string'],
+		];
+	}
+
+	#[DataProvider('provideVariableTypes')]
+	public function testMetadataTypes(string $variable, string $expectedType): void {
+		$metadata = $this->variables->getVariablesMetadata();
+
+		$this->assertSame($expectedType, $metadata[$variable]['type']);
 	}
 }
