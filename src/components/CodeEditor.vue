@@ -99,7 +99,7 @@ export default {
 	}
 
 	.CodeMirror-cursor {
-		border-left-color: var(--color-main-text);
+		border-inline-start-color: var(--color-main-text);
 	}
 
 	.CodeMirror-selected {
@@ -108,7 +108,7 @@ export default {
 
 	.CodeMirror-gutters {
 		background-color: var(--color-background-dark);
-		border-right: 1px solid var(--color-border);
+		border-inline-end: 1px solid var(--color-border);
 	}
 
 	.CodeMirror-linenumber {
