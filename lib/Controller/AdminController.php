@@ -804,21 +804,6 @@ class AdminController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * Get footer template variables metadata
-	 *
-	 * Returns metadata for all available Twig variables that can be used in footer templates.
-	 *
-	 * @return DataResponse<Http::STATUS_OK, array<string, array{type: string, description: string, example: mixed, default?: mixed}>, array{}>
-	 *
-	 * 200: OK
-	 */
-	#[NoCSRFRequired]
-	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/footer-template/variables', requirements: ['apiVersion' => '(v1)'])]
-	public function getFooterTemplateVariables(): DataResponse {
-		return new DataResponse($this->footerService->getTemplateVariablesMetadata());
-	}
-
-	/**
 	 * Save footer template and render preview
 	 *
 	 * Saves the footer template and returns the rendered PDF preview.
