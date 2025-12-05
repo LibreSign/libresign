@@ -13,11 +13,6 @@
 				</template>
 				{{ t('libresign', 'Available variables') }}
 			</NcButton>
-			<NcButton v-if="!isDefaultFooterTemplate"
-				type="tertiary"
-				@click="resetFooterTemplate">
-				{{ t('libresign', 'Reset to default') }}
-			</NcButton>
 		</div>
 		<CodeEditor
 			v-model="footerTemplate"
@@ -58,7 +53,7 @@
 						:min="100"
 						:max="2000"
 						:spellcheck="false"
-						@input="debouncedSaveFooterTemplate" />
+						@input="debouncedSaveDimensions" />
 					<NcTextField
 						v-model="previewHeight"
 						:label="t('libresign', 'Height')"
@@ -66,7 +61,7 @@
 						:min="10"
 						:max="500"
 						:spellcheck="false"
-						@input="debouncedSaveFooterTemplate" />
+						@input="debouncedSaveDimensions" />
 					<NcButton v-if="showResetDimensions"
 						:aria-label="t('libresign', 'Reset dimensions')"
 						type="tertiary"
@@ -176,26 +171,19 @@ export default {
 		MagnifyPlusOutline,
 		Undo,
 	},
-	props: {
-		initialTemplate: {
-			type: String,
-			default: '',
-		},
-		initialIsDefault: {
-			type: Boolean,
-			default: true,
-		},
-	},
 	data() {
+		const DEFAULT_PREVIEW_WIDTH = 595
+		const DEFAULT_PREVIEW_HEIGHT = 100
 		return {
-			footerTemplate: this.initialTemplate,
-			isDefaultFooterTemplate: this.initialIsDefault,
+			DEFAULT_PREVIEW_WIDTH,
+			DEFAULT_PREVIEW_HEIGHT,
+			footerTemplate: '',
 			pdfPreviewFile: null,
 			loadingPreview: false,
 			pdfKey: 0,
 			zoomLevel: loadState('libresign', 'footer_preview_zoom_level', 100),
-			previewWidth: loadState('libresign', 'footer_preview_width', 595),
-			previewHeight: loadState('libresign', 'footer_preview_height', 80),
+			previewWidth: DEFAULT_PREVIEW_WIDTH,
+			previewHeight: DEFAULT_PREVIEW_HEIGHT,
 			containerHeight: null,
 			showVariablesDialog: false,
 			templateVariables: loadState('libresign', 'footer_template_variables', {}),
@@ -204,26 +192,7 @@ export default {
 	},
 	computed: {
 		showResetDimensions() {
-			return Number(this.previewWidth) !== 595 || Number(this.previewHeight) !== 80
-		},
-	},
-	watch: {
-		initialTemplate(newValue) {
-			this.footerTemplate = newValue
-			if (newValue) {
-				this.saveFooterTemplate()
-			}
-		},
-		initialIsDefault(newValue) {
-			this.isDefaultFooterTemplate = newValue
-		},
-		previewWidth() {
-			this.debouncedSaveDimensions()
-			this.debouncedSaveFooterTemplate()
-		},
-		previewHeight() {
-			this.debouncedSaveDimensions()
-			this.debouncedSaveFooterTemplate()
+			return Number(this.previewWidth) !== this.DEFAULT_PREVIEW_WIDTH || Number(this.previewHeight) !== this.DEFAULT_PREVIEW_HEIGHT
 		},
 	},
 	created() {
@@ -232,7 +201,12 @@ export default {
 		this.debouncedSaveDimensions = debounce(this.saveDimensions, 500)
 	},
 	mounted() {
-		this.saveFooterTemplate()
+		axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'))
+			.then(response => {
+				this.footerTemplate = response.data.ocs.data.template
+				this.previewHeight = response.data.ocs.data.preview_height
+				this.previewWidth = response.data.ocs.data.preview_width
+			})
 	},
 	methods: {
 		getVariableText(name) {
@@ -261,23 +235,25 @@ export default {
 			}, 2000)
 		},
 		async resetFooterTemplate() {
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'))
 			this.$emit('template-reset')
+			this.resetDimensions()
+			axios.post(generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'))
 		},
 		resetDimensions() {
-			this.previewWidth = 595
-			this.previewHeight = 80
-			this.saveDimensions()
-			this.saveFooterTemplate()
+			this.previewWidth = this.DEFAULT_PREVIEW_WIDTH
+			this.previewHeight = this.DEFAULT_PREVIEW_HEIGHT
+			OCP.AppConfig.deleteKey('libresign', 'footer_preview_width')
+			OCP.AppConfig.deleteKey('libresign', 'footer_preview_height')
 		},
 		saveDimensions() {
-			if (Number(this.previewWidth) === 595 && Number(this.previewHeight) === 80) {
+			if (Number(this.previewWidth) === this.DEFAULT_PREVIEW_WIDTH && Number(this.previewHeight) === this.DEFAULT_PREVIEW_HEIGHT) {
 				OCP.AppConfig.deleteKey('libresign', 'footer_preview_width')
 				OCP.AppConfig.deleteKey('libresign', 'footer_preview_height')
 			} else {
 				OCP.AppConfig.setValue('libresign', 'footer_preview_width', this.previewWidth)
 				OCP.AppConfig.setValue('libresign', 'footer_preview_height', this.previewHeight)
 			}
+			this.saveFooterTemplate()
 		},
 		saveFooterTemplate() {
 			axios.post(
@@ -289,9 +265,7 @@ export default {
 				},
 				{ responseType: 'blob' }
 			).then(response => {
-				this.isDefaultFooterTemplate = false
 				this.setPdfPreview(response.data)
-				this.$emit('template-saved', this.footerTemplate)
 			}).catch(error => {
 				console.error('Error saving footer template:', error)
 			})

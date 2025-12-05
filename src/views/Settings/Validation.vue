@@ -43,14 +43,14 @@
 			</NcCheckboxRadioSwitch>
 		</p>
 		<FooterTemplateEditor v-if="addFooter && customizeFooter"
-			:initial-template="footerTemplate"
 			:initial-is-default="isDefaultFooterTemplate"
-			@template-saved="onTemplateSaved"
+			ref="footerTemplateEditor"
 			@template-reset="onTemplateReset" />
 	</NcSettingsSection>
 </template>
 <script>
 import axios from '@nextcloud/axios'
+import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
@@ -74,8 +74,7 @@ export default {
 			url: null,
 			addFooter: true,
 			writeQrcodeOnFooter: true,
-			customizeFooter: false,
-			footerTemplate: '',
+			customizeFooter: !loadState('libresign', 'footer_template_is_default', true),
 			isDefaultFooterTemplate: true,
 		}
 	},
@@ -91,7 +90,6 @@ export default {
 			this.getAddFooterData()
 			this.getWriteQrcodeOnFooter()
 			this.getValidationUrlData()
-			this.getFooterTemplate()
 		},
 		async getMakeValidationUrlPrivate() {
 			const response = await axios.get(
@@ -120,20 +118,8 @@ export default {
 			)
 			this.placeHolderValidationUrl(response.data.ocs.data.data)
 		},
-		async getFooterTemplate() {
-			const response = await axios.get(
-				generateOcsUrl('/apps/libresign/api/v1/admin/footer-template'),
-			)
-			this.footerTemplate = response.data.ocs.data.template
-			this.isDefaultFooterTemplate = response.data.ocs.data.isDefault
-			this.customizeFooter = !response.data.ocs.data.isDefault
-		},
-		onTemplateSaved(template) {
-			this.footerTemplate = template
-			this.isDefaultFooterTemplate = false
-		},
 		async onTemplateReset() {
-			await this.getFooterTemplate()
+			this.customizeFooter = false
 		},
 		saveValidationiUrl() {
 			OCP.AppConfig.setValue('libresign', 'validation_site', this.$refs.urlInput.value.trim())
@@ -142,9 +128,9 @@ export default {
 			OCP.AppConfig.setValue('libresign', setting, value ? 1 : 0)
 		},
 		toggleCustomizeFooter(value) {
-			this.customizeFooter = value
-			if (!value) {
-				OCP.AppConfig.deleteKey('libresign', 'footer_template')
+			this.customizeFooter = !!value
+			if (!this.customizeFooter) {
+				this.$refs.footerTemplateEditor.resetFooterTemplate()
 			}
 		},
 		placeHolderValidationUrl(data) {
