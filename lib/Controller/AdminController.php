@@ -791,7 +791,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * Returns the current footer template if set, otherwise returns the default template.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{template: string, isDefault: bool}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{template: string, isDefault: bool, preview_width: int, preview_height: int}, array{}>
 	 *
 	 * 200: OK
 	 */
