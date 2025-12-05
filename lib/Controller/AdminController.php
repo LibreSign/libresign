@@ -800,6 +800,8 @@ class AdminController extends AEnvironmentAwareController {
 		return new DataResponse([
 			'template' => $this->footerService->getTemplate(),
 			'isDefault' => $this->footerService->isDefaultTemplate(),
+			'preview_width' => $this->appConfig->getValueInt(Application::APP_ID, 'footer_preview_width', 595),
+			'preview_height' => $this->appConfig->getValueInt(Application::APP_ID, 'footer_preview_height', 100),
 		]);
 	}
 
