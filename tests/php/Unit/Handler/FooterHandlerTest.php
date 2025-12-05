@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\FooterHandler;
+use OCA\Libresign\Handler\TemplateVariables;
 use OCA\Libresign\Service\PdfParserService;
 use OCP\IAppConfig;
 use OCP\IL10N;
@@ -30,11 +31,11 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pdfParserService = $this->createMock(PdfParserService::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
-
 		$this->l10nFactory = \OCP\Server::get(IFactory::class);
 	}
 
 	private function getClass(): FooterHandler {
+		$templateVars = new TemplateVariables($this->l10n);
 		$this->footerHandler = new FooterHandler(
 			$this->appConfig,
 			$this->pdfParserService,
@@ -42,6 +43,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->l10nFactory,
 			$this->tempManager,
+			$templateVars,
 		);
 		return $this->footerHandler;
 	}
@@ -305,5 +307,19 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNotEmpty($template);
 		$defaultTemplate = file_get_contents(__DIR__ . '/../../../../lib/Handler/Templates/footer.twig');
 		$this->assertSame($defaultTemplate, $template);
+	}
+
+	public function testGetTemplateVariablesMetadata(): void {
+		$this->l10n = $this->l10nFactory->get(Application::APP_ID, 'en');
+		$metadata = $this->getClass()->getTemplateVariablesMetadata();
+
+		$this->assertIsArray($metadata);
+		$this->assertCount(9, $metadata);
+		$this->assertArrayHasKey('direction', $metadata);
+		$this->assertArrayHasKey('uuid', $metadata);
+		$this->assertArrayHasKey('signedBy', $metadata);
+		$this->assertSame('string', $metadata['direction']['type']);
+		$this->assertSame('string', $metadata['uuid']['type']);
+		$this->assertArrayHasKey('default', $metadata['signedBy']);
 	}
 }
