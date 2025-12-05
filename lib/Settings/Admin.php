@@ -12,6 +12,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\CertificatePolicyService;
+use OCA\Libresign\Service\FooterService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
@@ -32,6 +33,7 @@ class Admin implements ISettings {
 		private IAppConfig $appConfig,
 		private SignatureTextService $signatureTextService,
 		private SignatureBackgroundService $signatureBackgroundService,
+		private FooterService $footerService,
 	) {
 	}
 	public function getForm(): TemplateResponse {
@@ -58,6 +60,12 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('signature_font_size', $this->signatureTextService->getSignatureFontSize());
 		$this->initialState->provideInitialState('signature_height', $this->signatureTextService->getFullSignatureHeight());
 		$this->initialState->provideInitialState('signature_preview_zoom_level', $this->appConfig->getValueFloat(Application::APP_ID, 'signature_preview_zoom_level', 100));
+		$this->initialState->provideInitialState('footer_preview_zoom_level', $this->appConfig->getValueFloat(Application::APP_ID, 'footer_preview_zoom_level', 100));
+		$this->initialState->provideInitialState('footer_preview_width', $this->appConfig->getValueInt(Application::APP_ID, 'footer_preview_width', 595));
+		$this->initialState->provideInitialState('footer_preview_height', $this->appConfig->getValueInt(Application::APP_ID, 'footer_preview_height', 100));
+		$this->initialState->provideInitialState('footer_template_variables', $this->footerService->getTemplateVariablesMetadata());
+		$this->initialState->provideInitialState('footer_template', $this->footerService->getTemplate());
+		$this->initialState->provideInitialState('footer_template_is_default', $this->footerService->isDefaultTemplate());
 		$this->initialState->provideInitialState('signature_render_mode', $this->signatureTextService->getRenderMode());
 		$this->initialState->provideInitialState('signature_text_template', $this->signatureTextService->getTemplate());
 		$this->initialState->provideInitialState('signature_width', $this->signatureTextService->getFullSignatureWidth());

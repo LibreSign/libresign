@@ -791,7 +791,7 @@ class AdminController extends AEnvironmentAwareController {
 	 *
 	 * Returns the current footer template if set, otherwise returns the default template.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{template: string, isDefault: bool}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{template: string, isDefault: bool, preview_width: int, preview_height: int}, array{}>
 	 *
 	 * 200: OK
 	 */
@@ -800,6 +800,8 @@ class AdminController extends AEnvironmentAwareController {
 		return new DataResponse([
 			'template' => $this->footerService->getTemplate(),
 			'isDefault' => $this->footerService->isDefaultTemplate(),
+			'preview_width' => $this->appConfig->getValueInt(Application::APP_ID, 'footer_preview_width', 595),
+			'preview_height' => $this->appConfig->getValueInt(Application::APP_ID, 'footer_preview_height', 100),
 		]);
 	}
 

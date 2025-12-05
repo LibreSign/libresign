@@ -36,8 +36,6 @@ class FooterHandler {
 	private const MIN_QRCODE_SIZE = 100;
 	private const POINT_TO_MILIMETER = 0.3527777778;
 
-	private TemplateVariables $templateVars;
-
 	public function __construct(
 		private IAppConfig $appConfig,
 		private PdfParserService $pdfParserService,
@@ -45,8 +43,8 @@ class FooterHandler {
 		private IL10N $l10n,
 		private IFactory $l10nFactory,
 		private ITempManager $tempManager,
+		private TemplateVariables $templateVars,
 	) {
-		$this->templateVars = new TemplateVariables();
 	}
 
 	public function getFooter(array $dimensions): string {
@@ -201,6 +199,10 @@ class FooterHandler {
 		$this->templateVars->setQrcodeSize($this->qrCode->getSize() + $this->qrCode->getMargin() * 2);
 
 		return $qrcode;
+	}
+
+	public function getTemplateVariablesMetadata(): array {
+		return $this->templateVars->getVariablesMetadata();
 	}
 
 	private function setQrCodeSize(): void {
