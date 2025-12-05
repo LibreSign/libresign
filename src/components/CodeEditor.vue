@@ -4,7 +4,11 @@
 -->
 <template>
 	<div class="code-editor">
+		<label v-if="label" :for="editorId" class="code-editor__label">
+			{{ label }}
+		</label>
 		<codemirror
+			:id="editorId"
 			:value="value"
 			:options="editorOptions"
 			@input="onInput" />
@@ -30,10 +34,19 @@ export default {
 			type: String,
 			default: '',
 		},
+		label: {
+			type: String,
+			default: '',
+		},
 		placeholder: {
 			type: String,
 			default: '',
 		},
+	},
+	data() {
+		return {
+			editorId: `code-editor-${Math.random().toString(36).substr(2, 9)}`,
+		}
 	},
 	computed: {
 		editorOptions() {
@@ -64,6 +77,16 @@ export default {
 	border: 2px solid var(--color-border-dark);
 	border-radius: var(--border-radius);
 	overflow: hidden;
+
+	&__label {
+		display: block;
+		padding: 8px 12px;
+		font-weight: bold;
+		font-size: 14px;
+		background-color: var(--color-background-dark);
+		border-bottom: 1px solid var(--color-border);
+		color: var(--color-main-text);
+	}
 
 	.CodeMirror {
 		height: auto;
