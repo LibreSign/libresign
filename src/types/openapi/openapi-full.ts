@@ -5823,6 +5823,10 @@ export interface operations {
                             data: {
                                 template: string;
                                 isDefault: boolean;
+                                /** Format: int64 */
+                                preview_width: number;
+                                /** Format: int64 */
+                                preview_height: number;
                             };
                         };
                     };

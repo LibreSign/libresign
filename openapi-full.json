@@ -11141,7 +11141,9 @@
                                                     "type": "object",
                                                     "required": [
                                                         "template",
-                                                        "isDefault"
+                                                        "isDefault",
+                                                        "preview_width",
+                                                        "preview_height"
                                                     ],
                                                     "properties": {
                                                         "template": {
@@ -11149,6 +11151,14 @@
                                                         },
                                                         "isDefault": {
                                                             "type": "boolean"
+                                                        },
+                                                        "preview_width": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        },
+                                                        "preview_height": {
+                                                            "type": "integer",
+                                                            "format": "int64"
                                                         }
                                                     }
                                                 }

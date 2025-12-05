@@ -101,7 +101,7 @@ class FooterServiceTest extends TestCase {
 			->method('setTemplateVar')
 			->willReturnCallback(function ($key, $value) {
 				if ($key === 'uuid') {
-					$this->assertMatchesRegularExpression('/^preview-[a-f0-9]{16}$/', $value);
+					$this->assertMatchesRegularExpression('/^preview-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/', $value);
 				} elseif ($key === 'signers') {
 					$this->assertIsArray($value);
 					$this->assertCount(1, $value);
@@ -140,5 +140,29 @@ class FooterServiceTest extends TestCase {
 			'minimum dimensions' => ['<div>Min</div>', 1, 1, true],
 			'large dimensions' => ['', 2000, 500, false],
 		];
+	}
+
+	public function testGetTemplateVariablesMetadata(): void {
+		$expectedMetadata = [
+			'direction' => [
+				'type' => 'string',
+				'description' => 'Text direction for the footer',
+				'example' => 'ltr',
+			],
+			'uuid' => [
+				'type' => 'string',
+				'description' => 'Document unique identifier',
+				'example' => 'de0a18d4-fe65-4abc-bdd1-84e819700260',
+			],
+		];
+
+		$this->footerHandler
+			->expects($this->once())
+			->method('getTemplateVariablesMetadata')
+			->willReturn($expectedMetadata);
+
+		$result = $this->service->getTemplateVariablesMetadata();
+
+		$this->assertSame($expectedMetadata, $result);
 	}
 }
