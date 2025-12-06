@@ -32,6 +32,7 @@ OC.L10N.register(
     "Open file" : "Digeriñ ur restr",
     "Administration" : "Merouriez",
     "Open sidebar" : "Digori ar varenn gostez",
+    "Preview" : "Ragwell",
     "Details" : "Munudoù",
     "Upload file" : "Pellgas ur restr",
     "Delete file" : "Dilemel ar restr",

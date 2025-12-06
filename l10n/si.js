@@ -25,6 +25,7 @@ OC.L10N.register(
     "Next" : "ඊළඟ",
     "Confirm" : "තහවුරු කරන්න",
     "Open file" : "ගොනුව විවෘත කරන්න",
+    "Preview" : "පෙරදසුන",
     "Details" : "විස්තර",
     "Certificate" : "සහතිකය",
     "Upload file" : "ගොනුව උඩුගත කරන්න",

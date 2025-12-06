@@ -32,6 +32,8 @@ OC.L10N.register(
     "Confirm" : "დადასტურება",
     "Open file" : "ფაილის გახსნა",
     "Administration" : "ადმინისტრაცია",
+    "Preview" : "წინასწარი ჩვენება",
+    "Copy to clipboard" : "კოპირება ბუფერში",
     "Details" : "დეტალები",
     "Certificate" : "სერტიფიკატი",
     "Signature" : "ხელმოწერა",

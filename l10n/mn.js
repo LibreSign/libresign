@@ -25,6 +25,7 @@ OC.L10N.register(
     "Next" : "дараагийх",
     "Confirm" : "Батлах",
     "Open file" : "Файл онгойлгох",
+    "Preview" : "шалгах",
     "Details" : "Дэлгэрэнгүй",
     "Certificate" : "Гэрчилгээ",
     "Upload file" : "Файл байршуулах",

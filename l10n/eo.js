@@ -44,6 +44,8 @@ OC.L10N.register(
     "Open file" : "Malfermi dosieron",
     "Administration" : "Administrado",
     "Open sidebar" : "Malfermi flankopanelon",
+    "Preview" : "Antaŭvidi",
+    "Copy to clipboard" : "Kopii tondejen",
     "Details" : "Detaloj",
     "Certificate" : "Atestilo",
     "Upload file" : "Alŝuti dosieron",

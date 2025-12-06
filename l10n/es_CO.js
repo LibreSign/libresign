@@ -39,6 +39,8 @@ OC.L10N.register(
     "Open file" : "Abrir archivo",
     "Administration" : "Administración",
     "Open sidebar" : "Abrir barra lateral",
+    "Preview" : "Previsualizar",
+    "Copy to clipboard" : "Copiar al portapapeles",
     "Details" : "Detalles",
     "Certificate" : "Certificado",
     "Signature" : "Firma",

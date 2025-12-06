@@ -34,6 +34,7 @@ OC.L10N.register(
     "Next" : "Keyingisi",
     "Searching …" : "Qidirilmoqda …",
     "Confirm" : "Confirm",
+    "Preview" : "Ko‘rib chiqish",
     "Details" : "Details",
     "Upload file" : "Upload file",
     "Delete file" : "Faylni o'chirish",
