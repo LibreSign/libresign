@@ -22,6 +22,7 @@ OC.L10N.register(
     "Next" : "Nesaf",
     "Confirm" : "Cadarnhau",
     "Open sidebar" : "Agor y bar ochr",
+    "Preview" : "Rhagolwg",
     "Details" : "Manylion",
     "Certificate" : "Tystysgrif",
     "Signature" : "Llofnod",

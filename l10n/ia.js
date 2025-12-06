@@ -21,6 +21,7 @@ OC.L10N.register(
     "Next" : "Sequente",
     "Confirm" : "Confirmar",
     "Open file" : "Aperir file",
+    "Preview" : "Previsualisar",
     "Details" : "Detalios",
     "Profile picture" : "Pictura de profilo",
     "Create account" : "Crear conto",

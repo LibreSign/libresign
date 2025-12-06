@@ -56,6 +56,8 @@ OC.L10N.register(
     "Confirm" : "Confirmar",
     "Open file" : "Abrir archivo",
     "Administration" : "Administración",
+    "Preview" : "Previsualizar",
+    "Copy to clipboard" : "Copiar al portapapeles",
     "Details" : "Detalles",
     "Certificate" : "Certificado",
     "Change password" : "Cambiar password",

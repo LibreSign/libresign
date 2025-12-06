@@ -47,6 +47,8 @@ OC.L10N.register(
     "Open file" : "Deschide fișier",
     "Administration" : "Administrare",
     "Open sidebar" : "Deschide bara laterală",
+    "Preview" : "Previzualizare",
+    "Copy to clipboard" : "Copiază în clipboard",
     "Details" : "Detalii",
     "Certificate" : "Certificat",
     "Upload file" : "Încarcă fișier",

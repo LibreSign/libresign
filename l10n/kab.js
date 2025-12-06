@@ -29,6 +29,7 @@ OC.L10N.register(
     "Open file" : "Ldi afaylu",
     "Administration" : "Tadbelt",
     "Open sidebar" : "Ldi-d afeggag adisan",
+    "Copy to clipboard" : "Nɣel-it ar tecfawit",
     "Details" : "Talqayt",
     "Delete file" : "Kkes afaylu",
     "Create account" : "Snulfu-d amiḍan",

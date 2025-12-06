@@ -40,6 +40,8 @@ OC.L10N.register(
     "Confirm" : "ยืนยัน",
     "Open file" : "เปิดไฟล์",
     "Open sidebar" : "เปิดแถบด้านข้าง",
+    "Preview" : "ตัวอย่าง",
+    "Copy to clipboard" : "คัดลอกไปยังคลิปบอร์ด",
     "Details" : "รายละเอียด",
     "Certificate" : "ใบรับรอง",
     "Upload file" : "อัปโหลดไฟล์",
