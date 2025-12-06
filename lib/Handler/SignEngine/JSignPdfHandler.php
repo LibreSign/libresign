@@ -11,9 +11,11 @@ namespace OCA\Libresign\Handler\SignEngine;
 use Imagick;
 use ImagickPixel;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\JavaHelper;
+use OCA\Libresign\Service\DocMdpConfigService;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
@@ -40,6 +42,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 		private SignatureBackgroundService $signatureBackgroundService,
 		protected CertificateEngineFactory $certificateEngineFactory,
 		protected JavaHelper $javaHelper,
+		private DocMdpConfigService $docMdpConfigService,
 	) {
 	}
 
@@ -85,6 +88,11 @@ class JSignPdfHandler extends Pkcs12Handler {
 					. $javaPath
 					. ' -Duser.home=' . escapeshellarg($this->getHome()) . ' '
 				);
+			}
+
+			$certificationLevel = $this->getCertificationLevel();
+			if ($certificationLevel !== null) {
+				$this->jSignParam->setJSignParameters(' -cl ' . $certificationLevel);
 			}
 		}
 		return $this->jSignParam;
