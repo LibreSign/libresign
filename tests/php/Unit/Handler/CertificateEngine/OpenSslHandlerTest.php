@@ -77,6 +77,13 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$signerInstance->readCertificate('', '');
 	}
 
+	public function testEmptyCommonNameThrowsException(): void {
+		$rootInstance = $this->getInstance();
+		$this->expectException(EmptyCertificateException::class);
+		$this->expectExceptionMessage('Common Name (CN) cannot be empty for root certificate');
+		$rootInstance->generateRootCert('', []);
+	}
+
 	public function testInvalidPassword(): void {
 		// Create root cert
 		$rootInstance = $this->getInstance();
