@@ -15,6 +15,7 @@ use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Enum\CertificateType;
+use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslServerHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
@@ -77,6 +78,10 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		string $commonName,
 		array $names = [],
 	): void {
+		if (empty($commonName)) {
+			throw new EmptyCertificateException('Common Name (CN) cannot be empty for root certificate');
+		}
+
 		$this->cfsslServerHandler->createConfigServer(
 			$commonName,
 			$names,
