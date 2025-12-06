@@ -277,9 +277,13 @@ class FileService {
 			try {
 				return $this->fileContent = $this->getFile()->getContent();
 			} catch (LibresignException $e) {
-				throw new LibresignException($e->getMessage(), 404);
-			} catch (\Throwable) {
-				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
+				throw $e;
+			} catch (\Throwable $e) {
+				$this->logger->error('Failed to get file content: ' . $e->getMessage(), [
+					'fileId' => $this->file->getId(),
+					'exception' => $e,
+				]);
+				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404, $e);
 			}
 		}
 		return '';
@@ -477,19 +481,30 @@ class FileService {
 				$this->fileData->signers[$index]['signingTime'] = $signer['signingTime'];
 				$this->fileData->signers[$index]['signed'] = $signer['signingTime']->format(DateTimeInterface::ATOM);
 			}
-			foreach ($signer['chain'] as $chainIndex => $chainItem) {
-				$chainArr = $chainItem;
-				if (isset($chainItem['validFrom_time_t']) && is_numeric($chainItem['validFrom_time_t'])) {
-					$chainArr['valid_from'] = (new DateTime('@' . $chainItem['validFrom_time_t'], new \DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
-				}
-				if (isset($chainItem['validTo_time_t']) && is_numeric($chainItem['validTo_time_t'])) {
-					$chainArr['valid_to'] = (new DateTime('@' . $chainItem['validTo_time_t'], new \DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
-				}
-				$chainArr['displayName'] = $chainArr['name'] ?? ($chainArr['subject']['CN'] ?? '');
-				$this->fileData->signers[$index]['chain'][$chainIndex] = $chainArr;
-				if ($chainIndex === 0) {
-					$this->fileData->signers[$index] = array_merge($chainArr, $this->fileData->signers[$index] ?? []);
-					$this->fileData->signers[$index]['uid'] = $this->resolveUid($chainArr);
+			if (isset($signer['docmdp'])) {
+				$this->fileData->signers[$index]['docmdp'] = $signer['docmdp'];
+			}
+			if (isset($signer['modifications'])) {
+				$this->fileData->signers[$index]['modifications'] = $signer['modifications'];
+			}
+			if (isset($signer['modification_validation'])) {
+				$this->fileData->signers[$index]['modification_validation'] = $signer['modification_validation'];
+			}
+			if (isset($signer['chain'])) {
+				foreach ($signer['chain'] as $chainIndex => $chainItem) {
+					$chainArr = $chainItem;
+					if (isset($chainItem['validFrom_time_t']) && is_numeric($chainItem['validFrom_time_t'])) {
+						$chainArr['valid_from'] = (new DateTime('@' . $chainItem['validFrom_time_t'], new \DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
+					}
+					if (isset($chainItem['validTo_time_t']) && is_numeric($chainItem['validTo_time_t'])) {
+						$chainArr['valid_to'] = (new DateTime('@' . $chainItem['validTo_time_t'], new \DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
+					}
+					$chainArr['displayName'] = $chainArr['name'] ?? ($chainArr['subject']['CN'] ?? '');
+					$this->fileData->signers[$index]['chain'][$chainIndex] = $chainArr;
+					if ($chainIndex === 0) {
+						$this->fileData->signers[$index] = array_merge($chainArr, $this->fileData->signers[$index] ?? []);
+						$this->fileData->signers[$index]['uid'] = $this->resolveUid($chainArr);
+					}
 				}
 			}
 		}
