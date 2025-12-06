@@ -10,6 +10,7 @@ namespace OCA\Libresign\Handler\CertificateEngine;
 
 use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Enum\CertificateType;
+use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
@@ -60,6 +61,10 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		string $commonName,
 		array $names = [],
 	): void {
+		if (empty($commonName)) {
+			throw new EmptyCertificateException('Common Name (CN) cannot be empty for root certificate');
+		}
+
 		$privateKey = openssl_pkey_new([
 			'private_key_bits' => 2048,
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
