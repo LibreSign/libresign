@@ -11,7 +11,6 @@ namespace OCA\Libresign\Handler\SignEngine;
 use Imagick;
 use ImagickPixel;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\JavaHelper;
