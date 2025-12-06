@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\CaIdentifierService;
@@ -31,6 +32,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private LoggerInterface&MockObject $logger;
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private CaIdentifierService&MockObject $caIdentifierService;
+	private DocMdpHandler&MockObject $docMdpHandler;
 
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
@@ -41,6 +43,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->caIdentifierService = $this->createMock(CaIdentifierService::class);
+		$this->docMdpHandler = $this->createMock(DocMdpHandler::class);
 	}
 
 	private function getHandler(array $methods = []): Pkcs12Handler|MockObject {
@@ -54,6 +57,8 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->footerHandler,
 					$this->tempManager,
 					$this->logger,
+					$this->caIdentifierService,
+					$this->docMdpHandler,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -67,6 +72,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->tempManager,
 			$this->logger,
 			$this->caIdentifierService,
+			$this->docMdpHandler,
 		);
 	}
 
