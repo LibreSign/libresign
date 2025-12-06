@@ -390,7 +390,7 @@ class DocMdpHandler {
 			return false;
 		}
 
-		usort($certifyingSignatures, fn($a, $b) => $a['position'] <=> $b['position']);
+		usort($certifyingSignatures, fn ($a, $b) => $a['position'] <=> $b['position']);
 
 		return $this->signatureHasDocMdp($content, $certifyingSignatures[0]['dict']);
 	}
@@ -402,7 +402,7 @@ class DocMdpHandler {
 	 * @return array Certifying signatures with /Filter, /ByteRange, /Contents, /Reference
 	 */
 	private function filterCertifyingSignatures(array $objects): array {
-		return array_filter($objects, function($obj) {
+		return array_filter($objects, function ($obj) {
 			$dict = $obj['dict'];
 			return preg_match('/\/Filter\s*\//', $dict)
 				&& preg_match('/\/ByteRange\s*\[/', $dict)
