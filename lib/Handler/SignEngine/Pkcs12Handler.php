@@ -13,6 +13,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\OrderCertificatesTrait;
+use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\FolderService;
@@ -40,6 +41,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		private ITempManager $tempManager,
 		private LoggerInterface $logger,
 		private CaIdentifierService $caIdentifierService,
+		private DocMdpHandler $docMdpHandler,
 	) {
 		parent::__construct($l10n, $folderService, $logger);
 	}
@@ -120,6 +122,9 @@ class Pkcs12Handler extends SignEngineHandler {
 			$result['chain'] = $this->orderCertificates($chain);
 			$result = $this->enrichLeafWithPopplerData($resource, $result);
 		}
+
+		$result = $this->extractDocMdpData($resource, $result);
+
 		$result = $this->applyLibreSignRootCAFlag($result);
 		return $result;
 	}
@@ -141,6 +146,16 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 
 		return $signer;
+	}
+
+
+	private function extractDocMdpData($resource, array $result): array {
+		if (empty($result['chain'])) {
+			return $result;
+		}
+
+		$docMdpData = $this->docMdpHandler->extractDocMdpData($resource);
+		return array_merge($result, $docMdpData);
 	}
 
 	private function extractTimestampData(array $decoded, array $result): array {
