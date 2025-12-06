@@ -36,6 +36,8 @@ use OCP\DB\Types;
  * @method int getStatus()
  * @method void setMetadata(array $metadata)
  * @method ?array getMetadata()
+ * @method void setModificationStatus(int $modificationStatus)
+ * @method int getModificationStatus()
  */
 class File extends Entity {
 	protected int $nodeId = 0;
@@ -49,12 +51,18 @@ class File extends Entity {
 	protected ?string $signedHash = null;
 	protected ?string $callback = null;
 	protected ?array $metadata = null;
+	protected int $modificationStatus = 0;
 	public const STATUS_NOT_LIBRESIGN_FILE = -1;
 	public const STATUS_DRAFT = 0;
 	public const STATUS_ABLE_TO_SIGN = 1;
 	public const STATUS_PARTIAL_SIGNED = 2;
 	public const STATUS_SIGNED = 3;
 	public const STATUS_DELETED = 4;
+
+	public const MODIFICATION_UNCHECKED = 0;
+	public const MODIFICATION_UNMODIFIED = 1;
+	public const MODIFICATION_ALLOWED = 2;
+	public const MODIFICATION_VIOLATION = 3;
 
 	public function __construct() {
 		$this->addType('id', Types::INTEGER);
@@ -69,6 +77,7 @@ class File extends Entity {
 		$this->addType('callback', Types::STRING);
 		$this->addType('status', Types::INTEGER);
 		$this->addType('metadata', Types::JSON);
+		$this->addType('modificationStatus', Types::SMALLINT);
 	}
 
 	public function isDeletedAccount(): bool {
