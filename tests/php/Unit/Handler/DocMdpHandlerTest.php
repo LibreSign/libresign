@@ -34,7 +34,7 @@ final class DocMdpHandlerTest extends TestCase {
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
-		$this->assertSame(DocMdpLevel::NONE->value, $result['docmdp']['level']);
+		$this->assertSame(DocMdpLevel::NOT_CERTIFIED->value, $result['docmdp']['level']);
 	}
 
 	public function testP0AllowsAnyModification(): void {
@@ -154,7 +154,7 @@ final class DocMdpHandlerTest extends TestCase {
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
-		$this->assertSame(DocMdpLevel::FORM_FILL->value, $result['docmdp']['level'], 'Must extract DocMDP from /Reference per ICP-Brasil recommendation (not /Perms)');
+		$this->assertSame(DocMdpLevel::CERTIFIED_FORM_FILLING->value, $result['docmdp']['level'], 'Must extract DocMDP from /Reference per ICP-Brasil recommendation (not /Perms)');
 	}
 
 	public function testExtractsDocMdpFromFirstCertifyingSignature(): void {
@@ -164,7 +164,7 @@ final class DocMdpHandlerTest extends TestCase {
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
-		$this->assertSame(DocMdpLevel::NO_CHANGES->value, $result['docmdp']['level'], 'Must extract DocMDP from first CERTIFYING signature, not first signature in file');
+		$this->assertSame(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED->value, $result['docmdp']['level'], 'Must extract DocMDP from first CERTIFYING signature, not first signature in file');
 	}
 
 	public function testP2AllowsPageTemplateInstantiation(): void {
@@ -196,7 +196,7 @@ final class DocMdpHandlerTest extends TestCase {
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
-		$this->assertSame(DocMdpLevel::FORM_FILL->value, $result['docmdp']['level'], 'Must extract DocMDP from indirect references per ICP-Brasil example');
+		$this->assertSame(DocMdpLevel::CERTIFIED_FORM_FILLING->value, $result['docmdp']['level'], 'Must extract DocMDP from indirect references per ICP-Brasil example');
 	}
 
 	public function testValidatesTransformParamsVersion(): void {
@@ -206,7 +206,7 @@ final class DocMdpHandlerTest extends TestCase {
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
-		$this->assertSame(DocMdpLevel::FORM_FILL->value, $result['docmdp']['level'], 'Must accept /V /1.2 in TransformParams per ICP-Brasil');
+		$this->assertSame(DocMdpLevel::CERTIFIED_FORM_FILLING->value, $result['docmdp']['level'], 'Must accept /V /1.2 in TransformParams per ICP-Brasil');
 	}
 
 	public function testRejectsDocMdpWithoutVersion(): void {
@@ -216,7 +216,7 @@ final class DocMdpHandlerTest extends TestCase {
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
-		$this->assertSame(DocMdpLevel::NONE->value, $result['docmdp']['level'], 'Must reject DocMDP without /V version per ICP-Brasil requirement');
+		$this->assertSame(DocMdpLevel::NOT_CERTIFIED->value, $result['docmdp']['level'], 'Must reject DocMDP without /V version per ICP-Brasil requirement');
 	}
 
 	public function testRejectsDocMdpWithInvalidVersion(): void {
@@ -226,7 +226,7 @@ final class DocMdpHandlerTest extends TestCase {
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
-		$this->assertSame(DocMdpLevel::NONE->value, $result['docmdp']['level'], 'Must reject DocMDP with /V 1.0 (only /V /1.2 allowed per ICP-Brasil)');
+		$this->assertSame(DocMdpLevel::NOT_CERTIFIED->value, $result['docmdp']['level'], 'Must reject DocMDP with /V 1.0 (only /V /1.2 allowed per ICP-Brasil)');
 	}
 
 	public function testRejectsDocMdpWithInvalidVersionIndirectRef(): void {
@@ -236,15 +236,15 @@ final class DocMdpHandlerTest extends TestCase {
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
-		$this->assertSame(DocMdpLevel::NONE->value, $result['docmdp']['level'], 'Must reject indirect DocMDP with /V 1.3 (only /V /1.2 allowed)');
+		$this->assertSame(DocMdpLevel::NOT_CERTIFIED->value, $result['docmdp']['level'], 'Must reject indirect DocMDP with /V 1.3 (only /V /1.2 allowed)');
 	}
 
 	public static function docMdpLevelExtractionProvider(): array {
 		return [
-			'Level P=0 NONE' => [0, DocMdpLevel::NONE],
-			'Level P=1 NO_CHANGES' => [1, DocMdpLevel::NO_CHANGES],
-			'Level P=2 FORM_FILL' => [2, DocMdpLevel::FORM_FILL],
-			'Level P=3 FORM_FILL_AND_ANNOTATIONS' => [3, DocMdpLevel::FORM_FILL_AND_ANNOTATIONS],
+			'Level P=0 NOT_CERTIFIED' => [0, DocMdpLevel::NOT_CERTIFIED],
+			'Level P=1 CERTIFIED_NO_CHANGES_ALLOWED' => [1, DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED],
+			'Level P=2 CERTIFIED_FORM_FILLING' => [2, DocMdpLevel::CERTIFIED_FORM_FILLING],
+			'Level P=3 CERTIFIED_FORM_FILLING_AND_ANNOTATIONS' => [3, DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS],
 		];
 	}
 
@@ -726,7 +726,7 @@ final class DocMdpHandlerTest extends TestCase {
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
-		$this->assertSame(DocMdpLevel::NONE->value, $result['docmdp']['level'], 'ISO 32000-1 Table 252: if /Type present in signature dict, must be /Sig');
+		$this->assertSame(DocMdpLevel::NOT_CERTIFIED->value, $result['docmdp']['level'], 'ISO 32000-1 Table 252: if /Type present in signature dict, must be /Sig');
 	}
 
 	public function testRejectsSignatureWithoutFilterEntry(): void {
@@ -744,7 +744,7 @@ final class DocMdpHandlerTest extends TestCase {
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
-		$this->assertSame(DocMdpLevel::NONE->value, $result['docmdp']['level'], 'ISO 32000-1 Table 252: /Filter is Required in signature dictionary');
+		$this->assertSame(DocMdpLevel::NOT_CERTIFIED->value, $result['docmdp']['level'], 'ISO 32000-1 Table 252: /Filter is Required in signature dictionary');
 	}
 
 	public function testRejectsSignatureWithoutByteRange(): void {
@@ -762,7 +762,7 @@ final class DocMdpHandlerTest extends TestCase {
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
-		$this->assertSame(DocMdpLevel::NONE->value, $result['docmdp']['level'], 'ISO 32000-1: ByteRange required when DocMDP transform method is used');
+		$this->assertSame(DocMdpLevel::NOT_CERTIFIED->value, $result['docmdp']['level'], 'ISO 32000-1: ByteRange required when DocMDP transform method is used');
 	}
 
 	public function testRejectsMultipleDocMdpSignatures(): void {
@@ -792,7 +792,7 @@ final class DocMdpHandlerTest extends TestCase {
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
-		$this->assertSame(DocMdpLevel::NONE->value, $result['docmdp']['level'], 'ISO 32000-1 12.8.2.2.1: A document can contain only one signature field that contains a DocMDP transform method');
+		$this->assertSame(DocMdpLevel::NOT_CERTIFIED->value, $result['docmdp']['level'], 'ISO 32000-1 12.8.2.2.1: A document can contain only one signature field that contains a DocMDP transform method');
 	}
 
 	public function testRejectsDocMdpNotFirstSignature(): void {
@@ -820,7 +820,7 @@ final class DocMdpHandlerTest extends TestCase {
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
-		$this->assertSame(DocMdpLevel::NONE->value, $result['docmdp']['level'], 'ISO 32000-1 12.8.2.2.1: DocMDP signature shall be the first signed field in the document');
+		$this->assertSame(DocMdpLevel::NOT_CERTIFIED->value, $result['docmdp']['level'], 'ISO 32000-1 12.8.2.2.1: DocMDP signature shall be the first signed field in the document');
 	}
 
 	public function testRejectsSigRefWithoutTransformMethod(): void {
@@ -839,6 +839,6 @@ final class DocMdpHandlerTest extends TestCase {
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
-		$this->assertSame(DocMdpLevel::NONE->value, $result['docmdp']['level'], 'ISO 32000-1 Table 253: /TransformMethod is Required in signature reference dictionary');
+		$this->assertSame(DocMdpLevel::NOT_CERTIFIED->value, $result['docmdp']['level'], 'ISO 32000-1 Table 253: /TransformMethod is Required in signature reference dictionary');
 	}
 }
