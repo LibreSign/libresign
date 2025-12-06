@@ -46,6 +46,8 @@ OC.L10N.register(
     "Open file" : "Atvērt datni",
     "Administration" : "Pārvaldīšana",
     "Open sidebar" : "Atvērt sānjoslu",
+    "Preview" : "Priekšskatīt",
+    "Copy to clipboard" : "Kopēt starpliktuvē",
     "Details" : "Informācija",
     "Certificate" : "Sertifikāts",
     "Delete file" : "Izdzēst datni",

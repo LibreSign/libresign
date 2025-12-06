@@ -99,6 +99,8 @@ OC.L10N.register(
     "Open file" : "Aberi archìviu",
     "Administration" : "Amministratzione",
     "Open sidebar" : "Aberi s'istanca laterale",
+    "Height" : "Altezza",
+    "Copy to clipboard" : "Còpia in is punta de billete",
     "Details" : "Detàllios",
     "Certificate" : "Tzertificadu",
     "Upload file" : "Càrriga archìviu",

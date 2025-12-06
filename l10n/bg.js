@@ -167,6 +167,7 @@ OC.L10N.register(
     "Document not available for signature." : "Документът не е наличен за подпис.",
     "Administration" : "Администрация",
     "Open sidebar" : "Отвори страничното меню",
+    "Preview" : "Визуализация",
     "Details" : "Подробности",
     "Certificate" : "Сертификат",
     "Not sent yet" : "Все още не е изпратено",

@@ -53,6 +53,7 @@ OC.L10N.register(
     "Open file" : "Отвори датотека",
     "Administration" : "Администрација",
     "Open sidebar" : "Отвори странична лента",
+    "Copy to clipboard" : "Копирај во клипборд",
     "Details" : "Детали",
     "Certificate" : "Сертификат",
     "Upload file" : "Прикачи датотека",

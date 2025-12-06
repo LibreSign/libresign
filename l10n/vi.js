@@ -45,6 +45,8 @@ OC.L10N.register(
     "Open file" : "Mở tệp",
     "Administration" : "Quản trị viên",
     "Open sidebar" : "Mở thanh bên",
+    "Preview" : "Xem trước",
+    "Copy to clipboard" : "Sao chép vào bộ nhớ tạm",
     "Details" : "Chi tiết",
     "Certificate" : "Chứng chỉ",
     "Upload file" : "Tải lên tập tin",

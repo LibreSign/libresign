@@ -141,6 +141,8 @@ OC.L10N.register(
     "Open file" : "Otvori datoteku",
     "Administration" : "Administracija",
     "Open sidebar" : "Otvori bočnu traku",
+    "Height" : "Visina",
+    "Copy to clipboard" : "Kopiraj u međuspremnik",
     "Details" : "Pojedinosti",
     "Certificate" : "Vjerodajnica",
     "Delete file" : "Izbrisati datoteku",

@@ -35,6 +35,8 @@ OC.L10N.register(
     "Confirm" : "Konfirmo",
     "Open file" : "Hap skedarin",
     "Open sidebar" : "Hapni sidebar-in",
+    "Preview" : "Parapamje ",
+    "Copy to clipboard" : "Kopjo në dërrasë ",
     "Details" : "Detajet",
     "Certificate" : "Çertifikata",
     "Change password" : "Ndrysho fjalëkalimin",

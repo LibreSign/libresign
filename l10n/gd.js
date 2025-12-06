@@ -25,6 +25,7 @@ OC.L10N.register(
     "Choose" : "Tagh",
     "Send" : "Cuir",
     "Open sidebar" : "Fosgail am bàr-taoibh",
+    "Preview" : "Ro-sheall",
     "Details" : "Mion-fhiosrachadh",
     "Password" : "Facal-faire",
     "Enter a password" : "Cuir a-steach facal-faire",

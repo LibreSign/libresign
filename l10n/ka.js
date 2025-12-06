@@ -45,6 +45,8 @@ OC.L10N.register(
     "Administration" : "Administration",
     "pending" : "pending",
     "Open sidebar" : "Open sidebar",
+    "Preview" : "Preview",
+    "Copy to clipboard" : "Copy to clipboard",
     "Details" : "Details",
     "Certificate" : "Certificate",
     "Upload file" : "Upload file",

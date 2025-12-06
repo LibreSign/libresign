@@ -84,6 +84,8 @@ OC.L10N.register(
     "Administration" : "Administracion",
     "pending" : "pendent",
     "Open sidebar" : "Dobrir lo panèl lateral",
+    "Preview" : "Apercebut",
+    "Copy to clipboard" : "Copiar dins lo quichapapièrs",
     "Details" : "Detalhs",
     "Certificate" : "Certificat",
     "Delete file" : "Suprimir fichièr",
