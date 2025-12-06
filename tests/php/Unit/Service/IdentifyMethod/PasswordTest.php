@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
+use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\CaIdentifierService;
@@ -38,6 +39,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ITempManager $tempManager;
 	private LoggerInterface&MockObject $logger;
 	private CaIdentifierService&MockObject $caIdentifierService;
+	private DocMdpHandler&MockObject $docMdpHandler;
 
 	public function setUp(): void {
 		$this->identifyService = $this->createMock(IdentifyService::class);
@@ -50,6 +52,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->caIdentifierService = $this->createMock(CaIdentifierService::class);
+		$this->docMdpHandler = $this->createMock(DocMdpHandler::class);
 		$this->pkcs12Handler = $this->getPkcs12Instance();
 	}
 
@@ -75,6 +78,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->tempManager,
 				$this->logger,
 				$this->caIdentifierService,
+				$this->docMdpHandler,
 			])
 			->onlyMethods($methods)
 			->getMock();
