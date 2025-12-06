@@ -50,7 +50,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$certificateEngine = self::$certificateEngineFactory->getEngine();
 			$certificateEngine
 				->setConfigPath(\OCP\Server::get(ITempManager::class)->getTemporaryFolder('certificate'))
-				->generateRootCert('', []);
+				->generateRootCert('Test Root CA', []);
 
 			self::$certificateContent = $certificateEngine
 				->setHosts(['user@email.tld'])
@@ -92,6 +92,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->signatureBackgroundService,
 				$certificateEngineFactory,
 				$this->javaHelper,
+				$this->createMock(\OCA\Libresign\Service\DocMdpConfigService::class),
 			);
 		}
 		return $this->getMockBuilder(JSignPdfHandler::class)
@@ -103,6 +104,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->signatureBackgroundService,
 				$certificateEngineFactory,
 				$this->javaHelper,
+				$this->createMock(\OCA\Libresign\Service\DocMdpConfigService::class),
 			])
 			->onlyMethods($methods)
 			->getMock();
