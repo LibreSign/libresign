@@ -16,9 +16,9 @@ use OCP\IL10N;
 class DocMdpHandler {
 	/** @var array<string, string[]> Allowed modification types per DocMDP level */
 	private const ALLOWED_MODIFICATIONS = [
-		'NO_CHANGES' => [],
-		'FORM_FILL' => ['form_field', 'template', 'signature'],
-		'FORM_FILL_AND_ANNOTATIONS' => ['form_field', 'template', 'annotation', 'signature'],
+		'CERTIFIED_NO_CHANGES_ALLOWED' => [],
+		'CERTIFIED_FORM_FILLING' => ['form_field', 'template', 'signature'],
+		'CERTIFIED_FORM_FILLING_AND_ANNOTATIONS' => ['form_field', 'template', 'annotation', 'signature'],
 	];
 
 	public function __construct(
@@ -70,15 +70,15 @@ class DocMdpHandler {
 		$content = stream_get_contents($pdfResource);
 
 		if (!$this->validateIsoCompliance($content)) {
-			return DocMdpLevel::NONE;
+			return DocMdpLevel::NOT_CERTIFIED;
 		}
 
 		$pValue = $this->extractPValue($content);
 		if ($pValue === null) {
-			return DocMdpLevel::NONE;
+			return DocMdpLevel::NOT_CERTIFIED;
 		}
 
-		return DocMdpLevel::tryFrom($pValue) ?? DocMdpLevel::NONE;
+		return DocMdpLevel::tryFrom($pValue) ?? DocMdpLevel::NOT_CERTIFIED;
 	}
 
 	/**
@@ -249,7 +249,7 @@ class DocMdpHandler {
 			);
 		}
 
-		if ($docmdpLevel === DocMdpLevel::NONE) {
+		if ($docmdpLevel === DocMdpLevel::NOT_CERTIFIED) {
 			return $this->buildValidationResult(
 				true,
 				File::MODIFICATION_ALLOWED,
@@ -307,9 +307,9 @@ class DocMdpHandler {
 	 */
 	private function getAllowedModificationMessage(DocMdpLevel $level): string {
 		return match ($level) {
-			DocMdpLevel::NO_CHANGES => 'Invalid: Document was modified after signing (DocMDP violation - no changes allowed)',
-			DocMdpLevel::FORM_FILL => 'Document form fields were modified (allowed by DocMDP P=2)',
-			DocMdpLevel::FORM_FILL_AND_ANNOTATIONS => 'Document form fields or annotations were modified (allowed by DocMDP P=3)',
+			DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED => 'Invalid: Document was modified after signing (DocMDP violation - no changes allowed)',
+			DocMdpLevel::CERTIFIED_FORM_FILLING => 'Document form fields were modified (allowed by DocMDP P=2)',
+			DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS => 'Document form fields or annotations were modified (allowed by DocMDP P=3)',
 			default => 'Document was modified after signing',
 		};
 	}
@@ -322,9 +322,9 @@ class DocMdpHandler {
 	 */
 	private function getViolationMessage(DocMdpLevel $level): string {
 		return match ($level) {
-			DocMdpLevel::NO_CHANGES => 'Invalid: Document was modified after signing (DocMDP violation - no changes allowed)',
-			DocMdpLevel::FORM_FILL => 'Invalid: Document was modified after signing (DocMDP P=2 only allows form field changes)',
-			DocMdpLevel::FORM_FILL_AND_ANNOTATIONS => 'Invalid: Document was modified after signing (DocMDP P=3 only allows form fields and annotations)',
+			DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED => 'Invalid: Document was modified after signing (DocMDP violation - no changes allowed)',
+			DocMdpLevel::CERTIFIED_FORM_FILLING => 'Invalid: Document was modified after signing (DocMDP P=2 only allows form field changes)',
+			DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS => 'Invalid: Document was modified after signing (DocMDP P=3 only allows form fields and annotations)',
 			default => 'Invalid: Document was modified after signing (DocMDP violation)',
 		};
 	}
