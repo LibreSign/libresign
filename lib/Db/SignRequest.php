@@ -30,6 +30,8 @@ use OCP\DB\Types;
  * @method string getDisplayName()
  * @method void setMetadata(array $metadata)
  * @method ?array getMetadata()
+ * @method void setDocmdpLevel(int $docmdpLevel)
+ * @method int getDocmdpLevel()
  */
 class SignRequest extends Entity {
 	protected ?int $fileId = null;
@@ -40,6 +42,7 @@ class SignRequest extends Entity {
 	protected ?\DateTime $signed = null;
 	protected ?string $signedHash = null;
 	protected ?array $metadata = null;
+	protected int $docmdpLevel = 0;
 	public function __construct() {
 		$this->addType('id', Types::INTEGER);
 		$this->addType('fileId', Types::INTEGER);
@@ -50,5 +53,6 @@ class SignRequest extends Entity {
 		$this->addType('signed', Types::DATETIME);
 		$this->addType('signedHash', Types::STRING);
 		$this->addType('metadata', Types::JSON);
+		$this->addType('docmdpLevel', Types::SMALLINT);
 	}
 }
