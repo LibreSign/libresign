@@ -867,7 +867,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * @param bool $enabled Enable or disable DocMDP certification
 	 * @param int $defaultLevel Default DocMDP level (0-3): 0=none, 1=no changes, 2=form fill, 3=form fill + annotations
 	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
-	 * 
+	 *
 	 * 200: Configuration saved successfully
 	 * 400: Invalid DocMDP level provided
 	 * 500: Internal server error
