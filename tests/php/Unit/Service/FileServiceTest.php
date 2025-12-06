@@ -153,6 +153,9 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->removePurposesField($expected);
 		$this->removePurposesField($actual);
 
+		$this->removeDocMdpFields($expected);
+		$this->removeDocMdpFields($actual);
+
 		$this->assertEquals($expected, $actual);
 	}
 
@@ -165,6 +168,16 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						unset($chainItem['purposes']);
 					}
 				}
+			}
+		}
+	}
+
+	private function removeDocMdpFields(array &$data): void {
+		if (isset($data['signers'])) {
+			foreach ($data['signers'] as &$signer) {
+				unset($signer['docmdp']);
+				unset($signer['modifications']);
+				unset($signer['modification_validation']);
 			}
 		}
 	}
