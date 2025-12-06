@@ -170,6 +170,72 @@ The second example is clear without comments because the method names describe e
 - Serial number validation is critical for CRL operations
 - Use `occ libresign:crl:*` commands for CRL operations
 
+## Git & Commit Practices
+
+LibreSign follows specific commit conventions. See the [official commit guidelines](https://docs.libresign.coop/developer_manual/getting-started/commits.html) for complete details.
+
+### Conventional Commits
+**All commits must follow [Conventional Commits](https://www.conventionalcommits.org/) specification.**
+
+**Commit format:**
+```
+<type>: <short description>
+
+[optional body]
+
+Signed-off-by: Your Name <your.email@example.com>
+```
+
+**Common types:**
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `test`: Adding or updating tests
+- `refactor`: Code refactoring
+- `chore`: Maintenance tasks
+
+**Examples:**
+```bash
+# Feature
+git commit -s -m "feat: add CRL revocation endpoint"
+
+# Bug fix with description
+git commit -s -m "fix: validate certificate chain order
+
+Certificate chains with more than 3 certificates were failing
+validation due to incorrect ordering. The OrderCertificatesTrait
+now properly orders from end-entity to root.
+
+Fixes #1234"
+
+# Documentation
+git commit -s -m "docs: add donation links to GitHub Sponsors and Stripe"
+```
+
+### DCO (Developer Certificate of Origin)
+**Always sign off commits** using `git commit -s` or `git commit --signoff`.
+
+Every commit must include the `Signed-off-by` line to comply with the [DCO](https://developercertificate.org/).
+
+### Atomic Commits Best Practices
+- One logical change per commit
+- Commit should be self-contained and functional
+- Tests should pass after each commit
+- Makes git bisect and code review more effective
+
+**When to commit:**
+- After completing a logical unit of work
+- Before switching tasks or branches
+- After tests pass for the changes
+- At natural breakpoints in development
+
+**Bad practices to avoid:**
+- Committing unrelated changes together
+- Generic messages like "fixes", "wip", "misc changes"
+- Committing without signoff (`-s` flag)
+- Missing conventional commit type prefix
+- Large commits mixing multiple features/fixes
+
 ## Build & Release Process
 
 ### Development
