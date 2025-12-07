@@ -272,6 +272,81 @@
 									</template>
 								</NcListItem>
 							</div>
+							<NcListItem v-if="signer.opened && hasDocMdpInfo(signer)"
+								class="extra"
+								compact
+								:name="t('libresign', 'Document certification')"
+								:aria-expanded="docMdpOpenState[signerIndex] ? 'true' : 'false'"
+								:aria-label="docMdpOpenState[signerIndex] ? t('libresign', 'Document certification, expanded. Click to collapse') : t('libresign', 'Document certification, collapsed. Click to expand')"
+								role="button"
+								@click="toggleState(docMdpOpenState, signerIndex)">
+								<template #name>
+									<strong>{{ t('libresign', 'Document certification') }}</strong>
+								</template>
+								<template #extra-actions>
+									<NcButton variant="tertiary"
+										:aria-label="docMdpOpenState[signerIndex] ? t('libresign', 'Collapse certification details') : t('libresign', 'Expand certification details')"
+										@click.stop="toggleState(docMdpOpenState, signerIndex)">
+										<template #icon>
+											<NcIconSvgWrapper v-if="docMdpOpenState[signerIndex]"
+												:path="mdiUnfoldLessHorizontal"
+												:size="20" />
+											<NcIconSvgWrapper v-else
+												:path="mdiUnfoldMoreHorizontal"
+												:size="20" />
+										</template>
+									</NcButton>
+								</template>
+								<template #indicator>
+									<NcIconSvgWrapper v-if="getModificationStatusIcon(signer)"
+										:path="getModificationStatusIcon(signer)"
+										:class="getModificationStatusClass(signer)"
+										:size="20" />
+								</template>
+							</NcListItem>
+							<div v-if="signer.opened && docMdpOpenState[signerIndex] && hasDocMdpInfo(signer)"
+								role="region"
+								:aria-label="t('libresign', 'Document certification details')">
+								<NcListItem v-if="signer.docmdp"
+									class="extra-chain"
+									compact>
+									<template #icon>
+										<NcIconSvgWrapper :path="signer.docmdp.isCertifying ? mdiShieldCheck : mdiShieldOff" />
+									</template>
+									<template #name>
+										<strong>{{ t('libresign', 'Certification level:') }}</strong>
+										{{ signer.docmdp.label }}
+									</template>
+								</NcListItem>
+								<NcListItem v-if="signer.docmdp && signer.docmdp.description"
+									class="extra-chain"
+									compact>
+									<template #name>
+										{{ signer.docmdp.description }}
+									</template>
+								</NcListItem>
+								<NcListItem v-if="signer.modification_validation"
+									class="extra-chain"
+									compact>
+									<template #icon>
+										<NcIconSvgWrapper :path="getModificationStatusIcon(signer)"
+											:class="getModificationStatusClass(signer)" />
+									</template>
+									<template #name>
+										{{ signer.modification_validation.message }}
+									</template>
+								</NcListItem>
+								<NcListItem v-if="signer.modifications && signer.modifications.modified"
+									class="extra-chain"
+									compact>
+									<template #icon>
+										<NcIconSvgWrapper :path="mdiInformationOutline" />
+									</template>
+									<template #name>
+										{{ n('libresign', 'Document has %n revision', 'Document has %n revisions', signer.modifications.revisionCount) }}
+									</template>
+								</NcListItem>
+							</div>
 							<NcListItem v-if="signer.opened && signer.signatureTypeSN"
 								class="extra"
 								compact
@@ -615,8 +690,11 @@ import {
 	mdiCheckboxMarkedCircle,
 	mdiCheckCircle,
 	mdiHelpCircle,
+	mdiInformationOutline,
 	mdiInformationSlabCircle,
 	mdiKey,
+	mdiShieldCheck,
+	mdiShieldOff,
 	mdiSignatureFreehand,
 	mdiUnfoldLessHorizontal,
 	mdiUnfoldMoreHorizontal,
@@ -627,7 +705,7 @@ import JSConfetti from 'js-confetti'
 import axios from '@nextcloud/axios'
 import { formatFileSize } from '@nextcloud/files'
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t } from '@nextcloud/l10n'
+import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import Moment from '@nextcloud/moment'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 
@@ -672,8 +750,11 @@ export default {
 			mdiCheckboxMarkedCircle,
 			mdiCheckCircle,
 			mdiHelpCircle,
+			mdiInformationOutline,
 			mdiInformationSlabCircle,
 			mdiKey,
+			mdiShieldCheck,
+			mdiShieldOff,
 			mdiSignatureFreehand,
 			mdiUnfoldLessHorizontal,
 			mdiUnfoldMoreHorizontal,
@@ -696,6 +777,7 @@ export default {
 			tsaOpenState: {},
 			chainOpenState: {},
 			notificationsOpenState: {},
+			docMdpOpenState: {},
 			validationErrorMessage: null,
 			documentValidMessage: null,
 		}
@@ -993,6 +1075,31 @@ export default {
 				return true
 			}
 			return false
+		},
+		hasDocMdpInfo(signer) {
+			return signer.docmdp || signer.modifications || signer.modification_validation
+		},
+		getModificationStatusIcon(signer) {
+			if (!signer.modification_validation) {
+				return null
+			}
+			// Based on File::MODIFICATION_* constants
+			// 0=unchecked, 1=unmodified, 2=modified(allowed), 3=modified(violation)
+			const status = signer.modification_validation.status
+			if (status === 1) return this.mdiCheckCircle
+			if (status === 2) return this.mdiAlertCircle
+			if (status === 3) return this.mdiCancel
+			return this.mdiHelpCircle
+		},
+		getModificationStatusClass(signer) {
+			if (!signer.modification_validation) {
+				return ''
+			}
+			const status = signer.modification_validation.status
+			if (status === 1) return 'icon-success'
+			if (status === 2) return 'icon-warning'
+			if (status === 3) return 'icon-error'
+			return ''
 		},
 		formatTimestamp(timestamp) {
 			return timestamp ? new Date(timestamp * 1000).toLocaleString() : ''
