@@ -168,6 +168,8 @@ OC.L10N.register(
     "Administration" : "Администрация",
     "Open sidebar" : "Отвори страничното меню",
     "Preview" : "Визуализация",
+    "Height" : "Ръст",
+    "Copy to clipboard" : "Копиране в клипборда",
     "Details" : "Подробности",
     "Certificate" : "Сертификат",
     "Not sent yet" : "Все още не е изпратено",

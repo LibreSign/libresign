@@ -178,6 +178,7 @@ OC.L10N.register(
     "Preview" : "Previsualitza",
     "Width" : "Amplada",
     "Height" : "Alçada",
+    "Copy to clipboard" : "Copia-ho al porta-retalls",
     "Details" : "Detalls",
     "Certificate" : "Certificat",
     "Not sent yet" : "Encara no s'ha enviat",

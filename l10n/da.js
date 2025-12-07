@@ -52,6 +52,7 @@ OC.L10N.register(
     "Preview" : "Forhåndsvisning",
     "Width" : "Bredde",
     "Height" : "Højde",
+    "Copy to clipboard" : "Kopier til udklipsholder",
     "Details" : "Detaljer",
     "Certificate" : "Certifikat",
     "Upload file" : "Upload fil",
