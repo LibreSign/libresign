@@ -32,10 +32,10 @@ enum DocMdpLevel: int {
 
 	public function getDescription(IL10N $l10n): string {
 		return match($this) {
-			self::NOT_CERTIFIED => $l10n->t('Document is not certified. No restrictions on modifications.'),
-			self::CERTIFIED_NO_CHANGES_ALLOWED => $l10n->t('No changes allowed. Additional approval signatures are prohibited.'),
-			self::CERTIFIED_FORM_FILLING => $l10n->t('Form filling allowed. Additional approval signatures are allowed.'),
-			self::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS => $l10n->t('Form filling and annotations allowed. Additional approval signatures are allowed.'),
+			self::NOT_CERTIFIED => $l10n->t('Approval signature - allows all modifications'),
+			self::CERTIFIED_NO_CHANGES_ALLOWED => $l10n->t('Certifying signature - no modifications or additional signatures allowed'),
+			self::CERTIFIED_FORM_FILLING => $l10n->t('Certifying signature - allows form filling and additional approval signatures'),
+			self::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS => $l10n->t('Certifying signature - allows form filling, comments and additional approval signatures'),
 		};
 	}
 }
