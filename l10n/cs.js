@@ -264,6 +264,7 @@ OC.L10N.register(
     "Zoom level" : "Zvětšení/zmenšení",
     "Width" : "Šířka",
     "Height" : "Výška",
+    "Copy to clipboard" : "Zkopírovat do schránky",
     "Details" : "Podrobnosti",
     "Certificate" : "Certifikát",
     "Not sent yet" : "Doposud neodesláno",
