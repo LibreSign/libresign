@@ -26,6 +26,12 @@ class DocMdpHandler {
 	) {
 	}
 
+	public function allowsAdditionalSignatures($resource): bool {
+		$docmdpLevel = $this->extractDocMdpLevel($resource);
+
+		return $docmdpLevel !== DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED;
+	}
+
 	public function extractDocMdpData($resource): array {
 		if (!is_resource($resource)) {
 			return [];
