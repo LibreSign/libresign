@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Vendor\setasign\Fpdi\PdfParserService\Type\PdfTypeException;
 use OCP\Files\Node;
 use OCP\Http\Client\IClientService;
@@ -16,6 +18,7 @@ trait TFile {
 	/** @var ?string */
 	private $mimetype = null;
 	protected IClientService $client;
+	protected DocMdpHandler $docMdpHandler;
 
 	public function getNodeFromData(array $data): Node {
 		if (!$this->folderService->getUserId()) {
@@ -32,16 +35,25 @@ trait TFile {
 		}
 
 		$content = $this->getFileRaw($data);
-
 		$extension = $this->getExtension($content);
-		if ($extension === 'pdf') {
-			$this->validatePdfStringWithFpdi($content);
-		}
+
+		$this->validateFileContent($content, $extension);
 
 		$userFolder = $this->folderService->getFolder();
 		$folderName = $this->folderService->getFolderName($data, $data['userManager']);
 		$folderToFile = $userFolder->newFolder($folderName);
 		return $folderToFile->newFile($data['name'] . '.' . $extension, $content);
+	}
+
+	/**
+	 * @throws \Exception
+	 * @throws LibresignException
+	 */
+	public function validateFileContent(string $content, string $extension): void {
+		if ($extension === 'pdf') {
+			$this->validatePdfStringWithFpdi($content);
+			$this->validateDocMdpAllowsSignatures($content);
+		}
 	}
 
 	private function setMimeType(string $mimetype): void {
@@ -139,6 +151,29 @@ trait TFile {
 		} catch (\Throwable $th) {
 			$this->logger->error($th->getMessage());
 			throw new \Exception($this->l10n->t('Invalid PDF'));
+		}
+	}
+
+	/**
+	 * @throws LibresignException
+	 */
+	private function validateDocMdpAllowsSignatures(string $pdfContent): void {
+		$resource = fopen('php://memory', 'r+');
+		if (!is_resource($resource)) {
+			return;
+		}
+
+		try {
+			fwrite($resource, $pdfContent);
+			rewind($resource);
+
+			if (!$this->docMdpHandler->allowsAdditionalSignatures($resource)) {
+				throw new LibresignException(
+					$this->l10n->t('This document is certified with DocMDP level 1 (No changes allowed). Additional signatures are not permitted.')
+				);
+			}
+		} finally {
+			fclose($resource);
 		}
 	}
 }
