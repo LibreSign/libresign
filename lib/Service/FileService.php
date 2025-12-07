@@ -22,6 +22,7 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\ResponseDefinitions;
@@ -87,10 +88,12 @@ class FileService {
 		private IURLGenerator $urlGenerator,
 		protected IMimeTypeDetector $mimeTypeDetector,
 		protected Pkcs12Handler $pkcs12Handler,
+		DocMdpHandler $docMdpHandler,
 		private IRootFolder $root,
 		protected LoggerInterface $logger,
 		protected IL10N $l10n,
 	) {
+		$this->docMdpHandler = $docMdpHandler;
 		$this->fileData = new stdClass();
 	}
 
