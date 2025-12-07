@@ -54,28 +54,10 @@ class DocMdpConfigService {
 		return array_map(
 			fn (DocMdpLevel $level) => [
 				'value' => $level->value,
-				'label' => $this->getLabel($level),
-				'description' => $this->getDescription($level),
+				'label' => $level->getLabel($this->l10n),
+				'description' => $level->getDescription($this->l10n),
 			],
 			DocMdpLevel::cases()
 		);
-	}
-
-	private function getLabel(DocMdpLevel $level): string {
-		return match ($level) {
-			DocMdpLevel::NOT_CERTIFIED => $this->l10n->t('No certification'),
-			DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED => $this->l10n->t('No changes allowed'),
-			DocMdpLevel::CERTIFIED_FORM_FILLING => $this->l10n->t('Form filling and additional signatures'),
-			DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS => $this->l10n->t('Form filling, annotations and additional signatures'),
-		};
-	}
-
-	private function getDescription(DocMdpLevel $level): string {
-		return match ($level) {
-			DocMdpLevel::NOT_CERTIFIED => $this->l10n->t('Approval signature - allows all modifications'),
-			DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED => $this->l10n->t('Certifying signature - no modifications or additional signatures allowed'),
-			DocMdpLevel::CERTIFIED_FORM_FILLING => $this->l10n->t('Certifying signature - allows form filling and additional approval signatures'),
-			DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS => $this->l10n->t('Certifying signature - allows form filling, comments and additional approval signatures'),
-		};
 	}
 }
