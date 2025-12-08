@@ -360,4 +360,25 @@ final class DocMdpHandlerTest extends TestCase {
 
 		$this->assertSame($expectedAllowed, $result);
 	}
+
+	public function testRealJSignPdfWithDocMdpLevel1(): void {
+		$pdfPath = __DIR__ . '/../../fixtures/real_jsignpdf_level1.pdf';
+
+		if (!file_exists($pdfPath)) {
+			$this->markTestSkipped('Real JSignPdf test PDF not found');
+		}
+
+		$content = file_get_contents($pdfPath);
+		$resource = $this->createResourceFromContent($content);
+
+		$data = $this->handler->extractDocMdpData($resource);
+
+		rewind($resource);
+		$allows = $this->handler->allowsAdditionalSignatures($resource);
+
+		fclose($resource);
+
+		$this->assertSame(1, $data['docmdp']['level'], 'Should detect DocMDP level 1 from real JSignPdf');
+		$this->assertFalse($allows, 'Should not allow additional signatures for DocMDP level 1');
+	}
 }
