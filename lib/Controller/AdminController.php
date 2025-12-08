@@ -10,6 +10,7 @@ namespace OCA\Libresign\Controller;
 
 use DateTimeInterface;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
@@ -17,6 +18,7 @@ use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\Certificate\ValidateService;
 use OCA\Libresign\Service\CertificatePolicyService;
+use OCA\Libresign\Service\DocMdpConfigService;
 use OCA\Libresign\Service\FooterService;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCA\Libresign\Service\Install\InstallService;
@@ -64,6 +66,7 @@ class AdminController extends AEnvironmentAwareController {
 		private ValidateService $validateService,
 		private ReminderService $reminderService,
 		private FooterService $footerService,
+		private DocMdpConfigService $docMdpConfigService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->eventSource = $this->eventSourceFactory->create();
@@ -855,6 +858,43 @@ class AdminController extends AEnvironmentAwareController {
 			return new DataResponse([
 				'error' => $e->getMessage(),
 			], Http::STATUS_BAD_REQUEST);
+		}
+	}
+
+	/**
+	 * Set DocMDP configuration
+	 *
+	 * @param bool $enabled Enable or disable DocMDP certification
+	 * @param int $defaultLevel Default DocMDP level (0-3): 0=none, 1=no changes, 2=form fill, 3=form fill + annotations
+	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
+	 *
+	 * 200: Configuration saved successfully
+	 * 400: Invalid DocMDP level provided
+	 * 500: Internal server error
+	 */
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/docmdp/config', requirements: ['apiVersion' => '(v1)'])]
+	public function setDocMdpConfig(bool $enabled, int $defaultLevel): DataResponse {
+		try {
+			$this->docMdpConfigService->setEnabled($enabled);
+
+			if ($enabled) {
+				$level = DocMdpLevel::tryFrom($defaultLevel);
+				if ($level === null) {
+					return new DataResponse([
+						'error' => $this->l10n->t('Invalid DocMDP level'),
+					], Http::STATUS_BAD_REQUEST);
+				}
+
+				$this->docMdpConfigService->setLevel($level);
+			}
+
+			return new DataResponse([
+				'message' => $this->l10n->t('Settings saved'),
+			]);
+		} catch (\Exception $e) {
+			return new DataResponse([
+				'error' => $e->getMessage(),
+			], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
 	}
 }

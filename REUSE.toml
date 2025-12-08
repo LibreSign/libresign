@@ -50,6 +50,7 @@ path = [
     "src/types/openapi/openapi.ts",
     "tests/php/Unit/Handler/mock/cert.json",
     "tests/php/fixtures/cfssl/newcert-with-success.json",
+    "tests/php/fixtures/real_jsignpdf_level1.pdf",
     "tests/php/fixtures/small_valid-signed.pdf",
     "tests/php/fixtures/small_valid.pdf",
     "tests/integration/composer.json",

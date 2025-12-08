@@ -25,17 +25,29 @@ class Version14000Date20251206120000 extends SimpleMigrationStep {
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
-		$table = $schema->getTable('libresign_file');
 
-		if (!$table->hasColumn('modification_status')) {
-			$table->addColumn('modification_status', Types::SMALLINT, [
-				'notnull' => true,
-				'default' => 0,
-				'comment' => 'DocMDP modification detection status: 0=unchecked, 1=unmodified, 2=allowed, 3=violation',
-			]);
-			return $schema;
+		if ($schema->hasTable('libresign_sign_request')) {
+			$tableSignRequest = $schema->getTable('libresign_sign_request');
+			if (!$tableSignRequest->hasColumn('docmdp_level')) {
+				$tableSignRequest->addColumn('docmdp_level', Types::SMALLINT, [
+					'notnull' => true,
+					'default' => 0,
+					'comment' => 'DocMDP permission level: 0=none, 1=no changes, 2=form fill, 3=form fill + annotations',
+				]);
+			}
 		}
 
-		return null;
+		if ($schema->hasTable('libresign_file')) {
+			$tableFile = $schema->getTable('libresign_file');
+			if (!$tableFile->hasColumn('modification_status')) {
+				$tableFile->addColumn('modification_status', Types::SMALLINT, [
+					'notnull' => true,
+					'default' => 0,
+					'comment' => 'DocMDP modification detection status: 0=unchecked, 1=unmodified, 2=allowed, 3=violation',
+				]);
+			}
+		}
+
+		return $schema;
 	}
 }

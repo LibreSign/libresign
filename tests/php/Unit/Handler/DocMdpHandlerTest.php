@@ -12,12 +12,14 @@ namespace OCA\Libresign\Tests\Unit\Handler;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Handler\DocMdpHandler;
+use OCA\Libresign\Tests\Unit\PdfFixtureTrait;
 use OCP\IL10N;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class DocMdpHandlerTest extends TestCase {
+	use PdfFixtureTrait;
 	private IL10N&MockObject $l10n;
 	private DocMdpHandler $handler;
 
@@ -259,468 +261,12 @@ final class DocMdpHandlerTest extends TestCase {
 		$this->assertSame($expectedLevel->value, $result['docmdp']['level'], "PDF with P=$pValue must be detected as {$expectedLevel->name}");
 	}
 
-	private function createResourceFromContent(string $content) {
-		$resource = tmpfile();
-		fwrite($resource, $content);
-		fseek($resource, 0);
-		return $resource;
-	}
 
-	private function createMinimalPdf(): string {
-		return "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
-			. "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n"
-			. "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n"
-			. "xref\n0 4\ntrailer\n<< /Size 4 /Root 1 0 R >>\nstartxref\n190\n%%EOF";
-	}
-
-	private function createPdfWithDocMdp(int $pValue, bool $withModifications = false): string {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R] >>\nendobj\n";
-
-		$signatureStart = strlen($pdf) + 200;
-		$signatureLength = 100;
-		$offset1 = 0;
-		$length1 = $signatureStart;
-		$offset2 = $signatureStart + $signatureLength;
-
-		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/ByteRange [ $offset1 $length1 $offset2 PLACEHOLDER_LENGTH2 ]\n";
-		$pdf .= "/Reference [ << /Type /SigRef /TransformMethod /DocMDP\n";
-		$pdf .= "/TransformParams << /Type /TransformParams /P $pValue /V /1.2 >> >> ]\n";
-		$pdf .= '/Contents <' . str_repeat('00', $signatureLength / 2) . "> >>\nendobj\n";
-
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
-
-		$length2 = 200;
-		$pdf = str_replace('PLACEHOLDER_LENGTH2', (string)$length2, $pdf);
-
-		if ($withModifications) {
-			$targetLength = $offset2 + $length2;
-			while (strlen($pdf) < $targetLength) {
-				$pdf .= ' ';
-			}
-
-			$pdf .= "\n7 0 obj\n<< /Type /Annot /Subtype /Text /Rect [100 100 200 200] >>\nendobj\n";
-			$pdf .= "xref\n7 1\ntrailer\n<< /Size 8 /Root 1 0 R >>\nstartxref\n" . strlen($pdf) . "\n%%EOF";
-		} else {
-			$startxref = strlen($pdf);
-			$pdf .= "xref\n0 7\ntrailer\n<< /Size 7 /Root 1 0 R >>\nstartxref\n$startxref\n%%EOF";
-		}
-
-		return $pdf;
-	}
-
-	private function createPdfWithFormFieldModification(int $pValue): string {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R 7 0 R] >>\nendobj\n";
-
-		$signatureStart = strlen($pdf) + 200;
-		$signatureLength = 100;
-		$offset1 = 0;
-		$length1 = $signatureStart;
-		$offset2 = $signatureStart + $signatureLength;
-
-		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/ByteRange [ $offset1 $length1 $offset2 PLACEHOLDER_LENGTH2 ]\n";
-		$pdf .= "/Reference [ << /Type /SigRef /TransformMethod /DocMDP\n";
-		$pdf .= "/TransformParams << /Type /TransformParams /P $pValue /V /1.2 >> >> ]\n";
-		$pdf .= '/Contents <' . str_repeat('00', $signatureLength / 2) . "> >>\nendobj\n";
-
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
-
-		$length2 = 200;
-		$pdf = str_replace('PLACEHOLDER_LENGTH2', (string)$length2, $pdf);
-
-		$targetLength = $offset2 + $length2;
-		while (strlen($pdf) < $targetLength) {
-			$pdf .= ' ';
-		}
-
-		$pdf .= "\n7 0 obj\n<< /FT /Tx /T (TextField1) /V (Modified Value) >>\nendobj\n";
-		$pdf .= "xref\n0 8\ntrailer\n<< /Size 8 /Root 1 0 R >>\nstartxref\n" . strlen($pdf) . "\n%%EOF";
-
-		return $pdf;
-	}
-
-	private function createPdfWithAnnotationModification(int $pValue): string {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Annots [7 0 R] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R] >>\nendobj\n";
-
-		$signatureStart = strlen($pdf) + 200;
-		$signatureLength = 100;
-		$offset1 = 0;
-		$length1 = $signatureStart;
-		$offset2 = $signatureStart + $signatureLength;
-
-		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/ByteRange [ $offset1 $length1 $offset2 PLACEHOLDER_LENGTH2 ]\n";
-		$pdf .= "/Reference [ << /Type /SigRef /TransformMethod /DocMDP\n";
-		$pdf .= "/TransformParams << /Type /TransformParams /P $pValue /V /1.2 >> >> ]\n";
-		$pdf .= '/Contents <' . str_repeat('00', $signatureLength / 2) . "> >>\nendobj\n";
-
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
-
-		$length2 = 200;
-		$pdf = str_replace('PLACEHOLDER_LENGTH2', (string)$length2, $pdf);
-
-		$targetLength = $offset2 + $length2;
-		while (strlen($pdf) < $targetLength) {
-			$pdf .= ' ';
-		}
-
-		$pdf .= "\n7 0 obj\n<< /Type /Annot /Subtype /Text /Rect [100 100 200 200] /Contents (Comment added) >>\nendobj\n";
-		$pdf .= "xref\n0 8\ntrailer\n<< /Size 8 /Root 1 0 R >>\nstartxref\n" . strlen($pdf) . "\n%%EOF";
-
-		return $pdf;
-	}
-
-	private function createPdfWithStructuralModification(int $pValue): string {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R 7 0 R] /Count 2 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R] >>\nendobj\n";
-
-		$signatureStart = strlen($pdf) + 200;
-		$signatureLength = 100;
-		$offset1 = 0;
-		$length1 = $signatureStart;
-		$offset2 = $signatureStart + $signatureLength;
-
-		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/ByteRange [ $offset1 $length1 $offset2 PLACEHOLDER_LENGTH2 ]\n";
-		$pdf .= "/Reference [ << /Type /SigRef /TransformMethod /DocMDP\n";
-		$pdf .= "/TransformParams << /Type /TransformParams /P $pValue /V /1.2 >> >> ]\n";
-		$pdf .= '/Contents <' . str_repeat('00', $signatureLength / 2) . "> >>\nendobj\n";
-
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
-
-		$length2 = 200;
-		$pdf = str_replace('PLACEHOLDER_LENGTH2', (string)$length2, $pdf);
-
-		$targetLength = $offset2 + $length2;
-		while (strlen($pdf) < $targetLength) {
-			$pdf .= ' ';
-		}
-
-		$pdf .= "\n7 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "xref\n0 8\ntrailer\n<< /Size 8 /Root 1 0 R >>\nstartxref\n" . strlen($pdf) . "\n%%EOF";
-
-		return $pdf;
-	}
-
-	private function createPdfWithSubsequentSignature(int $pValue): string {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R 8 0 R] >>\nendobj\n";
-
-		$signatureStart = strlen($pdf) + 200;
-		$signatureLength = 100;
-		$offset1 = 0;
-		$length1 = $signatureStart;
-		$offset2 = $signatureStart + $signatureLength;
-
-		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/ByteRange [ $offset1 $length1 $offset2 PLACEHOLDER_LENGTH2 ]\n";
-		$pdf .= "/Reference [ << /Type /SigRef /TransformMethod /DocMDP\n";
-		$pdf .= "/TransformParams << /Type /TransformParams /P $pValue /V /1.2 >> >> ]\n";
-		$pdf .= '/Contents <' . str_repeat('00', $signatureLength / 2) . "> >>\nendobj\n";
-
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
-
-		$length2 = 200;
-		$pdf = str_replace('PLACEHOLDER_LENGTH2', (string)$length2, $pdf);
-
-		$targetLength = $offset2 + $length2;
-		while (strlen($pdf) < $targetLength) {
-			$pdf .= ' ';
-		}
-
-		$pdf .= "\n7 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= '/ByteRange [ 0 100 200 100 ] /Contents <' . str_repeat('00', 50) . "> >>\nendobj\n";
-		$pdf .= "8 0 obj\n<< /FT /Sig /T (Signature2) /V 7 0 R >>\nendobj\n";
-		$pdf .= "xref\n0 9\ntrailer\n<< /Size 9 /Root 1 0 R >>\nstartxref\n" . strlen($pdf) . "\n%%EOF";
-
-		return $pdf;
-	}
-
-	private function createPdfWithDocMdpInSignatureReference(int $pValue): string {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R] >>\nendobj\n";
-
-		$signatureStart = strlen($pdf) + 200;
-		$signatureLength = 100;
-		$offset1 = 0;
-		$length1 = $signatureStart;
-		$offset2 = $signatureStart + $signatureLength;
-
-		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/ByteRange [ $offset1 $length1 $offset2 PLACEHOLDER_LENGTH2 ]\n";
-		$pdf .= "/Reference [ << /Type /SigRef /TransformMethod /DocMDP\n";
-		$pdf .= "/TransformParams << /Type /TransformParams /P $pValue /V /1.2 >> >> ]\n";
-		$pdf .= '/Contents <' . str_repeat('00', $signatureLength / 2) . "> >>\nendobj\n";
-
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
-
-		$length2 = 200;
-		$pdf = str_replace('PLACEHOLDER_LENGTH2', (string)$length2, $pdf);
-
-		$startxref = strlen($pdf);
-		$pdf .= "xref\n0 7\ntrailer\n<< /Size 7 /Root 1 0 R >>\nstartxref\n$startxref\n%%EOF";
-
-		return $pdf;
-	}
-
-	private function createPdfWithApprovalThenCertifyingSignature(): string {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R 8 0 R] >>\nendobj\n";
-
-		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= '/ByteRange [ 0 100 200 100 ] /Contents <' . str_repeat('00', 50) . "> >>\nendobj\n";
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (ApprovalSignature) /V 5 0 R >>\nendobj\n";
-
-		$signatureStart = strlen($pdf) + 200;
-		$signatureLength = 100;
-		$offset1 = 0;
-		$length1 = $signatureStart;
-		$offset2 = $signatureStart + $signatureLength;
-
-		$pdf .= "7 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/ByteRange [ $offset1 $length1 $offset2 PLACEHOLDER_LENGTH2 ]\n";
-		$pdf .= "/Reference [ << /Type /SigRef /TransformMethod /DocMDP\n";
-		$pdf .= "/TransformParams << /Type /TransformParams /P 1 /V /1.2 >> >> ]\n";
-		$pdf .= '/Contents <' . str_repeat('00', $signatureLength / 2) . "> >>\nendobj\n";
-
-		$pdf .= "8 0 obj\n<< /FT /Sig /T (CertifyingSignature) /V 7 0 R >>\nendobj\n";
-
-		$length2 = 200;
-		$pdf = str_replace('PLACEHOLDER_LENGTH2', (string)$length2, $pdf);
-
-		$startxref = strlen($pdf);
-		$pdf .= "xref\n0 9\ntrailer\n<< /Size 9 /Root 1 0 R >>\nstartxref\n$startxref\n%%EOF";
-
-		return $pdf;
-	}
-
-	private function createPdfWithPageTemplate(int $pValue): string {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R] >>\nendobj\n";
-
-		$signatureStart = strlen($pdf) + 200;
-		$signatureLength = 100;
-		$offset1 = 0;
-		$length1 = $signatureStart;
-		$offset2 = $signatureStart + $signatureLength;
-
-		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/ByteRange [ $offset1 $length1 $offset2 PLACEHOLDER_LENGTH2 ]\n";
-		$pdf .= "/Reference [ << /Type /SigRef /TransformMethod /DocMDP\n";
-		$pdf .= "/TransformParams << /Type /TransformParams /P $pValue /V /1.2 >> >> ]\n";
-		$pdf .= '/Contents <' . str_repeat('00', $signatureLength / 2) . "> >>\nendobj\n";
-
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
-
-		$length2 = 200;
-		$pdf = str_replace('PLACEHOLDER_LENGTH2', (string)$length2, $pdf);
-
-		$targetLength = $offset2 + $length2;
-		while (strlen($pdf) < $targetLength) {
-			$pdf .= ' ';
-		}
-
-		$pdf .= "\n7 0 obj\n<< /Type /XObject /Subtype /Form /BBox [0 0 100 100] >>\nendobj\n";
-		$pdf .= "xref\n0 8\ntrailer\n<< /Size 8 /Root 1 0 R >>\nstartxref\n" . strlen($pdf) . "\n%%EOF";
-
-		return $pdf;
-	}
-
-	private function createPdfWithIndirectReferencesItiStyle(int $pValue): string {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R] >>\nendobj\n";
-
-		$signatureStart = strlen($pdf) + 300;
-		$signatureLength = 100;
-		$offset1 = 0;
-		$length1 = $signatureStart;
-		$offset2 = $signatureStart + $signatureLength;
-
-		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /adbe.pkcs7.detached\n";
-		$pdf .= "/ByteRange [ $offset1 $length1 $offset2 PLACEHOLDER_LENGTH2 ]\n";
-		$pdf .= "/Reference [ 7 0 R ]\n";
-		$pdf .= '/Contents <' . str_repeat('00', $signatureLength / 2) . "> >>\nendobj\n";
-
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
-
-		$pdf .= "7 0 obj\n<< /Type /SigRef /TransformMethod /DocMDP /TransformParams 8 0 R >>\nendobj\n";
-
-		$pdf .= "8 0 obj\n<< /Type /TransformParams /P $pValue /V /1.2 >>\nendobj\n";
-
-		$length2 = 200;
-		$pdf = str_replace('PLACEHOLDER_LENGTH2', (string)$length2, $pdf);
-
-		$startxref = strlen($pdf);
-		$pdf .= "xref\n0 9\ntrailer\n<< /Size 9 /Root 1 0 R >>\nstartxref\n$startxref\n%%EOF";
-
-		return $pdf;
-	}
-
-	private function createPdfWithDocMdpVersion12(int $pValue): string {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R] >>\nendobj\n";
-
-		$signatureStart = strlen($pdf) + 200;
-		$signatureLength = 100;
-		$offset1 = 0;
-		$length1 = $signatureStart;
-		$offset2 = $signatureStart + $signatureLength;
-
-		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/ByteRange [ $offset1 $length1 $offset2 PLACEHOLDER_LENGTH2 ]\n";
-		$pdf .= "/Reference [ << /Type /SigRef /TransformMethod /DocMDP\n";
-		$pdf .= "/TransformParams << /Type /TransformParams /P $pValue /V /1.2 >> >> ]\n";
-		$pdf .= '/Contents <' . str_repeat('00', $signatureLength / 2) . "> >>\nendobj\n";
-
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
-
-		$length2 = 200;
-		$pdf = str_replace('PLACEHOLDER_LENGTH2', (string)$length2, $pdf);
-
-		$startxref = strlen($pdf);
-		$pdf .= "xref\n0 7\ntrailer\n<< /Size 7 /Root 1 0 R >>\nstartxref\n$startxref\n%%EOF";
-
-		return $pdf;
-	}
-
-	private function createPdfWithDocMdpWithoutVersion(int $pValue): string {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R] >>\nendobj\n";
-
-		$signatureStart = strlen($pdf) + 200;
-		$signatureLength = 100;
-		$offset1 = 0;
-		$length1 = $signatureStart;
-		$offset2 = $signatureStart + $signatureLength;
-
-		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/ByteRange [ $offset1 $length1 $offset2 PLACEHOLDER_LENGTH2 ]\n";
-		$pdf .= "/Reference [ << /Type /SigRef /TransformMethod /DocMDP\n";
-		$pdf .= "/TransformParams << /Type /TransformParams /P $pValue >> >> ]\n";
-		$pdf .= '/Contents <' . str_repeat('00', $signatureLength / 2) . "> >>\nendobj\n";
-
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
-
-		$length2 = 200;
-		$pdf = str_replace('PLACEHOLDER_LENGTH2', (string)$length2, $pdf);
-
-		$startxref = strlen($pdf);
-		$pdf .= "xref\n0 7\ntrailer\n<< /Size 7 /Root 1 0 R >>\nstartxref\n$startxref\n%%EOF";
-
-		return $pdf;
-	}
-
-	private function createPdfWithDocMdpInvalidVersion(int $pValue, string $version): string {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R] >>\nendobj\n";
-
-		$signatureStart = strlen($pdf) + 200;
-		$signatureLength = 100;
-		$offset1 = 0;
-		$length1 = $signatureStart;
-		$offset2 = $signatureStart + $signatureLength;
-
-		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/ByteRange [ $offset1 $length1 $offset2 PLACEHOLDER_LENGTH2 ]\n";
-		$pdf .= "/Reference [ << /Type /SigRef /TransformMethod /DocMDP\n";
-		$pdf .= "/TransformParams << /Type /TransformParams /P $pValue /V /$version >> >> ]\n";
-		$pdf .= '/Contents <' . str_repeat('00', $signatureLength / 2) . "> >>\nendobj\n";
-
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
-
-		$length2 = 200;
-		$pdf = str_replace('PLACEHOLDER_LENGTH2', (string)$length2, $pdf);
-
-		$startxref = strlen($pdf);
-		$pdf .= "xref\n0 7\ntrailer\n<< /Size 7 /Root 1 0 R >>\nstartxref\n$startxref\n%%EOF";
-
-		return $pdf;
-	}
-
-	private function createPdfWithIndirectReferencesInvalidVersion(int $pValue, string $version): string {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R] >>\nendobj\n";
-
-		$signatureStart = strlen($pdf) + 350;
-		$signatureLength = 100;
-		$offset1 = 0;
-		$length1 = $signatureStart;
-		$offset2 = $signatureStart + $signatureLength;
-
-		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/M (D:20220705145549-03'00')\n";
-		$pdf .= "/Reference [7 0 R]\n";
-		$pdf .= "/ByteRange [ $offset1 $length1 $offset2 PLACEHOLDER_LENGTH2 ]\n";
-		$pdf .= '/Contents <' . str_repeat('00', $signatureLength / 2) . "> >>\nendobj\n";
-
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
-
-		$pdf .= "7 0 obj\n<< /Type /SigRef /TransformMethod /DocMDP /TransformParams 8 0 R >>\nendobj\n";
-		$pdf .= "8 0 obj\n<< /Type /TransformParams /P $pValue /V /$version >>\nendobj\n";
-
-		$length2 = 200;
-		$pdf = str_replace('PLACEHOLDER_LENGTH2', (string)$length2, $pdf);
-
-		$startxref = strlen($pdf);
-		$pdf .= "xref\n0 9\ntrailer\n<< /Size 9 /Root 1 0 R >>\nstartxref\n$startxref\n%%EOF";
-
-		return $pdf;
-	}
+	// PDF fixture methods are now provided by PdfFixtureTrait
 
 	// ISO 32000-1 Table 252 validation tests
 	public function testRejectsSignatureDictionaryWithoutTypeWhenPresent(): void {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R] >>\nendobj\n";
-		$pdf .= "5 0 obj\n<< /Type /InvalidType /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/Reference [<< /Type /SigRef /TransformMethod /DocMDP /TransformParams << /Type /TransformParams /P 2 /V /1.2 >> >>] >>\nendobj\n";
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
-		$pdf .= "xref\n0 7\ntrailer\n<< /Size 7 /Root 1 0 R >>\n%%EOF";
+		$pdf = $this->createPdfWithInvalidSignatureType();
 
 		$resource = $this->createResourceFromContent($pdf);
 		$result = $this->handler->extractDocMdpData($resource);
@@ -730,15 +276,7 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testRejectsSignatureWithoutFilterEntry(): void {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R] >>\nendobj\n";
-		$pdf .= "5 0 obj\n<< /Type /Sig /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/Reference [<< /Type /SigRef /TransformMethod /DocMDP /TransformParams << /Type /TransformParams /P 2 /V /1.2 >> >>] >>\nendobj\n";
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
-		$pdf .= "xref\n0 7\ntrailer\n<< /Size 7 /Root 1 0 R >>\n%%EOF";
+		$pdf = $this->createPdfWithoutFilterEntry();
 
 		$resource = $this->createResourceFromContent($pdf);
 		$result = $this->handler->extractDocMdpData($resource);
@@ -748,15 +286,7 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testRejectsSignatureWithoutByteRange(): void {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R] >>\nendobj\n";
-		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/Reference [<< /Type /SigRef /TransformMethod /DocMDP /TransformParams << /Type /TransformParams /P 2 /V /1.2 >> >>] >>\nendobj\n";
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
-		$pdf .= "xref\n0 7\ntrailer\n<< /Size 7 /Root 1 0 R >>\n%%EOF";
+		$pdf = $this->createPdfWithoutByteRange();
 
 		$resource = $this->createResourceFromContent($pdf);
 		$result = $this->handler->extractDocMdpData($resource);
@@ -766,27 +296,7 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testRejectsMultipleDocMdpSignatures(): void {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R 10 0 R] >>\nendobj\n";
-
-		// First DocMDP signature
-		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/ByteRange [0 100 200 100]\n";
-		$pdf .= "/Reference [7 0 R] >>\nendobj\n";
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
-		$pdf .= "7 0 obj\n<< /Type /SigRef /TransformMethod /DocMDP /TransformParams << /Type /TransformParams /P 2 /V /1.2 >> >>\nendobj\n";
-
-		// Second DocMDP signature (INVALID per ISO)
-		$pdf .= "8 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/ByteRange [0 100 300 100]\n";
-		$pdf .= "/Reference [9 0 R] >>\nendobj\n";
-		$pdf .= "9 0 obj\n<< /Type /SigRef /TransformMethod /DocMDP /TransformParams << /Type /TransformParams /P 3 /V /1.2 >> >>\nendobj\n";
-		$pdf .= "10 0 obj\n<< /FT /Sig /T (Signature2) /V 8 0 R >>\nendobj\n";
-
-		$pdf .= "xref\n0 11\ntrailer\n<< /Size 11 /Root 1 0 R >>\n%%EOF";
+		$pdf = $this->createPdfWithMultipleDocMdpSignatures();
 
 		$resource = $this->createResourceFromContent($pdf);
 		$result = $this->handler->extractDocMdpData($resource);
@@ -796,25 +306,7 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testRejectsDocMdpNotFirstSignature(): void {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R 10 0 R] >>\nendobj\n";
-
-		// First signature: regular approval signature (no DocMDP)
-		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/ByteRange [0 100 200 100] >>\nendobj\n";
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (ApprovalSignature) /V 5 0 R >>\nendobj\n";
-
-		// Second signature: DocMDP certification (INVALID - must be first)
-		$pdf .= "7 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/ByteRange [0 100 300 100]\n";
-		$pdf .= "/Reference [8 0 R] >>\nendobj\n";
-		$pdf .= "8 0 obj\n<< /Type /SigRef /TransformMethod /DocMDP /TransformParams << /Type /TransformParams /P 2 /V /1.2 >> >>\nendobj\n";
-		$pdf .= "10 0 obj\n<< /FT /Sig /T (CertificationSignature) /V 7 0 R >>\nendobj\n";
-
-		$pdf .= "xref\n0 11\ntrailer\n<< /Size 11 /Root 1 0 R >>\n%%EOF";
+		$pdf = $this->createPdfWithDocMdpNotFirst();
 
 		$resource = $this->createResourceFromContent($pdf);
 		$result = $this->handler->extractDocMdpData($resource);
@@ -824,21 +316,69 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testRejectsSigRefWithoutTransformMethod(): void {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R] >>\nendobj\n";
-		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/ByteRange [0 100 200 100]\n";
-		$pdf .= "/Reference [<< /Type /SigRef /TransformParams << /Type /TransformParams /P 2 /V /1.2 >> >>] >>\nendobj\n";
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
-		$pdf .= "xref\n0 7\ntrailer\n<< /Size 7 /Root 1 0 R >>\n%%EOF";
+		$pdf = $this->createPdfWithSigRefWithoutTransformMethod();
 
 		$resource = $this->createResourceFromContent($pdf);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
 		$this->assertSame(DocMdpLevel::NOT_CERTIFIED->value, $result['docmdp']['level'], 'ISO 32000-1 Table 253: /TransformMethod is Required in signature reference dictionary');
+	}
+
+	public static function additionalSignaturesProvider(): array {
+		return [
+			// PDFs without any signature
+			'Unsigned PDF (virgin) - allows signatures' => ['unsigned', false, true],
+
+			// PDFs with DocMDP signature, no modifications
+			'DocMDP P=0 (no restrictions, unmodified) - allows additional signatures' => [0, false, true],
+			'DocMDP P=1 (no changes allowed, unmodified) - prohibits additional signatures' => [1, false, false],
+			'DocMDP P=2 (form filling allowed, unmodified) - allows additional signatures' => [2, false, true],
+			'DocMDP P=3 (form+annotations allowed, unmodified) - allows additional signatures' => [3, false, true],
+
+			// PDFs with DocMDP signature, with modifications
+			'DocMDP P=0 (no restrictions, modified) - allows additional signatures' => [0, true, true],
+			'DocMDP P=1 (no changes allowed, modified) - prohibits additional signatures' => [1, true, false],
+			'DocMDP P=2 (form filling allowed, modified) - allows additional signatures' => [2, true, true],
+			'DocMDP P=3 (form+annotations allowed, modified) - allows additional signatures' => [3, true, true],
+		];
+	}
+
+	#[DataProvider('additionalSignaturesProvider')]
+	public function testAdditionalSignaturesBasedOnDocMdpLevel(string|int $level, bool $withModifications, bool $expectedAllowed): void {
+		if ($level === 'unsigned') {
+			// PDF without any signature (virgin PDF)
+			$pdfContent = $this->createMinimalPdf();
+		} else {
+			// PDF with DocMDP signature at specified level (0, 1, 2, or 3)
+			$pdfContent = $this->createPdfWithDocMdp($level, $withModifications);
+		}
+
+		$resource = $this->createResourceFromContent($pdfContent);
+		$result = $this->handler->allowsAdditionalSignatures($resource);
+		fclose($resource);
+
+		$this->assertSame($expectedAllowed, $result);
+	}
+
+	public function testRealJSignPdfWithDocMdpLevel1(): void {
+		$pdfPath = __DIR__ . '/../../fixtures/real_jsignpdf_level1.pdf';
+
+		if (!file_exists($pdfPath)) {
+			$this->markTestSkipped('Real JSignPdf test PDF not found');
+		}
+
+		$content = file_get_contents($pdfPath);
+		$resource = $this->createResourceFromContent($content);
+
+		$data = $this->handler->extractDocMdpData($resource);
+
+		rewind($resource);
+		$allows = $this->handler->allowsAdditionalSignatures($resource);
+
+		fclose($resource);
+
+		$this->assertSame(1, $data['docmdp']['level'], 'Should detect DocMDP level 1 from real JSignPdf');
+		$this->assertFalse($allows, 'Should not allow additional signatures for DocMDP level 1');
 	}
 }

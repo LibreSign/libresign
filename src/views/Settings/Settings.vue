@@ -14,6 +14,7 @@
 		<IdentificationFactors />
 		<ExpirationRules />
 		<Validation />
+		<DocMDP />
 		<AllowedGroups />
 		<LegalInformation />
 		<IdentificationDocuments />
@@ -34,6 +35,7 @@ import CertificateEngine from './CertificateEngine.vue'
 import CollectMetadata from './CollectMetadata.vue'
 import ConfigureCheck from './ConfigureCheck.vue'
 import DefaultUserFolder from './DefaultUserFolder.vue'
+import DocMDP from './DocMDP.vue'
 import DownloadBinaries from './DownloadBinaries.vue'
 import ExpirationRules from './ExpirationRules.vue'
 import IdentificationDocuments from './IdentificationDocuments.vue'
@@ -56,6 +58,7 @@ export default {
 		CollectMetadata,
 		ConfigureCheck,
 		DefaultUserFolder,
+		DocMDP,
 		DownloadBinaries,
 		ExpirationRules,
 		IdentificationDocuments,
