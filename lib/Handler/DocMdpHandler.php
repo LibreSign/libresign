@@ -26,6 +26,12 @@ class DocMdpHandler {
 	) {
 	}
 
+	public function allowsAdditionalSignatures($resource): bool {
+		$docmdpLevel = $this->extractDocMdpLevel($resource);
+
+		return $docmdpLevel !== DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED;
+	}
+
 	public function extractDocMdpData($resource): array {
 		if (!is_resource($resource)) {
 			return [];
@@ -160,7 +166,7 @@ class DocMdpHandler {
 	 * @return array Array of objects with keys: objNum, dict, position
 	 */
 	private function parsePdfObjects(string $content): array {
-		if (!preg_match_all('/(\d+)\s+\d+\s+obj\s*(<<.*?>>)\s*endobj/s', $content, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+		if (!preg_match_all('/(\d+)\s+\d+\s+obj(.*?)endobj/s', $content, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
 			return [];
 		}
 
@@ -168,7 +174,7 @@ class DocMdpHandler {
 		foreach ($matches as $match) {
 			$objects[] = [
 				'objNum' => $match[1][0],
-				'dict' => $match[2][0],
+				'dict' => trim($match[2][0]),
 				'position' => $match[2][1],
 			];
 		}
@@ -452,16 +458,11 @@ class DocMdpHandler {
 		return $this->validateDictionaryEntries($sigDict);
 	}
 
-	/**
-	 * Find signature dictionary with /Reference entry
-	 *
-	 * @param array $objects Parsed PDF objects
-	 * @return string|null Dictionary content or null
-	 */
 	private function findSignatureDictionary(array $objects): ?string {
 		foreach ($objects as $obj) {
-			if (preg_match('/\/Reference\s*\[/', $obj['dict'])) {
-				return $obj['dict'];
+			$dict = $obj['dict'];
+			if (preg_match('/\/Type\s*\/Sig\b/', $dict) && preg_match('/\/Reference\s*\[/', $dict)) {
+				return $dict;
 			}
 		}
 		return null;
@@ -474,7 +475,7 @@ class DocMdpHandler {
 	 * @return bool True if all required entries are valid
 	 */
 	private function validateDictionaryEntries(string $dict): bool {
-		if (preg_match('/\/Type\s*\/(\w+)/', $dict, $typeMatch) && $typeMatch[1] !== 'Sig') {
+		if (!preg_match('/\/Type\s*\/Sig\b/', $dict)) {
 			return false;
 		}
 
