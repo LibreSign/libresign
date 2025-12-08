@@ -40,7 +40,7 @@ class SerialNumberService {
 			try {
 				$this->crlMapper->createCertificate(
 					$serialString,
-					$certificateOwner ?? 'Unknown',
+					$certificateOwner,
 					$engineName,
 					$instanceId,
 					$generation,
