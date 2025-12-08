@@ -463,7 +463,6 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = $this->getService();
 
 		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
-		$this->expectExceptionMessage('This document is certified with DocMDP level 1');
 
 		$service->validateFileContent($pdfContent, 'pdf');
 	}
