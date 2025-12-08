@@ -102,7 +102,7 @@ export default {
 				}
 			} catch (error) {
 				console.error('Error loading DocMDP configuration:', error)
-				this.errorMessage = t('libresign', 'Failed to load DocMDP configuration')
+				this.errorMessage = t('libresign', 'Could not load configuration.')
 			}
 		},
 		onEnabledChange(value) {
@@ -147,7 +147,7 @@ export default {
 			} catch (error) {
 				console.error('Error saving DocMDP configuration:', error)
 				this.errorMessage = error.response?.data?.ocs?.data?.error
-					|| t('libresign', 'Failed to save DocMDP configuration')
+					|| t('libresign', 'Could not save configuration.')
 				this.showErrorIcon = true
 				setTimeout(() => {
 					this.showErrorIcon = false
