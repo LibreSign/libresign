@@ -1261,32 +1261,32 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public static function provideValidateDocMdpAllowsSignaturesScenarios(): array {
 		return [
 			'Unsigned PDF - should NOT throw exception' => [
-				'pdfContentGenerator' => fn(self $test) => $test->createMinimalPdf(),
+				'pdfContentGenerator' => fn (self $test) => $test->createMinimalPdf(),
 				'shouldThrowException' => false,
 				'expectedExceptionMessage' => null,
 			],
 			'DocMDP level 0 (not certified) - should NOT throw exception' => [
-				'pdfContentGenerator' => fn(self $test) => $test->createPdfWithDocMdp(0, false),
+				'pdfContentGenerator' => fn (self $test) => $test->createPdfWithDocMdp(0, false),
 				'shouldThrowException' => false,
 				'expectedExceptionMessage' => null,
 			],
 			'DocMDP level 1 (no changes allowed) - SHOULD throw exception' => [
-				'pdfContentGenerator' => fn(self $test) => $test->createPdfWithDocMdp(1, false),
+				'pdfContentGenerator' => fn (self $test) => $test->createPdfWithDocMdp(1, false),
 				'shouldThrowException' => true,
 				'expectedExceptionMessage' => 'This document is certified with DocMDP level 1 (no changes allowed) and cannot receive additional signatures',
 			],
 			'DocMDP level 2 (form filling allowed) - should NOT throw exception' => [
-				'pdfContentGenerator' => fn(self $test) => $test->createPdfWithDocMdp(2, false),
+				'pdfContentGenerator' => fn (self $test) => $test->createPdfWithDocMdp(2, false),
 				'shouldThrowException' => false,
 				'expectedExceptionMessage' => null,
 			],
 			'DocMDP level 3 (annotations allowed) - should NOT throw exception' => [
-				'pdfContentGenerator' => fn(self $test) => $test->createPdfWithDocMdp(3, false),
+				'pdfContentGenerator' => fn (self $test) => $test->createPdfWithDocMdp(3, false),
 				'shouldThrowException' => false,
 				'expectedExceptionMessage' => null,
 			],
 			'DocMDP level 1 with modifications - SHOULD throw exception' => [
-				'pdfContentGenerator' => fn(self $test) => $test->createPdfWithDocMdp(1, true),
+				'pdfContentGenerator' => fn (self $test) => $test->createPdfWithDocMdp(1, true),
 				'shouldThrowException' => true,
 				'expectedExceptionMessage' => 'This document is certified with DocMDP level 1 (no changes allowed) and cannot receive additional signatures',
 			],
