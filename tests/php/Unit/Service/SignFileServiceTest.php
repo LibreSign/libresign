@@ -1249,7 +1249,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = $this->getService(['getLibreSignFileAsResource']);
 
 		$pdfContent = $pdfContentGenerator($this);
-		$resource = fopen('php://temp', 'r+');
+		$resource = fopen('php://memory', 'r+');
 		fwrite($resource, $pdfContent);
 		rewind($resource);
 
