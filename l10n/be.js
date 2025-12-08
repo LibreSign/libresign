@@ -53,6 +53,7 @@ OC.L10N.register(
     "Administration" : "Адміністратар",
     "pending" : "у чаканні",
     "Show available variables" : "Паказаць даступныя пераменныя",
+    "Available variables" : "Даступныя пераменныя",
     "Preview" : "Перадпрагляд",
     "Width" : "Шырыня",
     "Height" : "Вышыня",

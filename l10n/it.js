@@ -256,6 +256,7 @@ OC.L10N.register(
     "Open sidebar" : "Apri la barra laterale",
     "Preview" : "Anteprima",
     "Zoom level" : "Livello di zoom",
+    "Width" : "Larghezza",
     "Height" : "Altezza",
     "Copy to clipboard" : "Copia negli appunti",
     "Details" : "Dettagli",
