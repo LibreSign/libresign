@@ -6,8 +6,7 @@
 	<FileListFilter class="file-list-filter-status"
 		:is-active="isActive"
 		:filter-name="t('libresign', 'Status')"
-		@reset-filter="resetFilter"
-		@set-marked-filter="setMarkedFilter">
+		@reset-filter="resetFilter">
 		<template #icon>
 			<NcIconSvgWrapper :path="mdiListStatus" />
 		</template>
@@ -74,6 +73,7 @@ export default {
 			} else {
 				this.setPreset(newValue)
 			}
+			this.setMarkedFilter()
 		},
 	},
 	methods: {
@@ -99,17 +99,10 @@ export default {
 			this.filtersStore.onFilterUpdateChips({ detail: chips, id: 'status' })
 		},
 		resetFilter() {
-
-			if( this.selectedOptions.length > 0) {
+			if (this.selectedOptions.length > 0) {
 				this.selectedOptions = []
-
 				this.filtersStore.onFilterUpdateChipsAndSave({ detail: [], id: 'status' })
 			}
-
-			console.log("-------------- TESTE:")
-			console.log(this.selectedOptions)
-			console.log(this.filtersStore.filterStatusArray)
-
 		},
 		toggleOption(option) {
 			const idx = this.selectedOptions.indexOf(option)
@@ -119,19 +112,10 @@ export default {
 				this.selectedOptions.push(option)
 			}
 		},
-		setMarkedFilter(){
-
-			console.log("Aqui aqui")
-
+		setMarkedFilter() {
 			const chips = []
 
-			let presets = this.selectedOptions
-
-			if (presets && presets.length > 0) {
-
-				console.log('Caiu no nao reset')
-				console.log(presets)
-
+			if (this.selectedOptions.length > 0) {
 				for (const id of this.selectedOptions) {
 					const status = fileStatus.find(item => item.id === id)
 					if (!status) continue
@@ -145,15 +129,9 @@ export default {
 						},
 					})
 				}
-
-				this.filtersStore.onFilterUpdateChipsAndSave({ detail: chips, id: 'status' })
-
-			}  else {
-				console.log('Caiu no reset')
-				this.resetFilter()
 			}
 
-
+			this.filtersStore.onFilterUpdateChipsAndSave({ detail: chips, id: 'status' })
 		}
 	},
 }
