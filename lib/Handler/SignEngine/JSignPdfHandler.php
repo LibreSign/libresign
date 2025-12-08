@@ -154,6 +154,15 @@ class JSignPdfHandler extends Pkcs12Handler {
 		return 'SHA256';
 	}
 
+	private function getCertificationLevel(): ?string {
+		if (!$this->docMdpConfigService->isEnabled()) {
+			return null;
+		}
+
+		return $this->docMdpConfigService->getLevel()->name;
+	}
+
+	#[\Override]
 	public function sign(): File {
 		$this->beforeSign();
 
@@ -162,6 +171,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 		return $this->getInputFile();
 	}
 
+	#[\Override]
 	public function getSignedContent(): string {
 		$param = $this->getJSignParam()
 			->setCertificate($this->getCertificate())
@@ -287,6 +297,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 	}
 
 
+	#[\Override]
 	public function readCertificate(): array {
 		$result = $this->certificateEngineFactory
 			->getEngine()
