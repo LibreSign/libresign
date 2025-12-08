@@ -393,9 +393,7 @@ export default {
 					owner: this.filters.owner,
 					status: this.filters.status,
 				}
-				console.log('Saving id_docs_filters:', filters)
 				await this.userConfigStore.update('id_docs_filters', filters)
-				console.log('Filters saved successfully')
 			} catch (error) {
 				console.error('Failed to save filters:', error)
 			}
