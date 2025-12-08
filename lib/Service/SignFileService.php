@@ -341,7 +341,7 @@ class SignFileService {
 		try {
 			if (!$this->docMdpHandler->allowsAdditionalSignatures($resource)) {
 				throw new LibresignException(
-					$this->l10n->t('This document is certified with DocMDP level 1 (no changes allowed) and cannot receive additional signatures'),
+					$this->l10n->t('This document has been certified with no changes allowed, so no additional signatures can be added.'),
 					AppFrameworkHttp::STATUS_UNPROCESSABLE_ENTITY
 				);
 			}
