@@ -22,6 +22,7 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignedEventFactory;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\PdfTk\Pdf;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
@@ -34,6 +35,7 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Tests\Unit\PdfFixtureTrait;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -57,6 +59,7 @@ use Psr\Log\LoggerInterface;
  * @group DB
  */
 final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
+	use PdfFixtureTrait;
 	private IL10N&MockObject $l10n;
 	private FooterHandler&MockObject $footerHandler;
 	private FileMapper&MockObject $fileMapper;
@@ -85,6 +88,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignEngineFactory $signEngineFactory;
 	private SignedEventFactory&MockObject $signedEventFactory;
 	private Pdf&MockObject $pdf;
+	private DocMdpHandler $docMdpHandler;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -119,6 +123,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signEngineFactory = \OCP\Server::get(SignEngineFactory::class);
 		$this->signedEventFactory = $this->createMock(SignedEventFactory::class);
 		$this->pdf = $this->createMock(Pdf::class);
+		$this->docMdpHandler = new DocMdpHandler($this->l10n);
 	}
 
 	private function getService(array $methods = []): SignFileService|MockObject {
@@ -152,6 +157,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->signEngineFactory,
 					$this->signedEventFactory,
 					$this->pdf,
+					$this->docMdpHandler,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -184,6 +190,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->signEngineFactory,
 			$this->signedEventFactory,
 			$this->pdf,
+			$this->docMdpHandler,
 		);
 	}
 
@@ -261,10 +268,13 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = $this->getService([
 			'getEngine',
 			'setNewStatusIfNecessary',
+			'getNextcloudFile',
 		]);
 
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
 		$nextcloudFile->method('getContent')->willReturn($signedContent);
+		$service->method('getNextcloudFile')->willReturn($nextcloudFile);
+
 		$pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$pkcs12Handler->method('sign')->willReturn($nextcloudFile);
 		$service->method('getEngine')->willReturn($pkcs12Handler);
@@ -306,7 +316,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'getEngine',
 			'setNewStatusIfNecessary',
 			'computeHash',
+			'getNextcloudFile',
 		]);
+
+		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
+		$nextcloudFile->method('getContent')->willReturn('pdf content');
+		$service->method('getNextcloudFile')->willReturn($nextcloudFile);
 
 		$this->fileMapper->expects($this->once())->method('update');
 		$this->signRequestMapper->expects($this->once())->method('update');
@@ -325,7 +340,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'getEngine',
 			'setNewStatusIfNecessary',
 			'computeHash',
+			'getNextcloudFile',
 		]);
+
+		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
+		$nextcloudFile->method('getContent')->willReturn('pdf content');
+		$service->method('getNextcloudFile')->willReturn($nextcloudFile);
 
 		$this->eventDispatcher
 			->expects($this->once())
@@ -347,7 +367,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'getEngine',
 			'computeHash',
 			'getSigners',
+			'getNextcloudFile',
 		]);
+
+		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
+		$nextcloudFile->method('getContent')->willReturn('pdf content');
+		$service->method('getNextcloudFile')->willReturn($nextcloudFile);
 
 		$service->method('getSigners')->willReturn($inputSigners);
 
@@ -443,6 +468,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'updateSignRequest',
 			'updateLibreSignFile',
 			'dispatchSignedEvent',
+			'validateDocMdpAllowsSignatures',
 		]);
 
 		$signEngineHandler = $this->getMockBuilder(Pkcs12Handler::class)
@@ -1145,6 +1171,125 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[\OCP\Files\Folder::class, '/not have permission/'],
 			[\OCP\Files\Folder::class, '/File not found/'],
 			[\OCP\Files\File::class, ''],
+		];
+	}
+
+	public function testSignThrowsExceptionWhenDocMdpLevel1Detected(): void {
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('This document is certified with DocMDP level 1 (no changes allowed) and cannot receive additional signatures');
+
+		// Create a real DocMdpHandler for this test
+		$realDocMdpHandler = new DocMdpHandler($this->l10n);
+
+		// Create service with custom methods mocked and real DocMdpHandler
+		$service = $this->getMockBuilder(SignFileService::class)
+			->setConstructorArgs([
+				$this->l10n,
+				$this->fileMapper,
+				$this->signRequestMapper,
+				$this->idDocsMapper,
+				$this->footerHandler,
+				$this->folderService,
+				$this->clientService,
+				$this->userManager,
+				$this->logger,
+				$this->appConfig,
+				$this->validateHelper,
+				$this->signerElementsService,
+				$this->root,
+				$this->userSession,
+				$this->dateTimeZone,
+				$this->fileElementMapper,
+				$this->userElementMapper,
+				$this->eventDispatcher,
+				$this->secureRandom,
+				$this->urlGenerator,
+				$this->identifyMethodMapper,
+				$this->tempManager,
+				$this->identifyMethodService,
+				$this->timeFactory,
+				$this->signEngineFactory,
+				$this->signedEventFactory,
+				$this->pdf,
+				$realDocMdpHandler,
+			])
+			->onlyMethods(['getNextcloudFile', 'getEngine'])
+			->getMock();
+
+		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
+		$nextcloudFile->method('getContent')->willReturn(file_get_contents(__DIR__ . '/../../fixtures/real_jsignpdf_level1.pdf'));
+		$service->method('getNextcloudFile')->willReturn($nextcloudFile);
+
+		// Mock getEngine to prevent actual signing (should not be called)
+		$engineMock = $this->createMock(Pkcs12Handler::class);
+		$service->method('getEngine')->willReturn($engineMock);
+
+		$signRequest = $this->createMock(SignRequest::class);
+		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+
+		$service
+			->setSignRequest($signRequest)
+			->setLibreSignFile($libreSignFile)
+			->sign();
+	}
+
+	#[DataProvider('provideValidateDocMdpAllowsSignaturesScenarios')]
+	public function testValidateDocMdpAllowsSignaturesWithVariousPdfFixtures(
+		callable $pdfContentGenerator,
+		bool $shouldThrowException,
+		?string $expectedExceptionMessage,
+	): void {
+		if (!$shouldThrowException) {
+			$this->expectNotToPerformAssertions();
+		} else {
+			$this->expectException(LibresignException::class);
+			$this->expectExceptionMessage($expectedExceptionMessage);
+		}
+
+		$service = $this->getService(['getLibreSignFileAsResource']);
+
+		$pdfContent = $pdfContentGenerator($this);
+		$resource = fopen('php://temp', 'r+');
+		fwrite($resource, $pdfContent);
+		rewind($resource);
+
+		$service->method('getLibreSignFileAsResource')->willReturn($resource);
+
+		self::invokePrivate($service, 'validateDocMdpAllowsSignatures');
+	}
+
+	public static function provideValidateDocMdpAllowsSignaturesScenarios(): array {
+		return [
+			'Unsigned PDF - should NOT throw exception' => [
+				'pdfContentGenerator' => fn(self $test) => $test->createMinimalPdf(),
+				'shouldThrowException' => false,
+				'expectedExceptionMessage' => null,
+			],
+			'DocMDP level 0 (not certified) - should NOT throw exception' => [
+				'pdfContentGenerator' => fn(self $test) => $test->createPdfWithDocMdp(0, false),
+				'shouldThrowException' => false,
+				'expectedExceptionMessage' => null,
+			],
+			'DocMDP level 1 (no changes allowed) - SHOULD throw exception' => [
+				'pdfContentGenerator' => fn(self $test) => $test->createPdfWithDocMdp(1, false),
+				'shouldThrowException' => true,
+				'expectedExceptionMessage' => 'This document is certified with DocMDP level 1 (no changes allowed) and cannot receive additional signatures',
+			],
+			'DocMDP level 2 (form filling allowed) - should NOT throw exception' => [
+				'pdfContentGenerator' => fn(self $test) => $test->createPdfWithDocMdp(2, false),
+				'shouldThrowException' => false,
+				'expectedExceptionMessage' => null,
+			],
+			'DocMDP level 3 (annotations allowed) - should NOT throw exception' => [
+				'pdfContentGenerator' => fn(self $test) => $test->createPdfWithDocMdp(3, false),
+				'shouldThrowException' => false,
+				'expectedExceptionMessage' => null,
+			],
+			'DocMDP level 1 with modifications - SHOULD throw exception' => [
+				'pdfContentGenerator' => fn(self $test) => $test->createPdfWithDocMdp(1, true),
+				'shouldThrowException' => true,
+				'expectedExceptionMessage' => 'This document is certified with DocMDP level 1 (no changes allowed) and cannot receive additional signatures',
+			],
 		];
 	}
 }
