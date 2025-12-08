@@ -48,8 +48,10 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.files-list-filter__clear-button :deep(.action-button__text) {
-	color: var(--color-error-text);
+.files-list-filter__clear-button {
+	:deep(.action-button__text) {
+		color: var(--color-error-text);
+	}
 }
 
 :deep(.button-vue) {
