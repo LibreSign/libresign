@@ -1176,50 +1176,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testSignThrowsExceptionWhenDocMdpLevel1Detected(): void {
 		$this->expectException(LibresignException::class);
-
-		// Create a real DocMdpHandler for this test
-		$realDocMdpHandler = new DocMdpHandler($this->l10n);
-
-		// Create service with custom methods mocked and real DocMdpHandler
-		$service = $this->getMockBuilder(SignFileService::class)
-			->setConstructorArgs([
-				$this->l10n,
-				$this->fileMapper,
-				$this->signRequestMapper,
-				$this->idDocsMapper,
-				$this->footerHandler,
-				$this->folderService,
-				$this->clientService,
-				$this->userManager,
-				$this->logger,
-				$this->appConfig,
-				$this->validateHelper,
-				$this->signerElementsService,
-				$this->root,
-				$this->userSession,
-				$this->dateTimeZone,
-				$this->fileElementMapper,
-				$this->userElementMapper,
-				$this->eventDispatcher,
-				$this->secureRandom,
-				$this->urlGenerator,
-				$this->identifyMethodMapper,
-				$this->tempManager,
-				$this->identifyMethodService,
-				$this->timeFactory,
-				$this->signEngineFactory,
-				$this->signedEventFactory,
-				$this->pdf,
-				$realDocMdpHandler,
-			])
-			->onlyMethods(['getNextcloudFile', 'getEngine'])
-			->getMock();
+		$service = $this->getService(['getNextcloudFile', 'getEngine']);
 
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
 		$nextcloudFile->method('getContent')->willReturn(file_get_contents(__DIR__ . '/../../fixtures/real_jsignpdf_level1.pdf'));
 		$service->method('getNextcloudFile')->willReturn($nextcloudFile);
 
-		// Mock getEngine to prevent actual signing (should not be called)
 		$engineMock = $this->createMock(Pkcs12Handler::class);
 		$service->method('getEngine')->willReturn($engineMock);
 
