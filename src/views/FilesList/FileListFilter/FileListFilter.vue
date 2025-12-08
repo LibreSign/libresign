@@ -18,8 +18,7 @@
 				@click="$emit('reset-filter')">
 				{{ t('files', 'Clear filter') }}
 			</NcActionButton>
-			<NcActionButton class="files-list-filter__clear-button"
-				close-after-click
+			<NcActionButton close-after-click
 				@click="$emit('set-marked-filter')">
 				{{ t('files', 'Save filter') }}
 			</NcActionButton>
@@ -53,8 +52,10 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.files-list-filter__clear-button :deep(.action-button__text) {
-	color: var(--color-error-text);
+.files-list-filter__clear-button {
+	:deep(.action-button__text) {
+		color: var(--color-error-text);
+	}
 }
 
 :deep(.button-vue) {
