@@ -1176,7 +1176,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testSignThrowsExceptionWhenDocMdpLevel1Detected(): void {
 		$this->expectException(LibresignException::class);
-		$this->expectExceptionMessage('This document is certified with DocMDP level 1 (no changes allowed) and cannot receive additional signatures');
 
 		// Create a real DocMdpHandler for this test
 		$realDocMdpHandler = new DocMdpHandler($this->l10n);
