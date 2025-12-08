@@ -29,6 +29,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Events\SignedEventFactory;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\PdfTk\Pdf;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
@@ -102,6 +103,7 @@ class SignFileService {
 		protected SignEngineFactory $signEngineFactory,
 		private SignedEventFactory $signedEventFactory,
 		private Pdf $pdf,
+		private DocMdpHandler $docMdpHandler,
 	) {
 	}
 
@@ -317,6 +319,7 @@ class SignFileService {
 	}
 
 	public function sign(): File {
+		$this->validateDocMdpAllowsSignatures();
 		$signedFile = $this->getEngine()->sign();
 
 		$hash = $this->computeHash($signedFile);
@@ -327,6 +330,40 @@ class SignFileService {
 		$this->dispatchSignedEvent();
 
 		return $signedFile;
+	}
+
+	/**
+	 * @throws LibresignException If the document has DocMDP level 1 (no changes allowed)
+	 */
+	protected function validateDocMdpAllowsSignatures(): void {
+		$resource = $this->getLibreSignFileAsResource();
+
+		try {
+			if (!$this->docMdpHandler->allowsAdditionalSignatures($resource)) {
+				throw new LibresignException(
+					$this->l10n->t('This document has been certified with no changes allowed, so no additional signatures can be added.'),
+					AppFrameworkHttp::STATUS_UNPROCESSABLE_ENTITY
+				);
+			}
+		} finally {
+			fclose($resource);
+		}
+	}
+
+	/**
+	 * @return resource
+	 * @throws LibresignException
+	 */
+	protected function getLibreSignFileAsResource() {
+		$fileToSign = $this->getNextcloudFile($this->libreSignFile);
+		$content = $fileToSign->getContent();
+		$resource = fopen('php://memory', 'r+');
+		if ($resource === false) {
+			throw new LibresignException('Failed to create temporary resource for PDF validation');
+		}
+		fwrite($resource, $content);
+		rewind($resource);
+		return $resource;
 	}
 
 	protected function computeHash(File $file): string {

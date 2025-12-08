@@ -11,6 +11,7 @@ use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FolderService;
@@ -43,6 +44,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private PdfParserService&MockObject $pdfParserService;
 	private IMimeTypeDetector&MockObject $mimeTypeDetector;
 	private IClientService&MockObject $client;
+	private DocMdpHandler&MockObject $docMdpHandler;
 	private LoggerInterface&MockObject $loggerInterface;
 
 	public function setUp(): void {
@@ -66,6 +68,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->pdfParserService = $this->createMock(PdfParserService::class);
 		$this->mimeTypeDetector = $this->createMock(IMimeTypeDetector::class);
 		$this->client = $this->createMock(IClientService::class);
+		$this->docMdpHandler = $this->createMock(DocMdpHandler::class);
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
 	}
 
@@ -84,6 +87,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->mimeTypeDetector,
 			$this->validateHelper,
 			$this->client,
+			$this->docMdpHandler,
 			$this->loggerInterface
 		);
 	}

@@ -14,6 +14,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -43,6 +44,7 @@ class RequestSignatureService {
 		protected IMimeTypeDetector $mimeTypeDetector,
 		protected ValidateHelper $validateHelper,
 		protected IClientService $client,
+		protected DocMdpHandler $docMdpHandler,
 		protected LoggerInterface $logger,
 	) {
 	}
