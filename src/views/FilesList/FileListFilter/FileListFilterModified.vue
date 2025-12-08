@@ -5,8 +5,7 @@
 <template>
 	<FileListFilter :is-active="isActive"
 		:filter-name="t('libresign', 'Modified')"
-		@reset-filter="resetFilter"
-		@set-marked-filter="setMarkedFilter">
+		@reset-filter="resetFilter">
 		<template #icon>
 			<NcIconSvgWrapper :path="mdiCalendarRange" />
 		</template>
@@ -107,8 +106,8 @@ export default {
 				this.setPreset()
 			} else {
 				this.setPreset(this.currentPreset)
-
 			}
+			this.setMarkedFilter()
 		},
 	},
 	methods: {
@@ -136,14 +135,11 @@ export default {
 				this.filtersStore.onFilterUpdateChipsAndSave({ detail: '', id: 'modified' })
 			}
 		},
-		setMarkedFilter(){
-
+		setMarkedFilter() {
 			const chips = []
-
-			let preset = this.currentPreset
+			const preset = this.currentPreset
 
 			if (preset) {
-
 				chips.push({
 					start: preset.start,
 					end: preset.end,
@@ -152,13 +148,10 @@ export default {
 					id: preset.id,
 					onclick: () => this.setPreset(),
 				})
-
-			} else {
-				this.resetFilter()
 			}
 
 			this.filtersStore.onFilterUpdateChipsAndSave({ detail: chips, id: 'modified' })
-		}
+		},
 	},
 }
 </script>
