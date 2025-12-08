@@ -32,10 +32,10 @@ enum DocMdpLevel: int {
 
 	public function getDescription(IL10N $l10n): string {
 		return match($this) {
-		self::NOT_CERTIFIED => $l10n->t('The document is not certified; edits and new signatures are allowed, but any change will mark previous signatures as modified.'),
-		self::CERTIFIED_NO_CHANGES_ALLOWED => $l10n->t('After the first signature, no further edits or signatures are allowed; any change invalidates the certification.'),
-		self::CERTIFIED_FORM_FILLING => $l10n->t('After the first signature, only form filling and additional signatures are allowed; other changes invalidate the certification.'),
-		self::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS => $l10n->t('After the first signature, form filling, comments, and additional signatures are allowed; other changes invalidate the certification.'),
+			self::NOT_CERTIFIED => $l10n->t('The document is not certified; edits and new signatures are allowed, but any change will mark previous signatures as modified.'),
+			self::CERTIFIED_NO_CHANGES_ALLOWED => $l10n->t('After the first signature, no further edits or signatures are allowed; any change invalidates the certification.'),
+			self::CERTIFIED_FORM_FILLING => $l10n->t('After the first signature, only form filling and additional signatures are allowed; other changes invalidate the certification.'),
+			self::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS => $l10n->t('After the first signature, form filling, comments, and additional signatures are allowed; other changes invalidate the certification.'),
 		};
 	}
 }
