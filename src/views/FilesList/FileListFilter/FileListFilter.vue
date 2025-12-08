@@ -21,7 +21,7 @@
 			<NcActionButton class="files-list-filter__clear-button"
 				close-after-click
 				@click="$emit('set-marked-filter')">
-				{{ t('files', 'Set marked filter') }}
+				{{ t('files', 'Save filter') }}
 			</NcActionButton>
 		</template>
 	</NcActions>
