@@ -889,7 +889,7 @@ class AdminController extends AEnvironmentAwareController {
 			}
 
 			return new DataResponse([
-				'message' => $this->l10n->t('DocMDP configuration saved successfully'),
+				'message' => $this->l10n->t('Settings saved'),
 			]);
 		} catch (\Exception $e) {
 			return new DataResponse([
