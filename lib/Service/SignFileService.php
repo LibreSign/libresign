@@ -357,7 +357,7 @@ class SignFileService {
 	protected function getLibreSignFileAsResource() {
 		$fileToSign = $this->getNextcloudFile($this->libreSignFile);
 		$content = $fileToSign->getContent();
-		$resource = fopen('php://temp', 'r+');
+		$resource = fopen('php://memory', 'r+');
 		if ($resource === false) {
 			throw new LibresignException('Failed to create temporary resource for PDF validation');
 		}
