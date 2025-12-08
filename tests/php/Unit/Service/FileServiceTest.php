@@ -26,6 +26,7 @@ use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
@@ -53,6 +54,7 @@ use Psr\Log\LoggerInterface;
  * @internal
  */
 final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
+	use \OCA\Libresign\Tests\Unit\PdfFixtureTrait;
 	protected FileMapper $fileMapper;
 	protected SignRequestMapper $signRequestMapper;
 	protected FileElementMapper $fileElementMapper;
@@ -72,6 +74,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IURLGenerator $urlGenerator;
 	protected IMimeTypeDetector $mimeTypeDetector;
 	protected Pkcs12Handler $pkcs12Handler;
+	protected DocMdpHandler $docMdpHandler;
 	private IRootFolder $root;
 	protected LoggerInterface $logger;
 	protected IL10N $l10n;
@@ -107,6 +110,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->urlGenerator = \OCP\Server::get(IURLGenerator::class);
 		$this->mimeTypeDetector = \OCP\Server::get(IMimeTypeDetector::class);
 		$this->pkcs12Handler = \OCP\Server::get(Pkcs12Handler::class);
+		$this->docMdpHandler = \OCP\Server::get(DocMdpHandler::class);
 		$this->root = \OCP\Server::get(IRootFolder::class);
 		$this->logger = \OCP\Server::get(LoggerInterface::class);
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
@@ -130,6 +134,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			$this->mimeTypeDetector,
 			$this->pkcs12Handler,
+			$this->docMdpHandler,
 			$this->root,
 			$this->logger,
 			$this->l10n,
@@ -153,6 +158,9 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->removePurposesField($expected);
 		$this->removePurposesField($actual);
 
+		$this->removeDocMdpFields($expected);
+		$this->removeDocMdpFields($actual);
+
 		$this->assertEquals($expected, $actual);
 	}
 
@@ -165,6 +173,16 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						unset($chainItem['purposes']);
 					}
 				}
+			}
+		}
+	}
+
+	private function removeDocMdpFields(array &$data): void {
+		if (isset($data['signers'])) {
+			foreach ($data['signers'] as &$signer) {
+				unset($signer['docmdp']);
+				unset($signer['modifications']);
+				unset($signer['modification_validation']);
 			}
 		}
 	}
@@ -441,5 +459,47 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				],
 			],
 		];
+	}
+
+	public function testValidateFileContentRejectsDocMdpLevel1(): void {
+		$pdfContent = $this->createPdfWithDocMdpLevel1();
+		$service = $this->getService();
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+
+		$service->validateFileContent($pdfContent, 'pdf');
+	}
+
+	public function testValidateFileContentAllowsDocMdpLevel2(): void {
+		$this->expectNotToPerformAssertions();
+		$pdfContent = $this->createPdfWithDocMdpLevel2();
+		$service = $this->getService();
+
+		$service->validateFileContent($pdfContent, 'pdf');
+	}
+
+	public function testValidateFileContentAllowsDocMdpLevel3(): void {
+		$this->expectNotToPerformAssertions();
+		$pdfContent = $this->createPdfWithDocMdp(3);
+		$service = $this->getService();
+
+		$service->validateFileContent($pdfContent, 'pdf');
+	}
+
+	public function testValidateFileContentAllowsUnsignedPdf(): void {
+		$this->expectNotToPerformAssertions();
+		$pdfPath = __DIR__ . '/../../fixtures/small_valid.pdf';
+		$pdfContent = file_get_contents($pdfPath);
+		$service = $this->getService();
+
+		$service->validateFileContent($pdfContent, 'pdf');
+	}
+
+	public function testValidateFileContentSkipsNonPdfFiles(): void {
+		$this->expectNotToPerformAssertions();
+		$service = $this->getService();
+
+		$service->validateFileContent('any content', 'txt');
+		$service->validateFileContent('{"json": true}', 'json');
 	}
 }
