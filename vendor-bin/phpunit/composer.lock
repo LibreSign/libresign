@@ -575,12 +575,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "c97b23dce761ab3c913ee8ac5879af7a358f88de"
+                "reference": "8c360e27327c8bd29e1c57721574709d0d706118"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/c97b23dce761ab3c913ee8ac5879af7a358f88de",
-                "reference": "c97b23dce761ab3c913ee8ac5879af7a358f88de",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/8c360e27327c8bd29e1c57721574709d0d706118",
+                "reference": "8c360e27327c8bd29e1c57721574709d0d706118",
                 "shasum": ""
             },
             "require": {
@@ -626,7 +626,7 @@
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
                 "source": "https://github.com/nikic/PHP-Parser/tree/master"
             },
-            "time": "2025-10-26T16:58:55+00:00"
+            "time": "2025-12-06T20:24:35+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -1136,12 +1136,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "5bbaa6fec73ca99e5e86a44728cc8f517ffda878"
+                "reference": "4d8446c3266ddd97061328c43fb8b8d0517d3027"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/5bbaa6fec73ca99e5e86a44728cc8f517ffda878",
-                "reference": "5bbaa6fec73ca99e5e86a44728cc8f517ffda878",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/4d8446c3266ddd97061328c43fb8b8d0517d3027",
+                "reference": "4d8446c3266ddd97061328c43fb8b8d0517d3027",
                 "shasum": ""
             },
             "require": {
@@ -1237,7 +1237,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-11-21T10:46:22+00:00"
+            "time": "2025-12-08T07:14:12+00:00"
         },
         {
             "name": "psr/http-client",
@@ -2824,12 +2824,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",
-                "reference": "6c84a4b55aee4cd02034d1c528e83f69ddf63810"
+                "reference": "24dd4de28d2e3988b311751ac49e684d783e2345"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/yaml/zipball/6c84a4b55aee4cd02034d1c528e83f69ddf63810",
-                "reference": "6c84a4b55aee4cd02034d1c528e83f69ddf63810",
+                "url": "https://api.github.com/repos/symfony/yaml/zipball/24dd4de28d2e3988b311751ac49e684d783e2345",
+                "reference": "24dd4de28d2e3988b311751ac49e684d783e2345",
                 "shasum": ""
             },
             "require": {
@@ -2892,7 +2892,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-11-16T10:14:42+00:00"
+            "time": "2025-12-04T18:11:45+00:00"
         },
         {
             "name": "theseer/tokenizer",
