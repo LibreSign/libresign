@@ -51,7 +51,7 @@ export default {
 	},
 	data() {
 		return {
-			selectedOption: null,
+			selectedOption: this.filtersStore.filter_modified || null,
 			timePresets: [
 				{
 					id: 'today',
@@ -94,6 +94,11 @@ export default {
 			return this.timePresets.find(({ id }) => id === this.selectedOption) ?? null
 		},
 	},
+	mounted() {
+		if (this.selectedOption) {
+			this.setPreset(this.currentPreset)
+		}
+	},
 	watch: {
 		selectedOption() {
 			if (this.selectedOption === null) {
@@ -101,8 +106,8 @@ export default {
 				this.setPreset()
 			} else {
 				this.setPreset(this.currentPreset)
-
 			}
+			this.setMarkedFilter()
 		},
 	},
 	methods: {
@@ -114,6 +119,7 @@ export default {
 					end: preset.end,
 					icon: calendarSvg,
 					text: preset.label,
+					id: preset.id,
 					onclick: () => this.setPreset(),
 				})
 			} else {
@@ -126,7 +132,25 @@ export default {
 				this.selectedOption = null
 				this.timeRangeEnd = null
 				this.timeRangeStart = null
+				this.filtersStore.onFilterUpdateChipsAndSave({ detail: '', id: 'modified' })
 			}
+		},
+		setMarkedFilter() {
+			const chips = []
+			const preset = this.currentPreset
+
+			if (preset) {
+				chips.push({
+					start: preset.start,
+					end: preset.end,
+					icon: calendarSvg,
+					text: preset.label,
+					id: preset.id,
+					onclick: () => this.setPreset(),
+				})
+			}
+
+			this.filtersStore.onFilterUpdateChipsAndSave({ detail: chips, id: 'modified' })
 		},
 	},
 }
