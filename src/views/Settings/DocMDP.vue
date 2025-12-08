@@ -5,7 +5,7 @@
 <template>
 	<NcSettingsSection :name="name">
 		<p class="docmdp-info">
-			{{ t('libresign', 'DocMDP adds certification signatures to protect PDF documents from unauthorized modifications.') }}
+			{{ t('libresign', 'DocMDP defines what types of changes are allowed in a PDF after it is signed, ensuring viewers can detect unauthorized modifications.') }}
 		</p>
 		<p>
 			<NcCheckboxRadioSwitch type="switch"
@@ -73,7 +73,8 @@ export default {
 	},
 	data() {
 		return {
-			name: t('libresign', 'DocMDP Configuration'),
+			// TRANSLATORS: DocMDP (Document Modification Detection and Prevention) is a PDF specification extension that allows setting certification levels for digitally signed documents. It controls what types of changes are allowed after signing and ensures viewers can detect unauthorized modifications.
+			name: t('libresign', 'PDF certification (DocMDP)'),
 			enabled: false,
 			selectedLevel: null,
 			availableLevels: [],
