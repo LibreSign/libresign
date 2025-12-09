@@ -1055,6 +1055,27 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/certificate/engine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set certificate engine
+         * @description Sets the certificate engine (openssl, cfssl, or none) and automatically configures identify_methods when needed
+         *     This endpoint requires admin access
+         */
+        post: operations["admin-set-certificate-engine"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/certificate": {
         parameters: {
             query?: never;
@@ -5001,6 +5022,64 @@ export interface operations {
             };
             /** @description Account not found */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-set-certificate-engine": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description The certificate engine to use (openssl, cfssl, or none) */
+                    engine: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                engine: string;
+                                identify_methods: {
+                                    [key: string]: Record<string, never>;
+                                }[];
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Invalid engine */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
