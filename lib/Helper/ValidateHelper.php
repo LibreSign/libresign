@@ -709,7 +709,30 @@ class ValidateHelper {
 
 	public function validateSigner(string $uuid, ?IUser $user = null): void {
 		$this->validateSignerUuidExists($uuid);
+		$this->validateSignerStatus($uuid);
 		$this->validateIdentifyMethod($uuid, $user);
+	}
+
+	/**
+	 * @throws LibresignException
+	 */
+	private function validateSignerStatus(string $uuid): void {
+		$signRequest = $this->signRequestMapper->getByUuid($uuid);
+		$status = $signRequest->getStatusEnum();
+
+		if ($status === \OCA\Libresign\Db\SignRequestStatus::DRAFT) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [['message' => $this->l10n->t('You are not allowed to sign this document yet')]],
+			]));
+		}
+
+		if ($status === \OCA\Libresign\Db\SignRequestStatus::SIGNED) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [['message' => $this->l10n->t('Document already signed')]],
+			]));
+		}
 	}
 
 	public function validateRenewSigner(string $uuid, ?IUser $user = null): void {
