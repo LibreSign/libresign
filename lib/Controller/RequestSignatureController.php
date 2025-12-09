@@ -47,10 +47,12 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	/**
 	 * Request signature
 	 *
-	 * Request that a file be signed by a group of people
+	 * Request that a file be signed by a group of people.
+	 * Each user in the users array can optionally include a 'signing_order' field
+	 * to control the order of signatures when ordered signing flow is enabled.
 	 *
 	 * @param LibresignNewFile $file File object.
-	 * @param LibresignNewSigner[] $users Collection of users who must sign the document
+	 * @param LibresignNewSigner[] $users Collection of users who must sign the document. Each user can have: identify, displayName, description, notify, signing_order
 	 * @param string $name The name of file to sign
 	 * @param string|null $callback URL that will receive a POST after the document is signed
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
