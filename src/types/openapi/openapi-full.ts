@@ -839,7 +839,7 @@ export type paths = {
         put?: never;
         /**
          * Request signature
-         * @description Request that a file be signed by a group of people
+         * @description Request that a file be signed by a group of people. Each user in the users array can optionally include a 'signing_order' field to control the order of signatures when ordered signing flow is enabled.
          */
         post: operations["request_signature-request"];
         delete?: never;
@@ -1133,6 +1133,26 @@ export type paths = {
         get: operations["admin-disable-hate-limit"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-flow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set signature flow configuration
+         * @description This endpoint requires admin access
+         */
+        post: operations["admin-set-signature-flow"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3973,7 +3993,7 @@ export interface operations {
                 "application/json": {
                     /** @description File object. */
                     file: components["schemas"]["NewFile"];
-                    /** @description Collection of users who must sign the document */
+                    /** @description Collection of users who must sign the document. Each user can have: identify, displayName, description, notify, signing_order */
                     users: components["schemas"]["NewSigner"][];
                     /** @description The name of file to sign */
                     name: string;
@@ -5180,6 +5200,61 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: unknown;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-set-signature-flow": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Signature flow mode: 'parallel' or 'ordered_numeric' */
+                    flow: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                signature_flow: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Invalid flow value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
                         };
                     };
                 };
