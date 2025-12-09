@@ -270,6 +270,40 @@ class AdminController extends AEnvironmentAwareController {
 	}
 
 	/**
+	 * Set signature flow configuration
+	 *
+	 * @param string $flow Signature flow mode: 'parallel' or 'ordered_numeric'
+	 * @return DataResponse<Http::STATUS_OK, array{signature_flow: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 400: Invalid flow value
+	 */
+	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-flow', requirements: ['apiVersion' => '(v1)'])]
+	public function setSignatureFlow(string $flow): DataResponse {
+		try {
+			$signatureFlow = \OCA\Libresign\Service\SignatureFlow::from($flow);
+		} catch (\ValueError) {
+			return new DataResponse(
+				['message' => 'Invalid flow value. Must be "parallel" or "ordered_numeric"'],
+				Http::STATUS_BAD_REQUEST
+			);
+		}
+
+		if ($signatureFlow === \OCA\Libresign\Service\SignatureFlow::PARALLEL) {
+			$this->appConfig->deleteKey(Application::APP_ID, 'signature_flow');
+		} else {
+			$this->appConfig->setValueString(
+				Application::APP_ID,
+				'signature_flow',
+				$signatureFlow->value
+			);
+		}
+
+		return new DataResponse(['signature_flow' => $signatureFlow->value]);
+	}
+
+	/**
 	 * @IgnoreOpenAPI
 	 */
 	#[NoCSRFRequired]
