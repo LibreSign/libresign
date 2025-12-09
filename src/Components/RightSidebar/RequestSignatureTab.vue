@@ -30,14 +30,25 @@
 			</template>
 		</Signers>
 		<div class="action-buttons">
-			<NcButton v-if="filesStore.canSave()"
+			<NcButton v-if="showSaveButton"
 				:variant="filesStore.canSign() ? 'secondary' : 'primary'"
 				:disabled="hasLoading"
 				@click="save()">
 				<template #icon>
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
+					<Pencil v-else-if="isSignElementsAvailable()" :size="20" />
 				</template>
-				{{ labelOfSaveButton }}
+				{{ isSignElementsAvailable() ? t('libresign', 'Edit visible signatures') : t('libresign', 'Save') }}
+			</NcButton>
+			<NcButton v-if="showRequestButton"
+				:variant="filesStore.canSign() ? 'secondary' : 'primary'"
+				:disabled="hasLoading"
+				@click="request()">
+				<template #icon>
+					<NcLoadingIcon v-if="hasLoading" :size="20" />
+					<Send v-else :size="20" />
+				</template>
+				{{ t('libresign', 'Send') }}
 			</NcButton>
 			<NcButton v-if="filesStore.canSign()"
 				variant="primary"
@@ -45,6 +56,7 @@
 				@click="sign()">
 				<template #icon>
 					<NcLoadingIcon v-if="hasLoading" :size="20" />
+					<Draw v-else :size="20" />
 				</template>
 				{{ t('libresign', 'Sign') }}
 			</NcButton>
@@ -54,6 +66,9 @@
 				{{ t('libresign', 'Validate') }}
 			</NcButton>
 			<NcButton @click="openFile()">
+				<template #icon>
+					<FileDocument :size="20" />
+				</template>
 				{{ t('libresign', 'Open file') }}
 			</NcButton>
 		</div>
@@ -97,6 +112,10 @@ import svgWhatsapp from '@mdi/svg/svg/whatsapp.svg?raw'
 import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
 
 import Delete from 'vue-material-design-icons/Delete.vue'
+import Draw from 'vue-material-design-icons/Draw.vue'
+import FileDocument from 'vue-material-design-icons/FileDocument.vue'
+import Pencil from 'vue-material-design-icons/Pencil.vue'
+import Send from 'vue-material-design-icons/Send.vue'
 
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
@@ -120,6 +139,7 @@ import Signers from '../Signers/Signers.vue'
 
 import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
+import { SIGN_STATUS } from '../../domains/sign/enum.js'
 import router from '../../router/router.js'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
@@ -147,6 +167,10 @@ export default {
 		NcModal,
 		NcDialog,
 		Delete,
+		Draw,
+		FileDocument,
+		Pencil,
+		Send,
 		Signers,
 		IdentifySigner,
 		VisibleElements,
@@ -174,15 +198,28 @@ export default {
 		}
 	},
 	computed: {
-		labelOfSaveButton() {
+		showSaveButton() {
+			if (!this.filesStore.canSave()) {
+				return false
+			}
 
-			if (this.filesStore.canSign()) {
-				return t('libresign', 'Edit visible signatures')
+			if (!this.isSignElementsAvailable()) {
+				return false
 			}
-			if (this.isSignElementsAvailable()) {
-				return t('libresign', 'Next')
+
+			const file = this.filesStore.getFile()
+
+			if (file.status === SIGN_STATUS.PARTIAL_SIGNED || file.status === SIGN_STATUS.SIGNED) {
+				return false
 			}
-			return t('libresign', 'Request')
+
+			return true
+		},
+		showRequestButton() {
+			if (!this.filesStore.canSave()) {
+				return false
+			}
+			return this.hasSigners
 		},
 		hasSigners() {
 			return this.filesStore.hasSigners(this.filesStore.getFile())
@@ -274,59 +311,30 @@ export default {
 		},
 		async save() {
 			this.hasLoading = true
-			const config = {
-				url: generateOcsUrl('/apps/libresign/api/v1/request-signature'),
-				data: {
-					name: this.filesStore.getFile()?.name,
-					users: [],
-				},
-			};
-			(this.filesStore.getFile()?.signers ?? []).forEach(signer => {
-				const user = {
-					displayName: signer.displayName,
-					identify: {},
+			try {
+				await this.filesStore.saveWithVisibleElements({ visibleElements: [] })
+				emit('libresign:show-visible-elements')
+			} catch (error) {
+				if (error.response?.data?.ocs?.data?.message) {
+					showError(error.response.data.ocs.data.message)
+				} else if (error.response?.data?.ocs?.data?.errors) {
+					error.response.data.ocs.data.errors.forEach(error => showError(error.message))
 				}
-				signer.identifyMethods.forEach(method => {
-					user.notify = false
-					if (method.method === 'account') {
-						user.identify.account = method?.value?.id ?? method?.value ?? signer.uid
-					} else if (method.method === 'email') {
-						user.identify.email = method?.value?.id ?? method?.value ?? signer.email
-					} else {
-						user.identify[method.method] = method.value
-					}
-				})
-				config.data.users.push(user)
-			})
-			if (this.filesStore.getFile()?.status) {
-				config.data.status = this.filesStore.getFile()?.status
-			} else if (!this.isSignElementsAvailable()) {
-				config.data.status = 1
-			} else {
-				config.data.status = 0
 			}
-
-			if (this.filesStore.getFile().uuid) {
-				config.data.uuid = this.filesStore.getFile().uuid
-				config.method = 'patch'
-			} else {
-				config.data.file = {
-					fileId: this.filesStore.selectedNodeId,
+			this.hasLoading = false
+		},
+		async request() {
+			this.hasLoading = true
+			try {
+				const response = await this.filesStore.requestSignaturesWithVisibleElements({ visibleElements: [] })
+				showSuccess(t('libresign', response.message))
+			} catch (error) {
+				if (error.response?.data?.ocs?.data?.message) {
+					showError(error.response.data.ocs.data.message)
+				} else if (error.response?.data?.ocs?.data?.errors) {
+					error.response.data.ocs.data.errors.forEach(error => showError(error.message))
 				}
-				config.method = 'post'
 			}
-			await axios(config)
-				.then(({ data }) => {
-					this.filesStore.addFile(data.ocs.data.data)
-					emit('libresign:show-visible-elements')
-				})
-				.catch(({ response }) => {
-					if (response?.data?.ocs?.data?.message) {
-						showError(response.data.ocs.data.message)
-					} else if (response?.data?.ocs?.data?.errors) {
-						response.data.ocs.data.errors.forEach(error => showError(error.message))
-					}
-				})
 			this.hasLoading = false
 		},
 		openFile() {
