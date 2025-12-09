@@ -254,9 +254,38 @@ abstract class AEngineHandler implements IEngineHandler {
 		};
 	}
 
+	#[\Override]
 	public function setEngine(string $engine): void {
 		$this->appConfig->setValueString(Application::APP_ID, 'certificate_engine', $engine);
 		$this->engine = $engine;
+		$this->configureIdentifyMethodsForEngine($engine);
+	}
+
+	/**
+	 * Configure identification methods based on the certificate engine.
+	 *
+	 * When the engine is set to 'none', only the 'account' identification method
+	 * is allowed. This is because:
+	 * - The 'none' engine doesn't generate digital certificates
+	 * - Without certificates, only basic password authentication is viable
+	 * - The 'account' method ensures users authenticate with their Nextcloud credentials
+	 *
+	 * For other engines (openssl, cfssl, java), the identification methods remain
+	 * unchanged to preserve existing configurations.
+	 *
+	 * @param string $engine The certificate engine name (i.e. 'none', 'openssl', 'cfssl')
+	 */
+	private function configureIdentifyMethodsForEngine(string $engine): void {
+		if ($engine !== 'none') {
+			return;
+		}
+
+		$config = [[
+			'name' => 'account',
+			'enabled' => true,
+			'mandatory' => true,
+		]];
+		$this->appConfig->setValueArray(Application::APP_ID, 'identify_methods', $config);
 	}
 
 	#[\Override]

@@ -45,6 +45,8 @@ interface IEngineHandler {
 
 	public function updatePassword(string $certificate, string $currentPrivateKey, string $newPrivateKey): string;
 
+	public function setEngine(string $engine): void;
+
 	public function getEngine(): string;
 
 	public function isSetupOk(): bool;
