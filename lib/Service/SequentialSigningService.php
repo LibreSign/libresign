@@ -103,7 +103,7 @@ class SequentialSigningService {
 	private function isOrderFullyCompleted(array $signRequests, int $order): bool {
 		$pendingSigners = array_filter(
 			$signRequests,
-			fn($sr) => $sr->getSigningOrder() === $order
+			fn ($sr) => $sr->getSigningOrder() === $order
 				&& $sr->getStatusEnum() !== SignRequestStatus::SIGNED
 		);
 
@@ -111,7 +111,7 @@ class SequentialSigningService {
 	}
 
 	private function findNextOrder(array $signRequests, int $completedOrder): ?int {
-		$allOrders = array_unique(array_map(fn($sr) => $sr->getSigningOrder(), $signRequests));
+		$allOrders = array_unique(array_map(fn ($sr) => $sr->getSigningOrder(), $signRequests));
 		sort($allOrders);
 
 		foreach ($allOrders as $order) {
@@ -126,7 +126,7 @@ class SequentialSigningService {
 	private function activateSignersForOrder(array $signRequests, int $order): void {
 		$signersToActivate = array_filter(
 			$signRequests,
-			fn($sr) => $sr->getSigningOrder() === $order
+			fn ($sr) => $sr->getSigningOrder() === $order
 		);
 
 		foreach ($signersToActivate as $signer) {
