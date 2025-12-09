@@ -69,6 +69,7 @@ class ConfigureCheckService {
 		$return = array_merge($return, $this->checkPdftk());
 		$return = array_merge($return, $this->checkJSignPdf());
 		$return = array_merge($return, $this->checkPoppler());
+		$return = array_merge($return, $this->checkImagick());
 		return $return;
 	}
 
@@ -496,5 +497,25 @@ class ConfigureCheckService {
 			];
 		}
 		return $return;
+	}
+
+	/**
+	 * Check if Imagick extension is loaded
+	 *
+	 * @return ConfigureCheckHelper[]
+	 */
+	public function checkImagick(): array {
+		if (!empty($this->result['imagick'])) {
+			return $this->result['imagick'];
+		}
+		if (!extension_loaded('imagick')) {
+			return $this->result['imagick'] = [
+				(new ConfigureCheckHelper())
+					->setInfoMessage('Imagick extension is not loaded')
+					->setResource('imagick')
+					->setTip('Install php-imagick to enable visible signatures, background images, and signature element rendering.'),
+			];
+		}
+		return $this->result['imagick'] = [];
 	}
 }
