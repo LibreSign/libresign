@@ -119,7 +119,8 @@
 							:text="legalInformation"
 							:use-markdown="true" />
 
-						<NcButton variant="primary"
+						<NcButton v-if="document.nodeId"
+							variant="primary"
 							@click="viewDocument()">
 							<template #icon>
 								<NcLoadingIcon v-if="loading" :size="20" />
