@@ -91,6 +91,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private Pdf&MockObject $pdf;
 	private DocMdpHandler $docMdpHandler;
 	private PdfSignatureDetectionService&MockObject $pdfSignatureDetectionService;
+	private \OCA\Libresign\Service\SequentialSigningService&MockObject $sequentialSigningService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -127,6 +128,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pdf = $this->createMock(Pdf::class);
 		$this->docMdpHandler = new DocMdpHandler($this->l10n);
 		$this->pdfSignatureDetectionService = $this->createMock(PdfSignatureDetectionService::class);
+		$this->sequentialSigningService = $this->createMock(\OCA\Libresign\Service\SequentialSigningService::class);
 	}
 
 	private function getService(array $methods = []): SignFileService|MockObject {
@@ -162,6 +164,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->pdf,
 					$this->docMdpHandler,
 					$this->pdfSignatureDetectionService,
+					$this->sequentialSigningService,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -196,6 +199,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->pdf,
 			$this->docMdpHandler,
 			$this->pdfSignatureDetectionService,
+			$this->sequentialSigningService,
 		);
 	}
 
