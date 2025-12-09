@@ -6231,7 +6231,7 @@
             "post": {
                 "operationId": "request_signature-request",
                 "summary": "Request signature",
-                "description": "Request that a file be signed by a group of people",
+                "description": "Request that a file be signed by a group of people. Each user in the users array can optionally include a 'signing_order' field to control the order of signatures when ordered signing flow is enabled.",
                 "tags": [
                     "request_signature"
                 ],
@@ -6261,7 +6261,7 @@
                                     },
                                     "users": {
                                         "type": "array",
-                                        "description": "Collection of users who must sign the document",
+                                        "description": "Collection of users who must sign the document. Each user can have: identify, displayName, description, notify, signing_order",
                                         "items": {
                                             "$ref": "#/components/schemas/NewSigner"
                                         }
