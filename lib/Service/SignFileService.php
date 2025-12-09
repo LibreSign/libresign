@@ -105,6 +105,7 @@ class SignFileService {
 		private Pdf $pdf,
 		private DocMdpHandler $docMdpHandler,
 		private PdfSignatureDetectionService $pdfSignatureDetectionService,
+		private SequentialSigningService $sequentialSigningService,
 	) {
 	}
 
@@ -375,7 +376,14 @@ class SignFileService {
 		$lastSignedDate = $this->getEngine()->getLastSignedDate();
 		$this->signRequest->setSigned($lastSignedDate);
 		$this->signRequest->setSignedHash($hash);
+		$this->signRequest->setStatusEnum(\OCA\Libresign\Db\SignRequestStatus::SIGNED);
+
 		$this->signRequestMapper->update($this->signRequest);
+
+		$this->sequentialSigningService->releaseNextOrder(
+			$this->signRequest->getFileId(),
+			$this->signRequest->getSigningOrder()
+		);
 	}
 
 	protected function updateLibreSignFile(string $hash): void {
