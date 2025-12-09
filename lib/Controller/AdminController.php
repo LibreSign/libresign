@@ -151,7 +151,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * Sets the certificate engine (openssl, cfssl, or none) and automatically configures identify_methods when needed
 	 *
 	 * @param string $engine The certificate engine to use (openssl, cfssl, or none)
-	 * @return DataResponse<Http::STATUS_OK, array{engine: string, identify_methods: array}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{engine: string, identify_methods: array<array<string, mixed>>}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 400: Invalid engine
