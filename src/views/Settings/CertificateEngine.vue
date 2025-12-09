@@ -59,14 +59,18 @@ export default {
 		this.value = [currentOption]
 	},
 	methods: {
-		saveEngine(selected) {
+		async saveEngine(selected) {
 			this.value = selected
-			OCP.AppConfig.setValue('libresign', 'certificate_engine', selected.id, {
-				success: () => {
-					this.configureCheckStore.checkSetup()
-					emit('libresign:certificate-engine:changed', selected.id)
-				},
-			})
+			const result = await this.configureCheckStore.saveCertificateEngine(selected.id)
+			if (result.success) {
+				emit('libresign:certificate-engine:changed', result.engine)
+			} else {
+				const currentEngine = loadState('libresign', 'certificate_engine')
+				const currentOption = this.options.find(opt => opt.id === currentEngine)
+				if (currentOption) {
+					this.value = [currentOption]
+				}
+			}
 		},
 	},
 }
