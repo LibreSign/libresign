@@ -7,6 +7,7 @@ import { defineStore } from 'pinia'
 import { set } from 'vue'
 
 import axios from '@nextcloud/axios'
+import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
 export const useConfigureCheckStore = function(...args) {
@@ -16,9 +17,38 @@ export const useConfigureCheckStore = function(...args) {
 			items: [],
 			state: 'in progress',
 			downloadInProgress: false,
+			certificateEngine: loadState('libresign', 'certificate_engine', ''),
+			identifyMethods: loadState('libresign', 'identify_methods', []),
 		}),
 
+		getters: {
+			isNoneEngine: (state) => state.certificateEngine === 'none',
+		},
+
 		actions: {
+			setCertificateEngine(engine) {
+				set(this, 'certificateEngine', engine)
+			},
+			setIdentifyMethods(identifyMethods) {
+				set(this, 'identifyMethods', identifyMethods)
+			},
+			saveCertificateEngine(engine) {
+				return axios.post(
+					generateOcsUrl('/apps/libresign/api/v1/admin/certificate/engine'),
+					{ engine }
+				)
+					.then((response) => {
+						this.setCertificateEngine(engine)
+						if (response.data?.ocs?.data?.identify_methods) {
+							this.setIdentifyMethods(response.data.ocs.data.identify_methods)
+						}
+						return this.checkSetup().then(() => ({ success: true, engine }))
+					})
+					.catch((error) => {
+						console.error('Failed to save certificate engine:', error)
+						return { success: false, error }
+					})
+			},
 			isConfigureOk(engine) {
 				return this.items.length > 0
 					&& this.items.filter((o) => o.resource === engine + '-configure').length > 0
@@ -52,6 +82,11 @@ export const useConfigureCheckStore = function(...args) {
 				)
 					.then(({ data }) => {
 						this.updateItems(data.ocs?.data || [])
+					})
+					.catch((error) => {
+						console.error('Failed to check setup:', error)
+						set(this, 'state', 'error')
+						set(this, 'downloadInProgress', false)
 					})
 			},
 		},
