@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name" :description="description">
+	<NcSettingsSection v-if="!isNoneEngine" :name="name" :description="description">
 		<div v-for="(identifyMethod, index) in identifyMethods"
 			:key="identifyMethod.name">
 			<hr v-if="index != 0">
@@ -44,11 +44,12 @@
 <script>
 import { set } from 'vue'
 
-import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
 
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+
+import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
 export default {
 	name: 'IdentificationFactors',
@@ -56,16 +57,35 @@ export default {
 		NcSettingsSection,
 		NcCheckboxRadioSwitch,
 	},
+	setup() {
+		const configureCheckStore = useConfigureCheckStore()
+		return { configureCheckStore }
+	},
 	data() {
 		return {
 			// TRANSLATORS Name of a section at "Administration Settings" of LibreSign that an admin can configure the ways that a persol will be identified when access the link to sign a document.
 			name: t('libresign', 'Identification factors'),
 			description: t('libresign', 'Ways to identify a person who will sign a document.'),
-			identifyMethods: loadState('libresign', 'identify_methods', []),
 		}
+	},
+	computed: {
+		isNoneEngine() {
+			return this.configureCheckStore.isNoneEngine
+		},
+		identifyMethods() {
+			return this.configureCheckStore.identifyMethods
+		},
 	},
 	mounted() {
 		this.updateSignatureMethodsEnabled()
+	},
+	watch: {
+		identifyMethods: {
+			handler() {
+				this.updateSignatureMethodsEnabled()
+			},
+			deep: true,
+		},
 	},
 	methods: {
 		updateSignatureMethodsEnabled() {
