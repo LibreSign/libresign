@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
+use OCA\Libresign\Service\SignatureFlow;
 use OCP\AppFramework\Db\Entity;
 use OCP\DB\Types;
 
@@ -32,6 +33,10 @@ use OCP\DB\Types;
  * @method ?array getMetadata()
  * @method void setDocmdpLevel(int $docmdpLevel)
  * @method int getDocmdpLevel()
+ * @method void setSigningOrder(int $signingOrder)
+ * @method int getSigningOrder()
+ * @method void setStatus(string $status)
+ * @method string getStatus()
  */
 class SignRequest extends Entity {
 	protected ?int $fileId = null;
@@ -43,6 +48,9 @@ class SignRequest extends Entity {
 	protected ?string $signedHash = null;
 	protected ?array $metadata = null;
 	protected int $docmdpLevel = 0;
+	protected int $signingOrder = 1;
+	protected string $status = 'draft';
+
 	public function __construct() {
 		$this->addType('id', Types::INTEGER);
 		$this->addType('fileId', Types::INTEGER);
@@ -54,5 +62,15 @@ class SignRequest extends Entity {
 		$this->addType('signedHash', Types::STRING);
 		$this->addType('metadata', Types::JSON);
 		$this->addType('docmdpLevel', Types::SMALLINT);
+		$this->addType('signingOrder', Types::INTEGER);
+		$this->addType('status', Types::STRING);
+	}
+
+	public function getStatusEnum(): SignRequestStatus {
+		return SignRequestStatus::from($this->status);
+	}
+
+	public function setStatusEnum(SignRequestStatus $status): void {
+		$this->setStatus($status->value);
 	}
 }
