@@ -20,7 +20,9 @@
 					</td>
 					<td v-html="row.message" />
 					<td>{{ row.resource }}</td>
-					<td>{{ row.tip }}</td>
+					<td class="tip-cell">
+						<NcRichText :text="row.tip" :autolink="true" :use-markdown="true" />
+					</td>
 				</tr>
 			</tbody>
 		</table>
@@ -29,6 +31,7 @@
 <script>
 import { translate as t } from '@nextcloud/l10n'
 
+import NcRichText from '@nextcloud/vue/dist/Components/NcRichText.js'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
@@ -36,6 +39,7 @@ import { useConfigureCheckStore } from '../../store/configureCheck.js'
 export default {
 	name: 'ConfigureCheck',
 	components: {
+		NcRichText,
 		NcSettingsSection,
 	},
 	setup() {
@@ -60,5 +64,10 @@ table {
 }
 .info {
 	color: orange;
+}
+.tip-cell {
+	white-space: normal;
+	word-wrap: break-word;
+	max-width: 500px;
 }
 </style>
