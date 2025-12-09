@@ -33,15 +33,17 @@ class PdfSignatureDetectionServiceTest extends TestCase {
 	}
 
 	public static function pdfContentProvider(): array {
-		$fixture = new class { use PdfFixtureTrait; };
+		$fixture = new class {
+			use PdfFixtureTrait;
+		};
 
 		return [
-			'signed PDF with DocMDP level 1' => [fn() => $fixture->createPdfWithDocMdp(1), true],
-			'signed PDF with DocMDP level 2' => [fn() => $fixture->createPdfWithDocMdp(2), true],
-			'signed PDF with DocMDP level 3' => [fn() => $fixture->createPdfWithDocMdp(3), true],
-			'unsigned minimal PDF' => [fn() => $fixture->createMinimalPdf(), false],
-			'empty string' => [fn() => '', false],
-			'invalid content' => [fn() => 'not a valid pdf content', false],
+			'signed PDF with DocMDP level 1' => [fn () => $fixture->createPdfWithDocMdp(1), true],
+			'signed PDF with DocMDP level 2' => [fn () => $fixture->createPdfWithDocMdp(2), true],
+			'signed PDF with DocMDP level 3' => [fn () => $fixture->createPdfWithDocMdp(3), true],
+			'unsigned minimal PDF' => [fn () => $fixture->createMinimalPdf(), false],
+			'empty string' => [fn () => '', false],
+			'invalid content' => [fn () => 'not a valid pdf content', false],
 		];
 	}
 
