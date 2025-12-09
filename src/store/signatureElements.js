@@ -136,8 +136,11 @@ export const useSignatureElementsStore = function(...args) {
 						this.signs[type] = emptyElement
 						this.success = data.ocs.data.message
 					})
-					.catch(({ data }) => {
-						this.error = { message: data.ocs.data.message }
+					.catch(({ response }) => {
+						if (response?.status === 404) {
+							this.signs[type] = emptyElement
+						}
+						this.error = { message: response?.data?.ocs?.data?.message || 'Error deleting signature' }
 					})
 			},
 		},
