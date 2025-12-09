@@ -46,6 +46,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private IClientService&MockObject $client;
 	private DocMdpHandler&MockObject $docMdpHandler;
 	private LoggerInterface&MockObject $loggerInterface;
+	private \OCA\Libresign\Service\SequentialSigningService&MockObject $sequentialSigningService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -70,6 +71,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->client = $this->createMock(IClientService::class);
 		$this->docMdpHandler = $this->createMock(DocMdpHandler::class);
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
+		$this->sequentialSigningService = $this->createMock(\OCA\Libresign\Service\SequentialSigningService::class);
 	}
 
 	private function getService(): RequestSignatureService {
@@ -88,7 +90,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->validateHelper,
 			$this->client,
 			$this->docMdpHandler,
-			$this->loggerInterface
+			$this->loggerInterface,
+			$this->sequentialSigningService
 		);
 	}
 
