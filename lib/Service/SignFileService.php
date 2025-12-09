@@ -104,6 +104,7 @@ class SignFileService {
 		private SignedEventFactory $signedEventFactory,
 		private Pdf $pdf,
 		private DocMdpHandler $docMdpHandler,
+		private PdfSignatureDetectionService $pdfSignatureDetectionService,
 	) {
 	}
 
@@ -708,6 +709,12 @@ class SignFileService {
 		if ($file instanceof File) {
 			return $file;
 		}
+
+		$originalContent = $originalFile->getContent();
+
+		if ($this->pdfSignatureDetectionService->hasSignatures($originalContent)) {
+			return $this->createSignedFile($originalFile, $originalContent);
+		}
 		$metadata = $this->footerHandler->getMetadata($originalFile, $this->libreSignFile);
 		$footer = $this->footerHandler
 			->setTemplateVar('uuid', $this->libreSignFile->getUuid())
@@ -723,7 +730,7 @@ class SignFileService {
 			file_put_contents($stamp, $footer);
 
 			$input = $this->tempManager->getTemporaryFile('input.pdf');
-			file_put_contents($input, $originalFile->getContent());
+			file_put_contents($input, $originalContent);
 
 			try {
 				$pdfContent = $this->pdf->applyStamp($input, $stamp);
@@ -731,7 +738,7 @@ class SignFileService {
 				throw new LibresignException($e->getMessage());
 			}
 		} else {
-			$pdfContent = $originalFile->getContent();
+			$pdfContent = $originalContent;
 		}
 		return $this->createSignedFile($originalFile, $pdfContent);
 	}
