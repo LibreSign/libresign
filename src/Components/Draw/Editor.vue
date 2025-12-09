@@ -5,17 +5,19 @@
 <template>
 	<div class="container-draw">
 		<div class="actions">
-			<NcColorPicker ref="colorPicker"
-				v-model="color"
-				:palette="customPalette"
-				@submit="updateColor">
-				<NcButton type="tertiary">
-					<template #icon>
-						<PaletteIcon :size="20" :fill-color="color" />
-					</template>
-					{{ t('libresign', 'Change color') }}
-				</NcButton>
-			</NcColorPicker>
+			<div class="color-selector">
+				<label class="color-label" @click="$refs.colorPicker.$el.querySelector('button').click()">
+					{{ t('libresign', 'Color') }}
+				</label>
+				<NcColorPicker ref="colorPicker"
+					v-model="color"
+					:palette="customPalette"
+					@submit="updateColor">
+					<button class="color-preview"
+						:style="{ backgroundColor: color }"
+						:aria-label="t('libresign', 'Choose color')" />
+				</NcColorPicker>
+			</div>
 			<NcButton :aria-label="t('libresign', 'Delete')"
 				@click="clear">
 				<template #icon>
@@ -60,7 +62,6 @@ import debounce from 'debounce'
 import SignaturePad from 'signature_pad'
 
 import DeleteIcon from 'vue-material-design-icons/Delete.vue'
-import PaletteIcon from 'vue-material-design-icons/Palette.vue'
 
 import { getCapabilities } from '@nextcloud/capabilities'
 
@@ -76,7 +77,6 @@ export default {
 	components: {
 		NcDialog,
 		NcColorPicker,
-		PaletteIcon,
 		DeleteIcon,
 		NcButton,
 		PreviewSignature,
@@ -181,6 +181,27 @@ export default {
 		flex-direction: row;
 		justify-content: space-between;
 		width: 100%;
+		.color-selector {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			.color-label {
+				font-weight: 500;
+				cursor: pointer;
+				user-select: none;
+			}
+			.color-preview {
+				width: 36px;
+				height: 36px;
+				border-radius: var(--border-radius-large);
+				border: 2px solid var(--color-border);
+				cursor: pointer;
+				transition: border-color 0.2s;
+				&:hover {
+					border-color: var(--color-primary-element);
+				}
+			}
+		}
 		.action-delete{
 			cursor: pointer;
 			margin-right: 20px;
