@@ -49,27 +49,21 @@
 		</fieldset>
 		<div v-if="renderMode !== 'GRAPHIC_ONLY'">
 			<div class="settings-section__row">
-				<ul class="available-variables">
-					<li v-for="(availableDescription, availableName) in availableVariables"
-						:key="availableName"
-						:class="{rtl: isRTLDirection}">
-						<strong :class="{rtl: isRTLDirection}">{{ availableName }}:</strong>
-						<span>{{ availableDescription }}</span>
-					</li>
-				</ul>
+				<NcButton type="tertiary"
+					:aria-label="t('libresign', 'Show available variables')"
+					@click="showVariablesDialog = true">
+					<template #icon>
+						<HelpCircleOutline :size="20" />
+					</template>
+					{{ t('libresign', 'Available variables') }}
+				</NcButton>
 			</div>
 			<div class="settings-section__row">
-				<NcTextArea ref="textareaEditor"
-					:value.sync="inputValue"
+				<CodeEditor
+					v-model="inputValue"
 					:label="t('libresign', 'Signature text template')"
 					:placeholder="t('libresign', 'Signature text template')"
-					:spellcheck="false"
-					:success="dislaySuccessTemplate"
-					resize="vertical"
-					@keydown.enter="saveTemplate"
-					@blur="saveTemplate"
-					@mousemove="resizeHeight"
-					@keypress="resizeHeight" />
+					@input="debouncedSaveTemplate" />
 				<NcButton v-if="displayResetTemplate"
 					type="tertiary"
 					:aria-label="t('libresign', 'Reset to default')"
@@ -295,12 +289,45 @@
 				<p>{{ t('libresign', 'If no background image or signature template is provided, no visible signature will be added to the document.') }}</p>
 			</NcNoteCard>
 		</div>
+
+		<NcDialog :name="t('libresign', 'Available template variables')"
+			:open.sync="showVariablesDialog"
+			size="normal">
+			<div class="variables-dialog">
+				<p class="variables-dialog__description">
+					{{ t('libresign', 'Click on a variable to copy it to clipboard') }}
+				</p>
+				<div class="variables-list">
+					<NcFormBoxButton v-for="(availableDescription, availableName) in availableVariables"
+						:key="availableName"
+						inverted-accent
+						@click="copyToClipboard(getVariableText(availableName))">
+						<template #default>
+							<span class="hidden-visually">
+								{{ t('libresign', 'Copy to clipboard') }}
+							</span>
+							{{ getVariableText(availableName) }}
+						</template>
+						<template #icon>
+							<Check v-if="isCopied(availableName)" :size="20" />
+							<ContentCopy v-else :size="20" />
+						</template>
+						<template #description>
+							<p class="variable-description">{{ availableDescription }}</p>
+						</template>
+					</NcFormBoxButton>
+				</div>
+			</div>
+		</NcDialog>
 	</NcSettingsSection>
 </template>
 <script>
 import debounce from 'debounce'
 
+import Check from 'vue-material-design-icons/Check.vue'
+import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
+import HelpCircleOutline from 'vue-material-design-icons/HelpCircleOutline.vue'
 import MagnifyMinusOutline from 'vue-material-design-icons/MagnifyMinusOutline.vue'
 import MagnifyPlusOutline from 'vue-material-design-icons/MagnifyPlusOutline.vue'
 import Undo from 'vue-material-design-icons/UndoVariant.vue'
@@ -315,25 +342,33 @@ import { generateOcsUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
+import NcDialog from '@nextcloud/vue/components/NcDialog'
+import NcFormBoxButton from '@nextcloud/vue/components/NcFormBoxButton'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
-import NcTextArea from '@nextcloud/vue/components/NcTextArea'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 import { useIsDarkTheme } from '@nextcloud/vue/composables/useIsDarkTheme'
+
+import CodeEditor from '../../components/CodeEditor.vue'
 
 export default {
 	name: 'SignatureStamp',
 	components: {
+		Check,
+		CodeEditor,
+		ContentCopy,
 		Delete,
+		HelpCircleOutline,
 		MagnifyMinusOutline,
 		MagnifyPlusOutline,
 		NcButton,
 		NcCheckboxRadioSwitch,
+		NcDialog,
+		NcFormBoxButton,
 		NcLoadingIcon,
 		NcNoteCard,
 		NcSettingsSection,
-		NcTextArea,
 		NcTextField,
 		Undo,
 		Upload,
@@ -377,6 +412,8 @@ export default {
 			isRTLDirection: isRTL(),
 			availableVariables: loadState('libresign', 'signature_available_variables'),
 			isOverflowing: false,
+			showVariablesDialog: false,
+			copiedVariable: null,
 		}
 	},
 	computed: {
@@ -463,13 +500,40 @@ export default {
 		},
 	},
 	mounted() {
-		this.resizeHeight()
 		subscribe('collect-metadata:changed', this.refreshAfterChangeCollectMetadata)
+	},
+	created() {
+		this.debouncedSaveTemplate = debounce(this.saveTemplate, 500)
 	},
 	beforeUnmount() {
 		unsubscribe('collect-metadata:changed')
 	},
 	methods: {
+		getVariableText(name) {
+			return name
+		},
+		isCopied(name) {
+			return this.copiedVariable === this.getVariableText(name)
+		},
+		copyToClipboard(text) {
+			if (this.copiedVariable === text) {
+				return
+			}
+
+			const value = text
+			try {
+				navigator.clipboard.writeText(value)
+			} catch {
+				// Fallback for a case when clipboard API is not available or permission denied
+				// eslint-disable-next-line no-alert
+				prompt('', value)
+			}
+
+			this.copiedVariable = text
+			setTimeout(() => {
+				this.copiedVariable = null
+			}, 2000)
+		},
 		reset() {
 			this.dislaySuccessTemplate = false
 			this.errorMessageBackground = ''
@@ -639,6 +703,13 @@ export default {
 		display: flex;
 		gap: 0 4px;
 		align-items: flex-start;
+		:deep(.code-editor) {
+			flex: 1;
+			.CodeMirror {
+				height: auto;
+				min-height: 80px;
+			}
+		}
 		:deep(.textarea) {
 			flex: 1;
 			textarea {
@@ -709,12 +780,31 @@ export default {
 	input[type="file"] {
 		display: none;
 	}
-	.available-variables {
-		margin-bottom: 1em;
-	}
 	.rtl {
 		direction: rtl;
 		text-align: right;
 	}
+}
+
+.variables-dialog {
+	padding: 16px;
+
+	&__description {
+		margin-bottom: 16px;
+		color: var(--color-text-lighter);
+		font-size: 14px;
+	}
+}
+
+.variables-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	max-height: 60vh;
+	overflow-y: auto;
+}
+
+.variable-description {
+	margin: 0;
 }
 </style>
