@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
-use OCA\Libresign\Service\SignatureFlow;
 use OCP\AppFramework\Db\Entity;
 use OCP\DB\Types;
 
