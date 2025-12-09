@@ -352,6 +352,56 @@ export const useFilesStore = function(...args) {
 			filesSorted() {
 				return this.ordered.map(key => this.files[key])
 			},
+			async saveWithVisibleElements({ visibleElements = [], signers = null, uuid = null, nodeId = null }) {
+				const file = this.getFile()
+				const config = {
+					url: generateOcsUrl('/apps/libresign/api/v1/request-signature'),
+					method: uuid || file.uuid ? 'patch' : 'post',
+					data: {
+						name: file?.name,
+						users: signers || file.signers,
+						visibleElements,
+						status: 0,
+					},
+				}
+
+				if (uuid || file.uuid) {
+					config.data.uuid = uuid || file.uuid
+				} else {
+					config.data.file = {
+						fileId: nodeId || this.selectedNodeId,
+					}
+				}
+
+				const { data } = await axios(config)
+				this.addFile(data.ocs.data.data)
+				return data.ocs.data
+			},
+			async requestSignaturesWithVisibleElements({ visibleElements = [], signers = null, uuid = null, nodeId = null }) {
+				const file = this.getFile()
+				const config = {
+					url: generateOcsUrl('/apps/libresign/api/v1/request-signature'),
+					method: uuid || file.uuid ? 'patch' : 'post',
+					data: {
+						name: file?.name,
+						users: signers || file.signers,
+						visibleElements,
+						status: 1,
+					},
+				}
+
+				if (uuid || file.uuid) {
+					config.data.uuid = uuid || file.uuid
+				} else {
+					config.data.file = {
+						fileId: nodeId || this.selectedNodeId,
+					}
+				}
+
+				const { data } = await axios(config)
+				this.addFile(data.ocs.data.data)
+				return data.ocs.data
+			},
 		},
 	})
 
