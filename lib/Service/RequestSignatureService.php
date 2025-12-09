@@ -46,6 +46,7 @@ class RequestSignatureService {
 		protected IClientService $client,
 		protected DocMdpHandler $docMdpHandler,
 		protected LoggerInterface $logger,
+		protected SequentialSigningService $sequentialSigningService,
 	) {
 	}
 
@@ -200,7 +201,13 @@ class RequestSignatureService {
 		$return = [];
 		if (!empty($data['users'])) {
 			$this->deleteIdentifyMethodIfNotExits($data['users'], $fileId);
+
+			$this->sequentialSigningService->resetOrderCounter();
+
 			foreach ($data['users'] as $user) {
+				$userProvidedOrder = isset($user['signingOrder']) ? (int)$user['signingOrder'] : null;
+				$signingOrder = $this->sequentialSigningService->determineSigningOrder($userProvidedOrder);
+
 				if (isset($user['identifyMethods'])) {
 					foreach ($user['identifyMethods'] as $identifyMethod) {
 						$return[] = $this->associateToSigner(
@@ -211,6 +218,7 @@ class RequestSignatureService {
 							description: $user['description'] ?? '',
 							notify: empty($user['notify']) && $this->isStatusAbleToNotify($data['status'] ?? null),
 							fileId: $fileId,
+							signingOrder: $signingOrder,
 						);
 					}
 				} else {
@@ -220,6 +228,7 @@ class RequestSignatureService {
 						description: $user['description'] ?? '',
 						notify: empty($user['notify']) && $this->isStatusAbleToNotify($data['status'] ?? null),
 						fileId: $fileId,
+						signingOrder: $signingOrder,
 					);
 				}
 			}
@@ -234,7 +243,14 @@ class RequestSignatureService {
 		]);
 	}
 
-	private function associateToSigner(array $identifyMethods, string $displayName, string $description, bool $notify, int $fileId): SignRequestEntity {
+	private function associateToSigner(
+		array $identifyMethods,
+		string $displayName,
+		string $description,
+		bool $notify,
+		int $fileId,
+		int $signingOrder = 0,
+	): SignRequestEntity {
 		$identifyMethodsIncances = $this->identifyMethod->getByUserData($identifyMethods);
 		if (empty($identifyMethodsIncances)) {
 			throw new \Exception($this->l10n->t('Invalid identification method'));
@@ -245,6 +261,14 @@ class RequestSignatureService {
 		);
 		$displayName = $this->getDisplayNameFromIdentifyMethodIfEmpty($identifyMethodsIncances, $displayName);
 		$this->setDataToUser($signRequest, $displayName, $description, $fileId);
+
+		$signRequest->setSigningOrder($signingOrder);
+
+		if (!$signRequest->getId()) {
+			$initialStatus = $this->determineInitialStatus($signingOrder);
+			$signRequest->setStatusEnum($initialStatus);
+		}
+
 		$this->saveSignRequest($signRequest);
 		foreach ($identifyMethodsIncances as $identifyMethod) {
 			$identifyMethod->getEntity()->setSignRequestId($signRequest->getId());
@@ -252,6 +276,16 @@ class RequestSignatureService {
 			$identifyMethod->save();
 		}
 		return $signRequest;
+	}
+
+	private function determineInitialStatus(int $signingOrder): \OCA\Libresign\Db\SignRequestStatus {
+		if (!$this->sequentialSigningService->isOrderedNumericFlow()) {
+			return \OCA\Libresign\Db\SignRequestStatus::ABLE_TO_SIGN;
+		}
+
+		return $signingOrder === 1
+			? \OCA\Libresign\Db\SignRequestStatus::ABLE_TO_SIGN
+			: \OCA\Libresign\Db\SignRequestStatus::DRAFT;
 	}
 
 	/**
