@@ -437,11 +437,35 @@ class ConfigureCheckService {
 					];
 				}
 				if (!str_contains($matches['encoding'], 'UTF-8')) {
+					$detectedEncoding = trim($matches['encoding']);
+					$phpLocale = setlocale(LC_CTYPE, 0);
+					$phpLcAll = getenv('LC_ALL');
+					$phpLang = getenv('LANG');
+
+					$tip = sprintf(
+						"Java detected encoding \"%s\" but UTF-8 is required.\n\n"
+						. "**Current PHP environment:**\n"
+						. "- LC_CTYPE: %s\n"
+						. "- LC_ALL: %s\n"
+						. "- LANG: %s\n\n"
+						. "**To fix this issue:**\n"
+						. "1. Set LC_ALL and LANG environment variables (e.g., LC_ALL=en_US.UTF-8) for your web server user\n"
+						. "2. Restart your web server after making changes\n"
+						. "3. Verify with command: `locale charmap` (should return UTF-8)\n\n"
+						. 'For more details, see: [Issue #4872](https://github.com/LibreSign/libresign/issues/4872)',
+						$detectedEncoding,
+						$phpLocale ?: 'not set',
+						$phpLcAll ?: 'not set',
+						$phpLang ?: 'not set'
+					);
 					return $this->result['java'] = [
 						(new ConfigureCheckHelper())
-							->setInfoMessage('Non-UTF-8 encoding detected. This may cause issues with accented or special characters')
+							->setInfoMessage(sprintf(
+								'Non-UTF-8 encoding detected: %s. This may cause issues with accented or special characters',
+								$detectedEncoding
+							))
 							->setResource('java')
-							->setTip(' Ensure the system encoding is UTF-8. You can check it using: locale charmap'),
+							->setTip($tip),
 					];
 				}
 				return $this->result['java'] = [
