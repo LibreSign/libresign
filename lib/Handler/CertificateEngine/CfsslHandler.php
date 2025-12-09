@@ -130,7 +130,9 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		$configPath = $this->getCurrentConfigPath();
 		$certificate = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
 		$privateKey = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
-		if (!$certificate || !$privateKey) {
+		$csrServer = file_exists($configPath . DIRECTORY_SEPARATOR . 'csr_server.json');
+		$configServer = file_exists($configPath . DIRECTORY_SEPARATOR . 'config_server.json');
+		if (!$certificate || !$privateKey || !$csrServer || !$configServer) {
 			return false;
 		}
 		try {
