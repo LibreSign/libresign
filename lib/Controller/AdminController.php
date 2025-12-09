@@ -20,6 +20,7 @@ use OCA\Libresign\Service\Certificate\ValidateService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\DocMdpConfigService;
 use OCA\Libresign\Service\FooterService;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCA\Libresign\Service\Install\InstallService;
 use OCA\Libresign\Service\ReminderService;
@@ -67,6 +68,7 @@ class AdminController extends AEnvironmentAwareController {
 		private ReminderService $reminderService,
 		private FooterService $footerService,
 		private DocMdpConfigService $docMdpConfigService,
+		private IdentifyMethodService $identifyMethodService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->eventSource = $this->eventSourceFactory->create();
@@ -141,6 +143,38 @@ class AdminController extends AEnvironmentAwareController {
 				Http::STATUS_UNAUTHORIZED
 			);
 		}
+	}
+
+	/**
+	 * Set certificate engine
+	 *
+	 * Sets the certificate engine (openssl, cfssl, or none) and automatically configures identify_methods when needed
+	 *
+	 * @param string $engine The certificate engine to use (openssl, cfssl, or none)
+	 * @return DataResponse<Http::STATUS_OK, array{engine: string, identify_methods: array}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 400: Invalid engine
+	 */
+	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/certificate/engine', requirements: ['apiVersion' => '(v1)'])]
+	public function setCertificateEngine(string $engine): DataResponse {
+		$validEngines = ['openssl', 'cfssl', 'none'];
+		if (!in_array($engine, $validEngines, true)) {
+			return new DataResponse(
+				['message' => 'Invalid engine. Must be one of: ' . implode(', ', $validEngines)],
+				Http::STATUS_BAD_REQUEST
+			);
+		}
+
+		$handler = $this->certificateEngineFactory->getEngine();
+		$handler->setEngine($engine);
+		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsSettings();
+
+		return new DataResponse([
+			'engine' => $engine,
+			'identify_methods' => $identifyMethods,
+		]);
 	}
 
 	private function generateCertificate(
