@@ -127,7 +127,7 @@ OC.L10N.register(
     "Draw" : "Rysuj",
     "Text" : "Tekst",
     "Upload" : "Wyślij",
-    "Change color" : "Zmień kolor",
+    "Color" : "Kolor",
     "Delete" : "Usuń",
     "Save" : "Zapisz",
     "Cancel" : "Anuluj",

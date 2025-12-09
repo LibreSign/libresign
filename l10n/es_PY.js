@@ -18,6 +18,7 @@ OC.L10N.register(
     "Email" : "Correo electrónico",
     "Text" : "Texto",
     "Upload" : "Cargar",
+    "Color" : "Color",
     "Delete" : "Borrar",
     "Save" : "Guardar",
     "Cancel" : "Cancelar",

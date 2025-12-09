@@ -11,6 +11,7 @@ OC.L10N.register(
     "Invalid file provided" : "Ugyldig fil",
     "Email" : "Epost",
     "Upload" : "Last opp",
+    "Color" : "Farge",
     "Delete" : "Slett",
     "Save" : "Lagre",
     "Cancel" : "Avbryt",

@@ -124,7 +124,7 @@ OC.L10N.register(
     "Draw" : "Teken",
     "Text" : "Tekst",
     "Upload" : "Uploaden",
-    "Change color" : "Wijzigen kleur",
+    "Color" : "Kleur",
     "Delete" : "Verwijder",
     "Save" : "Opslaan",
     "Cancel" : "Annuleren",

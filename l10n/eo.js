@@ -26,6 +26,7 @@ OC.L10N.register(
     "Email" : "Retpoŝtadreso",
     "Text" : "Teksto",
     "Upload" : "Alŝuti",
+    "Color" : "Koloro",
     "Delete" : "Forigi",
     "Save" : "Konservi",
     "Cancel" : "Nuligi",

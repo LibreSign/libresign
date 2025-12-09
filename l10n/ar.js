@@ -175,7 +175,7 @@ OC.L10N.register(
     "Draw" : "إرسم",
     "Text" : "نص",
     "Upload" : "تحميل",
-    "Change color" : "غيّر اللون",
+    "Color" : "اللون",
     "Delete" : "حذف",
     "Save" : "حفظ",
     "Cancel" : "إلغاء",

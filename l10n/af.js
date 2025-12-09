@@ -21,6 +21,7 @@ OC.L10N.register(
     "Email" : "E-pos",
     "Text" : "Teks",
     "Upload" : "Laai op",
+    "Color" : "Kleur",
     "Delete" : "Skrap",
     "Save" : "Bewaar",
     "Cancel" : "Kanselleer",
