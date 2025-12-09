@@ -33,6 +33,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\PdfSignatureDetectionService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Tests\Unit\PdfFixtureTrait;
@@ -89,6 +90,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignedEventFactory&MockObject $signedEventFactory;
 	private Pdf&MockObject $pdf;
 	private DocMdpHandler $docMdpHandler;
+	private PdfSignatureDetectionService&MockObject $pdfSignatureDetectionService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -124,6 +126,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signedEventFactory = $this->createMock(SignedEventFactory::class);
 		$this->pdf = $this->createMock(Pdf::class);
 		$this->docMdpHandler = new DocMdpHandler($this->l10n);
+		$this->pdfSignatureDetectionService = $this->createMock(PdfSignatureDetectionService::class);
 	}
 
 	private function getService(array $methods = []): SignFileService|MockObject {
@@ -158,6 +161,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->signedEventFactory,
 					$this->pdf,
 					$this->docMdpHandler,
+					$this->pdfSignatureDetectionService,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -191,6 +195,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->signedEventFactory,
 			$this->pdf,
 			$this->docMdpHandler,
+			$this->pdfSignatureDetectionService,
 		);
 	}
 
