@@ -11,6 +11,7 @@ OC.L10N.register(
     "Invalid user" : "Буруу хэрэглэгч",
     "Email" : "Цахим шуудан",
     "Upload" : "байршуулах",
+    "Color" : "Өнгө",
     "Delete" : "Устгах",
     "Save" : "Хадгалах",
     "Cancel" : "болиулах",

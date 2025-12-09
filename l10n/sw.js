@@ -27,6 +27,8 @@ OC.L10N.register(
     "Draw" : "Draw",
     "Text" : "Maandishi",
     "Upload" : "Pakia",
+    "Color" : "Rangi",
+    "Choose color" : "Chagua rangi",
     "Delete" : "Futa",
     "Save" : "Hifadhi",
     "Cancel" : "Cancel",

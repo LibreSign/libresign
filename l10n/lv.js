@@ -28,6 +28,7 @@ OC.L10N.register(
     "Customize your signatures" : "Pielāgot savus parakstus",
     "Text" : "Teksts",
     "Upload" : "Augšupielādēt",
+    "Color" : "Krāsa",
     "Delete" : "Izdzēst",
     "Save" : "Saglabāt",
     "Cancel" : "Atcelt",

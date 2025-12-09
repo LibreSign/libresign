@@ -89,7 +89,7 @@ OC.L10N.register(
     "Draw" : "Piirrä",
     "Text" : "Teksti",
     "Upload" : "Lähetä",
-    "Change color" : "Vaihda väriä",
+    "Color" : "Väri",
     "Delete" : "Poista",
     "Save" : "Tallenna",
     "Cancel" : "Peruuta",

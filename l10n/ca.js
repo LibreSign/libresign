@@ -140,7 +140,7 @@ OC.L10N.register(
     "Draw" : "Dibuixa",
     "Text" : "Text",
     "Upload" : "Pujada",
-    "Change color" : "Canvia el color",
+    "Color" : "Color",
     "Delete" : "Suprimir",
     "Save" : "Desar",
     "Cancel" : "Cancel·la",

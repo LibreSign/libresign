@@ -11,7 +11,6 @@ OC.L10N.register(
     "Account" : "ගිණුම",
     "Email" : "විද්‍යුත් තැපෑල",
     "Upload" : "උඩුගත",
-    "Change color" : "වර්ණය වෙනස් කරන්න",
     "Save" : "සුරකින්න",
     "Cancel" : "අවලංගු කරන්න",
     "Files" : "ගොනු",

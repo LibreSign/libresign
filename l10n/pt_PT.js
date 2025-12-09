@@ -28,6 +28,7 @@ OC.L10N.register(
     "Draw" : "Draw",
     "Text" : "Texto",
     "Upload" : "Upload",
+    "Color" : "Cor",
     "Delete" : "Eliminar",
     "Save" : "Guardar",
     "Cancel" : "Cancelar",

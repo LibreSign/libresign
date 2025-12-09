@@ -64,6 +64,8 @@ OC.L10N.register(
     "LibreSign" : "LibreSign",
     "Text" : "Tèxt",
     "Upload" : "Cargament",
+    "Color" : "Color",
+    "Choose color" : "Causir color",
     "Delete" : "Suprimir",
     "Save" : "Enregistrar",
     "Cancel" : "Anullar",

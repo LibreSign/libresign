@@ -31,7 +31,7 @@ OC.L10N.register(
     "Draw" : "Нацрт",
     "Text" : "Текст",
     "Upload" : "Прикачи",
-    "Change color" : "Промени боја",
+    "Color" : "Боја",
     "Delete" : "Избриши",
     "Save" : "Зачувај",
     "Cancel" : "Откажи",

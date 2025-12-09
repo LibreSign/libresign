@@ -21,6 +21,7 @@ OC.L10N.register(
     "Email" : "Emaili",
     "Text" : "Tekst",
     "Upload" : "Ngarkoni",
+    "Color" : "Ngjyrë ",
     "Delete" : "Fshi",
     "Save" : "Ruaj",
     "Cancel" : "Anullo",

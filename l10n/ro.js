@@ -28,7 +28,7 @@ OC.L10N.register(
     "Draw" : "Desenare",
     "Text" : "Text",
     "Upload" : "Încărcare",
-    "Change color" : "Schimbă culoarea",
+    "Color" : "Culoare",
     "Delete" : "Șterge",
     "Save" : "Salvează",
     "Cancel" : "Anulare",

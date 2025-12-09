@@ -113,7 +113,7 @@ OC.L10N.register(
     "Customize your signatures" : "Prilagodite svoje potpise",
     "Text" : "Tekst",
     "Upload" : "Otpremi",
-    "Change color" : "Promijeni boju",
+    "Color" : "Boja",
     "Delete" : "Izbriši",
     "Save" : "Spremi",
     "Cancel" : "Odustani",

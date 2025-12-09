@@ -123,7 +123,7 @@ OC.L10N.register(
     "Draw" : "画",
     "Text" : "文本 ",
     "Upload" : "上传",
-    "Change color" : "更改颜色",
+    "Color" : "颜色",
     "Delete" : "删除",
     "Save" : "保存",
     "Cancel" : "取消",
