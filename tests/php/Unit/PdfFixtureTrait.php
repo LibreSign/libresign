@@ -20,7 +20,7 @@ trait PdfFixtureTrait {
 	/**
 	 * Create a minimal unsigned PDF (valid but minimal structure)
 	 */
-	protected function createMinimalPdf(): string {
+	public function createMinimalPdf(): string {
 		return "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
 			. "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n"
 			. "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n"
@@ -43,7 +43,7 @@ trait PdfFixtureTrait {
 	 * Uses complete FPDI-valid structure for FileService tests,
 	 * or minimal structure for DocMdpHandler tests.
 	 */
-	protected function createPdfWithDocMdp(int $pValue, bool $withModifications = false): string {
+	public function createPdfWithDocMdp(int $pValue, bool $withModifications = false): string {
 		// FileService needs FPDI-valid PDF (has validatePdfStringWithFpdi)
 		if (str_contains(static::class, 'FileServiceTest')) {
 			return $this->createCompletePdfStructure($pValue, $withModifications);
