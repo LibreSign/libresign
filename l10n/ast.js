@@ -31,7 +31,7 @@ OC.L10N.register(
     "Draw" : "Dibuxar",
     "Text" : "Testu",
     "Upload" : "Xunir",
-    "Change color" : "Camudar el color",
+    "Color" : "Color",
     "Delete" : "Desaniciar",
     "Save" : "Guardar",
     "Cancel" : "Encaboxar",

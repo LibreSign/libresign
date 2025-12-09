@@ -25,7 +25,7 @@ OC.L10N.register(
     "Email" : "Thư điện tử",
     "Text" : "Văn bản",
     "Upload" : "Tải lên",
-    "Change color" : "Thay đổi màu sắc",
+    "Color" : "Màu sắc",
     "Delete" : "Xóa",
     "Save" : "Lưu",
     "Cancel" : "Hủy",

@@ -54,6 +54,7 @@ OC.L10N.register(
     "Draw" : "Gambar",
     "Text" : "Teks",
     "Upload" : "Unggah",
+    "Color" : "Warna",
     "Delete" : "Hapus",
     "Save" : "Simpan",
     "Cancel" : "Membatalkan",

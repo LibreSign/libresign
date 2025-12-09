@@ -20,6 +20,7 @@ OC.L10N.register(
     "Email" : "Email",
     "Text" : "Matn",
     "Upload" : "Yuklash",
+    "Color" : "Rang",
     "Delete" : "O'chirish",
     "Save" : "Saqlash",
     "Cancel" : "Bekor qilish",

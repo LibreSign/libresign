@@ -30,7 +30,7 @@ OC.L10N.register(
     "Draw" : "Teikna",
     "Text" : "Texti",
     "Upload" : "Senda inn",
-    "Change color" : "Breyta lit",
+    "Color" : "Litur",
     "Delete" : "Eyða",
     "Save" : "Vista",
     "Cancel" : "Hætta við",

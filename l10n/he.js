@@ -26,7 +26,7 @@ OC.L10N.register(
     "Email" : "דוא״ל",
     "Text" : "טקסט",
     "Upload" : "העלאה",
-    "Change color" : "החלפת צבע",
+    "Color" : "צבע",
     "Delete" : "מחיקה",
     "Save" : "שמירה",
     "Cancel" : "ביטול",

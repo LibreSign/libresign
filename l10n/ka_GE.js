@@ -18,6 +18,7 @@ OC.L10N.register(
     "Email" : "ელ-ფოსტა",
     "Text" : "ტექსტი",
     "Upload" : "ატვირთვა",
+    "Color" : "ფერი",
     "Delete" : "წაშლა",
     "Save" : "შენახვა",
     "Cancel" : "უარყოფა",

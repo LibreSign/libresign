@@ -81,7 +81,7 @@ OC.L10N.register(
     "Customize your signatures" : "Tinkinti parašus",
     "Text" : "Tekstas",
     "Upload" : "Įkelti",
-    "Change color" : "Keisti spalvą",
+    "Color" : "Spalva",
     "Delete" : "Ištrinti",
     "Save" : "Įrašyti",
     "Cancel" : "Atsisakyti",

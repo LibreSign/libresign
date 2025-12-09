@@ -24,6 +24,7 @@ OC.L10N.register(
     "Email" : "อีเมล",
     "Text" : "ข้อความ",
     "Upload" : "อัปโหลด",
+    "Color" : "สี",
     "Delete" : "ลบ",
     "Save" : "บันทึก",
     "Cancel" : "ยกเลิก",

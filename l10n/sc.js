@@ -75,7 +75,7 @@ OC.L10N.register(
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, aplicatzione pro sa firma digitale pro Nextcloud.",
     "Text" : "Testu",
     "Upload" : "Càrriga",
-    "Change color" : "Càmbia colore",
+    "Color" : "Colore",
     "Delete" : "Cantzella",
     "Save" : "Sarva",
     "Cancel" : "Annulla",

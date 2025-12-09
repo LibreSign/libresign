@@ -203,7 +203,7 @@ OC.L10N.register(
     "Draw" : "Rita",
     "Text" : "Text",
     "Upload" : "Ladda upp",
-    "Change color" : "Ändra färg",
+    "Color" : "Färg",
     "Delete" : "Radera",
     "Save" : "Spara",
     "Cancel" : "Avbryt",

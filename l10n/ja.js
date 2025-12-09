@@ -36,7 +36,7 @@ OC.L10N.register(
     "Draw" : "描画",
     "Text" : "テキスト",
     "Upload" : "アップロード",
-    "Change color" : "色を変える",
+    "Color" : "色",
     "Delete" : "削除",
     "Save" : "保存",
     "Cancel" : "キャンセル",

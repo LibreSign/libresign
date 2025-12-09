@@ -16,6 +16,7 @@ OC.L10N.register(
     "Email" : "Postel",
     "Text" : "Testenn",
     "Upload" : "Pellkas",
+    "Color" : "Liv",
     "Delete" : "Dilemel",
     "Save" : "Enrollañ",
     "Cancel" : "Nullañ",

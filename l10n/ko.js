@@ -121,7 +121,7 @@ OC.L10N.register(
     "Draw" : "그리기",
     "Text" : "텍스트",
     "Upload" : "업로드",
-    "Change color" : "색깔 바꾸기",
+    "Color" : "색",
     "Delete" : "삭제",
     "Save" : "저장",
     "Cancel" : "취소",

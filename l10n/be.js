@@ -32,7 +32,7 @@ OC.L10N.register(
     "LibreSign" : "LibreSign",
     "Text" : "Тэкст",
     "Upload" : "Запампаваць",
-    "Change color" : "Змяніць колер",
+    "Choose color" : "Выберыце колер",
     "Delete" : "Выдаліць",
     "Save" : "Захаваць",
     "Cancel" : "Скасаваць",
