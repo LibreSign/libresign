@@ -41,11 +41,10 @@ class Version15000Date20251209000000 extends SimpleMigrationStep {
 				]);
 			}
 			if (!$tableSignRequest->hasColumn('status')) {
-				$tableSignRequest->addColumn('status', Types::STRING, [
+				$tableSignRequest->addColumn('status', Types::SMALLINT, [
 					'notnull' => true,
-					'length' => 20,
-					'default' => 'draft',
-					'comment' => 'Status: draft, able_to_sign, signed',
+					'default' => 0,
+					'comment' => 'Status: 0=draft, 1=able_to_sign, 2=signed',
 				]);
 			}
 		}

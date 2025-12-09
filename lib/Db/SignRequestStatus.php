@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
-enum SignRequestStatus: string {
-	case DRAFT = 'draft';
-	case ABLE_TO_SIGN = 'able_to_sign';
-	case SIGNED = 'signed';
+enum SignRequestStatus: int {
+	case DRAFT = 0;
+	case ABLE_TO_SIGN = 1;
+	case SIGNED = 2;
 }
