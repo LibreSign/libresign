@@ -61,6 +61,7 @@ export default {
 				tabSize: 4,
 				indentWithTabs: true,
 				placeholder: this.placeholder,
+				viewportMargin: Infinity,
 			}
 		},
 	},
@@ -90,7 +91,7 @@ export default {
 
 	.CodeMirror {
 		height: auto;
-		min-height: 200px;
+		min-height: 80px;
 		font-family: 'Courier New', Courier, monospace;
 		font-size: 14px;
 		line-height: 1.5;
