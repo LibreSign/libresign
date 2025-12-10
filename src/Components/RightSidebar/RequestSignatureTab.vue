@@ -105,6 +105,8 @@
 </template>
 <script>
 
+import debounce from 'debounce'
+
 import svgAccount from '@mdi/svg/svg/account.svg?raw'
 import svgEmail from '@mdi/svg/svg/email.svg?raw'
 import svgSms from '@mdi/svg/svg/message-processing.svg?raw'
@@ -114,6 +116,7 @@ import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import Draw from 'vue-material-design-icons/Draw.vue'
 import FileDocument from 'vue-material-design-icons/FileDocument.vue'
+import OrderNumericAscending from 'vue-material-design-icons/OrderNumericAscending.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import Send from 'vue-material-design-icons/Send.vue'
 
@@ -125,6 +128,7 @@ import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import NcActionInput from '@nextcloud/vue/components/NcActionInput'
 import NcAppSidebar from '@nextcloud/vue/components/NcAppSidebar'
 import NcAppSidebarTab from '@nextcloud/vue/components/NcAppSidebarTab'
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -155,10 +159,14 @@ const iconMap = {
 	svgXmpp,
 }
 
+import signingOrderMixin from '../../mixins/signingOrderMixin.js'
+
 export default {
 	name: 'RequestSignatureTab',
+	mixins: [signingOrderMixin],
 	components: {
 		NcActionButton,
+		NcActionInput,
 		NcAppSidebar,
 		NcAppSidebarTab,
 		NcButton,
@@ -169,6 +177,7 @@ export default {
 		Delete,
 		Draw,
 		FileDocument,
+		OrderNumericAscending,
 		Pencil,
 		Send,
 		Signers,
@@ -195,9 +204,13 @@ export default {
 			document: {},
 			hasInfo: false,
 			methods: [],
+			signatureFlow: loadState('libresign', 'signature_flow', 'parallel'),
 		}
 	},
 	computed: {
+		isOrderedNumeric() {
+			return this.signatureFlow === 'ordered_numeric'
+		},
 		showSaveButton() {
 			if (!this.filesStore.canSave()) {
 				return false
@@ -224,6 +237,9 @@ export default {
 		hasSigners() {
 			return this.filesStore.hasSigners(this.filesStore.getFile())
 		},
+		totalSigners() {
+			return this.filesStore.getFile()?.signers?.length || 0
+		},
 		fileName() {
 			return this.filesStore.getFile()?.name ?? ''
 		},
@@ -246,6 +262,18 @@ export default {
 	created() {
 		this.$set(this, 'methods', loadState('libresign', 'identify_methods'))
 		this.$set(this, 'document', loadState('libresign', 'file_info', {}))
+
+		this.debouncedSave = debounce(async () => {
+			try {
+				await this.filesStore.saveWithVisibleElements({ visibleElements: [] })
+			} catch (error) {
+				if (error.response?.data?.ocs?.data?.message) {
+					showError(error.response.data.ocs.data.message)
+				} else if (error.response?.data?.ocs?.data?.errors) {
+					error.response.data.ocs.data.errors.forEach(error => showError(error.message))
+				}
+			}
+		}, 1000)
 	},
 	methods: {
 		getSvgIcon(name) {
@@ -277,6 +305,71 @@ export default {
 		editSigner(signer) {
 			this.signerToEdit = signer
 			this.filesStore.enableIdentifySigner()
+		},
+		updateSigningOrder(signer, value) {
+			const order = parseInt(value, 10)
+			const file = this.filesStore.getFile()
+
+			if (isNaN(order)) {
+				return
+			}
+
+			const currentIndex = file.signers.findIndex(s => s.identify === signer.identify)
+			if (currentIndex === -1) {
+				return
+			}
+
+			this.$set(file.signers[currentIndex], 'signingOrder', order)
+
+			const sortedSigners = [...file.signers].sort((a, b) => {
+				const orderA = a.signingOrder || 999
+				const orderB = b.signingOrder || 999
+				if (orderA === orderB) {
+					return 0
+				}
+				return orderA - orderB
+			})
+
+			this.$set(file, 'signers', sortedSigners)
+		},
+		confirmSigningOrder(signer) {
+			const file = this.filesStore.getFile()
+
+			const currentIndex = file.signers.findIndex(s => s.identify === signer.identify)
+			if (currentIndex === -1) {
+				return
+			}
+
+			const order = file.signers[currentIndex].signingOrder
+			const oldOrder = signer.signingOrder
+
+			for (let i = 0; i < file.signers.length; i++) {
+				if (i === currentIndex) continue
+
+				const currentItemOrder = file.signers[i].signingOrder
+
+				if (order < oldOrder) {
+					if (currentItemOrder >= order && currentItemOrder < oldOrder) {
+						this.$set(file.signers[i], 'signingOrder', currentItemOrder + 1)
+					}
+				} else if (order > oldOrder) {
+					if (currentItemOrder > oldOrder && currentItemOrder <= order) {
+						this.$set(file.signers[i], 'signingOrder', currentItemOrder - 1)
+					}
+				}
+			}
+
+			const sortedSigners = [...file.signers].sort((a, b) => {
+				const orderA = a.signingOrder || 999
+				const orderB = b.signingOrder || 999
+				return orderA - orderB
+			})
+
+			this.normalizeSigningOrders(sortedSigners)
+
+			this.$set(file, 'signers', sortedSigners)
+
+			this.debouncedSave()
 		},
 		async sendNotify(signer) {
 			const body = {
