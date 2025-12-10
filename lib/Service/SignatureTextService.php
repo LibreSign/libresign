@@ -230,7 +230,7 @@ class SignatureTextService {
 		$draw->setTextAlignment($align);
 
 		$maxCharsPerLine = $this->splitAndGetLongestHalfLength($text);
-		$wrappedText = wordwrap($text, $maxCharsPerLine, "\n", true);
+		$wrappedText = $this->mbWordwrap($text, $maxCharsPerLine, "\n", true);
 
 		$textMetrics = $image->queryFontMetrics($draw, $wrappedText);
 		$lineCount = substr_count($wrappedText, "\n") + 1;
@@ -298,6 +298,91 @@ class SignatureTextService {
 		}
 
 		return !empty($results) ? max($results) : $length;
+	}
+
+	/**
+	 * Multibyte-safe version of wordwrap
+	 *
+	 * @param string $text The text to wrap
+	 * @param int $width The number of characters at which the string will be wrapped
+	 * @param string $break The line break character
+	 * @param bool $cut If true, words longer than $width will be broken
+	 * @return string The wrapped text
+	 */
+	private function mbWordwrap(string $text, int $width, string $break = "\n", bool $cut = false): string {
+		if ($width <= 0) {
+			return $text;
+		}
+
+		$lines = [];
+		$currentLine = '';
+		$currentLength = 0;
+
+		$paragraphs = explode("\n", $text);
+
+		foreach ($paragraphs as $paragraphIndex => $paragraph) {
+			if ($paragraph === '') {
+				if ($currentLength > 0) {
+					$lines[] = $currentLine;
+					$currentLine = '';
+					$currentLength = 0;
+				}
+				$lines[] = '';
+				continue;
+			}
+
+			$words = explode(' ', $paragraph);
+
+			foreach ($words as $word) {
+				$wordLength = mb_strlen($word);
+
+				if ($cut && $wordLength > $width) {
+					if ($currentLength > 0) {
+						$lines[] = $currentLine;
+						$currentLine = '';
+						$currentLength = 0;
+					}
+
+					while ($wordLength > $width) {
+						$lines[] = mb_substr($word, 0, $width);
+						$word = mb_substr($word, $width);
+						$wordLength = mb_strlen($word);
+					}
+
+					if ($wordLength > 0) {
+						$currentLine = $word;
+						$currentLength = $wordLength;
+					}
+					continue;
+				}
+
+				$spaceLength = ($currentLength > 0) ? 1 : 0;
+				if ($currentLength + $spaceLength + $wordLength > $width && $currentLength > 0) {
+					$lines[] = $currentLine;
+					$currentLine = $word;
+					$currentLength = $wordLength;
+				} else {
+					if ($currentLength > 0) {
+						$currentLine .= ' ';
+						$currentLength++;
+					}
+					$currentLine .= $word;
+					$currentLength += $wordLength;
+				}
+			}
+
+			if ($currentLength > 0 && $paragraphIndex < count($paragraphs) - 1) {
+				$lines[] = $currentLine;
+				$currentLine = '';
+				$currentLength = 0;
+			}
+		}
+
+		if ($currentLength > 0) {
+			$lines[] = $currentLine;
+		}
+
+		return implode($break, $lines);
 	}
 
 	public function getDefaultTemplate(): string {
