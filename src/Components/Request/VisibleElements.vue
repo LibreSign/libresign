@@ -299,7 +299,6 @@ export default {
 				const response = await this.filesStore.saveWithVisibleElements({ visibleElements })
 				showSuccess(t('libresign', response.message))
 				this.closeModal()
-				emit('libresign:visible-elements-saved')
 				this.loading = false
 				return true
 			} catch (error) {
