@@ -1147,6 +1147,8 @@ export type components = {
                 email?: string;
                 account?: string;
             };
+            /** Format: int64 */
+            signingOrder?: number;
         };
         NextcloudFile: {
             message: string;
@@ -1235,6 +1237,8 @@ export type components = {
             me: boolean;
             /** Format: int64 */
             signRequestId: number;
+            /** Format: int64 */
+            signingOrder?: number;
             identifyMethods?: components["schemas"]["IdentifyMethod"][];
             visibleElements?: components["schemas"]["VisibleElement"][];
             signatureMethods?: components["schemas"]["SignatureMethods"];

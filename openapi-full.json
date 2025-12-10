@@ -513,6 +513,11 @@
                                 "type": "string"
                             }
                         }
+                    },
+                    "signingOrder": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
                     }
                 }
             },
@@ -908,6 +913,11 @@
                         "type": "boolean"
                     },
                     "signRequestId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "signingOrder": {
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0
