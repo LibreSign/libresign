@@ -478,7 +478,7 @@ class FileService {
 				return $orderA <=> $orderB;
 			}
 
-			return strcasecmp($a['displayName'], $b['displayName']);
+			return ($a['signRequestId'] ?? 0) <=> ($b['signRequestId'] ?? 0);
 		});
 
 		$this->signersLibreSignLoaded = true;
@@ -910,7 +910,7 @@ class FileService {
 						return $orderA <=> $orderB;
 					}
 
-					return strcasecmp($a['displayName'], $b['displayName']);
+					return ($a['signRequestId'] ?? 0) <=> ($b['signRequestId'] ?? 0);
 				});
 
 				$files[$key]['statusText'] = $this->fileMapper->getTextOfStatus((int)$files[$key]['status']);
