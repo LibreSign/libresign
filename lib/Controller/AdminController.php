@@ -896,6 +896,47 @@ class AdminController extends AEnvironmentAwareController {
 	}
 
 	/**
+	 * Set signature flow configuration
+	 *
+	 * @param string $mode Signature flow mode: 'parallel' or 'ordered_numeric'
+	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
+	 *
+	 * 200: Configuration saved successfully
+	 * 400: Invalid signature flow mode provided
+	 * 500: Internal server error
+	 */
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-flow/config', requirements: ['apiVersion' => '(v1)'])]
+	public function setSignatureFlowConfig(string $mode): DataResponse {
+		try {
+			$signatureFlow = \OCA\Libresign\Service\SignatureFlow::from($mode);
+		} catch (\ValueError) {
+			return new DataResponse([
+				'error' => $this->l10n->t('Invalid signature flow mode. Use "parallel" or "ordered_numeric".'),
+			], Http::STATUS_BAD_REQUEST);
+		}
+
+		try {
+			if ($signatureFlow === \OCA\Libresign\Service\SignatureFlow::PARALLEL) {
+				$this->appConfig->deleteKey(Application::APP_ID, 'signature_flow');
+			} else {
+				$this->appConfig->setValueString(
+					Application::APP_ID,
+					'signature_flow',
+					$signatureFlow->value
+				);
+			}
+
+			return new DataResponse([
+				'message' => $this->l10n->t('Settings saved'),
+			]);
+		} catch (\Exception $e) {
+			return new DataResponse([
+				'error' => $e->getMessage(),
+			], Http::STATUS_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/**
 	 * Set DocMDP configuration
 	 *
 	 * @param bool $enabled Enable or disable DocMDP certification

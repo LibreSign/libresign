@@ -91,6 +91,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private Pdf&MockObject $pdf;
 	private DocMdpHandler $docMdpHandler;
 	private PdfSignatureDetectionService&MockObject $pdfSignatureDetectionService;
+	private \OCA\Libresign\Service\SequentialSigningService&MockObject $sequentialSigningService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -127,6 +128,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pdf = $this->createMock(Pdf::class);
 		$this->docMdpHandler = new DocMdpHandler($this->l10n);
 		$this->pdfSignatureDetectionService = $this->createMock(PdfSignatureDetectionService::class);
+		$this->sequentialSigningService = $this->createMock(\OCA\Libresign\Service\SequentialSigningService::class);
 	}
 
 	private function getService(array $methods = []): SignFileService|MockObject {
@@ -162,6 +164,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->pdf,
 					$this->docMdpHandler,
 					$this->pdfSignatureDetectionService,
+					$this->sequentialSigningService,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -196,6 +199,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->pdf,
 			$this->docMdpHandler,
 			$this->pdfSignatureDetectionService,
+			$this->sequentialSigningService,
 		);
 	}
 
@@ -293,6 +297,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->assertEquals($expectedHash, $args[0], 'Hash of signed file should match expected SHA-256 value');
 					$totalCalls++;
 					break;
+				case 'getFileId':
+					return 1;
+				case 'getSigningOrder':
+					return 1;
 				default: return null;
 			}
 		};
@@ -332,6 +340,15 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signRequestMapper->expects($this->once())->method('update');
 
 		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('__call')->willReturnCallback(function ($method, $args) {
+			switch ($method) {
+				case 'getFileId':
+					return 1;
+				case 'getSigningOrder':
+					return 1;
+				default: return null;
+			}
+		});
 		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 
 		$service
@@ -358,6 +375,15 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->with($this->isInstanceOf(SignedEvent::class));
 
 		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('__call')->willReturnCallback(function ($method, $args) {
+			switch ($method) {
+				case 'getFileId':
+					return 1;
+				case 'getSigningOrder':
+					return 1;
+				default: return null;
+			}
+		});
 		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 
 		$service
@@ -381,7 +407,17 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$service->method('getSigners')->willReturn($inputSigners);
 
+		$signRequestCallback = function ($method, $args) {
+			switch ($method) {
+				case 'getFileId':
+					return 1;
+				case 'getSigningOrder':
+					return 1;
+				default: return null;
+			}
+		};
 		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('__call')->willReturnCallback($signRequestCallback);
 		$libreSignFile = new \OCA\Libresign\Db\File();
 		$libreSignFile->setStatus($fileStatus);
 		$libreSignFile->resetUpdatedFields();
