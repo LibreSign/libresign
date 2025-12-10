@@ -22,8 +22,6 @@
 	</div>
 </template>
 <script>
-import { subscribe, unsubscribe } from '@nextcloud/event-bus'
-
 import File from '../Components/File/File.vue'
 import ReqestPicker from '../Components/Request/RequestPicker.vue'
 
@@ -42,17 +40,10 @@ export default {
 		return { filesStore, sidebarStore }
 	},
 	async mounted() {
-		subscribe('libresign:visible-elements-saved', this.closeSidebar)
 		this.filesStore.disableIdentifySigner()
 	},
 	beforeUnmount() {
-		unsubscribe('libresign:visible-elements-saved')
 		this.filesStore.selectFile()
-	},
-	methods: {
-		closeSidebar() {
-			this.filesStore.selectFile()
-		},
 	},
 }
 </script>

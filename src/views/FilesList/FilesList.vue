@@ -78,7 +78,6 @@ import FolderIcon from 'vue-material-design-icons/Folder.vue'
 import ListViewIcon from 'vue-material-design-icons/FormatListBulletedSquare.vue'
 import ViewGridIcon from 'vue-material-design-icons/ViewGrid.vue'
 
-import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
@@ -152,11 +151,9 @@ export default {
 	async mounted() {
 		await this.filesStore.getAllFiles({ force_fetch: true })
 		this.loading = false
-		subscribe('libresign:visible-elements-saved', this.closeSidebar)
 		this.filesStore.disableIdentifySigner()
 	},
 	beforeUnmount() {
-		unsubscribe('libresign:visible-elements-saved')
 		this.filesStore.selectFile()
 	},
 	methods: {
@@ -165,9 +162,6 @@ export default {
 		},
 		toggleGridView() {
 			this.userConfigStore.update('grid_view', !this.userConfigStore.grid_view)
-		},
-		closeSidebar() {
-			this.filesStore.selectFile()
 		},
 	},
 }
