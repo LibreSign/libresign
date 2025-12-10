@@ -203,6 +203,11 @@ final class SignatureTextServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 			'center 175x50 scale 2.5' => ['Secure ✔️', 175, 50, 'center', 2.5],
 			'left 175x50 scale 3' => ['Sign now', 175, 50, 'left',3],
 			'right 175x50 scale 4' => ['Signed 🔐', 175, 50, 'right', 4],
+
+			// Portuguese text with accents
+			'center 175x101 portuguese' => ['Imagem da assinatura aqui', 175, 101, 'center', 5],
+			'right 175x101 portuguese' => ['Imagem da assinatura aqui', 175, 101, 'right', 5],
+			'left 350x100 portuguese long' => ['Assinado com LibreSign administrador', 350, 100, 'left', 5],
 		];
 	}
 
