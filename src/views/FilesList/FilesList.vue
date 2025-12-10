@@ -50,9 +50,17 @@
 					v-else-if="!loading && isEmptyDir && filtersStore.activeChips.length === 0"
 					:name="t('libresign', 'There are no documents')"
 					:description="canRequestSign ? t('libresign', 'Choose the file to request signatures.') : ''">
-					<template #action>
+					<template v-if="canRequestSign" #action>
 						<RequestPicker />
 					</template>
+					<template #icon>
+						<FolderIcon />
+					</template>
+				</NcEmptyContent>
+
+				<NcEmptyContent
+					v-else-if="!loading && isEmptyDir && filtersStore.activeChips.length > 0"
+					:name="t('libresign', 'No documents found')">
 					<template #icon>
 						<FolderIcon />
 					</template>
