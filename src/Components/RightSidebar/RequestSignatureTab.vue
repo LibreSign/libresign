@@ -9,9 +9,20 @@
 			@click="addSigner">
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
-		<Signers :signers="filesStore.signers"
-			event="libresign:edit-signer">
-			<template #actions="{signer}">
+		<Signers event="libresign:edit-signer"
+			@signing-order-changed="debouncedSave">
+			<template #actions="{signer, closeActions}">
+				<NcActionInput v-if="isOrderedNumeric && totalSigners > 1 && filesStore.canSave() && !signer.signed"
+					:label="t('libresign', 'Signing order')"
+					type="number"
+					:value="signer.signingOrder || 1"
+					@update:value="updateSigningOrder(signer, $event)"
+					@submit="confirmSigningOrder(signer); closeActions()"
+					@blur="confirmSigningOrder(signer)">
+					<template #icon>
+						<OrderNumericAscending :size="20" />
+					</template>
+				</NcActionInput>
 				<NcActionButton v-if="filesStore.canSave() && !signer.signed"
 					aria-label="Delete"
 					:close-after-click="true"
