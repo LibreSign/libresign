@@ -264,15 +264,21 @@ class RequestSignatureService {
 
 		$signRequest->setSigningOrder($signingOrder);
 
-		if (!$signRequest->getId()) {
+		$isNewSignRequest = !$signRequest->getId();
+		$currentStatus = $signRequest->getStatusEnum();
+
+		if ($isNewSignRequest || $currentStatus === \OCA\Libresign\Db\SignRequestStatus::DRAFT) {
 			$initialStatus = $this->determineInitialStatus($signingOrder);
 			$signRequest->setStatusEnum($initialStatus);
 		}
 
 		$this->saveSignRequest($signRequest);
+
+		$shouldNotify = $notify && $signRequest->getStatusEnum() === \OCA\Libresign\Db\SignRequestStatus::ABLE_TO_SIGN;
+
 		foreach ($identifyMethodsIncances as $identifyMethod) {
 			$identifyMethod->getEntity()->setSignRequestId($signRequest->getId());
-			$identifyMethod->willNotifyUser($notify);
+			$identifyMethod->willNotifyUser($shouldNotify);
 			$identifyMethod->save();
 		}
 		return $signRequest;
