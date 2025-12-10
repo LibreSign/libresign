@@ -42,6 +42,7 @@ OC.L10N.register(
     "Next" : "הבא",
     "Searching …" : "מתבצע חיפוש…",
     "No recommendations. Start typing." : "אין המלצות. נא להתחיל להקליד.",
+    "An error occurred" : "אירעה שגיאה",
     "Confirm" : "אימות",
     "Open file" : "פתיחת קובץ",
     "Administration" : "ניהול",

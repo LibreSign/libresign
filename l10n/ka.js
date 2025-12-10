@@ -41,6 +41,7 @@ OC.L10N.register(
     "Next" : "Next",
     "Searching …" : "Searching …",
     "No recommendations. Start typing." : "No recommendations. Start typing.",
+    "An error occurred" : "An error occurred",
     "Confirm" : "Confirm",
     "Administration" : "Administration",
     "pending" : "pending",

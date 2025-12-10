@@ -43,6 +43,7 @@ OC.L10N.register(
     "Next" : "Next",
     "Searching …" : "Inatafuta",
     "No recommendations. Start typing." : "Hakuna maoni. Anza kuchapisha",
+    "An error occurred" : "Hitilafu imetokea",
     "Confirm" : "Thibitisha",
     "Administration" : "Administration",
     "pending" : "inayosubiri",

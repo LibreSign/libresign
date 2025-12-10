@@ -100,6 +100,7 @@ OC.L10N.register(
     "Account does not exist" : "Paskyros nėra",
     "Searching …" : "Ieškoma…",
     "No recommendations. Start typing." : "Rekomendacijų nėra. Pradėkite rašyti.",
+    "An error occurred" : "Įvyko klaida",
     "Sign" : "Pasirašyti",
     "Confirm" : "Patvirtinti",
     "Send reminder" : "Siųsti priminimą",
