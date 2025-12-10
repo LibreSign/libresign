@@ -54,6 +54,7 @@ OC.L10N.register(
     "Next" : "次へ",
     "Searching …" : "検索しています…",
     "No recommendations. Start typing." : "推奨事項はありません。 入力を開始します。",
+    "An error occurred" : "エラーが発生しました",
     "Confirm" : "承認",
     "Open file" : "ファイルを開く",
     "Administration" : "管理",

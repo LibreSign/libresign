@@ -23,6 +23,7 @@ OC.L10N.register(
     "Send" : "Send",
     "Previous" : "Førre",
     "Next" : "Neste",
+    "An error occurred" : "Det oppstod ein feil",
     "Open file" : "Opne fil",
     "Administration" : "Administrasjon",
     "Open sidebar" : "Opne sidestolpe",

@@ -45,6 +45,7 @@ OC.L10N.register(
     "Next" : "Næsta",
     "Searching …" : "Leita …",
     "No recommendations. Start typing." : "Engar tillögur. Byrjaðu að skrifa.",
+    "An error occurred" : "Villa kom upp",
     "Confirm" : "Staðfesta",
     "Open file" : "Opna skrá",
     "Administration" : "Stjórnun",

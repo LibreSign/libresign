@@ -80,6 +80,7 @@ OC.L10N.register(
     "Next" : "Seguent",
     "Searching …" : "Recèrca…",
     "No signers." : "Cap de signaires.",
+    "An error occurred" : "Una error s’es producha",
     "Sign" : "Signar",
     "Confirm" : "Confirmar",
     "Open file" : "Dobrir fichièr",

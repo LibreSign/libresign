@@ -43,6 +43,7 @@ OC.L10N.register(
     "Next" : "Siguiente",
     "Searching …" : "Buscando  …",
     "No recommendations. Start typing." : "Sin recomendaciones. Empiece a escribir.",
+    "An error occurred" : "Ha ocurrido un error",
     "Confirm" : "Confirmar",
     "Open file" : "Abrir archivo",
     "Administration" : "Administración",

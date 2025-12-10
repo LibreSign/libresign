@@ -38,6 +38,7 @@ OC.L10N.register(
     "Next" : "ถัดไป",
     "Searching …" : "กำลังค้นหา …",
     "No recommendations. Start typing." : "ไม่มีคำแนะนำ เริ่มพิมพ์เลย",
+    "An error occurred" : "เกิดข้อผิดพลาด",
     "Confirm" : "ยืนยัน",
     "Open file" : "เปิดไฟล์",
     "Open sidebar" : "เปิดแถบด้านข้าง",

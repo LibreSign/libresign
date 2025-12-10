@@ -46,6 +46,7 @@ OC.L10N.register(
     "Next" : "Næste",
     "Searching …" : "Søger …",
     "No recommendations. Start typing." : "Ingen anbefalinger. Begynd at skrive.",
+    "An error occurred" : "Der opstod en fejl",
     "Confirm" : "Bekræft",
     "Open file" : "Åbn fil",
     "Administration" : "Administration",

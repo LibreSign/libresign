@@ -93,6 +93,7 @@ OC.L10N.register(
     "Next" : "Imbeniente",
     "Searching …" : "Chirchende …",
     "No recommendations. Start typing." : "Peruna racumandatzione. Cumintza a iscrìere.",
+    "An error occurred" : "B'at àpidu un'errore",
     "Sign" : "Firma",
     "Confirm" : "Cunfirma",
     "Send reminder" : "Imbia promemòria",
