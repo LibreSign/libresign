@@ -389,6 +389,8 @@ class RequestSignatureService {
 
 	public function unassociateToUser(int $fileId, int $signRequestId): void {
 		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
+		$deletedOrder = $signRequest->getSigningOrder();
+
 		try {
 			$this->signRequestMapper->delete($signRequest);
 			$groupedIdentifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequestId);
@@ -401,6 +403,8 @@ class RequestSignatureService {
 			foreach ($visibleElements as $visibleElement) {
 				$this->fileElementMapper->delete($visibleElement);
 			}
+
+			$this->sequentialSigningService->reorderAfterDeletion($fileId, $deletedOrder);
 		} catch (\Throwable) {
 		}
 	}

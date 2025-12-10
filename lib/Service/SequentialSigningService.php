@@ -85,6 +85,36 @@ class SequentialSigningService {
 		$this->activateSignersForOrder($allSignRequests, $nextOrder);
 	}
 
+	/**
+	 * Reorder and activate signers after a SignRequest deletion
+	 * This ensures no gaps in the signing sequence
+	 *
+	 * @param int $fileId The file ID
+	 * @param int $deletedOrder The order that was deleted
+	 */
+	public function reorderAfterDeletion(int $fileId, int $deletedOrder): void {
+		if (!$this->isOrderedNumericFlow()) {
+			return;
+		}
+
+		$allSignRequests = $this->signRequestMapper->getByFileId($fileId);
+
+		$hasSignersAtDeletedOrder = !empty(array_filter(
+			$allSignRequests,
+			fn ($sr) => $sr->getSigningOrder() === $deletedOrder
+		));
+
+		if (!$hasSignersAtDeletedOrder) {
+			$previousOrder = $deletedOrder - 1;
+			if ($previousOrder > 0 && $this->isOrderFullyCompleted($allSignRequests, $previousOrder)) {
+				$nextOrder = $this->findNextOrder($allSignRequests, $deletedOrder);
+				if ($nextOrder !== null) {
+					$this->activateSignersForOrder($allSignRequests, $nextOrder);
+				}
+			}
+		}
+	}
+
 	private function isOrderFullyCompleted(array $signRequests, int $order): bool {
 		$pendingSigners = array_filter(
 			$signRequests,
