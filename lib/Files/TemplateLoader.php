@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Files;
 
 use OCA\Files\Event\LoadSidebar;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -18,6 +19,7 @@ use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\EventDispatcher\IEventListener;
+use OCP\IAppConfig;
 use OCP\IRequest;
 use OCP\IUserSession;
 
@@ -33,6 +35,7 @@ class TemplateLoader implements IEventListener {
 		private ValidateHelper $validateHelper,
 		private IdentifyMethodService $identifyMethodService,
 		private CertificateEngineFactory $certificateEngineFactory,
+		private IAppConfig $appConfig,
 	) {
 	}
 
@@ -52,6 +55,11 @@ class TemplateLoader implements IEventListener {
 		$this->initialState->provideInitialState(
 			'identify_methods',
 			$this->identifyMethodService->getIdentifyMethodsSettings()
+		);
+
+		$this->initialState->provideInitialState(
+			'signature_flow',
+			$this->appConfig->getValueString(Application::APP_ID, 'signature_flow', \OCA\Libresign\Service\SignatureFlow::PARALLEL->value)
 		);
 
 		try {

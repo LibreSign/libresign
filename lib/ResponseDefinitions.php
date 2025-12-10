@@ -28,6 +28,7 @@ namespace OCA\Libresign;
  *         email?: string,
  *         account?: string,
  *     },
+ *     signingOrder?: non-negative-int,
  * }
  * @psalm-type LibresignNewFile = array{
  *     base64?: string,
@@ -172,6 +173,7 @@ namespace OCA\Libresign;
  *     hash_algorithm?: string,
  *     me: bool,
  *     signRequestId: non-negative-int,
+ *     signingOrder?: non-negative-int,
  *     identifyMethods?: LibresignIdentifyMethod[],
  *     visibleElements?: LibresignVisibleElement[],
  *     signatureMethods?: LibresignSignatureMethods,

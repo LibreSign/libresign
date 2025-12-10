@@ -15,6 +15,7 @@
 		<ExpirationRules />
 		<Validation />
 		<DocMDP />
+		<SignatureFlow />
 		<AllowedGroups />
 		<LegalInformation />
 		<IdentificationDocuments />
@@ -44,6 +45,7 @@ import LegalInformation from './LegalInformation.vue'
 import Reminders from './Reminders.vue'
 import RootCertificateCfssl from './RootCertificateCfssl.vue'
 import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
+import SignatureFlow from './SignatureFlow.vue'
 import SignatureHashAlgorithm from './SignatureHashAlgorithm.vue'
 import SignatureStamp from './SignatureStamp.vue'
 import SupportProject from './SupportProject.vue'
@@ -65,14 +67,15 @@ export default {
 		IdentificationFactors,
 		LegalInformation,
 		NcSettingsSection,
+		Reminders,
 		RootCertificateCfssl,
 		RootCertificateOpenSsl,
+		SignatureFlow,
 		SignatureHashAlgorithm,
 		SignatureStamp,
 		SupportProject,
 		TSA,
 		Validation,
-		Reminders,
 	},
 	data() {
 		return {

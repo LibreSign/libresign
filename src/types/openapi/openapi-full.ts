@@ -839,7 +839,7 @@ export type paths = {
         put?: never;
         /**
          * Request signature
-         * @description Request that a file be signed by a group of people
+         * @description Request that a file be signed by a group of people. Each user in the users array can optionally include a 'signing_order' field to control the order of signatures when ordered signing flow is enabled.
          */
         post: operations["request_signature-request"];
         delete?: never;
@@ -1355,6 +1355,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-flow/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set signature flow configuration
+         * @description This endpoint requires admin access
+         */
+        post: operations["admin-set-signature-flow-config"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/docmdp/config": {
         parameters: {
             query?: never;
@@ -1583,6 +1603,8 @@ export type components = {
                 email?: string;
                 account?: string;
             };
+            /** Format: int64 */
+            signingOrder?: number;
         };
         NextcloudFile: {
             message: string;
@@ -1693,6 +1715,8 @@ export type components = {
             me: boolean;
             /** Format: int64 */
             signRequestId: number;
+            /** Format: int64 */
+            signingOrder?: number;
             identifyMethods?: components["schemas"]["IdentifyMethod"][];
             visibleElements?: components["schemas"]["VisibleElement"][];
             signatureMethods?: components["schemas"]["SignatureMethods"];
@@ -3973,7 +3997,7 @@ export interface operations {
                 "application/json": {
                     /** @description File object. */
                     file: components["schemas"]["NewFile"];
-                    /** @description Collection of users who must sign the document */
+                    /** @description Collection of users who must sign the document. Each user can have: identify, displayName, description, notify, signing_order */
                     users: components["schemas"]["NewSigner"][];
                     /** @description The name of file to sign */
                     name: string;
@@ -5980,6 +6004,77 @@ export interface operations {
             };
             /** @description Bad request */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-set-signature-flow-config": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Signature flow mode: 'parallel' or 'ordered_numeric' */
+                    mode: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Configuration saved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Invalid signature flow mode provided */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Internal server error */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };

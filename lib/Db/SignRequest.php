@@ -32,6 +32,10 @@ use OCP\DB\Types;
  * @method ?array getMetadata()
  * @method void setDocmdpLevel(int $docmdpLevel)
  * @method int getDocmdpLevel()
+ * @method void setSigningOrder(int $signingOrder)
+ * @method int getSigningOrder()
+ * @method void setStatus(int $status)
+ * @method int getStatus()
  */
 class SignRequest extends Entity {
 	protected ?int $fileId = null;
@@ -43,6 +47,9 @@ class SignRequest extends Entity {
 	protected ?string $signedHash = null;
 	protected ?array $metadata = null;
 	protected int $docmdpLevel = 0;
+	protected int $signingOrder = 1;
+	protected int $status = 0;
+
 	public function __construct() {
 		$this->addType('id', Types::INTEGER);
 		$this->addType('fileId', Types::INTEGER);
@@ -54,5 +61,15 @@ class SignRequest extends Entity {
 		$this->addType('signedHash', Types::STRING);
 		$this->addType('metadata', Types::JSON);
 		$this->addType('docmdpLevel', Types::SMALLINT);
+		$this->addType('signingOrder', Types::INTEGER);
+		$this->addType('status', Types::SMALLINT);
+	}
+
+	public function getStatusEnum(): SignRequestStatus {
+		return SignRequestStatus::from($this->status);
+	}
+
+	public function setStatusEnum(SignRequestStatus $status): void {
+		$this->setStatus($status->value);
 	}
 }
