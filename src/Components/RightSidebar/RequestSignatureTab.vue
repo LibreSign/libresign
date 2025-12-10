@@ -41,47 +41,61 @@
 			</template>
 		</Signers>
 		<div class="action-buttons">
-			<NcButton v-if="showSaveButton"
-				:variant="filesStore.canSign() ? 'secondary' : 'primary'"
-				:disabled="hasLoading"
-				@click="save()">
-				<template #icon>
-					<NcLoadingIcon v-if="hasLoading" :size="20" />
-					<Pencil v-else-if="isSignElementsAvailable()" :size="20" />
-				</template>
-				{{ isSignElementsAvailable() ? t('libresign', 'Edit visible signatures') : t('libresign', 'Save') }}
-			</NcButton>
-			<NcButton v-if="showRequestButton"
-				:variant="filesStore.canSign() ? 'secondary' : 'primary'"
-				:disabled="hasLoading"
-				@click="request()">
-				<template #icon>
-					<NcLoadingIcon v-if="hasLoading" :size="20" />
-					<Send v-else :size="20" />
-				</template>
-				{{ t('libresign', 'Send') }}
-			</NcButton>
-			<NcButton v-if="filesStore.canSign()"
-				variant="primary"
-				:disabled="hasLoading"
-				@click="sign()">
-				<template #icon>
-					<NcLoadingIcon v-if="hasLoading" :size="20" />
-					<Draw v-else :size="20" />
-				</template>
-				{{ t('libresign', 'Sign') }}
-			</NcButton>
-			<NcButton v-if="filesStore.canValidate()"
-				variant="primary"
-				@click="validationFile()">
-				{{ t('libresign', 'Validate') }}
-			</NcButton>
-			<NcButton @click="openFile()">
-				<template #icon>
-					<FileDocument :size="20" />
-				</template>
-				{{ t('libresign', 'Open file') }}
-			</NcButton>
+			<div v-if="showSaveButton || showRequestButton" class="button-group">
+				<NcButton v-if="showSaveButton"
+					wide
+					variant="secondary"
+					:disabled="hasLoading"
+					@click="save()">
+					<template #icon>
+						<NcLoadingIcon v-if="hasLoading" :size="20" />
+						<Pencil v-else-if="isSignElementsAvailable()" :size="20" />
+					</template>
+					{{ isSignElementsAvailable() ? t('libresign', 'Setup signature positions') : t('libresign', 'Save') }}
+				</NcButton>
+				<NcButton v-if="showRequestButton"
+					wide
+					:variant="filesStore.canSign() ? 'secondary' : 'primary'"
+					:disabled="hasLoading"
+					@click="request()">
+					<template #icon>
+						<NcLoadingIcon v-if="hasLoading" :size="20" />
+						<Send v-else :size="20" />
+					</template>
+					{{ t('libresign', 'Request signatures') }}
+				</NcButton>
+			</div>
+			<div v-if="filesStore.canSign()" class="button-group">
+				<NcButton wide
+					variant="primary"
+					:disabled="hasLoading"
+					@click="sign()">
+					<template #icon>
+						<NcLoadingIcon v-if="hasLoading" :size="20" />
+						<Draw v-else :size="20" />
+					</template>
+					{{ t('libresign', 'Sign document') }}
+				</NcButton>
+			</div>
+			<div class="button-group">
+				<NcButton v-if="filesStore.canValidate()"
+					wide
+					variant="secondary"
+					@click="validationFile()">
+					<template #icon>
+						<Information :size="20" />
+					</template>
+					{{ t('libresign', 'Validation info') }}
+				</NcButton>
+				<NcButton wide
+					variant="secondary"
+					@click="openFile()">
+					<template #icon>
+						<FileDocument :size="20" />
+					</template>
+					{{ t('libresign', 'Open file') }}
+				</NcButton>
+			</div>
 		</div>
 		<VisibleElements />
 		<NcModal v-if="modalSrc"
@@ -127,6 +141,7 @@ import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import Draw from 'vue-material-design-icons/Draw.vue'
 import FileDocument from 'vue-material-design-icons/FileDocument.vue'
+import Information from 'vue-material-design-icons/Information.vue'
 import OrderNumericAscending from 'vue-material-design-icons/OrderNumericAscending.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import Send from 'vue-material-design-icons/Send.vue'
@@ -140,6 +155,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActionInput from '@nextcloud/vue/components/NcActionInput'
+import NcActions from '@nextcloud/vue/components/NcActions'
 import NcAppSidebar from '@nextcloud/vue/components/NcAppSidebar'
 import NcAppSidebarTab from '@nextcloud/vue/components/NcAppSidebarTab'
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -178,6 +194,7 @@ export default {
 	components: {
 		NcActionButton,
 		NcActionInput,
+		NcActions,
 		NcAppSidebar,
 		NcAppSidebarTab,
 		NcButton,
@@ -188,6 +205,7 @@ export default {
 		Delete,
 		Draw,
 		FileDocument,
+		Information,
 		OrderNumericAscending,
 		Pencil,
 		Send,
@@ -463,15 +481,17 @@ export default {
 </script>
 <style lang="scss" scoped>
 
-.action-buttons{
+.action-buttons {
 	display: flex;
-	flex-wrap: wrap;
+	flex-direction: column;
 	gap: 8px;
 	margin-top: 12px;
+}
 
-	button {
-		margin: 0 !important;
-	}
+.button-group {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 }
 
 .iframe {
