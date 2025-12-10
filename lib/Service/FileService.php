@@ -387,6 +387,7 @@ class FileService {
 			$this->fileData->signers[$index]['me'] = false;
 			$this->fileData->signers[$index]['signRequestId'] = $signer->getId();
 			$this->fileData->signers[$index]['description'] = $signer->getDescription();
+			$this->fileData->signers[$index]['signingOrder'] = $signer->getSigningOrder();
 			$this->fileData->signers[$index]['visibleElements'] = $this->getVisibleElements($signer->getId());
 			$this->fileData->signers[$index]['request_sign_date'] = $signer->getCreatedAt()->format(DateTimeInterface::ATOM);
 			if (empty($this->fileData->signers[$index]['signed'])) {
@@ -468,6 +469,18 @@ class FileService {
 			}, []);
 			ksort($this->fileData->signers[$index]);
 		}
+
+		usort($this->fileData->signers, function ($a, $b) {
+			$orderA = $a['signingOrder'] ?? PHP_INT_MAX;
+			$orderB = $b['signingOrder'] ?? PHP_INT_MAX;
+
+			if ($orderA !== $orderB) {
+				return $orderA <=> $orderB;
+			}
+
+			return ($a['signRequestId'] ?? 0) <=> ($b['signRequestId'] ?? 0);
+		});
+
 		$this->signersLibreSignLoaded = true;
 	}
 
@@ -821,6 +834,7 @@ class FileService {
 						'request_sign_date' => $signer->getCreatedAt()->format(DateTimeInterface::ATOM),
 						'signed' => null,
 						'signRequestId' => $signer->getId(),
+						'signingOrder' => $signer->getSigningOrder(),
 						'me' => array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
 							if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
 								if ($user->getUID() === $identifyMethod->getIdentifierValue()) {
@@ -888,6 +902,17 @@ class FileService {
 				$files[$key]['signers'] = [];
 				$files[$key]['statusText'] = $this->l10n->t('no signers');
 			} else {
+				usort($files[$key]['signers'], function ($a, $b) {
+					$orderA = $a['signingOrder'] ?? PHP_INT_MAX;
+					$orderB = $b['signingOrder'] ?? PHP_INT_MAX;
+
+					if ($orderA !== $orderB) {
+						return $orderA <=> $orderB;
+					}
+
+					return ($a['signRequestId'] ?? 0) <=> ($b['signRequestId'] ?? 0);
+				});
+
 				$files[$key]['statusText'] = $this->fileMapper->getTextOfStatus((int)$files[$key]['status']);
 			}
 			unset($files[$key]['id']);
