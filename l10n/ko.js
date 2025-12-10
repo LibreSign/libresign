@@ -145,7 +145,6 @@ OC.L10N.register(
     "No recommendations. Start typing." : "추천 없음. 타이핑을 시작하십시오",
     "Sign" : "서명",
     "Confirm" : "확인",
-    "Request signatures?" : "서명 요청?",
     "Send reminder" : "알림 전송",
     "Open file" : "파일 열기",
     "Document not available for signature." : "서명에 사용할 수 없는 문서입니다.",

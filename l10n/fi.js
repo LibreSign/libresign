@@ -113,6 +113,7 @@ OC.L10N.register(
     "Searching …" : "Haetaan…",
     "No signers." : "Ei allekirjoittajia.",
     "No recommendations. Start typing." : "Ei suosituksia. Aloita kirjoittaminen.",
+    "An error occurred" : "Tapahtui virhe",
     "Sign" : "Allekirjoita",
     "Confirm" : "Vahvista",
     "Send reminder" : "Lähetä muistutus",

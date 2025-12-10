@@ -47,6 +47,7 @@ OC.L10N.register(
     "Next" : "Следна",
     "Searching …" : "Пребарување ...",
     "No recommendations. Start typing." : "Нема препораки. Започнете со пишување.",
+    "An error occurred" : "Настана грешка",
     "Sign" : "Знак",
     "Confirm" : "Потврди",
     "Send reminder" : "Испрати потсетник",

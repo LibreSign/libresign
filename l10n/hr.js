@@ -135,6 +135,7 @@ OC.L10N.register(
     "Searching …" : "Traženje…",
     "No signers." : "Nema potpisnika.",
     "No recommendations. Start typing." : "Nema preporuka. Započnite unos.",
+    "An error occurred" : "Došlo je do pogreške",
     "Sign" : "Potpiši",
     "Confirm" : "Potvrdi",
     "Send reminder" : "Pošalji podsjetnik",

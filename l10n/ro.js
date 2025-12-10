@@ -43,6 +43,7 @@ OC.L10N.register(
     "Next" : "Următorul",
     "Searching …" : "Căutare ...",
     "No recommendations. Start typing." : "Nu am găsit recomandări. Începeți să scrieți.",
+    "An error occurred" : "A apărut o eraore",
     "Confirm" : "Confirmă",
     "Open file" : "Deschide fișier",
     "Administration" : "Administrare",

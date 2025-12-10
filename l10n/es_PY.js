@@ -30,6 +30,7 @@ OC.L10N.register(
     "Send" : "Enviar",
     "Previous" : "Anterior",
     "Next" : "Siguiente",
+    "An error occurred" : "Se presentó un error",
     "Confirm" : "Confirmar",
     "Open file" : "Abrir archivo",
     "Administration" : "Administración",
