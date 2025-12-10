@@ -24,21 +24,6 @@ class SequentialSigningService {
 	}
 
 	/**
-	 * Get the current signature flow mode from global config
-	 *
-	 * @return SignatureFlow
-	 */
-	public function getSignatureFlow(): SignatureFlow {
-		$value = $this->appConfig->getValueString(
-			Application::APP_ID,
-			'signature_flow',
-			SignatureFlow::PARALLEL->value
-		);
-
-		return SignatureFlow::from($value);
-	}
-
-	/**
 	 * Check if ordered numeric flow is enabled
 	 */
 	public function isOrderedNumericFlow(): bool {
@@ -143,5 +128,15 @@ class SequentialSigningService {
 				}
 			}
 		}
+	}
+
+	private function getSignatureFlow(): SignatureFlow {
+		$value = $this->appConfig->getValueString(
+			Application::APP_ID,
+			'signature_flow',
+			SignatureFlow::PARALLEL->value
+		);
+
+		return SignatureFlow::from($value);
 	}
 }
