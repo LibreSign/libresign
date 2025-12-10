@@ -297,6 +297,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->assertEquals($expectedHash, $args[0], 'Hash of signed file should match expected SHA-256 value');
 					$totalCalls++;
 					break;
+				case 'getFileId':
+					return 1;
+				case 'getSigningOrder':
+					return 1;
 				default: return null;
 			}
 		};
@@ -385,7 +389,17 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$service->method('getSigners')->willReturn($inputSigners);
 
+		$signRequestCallback = function ($method, $args) {
+			switch ($method) {
+				case 'getFileId':
+					return 1;
+				case 'getSigningOrder':
+					return 1;
+				default: return null;
+			}
+		};
 		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('__call')->willReturnCallback($signRequestCallback);
 		$libreSignFile = new \OCA\Libresign\Db\File();
 		$libreSignFile->setStatus($fileStatus);
 		$libreSignFile->resetUpdatedFields();
