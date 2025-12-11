@@ -42,11 +42,11 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignNextcloudFile = array{
  *     message: string,
- *     name: string,
+ *     name: non-falsy-string,
  *     id: int,
- *     etag: string,
- *     path: string,
- *     type: string,
+ *     status: int,
+ *     statusText: string,
+ *     created_at: string,
  * }
  * @psalm-type LibresignIdentifyAccount = array{
  *     id: non-negative-int,
