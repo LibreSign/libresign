@@ -12,7 +12,7 @@
 		<Signers event="libresign:edit-signer"
 			@signing-order-changed="debouncedSave">
 			<template #actions="{signer, closeActions}">
-				<NcActionInput v-if="isOrderedNumeric && totalSigners > 1 && filesStore.canSave() && !signer.signed"
+				<NcActionInput v-if="canEditSigningOrder(signer)"
 					:label="t('libresign', 'Signing order')"
 					type="number"
 					:value="signer.signingOrder || 1"
@@ -23,7 +23,7 @@
 						<OrderNumericAscending :size="20" />
 					</template>
 				</NcActionInput>
-				<NcActionButton v-if="filesStore.canSave() && !signer.signed"
+				<NcActionButton v-if="canDelete(signer)"
 					aria-label="Delete"
 					:close-after-click="true"
 					@click="filesStore.deleteSigner(signer)">
@@ -32,7 +32,15 @@
 					</template>
 					{{ t('libresign', 'Delete') }}
 				</NcActionButton>
-				<NcActionButton v-if="filesStore.canRequestSign && !signer.signed && signer.signRequestId && !signer.me"
+				<NcActionButton v-if="canRequestSignature(signer)"
+					:close-after-click="true"
+					@click="requestSignatureForSigner(signer)">
+					<template #icon>
+						<Send :size="20" />
+					</template>
+					{{ t('libresign', 'Request signature') }}
+				</NcActionButton>
+				<NcActionButton v-if="canSendReminder(signer)"
 					icon="icon-comment"
 					:close-after-click="true"
 					@click="sendNotify(signer)">
@@ -240,6 +248,37 @@ export default {
 		isOrderedNumeric() {
 			return this.signatureFlow === 'ordered_numeric'
 		},
+		canEditSigningOrder() {
+			return (signer) => {
+				return this.isOrderedNumeric
+					&& this.totalSigners > 1
+					&& this.filesStore.canSave()
+					&& !signer.signed
+			}
+		},
+		canDelete() {
+			return (signer) => {
+				return this.filesStore.canSave() && !signer.signed
+			}
+		},
+		canRequestSignature() {
+			return (signer) => {
+				return this.filesStore.canRequestSign
+					&& !signer.signed
+					&& signer.signRequestId
+					&& !signer.me
+					&& signer.status === 0
+			}
+		},
+		canSendReminder() {
+			return (signer) => {
+				return this.filesStore.canRequestSign
+					&& !signer.signed
+					&& signer.signRequestId
+					&& !signer.me
+					&& signer.status === 1
+			}
+		},
 		showSaveButton() {
 			if (!this.filesStore.canSave()) {
 				return false
@@ -415,6 +454,31 @@ export default {
 				})
 
 		},
+		async requestSignatureForSigner(signer) {
+			this.hasLoading = true
+			try {
+				const file = this.filesStore.getFile()
+				const signers = file.signers.map(s => {
+					if (s.signRequestId === signer.signRequestId) {
+						return { ...s, status: 1 }
+					}
+					return s
+				})
+				await this.filesStore.updateSignatureRequest({
+					visibleElements: [],
+					signers,
+					status: 1,
+				})
+				showSuccess(t('libresign', 'Signature requested'))
+			} catch (error) {
+				if (error.response?.data?.ocs?.data?.message) {
+					showError(error.response.data.ocs.data.message)
+				} else if (error.response?.data?.ocs?.data?.errors) {
+					error.response.data.ocs.data.errors.forEach(error => showError(error.message))
+				}
+			}
+			this.hasLoading = false
+		},
 		async sign() {
 			const uuid = this.filesStore.getFile().signers
 				.reduce((accumulator, signer) => {
@@ -448,7 +512,7 @@ export default {
 		async request() {
 			this.hasLoading = true
 			try {
-				const response = await this.filesStore.requestSignaturesWithVisibleElements({ visibleElements: [] })
+				const response = await this.filesStore.updateSignatureRequest({ visibleElements: [], status: 1 })
 				showSuccess(t('libresign', response.message))
 			} catch (error) {
 				if (error.response?.data?.ocs?.data?.message) {

@@ -313,7 +313,7 @@ export default {
 			const visibleElements = this.buildVisibleElements()
 
 			try {
-				const response = await this.filesStore.requestSignaturesWithVisibleElements({ visibleElements })
+				const response = await this.filesStore.updateSignatureRequest({ visibleElements, status: 1 })
 				this.filesStore.addFile(response.data)
 				this.showConfirm = false
 				showSuccess(t('libresign', response.message))
