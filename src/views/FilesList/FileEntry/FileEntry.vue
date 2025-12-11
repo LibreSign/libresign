@@ -28,7 +28,8 @@
 		<td class="files-list__row-status"
 			@click="openDetailsIfAvailable">
 			<FileEntryStatus :status="source.status"
-				:status-text="source.statusText" />
+				:status-text="source.statusText"
+				:signers="source.signers || []" />
 		</td>
 
 		<!-- Mtime -->
