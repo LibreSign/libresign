@@ -15,7 +15,7 @@
 		<transition-group name="signer-list" tag="div">
 			<Signer v-for="(signer, index) in sortableSigners"
 				:key="signer.identify || index"
-				:current-signer="index"
+				:signer-index="index"
 				:event="event"
 				:draggable="!signer.signed">
 				<template #actions="{closeActions}">
@@ -27,7 +27,7 @@
 	<ul v-else>
 		<Signer v-for="(signer, index) in signers"
 			:key="signer.identify || index"
-			:current-signer="index"
+			:signer-index="index"
 			:event="event">
 			<template #actions="{closeActions}">
 				<slot name="actions" :signer="signer" :closeActions="closeActions" />
