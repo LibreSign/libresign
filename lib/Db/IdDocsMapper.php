@@ -303,7 +303,7 @@ class IdDocsMapper extends QBMapper {
 		return match ($status) {
 			File::STATUS_ABLE_TO_SIGN => $this->l10n->t('waiting for approval'),
 			File::STATUS_SIGNED => $this->l10n->t('approved'),
-			default => $this->fileMapper->getTextOfStatus($status) ?? '',
+			default => $this->fileMapper->getTextOfStatus($status),
 		};
 	}
 }
