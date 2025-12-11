@@ -10,7 +10,8 @@ namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Db\SignRequestStatus;
+use OCA\Libresign\Enum\SignatureFlow;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCP\IAppConfig;
 
 class SequentialSigningService {
