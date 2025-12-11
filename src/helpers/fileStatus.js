@@ -21,22 +21,22 @@ export const fileStatus = [
 	},
 	{
 		id: 0,
-		icon: colorize(svgFile, '#E0E0E0'),
+		icon: colorize(svgFile, '#9E9E9E'),
 		label: t('libresign', 'draft'),
 	},
 	{
 		id: 1,
-		icon: colorize(svgSignature, '#B2E0B2'),
+		icon: colorize(svgSignature, '#D4A843'),
 		label: t('libresign', 'available for signature'),
 	},
 	{
 		id: 2,
-		icon: colorize(svgFractionOneHalf, '#F0E68C'),
+		icon: colorize(svgFractionOneHalf, '#D4A843'),
 		label: t('libresign', 'partially signed'),
 	},
 	{
 		id: 3,
-		icon: colorize(svgSignatureFreehand, '#A0C4FF'),
+		icon: colorize(svgSignatureFreehand, '#4CAF50'),
 		label: t('libresign', 'signed'),
 	},
 	{
