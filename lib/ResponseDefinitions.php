@@ -44,9 +44,9 @@ namespace OCA\Libresign;
  *     message: string,
  *     name: string,
  *     id: int,
- *     etag: string,
- *     path: string,
- *     type: string,
+ *     status: int,
+ *     statusText: string,
+ *     created_at: string,
  * }
  * @psalm-type LibresignIdentifyAccount = array{
  *     id: non-negative-int,
