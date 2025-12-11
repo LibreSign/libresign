@@ -200,6 +200,9 @@ export default {
 					this.filesStore.addFile({
 						nodeId: response.id,
 						name: response.name,
+						status: response.status,
+						statusText: response.statusText,
+						created_at: response.created_at,
 					})
 					this.filesStore.selectFile(response.id)
 				})
