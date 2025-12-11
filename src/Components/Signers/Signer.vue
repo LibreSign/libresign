@@ -14,34 +14,38 @@
 			<NcAvatar :size="44" :display-name="signer.displayName" />
 		</template>
 		<template #subname>
-			<Bullet v-for="method in identifyMethodsNames" :key="method" :name="method" />
+			<div class="signer-subname">
+				<Bullet v-for="method in identifyMethodsNames" :key="method" :name="method" />
+				<NcChip :text="signer.statusText"
+					:type="chipType"
+					:icon-path="statusIconPath"
+					:no-close="true"
+					class="signer-status-chip" />
+			</div>
 		</template>
 		<template #extra>
-			<div v-if="showDragHandle" class="drag-handle-wrapper">
-				<DragVertical :size="20"
-					class="drag-handle"
-					:title="t('libresign', 'Drag to reorder')" />
+			<div v-if="showDragHandle" class="signer-extra">
+				<div class="drag-handle-wrapper">
+					<DragVertical :size="20"
+						class="drag-handle"
+						:title="t('libresign', 'Drag to reorder')" />
+				</div>
 			</div>
 		</template>
 		<template #actions>
 			<slot name="actions" :closeActions="closeActions" />
 		</template>
-		<template #indicator>
-			<CheckboxBlankCircle :size="16"
-				:fill-color="statusColor"
-				:title="statusText" />
-		</template>
 	</NcListItem>
 </template>
 <script>
-import CheckboxBlankCircle from 'vue-material-design-icons/CheckboxBlankCircle.vue'
+import { mdiCheckCircle, mdiClockOutline, mdiCircleOutline } from '@mdi/js'
 import DragVertical from 'vue-material-design-icons/DragVertical.vue'
 
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
-import Moment from '@nextcloud/moment'
 
 import NcAvatar from '@nextcloud/vue/components/NcAvatar'
+import NcChip from '@nextcloud/vue/components/NcChip'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 
 import Bullet from '../Bullet/Bullet.vue'
@@ -53,7 +57,7 @@ export default {
 	components: {
 		NcListItem,
 		NcAvatar,
-		CheckboxBlankCircle,
+		NcChip,
 		DragVertical,
 		Bullet,
 	},
@@ -75,7 +79,12 @@ export default {
 	},
 	setup() {
 		const filesStore = useFilesStore()
-		return { filesStore }
+		return {
+			filesStore,
+			mdiCheckCircle,
+			mdiClockOutline,
+			mdiCircleOutline,
+		}
 	},
 	data() {
 		return {
@@ -123,29 +132,30 @@ export default {
 		identifyMethodsNames() {
 			return this.signer.identifyMethods.map(method => method.method)
 		},
-		statusColor() {
-			if (this.signer.signed) {
-				return '#008000'
-			}
-			// Pending
-			if (this.signer.signRequestId) {
-				return '#d67335'
-			}
-			// Draft, not saved
-			return '#dbdbdb'
+		signerStatus() {
+			return this.signer.status
 		},
-		statusText() {
-			if (this.signer.signed) {
-				return t('libresign', 'signed at {date}', {
-					date: Moment(this.signer.request_signed).format('LLL'),
-				})
+		chipType() {
+			switch (this.signerStatus) {
+			case 2: // SIGNED
+				return 'success'
+			case 1: // ABLE_TO_SIGN (pending)
+				return 'warning'
+			case 0: // DRAFT
+			default:
+				return 'secondary'
 			}
-			// Pending
-			if (this.signer.signRequestId) {
-				return t('libresign', 'pending')
+		},
+		statusIconPath() {
+			switch (this.signerStatus) {
+			case 2: // SIGNED
+				return this.mdiCheckCircle
+			case 1: // ABLE_TO_SIGN (pending)
+				return this.mdiClockOutline
+			case 0: // DRAFT
+			default:
+				return this.mdiCircleOutline
 			}
-			// Draft, not saved
-			return t('libresign', 'draft')
 		},
 	},
 	methods: {
@@ -171,10 +181,25 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+.signer-subname {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex-wrap: wrap;
+}
+
+.signer-status-chip {
+	flex-shrink: 0;
+}
+
+.signer-extra {
+	display: flex;
+	align-items: center;
+}
+
 .drag-handle-wrapper {
 	display: flex;
 	align-items: center;
-	height: 100%;
 }
 
 .drag-handle {
