@@ -437,25 +437,22 @@ export default {
 				.button-vue__text {
 					// Remove bold from default button styling
 					font-weight: normal;
-				}
-			}
 		}
+	}
+}
 
-		.files-list__row-mtime,
-		.files-list__row-status {
-			color: var(--color-text-maxcontrast);
-		}
-		.files-list__row-status {
-			width: calc(var(--row-height) * 1.5);
-			// Right align content/text
-			justify-content: flex-end;
-		}
+	.files-list__row-mtime,
+	.files-list__row-status {
+		color: var(--color-text-maxcontrast);
+	}
+	.files-list__row-status {
+		width: calc(var(--row-height) * 2.5);
+		justify-content: center;
+	}
 
-		.files-list__row-mtime {
-			width: calc(var(--row-height) * 2);
-		}
-
-		.files-list__row-column-custom {
+	.files-list__row-mtime {
+		width: calc(var(--row-height) * 2);
+	}		.files-list__row-column-custom {
 			width: calc(var(--row-height) * 2);
 		}
 	}
@@ -466,6 +463,16 @@ export default {
 	.files-list :deep(.files-list__filters) {
 		// Reduce padding on mobile
 		padding-inline: var(--default-grid-baseline, 4px);
+	}
+}
+
+@media screen and (max-width: 768px) {
+	.files-list__row-status {
+		width: calc(var(--row-height) * 0.8) !important;
+	}
+
+	:deep(.files-list__row-status) {
+		width: calc(var(--row-height) * 0.8) !important;
 	}
 }
 
