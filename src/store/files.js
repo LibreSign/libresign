@@ -399,7 +399,7 @@ export const useFilesStore = function(...args) {
 				this.addFile(data.ocs.data.data)
 				return data.ocs.data
 			},
-			async requestSignaturesWithVisibleElements({ visibleElements = [], signers = null, uuid = null, nodeId = null }) {
+			async updateSignatureRequest({ visibleElements = [], signers = null, uuid = null, nodeId = null, status = 1 }) {
 				const file = this.getFile()
 				const config = {
 					url: generateOcsUrl('/apps/libresign/api/v1/request-signature'),
@@ -408,7 +408,7 @@ export const useFilesStore = function(...args) {
 						name: file?.name,
 						users: signers || file.signers,
 						visibleElements,
-						status: 1,
+						status,
 					},
 				}
 
