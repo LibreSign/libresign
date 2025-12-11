@@ -852,7 +852,9 @@
                     "request_sign_date",
                     "signed",
                     "me",
-                    "signRequestId"
+                    "signRequestId",
+                    "status",
+                    "statusText"
                 ],
                 "properties": {
                     "description": {
@@ -917,6 +919,18 @@
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int64",
+                        "enum": [
+                            0,
+                            1,
+                            2
+                        ]
+                    },
+                    "statusText": {
+                        "type": "string"
                     },
                     "signingOrder": {
                         "type": "integer",

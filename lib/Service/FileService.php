@@ -387,6 +387,8 @@ class FileService {
 			$this->fileData->signers[$index]['me'] = false;
 			$this->fileData->signers[$index]['signRequestId'] = $signer->getId();
 			$this->fileData->signers[$index]['description'] = $signer->getDescription();
+			$this->fileData->signers[$index]['status'] = $signer->getStatus();
+			$this->fileData->signers[$index]['statusText'] = $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus());
 			$this->fileData->signers[$index]['signingOrder'] = $signer->getSigningOrder();
 			$this->fileData->signers[$index]['visibleElements'] = $this->getVisibleElements($signer->getId());
 			$this->fileData->signers[$index]['request_sign_date'] = $signer->getCreatedAt()->format(DateTimeInterface::ATOM);
@@ -487,6 +489,9 @@ class FileService {
 	private function loadSignersFromCertData(): void {
 		$this->loadCertDataFromLibreSignFile();
 		foreach ($this->certData as $index => $signer) {
+			$this->fileData->signers[$index]['status'] = 2;
+			$this->fileData->signers[$index]['statusText'] = $this->signRequestMapper->getTextOfSignerStatus(2);
+
 			if (isset($signer['timestamp'])) {
 				$this->fileData->signers[$index]['timestamp'] = $signer['timestamp'];
 				if (isset($signer['timestamp']['genTime']) && $signer['timestamp']['genTime'] instanceof DateTimeInterface) {
@@ -836,6 +841,7 @@ class FileService {
 						'signRequestId' => $signer->getId(),
 						'signingOrder' => $signer->getSigningOrder(),
 						'status' => $signer->getStatus(),
+						'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus()),
 						'me' => array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
 							if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
 								if ($user->getUID() === $identifyMethod->getIdentifierValue()) {

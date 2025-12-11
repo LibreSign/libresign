@@ -283,6 +283,8 @@ class IdDocsMapper extends QBMapper {
 							->format('Y-m-d H:i:s'),
 						'sign_date' => null,
 						'signRequestId' => $signer->getId(),
+						'status' => $signer->getStatus(),
+						'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus()),
 					];
 					if ($signer->getSigned()) {
 						$data['sign_date'] = (new \DateTime())

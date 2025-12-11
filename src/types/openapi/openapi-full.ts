@@ -1716,6 +1716,12 @@ export type components = {
             me: boolean;
             /** Format: int64 */
             signRequestId: number;
+            /**
+             * Format: int64
+             * @enum {integer}
+             */
+            status: 0 | 1 | 2;
+            statusText: string;
             /** Format: int64 */
             signingOrder?: number;
             identifyMethods?: components["schemas"]["IdentifyMethod"][];
