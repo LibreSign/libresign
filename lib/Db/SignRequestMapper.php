@@ -527,7 +527,9 @@ class SignRequestMapper extends QBMapper {
 			$qb->expr()->eq('f.user_id', $qb->createNamedParameter($userId)),
 			$qb->expr()->andX(
 				$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter(IdentifyMethodService::IDENTIFY_ACCOUNT)),
-				$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($userId))
+				$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($userId)),
+				$qb->expr()->neq('f.status', $qb->createNamedParameter(File::STATUS_DRAFT)),
+				$qb->expr()->neq('sr.status', $qb->createNamedParameter(SignRequestStatus::DRAFT->value)),
 			)
 		];
 		$qb->where($qb->expr()->orX(...$or))->andWhere($qb->expr()->isNull('id.id'));
