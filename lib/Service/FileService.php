@@ -835,6 +835,7 @@ class FileService {
 						'signed' => null,
 						'signRequestId' => $signer->getId(),
 						'signingOrder' => $signer->getSigningOrder(),
+						'status' => $signer->getStatus(),
 						'me' => array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
 							if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
 								if ($user->getUID() === $identifyMethod->getIdentifierValue()) {
