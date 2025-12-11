@@ -376,7 +376,7 @@ class SignFileService {
 		$lastSignedDate = $this->getEngine()->getLastSignedDate();
 		$this->signRequest->setSigned($lastSignedDate);
 		$this->signRequest->setSignedHash($hash);
-		$this->signRequest->setStatusEnum(\OCA\Libresign\Db\SignRequestStatus::SIGNED);
+		$this->signRequest->setStatusEnum(\OCA\Libresign\Enum\SignRequestStatus::SIGNED);
 
 		$this->signRequestMapper->update($this->signRequest);
 

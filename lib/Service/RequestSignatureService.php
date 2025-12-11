@@ -267,14 +267,14 @@ class RequestSignatureService {
 		$isNewSignRequest = !$signRequest->getId();
 		$currentStatus = $signRequest->getStatusEnum();
 
-		if ($isNewSignRequest || $currentStatus === \OCA\Libresign\Db\SignRequestStatus::DRAFT) {
+		if ($isNewSignRequest || $currentStatus === \OCA\Libresign\Enum\SignRequestStatus::DRAFT) {
 			$initialStatus = $this->determineInitialStatus($signingOrder);
 			$signRequest->setStatusEnum($initialStatus);
 		}
 
 		$this->saveSignRequest($signRequest);
 
-		$shouldNotify = $notify && $signRequest->getStatusEnum() === \OCA\Libresign\Db\SignRequestStatus::ABLE_TO_SIGN;
+		$shouldNotify = $notify && $signRequest->getStatusEnum() === \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN;
 
 		foreach ($identifyMethodsIncances as $identifyMethod) {
 			$identifyMethod->getEntity()->setSignRequestId($signRequest->getId());
@@ -284,14 +284,14 @@ class RequestSignatureService {
 		return $signRequest;
 	}
 
-	private function determineInitialStatus(int $signingOrder): \OCA\Libresign\Db\SignRequestStatus {
+	private function determineInitialStatus(int $signingOrder): \OCA\Libresign\Enum\SignRequestStatus {
 		if (!$this->sequentialSigningService->isOrderedNumericFlow()) {
-			return \OCA\Libresign\Db\SignRequestStatus::ABLE_TO_SIGN;
+			return \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN;
 		}
 
 		return $signingOrder === 1
-			? \OCA\Libresign\Db\SignRequestStatus::ABLE_TO_SIGN
-			: \OCA\Libresign\Db\SignRequestStatus::DRAFT;
+			? \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN
+			: \OCA\Libresign\Enum\SignRequestStatus::DRAFT;
 	}
 
 	/**
