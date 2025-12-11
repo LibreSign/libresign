@@ -254,7 +254,7 @@ export const useFilesStore = function(...args) {
 			},
 			async delete(file, deleteFile) {
 				file = this.getFile(file)
-				if (file?.uuid !== undefined) {
+				if (file?.nodeId) {
 					const url = deleteFile
 						? '/apps/libresign/api/v1/file/file_id/{fileId}'
 						: '/apps/libresign/api/v1/sign/file_id/{fileId}'
@@ -262,6 +262,11 @@ export const useFilesStore = function(...args) {
 						fileId: file.nodeId,
 					}))
 						.then(() => {
+							if (this.selectedNodeId === file.nodeId) {
+								const sidebarStore = useSidebarStore()
+								sidebarStore.hideSidebar()
+								this.selectedNodeId = 0
+							}
 							del(this.files, file.nodeId)
 							const index = this.ordered.indexOf(file.nodeId)
 							if (index > -1) {
@@ -273,11 +278,9 @@ export const useFilesStore = function(...args) {
 			},
 			async deleteMultiple(nodeIds, deleteFile) {
 				this.loading = true
-				nodeIds.forEach(async nodeId => {
+				for (const nodeId of nodeIds) {
 					await this.delete(this.files[nodeId], deleteFile)
-				})
-				const toRemove = nodeIds.filter(nodeId => (!this.files[nodeId]?.uuid))
-				del(this.files, ...toRemove)
+				}
 				this.loading = false
 			},
 			async upload({ file, name }) {
