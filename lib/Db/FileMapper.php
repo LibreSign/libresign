@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
+use OCA\Libresign\Enum\FileStatus;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\Comments\ICommentsManager;
@@ -245,21 +246,23 @@ class FileMapper extends QBMapper {
 		return 'not_libresign_file';
 	}
 
-	public function getTextOfStatus(int $status): ?string {
+	public function getTextOfStatus(int|FileStatus $status): string {
+		if (is_int($status)) {
+			$status = FileStatus::from($status);
+		}
 		return match ($status) {
 			// TRANSLATORS Name of the status when document is not a LibreSign file
-			File::STATUS_NOT_LIBRESIGN_FILE => $this->l->t('not LibreSign file'),
+			FileStatus::NOT_LIBRESIGN_FILE => $this->l->t('not LibreSign file'),
 			// TRANSLATORS Name of the status that the document is still as a draft
-			File::STATUS_DRAFT => $this->l->t('draft'),
+			FileStatus::DRAFT => $this->l->t('draft'),
 			// TRANSLATORS Name of the status that the document can be signed
-			File::STATUS_ABLE_TO_SIGN => $this->l->t('available for signature'),
+			FileStatus::ABLE_TO_SIGN => $this->l->t('available for signature'),
 			// TRANSLATORS Name of the status when the document has already been partially signed
-			File::STATUS_PARTIAL_SIGNED => $this->l->t('partially signed'),
+			FileStatus::PARTIAL_SIGNED => $this->l->t('partially signed'),
 			// TRANSLATORS Name of the status when the document has been completely signed
-			File::STATUS_SIGNED => $this->l->t('signed'),
+			FileStatus::SIGNED => $this->l->t('signed'),
 			// TRANSLATORS Name of the status when the document was deleted
-			File::STATUS_DELETED => $this->l->t('deleted'),
-			default => '',
+			FileStatus::DELETED => $this->l->t('deleted'),
 		};
 	}
 

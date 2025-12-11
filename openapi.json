@@ -457,9 +457,9 @@
                     "message",
                     "name",
                     "id",
-                    "etag",
-                    "path",
-                    "type"
+                    "status",
+                    "statusText",
+                    "created_at"
                 ],
                 "properties": {
                     "message": {
@@ -472,13 +472,14 @@
                         "type": "integer",
                         "format": "int64"
                     },
-                    "etag": {
+                    "status": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "statusText": {
                         "type": "string"
                     },
-                    "path": {
-                        "type": "string"
-                    },
-                    "type": {
+                    "created_at": {
                         "type": "string"
                     }
                 }

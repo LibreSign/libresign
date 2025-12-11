@@ -1611,9 +1611,10 @@ export type components = {
             name: string;
             /** Format: int64 */
             id: number;
-            etag: string;
-            path: string;
-            type: string;
+            /** Format: int64 */
+            status: number;
+            statusText: string;
+            created_at: string;
         };
         Notify: {
             date: string;
