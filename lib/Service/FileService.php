@@ -489,11 +489,9 @@ class FileService {
 	private function loadSignersFromCertData(): void {
 		$this->loadCertDataFromLibreSignFile();
 		foreach ($this->certData as $index => $signer) {
-			// Always set status and statusText for signers from certificate data
-			// These are already signed (status 2)
 			$this->fileData->signers[$index]['status'] = 2;
 			$this->fileData->signers[$index]['statusText'] = $this->signRequestMapper->getTextOfSignerStatus(2);
-			
+
 			if (isset($signer['timestamp'])) {
 				$this->fileData->signers[$index]['timestamp'] = $signer['timestamp'];
 				if (isset($signer['timestamp']['genTime']) && $signer['timestamp']['genTime'] instanceof DateTimeInterface) {
@@ -841,10 +839,10 @@ class FileService {
 						'request_sign_date' => $signer->getCreatedAt()->format(DateTimeInterface::ATOM),
 						'signed' => null,
 						'signRequestId' => $signer->getId(),
-					'signingOrder' => $signer->getSigningOrder(),
-					'status' => $signer->getStatus(),
-					'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus()),
-					'me' => array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
+						'signingOrder' => $signer->getSigningOrder(),
+						'status' => $signer->getStatus(),
+						'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus()),
+						'me' => array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
 							if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
 								if ($user->getUID() === $identifyMethod->getIdentifierValue()) {
 									return true;
