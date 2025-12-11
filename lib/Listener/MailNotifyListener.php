@@ -60,13 +60,11 @@ class MailNotifyListener implements IEventListener {
 			if ($identifyMethod->getEntity()->isDeletedAccount()) {
 				return;
 			}
-			if ($this->isNotificationDisabledAtActivity($identifyMethod->getEntity()->getIdentifierValue(), SendSignNotificationEvent::FILE_TO_SIGN)) {
-				return;
-			}
 			$email = '';
 			if ($identifyMethod->getName() === 'account') {
+				$userId = $identifyMethod->getEntity()->getIdentifierValue();
 				$email = $this->userManager
-					->get($identifyMethod->getEntity()->getIdentifierValue())
+					->get($userId)
 					->getEMailAddress();
 			} elseif ($identifyMethod->getName() === 'email') {
 				$email = $identifyMethod->getEntity()->getIdentifierValue();
@@ -74,6 +72,15 @@ class MailNotifyListener implements IEventListener {
 			if (empty($email)) {
 				return;
 			}
+
+			$users = $this->userManager->getByEmail($email);
+			if (count($users) === 1) {
+				$userId = $users[0]->getUID();
+				if ($this->isNotificationDisabledAtActivity($userId, SendSignNotificationEvent::FILE_TO_SIGN)) {
+					return;
+				}
+			}
+
 			$isFirstNotification = $this->signRequestMapper->incrementNotificationCounter($signRequest, 'mail');
 			if ($isFirstNotification) {
 				$this->mail->notifyUnsignedUser($signRequest, $email);
