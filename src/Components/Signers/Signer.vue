@@ -15,7 +15,10 @@
 		</template>
 		<template #subname>
 			<div class="signer-subname">
-				<Bullet v-for="method in identifyMethodsNames" :key="method" :name="method" />
+				<NcChip v-for="method in identifyMethodsNames"
+					:key="method"
+					:text="method"
+					:no-close="true" />
 				<NcChip :text="signer.statusText"
 					:type="chipType"
 					:icon-path="statusIconPath"
@@ -48,8 +51,6 @@ import NcAvatar from '@nextcloud/vue/components/NcAvatar'
 import NcChip from '@nextcloud/vue/components/NcChip'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 
-import Bullet from '../Bullet/Bullet.vue'
-
 import { useFilesStore } from '../../store/files.js'
 
 export default {
@@ -59,10 +60,9 @@ export default {
 		NcAvatar,
 		NcChip,
 		DragVertical,
-		Bullet,
 	},
 	props: {
-		currentSigner: {
+		signerIndex: {
 			type: Number,
 			required: true,
 		},
@@ -94,7 +94,8 @@ export default {
 	},
 	computed: {
 		signer() {
-			return this.filesStore.getFile().signers[this.currentSigner]
+			const file = this.filesStore.getFile()
+			return file?.signers?.[this.signerIndex]
 		},
 		signerName() {
 			return this.signer.displayName
