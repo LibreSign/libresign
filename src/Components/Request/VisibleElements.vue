@@ -32,9 +32,8 @@
 				</li>
 				<Signer v-for="(signer, key) in document.signers"
 					:key="key"
-					:current-signer="key"
+					:signer-index="key"
 					:class="{ disabled: signerSelected }"
-					:signer="signer"
 					event="libresign:visible-elements-select-signer">
 					<slot v-bind="{signer}" slot="actions" name="actions" />
 				</Signer>
