@@ -908,7 +908,7 @@ class AdminController extends AEnvironmentAwareController {
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-flow/config', requirements: ['apiVersion' => '(v1)'])]
 	public function setSignatureFlowConfig(string $mode): DataResponse {
 		try {
-			$signatureFlow = \OCA\Libresign\Service\SignatureFlow::from($mode);
+			$signatureFlow = \OCA\Libresign\Enum\SignatureFlow::from($mode);
 		} catch (\ValueError) {
 			return new DataResponse([
 				'error' => $this->l10n->t('Invalid signature flow mode. Use "parallel" or "ordered_numeric".'),
@@ -916,7 +916,7 @@ class AdminController extends AEnvironmentAwareController {
 		}
 
 		try {
-			if ($signatureFlow === \OCA\Libresign\Service\SignatureFlow::PARALLEL) {
+			if ($signatureFlow === \OCA\Libresign\Enum\SignatureFlow::PARALLEL) {
 				$this->appConfig->deleteKey(Application::APP_ID, 'signature_flow');
 			} else {
 				$this->appConfig->setValueString(
