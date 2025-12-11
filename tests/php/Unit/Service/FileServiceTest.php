@@ -451,6 +451,8 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							],
 							'crl_validation' => 'missing',
 							'crl_urls' => [],
+							'status' => 2,
+							'statusText' => 'Signed',
 						],
 					],
 				],
