@@ -53,7 +53,7 @@ class RequestSignatureService {
 	public function save(array $data): FileEntity {
 		$file = $this->saveFile($data);
 		$this->saveVisibleElements($data, $file);
-		if (empty($data['status'])) {
+		if (!isset($data['status'])) {
 			$data['status'] = $file->getStatus();
 		}
 		$this->associateToSigners($data, $file->getId());
@@ -289,6 +289,8 @@ class RequestSignatureService {
 	}
 
 	private function determineInitialStatus(int $signingOrder, ?int $fileStatus = null): \OCA\Libresign\Enum\SignRequestStatus {
+		// If fileStatus is explicitly DRAFT (0), keep signer as DRAFT
+		// This allows adding new signers in DRAFT mode even when file is not in DRAFT status
 		if ($fileStatus === FileEntity::STATUS_DRAFT) {
 			return \OCA\Libresign\Enum\SignRequestStatus::DRAFT;
 		}
