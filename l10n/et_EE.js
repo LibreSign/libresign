@@ -192,7 +192,6 @@ OC.L10N.register(
     "Confirm" : "Kinnita",
     "Add signer" : "Lisa allkirjastaja",
     "Send reminder" : "Saada meeldetuletus",
-    "Edit visible signatures" : "Muuda nähtavaid allkirju",
     "Open file" : "Ava fail",
     "Add new signer" : "Lisa uus allkirjastaja",
     "Enter who will receive the request" : "Sisesta kasutajad, kes saavad antud päringu",

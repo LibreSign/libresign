@@ -47,6 +47,7 @@ OC.L10N.register(
     "Previous" : "Папярэдняя",
     "Searching …" : "Пошук …",
     "No recommendations. Start typing." : "Няма рэкамендацый. Пачніце друкаваць.",
+    "An error occurred" : "Узнікла памылка",
     "Sign" : "Знак",
     "Confirm" : "Пацвердзіць",
     "Open file" : "Адкрыць файл",
