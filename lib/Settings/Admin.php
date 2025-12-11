@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Settings;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\CertificatePolicyService;
@@ -16,7 +17,6 @@ use OCA\Libresign\Service\DocMdpConfigService;
 use OCA\Libresign\Service\FooterService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignatureBackgroundService;
-use OCA\Libresign\Service\SignatureFlow;
 use OCA\Libresign\Service\SignatureTextService;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;

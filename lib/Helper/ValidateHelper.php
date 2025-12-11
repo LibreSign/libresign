@@ -720,14 +720,14 @@ class ValidateHelper {
 		$signRequest = $this->signRequestMapper->getByUuid($uuid);
 		$status = $signRequest->getStatusEnum();
 
-		if ($status === \OCA\Libresign\Db\SignRequestStatus::DRAFT) {
+		if ($status === \OCA\Libresign\Enum\SignRequestStatus::DRAFT) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $this->l10n->t('You are not allowed to sign this document yet')]],
 			]));
 		}
 
-		if ($status === \OCA\Libresign\Db\SignRequestStatus::SIGNED) {
+		if ($status === \OCA\Libresign\Enum\SignRequestStatus::SIGNED) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $this->l10n->t('Document already signed')]],
