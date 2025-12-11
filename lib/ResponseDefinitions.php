@@ -173,6 +173,8 @@ namespace OCA\Libresign;
  *     hash_algorithm?: string,
  *     me: bool,
  *     signRequestId: non-negative-int,
+ *     status: 0|1|2,
+ *     statusText: string,
  *     signingOrder?: non-negative-int,
  *     identifyMethods?: LibresignIdentifyMethod[],
  *     visibleElements?: LibresignVisibleElement[],
