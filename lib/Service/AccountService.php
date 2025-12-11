@@ -198,14 +198,14 @@ class AccountService {
 		$info['id_docs_sort'] = $this->getUserConfigIdDocsSort($user);
 		$info['crl_filters'] = $this->getUserConfigCrlFilters($user);
 		$info['crl_sort'] = $this->getUserConfigCrlSort($user);
-		$info['grid_view'] = $this->getUserConfigByKey($user, 'grid_view') === '1';
+		$info['grid_view'] = $this->getUserConfigByKey('grid_view', $user) === '1';
 
 		return array_filter($info);
 	}
 
 	public function getConfigFilters(?IUser $user = null): array {
-		$info['filter_modified'] = $this->getUserConfigByKey($user, 'filter_modified');
-		$info['filter_status'] = $this->getUserConfigByKey($user, 'filter_status');
+		$info['filter_modified'] = $this->getUserConfigByKey('filter_modified', $user);
+		$info['filter_status'] = $this->getUserConfigByKey('filter_status', $user);
 
 		return $info;
 	}
@@ -246,7 +246,7 @@ class AccountService {
 		}
 	}
 
-	private function getUserConfigByKey(?IUser $user = null, string $key): string {
+	private function getUserConfigByKey(string $key, ?IUser $user = null): string {
 		if (!$user) {
 			return '';
 		}
