@@ -12,7 +12,7 @@
 		<Signers event="libresign:edit-signer"
 			@signing-order-changed="debouncedSave">
 			<template #actions="{signer, closeActions}">
-				<NcActionInput v-if="isOrderedNumeric && totalSigners > 1 && filesStore.canSave() && !signer.signed"
+				<NcActionInput v-if="canEditSigningOrder(signer)"
 					:label="t('libresign', 'Signing order')"
 					type="number"
 					:value="signer.signingOrder || 1"
@@ -23,7 +23,7 @@
 						<OrderNumericAscending :size="20" />
 					</template>
 				</NcActionInput>
-				<NcActionButton v-if="filesStore.canSave() && !signer.signed"
+				<NcActionButton v-if="canDelete(signer)"
 					aria-label="Delete"
 					:close-after-click="true"
 					@click="filesStore.deleteSigner(signer)">
@@ -32,7 +32,7 @@
 					</template>
 					{{ t('libresign', 'Delete') }}
 				</NcActionButton>
-				<NcActionButton v-if="filesStore.canRequestSign && !signer.signed && signer.signRequestId && !signer.me && signer.status === 0"
+				<NcActionButton v-if="canRequestSignature(signer)"
 					:close-after-click="true"
 					@click="requestSignatureForSigner(signer)">
 					<template #icon>
@@ -40,7 +40,7 @@
 					</template>
 					{{ t('libresign', 'Request signature') }}
 				</NcActionButton>
-				<NcActionButton v-if="filesStore.canRequestSign && !signer.signed && signer.signRequestId && !signer.me && signer.status === 1"
+				<NcActionButton v-if="canSendReminder(signer)"
 					icon="icon-comment"
 					:close-after-click="true"
 					@click="sendNotify(signer)">
@@ -247,6 +247,37 @@ export default {
 	computed: {
 		isOrderedNumeric() {
 			return this.signatureFlow === 'ordered_numeric'
+		},
+		canEditSigningOrder() {
+			return (signer) => {
+				return this.isOrderedNumeric
+					&& this.totalSigners > 1
+					&& this.filesStore.canSave()
+					&& !signer.signed
+			}
+		},
+		canDelete() {
+			return (signer) => {
+				return this.filesStore.canSave() && !signer.signed
+			}
+		},
+		canRequestSignature() {
+			return (signer) => {
+				return this.filesStore.canRequestSign
+					&& !signer.signed
+					&& signer.signRequestId
+					&& !signer.me
+					&& signer.status === 0
+			}
+		},
+		canSendReminder() {
+			return (signer) => {
+				return this.filesStore.canRequestSign
+					&& !signer.signed
+					&& signer.signRequestId
+					&& !signer.me
+					&& signer.status === 1
+			}
 		},
 		showSaveButton() {
 			if (!this.filesStore.canSave()) {
