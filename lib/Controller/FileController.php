@@ -12,6 +12,7 @@ use InvalidArgumentException;
 use OCA\Files_Sharing\SharedStorage;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
@@ -62,6 +63,7 @@ class FileController extends AEnvironmentAwareController {
 		private IUserSession $userSession,
 		private SessionService $sessionService,
 		private SignRequestMapper $signRequestMapper,
+		private FileMapper $fileMapper,
 		private IdentifyMethodService $identifyMethodService,
 		private RequestSignatureService $requestSignatureService,
 		private AccountService $accountService,
@@ -438,16 +440,16 @@ class FileController extends AEnvironmentAwareController {
 				'userManager' => $this->userSession->getUser(),
 				'status' => FileEntity::STATUS_DRAFT,
 			];
-			$this->requestSignatureService->save($data);
+			$file = $this->requestSignatureService->save($data);
 
 			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Success'),
 					'name' => $name,
 					'id' => $node->getId(),
-					'etag' => $node->getEtag(),
-					'path' => $node->getPath(),
-					'type' => $node->getType(),
+					'status' => $file->getStatus(),
+					'statusText' => $this->fileMapper->getTextOfStatus($file->getStatus()),
+					'created_at' => $file->getCreatedAt()->format(\DateTimeInterface::ATOM),
 				],
 				Http::STATUS_OK
 			);
