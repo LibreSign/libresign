@@ -203,6 +203,7 @@ class RequestSignatureService {
 			$this->deleteIdentifyMethodIfNotExits($data['users'], $fileId);
 
 			$this->sequentialSigningService->resetOrderCounter();
+			$fileStatus = $data['status'] ?? null;
 
 			foreach ($data['users'] as $user) {
 				$userProvidedOrder = isset($user['signingOrder']) ? (int)$user['signingOrder'] : null;
@@ -216,9 +217,10 @@ class RequestSignatureService {
 							],
 							displayName: $user['displayName'] ?? '',
 							description: $user['description'] ?? '',
-							notify: empty($user['notify']) && $this->isStatusAbleToNotify($data['status'] ?? null),
+							notify: empty($user['notify']) && $this->isStatusAbleToNotify($fileStatus),
 							fileId: $fileId,
 							signingOrder: $signingOrder,
+							fileStatus: $fileStatus,
 						);
 					}
 				} else {
@@ -226,9 +228,10 @@ class RequestSignatureService {
 						identifyMethods: $user['identify'],
 						displayName: $user['displayName'] ?? '',
 						description: $user['description'] ?? '',
-						notify: empty($user['notify']) && $this->isStatusAbleToNotify($data['status'] ?? null),
+						notify: empty($user['notify']) && $this->isStatusAbleToNotify($fileStatus),
 						fileId: $fileId,
 						signingOrder: $signingOrder,
+						fileStatus: $fileStatus,
 					);
 				}
 			}
@@ -250,6 +253,7 @@ class RequestSignatureService {
 		bool $notify,
 		int $fileId,
 		int $signingOrder = 0,
+		?int $fileStatus = null,
 	): SignRequestEntity {
 		$identifyMethodsIncances = $this->identifyMethod->getByUserData($identifyMethods);
 		if (empty($identifyMethodsIncances)) {
@@ -268,7 +272,7 @@ class RequestSignatureService {
 		$currentStatus = $signRequest->getStatusEnum();
 
 		if ($isNewSignRequest || $currentStatus === \OCA\Libresign\Enum\SignRequestStatus::DRAFT) {
-			$initialStatus = $this->determineInitialStatus($signingOrder);
+			$initialStatus = $this->determineInitialStatus($signingOrder, $fileStatus);
 			$signRequest->setStatusEnum($initialStatus);
 		}
 
@@ -284,7 +288,11 @@ class RequestSignatureService {
 		return $signRequest;
 	}
 
-	private function determineInitialStatus(int $signingOrder): \OCA\Libresign\Enum\SignRequestStatus {
+	private function determineInitialStatus(int $signingOrder, ?int $fileStatus = null): \OCA\Libresign\Enum\SignRequestStatus {
+		if ($fileStatus === FileEntity::STATUS_DRAFT) {
+			return \OCA\Libresign\Enum\SignRequestStatus::DRAFT;
+		}
+
 		if (!$this->sequentialSigningService->isOrderedNumericFlow()) {
 			return \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN;
 		}
