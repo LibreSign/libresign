@@ -32,7 +32,15 @@
 					</template>
 					{{ t('libresign', 'Delete') }}
 				</NcActionButton>
-				<NcActionButton v-if="filesStore.canRequestSign && !signer.signed && signer.signRequestId && !signer.me"
+				<NcActionButton v-if="filesStore.canRequestSign && !signer.signed && signer.signRequestId && !signer.me && signer.status === 0"
+					:close-after-click="true"
+					@click="requestSignatureForSigner(signer)">
+					<template #icon>
+						<Send :size="20" />
+					</template>
+					{{ t('libresign', 'Request signature') }}
+				</NcActionButton>
+				<NcActionButton v-if="filesStore.canRequestSign && !signer.signed && signer.signRequestId && !signer.me && signer.status === 1"
 					icon="icon-comment"
 					:close-after-click="true"
 					@click="sendNotify(signer)">
@@ -415,6 +423,31 @@ export default {
 				})
 
 		},
+		async requestSignatureForSigner(signer) {
+			this.hasLoading = true
+			try {
+				const file = this.filesStore.getFile()
+				const signers = file.signers.map(s => {
+					if (s.signRequestId === signer.signRequestId) {
+						return { ...s, status: 1 }
+					}
+					return s
+				})
+				await this.filesStore.updateSignatureRequest({
+					visibleElements: [],
+					signers,
+					status: 1,
+				})
+				showSuccess(t('libresign', 'Signature requested'))
+			} catch (error) {
+				if (error.response?.data?.ocs?.data?.message) {
+					showError(error.response.data.ocs.data.message)
+				} else if (error.response?.data?.ocs?.data?.errors) {
+					error.response.data.ocs.data.errors.forEach(error => showError(error.message))
+				}
+			}
+			this.hasLoading = false
+		},
 		async sign() {
 			const uuid = this.filesStore.getFile().signers
 				.reduce((accumulator, signer) => {
@@ -448,7 +481,7 @@ export default {
 		async request() {
 			this.hasLoading = true
 			try {
-				const response = await this.filesStore.requestSignaturesWithVisibleElements({ visibleElements: [] })
+				const response = await this.filesStore.updateSignatureRequest({ visibleElements: [], status: 1 })
 				showSuccess(t('libresign', response.message))
 			} catch (error) {
 				if (error.response?.data?.ocs?.data?.message) {
