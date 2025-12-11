@@ -113,7 +113,7 @@ export default {
 			this.displayName = signer?.displayName ?? ''
 			this.identify = signer?.id ?? ''
 		},
-		saveSigner() {
+		async saveSigner() {
 			if (!this.signer?.method || !this.signer?.id) {
 				return
 			}
@@ -127,6 +127,13 @@ export default {
 					},
 				],
 			})
+
+			try {
+				await this.filesStore.saveWithVisibleElements({ visibleElements: [] })
+			} catch (error) {
+				console.error('Error saving signer:', error)
+			}
+
 			this.displayName = ''
 			this.identify = ''
 			this.signer = {}
