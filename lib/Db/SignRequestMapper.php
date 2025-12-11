@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Db;
 
 use DateTimeInterface;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Helper\Pagination;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -638,5 +639,9 @@ class SignRequestMapper extends QBMapper {
 		$extensionPattern = '/\.' . preg_quote($metadata['extension'], '/') . '$/i';
 		$result = preg_replace($extensionPattern, '', $name);
 		return $result ?? $name;
+	}
+
+	public function getTextOfSignerStatus(int $status): string {
+		return SignRequestStatus::from($status)->getLabel($this->l10n);
 	}
 }
