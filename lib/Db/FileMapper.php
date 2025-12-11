@@ -250,20 +250,7 @@ class FileMapper extends QBMapper {
 		if (is_int($status)) {
 			$status = FileStatus::from($status);
 		}
-		return match ($status) {
-			// TRANSLATORS Name of the status when document is not a LibreSign file
-			FileStatus::NOT_LIBRESIGN_FILE => $this->l->t('not LibreSign file'),
-			// TRANSLATORS Name of the status that the document is still as a draft
-			FileStatus::DRAFT => $this->l->t('draft'),
-			// TRANSLATORS Name of the status that the document can be signed
-			FileStatus::ABLE_TO_SIGN => $this->l->t('available for signature'),
-			// TRANSLATORS Name of the status when the document has already been partially signed
-			FileStatus::PARTIAL_SIGNED => $this->l->t('partially signed'),
-			// TRANSLATORS Name of the status when the document has been completely signed
-			FileStatus::SIGNED => $this->l->t('signed'),
-			// TRANSLATORS Name of the status when the document was deleted
-			FileStatus::DELETED => $this->l->t('deleted'),
-		};
+		return $status->getLabel($this->l);
 	}
 
 	public function neutralizeDeletedUser(string $userId, string $displayName): void {
