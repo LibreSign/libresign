@@ -215,12 +215,9 @@ export const useFilesStore = function(...args) {
 						break
 					}
 				}
-				if (!signer.signingOrder) {
-					const signatureFlow = loadState('libresign', 'signature_flow', 'parallel')
-					if (signatureFlow === 'ordered_numeric') {
-						const maxOrder = this.getFile().signers.reduce((max, s) => Math.max(max, s.signingOrder || 0), 0)
-						signer.signingOrder = maxOrder + 1
-					}
+				if (!signer.signingOrder && this.getFile().signatureFlow === 'ordered_numeric') {
+					const maxOrder = this.getFile().signers.reduce((max, s) => Math.max(max, s.signingOrder || 0), 0)
+					signer.signingOrder = maxOrder + 1
 				}
 				this.getFile().signers.push(signer)
 				const selected = this.selectedNodeId
@@ -236,15 +233,13 @@ export const useFilesStore = function(...args) {
 					}))
 				}
 
-				const signatureFlow = loadState('libresign', 'signature_flow', 'parallel')
-
 				set(
 					this.files[this.selectedNodeId],
 					'signers',
 					this.files[this.selectedNodeId].signers.filter((i) => i.identify !== signer.identify),
 				)
 
-				if (signatureFlow === 'ordered_numeric' && signer.signingOrder) {
+				if (this.getFile().signatureFlow === 'ordered_numeric' && signer.signingOrder) {
 					this.files[this.selectedNodeId].signers.forEach((s) => {
 						if (s.signingOrder && s.signingOrder > signer.signingOrder) {
 							s.signingOrder -= 1

@@ -241,10 +241,13 @@ export default {
 			document: {},
 			hasInfo: false,
 			methods: [],
-			signatureFlow: loadState('libresign', 'signature_flow', 'parallel'),
 		}
 	},
 	computed: {
+		signatureFlow() {
+			const file = this.filesStore.getFile()
+			return file?.signatureFlow ?? 'parallel'
+		},
 		isOrderedNumeric() {
 			return this.signatureFlow === 'ordered_numeric'
 		},
