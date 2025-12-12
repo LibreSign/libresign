@@ -1279,6 +1279,8 @@ export type components = {
             /** Format: int64 */
             nodeId: number;
             /** Format: int64 */
+            signatureFlow: number;
+            /** Format: int64 */
             totalPages: number;
             /** Format: int64 */
             size: number;
