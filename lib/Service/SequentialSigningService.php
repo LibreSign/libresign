@@ -54,8 +54,8 @@ class SequentialSigningService {
 		}
 
 		if ($userProvidedOrder !== null) {
-			if ($userProvidedOrder > $this->currentOrder) {
-				$this->currentOrder = $userProvidedOrder;
+			if ($userProvidedOrder >= $this->currentOrder) {
+				$this->currentOrder = $userProvidedOrder + 1;
 			}
 			return $userProvidedOrder;
 		}
