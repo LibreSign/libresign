@@ -170,4 +170,66 @@ class SequentialSigningService {
 
 		return SignatureFlow::from($value);
 	}
+
+	/**
+	 * Check if there are signers with lower signing order that haven't signed yet
+	 */
+	public function hasPendingLowerOrderSigners(int $fileId, int $currentOrder): bool {
+		$signRequests = $this->signRequestMapper->getByFileId($fileId);
+
+		foreach ($signRequests as $signRequest) {
+			$order = $signRequest->getSigningOrder();
+			$status = $signRequest->getStatusEnum();
+
+			// If a signer with lower order hasn't signed yet, return true
+			if ($order < $currentOrder && $status !== SignRequestStatus::SIGNED) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check if changing from currentStatus to desiredStatus is an upgrade (or same level)
+	 * Status hierarchy: DRAFT (0) < ABLE_TO_SIGN (1) < SIGNED (2)
+	 */
+	public function isStatusUpgrade(
+		SignRequestStatus $currentStatus,
+		SignRequestStatus $desiredStatus,
+	): bool {
+		return $desiredStatus->value >= $currentStatus->value;
+	}
+
+	/**
+	 * Validate if a signer can transition to ABLE_TO_SIGN status based on signing order
+	 * In ordered numeric flow, prevents skipping ahead if lower-order signers haven't signed
+	 *
+	 * @param SignRequestStatus $desiredStatus The status being requested
+	 * @param int $signingOrder The signer's order
+	 * @param int $fileId The file ID
+	 * @return SignRequestStatus The validated status (may return DRAFT if validation fails)
+	 */
+	public function validateStatusByOrder(
+		SignRequestStatus $desiredStatus,
+		int $signingOrder,
+		int $fileId,
+	): SignRequestStatus {
+		// Only validate for ordered numeric flow
+		if (!$this->isOrderedNumericFlow()) {
+			return $desiredStatus;
+		}
+
+		// Only validate when trying to set ABLE_TO_SIGN and not the first signer
+		if ($desiredStatus !== SignRequestStatus::ABLE_TO_SIGN || $signingOrder <= 1) {
+			return $desiredStatus;
+		}
+
+		// Check if any lower order signers haven't signed yet
+		if ($this->hasPendingLowerOrderSigners($fileId, $signingOrder)) {
+			return SignRequestStatus::DRAFT;
+		}
+
+		return $desiredStatus;
+	}
 }
