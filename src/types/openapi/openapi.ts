@@ -3538,6 +3538,8 @@ export interface operations {
                      * @default 1
                      */
                     status?: number | null;
+                    /** @description Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration */
+                    signatureFlow?: string | null;
                 };
             };
         };
