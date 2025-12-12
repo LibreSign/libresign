@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
+use OCA\Libresign\Enum\SignatureFlow;
 use OCP\AppFramework\Db\Entity;
 use OCP\DB\Types;
 
@@ -54,7 +55,7 @@ class File extends Entity {
 	protected ?string $callback = null;
 	protected ?array $metadata = null;
 	protected int $modificationStatus = 0;
-	protected int $signatureFlow = 1;
+	protected int $signatureFlow = SignatureFlow::NUMERIC_PARALLEL;
 	public const STATUS_NOT_LIBRESIGN_FILE = -1;
 	public const STATUS_DRAFT = 0;
 	public const STATUS_ABLE_TO_SIGN = 1;
