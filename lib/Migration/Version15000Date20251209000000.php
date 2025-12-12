@@ -19,6 +19,7 @@ use OCP\Migration\SimpleMigrationStep;
 /**
  * Add sequential signing support
  * - Adds 'signing_order', 'status', and 'released_at' columns to libresign_sign_request table
+ * - Adds 'signature_flow' column to libresign_file table
  */
 class Version15000Date20251209000000 extends SimpleMigrationStep {
 	public function __construct(
@@ -81,13 +82,20 @@ class Version15000Date20251209000000 extends SimpleMigrationStep {
 		$qb->executeStatement();
 
 		// Second: Update status = 1 for able_to_sign requests (status = 0 AND signed IS NULL AND file.status = 1)
-		$qb = $this->db->getQueryBuilder();
-		$qb->update('libresign_sign_request', 'sr')
-			->innerJoin('sr', 'libresign_file', 'f', $qb->expr()->eq('sr.file_id', 'f.id'))
-			->set('sr.status', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT))
-			->where($qb->expr()->eq('sr.status', $qb->createNamedParameter(0, IQueryBuilder::PARAM_INT)))
-			->andWhere($qb->expr()->isNull('sr.signed'))
-			->andWhere($qb->expr()->eq('f.status', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)));
-		$qb->executeStatement();
+		$qbSelect = $this->db->getQueryBuilder();
+		$qbSelect->select('id')
+			->from('libresign_file')
+			->where($qbSelect->expr()->eq('status', $qbSelect->createNamedParameter(1, IQueryBuilder::PARAM_INT)));
+		$fileIds = $qbSelect->executeQuery()->fetchAll(\PDO::FETCH_COLUMN);
+
+		if (!empty($fileIds)) {
+			$qbUpdate = $this->db->getQueryBuilder();
+			$qbUpdate->update('libresign_sign_request')
+				->set('status', $qbUpdate->createNamedParameter(1, IQueryBuilder::PARAM_INT))
+				->where($qbUpdate->expr()->eq('status', $qbUpdate->createNamedParameter(0, IQueryBuilder::PARAM_INT)))
+				->andWhere($qbUpdate->expr()->isNull('signed'))
+				->andWhere($qbUpdate->expr()->in('file_id', $qbUpdate->createNamedParameter($fileIds, IQueryBuilder::PARAM_INT_ARRAY)));
+			$qbUpdate->executeStatement();
+		}
 	}
 }
