@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Db;
 
 use DateTimeInterface;
+use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Helper\Pagination;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -500,6 +501,7 @@ class SignRequestMapper extends QBMapper {
 				'f.status',
 				'f.metadata',
 				'f.created_at',
+				'f.signature_flow',
 			)
 				->groupBy(
 					'f.id',
@@ -510,6 +512,7 @@ class SignRequestMapper extends QBMapper {
 					'f.name',
 					'f.status',
 					'f.created_at',
+					'f.signature_flow',
 				);
 			// metadata is a json column, the right way is to use f.metadata::text
 			// when the database is PostgreSQL. The problem is that the command
@@ -620,11 +623,13 @@ class SignRequestMapper extends QBMapper {
 		$row['nodeId'] = (int)$row['node_id'];
 
 		$row['name'] = $this->removeExtensionFromName($row['name'], $row['metadata']);
+		$row['signatureFlow'] = SignatureFlow::fromNumeric((int)($row['signature_flow']))->value;
 
 		unset(
 			$row['user_id'],
 			$row['node_id'],
 			$row['signed_node_id'],
+			$row['signature_flow'],
 		);
 		return $row;
 	}

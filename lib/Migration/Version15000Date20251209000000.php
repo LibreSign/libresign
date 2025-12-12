@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Migration;
 
 use Closure;
+use OCA\Libresign\Enum\SignatureFlow;
 use OCP\DB\ISchemaWrapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\DB\Types;
@@ -52,6 +53,17 @@ class Version15000Date20251209000000 extends SimpleMigrationStep {
 					'notnull' => true,
 					'default' => 0,
 					'comment' => 'Status: 0=draft, 1=able_to_sign, 2=signed',
+				]);
+			}
+		}
+
+		if ($schema->hasTable('libresign_file')) {
+			$tableFile = $schema->getTable('libresign_file');
+			if (!$tableFile->hasColumn('signature_flow')) {
+				$tableFile->addColumn('signature_flow', Types::SMALLINT, [
+					'notnull' => true,
+					'default' => SignatureFlow::NUMERIC_PARALLEL,
+					'comment' => 'Signature flow mode: 1=parallel, 2=ordered_numeric',
 				]);
 			}
 		}

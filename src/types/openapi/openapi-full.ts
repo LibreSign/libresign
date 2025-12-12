@@ -1757,6 +1757,8 @@ export type components = {
             /** Format: int64 */
             nodeId: number;
             /** Format: int64 */
+            signatureFlow: number;
+            /** Format: int64 */
             totalPages: number;
             /** Format: int64 */
             size: number;
@@ -4016,6 +4018,8 @@ export interface operations {
                      * @default 1
                      */
                     status?: number | null;
+                    /** @description Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration */
+                    signatureFlow?: string | null;
                 };
             };
         };

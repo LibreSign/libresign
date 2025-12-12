@@ -82,7 +82,8 @@ export default {
 			},
 		},
 		isOrderedNumeric() {
-			return loadState('libresign', 'signature_flow', 'parallel') === 'ordered_numeric'
+			const file = this.filesStore.getFile()
+			return file?.signatureFlow === 'ordered_numeric'
 		},
 		canReorder() {
 			return this.filesStore.canSave() && this.signers.length > 1
