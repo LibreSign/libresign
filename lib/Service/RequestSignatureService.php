@@ -296,7 +296,7 @@ class RequestSignatureService {
 		SignRequestEntity $signRequest,
 		\OCA\Libresign\Enum\SignRequestStatus $currentStatus,
 		\OCA\Libresign\Enum\SignRequestStatus $desiredStatus,
-		bool $isNewSignRequest
+		bool $isNewSignRequest,
 	): void {
 		if ($isNewSignRequest || $this->sequentialSigningService->isStatusUpgrade($currentStatus, $desiredStatus)) {
 			$signRequest->setStatusEnum($desiredStatus);
@@ -308,7 +308,7 @@ class RequestSignatureService {
 		?int $fileStatus = null,
 		?int $signerStatus = null,
 		?\OCA\Libresign\Enum\SignRequestStatus $currentStatus = null,
-		?int $fileId = null
+		?int $fileId = null,
 	): \OCA\Libresign\Enum\SignRequestStatus {
 		if ($signerStatus !== null) {
 			$desiredStatus = \OCA\Libresign\Enum\SignRequestStatus::from($signerStatus);

@@ -196,7 +196,7 @@ class SequentialSigningService {
 	 */
 	public function isStatusUpgrade(
 		SignRequestStatus $currentStatus,
-		SignRequestStatus $desiredStatus
+		SignRequestStatus $desiredStatus,
 	): bool {
 		return $desiredStatus->value >= $currentStatus->value;
 	}
@@ -213,7 +213,7 @@ class SequentialSigningService {
 	public function validateStatusByOrder(
 		SignRequestStatus $desiredStatus,
 		int $signingOrder,
-		int $fileId
+		int $fileId,
 	): SignRequestStatus {
 		// Only validate for ordered numeric flow
 		if (!$this->isOrderedNumericFlow()) {
