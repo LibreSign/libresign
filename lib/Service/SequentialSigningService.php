@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Enum\SignRequestStatus;
@@ -16,6 +16,7 @@ use OCP\IAppConfig;
 
 class SequentialSigningService {
 	private int $currentOrder = 1;
+	private ?FileEntity $file = null;
 
 	public function __construct(
 		private IAppConfig $appConfig,
@@ -24,9 +25,11 @@ class SequentialSigningService {
 	) {
 	}
 
-	/**
-	 * Check if ordered numeric flow is enabled
-	 */
+	public function setFile(FileEntity $file): self {
+		$this->file = $file;
+		return $this;
+	}
+
 	public function isOrderedNumericFlow(): bool {
 		return $this->getSignatureFlow() === SignatureFlow::ORDERED_NUMERIC;
 	}
@@ -162,13 +165,10 @@ class SequentialSigningService {
 	}
 
 	private function getSignatureFlow(): SignatureFlow {
-		$value = $this->appConfig->getValueString(
-			Application::APP_ID,
-			'signature_flow',
-			SignatureFlow::PARALLEL->value
-		);
-
-		return SignatureFlow::from($value);
+		if ($this->file === null) {
+			throw new \LogicException('File must be set before calling getSignatureFlow(). Call setFile() first.');
+		}
+		return $this->file->getSignatureFlowEnum();
 	}
 
 	/**
