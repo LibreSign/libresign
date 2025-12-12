@@ -38,6 +38,8 @@ use OCP\DB\Types;
  * @method ?array getMetadata()
  * @method void setModificationStatus(int $modificationStatus)
  * @method int getModificationStatus()
+ * @method void setSignatureFlow(int $signatureFlow)
+ * @method int getSignatureFlow()
  */
 class File extends Entity {
 	protected int $nodeId = 0;
@@ -52,6 +54,7 @@ class File extends Entity {
 	protected ?string $callback = null;
 	protected ?array $metadata = null;
 	protected int $modificationStatus = 0;
+	protected int $signatureFlow = 1;
 	public const STATUS_NOT_LIBRESIGN_FILE = -1;
 	public const STATUS_DRAFT = 0;
 	public const STATUS_ABLE_TO_SIGN = 1;
@@ -78,6 +81,7 @@ class File extends Entity {
 		$this->addType('status', Types::INTEGER);
 		$this->addType('metadata', Types::JSON);
 		$this->addType('modificationStatus', Types::SMALLINT);
+		$this->addType('signatureFlow', Types::SMALLINT);
 	}
 
 	public function isDeletedAccount(): bool {
@@ -88,5 +92,21 @@ class File extends Entity {
 	public function getUserId(): string {
 		$metadata = $this->getMetadata();
 		return $metadata['deleted_account']['account'] ?? $this->userId ?? '';
+	}
+
+	/**
+	 * Get signature flow as enum
+	 * @return \OCA\Libresign\Enum\SignatureFlow
+	 */
+	public function getSignatureFlowEnum(): \OCA\Libresign\Enum\SignatureFlow {
+		return \OCA\Libresign\Enum\SignatureFlow::fromNumeric($this->signatureFlow);
+	}
+
+	/**
+	 * Set signature flow from enum
+	 * @param \OCA\Libresign\Enum\SignatureFlow $flow
+	 */
+	public function setSignatureFlowEnum(\OCA\Libresign\Enum\SignatureFlow $flow): void {
+		$this->setSignatureFlow($flow->toNumeric());
 	}
 }
