@@ -94,18 +94,10 @@ class File extends Entity {
 		return $metadata['deleted_account']['account'] ?? $this->userId ?? '';
 	}
 
-	/**
-	 * Get signature flow as enum
-	 * @return \OCA\Libresign\Enum\SignatureFlow
-	 */
 	public function getSignatureFlowEnum(): \OCA\Libresign\Enum\SignatureFlow {
 		return \OCA\Libresign\Enum\SignatureFlow::fromNumeric($this->signatureFlow);
 	}
 
-	/**
-	 * Set signature flow from enum
-	 * @param \OCA\Libresign\Enum\SignatureFlow $flow
-	 */
 	public function setSignatureFlowEnum(\OCA\Libresign\Enum\SignatureFlow $flow): void {
 		$this->setSignatureFlow($flow->toNumeric());
 	}
