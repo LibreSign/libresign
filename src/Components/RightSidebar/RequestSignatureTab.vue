@@ -117,9 +117,9 @@
 		<NcDialog v-if="filesStore.identifyingSigner"
 			id="request-signature-identify-signer"
 			:size="size"
-			:name="t('libresign', 'Add new signer')"
+			:name="modalTitle"
 			@closing="filesStore.disableIdentifySigner()">
-			<NcAppSidebar :name="t('libresign', 'Add new signer')">
+			<NcAppSidebar :name="modalTitle">
 				<NcAppSidebarTab v-for="method in enabledMethods()"
 					:id="`tab-${method.name}`"
 					:key="method.name"
@@ -313,6 +313,12 @@ export default {
 		},
 		size() {
 			return window.matchMedia('(max-width: 512px)').matches ? 'full' : 'normal'
+		},
+		modalTitle() {
+			if (Object.keys(this.signerToEdit).length > 0) {
+				return this.t('libresign', 'Edit signer')
+			}
+			return this.t('libresign', 'Add new signer')
 		},
 	},
 	watch: {
