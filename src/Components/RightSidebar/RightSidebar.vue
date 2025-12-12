@@ -83,6 +83,9 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+.app-sidebar__tab  {
+	box-shadow: none !important;
+}
 
 @media (max-width: 512px) {
 	.app-sidebar {
