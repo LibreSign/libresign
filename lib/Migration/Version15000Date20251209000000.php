@@ -55,6 +55,17 @@ class Version15000Date20251209000000 extends SimpleMigrationStep {
 			}
 		}
 
+		if ($schema->hasTable('libresign_file')) {
+			$tableFile = $schema->getTable('libresign_file');
+			if (!$tableFile->hasColumn('signature_flow')) {
+				$tableFile->addColumn('signature_flow', Types::SMALLINT, [
+					'notnull' => true,
+					'default' => 1,
+					'comment' => 'Signature flow mode: 1=parallel, 2=ordered_numeric',
+				]);
+			}
+		}
+
 		return $schema;
 	}
 
