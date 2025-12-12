@@ -380,10 +380,12 @@ class SignFileService {
 
 		$this->signRequestMapper->update($this->signRequest);
 
-		$this->sequentialSigningService->releaseNextOrder(
-			$this->signRequest->getFileId(),
-			$this->signRequest->getSigningOrder()
-		);
+		$this->sequentialSigningService
+			->setFile($this->libreSignFile)
+			->releaseNextOrder(
+				$this->signRequest->getFileId(),
+				$this->signRequest->getSigningOrder()
+			);
 	}
 
 	protected function updateLibreSignFile(string $hash): void {
