@@ -263,20 +263,28 @@ export default {
 		},
 		canRequestSignature() {
 			return (signer) => {
-				return this.filesStore.canRequestSign
-					&& !signer.signed
-					&& signer.signRequestId
-					&& !signer.me
-					&& signer.status === 0
+				if (!this.filesStore.canRequestSign
+					|| signer.signed
+					|| !signer.signRequestId
+					|| signer.me
+					|| signer.status !== 0) {
+					return false
+				}
+
+				return this.canSignerActInOrder(signer)
 			}
 		},
 		canSendReminder() {
 			return (signer) => {
-				return this.filesStore.canRequestSign
-					&& !signer.signed
-					&& signer.signRequestId
-					&& !signer.me
-					&& signer.status === 1
+				if (!this.filesStore.canRequestSign
+					|| signer.signed
+					|| !signer.signRequestId
+					|| signer.me
+					|| signer.status !== 1) {
+					return false
+				}
+
+				return this.canSignerActInOrder(signer)
 			}
 		},
 		showSaveButton() {
@@ -352,6 +360,21 @@ export default {
 	methods: {
 		getSvgIcon(name) {
 			return iconMap[`svg${name.charAt(0).toUpperCase() + name.slice(1)}`] || iconMap.svgAccount
+		},
+		canSignerActInOrder(signer) {
+			if (!this.isOrderedNumeric) {
+				return true
+			}
+
+			const file = this.filesStore.getFile()
+			const signerOrder = signer.signingOrder || 1
+
+			const hasPendingLowerOrder = file.signers.some(s => {
+				const otherOrder = s.signingOrder || 1
+				return otherOrder < signerOrder && !s.signed
+			})
+
+			return !hasPendingLowerOrder
 		},
 		enabledMethods() {
 			return this.methods.filter(method => method.enabled)
@@ -473,7 +496,6 @@ export default {
 				await this.filesStore.updateSignatureRequest({
 					visibleElements: [],
 					signers,
-					status: 1,
 				})
 				showSuccess(t('libresign', 'Signature requested'))
 			} catch (error) {
