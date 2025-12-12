@@ -862,7 +862,6 @@
                     "status",
                     "statusText",
                     "nodeId",
-                    "signatureFlow",
                     "totalPages",
                     "size",
                     "pdfVersion",
@@ -895,10 +894,6 @@
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0
-                    },
-                    "signatureFlow": {
-                        "type": "integer",
-                        "format": "int64"
                     },
                     "totalPages": {
                         "type": "integer",
