@@ -78,7 +78,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->appConfig = $this->createMock(IAppConfig::class);
 	}
 
-	private function getService(): RequestSignatureService {
+	private function getService(?SequentialSigningService $sequentialSigningService = null): RequestSignatureService {
 		return new RequestSignatureService(
 			$this->l10n,
 			$this->identifyMethodService,
@@ -95,7 +95,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->client,
 			$this->docMdpHandler,
 			$this->loggerInterface,
-			$this->sequentialSigningService,
+			$sequentialSigningService ?? $this->sequentialSigningService,
 			$this->appConfig,
 		);
 	}
@@ -244,5 +244,79 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			[[['uid' => 1]]],
 			[[['uid' => 1], ['uid' => 1]]],
 		];
+	}
+
+	/**
+	 * Test that parallel flow correctly sets ABLE_TO_SIGN status for all signers
+	 * even when frontend sends status 0 (DRAFT) for individual signers,
+	 * as long as file status is ABLE_TO_SIGN (1)
+	 */
+	public function testParallelFlowIgnoresSignerDraftStatusWhenFileIsAbleToSign(): void {
+		$sequentialSigningService = $this->createMock(SequentialSigningService::class);
+		$sequentialSigningService
+			->method('isOrderedNumericFlow')
+			->willReturn(false); // Parallel flow
+
+		// File status is ABLE_TO_SIGN (1)
+		$fileStatus = \OCA\Libresign\Db\File::STATUS_ABLE_TO_SIGN;
+
+		// Signer status is DRAFT (0) - as sent by frontend
+		$signerStatus = \OCA\Libresign\Enum\SignRequestStatus::DRAFT->value;
+
+		$result = self::invokePrivate(
+			$this->getService($sequentialSigningService),
+			'determineInitialStatus',
+			[
+				1, // signingOrder
+				$fileStatus,
+				$signerStatus,
+				null, // currentStatus
+				null, // fileId
+			]
+		);
+
+		// In parallel flow with ABLE_TO_SIGN file status, signer should be ABLE_TO_SIGN
+		$this->assertEquals(
+			\OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN,
+			$result,
+			'Parallel flow should set all signers to ABLE_TO_SIGN when file status is ABLE_TO_SIGN'
+		);
+	}
+
+	/**
+	 * Test that ordered flow respects signing order when file is ABLE_TO_SIGN
+	 */
+	public function testOrderedFlowRespectsSigningOrderWhenFileIsAbleToSign(): void {
+		$sequentialSigningService = $this->createMock(SequentialSigningService::class);
+		$sequentialSigningService
+			->method('isOrderedNumericFlow')
+			->willReturn(true); // Ordered flow
+
+		$fileStatus = \OCA\Libresign\Db\File::STATUS_ABLE_TO_SIGN;
+		$signerStatus = \OCA\Libresign\Enum\SignRequestStatus::DRAFT->value;
+
+		// First signer (order 1) should be ABLE_TO_SIGN
+		$result1 = self::invokePrivate(
+			$this->getService($sequentialSigningService),
+			'determineInitialStatus',
+			[1, $fileStatus, $signerStatus, null, null]
+		);
+		$this->assertEquals(
+			\OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN,
+			$result1,
+			'First signer in ordered flow should be ABLE_TO_SIGN'
+		);
+
+		// Second signer (order 2) should remain DRAFT
+		$result2 = self::invokePrivate(
+			$this->getService($sequentialSigningService),
+			'determineInitialStatus',
+			[2, $fileStatus, $signerStatus, null, null]
+		);
+		$this->assertEquals(
+			\OCA\Libresign\Enum\SignRequestStatus::DRAFT,
+			$result2,
+			'Second signer in ordered flow should remain DRAFT until first signs'
+		);
 	}
 }
