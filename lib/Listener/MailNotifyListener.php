@@ -13,6 +13,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
+use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\MailService;
@@ -36,7 +37,7 @@ class MailNotifyListener implements IEventListener {
 	}
 
 	public function handle(Event $event): void {
-		/** @var SendSignNotificationEvent|SignedEvent $event */
+		/** @var SendSignNotificationEvent|SignedEvent|SignRequestCanceledEvent $event */
 		match ($event::class) {
 			SendSignNotificationEvent::class => $this->sendSignMailNotification(
 				$event->getSignRequest(),
@@ -47,6 +48,11 @@ class MailNotifyListener implements IEventListener {
 				$event->getIdentifyMethod(),
 				$event->getLibreSignFile(),
 				$event->getUser(),
+			),
+			SignRequestCanceledEvent::class => $this->sendCanceledMailNotification(
+				$event->getSignRequest(),
+				$event->getIdentifyMethod(),
+				$event->getLibreSignFile(),
 			),
 		};
 	}
@@ -113,6 +119,47 @@ class MailNotifyListener implements IEventListener {
 			}
 
 			$this->mail->notifySignedUser($signRequest, $email, $libreSignFile, $user->getDisplayName());
+
+		} catch (\InvalidArgumentException $e) {
+			$this->logger->error($e->getMessage(), ['exception' => $e]);
+			return;
+		}
+	}
+
+	protected function sendCanceledMailNotification(
+		SignRequest $signRequest,
+		IIdentifyMethod $identifyMethod,
+		FileEntity $libreSignFile,
+	): void {
+		try {
+			if ($identifyMethod->getEntity()->isDeletedAccount()) {
+				return;
+			}
+			
+			$email = '';
+			if ($identifyMethod->getName() === 'account') {
+				$userId = $identifyMethod->getEntity()->getIdentifierValue();
+				$user = $this->userManager->get($userId);
+				if ($user) {
+					$email = $user->getEMailAddress();
+				}
+			} elseif ($identifyMethod->getName() === 'email') {
+				$email = $identifyMethod->getEntity()->getIdentifierValue();
+			}
+
+			if (empty($email)) {
+				return;
+			}
+
+			$users = $this->userManager->getByEmail($email);
+			if (count($users) === 1) {
+				$userId = $users[0]->getUID();
+				if ($this->isNotificationDisabledAtActivity($userId, SignRequestCanceledEvent::SIGN_REQUEST_CANCELED)) {
+					return;
+				}
+			}
+
+			$this->mail->notifyCanceledRequest($signRequest, $email, $libreSignFile);
 
 		} catch (\InvalidArgumentException $e) {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
