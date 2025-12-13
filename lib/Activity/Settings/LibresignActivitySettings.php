@@ -54,13 +54,13 @@ abstract class LibresignActivitySettings extends ActivitySettings {
 	 */
 	#[\Override]
 	public function isDefaultEnabledMail() {
-		return true;
+		return false;
 	}
 	/**
 	 * {@inheritdoc}
 	 */
 	#[\Override]
 	public function isDefaultEnabledNotification(): bool {
-		return true;
+		return false;
 	}
 }
