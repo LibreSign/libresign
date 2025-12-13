@@ -42,8 +42,8 @@
 				:variant="variantOfSaveButton"
 				:wide="true"
 				:class="{ disabled: signerSelected }"
-				@click="isDraft ? save() : showConfirm = true">
-				{{ isDraft ? t('libresign', 'Save') : t('libresign', 'Send') }}
+				@click="save()">
+				{{ t('libresign', 'Save') }}
 			</NcButton>
 
 			<NcButton v-if="canSign"
@@ -61,31 +61,6 @@
 				@pdf-editor:end-init="updateSigners"
 				@pdf-editor:on-delete-signer="onDeleteSigner" />
 		</div>
-		<NcDialog v-if="showConfirm"
-			:open.sync="showConfirm"
-			:name="t('libresign', 'Confirm')"
-			:no-close="loading"
-			:message="t('libresign', 'Send signature request?')">
-			<NcNoteCard v-if="errorConfirmRequest.length > 0"
-				type="error">
-				{{ errorConfirmRequest }}
-			</NcNoteCard>
-			<template #actions>
-				<NcButton :disabled="loading"
-					@click="showConfirm = false">
-					{{ t('libresign', 'Cancel') }}
-				</NcButton>
-				<NcButton variant="primary"
-					:disabled="loading"
-					@click="request">
-					<template #icon>
-						<NcLoadingIcon v-if="loading" :size="20" name="Loading" />
-						<Send v-else :size="20" />
-					</template>
-					{{ t('libresign', 'Send') }}
-				</NcButton>
-			</template>
-		</NcDialog>
 	</NcDialog>
 </template>
 
@@ -101,8 +76,6 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
-
-import Send from 'vue-material-design-icons/Send.vue'
 
 import Chip from '../Chip.vue'
 import PdfEditor from '../PdfEditor/PdfEditor.vue'
@@ -121,7 +94,6 @@ export default {
 		NcButton,
 		NcLoadingIcon,
 		PdfEditor,
-		Send,
 	},
 	setup() {
 		const filesStore = useFilesStore()
@@ -131,9 +103,7 @@ export default {
 		return {
 			canRequestSign: loadState('libresign', 'can_request_sign', false),
 			modal: false,
-			showConfirm: false,
 			loading: false,
-			errorConfirmRequest: '',
 			signerSelected: null,
 			width: getCapabilities().libresign.config['sign-elements']['full-signature-width'],
 			height: getCapabilities().libresign.config['sign-elements']['full-signature-height'],
@@ -204,7 +174,6 @@ export default {
 			this.filesStore.loading = true
 		},
 		closeModal() {
-			this.errorConfirmRequest = ''
 			this.modal = false
 			this.filesStore.loading = false
 		},
@@ -302,26 +271,6 @@ export default {
 				return true
 			} catch (error) {
 				showError(error.response?.data?.ocs?.data?.message || t('libresign', 'An error occurred'))
-				this.loading = false
-				return false
-			}
-		},
-		async request() {
-			this.loading = true
-			this.errorConfirmRequest = ''
-			const visibleElements = this.buildVisibleElements()
-
-			try {
-				const response = await this.filesStore.updateSignatureRequest({ visibleElements, status: 1 })
-				this.filesStore.addFile(response.data)
-				this.showConfirm = false
-				showSuccess(t('libresign', response.message))
-				this.closeModal()
-				emit('libresign:visible-elements-saved')
-				this.loading = false
-				return true
-			} catch (error) {
-				this.errorConfirmRequest = error.response?.data?.ocs?.data?.message || t('libresign', 'An error occurred')
 				this.loading = false
 				return false
 			}
