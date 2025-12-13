@@ -9,10 +9,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Activity\Settings;
 
 use OCA\Libresign\Events\SignRequestCanceledEvent;
-use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\IL10N;
-use OCP\IUser;
 use OCP\IUserSession;
 
 class SignRequestCanceled extends LibresignActivitySettings {

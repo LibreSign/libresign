@@ -479,7 +479,7 @@ class RequestSignatureService {
 		return $signRequest;
 	}
 
-		public function unassociateToUser(int $fileId, int $signRequestId): void {
+	public function unassociateToUser(int $fileId, int $signRequestId): void {
 		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
 		$deletedOrder = $signRequest->getSigningOrder();
 
