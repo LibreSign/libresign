@@ -311,7 +311,17 @@ export default {
 			if (!this.filesStore.canSave()) {
 				return false
 			}
-			return this.hasSigners
+			return this.hasDraftSigners
+		},
+		hasDraftSigners() {
+			const file = this.filesStore.getFile()
+			if (!file?.signers) {
+				return false
+			}
+
+			return this.isOrderedNumeric
+				? this.hasSequentialDraftSigners(file)
+				: this.hasAnyDraftSigner(file)
 		},
 		hasSigners() {
 			return this.filesStore.hasSigners(this.filesStore.getFile())
@@ -378,6 +388,27 @@ export default {
 			})
 
 			return !hasPendingLowerOrder
+		},
+		hasAnyDraftSigner(file) {
+			return file.signers.some(signer => signer.status === 0)
+		},
+		hasSequentialDraftSigners(file) {
+			const signersNotSigned = file.signers.filter(s => !s.signed)
+			if (signersNotSigned.length === 0) {
+				return false
+			}
+
+			const currentOrder = this.getCurrentSigningOrder(signersNotSigned)
+			return this.hasOrderDraftSigners(file, currentOrder)
+		},
+		getCurrentSigningOrder(signersNotSigned) {
+			return Math.min(...signersNotSigned.map(s => s.signingOrder || 1))
+		},
+		hasOrderDraftSigners(file, order) {
+			return file.signers.some(signer => {
+				const signerOrder = signer.signingOrder || 1
+				return signerOrder === order && signer.status === 0
+			})
 		},
 		enabledMethods() {
 			return this.methods.filter(method => method.enabled)
