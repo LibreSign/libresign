@@ -18,10 +18,12 @@ use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\PdfParserService;
 use OCA\Libresign\Service\RequestSignatureService;
+use OCA\Libresign\Service\SequentialSigningService;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
+use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -46,7 +48,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private IClientService&MockObject $client;
 	private DocMdpHandler&MockObject $docMdpHandler;
 	private LoggerInterface&MockObject $loggerInterface;
-	private \OCA\Libresign\Service\SequentialSigningService&MockObject $sequentialSigningService;
+	private SequentialSigningService&MockObject $sequentialSigningService;
+	private IAppConfig&MockObject $appConfig;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -71,7 +74,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->client = $this->createMock(IClientService::class);
 		$this->docMdpHandler = $this->createMock(DocMdpHandler::class);
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
-		$this->sequentialSigningService = $this->createMock(\OCA\Libresign\Service\SequentialSigningService::class);
+		$this->sequentialSigningService = $this->createMock(SequentialSigningService::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
 	}
 
 	private function getService(): RequestSignatureService {
@@ -91,7 +95,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->client,
 			$this->docMdpHandler,
 			$this->loggerInterface,
-			$this->sequentialSigningService
+			$this->sequentialSigningService,
+			$this->appConfig,
 		);
 	}
 

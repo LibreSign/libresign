@@ -8,12 +8,14 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -21,6 +23,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\Node;
 use OCP\Http\Client\IClientService;
+use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -47,6 +50,7 @@ class RequestSignatureService {
 		protected DocMdpHandler $docMdpHandler,
 		protected LoggerInterface $logger,
 		protected SequentialSigningService $sequentialSigningService,
+		protected IAppConfig $appConfig,
 	) {
 	}
 
@@ -56,6 +60,7 @@ class RequestSignatureService {
 		if (!isset($data['status'])) {
 			$data['status'] = $file->getStatus();
 		}
+		$this->sequentialSigningService->setFile($file);
 		$this->associateToSigners($data, $file->getId());
 		return $file;
 	}
@@ -106,8 +111,26 @@ class RequestSignatureService {
 		} else {
 			$file->setStatus(FileEntity::STATUS_ABLE_TO_SIGN);
 		}
+
+		if (isset($data['signatureFlow']) && is_string($data['signatureFlow'])) {
+			try {
+				$signatureFlow = \OCA\Libresign\Enum\SignatureFlow::from($data['signatureFlow']);
+				$file->setSignatureFlowEnum($signatureFlow);
+			} catch (\ValueError) {
+				$this->setSignatureFlowFromGlobalConfig($file);
+			}
+		} else {
+			$this->setSignatureFlowFromGlobalConfig($file);
+		}
+
 		$this->fileMapper->insert($file);
 		return $file;
+	}
+
+	private function setSignatureFlowFromGlobalConfig(FileEntity $file): void {
+		$globalFlowValue = $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', SignatureFlow::PARALLEL->value);
+		$globalFlow = SignatureFlow::from($globalFlowValue);
+		$file->setSignatureFlowEnum($globalFlow);
 	}
 
 	private function updateStatus(FileEntity $file, int $status): FileEntity {
