@@ -13,6 +13,7 @@ OC.L10N.register(
     "No file uploaded" : "Nun se xubió nengún ficheru",
     "Internal Server Error" : "Error internu del sirvidor",
     "deleted" : "desanicióse",
+    "Draft" : "Borrador",
     "Pending" : "Pendiente",
     "Invalid password" : "La contraseña ye inválida",
     "File is too big" : "El ficheru ye mui grande",

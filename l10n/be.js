@@ -13,6 +13,7 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "Пашырэнне PHP спыніла запампоўванне файла",
     "Internal Server Error" : "Унутраная памылка сервера",
     "draft" : "чарнавік",
+    "Draft" : "Чарнавік",
     "Pending" : "У чаканні",
     "Invalid password" : "Няправільны пароль",
     "File is too big" : "Файл занадта вялікі",
