@@ -48,12 +48,12 @@ abstract class LibresignActivitySettings extends ActivitySettings {
 	 * {@inheritdoc}
 	 */
 	public function isDefaultEnabledMail() {
-		return false;
+		return true;
 	}
 	/**
 	 * {@inheritdoc}
 	 */
 	public function isDefaultEnabledNotification(): bool {
-		return false;
+		return true;
 	}
 }
