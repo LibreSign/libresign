@@ -134,6 +134,44 @@
 				</NcAppSidebarTab>
 			</NcAppSidebar>
 		</NcDialog>
+		<NcDialog v-if="showConfirmRequest"
+			:name="t('libresign', 'Confirm')"
+			:message="t('libresign', 'Send signature request?')"
+			@closing="showConfirmRequest = false">
+			<template #actions>
+				<NcButton @click="showConfirmRequest = false">
+					{{ t('libresign', 'Cancel') }}
+				</NcButton>
+				<NcButton variant="primary"
+					:disabled="hasLoading"
+					@click="confirmRequest">
+					<template #icon>
+						<NcLoadingIcon v-if="hasLoading" :size="20" />
+						<Send v-else :size="20" />
+					</template>
+					{{ t('libresign', 'Send') }}
+				</NcButton>
+			</template>
+		</NcDialog>
+		<NcDialog v-if="showConfirmRequestSigner"
+			:name="t('libresign', 'Confirm')"
+			:message="t('libresign', 'Send signature request?')"
+			@closing="showConfirmRequestSigner = false; selectedSigner = null">
+			<template #actions>
+				<NcButton @click="showConfirmRequestSigner = false; selectedSigner = null">
+					{{ t('libresign', 'Cancel') }}
+				</NcButton>
+				<NcButton variant="primary"
+					:disabled="hasLoading"
+					@click="confirmRequestSigner">
+					<template #icon>
+						<NcLoadingIcon v-if="hasLoading" :size="20" />
+						<Send v-else :size="20" />
+					</template>
+					{{ t('libresign', 'Send') }}
+				</NcButton>
+			</template>
+		</NcDialog>
 	</div>
 </template>
 <script>
@@ -241,6 +279,9 @@ export default {
 			document: {},
 			hasInfo: false,
 			methods: [],
+			showConfirmRequest: false,
+			showConfirmRequestSigner: false,
+			selectedSigner: null,
 		}
 	},
 	computed: {
@@ -518,11 +559,17 @@ export default {
 
 		},
 		async requestSignatureForSigner(signer) {
+			this.selectedSigner = signer
+			this.showConfirmRequestSigner = true
+		},
+		async confirmRequestSigner() {
+			if (!this.selectedSigner) return
+
 			this.hasLoading = true
 			try {
 				const file = this.filesStore.getFile()
 				const signers = file.signers.map(s => {
-					if (s.signRequestId === signer.signRequestId) {
+					if (s.signRequestId === this.selectedSigner.signRequestId) {
 						return { ...s, status: 1 }
 					}
 					return s
@@ -532,6 +579,8 @@ export default {
 					signers,
 				})
 				showSuccess(t('libresign', 'Signature requested'))
+				this.showConfirmRequestSigner = false
+				this.selectedSigner = null
 			} catch (error) {
 				if (error.response?.data?.ocs?.data?.message) {
 					showError(error.response.data.ocs.data.message)
@@ -572,10 +621,14 @@ export default {
 			this.hasLoading = false
 		},
 		async request() {
+			this.showConfirmRequest = true
+		},
+		async confirmRequest() {
 			this.hasLoading = true
 			try {
 				const response = await this.filesStore.updateSignatureRequest({ visibleElements: [], status: 1 })
 				showSuccess(t('libresign', response.message))
+				this.showConfirmRequest = false
 			} catch (error) {
 				if (error.response?.data?.ocs?.data?.message) {
 					showError(error.response.data.ocs.data.message)
