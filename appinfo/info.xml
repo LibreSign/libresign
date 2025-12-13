@@ -82,6 +82,7 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
 		<settings>
 			<setting>OCA\Libresign\Activity\Settings\FileToSign</setting>
 			<setting>OCA\Libresign\Activity\Settings\FileSigned</setting>
+			<setting>OCA\Libresign\Activity\Settings\SignRequestCanceled</setting>
 		</settings>
 		<filters>
 			<filter>OCA\Libresign\Activity\Filter</filter>
@@ -89,6 +90,7 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
 		<providers>
 			<provider>OCA\Libresign\Activity\Provider\SignRequest</provider>
 			<provider>OCA\Libresign\Activity\Provider\Signed</provider>
+			<provider>OCA\Libresign\Activity\Provider\SignRequestCanceled</provider>
 		</providers>
 	</activity>
 	<navigations>

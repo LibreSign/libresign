@@ -14,6 +14,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
+use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\Activity\Exceptions\UnknownActivityException;
@@ -43,7 +44,7 @@ class Listener implements IEventListener {
 
 	#[\Override]
 	public function handle(Event $event): void {
-		/** @var SendSignNotificationEvent|SignedEvent $event */
+		/** @var SendSignNotificationEvent|SignedEvent|SignRequestCanceledEvent $event */
 		match ($event::class) {
 			SendSignNotificationEvent::class => $this->generateNewSignNotificationActivity(
 				$event->getSignRequest(),
@@ -51,6 +52,11 @@ class Listener implements IEventListener {
 				$event->getIdentifyMethod(),
 			),
 			SignedEvent::class => $this->generateSignedEventActivity(
+				$event->getSignRequest(),
+				$event->getLibreSignFile(),
+				$event->getIdentifyMethod(),
+			),
+			SignRequestCanceledEvent::class => $this->generateCanceledActivity(
 				$event->getSignRequest(),
 				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
@@ -161,6 +167,51 @@ class Listener implements IEventListener {
 			]);
 
 			$this->activityManager->publish($activityEvent);
+		} catch (UnknownActivityException $e) {
+			$this->logger->error($e->getMessage(), ['exception' => $e]);
+			return;
+		}
+	}
+
+	protected function generateCanceledActivity(
+		SignRequest $signRequest,
+		FileEntity $libreSignFile,
+		IIdentifyMethod $identifyMethod,
+	): void {
+		$actor = $this->userSession->getUser();
+		if (!$actor instanceof IUser) {
+			return;
+		}
+		$actorId = $actor->getUID();
+
+		$event = $this->activityManager->generateEvent();
+		try {
+			$event
+				->setApp(Application::APP_ID)
+				->setType(SignRequestCanceledEvent::SIGN_REQUEST_CANCELED)
+				->setAuthor($actorId)
+				->setObject('signRequest', $signRequest->getId())
+				->setTimestamp($this->timeFactory->getTime())
+				->setAffectedUser($identifyMethod->getEntity()->getIdentifierValue())
+				->setGenerateNotification(false);
+
+			$event->setSubject('sign_request_canceled', [
+				'from' => $this->getUserParameter(
+					$actor->getUID(),
+					$actor->getDisplayName(),
+				),
+				'file' => $this->getFileParameter($signRequest, $libreSignFile),
+				'signer' => $this->getUserParameter(
+					$identifyMethod->getEntity()->getIdentifierValue(),
+					$signRequest->getDisplayName(),
+				),
+				'signRequest' => [
+					'type' => 'sign-request',
+					'id' => (string)$signRequest->getId(),
+					'name' => $actor->getDisplayName(),
+				],
+			]);
+			$this->activityManager->publish($event);
 		} catch (UnknownActivityException $e) {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
 			return;

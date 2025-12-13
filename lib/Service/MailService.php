@@ -132,6 +132,29 @@ class MailService {
 		}
 	}
 
+	public function notifyCanceledRequest(SignRequest $signRequest, string $email, File $libreSignFile): void {
+		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
+		// TRANSLATORS The subject of the email that is sent when a signature request has been canceled.
+		$emailTemplate->setSubject($this->l10n->t('LibreSign: A signature request has been canceled'));
+		$emailTemplate->addHeader();
+		$emailTemplate->addHeading($this->l10n->t('Signature request canceled'), false);
+		// TRANSLATORS The text in the email that is sent when a signature request has been canceled. %s will be replaced with the name of the file.
+		$emailTemplate->addBodyText($this->l10n->t('The request for you to sign "%s" has been canceled.', [$libreSignFile->getName()]));
+		$message = $this->mailer->createMessage();
+		if ($signRequest->getDisplayName()) {
+			$message->setTo([$email => $signRequest->getDisplayName()]);
+		} else {
+			$message->setTo([$email]);
+		}
+		$message->useTemplate($emailTemplate);
+		try {
+			$this->mailer->send($message);
+		} catch (\Exception $e) {
+			$this->logger->error('Notify canceled request mail could not be sent: ' . $e->getMessage());
+			// Don't throw exception to avoid breaking the flow when mail fails
+		}
+	}
+
 	public function sendCodeToSign(string $email, string $name, string $code): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		$emailTemplate->setSubject($this->l10n->t('LibreSign: Code to sign file'));
