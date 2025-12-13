@@ -482,28 +482,11 @@ class RequestSignatureService {
 	public function unassociateToUser(int $fileId, int $signRequestId): void {
 		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
 		$deletedOrder = $signRequest->getSigningOrder();
-
-		// Get identify methods before deletion
 		$groupedIdentifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequestId);
 
-		// Dispatch canceled event if status is ABLE_TO_SIGN (1)
-		if ($signRequest->getStatus() === \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN->value) {
-			try {
-				$libreSignFile = $this->fileMapper->getByFileId($fileId);
-				foreach ($groupedIdentifyMethods as $identifyMethods) {
-					foreach ($identifyMethods as $identifyMethod) {
-						$event = new SignRequestCanceledEvent(
-							$signRequest,
-							$libreSignFile,
-							$identifyMethod,
-						);
-						$this->eventDispatcher->dispatchTyped($event);
-					}
-				}
-			} catch (\Throwable $e) {
-				$this->logger->error('Error dispatching SignRequestCanceledEvent: ' . $e->getMessage(), ['exception' => $e]);
-			}
-		}		try {
+		$this->dispatchCancellationEventIfNeeded($signRequest, $fileId, $groupedIdentifyMethods);
+
+		try {
 			$this->signRequestMapper->delete($signRequest);
 			foreach ($groupedIdentifyMethods as $identifyMethods) {
 				foreach ($identifyMethods as $identifyMethod) {
@@ -517,6 +500,32 @@ class RequestSignatureService {
 
 			$this->sequentialSigningService->reorderAfterDeletion($fileId, $deletedOrder);
 		} catch (\Throwable) {
+		}
+	}
+
+	private function dispatchCancellationEventIfNeeded(
+		SignRequestEntity $signRequest,
+		int $fileId,
+		array $groupedIdentifyMethods
+	): void {
+		if ($signRequest->getStatus() !== \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN->value) {
+			return;
+		}
+
+		try {
+			$libreSignFile = $this->fileMapper->getByFileId($fileId);
+			foreach ($groupedIdentifyMethods as $identifyMethods) {
+				foreach ($identifyMethods as $identifyMethod) {
+					$event = new SignRequestCanceledEvent(
+						$signRequest,
+						$libreSignFile,
+						$identifyMethod,
+					);
+					$this->eventDispatcher->dispatchTyped($event);
+				}
+			}
+		} catch (\Throwable $e) {
+			$this->logger->error('Error dispatching SignRequestCanceledEvent: ' . $e->getMessage(), ['exception' => $e]);
 		}
 	}
 
