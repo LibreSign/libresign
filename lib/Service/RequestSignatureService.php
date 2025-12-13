@@ -506,7 +506,7 @@ class RequestSignatureService {
 	private function dispatchCancellationEventIfNeeded(
 		SignRequestEntity $signRequest,
 		int $fileId,
-		array $groupedIdentifyMethods
+		array $groupedIdentifyMethods,
 	): void {
 		if ($signRequest->getStatus() !== \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN->value) {
 			return;
