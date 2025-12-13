@@ -15,7 +15,7 @@ use OCP\EventDispatcher\Event;
 
 class SignRequestCanceledEvent extends Event {
 	public const SIGN_REQUEST_CANCELED = 'libresign_sign_request_canceled';
-	
+
 	public function __construct(
 		private SignRequest $signRequest,
 		private FileEntity $libreSignFile,

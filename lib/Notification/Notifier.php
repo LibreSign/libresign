@@ -231,7 +231,7 @@ class Notifier implements INotifier {
 
 		$parameters = $notification->getSubjectParameters();
 		$notification->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')));
-		
+
 		if (isset($parameters['from']) && isset($parameters['file'])) {
 			$subject = $l->t('{from} canceled the signature request for {file}');
 			$notification->setParsedSubject(
