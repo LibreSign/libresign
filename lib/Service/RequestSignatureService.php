@@ -16,10 +16,12 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignatureFlow;
+use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\Node;
 use OCP\Http\Client\IClientService;
@@ -51,6 +53,7 @@ class RequestSignatureService {
 		protected LoggerInterface $logger,
 		protected SequentialSigningService $sequentialSigningService,
 		protected IAppConfig $appConfig,
+		protected IEventDispatcher $eventDispatcher,
 	) {
 	}
 
@@ -476,13 +479,32 @@ class RequestSignatureService {
 		return $signRequest;
 	}
 
-	public function unassociateToUser(int $fileId, int $signRequestId): void {
+		public function unassociateToUser(int $fileId, int $signRequestId): void {
 		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
 		$deletedOrder = $signRequest->getSigningOrder();
 
-		try {
+		// Get identify methods before deletion
+		$groupedIdentifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequestId);
+
+		// Dispatch canceled event if status is ABLE_TO_SIGN (1)
+		if ($signRequest->getStatus() === \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN->value) {
+			try {
+				$libreSignFile = $this->fileMapper->getByFileId($fileId);
+				foreach ($groupedIdentifyMethods as $identifyMethods) {
+					foreach ($identifyMethods as $identifyMethod) {
+						$event = new SignRequestCanceledEvent(
+							$signRequest,
+							$libreSignFile,
+							$identifyMethod,
+						);
+						$this->eventDispatcher->dispatchTyped($event);
+					}
+				}
+			} catch (\Throwable $e) {
+				$this->logger->error('Error dispatching SignRequestCanceledEvent: ' . $e->getMessage(), ['exception' => $e]);
+			}
+		}		try {
 			$this->signRequestMapper->delete($signRequest);
-			$groupedIdentifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequestId);
 			foreach ($groupedIdentifyMethods as $identifyMethods) {
 				foreach ($identifyMethods as $identifyMethod) {
 					$identifyMethod->delete();
