@@ -333,6 +333,26 @@ class RequestSignatureService {
 		?\OCA\Libresign\Enum\SignRequestStatus $currentStatus = null,
 		?int $fileId = null,
 	): \OCA\Libresign\Enum\SignRequestStatus {
+		// If fileStatus is explicitly DRAFT (0), keep signer as DRAFT
+		// This allows adding new signers in DRAFT mode even when file is not in DRAFT status
+		if ($fileStatus === FileEntity::STATUS_DRAFT) {
+			return \OCA\Libresign\Enum\SignRequestStatus::DRAFT;
+		}
+
+		// If file status is ABLE_TO_SIGN, apply flow-based logic
+		if ($fileStatus === FileEntity::STATUS_ABLE_TO_SIGN) {
+			if ($this->sequentialSigningService->isOrderedNumericFlow()) {
+				// In ordered flow, only first signer (order 1) should be ABLE_TO_SIGN
+				// Others remain DRAFT until their turn
+				return $signingOrder === 1
+					? \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN
+					: \OCA\Libresign\Enum\SignRequestStatus::DRAFT;
+			}
+			// In parallel flow, all can sign - ignore individual signer status if file is ABLE_TO_SIGN
+			return \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN;
+		}
+
+		// Handle explicit signer status when file status is not DRAFT or ABLE_TO_SIGN
 		if ($signerStatus !== null) {
 			$desiredStatus = \OCA\Libresign\Enum\SignRequestStatus::from($signerStatus);
 			if ($currentStatus !== null && !$this->sequentialSigningService->isStatusUpgrade($currentStatus, $desiredStatus)) {
@@ -347,24 +367,7 @@ class RequestSignatureService {
 			return $desiredStatus;
 		}
 
-		// If fileStatus is explicitly DRAFT (0), keep signer as DRAFT
-		// This allows adding new signers in DRAFT mode even when file is not in DRAFT status
-		if ($fileStatus === FileEntity::STATUS_DRAFT) {
-			return \OCA\Libresign\Enum\SignRequestStatus::DRAFT;
-		}
-
-		if ($fileStatus === FileEntity::STATUS_ABLE_TO_SIGN) {
-			if ($this->sequentialSigningService->isOrderedNumericFlow()) {
-				// In ordered flow, only first signer (order 1) should be ABLE_TO_SIGN
-				// Others remain DRAFT until their turn
-				return $signingOrder === 1
-					? \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN
-					: \OCA\Libresign\Enum\SignRequestStatus::DRAFT;
-			}
-			// In parallel flow, all can sign
-			return \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN;
-		}
-
+		// Default fallback based on flow type
 		if (!$this->sequentialSigningService->isOrderedNumericFlow()) {
 			return \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN;
 		}
