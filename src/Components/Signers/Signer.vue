@@ -89,10 +89,13 @@ export default {
 	data() {
 		return {
 			canRequestSign: loadState('libresign', 'can_request_sign', false),
-			signatureFlow: loadState('libresign', 'signature_flow', 'parallel'),
 		}
 	},
 	computed: {
+		signatureFlow() {
+			const file = this.filesStore.getFile()
+			return file?.signatureFlow ?? 'parallel'
+		},
 		signer() {
 			const file = this.filesStore.getFile()
 			return file?.signers?.[this.signerIndex]
