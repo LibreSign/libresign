@@ -14,6 +14,7 @@ use OCA\Libresign\Activity\Listener as ActivityListener;
 use OCA\Libresign\Capabilities;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
+use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Files\TemplateLoader as FilesTemplateLoader;
 use OCA\Libresign\Listener\BeforeNodeDeletedListener;
 use OCA\Libresign\Listener\LoadAdditionalListener;
@@ -74,14 +75,17 @@ class Application extends App implements IBootstrap {
 		// Activity listeners
 		$context->registerEventListener(SendSignNotificationEvent::class, ActivityListener::class);
 		$context->registerEventListener(SignedEvent::class, ActivityListener::class);
+		$context->registerEventListener(SignRequestCanceledEvent::class, ActivityListener::class);
 
 		// Notification listeners
 		$context->registerEventListener(SendSignNotificationEvent::class, NotificationListener::class);
 		$context->registerEventListener(SignedEvent::class, NotificationListener::class);
+		$context->registerEventListener(SignRequestCanceledEvent::class, NotificationListener::class);
 
 		// MailNotify listener
 		$context->registerEventListener(SendSignNotificationEvent::class, MailNotifyListener::class);
 		$context->registerEventListener(SignedEvent::class, MailNotifyListener::class);
+		$context->registerEventListener(SignRequestCanceledEvent::class, MailNotifyListener::class);
 
 		// TwofactorGateway listener
 		$context->registerEventListener(SendSignNotificationEvent::class, TwofactorGatewayListener::class);
