@@ -52,6 +52,7 @@ class Notifier implements INotifier {
 			'new_sign_request' => $this->parseSignRequest($notification, $l, false),
 			'update_sign_request' => $this->parseSignRequest($notification, $l, true),
 			'file_signed' => $this->parseSigned($notification, $l),
+			'libresign_upgrade' => $this->parseUpgrade($notification, $l),
 			default => throw new UnknownNotificationException(),
 		};
 	}
@@ -205,5 +206,47 @@ class Notifier implements INotifier {
 
 		return $notification;
 
+	}
+
+	private function parseUpgrade(
+		INotification $notification,
+		IL10N $l,
+	): INotification {
+
+		$parameters = $notification->getSubjectParameters();
+		$version = $parameters['version'] ?? '';
+		$notification->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')));
+		$subject = $l->t('LibreSign has been updated to version %s!', [$version]);
+		$message = $parameters['message'] ?? '';
+		$notification->setParsedSubject($subject)
+			->setParsedMessage($message);
+
+		$donateAction = $notification->createAction()
+			->setParsedLabel($l->t('Donate'))
+			->setPrimary(true)
+			->setLink('https://github.com/sponsors/LibreSign', \OCP\Notification\IAction::TYPE_WEB);
+
+		$notification->addParsedAction($donateAction);
+
+		$dismissAction = $notification->createAction()
+			->setParsedLabel($l->t('Dismiss notification'))
+			->setPrimary(false)
+			->setLink(
+				$this->url->linkToOCSRouteAbsolute(
+					'libresign.notify.notificationDismiss',
+					[
+						'apiVersion' => 'v1',
+						'timestamp' => $notification->getDateTime()->getTimestamp(),
+						'objectType' => 'upgrade',
+						'objectId' => '1',
+						'subject' => 'libresign_upgrade',
+					],
+				),
+				IAction::TYPE_DELETE
+			);
+
+		$notification->addParsedAction($dismissAction);
+
+		return $notification;
 	}
 }
