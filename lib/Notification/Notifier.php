@@ -52,6 +52,7 @@ class Notifier implements INotifier {
 			'new_sign_request' => $this->parseSignRequest($notification, $l, false),
 			'update_sign_request' => $this->parseSignRequest($notification, $l, true),
 			'file_signed' => $this->parseSigned($notification, $l),
+			'sign_request_canceled' => $this->parseCanceled($notification, $l),
 			default => throw new UnknownNotificationException(),
 		};
 	}
@@ -205,5 +206,68 @@ class Notifier implements INotifier {
 
 		return $notification;
 
+	}
+
+	private function parseCanceled(
+		INotification $notification,
+		IL10N $l,
+	): INotification {
+
+		$this->definitions->definitions['sign-request'] = [
+			'author' => 'LibreSign',
+			'since' => '28.0.0',
+			'parameters' => [
+				'id' => [
+					'since' => '28.0.0',
+					'required' => true,
+					'description' => 'The id of SignRequest object',
+					'example' => '12345',
+				],
+				'name' => [
+					'since' => '28.0.0',
+					'required' => true,
+					'description' => 'The display name of signer',
+					'example' => 'John Doe',
+				],
+			],
+		];
+
+		$parameters = $notification->getSubjectParameters();
+		$notification->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')));
+		
+		if (isset($parameters['from']) && isset($parameters['file'])) {
+			$subject = $l->t('{from} canceled the signature request for {file}');
+			$notification->setParsedSubject(
+				str_replace(
+					['{from}', '{file}'],
+					[
+						$parameters['from']['name'],
+						$parameters['file']['name'],
+					],
+					$subject
+				))
+				->setRichSubject($subject, $parameters);
+		}
+
+		if (isset($parameters['signRequest']) && isset($parameters['signRequest']['id'])) {
+			$dismissAction = $notification->createAction()
+				->setParsedLabel($l->t('Dismiss notification'))
+				->setLink(
+					$this->url->linkToOCSRouteAbsolute(
+						'libresign.notify.notificationDismiss',
+						[
+							'apiVersion' => 'v1',
+							'timestamp' => $notification->getDateTime()->getTimestamp(),
+							'objectType' => 'signRequest',
+							'objectId' => $parameters['signRequest']['id'],
+							'subject' => 'sign_request_canceled',
+						],
+					),
+					IAction::TYPE_DELETE
+				);
+			$notification->addParsedAction($dismissAction);
+		}
+
+		return $notification;
 	}
 }
