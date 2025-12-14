@@ -1256,7 +1256,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				default: return null;
 			}
 		});
-		
+
 		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 		$libreSignFile->method('getDocmdpLevelEnum')->willReturn(\OCA\Libresign\Enum\DocMdpLevel::NOT_CERTIFIED);
 
