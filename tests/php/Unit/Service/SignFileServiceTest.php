@@ -278,11 +278,13 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'getEngine',
 			'setNewStatusIfNecessary',
 			'getNextcloudFile',
+			'validateDocMdpAllowsSignatures',
 		]);
 
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
 		$nextcloudFile->method('getContent')->willReturn($signedContent);
 		$service->method('getNextcloudFile')->willReturn($nextcloudFile);
+		$service->method('validateDocMdpAllowsSignatures');
 
 		$pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$pkcs12Handler->method('sign')->willReturn($nextcloudFile);
@@ -301,6 +303,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					return 1;
 				case 'getSigningOrder':
 					return 1;
+				case 'getDocmdpLevelEnum':
+					return \OCA\Libresign\Enum\DocMdpLevel::NOT_CERTIFIED;
 				default: return null;
 			}
 		};
@@ -330,11 +334,13 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'setNewStatusIfNecessary',
 			'computeHash',
 			'getNextcloudFile',
+			'validateDocMdpAllowsSignatures',
 		]);
 
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
 		$nextcloudFile->method('getContent')->willReturn('pdf content');
 		$service->method('getNextcloudFile')->willReturn($nextcloudFile);
+		$service->method('validateDocMdpAllowsSignatures');
 
 		$this->fileMapper->expects($this->once())->method('update');
 		$this->signRequestMapper->expects($this->once())->method('update');
@@ -350,6 +356,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			}
 		});
 		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$libreSignFile->method('__call')->willReturnCallback(function ($method) {
+			if ($method === 'getDocmdpLevelEnum') {
+				return \OCA\Libresign\Enum\DocMdpLevel::NOT_CERTIFIED;
+			}
+			return null;
+		});
 
 		$service
 			->setSignRequest($signRequest)
@@ -363,11 +375,13 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'setNewStatusIfNecessary',
 			'computeHash',
 			'getNextcloudFile',
+			'validateDocMdpAllowsSignatures',
 		]);
 
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
 		$nextcloudFile->method('getContent')->willReturn('pdf content');
 		$service->method('getNextcloudFile')->willReturn($nextcloudFile);
+		$service->method('validateDocMdpAllowsSignatures');
 
 		$this->eventDispatcher
 			->expects($this->once())
@@ -385,6 +399,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			}
 		});
 		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$libreSignFile->method('__call')->willReturnCallback(function ($method) {
+			if ($method === 'getDocmdpLevelEnum') {
+				return \OCA\Libresign\Enum\DocMdpLevel::NOT_CERTIFIED;
+			}
+			return null;
+		});
 
 		$service
 			->setSignRequest($signRequest)
@@ -1227,7 +1247,18 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service->method('getEngine')->willReturn($engineMock);
 
 		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('__call')->willReturnCallback(function ($method) {
+			switch ($method) {
+				case 'getFileId':
+					return 1;
+				case 'getSigningOrder':
+					return 1;
+				default: return null;
+			}
+		});
+
 		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$libreSignFile->method('getDocmdpLevelEnum')->willReturn(\OCA\Libresign\Enum\DocMdpLevel::NOT_CERTIFIED);
 
 		$service
 			->setSignRequest($signRequest)
@@ -1254,6 +1285,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		rewind($resource);
 
 		$service->method('getLibreSignFileAsResource')->willReturn($resource);
+
+		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$libreSignFile->method('getDocmdpLevelEnum')->willReturn(\OCA\Libresign\Enum\DocMdpLevel::NOT_CERTIFIED);
+		$service->setLibreSignFile($libreSignFile);
 
 		self::invokePrivate($service, 'validateDocMdpAllowsSignatures');
 	}

@@ -502,6 +502,7 @@ class SignRequestMapper extends QBMapper {
 				'f.metadata',
 				'f.created_at',
 				'f.signature_flow',
+				'f.docmdp_level',
 			)
 				->groupBy(
 					'f.id',
@@ -513,6 +514,7 @@ class SignRequestMapper extends QBMapper {
 					'f.status',
 					'f.created_at',
 					'f.signature_flow',
+					'f.docmdp_level',
 				);
 			// metadata is a json column, the right way is to use f.metadata::text
 			// when the database is PostgreSQL. The problem is that the command
@@ -624,12 +626,14 @@ class SignRequestMapper extends QBMapper {
 
 		$row['name'] = $this->removeExtensionFromName($row['name'], $row['metadata']);
 		$row['signatureFlow'] = SignatureFlow::fromNumeric((int)($row['signature_flow']))->value;
+		$row['docmdpLevel'] = (int)($row['docmdp_level'] ?? 0);
 
 		unset(
 			$row['user_id'],
 			$row['node_id'],
 			$row['signed_node_id'],
 			$row['signature_flow'],
+			$row['docmdp_level'],
 		);
 		return $row;
 	}

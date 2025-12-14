@@ -41,6 +41,8 @@ use OCP\DB\Types;
  * @method int getModificationStatus()
  * @method void setSignatureFlow(int $signatureFlow)
  * @method int getSignatureFlow()
+ * @method void setDocmdpLevel(int $docmdpLevel)
+ * @method int getDocmdpLevel()
  */
 class File extends Entity {
 	protected int $nodeId = 0;
@@ -56,6 +58,7 @@ class File extends Entity {
 	protected ?array $metadata = null;
 	protected int $modificationStatus = 0;
 	protected int $signatureFlow = SignatureFlow::NUMERIC_PARALLEL;
+	protected int $docmdpLevel = 0;
 	public const STATUS_NOT_LIBRESIGN_FILE = -1;
 	public const STATUS_DRAFT = 0;
 	public const STATUS_ABLE_TO_SIGN = 1;
@@ -83,6 +86,7 @@ class File extends Entity {
 		$this->addType('metadata', Types::JSON);
 		$this->addType('modificationStatus', Types::SMALLINT);
 		$this->addType('signatureFlow', Types::SMALLINT);
+		$this->addType('docmdpLevel', Types::SMALLINT);
 	}
 
 	public function isDeletedAccount(): bool {
@@ -101,5 +105,13 @@ class File extends Entity {
 
 	public function setSignatureFlowEnum(\OCA\Libresign\Enum\SignatureFlow $flow): void {
 		$this->setSignatureFlow($flow->toNumeric());
+	}
+
+	public function getDocmdpLevelEnum(): \OCA\Libresign\Enum\DocMdpLevel {
+		return \OCA\Libresign\Enum\DocMdpLevel::tryFrom($this->docmdpLevel) ?? \OCA\Libresign\Enum\DocMdpLevel::NOT_CERTIFIED;
+	}
+
+	public function setDocmdpLevelEnum(\OCA\Libresign\Enum\DocMdpLevel $level): void {
+		$this->setDocmdpLevel($level->value);
 	}
 }

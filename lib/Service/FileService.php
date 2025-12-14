@@ -712,6 +712,7 @@ class FileService {
 		$this->fileData->statusText = $this->fileMapper->getTextOfStatus($this->file->getStatus());
 		$this->fileData->nodeId = $this->file->getNodeId();
 		$this->fileData->signatureFlow = $this->file->getSignatureFlow();
+		$this->fileData->docmdpLevel = $this->file->getDocmdpLevel();
 
 		$this->fileData->requested_by = [
 			'userId' => $this->file->getUserId(),
