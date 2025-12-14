@@ -14,11 +14,13 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FileElementService;
+use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\PdfParserService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SequentialSigningService;
+use OCA\Libresign\Service\SignRequestStatusService;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClient;
@@ -52,6 +54,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private SequentialSigningService&MockObject $sequentialSigningService;
 	private IAppConfig&MockObject $appConfig;
 	private IEventDispatcher&MockObject $eventDispatcher;
+	private FileStatusService&MockObject $fileStatusService;
+	private SignRequestStatusService&MockObject $signRequestStatusService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -79,6 +83,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->sequentialSigningService = $this->createMock(SequentialSigningService::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
+		$this->fileStatusService = $this->createMock(FileStatusService::class);
+		$this->signRequestStatusService = $this->createMock(SignRequestStatusService::class);
 	}
 
 	private function getService(?SequentialSigningService $sequentialSigningService = null): RequestSignatureService {
@@ -101,6 +107,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$sequentialSigningService ?? $this->sequentialSigningService,
 			$this->appConfig,
 			$this->eventDispatcher,
+			$this->fileStatusService,
+			$this->signRequestStatusService,
 		);
 	}
 
@@ -261,22 +269,21 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			->method('isOrderedNumericFlow')
 			->willReturn(false); // Parallel flow
 
+		$fileStatusService = $this->createMock(FileStatusService::class);
+		$statusService = new SignRequestStatusService($sequentialSigningService, $fileStatusService);
+
 		// File status is ABLE_TO_SIGN (1)
 		$fileStatus = \OCA\Libresign\Db\File::STATUS_ABLE_TO_SIGN;
 
 		// Signer status is DRAFT (0) - as sent by frontend
 		$signerStatus = \OCA\Libresign\Enum\SignRequestStatus::DRAFT->value;
 
-		$result = self::invokePrivate(
-			$this->getService($sequentialSigningService),
-			'determineInitialStatus',
-			[
-				1, // signingOrder
-				$fileStatus,
-				$signerStatus,
-				null, // currentStatus
-				null, // fileId
-			]
+		$result = $statusService->determineInitialStatus(
+			1, // signingOrder
+			123, // fileId
+			$fileStatus,
+			$signerStatus,
+			null, // currentStatus
 		);
 
 		// In parallel flow with ABLE_TO_SIGN file status, signer should be ABLE_TO_SIGN
@@ -296,14 +303,15 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			->method('isOrderedNumericFlow')
 			->willReturn(true); // Ordered flow
 
+		$fileStatusService = $this->createMock(FileStatusService::class);
+		$statusService = new SignRequestStatusService($sequentialSigningService, $fileStatusService);
+
 		$fileStatus = \OCA\Libresign\Db\File::STATUS_ABLE_TO_SIGN;
 		$signerStatus = \OCA\Libresign\Enum\SignRequestStatus::DRAFT->value;
 
 		// First signer (order 1) should be ABLE_TO_SIGN
-		$result1 = self::invokePrivate(
-			$this->getService($sequentialSigningService),
-			'determineInitialStatus',
-			[1, $fileStatus, $signerStatus, null, null]
+		$result1 = $statusService->determineInitialStatus(
+			1, 123, $fileStatus, $signerStatus, null
 		);
 		$this->assertEquals(
 			\OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN,
@@ -312,10 +320,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		);
 
 		// Second signer (order 2) should remain DRAFT
-		$result2 = self::invokePrivate(
-			$this->getService($sequentialSigningService),
-			'determineInitialStatus',
-			[2, $fileStatus, $signerStatus, null, null]
+		$result2 = $statusService->determineInitialStatus(
+			2, 123, $fileStatus, $signerStatus, null
 		);
 		$this->assertEquals(
 			\OCA\Libresign\Enum\SignRequestStatus::DRAFT,
