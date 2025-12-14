@@ -12,14 +12,12 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Enum\SignRequestStatus;
-use OCP\IAppConfig;
 
 class SequentialSigningService {
 	private int $currentOrder = 1;
 	private ?FileEntity $file = null;
 
 	public function __construct(
-		private IAppConfig $appConfig,
 		private SignRequestMapper $signRequestMapper,
 		private IdentifyMethodService $identifyMethodService,
 	) {
