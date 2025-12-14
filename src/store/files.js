@@ -133,6 +133,11 @@ export const useFilesStore = function(...args) {
 			},
 			canAddSigner(file) {
 				file = this.getFile(file)
+
+				if (this.isDocMdpNoChangesAllowed(file)) {
+					return false
+				}
+
 				return this.canRequestSign
 					&& (
 						!Object.hasOwn(file, 'requested_by')
@@ -140,6 +145,10 @@ export const useFilesStore = function(...args) {
 					)
 					&& !this.isPartialSigned(file)
 					&& !this.isFullSigned(file)
+			},
+			isDocMdpNoChangesAllowed(file) {
+				file = this.getFile(file)
+				return file.docmdpLevel === 1 && file.signers && file.signers.length > 0
 			},
 			canSave(file) {
 				file = this.getFile(file)
