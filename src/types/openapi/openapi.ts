@@ -1281,6 +1281,8 @@ export type components = {
             /** Format: int64 */
             signatureFlow: number;
             /** Format: int64 */
+            docmdpLevel: number;
+            /** Format: int64 */
             totalPages: number;
             /** Format: int64 */
             size: number;
