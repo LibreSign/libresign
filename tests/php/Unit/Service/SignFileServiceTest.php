@@ -284,7 +284,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
 		$nextcloudFile->method('getContent')->willReturn($signedContent);
 		$service->method('getNextcloudFile')->willReturn($nextcloudFile);
-		$service->method('validateDocMdpAllowsSignatures')->willReturn(null);
+		$service->method('validateDocMdpAllowsSignatures');
 
 		$pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$pkcs12Handler->method('sign')->willReturn($nextcloudFile);
@@ -340,7 +340,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
 		$nextcloudFile->method('getContent')->willReturn('pdf content');
 		$service->method('getNextcloudFile')->willReturn($nextcloudFile);
-		$service->method('validateDocMdpAllowsSignatures')->willReturn(null);
+		$service->method('validateDocMdpAllowsSignatures');
 
 		$this->fileMapper->expects($this->once())->method('update');
 		$this->signRequestMapper->expects($this->once())->method('update');
@@ -381,7 +381,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
 		$nextcloudFile->method('getContent')->willReturn('pdf content');
 		$service->method('getNextcloudFile')->willReturn($nextcloudFile);
-		$service->method('validateDocMdpAllowsSignatures')->willReturn(null);
+		$service->method('validateDocMdpAllowsSignatures');
 
 		$this->eventDispatcher
 			->expects($this->once())
