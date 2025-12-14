@@ -4,6 +4,9 @@
 -->
 <template>
 	<div id="request-signature-tab">
+		<NcNoteCard v-if="showDocMdpWarning" type="warning">
+			{{ t('libresign', 'This document has been certified with no changes allowed. You cannot add more signers to this document.') }}
+		</NcNoteCard>
 		<NcButton v-if="filesStore.canAddSigner()"
 			:variant="hasSigners ? 'secondary' : 'primary'"
 			@click="addSigner">
@@ -209,6 +212,7 @@ import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcModal from '@nextcloud/vue/components/NcModal'
+import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 
 import IdentifySigner from '../Request/IdentifySigner.vue'
 import VisibleElements from '../Request/VisibleElements.vue'
@@ -247,6 +251,7 @@ export default {
 		NcIconSvgWrapper,
 		NcLoadingIcon,
 		NcModal,
+		NcNoteCard,
 		NcDialog,
 		Delete,
 		Draw,
@@ -291,6 +296,9 @@ export default {
 		},
 		isOrderedNumeric() {
 			return this.signatureFlow === 'ordered_numeric'
+		},
+		showDocMdpWarning() {
+			return this.filesStore.isDocMdpNoChangesAllowed() && !this.filesStore.canAddSigner()
 		},
 		canEditSigningOrder() {
 			return (signer) => {
