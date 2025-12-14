@@ -338,17 +338,28 @@ class SignFileService {
 	 * @throws LibresignException If the document has DocMDP level 1 (no changes allowed)
 	 */
 	protected function validateDocMdpAllowsSignatures(): void {
-		$resource = $this->getLibreSignFileAsResource();
+		$docmdpLevel = $this->libreSignFile->getDocmdpLevelEnum();
 
-		try {
-			if (!$this->docMdpHandler->allowsAdditionalSignatures($resource)) {
-				throw new LibresignException(
-					$this->l10n->t('This document has been certified with no changes allowed, so no additional signatures can be added.'),
-					AppFrameworkHttp::STATUS_UNPROCESSABLE_ENTITY
-				);
+		if ($docmdpLevel === \OCA\Libresign\Enum\DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED) {
+			throw new LibresignException(
+				$this->l10n->t('This document has been certified with no changes allowed. You cannot add more signers to this document.'),
+				AppFrameworkHttp::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+
+		if ($docmdpLevel === \OCA\Libresign\Enum\DocMdpLevel::NOT_CERTIFIED) {
+			$resource = $this->getLibreSignFileAsResource();
+
+			try {
+				if (!$this->docMdpHandler->allowsAdditionalSignatures($resource)) {
+					throw new LibresignException(
+						$this->l10n->t('This document has been certified with no changes allowed. You cannot add more signers to this document.'),
+						AppFrameworkHttp::STATUS_UNPROCESSABLE_ENTITY
+					);
+				}
+			} finally {
+				fclose($resource);
 			}
-		} finally {
-			fclose($resource);
 		}
 	}
 
