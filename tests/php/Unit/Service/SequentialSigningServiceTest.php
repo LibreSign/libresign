@@ -14,24 +14,20 @@ use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Tests\Unit\TestCase;
-use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class SequentialSigningServiceTest extends TestCase {
-	private IAppConfig&MockObject $appConfig;
 	private SignRequestMapper&MockObject $signRequestMapper;
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private SequentialSigningService $service;
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 
 		$this->service = new SequentialSigningService(
-			$this->appConfig,
 			$this->signRequestMapper,
 			$this->identifyMethodService
 		);
