@@ -187,6 +187,7 @@ namespace OCA\Libresign;
  *     statusText: string,
  *     nodeId: non-negative-int,
  *     signatureFlow: int,
+ *     docmdpLevel: int,
  *     totalPages: non-negative-int,
  *     size: non-negative-int,
  *     pdfVersion: string,

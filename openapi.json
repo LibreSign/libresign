@@ -863,6 +863,7 @@
                     "statusText",
                     "nodeId",
                     "signatureFlow",
+                    "docmdpLevel",
                     "totalPages",
                     "size",
                     "pdfVersion",
@@ -897,6 +898,10 @@
                         "minimum": 0
                     },
                     "signatureFlow": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "docmdpLevel": {
                         "type": "integer",
                         "format": "int64"
                     },
