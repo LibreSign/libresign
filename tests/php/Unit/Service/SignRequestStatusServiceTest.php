@@ -7,7 +7,6 @@ declare(strict_types=1);
  */
 
 use OCA\Libresign\Db\File as FileEntity;
-use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\FileStatusService;
