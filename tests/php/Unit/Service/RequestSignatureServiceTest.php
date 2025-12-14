@@ -13,6 +13,7 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\DocMdpConfigService;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
@@ -56,6 +57,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private IEventDispatcher&MockObject $eventDispatcher;
 	private FileStatusService&MockObject $fileStatusService;
 	private SignRequestStatusService&MockObject $signRequestStatusService;
+	private DocMdpConfigService&MockObject $docMdpConfigService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -85,9 +87,10 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 		$this->fileStatusService = $this->createMock(FileStatusService::class);
 		$this->signRequestStatusService = $this->createMock(SignRequestStatusService::class);
+		$this->docMdpConfigService = $this->createMock(DocMdpConfigService::class);
 	}
 
-	private function getService(?SequentialSigningService $sequentialSigningService = null): RequestSignatureService {
+	private function getService(): RequestSignatureService {
 		return new RequestSignatureService(
 			$this->l10n,
 			$this->identifyMethodService,
@@ -104,11 +107,12 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->client,
 			$this->docMdpHandler,
 			$this->loggerInterface,
-			$sequentialSigningService ?? $this->sequentialSigningService,
+			$this->sequentialSigningService,
 			$this->appConfig,
 			$this->eventDispatcher,
 			$this->fileStatusService,
 			$this->signRequestStatusService,
+			$this->docMdpConfigService,
 		);
 	}
 
