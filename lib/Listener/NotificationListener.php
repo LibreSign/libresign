@@ -14,6 +14,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
+use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -46,6 +47,12 @@ class NotificationListener implements IEventListener {
 			);
 		} elseif ($event instanceof SignedEvent) {
 			$this->sendSignedNotification(
+				$event->getSignRequest(),
+				$event->getLibreSignFile(),
+				$event->getIdentifyMethod(),
+			);
+		} elseif ($event instanceof SignRequestCanceledEvent) {
+			$this->sendCanceledNotification(
 				$event->getSignRequest(),
 				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
@@ -150,6 +157,53 @@ class NotificationListener implements IEventListener {
 		$this->notificationManager->notify($notification);
 	}
 
+	private function sendCanceledNotification(
+		SignRequest $signRequest,
+		FileEntity $libreSignFile,
+		IIdentifyMethod $identifyMethod,
+	): void {
+		$actor = $this->userSession->getUser();
+		if (!$actor instanceof IUser) {
+			return;
+		}
+		if ($identifyMethod->getEntity()->isDeletedAccount()) {
+			return;
+		}
+		$notificationDisabled = $this->isNotificationDisabledAtActivity(
+			$identifyMethod->getEntity()->getIdentifierValue(),
+			SignRequestCanceledEvent::SIGN_REQUEST_CANCELED,
+		);
+		if ($notificationDisabled) {
+			return;
+		}
+
+		$notification = $this->notificationManager->createNotification();
+		$notification
+			->setApp(AppInfoApplication::APP_ID)
+			->setObject('signRequest', (string)$signRequest->getId())
+			->setDateTime((new \DateTime())->setTimestamp($this->timeFactory->now()->getTimestamp()))
+			->setUser($identifyMethod->getEntity()->getIdentifierValue())
+			->setSubject('sign_request_canceled', [
+				'from' => $this->getUserParameter(
+					$actor->getUID(),
+					$actor->getDisplayName(),
+				),
+				'file' => [
+					'type' => 'file',
+					'id' => (string)$libreSignFile->getNodeId(),
+					'name' => $libreSignFile->getName(),
+					'path' => $libreSignFile->getName(),
+				],
+				'signRequest' => [
+					'type' => 'sign-request',
+					'id' => (string)$signRequest->getId(),
+					'name' => $actor->getDisplayName(),
+				],
+			]);
+
+		$this->notificationManager->notify($notification);
+	}
+
 	private function isNotificationDisabledAtActivity(string $userId, string $type): bool {
 		if (!class_exists(\OCA\Activity\UserSettings::class)) {
 			return false;
@@ -161,7 +215,9 @@ class NotificationListener implements IEventListener {
 				'notification',
 				$type
 			);
-			if (!$notificationSetting) {
+			// If setting is explicitly false, notifications are disabled
+			// If setting is null/not configured, notifications are enabled by default
+			if ($notificationSetting === false) {
 				return true;
 			}
 		}

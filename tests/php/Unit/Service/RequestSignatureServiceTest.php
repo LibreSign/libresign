@@ -19,6 +19,7 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\PdfParserService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SequentialSigningService;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -50,6 +51,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private LoggerInterface&MockObject $loggerInterface;
 	private SequentialSigningService&MockObject $sequentialSigningService;
 	private IAppConfig&MockObject $appConfig;
+	private IEventDispatcher&MockObject $eventDispatcher;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -76,6 +78,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
 		$this->sequentialSigningService = $this->createMock(SequentialSigningService::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 	}
 
 	private function getService(?SequentialSigningService $sequentialSigningService = null): RequestSignatureService {
@@ -97,6 +100,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->loggerInterface,
 			$sequentialSigningService ?? $this->sequentialSigningService,
 			$this->appConfig,
+			$this->eventDispatcher,
 		);
 	}
 
