@@ -54,6 +54,8 @@ class RequestSignatureService {
 		protected SequentialSigningService $sequentialSigningService,
 		protected IAppConfig $appConfig,
 		protected IEventDispatcher $eventDispatcher,
+		protected FileStatusService $fileStatusService,
+		protected SignRequestStatusService $signRequestStatusService,
 	) {
 	}
 
@@ -76,7 +78,7 @@ class RequestSignatureService {
 	public function saveFile(array $data): FileEntity {
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
-			return $this->updateStatus($file, $data['status'] ?? 0);
+			return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
 		}
 		$fileId = null;
 		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
@@ -87,7 +89,7 @@ class RequestSignatureService {
 		if (!is_null($fileId)) {
 			try {
 				$file = $this->fileMapper->getByFileId($fileId);
-				return $this->updateStatus($file, $data['status'] ?? 0);
+				return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
 			} catch (\Throwable) {
 			}
 		}
@@ -134,15 +136,6 @@ class RequestSignatureService {
 		$globalFlowValue = $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', SignatureFlow::PARALLEL->value);
 		$globalFlow = SignatureFlow::from($globalFlowValue);
 		$file->setSignatureFlowEnum($globalFlow);
-	}
-
-	private function updateStatus(FileEntity $file, int $status): FileEntity {
-		if ($status > $file->getStatus()) {
-			$file->setStatus($status);
-			/** @var FileEntity */
-			return $this->fileMapper->update($file);
-		}
-		return $file;
 	}
 
 	private function getFileMetadata(\OCP\Files\Node $node): array {
@@ -244,7 +237,7 @@ class RequestSignatureService {
 							],
 							displayName: $user['displayName'] ?? '',
 							description: $user['description'] ?? '',
-							notify: empty($user['notify']) && $this->isStatusAbleToNotify($fileStatus),
+							notify: empty($user['notify']),
 							fileId: $fileId,
 							signingOrder: $signingOrder,
 							fileStatus: $fileStatus,
@@ -256,7 +249,7 @@ class RequestSignatureService {
 						identifyMethods: $user['identify'],
 						displayName: $user['displayName'] ?? '',
 						description: $user['description'] ?? '',
-						notify: empty($user['notify']) && $this->isStatusAbleToNotify($fileStatus),
+						notify: empty($user['notify']),
 						fileId: $fileId,
 						signingOrder: $signingOrder,
 						fileStatus: $fileStatus,
@@ -266,13 +259,6 @@ class RequestSignatureService {
 			}
 		}
 		return $return;
-	}
-
-	private function isStatusAbleToNotify(?int $status): bool {
-		return in_array($status, [
-			FileEntity::STATUS_ABLE_TO_SIGN,
-			FileEntity::STATUS_PARTIAL_SIGNED,
-		]);
 	}
 
 	private function associateToSigner(
@@ -302,13 +288,16 @@ class RequestSignatureService {
 		$currentStatus = $signRequest->getStatusEnum();
 
 		if ($isNewSignRequest || $currentStatus === \OCA\Libresign\Enum\SignRequestStatus::DRAFT) {
-			$desiredStatus = $this->determineInitialStatus($signingOrder, $fileStatus, $signerStatus, $currentStatus, $fileId);
-			$this->updateStatusIfAllowed($signRequest, $currentStatus, $desiredStatus, $isNewSignRequest);
+			$desiredStatus = $this->signRequestStatusService->determineInitialStatus($signingOrder, $fileId, $fileStatus, $signerStatus, $currentStatus);
+			$this->signRequestStatusService->updateStatusIfAllowed($signRequest, $currentStatus, $desiredStatus, $isNewSignRequest);
 		}
 
 		$this->saveSignRequest($signRequest);
 
-		$shouldNotify = $notify && $signRequest->getStatusEnum() === \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN;
+		$shouldNotify = $notify && $this->signRequestStatusService->shouldNotifySignRequest(
+			$signRequest->getStatusEnum(),
+			$fileStatus
+		);
 
 		foreach ($identifyMethodsIncances as $identifyMethod) {
 			$identifyMethod->getEntity()->setSignRequestId($signRequest->getId());
@@ -316,68 +305,6 @@ class RequestSignatureService {
 			$identifyMethod->save();
 		}
 		return $signRequest;
-	}
-
-	private function updateStatusIfAllowed(
-		SignRequestEntity $signRequest,
-		\OCA\Libresign\Enum\SignRequestStatus $currentStatus,
-		\OCA\Libresign\Enum\SignRequestStatus $desiredStatus,
-		bool $isNewSignRequest,
-	): void {
-		if ($isNewSignRequest || $this->sequentialSigningService->isStatusUpgrade($currentStatus, $desiredStatus)) {
-			$signRequest->setStatusEnum($desiredStatus);
-		}
-	}
-
-	private function determineInitialStatus(
-		int $signingOrder,
-		?int $fileStatus = null,
-		?int $signerStatus = null,
-		?\OCA\Libresign\Enum\SignRequestStatus $currentStatus = null,
-		?int $fileId = null,
-	): \OCA\Libresign\Enum\SignRequestStatus {
-		// If fileStatus is explicitly DRAFT (0), keep signer as DRAFT
-		// This allows adding new signers in DRAFT mode even when file is not in DRAFT status
-		if ($fileStatus === FileEntity::STATUS_DRAFT) {
-			return \OCA\Libresign\Enum\SignRequestStatus::DRAFT;
-		}
-
-		// If file status is ABLE_TO_SIGN, apply flow-based logic
-		if ($fileStatus === FileEntity::STATUS_ABLE_TO_SIGN) {
-			if ($this->sequentialSigningService->isOrderedNumericFlow()) {
-				// In ordered flow, only first signer (order 1) should be ABLE_TO_SIGN
-				// Others remain DRAFT until their turn
-				return $signingOrder === 1
-					? \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN
-					: \OCA\Libresign\Enum\SignRequestStatus::DRAFT;
-			}
-			// In parallel flow, all can sign - ignore individual signer status if file is ABLE_TO_SIGN
-			return \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN;
-		}
-
-		// Handle explicit signer status when file status is not DRAFT or ABLE_TO_SIGN
-		if ($signerStatus !== null) {
-			$desiredStatus = \OCA\Libresign\Enum\SignRequestStatus::from($signerStatus);
-			if ($currentStatus !== null && !$this->sequentialSigningService->isStatusUpgrade($currentStatus, $desiredStatus)) {
-				return $currentStatus;
-			}
-
-			// Validate status transition based on signing order
-			if ($fileId !== null) {
-				return $this->sequentialSigningService->validateStatusByOrder($desiredStatus, $signingOrder, $fileId);
-			}
-
-			return $desiredStatus;
-		}
-
-		// Default fallback based on flow type
-		if (!$this->sequentialSigningService->isOrderedNumericFlow()) {
-			return \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN;
-		}
-
-		return $signingOrder === 1
-			? \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN
-			: \OCA\Libresign\Enum\SignRequestStatus::DRAFT;
 	}
 
 	/**
