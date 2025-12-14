@@ -56,6 +56,7 @@ class RequestSignatureService {
 		protected IEventDispatcher $eventDispatcher,
 		protected FileStatusService $fileStatusService,
 		protected SignRequestStatusService $signRequestStatusService,
+		protected DocMdpConfigService $docMdpConfigService,
 	) {
 	}
 
@@ -128,6 +129,8 @@ class RequestSignatureService {
 			$this->setSignatureFlowFromGlobalConfig($file);
 		}
 
+		$this->setDocMdpLevelFromGlobalConfig($file);
+
 		$this->fileMapper->insert($file);
 		return $file;
 	}
@@ -136,6 +139,13 @@ class RequestSignatureService {
 		$globalFlowValue = $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', SignatureFlow::PARALLEL->value);
 		$globalFlow = SignatureFlow::from($globalFlowValue);
 		$file->setSignatureFlowEnum($globalFlow);
+	}
+
+	private function setDocMdpLevelFromGlobalConfig(FileEntity $file): void {
+		if ($this->docMdpConfigService->isEnabled()) {
+			$docmdpLevel = $this->docMdpConfigService->getLevel();
+			$file->setDocmdpLevelEnum($docmdpLevel);
+		}
 	}
 
 	private function getFileMetadata(\OCP\Files\Node $node): array {
