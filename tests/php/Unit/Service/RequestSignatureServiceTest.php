@@ -90,7 +90,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->docMdpConfigService = $this->createMock(DocMdpConfigService::class);
 	}
 
-	private function getService(?SequentialSigningService $sequentialSigningService = null): RequestSignatureService {
+	private function getService(): RequestSignatureService {
 		return new RequestSignatureService(
 			$this->l10n,
 			$this->identifyMethodService,
@@ -107,7 +107,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->client,
 			$this->docMdpHandler,
 			$this->loggerInterface,
-			$sequentialSigningService ?? $this->sequentialSigningService,
+			$this->sequentialSigningService,
 			$this->appConfig,
 			$this->eventDispatcher,
 			$this->fileStatusService,
