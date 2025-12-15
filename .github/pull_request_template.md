@@ -33,9 +33,9 @@ Done! 🎉 You are now ready to test this.
 
 ### 🖼️ Screenshots / Screencasts
 
-| Before | After |
-|--------|-------|
-| _Insert screenshot_ | _Insert screenshot_ |
+🏚️ Before | 🏡 After
+-- | --
+Screenshot before | Screenshot after
 
 ### 🚧 UI Tasks
 - [ ] UI changes implemented
