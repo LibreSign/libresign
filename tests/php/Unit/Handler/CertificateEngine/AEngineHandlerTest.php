@@ -32,7 +32,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function setUp(): void {
 		$this->config = \OCP\Server::get(IConfig::class);
-		$this->appConfig = $this->getMockAppConfig();
+		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->appDataFactory = \OCP\Server::get(IAppDataFactory::class);
 		$this->dateTimeFormatter = \OCP\Server::get(IDateTimeFormatter::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
@@ -40,10 +40,6 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->urlGenerator = \OCP\Server::get(IURLGenerator::class);
 		$this->caIdentifierService = \OCP\Server::get(CaIdentifierService::class);
 		$this->logger = \OCP\Server::get(LoggerInterface::class);
-
-		$this->appConfig->deleteKey(Application::APP_ID, 'certificate_engine');
-		$this->appConfig->deleteKey(Application::APP_ID, 'identify_methods');
-		$this->appConfig->deleteKey(Application::APP_ID, 'config_path');
 	}
 
 	private function getInstance(): OpenSslHandler {

@@ -48,7 +48,7 @@ final class ConfigureCheckServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 
 	public function setUp(): void {
 		self::$mockExtensionLoaded = [];
-		$this->appConfig = $this->getMockAppConfig();
+		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->systemConfig = $this->createMock(SystemConfig::class);
 		$this->ocAppConfig = $this->createMock(AppConfig::class);
 		$this->appManager = $this->createMock(IAppManager::class);

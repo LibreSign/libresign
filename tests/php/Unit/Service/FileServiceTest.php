@@ -106,7 +106,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->accountManager = $this->createMock(IAccountManager::class);
 		$this->client = \OCP\Server::get(IClientService::class);
 		$this->dateTimeFormatter = \OCP\Server::get(IDateTimeFormatter::class);
-		$this->appConfig = $this->getMockAppConfig();
+		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->urlGenerator = \OCP\Server::get(IURLGenerator::class);
 		$this->mimeTypeDetector = \OCP\Server::get(IMimeTypeDetector::class);
 		$this->pkcs12Handler = \OCP\Server::get(Pkcs12Handler::class);

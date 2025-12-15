@@ -28,7 +28,7 @@ class CertificateEngineFactoryTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function setUp(): void {
-		$this->appConfig = $this->getMockAppConfig();
+		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->openSslHandler = $this->createMock(OpenSslHandler::class);
 		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
 		$this->noneHandler = $this->createMock(NoneHandler::class);
