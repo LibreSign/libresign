@@ -1,0 +1,125 @@
+# SPDX-FileCopyrightText: 2025 LibreCode coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# LibreSign PDF Test Fixtures Catalog
+#
+# This file describes all PDF test fixtures used in the test suite.
+# Each entry provides detailed metadata about the PDF signature characteristics.
+#
+# Structure:
+#   filename: The PDF file name (relative to this directory)
+#   description: Human-readable description
+#   signature_count: Number of signatures in the PDF
+#   signatures: Array of signature details
+#     - signer: Identifier of the signer (email, CN, etc)
+#       tool: Tool used to create the signature (libresign, jsignpdf, acrobat, etc)
+#       valid: Boolean indicating if signature is cryptographically valid
+#       certificate:
+#         issuer: Certificate issuer
+#         is_libresign_ca: Whether it's a LibreSign CA certificate
+#         self_signed: Whether the certificate is self-signed
+#       features:
+#         docmdp: DocMDP level (null, 1, 2, 3)
+#         tsa: Whether it has timestamp authority
+#         crl: Whether it has CRL (Certificate Revocation List)
+#         ltv: Whether it has Long Term Validation
+#       position: Signature position in PDF (1-based index)
+#   test_expectations:
+#     should_extract: Whether getCertificateChain should extract it
+#     should_validate: Whether validation should pass
+#     expected_modifications: Expected modification status (UNMODIFIED=1, ALLOWED=2, VIOLATION=3)
+
+pdfs:
+  - filename: small_valid-signed.pdf
+    description: Single signature with JSignPDF, basic valid signature
+    signature_count: 1
+    signatures:
+      - signer: test-user
+        tool: jsignpdf
+        valid: true
+        certificate:
+          issuer: self-signed
+          is_libresign_ca: false
+          self_signed: true
+        features:
+          docmdp: null
+          tsa: false
+          crl: false
+          ltv: false
+        position: 1
+    test_expectations:
+      should_extract: true
+      should_validate: true
+      expected_modifications: null
+
+  - filename: real_jsignpdf_level1.pdf
+    description: JSignPDF signature with DocMDP level 1 (no changes allowed)
+    signature_count: 1
+    signatures:
+      - signer: jsignpdf-test
+        tool: jsignpdf
+        valid: true
+        certificate:
+          issuer: self-signed
+          is_libresign_ca: false
+          self_signed: true
+        features:
+          docmdp: 1
+          tsa: false
+          crl: false
+          ltv: false
+        position: 1
+    test_expectations:
+      should_extract: true
+      should_validate: true
+      expected_modifications: 1
+
+  # Template for future test cases:
+  # - filename: docmdp_level2_dual_signature.pdf
+  #   description: Two signatures with DocMDP level 2 (form filling and signing allowed)
+  #   signature_count: 2
+  #   signatures:
+  #     - signer: a@example.com
+  #       tool: libresign
+  #       valid: true
+  #       certificate:
+  #         issuer: LibreSign Root CA
+  #         is_libresign_ca: true
+  #         self_signed: false
+  #       features:
+  #         docmdp: 2
+  #         tsa: true
+  #         crl: true
+  #         ltv: false
+  #       position: 1
+  #     - signer: b@example.com
+  #       tool: libresign
+  #       valid: true
+  #       certificate:
+  #         issuer: LibreSign Root CA
+  #         is_libresign_ca: true
+  #         self_signed: false
+  #       features:
+  #         docmdp: 2
+  #         tsa: true
+  #         crl: true
+  #         ltv: false
+  #       position: 2
+  #   test_expectations:
+  #     should_extract: true
+  #     should_validate: true
+  #     expected_modifications: 2
+
+# Additional test cases to create:
+# - docmdp_level3_form_filling.pdf: DocMDP level 3 (only form filling allowed)
+# - incremental_signature.pdf: Multiple signatures added incrementally
+# - invalid_signature_tampered.pdf: Tampered document with broken signature
+# - expired_certificate.pdf: Valid signature but expired certificate
+# - revoked_certificate.pdf: Signature with revoked certificate
+# - tsa_signature.pdf: Signature with timestamp authority
+# - ltv_enabled.pdf: Long Term Validation enabled
+# - mixed_tools.pdf: Signatures from different tools (LibreSign + Adobe)
+# - duplicate_contents.pdf: Edge case with duplicate /Contents (should deduplicate)
+# - libresign_ca_signature.pdf: Signature with LibreSign CA
+# - external_ca_signature.pdf: Signature with external trusted CA
+# - self_signed_untrusted.pdf: Self-signed untrusted certificate

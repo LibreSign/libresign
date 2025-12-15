@@ -53,7 +53,9 @@
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"OCP\\": "vendor/nextcloud/ocp/OCP"
+			"OCP\\": "vendor/nextcloud/ocp/OCP",
+			"OCA\\Libresign\\Tests\\Unit\\": "tests/php/Unit/",
+			"OCA\\Libresign\\Tests\\Fixtures\\": "tests/php/fixtures/"
 		}
 	},
 	"require": {

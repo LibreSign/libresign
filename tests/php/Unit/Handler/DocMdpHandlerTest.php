@@ -12,14 +12,13 @@ namespace OCA\Libresign\Tests\Unit\Handler;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Handler\DocMdpHandler;
-use OCA\Libresign\Tests\Unit\PdfFixtureTrait;
+use OCA\Libresign\Tests\Fixtures\PdfGenerator;
 use OCP\IL10N;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class DocMdpHandlerTest extends TestCase {
-	use PdfFixtureTrait;
 	private IL10N&MockObject $l10n;
 	private DocMdpHandler $handler;
 
@@ -30,9 +29,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testUnsignedPdfIsDetectedAsLevelNone(): void {
-		$pdfContent = $this->createMinimalPdf();
+		$pdfContent = PdfGenerator::createMinimalPdf();
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -40,9 +39,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testP0AllowsAnyModification(): void {
-		$pdfContent = $this->createPdfWithDocMdp(0, withModifications: true);
+		$pdfContent = PdfGenerator::createPdfWithDocMdp(0, withModifications: true);
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -51,9 +50,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testP1ProhibitsAnyModification(): void {
-		$pdfContent = $this->createPdfWithDocMdp(1, withModifications: true);
+		$pdfContent = PdfGenerator::createPdfWithDocMdp(1, withModifications: true);
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -62,9 +61,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testP2AllowsFormFieldModifications(): void {
-		$pdfContent = $this->createPdfWithFormFieldModification(2);
+		$pdfContent = PdfGenerator::createPdfWithFormFieldModification(2);
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -73,9 +72,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testP2ProhibitsAnnotationModifications(): void {
-		$pdfContent = $this->createPdfWithAnnotationModification(2);
+		$pdfContent = PdfGenerator::createPdfWithAnnotationModification(2);
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -84,9 +83,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testP3AllowsFormFieldModifications(): void {
-		$pdfContent = $this->createPdfWithFormFieldModification(3);
+		$pdfContent = PdfGenerator::createPdfWithFormFieldModification(3);
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -95,9 +94,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testP3AllowsAnnotationModifications(): void {
-		$pdfContent = $this->createPdfWithAnnotationModification(3);
+		$pdfContent = PdfGenerator::createPdfWithAnnotationModification(3);
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -106,9 +105,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testP3ProhibitsStructuralModifications(): void {
-		$pdfContent = $this->createPdfWithStructuralModification(3);
+		$pdfContent = PdfGenerator::createPdfWithStructuralModification(3);
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -117,9 +116,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testP2AllowsSubsequentSignatures(): void {
-		$pdfContent = $this->createPdfWithSubsequentSignature(2);
+		$pdfContent = PdfGenerator::createPdfWithSubsequentSignature(2);
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -128,9 +127,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testP3AllowsSubsequentSignatures(): void {
-		$pdfContent = $this->createPdfWithSubsequentSignature(3);
+		$pdfContent = PdfGenerator::createPdfWithSubsequentSignature(3);
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -139,9 +138,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testP1ProhibitsSubsequentSignatures(): void {
-		$pdfContent = $this->createPdfWithSubsequentSignature(1);
+		$pdfContent = PdfGenerator::createPdfWithSubsequentSignature(1);
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -150,9 +149,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testExtractsDocMdpFromSignatureReferenceNotPerms(): void {
-		$pdfContent = $this->createPdfWithDocMdpInSignatureReference(2);
+		$pdfContent = PdfGenerator::createPdfWithDocMdpInSignatureReference(2);
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -160,9 +159,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testExtractsDocMdpFromFirstCertifyingSignature(): void {
-		$pdfContent = $this->createPdfWithApprovalThenCertifyingSignature();
+		$pdfContent = PdfGenerator::createPdfWithApprovalThenCertifyingSignature();
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -170,9 +169,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testP2AllowsPageTemplateInstantiation(): void {
-		$pdfContent = $this->createPdfWithPageTemplate(2);
+		$pdfContent = PdfGenerator::createPdfWithPageTemplate(2);
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -181,9 +180,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testP3AllowsPageTemplateInstantiation(): void {
-		$pdfContent = $this->createPdfWithPageTemplate(3);
+		$pdfContent = PdfGenerator::createPdfWithPageTemplate(3);
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -192,9 +191,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testExtractsDocMdpWithIndirectReferenceItiStyle(): void {
-		$pdfContent = $this->createPdfWithIndirectReferencesItiStyle(2);
+		$pdfContent = PdfGenerator::createPdfWithIndirectReferencesItiStyle(2);
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -202,9 +201,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testValidatesTransformParamsVersion(): void {
-		$pdfContent = $this->createPdfWithDocMdpVersion12(2);
+		$pdfContent = PdfGenerator::createPdfWithDocMdp(2);
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -212,9 +211,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testRejectsDocMdpWithoutVersion(): void {
-		$pdfContent = $this->createPdfWithDocMdpWithoutVersion(2);
+		$pdfContent = PdfGenerator::createPdfWithDocMdpWithoutVersion(2);
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -222,9 +221,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testRejectsDocMdpWithInvalidVersion(): void {
-		$pdfContent = $this->createPdfWithDocMdpInvalidVersion(2, '1.0');
+		$pdfContent = PdfGenerator::createPdfWithDocMdpInvalidVersion(2, '1.0');
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -232,9 +231,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testRejectsDocMdpWithInvalidVersionIndirectRef(): void {
-		$pdfContent = $this->createPdfWithIndirectReferencesInvalidVersion(2, '1.3');
+		$pdfContent = PdfGenerator::createPdfWithIndirectReferencesInvalidVersion(2, '1.3');
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -252,9 +251,9 @@ final class DocMdpHandlerTest extends TestCase {
 
 	#[DataProvider('docMdpLevelExtractionProvider')]
 	public function testExtractsDocMdpPermissionLevel(int $pValue, DocMdpLevel $expectedLevel): void {
-		$pdfContent = $this->createPdfWithDocMdp($pValue);
+		$pdfContent = PdfGenerator::createPdfWithDocMdp($pValue);
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -266,9 +265,9 @@ final class DocMdpHandlerTest extends TestCase {
 
 	// ISO 32000-1 Table 252 validation tests
 	public function testRejectsSignatureDictionaryWithoutTypeWhenPresent(): void {
-		$pdf = $this->createPdfWithInvalidSignatureType();
+		$pdf = PdfGenerator::createPdfWithInvalidSignatureType();
 
-		$resource = $this->createResourceFromContent($pdf);
+		$resource = PdfGenerator::createResourceFromContent($pdf);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -276,9 +275,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testRejectsSignatureWithoutFilterEntry(): void {
-		$pdf = $this->createPdfWithoutFilterEntry();
+		$pdf = PdfGenerator::createPdfWithoutFilterEntry();
 
-		$resource = $this->createResourceFromContent($pdf);
+		$resource = PdfGenerator::createResourceFromContent($pdf);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -286,9 +285,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testRejectsSignatureWithoutByteRange(): void {
-		$pdf = $this->createPdfWithoutByteRange();
+		$pdf = PdfGenerator::createPdfWithoutByteRange();
 
-		$resource = $this->createResourceFromContent($pdf);
+		$resource = PdfGenerator::createResourceFromContent($pdf);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -296,9 +295,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testRejectsMultipleDocMdpSignatures(): void {
-		$pdf = $this->createPdfWithMultipleDocMdpSignatures();
+		$pdf = PdfGenerator::createPdfWithMultipleDocMdpSignatures();
 
-		$resource = $this->createResourceFromContent($pdf);
+		$resource = PdfGenerator::createResourceFromContent($pdf);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -306,9 +305,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testRejectsDocMdpNotFirstSignature(): void {
-		$pdf = $this->createPdfWithDocMdpNotFirst();
+		$pdf = PdfGenerator::createPdfWithDocMdpNotFirst();
 
-		$resource = $this->createResourceFromContent($pdf);
+		$resource = PdfGenerator::createResourceFromContent($pdf);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -316,9 +315,9 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testRejectsSigRefWithoutTransformMethod(): void {
-		$pdf = $this->createPdfWithSigRefWithoutTransformMethod();
+		$pdf = PdfGenerator::createPdfWithSigRefWithoutTransformMethod();
 
-		$resource = $this->createResourceFromContent($pdf);
+		$resource = PdfGenerator::createResourceFromContent($pdf);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
@@ -348,13 +347,13 @@ final class DocMdpHandlerTest extends TestCase {
 	public function testAdditionalSignaturesBasedOnDocMdpLevel(string|int $level, bool $withModifications, bool $expectedAllowed): void {
 		if ($level === 'unsigned') {
 			// PDF without any signature (virgin PDF)
-			$pdfContent = $this->createMinimalPdf();
+			$pdfContent = PdfGenerator::createMinimalPdf();
 		} else {
 			// PDF with DocMDP signature at specified level (0, 1, 2, or 3)
-			$pdfContent = $this->createPdfWithDocMdp($level, $withModifications);
+			$pdfContent = PdfGenerator::createPdfWithDocMdp($level, $withModifications);
 		}
 
-		$resource = $this->createResourceFromContent($pdfContent);
+		$resource = PdfGenerator::createResourceFromContent($pdfContent);
 		$result = $this->handler->allowsAdditionalSignatures($resource);
 		fclose($resource);
 
@@ -362,14 +361,14 @@ final class DocMdpHandlerTest extends TestCase {
 	}
 
 	public function testRealJSignPdfWithDocMdpLevel1(): void {
-		$pdfPath = __DIR__ . '/../../fixtures/real_jsignpdf_level1.pdf';
+		$pdfPath = __DIR__ . '/../../fixtures/pdfs/real_jsignpdf_level1.pdf';
 
 		if (!file_exists($pdfPath)) {
 			$this->markTestSkipped('Real JSignPdf test PDF not found');
 		}
 
 		$content = file_get_contents($pdfPath);
-		$resource = $this->createResourceFromContent($content);
+		$resource = PdfGenerator::createResourceFromContent($content);
 
 		$data = $this->handler->extractDocMdpData($resource);
 

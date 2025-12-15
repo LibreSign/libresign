@@ -36,7 +36,6 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\PdfSignatureDetectionService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
-use OCA\Libresign\Tests\Unit\PdfFixtureTrait;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -60,7 +59,6 @@ use Psr\Log\LoggerInterface;
  * @group DB
  */
 final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	use PdfFixtureTrait;
 	private IL10N&MockObject $l10n;
 	private FooterHandler&MockObject $footerHandler;
 	private FileMapper&MockObject $fileMapper;
@@ -627,7 +625,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service->setSignRequest($signRequest);
 
 		$actual = $this->invokePrivate($service, 'getSignatureParams');
-
 		$this->assertEquals($expectedIssuerCN, $actual['IssuerCommonName']);
 		$this->assertEquals($expectedSignerCN, $actual['SignerCommonName']);
 		$this->assertEquals('uuid', $actual['DocumentUUID']);
@@ -1240,7 +1237,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = $this->getService(['getNextcloudFile', 'getEngine']);
 
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
-		$nextcloudFile->method('getContent')->willReturn(file_get_contents(__DIR__ . '/../../fixtures/real_jsignpdf_level1.pdf'));
+		$nextcloudFile->method('getContent')->willReturn(file_get_contents(__DIR__ . '/../../fixtures/pdfs/real_jsignpdf_level1.pdf'));
 		$service->method('getNextcloudFile')->willReturn($nextcloudFile);
 
 		$engineMock = $this->createMock(Pkcs12Handler::class);
@@ -1296,27 +1293,27 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public static function provideValidateDocMdpAllowsSignaturesScenarios(): array {
 		return [
 			'Unsigned PDF - should NOT throw exception' => [
-				'pdfContentGenerator' => fn (self $test) => $test->createMinimalPdf(),
+				'pdfContentGenerator' => fn (self $test) => \OCA\Libresign\Tests\Fixtures\PdfGenerator::createMinimalPdf(),
 				'shouldThrowException' => false,
 			],
 			'DocMDP level 0 (not certified) - should NOT throw exception' => [
-				'pdfContentGenerator' => fn (self $test) => $test->createPdfWithDocMdp(0, false),
+				'pdfContentGenerator' => fn (self $test) => \OCA\Libresign\Tests\Fixtures\PdfGenerator::createPdfWithDocMdp(0, false),
 				'shouldThrowException' => false,
 			],
 			'DocMDP level 1 (no changes allowed) - SHOULD throw exception' => [
-				'pdfContentGenerator' => fn (self $test) => $test->createPdfWithDocMdp(1, false),
+				'pdfContentGenerator' => fn (self $test) => \OCA\Libresign\Tests\Fixtures\PdfGenerator::createPdfWithDocMdp(1, false),
 				'shouldThrowException' => true,
 			],
 			'DocMDP level 2 (form filling allowed) - should NOT throw exception' => [
-				'pdfContentGenerator' => fn (self $test) => $test->createPdfWithDocMdp(2, false),
+				'pdfContentGenerator' => fn (self $test) => \OCA\Libresign\Tests\Fixtures\PdfGenerator::createPdfWithDocMdp(2, false),
 				'shouldThrowException' => false,
 			],
 			'DocMDP level 3 (annotations allowed) - should NOT throw exception' => [
-				'pdfContentGenerator' => fn (self $test) => $test->createPdfWithDocMdp(3, false),
+				'pdfContentGenerator' => fn (self $test) => \OCA\Libresign\Tests\Fixtures\PdfGenerator::createPdfWithDocMdp(3, false),
 				'shouldThrowException' => false,
 			],
 			'DocMDP level 1 with modifications - SHOULD throw exception' => [
-				'pdfContentGenerator' => fn (self $test) => $test->createPdfWithDocMdp(1, true),
+				'pdfContentGenerator' => fn (self $test) => \OCA\Libresign\Tests\Fixtures\PdfGenerator::createPdfWithDocMdp(1, true),
 				'shouldThrowException' => true,
 			],
 		];
