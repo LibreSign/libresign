@@ -1088,8 +1088,10 @@ export default {
 			// Based on File::MODIFICATION_* constants
 			// 0=unchecked, 1=unmodified, 2=modified(allowed), 3=modified(violation)
 			const status = signer.modification_validation.status
+			const valid = signer.modification_validation.valid
+
+			if (valid && status === 2) return this.mdiCheckCircle
 			if (status === 1) return this.mdiCheckCircle
-			if (status === 2) return this.mdiAlertCircle
 			if (status === 3) return this.mdiCancel
 			return this.mdiHelpCircle
 		},
@@ -1098,8 +1100,10 @@ export default {
 				return ''
 			}
 			const status = signer.modification_validation.status
+			const valid = signer.modification_validation.valid
+
+			if (valid && status === 2) return 'icon-success'
 			if (status === 1) return 'icon-success'
-			if (status === 2) return 'icon-warning'
 			if (status === 3) return 'icon-error'
 			return ''
 		},
@@ -1319,6 +1323,9 @@ export default {
 					}
 					.icon-warning {
 						color: orange;
+					}
+					.icon-info {
+						color: var(--color-primary-element);
 					}
 					.icon-default {
 						color: gray;
