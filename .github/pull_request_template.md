@@ -8,22 +8,25 @@ Provide a short, clear summary of what this pull request does and why it is need
 
 ---
 
-## 🧪 How to Test (GitHub Codespaces)
+<details>
+<summary>🧪 How to Test (GitHub Codespaces)</summary>
 
 > Follow these steps to test this pull request using GitHub Codespaces.
 
 1. Open the repository and click **Code → Codespaces**
 2. Create a new Codespace for this branch
 3. Wait for the environment to finish setting up  
-   You should see:
-✍️ LibreSign is up!
+   You should see:  
+   ✍️ LibreSign is up!
 4. Open the **Ports** tab
 5. Open the service running on **port 80**
 6. Login using:
-- **Username:** admin  
-- **Password:** admin  
+   - **Username:** admin  
+   - **Password:** admin  
 
 Done! 🎉 You are now ready to test this.
+
+</details>
 
 ---
 
