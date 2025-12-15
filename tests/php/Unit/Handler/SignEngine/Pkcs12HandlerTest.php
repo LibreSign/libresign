@@ -13,6 +13,7 @@ use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Tests\Fixtures\PdfFixtureCatalog;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IAppConfig;
@@ -236,22 +237,16 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$corruptedPdf = "%PDF-1.4\n"
 			. "1 0 obj<</Type/Sig/ByteRange [0 10 50 10]>>endobj\n"
-			. "ZZZZZZZZ\n" // Invalid hex data - will cause hex2bin to fail
+			. "ZZZZZZZZ\n" // Invalid hex data - will cause extraction to fail
 			. str_repeat('x', 100);
 
 		$resource = fopen('php://memory', 'r+');
 		fwrite($resource, $corruptedPdf);
 		rewind($resource);
 
-		$result = $handler->getCertificateChain($resource);
-
-		$this->assertIsArray($result);
-		$this->assertCount(1, $result);
-		$this->assertArrayHasKey('chain', $result[0]);
-		$this->assertArrayHasKey('signature_validation', $result[0]['chain'][0]);
-		$this->assertIsArray($result[0]['chain'][0]['signature_validation']);
-		$this->assertEquals(3, $result[0]['chain'][0]['signature_validation']['id']); // Digest Mismatch
-		$this->assertStringContainsString('Digest mismatch', $result[0]['chain'][0]['signature_validation']['label']);
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$this->expectExceptionMessage('Unsigned file');
+		$handler->getCertificateChain($resource);
 
 		fclose($resource);
 	}
@@ -329,4 +324,52 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
 		$handler->getPfxOfCurrentSigner('test_user');
 	}
+
+	public function testGetCertificateChainWithAllFixtures(): void {
+		$handler = $this->getHandler();
+		$catalog = new PdfFixtureCatalog();
+
+		foreach ($catalog->getAll() as $fixture) {
+			if (!$fixture->shouldExtract()) {
+				continue;
+			}
+
+			$resource = $fixture->openResource();
+			$result = $handler->getCertificateChain($resource);
+			fclose($resource);
+
+			$this->assertCount($fixture->getSignatureCount(), $result, $fixture->getFilename());
+
+			foreach ($result as $signatureData) {
+				$this->assertArrayHasKey('chain', $signatureData);
+				$this->assertIsArray($signatureData['chain']);
+			}
+		}
+	}
+
+	public function testDocMdpPdfsExtraction(): void {
+		$handler = $this->getHandler();
+		$catalog = new PdfFixtureCatalog();
+		$docmdpFixtures = $catalog->getWithDocMdp();
+
+		$this->assertGreaterThan(0, count($docmdpFixtures));
+
+		foreach ($docmdpFixtures as $fixture) {
+			if (!$fixture->shouldExtract()) {
+				continue;
+			}
+
+			$resource = $fixture->openResource();
+			$result = $handler->getCertificateChain($resource);
+			fclose($resource);
+
+			$this->assertCount($fixture->getSignatureCount(), $result, $fixture->getFilename());
+
+			foreach ($result as $signatureData) {
+				$this->assertArrayHasKey('chain', $signatureData);
+				$this->assertGreaterThan(0, count($signatureData['chain']));
+			}
+		}
+	}
+
 }
