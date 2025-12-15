@@ -55,7 +55,7 @@ final class FileControllerTest extends ApiTestCase {
 
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => [
 				[
@@ -93,7 +93,7 @@ final class FileControllerTest extends ApiTestCase {
 
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => [
 				[
@@ -149,7 +149,7 @@ final class FileControllerTest extends ApiTestCase {
 			->withMethod('POST')
 			->withRequestBody([
 				'name' => 'test',
-				'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+				'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			]);
 
 		$this->assertRequest();
