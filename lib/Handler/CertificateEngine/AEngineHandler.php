@@ -738,7 +738,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		foreach ($names as $name => $value) {
 			$return['rootCert']['names'][] = [
 				'id' => $name,
-				'value' => $this->filterNameValue($name, $value),
+				'value' => $this->filterNameValue($name, $value, $generated),
 			];
 		}
 		return $return;
@@ -748,9 +748,10 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $generated ? $this->getCurrentConfigPath() : '';
 	}
 
-	private function filterNameValue(string $name, mixed $value): mixed {
-		if ($name === 'OU' && is_array($value)) {
-			return $this->removeCaIdFromOrganizationalUnit($value);
+	private function filterNameValue(string $name, mixed $value, bool $generated): mixed {
+		if ($name === 'OU' && is_array($value) && !$generated) {
+			$filtered = $this->removeCaIdFromOrganizationalUnit($value);
+			return empty($filtered) ? null : $filtered;
 		}
 		return $value;
 	}
