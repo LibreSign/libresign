@@ -82,6 +82,14 @@ class TestCase extends \Test\TestCase {
 		return $service;
 	}
 
+	public static function getMockAppConfigWithReset(): IAppConfig {
+		$appConfig = self::getMockAppConfig();
+		if ($appConfig instanceof AppConfigOverwrite) {
+			$appConfig->reset();
+		}
+		return $appConfig;
+	}
+
 	public function mockConfig($config):void {
 		$service = \OCP\Server::get(\OCP\IConfig::class);
 		if (!$service instanceof AllConfigOverwrite) {

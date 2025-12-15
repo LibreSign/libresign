@@ -105,7 +105,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
-		$this->appConfig = $this->getMockAppConfig();
+		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->validateHelper = $this->createMock(\OCA\Libresign\Helper\ValidateHelper::class);
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);

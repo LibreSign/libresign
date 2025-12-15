@@ -31,7 +31,7 @@ final class ReminderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function setUp(): void {
 		$this->jobList = $this->createMock(IJobList::class);
-		$this->appConfig = $this->getMockAppConfig();
+		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->dateTimeZone = Server::get(IDateTimeZone::class);
 		$this->time = $this->createMock(ITimeFactory::class);
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);

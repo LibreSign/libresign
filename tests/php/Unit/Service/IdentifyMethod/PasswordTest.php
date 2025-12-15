@@ -43,7 +43,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function setUp(): void {
 		$this->identifyService = $this->createMock(IdentifyService::class);
-		$this->appConfig = $this->getMockAppConfig();
+		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);

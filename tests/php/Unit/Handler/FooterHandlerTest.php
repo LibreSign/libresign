@@ -27,7 +27,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ITempManager $tempManager;
 	private FooterHandler $footerHandler;
 	public function setUp(): void {
-		$this->appConfig = $this->getMockAppConfig();
+		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->pdfParserService = $this->createMock(PdfParserService::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
