@@ -353,9 +353,9 @@ export default {
 			total: 0,
 			hasMore: true,
 			filters: {
-				serialNumber: userConfigStore.crl_filters.serialNumber || '',
-				status: userConfigStore.crl_filters.status || null,
-				owner: userConfigStore.crl_filters.owner || '',
+				serialNumber: userConfigStore.crl_filters?.serialNumber || '',
+				status: userConfigStore.crl_filters?.status || null,
+				owner: userConfigStore.crl_filters?.owner || '',
 			},
 			sortBy: userConfigStore.crl_sort.sortBy || 'revoked_at',
 			sortOrder: userConfigStore.crl_sort.sortOrder || 'DESC',
