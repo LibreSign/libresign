@@ -60,7 +60,7 @@ final class IdDocsControllerTest extends ApiTestCase {
 					[
 						'type' => 'IDENTIFICATION',
 						'file' => [
-							'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))
+							'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))
 						]
 					]
 				]
