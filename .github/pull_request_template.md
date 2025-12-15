@@ -1,66 +1,80 @@
-### Pull Request Description
+## ☑️ Resolves
+Fixes #<issue-number>
 
+---
 
-### Related Issue
-<!--
-If this PR is related to an issue, put here, if not, remove this block
--->
-Issue Number:
+## 📝 Summary
+Provide a short, clear summary of what this pull request does and why it is needed.
 
-### Pull Request Type
+---
 
-<!--
-Please check the type of change your pull request introduces. Remove all that is unrelated and remove the comment block too, maintaining only the type of your PR:
+## 🧪 How to Test (GitHub Codespaces)
 
-- Bugfix
-- Feature
-- Code style update (formatting, renaming)
-- Refactoring (no functional changes, no api changes)
-- Build related changes
-- Documentation content changes
-- Other (please describe):
--->
+> Follow these steps to test this pull request using GitHub Codespaces.
 
-### Pull request checklist
+1. Open the repository and click **Code → Codespaces**
+2. Create a new Codespace for this branch
+3. Wait for the environment to finish setting up  
+   You should see:
+✍️ LibreSign is up!
+4. Open the **Ports** tab
+5. Open the service running on **port 80**
+6. Login using:
+- **Username:** admin  
+- **Password:** admin  
 
-- [ ] Did you explain or provide a way of how can we test your code ?
-- [ ] If your pull request is related to frontend modifications provide a print of before and after screen
-- [ ] Did you provide a general summary of your changes ?
-- [ ] Try to limit your pull request to one type, submit multiple pull requests if needed
-- [ ] I implemented tests that cover my contribution
+Done! 🎉 You are now ready to test this.
 
-<details>
-<summary>How to see this running using GitHub Codespaces</summary>
+---
 
-### 1. Open the Codespace
-- Authenticate to GitHub
-- Go to the branch: [chore/reduce-configure-check-time](https://github.com/LibreSign/libresign/tree/chore/reduce-configure-check-time)
-- Click the `Code` button and select the `Codespaces` tab.
-- Click **"Create codespace on feat/customize-signature-stamp"**
+## 🎨 UI (Frontend) Changes
 
-### 2. Wait for the environment to start
-- A progress bar will appear on the left.  
-- After that, the terminal will show the build process.
-- Wait until you see the message:  
-  ```bash
-  ✍️ LibreSign is up!
-  ```
-  This may take a few minutes.
+> Complete this section only if this pull request includes UI changes.
 
-### 3. Access LibreSign in the browser
-- Open the **Ports** tab (next to the **Terminal**).
-- Look for the service running on port **80**.
-- Hover over the URL and click the **globe icon** 🌐 to open it in your browser.
+### 🖼️ Screenshots / Screencasts
 
-### 4. (Optional) Make the service public
-- If you want to share the app with people **not logged in to GitHub**, you must change the port visibility:
-  - Click the three dots `⋮` on the row for port 80.
-  - Select `Change visibility` → `Public`.
+| Before | After |
+|--------|-------|
+| _Insert screenshot_ | _Insert screenshot_ |
 
-### 5. Login credentials
-- **Username**: `admin`  
-- **Password**: `admin`
+### 🚧 UI Tasks
+- [ ] UI changes implemented
+- [ ] Visual consistency checked
+- [ ] Accessibility considerations applied (if applicable)
 
-Done! 🎉
-You're now ready to test this.
-</details>
+### 🏁 UI Checklist
+- [ ] Tested on Chromium-based browsers (Chrome / Edge / Brave)
+- [ ] Tested on Firefox
+- [ ] UI does not rely on browser-specific behavior
+- [ ] Design reviewed, approved, or inspired by existing LibreSign / Nextcloud UI
+- [ ] User-facing documentation updated (if required)
+
+---
+
+## 🛠️ API / Backend Changes
+
+> Complete this section only if this pull request includes backend or API changes.
+
+### 🚧 API Tasks
+- [ ] Backend logic implemented or updated
+- [ ] API contracts reviewed
+- [ ] Database or migration changes documented (if applicable)
+
+### 🏁 API Checklist
+- [ ] Unit and/or integration tests added, or not required
+- [ ] API documentation in `docs/` updated (if required)
+- [ ] Capability added or confirmed not needed
+
+---
+
+## 📋 General Checklist
+- [ ] PR is focused on a single concern
+- [ ] Code follows project conventions
+- [ ] Relevant tests added or justified
+- [ ] Documentation updated if needed
+- [ ] No breaking changes (or clearly documented)
+
+---
+
+## ℹ️ Additional Notes
+Add any additional context if necessary.
