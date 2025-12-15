@@ -232,4 +232,162 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'First time cfssl' => ['', 'cfssl', null, 'no previous config'],
 		];
 	}
+
+	#[DataProvider('dataProviderToArray')]
+	public function testToArrayReturnsExpectedStructure(
+		bool $isSetupOk,
+		array $certificateData,
+		array $expectedKeys,
+		string $description,
+	): void {
+		$instance = $this->getInstance();
+
+		foreach ($certificateData as $setter => $value) {
+			$method = 'set' . ucfirst($setter);
+			if (method_exists($instance, $method)) {
+				$instance->$method($value);
+			}
+		}
+
+		if (!$isSetupOk) {
+			$this->appConfig->deleteKey(Application::APP_ID, 'config_path');
+		}
+
+		$result = $instance->toArray();
+
+		foreach ($expectedKeys as $key) {
+			$this->assertArrayHasKey($key, $result, "toArray() should contain '$key': $description");
+		}
+
+		$this->assertIsBool($result['generated'], "generated should be boolean: $description");
+	}
+
+	#[DataProvider('dataProviderToArrayConfigPath')]
+	public function testToArrayFiltersConfigPathWhenNotGenerated(
+		bool $certificateGenerated,
+		string $expectedConfigPath,
+		string $description,
+	): void {
+		$instance = $this->getInstance();
+
+		$tempPath = $this->tempManager->getTemporaryFolder('test-config');
+		$instance->setConfigPath($tempPath);
+
+		if ($certificateGenerated) {
+			file_put_contents($tempPath . DIRECTORY_SEPARATOR . 'ca.pem', 'fake-cert');
+			file_put_contents($tempPath . DIRECTORY_SEPARATOR . 'ca-key.pem', 'fake-key');
+		}
+
+		$result = $instance->toArray();
+
+		if ($expectedConfigPath === '') {
+			$this->assertEmpty($result['configPath'], "configPath should be empty: $description");
+		} else {
+			$this->assertNotEmpty($result['configPath'], "configPath should not be empty: $description");
+		}
+
+		$this->assertEquals($certificateGenerated, $result['generated'], "generated flag: $description");
+	}
+
+	#[DataProvider('dataProviderToArrayCaIdFiltering')]
+	public function testToArrayFiltersCaIdFromOrganizationalUnit(
+		array $organizationalUnits,
+		array $expectedOuValues,
+		string $description,
+	): void {
+		$instance = $this->getInstance();
+
+		$instance->setOrganizationalUnit($organizationalUnits);
+		$instance->setCountry('BR');
+
+		$result = $instance->toArray();
+
+		$ouFound = false;
+		foreach ($result['rootCert']['names'] as $name) {
+			if ($name['id'] === 'OU') {
+				$ouFound = true;
+				$this->assertEquals(
+					$expectedOuValues,
+					$name['value'],
+					"OrganizationalUnit should filter CA IDs: $description"
+				);
+				break;
+			}
+		}
+
+		if (!empty($expectedOuValues)) {
+			$this->assertTrue($ouFound, "OU should be present in names array: $description");
+		} else {
+			$this->assertFalse($ouFound, "OU should not be present when filtered to empty: $description");
+		}
+	}
+
+	public static function dataProviderToArray(): array {
+		return [
+			'Basic structure with minimal data' => [
+				false,
+				['commonName' => 'Test CA'],
+				['configPath', 'generated', 'rootCert', 'policySection'],
+				'minimal certificate data',
+			],
+			'Complete certificate data' => [
+				false,
+				[
+					'commonName' => 'LibreSign CA',
+					'country' => 'BR',
+					'state' => 'Santa Catarina',
+					'locality' => 'Florianópolis',
+					'organization' => 'LibreCode',
+					'organizationalUnit' => ['Engineering', 'Security'],
+				],
+				['configPath', 'generated', 'rootCert', 'policySection'],
+				'full certificate data',
+			],
+		];
+	}
+
+	public static function dataProviderToArrayConfigPath(): array {
+		return [
+			'Certificate not generated' => [
+				false,
+				'',
+				'configPath should be empty when certificate not generated',
+			],
+			'Certificate generated' => [
+				true,
+				'/path/to/config',
+				'configPath should be set when certificate is generated',
+			],
+		];
+	}
+
+	public static function dataProviderToArrayCaIdFiltering(): array {
+		return [
+			'OU without CA ID' => [
+				['Engineering', 'Security'],
+				['Engineering', 'Security'],
+				'normal OU values should pass through',
+			],
+			'OU with CA ID at start' => [
+				['libresign-ca-id:abc123_g:1_e:openssl', 'Engineering', 'Security'],
+				['Engineering', 'Security'],
+				'CA ID at start should be filtered out',
+			],
+			'OU with CA ID in middle' => [
+				['Engineering', 'libresign-ca-id:abc123_g:1_e:openssl', 'Security'],
+				['Engineering', 'Security'],
+				'CA ID in middle should be filtered out',
+			],
+			'OU with CA ID at end' => [
+				['Engineering', 'Security', 'libresign-ca-id:abc123_g:1_e:openssl'],
+				['Engineering', 'Security'],
+				'CA ID at end should be filtered out',
+			],
+			'OU with multiple CA IDs' => [
+				['libresign-ca-id:abc123_g:1_e:openssl', 'Engineering', 'libresign-ca-id:xyz789_g:2_e:cfssl', 'Security'],
+				['Engineering', 'Security'],
+				'multiple CA IDs should be filtered out',
+			],
+		];
+	}
 }
