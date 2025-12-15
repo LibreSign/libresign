@@ -43,6 +43,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->appConfig->deleteKey(Application::APP_ID, 'certificate_engine');
 		$this->appConfig->deleteKey(Application::APP_ID, 'identify_methods');
+		$this->appConfig->deleteKey(Application::APP_ID, 'config_path');
 	}
 
 	private function getInstance(): OpenSslHandler {
