@@ -5,14 +5,12 @@
 
 <template>
 	<div class="error-page">
-		<!-- Logo Header -->
 		<div class="logo-header">
 			<img :src="logoLibreSign"
 				:alt="t('libresign', 'LibreSign')"
 				class="logo-icon">
 		</div>
 
-		<!-- Error Container Card -->
 		<div class="error-container">
 			<NcEmptyContent :name="t('libresign', 'Page not found')"
 				:description="paragrath">
