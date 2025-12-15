@@ -49,7 +49,7 @@ final class NotifyControllerTest extends ApiTestCase {
 		$appConfig->setValueArray(Application::APP_ID, 'groups_request_sign', ['admin','testGroup']);
 		$appConfig->setValueBool(Application::APP_ID, 'notifyUnsignedUser', true);
 		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => [
 				[
