@@ -709,9 +709,10 @@ abstract class AEngineHandler implements IEngineHandler {
 	}
 
 	public function toArray(): array {
+		$generated = $this->isSetupOk();
 		$return = [
-			'configPath' => $this->getCurrentConfigPath(),
-			'generated' => $this->isSetupOk(),
+			'configPath' => $this->getConfigPathForApi($generated),
+			'generated' => $generated,
 			'rootCert' => [
 				'commonName' => $this->getCommonName(),
 				'names' => [],
@@ -725,10 +726,30 @@ abstract class AEngineHandler implements IEngineHandler {
 		foreach ($names as $name => $value) {
 			$return['rootCert']['names'][] = [
 				'id' => $name,
-				'value' => $value,
+				'value' => $this->filterNameValue($name, $value, $generated),
 			];
 		}
 		return $return;
+	}
+
+	private function getConfigPathForApi(bool $generated): string {
+		return $generated ? $this->getCurrentConfigPath() : '';
+	}
+
+	private function filterNameValue(string $name, mixed $value, bool $generated): mixed {
+		if ($name === 'OU' && is_array($value) && !$generated) {
+			$filtered = $this->removeCaIdFromOrganizationalUnit($value);
+			return empty($filtered) ? null : $filtered;
+		}
+		return $value;
+	}
+
+	private function removeCaIdFromOrganizationalUnit(array $organizationalUnits): array {
+		$filtered = array_filter(
+			$organizationalUnits,
+			fn ($item) => !str_starts_with($item, 'libresign-ca-id:')
+		);
+		return array_values($filtered);
 	}
 
 	protected function getCrlDistributionUrl(): string {

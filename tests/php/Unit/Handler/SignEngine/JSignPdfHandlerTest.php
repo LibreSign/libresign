@@ -63,7 +63,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 	}
 	public function setUp(): void {
-		$this->appConfig = $this->getMockAppConfig();
+		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
 		$this->signatureBackgroundService = $this->createMock(SignatureBackgroundService::class);

@@ -23,7 +23,7 @@ class FooterServiceTest extends TestCase {
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->appConfig = $this->getMockAppConfig();
+		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->service = new FooterService($this->appConfig, $this->footerHandler);
 	}
