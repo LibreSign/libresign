@@ -37,7 +37,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
-		$this->appConfig = $this->getMockAppConfig();
+		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->certificateEngineFactory = $this->createMock(CertificateEngineFactory::class);
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->footerHandler = $this->createMock(FooterHandler::class);

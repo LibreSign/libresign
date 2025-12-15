@@ -23,7 +23,7 @@ class JavaHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function setUp(): void {
 		parent::setUp();
 
-		$this->appConfig = $this->getMockAppConfig();
+		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 	}

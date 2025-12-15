@@ -39,7 +39,7 @@ final class OpenSslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private string $tempDir;
 	public function setUp(): void {
 		$this->config = \OCP\Server::get(IConfig::class);
-		$this->appConfig = $this->getMockAppConfig();
+		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->appDataFactory = \OCP\Server::get(IAppDataFactory::class);
 		$this->dateTimeFormatter = \OCP\Server::get(IDateTimeFormatter::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);

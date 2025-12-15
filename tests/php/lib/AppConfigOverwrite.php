@@ -138,6 +138,12 @@ class AppConfigOverwrite extends AppConfig {
 		$this->markDeleted($app, $key);
 	}
 
+	public function reset(): self {
+		$this->overWrite = [];
+		$this->deleted = [];
+		return $this;
+	}
+
 	private function isDeleted(string $app, string $key): bool {
 		return isset($this->deleted[$app][$key]);
 	}
