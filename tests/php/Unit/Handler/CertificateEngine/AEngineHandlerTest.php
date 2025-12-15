@@ -32,7 +32,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function setUp(): void {
 		$this->config = \OCP\Server::get(IConfig::class);
-		$this->appConfig = $this->getMockAppConfig();
+		$this->appConfig = $this->getMockAppConfigWithReset();
 		$this->appDataFactory = \OCP\Server::get(IAppDataFactory::class);
 		$this->dateTimeFormatter = \OCP\Server::get(IDateTimeFormatter::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
@@ -40,9 +40,6 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->urlGenerator = \OCP\Server::get(IURLGenerator::class);
 		$this->caIdentifierService = \OCP\Server::get(CaIdentifierService::class);
 		$this->logger = \OCP\Server::get(LoggerInterface::class);
-
-		$this->appConfig->deleteKey(Application::APP_ID, 'certificate_engine');
-		$this->appConfig->deleteKey(Application::APP_ID, 'identify_methods');
 	}
 
 	private function getInstance(): OpenSslHandler {
@@ -230,6 +227,183 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'From cfssl to openssl' => ['cfssl', 'openssl', $fullConfig, 'should preserve full config'],
 			'First time openssl' => ['', 'openssl', null, 'no previous config'],
 			'First time cfssl' => ['', 'cfssl', null, 'no previous config'],
+		];
+	}
+
+	#[DataProvider('dataProviderToArray')]
+	public function testToArrayReturnsExpectedStructure(
+		bool $isSetupOk,
+		array $certificateData,
+		array $expectedKeys,
+		string $description,
+	): void {
+		$instance = $this->getInstance();
+
+		foreach ($certificateData as $setter => $value) {
+			$method = 'set' . ucfirst($setter);
+			if (method_exists($instance, $method)) {
+				$instance->$method($value);
+			}
+		}
+
+		if (!$isSetupOk) {
+			$this->appConfig->deleteKey(Application::APP_ID, 'config_path');
+		}
+
+		$result = $instance->toArray();
+
+		foreach ($expectedKeys as $key) {
+			$this->assertArrayHasKey($key, $result, "toArray() should contain '$key': $description");
+		}
+
+		$this->assertIsBool($result['generated'], "generated should be boolean: $description");
+	}
+
+	#[DataProvider('dataProviderToArrayConfigPath')]
+	public function testToArrayFiltersConfigPathWhenNotGenerated(
+		bool $certificateGenerated,
+		string $expectedConfigPath,
+		string $description,
+	): void {
+		$instance = $this->getInstance();
+
+		$tempPath = $this->tempManager->getTemporaryFolder('test-config');
+		$instance->setConfigPath($tempPath);
+
+		if ($certificateGenerated) {
+			file_put_contents($tempPath . DIRECTORY_SEPARATOR . 'ca.pem', 'fake-cert');
+			file_put_contents($tempPath . DIRECTORY_SEPARATOR . 'ca-key.pem', 'fake-key');
+		}
+
+		$result = $instance->toArray();
+
+		if ($expectedConfigPath === '') {
+			$this->assertEmpty($result['configPath'], "configPath should be empty: $description");
+		} else {
+			$this->assertNotEmpty($result['configPath'], "configPath should not be empty: $description");
+		}
+
+		$this->assertEquals($certificateGenerated, $result['generated'], "generated flag: $description");
+	}
+
+	#[DataProvider('dataProviderToArrayCaIdFiltering')]
+	public function testToArrayFiltersCaIdFromOrganizationalUnitWhenNotGenerated(
+		bool $certificateGenerated,
+		array $organizationalUnits,
+		array $expectedOuValues,
+		string $description,
+	): void {
+		$instance = $this->getInstance();
+
+		$tempPath = $this->tempManager->getTemporaryFolder('test-config');
+		$instance->setConfigPath($tempPath);
+		$instance->setOrganizationalUnit($organizationalUnits);
+		$instance->setCountry('BR');
+
+		if ($certificateGenerated) {
+			file_put_contents($tempPath . DIRECTORY_SEPARATOR . 'ca.pem', 'fake-cert');
+			file_put_contents($tempPath . DIRECTORY_SEPARATOR . 'ca-key.pem', 'fake-key');
+		}
+
+		$result = $instance->toArray();
+
+		$ouFound = null;
+		foreach ($result['rootCert']['names'] as $name) {
+			if ($name['id'] === 'OU') {
+				$ouFound = $name['value'];
+				break;
+			}
+		}
+
+		if (!empty($expectedOuValues)) {
+			$this->assertNotNull($ouFound, "OU should be present in names array: $description");
+			$this->assertEquals(
+				$expectedOuValues,
+				$ouFound,
+				"OrganizationalUnit filtering: $description"
+			);
+		} else {
+			$this->assertNull($ouFound, "OU should not be present when filtered to empty: $description");
+		}
+	}
+
+	public static function dataProviderToArray(): array {
+		return [
+			'Basic structure with minimal data' => [
+				false,
+				['commonName' => 'Test CA'],
+				['configPath', 'generated', 'rootCert', 'policySection'],
+				'minimal certificate data',
+			],
+			'Complete certificate data' => [
+				false,
+				[
+					'commonName' => 'LibreSign CA',
+					'country' => 'BR',
+					'state' => 'Santa Catarina',
+					'locality' => 'Florianópolis',
+					'organization' => 'LibreCode',
+					'organizationalUnit' => ['Engineering', 'Security'],
+				],
+				['configPath', 'generated', 'rootCert', 'policySection'],
+				'full certificate data',
+			],
+		];
+	}
+
+	public static function dataProviderToArrayConfigPath(): array {
+		return [
+			'Certificate not generated' => [
+				false,
+				'',
+				'configPath should be empty when certificate not generated',
+			],
+			'Certificate generated' => [
+				true,
+				'/path/to/config',
+				'configPath should be set when certificate is generated',
+			],
+		];
+	}
+
+	public static function dataProviderToArrayCaIdFiltering(): array {
+		return [
+			'OU without CA ID - not generated' => [
+				false,
+				['Engineering', 'Security'],
+				['Engineering', 'Security'],
+				'normal OU values should pass through when not generated',
+			],
+			'OU without CA ID - generated' => [
+				true,
+				['Engineering', 'Security'],
+				['Engineering', 'Security'],
+				'normal OU values should pass through when generated',
+			],
+			'OU with CA ID - not generated (filtered)' => [
+				false,
+				['libresign-ca-id:abc123_g:1_e:openssl', 'Engineering', 'Security'],
+				['Engineering', 'Security'],
+				'CA ID should be filtered when certificate not generated',
+			],
+			'OU with CA ID - generated (kept)' => [
+				true,
+				['libresign-ca-id:abc123_g:1_e:openssl', 'Engineering', 'Security'],
+				['libresign-ca-id:abc123_g:1_e:openssl', 'Engineering', 'Security'],
+				'CA ID should be kept when certificate is generated',
+			],
+			'OU with only CA ID - not generated' => [
+				false,
+				['libresign-ca-id:abc123_g:1_e:openssl'],
+				[],
+				'OU should be empty when only CA ID and not generated',
+			],
+			'OU with only CA ID - generated' => [
+				true,
+				['libresign-ca-id:abc123_g:1_e:openssl'],
+				['libresign-ca-id:abc123_g:1_e:openssl'],
+				'OU with only CA ID should be kept when generated',
+			],
 		];
 	}
 }
