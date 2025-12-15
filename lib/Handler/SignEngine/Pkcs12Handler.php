@@ -52,32 +52,23 @@ class Pkcs12Handler extends SignEngineHandler {
 	private function getSignatures($resource): iterable {
 		rewind($resource);
 		$content = stream_get_contents($resource);
-		preg_match_all(
-			'/ByteRange\s*\[\s*(?<offset1>\d+)\s+(?<length1>\d+)\s+(?<offset2>\d+)\s+(?<length2>\d+)\s*\]/',
-			$content,
-			$bytes
-		);
-		if (empty($bytes['offset1']) || empty($bytes['length1']) || empty($bytes['offset2']) || empty($bytes['length2'])) {
+
+		preg_match_all('/\/Contents\s*<([0-9a-fA-F]+)>/', $content, $contents, PREG_OFFSET_CAPTURE);
+
+		if (empty($contents[1])) {
 			throw new LibresignException($this->l10n->t('Unsigned file.'));
 		}
 
-		for ($i = 0; $i < count($bytes['offset1']); $i++) {
-			$offset1 = (int)$bytes['offset1'][$i];
-			$length1 = (int)$bytes['length1'][$i];
-			$offset2 = (int)$bytes['offset2'][$i];
+		$seenHexSignatures = [];
+		foreach ($contents[1] as $match) {
+			$signatureHex = $match[0];
 
-			$signatureStart = $offset1 + $length1 + 1;
-			$signatureLength = $offset2 - $signatureStart - 1;
-
-			rewind($resource);
-
-			$signature = stream_get_contents($resource, $signatureLength, $signatureStart);
-			if ($signature === false) {
-				yield null;
+			if (isset($seenHexSignatures[$signatureHex])) {
 				continue;
 			}
+			$seenHexSignatures[$signatureHex] = true;
 
-			$decodedSignature = @hex2bin($signature);
+			$decodedSignature = @hex2bin($signatureHex);
 			if ($decodedSignature === false) {
 				yield null;
 				continue;
@@ -101,7 +92,17 @@ class Pkcs12Handler extends SignEngineHandler {
 		$certificates = [];
 
 		foreach ($this->getSignatures($resource) as $signature) {
-			$certificates[] = $this->processSignature($resource, $signature);
+			if (!$signature) {
+				continue;
+			}
+
+			$result = $this->processSignature($resource, $signature);
+
+			if (empty($result['chain'])) {
+				continue;
+			}
+
+			$certificates[] = $result;
 		}
 		return $certificates;
 	}

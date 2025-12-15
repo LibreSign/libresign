@@ -1,55 +1,22 @@
 <?php
 
 declare(strict_types=1);
-
 /**
- * SPDX-FileCopyrightText: 2024 LibreCode coop and contributors
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Tests\Unit;
+namespace OCA\Libresign\Tests\Fixtures;
 
-/**
- * Shared PDF fixtures for tests
- *
- * This trait provides helper methods to create various types of PDF documents
- * for testing purposes, including PDFs with different DocMDP levels, modifications,
- * and validation scenarios.
- */
-trait PdfFixtureTrait {
-	/**
-	 * Create a minimal unsigned PDF (valid but minimal structure)
-	 */
-	public function createMinimalPdf(): string {
+class PdfGenerator {
+	public static function createMinimalPdf(): string {
 		return "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
 			. "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n"
 			. "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n"
 			. "xref\n0 4\ntrailer\n<< /Size 4 /Root 1 0 R >>\nstartxref\n190\n%%EOF";
 	}
 
-	/**
-	 * Create a complete PDF with DocMDP signature
-	 *
-	 * This creates a more complete PDF structure that passes FPDI validation
-	 * and includes proper DocMDP transformation parameters.
-	 *
-	 * @param int $pValue DocMDP permission level (0=not certified, 1=no changes, 2=form filling, 3=form+annotations)
-	 * @param bool $withModifications Whether to add modifications after signature
-	 * @return string PDF content as string
-	 */
-	/**
-	 * Create PDF with DocMDP signature
-	 *
-	 * Uses complete FPDI-valid structure for FileService tests,
-	 * or minimal structure for DocMdpHandler tests.
-	 */
-	public function createPdfWithDocMdp(int $pValue, bool $withModifications = false): string {
-		// FileService needs FPDI-valid PDF (has validatePdfStringWithFpdi)
-		if (str_contains(static::class, 'FileServiceTest')) {
-			return $this->createCompletePdfStructure($pValue, $withModifications);
-		}
-
-		// DocMdpHandler only needs minimal structure
+	public static function createPdfWithDocMdp(int $pValue, bool $withModifications = false): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
 		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
@@ -78,7 +45,6 @@ trait PdfFixtureTrait {
 			while (strlen($pdf) < $targetLength) {
 				$pdf .= ' ';
 			}
-
 			$pdf .= "\n7 0 obj\n<< /Type /Annot /Subtype /Text /Rect [100 100 200 200] >>\nendobj\n";
 			$pdf .= "xref\n7 1\ntrailer\n<< /Size 8 /Root 1 0 R >>\nstartxref\n" . strlen($pdf) . "\n%%EOF";
 		} else {
@@ -89,16 +55,88 @@ trait PdfFixtureTrait {
 		return $pdf;
 	}
 
+	public static function createPdfWithFormFieldModification(int $pValue): string {
+		$pdf = "%PDF-1.7\n";
+		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
+		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
+		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Annots [9 0 R] >>\nendobj\n";
+		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R 9 0 R] >>\nendobj\n";
+
+		$signatureStart = strlen($pdf) + 200;
+		$signatureLength = 100;
+		$offset1 = 0;
+		$length1 = $signatureStart;
+		$offset2 = $signatureStart + $signatureLength;
+
+		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
+		$pdf .= "/ByteRange [ $offset1 $length1 $offset2 PLACEHOLDER_LENGTH2 ]\n";
+		$pdf .= "/Reference [ << /Type /SigRef /TransformMethod /DocMDP\n";
+		$pdf .= "/TransformParams << /Type /TransformParams /P $pValue /V /1.2 >> >> ]\n";
+		$pdf .= '/Contents <' . str_repeat('00', $signatureLength / 2) . "> >>\nendobj\n";
+
+		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
+
+		$length2 = 200;
+		$pdf = str_replace('PLACEHOLDER_LENGTH2', (string)$length2, $pdf);
+
+		$targetLength = $offset2 + $length2;
+		while (strlen($pdf) < $targetLength) {
+			$pdf .= ' ';
+		}
+
+		$pdf .= "\n9 0 obj\n<< /FT /Tx /T (TextField1) /V (Modified) /Rect [100 100 200 120] >>\nendobj\n";
+		$pdf .= "xref\n0 10\ntrailer\n<< /Size 10 /Root 1 0 R >>\nstartxref\n" . strlen($pdf) . "\n%%EOF";
+
+		return $pdf;
+	}
+
+	public static function createPdfWithAnnotationModification(int $pValue): string {
+		$pdf = "%PDF-1.7\n";
+		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
+		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
+		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
+		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R] >>\nendobj\n";
+
+		$signatureStart = strlen($pdf) + 200;
+		$signatureLength = 100;
+		$offset1 = 0;
+		$length1 = $signatureStart;
+		$offset2 = $signatureStart + $signatureLength;
+
+		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
+		$pdf .= "/ByteRange [ $offset1 $length1 $offset2 PLACEHOLDER_LENGTH2 ]\n";
+		$pdf .= "/Reference [ << /Type /SigRef /TransformMethod /DocMDP\n";
+		$pdf .= "/TransformParams << /Type /TransformParams /P $pValue /V /1.2 >> >> ]\n";
+		$pdf .= '/Contents <' . str_repeat('00', $signatureLength / 2) . "> >>\nendobj\n";
+
+		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
+
+		$length2 = 200;
+		$pdf = str_replace('PLACEHOLDER_LENGTH2', (string)$length2, $pdf);
+
+		$targetLength = $offset2 + $length2;
+		while (strlen($pdf) < $targetLength) {
+			$pdf .= ' ';
+		}
+
+		$pdf .= "\n7 0 obj\n<< /Type /Annot /Subtype /Text /Rect [100 100 200 200] >>\nendobj\n";
+		$pdf .= "xref\n7 1\ntrailer\n<< /Size 8 /Root 1 0 R >>\nstartxref\n" . strlen($pdf) . "\n%%EOF";
+
+		return $pdf;
+	}
+
+	public static function createResourceFromContent(string $content) {
+		$resource = tmpfile();
+		fwrite($resource, $content);
+		rewind($resource);
+		return $resource;
+	}
+
 	/**
 	 * FPDI-compliant PDF structure (for FileService validation)
-	 *
-	 * FileService.validateFileContent() uses Smalot PDF parser which requires:
-	 * - Valid xref table with correct offsets
-	 * - Content streams
-	 * - Font dictionaries
-	 * - Proper trailer
+	 * Creates a complete PDF with proper xref table and stream objects
 	 */
-	private function createCompletePdfStructure(int $pValue, bool $withModifications): string {
+	public static function createCompletePdfStructure(int $pValue, bool $withModifications = false): string {
 		$pdf = "%PDF-1.7\n";
 
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
@@ -157,52 +195,10 @@ trait PdfFixtureTrait {
 		return $pdf;
 	}
 
-	protected function createPdfWithFormFieldModification(int $pValue): string {
-		$pdf = "%PDF-1.7\n";
-		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
-		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
-		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
-		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R 7 0 R] >>\nendobj\n";
-
-		$signatureStart = strlen($pdf) + 200;
-		$signatureLength = 100;
-		$offset1 = 0;
-		$length1 = $signatureStart;
-		$offset2 = $signatureStart + $signatureLength;
-
-		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
-		$pdf .= "/ByteRange [ $offset1 $length1 $offset2 PLACEHOLDER_LENGTH2 ]\n";
-		$pdf .= "/Reference [ << /Type /SigRef /TransformMethod /DocMDP\n";
-		$pdf .= "/TransformParams << /Type /TransformParams /P $pValue /V /1.2 >> >> ]\n";
-		$pdf .= '/Contents <' . str_repeat('00', $signatureLength / 2) . "> >>\nendobj\n";
-
-		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
-
-		$length2 = 200;
-		$pdf = str_replace('PLACEHOLDER_LENGTH2', (string)$length2, $pdf);
-
-		$targetLength = $offset2 + $length2;
-		while (strlen($pdf) < $targetLength) {
-			$pdf .= ' ';
-		}
-
-		$pdf .= "\n7 0 obj\n<< /FT /Tx /T (TextField1) /V (Modified Value) >>\nendobj\n";
-		$pdf .= "xref\n0 8\ntrailer\n<< /Size 8 /Root 1 0 R >>\nstartxref\n" . strlen($pdf) . "\n%%EOF";
-
-		return $pdf;
-	}
-
 	/**
-	 * Create PDF with annotation modification
+	 * DocMDP signature without /V entry (ISO 32000-1 violation)
 	 */
-	protected function createPdfWithAnnotationModification(int $pValue): string {
-		return $this->createPdfWithDocMdp($pValue, withModifications: true);
-	}
-
-	/**
-	 * Create PDF with DocMDP but without version in TransformParams
-	 */
-	protected function createPdfWithDocMdpWithoutVersion(int $pValue): string {
+	public static function createPdfWithDocMdpWithoutVersion(int $pValue): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
 		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
@@ -215,7 +211,6 @@ trait PdfFixtureTrait {
 		$length1 = $signatureStart;
 		$offset2 = $signatureStart + $signatureLength;
 
-		// Missing /V in TransformParams
 		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
 		$pdf .= "/ByteRange [ $offset1 $length1 $offset2 PLACEHOLDER_LENGTH2 ]\n";
 		$pdf .= "/Reference [ << /Type /SigRef /TransformMethod /DocMDP\n";
@@ -234,9 +229,9 @@ trait PdfFixtureTrait {
 	}
 
 	/**
-	 * Create PDF with DocMDP with invalid version
+	 * DocMDP signature with non-standard version
 	 */
-	protected function createPdfWithDocMdpInvalidVersion(int $pValue, string $version): string {
+	public static function createPdfWithDocMdpInvalidVersion(int $pValue, string $version): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
 		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
@@ -267,45 +262,9 @@ trait PdfFixtureTrait {
 	}
 
 	/**
-	 * Create PDF with DocMDP version 1.2 (valid per ICP-Brasil)
+	 * PDF with page added after signing (tests P=1 rejection)
 	 */
-	protected function createPdfWithDocMdpVersion12(int $pValue): string {
-		return $this->createPdfWithDocMdp($pValue);
-	}
-
-	/**
-	 * Convenience methods for specific DocMDP levels
-	 */
-	protected function createPdfWithDocMdpLevel0(): string {
-		return $this->createPdfWithDocMdp(0);
-	}
-
-	protected function createPdfWithDocMdpLevel1(): string {
-		return $this->createPdfWithDocMdp(1);
-	}
-
-	protected function createPdfWithDocMdpLevel2(): string {
-		return $this->createPdfWithDocMdp(2);
-	}
-
-	protected function createPdfWithDocMdpLevel3(): string {
-		return $this->createPdfWithDocMdp(3);
-	}
-
-	/**
-	 * Create resource from PDF content (for DocMdpHandler tests)
-	 */
-	protected function createResourceFromContent(string $content) {
-		$resource = tmpfile();
-		fwrite($resource, $content);
-		fseek($resource, 0);
-		return $resource;
-	}
-
-	/**
-	 * Create PDF with structural modification (adding a new page)
-	 */
-	protected function createPdfWithStructuralModification(int $pValue): string {
+	public static function createPdfWithStructuralModification(int $pValue): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
 		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R 7 0 R] /Count 2 >>\nendobj\n";
@@ -341,9 +300,9 @@ trait PdfFixtureTrait {
 	}
 
 	/**
-	 * Create PDF with subsequent signature (multiple signatures)
+	 * PDF with second signature added after DocMDP (tests ISO 32000-2 §12.8.2.3)
 	 */
-	protected function createPdfWithSubsequentSignature(int $pValue): string {
+	public static function createPdfWithSubsequentSignature(int $pValue): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
 		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
@@ -381,9 +340,9 @@ trait PdfFixtureTrait {
 	}
 
 	/**
-	 * Create PDF with DocMDP in signature Reference (without /Perms)
+	 * DocMDP in /Reference but not in /Perms (tests §12.8.2.2 validation)
 	 */
-	protected function createPdfWithDocMdpInSignatureReference(int $pValue): string {
+	public static function createPdfWithDocMdpInSignatureReference(int $pValue): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
 		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
@@ -414,9 +373,9 @@ trait PdfFixtureTrait {
 	}
 
 	/**
-	 * Create PDF with approval signature followed by certifying signature
+	 * Approval signature, then certification (violates "DocMDP must be first")
 	 */
-	protected function createPdfWithApprovalThenCertifyingSignature(): string {
+	public static function createPdfWithApprovalThenCertifyingSignature(): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
 		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
@@ -451,9 +410,9 @@ trait PdfFixtureTrait {
 	}
 
 	/**
-	 * Create PDF with page template (XObject Form)
+	 * PDF with XObject form added after signing (tests P=3 acceptance)
 	 */
-	protected function createPdfWithPageTemplate(int $pValue): string {
+	public static function createPdfWithPageTemplate(int $pValue): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R /Perms << /DocMDP 5 0 R >> >>\nendobj\n";
 		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
@@ -489,9 +448,9 @@ trait PdfFixtureTrait {
 	}
 
 	/**
-	 * Create PDF with indirect references (ITI style)
+	 * ITI's indirect reference style: /Reference [ 7 0 R ] instead of inline dict
 	 */
-	protected function createPdfWithIndirectReferencesItiStyle(int $pValue): string {
+	public static function createPdfWithIndirectReferencesItiStyle(int $pValue): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
 		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
@@ -525,9 +484,9 @@ trait PdfFixtureTrait {
 	}
 
 	/**
-	 * Create PDF with indirect references and invalid version (for testing rejection)
+	 * Indirect references with invalid /V value
 	 */
-	protected function createPdfWithIndirectReferencesInvalidVersion(int $pValue, string $version): string {
+	public static function createPdfWithIndirectReferencesInvalidVersion(int $pValue, string $version): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
 		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
@@ -561,9 +520,9 @@ trait PdfFixtureTrait {
 	}
 
 	/**
-	 * ISO 32000-1 Table 252 validation: Signature dictionary with invalid /Type
+	 * Signature with wrong /Type (not /Sig)
 	 */
-	protected function createPdfWithInvalidSignatureType(): string {
+	public static function createPdfWithInvalidSignatureType(): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
 		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
@@ -577,9 +536,9 @@ trait PdfFixtureTrait {
 	}
 
 	/**
-	 * ISO 32000-1 Table 252 validation: Signature dictionary without /Filter
+	 * Signature without /Filter entry
 	 */
-	protected function createPdfWithoutFilterEntry(): string {
+	public static function createPdfWithoutFilterEntry(): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
 		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
@@ -593,9 +552,9 @@ trait PdfFixtureTrait {
 	}
 
 	/**
-	 * ISO 32000-1: Signature without required /ByteRange
+	 * Signature without /ByteRange
 	 */
-	protected function createPdfWithoutByteRange(): string {
+	public static function createPdfWithoutByteRange(): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
 		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
@@ -609,23 +568,21 @@ trait PdfFixtureTrait {
 	}
 
 	/**
-	 * ISO 32000-1 12.8.2.2.1: Multiple DocMDP signatures (invalid)
+	 * Two signatures both with DocMDP (forbidden per ISO 32000-2 §12.8.2.2)
 	 */
-	protected function createPdfWithMultipleDocMdpSignatures(): string {
+	public static function createPdfWithMultipleDocMdpSignatures(): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
 		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
 		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
 		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R 10 0 R] >>\nendobj\n";
 
-		// First DocMDP signature
 		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
 		$pdf .= "/ByteRange [0 100 200 100]\n";
 		$pdf .= "/Reference [7 0 R] >>\nendobj\n";
 		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
 		$pdf .= "7 0 obj\n<< /Type /SigRef /TransformMethod /DocMDP /TransformParams << /Type /TransformParams /P 2 /V /1.2 >> >>\nendobj\n";
 
-		// Second DocMDP signature (INVALID per ISO)
 		$pdf .= "8 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
 		$pdf .= "/ByteRange [0 100 300 100]\n";
 		$pdf .= "/Reference [9 0 R] >>\nendobj\n";
@@ -637,21 +594,19 @@ trait PdfFixtureTrait {
 	}
 
 	/**
-	 * ISO 32000-1 12.8.2.2.1: DocMDP not as first signature (invalid)
+	 * DocMDP not on first signature (violates first-signature-only rule)
 	 */
-	protected function createPdfWithDocMdpNotFirst(): string {
+	public static function createPdfWithDocMdpNotFirst(): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
 		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
 		$pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n";
 		$pdf .= "4 0 obj\n<< /SigFlags 3 /Fields [6 0 R 10 0 R] >>\nendobj\n";
 
-		// First signature: regular approval signature (no DocMDP)
 		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
 		$pdf .= "/ByteRange [0 100 200 100] >>\nendobj\n";
 		$pdf .= "6 0 obj\n<< /FT /Sig /T (ApprovalSignature) /V 5 0 R >>\nendobj\n";
 
-		// Second signature: DocMDP certification (INVALID - must be first)
 		$pdf .= "7 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
 		$pdf .= "/ByteRange [0 100 300 100]\n";
 		$pdf .= "/Reference [8 0 R] >>\nendobj\n";
@@ -663,9 +618,9 @@ trait PdfFixtureTrait {
 	}
 
 	/**
-	 * ISO 32000-1 Table 253: SigRef without /TransformMethod
+	 * SigRef without /TransformMethod (ISO 32000-1 violation)
 	 */
-	protected function createPdfWithSigRefWithoutTransformMethod(): string {
+	public static function createPdfWithSigRefWithoutTransformMethod(): string {
 		$pdf = "%PDF-1.7\n";
 		$pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>\nendobj\n";
 		$pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
