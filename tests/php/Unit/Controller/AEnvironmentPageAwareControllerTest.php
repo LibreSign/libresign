@@ -71,7 +71,7 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 		$user = $this->createAccount('username', 'password');
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => [
 				[

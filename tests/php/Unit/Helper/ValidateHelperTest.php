@@ -271,22 +271,22 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				false
 			],
 			[
-				base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf')),
+				base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf')),
 				ValidateHelper::TYPE_TO_SIGN,
 				true
 			],
 			[
-				'data:application/pdf;base63,' . base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf')),
+				'data:application/pdf;base63,' . base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf')),
 				ValidateHelper::TYPE_TO_SIGN,
 				false
 			],
 			[
-				'data:application/bla;base64,' . base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf')),
+				'data:application/bla;base64,' . base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf')),
 				ValidateHelper::TYPE_TO_SIGN,
 				false
 			],
 			[
-				'data:application/pdf;base64,' . base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf')),
+				'data:application/pdf;base64,' . base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf')),
 				ValidateHelper::TYPE_TO_SIGN,
 				true
 			],
@@ -475,7 +475,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$elements = [[
 			'type' => 'signature',
 			'file' => [
-				'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))
+				'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))
 			]
 		]];
 		$actual = $this->getValidateHelper()->validateVisibleElements($elements, ValidateHelper::TYPE_TO_SIGN);
