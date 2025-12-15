@@ -78,7 +78,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => [
 				[
@@ -122,7 +122,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => [
 				[
@@ -166,7 +166,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => [
 				[
@@ -203,7 +203,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => [
 				[
@@ -259,7 +259,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	public function testDeleteSignFileIdSignRequestIdWithSuccess():void {
 		$user = $this->createAccount('allowrequestsign', 'password', 'testGroup');
 		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => [
 				[
@@ -307,7 +307,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	public function testDeleteUsingSignFileIdWithSuccess():void {
 		$user = $this->createAccount('allowrequestsign', 'password', 'testGroup');
 		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => [
 				[

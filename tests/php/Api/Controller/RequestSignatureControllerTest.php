@@ -61,7 +61,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 			->withRequestBody([
 				'name' => 'filename',
 				'file' => [
-					'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))
+					'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))
 				],
 				'users' => [
 					[
@@ -114,7 +114,7 @@ final class RequestSignatureControllerTest extends ApiTestCase {
 
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => [
 				[

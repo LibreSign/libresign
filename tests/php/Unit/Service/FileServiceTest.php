@@ -35,6 +35,7 @@ use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\PdfParserService;
+use OCA\Libresign\Tests\Fixtures\PdfGenerator;
 use OCP\Accounts\IAccountManager;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
@@ -54,7 +55,6 @@ use Psr\Log\LoggerInterface;
  * @internal
  */
 final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	use \OCA\Libresign\Tests\Unit\PdfFixtureTrait;
 	protected FileMapper $fileMapper;
 	protected SignRequestMapper $signRequestMapper;
 	protected FileElementMapper $fileElementMapper;
@@ -251,7 +251,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						$self->markTestSkipped('Skipping test for not signed file due to environment limitations with PHP >= 8.4.');
 					}
 					$notSigned = tempnam(sys_get_temp_dir(), 'not_signed');
-					copy(realpath(__DIR__ . '/../../fixtures/small_valid.pdf'), $notSigned);
+					copy(realpath(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'), $notSigned);
 					$service
 						->setFileFromRequest([
 							'tmp_name' => $notSigned,
@@ -262,8 +262,8 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				},
 				[
 					'status' => File::STATUS_NOT_LIBRESIGN_FILE,
-					'size' => filesize(__DIR__ . '/../../fixtures/small_valid.pdf'),
-					'hash' => hash_file('sha256', __DIR__ . '/../../fixtures/small_valid.pdf'),
+					'size' => filesize(__DIR__ . '/../../fixtures/pdfs/small_valid.pdf'),
+					'hash' => hash_file('sha256', __DIR__ . '/../../fixtures/pdfs/small_valid.pdf'),
 					'pdfVersion' => '1.6',
 					'totalPages' => 1,
 					'name' => 'small_valid.pdf',
@@ -278,7 +278,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						$self->markTestSkipped('Skipping test for not signed file due to environment limitations with PHP >= 8.4.');
 					}
 					$notSigned = tempnam(sys_get_temp_dir(), 'not_signed');
-					copy(realpath(__DIR__ . '/../../fixtures/small_valid-signed.pdf'), $notSigned);
+					copy(realpath(__DIR__ . '/../../fixtures/pdfs/small_valid-signed.pdf'), $notSigned);
 					$service
 						->setFileFromRequest([
 							'tmp_name' => $notSigned,
@@ -289,8 +289,8 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				},
 				[
 					'status' => File::STATUS_NOT_LIBRESIGN_FILE,
-					'size' => filesize(__DIR__ . '/../../fixtures/small_valid-signed.pdf'),
-					'hash' => hash_file('sha256', __DIR__ . '/../../fixtures/small_valid-signed.pdf'),
+					'size' => filesize(__DIR__ . '/../../fixtures/pdfs/small_valid-signed.pdf'),
+					'hash' => hash_file('sha256', __DIR__ . '/../../fixtures/pdfs/small_valid-signed.pdf'),
 					'pdfVersion' => '1.6',
 					'totalPages' => 1,
 					'name' => 'small_valid.pdf',
@@ -307,7 +307,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$self->userManager->method('get')->willReturn(null);
 					$self->userManager->method('getByEmail')->willReturn([]);
 					$notSigned = tempnam(sys_get_temp_dir(), 'not_signed');
-					copy(realpath(__DIR__ . '/../../fixtures/small_valid-signed.pdf'), $notSigned);
+					copy(realpath(__DIR__ . '/../../fixtures/pdfs/small_valid-signed.pdf'), $notSigned);
 					$service
 						->setFileFromRequest([
 							'tmp_name' => $notSigned,
@@ -319,8 +319,8 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				},
 				[
 					'status' => File::STATUS_NOT_LIBRESIGN_FILE,
-					'size' => filesize(__DIR__ . '/../../fixtures/small_valid-signed.pdf'),
-					'hash' => hash_file('sha256', __DIR__ . '/../../fixtures/small_valid-signed.pdf'),
+					'size' => filesize(__DIR__ . '/../../fixtures/pdfs/small_valid-signed.pdf'),
+					'hash' => hash_file('sha256', __DIR__ . '/../../fixtures/pdfs/small_valid-signed.pdf'),
 					'pdfVersion' => '1.6',
 					'totalPages' => 1,
 					'name' => 'small_valid.pdf',
@@ -461,7 +461,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testValidateFileContentRejectsDocMdpLevel1(): void {
-		$pdfContent = $this->createPdfWithDocMdpLevel1();
+		$pdfContent = PdfGenerator::createCompletePdfStructure(1);
 		$service = $this->getService();
 
 		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
@@ -471,7 +471,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateFileContentAllowsDocMdpLevel2(): void {
 		$this->expectNotToPerformAssertions();
-		$pdfContent = $this->createPdfWithDocMdpLevel2();
+		$pdfContent = PdfGenerator::createCompletePdfStructure(2);
 		$service = $this->getService();
 
 		$service->validateFileContent($pdfContent, 'pdf');
@@ -479,7 +479,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateFileContentAllowsDocMdpLevel3(): void {
 		$this->expectNotToPerformAssertions();
-		$pdfContent = $this->createPdfWithDocMdp(3);
+		$pdfContent = PdfGenerator::createCompletePdfStructure(3);
 		$service = $this->getService();
 
 		$service->validateFileContent($pdfContent, 'pdf');
@@ -487,7 +487,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateFileContentAllowsUnsignedPdf(): void {
 		$this->expectNotToPerformAssertions();
-		$pdfPath = __DIR__ . '/../../fixtures/small_valid.pdf';
+		$pdfPath = __DIR__ . '/../../fixtures/pdfs/small_valid.pdf';
 		$pdfContent = file_get_contents($pdfPath);
 		$service = $this->getService();
 
