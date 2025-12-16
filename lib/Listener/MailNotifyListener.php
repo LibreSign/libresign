@@ -88,10 +88,10 @@ class MailNotifyListener implements IEventListener {
 
 			$isFirstNotification = $this->signRequestMapper->incrementNotificationCounter($signRequest, 'mail');
 			if ($isFirstNotification) {
-				$this->mail->notifyUnsignedUser($signRequest, $email);
+				$this->mail->notifyUnsignedUser($signRequest, $email, $signRequest->getDescription());
 				return;
 			}
-			$this->mail->notifySignDataUpdated($signRequest, $email);
+			$this->mail->notifySignDataUpdated($signRequest, $email, $signRequest->getDescription());
 		} catch (\InvalidArgumentException $e) {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
 			return;
@@ -173,6 +173,10 @@ class MailNotifyListener implements IEventListener {
 		}
 		$activityUserSettings = \OCP\Server::get(\OCA\Activity\UserSettings::class);
 		if ($activityUserSettings) {
+			$adminSetting = $activityUserSettings->getAdminSetting('email', $type);
+			if (!$adminSetting) {
+				return true;
+			}
 			$notificationSetting = $activityUserSettings->getUserSetting(
 				$userId,
 				'email',
