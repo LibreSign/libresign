@@ -6048,8 +6048,10 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** @description Signature flow mode: 'parallel' or 'ordered_numeric' */
-                    mode: string;
+                    /** @description Whether to force a signature flow for all documents */
+                    enabled: boolean;
+                    /** @description Signature flow mode: 'parallel' or 'ordered_numeric' (only used when enabled is true) */
+                    mode?: string | null;
                 };
             };
         };
