@@ -7,7 +7,26 @@
 		<NcNoteCard v-if="errorMessage" type="error">
 			{{ errorMessage }}
 		</NcNoteCard>
-		<div class="signature-flow-options">
+
+		<div class="signature-flow-toggle">
+			<NcCheckboxRadioSwitch type="switch"
+				:checked="enabled"
+				:disabled="loading"
+				@update:checked="onToggleChange">
+				<span>{{ t('libresign', 'Set default signing order') }}</span>
+			</NcCheckboxRadioSwitch>
+			<span v-if="loading && !flowChanging" class="toggle-status">
+				<NcLoadingIcon :size="20" />
+			</span>
+			<span v-else-if="saved && !flowChanging" class="toggle-status">
+				<NcSavingIndicatorIcon :size="20" />
+			</span>
+			<span v-else-if="showErrorIcon && !flowChanging" class="toggle-status">
+				<NcSavingIndicatorIcon :size="20" error />
+			</span>
+		</div>
+
+		<div v-if="enabled" class="signature-flow-options">
 			<NcCheckboxRadioSwitch v-for="flow in availableFlows"
 					:key="flow.value"
 					type="radio"
@@ -24,9 +43,9 @@
 							</p>
 						</div>
 						<div v-if="selectedFlow?.value === flow.value" class="signature-flow-option-status">
-							<NcLoadingIcon v-if="loading" :size="20" />
-							<NcSavingIndicatorIcon v-else-if="saved" :size="20" />
-							<NcSavingIndicatorIcon v-else-if="showErrorIcon" :size="20" error />
+							<NcLoadingIcon v-if="loading && flowChanging" :size="20" />
+							<NcSavingIndicatorIcon v-else-if="saved && flowChanging" :size="20" />
+							<NcSavingIndicatorIcon v-else-if="showErrorIcon && flowChanging" :size="20" error />
 						</div>
 					</div>
 				</NcCheckboxRadioSwitch>
@@ -58,6 +77,7 @@ export default {
 	data() {
 		return {
 			name: t('libresign', 'Signing order'),
+			enabled: false,
 			selectedFlow: null,
 			availableFlows: [
 				{
@@ -75,6 +95,7 @@ export default {
 			errorMessage: '',
 			saved: false,
 			showErrorIcon: false,
+			flowChanging: false,
 		}
 	},
 	async mounted() {
@@ -83,25 +104,40 @@ export default {
 	methods: {
 		loadConfig() {
 			try {
-				const mode = loadState('libresign', 'signature_flow', 'parallel')
-				
-				this.selectedFlow = this.availableFlows.find(
-					flow => flow.value === mode
-				)
+				const mode = loadState('libresign', 'signature_flow', null)
 
-				if (!this.selectedFlow) {
+				if (mode === null || mode === '') {
+					this.enabled = false
 					this.selectedFlow = this.availableFlows[0]
+				} else {
+					this.enabled = true
+					this.selectedFlow = this.availableFlows.find(
+						flow => flow.value === mode
+					)
+
+					if (!this.selectedFlow) {
+						this.selectedFlow = this.availableFlows[0]
+					}
 				}
 			} catch (error) {
 				console.error('Error loading signature flow configuration:', error)
 				this.errorMessage = t('libresign', 'Could not load configuration.')
+				this.enabled = false
 				this.selectedFlow = this.availableFlows[0]
 			}
+		},
+		onToggleChange(value) {
+			this.enabled = value
+			this.errorMessage = ''
+			this.showErrorIcon = false
+			this.flowChanging = false
+			this.saveConfig()
 		},
 		onFlowChange(value) {
 			this.selectedFlow = this.availableFlows.find(flow => flow.value === value)
 			this.errorMessage = ''
 			this.showErrorIcon = false
+			this.flowChanging = true
 			this.saveConfig()
 		},
 		async saveConfig() {
@@ -113,12 +149,14 @@ export default {
 			try {
 				const url = generateOcsUrl('apps/libresign/api/v1/admin/signature-flow/config')
 				await axios.post(url, {
-					mode: this.selectedFlow?.value ?? 'parallel',
+					enabled: this.enabled,
+					mode: this.enabled ? (this.selectedFlow?.value ?? 'parallel') : null,
 				})
 
 				this.saved = true
 				setTimeout(() => {
 					this.saved = false
+					this.flowChanging = false
 				}, 3000)
 			} catch (error) {
 				console.error('Error saving signature flow configuration:', error)
@@ -134,8 +172,27 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.signature-flow-toggle {
+	margin-bottom: 1.5rem;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+
+	:deep(.checkbox-radio-switch) {
+		flex-shrink: 0;
+	}
+
+	.toggle-status {
+		display: flex;
+		align-items: center;
+		flex-shrink: 0;
+	}
+}
+
 .signature-flow-options {
 	margin-top: 0.5rem;
+	margin-left: 2rem;
+	padding-top: 0.5rem;
 
 	.signature-flow-option {
 		display: flex;
