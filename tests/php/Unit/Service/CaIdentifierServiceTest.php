@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Service\CaIdentifierService;
 use OCP\IAppConfig;
+use OCP\IConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -19,17 +20,22 @@ use PHPUnit\Framework\TestCase;
  */
 final class CaIdentifierServiceTest extends TestCase {
 	private CaIdentifierService $service;
-	private MockObject $appConfig;
+	private IAppConfig&MockObject $appConfig;
+	private IConfig&MockObject $config;
 
 	protected function setUp(): void {
-		parent::setUp();
 		$this->appConfig = $this->createMock(IAppConfig::class);
-		/** @var IAppConfig $appConfig */
-		$appConfig = $this->appConfig;
-		$this->service = new CaIdentifierService($appConfig);
+		$this->config = $this->createMock(IConfig::class);
+		$this->service = new CaIdentifierService($this->appConfig, $this->config);
 	}
 
 	public function testGenerateCaIdWithOpenSSL(): void {
+		$this->config
+			->expects($this->once())
+			->method('getSystemValueString')
+			->with('instanceid')
+			->willReturn('abc1234567');
+
 		$this->appConfig
 			->expects($this->once())
 			->method('getValueInt')
@@ -43,10 +49,16 @@ final class CaIdentifierServiceTest extends TestCase {
 
 		$result = $this->service->generateCaId('openssl');
 
-		$this->assertMatchesRegularExpression('/^libresign-ca-id:[a-z0-9]{10}_g:\d+_e:o$/', $result);
+		$this->assertEquals('libresign-ca-id:abc1234567_g:1_e:o', $result);
 	}
 
 	public function testGenerateCaIdWithCFSSL(): void {
+		$this->config
+			->expects($this->once())
+			->method('getSystemValueString')
+			->with('instanceid')
+			->willReturn('xyz9876543');
+
 		$this->appConfig
 			->expects($this->once())
 			->method('getValueInt')
@@ -60,7 +72,7 @@ final class CaIdentifierServiceTest extends TestCase {
 
 		$result = $this->service->generateCaId('cfssl');
 
-		$this->assertMatchesRegularExpression('/^libresign-ca-id:[a-z0-9]{10}_g:\d+_e:c$/', $result);
+		$this->assertEquals('libresign-ca-id:xyz9876543_g:3_e:c', $result);
 	}
 
 	#[DataProvider('providerIsValidCaId')]
