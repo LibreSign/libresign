@@ -199,6 +199,7 @@ class AccountService {
 		$info['crl_filters'] = $this->getUserConfigCrlFilters($user);
 		$info['crl_sort'] = $this->getUserConfigCrlSort($user);
 		$info['grid_view'] = $this->getUserConfigByKey('grid_view', $user) === '1';
+		$info['signer_identify_tab'] = $this->getUserConfigByKey('signer_identify_tab', $user);
 
 		return array_filter($info);
 	}
