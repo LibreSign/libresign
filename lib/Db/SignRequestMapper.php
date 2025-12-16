@@ -60,10 +60,17 @@ class SignRequestMapper extends QBMapper {
 			if (!isset($metadata['notify'])) {
 				$this->firstNotification = true;
 			}
-			$metadata['notify'][] = [
+
+			$notificationEntry = [
 				'method' => $method,
 				'date' => time(),
 			];
+
+			if (!empty($fromDatabase->getDescription())) {
+				$notificationEntry['description'] = $fromDatabase->getDescription();
+			}
+
+			$metadata['notify'][] = $notificationEntry;
 			$fromDatabase->setMetadata($metadata);
 			$this->update($fromDatabase);
 			$this->db->commit();
