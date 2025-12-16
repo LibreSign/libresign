@@ -122,10 +122,14 @@
 			:size="size"
 			:name="modalTitle"
 			@closing="filesStore.disableIdentifySigner()">
-			<NcAppSidebar :name="modalTitle"
+			<NcNoteCard v-if="isSignerMethodDisabled" type="warning">
+				{{ t('libresign', 'The identification method "{method}" used by this signer has been disabled by the system administrator.', { method: disabledMethodName }) }}
+			</NcNoteCard>
+			<NcAppSidebar v-else
+				:name="modalTitle"
 				:active="activeTab"
 				@update:active="onTabChange">
-				<NcAppSidebarTab v-for="method in enabledMethods()"
+				<NcAppSidebarTab v-for="method in enabledMethods"
 					:id="`tab-${method.name}`"
 					:key="method.name"
 					:name="method.friendly_name">
@@ -135,7 +139,8 @@
 					</template>
 					<IdentifySigner :signer-to-edit="signerToEdit"
 						:placeholder="method.friendly_name"
-						:method="method.name" />
+						:method="method.name"
+						:methods="methods" />
 				</NcAppSidebarTab>
 			</NcAppSidebar>
 		</NcDialog>
@@ -395,6 +400,32 @@ export default {
 			}
 			return this.t('libresign', 'Add new signer')
 		},
+		enabledMethods() {
+			const enabledMethods = this.methods.filter(method => method.enabled)
+
+			if (Object.keys(this.signerToEdit).length > 0 && this.signerToEdit.identifyMethods?.length) {
+				const signerMethod = this.signerToEdit.identifyMethods[0].method
+				return enabledMethods.filter(method => method.name === signerMethod)
+			}
+
+			return enabledMethods
+		},
+		isSignerMethodDisabled() {
+			if (Object.keys(this.signerToEdit).length > 0 && this.signerToEdit.identifyMethods?.length) {
+				const signerMethod = this.signerToEdit.identifyMethods[0].method
+				const methodConfig = this.methods.find(m => m.name === signerMethod)
+				return !methodConfig?.enabled
+			}
+			return false
+		},
+		disabledMethodName() {
+			if (this.isSignerMethodDisabled && this.signerToEdit.identifyMethods?.length) {
+				const signerMethod = this.signerToEdit.identifyMethods[0].method
+				const methodConfig = this.methods.find(m => m.name === signerMethod)
+				return methodConfig?.friendly_name || signerMethod
+			}
+			return ''
+		},
 	},
 	watch: {
 		signers(signers) {
@@ -470,9 +501,6 @@ export default {
 				return signerOrder === order && signer.status === 0
 			})
 		},
-		enabledMethods() {
-			return this.methods.filter(method => method.enabled)
-		},
 		isSignElementsAvailable() {
 			return getCapabilities()?.libresign?.config?.['sign-elements']?.['is-available'] === true
 		},
@@ -491,10 +519,15 @@ export default {
 		},
 		addSigner() {
 			this.signerToEdit = {}
+			this.activeTab = this.userConfigStore.signer_identify_tab || ''
 			this.filesStore.enableIdentifySigner()
 		},
 		editSigner(signer) {
 			this.signerToEdit = signer
+			if (signer.identifyMethods?.length) {
+				const signerMethod = signer.identifyMethods[0].method
+				this.activeTab = `tab-${signerMethod}`
+			}
 			this.filesStore.enableIdentifySigner()
 		},
 		onTabChange(tabId) {
