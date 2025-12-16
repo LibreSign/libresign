@@ -4,20 +4,29 @@
 -->
 
 <template>
-	<div class="container">
-		<div id="img" />
-		<div class="content">
-			<h1>404</h1>
-			<h2>
-				{{ t('libresign', 'Page not found') }}
-			</h2>
-			<p>{{ paragrath }}</p>
-			<NcNoteCard v-for="(error, index) in errors"
-				:key="index"
-				type="error"
-				heading="Error">
-				{{ error.message }}
-			</NcNoteCard>
+	<div class="error-page">
+		<div class="logo-header">
+			<img :src="logoLibreSign"
+				:alt="t('libresign', 'LibreSign')"
+				class="logo-icon">
+		</div>
+
+		<div class="error-container">
+			<NcEmptyContent :name="t('libresign', 'Page not found')"
+				:description="paragrath">
+				<template #icon>
+					<AlertCircleOutline :size="80" class="alert-icon" />
+				</template>
+				<template #action>
+					<div v-if="errors.length" class="error-messages">
+						<NcNoteCard v-for="(error, index) in errors"
+							:key="index"
+							type="error">
+							{{ error.message }}
+						</NcNoteCard>
+					</div>
+				</template>
+			</NcEmptyContent>
 		</div>
 	</div>
 </template>
@@ -26,16 +35,23 @@
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
 
+import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
+import AlertCircleOutline from 'vue-material-design-icons/AlertCircleOutline.vue'
+
+import logoLibreSign from '../../img/logo-gray.svg'
 
 export default {
 	name: 'DefaultPageError',
 	components: {
+		NcEmptyContent,
 		NcNoteCard,
+		AlertCircleOutline,
 	},
 
 	data() {
 		return {
+			logoLibreSign,
 			paragrath: t('libresign', 'Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable.'),
 		}
 	},
@@ -47,7 +63,7 @@ export default {
 			}
 			const errorMessage = loadState('libresign', 'error', {})?.message
 			if (errorMessage) {
-				return [errorMessage]
+				return [{ message: errorMessage }]
 			}
 			return []
 		},
@@ -57,49 +73,53 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.container{
+.error-page {
 	display: flex;
-	flex-direction: row;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	height: 100%;
+	min-height: 100vh;
+	padding: 40px 20px;
+	gap: 24px;
+	background: var(--color-background-dark);
 
-	#img{
-		background-image: url('../../img/sad-face-in-rounded-square.svg');
-		height: 140px;
-		width: 140px;
-		background-repeat: no-repeat;
-		background-size: cover;
-		line-height: 17.6px;
+	.logo-header {
+		.logo-icon {
+			height: 80px;
+
+			@media (max-width: 768px) {
+				height: 60px;
+			}
+		}
 	}
 
-}
+	.error-container {
+		max-width: 800px;
+		width: 100%;
+		padding: 48px 32px;
+		background: var(--color-main-background);
+		border-radius: var(--border-radius-large);
+		box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
 
-.content{
-	box-sizing: border-box;
-	font-family: 'Nunito', sans-serif;
-	max-width: 560px;
-	padding-inline-start: 50px;
+		.error-messages {
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+			width: 100%;
+			min-width: 500px;
 
-	h1{
-		font-size: 65px;
-		font-weight: 700;
-		line-height: 71.5px;
-		margin-bottom: 10px;
-		margin-top: 0px;
+			@media (max-width: 768px) {
+				min-width: auto;
+			}
+		}
+
+		@media (max-width: 768px) {
+			padding: 32px 24px;
+		}
 	}
 
-	h2{
-		font-size: 21px;
-		font-weight: 400;
-		line-height: 23.1px;
-		margin: 0px;
-		margin-bottom: 10px;
-	}
-	p{
-		color: var(--color-main-text);
-		font-weight: 400;
-		line-height: 17.6px;
+	.alert-icon {
+		color: #e53c3c;
 	}
 }
 </style>
