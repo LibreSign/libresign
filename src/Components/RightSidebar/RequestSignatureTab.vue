@@ -122,7 +122,9 @@
 			:size="size"
 			:name="modalTitle"
 			@closing="filesStore.disableIdentifySigner()">
-			<NcAppSidebar :name="modalTitle">
+			<NcAppSidebar :name="modalTitle"
+				:active="activeTab"
+				@update:active="onTabChange">
 				<NcAppSidebarTab v-for="method in enabledMethods()"
 					:id="`tab-${method.name}`"
 					:key="method.name"
@@ -225,6 +227,7 @@ import router from '../../router/router.js'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
+import { useUserConfigStore } from '../../store/userconfig.js'
 
 const iconMap = {
 	svgAccount,
@@ -274,7 +277,8 @@ export default {
 		const filesStore = useFilesStore()
 		const signStore = useSignStore()
 		const sidebarStore = useSidebarStore()
-		return { filesStore, signStore, sidebarStore }
+		const userConfigStore = useUserConfigStore()
+		return { filesStore, signStore, sidebarStore, userConfigStore }
 	},
 	data() {
 		return {
@@ -287,6 +291,7 @@ export default {
 			showConfirmRequest: false,
 			showConfirmRequestSigner: false,
 			selectedSigner: null,
+			activeTab: '',
 		}
 	},
 	computed: {
@@ -399,6 +404,8 @@ export default {
 	async mounted() {
 		subscribe('libresign:edit-signer', this.editSigner)
 		this.filesStore.disableIdentifySigner()
+
+		this.activeTab = this.userConfigStore.signer_identify_tab || ''
 	},
 	beforeUnmount() {
 		unsubscribe('libresign:edit-signer')
@@ -418,6 +425,10 @@ export default {
 				}
 			}
 		}, 1000)
+
+		this.debouncedTabChange = debounce((tabId) => {
+			this.userConfigStore.update('signer_identify_tab', tabId)
+		}, 500)
 	},
 	methods: {
 		getSvgIcon(name) {
@@ -485,6 +496,12 @@ export default {
 		editSigner(signer) {
 			this.signerToEdit = signer
 			this.filesStore.enableIdentifySigner()
+		},
+		onTabChange(tabId) {
+			if (this.activeTab !== tabId) {
+				this.activeTab = tabId
+				this.debouncedTabChange(tabId)
+			}
 		},
 		updateSigningOrder(signer, value) {
 			const order = parseInt(value, 10)
