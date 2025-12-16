@@ -210,6 +210,13 @@ class NotificationListener implements IEventListener {
 		}
 		$activityUserSettings = \OCP\Server::get(\OCA\Activity\UserSettings::class);
 		if ($activityUserSettings) {
+			$manager = \OCP\Server::get(\OCP\Activity\IManager::class);
+			try {
+				$manager->getSettingById($type);
+			} catch (\Exception $e) {
+				return false;
+			}
+
 			$adminSetting = $activityUserSettings->getAdminSetting('notification', $type);
 			if (!$adminSetting) {
 				return true;
