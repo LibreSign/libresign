@@ -4,12 +4,18 @@
 -->
 <template>
 	<div class="identifySigner">
-		<SignerSelect :signer="signer"
+		<SignerSelect v-if="isNewSigner"
+			:signer="signer"
 			:placeholder="placeholder"
 			:method="method"
 			@update:signer="updateSigner" />
+		<NcNoteCard v-else type="info">
+			<template #icon>
+				<NcIconSvgWrapper :size="20" :svg="getMethodIcon()" />
+			</template>
+			<strong>{{ identifyMethodLabel }}:</strong> {{ signer.id }}
+		</NcNoteCard>
 
-		<label v-if="signerSelected" for="name-input">{{ t('libresign', 'Signer name') }}</label>
 		<NcTextField v-if="signerSelected"
 			v-model="displayName"
 			aria-describedby="name-input"
@@ -35,17 +41,39 @@
 	</div>
 </template>
 <script>
+import svgAccount from '@mdi/svg/svg/account.svg?raw'
+import svgEmail from '@mdi/svg/svg/email.svg?raw'
+import svgSms from '@mdi/svg/svg/message-processing.svg?raw'
+import svgWhatsapp from '@mdi/svg/svg/whatsapp.svg?raw'
+import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
+
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import SignerSelect from './SignerSelect.vue'
 
+import svgSignal from '../../../img/logo-signal-app.svg?raw'
+import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
 import { useFilesStore } from '../../store/files.js'
+
+const iconMap = {
+	svgAccount,
+	svgEmail,
+	svgSignal,
+	svgSms,
+	svgTelegram,
+	svgWhatsapp,
+	svgXmpp,
+}
 
 export default {
 	name: 'IdentifySigner',
 	components: {
 		NcButton,
+		NcIconSvgWrapper,
+		NcNoteCard,
 		NcTextField,
 		SignerSelect,
 	},
@@ -65,6 +93,10 @@ export default {
 		placeholder: {
 			type: String,
 			default: t('libresign', 'Name'),
+		},
+		methods: {
+			type: Array,
+			default: () => [],
 		},
 	},
 	setup() {
@@ -86,13 +118,23 @@ export default {
 			return !!this.signer?.id
 		},
 		isNewSigner() {
-			return this.id === null || this.id === undefined
+			return !this.signerToEdit || Object.keys(this.signerToEdit).length === 0
 		},
 		saveButtonText() {
 			if (this.isNewSigner) {
 				return t('libresign', 'Save')
 			}
 			return t('libresign', 'Update')
+		},
+		identifyMethodLabel() {
+			if (!this.signer?.method) {
+				return ''
+			}
+			const methodConfig = this.methods.find(m => m.name === this.signer.method)
+			if (!methodConfig?.friendly_name) {
+				return ''
+			}
+			return methodConfig.friendly_name
 		},
 	},
 	beforeMount() {
@@ -108,6 +150,13 @@ export default {
 		}
 	},
 	methods: {
+		getMethodIcon() {
+			const method = this.signer?.method
+			if (!method) {
+				return iconMap.svgAccount
+			}
+			return iconMap[`svg${method.charAt(0).toUpperCase() + method.slice(1)}`] || iconMap.svgAccount
+		},
 		updateSigner(signer) {
 			this.signer = signer ?? {}
 			this.displayName = signer?.displayName ?? ''
@@ -163,6 +212,17 @@ export default {
 
 	#account-or-email {
 		width: 100%;
+	}
+
+	:deep(.notecard) {
+		width: 100%;
+		margin-bottom: 16px;
+
+		div {
+			display: flex;
+			align-items: center;
+			gap: 0.5em;
+		}
 	}
 
 	&__footer {
