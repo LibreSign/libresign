@@ -45,12 +45,18 @@ class MailService {
 	/**
 	 * @psalm-suppress MixedMethodCall
 	 */
-	public function notifySignDataUpdated(SignRequest $data, string $email): void {
+	public function notifySignDataUpdated(SignRequest $data, string $email, ?string $description = null): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		// TRANSLATORS The subject of the email that is sent after changes are made to the signature request that may affect something for the signer who will sign the document. Some possible reasons: URL for signature changed (when the URL expires), the person who requested the signature sent a notification
 		$emailTemplate->setSubject($this->l10n->t('LibreSign: Changes into a file for you to sign'));
 		$emailTemplate->addHeader();
 		$emailTemplate->addHeading($this->l10n->t('File to sign'), false);
+
+		if (!empty($description)) {
+			$emailTemplate->addBodyText($description);
+			$emailTemplate->addBodyText('');
+		}
+
 		$emailTemplate->addBodyText($this->l10n->t('Changes have been made in a file that you have to sign. Access the link below:'));
 		$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $data->getUuid()]);
 		$file = $this->getFileById($data->getFileId());
@@ -76,11 +82,17 @@ class MailService {
 	/**
 	 * @psalm-suppress MixedMethodCall
 	 */
-	public function notifyUnsignedUser(SignRequest $data, string $email): void {
+	public function notifyUnsignedUser(SignRequest $data, string $email, ?string $description = null): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		$emailTemplate->setSubject($this->l10n->t('LibreSign: There is a file for you to sign'));
 		$emailTemplate->addHeader();
 		$emailTemplate->addHeading($this->l10n->t('File to sign'), false);
+
+		if (!empty($description)) {
+			$emailTemplate->addBodyText($description);
+			$emailTemplate->addBodyText('');
+		}
+
 		$emailTemplate->addBodyText($this->l10n->t('There is a document for you to sign. Access the link below:'));
 		$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $data->getUuid()]);
 		$file = $this->getFileById($data->getFileId());
