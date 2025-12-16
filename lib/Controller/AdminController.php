@@ -898,7 +898,8 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Set signature flow configuration
 	 *
-	 * @param string $mode Signature flow mode: 'parallel' or 'ordered_numeric'
+	 * @param bool $enabled Whether to force a signature flow for all documents
+	 * @param string|null $mode Signature flow mode: 'parallel' or 'ordered_numeric' (only used when enabled is true)
 	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 *
 	 * 200: Configuration saved successfully
@@ -906,25 +907,34 @@ class AdminController extends AEnvironmentAwareController {
 	 * 500: Internal server error
 	 */
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signature-flow/config', requirements: ['apiVersion' => '(v1)'])]
-	public function setSignatureFlowConfig(string $mode): DataResponse {
+	public function setSignatureFlowConfig(bool $enabled, ?string $mode = null): DataResponse {
 		try {
-			$signatureFlow = \OCA\Libresign\Enum\SignatureFlow::from($mode);
-		} catch (\ValueError) {
-			return new DataResponse([
-				'error' => $this->l10n->t('Invalid signature flow mode. Use "parallel" or "ordered_numeric".'),
-			], Http::STATUS_BAD_REQUEST);
-		}
-
-		try {
-			if ($signatureFlow === \OCA\Libresign\Enum\SignatureFlow::PARALLEL) {
+			if (!$enabled) {
 				$this->appConfig->deleteKey(Application::APP_ID, 'signature_flow');
-			} else {
-				$this->appConfig->setValueString(
-					Application::APP_ID,
-					'signature_flow',
-					$signatureFlow->value
-				);
+				return new DataResponse([
+					'message' => $this->l10n->t('Settings saved'),
+				]);
 			}
+
+			if ($mode === null) {
+				return new DataResponse([
+					'error' => $this->l10n->t('Mode is required when signature flow is enabled.'),
+				], Http::STATUS_BAD_REQUEST);
+			}
+
+			try {
+				$signatureFlow = \OCA\Libresign\Enum\SignatureFlow::from($mode);
+			} catch (\ValueError) {
+				return new DataResponse([
+					'error' => $this->l10n->t('Invalid signature flow mode. Use "parallel" or "ordered_numeric".'),
+				], Http::STATUS_BAD_REQUEST);
+			}
+
+			$this->appConfig->setValueString(
+				Application::APP_ID,
+				'signature_flow',
+				$signatureFlow->value
+			);
 
 			return new DataResponse([
 				'message' => $this->l10n->t('Settings saved'),
