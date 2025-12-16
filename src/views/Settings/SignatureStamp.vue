@@ -3,7 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcSettingsSection :name="name" :description="description">
+	<NcSettingsSection :name="name">
+		<p v-linkify="{ linkify: true, text: description }" class="settings-section__description" />
 		<fieldset class="settings-section__row">
 			<legend>{{ t('libresign', 'Display signature mode') }}</legend>
 			<NcCheckboxRadioSwitch v-model="renderMode"
@@ -349,11 +350,15 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 import { useIsDarkTheme } from '@nextcloud/vue/composables/useIsDarkTheme'
+import Linkify from '@nextcloud/vue/directives/Linkify'
 
 import CodeEditor from '../../components/CodeEditor.vue'
 
 export default {
 	name: 'SignatureStamp',
+	directives: {
+		Linkify,
+	},
 	components: {
 		Check,
 		CodeEditor,
@@ -384,7 +389,7 @@ export default {
 		const backgroundType = loadState('libresign', 'signature_background_type')
 		return {
 			name: t('libresign', 'Signature stamp'),
-			description: t('libresign', 'Configure the content displayed with the signature. The text template uses Twig syntax.'),
+			description: t('libresign', 'Configure the content displayed with the signature. The text template uses Twig syntax: https://twig.symfony.com/'),
 			showLoadingBackground: false,
 			backgroundType,
 			acceptMime: ['image/png'],
@@ -696,6 +701,10 @@ export default {
 .settings-section{
 	display: flex;
 	flex-direction: column;
+	&__description {
+		color: var(--color-text-lighter);
+		margin-bottom: 8px;
+	}
 	&:deep(.settings-section__name) {
 		justify-content: unset;
 	}

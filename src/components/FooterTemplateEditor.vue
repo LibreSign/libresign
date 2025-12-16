@@ -4,6 +4,7 @@
 -->
 <template>
 	<div class="footer-template-section">
+		<p v-linkify="{ linkify: true, text: footerDescription }" class="footer-template-description" />
 		<div class="footer-template-header">
 			<NcButton type="tertiary"
 				:aria-label="t('libresign', 'Show available variables')"
@@ -142,6 +143,7 @@ import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcFormBoxButton from '@nextcloud/vue/components/NcFormBoxButton'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
+import Linkify from '@nextcloud/vue/directives/Linkify'
 // eslint-disable-next-line import/default
 import VuePdfEditor from '@libresign/vue-pdf-editor'
 
@@ -156,6 +158,9 @@ import Undo from 'vue-material-design-icons/UndoVariant.vue'
 
 export default {
 	name: 'FooterTemplateEditor',
+	directives: {
+		Linkify,
+	},
 	components: {
 		Check,
 		CodeEditor,
@@ -177,6 +182,7 @@ export default {
 		return {
 			DEFAULT_PREVIEW_WIDTH,
 			DEFAULT_PREVIEW_HEIGHT,
+			footerDescription: t('libresign', 'Configure the content displayed at the footer of the PDF. The text template uses Twig syntax: https://twig.symfony.com/'),
 			footerTemplate: '',
 			pdfPreviewFile: null,
 			loadingPreview: false,
@@ -313,6 +319,10 @@ export default {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
+
+	.footer-template-description {
+		color: var(--color-text-lighter);
+	}
 
 	.footer-template-header {
 		display: flex;
