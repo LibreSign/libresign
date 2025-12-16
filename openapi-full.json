@@ -453,6 +453,9 @@
                             "icon-mail",
                             "icon-user"
                         ]
+                    },
+                    "acceptsEmailNotifications": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -513,6 +516,17 @@
                                 "type": "string"
                             }
                         }
+                    },
+                    "displayName": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "notify": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
                     },
                     "signingOrder": {
                         "type": "integer",

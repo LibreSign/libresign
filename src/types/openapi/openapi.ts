@@ -1128,6 +1128,7 @@ export type components = {
             shareType: 0 | 4;
             /** @enum {string} */
             icon?: "icon-mail" | "icon-user";
+            acceptsEmailNotifications?: boolean;
         };
         IdentifyMethod: {
             /** @enum {string} */
@@ -1147,6 +1148,10 @@ export type components = {
                 email?: string;
                 account?: string;
             };
+            displayName?: string;
+            description?: string;
+            /** Format: int64 */
+            notify?: number;
             /** Format: int64 */
             signingOrder?: number;
         };
