@@ -498,10 +498,8 @@ export default {
 			this.filesStore.enableIdentifySigner()
 		},
 		onTabChange(tabId) {
-			// Only update if the tab actually changed
 			if (this.activeTab !== tabId) {
 				this.activeTab = tabId
-				// Save tab preference to userconfig store with debounce
 				this.debouncedTabChange(tabId)
 			}
 		},
