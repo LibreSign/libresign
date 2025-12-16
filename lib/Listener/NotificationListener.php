@@ -210,13 +210,16 @@ class NotificationListener implements IEventListener {
 		}
 		$activityUserSettings = \OCP\Server::get(\OCA\Activity\UserSettings::class);
 		if ($activityUserSettings) {
+			$adminSetting = $activityUserSettings->getAdminSetting('notification', $type);
+			if (!$adminSetting) {
+				return true;
+			}
+
 			$notificationSetting = $activityUserSettings->getUserSetting(
 				$userId,
 				'notification',
 				$type
 			);
-			// If setting is explicitly false, notifications are disabled
-			// If setting is null/not configured, notifications are enabled by default
 			if ($notificationSetting === false) {
 				return true;
 			}
