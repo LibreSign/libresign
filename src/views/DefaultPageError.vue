@@ -101,16 +101,19 @@ export default {
 		border-radius: var(--border-radius-large);
 		box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
 
+		:deep(.empty-content__action) {
+			min-width: 500px;
+
+			@media (max-width: 768px) {
+				min-width: 100%;
+			}
+		}
+
 		.error-messages {
 			display: flex;
 			flex-direction: column;
 			gap: 12px;
 			width: 100%;
-			min-width: 500px;
-
-			@media (max-width: 768px) {
-				min-width: auto;
-			}
 		}
 
 		@media (max-width: 768px) {
