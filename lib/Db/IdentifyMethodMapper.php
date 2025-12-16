@@ -125,6 +125,7 @@ class IdentifyMethodMapper extends QBMapper {
 			->join('im', 'libresign_sign_request', 'sr',
 				$qb->expr()->eq('sr.id', 'im.sign_request_id'),
 			)
+			->where($qb->expr()->neq('im.identifier_value', $qb->createNamedParameter('deleted_users')))
 			->setMaxResults($limit)
 			->setFirstResult($offset);
 
