@@ -118,3 +118,54 @@ Feature: search
       | (jq).ocs.data[0].subname     | admin@email.tld |
       | (jq).ocs.data[0].icon        | icon-mail       |
       | (jq).ocs.data[0].method      | email           |
+
+  Scenario: Search account returns acceptsEmailNotifications true when user accepts email
+    Given as user "admin"
+    And user "notification-enabled" exists
+    And set the email of user "notification-enabled" to "enabled@test.com"
+    And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
+    And run the command "user:setting notification-enabled activity notify_email_libresign_file_to_sign 1" with result code 0
+    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"account","enabled":true}] |
+    When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=notification-enabled"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                         | value                |
+      | (jq).ocs.data\|length                       | 1                    |
+      | (jq).ocs.data[0].id                         | notification-enabled |
+      | (jq).ocs.data[0].method                     | account              |
+      | (jq).ocs.data[0].acceptsEmailNotifications  | true                 |
+
+  Scenario: Search account returns acceptsEmailNotifications false when user disabled email
+    Given as user "admin"
+    And user "notification-disabled" exists
+    And set the email of user "notification-disabled" to "disabled@test.com"
+    And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
+    And run the command "user:setting notification-disabled activity notify_email_libresign_file_to_sign 0" with result code 0
+    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"account","enabled":true}] |
+    When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=notification-disabled"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                         | value                 |
+      | (jq).ocs.data\|length                       | 1                     |
+      | (jq).ocs.data[0].id                         | notification-disabled |
+      | (jq).ocs.data[0].method                     | account               |
+      | (jq).ocs.data[0].acceptsEmailNotifications  | false                 |
+
+  Scenario: Search account returns acceptsEmailNotifications false when global setting disabled
+    Given as user "admin"
+    And user "notification-global-off" exists
+    And set the email of user "notification-global-off" to "globaloff@test.com"
+    And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=0" with result code 0
+    And run the command "user:setting notification-global-off activity notify_email_libresign_file_to_sign 1" with result code 0
+    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"account","enabled":true}] |
+    When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=notification-global-off"
+    Then the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key                                         | value                    |
+      | (jq).ocs.data\|length                       | 1                        |
+      | (jq).ocs.data[0].id                         | notification-global-off  |
+      | (jq).ocs.data[0].method                     | account                  |
+      | (jq).ocs.data[0].acceptsEmailNotifications  | false                    |
