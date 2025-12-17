@@ -379,7 +379,7 @@ export default {
 			return this.hasSigners && this.filesStore.canSave() && !this.isAdminFlowForced
 		},
 		showPreserveOrder() {
-			return this.hasSigners && this.filesStore.canSave() && !this.isAdminFlowForced
+			return this.totalSigners > 1 && this.filesStore.canSave() && !this.isAdminFlowForced
 		},
 		showViewOrderButton() {
 			return this.isOrderedNumeric && this.totalSigners > 1 && this.hasSigners
