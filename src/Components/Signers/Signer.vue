@@ -96,7 +96,14 @@ export default {
 	computed: {
 		signatureFlow() {
 			const file = this.filesStore.getFile()
-			return file?.signatureFlow ?? 'parallel'
+			let flow = file?.signatureFlow ?? 'parallel'
+
+			if (typeof flow === 'number') {
+				const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
+				flow = flowMap[flow] || 'parallel'
+			}
+
+			return flow
 		},
 		signer() {
 			const file = this.filesStore.getFile()

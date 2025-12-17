@@ -60,7 +60,7 @@ class TemplateLoader implements IEventListener {
 
 		$this->initialState->provideInitialState(
 			'signature_flow',
-			$this->appConfig->getValueString(Application::APP_ID, 'signature_flow', \OCA\Libresign\Enum\SignatureFlow::PARALLEL->value)
+			$this->appConfig->getValueString(Application::APP_ID, 'signature_flow', \OCA\Libresign\Enum\SignatureFlow::NONE->value)
 		);
 
 		try {

@@ -83,7 +83,14 @@ export default {
 		},
 		isOrderedNumeric() {
 			const file = this.filesStore.getFile()
-			return file?.signatureFlow === 'ordered_numeric'
+			let flow = file?.signatureFlow
+
+			if (typeof flow === 'number') {
+				const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
+				flow = flowMap[flow]
+			}
+
+			return flow === 'ordered_numeric'
 		},
 		canReorder() {
 			return this.filesStore.canSave() && this.signers.length > 1
