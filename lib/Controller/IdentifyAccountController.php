@@ -19,8 +19,10 @@ use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\Collaboration\Collaborators\ISearch;
+use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use OCP\IUserManager;
 use OCP\IUserSession;
 use OCP\Share\IShare;
 
@@ -36,6 +38,8 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 		private IURLGenerator $urlGenerator,
 		private Email $identifyEmailMethod,
 		private Account $identifyAccountMethod,
+		private IUserManager $userManager,
+		private IConfig $config,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -76,6 +80,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 		$return = $this->addHerselfAccount($return, $search);
 		$return = $this->addHerselfEmail($return, $search);
 		$return = $this->replaceShareTypeByMethod($return);
+		$return = $this->addEmailNotificationPreference($return);
 		$return = $this->excludeNotAllowed($return);
 
 		return new DataResponse($return);
@@ -238,5 +243,63 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 			unset($list[$key]['shareType']);
 		}
 		return $list;
+	}
+
+	private function addEmailNotificationPreference(array $list): array {
+		foreach ($list as $key => $item) {
+			if ($item['method'] !== 'account') {
+				continue;
+			}
+
+			$user = $this->userManager->get($item['id']);
+			if ($user === null) {
+				$list[$key]['acceptsEmailNotifications'] = false;
+				continue;
+			}
+
+			$email = $user->getEMailAddress();
+			if (empty($email)) {
+				$list[$key]['acceptsEmailNotifications'] = false;
+				continue;
+			}
+
+			if ($this->isNotificationDisabledAtActivity($user->getUID(), 'libresign_file_to_sign')) {
+				$list[$key]['acceptsEmailNotifications'] = false;
+				continue;
+			}
+
+			$list[$key]['acceptsEmailNotifications'] = true;
+		}
+		return $list;
+	}
+
+	private function isNotificationDisabledAtActivity(string $userId, string $type): bool {
+		if (!class_exists(\OCA\Activity\UserSettings::class)) {
+			return false;
+		}
+		$activityUserSettings = \OCP\Server::get(\OCA\Activity\UserSettings::class);
+		if ($activityUserSettings) {
+			$manager = \OCP\Server::get(\OCP\Activity\IManager::class);
+			try {
+				$manager->getSettingById($type);
+			} catch (\Exception $e) {
+				return false;
+			}
+
+			$adminSetting = $activityUserSettings->getAdminSetting('email', $type);
+			if (!$adminSetting) {
+				return true;
+			}
+
+			$notificationSetting = $activityUserSettings->getUserSetting(
+				$userId,
+				'email',
+				$type
+			);
+			if (!$notificationSetting) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
