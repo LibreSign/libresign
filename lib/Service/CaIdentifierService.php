@@ -10,7 +10,7 @@ namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
 use OCP\IAppConfig;
-use OCP\IConfig;
+use OCP\Security\ISecureRandom;
 
 class CaIdentifierService {
 	private const ENGINE_TYPES = [
@@ -20,12 +20,17 @@ class CaIdentifierService {
 
 	public function __construct(
 		private IAppConfig $appConfig,
-		private IConfig $config,
 	) {
 	}
 
 	public function getInstanceId(): string {
-		return $this->config->getSystemValueString('instanceid');
+		$instanceId = $this->appConfig->getValueString(Application::APP_ID, 'instance_id', '');
+		if (strlen($instanceId) === 10) {
+			return $instanceId;
+		}
+		$instanceId = \OC::$server->get(ISecureRandom::class)->generate(10, ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
+		$this->appConfig->setValueString(Application::APP_ID, 'instance_id', $instanceId);
+		return $instanceId;
 	}
 
 	public function generateCaId(string $engineName): string {
