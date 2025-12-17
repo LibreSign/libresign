@@ -15,6 +15,20 @@
 			@click="addSigner">
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
+		<NcCheckboxRadioSwitch v-if="showPreserveOrder"
+			v-model="preserveOrder"
+			type="switch"
+			@update:checked="onPreserveOrderChange">
+			{{ t('libresign', 'Preserve signing order') }}
+		</NcCheckboxRadioSwitch>
+		<NcButton v-if="showViewOrderButton"
+			type="tertiary"
+			@click="showOrderDiagram = true">
+			<template #icon>
+				<ChartGantt :size="20" />
+			</template>
+			{{ t('libresign', 'View signing order') }}
+		</NcButton>
 		<Signers event="libresign:edit-signer"
 			@signing-order-changed="debouncedSave">
 			<template #actions="{signer, closeActions}">
@@ -192,6 +206,18 @@
 				</NcButton>
 			</template>
 		</NcDialog>
+		<NcDialog v-if="showOrderDiagram"
+			:name="t('libresign', 'Signing order diagram')"
+			size="large"
+			@closing="showOrderDiagram = false">
+			<SigningOrderDiagram :signers="filesStore.getFile()?.signers || []"
+				:sender-name="currentUserDisplayName" />
+			<template #actions>
+				<NcButton @click="showOrderDiagram = false">
+					{{ t('libresign', 'Close') }}
+				</NcButton>
+			</template>
+		</NcDialog>
 	</div>
 </template>
 <script>
@@ -200,11 +226,13 @@ import debounce from 'debounce'
 
 import svgAccount from '@mdi/svg/svg/account.svg?raw'
 import svgEmail from '@mdi/svg/svg/email.svg?raw'
+import svgInfo from '@mdi/svg/svg/information-outline.svg?raw'
 import svgSms from '@mdi/svg/svg/message-processing.svg?raw'
 import svgWhatsapp from '@mdi/svg/svg/whatsapp.svg?raw'
 import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
 
 import Bell from 'vue-material-design-icons/Bell.vue'
+import ChartGantt from 'vue-material-design-icons/ChartGantt.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import Draw from 'vue-material-design-icons/Draw.vue'
 import FileDocument from 'vue-material-design-icons/FileDocument.vue'
@@ -227,6 +255,7 @@ import NcActions from '@nextcloud/vue/components/NcActions'
 import NcAppSidebar from '@nextcloud/vue/components/NcAppSidebar'
 import NcAppSidebarTab from '@nextcloud/vue/components/NcAppSidebarTab'
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
@@ -234,8 +263,9 @@ import NcModal from '@nextcloud/vue/components/NcModal'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 
 import IdentifySigner from '../Request/IdentifySigner.vue'
-import VisibleElements from '../Request/VisibleElements.vue'
 import Signers from '../Signers/Signers.vue'
+import SigningOrderDiagram from '../SigningOrder/SigningOrderDiagram.vue'
+import VisibleElements from '../Request/VisibleElements.vue'
 
 import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
@@ -262,28 +292,31 @@ export default {
 	name: 'RequestSignatureTab',
 	mixins: [signingOrderMixin],
 	components: {
+		Bell,
+		ChartGantt,
+		Delete,
+		Draw,
+		FileDocument,
+		IdentifySigner,
+		Information,
+		MessageText,
 		NcActionButton,
 		NcActionInput,
 		NcActions,
 		NcAppSidebar,
 		NcAppSidebarTab,
 		NcButton,
+		NcCheckboxRadioSwitch,
+		NcDialog,
 		NcIconSvgWrapper,
 		NcLoadingIcon,
 		NcModal,
 		NcNoteCard,
-		NcDialog,
-		Bell,
-		Delete,
-		Draw,
-		FileDocument,
-		Information,
-		MessageText,
 		OrderNumericAscending,
 		Pencil,
 		Send,
 		Signers,
-		IdentifySigner,
+		SigningOrderDiagram,
 		VisibleElements,
 	},
 	props: {
@@ -311,23 +344,61 @@ export default {
 			showConfirmRequestSigner: false,
 			selectedSigner: null,
 			activeTab: '',
+			preserveOrder: false,
+			showOrderDiagram: false,
+			infoIcon: svgInfo,
+			adminSignatureFlow: '',
+			lastSyncedFileId: null,
 		}
 	},
 	computed: {
 		signatureFlow() {
 			const file = this.filesStore.getFile()
-			return file?.signatureFlow ?? 'parallel'
+			let flow = file?.signatureFlow
+
+			if (typeof flow === 'number') {
+				const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
+				flow = flowMap[flow]
+			}
+
+			if (flow && flow !== 'none') {
+				return flow
+			}
+			if (this.adminSignatureFlow && this.adminSignatureFlow !== 'none') {
+				return this.adminSignatureFlow
+			}
+			return 'parallel'
+		},
+		isAdminFlowForced() {
+			return this.adminSignatureFlow && this.adminSignatureFlow !== 'none'
 		},
 		isOrderedNumeric() {
 			return this.signatureFlow === 'ordered_numeric'
+		},
+		showSigningOrderOptions() {
+			return this.hasSigners && this.filesStore.canSave() && !this.isAdminFlowForced
+		},
+		showPreserveOrder() {
+			return this.hasSigners && this.filesStore.canSave() && !this.isAdminFlowForced
+		},
+		showViewOrderButton() {
+			return this.isOrderedNumeric && this.totalSigners > 1 && this.hasSigners
+		},
+		shouldShowOrderedOptions() {
+			return this.isOrderedNumeric && this.totalSigners > 1
+		},
+		currentUserDisplayName() {
+			return OC.getCurrentUser()?.displayName || ''
 		},
 		showDocMdpWarning() {
 			return this.filesStore.isDocMdpNoChangesAllowed() && !this.filesStore.canAddSigner()
 		},
 		canEditSigningOrder() {
 			return (signer) => {
+				const minSigners = this.isAdminFlowForced ? 1 : 2
+
 				return this.isOrderedNumeric
-					&& this.totalSigners > 1
+					&& this.totalSigners >= minSigners
 					&& this.filesStore.canSave()
 					&& !signer.signed
 			}
@@ -490,12 +561,25 @@ export default {
 		signers(signers) {
 			this.init(signers)
 		},
+		'filesStore.selectedNodeId': {
+			handler(newFileId, oldFileId) {
+				if (newFileId && newFileId !== this.lastSyncedFileId) {
+					this.syncPreserveOrderWithFile()
+					this.lastSyncedFileId = newFileId
+				}
+			},
+			immediate: true,
+		},
 	},
 	async mounted() {
 		subscribe('libresign:edit-signer', this.editSigner)
 		this.filesStore.disableIdentifySigner()
 
 		this.activeTab = this.userConfigStore.signer_identify_tab || ''
+
+		this.adminSignatureFlow = loadState('libresign', 'signature_flow', 'none')
+
+		this.syncPreserveOrderWithFile()
 	},
 	beforeUnmount() {
 		unsubscribe('libresign:edit-signer')
@@ -506,7 +590,11 @@ export default {
 
 		this.debouncedSave = debounce(async () => {
 			try {
-				await this.filesStore.saveWithVisibleElements({ visibleElements: [] })
+				const file = this.filesStore.getFile()
+				await this.filesStore.saveWithVisibleElements({
+					visibleElements: [],
+					signatureFlow: file?.signatureFlow,
+				})
 			} catch (error) {
 				if (error.response?.data?.ocs?.data?.message) {
 					showError(error.response.data.ocs.data.message)
@@ -521,6 +609,56 @@ export default {
 		}, 500)
 	},
 	methods: {
+		onPreserveOrderChange(value) {
+			this.preserveOrder = value
+			const file = this.filesStore.getFile()
+
+			if (value) {
+				if (file?.signers) {
+					file.signers.forEach((signer, index) => {
+						if (!signer.signingOrder) {
+							this.$set(signer, 'signingOrder', index + 1)
+						}
+					})
+				}
+				if (file) {
+					this.$set(file, 'signatureFlow', 'ordered_numeric')
+				}
+			} else {
+				if (!this.isAdminFlowForced) {
+					if (file?.signers) {
+						file.signers.forEach(signer => {
+							if (!signer.signed) {
+								this.$set(signer, 'signingOrder', 1)
+							}
+						})
+					}
+					if (file) {
+						this.$set(file, 'signatureFlow', 'parallel')
+					}
+				}
+			}
+
+			this.debouncedSave()
+		},
+
+		syncPreserveOrderWithFile() {
+			const file = this.filesStore.getFile()
+			if (!file) {
+				this.preserveOrder = false
+				return
+			}
+
+			const flow = file.signatureFlow
+
+			this.lastSyncedFileId = this.filesStore.selectedNodeId
+
+			if ((flow === 'ordered_numeric' || flow === 2) && !this.isAdminFlowForced) {
+				this.preserveOrder = true
+			} else {
+				this.preserveOrder = false
+			}
+		},
 		getSvgIcon(name) {
 			return iconMap[`svg${name.charAt(0).toUpperCase() + name.slice(1)}`] || iconMap.svgAccount
 		},
@@ -788,6 +926,10 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+
+:deep(.checkbox-radio-switch) {
+	margin: 8px 0;
+}
 
 .action-buttons {
 	display: flex;
