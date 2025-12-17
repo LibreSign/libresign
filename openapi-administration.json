@@ -2987,12 +2987,17 @@
                             "schema": {
                                 "type": "object",
                                 "required": [
-                                    "mode"
+                                    "enabled"
                                 ],
                                 "properties": {
+                                    "enabled": {
+                                        "type": "boolean",
+                                        "description": "Whether to force a signature flow for all documents"
+                                    },
                                     "mode": {
                                         "type": "string",
-                                        "description": "Signature flow mode: 'parallel' or 'ordered_numeric'"
+                                        "nullable": true,
+                                        "description": "Signature flow mode: 'parallel' or 'ordered_numeric' (only used when enabled is true)"
                                     }
                                 }
                             }
