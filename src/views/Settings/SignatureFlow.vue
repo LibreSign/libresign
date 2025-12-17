@@ -104,9 +104,9 @@ export default {
 	methods: {
 		loadConfig() {
 			try {
-				const mode = loadState('libresign', 'signature_flow', null)
+				const mode = loadState('libresign', 'signature_flow', 'none')
 
-				if (mode === null || mode === '') {
+				if (mode === 'none') {
 					this.enabled = false
 					this.selectedFlow = this.availableFlows[0]
 				} else {
