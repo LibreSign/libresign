@@ -381,8 +381,15 @@ export const useFilesStore = function(...args) {
 			filesSorted() {
 				return this.ordered.map(key => this.files[key])
 			},
-			async saveWithVisibleElements({ visibleElements = [], signers = null, uuid = null, nodeId = null }) {
+			async saveWithVisibleElements({ visibleElements = [], signers = null, uuid = null, nodeId = null, signatureFlow = null }) {
 				const file = this.getFile()
+
+				let flowValue = signatureFlow || file.signatureFlow
+				if (typeof flowValue === 'number') {
+					const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
+					flowValue = flowMap[flowValue] || 'parallel'
+				}
+
 				const config = {
 					url: generateOcsUrl('/apps/libresign/api/v1/request-signature'),
 					method: uuid || file.uuid ? 'patch' : 'post',
@@ -391,10 +398,12 @@ export const useFilesStore = function(...args) {
 						users: signers || file.signers,
 						visibleElements,
 						status: 0,
+						signatureFlow: flowValue,
 					},
 				}
 
-				if (uuid || file.uuid) {
+
+							if (uuid || file.uuid) {
 					config.data.uuid = uuid || file.uuid
 				} else {
 					config.data.file = {
@@ -406,8 +415,15 @@ export const useFilesStore = function(...args) {
 				this.addFile(data.ocs.data.data)
 				return data.ocs.data
 			},
-			async updateSignatureRequest({ visibleElements = [], signers = null, uuid = null, nodeId = null, status = 1 }) {
+			async updateSignatureRequest({ visibleElements = [], signers = null, uuid = null, nodeId = null, status = 1, signatureFlow = null }) {
 				const file = this.getFile()
+				
+				let flowValue = signatureFlow || file.signatureFlow
+				if (typeof flowValue === 'number') {
+					const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
+					flowValue = flowMap[flowValue] || 'parallel'
+				}
+				
 				const config = {
 					url: generateOcsUrl('/apps/libresign/api/v1/request-signature'),
 					method: uuid || file.uuid ? 'patch' : 'post',
@@ -416,6 +432,7 @@ export const useFilesStore = function(...args) {
 						users: signers || file.signers,
 						visibleElements,
 						status,
+						signatureFlow: flowValue,
 					},
 				}
 
@@ -426,7 +443,6 @@ export const useFilesStore = function(...args) {
 						fileId: nodeId || this.selectedNodeId,
 					}
 				}
-
 				const { data } = await axios(config)
 				this.addFile(data.ocs.data.data)
 				return data.ocs.data
