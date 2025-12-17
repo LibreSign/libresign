@@ -79,6 +79,7 @@ class RequestSignatureService {
 	public function saveFile(array $data): FileEntity {
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
+			$this->updateSignatureFlowIfAllowed($file, $data);
 			return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
 		}
 		$fileId = null;
@@ -90,6 +91,7 @@ class RequestSignatureService {
 		if (!is_null($fileId)) {
 			try {
 				$file = $this->fileMapper->getByFileId($fileId);
+				$this->updateSignatureFlowIfAllowed($file, $data);
 				return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
 			} catch (\Throwable) {
 			}
@@ -118,27 +120,45 @@ class RequestSignatureService {
 			$file->setStatus(FileEntity::STATUS_ABLE_TO_SIGN);
 		}
 
-		if (isset($data['signatureFlow']) && is_string($data['signatureFlow'])) {
-			try {
-				$signatureFlow = \OCA\Libresign\Enum\SignatureFlow::from($data['signatureFlow']);
-				$file->setSignatureFlowEnum($signatureFlow);
-			} catch (\ValueError) {
-				$this->setSignatureFlowFromGlobalConfig($file);
-			}
-		} else {
-			$this->setSignatureFlowFromGlobalConfig($file);
-		}
-
+		$this->setSignatureFlow($file, $data);
 		$this->setDocMdpLevelFromGlobalConfig($file);
 
 		$this->fileMapper->insert($file);
 		return $file;
 	}
 
-	private function setSignatureFlowFromGlobalConfig(FileEntity $file): void {
-		$globalFlowValue = $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', SignatureFlow::PARALLEL->value);
-		$globalFlow = SignatureFlow::from($globalFlowValue);
-		$file->setSignatureFlowEnum($globalFlow);
+	private function updateSignatureFlowIfAllowed(FileEntity $file, array $data): void {
+		$adminFlow = $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', SignatureFlow::NONE->value);
+		$adminForcedConfig = $adminFlow !== SignatureFlow::NONE->value;
+
+		if ($adminForcedConfig) {
+			$adminFlowEnum = SignatureFlow::from($adminFlow);
+			if ($file->getSignatureFlowEnum() !== $adminFlowEnum) {
+				$file->setSignatureFlowEnum($adminFlowEnum);
+				$this->fileMapper->update($file);
+			}
+			return;
+		}
+
+		if (isset($data['signatureFlow']) && !empty($data['signatureFlow'])) {
+			$newFlow = SignatureFlow::from($data['signatureFlow']);
+			if ($file->getSignatureFlowEnum() !== $newFlow) {
+				$file->setSignatureFlowEnum($newFlow);
+				$this->fileMapper->update($file);
+			}
+		}
+	}
+
+	private function setSignatureFlow(FileEntity $file, array $data): void {
+		$adminFlow = $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', SignatureFlow::NONE->value);
+
+		if (isset($data['signatureFlow']) && !empty($data['signatureFlow'])) {
+			$file->setSignatureFlowEnum(SignatureFlow::from($data['signatureFlow']));
+		} elseif ($adminFlow !== SignatureFlow::NONE->value) {
+			$file->setSignatureFlowEnum(SignatureFlow::from($adminFlow));
+		} else {
+			$file->setSignatureFlowEnum(SignatureFlow::NONE);
+		}
 	}
 
 	private function setDocMdpLevelFromGlobalConfig(FileEntity $file): void {
