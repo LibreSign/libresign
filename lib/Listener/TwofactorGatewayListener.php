@@ -81,10 +81,16 @@ class TwofactorGatewayListener implements IEventListener {
 			}
 
 			$isFirstNotification = $this->signRequestMapper->incrementNotificationCounter($signRequest, $entity->getIdentifierKey());
+
+			$message = '';
+			if (!empty($signRequest->getDescription())) {
+				$message = $signRequest->getDescription() . "\n\n";
+			}
+
 			if ($isFirstNotification) {
-				$message = $this->l10n->t('There is a document for you to sign. Access the link below:');
+				$message .= $this->l10n->t('There is a document for you to sign. Access the link below:');
 			} else {
-				$message = $this->l10n->t('Changes have been made in a file that you have to sign. Access the link below:');
+				$message .= $this->l10n->t('Changes have been made in a file that you have to sign. Access the link below:');
 			}
 			$message .= "\n";
 			$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]);
