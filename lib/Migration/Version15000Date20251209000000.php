@@ -62,8 +62,8 @@ class Version15000Date20251209000000 extends SimpleMigrationStep {
 			if (!$tableFile->hasColumn('signature_flow')) {
 				$tableFile->addColumn('signature_flow', Types::SMALLINT, [
 					'notnull' => true,
-					'default' => SignatureFlow::NUMERIC_PARALLEL,
-					'comment' => 'Signature flow mode: 1=parallel, 2=ordered_numeric',
+					'default' => SignatureFlow::NUMERIC_NONE,
+					'comment' => 'Signature flow mode: 0=none (no admin enforcement), 1=parallel, 2=ordered_numeric',
 				]);
 			}
 		}
