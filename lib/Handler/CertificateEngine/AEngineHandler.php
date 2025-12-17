@@ -363,8 +363,8 @@ abstract class AEngineHandler implements IEngineHandler {
 		}
 		$pkiDirName = $this->caIdentifierService->generatePkiDirectoryName($caId);
 		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
-		$instanceId = $this->config->getSystemValue('instanceid');
-		$pkiPath = $dataDir . '/appdata_' . $instanceId . '/libresign/' . $pkiDirName;
+		$systemInstanceId = $this->config->getSystemValue('instanceid');
+		$pkiPath = $dataDir . '/appdata_' . $systemInstanceId . '/libresign/' . $pkiDirName;
 
 		if (!is_dir($pkiPath)) {
 			$this->createDirectoryWithCorrectOwnership($pkiPath);
