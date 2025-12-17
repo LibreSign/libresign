@@ -7,6 +7,9 @@
 		<NcNoteCard v-if="showDocMdpWarning" type="warning">
 			{{ t('libresign', 'This document has been certified with no changes allowed. You cannot add more signers to this document.') }}
 		</NcNoteCard>
+		<NcNoteCard v-if="hasSignersWithDisabledMethods" type="warning">
+			{{ t('libresign', 'Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures.') }}
+		</NcNoteCard>
 		<NcButton v-if="filesStore.canAddSigner()"
 			:variant="hasSigners ? 'secondary' : 'primary'"
 			@click="addSigner">
@@ -132,11 +135,7 @@
 			:size="size"
 			:name="modalTitle"
 			@closing="filesStore.disableIdentifySigner()">
-			<NcNoteCard v-if="isSignerMethodDisabled" type="warning">
-				{{ t('libresign', 'The identification method "{method}" used by this signer has been disabled by the system administrator.', { method: disabledMethodName }) }}
-			</NcNoteCard>
-			<NcAppSidebar v-else
-				:name="modalTitle"
+			<NcAppSidebar :name="modalTitle"
 				:active="activeTab"
 				@update:active="onTabChange">
 				<NcAppSidebarTab v-for="method in enabledMethods"
@@ -150,7 +149,8 @@
 					<IdentifySigner :signer-to-edit="signerToEdit"
 						:placeholder="method.friendly_name"
 						:method="method.name"
-						:methods="methods" />
+						:methods="methods"
+						:disabled="isSignerMethodDisabled" />
 				</NcAppSidebarTab>
 			</NcAppSidebar>
 		</NcDialog>
@@ -348,6 +348,10 @@ export default {
 					return false
 				}
 
+				if (!this.canSignerActInOrder(signer)) {
+					return false
+				}
+
 				return !!method
 			}
 		},
@@ -377,6 +381,24 @@ export default {
 				return this.canSignerActInOrder(signer)
 			}
 		},
+		hasSignersWithDisabledMethods() {
+			const file = this.filesStore.getFile()
+			if (!file?.signers) {
+				return false
+			}
+
+			return file.signers.some(signer => {
+				if (signer.signed) {
+					return false
+				}
+				const method = signer.identifyMethods?.[0]?.method
+				if (!method) {
+					return false
+				}
+				const methodConfig = this.methods.find(m => m.name === method)
+				return !methodConfig?.enabled
+			})
+		},
 		showSaveButton() {
 			if (!this.filesStore.canSave()) {
 				return false
@@ -392,10 +414,17 @@ export default {
 				return false
 			}
 
+			if (this.hasSignersWithDisabledMethods) {
+				return false
+			}
+
 			return true
 		},
 		showRequestButton() {
 			if (!this.filesStore.canSave()) {
+				return false
+			}
+			if (this.hasSignersWithDisabledMethods) {
 				return false
 			}
 			return this.hasDraftSigners
@@ -429,14 +458,16 @@ export default {
 			return this.t('libresign', 'Add new signer')
 		},
 		enabledMethods() {
-			const enabledMethods = this.methods.filter(method => method.enabled)
-
 			if (Object.keys(this.signerToEdit).length > 0 && this.signerToEdit.identifyMethods?.length) {
 				const signerMethod = this.signerToEdit.identifyMethods[0].method
-				return enabledMethods.filter(method => method.name === signerMethod)
+				const signerMethodConfig = this.methods.find(m => m.name === signerMethod)
+
+				if (signerMethodConfig) {
+					return [signerMethodConfig]
+				}
 			}
 
-			return enabledMethods
+			return this.methods.filter(method => method.enabled)
 		},
 		isSignerMethodDisabled() {
 			if (Object.keys(this.signerToEdit).length > 0 && this.signerToEdit.identifyMethods?.length) {
@@ -494,6 +525,14 @@ export default {
 			return iconMap[`svg${name.charAt(0).toUpperCase() + name.slice(1)}`] || iconMap.svgAccount
 		},
 		canSignerActInOrder(signer) {
+			const method = signer.identifyMethods?.[0]?.method
+			if (method) {
+				const methodConfig = this.methods.find(m => m.name === method)
+				if (!methodConfig?.enabled) {
+					return false
+				}
+			}
+
 			if (!this.isOrderedNumeric) {
 				return true
 			}

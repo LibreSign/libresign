@@ -9,6 +9,7 @@
 		:counter-type="counterType"
 		:force-display-actions="true"
 		:class="signerClass"
+		:title="disabledTooltip"
 		@click="signerClickAction">
 		<template #icon>
 			<NcAvatar :size="44" :display-name="signer.displayName" />
@@ -89,6 +90,7 @@ export default {
 	data() {
 		return {
 			canRequestSign: loadState('libresign', 'can_request_sign', false),
+			methods: loadState('libresign', 'identify_methods', []),
 		}
 	},
 	computed: {
@@ -114,9 +116,32 @@ export default {
 		counterType() {
 			return this.counterNumber !== null ? 'highlighted' : undefined
 		},
+		isMethodDisabled() {
+			if (!this.signer.identifyMethods?.length) {
+				return false
+			}
+			const signerMethod = this.signer.identifyMethods[0].method
+			const methodConfig = this.methods.find(m => m.name === signerMethod)
+			return !methodConfig?.enabled
+		},
+		disabledMethodLabel() {
+			if (!this.signer.identifyMethods?.length) {
+				return ''
+			}
+			const signerMethod = this.signer.identifyMethods[0].method
+			const methodConfig = this.methods.find(m => m.name === signerMethod)
+			return methodConfig?.friendly_name || signerMethod
+		},
+		disabledTooltip() {
+			if (this.isMethodDisabled) {
+				return this.t('libresign', 'This signer cannot be used because the identification method "{method}" has been disabled by the administrator.', { method: this.disabledMethodLabel })
+			}
+			return ''
+		},
 		signerClass() {
 			return {
 				'signer-signed': this.signer.signed,
+				'signer-method-disabled': this.isMethodDisabled,
 			}
 		},
 		showDragHandle() {
@@ -173,6 +198,9 @@ export default {
 			if (this.signer.signed) {
 				return
 			}
+			if (this.isMethodDisabled) {
+				return
+			}
 			emit(this.event, this.signer)
 		},
 		closeActions() {
@@ -219,5 +247,34 @@ export default {
 .signer-signed .drag-handle {
 	cursor: not-allowed;
 	opacity: 0.3;
+}
+
+.signer-method-disabled {
+	opacity: 0.6;
+
+	:deep(.list-item__wrapper) {
+		cursor: not-allowed !important;
+	}
+
+	:deep(.list-item-content__wrapper) {
+		position: relative;
+
+		&::after {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background-color: var(--color-background-dark);
+			opacity: 0.2;
+			pointer-events: none;
+		}
+	}
+
+	:deep(.list-item-content__actions) {
+		opacity: 1;
+		pointer-events: auto;
+	}
 }
 </style>
