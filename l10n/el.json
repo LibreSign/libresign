@@ -436,7 +436,6 @@
     "Signature hash algorithm" : "Αλγόριθμος κατακερματισμού υπογραφής",
     "Hash algorithm used for signature." : "Αλγόριθμος κατακερματισμού που χρησιμοποιείται για υπογραφή.",
     "Signature stamp" : "Σφραγίδα υπογραφής",
-    "Configure the content displayed with the signature. The text template uses Twig syntax." : "Διαμορφώστε το περιεχόμενο που εμφανίζεται με την υπογραφή. Το πρότυπο κειμένου χρησιμοποιεί σύνταξη Twig.",
     "Signature image here" : "Εικόνα υπογραφής εδώ",
     "Signature template content is overflowing. Reduce the text." : "Το περιεχόμενο του προτύπου υπογραφής ξεχειλίζει. Μειώστε το κείμενο.",
     "Display signature mode" : "Λειτουργία εμφάνισης υπογραφής",

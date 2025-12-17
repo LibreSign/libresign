@@ -583,7 +583,6 @@ OC.L10N.register(
     "Signature hash algorithm" : "Algoritmo de resumo de sinatura",
     "Hash algorithm used for signature." : "Algoritmo de resumo empregado para a sinatura.",
     "Signature stamp" : "Selo da sinatura",
-    "Configure the content displayed with the signature. The text template uses Twig syntax." : "Configurar o contido que se amosa coa sinatura. O modelo de texto emprega a sintaxe de Twig.",
     "Signature image here" : "Imaxe da sinatura aquí",
     "Signature template content is overflowing. Reduce the text." : "O contido do modelo de sinatura desborda as marxes. Reduza o texto.",
     "Display signature mode" : "Amosar o modo de sinatura",

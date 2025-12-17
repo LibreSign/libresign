@@ -461,7 +461,6 @@
     "Signature hash algorithm" : "ຂັ້ນຕອນວິທີການແຮັຊລາຍເຊັນ",
     "Hash algorithm used for signature." : "ຂັ້ນຕອນວິທີການແຮັຊທີ່ໃຊ້ສຳລັບລາຍເຊັນ.",
     "Signature stamp" : "ກາປະທັບລາຍເຊັນ",
-    "Configure the content displayed with the signature. The text template uses Twig syntax." : "ກຳນົດຄ່າເນື້ອຫາທີ່ສະແດງພ້ອມກັບລາຍເຊັນ. ແມ່ແບບຂໍ້ຄວາມໃຊ້ຮູບແບບຂອງ Twig.",
     "Signature image here" : "ຮູບລາຍເຊັນຢູ່ທີ່ນີ້",
     "Signature template content is overflowing. Reduce the text." : "ເນື້ອຫາແມ່ແບບລາຍເຊັນຍາວເກີນໄປ. ກະລຸນາຫຼຸດຂໍ້ຄວາມລົງ.",
     "Display signature mode" : "ຮູບແບບການສະແດງລາຍເຊັນ",

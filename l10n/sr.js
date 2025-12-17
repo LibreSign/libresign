@@ -465,7 +465,6 @@ OC.L10N.register(
     "Signature hash algorithm" : "Алгоритам хеширања потписа",
     "Hash algorithm used for signature." : "Алгоритам хеширања који се користи за потпис.",
     "Signature stamp" : "Печат потписа",
-    "Configure the content displayed with the signature. The text template uses Twig syntax." : "Конфигурише садржај који се приказује уз потпис. Шаблон текста користи Twig синтаксу.",
     "Signature image here" : "Овде иде слика потписа",
     "Signature template content is overflowing. Reduce the text." : "Садржај шаблона потписа не стаје у дати простор. Изоставите текст.",
     "Display signature mode" : "Режим приказа потписа",

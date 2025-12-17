@@ -475,7 +475,6 @@ OC.L10N.register(
     "Signature hash algorithm" : "Algoritmus vytváření otisku (hash) pro podpis",
     "Hash algorithm used for signature." : "Algoritmus otisku (hash) použitý pro podpis.",
     "Signature stamp" : "Razítko podpisu",
-    "Configure the content displayed with the signature. The text template uses Twig syntax." : "Nastavte obsah, zobrazovaný společně s podpisem. Šablona textu používá syntaxi Twig.",
     "Signature image here" : "Podpis obrázku sem",
     "Signature template content is overflowing. Reduce the text." : "Obsah šablony podpisu přetéká. Zkraťte text.",
     "Display signature mode" : "Režim zobrazení podpisu",

@@ -575,7 +575,6 @@ OC.L10N.register(
     "Signature hash algorithm" : "簽章雜湊演算法",
     "Hash algorithm used for signature." : "用於簽章的雜湊演算法。",
     "Signature stamp" : "簽名戳記",
-    "Configure the content displayed with the signature. The text template uses Twig syntax." : "設定簽章顯示的內容。文字範本使用 Twig 語法。",
     "Signature image here" : "簽名圖片在此",
     "Signature template content is overflowing. Reduce the text." : "簽名範本內容過多。請減少文字。",
     "Display signature mode" : "顯示簽名模式",
