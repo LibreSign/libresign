@@ -136,18 +136,17 @@ export default {
 			this.pdfBlob = new File([blob], 'arquivo.pdf', { type: 'application/pdf' })
 		},
 		updateSigners(data) {
-			this.signStore.document.signers.forEach(signer => {
-				if (signer.visibleElements.length > 0) {
-					signer.visibleElements.forEach(element => {
-						const object = structuredClone(signer)
-						object.readOnly = true
-						element.coordinates.ury = Math.round(data.measurement[element.coordinates.page].height)
-							- element.coordinates.ury
-						object.element = element
-						this.$refs.pdfEditor.addSigner(object)
-					})
-				}
-			})
+			const currentSigner = this.signStore.document.signers.find(signer => signer.me)
+			if (currentSigner && currentSigner.visibleElements.length > 0) {
+				currentSigner.visibleElements.forEach(element => {
+					const object = structuredClone(currentSigner)
+					object.readOnly = true
+					element.coordinates.ury = Math.round(data.measurement[element.coordinates.page].height)
+						- element.coordinates.ury
+					object.element = element
+					this.$refs.pdfEditor.addSigner(object)
+				})
+			}
 			this.signStore.mounted = true
 		},
 		toggleSidebar() {
