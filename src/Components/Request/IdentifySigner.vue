@@ -16,7 +16,11 @@
 			<strong>{{ identifyMethodLabel }}:</strong> {{ signer.id }}
 		</NcNoteCard>
 
-		<NcTextField v-if="signerSelected"
+		<NcNoteCard v-if="disabled" type="warning" class="disabled-warning">
+			{{ t('libresign', 'This signer cannot be used because the identification method "{method}" has been disabled by the administrator.', { method: identifyMethodLabel }) }}
+		</NcNoteCard>
+
+		<NcTextField v-if="signerSelected && !disabled"
 			v-model="displayName"
 			aria-describedby="name-input"
 			autocapitalize="none"
@@ -27,7 +31,7 @@
 			:helper-text="nameHelperText"
 			@update:value="onNameChange" />
 
-		<div v-if="signerSelected && showCustomMessage" class="description-wrapper">
+		<div v-if="signerSelected && showCustomMessage && !disabled" class="description-wrapper">
 			<NcCheckboxRadioSwitch v-model:checked="enableCustomMessage"
 				type="switch"
 				@update:checked="onToggleCustomMessage">
@@ -43,7 +47,7 @@
 				resize="none" />
 		</div>
 
-		<div class="identifySigner__footer">
+		<div v-if="!disabled" class="identifySigner__footer">
 			<div class="button-group">
 				<NcButton @click="filesStore.disableIdentifySigner()">
 					{{ t('libresign', 'Cancel') }}
@@ -118,6 +122,10 @@ export default {
 		methods: {
 			type: Array,
 			default: () => [],
+		},
+		disabled: {
+			type: Boolean,
+			default: false,
 		},
 	},
 	setup() {
@@ -252,6 +260,11 @@ export default {
 	align-items: flex-start;
 	width: 96%;
 	margin: 0 auto;
+
+	.disabled-warning {
+		margin-top: 12px;
+		width: 100%;
+	}
 
 	#account-or-email {
 		width: 100%;
