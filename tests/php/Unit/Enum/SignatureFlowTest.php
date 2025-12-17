@@ -15,6 +15,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 final class SignatureFlowTest extends TestCase {
 	public static function validFlowProvider(): array {
 		return [
+			'none' => [SignatureFlow::NONE, SignatureFlow::NUMERIC_NONE, 'none'],
 			'parallel' => [SignatureFlow::PARALLEL, SignatureFlow::NUMERIC_PARALLEL, 'parallel'],
 			'ordered_numeric' => [SignatureFlow::ORDERED_NUMERIC, SignatureFlow::NUMERIC_ORDERED_NUMERIC, 'ordered_numeric'],
 		];
@@ -29,7 +30,6 @@ final class SignatureFlowTest extends TestCase {
 
 	public static function invalidNumericProvider(): array {
 		return [
-			'zero' => [0],
 			'negative' => [-1],
 			'three' => [3],
 			'large' => [999],
