@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Settings;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Service\CertificatePolicyService;
@@ -79,7 +78,7 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState('tsa_username', $this->appConfig->getValueString(Application::APP_ID, 'tsa_username', ''));
 		$this->initialState->provideInitialState('tsa_password', $this->appConfig->getValueString(Application::APP_ID, 'tsa_password', self::PASSWORD_PLACEHOLDER));
 		$this->initialState->provideInitialState('docmdp_config', $this->docMdpConfigService->getConfig());
-		$this->initialState->provideInitialState('signature_flow', $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', SignatureFlow::PARALLEL->value));
+		$this->initialState->provideInitialState('signature_flow', $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', ''));
 		return new TemplateResponse(Application::APP_ID, 'admin_settings');
 	}
 
