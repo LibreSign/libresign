@@ -10,7 +10,6 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Service\CaIdentifierService;
 use OCP\IAppConfig;
-use OCP\IConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -20,22 +19,17 @@ use PHPUnit\Framework\TestCase;
  */
 final class CaIdentifierServiceTest extends TestCase {
 	private CaIdentifierService $service;
-	private IAppConfig&MockObject $appConfig;
-	private IConfig&MockObject $config;
+	private MockObject $appConfig;
 
 	protected function setUp(): void {
+		parent::setUp();
 		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->config = $this->createMock(IConfig::class);
-		$this->service = new CaIdentifierService($this->appConfig, $this->config);
+		/** @var IAppConfig $appConfig */
+		$appConfig = $this->appConfig;
+		$this->service = new CaIdentifierService($appConfig);
 	}
 
 	public function testGenerateCaIdWithOpenSSL(): void {
-		$this->config
-			->expects($this->once())
-			->method('getSystemValueString')
-			->with('instanceid')
-			->willReturn('abc1234567');
-
 		$this->appConfig
 			->expects($this->once())
 			->method('getValueInt')
@@ -49,16 +43,10 @@ final class CaIdentifierServiceTest extends TestCase {
 
 		$result = $this->service->generateCaId('openssl');
 
-		$this->assertEquals('libresign-ca-id:abc1234567_g:1_e:o', $result);
+		$this->assertMatchesRegularExpression('/^libresign-ca-id:[a-z0-9]{10}_g:\d+_e:o$/', $result);
 	}
 
 	public function testGenerateCaIdWithCFSSL(): void {
-		$this->config
-			->expects($this->once())
-			->method('getSystemValueString')
-			->with('instanceid')
-			->willReturn('xyz9876543');
-
 		$this->appConfig
 			->expects($this->once())
 			->method('getValueInt')
@@ -72,7 +60,7 @@ final class CaIdentifierServiceTest extends TestCase {
 
 		$result = $this->service->generateCaId('cfssl');
 
-		$this->assertEquals('libresign-ca-id:xyz9876543_g:3_e:c', $result);
+		$this->assertMatchesRegularExpression('/^libresign-ca-id:[a-z0-9]{10}_g:\d+_e:c$/', $result);
 	}
 
 	#[DataProvider('providerIsValidCaId')]
