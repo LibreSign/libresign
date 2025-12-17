@@ -141,14 +141,8 @@ abstract class AEngineHandler implements IEngineHandler {
 	public function getCaId(): string {
 		$caId = $this->caIdentifierService->getCaId();
 		if (empty($caId)) {
-			// In debug mode (tests), use file lock and cache clear to prevent race conditions
-			// between CLI commands and HTTP requests executing simultaneously.
-			// In production, this is not needed as setup commands run before HTTP requests.
-			if ($this->config->getSystemValueBool('debug', false)) {
-				$caId = $this->getCaIdWithLock();
-			} else {
-				$caId = $this->caIdentifierService->generateCaId($this->getName());
-			}
+			$this->appConfig->clearCache(true);
+			$caId = $this->caIdentifierService->getCaId() ?: $this->caIdentifierService->generateCaId($this->getName());
 		}
 		return $caId;
 	}
