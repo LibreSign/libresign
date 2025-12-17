@@ -422,7 +422,6 @@
     "Signature hash algorithm" : "Algoritmo hash della firma",
     "Hash algorithm used for signature." : "Algoritmo hash utilizzato per la firma.",
     "Signature stamp" : "Timbro della firma",
-    "Configure the content displayed with the signature. The text template uses Twig syntax." : "Configura il contenuto visualizzato con la firma. Il modello di testo utilizza la sintassi Twig.",
     "Signature image here" : "Immagine della firma qui",
     "Signature template content is overflowing. Reduce the text." : "Il contenuto del modello di firma è eccessivo. Riduci il testo.",
     "Display signature mode" : "Visualizza la modalità firma",

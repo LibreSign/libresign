@@ -574,7 +574,6 @@
     "Signature hash algorithm" : "Síniú algartam hash",
     "Hash algorithm used for signature." : "Algartam hash a úsáidtear le haghaidh síniú.",
     "Signature stamp" : "Stampa sínithe",
-    "Configure the content displayed with the signature. The text template uses Twig syntax." : "Cumraigh an t-ábhar ar taispeáint leis an síniú. Úsáideann an teimpléad téacs comhréir Twig.",
     "Signature image here" : "Íomhá sínithe anseo",
     "Signature template content is overflowing. Reduce the text." : "Tá ábhar an teimpléid sínithe ag cur thar maoil. Laghdaigh an téacs.",
     "Display signature mode" : "Taispeáin mód sínithe",

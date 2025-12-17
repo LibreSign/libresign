@@ -441,7 +441,6 @@ OC.L10N.register(
     "Signature hash algorithm" : "Алгоритм хешування підпису",
     "Hash algorithm used for signature." : "Для підпису використовується хеш-алгоритм.",
     "Signature stamp" : "Печатка з підписом",
-    "Configure the content displayed with the signature. The text template uses Twig syntax." : "Налаштуйте вміст, що відображається з підписом. Текстовий шаблон використовує синтаксис Twig.",
     "Signature image here" : "Зображення для підпису тут",
     "Signature template content is overflowing. Reduce the text." : "Вміст шаблону підпису переповнений. Скоротіть текст.",
     "Display signature mode" : "Режим відображення підпису",

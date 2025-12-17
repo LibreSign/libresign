@@ -418,7 +418,6 @@
     "Signature hash algorithm" : "Signaturalgoritm för hash",
     "Hash algorithm used for signature." : "Hash-algoritm som används för signatur.",
     "Signature stamp" : "Signaturstämpel",
-    "Configure the content displayed with the signature. The text template uses Twig syntax." : "Konfigurera innehållet som visas med signaturen. Textmallen använder Twig-syntax.",
     "Signature image here" : "Signaturbild här",
     "Signature template content is overflowing. Reduce the text." : "Innehållet i signaturmallen flödar över. Minska textmängden.",
     "Display signature mode" : "Visa signaturläge",

@@ -577,7 +577,6 @@ OC.L10N.register(
     "Signature hash algorithm" : "ئىمزا ھەش ئالگورىزىمى",
     "Hash algorithm used for signature." : "ئىمزا ئۈچۈن ئىشلىتىلىدىغان ھەش ئالگورىزىم.",
     "Signature stamp" : "ئىمزا تامغىسى",
-    "Configure the content displayed with the signature. The text template uses Twig syntax." : "ئىمزا بىلەن كۆرسىتىلگەن مەزمۇننى تەڭشەڭ. تېكىست قېلىپى Twig سىنتاكسىسىنى ئىشلىتىدۇ.",
     "Signature image here" : "ئىمزا رەسىمى بۇ يەردە",
     "Signature template content is overflowing. Reduce the text." : "ئىمزا قېلىپىنىڭ مەزمۇنى تولۇپ كەتتى. تېكىستنى قىسقارتىڭ.",
     "Display signature mode" : "ئىمزا ھالىتىنى كۆرسىتىش",
