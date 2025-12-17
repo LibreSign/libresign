@@ -57,7 +57,7 @@ class File extends Entity {
 	protected ?string $callback = null;
 	protected ?array $metadata = null;
 	protected int $modificationStatus = 0;
-	protected int $signatureFlow = SignatureFlow::NUMERIC_PARALLEL;
+	protected int $signatureFlow = SignatureFlow::NUMERIC_NONE;
 	protected int $docmdpLevel = 0;
 	public const STATUS_NOT_LIBRESIGN_FILE = -1;
 	public const STATUS_DRAFT = 0;
