@@ -28,6 +28,9 @@ namespace OCA\Libresign;
  *         email?: string,
  *         account?: string,
  *     },
+ *     displayName?: string,
+ *     description?: string,
+ *     notify?: non-negative-int,
  *     signingOrder?: non-negative-int,
  * }
  * @psalm-type LibresignNewFile = array{
@@ -55,6 +58,7 @@ namespace OCA\Libresign;
  *     subname: string,
  *     shareType: 0|4,
  *     icon?: 'icon-mail'|'icon-user',
+ *     acceptsEmailNotifications?: boolean,
  * }
  * @psalm-type LibresignPagination = array{
  *     total: non-negative-int,

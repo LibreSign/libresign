@@ -26,6 +26,14 @@
 						<OrderNumericAscending :size="20" />
 					</template>
 				</NcActionInput>
+				<NcActionButton v-if="canCustomizeMessage(signer)"
+					:close-after-click="true"
+					@click="customizeMessage(signer); closeActions()">
+					<template #icon>
+						<MessageText :size="20" />
+					</template>
+					{{ t('libresign', 'Customize message') }}
+				</NcActionButton>
 				<NcActionButton v-if="canDelete(signer)"
 					aria-label="Delete"
 					:close-after-click="true"
@@ -44,9 +52,11 @@
 					{{ t('libresign', 'Request signature') }}
 				</NcActionButton>
 				<NcActionButton v-if="canSendReminder(signer)"
-					icon="icon-comment"
 					:close-after-click="true"
 					@click="sendNotify(signer)">
+					<template #icon>
+						<Bell :size="20" />
+					</template>
 					{{ t('libresign', 'Send reminder') }}
 				</NcActionButton>
 			</template>
@@ -194,10 +204,12 @@ import svgSms from '@mdi/svg/svg/message-processing.svg?raw'
 import svgWhatsapp from '@mdi/svg/svg/whatsapp.svg?raw'
 import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
 
+import Bell from 'vue-material-design-icons/Bell.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import Draw from 'vue-material-design-icons/Draw.vue'
 import FileDocument from 'vue-material-design-icons/FileDocument.vue'
 import Information from 'vue-material-design-icons/Information.vue'
+import MessageText from 'vue-material-design-icons/MessageText.vue'
 import OrderNumericAscending from 'vue-material-design-icons/OrderNumericAscending.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import Send from 'vue-material-design-icons/Send.vue'
@@ -261,10 +273,12 @@ export default {
 		NcModal,
 		NcNoteCard,
 		NcDialog,
+		Bell,
 		Delete,
 		Draw,
 		FileDocument,
 		Information,
+		MessageText,
 		OrderNumericAscending,
 		Pencil,
 		Send,
@@ -321,6 +335,20 @@ export default {
 		canDelete() {
 			return (signer) => {
 				return this.filesStore.canSave() && !signer.signed
+			}
+		},
+		canCustomizeMessage() {
+			return (signer) => {
+				if (signer.signed || !signer.signRequestId || signer.me) {
+					return false
+				}
+
+				const method = signer.identifyMethods?.[0]?.method
+				if (method === 'account' && !signer.acceptsEmailNotifications) {
+					return false
+				}
+
+				return !!method
 			}
 		},
 		canRequestSignature() {
@@ -528,6 +556,10 @@ export default {
 				const signerMethod = signer.identifyMethods[0].method
 				this.activeTab = `tab-${signerMethod}`
 			}
+			this.filesStore.enableIdentifySigner()
+		},
+		customizeMessage(signer) {
+			this.signerToEdit = signer
 			this.filesStore.enableIdentifySigner()
 		},
 		onTabChange(tabId) {
