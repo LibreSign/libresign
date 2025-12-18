@@ -57,7 +57,8 @@
 			<PdfEditor ref="pdfEditor"
 				width="100%"
 				height="100%"
-				:file-src="document.file"
+				:files="[document.file]"
+				:file-names="[documentNameWithExtension]"
 				@pdf-editor:end-init="updateSigners"
 				@pdf-editor:on-delete-signer="onDeleteSigner" />
 		</div>
@@ -124,6 +125,10 @@ export default {
 		},
 		document() {
 			return this.filesStore.getFile()
+		},
+		documentNameWithExtension() {
+			const doc = this.document
+			return `${doc.name}.${doc.metadata.extension}`
 		},
 		canSign() {
 			if (this.status !== SIGN_STATUS.ABLE_TO_SIGN) {
@@ -277,28 +282,26 @@ export default {
 		},
 		buildVisibleElements() {
 			const visibleElements = []
-			const scale = this.$refs.pdfEditor.$refs.vuePdfEditor.scale || 1
-			Object.entries(this.$refs.pdfEditor.$refs.vuePdfEditor.allObjects).forEach(entry => {
-				const [pageNumber, page] = entry
-				const measurement = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs['page' + pageNumber][0].getCanvasMeasurement()
-				const normalizedCanvasHeight = measurement.canvasHeight / scale
-				page.forEach(function(element) {
-					visibleElements.push({
-						type: 'signature',
-						signRequestId: element.signer.signRequestId,
-						elementId: element.signer.element.elementId,
-						coordinates: {
-							page: parseInt(pageNumber) + 1,
-							width: parseInt(element.width),
-							height: parseInt(element.height),
-							llx: parseInt(element.x),
-							lly: parseInt(normalizedCanvasHeight - element.y),
-							ury: parseInt(normalizedCanvasHeight - element.y - element.height),
-							urx: parseInt(element.x + element.width),
-						},
-					})
+			const objects = this.$refs.pdfEditor.$refs.vuePdfEditor.getAllObjects()
+
+			objects.forEach(object => {
+				if (!object.signer) return
+
+				visibleElements.push({
+					type: 'signature',
+					signRequestId: object.signer.signRequestId,
+					elementId: object.signer.element.elementId,
+					coordinates: {
+						page: object.pageNumber,
+						width: object.normalizedCoordinates.width,
+						height: object.normalizedCoordinates.height,
+						llx: object.normalizedCoordinates.llx,
+						lly: object.normalizedCoordinates.lly,
+						ury: object.normalizedCoordinates.ury,
+						urx: object.normalizedCoordinates.urx,
+					},
 				})
-			}, this)
+			})
 			return visibleElements
 		},
 	},

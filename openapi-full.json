@@ -1106,6 +1106,42 @@
                     "url": {
                         "type": "string"
                     },
+                    "metadata": {
+                        "type": "object",
+                        "required": [
+                            "extension",
+                            "p"
+                        ],
+                        "properties": {
+                            "extension": {
+                                "type": "string"
+                            },
+                            "p": {
+                                "type": "integer",
+                                "format": "int64"
+                            },
+                            "d": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "required": [
+                                        "w",
+                                        "h"
+                                    ],
+                                    "properties": {
+                                        "w": {
+                                            "type": "number",
+                                            "format": "double"
+                                        },
+                                        "h": {
+                                            "type": "number",
+                                            "format": "double"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "signers": {
                         "type": "array",
                         "items": {

@@ -15,12 +15,13 @@
 		:show-rename="false"
 		:show-save-btn="false"
 		:save-to-upload="false"
-		:init-file="file"
-		:init-file-src="fileSrc"
+		:init-files="files"
+		:init-file-names="fileNames"
 		:init-image-scale="1"
 		:seal-image-show="false"
+		:page-count-format="t('libresign', '{currentPage} of {totalPages}')"
 		@pdf-editor:end-init="endInit">
-		<template #custom="{ object, pagesScale }">
+		<template #custom="{ object, pagesScale, onUpdate, onDelete }">
 			<Signature :x="object.x"
 				:y="object.y"
 				:fix-size="object.signer.readOnly"
@@ -31,8 +32,8 @@
 				:origin-width="object.originWidth"
 				:origin-height="object.originHeight"
 				:page-scale="pagesScale"
-				@onUpdate="$refs.vuePdfEditor.updateObject(object.id, $event)"
-				@onDelete="onDeleteSigner(object)" />
+				@onUpdate="onUpdate"
+				@onDelete="() => { onDeleteSigner(object); onDelete(); }" />
 		</template>
 	</VuePdfEditor>
 </template>
@@ -50,13 +51,13 @@ export default {
 		Signature,
 	},
 	props: {
-		file: {
-			type: File,
-			default: null,
+		files: {
+			type: Array,
+			default: () => [],
 		},
-		fileSrc: {
-			type: String,
-			default: '',
+		fileNames: {
+			type: Array,
+			default: () => [],
 		},
 		readOnly: {
 			type: Boolean,
@@ -69,7 +70,6 @@ export default {
 		},
 		onDeleteSigner(object) {
 			this.$emit('pdf-editor:on-delete-signer', object)
-			this.$refs.vuePdfEditor.deleteObject(object.id)
 		},
 		addSigner(signer) {
 			const object = {
@@ -83,12 +83,10 @@ export default {
 				x: signer.element.coordinates.llx,
 				y: signer.element.coordinates.ury,
 			}
-			this.$refs.vuePdfEditor.allObjects = this.$refs.vuePdfEditor.allObjects.map((objects, pIndex) => {
-				if (pIndex === signer.element.coordinates.page - 1) {
-					return [...objects, object]
-				}
-				return objects
-			})
+			this.$refs.vuePdfEditor.addObjectToPage(
+				object,
+				signer.element.coordinates.page - 1,
+			)
 		},
 	},
 }
