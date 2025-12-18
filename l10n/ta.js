@@ -18,6 +18,7 @@ OC.L10N.register(
     "Choose" : "தெரிவுசெய்க ",
     "Previous" : "முன்தைய",
     "Next" : "அடுத்த",
+    "Close" : "மூடுக",
     "Details" : "விவரங்கள்",
     "Create account" : "கணக்கை உருவாக்குக",
     "Password" : "கடவுச்சொல்",
@@ -37,7 +38,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "பயனாளர் பெயர்",
-    "Close" : "மூடுக",
     "No date" : "No date",
     "Issued by:" : "ஆல் வழங்கப்பட்டது:"
 },

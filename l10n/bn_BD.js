@@ -21,6 +21,7 @@ OC.L10N.register(
     "Previous" : "পূর্ববর্তী",
     "Next" : "পরবর্তী",
     "Open file" : "খোলা ফাইল",
+    "Close" : "বন্ধ",
     "Details" : "বিসতারিত",
     "Upload file" : "ফাইল আপলোড",
     "Create account" : "একাউন্ট তেরী কর",
@@ -41,7 +42,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "ব্যবহারকারী",
-    "Close" : "বন্ধ",
     "No date" : "No date",
     "Issued by:" : "প্রদান করলেন:"
 },

@@ -22,6 +22,7 @@ OC.L10N.register(
     "Next" : "Sequente",
     "Open file" : "Aperir file",
     "Confirm" : "Confirmar",
+    "Close" : "Clauder",
     "Preview" : "Previsualisar",
     "Details" : "Detalios",
     "Profile picture" : "Pictura de profilo",
@@ -47,7 +48,6 @@ OC.L10N.register(
     "No" : "No",
     "Username" : "Nomine de usator",
     "Optional" : "Optional",
-    "Close" : "Clauder",
     "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

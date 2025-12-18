@@ -20,6 +20,7 @@ OC.L10N.register(
     "Next" : "Weider",
     "Open file" : "Fichier opmaachen",
     "Confirm" : "Konfirméieren",
+    "Close" : "Zoumaachen",
     "Details" : "Detailer",
     "Create account" : "Kont uleeën",
     "Password" : "Passwuert",
@@ -42,7 +43,6 @@ OC.L10N.register(
     "No" : "No",
     "Username" : "Benotzernumm",
     "Optional" : "Fräiwëlleg",
-    "Close" : "Zoumaachen",
     "No date" : "No date",
     "Issued by:" : "Ausgestallt vun:"
 },
