@@ -1299,6 +1299,17 @@ export type components = {
             };
             file: string;
             url?: string;
+            metadata?: {
+                extension: string;
+                /** Format: int64 */
+                p: number;
+                d?: {
+                    /** Format: double */
+                    w: number;
+                    /** Format: double */
+                    h: number;
+                }[];
+            };
             signers?: components["schemas"]["Signer"][];
             settings?: components["schemas"]["Settings"];
             messages?: {
