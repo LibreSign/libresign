@@ -141,7 +141,8 @@ abstract class AEngineHandler implements IEngineHandler {
 	public function getCaId(): string {
 		$caId = $this->caIdentifierService->getCaId();
 		if (empty($caId)) {
-			$caId = $this->caIdentifierService->generateCaId($this->getName());
+			$this->appConfig->clearCache(true);
+			$caId = $this->caIdentifierService->getCaId() ?: $this->caIdentifierService->generateCaId($this->getName());
 		}
 		return $caId;
 	}
