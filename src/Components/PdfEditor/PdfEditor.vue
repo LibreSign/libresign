@@ -19,6 +19,7 @@
 		:init-file-src="fileSrc"
 		:init-image-scale="1"
 		:seal-image-show="false"
+		:page-count-format="t('libresign', '{currentPage} of {totalPages}')"
 		@pdf-editor:end-init="endInit">
 		<template #custom="{ object, pagesScale, onUpdate, onDelete }">
 			<Signature :x="object.x"
