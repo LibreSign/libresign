@@ -18,6 +18,7 @@
     "Next" : "Weider",
     "Open file" : "Fichier opmaachen",
     "Confirm" : "Konfirméieren",
+    "Close" : "Zoumaachen",
     "Details" : "Detailer",
     "Create account" : "Kont uleeën",
     "Password" : "Passwuert",
@@ -40,7 +41,6 @@
     "No" : "No",
     "Username" : "Benotzernumm",
     "Optional" : "Fräiwëlleg",
-    "Close" : "Zoumaachen",
     "No date" : "No date",
     "Issued by:" : "Ausgestallt vun:"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

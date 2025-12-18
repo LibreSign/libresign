@@ -25,6 +25,7 @@ OC.L10N.register(
     "Name" : "Ainm",
     "Choose" : "Tagh",
     "Send" : "Cuir",
+    "Close" : "Dùin",
     "Open sidebar" : "Fosgail am bàr-taoibh",
     "Preview" : "Ro-sheall",
     "Details" : "Mion-fhiosrachadh",
@@ -41,7 +42,6 @@ OC.L10N.register(
     "No" : "Chan eil",
     "Invalid URL" : "URL mì-dhligheach",
     "Username" : "Ainm-cleachdaiche",
-    "Close" : "Dùin",
     "Notifications" : "Brathan",
     "Issued by:" : "Air fhoillseachadh le:"
 },

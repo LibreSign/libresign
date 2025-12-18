@@ -24,7 +24,10 @@
     "Next" : "Neste",
     "An error occurred" : "Det oppstod ein feil",
     "Open file" : "Opne fil",
+    "Close" : "Lat att",
     "Administration" : "Administrasjon",
+    "Contact" : "Kontakt",
+    "Status" : "Status",
     "Open sidebar" : "Opne sidestolpe",
     "Details" : "Detaljar",
     "Certificate" : "Sertifikat",
@@ -36,7 +39,6 @@
     "Enter a password" : "Skriv inn eit passord",
     "Unknown" : "Ukjend",
     "Type" : "Type",
-    "Status" : "Status",
     "Comment" : "Kommentér",
     "Actions" : "Handlingar",
     "User" : "Bruker",
@@ -56,7 +58,6 @@
     "No" : "Nei",
     "Username" : "Brukarnamn",
     "Optional" : "Valfritt",
-    "Close" : "Lat att",
     "No date" : "No date",
     "Notifications" : "Varsel"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

@@ -40,6 +40,8 @@
     "An error occurred" : "เกิดข้อผิดพลาด",
     "Open file" : "เปิดไฟล์",
     "Confirm" : "ยืนยัน",
+    "Close" : "ปิด",
+    "Status" : "สถานะ",
     "Open sidebar" : "เปิดแถบด้านข้าง",
     "Preview" : "ตัวอย่าง",
     "Copy to clipboard" : "คัดลอกไปยังคลิปบอร์ด",
@@ -55,7 +57,6 @@
     "Unknown" : "ไม่ทราบ",
     "Owner" : "เจ้าของ",
     "Type" : "ประเภท",
-    "Status" : "สถานะ",
     "Comment" : "ความคิดเห็น",
     "Actions" : "การกระทำ",
     "User" : "ผู้ใช้",
@@ -82,7 +83,6 @@
     "Invalid URL" : "URL ไม่ถูกต้อง",
     "Username" : "ชื่อผู้ใช้",
     "Optional" : "ไม่จำเป็น",
-    "Close" : "ปิด",
     "No date" : "ไม่มีวันที่",
     "Issued by:" : "ออกโดย:"
 },"pluralForm" :"nplurals=1; plural=0;"

@@ -25,6 +25,7 @@ OC.L10N.register(
     "Send" : "Ուղարկել",
     "Previous" : "Նախորդ",
     "Next" : "Հաջորդ",
+    "Close" : "Փակել",
     "Details" : "Մանրամասներ",
     "Create account" : "Ստեղծել հաշիվ",
     "Password" : "Գաղտնաբառ",
@@ -47,7 +48,6 @@ OC.L10N.register(
     "No" : "No",
     "Username" : "Օգտանուն",
     "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։",
-    "Close" : "Փակել",
     "No date" : "No date",
     "Notifications" : "Ծանուցում"
 },

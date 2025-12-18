@@ -34,6 +34,10 @@
     "Next" : "Keyingisi",
     "Searching …" : "Qidirilmoqda …",
     "Confirm" : "Confirm",
+    "Close" : "Yopish",
+    "Contact" : "Aloqa",
+    "Status" : "Status",
+    "Order" : "Buyurtma",
     "Preview" : "Ko‘rib chiqish",
     "Details" : "Details",
     "Upload file" : "Upload file",
@@ -44,7 +48,6 @@
     "Unknown" : "Noma'lum",
     "Owner" : "Egalik",
     "Type" : "Turi",
-    "Status" : "Status",
     "Comment" : "Izoh",
     "Actions" : "Actions",
     "Page not found" : "Sahifa topilmadi",
@@ -70,7 +73,6 @@
     "Remove background" : "Fonni olib tashlash",
     "Username" : "Foydalanuvchi nomi",
     "Forgot password?" : "Parolni unutdingizmi?",
-    "Close" : "Yopish",
     "Time:" : "Vaqt:",
     "Notifications" : "Bildirishnomalar"
 },"pluralForm" :"nplurals=1; plural=0;"
