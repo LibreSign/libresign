@@ -15,8 +15,8 @@
 		:show-rename="false"
 		:show-save-btn="false"
 		:save-to-upload="false"
-		:init-file="file"
-		:init-file-src="fileSrc"
+		:init-files="files"
+		:init-file-names="fileNames"
 		:init-image-scale="1"
 		:seal-image-show="false"
 		:page-count-format="t('libresign', '{currentPage} of {totalPages}')"
@@ -51,13 +51,13 @@ export default {
 		Signature,
 	},
 	props: {
-		file: {
-			type: File,
-			default: null,
+		files: {
+			type: Array,
+			default: () => [],
 		},
-		fileSrc: {
-			type: String,
-			default: '',
+		fileNames: {
+			type: Array,
+			default: () => [],
 		},
 		readOnly: {
 			type: Boolean,

@@ -57,7 +57,8 @@
 			<PdfEditor ref="pdfEditor"
 				width="100%"
 				height="100%"
-				:file-src="document.file"
+				:files="[document.file]"
+				:file-names="[documentNameWithExtension]"
 				@pdf-editor:end-init="updateSigners"
 				@pdf-editor:on-delete-signer="onDeleteSigner" />
 		</div>
@@ -124,6 +125,10 @@ export default {
 		},
 		document() {
 			return this.filesStore.getFile()
+		},
+		documentNameWithExtension() {
+			const doc = this.document
+			return `${doc.name}.${doc.metadata.extension}`
 		},
 		canSign() {
 			if (this.status !== SIGN_STATUS.ABLE_TO_SIGN) {

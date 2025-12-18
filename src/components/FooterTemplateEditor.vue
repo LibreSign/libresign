@@ -86,6 +86,7 @@
 					:show-font-select="false"
 					:show-rename="false"
 					:show-save-btn="false"
+					:show-page-footer="false"
 					:save-to-upload="false"
 					:init-file="pdfPreviewFile"
 					:initial-scale="zoomLevel / 100"
