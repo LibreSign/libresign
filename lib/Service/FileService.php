@@ -307,6 +307,7 @@ class FileService {
 		$pdfParserService = $this->pdfParserService->setFile($content);
 		if ($this->file) {
 			$metadata = $this->file->getMetadata();
+			$this->fileData->metadata = $metadata;
 		}
 		if (isset($metadata) && isset($metadata['p'])) {
 			$dimensions = $metadata;
