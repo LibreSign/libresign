@@ -202,6 +202,11 @@ namespace OCA\Libresign;
  *     },
  *     file: string,
  *     url?: string,
+ *     metadata?: array{
+ *         extension: string,
+ *         p: int,
+ *         d?: list<array{w: float, h: float}>,
+ *     },
  *     signers?: LibresignSigner[],
  *     settings?: LibresignSettings,
  *     messages?: array{
