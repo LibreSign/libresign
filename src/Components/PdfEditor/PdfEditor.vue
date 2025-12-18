@@ -20,7 +20,7 @@
 		:init-image-scale="1"
 		:seal-image-show="false"
 		@pdf-editor:end-init="endInit">
-		<template #custom="{ object, pagesScale }">
+		<template #custom="{ object, pagesScale, onUpdate, onDelete }">
 			<Signature :x="object.x"
 				:y="object.y"
 				:fix-size="object.signer.readOnly"
@@ -31,8 +31,8 @@
 				:origin-width="object.originWidth"
 				:origin-height="object.originHeight"
 				:page-scale="pagesScale"
-				@onUpdate="$refs.vuePdfEditor.updateObject(object.id, $event)"
-				@onDelete="onDeleteSigner(object)" />
+				@onUpdate="onUpdate"
+				@onDelete="() => { onDeleteSigner(object); onDelete(); }" />
 		</template>
 	</VuePdfEditor>
 </template>
@@ -69,7 +69,6 @@ export default {
 		},
 		onDeleteSigner(object) {
 			this.$emit('pdf-editor:on-delete-signer', object)
-			this.$refs.vuePdfEditor.deleteObject(object.id)
 		},
 		addSigner(signer) {
 			const object = {
@@ -83,12 +82,10 @@ export default {
 				x: signer.element.coordinates.llx,
 				y: signer.element.coordinates.ury,
 			}
-			this.$refs.vuePdfEditor.allObjects = this.$refs.vuePdfEditor.allObjects.map((objects, pIndex) => {
-				if (pIndex === signer.element.coordinates.page - 1) {
-					return [...objects, object]
-				}
-				return objects
-			})
+			this.$refs.vuePdfEditor.addObjectToPage(
+				object,
+				signer.element.coordinates.page - 1,
+			)
 		},
 	},
 }
