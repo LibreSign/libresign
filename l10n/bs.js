@@ -22,6 +22,8 @@ OC.L10N.register(
     "Previous" : "Prethodno",
     "Next" : "Sljedeće",
     "Open file" : "Otvori Datoteku",
+    "Close" : "Zatvori",
+    "Status" : "Status",
     "Profile picture" : "Slika profila",
     "Create account" : "Kreiraj račun",
     "Password" : "Lozinka",
@@ -29,7 +31,6 @@ OC.L10N.register(
     "Unknown" : "Nepoznato",
     "Owner" : "Vlasnik",
     "Type" : "Type",
-    "Status" : "Status",
     "Comment" : "Komentar",
     "Actions" : "Radnje",
     "User" : "User",
@@ -43,7 +44,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "Korisničko ime",
-    "Close" : "Zatvori",
     "No date" : "No date"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");

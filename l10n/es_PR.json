@@ -31,7 +31,10 @@
     "Next" : "Siguiente",
     "Open file" : "Abrir archivo",
     "Confirm" : "Confirmar",
+    "Close" : "Cerrar",
     "Administration" : "Administración",
+    "Contact" : "Contacto",
+    "Status" : "Estatus",
     "Preview" : "Previsualizar",
     "Copy to clipboard" : "Copiar al portapapeles",
     "Details" : "Detalles",
@@ -46,7 +49,6 @@
     "Unknown" : "Desconocido",
     "Owner" : "Dueño",
     "Type" : "Tipo",
-    "Status" : "Estatus",
     "Reason" : "Razón",
     "Comment" : "Comentario",
     "Actions" : "Acciones",
@@ -74,7 +76,6 @@
     "Learn more" : "Conoce más",
     "Username" : "Usuario",
     "Optional" : "Opcional",
-    "Close" : "Cerrar",
     "No date" : "Sin fecha",
     "Issued by:" : "Emitido por:"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"

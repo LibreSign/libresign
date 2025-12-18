@@ -29,7 +29,9 @@ OC.L10N.register(
     "Searching …" : "Anadi …",
     "Open file" : "Ldi afaylu",
     "Confirm" : "Serggeg",
+    "Close" : "Mdel",
     "Administration" : "Tadbelt",
+    "Status" : "État",
     "Open sidebar" : "Ldi-d afeggag adisan",
     "Copy to clipboard" : "Nɣel-it ar tecfawit",
     "Details" : "Talqayt",
@@ -40,7 +42,6 @@ OC.L10N.register(
     "Unknown" : "Arussin",
     "Owner" : "Bab-is",
     "Type" : "Anaw",
-    "Status" : "État",
     "Comment" : "Awennit",
     "Actions" : "Tigawin",
     "User" : "Aseqdac",
@@ -62,7 +63,6 @@ OC.L10N.register(
     "No" : "Uhu",
     "Username" : "Isem n useqdac",
     "Forgot password?" : "Tettud awal uffir?",
-    "Close" : "Mdel",
     "Notifications" : "Ilɣa"
 },
 "nplurals=2; plural=(n != 1);");

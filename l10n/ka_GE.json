@@ -31,7 +31,10 @@
     "Next" : "შემდეგი",
     "Open file" : "ფაილის გახსნა",
     "Confirm" : "დადასტურება",
+    "Close" : "დახურვა",
     "Administration" : "ადმინისტრაცია",
+    "Contact" : "კონტაქტი",
+    "Status" : "სტატუსი",
     "Preview" : "წინასწარი ჩვენება",
     "Copy to clipboard" : "კოპირება ბუფერში",
     "Details" : "დეტალები",
@@ -45,7 +48,6 @@
     "Expired" : "გაუქმდა",
     "Unknown" : "უცნობია",
     "Type" : "სახეობა",
-    "Status" : "სტატუსი",
     "Reason" : "მიზეზი",
     "Comment" : "კომენტარი",
     "Actions" : "მოქმედებები",
@@ -73,7 +75,6 @@
     "Learn more" : "შეიტყვეთ მეტი",
     "Username" : "მომხმარებლის სახელი",
     "Optional" : "არასავალდებულო",
-    "Close" : "დახურვა",
     "No date" : "თარიღი არაა",
     "Issued by:" : "გაცემულია მიერ:"
 },"pluralForm" :"nplurals=2; plural=(n!=1);"

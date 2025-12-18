@@ -24,6 +24,7 @@ OC.L10N.register(
     "Next" : "ඊළඟ",
     "Open file" : "ගොනුව විවෘත කරන්න",
     "Confirm" : "තහවුරු කරන්න",
+    "Close" : "වසන්න",
     "Preview" : "පෙරදසුන",
     "Details" : "විස්තර",
     "Certificate" : "සහතිකය",
@@ -43,7 +44,6 @@ OC.L10N.register(
     "Message" : "පණිවිඩය",
     "Yes" : "ඔව්",
     "No" : "නැහැ",
-    "Close" : "වසන්න",
     "Time:" : "වේලාව:"
 },
 "nplurals=2; plural=(n != 1);");

@@ -27,6 +27,7 @@ OC.L10N.register(
     "Choose" : "Odaberi",
     "Send" : "Pošalji",
     "Open file" : "Отвори фајл",
+    "Close" : "Zatvori",
     "Open sidebar" : "Otvori bočnu traku",
     "Details" : "Detalji",
     "Signature" : "Potpis",
@@ -47,7 +48,6 @@ OC.L10N.register(
     "No" : "Ne",
     "Learn more" : "Saznajte više",
     "Username" : "Korisničko ime",
-    "Close" : "Zatvori",
     "No date" : "No date",
     "Issued by:" : "Izdavač:"
 },
