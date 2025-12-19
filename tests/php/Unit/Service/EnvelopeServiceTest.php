@@ -164,4 +164,3 @@ final class EnvelopeServiceTest extends TestCase {
 		$this->assertSame(5, $result->getId());
 	}
 }
-

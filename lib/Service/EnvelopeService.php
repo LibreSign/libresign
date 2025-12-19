@@ -15,10 +15,8 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\NodeType;
 use OCA\Libresign\Exception\LibresignException;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\Files\Folder;
 use OCP\IAppConfig;
 use OCP\IL10N;
-use OCP\IUser;
 use Sabre\DAV\UUIDUtil;
 
 /**
