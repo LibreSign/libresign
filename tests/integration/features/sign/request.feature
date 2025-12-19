@@ -34,6 +34,8 @@ Feature: request-signature
     And user "signer2" exists
     And set the email of user "signer1" to "signer1@domain.test"
     And set the email of user "signer2" to "signer2@domain.test"
+    And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
+    And run the command "user:setting signer1 activity notify_email_libresign_file_to_sign 1" with result code 0
     And my inbox is empty
     And reset notifications of user "signer1"
     And reset notifications of user "signer2"
@@ -68,6 +70,9 @@ Feature: request-signature
     And user "signer2" exists
     And set the email of user "signer1" to "contact@domain.test"
     And set the email of user "signer2" to "contact@domain.test"
+    And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
+    And run the command "user:setting signer1 activity notify_email_libresign_file_to_sign 1" with result code 0
+    And run the command "user:setting signer2 activity notify_email_libresign_file_to_sign 1" with result code 0
     And my inbox is empty
     And reset notifications of user "signer1"
     And reset notifications of user "signer2"
