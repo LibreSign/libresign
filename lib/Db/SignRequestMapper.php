@@ -482,6 +482,15 @@ class SignRequestMapper extends QBMapper {
 		if (!$row) {
 			throw new DoesNotExistException('LibreSign file not found');
 		}
+
+		unset(
+			$row['parent_id'],
+			$row['parent_uuid'],
+			$row['parent_name'],
+			$row['parent_status'],
+			$row['parent_created_at'],
+		);
+
 		$file = new File();
 		return $file->fromRow($row);
 	}
@@ -491,7 +500,8 @@ class SignRequestMapper extends QBMapper {
 		$qb->from('libresign_file', 'f')
 			->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id')
 			->leftJoin('f', 'libresign_identify_method', 'im', $qb->expr()->eq('sr.id', 'im.sign_request_id'))
-			->leftJoin('f', 'libresign_id_docs', 'id', 'id.file_id = f.id');
+			->leftJoin('f', 'libresign_id_docs', 'id', 'id.file_id = f.id')
+			->leftJoin('f', 'libresign_file', 'parent', $qb->expr()->eq('f.parent_file_id', 'parent.id'));
 		if ($count) {
 			$qb->select($qb->func()->count())
 				->setFirstResult(0)
@@ -509,6 +519,13 @@ class SignRequestMapper extends QBMapper {
 				'f.created_at',
 				'f.signature_flow',
 				'f.docmdp_level',
+				'f.node_type',
+				'f.parent_file_id',
+				'parent.id as parent_id',
+				'parent.uuid as parent_uuid',
+				'parent.name as parent_name',
+				'parent.status as parent_status',
+				'parent.created_at as parent_created_at'
 			)
 				->groupBy(
 					'f.id',
@@ -521,6 +538,13 @@ class SignRequestMapper extends QBMapper {
 					'f.created_at',
 					'f.signature_flow',
 					'f.docmdp_level',
+					'f.node_type',
+					'f.parent_file_id',
+					'parent.id',
+					'parent.uuid',
+					'parent.name',
+					'parent.status',
+					'parent.created_at'
 				);
 			// metadata is a json column, the right way is to use f.metadata::text
 			// when the database is PostgreSQL. The problem is that the command
@@ -544,7 +568,9 @@ class SignRequestMapper extends QBMapper {
 				$qb->expr()->neq('sr.status', $qb->createNamedParameter(SignRequestStatus::DRAFT->value)),
 			)
 		];
-		$qb->where($qb->expr()->orX(...$or))->andWhere($qb->expr()->isNull('id.id'));
+		$qb->where($qb->expr()->orX(...$or))
+			->andWhere($qb->expr()->isNull('id.id'))
+			->andWhere($qb->expr()->isNull('f.parent_file_id'));
 		if ($filter) {
 			if (isset($filter['email']) && filter_var($filter['email'], FILTER_VALIDATE_EMAIL)) {
 				$or[] = $qb->expr()->andX(
@@ -617,7 +643,8 @@ class SignRequestMapper extends QBMapper {
 	}
 
 	private function formatListRow(array $row): array {
-		$row['id'] = (int)$row['id'];
+		$internalId = (int)$row['id'];
+		$row['id'] = (int)$row['node_id'];
 		$row['status'] = (int)$row['status'];
 		$row['statusText'] = $this->fileMapper->getTextOfStatus($row['status']);
 		$row['nodeId'] = (int)$row['node_id'];
@@ -633,6 +660,33 @@ class SignRequestMapper extends QBMapper {
 		$row['name'] = $this->removeExtensionFromName($row['name'], $row['metadata']);
 		$row['signatureFlow'] = SignatureFlow::fromNumeric((int)($row['signature_flow']))->value;
 		$row['docmdpLevel'] = (int)($row['docmdp_level'] ?? 0);
+		$row['nodeType'] = $row['node_type'] ?? 'file';
+		$row['isEnvelope'] = $row['node_type'] === 'envelope';
+
+		if ($row['node_type'] === 'envelope') {
+			$childrenFiles = $this->fileMapper->getChildrenFiles($internalId);
+			$filesData = array_map(fn ($file) => [
+				'id' => $file->getNodeId(),
+				'uuid' => $file->getUuid(),
+				'name' => $file->getName(),
+				'status' => $file->getStatus(),
+				'statusText' => $this->fileMapper->getTextOfStatus($file->getStatus()),
+			], $childrenFiles);
+
+			$row['envelope'] = [
+				'filesCount' => count($childrenFiles),
+				'files' => $filesData,
+			];
+			$row['files'] = $filesData;
+		} else {
+			$row['files'] = [[
+				'id' => (int)$row['node_id'],
+				'uuid' => $row['uuid'],
+				'name' => $row['name'],
+				'status' => (int)$row['status'],
+				'statusText' => $row['statusText'],
+			]];
+		}
 
 		unset(
 			$row['user_id'],
@@ -640,6 +694,13 @@ class SignRequestMapper extends QBMapper {
 			$row['signed_node_id'],
 			$row['signature_flow'],
 			$row['docmdp_level'],
+			$row['node_type'],
+			$row['parent_file_id'],
+			$row['parent_id'],
+			$row['parent_uuid'],
+			$row['parent_name'],
+			$row['parent_status'],
+			$row['parent_created_at'],
 		);
 		return $row;
 	}
