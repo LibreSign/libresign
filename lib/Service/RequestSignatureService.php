@@ -81,12 +81,17 @@ class RequestSignatureService {
 
 		$envelope = $this->envelopeService->createEnvelope($envelopeName, $userId);
 
+		$envelopeFolderName = 'envelope-' . $envelope->getUuid();
+		$envelopeSettings = array_merge($data['settings'] ?? [], [
+			'folderName' => $envelopeFolderName,
+		]);
+
 		$files = [];
 		foreach ($data['files'] as $fileData) {
 			$fileEntity = $this->createFileForEnvelope(
 				$fileData,
 				$userManager,
-				$data['settings'] ?? []
+				$envelopeSettings
 			);
 			$this->envelopeService->addFileToEnvelope($envelope->getId(), $fileEntity);
 			$files[] = $fileEntity;
