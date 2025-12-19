@@ -31,7 +31,7 @@ use OCP\DB\Types;
  * @method void setCreatedAt(\DateTime $createdAt)
  * @method \DateTime getCreatedAt()
  * @method void setName(string $name)
- * @method string getName()
+ * @method non-falsy-string getName()
  * @method void setCallback(string $callback)
  * @method ?string getCallback()
  * @method void setStatus(int $status)
@@ -45,7 +45,7 @@ use OCP\DB\Types;
  * @method void setDocmdpLevel(int $docmdpLevel)
  * @method int getDocmdpLevel()
  * @method void setNodeType(string $nodeType)
- * @method string getNodeType()
+ * @method 'file'|'envelope' getNodeType()
  * @method void setParentFileId(?int $parentFileId)
  * @method ?int getParentFileId()
  */
