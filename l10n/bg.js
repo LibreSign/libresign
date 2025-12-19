@@ -172,6 +172,7 @@ OC.L10N.register(
     "Close" : "Затваряне",
     "Document not available for signature." : "Документът не е наличен за подпис.",
     "Administration" : "Администрация",
+    "Contact" : "Контакт",
     "Status" : "Състояние",
     "Order" : "Ред/поръчка/",
     "Open sidebar" : "Отвори страничното меню",

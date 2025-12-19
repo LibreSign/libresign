@@ -23,6 +23,7 @@ OC.L10N.register(
     "Next" : "Nesaf",
     "Confirm" : "Cadarnhau",
     "Close" : "Cau",
+    "Contact" : "Cysylltu",
     "Status" : "Statws",
     "Open sidebar" : "Agor y bar ochr",
     "Preview" : "Rhagolwg",
