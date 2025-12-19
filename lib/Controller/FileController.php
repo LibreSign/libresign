@@ -417,15 +417,11 @@ class FileController extends AEnvironmentAwareController {
 		array $files = [],
 	): DataResponse {
 		try {
-			if ((empty($file) && empty($files)) || (!empty($files) && count($files) === 0)) {
-				throw new LibresignException($this->l10n->t('File or files parameter is required'));
-			}
+			$this->validateHelper->canRequestSign($this->userSession->getUser());
 
-			if (!empty($files)) {
-				return $this->saveMultipleFiles($files, $name, $settings);
-			}
+			$normalizedFiles = $this->prepareFilesForSaving($file, $files, $settings);
 
-			return $this->saveSingleFile($file, $name, $settings);
+			return $this->saveFiles($normalizedFiles, $name, $settings);
 		} catch (LibresignException $e) {
 			return new DataResponse(
 				[
@@ -437,87 +433,119 @@ class FileController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>
+	 * @return array{node: Node, name: string}
 	 */
-	private function saveSingleFile(array $file, string $name, array $settings): DataResponse {
+	private function prepareFileForSaving(array $fileData, string $name, array $settings): array {
 		if (empty($name)) {
-			if (!empty($file['url'])) {
-				$name = rawurldecode(pathinfo($file['url'], PATHINFO_FILENAME));
-			}
+			$name = $this->extractFileName($fileData);
 		}
 		if (empty($name)) {
 			throw new LibresignException($this->l10n->t('Name is mandatory'));
 		}
 
-		$this->validateHelper->validateNewFile([
-			'file' => $file,
-			'userManager' => $this->userSession->getUser(),
-		]);
-		$this->validateHelper->canRequestSign($this->userSession->getUser());
+		if (isset($fileData['fileNode']) && $fileData['fileNode'] instanceof Node) {
+			$node = $fileData['fileNode'];
+			$name = $fileData['name'] ?? $name;
+		} else {
+			$this->validateHelper->validateNewFile([
+				'file' => $fileData,
+				'userManager' => $this->userSession->getUser(),
+			]);
 
-		$node = $this->fileService->getNodeFromData([
-			'userManager' => $this->userSession->getUser(),
-			'name' => $name,
-			'file' => $file,
-			'settings' => $settings
-		]);
+			$node = $this->fileService->getNodeFromData([
+				'userManager' => $this->userSession->getUser(),
+				'name' => $name,
+				'file' => $fileData,
+				'settings' => $settings
+			]);
+		}
 
-		$data = [
-			'file' => [
-				'fileNode' => $node,
-			],
+		return [
+			'node' => $node,
 			'name' => $name,
-			'userManager' => $this->userSession->getUser(),
-			'status' => FileEntity::STATUS_DRAFT,
 		];
-		$savedFile = $this->requestSignatureService->save($data);
+	}
 
-		return new DataResponse(
-			[
-				'message' => $this->l10n->t('Success'),
-				'id' => $savedFile->getNodeId(),
-				'uuid' => $savedFile->getUuid(),
-				'name' => $savedFile->getName(),
-				'status' => $savedFile->getStatus(),
-				'statusText' => $this->fileMapper->getTextOfStatus($savedFile->getStatus()),
-				'nodeType' => $savedFile->getNodeType(),
-				'created_at' => $savedFile->getCreatedAt()->format(\DateTimeInterface::ATOM),
-				'files' => [$this->formatFilesResponse([$savedFile])[0]],
-			],
-			Http::STATUS_OK
+	/**
+	 * @return list<array{fileNode?: Node, name?: string}> Normalized files array
+	 */
+	private function prepareFilesForSaving(array $file, array $files, array $settings): array {
+		$uploadedFiles = $this->request->getUploadedFile('files') ?: $this->request->getUploadedFile('file');
+
+		if ($uploadedFiles) {
+			return $this->processUploadedFiles($uploadedFiles, $settings);
+		}
+
+		if (!empty($files)) {
+			/** @var list<array{fileNode?: Node, name?: string}> $files */
+			return $files;
+		}
+
+		if (!empty($file)) {
+			return [$file];
+		}
+
+		throw new LibresignException($this->l10n->t('File or files parameter is required'));
+	}
+
+	/**
+	 * @return list<array{fileNode: Node, name: string}>
+	 */
+	private function processUploadedFiles(array $uploadedFiles, array $settings): array {
+		$filesArray = [];
+
+		if (isset($uploadedFiles['tmp_name'])) {
+			if (is_array($uploadedFiles['tmp_name'])) {
+				$count = count($uploadedFiles['tmp_name']);
+				for ($i = 0; $i < $count; $i++) {
+					$filesArray[] = [
+						'tmp_name' => $uploadedFiles['tmp_name'][$i],
+						'name' => $uploadedFiles['name'][$i],
+						'type' => $uploadedFiles['type'][$i],
+						'size' => $uploadedFiles['size'][$i],
+						'error' => $uploadedFiles['error'][$i],
+					];
+				}
+			} else {
+				$filesArray[] = $uploadedFiles;
+			}
+		}
+
+		if (empty($filesArray)) {
+			throw new LibresignException($this->l10n->t('No files uploaded'));
+		}
+
+		return $this->fileService->processUploadedFilesWithRollback(
+			$filesArray,
+			$this->userSession->getUser(),
+			$settings
 		);
 	}
 
 	/**
 	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>
 	 */
-	private function saveMultipleFiles(array $files, string $name, array $settings): DataResponse {
-		if (!$this->appConfig->getValueBool(Application::APP_ID, 'envelope_enabled', true)) {
-			throw new LibresignException($this->l10n->t('Envelope feature is disabled'));
+	private function saveFiles(array $files, string $name, array $settings): DataResponse {
+		if (empty($files)) {
+			throw new LibresignException($this->l10n->t('File or files parameter is required'));
 		}
-
-		$this->validateFilesArray($files);
-		$this->validateHelper->canRequestSign($this->userSession->getUser());
 
 		$preparedFiles = [];
 		foreach ($files as $fileData) {
-			$this->validateHelper->validateNewFile([
-				'file' => $fileData,
+			$fileName = (count($files) === 1) ? $name : '';
+			$preparedFiles[] = $this->prepareFileForSaving($fileData, $fileName, $settings);
+		}
+
+		if (count($preparedFiles) === 1) {
+			$prepared = $preparedFiles[0];
+			$savedFile = $this->requestSignatureService->save([
+				'file' => ['fileNode' => $prepared['node']],
+				'name' => $prepared['name'],
 				'userManager' => $this->userSession->getUser(),
+				'status' => FileEntity::STATUS_DRAFT,
 			]);
 
-			$fileName = $this->extractFileName($fileData);
-			$node = $this->fileService->getNodeFromData([
-				'userManager' => $this->userSession->getUser(),
-				'name' => $fileName,
-				'file' => $fileData,
-				'settings' => $settings
-			]);
-
-			$preparedFiles[] = [
-				'node' => $node,
-				'name' => $fileName,
-			];
+			return $this->formatFileResponse($savedFile, [$savedFile]);
 		}
 
 		$result = $this->requestSignatureService->saveEnvelope([
@@ -527,19 +555,26 @@ class FileController extends AEnvironmentAwareController {
 			'settings' => $settings,
 		]);
 
-		$envelope = $result['envelope'];
+		return $this->formatFileResponse($result['envelope'], $result['files']);
+	}
 
+	/**
+	 * @param FileEntity $mainEntity The main entity (file or envelope)
+	 * @param FileEntity[] $childFiles Child files (for envelope) or same as mainEntity (for single file)
+	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>
+	 */
+	private function formatFileResponse(FileEntity $mainEntity, array $childFiles): DataResponse {
 		return new DataResponse(
 			[
 				'message' => $this->l10n->t('Success'),
-				'id' => $envelope->getNodeId(),
-				'uuid' => $envelope->getUuid(),
-				'name' => $envelope->getName(),
-				'status' => $envelope->getStatus(),
-				'statusText' => $this->fileMapper->getTextOfStatus($envelope->getStatus()),
-				'nodeType' => $envelope->getNodeType(),
-				'created_at' => $envelope->getCreatedAt()->format(\DateTimeInterface::ATOM),
-				'files' => $this->formatFilesResponse($result['files']),
+				'id' => $mainEntity->getNodeId(),
+				'uuid' => $mainEntity->getUuid(),
+				'name' => $mainEntity->getName(),
+				'status' => $mainEntity->getStatus(),
+				'statusText' => $this->fileMapper->getTextOfStatus($mainEntity->getStatus()),
+				'nodeType' => $mainEntity->getNodeType(),
+				'created_at' => $mainEntity->getCreatedAt()->format(\DateTimeInterface::ATOM),
+				'files' => $this->formatFilesResponse($childFiles),
 			],
 			Http::STATUS_OK
 		);
@@ -553,17 +588,6 @@ class FileController extends AEnvironmentAwareController {
 			return rawurldecode(pathinfo($fileData['url'], PATHINFO_FILENAME));
 		}
 		return '';
-	}
-
-	private function validateFilesArray(array $files): void {
-		if (empty($files)) {
-			throw new LibresignException($this->l10n->t('At least one file is required'));
-		}
-
-		$maxFiles = $this->appConfig->getValueInt(Application::APP_ID, 'envelope_max_files', 50);
-		if (count($files) > $maxFiles) {
-			throw new LibresignException($this->l10n->t('Maximum of %d files per envelope', [$maxFiles]));
-		}
 	}
 
 	/**
