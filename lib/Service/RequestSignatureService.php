@@ -57,6 +57,7 @@ class RequestSignatureService {
 		protected FileStatusService $fileStatusService,
 		protected SignRequestStatusService $signRequestStatusService,
 		protected DocMdpConfigService $docMdpConfigService,
+		protected EnvelopeService $envelopeService,
 	) {
 	}
 
@@ -69,6 +70,46 @@ class RequestSignatureService {
 		$this->sequentialSigningService->setFile($file);
 		$this->associateToSigners($data, $file->getId());
 		return $file;
+	}
+
+	public function saveEnvelope(array $data): array {
+		$envelopeName = $data['name'] ?: $this->l10n->t('Envelope %s', [date('Y-m-d H:i:s')]);
+		$userManager = $data['userManager'] ?? null;
+		$userId = $userManager instanceof IUser ? $userManager->getUID() : null;
+
+		$envelope = $this->envelopeService->createEnvelope($envelopeName, $userId);
+
+		$files = [];
+		foreach ($data['files'] as $fileData) {
+			$fileEntity = $this->createFileForEnvelope(
+				$fileData,
+				$userManager,
+				$data['settings'] ?? []
+			);
+			$this->envelopeService->addFileToEnvelope($envelope->getId(), $fileEntity);
+			$files[] = $fileEntity;
+		}
+
+		return [
+			'envelope' => $envelope,
+			'files' => $files,
+		];
+	}
+
+	private function createFileForEnvelope(array $fileData, ?IUser $userManager, array $settings): FileEntity {
+		if (!isset($fileData['node'])) {
+			throw new \InvalidArgumentException('Node not provided in file data');
+		}
+
+		$node = $fileData['node'];
+		$fileName = $fileData['name'] ?? $node->getName();
+
+		return $this->saveFile([
+			'file' => ['fileNode' => $node],
+			'name' => $fileName,
+			'userManager' => $userManager,
+			'status' => FileEntity::STATUS_DRAFT,
+		]);
 	}
 
 	/**
