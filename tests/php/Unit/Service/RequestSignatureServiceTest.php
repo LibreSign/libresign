@@ -12,11 +12,11 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Handler\DocMdpHandler;
+use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\DocMdpConfigService;
 use OCA\Libresign\Service\EnvelopeService;
 use OCA\Libresign\Service\FileElementService;
-use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -61,7 +61,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private SignRequestStatusService&MockObject $signRequestStatusService;
 	private DocMdpConfigService&MockObject $docMdpConfigService;
 	private EnvelopeService&MockObject $envelopeService;
-	private FileService&MockObject $fileService;
+	private FileUploadHelper&MockObject $uploadHelper;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -93,7 +93,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->signRequestStatusService = $this->createMock(SignRequestStatusService::class);
 		$this->docMdpConfigService = $this->createMock(DocMdpConfigService::class);
 		$this->envelopeService = $this->createMock(EnvelopeService::class);
-		$this->fileService = $this->createMock(FileService::class);
+		$this->uploadHelper = $this->createMock(FileUploadHelper::class);
 	}
 
 	private function getService(): RequestSignatureService {
@@ -120,7 +120,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->signRequestStatusService,
 			$this->docMdpConfigService,
 			$this->envelopeService,
-			$this->fileService,
+			$this->uploadHelper,
 		);
 	}
 

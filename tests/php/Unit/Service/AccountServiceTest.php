@@ -18,6 +18,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
+use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FolderService;
@@ -71,6 +72,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private TimeFactory&MockObject $timeFactory;
 	private RequestSignatureService&MockObject $requestSignatureService;
 	private Pkcs12Handler&MockObject $pkcs12Handler;
+	private FileUploadHelper&MockObject $uploadHelper;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -104,6 +106,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->clientService = $this->createMock(ClientService::class);
 		$this->timeFactory = $this->createMock(TimeFactory::class);
+		$this->uploadHelper = $this->createMock(FileUploadHelper::class);
 	}
 
 	private function getService(): AccountService {
@@ -134,7 +137,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->userElementMapper,
 			$this->folderService,
 			$this->clientService,
-			$this->timeFactory
+			$this->timeFactory,
+			$this->uploadHelper
 		);
 	}
 
