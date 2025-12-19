@@ -30,6 +30,7 @@ use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\EnvelopeService;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\FolderService;
@@ -75,9 +76,10 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected IMimeTypeDetector $mimeTypeDetector;
 	protected Pkcs12Handler $pkcs12Handler;
 	protected DocMdpHandler $docMdpHandler;
-	private IRootFolder $root;
+	protected IRootFolder $root;
 	protected LoggerInterface $logger;
 	protected IL10N $l10n;
+	protected EnvelopeService $envelopeService;
 	protected vfsDirectory $tempFolder;
 
 	public function setUp(): void {
@@ -114,6 +116,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->root = \OCP\Server::get(IRootFolder::class);
 		$this->logger = \OCP\Server::get(LoggerInterface::class);
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
+		$this->envelopeService = \OCP\Server::get(EnvelopeService::class);
 		return new FileService(
 			$this->fileMapper,
 			$this->signRequestMapper,
@@ -138,6 +141,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->root,
 			$this->logger,
 			$this->l10n,
+			$this->envelopeService,
 		);
 	}
 
