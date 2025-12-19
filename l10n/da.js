@@ -54,6 +54,7 @@ OC.L10N.register(
     "Confirm" : "Bekræft",
     "Close" : "Luk",
     "Administration" : "Administration",
+    "Contact" : "Kontakt",
     "Status" : "Status",
     "Order" : "Rækkefølge",
     "Open sidebar" : "Åbn sidebar",

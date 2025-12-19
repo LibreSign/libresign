@@ -36,6 +36,7 @@ OC.L10N.register(
     "Next" : "Volgende",
     "Open file" : "Open lêer",
     "Confirm" : "Bevestig",
+    "Contact" : "Kontak",
     "Status" : "Status",
     "Open sidebar" : "Open kantbalk",
     "Details" : "Besonderhede",
