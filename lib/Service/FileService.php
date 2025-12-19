@@ -833,7 +833,7 @@ class FileService {
 			$sort,
 		);
 
-		$signers = $this->signRequestMapper->getByMultipleFileId(array_column($return['data'], 'id'));
+		$signers = $this->signRequestMapper->getByMultipleFileId(array_column($return['data'], 'fileId'));
 		$identifyMethods = $this->signRequestMapper->getIdentifyMethodsFromSigners($signers);
 		$visibleElements = $this->signRequestMapper->getVisibleElementsFromSigners($signers);
 		$return['data'] = $this->associateAllAndFormat($this->me, $return['data'], $signers, $identifyMethods, $visibleElements);
@@ -849,7 +849,7 @@ class FileService {
 		foreach ($files as $key => $file) {
 			$totalSigned = 0;
 			foreach ($signers as $signerKey => $signer) {
-				if ($signer->getFileId() === $file['id']) {
+				if ($signer->getFileId() === $file['fileId']) {
 					/** @var array<IdentifyMethod> */
 					$identifyMethodsOfSigner = $identifyMethods[$signer->getId()] ?? [];
 					$data = [
@@ -956,7 +956,7 @@ class FileService {
 
 				$files[$key]['statusText'] = $this->fileMapper->getTextOfStatus((int)$files[$key]['status']);
 			}
-			unset($files[$key]['id']);
+			unset($files[$key]['id'], $files[$key]['fileId']);
 			ksort($files[$key]);
 		}
 		return $files;
