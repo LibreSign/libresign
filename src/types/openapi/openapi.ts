@@ -1155,6 +1155,27 @@ export type components = {
             /** Format: int64 */
             signingOrder?: number;
         };
+        NextcloudFile: {
+            message: string;
+            name: string;
+            /** Format: int64 */
+            id: number;
+            uuid: string;
+            /** Format: int64 */
+            status: number;
+            statusText: string;
+            /** @enum {string} */
+            nodeType: "file" | "envelope";
+            created_at: string;
+            files: {
+                /** Format: int64 */
+                id: number;
+                uuid: string;
+                name: string;
+                /** Format: int64 */
+                status: number;
+            }[];
+        };
         Notify: {
             date: string;
             /** @enum {string} */
@@ -2779,22 +2800,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                                name?: string;
-                                /** Format: int64 */
-                                id?: number;
-                                /** Format: int64 */
-                                status?: number;
-                                statusText?: string;
-                                created_at?: string;
-                                envelope?: {
-                                    [key: string]: Record<string, never>;
-                                };
-                                files?: {
-                                    [key: string]: Record<string, never>;
-                                }[];
-                            };
+                            data: components["schemas"]["NextcloudFile"];
                         };
                     };
                 };

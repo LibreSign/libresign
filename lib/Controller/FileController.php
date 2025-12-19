@@ -401,7 +401,7 @@ class FileController extends AEnvironmentAwareController {
 	 * @param string $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define the pattern to store the file. See more informations at FolderService::getFolderName method.
 	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files)
-	 * @return DataResponse<Http::STATUS_OK, array{message: string, name?: string, id?: int, status?: int, statusText?: string, created_at?: string, envelope?: array<string, mixed>, files?: array<array<string, mixed>>}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Failed to save data
@@ -437,7 +437,7 @@ class FileController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * @return DataResponse<Http::STATUS_OK, array{message: string, name: string, id: int, status: int, statusText: string, created_at: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>
 	 */
 	private function saveSingleFile(array $file, string $name, array $settings): DataResponse {
 		if (empty($name)) {
@@ -489,7 +489,7 @@ class FileController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * @return DataResponse<Http::STATUS_OK, array{message: string, envelope: array<string, mixed>, files: array<array<string, mixed>>}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>
 	 */
 	private function saveMultipleFiles(array $files, string $name, array $settings): DataResponse {
 		if (!$this->appConfig->getValueBool(Application::APP_ID, 'envelope_enabled', true)) {
@@ -565,13 +565,17 @@ class FileController extends AEnvironmentAwareController {
 		}
 	}
 
+	/**
+	 * @param FileEntity[] $files
+	 * @return list<array{id: int, uuid: string, name: string, status: int}>
+	 */
 	private function formatFilesResponse(array $files): array {
-		return array_map(fn (FileEntity $file) => [
+		return array_values(array_map(fn (FileEntity $file) => [
 			'id' => $file->getNodeId(),
 			'uuid' => $file->getUuid(),
 			'name' => $file->getName(),
 			'status' => $file->getStatus(),
-		], $files);
+		], $files));
 	}
 
 	/**
