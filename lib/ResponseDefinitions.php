@@ -47,9 +47,12 @@ namespace OCA\Libresign;
  *     message: string,
  *     name: non-falsy-string,
  *     id: int,
+ *     uuid: string,
  *     status: int,
  *     statusText: string,
+ *     nodeType: 'file'|'envelope',
  *     created_at: string,
+ *     files: list<array{id: int, uuid: string, name: string, status: int}>,
  * }
  * @psalm-type LibresignIdentifyAccount = array{
  *     id: non-negative-int,
