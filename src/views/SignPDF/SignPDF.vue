@@ -11,7 +11,8 @@
 			ref="pdfEditor"
 			width="100%"
 			height="100%"
-			:file="pdfBlob"
+			:files="[pdfBlob]"
+			:file-names="[pdfFileName]"
 			:read-only="true"
 			@pdf-editor:end-init="updateSigners" />
 		<div class="button-wrapper">
@@ -67,6 +68,12 @@ export default {
 			mounted: false,
 			pdfBlob: null,
 		}
+	},
+	computed: {
+		pdfFileName() {
+			const doc = this.signStore.document
+			return `${doc.name}.${doc.metadata.extension}`
+		},
 	},
 	async created() {
 		if (this.$route.name === 'SignPDFExternal') {
