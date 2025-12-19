@@ -10,6 +10,7 @@ namespace OCA\Libresign\Service;
 
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
+use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Vendor\setasign\Fpdi\PdfParserService\Type\PdfTypeException;
 use OCP\Files\Node;
 use OCP\Http\Client\IClientService;
@@ -19,6 +20,7 @@ trait TFile {
 	private $mimetype = null;
 	protected IClientService $client;
 	protected DocMdpHandler $docMdpHandler;
+	protected FileUploadHelper $uploadHelper;
 
 	public function getNodeFromData(array $data): Node {
 		if (!$this->folderService->getUserId()) {
@@ -42,6 +44,28 @@ trait TFile {
 		$userFolder = $this->folderService->getFolder();
 		$folderName = $this->folderService->getFolderName($data, $data['userManager']);
 		$folderToFile = $userFolder->newFolder($folderName);
+		return $folderToFile->newFile($data['name'] . '.' . $extension, $content);
+	}
+
+	public function getNodeFromUploadedFile(array $data): Node {
+		if (!$this->folderService->getUserId()) {
+			$this->folderService->setUserId($data['userManager']->getUID());
+		}
+
+		$uploadedFile = $data['uploadedFile'];
+
+		$this->uploadHelper->validateUploadedFile($uploadedFile);
+		$content = $this->uploadHelper->readUploadedFile($uploadedFile);
+
+		$extension = $this->getExtension($content);
+		$this->validateFileContent($content, $extension);
+
+		$userFolder = $this->folderService->getFolder();
+		$folderName = $this->folderService->getFolderName($data, $data['userManager']);
+		$folderToFile = $userFolder->newFolder($folderName);
+
+		@unlink($uploadedFile['tmp_name']);
+
 		return $folderToFile->newFile($data['name'] . '.' . $extension, $content);
 	}
 
