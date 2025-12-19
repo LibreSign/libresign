@@ -177,6 +177,7 @@ OC.L10N.register(
     "Close" : "Tanca",
     "Document not available for signature." : "Document no disponible per signar.",
     "Administration" : "Administració",
+    "Contact" : "Contacte",
     "Status" : "Estat",
     "Order" : "Ordre",
     "Open sidebar" : "Obre la barra lateral",

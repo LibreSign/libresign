@@ -262,6 +262,7 @@ OC.L10N.register(
     "Document not available for signature." : "Dokument není k dispozici pro podepisování.",
     "Administration" : "Správa",
     "Rate LibreSign ❤️" : "Ohodnotit LibreSign ❤️",
+    "Contact" : "Kontakt",
     "Status" : "Stav",
     "Order" : "Pořadí",
     "Open sidebar" : "Otevřít postranní panel",

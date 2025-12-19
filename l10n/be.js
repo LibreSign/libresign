@@ -56,6 +56,7 @@ OC.L10N.register(
     "Confirm" : "Пацвердзіць",
     "Close" : "Закрыць",
     "Administration" : "Адміністратар",
+    "Contact" : "Кантакт",
     "Status" : "Статус",
     "Show available variables" : "Паказаць даступныя пераменныя",
     "Available variables" : "Даступныя пераменныя",
