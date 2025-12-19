@@ -11,7 +11,6 @@ namespace OCA\Libresign\Service;
 use DateTime;
 use DateTimeInterface;
 use InvalidArgumentException;
-use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
@@ -24,6 +23,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
+use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -93,6 +93,7 @@ class FileService {
 		protected LoggerInterface $logger,
 		protected IL10N $l10n,
 		private EnvelopeService $envelopeService,
+		private FileUploadHelper $uploadHelper,
 	) {
 		$this->docMdpHandler = $docMdpHandler;
 		$this->fileData = new stdClass();
@@ -206,18 +207,7 @@ class FileService {
 		if ($file === null) {
 			throw new InvalidArgumentException($this->l10n->t('No file provided'));
 		}
-		if (
-			$file['error'] !== 0
-			|| !is_uploaded_file($file['tmp_name'])
-			|| Filesystem::isFileBlacklisted($file['tmp_name'])
-		) {
-			unlink($file['tmp_name']);
-			throw new InvalidArgumentException($this->l10n->t('Invalid file provided'));
-		}
-		if ($file['size'] > \OCP\Util::uploadLimit()) {
-			unlink($file['tmp_name']);
-			throw new InvalidArgumentException($this->l10n->t('File is too big'));
-		}
+		$this->uploadHelper->validateUploadedFile($file);
 
 		$this->fileContent = file_get_contents($file['tmp_name']);
 		$mimeType = $this->mimeTypeDetector->detectString($this->fileContent);
