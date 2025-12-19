@@ -92,6 +92,7 @@ class FileService {
 		private IRootFolder $root,
 		protected LoggerInterface $logger,
 		protected IL10N $l10n,
+		private EnvelopeService $envelopeService,
 	) {
 		$this->docMdpHandler = $docMdpHandler;
 		$this->fileData = new stdClass();
@@ -720,6 +721,9 @@ class FileService {
 			'displayName' => $this->userManager->get($this->file->getUserId())->getDisplayName(),
 		];
 		$this->fileData->file = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $this->file->getUuid()]);
+
+		$this->loadEnvelopeData();
+
 		if ($this->showVisibleElements) {
 			$signers = $this->signRequestMapper->getByMultipleFileId([$this->file->getId()]);
 			$this->fileData->visibleElements = [];
@@ -733,6 +737,33 @@ class FileService {
 				);
 			}
 		}
+	}
+
+	private function loadEnvelopeData(): void {
+		if (!$this->file->hasParent()) {
+			return;
+		}
+
+		$envelope = $this->envelopeService->getEnvelopeByFileId($this->file->getId());
+		if (!$envelope) {
+			return;
+		}
+
+		$envelopeFiles = $this->fileMapper->getChildrenFiles($envelope->getId());
+		$this->fileData->envelope = [
+			'id' => $envelope->getId(),
+			'uuid' => $envelope->getUuid(),
+			'name' => $envelope->getName(),
+			'status' => $envelope->getStatus(),
+			'statusText' => $this->fileMapper->getTextOfStatus($envelope->getStatus()),
+			'filesCount' => count($envelopeFiles),
+			'files' => array_map(fn (File $file) => [
+				'id' => $file->getId(),
+				'uuid' => $file->getUuid(),
+				'name' => $file->getName(),
+				'status' => $file->getStatus(),
+			], $envelopeFiles),
+		];
 	}
 
 	private function loadMessages(): void {

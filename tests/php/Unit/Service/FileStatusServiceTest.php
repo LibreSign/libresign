@@ -24,7 +24,7 @@ class FileStatusServiceTest extends TestCase {
 		$this->service = new FileStatusService($this->fileMapper);
 	}
 
-	#[DataProvider('fileStatusUpgradeScenarios')]
+	#[DataProvider('dataFileStatusUpgrade')]
 	public function testUpdateFileStatusIfUpgrade(int $currentStatus, int $newStatus, bool $shouldUpdate): void {
 		$file = new FileEntity();
 		$file->setStatus($currentStatus);
@@ -44,7 +44,7 @@ class FileStatusServiceTest extends TestCase {
 		$this->assertEquals($expectedStatus, $result->getStatus());
 	}
 
-	public static function fileStatusUpgradeScenarios(): array {
+	public static function dataFileStatusUpgrade(): array {
 		$draft = FileEntity::STATUS_DRAFT;
 		$able = FileEntity::STATUS_ABLE_TO_SIGN;
 		$partial = FileEntity::STATUS_PARTIAL_SIGNED;
@@ -72,13 +72,13 @@ class FileStatusServiceTest extends TestCase {
 		];
 	}
 
-	#[DataProvider('fileStatusNotificationScenarios')]
+	#[DataProvider('dataCanNotifySigners')]
 	public function testCanNotifySigners(?int $fileStatus, bool $expected): void {
 		$result = $this->service->canNotifySigners($fileStatus);
 		$this->assertEquals($expected, $result);
 	}
 
-	public static function fileStatusNotificationScenarios(): array {
+	public static function dataCanNotifySigners(): array {
 		return [
 			[FileEntity::STATUS_DRAFT, false],
 			[FileEntity::STATUS_ABLE_TO_SIGN, true],
@@ -87,5 +87,143 @@ class FileStatusServiceTest extends TestCase {
 			[FileEntity::STATUS_DELETED, false],
 			[null, false],
 		];
+	}
+
+	#[DataProvider('dataPropagateStatusToParent')]
+	public function testPropagateStatusToParent(array $childrenStatuses, int $expectedEnvelopeStatus, int $currentEnvelopeStatus): void {
+		$parentId = 1;
+		$envelope = new FileEntity();
+		$envelope->setId($parentId);
+		$envelope->setNodeType('envelope');
+		$envelope->setStatus($currentEnvelopeStatus);
+
+		$children = [];
+		foreach ($childrenStatuses as $index => $status) {
+			$child = new FileEntity();
+			$child->setId($index + 10);
+			$child->setStatus($status);
+			$children[] = $child;
+		}
+
+		$this->fileMapper->expects($this->once())
+			->method('getById')
+			->with($parentId)
+			->willReturn($envelope);
+
+		$this->fileMapper->expects($this->once())
+			->method('getChildrenFiles')
+			->with($parentId)
+			->willReturn($children);
+
+		if ($currentEnvelopeStatus !== $expectedEnvelopeStatus) {
+			$this->fileMapper->expects($this->once())
+				->method('update')
+				->with($this->callback(function (FileEntity $file) use ($expectedEnvelopeStatus) {
+					return $file->getStatus() === $expectedEnvelopeStatus;
+				}));
+		} else {
+			$this->fileMapper->expects($this->never())->method('update');
+		}
+
+		$this->service->propagateStatusToParent($parentId);
+	}
+
+	public static function dataPropagateStatusToParent(): array {
+		$draft = FileEntity::STATUS_DRAFT;
+		$able = FileEntity::STATUS_ABLE_TO_SIGN;
+		$partial = FileEntity::STATUS_PARTIAL_SIGNED;
+		$signed = FileEntity::STATUS_SIGNED;
+
+		return [
+			'all draft' => [[$draft, $draft, $draft], $draft, $draft],
+			'all able to sign' => [[$able, $able, $able], $able, $draft],
+			'all partial signed' => [[$partial, $partial, $partial], $partial, $draft],
+			'all signed' => [[$signed, $signed, $signed], $signed, $draft],
+			'mixed draft and able' => [[$draft, $able, $draft], $able, $draft],
+			'mixed able and partial' => [[$able, $partial, $able], $partial, $draft],
+			'mixed partial and signed' => [[$partial, $signed, $partial], $partial, $draft],
+			'mixed draft, able and partial' => [[$draft, $able, $partial], $partial, $draft],
+			'mixed all statuses' => [[$draft, $able, $partial, $signed], $partial, $draft],
+			'one signed, rest draft' => [[$draft, $draft, $signed], $partial, $draft],
+		];
+	}
+
+	public function testPropagateStatusToParentWhenParentNotFound(): void {
+		$parentId = 999;
+
+		$this->fileMapper->expects($this->once())
+			->method('getById')
+			->with($parentId)
+			->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('Not found'));
+
+		$this->fileMapper->expects($this->never())->method('getChildrenFiles');
+		$this->fileMapper->expects($this->never())->method('update');
+
+		$this->service->propagateStatusToParent($parentId);
+	}
+
+	public function testPropagateStatusToParentWhenParentIsNotEnvelope(): void {
+		$parentId = 1;
+		$file = new FileEntity();
+		$file->setId($parentId);
+		$file->setNodeType('file');
+
+		$this->fileMapper->expects($this->once())
+			->method('getById')
+			->with($parentId)
+			->willReturn($file);
+
+		$this->fileMapper->expects($this->never())->method('getChildrenFiles');
+		$this->fileMapper->expects($this->never())->method('update');
+
+		$this->service->propagateStatusToParent($parentId);
+	}
+
+	public function testPropagateStatusToParentWhenNoChildren(): void {
+		$parentId = 1;
+		$envelope = new FileEntity();
+		$envelope->setId($parentId);
+		$envelope->setNodeType('envelope');
+
+		$this->fileMapper->expects($this->once())
+			->method('getById')
+			->with($parentId)
+			->willReturn($envelope);
+
+		$this->fileMapper->expects($this->once())
+			->method('getChildrenFiles')
+			->with($parentId)
+			->willReturn([]);
+
+		$this->fileMapper->expects($this->never())->method('update');
+
+		$this->service->propagateStatusToParent($parentId);
+	}
+
+	public function testPropagateStatusToParentDoesNotUpdateIfStatusUnchanged(): void {
+		$parentId = 1;
+		$envelope = new FileEntity();
+		$envelope->setId($parentId);
+		$envelope->setNodeType('envelope');
+		$envelope->setStatus(FileEntity::STATUS_SIGNED);
+
+		$child1 = new FileEntity();
+		$child1->setStatus(FileEntity::STATUS_SIGNED);
+		$child2 = new FileEntity();
+		$child2->setStatus(FileEntity::STATUS_SIGNED);
+
+		$this->fileMapper->expects($this->once())
+			->method('getById')
+			->with($parentId)
+			->willReturn($envelope);
+
+		$this->fileMapper->expects($this->once())
+			->method('getChildrenFiles')
+			->with($parentId)
+			->willReturn([$child1, $child2]);
+
+		$this->fileMapper->expects($this->never())->method('update');
+
+		$this->service->propagateStatusToParent($parentId);
 	}
 }
