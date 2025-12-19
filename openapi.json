@@ -465,39 +465,6 @@
                     }
                 }
             },
-            "NextcloudFile": {
-                "type": "object",
-                "required": [
-                    "message",
-                    "name",
-                    "id",
-                    "status",
-                    "statusText",
-                    "created_at"
-                ],
-                "properties": {
-                    "message": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "id": {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "status": {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "statusText": {
-                        "type": "string"
-                    },
-                    "created_at": {
-                        "type": "string"
-                    }
-                }
-            },
             "Notify": {
                 "type": "object",
                 "required": [
@@ -4306,17 +4273,15 @@
                     }
                 ],
                 "requestBody": {
-                    "required": true,
+                    "required": false,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "type": "object",
-                                "required": [
-                                    "file"
-                                ],
                                 "properties": {
                                     "file": {
                                         "$ref": "#/components/schemas/NewFile",
+                                        "default": [],
                                         "description": "File to save"
                                     },
                                     "name": {
@@ -4328,6 +4293,14 @@
                                         "$ref": "#/components/schemas/FolderSettings",
                                         "default": [],
                                         "description": "Settings to define the pattern to store the file. See more informations at FolderService::getFolderName method."
+                                    },
+                                    "files": {
+                                        "type": "array",
+                                        "default": [],
+                                        "description": "Multiple files to create an envelope (optional, use either file or files)",
+                                        "items": {
+                                            "$ref": "#/components/schemas/NewFile"
+                                        }
                                     }
                                 }
                             }
@@ -4380,7 +4353,47 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "$ref": "#/components/schemas/NextcloudFile"
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        },
+                                                        "status": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        },
+                                                        "statusText": {
+                                                            "type": "string"
+                                                        },
+                                                        "created_at": {
+                                                            "type": "string"
+                                                        },
+                                                        "envelope": {
+                                                            "type": "object",
+                                                            "additionalProperties": {
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "files": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "additionalProperties": {
+                                                                    "type": "object"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
