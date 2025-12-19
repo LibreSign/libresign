@@ -93,9 +93,10 @@ class FileService {
 		protected LoggerInterface $logger,
 		protected IL10N $l10n,
 		private EnvelopeService $envelopeService,
-		private FileUploadHelper $uploadHelper,
+		FileUploadHelper $uploadHelper,
 	) {
 		$this->docMdpHandler = $docMdpHandler;
+		$this->uploadHelper = $uploadHelper;
 		$this->fileData = new stdClass();
 	}
 
@@ -1009,6 +1010,89 @@ class FileService {
 			$nextcloudFile = $this->folderService->getFileById($fileId);
 			$nextcloudFile->delete();
 		} catch (NotFoundException) {
+		}
+	}
+
+	/**
+	 * Process uploaded files with automatic rollback on error
+	 *
+	 * @param array $filesArray Normalized array of uploaded files
+	 * @param IUser $user User who is uploading
+	 * @param array $settings Upload settings
+	 * @return list<array{fileNode: Node, name: string}>
+	 * @throws LibresignException
+	 */
+	public function processUploadedFilesWithRollback(array $filesArray, IUser $user, array $settings): array {
+		$this->validateEnvelopeConstraints($filesArray);
+
+		$processedFiles = [];
+		$createdNodes = [];
+		$shouldRollback = true;
+
+		try {
+			foreach ($filesArray as $uploadedFile) {
+				$fileName = pathinfo($uploadedFile['name'], PATHINFO_FILENAME);
+
+				$node = $this->getNodeFromUploadedFile([
+					'userManager' => $user,
+					'name' => $fileName,
+					'uploadedFile' => $uploadedFile,
+					'settings' => $settings,
+				]);
+
+				$createdNodes[] = $node;
+
+				$this->validateHelper->validateNewFile([
+					'file' => ['fileId' => $node->getId()],
+					'userManager' => $user,
+				]);
+
+				$processedFiles[] = [
+					'fileNode' => $node,
+					'name' => $fileName,
+				];
+			}
+
+			$shouldRollback = false;
+			return $processedFiles;
+		} finally {
+			if ($shouldRollback) {
+				$this->rollbackCreatedNodes($createdNodes);
+			}
+		}
+	}
+
+	/**
+	 * @throws LibresignException
+	 */
+	private function validateEnvelopeConstraints(array $filesArray): void {
+		if (count($filesArray) <= 1) {
+			return;
+		}
+
+		if (!$this->appConfig->getValueBool(Application::APP_ID, 'envelope_enabled', true)) {
+			throw new LibresignException($this->l10n->t('Envelope feature is disabled'));
+		}
+
+		$maxFiles = $this->appConfig->getValueInt(Application::APP_ID, 'envelope_max_files', 50);
+		if (count($filesArray) > $maxFiles) {
+			throw new LibresignException($this->l10n->t('Maximum of %d files per envelope', [$maxFiles]));
+		}
+	}
+
+	/**
+	 * @param Node[] $nodes
+	 */
+	private function rollbackCreatedNodes(array $nodes): void {
+		foreach ($nodes as $node) {
+			try {
+				$node->delete();
+			} catch (\Exception $deleteError) {
+				$this->logger->error('Failed to rollback uploaded file', [
+					'nodeId' => $node->getId(),
+					'error' => $deleteError->getMessage(),
+				]);
+			}
 		}
 	}
 }
