@@ -644,6 +644,7 @@ class SignRequestMapper extends QBMapper {
 
 	private function formatListRow(array $row): array {
 		$internalId = (int)$row['id'];
+		$row['fileId'] = $internalId;
 		$row['id'] = (int)$row['node_id'];
 		$row['status'] = (int)$row['status'];
 		$row['statusText'] = $this->fileMapper->getTextOfStatus($row['status']);
