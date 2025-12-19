@@ -78,6 +78,7 @@ class ValidateHelper {
 		private IRootFolder $root,
 	) {
 	}
+
 	public function validateNewFile(array $data, int $type = self::TYPE_TO_SIGN, ?IUser $user = null): void {
 		$this->validateFile($data, $type, $user);
 		if (!empty($data['file']['fileId'])) {

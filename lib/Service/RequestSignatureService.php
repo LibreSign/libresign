@@ -18,6 +18,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Handler\DocMdpHandler;
+use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -58,6 +59,7 @@ class RequestSignatureService {
 		protected SignRequestStatusService $signRequestStatusService,
 		protected DocMdpConfigService $docMdpConfigService,
 		protected EnvelopeService $envelopeService,
+		protected FileUploadHelper $uploadHelper,
 	) {
 	}
 
