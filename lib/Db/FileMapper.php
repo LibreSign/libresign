@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Db;
 
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\NodeType;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\Comments\ICommentsManager;
@@ -273,5 +274,53 @@ class FileMapper extends QBMapper {
 				->where($update->expr()->eq('id', $update->createNamedParameter($row['id'])));
 			$update->executeStatement();
 		}
+	}
+
+	/**
+	 * @return File[]
+	 */
+	public function getChildrenFiles(int $parentId): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('parent_file_id', $qb->createNamedParameter($parentId, IQueryBuilder::PARAM_INT))
+			)
+			->andWhere(
+				$qb->expr()->eq('node_type', $qb->createNamedParameter(NodeType::FILE->value))
+			)
+			->orderBy('id', 'ASC');
+
+		return $this->findEntities($qb);
+	}
+
+	public function getParentEnvelope(int $fileId): ?File {
+		$file = $this->getById($fileId);
+
+		if (!$file->hasParent()) {
+			return null;
+		}
+
+		return $this->getById($file->getParentFileId());
+	}
+
+	public function countChildrenFiles(int $envelopeId): int {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select($qb->func()->count('*', 'count'))
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('parent_file_id', $qb->createNamedParameter($envelopeId, IQueryBuilder::PARAM_INT))
+			)
+			->andWhere(
+				$qb->expr()->eq('node_type', $qb->createNamedParameter(NodeType::FILE->value))
+			);
+
+		$cursor = $qb->executeQuery();
+		$row = $cursor->fetch();
+		$cursor->closeCursor();
+
+		return $row ? (int)$row['count'] : 0;
 	}
 }
