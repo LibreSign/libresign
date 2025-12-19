@@ -1155,16 +1155,6 @@ export type components = {
             /** Format: int64 */
             signingOrder?: number;
         };
-        NextcloudFile: {
-            message: string;
-            name: string;
-            /** Format: int64 */
-            id: number;
-            /** Format: int64 */
-            status: number;
-            statusText: string;
-            created_at: string;
-        };
         Notify: {
             date: string;
             /** @enum {string} */
@@ -2753,11 +2743,14 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
+        requestBody?: {
             content: {
                 "application/json": {
-                    /** @description File to save */
-                    file: components["schemas"]["NewFile"];
+                    /**
+                     * @description File to save
+                     * @default []
+                     */
+                    file?: components["schemas"]["NewFile"];
                     /**
                      * @description The name of file to sign
                      * @default
@@ -2768,6 +2761,11 @@ export interface operations {
                      * @default []
                      */
                     settings?: components["schemas"]["FolderSettings"];
+                    /**
+                     * @description Multiple files to create an envelope (optional, use either file or files)
+                     * @default []
+                     */
+                    files?: components["schemas"]["NewFile"][];
                 };
             };
         };
@@ -2781,7 +2779,22 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: components["schemas"]["NextcloudFile"];
+                            data: {
+                                message: string;
+                                name?: string;
+                                /** Format: int64 */
+                                id?: number;
+                                /** Format: int64 */
+                                status?: number;
+                                statusText?: string;
+                                created_at?: string;
+                                envelope?: {
+                                    [key: string]: Record<string, never>;
+                                };
+                                files?: {
+                                    [key: string]: Record<string, never>;
+                                }[];
+                            };
                         };
                     };
                 };
