@@ -528,6 +528,7 @@ class FileController extends AEnvironmentAwareController {
 		]);
 
 		$envelope = $result['envelope'];
+
 		return new DataResponse(
 			[
 				'message' => $this->l10n->t('Success'),
