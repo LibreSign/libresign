@@ -28,6 +28,7 @@ use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
+use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\EnvelopeService;
@@ -81,6 +82,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected IL10N $l10n;
 	protected EnvelopeService $envelopeService;
 	protected vfsDirectory $tempFolder;
+	protected FileUploadHelper&MockObject $uploadHelper;
 
 	public function setUp(): void {
 		// Disable lazy objects to avoid PHP 8.4 dependency injection issues in tests
@@ -117,6 +119,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->logger = \OCP\Server::get(LoggerInterface::class);
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->envelopeService = \OCP\Server::get(EnvelopeService::class);
+		$this->uploadHelper = \OCP\Server::get(FileUploadHelper::class);
 		return new FileService(
 			$this->fileMapper,
 			$this->signRequestMapper,
@@ -142,6 +145,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->logger,
 			$this->l10n,
 			$this->envelopeService,
+			$this->uploadHelper,
 		);
 	}
 
