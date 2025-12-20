@@ -116,6 +116,15 @@
 				</NcButton>
 			</div>
 			<div class="button-group">
+				<NcButton v-if="isEnvelope && canAddFilesToEnvelope"
+					wide
+					variant="secondary"
+					@click="addFileToEnvelope">
+					<template #icon>
+						<FilePlus :size="20" />
+					</template>
+					{{ t('libresign', 'Add file to envelope') }}
+				</NcButton>
 				<NcButton v-if="filesStore.canValidate()"
 					wide
 					variant="secondary"
@@ -236,6 +245,7 @@ import ChartGantt from 'vue-material-design-icons/ChartGantt.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import Draw from 'vue-material-design-icons/Draw.vue'
 import FileDocument from 'vue-material-design-icons/FileDocument.vue'
+import FilePlus from 'vue-material-design-icons/FilePlus.vue'
 import Information from 'vue-material-design-icons/Information.vue'
 import MessageText from 'vue-material-design-icons/MessageText.vue'
 import OrderNumericAscending from 'vue-material-design-icons/OrderNumericAscending.vue'
@@ -297,6 +307,7 @@ export default {
 		Delete,
 		Draw,
 		FileDocument,
+		FilePlus,
 		IdentifySigner,
 		Information,
 		MessageText,
@@ -518,6 +529,17 @@ export default {
 		},
 		fileName() {
 			return this.filesStore.getFile()?.name ?? ''
+		},
+		isEnvelope() {
+			return this.filesStore.getFile()?.nodeType === 'envelope'
+		},
+		canAddFilesToEnvelope() {
+			const file = this.filesStore.getFile()
+			if (!file || file.status !== SIGN_STATUS.DRAFT) {
+				return false
+			}
+			const capabilities = getCapabilities()
+			return capabilities?.libresign?.config?.envelope?.['is-available'] === true
 		},
 		size() {
 			return window.matchMedia('(max-width: 512px)').matches ? 'full' : 'normal'
@@ -872,6 +894,48 @@ export default {
 			}
 			this.signStore.setDocumentToSign(this.filesStore.getFile())
 			this.$router.push({ name: 'SignPDF', params: { uuid } })
+		},
+		addFileToEnvelope() {
+			const input = document.createElement('input')
+			input.type = 'file'
+			input.accept = '.pdf'
+			input.multiple = true
+			input.onchange = (e) => {
+				const files = e.target.files
+				if (!files || files.length === 0) return
+
+				this.hasLoading = true
+				const envelope = this.filesStore.getFile()
+				const formData = new FormData()
+
+				for (const file of files) {
+					formData.append('files[]', file)
+				}
+
+				axios.post(
+					generateOcsUrl('/apps/libresign/api/v1/file/{uuid}/add-file', { uuid: envelope.uuid }),
+					formData,
+					{
+						headers: {
+							'Content-Type': 'multipart/form-data',
+						},
+					}
+				)
+					.then(({ data }) => {
+						showSuccess(data.ocs.data.message)
+					})
+					.catch((error) => {
+						if (error.response?.data?.ocs?.data?.message) {
+							showError(error.response.data.ocs.data.message)
+						} else {
+							showError(t('libresign', 'Failed to add files to envelope'))
+						}
+					})
+					.finally(() => {
+						this.hasLoading = false
+					})
+			}
+			input.click()
 		},
 		async save() {
 			this.hasLoading = true
