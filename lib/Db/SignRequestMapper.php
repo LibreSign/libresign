@@ -663,7 +663,6 @@ class SignRequestMapper extends QBMapper {
 		$row['signatureFlow'] = SignatureFlow::fromNumeric((int)($row['signature_flow']))->value;
 		$row['docmdpLevel'] = (int)($row['docmdp_level'] ?? 0);
 		$row['nodeType'] = $row['node_type'] ?? 'file';
-		$row['isEnvelope'] = $row['node_type'] === 'envelope';
 
 		if ($row['node_type'] === 'envelope') {
 			$childrenFiles = $this->fileMapper->getChildrenFiles($internalId);
