@@ -63,8 +63,9 @@ export default {
 			if (this.backgroundFailed === true) {
 				return null
 			}
+
 			let previewUrl = ''
-			if (this.filesStore.files[this.currentNodeId]?.uuid?.length > 0) {
+			if (this.currentNodeId) {
 				previewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
 					nodeId: this.currentNodeId,
 				})
