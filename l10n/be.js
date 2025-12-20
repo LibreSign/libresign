@@ -40,6 +40,7 @@ OC.L10N.register(
     "Cancel" : "Скасаваць",
     "Files" : "Файлы",
     "Settings" : "Налады",
+    "{currentPage} of {totalPages}" : "{currentPage} з {totalPages}",
     "Loading …" : "Загрузка …",
     "Name" : "Назва",
     "Update" : "Абнавіць",
