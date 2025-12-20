@@ -1197,6 +1197,7 @@ export type components = {
                 name: string;
                 /** Format: int64 */
                 status: number;
+                statusText: string;
             }[];
         };
         Notify: {
@@ -2654,6 +2655,8 @@ export interface operations {
                 sortBy?: string | null;
                 /** @description Ascending or descending order */
                 sortDirection?: string | null;
+                /** @description Filter files by parent envelope ID */
+                parentFileId?: number | null;
             };
             header: {
                 /** @description Required to be true for the API request to pass */
@@ -2871,17 +2874,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                                files: {
-                                    /** Format: int64 */
-                                    id: number;
-                                    uuid: string;
-                                    name: string;
-                                    /** Format: int64 */
-                                    status: number;
-                                }[];
-                            };
+                            data: components["schemas"]["NextcloudFile"];
                         };
                     };
                 };
