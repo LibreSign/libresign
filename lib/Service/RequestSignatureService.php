@@ -75,10 +75,7 @@ class RequestSignatureService {
 	}
 
 	public function saveEnvelope(array $data): array {
-		$isEnabled = $this->appConfig->getValueBool(Application::APP_ID, 'envelope_enabled', true);
-		if (!$isEnabled) {
-			throw new \Exception($this->l10n->t('Envelope feature is disabled'));
-		}
+		$this->envelopeService->validateEnvelopeConstraints(count($data['files']));
 
 		$envelopeName = $data['name'] ?: $this->l10n->t('Envelope %s', [date('Y-m-d H:i:s')]);
 		$userManager = $data['userManager'] ?? null;
@@ -97,21 +94,11 @@ class RequestSignatureService {
 			]);
 
 			foreach ($data['files'] as $fileData) {
-				if (isset($fileData['uploadedFile'])) {
-					$node = $this->getNodeFromUploadedFile([
-						'userManager' => $userManager,
-						'name' => $fileData['name'],
-						'uploadedFile' => $fileData['uploadedFile'],
-						'settings' => $envelopeSettings,
-					]);
-					$fileData['node'] = $node;
-					$createdNodes[] = $node;
-				}
-				$fileEntity = $this->createFileForEnvelope(
-					$fileData,
-					$userManager,
-					$envelopeSettings
-				);
+				$node = $this->processFileData($fileData, $userManager, $envelopeSettings);
+				$createdNodes[] = $node;
+
+				$fileData['node'] = $node;
+				$fileEntity = $this->createFileForEnvelope($fileData, $userManager, $envelopeSettings);
 				$this->envelopeService->addFileToEnvelope($envelope->getId(), $fileEntity);
 				$files[] = $fileEntity;
 			}
@@ -124,6 +111,24 @@ class RequestSignatureService {
 			$this->rollbackEnvelopeCreation($envelope, $files, $createdNodes);
 			throw $e;
 		}
+	}
+
+	private function processFileData(array $fileData, ?IUser $userManager, array $settings): Node {
+		if (isset($fileData['uploadedFile'])) {
+			return $this->getNodeFromData([
+				'userManager' => $userManager,
+				'name' => $fileData['name'] ?? '',
+				'uploadedFile' => $fileData['uploadedFile'],
+				'settings' => $settings,
+			]);
+		}
+
+		return $this->getNodeFromData([
+			'userManager' => $userManager,
+			'name' => $fileData['name'] ?? '',
+			'file' => $fileData,
+			'settings' => $settings,
+		]);
 	}
 
 	private function rollbackEnvelopeCreation(?FileEntity $envelope, array $files, array $createdNodes): void {
