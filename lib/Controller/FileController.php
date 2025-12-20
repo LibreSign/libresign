@@ -340,10 +340,11 @@ class FileController extends AEnvironmentAwareController {
 		}
 
 		try {
-			$myLibreSignFile = $this->fileService
-				->setMe($this->userSession->getUser())
-				->getMyLibresignFile($nodeId);
-			$node = $this->accountService->getPdfByUuid($myLibreSignFile->getUuid());
+			$libreSignFile = $this->fileMapper->getByFileId($nodeId);
+			if ($libreSignFile->getUserId() !== $this->userSession->getUser()->getUID()) {
+				return new DataResponse([], Http::STATUS_FORBIDDEN);
+			}
+			$node = $this->accountService->getPdfByUuid($libreSignFile->getUuid());
 		} catch (DoesNotExistException) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
