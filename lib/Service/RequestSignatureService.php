@@ -244,6 +244,10 @@ class RequestSignatureService {
 			$file->setStatus(FileEntity::STATUS_ABLE_TO_SIGN);
 		}
 
+		if (isset($data['parentFileId'])) {
+			$file->setParentFileId($data['parentFileId']);
+		}
+
 		$this->setSignatureFlow($file, $data);
 		$this->setDocMdpLevelFromGlobalConfig($file);
 
