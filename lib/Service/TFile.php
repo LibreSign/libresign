@@ -26,6 +26,11 @@ trait TFile {
 		if (!$this->folderService->getUserId()) {
 			$this->folderService->setUserId($data['userManager']->getUID());
 		}
+
+		if (isset($data['uploadedFile'])) {
+			return $this->getNodeFromUploadedFile($data);
+		}
+
 		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
 			return $data['file']['fileNode'];
 		}
