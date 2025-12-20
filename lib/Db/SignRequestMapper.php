@@ -459,6 +459,49 @@ class SignRequestMapper extends QBMapper {
 		];
 	}
 
+	public function getFilesToSearchProvider(IUser $user, string $term, int $limit, int $offset): array {
+		$filter = [
+			'page' => ($offset / $limit) + 1,
+			'length' => $limit,
+		];
+
+		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder($user->getUID(), $filter);
+
+		if (!empty($term)) {
+			$qb->andWhere(
+				$qb->expr()->like('f.name', $qb->createNamedParameter('%' . $this->db->escapeLikeParameter($term) . '%'))
+			);
+		}
+
+		$qb->orderBy('f.created_at', 'DESC');
+
+		$result = $qb->executeQuery();
+		$files = [];
+
+		while ($row = $result->fetch()) {
+			try {
+				$file = new File();
+				$file->setId((int)$row['id']);
+				$file->setUserId($row['user_id']);
+				$file->setNodeId((int)($row['node_id'] ?? 0));
+				$file->setSignedNodeId($row['signed_node_id'] ? (int)$row['signed_node_id'] : null);
+				$file->setName($row['name'] ?? '');
+				$file->setStatus((int)($row['status'] ?? 0));
+				$file->setUuid($row['uuid'] ?? '');
+				$file->setCreatedAt($row['created_at'] ?? '');
+
+
+				$files[] = $file;
+			} catch (\Exception $e) {
+				continue;
+			}
+		}
+
+		$result->closeCursor();
+
+		return $files;
+	}
+
 	/**
 	 * @param array<SignRequest> $signRequests
 	 * @return FileElement[][]
