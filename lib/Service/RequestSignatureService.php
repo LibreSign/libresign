@@ -648,7 +648,7 @@ class RequestSignatureService {
 			$this->signRequestMapper->delete($signRequest);
 			foreach ($groupedIdentifyMethods as $identifyMethods) {
 				foreach ($identifyMethods as $identifyMethod) {
-					$identifyMethod->delete();
+					$this->identifyMethodMapper->delete($identifyMethod->getEntity());
 				}
 			}
 			$visibleElements = $this->fileElementMapper->getByFileIdAndSignRequestId($file->getId(), $signRequestId);
