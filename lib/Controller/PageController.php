@@ -93,6 +93,8 @@ class PageController extends AEnvironmentPageAwareController {
 			$this->initialState->provideInitialState('can_request_sign', false);
 		}
 
+		$this->initialState->provideInitialState('envelope_enabled', $this->appConfig->getValueBool(Application::APP_ID, 'envelope_enabled', true));
+
 		$this->provideSignerSignatues();
 		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
 		$this->initialState->provideInitialState('signature_flow', $this->appConfig->getValueString(Application::APP_ID, 'signature_flow', \OCA\Libresign\Enum\SignatureFlow::NONE->value));
