@@ -34,6 +34,12 @@
 				{{ t('libresign', 'Upload') }}
 			</NcActionButton>
 		</NcActions>
+		<UploadProgress :is-uploading="isUploading"
+			:upload-progress="uploadProgress"
+			:uploaded-bytes="uploadedBytes"
+			:total-bytes="totalBytes"
+			:upload-start-time="uploadStartTime"
+			@cancel="cancelUpload" />
 		<FilePicker v-if="showFilePicker"
 			:name="t('libresign', 'Select your file')"
 			:multiselect="false"
@@ -90,6 +96,8 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
+import UploadProgress from '../UploadProgress.vue'
+
 import { useActionsMenuStore } from '../../store/actionsmenu.js'
 import { useFilesStore } from '../../store/files.js'
 
@@ -109,6 +117,7 @@ export default {
 		NcTextField,
 		PlusIcon,
 		UploadIcon,
+		UploadProgress,
 	},
 	props: {
 		inline: {
@@ -133,6 +142,12 @@ export default {
 			loading: false,
 			openedMenu: false,
 			canRequestSign: loadState('libresign', 'can_request_sign', false),
+			uploadProgress: 0,
+			isUploading: false,
+			uploadAbortController: null,
+			uploadedBytes: 0,
+			totalBytes: 0,
+			uploadStartTime: null,
 		}
 	},
 	computed: {
@@ -186,6 +201,11 @@ export default {
 		},
 		async upload(files) {
 			this.loading = true
+			this.isUploading = true
+			this.uploadProgress = 0
+			this.uploadedBytes = 0
+			this.totalBytes = 0
+			this.uploadStartTime = Date.now()
 
 			const formData = new FormData()
 
@@ -193,21 +213,52 @@ export default {
 				const name = files[0].name.replace(/\.pdf$/i, '')
 				formData.append('name', name)
 				formData.append('file', files[0])
+				this.totalBytes = files[0].size
 			} else {
 				formData.append('name', '')
+				let totalSize = 0
 				files.forEach((file) => {
 					formData.append('files[]', file)
+					totalSize += file.size
 				})
+				this.totalBytes = totalSize
 			}
 
-			await this.filesStore.upload(formData)
+			const abortController = new AbortController()
+			this.uploadAbortController = abortController
+
+			await this.filesStore.upload(formData, {
+				signal: abortController.signal,
+				onUploadProgress: (progressEvent) => {
+					if (progressEvent.total) {
+						this.uploadedBytes = progressEvent.loaded
+						this.uploadProgress = Math.round((progressEvent.loaded / progressEvent.total) * 100)
+					}
+				},
+			})
 				.then((nodeId) => {
 					this.filesStore.selectFile(nodeId)
 				})
-				.catch(({ response }) => {
-					showError(response.data.ocs.data.message)
+				.catch((error) => {
+					if (error.code === 'ERR_CANCELED') {
+						return
+					}
+					if (error.response?.data?.ocs?.data?.message) {
+						showError(error.response.data.ocs.data.message)
+					} else {
+						showError(t('libresign', 'Upload failed'))
+					}
 				})
-			this.loading = false
+				.finally(() => {
+					this.loading = false
+					this.isUploading = false
+					this.uploadAbortController = null
+				})
+		},
+		cancelUpload() {
+			if (this.uploadAbortController) {
+				this.uploadAbortController.abort()
+			}
 		},
 		uploadFile() {
 			this.openedMenu = false
