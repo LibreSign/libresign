@@ -637,11 +637,12 @@ class RequestSignatureService {
 	}
 
 	public function unassociateToUser(int $fileId, int $signRequestId): void {
-		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
+		$file = $this->fileMapper->getByFileId($fileId);
+		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($file->getId(), $signRequestId);
 		$deletedOrder = $signRequest->getSigningOrder();
 		$groupedIdentifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequestId);
 
-		$this->dispatchCancellationEventIfNeeded($signRequest, $fileId, $groupedIdentifyMethods);
+		$this->dispatchCancellationEventIfNeeded($signRequest, $file->getId(), $groupedIdentifyMethods);
 
 		try {
 			$this->signRequestMapper->delete($signRequest);
@@ -650,13 +651,43 @@ class RequestSignatureService {
 					$identifyMethod->delete();
 				}
 			}
-			$visibleElements = $this->fileElementMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
+			$visibleElements = $this->fileElementMapper->getByFileIdAndSignRequestId($file->getId(), $signRequestId);
 			foreach ($visibleElements as $visibleElement) {
 				$this->fileElementMapper->delete($visibleElement);
 			}
 
-			$this->sequentialSigningService->reorderAfterDeletion($fileId, $deletedOrder);
+			$this->sequentialSigningService->reorderAfterDeletion($file->getId(), $deletedOrder);
+
+			$this->propagateSignerDeletionToChildren($file, $signRequest);
 		} catch (\Throwable) {
+		}
+	}
+
+	private function propagateSignerDeletionToChildren(FileEntity $envelope, SignRequestEntity $deletedSignRequest): void {
+		if ($envelope->getNodeType() !== 'envelope') {
+			return;
+		}
+
+		$children = $this->fileMapper->getChildrenFiles($envelope->getId());
+
+		$identifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($deletedSignRequest->getId());
+		if (empty($identifyMethods)) {
+			return;
+		}
+
+		foreach ($children as $child) {
+			try {
+				$childSignRequest = $this->getSignRequestByIdentifyMethod(
+					current(reset($identifyMethods)),
+					$child->getId()
+				);
+
+				if ($childSignRequest->getId()) {
+					$this->unassociateToUser($child->getNodeId(), $childSignRequest->getId());
+				}
+			} catch (\Throwable $e) {
+				continue;
+			}
 		}
 	}
 
