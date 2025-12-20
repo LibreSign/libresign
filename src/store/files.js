@@ -77,7 +77,7 @@ export const useFilesStore = function(...args) {
 				})
 				this.addFile(files[this.selectedNodeId])
 			},
-			async addFilesToEnvelope(envelopeUuid, formData) {
+			async addFilesToEnvelope(envelopeUuid, formData, options = {}) {
 				return await axios.post(
 					generateOcsUrl('/apps/libresign/api/v1/file/{uuid}/add-file', { uuid: envelopeUuid }),
 					formData,
@@ -85,6 +85,8 @@ export const useFilesStore = function(...args) {
 						headers: {
 							'Content-Type': 'multipart/form-data',
 						},
+						signal: options.signal,
+						onUploadProgress: options.onUploadProgress,
 					},
 				)
 					.then(({ data }) => {
@@ -104,6 +106,13 @@ export const useFilesStore = function(...args) {
 						}
 					})
 					.catch((error) => {
+						if (error.code === 'ERR_CANCELED') {
+							return {
+								success: false,
+								message: 'Upload cancelled',
+								error,
+							}
+						}
 						const message = error.response?.data?.ocs?.data?.message || 'Failed to add files to envelope'
 						return {
 							success: false,
@@ -355,17 +364,29 @@ export const useFilesStore = function(...args) {
 				}
 				this.loading = false
 			},
-			async upload(payload) {
+			async upload(payload, options = {}) {
 				let data
+
+				const axiosConfig = {}
+
+				if (options.onUploadProgress) {
+					axiosConfig.onUploadProgress = options.onUploadProgress
+				}
+
+				if (options.signal) {
+					axiosConfig.signal = options.signal
+				}
+
 				if (payload instanceof FormData) {
 					const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), payload, {
+						...axiosConfig,
 						headers: {
 							'Content-Type': 'multipart/form-data',
 						},
 					})
 					data = response.data
 				} else {
-					const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), payload)
+					const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), payload, axiosConfig)
 					data = response.data
 				}
 
