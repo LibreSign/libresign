@@ -684,7 +684,6 @@ class FileController extends AEnvironmentAwareController {
 		$response = [
 			'message' => $this->l10n->t('Success'),
 			'id' => $mainEntity->getNodeId(),
-			'fileId' => $mainEntity->getId(),
 			'nodeId' => $mainEntity->getNodeId(),
 			'uuid' => $mainEntity->getUuid(),
 			'name' => $mainEntity->getName(),
@@ -718,11 +717,10 @@ class FileController extends AEnvironmentAwareController {
 
 	/**
 	 * @param FileEntity[] $files
-	 * @return list<array{fileId: int, nodeId: int, uuid: string, name: string, status: int, statusText: string}>
+	 * @return list<array{nodeId: int, uuid: string, name: string, status: int, statusText: string}>
 	 */
 	private function formatFilesResponse(array $files): array {
 		return array_values(array_map(fn (FileEntity $file) => [
-			'fileId' => $file->getId(),
 			'nodeId' => $file->getNodeId(),
 			'uuid' => $file->getUuid(),
 			'name' => $file->getName(),
