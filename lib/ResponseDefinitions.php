@@ -195,6 +195,7 @@ namespace OCA\Libresign;
  *     status: 0|1|2|3|4,
  *     statusText: string,
  *     nodeId: non-negative-int,
+ *     nodeType: 'file'|'envelope',
  *     signatureFlow: int,
  *     docmdpLevel: int,
  *     totalPages: non-negative-int,

@@ -1322,6 +1322,8 @@ export type components = {
             statusText: string;
             /** Format: int64 */
             nodeId: number;
+            /** @enum {string} */
+            nodeType: "file" | "envelope";
             /** Format: int64 */
             signatureFlow: number;
             /** Format: int64 */

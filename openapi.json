@@ -944,6 +944,7 @@
                     "status",
                     "statusText",
                     "nodeId",
+                    "nodeType",
                     "signatureFlow",
                     "docmdpLevel",
                     "totalPages",
@@ -978,6 +979,13 @@
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0
+                    },
+                    "nodeType": {
+                        "type": "string",
+                        "enum": [
+                            "file",
+                            "envelope"
+                        ]
                     },
                     "signatureFlow": {
                         "type": "integer",
