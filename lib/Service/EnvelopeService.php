@@ -48,10 +48,9 @@ class EnvelopeService {
 		}
 	}
 
-	public function createEnvelope(string $name, ?string $userId = null): FileEntity {
-		if ($userId) {
-			$this->folderService->setUserId($userId);
-		}
+	public function createEnvelope(string $name, string $userId, int $filesCount = 0): FileEntity {
+		$this->folderService->setUserId($userId);
+
 		$parentFolder = $this->folderService->getFolder();
 
 		$folderName = $name . '_' . substr(UUIDUtil::getUUID(), 0, 8);
