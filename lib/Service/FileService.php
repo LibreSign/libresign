@@ -1000,6 +1000,14 @@ class FileService {
 
 	public function delete(int $fileId): void {
 		$file = $this->fileMapper->getByFileId($fileId);
+
+		if ($file->getNodeType() === 'envelope') {
+			$childrenFiles = $this->fileMapper->getChildrenFiles($file->getId());
+			foreach ($childrenFiles as $childFile) {
+				$this->delete($childFile->getNodeId());
+			}
+		}
+
 		$this->fileElementService->deleteVisibleElements($file->getId());
 		$list = $this->signRequestMapper->getByFileId($file->getId());
 		foreach ($list as $signRequest) {
