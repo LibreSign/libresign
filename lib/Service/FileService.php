@@ -298,7 +298,7 @@ class FileService {
 	}
 
 	private function loadFileMetadata(): void {
-		if (!$content = $this->getFileContent()) {
+		if ($this->file->getNodeType() !== 'file' || !$content = $this->getFileContent()) {
 			return;
 		}
 		$pdfParserService = $this->pdfParserService->setFile($content);
