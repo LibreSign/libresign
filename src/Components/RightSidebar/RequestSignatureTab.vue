@@ -10,11 +10,6 @@
 		<NcNoteCard v-if="hasSignersWithDisabledMethods" type="warning">
 			{{ t('libresign', 'Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures.') }}
 		</NcNoteCard>
-		<NcButton v-if="filesStore.canAddSigner()"
-			:variant="hasSigners ? 'secondary' : 'primary'"
-			@click="addSigner">
-			{{ t('libresign', 'Add signer') }}
-		</NcButton>
 		<NcCheckboxRadioSwitch v-if="showPreserveOrder"
 			v-model="preserveOrder"
 			type="switch"
@@ -78,72 +73,80 @@
 				</NcActionButton>
 			</template>
 		</Signers>
-		<div class="action-buttons">
-			<div v-if="showSaveButton || showRequestButton" class="button-group">
-				<NcButton v-if="showSaveButton"
-					wide
-					variant="secondary"
-					:disabled="hasLoading"
-					@click="save()">
-					<template #icon>
-						<NcLoadingIcon v-if="hasLoading" :size="20" />
-						<Pencil v-else-if="isSignElementsAvailable()" :size="20" />
-					</template>
-					{{ isSignElementsAvailable() ? t('libresign', 'Setup signature positions') : t('libresign', 'Save') }}
-				</NcButton>
-				<NcButton v-if="showRequestButton"
-					wide
-					:variant="filesStore.canSign() ? 'secondary' : 'primary'"
-					:disabled="hasLoading"
-					@click="request()">
-					<template #icon>
-						<NcLoadingIcon v-if="hasLoading" :size="20" />
-						<Send v-else :size="20" />
-					</template>
-					{{ t('libresign', 'Request signatures') }}
-				</NcButton>
-			</div>
-			<div v-if="filesStore.canSign()" class="button-group">
-				<NcButton wide
-					variant="primary"
-					:disabled="hasLoading"
-					@click="sign()">
-					<template #icon>
-						<NcLoadingIcon v-if="hasLoading" :size="20" />
-						<Draw v-else :size="20" />
-					</template>
-					{{ t('libresign', 'Sign document') }}
-				</NcButton>
-			</div>
-			<div class="button-group">
-				<NcButton v-if="isEnvelope && canAddFilesToEnvelope"
-					wide
-					variant="secondary"
-					@click="addFileToEnvelope">
-					<template #icon>
-						<FilePlus :size="20" />
-					</template>
-					{{ t('libresign', 'Add file to envelope') }}
-				</NcButton>
-				<NcButton v-if="filesStore.canValidate()"
-					wide
-					variant="secondary"
-					@click="validationFile()">
-					<template #icon>
-						<Information :size="20" />
-					</template>
-					{{ t('libresign', 'Validation info') }}
-				</NcButton>
-				<NcButton wide
-					variant="secondary"
-					@click="openFile()">
-					<template #icon>
-						<FileDocument :size="20" />
-					</template>
-					{{ t('libresign', 'Open file') }}
-				</NcButton>
-			</div>
-		</div>
+		<NcFormBox v-if="filesStore.canAddSigner() || (isEnvelope && envelopeFiles.length > 0)">
+			<NcButton v-if="filesStore.canAddSigner()"
+				wide
+				:variant="hasSigners ? 'secondary' : 'primary'"
+				@click="addSigner">
+				{{ t('libresign', 'Add signer') }}
+			</NcButton>
+			<NcButton v-if="isEnvelope"
+				wide
+				type="secondary"
+				@click="showEnvelopeFilesDialog = true">
+				<template #icon>
+					<FileMultiple :size="20" />
+				</template>
+				{{ t('libresign', 'Manage files ({count})', { count: envelopeFilesCount }) }}
+			</NcButton>
+		</NcFormBox>
+		<NcFormBox v-if="showSaveButton || showRequestButton" class="action-form-box">
+			<NcButton v-if="showSaveButton"
+				wide
+				variant="secondary"
+				:disabled="hasLoading"
+				@click="save()">
+				<template #icon>
+					<NcLoadingIcon v-if="hasLoading" :size="20" />
+					<Pencil v-else-if="isSignElementsAvailable()" :size="20" />
+				</template>
+				{{ isSignElementsAvailable() ? t('libresign', 'Setup signature positions') : t('libresign', 'Save') }}
+			</NcButton>
+			<NcButton v-if="showRequestButton"
+				wide
+				:variant="filesStore.canSign() ? 'secondary' : 'primary'"
+				:disabled="hasLoading"
+				@click="request()">
+				<template #icon>
+					<NcLoadingIcon v-if="hasLoading" :size="20" />
+					<Send v-else :size="20" />
+				</template>
+				{{ t('libresign', 'Request signatures') }}
+			</NcButton>
+		</NcFormBox>
+		<NcFormBox v-if="filesStore.canSign()" class="action-form-box">
+			<NcButton
+				wide
+				variant="primary"
+				:disabled="hasLoading"
+				@click="sign()">
+				<template #icon>
+					<NcLoadingIcon v-if="hasLoading" :size="20" />
+					<Draw v-else :size="20" />
+				</template>
+				{{ t('libresign', 'Sign document') }}
+			</NcButton>
+		</NcFormBox>
+		<NcFormBox class="action-form-box">
+			<NcButton v-if="filesStore.canValidate()"
+				wide
+				variant="secondary"
+				@click="validationFile()">
+				<template #icon>
+					<Information :size="20" />
+				</template>
+				{{ t('libresign', 'Validation info') }}
+			</NcButton>
+			<NcButton
+				wide
+				variant="secondary"
+				@click="openFile()">
+				<template #icon>
+					<FileDocument :size="20" />
+				</template>
+				{{ t('libresign', 'Open file') }}
+			</NcButton>
+		</NcFormBox>
 		<VisibleElements />
 		<NcModal v-if="modalSrc"
 			size="full"
@@ -227,6 +230,8 @@
 				</NcButton>
 			</template>
 		</NcDialog>
+		<EnvelopeFilesList :open="showEnvelopeFilesDialog"
+			@close="showEnvelopeFilesDialog = false" />
 	</div>
 </template>
 <script>
@@ -245,6 +250,7 @@ import ChartGantt from 'vue-material-design-icons/ChartGantt.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import Draw from 'vue-material-design-icons/Draw.vue'
 import FileDocument from 'vue-material-design-icons/FileDocument.vue'
+import FileMultiple from 'vue-material-design-icons/FileMultiple.vue'
 import FilePlus from 'vue-material-design-icons/FilePlus.vue'
 import Information from 'vue-material-design-icons/Information.vue'
 import MessageText from 'vue-material-design-icons/MessageText.vue'
@@ -267,11 +273,13 @@ import NcAppSidebarTab from '@nextcloud/vue/components/NcAppSidebarTab'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
+import NcFormBox from '@nextcloud/vue/components/NcFormBox'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 
+import EnvelopeFilesList from './EnvelopeFilesList.vue'
 import IdentifySigner from '../Request/IdentifySigner.vue'
 import Signers from '../Signers/Signers.vue'
 import SigningOrderDiagram from '../SigningOrder/SigningOrderDiagram.vue'
@@ -306,8 +314,10 @@ export default {
 		ChartGantt,
 		Delete,
 		Draw,
+		EnvelopeFilesList,
 		FileDocument,
 		FilePlus,
+		FileMultiple,
 		IdentifySigner,
 		Information,
 		MessageText,
@@ -320,6 +330,7 @@ export default {
 		NcCheckboxRadioSwitch,
 		NcDialog,
 		NcIconSvgWrapper,
+		NcFormBox,
 		NcLoadingIcon,
 		NcModal,
 		NcNoteCard,
@@ -357,6 +368,7 @@ export default {
 			activeTab: '',
 			preserveOrder: false,
 			showOrderDiagram: false,
+			showEnvelopeFilesDialog: false,
 			infoIcon: svgInfo,
 			adminSignatureFlow: '',
 			lastSyncedFileId: null,
@@ -533,13 +545,8 @@ export default {
 		isEnvelope() {
 			return this.filesStore.getFile()?.nodeType === 'envelope'
 		},
-		canAddFilesToEnvelope() {
-			const file = this.filesStore.getFile()
-			if (!file || file.status !== SIGN_STATUS.DRAFT) {
-				return false
-			}
-			const capabilities = getCapabilities()
-			return capabilities?.libresign?.config?.envelope?.['is-available'] === true
+		envelopeFilesCount() {
+			return this.filesStore.getFile()?.filesCount || 0
 		},
 		size() {
 			return window.matchMedia('(max-width: 512px)').matches ? 'full' : 'normal'
@@ -895,48 +902,7 @@ export default {
 			this.signStore.setDocumentToSign(this.filesStore.getFile())
 			this.$router.push({ name: 'SignPDF', params: { uuid } })
 		},
-		addFileToEnvelope() {
-			const input = document.createElement('input')
-			input.type = 'file'
-			input.accept = '.pdf'
-			input.multiple = true
-			input.onchange = (e) => {
-				const files = e.target.files
-				if (!files || files.length === 0) return
 
-				this.hasLoading = true
-				const envelope = this.filesStore.getFile()
-				const formData = new FormData()
-
-				for (const file of files) {
-					formData.append('files[]', file)
-				}
-
-				axios.post(
-					generateOcsUrl('/apps/libresign/api/v1/file/{uuid}/add-file', { uuid: envelope.uuid }),
-					formData,
-					{
-						headers: {
-							'Content-Type': 'multipart/form-data',
-						},
-					}
-				)
-					.then(({ data }) => {
-						showSuccess(data.ocs.data.message)
-					})
-					.catch((error) => {
-						if (error.response?.data?.ocs?.data?.message) {
-							showError(error.response.data.ocs.data.message)
-						} else {
-							showError(t('libresign', 'Failed to add files to envelope'))
-						}
-					})
-					.finally(() => {
-						this.hasLoading = false
-					})
-			}
-			input.click()
-		},
 		async save() {
 			this.hasLoading = true
 			try {
@@ -978,6 +944,7 @@ export default {
 					mime: 'application/pdf',
 					fileid: file.nodeId,
 				}
+				console.table(fileInfo)
 				OCA.Viewer.open({
 					fileInfo,
 					list: [fileInfo],
@@ -995,17 +962,8 @@ export default {
 	margin: 8px 0;
 }
 
-.action-buttons {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
+.action-form-box {
 	margin-top: 12px;
-}
-
-.button-group {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
 }
 
 .iframe {
