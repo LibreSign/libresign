@@ -94,14 +94,6 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 import { useActionsMenuStore } from '../../store/actionsmenu.js'
 import { useFilesStore } from '../../store/files.js'
 
-const loadFileToBase64 = file => {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.readAsDataURL(file)
-		reader.onload = () => resolve(reader.result)
-		reader.onerror = (error) => reject(error)
-	})
-}
 export default {
 	name: 'RequestPicker',
 	components: {
@@ -142,6 +134,7 @@ export default {
 			loading: false,
 			openedMenu: false,
 			canRequestSign: loadState('libresign', 'can_request_sign', false),
+			envelopeEnabled: loadState('libresign', 'envelope_enabled', true),
 		}
 	},
 	computed: {
@@ -189,13 +182,23 @@ export default {
 			this.modalUploadFromUrl = false
 			this.loading = false
 		},
-		async upload(file) {
+		async upload(files) {
 			this.loading = true
-			const data = await loadFileToBase64(file)
-			await this.filesStore.upload({
-				name: file.name.replace(/\.pdf$/i, ''),
-				file: data,
-			})
+
+			const formData = new FormData()
+
+			if (files.length === 1) {
+				const name = files[0].name.replace(/\.pdf$/i, '')
+				formData.append('name', name)
+				formData.append('file', files[0])
+			} else {
+				formData.append('name', '')
+				files.forEach((file) => {
+					formData.append('files[]', file)
+				})
+			}
+
+			await this.filesStore.upload(formData)
 				.then((response) => {
 					this.filesStore.addFile({
 						nodeId: response.id,
@@ -203,6 +206,8 @@ export default {
 						status: response.status,
 						statusText: response.statusText,
 						created_at: response.created_at,
+						...(response.nodeType && { nodeType: response.nodeType }),
+						...(response.files && { files: response.files }),
 					})
 					this.filesStore.selectFile(response.id)
 				})
@@ -216,12 +221,13 @@ export default {
 			const input = document.createElement('input')
 			input.accept = 'application/pdf'
 			input.type = 'file'
+			input.multiple = this.envelopeEnabled
 
 			input.onchange = async (ev) => {
-				const file = ev.target.files[0]
+				const files = Array.from(ev.target.files)
 
-				if (file) {
-					this.upload(file)
+				if (files.length > 0) {
+					await this.upload(files)
 				}
 
 				input.remove()
