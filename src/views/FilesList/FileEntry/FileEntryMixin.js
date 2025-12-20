@@ -45,6 +45,13 @@ export default {
 				color: `color-mix(in srgb, var(--color-main-text) ${ratio}%, var(--color-text-maxcontrast))`,
 			}
 		},
+
+		fileExtension() {
+			if (this.source.nodeType === 'envelope') {
+				return ''
+			}
+			return this.source.metadata?.extension ? '.' + this.source.metadata.extension : '.pdf'
+		},
 	},
 	methods: {
 		// Open the actions menu on right click
