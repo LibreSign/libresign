@@ -274,6 +274,9 @@ namespace OCA\Libresign;
  *             signature-width: float,
  *             signature-height: float,
  *         },
+ *         envelope: array{
+ *             is-available: bool,
+ *         },
  *     },
  *     version: string,
  * }

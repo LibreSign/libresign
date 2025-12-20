@@ -78,6 +78,7 @@ import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import UploadIcon from 'vue-material-design-icons/Upload.vue'
 
 import axios from '@nextcloud/axios'
+import { getCapabilities } from '@nextcloud/capabilities'
 import { showError } from '@nextcloud/dialogs'
 import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
 import { loadState } from '@nextcloud/initial-state'
@@ -134,10 +135,13 @@ export default {
 			loading: false,
 			openedMenu: false,
 			canRequestSign: loadState('libresign', 'can_request_sign', false),
-			envelopeEnabled: loadState('libresign', 'envelope_enabled', true),
 		}
 	},
 	computed: {
+		envelopeEnabled() {
+			const capabilities = getCapabilities()
+			return capabilities?.libresign?.config?.envelope?.['is-available'] === true
+		},
 		filePickerButtons() {
 			return [{
 				label: t('libresign', 'Choose'),
