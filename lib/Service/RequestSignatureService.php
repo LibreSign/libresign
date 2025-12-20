@@ -657,7 +657,9 @@ class RequestSignatureService {
 				$this->fileElementMapper->delete($visibleElement);
 			}
 
-			$this->sequentialSigningService->reorderAfterDeletion($file->getId(), $deletedOrder);
+			$this->sequentialSigningService
+				->setFile($file)
+				->reorderAfterDeletion($file->getId(), $deletedOrder);
 
 			$this->propagateSignerDeletionToChildren($file, $signRequest);
 		} catch (\Throwable) {
