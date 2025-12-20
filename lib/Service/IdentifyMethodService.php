@@ -66,6 +66,11 @@ class IdentifyMethodService {
 	) {
 	}
 
+	public function clearCache(): void {
+		$this->identifyMethods = [];
+		$this->currentIdentifyMethod = null;
+	}
+
 	public function setIsRequest(bool $isRequest): self {
 		$this->isRequest = $isRequest;
 		return $this;

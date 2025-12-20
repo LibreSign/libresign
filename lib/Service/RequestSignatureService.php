@@ -140,6 +140,7 @@ class RequestSignatureService {
 		}
 
 		foreach ($children as $child) {
+			$this->identifyMethod->clearCache();
 			$this->sequentialSigningService->setFile($child);
 			$this->associateToSigners($dataWithoutNotification, $child->getId());
 		}
@@ -677,6 +678,7 @@ class RequestSignatureService {
 
 		foreach ($children as $child) {
 			try {
+				$this->identifyMethod->clearCache();
 				$childSignRequest = $this->getSignRequestByIdentifyMethod(
 					current(reset($identifyMethods)),
 					$child->getId()
