@@ -347,6 +347,17 @@ class FileController extends AEnvironmentAwareController {
 			if ($libreSignFile->getUserId() !== $this->userSession->getUser()->getUID()) {
 				return new DataResponse([], Http::STATUS_FORBIDDEN);
 			}
+
+			if ($libreSignFile->getNodeType() === 'envelope') {
+				if ($mimeFallback) {
+					$url = $this->mimeIconProvider->getMimeIconUrl('folder');
+					if ($url) {
+						return new RedirectResponse($url);
+					}
+				}
+				return new DataResponse([], Http::STATUS_NOT_FOUND);
+			}
+
 			$node = $this->accountService->getPdfByUuid($libreSignFile->getUuid());
 		} catch (DoesNotExistException) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
