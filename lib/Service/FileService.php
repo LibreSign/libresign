@@ -299,8 +299,7 @@ class FileService {
 
 	private function loadFileMetadata(): void {
 		if (
-			!$this->file
-			|| $this->file->getNodeType() !== 'file'
+			($this->file instanceof File && $this->file->getNodeType() !== 'file')
 			|| !$content = $this->getFileContent()
 		) {
 			return;
