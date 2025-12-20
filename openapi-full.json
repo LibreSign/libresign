@@ -599,7 +599,8 @@
                                 "id",
                                 "uuid",
                                 "name",
-                                "status"
+                                "status",
+                                "statusText"
                             ],
                             "properties": {
                                 "id": {
@@ -615,6 +616,9 @@
                                 "status": {
                                     "type": "integer",
                                     "format": "int64"
+                                },
+                                "statusText": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -4205,6 +4209,16 @@
                         }
                     },
                     {
+                        "name": "parentFileId",
+                        "in": "query",
+                        "description": "Filter files by parent envelope ID",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true
+                        }
+                    },
+                    {
                         "name": "OCS-APIRequest",
                         "in": "header",
                         "description": "Required to be true for the API request to pass",
@@ -4710,44 +4724,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "message",
-                                                        "files"
-                                                    ],
-                                                    "properties": {
-                                                        "message": {
-                                                            "type": "string"
-                                                        },
-                                                        "files": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "type": "object",
-                                                                "required": [
-                                                                    "id",
-                                                                    "uuid",
-                                                                    "name",
-                                                                    "status"
-                                                                ],
-                                                                "properties": {
-                                                                    "id": {
-                                                                        "type": "integer",
-                                                                        "format": "int64"
-                                                                    },
-                                                                    "uuid": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "name": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "status": {
-                                                                        "type": "integer",
-                                                                        "format": "int64"
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/NextcloudFile"
                                                 }
                                             }
                                         }
