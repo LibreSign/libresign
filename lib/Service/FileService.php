@@ -1028,8 +1028,6 @@ class FileService {
 	 * @throws LibresignException
 	 */
 	public function processUploadedFilesWithRollback(array $filesArray, IUser $user, array $settings): array {
-		$this->validateEnvelopeConstraints($filesArray);
-
 		$processedFiles = [];
 		$createdNodes = [];
 		$shouldRollback = true;
@@ -1064,24 +1062,6 @@ class FileService {
 			if ($shouldRollback) {
 				$this->rollbackCreatedNodes($createdNodes);
 			}
-		}
-	}
-
-	/**
-	 * @throws LibresignException
-	 */
-	private function validateEnvelopeConstraints(array $filesArray): void {
-		if (count($filesArray) <= 1) {
-			return;
-		}
-
-		if (!$this->appConfig->getValueBool(Application::APP_ID, 'envelope_enabled', true)) {
-			throw new LibresignException($this->l10n->t('Envelope feature is disabled'));
-		}
-
-		$maxFiles = $this->appConfig->getValueInt(Application::APP_ID, 'envelope_max_files', 50);
-		if (count($filesArray) > $maxFiles) {
-			throw new LibresignException($this->l10n->t('Maximum of %d files per envelope', [$maxFiles]));
 		}
 	}
 
