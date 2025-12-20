@@ -58,7 +58,7 @@ class FileUploadHelper {
 	 * @throws InvalidArgumentException
 	 */
 	public function readUploadedFile(array $uploadedFile): string {
-		$content = file_get_contents($uploadedFile['tmp_name']);
+		$content = @file_get_contents($uploadedFile['tmp_name']);
 		if ($content === false) {
 			throw new InvalidArgumentException($this->l10n->t('Cannot read file'));
 		}

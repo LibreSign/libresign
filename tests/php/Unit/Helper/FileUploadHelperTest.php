@@ -144,12 +144,19 @@ class FileUploadHelperTest extends TestCase {
 			'size' => filesize($forbiddenFile),
 		];
 
+		$exceptionThrown = false;
 		try {
 			$this->helper->validateUploadedFile($uploadedFile);
-			@unlink($forbiddenFile);
 		} catch (InvalidArgumentException $e) {
+			$exceptionThrown = true;
 			$this->assertEquals('Invalid file provided', $e->getMessage());
-			$this->assertFalse(file_exists($forbiddenFile));
+			$this->assertFalse(file_exists($forbiddenFile), 'File should be deleted after validation fails');
+		} finally {
+			@unlink($forbiddenFile);
+		}
+
+		if (!$exceptionThrown) {
+			$this->markTestSkipped('FilenameValidator does not consider this filename as forbidden on this OS');
 		}
 	}
 }
