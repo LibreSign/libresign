@@ -75,6 +75,11 @@ class RequestSignatureService {
 	}
 
 	public function saveEnvelope(array $data): array {
+		$isEnabled = $this->appConfig->getValueBool(Application::APP_ID, 'envelope_enabled', true);
+		if (!$isEnabled) {
+			throw new \Exception($this->l10n->t('Envelope feature is disabled'));
+		}
+
 		$envelopeName = $data['name'] ?: $this->l10n->t('Envelope %s', [date('Y-m-d H:i:s')]);
 		$userManager = $data['userManager'] ?? null;
 		$userId = $userManager instanceof IUser ? $userManager->getUID() : null;
