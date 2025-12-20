@@ -82,7 +82,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected IL10N $l10n;
 	protected EnvelopeService $envelopeService;
 	protected vfsDirectory $tempFolder;
-	protected FileUploadHelper&MockObject $uploadHelper;
+	protected FileUploadHelper $uploadHelper;
 
 	public function setUp(): void {
 		$this->tempFolder = vfsStream::setup('uploaded');
