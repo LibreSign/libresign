@@ -65,7 +65,7 @@ class EnvelopeService {
 		$envelope->setCreatedAt(new DateTime());
 		$envelope->setStatus(FileEntity::STATUS_DRAFT);
 
-		$envelope->setMetadata(['filesCount' => 0]);
+		$envelope->setMetadata(['filesCount' => $filesCount]);
 
 		if ($userId) {
 			$envelope->setUserId($userId);
