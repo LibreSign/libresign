@@ -287,14 +287,21 @@ export const useFilesStore = function(...args) {
 				}
 				this.loading = false
 			},
-			async upload({ file, name }) {
-				const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
-					file: { base64: file },
-					name,
-					settings: {
-						folderName: `requests/${Date.now().toString(16)}-${slugfy(name)}`,
-					},
-				})
+			async upload(payload) {
+				if (payload instanceof FormData) {
+					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), payload, {
+						headers: {
+							'Content-Type': 'multipart/form-data',
+						},
+					})
+					return { ...data.ocs.data }
+				}
+
+				const requestData = {
+					...payload,
+				}
+
+				const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), requestData)
 				return { ...data.ocs.data }
 			},
 			async getAllFiles(filter) {
@@ -417,13 +424,13 @@ export const useFilesStore = function(...args) {
 			},
 			async updateSignatureRequest({ visibleElements = [], signers = null, uuid = null, nodeId = null, status = 1, signatureFlow = null }) {
 				const file = this.getFile()
-				
+
 				let flowValue = signatureFlow || file.signatureFlow
 				if (typeof flowValue === 'number') {
 					const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
 					flowValue = flowMap[flowValue] || 'parallel'
 				}
-				
+
 				const config = {
 					url: generateOcsUrl('/apps/libresign/api/v1/request-signature'),
 					method: uuid || file.uuid ? 'patch' : 'post',
