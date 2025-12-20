@@ -711,6 +711,7 @@ class FileService {
 		$this->fileData->nodeId = $this->file->getNodeId();
 		$this->fileData->signatureFlow = $this->file->getSignatureFlow();
 		$this->fileData->docmdpLevel = $this->file->getDocmdpLevel();
+		$this->fileData->nodeType = $this->file->getNodeType();
 
 		$this->fileData->requested_by = [
 			'userId' => $this->file->getUserId(),
