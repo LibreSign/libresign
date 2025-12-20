@@ -281,16 +281,25 @@ class FileController extends AEnvironmentAwareController {
 		$return = $this->fileService->listAssociatedFilesOfSignFlow($page, $length, $filter, $sort);
 
 		if ($user && !empty($return['data'])) {
-			$firstFile = $return['data'][0];
-			$fileSettings = $this->fileService
-				->setFileByType('FileId', $firstFile['nodeId'])
-				->showSettings()
-				->toArray();
+			$firstFile = null;
+			foreach ($return['data'] as $file) {
+				if (($file['nodeType'] ?? 'file') !== 'envelope') {
+					$firstFile = $file;
+					break;
+				}
+			}
 
-			$return['settings'] = [
-				'needIdentificationDocuments' => $fileSettings['settings']['needIdentificationDocuments'] ?? false,
-				'identificationDocumentsWaitingApproval' => $fileSettings['settings']['identificationDocumentsWaitingApproval'] ?? false,
-			];
+			if ($firstFile) {
+				$fileSettings = $this->fileService
+					->setFileByType('FileId', $firstFile['nodeId'])
+					->showSettings()
+					->toArray();
+
+				$return['settings'] = [
+					'needIdentificationDocuments' => $fileSettings['settings']['needIdentificationDocuments'] ?? false,
+					'identificationDocumentsWaitingApproval' => $fileSettings['settings']['identificationDocumentsWaitingApproval'] ?? false,
+				];
+			}
 		}
 
 		return new DataResponse($return, Http::STATUS_OK);
@@ -446,6 +455,15 @@ class FileController extends AEnvironmentAwareController {
 		if (isset($fileData['fileNode']) && $fileData['fileNode'] instanceof Node) {
 			$node = $fileData['fileNode'];
 			$name = $fileData['name'] ?? $name;
+		} elseif (isset($fileData['uploadedFile'])) {
+			$this->fileService->validateUploadedFile($fileData['uploadedFile']);
+
+			$node = $this->fileService->getNodeFromData([
+				'userManager' => $this->userSession->getUser(),
+				'name' => $name,
+				'uploadedFile' => $fileData['uploadedFile'],
+				'settings' => $settings
+			]);
 		} else {
 			$this->validateHelper->validateNewFile([
 				'file' => $fileData,
