@@ -467,7 +467,7 @@ class FileController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * @return list<array{fileNode?: Node, name?: string}> Normalized files array
+	 * @return list<array{fileNode?: Node, name?: string, uploadedFile?: array}> Normalized files array
 	 */
 	private function prepareFilesForSaving(array $file, array $files, array $settings): array {
 		$uploadedFiles = $this->request->getUploadedFile('files') ?: $this->request->getUploadedFile('file');
@@ -489,7 +489,7 @@ class FileController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * @return list<array{fileNode: Node, name: string}>
+	 * @return list<array{uploadedFile: array, name: string}>
 	 */
 	private function processUploadedFiles(array $uploadedFiles, array $settings): array {
 		$filesArray = [];
@@ -498,16 +498,25 @@ class FileController extends AEnvironmentAwareController {
 			if (is_array($uploadedFiles['tmp_name'])) {
 				$count = count($uploadedFiles['tmp_name']);
 				for ($i = 0; $i < $count; $i++) {
-					$filesArray[] = [
+					$uploadedFile = [
 						'tmp_name' => $uploadedFiles['tmp_name'][$i],
 						'name' => $uploadedFiles['name'][$i],
 						'type' => $uploadedFiles['type'][$i],
 						'size' => $uploadedFiles['size'][$i],
 						'error' => $uploadedFiles['error'][$i],
 					];
+					$this->fileService->validateUploadedFile($uploadedFile);
+					$filesArray[] = [
+						'uploadedFile' => $uploadedFile,
+						'name' => pathinfo($uploadedFile['name'], PATHINFO_FILENAME),
+					];
 				}
 			} else {
-				$filesArray[] = $uploadedFiles;
+				$this->fileService->validateUploadedFile($uploadedFiles);
+				$filesArray[] = [
+					'uploadedFile' => $uploadedFiles,
+					'name' => pathinfo($uploadedFiles['name'], PATHINFO_FILENAME),
+				];
 			}
 		}
 
@@ -515,11 +524,7 @@ class FileController extends AEnvironmentAwareController {
 			throw new LibresignException($this->l10n->t('No files uploaded'));
 		}
 
-		return $this->fileService->processUploadedFilesWithRollback(
-			$filesArray,
-			$this->userSession->getUser(),
-			$settings
-		);
+		return $filesArray;
 	}
 
 	/**
@@ -530,14 +535,10 @@ class FileController extends AEnvironmentAwareController {
 			throw new LibresignException($this->l10n->t('File or files parameter is required'));
 		}
 
-		$preparedFiles = [];
-		foreach ($files as $fileData) {
-			$fileName = (count($files) === 1) ? $name : '';
-			$preparedFiles[] = $this->prepareFileForSaving($fileData, $fileName, $settings);
-		}
-
-		if (count($preparedFiles) === 1) {
-			$prepared = $preparedFiles[0];
+		if (count($files) === 1) {
+			$fileData = $files[0];
+			$fileName = $name;
+			$prepared = $this->prepareFileForSaving($fileData, $fileName, $settings);
 			$savedFile = $this->requestSignatureService->save([
 				'file' => ['fileNode' => $prepared['node']],
 				'name' => $prepared['name'],
@@ -549,7 +550,7 @@ class FileController extends AEnvironmentAwareController {
 		}
 
 		$result = $this->requestSignatureService->saveEnvelope([
-			'files' => $preparedFiles,
+			'files' => $files,
 			'name' => $name,
 			'userManager' => $this->userSession->getUser(),
 			'settings' => $settings,
