@@ -356,21 +356,22 @@ export const useFilesStore = function(...args) {
 				this.loading = false
 			},
 			async upload(payload) {
+				let data
 				if (payload instanceof FormData) {
-					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), payload, {
+					const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), payload, {
 						headers: {
 							'Content-Type': 'multipart/form-data',
 						},
 					})
-					return { ...data.ocs.data }
+					data = response.data
+				} else {
+					const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), payload)
+					data = response.data
 				}
 
-				const requestData = {
-					...payload,
-				}
-
-				const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), requestData)
-				return { ...data.ocs.data }
+				const fileData = data.ocs.data
+				this.addFile(fileData)
+				return fileData.nodeId
 			},
 			async getAllFiles(filter) {
 				if (this.loading || this.loadedAll) {

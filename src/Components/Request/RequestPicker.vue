@@ -77,12 +77,10 @@ import LinkIcon from 'vue-material-design-icons/Link.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import UploadIcon from 'vue-material-design-icons/Upload.vue'
 
-import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { showError } from '@nextcloud/dialogs'
 import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
 import { loadState } from '@nextcloud/initial-state'
-import { generateOcsUrl } from '@nextcloud/router'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -203,17 +201,8 @@ export default {
 			}
 
 			await this.filesStore.upload(formData)
-				.then((response) => {
-					this.filesStore.addFile({
-						nodeId: response.id,
-						name: response.name,
-						status: response.status,
-						statusText: response.statusText,
-						created_at: response.created_at,
-						...(response.nodeType && { nodeType: response.nodeType }),
-						...(response.files && { files: response.files }),
-					})
-					this.filesStore.selectFile(response.id)
+				.then((nodeId) => {
+					this.filesStore.selectFile(nodeId)
 				})
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.message)
@@ -241,23 +230,13 @@ export default {
 		},
 		async uploadUrl() {
 			this.loading = true
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
+			await this.filesStore.upload({
 				file: {
 					url: this.pdfUrl,
 				},
 			})
-				.then(({ data }) => {
-					this.filesStore.addFile({
-						nodeId: data.ocs.data.id,
-						uuid: data.ocs.data.uuid,
-						name: data.ocs.data.name,
-						status: data.ocs.data.status,
-						statusText: data.ocs.data.statusText,
-						created_at: data.ocs.data.created_at,
-						...(data.ocs.data.nodeType && { nodeType: data.ocs.data.nodeType }),
-						...(data.ocs.data.files && { files: data.ocs.data.files }),
-					})
-					this.filesStore.selectFile(data.ocs.data.id)
+				.then((nodeId) => {
+					this.filesStore.selectFile(nodeId)
 					this.closeModalUploadFromUrl()
 				})
 				.catch(({ response }) => {
@@ -271,24 +250,14 @@ export default {
 				return
 			}
 
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
+			await this.filesStore.upload({
 				file: {
 					path,
 				},
 				name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
 			})
-				.then(({ data }) => {
-					this.filesStore.addFile({
-						nodeId: data.ocs.data.id,
-						uuid: data.ocs.data.uuid,
-						name: data.ocs.data.name,
-						status: data.ocs.data.status,
-						statusText: data.ocs.data.statusText,
-						created_at: data.ocs.data.created_at,
-						...(data.ocs.data.nodeType && { nodeType: data.ocs.data.nodeType }),
-						...(data.ocs.data.files && { files: data.ocs.data.files }),
-					})
-					this.filesStore.selectFile(data.ocs.data.id)
+				.then((nodeId) => {
+					this.filesStore.selectFile(nodeId)
 				})
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.message)
