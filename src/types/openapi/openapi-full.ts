@@ -3133,8 +3133,8 @@ export interface operations {
                 sortBy?: string | null;
                 /** @description Ascending or descending order */
                 sortDirection?: string | null;
-                /** @description Filter files by parent envelope ID */
-                parentFileId?: number | null;
+                /** @description Filter files by parent envelope node ID */
+                parentNodeId?: number | null;
             };
             header: {
                 /** @description Required to be true for the API request to pass */
