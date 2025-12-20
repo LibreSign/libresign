@@ -19,9 +19,6 @@ use OCP\IAppConfig;
 use OCP\IL10N;
 use Sabre\DAV\UUIDUtil;
 
-/**
- * Manage envelopes (DocuSign-style digital containers for multiple documents)
- */
 class EnvelopeService {
 	public function __construct(
 		protected FileMapper $fileMapper,
