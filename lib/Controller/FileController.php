@@ -697,7 +697,7 @@ class FileController extends AEnvironmentAwareController {
 		if ($mainEntity->getNodeType() === 'envelope') {
 			$metadata = $mainEntity->getMetadata();
 			$response['filesCount'] = $metadata['filesCount'] ?? count($childFiles);
-			$response['files'] = [];
+			$response['files'] = !empty($childFiles) ? $this->formatFilesResponse($childFiles) : [];
 		} else {
 			$response['filesCount'] = 1;
 			$response['files'] = $this->formatFilesResponse($childFiles);
