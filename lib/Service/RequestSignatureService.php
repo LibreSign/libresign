@@ -77,12 +77,21 @@ class RequestSignatureService {
 
 		if (count($data['files']) === 1) {
 			$fileData = $data['files'][0];
-			$savedFile = $this->save([
-				'file' => ['fileNode' => $fileData['node']],
+
+			$saveData = [
 				'name' => $fileData['name'],
 				'userManager' => $data['userManager'],
 				'status' => FileEntity::STATUS_DRAFT,
-			]);
+				'settings' => $data['settings'],
+			];
+
+			if (isset($fileData['uploadedFile'])) {
+				$saveData['uploadedFile'] = $fileData['uploadedFile'];
+			} else {
+				$saveData['file'] = $fileData;
+			}
+
+			$savedFile = $this->save($saveData);
 
 			return [
 				'file' => $savedFile,
