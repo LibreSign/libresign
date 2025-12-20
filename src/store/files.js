@@ -444,6 +444,12 @@ export const useFilesStore = function(...args) {
 					identificationDocumentStore.setWaitingApproval(response.data.ocs.data.settings.identificationDocumentsWaitingApproval)
 				}
 
+				if (this.selectedNodeId && !this.files[this.selectedNodeId]) {
+					const sidebarStore = useSidebarStore()
+					sidebarStore.hideSidebar()
+					this.selectedNodeId = 0
+				}
+
 				this.loading = false
 				emit('libresign:files:updated')
 				return this.files
