@@ -20,6 +20,14 @@
 			<NcNoteCard v-if="errorMessage" type="error">
 				{{ errorMessage }}
 			</NcNoteCard>
+			<div v-if="isUploading" class="upload-progress-wrapper">
+				<UploadProgress :is-uploading="isUploading"
+					:upload-progress="uploadProgress"
+					:uploaded-bytes="uploadedBytes"
+					:total-bytes="totalBytes"
+					:upload-start-time="uploadStartTime"
+					@cancel="cancelUpload" />
+			</div>
 			<NcEmptyContent v-if="files.length === 0 && !isLoadingFiles"
 				:name="t('libresign', 'No files in envelope')"
 				:description="t('libresign', 'Add files to get started')">
@@ -117,6 +125,8 @@ import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 
+import UploadProgress from '../UploadProgress.vue'
+
 import { SIGN_STATUS } from '../../domains/sign/enum.js'
 import { useFilesStore } from '../../store/files.js'
 
@@ -134,6 +144,7 @@ export default {
 		NcEmptyContent,
 		NcListItem,
 		NcNoteCard,
+		UploadProgress,
 	},
 	props: {
 		open: {
@@ -163,6 +174,12 @@ export default {
 				message: '',
 				action: null,
 			},
+			uploadProgress: 0,
+			isUploading: false,
+			uploadAbortController: null,
+			uploadedBytes: 0,
+			totalBytes: 0,
+			uploadStartTime: null,
 		}
 	},
 	computed: {
@@ -393,25 +410,55 @@ export default {
 				if (!files || files.length === 0) return
 
 				this.hasLoading = true
+				this.isUploading = true
+				this.uploadProgress = 0
+				this.uploadedBytes = 0
+				this.totalBytes = 0
+				this.uploadStartTime = Date.now()
+
 				const formData = new FormData()
+				let totalSize = 0
 
 				for (const file of files) {
 					formData.append('files[]', file)
+					totalSize += file.size
 				}
 
-				const result = await this.filesStore.addFilesToEnvelope(this.envelopeUuid, formData)
+				this.totalBytes = totalSize
+
+				const abortController = new AbortController()
+				this.uploadAbortController = abortController
+
+				const result = await this.filesStore.addFilesToEnvelope(this.envelopeUuid, formData, {
+					signal: abortController.signal,
+					onUploadProgress: (progressEvent) => {
+						if (progressEvent.total) {
+							this.uploadedBytes = progressEvent.loaded
+							this.uploadProgress = Math.round((progressEvent.loaded / progressEvent.total) * 100)
+						}
+					},
+				})
 
 				if (result.success) {
 					this.showSuccess(this.t('libresign', result.message))
 					this.files.push(...result.files)
 					this.totalFiles = result.filesCount
 				} else {
-					this.showError(this.t('libresign', result.message))
+					if (result.message !== 'Upload cancelled') {
+						this.showError(this.t('libresign', result.message))
+					}
 				}
 
 				this.hasLoading = false
+				this.isUploading = false
+				this.uploadAbortController = null
 			}
 			input.click()
+		},
+		cancelUpload() {
+			if (this.uploadAbortController) {
+				this.uploadAbortController.abort()
+			}
 		},
 		handleDelete(file) {
 			this.deleteDialogConfig = {
@@ -448,6 +495,14 @@ export default {
 	min-height: 200px;
 	max-height: 60vh;
 	overflow-y: auto;
+}
+
+.upload-progress-wrapper {
+	display: flex;
+	justify-content: center;
+	padding: 16px 0;
+	margin-bottom: 16px;
+	border-bottom: 1px solid var(--color-border);
 }
 
 .files-list {
