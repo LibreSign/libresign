@@ -641,6 +641,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/{uuid}/add-file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add file to envelope
+         * @description Add one or more files to an existing envelope that is in DRAFT status. Files must be uploaded as multipart/form-data with field name 'files'.
+         */
+        post: operations["file-add-file-to-envelope"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/file_id/{fileId}": {
         parameters: {
             query?: never;
@@ -1033,6 +1053,9 @@ export type components = {
                     "signature-width": number;
                     /** Format: double */
                     "signature-height": number;
+                };
+                envelope: {
+                    "is-available": boolean;
                 };
             };
             version: string;
@@ -2806,6 +2829,96 @@ export interface operations {
                 };
             };
             /** @description Failed to save data */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "file-add-file-to-envelope": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description The UUID of the envelope */
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Files added successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                                files: {
+                                    /** Format: int64 */
+                                    id: number;
+                                    uuid: string;
+                                    name: string;
+                                    /** Format: int64 */
+                                    status: number;
+                                }[];
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Envelope not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Cannot add files (envelope not in DRAFT status or validation failed) */
             422: {
                 headers: {
                     [name: string]: unknown;
