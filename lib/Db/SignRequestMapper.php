@@ -606,9 +606,9 @@ class SignRequestMapper extends QBMapper {
 					$qb->expr()->lte('f.created_at', $qb->createNamedParameter($end, IQueryBuilder::PARAM_STR))
 				);
 			}
-			if (!empty($filter['parentFileId'])) {
+			if (!empty($filter['parentNodeId'])) {
 				$qb->andWhere(
-					$qb->expr()->eq('f.parent_file_id', $qb->createNamedParameter($filter['parentFileId'], IQueryBuilder::PARAM_INT))
+					$qb->expr()->eq('parent.node_id', $qb->createNamedParameter($filter['parentNodeId'], IQueryBuilder::PARAM_INT))
 				);
 			} else {
 				$qb->andWhere($qb->expr()->isNull('f.parent_file_id'));
