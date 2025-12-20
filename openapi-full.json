@@ -553,11 +553,13 @@
                     "message",
                     "name",
                     "id",
+                    "nodeId",
                     "uuid",
                     "status",
                     "statusText",
                     "nodeType",
                     "created_at",
+                    "filesCount",
                     "files"
                 ],
                 "properties": {
@@ -568,6 +570,10 @@
                         "type": "string"
                     },
                     "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "nodeId": {
                         "type": "integer",
                         "format": "int64"
                     },
@@ -591,19 +597,24 @@
                     "created_at": {
                         "type": "string"
                     },
+                    "filesCount": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
                     "files": {
                         "type": "array",
                         "items": {
                             "type": "object",
                             "required": [
-                                "id",
+                                "nodeId",
                                 "uuid",
                                 "name",
                                 "status",
                                 "statusText"
                             ],
                             "properties": {
-                                "id": {
+                                "nodeId": {
                                     "type": "integer",
                                     "format": "int64"
                                 },

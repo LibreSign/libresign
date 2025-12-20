@@ -1639,6 +1639,8 @@ export type components = {
             name: string;
             /** Format: int64 */
             id: number;
+            /** Format: int64 */
+            nodeId: number;
             uuid: string;
             /** Format: int64 */
             status: number;
@@ -1646,9 +1648,11 @@ export type components = {
             /** @enum {string} */
             nodeType: "file" | "envelope";
             created_at: string;
+            /** Format: int64 */
+            filesCount: number;
             files: {
                 /** Format: int64 */
-                id: number;
+                nodeId: number;
                 uuid: string;
                 name: string;
                 /** Format: int64 */
