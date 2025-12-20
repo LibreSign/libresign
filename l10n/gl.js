@@ -262,6 +262,7 @@ OC.L10N.register(
     "Documents Validation" : "Validación de Documentos",
     "CRL Management" : "Xestión da CRL",
     "Settings" : "Axustes",
+    "{currentPage} of {totalPages}" : "{currentPage} de {totalPages}",
     "Loading …" : "Cargando…",
     "Name" : "Nome",
     "Update" : "Actualizar",
