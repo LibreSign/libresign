@@ -501,6 +501,7 @@ class FileController extends AEnvironmentAwareController {
 					'uuid' => $childFile->getUuid(),
 					'name' => $childFile->getName(),
 					'status' => $childFile->getStatus(),
+					'statusText' => $this->fileMapper->getTextOfStatus($childFile->getStatus()),
 				];
 			}
 
