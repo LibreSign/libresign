@@ -1,0 +1,483 @@
+<!--
+  - SPDX-FileCopyrightText: 2025 LibreCode coop and LibreCode contributors
+  - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<template>
+	<NcDialog v-if="open"
+		:name="t('libresign', 'Manage files ({count})', { count: totalFiles || files.length })"
+		size="normal"
+		@closing="$emit('close')">
+		<NcDialog v-if="showDeleteDialog"
+			:name="deleteDialogConfig.title"
+			:buttons="deleteDialogButtons"
+			@closing="showDeleteDialog = false">
+			<p>{{ deleteDialogConfig.message }}</p>
+		</NcDialog>
+		<div class="envelope-files-dialog">
+			<NcNoteCard v-if="successMessage" type="success">
+				{{ successMessage }}
+			</NcNoteCard>
+			<NcNoteCard v-if="errorMessage" type="error">
+				{{ errorMessage }}
+			</NcNoteCard>
+			<NcEmptyContent v-if="files.length === 0 && !isLoadingFiles"
+				:name="t('libresign', 'No files in envelope')"
+				:description="t('libresign', 'Add files to get started')">
+				<template #icon>
+				<FilePdfBox :size="64" />
+				</template>
+			</NcEmptyContent>
+			<div v-else ref="scrollContainer" class="files-list" @scroll="onScroll">
+				<div v-if="canDelete" class="files-list__header">
+					<NcCheckboxRadioSwitch :checked="allSelected"
+						@update:checked="toggleSelectAll">
+						{{ selectedCount > 0 ? t('libresign', '{count} selected', { count: selectedCount }) : t('libresign', 'Select all') }}
+					</NcCheckboxRadioSwitch>
+					<NcButton v-if="selectedCount > 0"
+						type="error"
+						:disabled="hasLoading"
+						@click="handleDeleteSelected">
+						<template #icon>
+							<Delete :size="20" />
+						</template>
+						{{ t('libresign', 'Delete') }}
+					</NcButton>
+				</div>
+				<NcListItem v-for="file in files"
+					:key="file.uuid"
+					:name="file.name"
+					:details="file.statusText">
+					<template #icon>
+						<NcCheckboxRadioSwitch v-if="canDelete"
+							:checked="isSelected(file.nodeId)"
+							@update:checked="toggleSelect(file.nodeId)" />
+						<img v-if="getPreviewUrl(file)"
+							:src="getPreviewUrl(file)"
+							alt=""
+							class="file-preview-icon">
+						<FilePdfBox v-else :size="20" />
+					</template>
+					<template #actions>
+						<NcActionButton
+							:close-after-click="true"
+							@click="openFile(file)">
+							<template #icon>
+								<FileEye :size="20" />
+							</template>
+							{{ t('libresign', 'Open file') }}
+						</NcActionButton>
+						<NcActionButton v-if="canDelete"
+							:close-after-click="true"
+							@click="handleDelete(file)">
+							<template #icon>
+								<Delete :size="20" />
+							</template>
+							{{ t('libresign', 'Delete') }}
+						</NcActionButton>
+					</template>
+				</NcListItem>
+				<div v-if="isLoadingMore" class="loading-more">
+					<span class="icon-loading-small" />
+					{{ t('libresign', 'Loading more files...') }}
+				</div>
+			</div>
+		</div>
+		<template #actions>
+			<NcButton v-if="canAddFile"
+				type="primary"
+				:disabled="hasLoading"
+				@click="addFileToEnvelope">
+				<template #icon>
+					<FilePlus :size="20" />
+				</template>
+				{{ t('libresign', 'Add file') }}
+			</NcButton>
+			<NcButton @click="$emit('close')">
+				{{ t('libresign', 'Close') }}
+			</NcButton>
+		</template>
+	</NcDialog>
+</template>
+
+<script>
+import Delete from 'vue-material-design-icons/Delete.vue'
+import FileEye from 'vue-material-design-icons/FileEye.vue'
+import FilePdfBox from 'vue-material-design-icons/FilePdfBox.vue'
+import FilePlus from 'vue-material-design-icons/FilePlus.vue'
+
+import axios from '@nextcloud/axios'
+import { getCapabilities } from '@nextcloud/capabilities'
+import { generateOcsUrl, generateUrl } from '@nextcloud/router'
+
+import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
+import NcDialog from '@nextcloud/vue/components/NcDialog'
+import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
+import NcListItem from '@nextcloud/vue/components/NcListItem'
+import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
+
+import { SIGN_STATUS } from '../../domains/sign/enum.js'
+import { useFilesStore } from '../../store/files.js'
+
+export default {
+	name: 'EnvelopeFilesList',
+	components: {
+		Delete,
+		FileEye,
+		FilePdfBox,
+		FilePlus,
+		NcActionButton,
+		NcButton,
+		NcCheckboxRadioSwitch,
+		NcDialog,
+		NcEmptyContent,
+		NcListItem,
+		NcNoteCard,
+	},
+	props: {
+		open: {
+			type: Boolean,
+			required: true,
+		},
+	},
+	setup() {
+		const filesStore = useFilesStore()
+		return { filesStore }
+	},
+	data() {
+		return {
+			hasLoading: false,
+			successMessage: '',
+			errorMessage: '',
+			selectedFiles: [],
+			files: [],
+			currentPage: 1,
+			hasMore: true,
+			isLoadingFiles: false,
+			isLoadingMore: false,
+			totalFiles: 0,
+			showDeleteDialog: false,
+			deleteDialogConfig: {
+				title: '',
+				message: '',
+				action: null,
+			},
+		}
+	},
+	computed: {
+		envelope() {
+			return this.filesStore.getFile()
+		},
+		envelopeUuid() {
+			return this.envelope?.uuid || ''
+		},
+		envelopeNodeId() {
+			return this.envelope?.nodeId || null
+		},
+		canDelete() {
+			return this.envelope?.status === SIGN_STATUS.DRAFT && this.files.length >= 1
+		},
+		canAddFile() {
+			if (!this.envelope || this.envelope.status !== SIGN_STATUS.DRAFT) {
+				return false
+			}
+			const capabilities = getCapabilities()
+			return capabilities?.libresign?.config?.envelope?.['is-available'] === true
+		},
+		deleteDialogButtons() {
+			return [
+				{
+					label: this.t('libresign', 'Cancel'),
+					callback: () => {
+						this.showDeleteDialog = false
+					},
+				},
+				{
+					label: this.t('libresign', 'Delete'),
+					type: 'error',
+					callback: () => {
+						this.showDeleteDialog = false
+						if (this.deleteDialogConfig.action) {
+							this.deleteDialogConfig.action()
+						}
+					},
+				},
+			]
+		},
+		selectedCount() {
+			return this.selectedFiles.length
+		},
+		allSelected() {
+			return this.files.length > 0 && this.selectedFiles.length === this.files.length
+		},
+	},
+	emits: ['close'],
+	watch: {
+		open(newVal) {
+			if (newVal) {
+				this.files = []
+				this.currentPage = 1
+				this.totalFiles = this.envelope?.filesCount || 0
+				this.hasMore = this.totalFiles > 0
+
+				if (this.totalFiles > 0) {
+					this.loadFiles(1)
+				}
+			} else {
+				this.clearMessages()
+				this.selectedFiles = []
+				this.files = []
+				this.currentPage = 1
+				this.hasMore = true
+			}
+		},
+	},
+	methods: {
+		async loadFiles(page = 1) {
+			if (!this.envelopeNodeId) {
+				console.error('EnvelopeFilesList - No envelopeNodeId found!')
+				return
+			}
+
+			const isFirstPage = page === 1
+			if (isFirstPage) {
+				this.isLoadingFiles = true
+			} else {
+				this.isLoadingMore = true
+			}
+
+			const url = generateOcsUrl('/apps/libresign/api/v1/file/list')
+			const params = new URLSearchParams({
+				page: page.toString(),
+				length: '50',
+				parentNodeId: this.envelopeNodeId.toString(),
+			})
+
+			await axios.get(`${url}?${params.toString()}`)
+				.then(({ data }) => {
+					if (data.ocs?.data) {
+						const newFiles = data.ocs.data.data || []
+						const pagination = data.ocs.data.pagination || {}
+
+						if (isFirstPage) {
+							this.files = newFiles
+						} else {
+							this.files.push(...newFiles)
+						}
+
+						this.currentPage = page
+						this.totalFiles = pagination.total || this.totalFiles
+						this.hasMore = pagination.next !== null
+					}
+				})
+				.catch((error) => {
+					console.error('Failed to load envelope files:', error)
+					this.showError(this.t('libresign', 'Failed to load files'))
+				})
+				.finally(() => {
+					this.isLoadingFiles = false
+					this.isLoadingMore = false
+				})
+		},
+		onScroll(event) {
+			if (this.isLoadingMore || !this.hasMore) {
+				return
+			}
+
+			const { scrollTop, scrollHeight, clientHeight } = event.target
+			const scrollPosition = scrollTop + clientHeight
+			const threshold = scrollHeight - 100
+
+			if (scrollPosition >= threshold) {
+				this.loadFiles(this.currentPage + 1)
+			}
+		},
+		clearMessages() {
+			this.successMessage = ''
+			this.errorMessage = ''
+		},
+		showSuccess(message) {
+			this.clearMessages()
+			this.successMessage = message
+			setTimeout(() => {
+				this.successMessage = ''
+			}, 5000)
+		},
+		showError(message) {
+			this.clearMessages()
+			this.errorMessage = message
+		},
+		getPreviewUrl(file) {
+			if (!file.nodeId) return null
+			const url = new URL(
+				generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
+					nodeId: file.nodeId,
+				})
+			)
+			url.searchParams.set('x', '32')
+			url.searchParams.set('y', '32')
+			url.searchParams.set('mimeFallback', 'true')
+			url.searchParams.set('a', '1')
+			return url.toString()
+		},
+		openFile(file) {
+			if (window.OCA?.Viewer !== undefined) {
+				const fileInfo = {
+					source: generateUrl('/apps/libresign/p/pdf/{uuid}', {
+						uuid: file.uuid,
+					}),
+					basename: file.name,
+					mime: 'application/pdf',
+					fileid: file.nodeId,
+				}
+				window.OCA.Viewer.open({
+					fileInfo,
+					list: [fileInfo],
+				})
+			}
+		},
+		isSelected(fileId) {
+			return this.selectedFiles.includes(fileId)
+		},
+		toggleSelect(fileId) {
+			const index = this.selectedFiles.indexOf(fileId)
+			if (index > -1) {
+				this.selectedFiles.splice(index, 1)
+			} else {
+				this.selectedFiles.push(fileId)
+			}
+		},
+		toggleSelectAll() {
+			if (this.allSelected) {
+				this.selectedFiles = []
+			} else {
+				this.selectedFiles = this.files.map(f => f.nodeId)
+			}
+		},
+		async handleDeleteSelected() {
+			this.deleteDialogConfig = {
+				title: this.t('libresign', 'Delete'),
+				message: this.n('libresign', 'Are you sure you want to remove this file from the envelope?', 'Are you sure you want to remove %n files from the envelope?', this.selectedCount),
+				action: async () => {
+					await this.confirmDeleteSelected()
+				},
+			}
+			this.showDeleteDialog = true
+		},
+		async confirmDeleteSelected() {
+			this.hasLoading = true
+			const nodeIds = [...this.selectedFiles]
+
+			const result = await this.filesStore.removeFilesFromEnvelope(this.envelopeNodeId, nodeIds)
+
+			if (result.success) {
+				// Remover arquivos da lista local
+				this.files = this.files.filter(f => !nodeIds.includes(f.nodeId))
+				this.selectedFiles = []
+				this.totalFiles = Math.max(0, this.totalFiles - result.removedCount)
+				this.showSuccess(this.t('libresign', result.message))
+			} else {
+				this.showError(this.t('libresign', result.message))
+			}
+
+			this.hasLoading = false
+		},
+		addFileToEnvelope() {
+			const input = document.createElement('input')
+			input.type = 'file'
+			input.accept = '.pdf'
+			input.multiple = true
+			input.onchange = async (e) => {
+				const files = e.target.files
+				if (!files || files.length === 0) return
+
+				this.hasLoading = true
+				const formData = new FormData()
+
+				for (const file of files) {
+					formData.append('files[]', file)
+				}
+
+				const result = await this.filesStore.addFilesToEnvelope(this.envelopeUuid, formData)
+
+				if (result.success) {
+					this.showSuccess(this.t('libresign', result.message))
+					this.files.push(...result.files)
+					this.totalFiles = result.filesCount
+				} else {
+					this.showError(this.t('libresign', result.message))
+				}
+
+				this.hasLoading = false
+			}
+			input.click()
+		},
+		handleDelete(file) {
+			this.deleteDialogConfig = {
+				title: this.t('libresign', 'Delete'),
+				message: this.t('libresign', 'Are you sure you want to remove this file from the envelope?'),
+				action: async () => {
+					await this.confirmDelete(file)
+				},
+			}
+			this.showDeleteDialog = true
+		},
+		async confirmDelete(file) {
+			this.hasLoading = true
+
+			const result = await this.filesStore.removeFilesFromEnvelope(this.envelopeNodeId, file.nodeId)
+
+			if (result.success) {
+				this.showSuccess(this.t('libresign', result.message))
+				this.files = this.files.filter(f => f.nodeId !== file.nodeId)
+				this.totalFiles = Math.max(0, this.totalFiles - result.removedCount)
+			} else {
+				this.showError(this.t('libresign', result.message))
+			}
+
+			this.hasLoading = false
+		},
+	},
+}
+</script>
+
+<style scoped>
+.envelope-files-dialog {
+	padding: 16px;
+	min-height: 200px;
+	max-height: 60vh;
+	overflow-y: auto;
+}
+
+.files-list {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.files-list__header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 0;
+	border-bottom: 1px solid var(--color-border);
+	margin-bottom: 8px;
+}
+
+.file-preview-icon {
+	width: 32px;
+	height: 32px;
+	object-fit: contain;
+	border-radius: var(--border-radius);
+}
+
+.loading-more {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding: 16px;
+	color: var(--color-text-maxcontrast);
+}
+</style>
