@@ -122,7 +122,28 @@ class RequestSignatureService {
 		}
 		$this->sequentialSigningService->setFile($file);
 		$this->associateToSigners($data, $file->getId());
+		$this->propagateSignersToChildren($file, $data);
+
 		return $file;
+	}
+
+	private function propagateSignersToChildren(FileEntity $envelope, array $data): void {
+		if ($envelope->getNodeType() !== 'envelope' || empty($data['users'])) {
+			return;
+		}
+
+		$children = $this->fileMapper->getChildrenFiles($envelope->getId());
+
+		$dataWithoutNotification = $data;
+		foreach ($dataWithoutNotification['users'] as &$user) {
+			$user['notify'] = 0;
+		}
+		unset($user);
+
+		foreach ($children as $child) {
+			$this->sequentialSigningService->setFile($child);
+			$this->associateToSigners($dataWithoutNotification, $child->getId());
+		}
 	}
 
 	public function saveEnvelope(array $data): array {
