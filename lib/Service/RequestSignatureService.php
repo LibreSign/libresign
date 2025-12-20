@@ -79,7 +79,7 @@ class RequestSignatureService {
 			$fileData = $data['files'][0];
 
 			$saveData = [
-				'name' => $fileData['name'],
+				'name' => $data['name'] ?? $fileData['name'] ?? '',
 				'userManager' => $data['userManager'],
 				'status' => FileEntity::STATUS_DRAFT,
 				'settings' => $data['settings'],
@@ -87,6 +87,8 @@ class RequestSignatureService {
 
 			if (isset($fileData['uploadedFile'])) {
 				$saveData['uploadedFile'] = $fileData['uploadedFile'];
+			} elseif (isset($fileData['fileNode'])) {
+				$saveData['file'] = ['fileNode' => $fileData['fileNode']];
 			} else {
 				$saveData['file'] = $fileData;
 			}
