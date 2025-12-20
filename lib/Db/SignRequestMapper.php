@@ -665,19 +665,13 @@ class SignRequestMapper extends QBMapper {
 
 		if ($row['node_type'] === 'envelope') {
 			$childrenFiles = $this->fileMapper->getChildrenFiles($internalId);
-			$filesData = array_map(fn ($file) => [
+			$row['files'] = array_map(fn ($file) => [
 				'id' => $file->getNodeId(),
 				'uuid' => $file->getUuid(),
 				'name' => $file->getName(),
 				'status' => $file->getStatus(),
 				'statusText' => $this->fileMapper->getTextOfStatus($file->getStatus()),
 			], $childrenFiles);
-
-			$row['envelope'] = [
-				'filesCount' => count($childrenFiles),
-				'files' => $filesData,
-			];
-			$row['files'] = $filesData;
 		} else {
 			$row['files'] = [[
 				'id' => (int)$row['node_id'],
