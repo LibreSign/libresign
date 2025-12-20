@@ -47,8 +47,8 @@ Feature: envelope
       | name | Too Many Files |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
-      | key                   | value                              |
-      | (jq).ocs.data.message | Maximum of 2 files per envelope    |
+      | key                   | value                                             |
+      | (jq).ocs.data.message | Maximum number of files per envelope (2) exceeded |
 
   Scenario: Successfully save single file
     Given as user "admin"
