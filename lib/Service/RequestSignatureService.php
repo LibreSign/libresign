@@ -17,6 +17,7 @@ use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -61,6 +62,45 @@ class RequestSignatureService {
 		protected EnvelopeService $envelopeService,
 		protected FileUploadHelper $uploadHelper,
 	) {
+	}
+
+	/**
+	 * Save files - creates single file or envelope based on files count
+	 *
+	 * @param array{files: array, name: string, settings: array, userManager: IUser} $data
+	 * @return array{file: FileEntity, children: FileEntity[]}
+	 */
+	public function saveFiles(array $data): array {
+		if (empty($data['files'])) {
+			throw new LibresignException('Files parameter is required');
+		}
+
+		if (count($data['files']) === 1) {
+			$fileData = $data['files'][0];
+			$savedFile = $this->save([
+				'file' => ['fileNode' => $fileData['node']],
+				'name' => $fileData['name'],
+				'userManager' => $data['userManager'],
+				'status' => FileEntity::STATUS_DRAFT,
+			]);
+
+			return [
+				'file' => $savedFile,
+				'children' => [$savedFile],
+			];
+		}
+
+		$result = $this->saveEnvelope([
+			'files' => $data['files'],
+			'name' => $data['name'],
+			'userManager' => $data['userManager'],
+			'settings' => $data['settings'],
+		]);
+
+		return [
+			'file' => $result['envelope'],
+			'children' => $result['files'],
+		];
 	}
 
 	public function save(array $data): FileEntity {
