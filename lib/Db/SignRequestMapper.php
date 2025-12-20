@@ -569,8 +569,8 @@ class SignRequestMapper extends QBMapper {
 			)
 		];
 		$qb->where($qb->expr()->orX(...$or))
-			->andWhere($qb->expr()->isNull('id.id'))
-			->andWhere($qb->expr()->isNull('f.parent_file_id'));
+			->andWhere($qb->expr()->isNull('id.id'));
+
 		if ($filter) {
 			if (isset($filter['email']) && filter_var($filter['email'], FILTER_VALIDATE_EMAIL)) {
 				$or[] = $qb->expr()->andX(
@@ -605,6 +605,15 @@ class SignRequestMapper extends QBMapper {
 					$qb->expr()->lte('f.created_at', $qb->createNamedParameter($end, IQueryBuilder::PARAM_STR))
 				);
 			}
+			if (!empty($filter['parentFileId'])) {
+				$qb->andWhere(
+					$qb->expr()->eq('f.parent_file_id', $qb->createNamedParameter($filter['parentFileId'], IQueryBuilder::PARAM_INT))
+				);
+			} else {
+				$qb->andWhere($qb->expr()->isNull('f.parent_file_id'));
+			}
+		} else {
+			$qb->andWhere($qb->expr()->isNull('f.parent_file_id'));
 		}
 		return $qb;
 	}
@@ -666,7 +675,8 @@ class SignRequestMapper extends QBMapper {
 		if ($row['node_type'] === 'envelope') {
 			$childrenFiles = $this->fileMapper->getChildrenFiles($internalId);
 			$row['files'] = array_map(fn ($file) => [
-				'id' => $file->getNodeId(),
+				'fileId' => $file->getId(),
+				'nodeId' => $file->getNodeId(),
 				'uuid' => $file->getUuid(),
 				'name' => $file->getName(),
 				'status' => $file->getStatus(),
@@ -674,7 +684,8 @@ class SignRequestMapper extends QBMapper {
 			], $childrenFiles);
 		} else {
 			$row['files'] = [[
-				'id' => (int)$row['node_id'],
+				'fileId' => (int)$row['id'],
+				'nodeId' => (int)$row['node_id'],
 				'uuid' => $row['uuid'],
 				'name' => $row['name'],
 				'status' => (int)$row['status'],

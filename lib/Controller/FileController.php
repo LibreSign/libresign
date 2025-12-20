@@ -246,6 +246,7 @@ class FileController extends AEnvironmentAwareController {
 	 * @param int|null $end End date of signature request (UNIX timestamp)
 	 * @param string|null $sortBy Name of the column to sort by
 	 * @param string|null $sortDirection Ascending or descending order
+	 * @param int|null $parentFileId Filter files by parent envelope ID
 	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>
 	 *
 	 * 200: OK
@@ -263,6 +264,7 @@ class FileController extends AEnvironmentAwareController {
 		?int $end = null,
 		?string $sortBy = null,
 		?string $sortDirection = null,
+		?int $parentFileId = null,
 	): DataResponse {
 		$filter = array_filter([
 			'signer_uuid' => $signer_uuid,
@@ -270,6 +272,7 @@ class FileController extends AEnvironmentAwareController {
 			'status' => $status,
 			'start' => $start,
 			'end' => $end,
+			'parentFileId' => $parentFileId,
 		], static fn ($var) => $var !== null);
 		$sort = [
 			'sortBy' => $sortBy,
