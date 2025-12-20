@@ -14,7 +14,7 @@
 			<FileEntryPreview :source="source" />
 			<FileEntryName ref="name"
 				:basename="source.name"
-				:extension="'.pdf'" />
+				:extension="fileExtension" />
 		</td>
 
 		<!-- Actions -->
