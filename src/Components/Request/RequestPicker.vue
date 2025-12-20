@@ -249,7 +249,13 @@ export default {
 				.then(({ data }) => {
 					this.filesStore.addFile({
 						nodeId: data.ocs.data.id,
+						uuid: data.ocs.data.uuid,
 						name: data.ocs.data.name,
+						status: data.ocs.data.status,
+						statusText: data.ocs.data.statusText,
+						created_at: data.ocs.data.created_at,
+						...(data.ocs.data.nodeType && { nodeType: data.ocs.data.nodeType }),
+						...(data.ocs.data.files && { files: data.ocs.data.files }),
 					})
 					this.filesStore.selectFile(data.ocs.data.id)
 					this.closeModalUploadFromUrl()
@@ -274,7 +280,13 @@ export default {
 				.then(({ data }) => {
 					this.filesStore.addFile({
 						nodeId: data.ocs.data.id,
+						uuid: data.ocs.data.uuid,
 						name: data.ocs.data.name,
+						status: data.ocs.data.status,
+						statusText: data.ocs.data.statusText,
+						created_at: data.ocs.data.created_at,
+						...(data.ocs.data.nodeType && { nodeType: data.ocs.data.nodeType }),
+						...(data.ocs.data.files && { files: data.ocs.data.files }),
 					})
 					this.filesStore.selectFile(data.ocs.data.id)
 				})
