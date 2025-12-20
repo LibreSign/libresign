@@ -463,6 +463,9 @@ export type components = {
                     /** Format: double */
                     "signature-height": number;
                 };
+                envelope: {
+                    "is-available": boolean;
+                };
             };
             version: string;
         };
