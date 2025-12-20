@@ -77,6 +77,74 @@ export const useFilesStore = function(...args) {
 				})
 				this.addFile(files[this.selectedNodeId])
 			},
+			async addFilesToEnvelope(envelopeUuid, formData) {
+				return await axios.post(
+					generateOcsUrl('/apps/libresign/api/v1/file/{uuid}/add-file', { uuid: envelopeUuid }),
+					formData,
+					{
+						headers: {
+							'Content-Type': 'multipart/form-data',
+						},
+					},
+				)
+					.then(({ data }) => {
+						const addedFiles = data.ocs.data.files || []
+						const newFilesCount = data.ocs.data.filesCount || 0
+						const nodeId = data.ocs.data.nodeId
+
+						if (this.files[nodeId]) {
+							set(this.files[nodeId], 'filesCount', newFilesCount)
+						}
+
+						return {
+							success: true,
+							message: data.ocs.data.message,
+							files: addedFiles,
+							filesCount: newFilesCount,
+						}
+					})
+					.catch((error) => {
+						const message = error.response?.data?.ocs?.data?.message || 'Failed to add files to envelope'
+						return {
+							success: false,
+							message,
+							error,
+						}
+					})
+			},
+			async removeFilesFromEnvelope(envelopeNodeId, fileNodeIds) {
+				const nodeIds = Array.isArray(fileNodeIds) ? fileNodeIds : [fileNodeIds]
+
+				const deletePromises = nodeIds.map(nodeId =>
+					axios.delete(
+						generateOcsUrl('/apps/libresign/api/v1/file/file_id/{fileId}', { fileId: nodeId }),
+					),
+				)
+
+				return await Promise.all(deletePromises)
+					.then(() => {
+						if (this.files[envelopeNodeId] && this.files[envelopeNodeId].filesCount) {
+							const newCount = Math.max(0, this.files[envelopeNodeId].filesCount - nodeIds.length)
+							set(this.files[envelopeNodeId], 'filesCount', newCount)
+						}
+
+						const isSingle = nodeIds.length === 1
+						return {
+							success: true,
+							message: isSingle ? 'File removed from envelope' : 'Files removed from envelope',
+							removedCount: nodeIds.length,
+							removedIds: nodeIds,
+						}
+					})
+					.catch((error) => {
+						const message = error.response?.data?.ocs?.data?.message || 'Failed to remove file(s) from envelope'
+						return {
+							success: false,
+							message,
+							error,
+						}
+					})
+			},
 			enableIdentifySigner() {
 				this.identifyingSigner = true
 			},
