@@ -138,7 +138,6 @@ class RequestSignatureService {
 		foreach ($dataWithoutNotification['users'] as &$user) {
 			$user['notify'] = 0;
 		}
-		unset($user);
 
 		foreach ($children as $child) {
 			$this->sequentialSigningService->setFile($child);
