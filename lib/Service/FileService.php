@@ -205,6 +205,10 @@ class FileService {
 		return $this;
 	}
 
+	public function validateUploadedFile(array $file): void {
+		$this->uploadHelper->validateUploadedFile($file);
+	}
+
 	public function setFileFromRequest(?array $file): self {
 		if ($file === null) {
 			throw new InvalidArgumentException($this->l10n->t('No file provided'));
