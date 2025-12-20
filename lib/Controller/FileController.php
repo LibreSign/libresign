@@ -464,7 +464,7 @@ class FileController extends AEnvironmentAwareController {
 	 * Files must be uploaded as multipart/form-data with field name 'files[]'.
 	 *
 	 * @param string $uuid The UUID of the envelope
-	 * @return DataResponse<Http::STATUS_OK, array{message: string, files: list<array{id: int, uuid: string, name: string, status: int}>}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_NOT_FOUND|Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_NOT_FOUND|Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
 	 * 200: Files added successfully
 	 * 400: Invalid request
@@ -510,19 +510,11 @@ class FileController extends AEnvironmentAwareController {
 					'parentFileId' => $envelope->getId(),
 				]);
 
-				$addedFiles[] = [
-					'id' => $childFile->getNodeId(),
-					'uuid' => $childFile->getUuid(),
-					'name' => $childFile->getName(),
-					'status' => $childFile->getStatus(),
-					'statusText' => $this->fileMapper->getTextOfStatus($childFile->getStatus()),
-				];
+				$addedFiles[] = $childFile;
 			}
 
-			return new DataResponse([
-				'message' => $this->l10n->t('Success'),
-				'files' => $addedFiles,
-			], Http::STATUS_OK);
+			$envelope = $this->fileMapper->getById($envelope->getId());
+			return $this->formatFileResponse($envelope, $addedFiles);
 
 		} catch (DoesNotExistException $e) {
 			return new DataResponse(
