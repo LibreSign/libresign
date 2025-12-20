@@ -405,7 +405,8 @@ class FileController extends AEnvironmentAwareController {
 	/**
 	 * Send a file
 	 *
-	 * Send a new file to Nextcloud and return the fileId to request signature
+	 * Send a new file to Nextcloud and return the fileId to request signature.
+	 * Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.
 	 *
 	 * @param LibresignNewFile $file File to save
 	 * @param string $name The name of file to sign
@@ -446,7 +447,7 @@ class FileController extends AEnvironmentAwareController {
 	 * Add file to envelope
 	 *
 	 * Add one or more files to an existing envelope that is in DRAFT status.
-	 * Files must be uploaded as multipart/form-data with field name 'files'.
+	 * Files must be uploaded as multipart/form-data with field name 'files[]'.
 	 *
 	 * @param string $uuid The UUID of the envelope
 	 * @return DataResponse<Http::STATUS_OK, array{message: string, files: list<array{id: int, uuid: string, name: string, status: int}>}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_NOT_FOUND|Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>

@@ -632,7 +632,7 @@ export type paths = {
         put?: never;
         /**
          * Send a file
-         * @description Send a new file to Nextcloud and return the fileId to request signature
+         * @description Send a new file to Nextcloud and return the fileId to request signature. Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.
          */
         post: operations["file-save"];
         delete?: never;
@@ -652,7 +652,7 @@ export type paths = {
         put?: never;
         /**
          * Add file to envelope
-         * @description Add one or more files to an existing envelope that is in DRAFT status. Files must be uploaded as multipart/form-data with field name 'files'.
+         * @description Add one or more files to an existing envelope that is in DRAFT status. Files must be uploaded as multipart/form-data with field name 'files[]'.
          */
         post: operations["file-add-file-to-envelope"];
         delete?: never;
