@@ -681,20 +681,29 @@ class FileController extends AEnvironmentAwareController {
 	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>
 	 */
 	private function formatFileResponse(FileEntity $mainEntity, array $childFiles): DataResponse {
-		return new DataResponse(
-			[
-				'message' => $this->l10n->t('Success'),
-				'id' => $mainEntity->getNodeId(),
-				'uuid' => $mainEntity->getUuid(),
-				'name' => $mainEntity->getName(),
-				'status' => $mainEntity->getStatus(),
-				'statusText' => $this->fileMapper->getTextOfStatus($mainEntity->getStatus()),
-				'nodeType' => $mainEntity->getNodeType(),
-				'created_at' => $mainEntity->getCreatedAt()->format(\DateTimeInterface::ATOM),
-				'files' => $this->formatFilesResponse($childFiles),
-			],
-			Http::STATUS_OK
-		);
+		$response = [
+			'message' => $this->l10n->t('Success'),
+			'id' => $mainEntity->getNodeId(),
+			'fileId' => $mainEntity->getId(),
+			'nodeId' => $mainEntity->getNodeId(),
+			'uuid' => $mainEntity->getUuid(),
+			'name' => $mainEntity->getName(),
+			'status' => $mainEntity->getStatus(),
+			'statusText' => $this->fileMapper->getTextOfStatus($mainEntity->getStatus()),
+			'nodeType' => $mainEntity->getNodeType(),
+			'created_at' => $mainEntity->getCreatedAt()->format(\DateTimeInterface::ATOM),
+		];
+
+		if ($mainEntity->getNodeType() === 'envelope') {
+			$metadata = $mainEntity->getMetadata();
+			$response['filesCount'] = $metadata['filesCount'] ?? count($childFiles);
+			$response['files'] = [];
+		} else {
+			$response['filesCount'] = 1;
+			$response['files'] = $this->formatFilesResponse($childFiles);
+		}
+
+		return new DataResponse($response, Http::STATUS_OK);
 	}
 
 	private function extractFileName(array $fileData): string {

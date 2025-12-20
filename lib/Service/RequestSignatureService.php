@@ -80,13 +80,14 @@ class RequestSignatureService {
 		$envelopeName = $data['name'] ?: $this->l10n->t('Envelope %s', [date('Y-m-d H:i:s')]);
 		$userManager = $data['userManager'] ?? null;
 		$userId = $userManager instanceof IUser ? $userManager->getUID() : null;
+		$filesCount = count($data['files']);
 
 		$envelope = null;
 		$files = [];
 		$createdNodes = [];
 
 		try {
-			$envelope = $this->envelopeService->createEnvelope($envelopeName, $userId);
+			$envelope = $this->envelopeService->createEnvelope($envelopeName, $userId, $filesCount);
 
 			$envelopeFolderName = 'envelope-' . $envelope->getUuid();
 			$envelopeSettings = array_merge($data['settings'] ?? [], [
