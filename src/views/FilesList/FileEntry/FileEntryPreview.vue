@@ -5,7 +5,7 @@
 <template>
 	<span class="files-list__row-icon">
 		<!-- Decorative images, should not be aria documented -->
-		<span v-if="previewUrl" class="files-list__row-icon-preview-container">
+		<span v-if="previewUrl && !isEnvelope" class="files-list__row-icon-preview-container">
 			<img v-if="backgroundFailed !== true"
 				ref="previewImg"
 				alt=""
@@ -17,7 +17,8 @@
 				@load="backgroundFailed = false">
 		</span>
 
-		<FileIcon v-else v-once />
+		<FolderIcon v-if="isEnvelope" v-once />
+		<FileIcon v-else-if="!previewUrl" v-once />
 
 		<!-- Favorite icon -->
 		<span v-if="isFavorite" class="files-list__row-icon-favorite">
@@ -28,6 +29,7 @@
 
 <script>
 import FileIcon from 'vue-material-design-icons/File.vue'
+import FolderIcon from 'vue-material-design-icons/Folder.vue'
 
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 
@@ -38,6 +40,7 @@ export default {
 
 	components: {
 		FileIcon,
+		FolderIcon,
 	},
 	props: {
 		source: {
@@ -57,6 +60,9 @@ export default {
 	computed: {
 		isFavorite() {
 			return this.source?.attributes?.favorite === 1
+		},
+		isEnvelope() {
+			return this.source?.isEnvelope === true
 		},
 		previewUrl() {
 			if (this.backgroundFailed === true) {
