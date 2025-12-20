@@ -62,7 +62,7 @@ export default {
 			return this.source?.attributes?.favorite === 1
 		},
 		isEnvelope() {
-			return this.source?.isEnvelope === true
+			return this.source?.nodeType === 'envelope'
 		},
 		previewUrl() {
 			if (this.backgroundFailed === true) {
