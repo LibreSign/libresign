@@ -66,7 +66,7 @@ export const useFilesStore = function(...args) {
 				sidebarStore.activeRequestSignatureTab()
 			},
 			getFile(file) {
-				if (typeof file === 'object') {
+				if (typeof file === 'object' && file !== null) {
 					return file
 				}
 				return this.files[this.selectedNodeId] || emptyFile
