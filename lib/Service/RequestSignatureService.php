@@ -644,7 +644,7 @@ class RequestSignatureService {
 		$deletedOrder = $signRequest->getSigningOrder();
 		$groupedIdentifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequestId);
 
-		$this->dispatchCancellationEventIfNeeded($signRequest, $file->getId(), $groupedIdentifyMethods);
+		$this->dispatchCancellationEventIfNeeded($signRequest, $file->getNodeId(), $groupedIdentifyMethods);
 
 		try {
 			$this->signRequestMapper->delete($signRequest);
