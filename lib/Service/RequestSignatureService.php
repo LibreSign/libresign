@@ -79,28 +79,93 @@ class RequestSignatureService {
 		$userManager = $data['userManager'] ?? null;
 		$userId = $userManager instanceof IUser ? $userManager->getUID() : null;
 
-		$envelope = $this->envelopeService->createEnvelope($envelopeName, $userId);
-
-		$envelopeFolderName = 'envelope-' . $envelope->getUuid();
-		$envelopeSettings = array_merge($data['settings'] ?? [], [
-			'folderName' => $envelopeFolderName,
-		]);
-
+		$envelope = null;
 		$files = [];
-		foreach ($data['files'] as $fileData) {
-			$fileEntity = $this->createFileForEnvelope(
-				$fileData,
-				$userManager,
-				$envelopeSettings
-			);
-			$this->envelopeService->addFileToEnvelope($envelope->getId(), $fileEntity);
-			$files[] = $fileEntity;
+		$createdNodes = [];
+
+		try {
+			$envelope = $this->envelopeService->createEnvelope($envelopeName, $userId);
+
+			$envelopeFolderName = 'envelope-' . $envelope->getUuid();
+			$envelopeSettings = array_merge($data['settings'] ?? [], [
+				'folderName' => $envelopeFolderName,
+			]);
+
+			foreach ($data['files'] as $fileData) {
+				if (isset($fileData['uploadedFile'])) {
+					$node = $this->getNodeFromUploadedFile([
+						'userManager' => $userManager,
+						'name' => $fileData['name'],
+						'uploadedFile' => $fileData['uploadedFile'],
+						'settings' => $envelopeSettings,
+					]);
+					$fileData['node'] = $node;
+					$createdNodes[] = $node;
+				}
+				$fileEntity = $this->createFileForEnvelope(
+					$fileData,
+					$userManager,
+					$envelopeSettings
+				);
+				$this->envelopeService->addFileToEnvelope($envelope->getId(), $fileEntity);
+				$files[] = $fileEntity;
+			}
+
+			return [
+				'envelope' => $envelope,
+				'files' => $files,
+			];
+		} catch (\Throwable $e) {
+			$this->rollbackEnvelopeCreation($envelope, $files, $createdNodes);
+			throw $e;
+		}
+	}
+
+	private function rollbackEnvelopeCreation(?FileEntity $envelope, array $files, array $createdNodes): void {
+		$this->rollbackCreatedNodes($createdNodes);
+		$this->rollbackCreatedFiles($files);
+		$this->rollbackEnvelope($envelope);
+	}
+
+	private function rollbackCreatedNodes(array $nodes): void {
+		foreach ($nodes as $node) {
+			try {
+				$node->delete();
+			} catch (\Throwable $deleteError) {
+				$this->logger->error('Failed to rollback created node in envelope', [
+					'nodeId' => $node->getId(),
+					'error' => $deleteError->getMessage(),
+				]);
+			}
+		}
+	}
+
+	private function rollbackCreatedFiles(array $files): void {
+		foreach ($files as $file) {
+			try {
+				$this->fileMapper->delete($file);
+			} catch (\Throwable $deleteError) {
+				$this->logger->error('Failed to rollback created file entity in envelope', [
+					'fileId' => $file->getId(),
+					'error' => $deleteError->getMessage(),
+				]);
+			}
+		}
+	}
+
+	private function rollbackEnvelope(?FileEntity $envelope): void {
+		if ($envelope === null) {
+			return;
 		}
 
-		return [
-			'envelope' => $envelope,
-			'files' => $files,
-		];
+		try {
+			$this->fileMapper->delete($envelope);
+		} catch (\Throwable $deleteError) {
+			$this->logger->error('Failed to rollback created envelope', [
+				'envelopeId' => $envelope->getId(),
+				'error' => $deleteError->getMessage(),
+			]);
+		}
 	}
 
 	private function createFileForEnvelope(array $fileData, ?IUser $userManager, array $settings): FileEntity {
@@ -116,6 +181,7 @@ class RequestSignatureService {
 			'name' => $fileName,
 			'userManager' => $userManager,
 			'status' => FileEntity::STATUS_DRAFT,
+			'settings' => $settings,
 		]);
 	}
 
