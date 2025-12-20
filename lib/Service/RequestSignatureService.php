@@ -459,6 +459,7 @@ class RequestSignatureService {
 				$userProvidedOrder = isset($user['signingOrder']) ? (int)$user['signingOrder'] : null;
 				$signingOrder = $this->sequentialSigningService->determineSigningOrder($userProvidedOrder);
 				$signerStatus = $user['status'] ?? null;
+				$shouldNotify = !isset($user['notify']) || $user['notify'] !== 0;
 
 				if (isset($user['identifyMethods'])) {
 					foreach ($user['identifyMethods'] as $identifyMethod) {
@@ -468,7 +469,7 @@ class RequestSignatureService {
 							],
 							displayName: $user['displayName'] ?? '',
 							description: $user['description'] ?? '',
-							notify: empty($user['notify']),
+							notify: $shouldNotify,
 							fileId: $fileId,
 							signingOrder: $signingOrder,
 							fileStatus: $fileStatus,
@@ -480,7 +481,7 @@ class RequestSignatureService {
 						identifyMethods: $user['identify'],
 						displayName: $user['displayName'] ?? '',
 						description: $user['description'] ?? '',
-						notify: empty($user['notify']),
+						notify: $shouldNotify,
 						fileId: $fileId,
 						signingOrder: $signingOrder,
 						fileStatus: $fileStatus,
