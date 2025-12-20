@@ -52,7 +52,7 @@ final class EnvelopeServiceTest extends TestCase {
 		$mockFolder->method('newFolder')->willReturn($mockEnvelopeFolder);
 		$this->folderService->method('getFolder')->willReturn($mockFolder);
 
-		$envelope = $this->service->createEnvelope('Contract Package');
+		$envelope = $this->service->createEnvelope('Contract Package', 'testuser');
 
 		$this->assertSame(FileEntity::STATUS_DRAFT, $envelope->getStatus());
 	}
@@ -66,7 +66,7 @@ final class EnvelopeServiceTest extends TestCase {
 		$mockFolder->method('newFolder')->willReturn($mockEnvelopeFolder);
 		$this->folderService->method('getFolder')->willReturn($mockFolder);
 
-		$envelope = $this->service->createEnvelope('Contract Package');
+		$envelope = $this->service->createEnvelope('Contract Package', 'testuser');
 
 		$this->assertTrue($envelope->isEnvelope());
 	}
