@@ -1001,6 +1001,8 @@ class FileService {
 	public function delete(int $fileId): void {
 		$file = $this->fileMapper->getByFileId($fileId);
 
+		$this->decrementEnvelopeFilesCountIfNeeded($file);
+
 		if ($file->getNodeType() === 'envelope') {
 			$childrenFiles = $this->fileMapper->getChildrenFiles($file->getId());
 			foreach ($childrenFiles as $childFile) {
@@ -1086,6 +1088,25 @@ class FileService {
 					'error' => $deleteError->getMessage(),
 				]);
 			}
+		}
+	}
+
+	public function updateEnvelopeFilesCount(File $envelope, int $delta = 0): void {
+		$metadata = $envelope->getMetadata();
+		$currentCount = $metadata['filesCount'] ?? 0;
+		$metadata['filesCount'] = max(0, $currentCount + $delta);
+		$envelope->setMetadata($metadata);
+		$this->fileMapper->update($envelope);
+	}
+
+	private function decrementEnvelopeFilesCountIfNeeded(File $file): void {
+		if ($file->getParentFileId() === null) {
+			return;
+		}
+
+		$parentEnvelope = $this->fileMapper->getById($file->getParentFileId());
+		if ($parentEnvelope->getNodeType() === 'envelope') {
+			$this->updateEnvelopeFilesCount($parentEnvelope, -1);
 		}
 	}
 }

@@ -513,6 +513,8 @@ class FileController extends AEnvironmentAwareController {
 				$addedFiles[] = $childFile;
 			}
 
+			$this->fileService->updateEnvelopeFilesCount($envelope, count($addedFiles));
+
 			$envelope = $this->fileMapper->getById($envelope->getId());
 			return $this->formatFileResponse($envelope, $addedFiles);
 
