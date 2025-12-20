@@ -28,6 +28,23 @@ class EnvelopeService {
 	) {
 	}
 
+	/**
+	 * @throws LibresignException
+	 */
+	public function validateEnvelopeConstraints(int $fileCount): void {
+		$isEnabled = $this->appConfig->getValueBool(Application::APP_ID, 'envelope_enabled', true);
+		if (!$isEnabled) {
+			throw new LibresignException($this->l10n->t('Envelope feature is disabled'));
+		}
+
+		$maxFiles = $this->getMaxFilesPerEnvelope();
+		if ($fileCount > $maxFiles) {
+			throw new LibresignException(
+				$this->l10n->t('Maximum number of files per envelope (%s) exceeded', [$maxFiles])
+			);
+		}
+	}
+
 	public function createEnvelope(string $name, ?string $userId = null): FileEntity {
 		if ($userId) {
 			$this->folderService->setUserId($userId);
@@ -63,7 +80,7 @@ class EnvelopeService {
 			throw new LibresignException($this->l10n->t('Cannot add files to an envelope that is already in signing process'));
 		}
 
-		$maxFiles = $this->appConfig->getValueInt(Application::APP_ID, 'envelope_max_files', 50);
+		$maxFiles = $this->getMaxFilesPerEnvelope();
 		$currentCount = $this->fileMapper->countChildrenFiles($envelopeId);
 		if ($currentCount >= $maxFiles) {
 			throw new LibresignException(
@@ -83,5 +100,9 @@ class EnvelopeService {
 		} catch (DoesNotExistException) {
 			return null;
 		}
+	}
+
+	private function getMaxFilesPerEnvelope(): int {
+		return $this->appConfig->getValueInt(Application::APP_ID, 'envelope_max_files', 50);
 	}
 }
