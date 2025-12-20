@@ -10,6 +10,14 @@
 		<NcNoteCard v-if="hasSignersWithDisabledMethods" type="warning">
 			{{ t('libresign', 'Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures.') }}
 		</NcNoteCard>
+		<NcButton v-if="filesStore.canAddSigner()"
+			:variant="hasSigners ? 'secondary' : 'primary'"
+			@click="addSigner">
+			<template #icon>
+				<AccountPlus :size="20" />
+			</template>
+			{{ t('libresign', 'Add signer') }}
+		</NcButton>
 		<NcCheckboxRadioSwitch v-if="showPreserveOrder"
 			v-model="preserveOrder"
 			type="switch"
@@ -73,14 +81,8 @@
 				</NcActionButton>
 			</template>
 		</Signers>
-		<NcFormBox v-if="filesStore.canAddSigner() || (isEnvelope && envelopeFiles.length > 0)">
-			<NcButton v-if="filesStore.canAddSigner()"
-				wide
-				:variant="hasSigners ? 'secondary' : 'primary'"
-				@click="addSigner">
-				{{ t('libresign', 'Add signer') }}
-			</NcButton>
-			<NcButton v-if="isEnvelope"
+		<NcFormBox v-if="isEnvelope">
+			<NcButton
 				wide
 				type="secondary"
 				@click="showEnvelopeFilesDialog = true">
@@ -245,6 +247,7 @@ import svgSms from '@mdi/svg/svg/message-processing.svg?raw'
 import svgWhatsapp from '@mdi/svg/svg/whatsapp.svg?raw'
 import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
 
+import AccountPlus from 'vue-material-design-icons/AccountPlus.vue'
 import Bell from 'vue-material-design-icons/Bell.vue'
 import ChartGantt from 'vue-material-design-icons/ChartGantt.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
@@ -310,6 +313,7 @@ export default {
 	name: 'RequestSignatureTab',
 	mixins: [signingOrderMixin],
 	components: {
+		AccountPlus,
 		Bell,
 		ChartGantt,
 		Delete,
