@@ -639,7 +639,7 @@ class RequestSignatureService {
 
 	public function unassociateToUser(int $fileId, int $signRequestId): void {
 		$file = $this->fileMapper->getByFileId($fileId);
-		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($file->getId(), $signRequestId);
+		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($file->getNodeId(), $signRequestId);
 		$deletedOrder = $signRequest->getSigningOrder();
 		$groupedIdentifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequestId);
 
