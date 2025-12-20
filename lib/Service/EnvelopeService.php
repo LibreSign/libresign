@@ -28,12 +28,15 @@ class EnvelopeService {
 	) {
 	}
 
+	public function isEnabled(): bool {
+		return $this->appConfig->getValueBool(Application::APP_ID, 'envelope_enabled', true);
+	}
+
 	/**
 	 * @throws LibresignException
 	 */
 	public function validateEnvelopeConstraints(int $fileCount): void {
-		$isEnabled = $this->appConfig->getValueBool(Application::APP_ID, 'envelope_enabled', true);
-		if (!$isEnabled) {
+		if (!$this->isEnabled()) {
 			throw new LibresignException($this->l10n->t('Envelope feature is disabled'));
 		}
 

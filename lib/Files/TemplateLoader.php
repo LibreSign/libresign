@@ -69,7 +69,5 @@ class TemplateLoader implements IEventListener {
 		} catch (LibresignException) {
 			$this->initialState->provideInitialState('can_request_sign', false);
 		}
-
-		$this->initialState->provideInitialState('envelope_enabled', $this->appConfig->getValueBool(Application::APP_ID, 'envelope_enabled', true));
 	}
 }
