@@ -651,28 +651,14 @@ class FileController extends AEnvironmentAwareController {
 			throw new LibresignException($this->l10n->t('File or files parameter is required'));
 		}
 
-		if (count($files) === 1) {
-			$fileData = $files[0];
-			$fileName = $name;
-			$prepared = $this->prepareFileForSaving($fileData, $fileName, $settings);
-			$savedFile = $this->requestSignatureService->save([
-				'file' => ['fileNode' => $prepared['node']],
-				'name' => $prepared['name'],
-				'userManager' => $this->userSession->getUser(),
-				'status' => FileEntity::STATUS_DRAFT,
-			]);
-
-			return $this->formatFileResponse($savedFile, [$savedFile]);
-		}
-
-		$result = $this->requestSignatureService->saveEnvelope([
+		$result = $this->requestSignatureService->saveFiles([
 			'files' => $files,
 			'name' => $name,
 			'userManager' => $this->userSession->getUser(),
 			'settings' => $settings,
 		]);
 
-		return $this->formatFileResponse($result['envelope'], $result['files']);
+		return $this->formatFileResponse($result['file'], $result['children']);
 	}
 
 	/**
