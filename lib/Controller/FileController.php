@@ -443,6 +443,93 @@ class FileController extends AEnvironmentAwareController {
 	}
 
 	/**
+	 * Add file to envelope
+	 *
+	 * Add one or more files to an existing envelope that is in DRAFT status.
+	 * Files must be uploaded as multipart/form-data with field name 'files'.
+	 *
+	 * @param string $uuid The UUID of the envelope
+	 * @return DataResponse<Http::STATUS_OK, array{message: string, files: list<array{id: int, uuid: string, name: string, status: int}>}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_NOT_FOUND|Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 *
+	 * 200: Files added successfully
+	 * 400: Invalid request
+	 * 404: Envelope not found
+	 * 422: Cannot add files (envelope not in DRAFT status or validation failed)
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[RequireManager]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file/{uuid}/add-file', requirements: ['apiVersion' => '(v1)'])]
+	public function addFileToEnvelope(string $uuid): DataResponse {
+		try {
+			$this->validateHelper->canRequestSign($this->userSession->getUser());
+
+			$envelope = $this->fileMapper->getByUuid($uuid);
+
+			if ($envelope->getNodeType() !== 'envelope') {
+				throw new LibresignException($this->l10n->t('This is not an envelope'));
+			}
+
+			if ($envelope->getStatus() !== FileEntity::STATUS_DRAFT) {
+				throw new LibresignException($this->l10n->t('Cannot add files to an envelope that is not in draft status'));
+			}
+
+			$settings = $envelope->getMetadata()['settings'] ?? [];
+
+			$uploadedFiles = $this->request->getUploadedFile('files');
+			if (!$uploadedFiles) {
+				throw new LibresignException($this->l10n->t('No files uploaded'));
+			}
+
+			$normalizedFiles = $this->processUploadedFiles($uploadedFiles);
+
+			$addedFiles = [];
+			foreach ($normalizedFiles as $fileData) {
+				$prepared = $this->prepareFileForSaving($fileData, '', $settings);
+
+				$childFile = $this->requestSignatureService->save([
+					'file' => ['fileNode' => $prepared['node']],
+					'name' => $prepared['name'],
+					'userManager' => $this->userSession->getUser(),
+					'status' => FileEntity::STATUS_DRAFT,
+					'parentFileId' => $envelope->getId(),
+				]);
+
+				$addedFiles[] = [
+					'id' => $childFile->getNodeId(),
+					'uuid' => $childFile->getUuid(),
+					'name' => $childFile->getName(),
+					'status' => $childFile->getStatus(),
+				];
+			}
+
+			return new DataResponse([
+				'message' => $this->l10n->t('Success'),
+				'files' => $addedFiles,
+			], Http::STATUS_OK);
+
+		} catch (DoesNotExistException $e) {
+			return new DataResponse(
+				['message' => $this->l10n->t('Envelope not found')],
+				Http::STATUS_NOT_FOUND,
+			);
+		} catch (LibresignException $e) {
+			return new DataResponse(
+				['message' => $e->getMessage()],
+				Http::STATUS_UNPROCESSABLE_ENTITY,
+			);
+		} catch (\Exception $e) {
+			$this->logger->error('Failed to add file to envelope', [
+				'exception' => $e,
+			]);
+			return new DataResponse(
+				['message' => $this->l10n->t('Failed to add file to envelope')],
+				Http::STATUS_BAD_REQUEST,
+			);
+		}
+	}
+
+	/**
 	 * @return array{node: Node, name: string}
 	 */
 	private function prepareFileForSaving(array $fileData, string $name, array $settings): array {
@@ -492,7 +579,7 @@ class FileController extends AEnvironmentAwareController {
 		$uploadedFiles = $this->request->getUploadedFile('files') ?: $this->request->getUploadedFile('file');
 
 		if ($uploadedFiles) {
-			return $this->processUploadedFiles($uploadedFiles, $settings);
+			return $this->processUploadedFiles($uploadedFiles);
 		}
 
 		if (!empty($files)) {
@@ -510,7 +597,7 @@ class FileController extends AEnvironmentAwareController {
 	/**
 	 * @return list<array{uploadedFile: array, name: string}>
 	 */
-	private function processUploadedFiles(array $uploadedFiles, array $settings): array {
+	private function processUploadedFiles(array $uploadedFiles): array {
 		$filesArray = [];
 
 		if (isset($uploadedFiles['tmp_name'])) {
