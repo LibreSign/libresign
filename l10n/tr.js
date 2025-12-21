@@ -262,6 +262,7 @@ OC.L10N.register(
     "Documents Validation" : "Belge doğrulaması",
     "CRL Management" : "Geçersiz sertifika yönetimi",
     "Settings" : "Ayarlar",
+    "{currentPage} of {totalPages}" : "{currentPage} / {totalPages}",
     "Loading …" : "Yükleniyor…",
     "Name" : "Ad",
     "Update" : "Güncelle",
