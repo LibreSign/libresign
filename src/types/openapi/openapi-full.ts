@@ -1845,6 +1845,7 @@ export type components = {
             signRequestId: number;
             type: string;
             coordinates: components["schemas"]["Coordinate"];
+            uuid: string;
         };
     };
     responses: never;
