@@ -5,8 +5,9 @@
 <template>
 	<div class="signing-order-diagram">
 		<div class="diagram-content">
-			<div class="stage">
-				<div class="stage-label">{{ t('libresign', 'SENDER') }}</div>
+		<div class="stage">
+			<div class="stage-number-placeholder"></div>
+			<div class="stage-label">{{ t('libresign', 'SENDER') }}</div>
 				<div class="stage-items">
 					<div class="signer-node sender">
 						<div class="signer-content">
@@ -20,8 +21,9 @@
 			</div>
 
 			<div v-for="order in uniqueOrders" :key="order" class="stage">
-				<div class="stage-number">{{ order }}</div>
-				<div class="stage-items">
+			<div class="stage-number">{{ order }}</div>
+			<div class="stage-label-placeholder"></div>
+			<div class="stage-items">
 					<div v-for="(signer, index) in getSignersByOrder(order)"
 						:key="`${order}-${index}`"
 						class="signer-node"
@@ -80,8 +82,9 @@
 				</div>
 			</div>
 
-			<div class="stage">
-				<div class="stage-label">{{ t('libresign', 'COMPLETED') }}</div>
+		<div class="stage">
+			<div class="stage-number-placeholder"></div>
+			<div class="stage-label">{{ t('libresign', 'COMPLETED') }}</div>
 				<div class="stage-items">
 					<div class="signer-node completed">
 						<div class="signer-icon">
@@ -210,7 +213,7 @@ export default {
 
 .stage {
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
 	align-items: center;
 	width: 100%;
 	position: relative;
@@ -226,20 +229,13 @@ export default {
 		padding-bottom: 0;
 	}
 
-	&:not(:last-child)::after {
-		content: '';
-		position: absolute;
-		bottom: -10px;
-		left: 50%;
-		width: 2px;
-		height: 10px;
-		background: var(--color-border-dark);
-		transform: translateX(-50%);
-		z-index: 1;
+	.stage-label,
+	.stage-label-placeholder {
+		width: 100px;
+		flex-shrink: 0;
 
 		@media (max-width: 512px) {
-			bottom: -8px;
-			height: 8px;
+			width: 80px;
 		}
 	}
 
@@ -249,23 +245,19 @@ export default {
 		color: var(--color-text-maxcontrast);
 		text-transform: uppercase;
 		letter-spacing: 0.5px;
-		margin-bottom: 12px;
-		text-align: center;
 
 		@media (max-width: 512px) {
 			font-size: 11px;
-			margin-bottom: 10px;
 		}
 	}
 
-	.stage-number {
-		position: absolute;
-		left: 0;
-		top: 16px;
+	.stage-number,
+	.stage-number-placeholder {
 		font-size: 24px;
 		font-weight: 600;
 		color: var(--color-text-maxcontrast);
 		width: 50px;
+		flex-shrink: 0;
 		text-align: center;
 
 		@media (max-width: 512px) {
@@ -279,6 +271,7 @@ export default {
 		flex-wrap: wrap;
 		gap: 12px;
 		justify-content: center;
+		flex: 1;
 
 		@media (max-width: 512px) {
 			gap: 10px;
