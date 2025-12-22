@@ -46,6 +46,7 @@ use stdClass;
 
 /**
  * @psalm-import-type LibresignValidateFile from ResponseDefinitions
+ * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
  */
 class FileService {
 	use TFile;
@@ -972,27 +973,35 @@ class FileService {
 		return array_map(function (FileElement $visibleElement) use ($metadata) {
 			$libresignFile = $this->fileMapper->getById($visibleElement->getFileId());
 
-			$element = [
+			$page = $visibleElement->getPage();
+			$urx = (int)$visibleElement->getUrx();
+			$ury = (int)$visibleElement->getUry();
+			$llx = (int)$visibleElement->getLlx();
+			$lly = (int)$visibleElement->getLly();
+
+			$dimension = $metadata['d'][$page - 1];
+			$height = abs($ury - $lly);
+			$width = $urx - $llx;
+			$top = (int)$dimension['h'] - $ury;
+			$left = $llx;
+
+			return [
 				'elementId' => $visibleElement->getId(),
 				'signRequestId' => $visibleElement->getSignRequestId(),
 				'type' => $visibleElement->getType(),
-				'coordinates' => [
-					'page' => $visibleElement->getPage(),
-					'urx' => $visibleElement->getUrx(),
-					'ury' => $visibleElement->getUry(),
-					'llx' => $visibleElement->getLlx(),
-					'lly' => $visibleElement->getLly()
-				],
 				'uuid' => $libresignFile->getUuid(),
+				'coordinates' => [
+					'page' => $page,
+					'urx' => $urx,
+					'ury' => $ury,
+					'llx' => $llx,
+					'lly' => $lly,
+					'left' => $left,
+					'top' => $top,
+					'width' => $width,
+					'height' => $height,
+				],
 			];
-			$dimension = $metadata['d'][$element['coordinates']['page'] - 1];
-
-			$element['coordinates']['left'] = $element['coordinates']['llx'];
-			$element['coordinates']['height'] = abs($element['coordinates']['ury'] - $element['coordinates']['lly']);
-			$element['coordinates']['top'] = $dimension['h'] - $element['coordinates']['ury'];
-			$element['coordinates']['width'] = $element['coordinates']['urx'] - $element['coordinates']['llx'];
-
-			return $element;
 		}, $visibleElements);
 	}
 
