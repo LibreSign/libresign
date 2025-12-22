@@ -146,48 +146,39 @@
                 "properties": {
                     "page": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "urx": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "ury": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "llx": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "lly": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "top": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "left": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "width": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "height": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     }
                 }
             },
@@ -1118,13 +1109,11 @@
                 "properties": {
                     "elementId": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "signRequestId": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "type": {
                         "type": "string"
