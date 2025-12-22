@@ -716,6 +716,12 @@ class FileService {
 		$this->fileData->docmdpLevel = $this->file->getDocmdpLevel();
 		$this->fileData->nodeType = $this->file->getNodeType();
 
+		if ($this->file->getNodeType() === 'envelope') {
+			$metadata = $this->file->getMetadata();
+			$this->fileData->filesCount = $metadata['filesCount'] ?? 0;
+			$this->fileData->files = [];
+		}
+
 		$this->fileData->requested_by = [
 			'userId' => $this->file->getUserId(),
 			'displayName' => $this->userManager->get($this->file->getUserId())->getDisplayName(),
@@ -749,20 +755,15 @@ class FileService {
 			return;
 		}
 
-		$envelopeFiles = $this->fileMapper->getChildrenFiles($envelope->getId());
+		$envelopeMetadata = $envelope->getMetadata();
 		$this->fileData->envelope = [
 			'id' => $envelope->getId(),
 			'uuid' => $envelope->getUuid(),
 			'name' => $envelope->getName(),
 			'status' => $envelope->getStatus(),
 			'statusText' => $this->fileMapper->getTextOfStatus($envelope->getStatus()),
-			'filesCount' => count($envelopeFiles),
-			'files' => array_map(fn (File $file) => [
-				'id' => $file->getId(),
-				'uuid' => $file->getUuid(),
-				'name' => $file->getName(),
-				'status' => $file->getStatus(),
-			], $envelopeFiles),
+			'filesCount' => $envelopeMetadata['filesCount'] ?? 0,
+			'files' => [],
 		];
 	}
 
