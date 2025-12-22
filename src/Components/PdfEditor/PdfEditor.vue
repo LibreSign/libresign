@@ -83,9 +83,15 @@ export default {
 				x: signer.element.coordinates.llx,
 				y: signer.element.coordinates.ury,
 			}
+
+			const docIndex = signer.element.documentIndex !== undefined
+				? signer.element.documentIndex
+				: this.$refs.vuePdfEditor.selectedDocIndex
+
 			this.$refs.vuePdfEditor.addObjectToPage(
 				object,
 				signer.element.coordinates.page - 1,
+				docIndex,
 			)
 		},
 	},
