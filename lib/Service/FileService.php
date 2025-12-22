@@ -970,6 +970,8 @@ class FileService {
 	 */
 	private function formatVisibleElementsToArray(array $visibleElements, array $metadata): array {
 		return array_map(function (FileElement $visibleElement) use ($metadata) {
+			$libresignFile = $this->fileMapper->getById($visibleElement->getFileId());
+
 			$element = [
 				'elementId' => $visibleElement->getId(),
 				'signRequestId' => $visibleElement->getSignRequestId(),
@@ -980,7 +982,8 @@ class FileService {
 					'ury' => $visibleElement->getUry(),
 					'llx' => $visibleElement->getLlx(),
 					'lly' => $visibleElement->getLly()
-				]
+				],
+				'uuid' => $libresignFile->getUuid(),
 			];
 			$dimension = $metadata['d'][$element['coordinates']['page'] - 1];
 
