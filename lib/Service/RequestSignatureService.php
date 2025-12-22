@@ -567,8 +567,11 @@ class RequestSignatureService {
 		}
 		$elements = $data['visibleElements'];
 		foreach ($elements as $key => $element) {
-			$element['fileId'] = $file->getId();
-			$elements[$key] = $this->fileElementService->saveVisibleElement($element);
+			if (empty($element['uuid']) && empty($element['fileId'])) {
+				$element['fileId'] = $file->getId();
+			}
+			$uuid = $element['uuid'] ?? '';
+			$elements[$key] = $this->fileElementService->saveVisibleElement($element, $uuid);
 		}
 		return $elements;
 	}
