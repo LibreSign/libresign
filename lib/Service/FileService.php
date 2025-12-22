@@ -965,8 +965,8 @@ class FileService {
 
 	/**
 	 * @param FileElement[] $visibleElements
-	 * @param array
-	 * @return array
+	 * @param array $metadata
+	 * @return LibresignVisibleElement[]
 	 */
 	private function formatVisibleElementsToArray(array $visibleElements, array $metadata): array {
 		return array_map(function (FileElement $visibleElement) use ($metadata) {
