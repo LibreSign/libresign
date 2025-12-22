@@ -72,7 +72,7 @@ class TemplateVariables {
 			],
 			'signers' => [
 				'type' => 'array',
-				'description' => $this->l10n->t('Array of signers with displayName and signed timestamp'),
+				'description' => $this->l10n->t('Array of signers with "displayName" and "signed" timestamp'),
 				'example' => '[{"displayName": "John Doe", "signed": "2025-01-01T10:00:00Z"}]',
 			],
 			'uuid' => [
