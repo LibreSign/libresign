@@ -320,18 +320,106 @@ class SignFileService {
 		return $this->elements;
 	}
 
-	public function sign(): File {
-		$this->validateDocMdpAllowsSignatures();
-		$signedFile = $this->getEngine()->sign();
+	public function sign(): void {
+		$originalLibreSignFile = $this->libreSignFile;
+		$originalSignRequest = $this->signRequest;
 
-		$hash = $this->computeHash($signedFile);
+		$signRequests = $this->getSignRequestsToSign();
 
-		$this->updateSignRequest($hash);
-		$this->updateLibreSignFile($hash);
+		if (empty($signRequests)) {
+			throw new LibresignException('No sign requests found to process');
+		}
 
-		$this->dispatchSignedEvent();
+		foreach ($signRequests as $signRequestData) {
+			$this->libreSignFile = $signRequestData['file'];
+			$this->signRequest = $signRequestData['signRequest'];
+			$this->engine = null;
+			$this->elements = [];
 
-		return $signedFile;
+			$this->validateDocMdpAllowsSignatures();
+			$signedFile = $this->getEngine()->sign();
+
+			$hash = $this->computeHash($signedFile);
+
+			$this->updateSignRequest($hash);
+			$this->updateLibreSignFile($hash);
+
+			$this->dispatchSignedEvent();
+		}
+
+		$this->libreSignFile = $originalLibreSignFile;
+		$this->signRequest = $originalSignRequest;
+
+		if ($originalLibreSignFile->isEnvelope()) {
+			$this->updateEnvelopeStatus();
+		}
+	}
+
+	/**
+	 * @return array Array of ['file' => FileEntity, 'signRequest' => SignRequestEntity]
+	 */
+	private function getSignRequestsToSign(): array {
+		if (!$this->libreSignFile->isEnvelope()) {
+			return [[
+				'file' => $this->libreSignFile,
+				'signRequest' => $this->signRequest,
+			]];
+		}
+
+		$childFiles = $this->fileMapper->getChildrenFiles($this->libreSignFile->getId());
+
+		if (empty($childFiles)) {
+			throw new LibresignException('No files found in envelope');
+		}
+
+		$childSignRequests = $this->signRequestMapper->getByEnvelopeChildrenAndIdentifyMethod(
+			$this->libreSignFile->getId(),
+			$this->signRequest->getId()
+		);
+
+		if (empty($childSignRequests)) {
+			throw new LibresignException('No sign requests found for envelope files');
+		}
+
+		$signRequestsData = [];
+		foreach ($childSignRequests as $childSignRequest) {
+			$childFile = $this->array_find(
+				$childFiles,
+				fn(FileEntity $file) => $file->getId() === $childSignRequest->getFileId()
+			);
+
+			if ($childFile) {
+				$signRequestsData[] = [
+					'file' => $childFile,
+					'signRequest' => $childSignRequest,
+				];
+			}
+		}
+
+		return $signRequestsData;
+	}
+
+	private function updateEnvelopeStatus(): void {
+		$childFiles = $this->fileMapper->getChildrenFiles($this->libreSignFile->getId());
+
+		$allSigned = true;
+		$anySigned = false;
+
+		foreach ($childFiles as $childFile) {
+			if ($childFile->getStatus() === FileEntity::STATUS_SIGNED) {
+				$anySigned = true;
+			} else {
+				$allSigned = false;
+			}
+		}
+
+		if ($allSigned) {
+			$this->libreSignFile->setStatus(FileEntity::STATUS_SIGNED);
+		} elseif ($anySigned) {
+			$this->libreSignFile->setStatus(FileEntity::STATUS_PARTIAL_SIGNED);
+		}
+
+		$this->fileMapper->update($this->libreSignFile);
 	}
 
 	/**
