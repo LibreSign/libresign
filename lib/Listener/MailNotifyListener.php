@@ -105,6 +105,9 @@ class MailNotifyListener implements IEventListener {
 		IUser $user,
 	): void {
 		try {
+			if ($libreSignFile->hasParent()) {
+				return;
+			}
 			if ($identifyMethod->getEntity()->isDeletedAccount()) {
 				return;
 			}
