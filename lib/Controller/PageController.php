@@ -329,9 +329,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->provideSignerSignatues();
 		$this->initialState->provideInitialState('token_length', TokenService::TOKEN_LENGTH);
 		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');
-		$this->initialState->provideInitialState('pdf',
-			$this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $uuid)
-		);
+		$this->initialState->provideInitialState('pdfs', $this->getPdfUrls());
 		$this->initialState->provideInitialState('nodeId', $this->getFileEntity()->getNodeId());
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
@@ -352,6 +350,16 @@ class PageController extends AEnvironmentPageAwareController {
 			$signatures = $this->signerElementsService->getElementsFromSessionAsArray();
 		}
 		$this->initialState->provideInitialState('user_signatures', $signatures);
+	}
+
+	/**
+	 * @return string[] Array of PDF URLs
+	 */
+	private function getPdfUrls(): array {
+		return $this->signFileService->getPdfUrlsForSigning(
+			$this->getFileEntity(),
+			$this->getSignRequestEntity()
+		);
 	}
 
 	/**
@@ -409,10 +417,9 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('signature_methods', $signatureMethods);
 		$this->initialState->provideInitialState('token_length', TokenService::TOKEN_LENGTH);
 		$this->initialState->provideInitialState('description', '');
-		$nextcloudFile = $this->signFileService->getNextcloudFile($fileEntity);
-		$this->initialState->provideInitialState('pdf',
-			$this->signFileService->getFileUrl('url', $fileEntity, $nextcloudFile, $uuid)
-		);
+		$this->initialState->provideInitialState('pdf', [
+			'url' => $this->signFileService->getFileUrl($fileEntity->getId(), $uuid)
+		]);
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
@@ -469,7 +476,14 @@ class PageController extends AEnvironmentPageAwareController {
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[FrontpageRoute(verb: 'GET', url: '/pdf/{uuid}')]
 	public function getPdfFile($uuid): FileDisplayResponse {
-		$file = $this->getNextcloudFile();
+		$files = $this->getNextcloudFiles();
+		if (empty($files)) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [['message' => $this->l10n->t('File not found')]],
+			]), Http::STATUS_NOT_FOUND);
+		}
+		$file = current($files);
 		return new FileDisplayResponse($file, Http::STATUS_OK, ['Content-Type' => $file->getMimeType()]);
 	}
 
@@ -498,9 +512,7 @@ class PageController extends AEnvironmentPageAwareController {
 				'description' => $this->getSignRequestEntity()?->getDescription(),
 			]);
 			$this->initialState->provideInitialState('filename', $this->getFileEntity()?->getName());
-			$this->initialState->provideInitialState('pdf',
-				$this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $this->request->getParam('uuid'))
-			);
+			$this->initialState->provideInitialState('pdfs', $this->getPdfUrls());
 			$this->initialState->provideInitialState('signer',
 				$this->signFileService->getSignerData(
 					$this->userSession->getUser(),
