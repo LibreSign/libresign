@@ -404,6 +404,7 @@ class PageController extends AEnvironmentPageAwareController {
 	/**
 	 * Show signature page for identification document approval
 	 *
+	 * @param string $uuid File UUID for the identification document approval
 	 * @return TemplateResponse<Http::STATUS_OK, array{}>
 	 *
 	 * 200: OK
