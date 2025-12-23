@@ -81,7 +81,7 @@
 				</NcActionButton>
 			</template>
 		</Signers>
-		<NcFormBox v-if="isEnvelope">
+		<NcFormBox v-if="isEnvelope" class="action-form-box">
 			<NcButton
 				wide
 				type="secondary"
