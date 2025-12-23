@@ -506,7 +506,7 @@ export const useFilesStore = function(...args) {
 				}
 
 
-							if (uuid || file.uuid) {
+				if (uuid || file.uuid) {
 					config.data.uuid = uuid || file.uuid
 				} else {
 					config.data.file = {
