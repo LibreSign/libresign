@@ -18,5 +18,9 @@ interface ISignatureUuid {
 	public function loadNextcloudFileFromSignRequestUuid(string $uuid): void;
 	public function getSignRequestEntity(): ?SignRequestEntity;
 	public function getFileEntity(): ?FileEntity;
-	public function getNextcloudFile(): ?File;
+
+	/**
+	 * @return File[]
+	 */
+	public function getNextcloudFiles(): array;
 }
