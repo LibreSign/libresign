@@ -92,7 +92,6 @@
     "QR Code image in base64 format for document validation" : "QR Code image in base64 format for document validation",
     "QR Code size in pixels (includes margin)" : "QR Code size in pixels (includes margin)",
     "Message indicating the document was digitally signed" : "Message indicating the document was digitally signed",
-    "Array of signers with displayName and signed timestamp" : "Array of signers with displayName and signed timestamp",
     "Document unique identifier (UUID format)" : "Document unique identifier (UUID format)",
     "Validation message template with placeholder" : "Validation message template with placeholder",
     "Complete URL for document validation with UUID" : "Complete URL for document validation with UUID",
