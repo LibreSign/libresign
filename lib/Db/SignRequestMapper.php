@@ -460,19 +460,20 @@ class SignRequestMapper extends QBMapper {
 		];
 	}
 
-	public function getFilesToSearchProvider(IUser $user, string $term, int $limit, int $offset): array {
+	public function getFilesToSearchProvider(IUser $user, string $fileName, int $limit, int $offset): array {
 		$filter = [
 			'page' => ($offset / $limit) + 1,
 			'length' => $limit,
+			'fileName' => $fileName,
 		];
 
-		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder($user->getUID(), $filter);
+		$sort = [
+			'sortBy' => 'created_at',
+			'sortDirection' => 'desc',
+		];
 
-		if (!empty($term)) {
-			$qb->andWhere(
-				$qb->expr()->like('f.name', $qb->createNamedParameter('%' . $this->db->escapeLikeParameter($term) . '%'))
-			);
-		}
+		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder($user->getUID(), $filter, false, $sort);
+
 
 		$qb->orderBy('f.created_at', 'DESC');
 
@@ -481,16 +482,7 @@ class SignRequestMapper extends QBMapper {
 
 		while ($row = $result->fetch()) {
 			try {
-				$file = new File();
-				$file->setId((int)$row['id']);
-				$file->setUserId($row['user_id']);
-				$file->setNodeId((int)($row['node_id'] ?? 0));
-				$file->setSignedNodeId($row['signed_node_id'] ? (int)$row['signed_node_id'] : null);
-				$file->setName($row['name'] ?? '');
-				$file->setStatus((int)($row['status'] ?? 0));
-				$file->setUuid($row['uuid'] ?? '');
-				$file->setCreatedAt($row['created_at'] ?? '');
-
+				$file = File::fromRow($row);
 
 				$files[] = $file;
 			} catch (\Exception $e) {
@@ -576,7 +568,7 @@ class SignRequestMapper extends QBMapper {
 		return $file->fromRow($row);
 	}
 
-	private function getFilesAssociatedFilesWithMeQueryBuilder(string $userId, array $filter = [], bool $count = false): IQueryBuilder {
+	private function getFilesAssociatedFilesWithMeQueryBuilder(string $userId, array $filter = [], bool $count = false, array $sort = []): IQueryBuilder {
 		$qb = $this->db->getQueryBuilder();
 		$qb->from('libresign_file', 'f')
 			->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id')
@@ -687,6 +679,11 @@ class SignRequestMapper extends QBMapper {
 					$qb->expr()->lte('f.created_at', $qb->createNamedParameter($end, IQueryBuilder::PARAM_STR))
 				);
 			}
+			if (!empty($filter['fileName'])) {
+				$qb->andWhere(
+					$qb->expr()->like('f.name', $qb->createNamedParameter('%' . $this->db->escapeLikeParameter($filter['fileName']) . '%'))
+				);
+			}
 			if (!empty($filter['parentFileId'])) {
 				$qb->andWhere(
 					$qb->expr()->eq('f.parent_file_id', $qb->createNamedParameter($filter['parentFileId'], IQueryBuilder::PARAM_INT))
@@ -694,19 +691,9 @@ class SignRequestMapper extends QBMapper {
 			} else {
 				$qb->andWhere($qb->expr()->isNull('f.parent_file_id'));
 			}
-		} else {
-			$qb->andWhere($qb->expr()->isNull('f.parent_file_id'));
 		}
-		return $qb;
-	}
 
-	private function getFilesAssociatedFilesWithMeStmt(
-		string $userId,
-		?array $filter = [],
-		?array $sort = [],
-	): Pagination {
-		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder($userId, $filter);
-		if (!empty($sort['sortBy'])) {
+		if (!empty($sort['sortBy']) && !empty($sort['sortDirection'])) {
 			switch ($sort['sortBy']) {
 				case 'name':
 				case 'status':
@@ -722,6 +709,16 @@ class SignRequestMapper extends QBMapper {
 					);
 			}
 		}
+
+		return $qb;
+	}
+
+	private function getFilesAssociatedFilesWithMeStmt(
+		string $userId,
+		?array $filter = [],
+		?array $sort = [],
+	): Pagination {
+		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder($userId, $filter, false, $sort);
 
 		$countQb = $this->getFilesAssociatedFilesWithMeQueryBuilder(
 			userId: $userId,
