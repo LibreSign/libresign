@@ -62,7 +62,7 @@ use RuntimeException;
 use Sabre\DAV\UUIDUtil;
 
 class SignFileService {
-	private SignRequestEntity $signRequest;
+	private ?SignRequestEntity $signRequest = null;
 	private string $password = '';
 	private ?FileEntity $libreSignFile = null;
 	/** @var VisibleElementAssoc[] */
@@ -214,6 +214,9 @@ class SignFileService {
 	}
 
 	public function setVisibleElements(array $list): self {
+		if (!$this->signRequest instanceof SignRequestEntity) {
+			return $this;
+		}
 		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($this->signRequest->getFileId(), $this->signRequest->getId());
 		$canCreateSignature = $this->signerElementsService->canCreateSignature();
 
@@ -574,7 +577,7 @@ class SignFileService {
 		if (empty($signatureParams['SignerEmail']) && $this->user instanceof IUser) {
 			$signatureParams['SignerEmail'] = $this->user->getEMailAddress();
 		}
-		if (empty($signatureParams['SignerEmail'])) {
+		if (empty($signatureParams['SignerEmail']) && $this->signRequest instanceof SignRequestEntity) {
 			$identifyMethod = $this->identifyMethodService->getIdentifiedMethod($this->signRequest->getId());
 			if ($identifyMethod->getName() === IdentifyMethodService::IDENTIFY_EMAIL) {
 				$signatureParams['SignerEmail'] = $identifyMethod->getEntity()->getIdentifierValue();
