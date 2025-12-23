@@ -94,7 +94,6 @@ OC.L10N.register(
     "QR Code image in base64 format for document validation" : "Íomhá an chóid QR i bhformáid base64 le haghaidh bailíochtú doiciméad",
     "QR Code size in pixels (includes margin)" : "Méid an chóid QR i bpicteilíní (lena n-áirítear an corrlach)",
     "Message indicating the document was digitally signed" : "Teachtaireacht a léiríonn gur síníodh an doiciméad go digiteach",
-    "Array of signers with displayName and signed timestamp" : "Eagar sínitheoirí le displayName agus stampa ama sínithe",
     "Document unique identifier (UUID format)" : "Aitheantóir uathúil doiciméid (formáid UUID)",
     "Validation message template with placeholder" : "Teimpléad teachtaireachta bailíochtaithe le sealbhóir áite",
     "Complete URL for document validation with UUID" : "URL iomlán le haghaidh bailíochtú doiciméad le UUID",

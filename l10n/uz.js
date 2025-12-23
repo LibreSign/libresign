@@ -35,6 +35,7 @@ OC.L10N.register(
     "Previous" : "Oldingi",
     "Next" : "Keyingisi",
     "Searching …" : "Qidirilmoqda …",
+    "No recommendations. Start typing." : "Tavsiyalar yo'q. Yozishni boshlang.",
     "Confirm" : "Confirm",
     "Close" : "Yopish",
     "Contact" : "Aloqa",
