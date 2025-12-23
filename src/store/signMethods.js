@@ -19,7 +19,7 @@ export const useSignMethodsStore = defineStore('signMethods', {
 			sms: false,
 			uploadCertificate: false,
 		},
-		settings: [],
+		settings: {},
 		certificateEngine: loadState('libresign', 'certificate_engine', ''),
 	}),
 	actions: {
