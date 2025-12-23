@@ -340,9 +340,6 @@ export default {
 				const pageInfo = this.filePagesMap[globalPageNumber]
 				documentIndex = pageInfo.fileIndex
 				pageInDocument = globalPageNumber - pageInfo.startPage + 1
-				console.log(`Canvas ${canvasIndex} (global page ${globalPageNumber}) → documentIndex: ${documentIndex}, page: ${pageInDocument}`)
-			} else {
-				console.log(`Canvas ${canvasIndex} → page: ${pageInDocument}`)
 			}
 
 			this.addSignerToPosition(event, pageInDocument, documentIndex)
