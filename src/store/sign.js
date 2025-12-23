@@ -21,6 +21,7 @@ const defaultState = {
 		statusText: '',
 		url: '',
 		nodeId: 0,
+		nodeType: 'file',
 		uuid: '',
 		signers: [],
 	},
@@ -33,32 +34,31 @@ export const useSignStore = defineStore('sign', {
 	actions: {
 		initFromState() {
 			this.errors = loadState('libresign', 'errors', [])
-			const pdf = loadState('libresign', 'pdf', [])
+
 			const file = {
 				name: loadState('libresign', 'filename', ''),
 				description: loadState('libresign', 'description', ''),
 				status: loadState('libresign', 'status', ''),
 				statusText: loadState('libresign', 'statusText', ''),
-				url: pdf.url,
 				nodeId: loadState('libresign', 'nodeId', 0),
 				uuid: loadState('libresign', 'uuid', null),
 				signers: loadState('libresign', 'signers', []),
 			}
-			this.setDocumentToSign(file)
+			this.setFileToSign(file)
 			const filesStore = useFilesStore()
 			filesStore.addFile(file)
 			filesStore.selectedNodeId = file.nodeId
 		},
-		setDocumentToSign(document) {
-			if (document) {
+		setFileToSign(file) {
+			if (file) {
 				this.errors = []
-				set(this, 'document', document)
+				set(this, 'document', file)
 
 				const sidebarStore = useSidebarStore()
 				sidebarStore.activeSignTab()
 
 				const signMethodsStore = useSignMethodsStore()
-				const signer = document.signers.find(row => row.me) || {}
+				const signer = file.signers.find(row => row.me) || {}
 				signMethodsStore.settings = signer.signatureMethods
 				return
 			}
