@@ -12,7 +12,7 @@
 			width="100%"
 			height="100%"
 			:files="pdfBlobs"
-			:file-names="pdfBlobs.map((_, i) => `${pdfFileName}_${i + 1}`)"
+			:file-names="fileNames.length > 0 ? fileNames : pdfBlobs.map((_, i) => `${pdfFileName}_${i + 1}`)"
 			:read-only="true"
 			@pdf-editor:end-init="updateSigners" />
 		<div class="button-wrapper">
@@ -68,6 +68,7 @@ export default {
 		return {
 			mounted: false,
 			pdfBlobs: [],
+			fileNames: [],
 		}
 	},
 	computed: {
@@ -164,11 +165,9 @@ export default {
 				return
 			}
 
-			// Check if it's an envelope
 			if (doc.nodeType === 'envelope') {
 				await this.loadEnvelopePdfs(doc.nodeId)
 			} else if (doc.url) {
-				// Single document
 				await this.handleInitialStatePdfs([doc.url])
 			} else {
 				this.signStore.errors = [{ message: t('libresign', 'Document URL not found') }]
@@ -176,21 +175,40 @@ export default {
 		},
 		async loadEnvelopePdfs(parentNodeId) {
 			try {
-				const url = generateOcsUrl('/apps/libresign/api/v1/file/list')
-				const params = new URLSearchParams({
-					page: '1',
-					length: '100',
-					parentNodeId: parentNodeId.toString(),
-					signer_uuid: this.$route.params.uuid,
-				})
+				const envelopeFiles = loadState('libresign', 'envelopeFiles', [])
 
-				const { data } = await axios.get(`${url}?${params.toString()}`)
-				if (data.ocs?.data?.data) {
-					const urls = data.ocs.data.data.map(file => file.file)
-					await this.handleInitialStatePdfs(urls)
+				let files = []
+				if (envelopeFiles.length > 0) {
+					files = envelopeFiles
 				} else {
-					this.signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
+					const url = generateOcsUrl('/apps/libresign/api/v1/file/list')
+					const params = new URLSearchParams({
+						page: '1',
+						length: '100',
+						parentNodeId: parentNodeId.toString(),
+						signer_uuid: this.$route.params.uuid,
+					})
+
+					const { data } = await axios.get(`${url}?${params.toString()}`)
+					if (data.ocs?.data?.data) {
+						files = data.ocs.data.data
+					} else {
+						this.signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
+						return
+					}
 				}
+
+				for (const file of files) {
+					const signer = file.signers?.find(row => row.me) || {}
+					if (Object.keys(signer).length > 0) {
+						this.signStore.setFileToSign(file)
+						break
+					}
+				}
+
+				const urls = files.map(file => file.file)
+				this.fileNames = files.map(file => file.name)
+				await this.handleInitialStatePdfs(urls)
 			} catch (error) {
 				this.signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
 			}
