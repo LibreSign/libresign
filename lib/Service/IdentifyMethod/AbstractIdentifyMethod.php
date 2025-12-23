@@ -153,14 +153,36 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$signRequest = $this->identifyService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
 		$fileEntity = $this->identifyService->getFileMapper()->getById($signRequest->getFileId());
 
-		$nodeId = $fileEntity->getNodeId();
+		$filesToCheck = [];
 
-		$fileToSign = $this->identifyService->getRootFolder()->getUserFolder($fileEntity->getUserId())->getFirstNodeById($nodeId);
-		if (!$fileToSign instanceof \OCP\Files\File) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [['message' => $this->identifyService->getL10n()->t('File not found')]],
-			]));
+		if ($fileEntity->getNodeType() === 'envelope') {
+			$children = $this->identifyService->getFileMapper()->getChildrenFiles($fileEntity->getId());
+			foreach ($children as $child) {
+				$filesToCheck[] = [
+					'nodeId' => $child->getNodeId(),
+					'userId' => $child->getUserId(),
+					'name' => $child->getName(),
+				];
+			}
+		} else {
+			$filesToCheck[] = [
+				'nodeId' => $fileEntity->getNodeId(),
+				'userId' => $fileEntity->getUserId(),
+				'name' => $fileEntity->getName(),
+			];
+		}
+
+		foreach ($filesToCheck as $fileInfo) {
+			$fileToSign = $this->identifyService->getRootFolder()
+				->getUserFolder($fileInfo['userId'])
+				->getFirstNodeById($fileInfo['nodeId']);
+
+			if (!$fileToSign instanceof \OCP\Files\File) {
+				throw new LibresignException(json_encode([
+					'action' => JSActions::ACTION_DO_NOTHING,
+					'errors' => [['message' => $this->identifyService->getL10n()->t('File not found')]],
+				]));
+			}
 		}
 	}
 
