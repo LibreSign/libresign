@@ -190,6 +190,39 @@ class SignRequestMapper extends QBMapper {
 	}
 
 	/**
+	 * Get sign requests of child files from an envelope for the same signer
+	 *
+	 * @return SignRequest[]
+	 */
+	public function getByEnvelopeChildrenAndIdentifyMethod(int $parentFileId, int $signRequestId): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('sr.*')
+			->from('libresign_file', 'f')
+			->innerJoin('f', $this->getTableName(), 'sr', $qb->expr()->eq('sr.file_id', 'f.id'))
+			->innerJoin('sr', 'libresign_identify_method', 'im', $qb->expr()->eq('im.sign_request_id', 'sr.id'))
+			->innerJoin('im', 'libresign_identify_method', 'im2',
+				$qb->expr()->andX(
+					$qb->expr()->eq('im2.sign_request_id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->eq('im2.identifier_key', 'im.identifier_key'),
+					$qb->expr()->eq('im2.identifier_value', 'im.identifier_value')
+				)
+			)
+			->where(
+				$qb->expr()->eq('f.parent_file_id', $qb->createNamedParameter($parentFileId, IQueryBuilder::PARAM_INT))
+			);
+
+		/** @var SignRequest[] */
+		$signRequests = $this->findEntities($qb);
+		foreach ($signRequests as $signRequest) {
+			if (!isset($this->signers[$signRequest->getId()])) {
+				$this->signers[$signRequest->getId()] = $signRequest;
+			}
+		}
+		return $signRequests;
+	}
+
+	/**
 	 * @return \Generator<IdentifyMethod>
 	 */
 	public function findRemindersCandidates(): \Generator {
