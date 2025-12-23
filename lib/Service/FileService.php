@@ -447,6 +447,7 @@ class FileService {
 						if ($this->identifyMethodId === $entity->getId()
 							|| $this->me?->getUID() === $entity->getIdentifierValue()
 							|| $this->me?->getEMailAddress() === $entity->getIdentifierValue()
+							|| ($this->signRequest && $signer->getId() === $this->signRequest->getId())
 						) {
 							$this->fileData->signers[$index]['me'] = true;
 							if (!$signer->getSigned()) {
@@ -716,11 +717,34 @@ class FileService {
 		$this->fileData->signatureFlow = $this->file->getSignatureFlow();
 		$this->fileData->docmdpLevel = $this->file->getDocmdpLevel();
 		$this->fileData->nodeType = $this->file->getNodeType();
+		$this->file = $this->fileMapper->getById($this->file->getId());
 
-		if ($this->file->getNodeType() === 'envelope') {
+		if ($this->fileData->nodeType !== 'envelope' && !$this->file->getParentFileId()) {
+			$fileId = $this->file->getId();
+
+			$childrenFiles = $this->fileMapper->getChildrenFiles($fileId);
+
+			if (!empty($childrenFiles)) {
+				$this->file->setNodeType('envelope');
+				$this->fileMapper->update($this->file);
+
+				$this->fileData->nodeType = 'envelope';
+				$this->fileData->filesCount = count($childrenFiles);
+				$this->fileData->files = [];
+			}
+		}
+
+		if ($this->fileData->nodeType === 'envelope') {
 			$metadata = $this->file->getMetadata();
 			$this->fileData->filesCount = $metadata['filesCount'] ?? 0;
 			$this->fileData->files = [];
+			$this->loadEnvelopeFiles();
+			if ($this->file->getStatus() === File::STATUS_SIGNED) {
+				$latestSignedDate = $this->getLatestSignedDateFromEnvelope();
+				if ($latestSignedDate) {
+					$this->fileData->signedDate = $latestSignedDate->format(DateTimeInterface::ATOM);
+				}
+			}
 		}
 
 		$this->fileData->requested_by = [
@@ -742,6 +766,110 @@ class FileService {
 					),
 					$this->fileData->visibleElements
 				);
+			}
+		}
+	}
+
+	private function getLatestSignedDateFromEnvelope(): ?\DateTime {
+		if (!$this->file || $this->file->getNodeType() !== 'envelope') {
+			return null;
+		}
+
+		$childrenFiles = $this->fileMapper->getChildrenFiles($this->file->getId());
+		$latestDate = null;
+
+		foreach ($childrenFiles as $childFile) {
+			$signRequests = $this->signRequestMapper->getByFileId($childFile->getId());
+			foreach ($signRequests as $signRequest) {
+				$signed = $signRequest->getSigned();
+				if ($signed && (!$latestDate || $signed > $latestDate)) {
+					$latestDate = $signed;
+				}
+			}
+		}
+
+		return $latestDate;
+	}
+
+	private function loadEnvelopeFiles(): void {
+		if (!$this->file || $this->file->getNodeType() !== 'envelope') {
+			return;
+		}
+
+		$childrenFiles = $this->fileMapper->getChildrenFiles($this->file->getId());
+		foreach ($childrenFiles as $childFile) {
+			// Create a new FileService instance for each child file to load complete validation data
+			$childFileService = \OCP\Server::get(self::class);
+
+			try {
+				// Load complete file data including validation info
+				$childFileService
+					->setFile($childFile)
+					->setHost($this->host)
+					->showValidateFile()
+					->showSigners();
+
+				$childData = $childFileService->toArray();
+
+				// Extract relevant fields for envelope display
+				$fileData = [
+					'id' => $childFile->getId(),
+					'uuid' => $childFile->getUuid(),
+					'name' => $childFile->getName(),
+					'status' => $childFile->getStatus(),
+					'statusText' => $this->fileMapper->getTextOfStatus($childFile->getStatus()),
+					'nodeId' => $childFile->getNodeId(),
+					'signers' => $childData['signers'] ?? [],
+				];
+
+				$this->fileData->files[] = $fileData;
+			} catch (\Throwable $e) {
+
+				$fileData = [
+					'id' => $childFile->getId(),
+					'uuid' => $childFile->getUuid(),
+					'name' => $childFile->getName(),
+					'status' => $childFile->getStatus(),
+					'statusText' => $this->fileMapper->getTextOfStatus($childFile->getStatus()),
+					'nodeId' => $childFile->getNodeId(),
+					'signers' => [],
+				];
+
+				$signRequests = $this->signRequestMapper->getByFileId($childFile->getId());
+				foreach ($signRequests as $signRequest) {
+					$identifyMethods = $this->identifyMethodService
+						->setIsRequest(false)
+						->getIdentifyMethodsFromSignRequestId($signRequest->getId());
+
+					$signerData = [
+						'signRequestId' => $signRequest->getId(),
+						'displayName' => $signRequest->getDisplayName(),
+						'email' => '',
+						'signed' => null,
+						'status' => $signRequest->getStatus(),
+						'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signRequest->getStatus()),
+					];
+
+					foreach ($identifyMethods[IdentifyMethodService::IDENTIFY_EMAIL] ?? [] as $identifyMethod) {
+						$entity = $identifyMethod->getEntity();
+						if ($entity->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
+							$signerData['email'] = $entity->getIdentifierValue();
+							break;
+						}
+					}
+
+					if ($signRequest->getSigned()) {
+						$signerData['signed'] = $signRequest->getSigned()->format(DateTimeInterface::ATOM);
+					}
+
+					if (empty($signerData['displayName'])) {
+						$signerData['displayName'] = $signerData['email'];
+					}
+
+					$fileData['signers'][] = $signerData;
+				}
+
+				$this->fileData->files[] = $fileData;
 			}
 		}
 	}
@@ -802,9 +930,85 @@ class FileService {
 		$this->loadSettings();
 		$this->loadSigners();
 		$this->loadMessages();
+		$this->computeEnvelopeSignersProgress();
 		$return = json_decode(json_encode($this->fileData), true);
 		ksort($return);
 		return $return;
+	}
+
+	private function computeEnvelopeSignersProgress(): void {
+		if (!$this->file || !$this->file->getParentFileId()) {
+			return;
+		}
+		if (empty($this->fileData->signers)) {
+			return;
+		}
+
+		$childrenFiles = $this->fileMapper->getChildrenFiles($this->file->getParentFileId());
+		if (empty($childrenFiles)) {
+			return;
+		}
+
+		$signerProgress = [];
+		foreach ($childrenFiles as $childFile) {
+			$signRequests = $this->signRequestMapper->getByFileId($childFile->getId());
+			foreach ($signRequests as $signRequest) {
+				$signRequestId = $signRequest->getId();
+
+				$identifyMethods = $this->identifyMethodService
+					->setIsRequest(false)
+					->getIdentifyMethodsFromSignRequestId($signRequestId);
+
+				$signerKey = $this->buildSignerKey($identifyMethods);
+
+				if (!isset($signerProgress[$signerKey])) {
+					$signerProgress[$signerKey] = [
+						'total' => 0,
+						'signed' => 0,
+					];
+				}
+
+				$signerProgress[$signerKey]['total']++;
+				if ($signRequest->getSigned()) {
+					$signerProgress[$signerKey]['signed']++;
+				}
+			}
+		}
+
+		foreach ($this->fileData->signers as $index => $signer) {
+			$signerKey = $this->buildSignerKeyFromEnvelopeSigner($signer);
+			if (isset($signerProgress[$signerKey])) {
+				$this->fileData->signers[$index]['totalDocuments'] = $signerProgress[$signerKey]['total'];
+				$this->fileData->signers[$index]['documentsSignedCount'] = $signerProgress[$signerKey]['signed'];
+			} else {
+				$this->fileData->signers[$index]['totalDocuments'] = 0;
+				$this->fileData->signers[$index]['documentsSignedCount'] = 0;
+			}
+		}
+	}
+
+	private function buildSignerKey(array $identifyMethods): string {
+		$keys = [];
+		foreach ($identifyMethods as $methods) {
+			foreach ($methods as $identifyMethod) {
+				$entity = $identifyMethod->getEntity();
+				$keys[] = $entity->getIdentifierKey() . ':' . $entity->getIdentifierValue();
+			}
+		}
+		sort($keys);
+		return implode('|', $keys);
+	}
+
+	private function buildSignerKeyFromEnvelopeSigner(array $signer): string {
+		if (empty($signer['identifyMethods'])) {
+			return '';
+		}
+		$keys = [];
+		foreach ($signer['identifyMethods'] as $method) {
+			$keys[] = $method['method'] . ':' . $method['value'];
+		}
+		sort($keys);
+		return implode('|', $keys);
 	}
 
 	public function setFileByPath(string $path): self {
