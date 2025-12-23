@@ -94,7 +94,6 @@ OC.L10N.register(
     "QR Code image in base64 format for document validation" : "ھۆججەتنى جەزملەشتۈرۈش ئۈچۈن base64 فورماتىدىكى QR كود رەسىمى",
     "QR Code size in pixels (includes margin)" : "QR كود چوڭلۇقى پىكسېل (چېگرىسىنى ئۆز ئىچىگە ئالىدۇ)",
     "Message indicating the document was digitally signed" : "ھۆججەتنىڭ رەقەملىك ئىمزالانغانلىقىنى كۆرسىتىدىغان ئۇچۇر",
-    "Array of signers with displayName and signed timestamp" : "displayName ۋە ئىمزالانغان ۋاقىت بەلگىسى بار ئىمزا قويغۇچىلار قاتارى",
     "Document unique identifier (UUID format)" : "ھۆججەتنىڭ ئۆزگىچە ئېنىقلىغۇچ (UUID فورماتى)",
     "Validation message template with placeholder" : "ئورۇن بەلگىلىگۈچ بىلەن جەزملەشتۈرۈش ئۇچۇرى قېلىپى",
     "Complete URL for document validation with UUID" : "UUID ئارقىلىق ھۆججەتنى جەزملەشتۈرۈش ئۈچۈن تولۇق URL",

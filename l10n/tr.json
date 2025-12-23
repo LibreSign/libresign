@@ -92,7 +92,6 @@
     "QR Code image in base64 format for document validation" : "Belge doğrulama için base64 biçiminde kare kodu görseli",
     "QR Code size in pixels (includes margin)" : "Piksel olarak kare kod boyutu (kenar boşlukları ile)",
     "Message indicating the document was digitally signed" : "Belgenin dijital olarak imzalandığını belirten ileti",
-    "Array of signers with displayName and signed timestamp" : "Görüntülenecek ad ve imzalanma zaman damgası olan imzalayıcılar dizisi",
     "Document unique identifier (UUID format)" : "Belgenin benzersiz kimliği (UUID biçiminde)",
     "Validation message template with placeholder" : "Yer belirtici ile doğrulama iletisi kalıbı",
     "Complete URL for document validation with UUID" : "UUID ile tam belge doğrulama adresi",
