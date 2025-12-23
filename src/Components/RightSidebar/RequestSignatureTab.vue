@@ -903,7 +903,7 @@ export default {
 				this.modalSrc = route.href
 				return
 			}
-			this.signStore.setDocumentToSign(this.filesStore.getFile())
+			this.signStore.setFileToSign(this.filesStore.getFile())
 			this.$router.push({ name: 'SignPDF', params: { uuid } })
 		},
 

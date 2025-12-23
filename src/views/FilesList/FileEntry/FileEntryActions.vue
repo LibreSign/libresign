@@ -191,7 +191,7 @@ export default {
 					signer_uuid: signUuid,
 					force_fetch: true,
 				})
-				this.signStore.setDocumentToSign(files[this.source.nodeId])
+				this.signStore.setFileToSign(files[this.source.nodeId])
 				this.$router.push({
 					name: 'SignPDF',
 					params: {
