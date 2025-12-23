@@ -323,6 +323,8 @@ class SignFileService {
 	public function sign(): void {
 		$originalLibreSignFile = $this->libreSignFile;
 		$originalSignRequest = $this->signRequest;
+		$envelopeLastSignedDate = null;
+		$lastSignedFile = null;
 
 		$signRequests = $this->getSignRequestsToSign();
 
@@ -335,14 +337,17 @@ class SignFileService {
 			$this->signRequest = $signRequestData['signRequest'];
 			$this->engine = null;
 			$this->elements = [];
+			$this->fileToSign = null;
 
 			$this->validateDocMdpAllowsSignatures();
 			$signedFile = $this->getEngine()->sign();
+			$lastSignedFile = $signedFile;
 
 			$hash = $this->computeHash($signedFile);
+			$envelopeLastSignedDate = $this->getEngine()->getLastSignedDate();
 
 			$this->updateSignRequest($hash);
-			$this->updateLibreSignFile($hash);
+			$this->updateLibreSignFile($signedFile->getId(), $hash);
 
 			$this->dispatchSignedEvent();
 		}
@@ -351,7 +356,27 @@ class SignFileService {
 		$this->signRequest = $originalSignRequest;
 
 		if ($originalLibreSignFile->isEnvelope()) {
+			if ($envelopeLastSignedDate) {
+				$this->signRequest->setSigned($envelopeLastSignedDate);
+				$this->signRequest->setStatusEnum(\OCA\Libresign\Enum\SignRequestStatus::SIGNED);
+				$this->signRequestMapper->update($this->signRequest);
+				$this->sequentialSigningService
+					->setFile($this->libreSignFile)
+					->releaseNextOrder(
+						$this->signRequest->getFileId(),
+						$this->signRequest->getSigningOrder()
+					);
+			}
 			$this->updateEnvelopeStatus();
+
+			if ($lastSignedFile instanceof File) {
+				$event = $this->signedEventFactory->make(
+					$this->signRequest,
+					$this->libreSignFile,
+					$lastSignedFile,
+				);
+				$this->eventDispatcher->dispatchTyped($event);
+			}
 		}
 	}
 
@@ -402,20 +427,27 @@ class SignFileService {
 	private function updateEnvelopeStatus(): void {
 		$childFiles = $this->fileMapper->getChildrenFiles($this->libreSignFile->getId());
 
-		$allSigned = true;
-		$anySigned = false;
+		$totalSignRequests = 0;
+		$signedSignRequests = 0;
 
 		foreach ($childFiles as $childFile) {
-			if ($childFile->getStatus() === FileEntity::STATUS_SIGNED) {
-				$anySigned = true;
-			} else {
-				$allSigned = false;
+			$signRequests = $this->signRequestMapper->getByFileId($childFile->getId());
+			$totalSignRequests += count($signRequests);
+
+			foreach ($signRequests as $signRequest) {
+				if ($signRequest->getSigned()) {
+					$signedSignRequests++;
+				}
 			}
 		}
 
-		if ($allSigned) {
+		if ($totalSignRequests === 0) {
+			$this->libreSignFile->setStatus(FileEntity::STATUS_DRAFT);
+		} elseif ($signedSignRequests === 0) {
+			$this->libreSignFile->setStatus(FileEntity::STATUS_ABLE_TO_SIGN);
+		} elseif ($signedSignRequests === $totalSignRequests) {
 			$this->libreSignFile->setStatus(FileEntity::STATUS_SIGNED);
-		} elseif ($anySigned) {
+		} else {
 			$this->libreSignFile->setStatus(FileEntity::STATUS_PARTIAL_SIGNED);
 		}
 
@@ -491,8 +523,7 @@ class SignFileService {
 			);
 	}
 
-	protected function updateLibreSignFile(string $hash): void {
-		$nodeId = $this->getEngine()->getInputFile()->getId();
+	protected function updateLibreSignFile(int $nodeId, string $hash): void {
 		$this->libreSignFile->setSignedNodeId($nodeId);
 		$this->libreSignFile->setSignedHash($hash);
 		$this->setNewStatusIfNecessary();
@@ -773,7 +804,17 @@ class SignFileService {
 	public function getSignRequestToSign(FileEntity $libresignFile, ?string $signRequestUuid, ?IUser $user): SignRequestEntity {
 		$this->validateHelper->fileCanBeSigned($libresignFile);
 		try {
-			$signRequests = $this->signRequestMapper->getByFileId($libresignFile->getId());
+			if ($libresignFile->isEnvelope()) {
+				$childFiles = $this->fileMapper->getChildrenFiles($libresignFile->getId());
+				$allSignRequests = [];
+				foreach ($childFiles as $childFile) {
+					$childSignRequests = $this->signRequestMapper->getByFileId($childFile->getId());
+					$allSignRequests = array_merge($allSignRequests, $childSignRequests);
+				}
+				$signRequests = $allSignRequests;
+			} else {
+				$signRequests = $this->signRequestMapper->getByFileId($libresignFile->getId());
+			}
 
 			if (!empty($signRequestUuid)) {
 				$signRequest = $this->getSignRequestByUuid($signRequestUuid);
