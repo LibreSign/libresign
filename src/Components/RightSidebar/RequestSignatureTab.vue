@@ -948,7 +948,6 @@ export default {
 					mime: 'application/pdf',
 					fileid: file.nodeId,
 				}
-				console.table(fileInfo)
 				OCA.Viewer.open({
 					fileInfo,
 					list: [fileInfo],
