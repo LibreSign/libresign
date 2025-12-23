@@ -385,7 +385,7 @@ class SignFileService {
 		foreach ($childSignRequests as $childSignRequest) {
 			$childFile = $this->array_find(
 				$childFiles,
-				fn(FileEntity $file) => $file->getId() === $childSignRequest->getFileId()
+				fn (FileEntity $file) => $file->getId() === $childSignRequest->getFileId()
 			);
 
 			if ($childFile) {
