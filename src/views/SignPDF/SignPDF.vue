@@ -7,12 +7,12 @@
 		<TopBar
 			v-if="!isMobile"
 			:sidebar-toggle="true" />
-		<PdfEditor v-if="mounted && !signStore.errors.length && pdfBlob"
+		<PdfEditor v-if="mounted && !signStore.errors.length && pdfBlobs.length > 0"
 			ref="pdfEditor"
 			width="100%"
 			height="100%"
-			:files="[pdfBlob]"
-			:file-names="[pdfFileName]"
+			:files="pdfBlobs"
+			:file-names="pdfBlobs.map((_, i) => `${pdfFileName}_${i + 1}`)"
 			:read-only="true"
 			@pdf-editor:end-init="updateSigners" />
 		<div class="button-wrapper">
@@ -40,6 +40,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import PdfEditor from '../../Components/PdfEditor/PdfEditor.vue'
 import TopBar from '../../Components/TopBar/TopBar.vue'
 
+import { loadState } from '@nextcloud/initial-state'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
@@ -66,13 +67,14 @@ export default {
 	data() {
 		return {
 			mounted: false,
-			pdfBlob: null,
+			pdfBlobs: [],
 		}
 	},
 	computed: {
 		pdfFileName() {
 			const doc = this.signStore.document
-			return `${doc.name}.${doc.metadata.extension}`
+			const extension = doc.metadata?.extension || 'pdf'
+			return `${doc.name}.${extension}`
 		},
 	},
 	async created() {
@@ -87,6 +89,14 @@ export default {
 		if (this.isMobile){
 			this.toggleSidebar();
 		}
+
+		const pdfs = loadState('libresign', 'pdfs', [])
+		if (pdfs.length > 0) {
+			await this.handleInitialStatePdfs(pdfs)
+		} else {
+			await this.loadPdfsFromStore()
+		}
+		this.mounted = true
 	},
 	beforeRouteLeave(to, from, next) {
 		this.sidebarStore.hideSidebar()
@@ -98,8 +108,6 @@ export default {
 			if (!this.signStore.document.uuid) {
 				this.signStore.document.uuid = this.$route.params.uuid
 			}
-			await this.fetchPdfAsBlob(this.signStore.document.url)
-			this.mounted = true
 		},
 		async initSignInternal() {
 			const files = await this.fileStore.getAllFiles({
@@ -108,10 +116,8 @@ export default {
 			for (const nodeId in files) {
 				const signer = files[nodeId].signers.find(row => row.me) || {}
 				if (Object.keys(signer).length > 0) {
-					this.signStore.setDocumentToSign(files[nodeId])
+					this.signStore.setFileToSign(files[nodeId])
 					this.fileStore.selectedNodeId = nodeId
-					await this.fetchPdfAsBlob(this.signStore.document.url)
-					this.mounted = true
 					return
 				}
 			}
@@ -120,27 +126,74 @@ export default {
 			const response = await axios.get(
 				generateOcsUrl('/apps/libresign/api/v1/file/validate/uuid/{uuid}', { uuid: this.$route.params.uuid })
 			)
-			this.signStore.setDocumentToSign(response.data.ocs.data)
+			this.signStore.setFileToSign(response.data.ocs.data)
 			this.fileStore.selectedNodeId = response.data.ocs.data.nodeId
-			await this.fetchPdfAsBlob(this.signStore.document.url)
-			this.mounted = true
 		},
-		async fetchPdfAsBlob(url) {
-			const response = await fetch(url)
-			const contentType = response.headers.get('Content-Type') || ''
-
-			if (contentType.includes('application/json')) {
-				const data = await response.json()
-				this.sidebarStore.hideSidebar()
-				if (data?.errors?.[0]?.message.length > 0) {
-					this.signStore.errors = data.errors
-					return
-				}
-				this.signStore.errors = [{ message: t('libresign', 'File not found') }]
+		async handleInitialStatePdfs(urls) {
+			if (!Array.isArray(urls) || urls.length === 0) {
 				return
 			}
-			const blob = await response.blob()
-			this.pdfBlob = new File([blob], 'arquivo.pdf', { type: 'application/pdf' })
+
+			const blobs = []
+			for (const url of urls) {
+				const response = await fetch(url)
+				const contentType = response.headers.get('Content-Type') || ''
+
+				if (contentType.includes('application/json')) {
+					const data = await response.json()
+					this.sidebarStore.hideSidebar()
+					if (data?.errors?.[0]?.message.length > 0) {
+						this.signStore.errors = data.errors
+					} else {
+						this.signStore.errors = [{ message: t('libresign', 'File not found') }]
+					}
+					return
+				}
+
+				const blob = await response.blob()
+				blobs.push(new File([blob], 'arquivo.pdf', { type: 'application/pdf' }))
+			}
+
+			this.pdfBlobs = blobs
+		},
+		async loadPdfsFromStore() {
+			const doc = this.signStore.document
+
+			if (!doc || !doc.nodeId) {
+				this.signStore.errors = [{ message: t('libresign', 'Document not found') }]
+				return
+			}
+
+			// Check if it's an envelope
+			if (doc.nodeType === 'envelope') {
+				await this.loadEnvelopePdfs(doc.nodeId)
+			} else if (doc.url) {
+				// Single document
+				await this.handleInitialStatePdfs([doc.url])
+			} else {
+				this.signStore.errors = [{ message: t('libresign', 'Document URL not found') }]
+			}
+		},
+		async loadEnvelopePdfs(parentNodeId) {
+			try {
+				const url = generateOcsUrl('/apps/libresign/api/v1/file/list')
+				const params = new URLSearchParams({
+					page: '1',
+					length: '100',
+					parentNodeId: parentNodeId.toString(),
+					signer_uuid: this.$route.params.uuid,
+				})
+
+				const { data } = await axios.get(`${url}?${params.toString()}`)
+				if (data.ocs?.data?.data) {
+					const urls = data.ocs.data.data.map(file => file.file)
+					await this.handleInitialStatePdfs(urls)
+				} else {
+					this.signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
+				}
+			} catch (error) {
+				this.signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
+			}
 		},
 		updateSigners(data) {
 			const currentSigner = this.signStore.document.signers.find(signer => signer.me)
