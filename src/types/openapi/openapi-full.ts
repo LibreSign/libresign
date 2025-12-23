@@ -251,7 +251,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /** Show signature page */
+        /** Show signature page for identification document approval */
         get: operations["page-sign-id-doc"];
         put?: never;
         post?: never;
@@ -268,7 +268,7 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /** Show signature page */
+        /** Show signature page for identification document approval */
         get: operations["page-sign-id-doc-private"];
         put?: never;
         post?: never;
@@ -2196,7 +2196,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Sign request uuid */
+                /** @description File UUID for the identification document approval */
                 uuid: string;
             };
             cookie?: never;
@@ -2219,7 +2219,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Sign request uuid */
+                /** @description File UUID for the identification document approval */
                 uuid: string;
                 path: string;
             };

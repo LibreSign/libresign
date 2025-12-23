@@ -1738,7 +1738,7 @@
         "/index.php/apps/libresign/p/id-docs/approve/{uuid}": {
             "get": {
                 "operationId": "page-sign-id-doc",
-                "summary": "Show signature page",
+                "summary": "Show signature page for identification document approval",
                 "tags": [
                     "page"
                 ],
@@ -1754,7 +1754,7 @@
                     {
                         "name": "uuid",
                         "in": "path",
-                        "description": "Sign request uuid",
+                        "description": "File UUID for the identification document approval",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -1778,7 +1778,7 @@
         "/index.php/apps/libresign/p/id-docs/approve/{uuid}/{path}": {
             "get": {
                 "operationId": "page-sign-id-doc-private",
-                "summary": "Show signature page",
+                "summary": "Show signature page for identification document approval",
                 "tags": [
                     "page"
                 ],
@@ -1794,7 +1794,7 @@
                     {
                         "name": "uuid",
                         "in": "path",
-                        "description": "Sign request uuid",
+                        "description": "File UUID for the identification document approval",
                         "required": true,
                         "schema": {
                             "type": "string"
