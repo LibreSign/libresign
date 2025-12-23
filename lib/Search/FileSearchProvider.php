@@ -15,7 +15,6 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCP\App\IAppManager;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
-use OCP\IDBConnection;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
@@ -30,7 +29,6 @@ class FileSearchProvider implements IProvider {
 		private IURLGenerator $urlGenerator,
 		private IRootFolder $rootFolder,
 		private IAppManager $appManager,
-		private IDBConnection $db,
 		private IMimeTypeDetector $mimeTypeDetector,
 		private SignRequestMapper $fileMapper,
 	) {
@@ -81,13 +79,6 @@ class FileSearchProvider implements IProvider {
 		);
 	}
 
-	/**
-	 * Format a File entity as a SearchResultEntry
-	 *
-	 * @param File $file The file entity to format
-	 * @param IUser $user Current user
-	 * @return SearchResultEntry Formatted search result entry
-	 */
 	private function formatResult(File $file, IUser $user): SearchResultEntry {
 		$userFolder = $this->rootFolder->getUserFolder($user->getUID());
 		$thumbnailUrl = '';
