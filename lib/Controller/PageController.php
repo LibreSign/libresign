@@ -9,6 +9,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -43,6 +45,7 @@ use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\Util;
+use Psr\Log\LoggerInterface;
 
 class PageController extends AEnvironmentPageAwareController {
 	public function __construct(
@@ -58,6 +61,9 @@ class PageController extends AEnvironmentPageAwareController {
 		private IdentifyMethodService $identifyMethodService,
 		private IAppConfig $appConfig,
 		private FileService $fileService,
+		private FileMapper $fileMapper,
+		private SignRequestMapper $signRequestMapper,
+		private LoggerInterface $logger,
 		private ValidateHelper $validateHelper,
 		private IEventDispatcher $eventDispatcher,
 		private IURLGenerator $urlGenerator,
@@ -329,8 +335,15 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->provideSignerSignatues();
 		$this->initialState->provideInitialState('token_length', TokenService::TOKEN_LENGTH);
 		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');
-		$this->initialState->provideInitialState('pdfs', $this->getPdfUrls());
+		if ($this->getFileEntity()->getNodeType() === 'envelope') {
+			$this->initialState->provideInitialState('pdfs', []);
+			$this->initialState->provideInitialState('envelopeFiles', $this->getEnvelopeChildFiles());
+		} else {
+			$this->initialState->provideInitialState('pdfs', $this->getPdfUrls());
+			$this->initialState->provideInitialState('envelopeFiles', []);
+		}
 		$this->initialState->provideInitialState('nodeId', $this->getFileEntity()->getNodeId());
+		$this->initialState->provideInitialState('nodeType', $this->getFileEntity()->getNodeType());
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
@@ -362,10 +375,35 @@ class PageController extends AEnvironmentPageAwareController {
 		);
 	}
 
+	private function getEnvelopeChildFiles(): array {
+		$childFiles = $this->fileMapper->getChildrenFiles($this->getFileEntity()->getId());
+		$result = [];
+
+		foreach ($childFiles as $childFile) {
+
+			$childSignRequest = $this->signRequestMapper->getByFileIdAndSignRequestId(
+				$childFile->getId(),
+				$this->getSignRequestEntity()->getId()
+			);
+
+			$fileData = $this->fileService
+				->setFile($childFile)
+				->setHost($this->request->getServerHost())
+				->setSignerIdentified()
+				->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
+				->setSignRequest($childSignRequest)
+				->showSigners()
+				->toArray();
+
+			$result[] = $fileData;
+		}
+
+		return $result;
+	}
+
 	/**
-	 * Show signature page
+	 * Show signature page for identification document approval
 	 *
-	 * @param string $uuid Sign request uuid
 	 * @return TemplateResponse<Http::STATUS_OK, array{}>
 	 *
 	 * 200: OK
