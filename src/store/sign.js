@@ -41,6 +41,7 @@ export const useSignStore = defineStore('sign', {
 				status: loadState('libresign', 'status', ''),
 				statusText: loadState('libresign', 'statusText', ''),
 				nodeId: loadState('libresign', 'nodeId', 0),
+				nodeType: loadState('libresign', 'nodeType', ''),
 				uuid: loadState('libresign', 'uuid', null),
 				signers: loadState('libresign', 'signers', []),
 			}
@@ -59,7 +60,9 @@ export const useSignStore = defineStore('sign', {
 
 				const signMethodsStore = useSignMethodsStore()
 				const signer = file.signers.find(row => row.me) || {}
-				signMethodsStore.settings = signer.signatureMethods
+
+				signMethodsStore.settings = signer.signatureMethods || {}
+
 				return
 			}
 			this.reset()
