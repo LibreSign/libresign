@@ -94,6 +94,7 @@ OC.L10N.register(
     "QR Code image in base64 format for document validation" : "QR-Code-Bild im Base64-Format zur Dokumentenüberprüfung",
     "QR Code size in pixels (includes margin)" : "QR-Code-Größe in Pixeln (einschließlich Rand)",
     "Message indicating the document was digitally signed" : "Nachricht, die darauf hinweist, dass das Dokument digital signiert wurde",
+    "Array of signers with \"displayName\" and \"signed\" timestamp" : "Array von Unterzeichnern mit \"displayName\" und \"signed\" Zeitstempel",
     "Document unique identifier (UUID format)" : "Eindeutige Dokumentenkennung (UUID-Format)",
     "Validation message template with placeholder" : "Überprüfungsnachrichtenvorlage mit Platzhalter",
     "Complete URL for document validation with UUID" : "Vollständige URL zur Dokumentvalidierung mit UUID",
