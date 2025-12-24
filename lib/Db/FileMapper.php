@@ -280,6 +280,11 @@ class FileMapper extends QBMapper {
 	 * @return File[]
 	 */
 	public function getChildrenFiles(int $parentId): array {
+		$cached = array_filter($this->file, fn ($f) => $f->getParentFileId() === $parentId);
+		if (!empty($cached)) {
+			return array_values($cached);
+		}
+
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
@@ -292,7 +297,13 @@ class FileMapper extends QBMapper {
 			)
 			->orderBy('id', 'ASC');
 
-		return $this->findEntities($qb);
+		$children = $this->findEntities($qb);
+
+		foreach ($children as $child) {
+			$this->file[] = $child;
+		}
+
+		return $children;
 	}
 
 	public function getParentEnvelope(int $fileId): ?File {
@@ -306,6 +317,11 @@ class FileMapper extends QBMapper {
 	}
 
 	public function countChildrenFiles(int $envelopeId): int {
+		$cached = array_filter($this->file, fn ($f) => $f->getParentFileId() === $envelopeId);
+		if (!empty($cached)) {
+			return count($cached);
+		}
+
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select($qb->func()->count('*', 'count'))
