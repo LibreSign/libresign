@@ -22,7 +22,6 @@ use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\Node;
@@ -57,10 +56,10 @@ class RequestSignatureService {
 		protected IAppConfig $appConfig,
 		protected IEventDispatcher $eventDispatcher,
 		protected FileStatusService $fileStatusService,
-		protected SignRequestStatusService $signRequestStatusService,
 		protected DocMdpConfigService $docMdpConfigService,
 		protected EnvelopeService $envelopeService,
 		protected FileUploadHelper $uploadHelper,
+		protected SignRequestService $signRequestService,
 	) {
 	}
 
@@ -121,7 +120,7 @@ class RequestSignatureService {
 			$data['status'] = $file->getStatus();
 		}
 		$this->sequentialSigningService->setFile($file);
-		$this->associateToSigners($data, $file->getId());
+		$this->associateToSigners($data, $file);
 		$this->propagateSignersToChildren($file, $data);
 
 		return $file;
@@ -142,7 +141,7 @@ class RequestSignatureService {
 		foreach ($children as $child) {
 			$this->identifyMethod->clearCache();
 			$this->sequentialSigningService->setFile($child);
-			$this->associateToSigners($dataWithoutNotification, $child->getId());
+			$this->associateToSigners($dataWithoutNotification, $child);
 		}
 	}
 
@@ -396,9 +395,8 @@ class RequestSignatureService {
 		return $result ?? $name;
 	}
 
-	private function deleteIdentifyMethodIfNotExits(array $users, int $fileId): void {
-		$file = $this->fileMapper->getById($fileId);
-		$signRequests = $this->signRequestMapper->getByFileId($fileId);
+	private function deleteIdentifyMethodIfNotExits(array $users, FileEntity $file): void {
+		$signRequests = $this->signRequestMapper->getByFileId($file->getId());
 		foreach ($signRequests as $key => $signRequest) {
 			$identifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 			if (empty($identifyMethods)) {
@@ -447,10 +445,10 @@ class RequestSignatureService {
 	 *
 	 * @psalm-return list<SignRequestEntity>
 	 */
-	private function associateToSigners(array $data, int $fileId): array {
+	private function associateToSigners(array $data, FileEntity $file): array {
 		$return = [];
 		if (!empty($data['users'])) {
-			$this->deleteIdentifyMethodIfNotExits($data['users'], $fileId);
+			$this->deleteIdentifyMethodIfNotExits($data['users'], $file);
 
 			$this->sequentialSigningService->resetOrderCounter();
 			$fileStatus = $data['status'] ?? null;
@@ -463,26 +461,26 @@ class RequestSignatureService {
 
 				if (isset($user['identifyMethods'])) {
 					foreach ($user['identifyMethods'] as $identifyMethod) {
-						$return[] = $this->associateToSigner(
+						$return[] = $this->signRequestService->createOrUpdateSignRequest(
 							identifyMethods: [
 								$identifyMethod['method'] => $identifyMethod['value'],
 							],
 							displayName: $user['displayName'] ?? '',
 							description: $user['description'] ?? '',
 							notify: $shouldNotify,
-							fileId: $fileId,
+							fileId: $file->getId(),
 							signingOrder: $signingOrder,
 							fileStatus: $fileStatus,
 							signerStatus: $signerStatus,
 						);
 					}
 				} else {
-					$return[] = $this->associateToSigner(
+					$return[] = $this->signRequestService->createOrUpdateSignRequest(
 						identifyMethods: $user['identify'],
 						displayName: $user['displayName'] ?? '',
 						description: $user['description'] ?? '',
 						notify: $shouldNotify,
-						fileId: $fileId,
+						fileId: $file->getId(),
 						signingOrder: $signingOrder,
 						fileStatus: $fileStatus,
 						signerStatus: $signerStatus,
@@ -493,73 +491,7 @@ class RequestSignatureService {
 		return $return;
 	}
 
-	private function associateToSigner(
-		array $identifyMethods,
-		string $displayName,
-		string $description,
-		bool $notify,
-		int $fileId,
-		int $signingOrder = 0,
-		?int $fileStatus = null,
-		?int $signerStatus = null,
-	): SignRequestEntity {
-		$identifyMethodsIncances = $this->identifyMethod->getByUserData($identifyMethods);
-		if (empty($identifyMethodsIncances)) {
-			throw new \Exception($this->l10n->t('Invalid identification method'));
-		}
-		$signRequest = $this->getSignRequestByIdentifyMethod(
-			current($identifyMethodsIncances),
-			$fileId
-		);
-		$displayName = $this->getDisplayNameFromIdentifyMethodIfEmpty($identifyMethodsIncances, $displayName);
-		$this->setDataToUser($signRequest, $displayName, $description, $fileId);
 
-		$signRequest->setSigningOrder($signingOrder);
-
-		$isNewSignRequest = !$signRequest->getId();
-		$currentStatus = $signRequest->getStatusEnum();
-
-		if ($isNewSignRequest || $currentStatus === \OCA\Libresign\Enum\SignRequestStatus::DRAFT) {
-			$desiredStatus = $this->signRequestStatusService->determineInitialStatus($signingOrder, $fileId, $fileStatus, $signerStatus, $currentStatus);
-			$this->signRequestStatusService->updateStatusIfAllowed($signRequest, $currentStatus, $desiredStatus, $isNewSignRequest);
-		}
-
-		$this->saveSignRequest($signRequest);
-
-		$shouldNotify = $notify && $this->signRequestStatusService->shouldNotifySignRequest(
-			$signRequest->getStatusEnum(),
-			$fileStatus
-		);
-
-		foreach ($identifyMethodsIncances as $identifyMethod) {
-			$identifyMethod->getEntity()->setSignRequestId($signRequest->getId());
-			$identifyMethod->willNotifyUser($shouldNotify);
-			$identifyMethod->save();
-		}
-		return $signRequest;
-	}
-
-	/**
-	 * @param IIdentifyMethod[] $identifyMethodsIncances
-	 * @param string $displayName
-	 * @return string
-	 */
-	private function getDisplayNameFromIdentifyMethodIfEmpty(array $identifyMethodsIncances, string $displayName): string {
-		if (!empty($displayName)) {
-			return $displayName;
-		}
-		foreach ($identifyMethodsIncances as $identifyMethod) {
-			if ($identifyMethod->getName() === 'account') {
-				return $this->userManager->get($identifyMethod->getEntity()->getIdentifierValue())->getDisplayName();
-			}
-		}
-		foreach ($identifyMethodsIncances as $identifyMethod) {
-			if ($identifyMethod->getName() !== 'account') {
-				return $identifyMethod->getEntity()->getIdentifierValue();
-			}
-		}
-		return '';
-	}
 
 	private function saveVisibleElements(array $data, FileEntity $file): array {
 		if (empty($data['visibleElements'])) {
@@ -605,41 +537,7 @@ class RequestSignatureService {
 		}
 	}
 
-	public function saveSignRequest(SignRequestEntity $signRequest): void {
-		if ($signRequest->getId()) {
-			$this->signRequestMapper->update($signRequest);
-		} else {
-			$this->signRequestMapper->insert($signRequest);
-		}
-	}
 
-	/**
-	 * @psalm-suppress MixedMethodCall
-	 */
-	private function setDataToUser(SignRequestEntity $signRequest, string $displayName, string $description, int $fileId): void {
-		$signRequest->setFileId($fileId);
-		if (!$signRequest->getUuid()) {
-			$signRequest->setUuid(UUIDUtil::getUUID());
-		}
-		if (!empty($displayName)) {
-			$signRequest->setDisplayName($displayName);
-		}
-		if (!empty($description)) {
-			$signRequest->setDescription($description);
-		}
-		if (!$signRequest->getId()) {
-			$signRequest->setCreatedAt(new \DateTime('now', new \DateTimeZone('UTC')));
-		}
-	}
-
-	private function getSignRequestByIdentifyMethod(IIdentifyMethod $identifyMethod, int $fileId): SignRequestEntity {
-		try {
-			$signRequest = $this->signRequestMapper->getByIdentifyMethodAndFileId($identifyMethod, $fileId);
-		} catch (DoesNotExistException) {
-			$signRequest = new SignRequestEntity();
-		}
-		return $signRequest;
-	}
 
 	public function unassociateToUser(int $fileId, int $signRequestId): void {
 		$file = $this->fileMapper->getByFileId($fileId);
