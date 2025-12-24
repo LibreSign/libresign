@@ -32,6 +32,7 @@ use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\EnvelopeService;
+use OCA\Libresign\Service\File\FileResponseFormatter;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\FolderService;
