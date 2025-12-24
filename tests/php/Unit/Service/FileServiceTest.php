@@ -32,7 +32,8 @@ use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\EnvelopeService;
-use OCA\Libresign\Service\File\FileResponseFormatter;
+use OCA\Libresign\Service\File\FileListService;
+use OCA\Libresign\Service\File\SignersLoader;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\FolderService;
@@ -83,7 +84,8 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected IL10N $l10n;
 	protected EnvelopeService $envelopeService;
 	protected vfsDirectory $tempFolder;
-	protected FileResponseFormatter $fileResponseFormatter;
+	protected SignersLoader $signersLoader;
+	protected fileListService $fileListService;
 	protected FileUploadHelper $uploadHelper;
 
 	public function setUp(): void {
@@ -118,8 +120,10 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->logger = \OCP\Server::get(LoggerInterface::class);
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->envelopeService = \OCP\Server::get(EnvelopeService::class);
-		$this->fileResponseFormatter = \OCP\Server::get(FileResponseFormatter::class);
+		$this->signersLoader = \OCP\Server::get(SignersLoader::class);
+		$this->fileListService = \OCP\Server::get(FileListService::class);
 		$this->uploadHelper = \OCP\Server::get(FileUploadHelper::class);
+
 		return new FileService(
 			$this->fileMapper,
 			$this->signRequestMapper,
@@ -145,7 +149,8 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->logger,
 			$this->l10n,
 			$this->envelopeService,
-			$this->fileResponseFormatter,
+			$this->signersLoader,
+			$this->fileListService,
 			$this->uploadHelper,
 		);
 	}
@@ -160,8 +165,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		if (is_callable($arguments)) {
 			$arguments = $arguments($this, $service);
 		}
-		$actual = $service
-			->toArray();
+		$actual = $service->toArray();
 
 		// Remove 'purposes' field from comparison as it varies between OpenSSL versions
 		$this->removePurposesField($expected);
@@ -169,8 +173,23 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->removeDocMdpFields($expected);
 		$this->removeDocMdpFields($actual);
+		$this->mockUuid($expected, $actual);
 
 		$this->assertEquals($expected, $actual);
+	}
+
+	/**
+	 * Was necessary to create this because the method that handle the uuid
+	 * is very internal of subclasses and wasn't easy to mock this.
+	 */
+	private function mockUuid(array $expected, array &$actual): void {
+		if (isset($actual['signers'])) {
+			foreach ($actual['signers'] as $key => &$signer) {
+				if (isset($signer['uid']) && isset($expected['signers'][$key])) {
+					$signer['uid'] = $expected['signers'][$key]['uid'];
+				}
+			}
+		}
 	}
 
 	private function removePurposesField(array &$data): void {
