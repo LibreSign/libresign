@@ -196,29 +196,33 @@ class SignersLoader {
 
 	public function loadSignersFromCertData(stdClass $fileData, array $certData, FileResponseOptions $options): void {
 		foreach ($certData as $index => $signer) {
-			$fileData->signers[$index]['status'] = 2;
-			$fileData->signers[$index]['statusText'] = $this->signRequestMapper->getTextOfSignerStatus(2);
+			if (!isset($fileData->signers[$index])) {
+				$fileData->signers[$index] = new stdClass();
+			}
+			$fileData->signers[$index]->status = 2;
+			$fileData->signers[$index]->statusText = $this->signRequestMapper->getTextOfSignerStatus(2);
 
 			if (isset($signer['timestamp'])) {
-				$fileData->signers[$index]['timestamp'] = $signer['timestamp'];
+				$fileData->signers[$index]->timestamp = $signer['timestamp'];
 				if (isset($signer['timestamp']['genTime']) && $signer['timestamp']['genTime'] instanceof DateTimeInterface) {
-					$fileData->signers[$index]['timestamp']['genTime'] = $signer['timestamp']['genTime']->format(DateTimeInterface::ATOM);
+					$fileData->signers[$index]->timestamp['genTime'] = $signer['timestamp']['genTime']->format(DateTimeInterface::ATOM);
 				}
 			}
 			if (isset($signer['signingTime']) && $signer['signingTime'] instanceof DateTimeInterface) {
-				$fileData->signers[$index]['signingTime'] = $signer['signingTime'];
-				$fileData->signers[$index]['signed'] = $signer['signingTime']->format(DateTimeInterface::ATOM);
+				$fileData->signers[$index]->signingTime = $signer['signingTime'];
+				$fileData->signers[$index]->signed = $signer['signingTime']->format(DateTimeInterface::ATOM);
 			}
 			if (isset($signer['docmdp'])) {
-				$fileData->signers[$index]['docmdp'] = $signer['docmdp'];
+				$fileData->signers[$index]->docmdp = $signer['docmdp'];
 			}
 			if (isset($signer['modifications'])) {
-				$fileData->signers[$index]['modifications'] = $signer['modifications'];
+				$fileData->signers[$index]->modifications = $signer['modifications'];
 			}
 			if (isset($signer['modification_validation'])) {
-				$fileData->signers[$index]['modification_validation'] = $signer['modification_validation'];
+				$fileData->signers[$index]->modification_validation = $signer['modification_validation'];
 			}
 			if (isset($signer['chain'])) {
+				$fileData->signers[$index]->chain = [];
 				foreach ($signer['chain'] as $chainIndex => $chainItem) {
 					$chainArr = $chainItem;
 					if (isset($chainItem['validFrom_time_t']) && is_numeric($chainItem['validFrom_time_t'])) {
@@ -228,21 +232,25 @@ class SignersLoader {
 						$chainArr['valid_to'] = (new DateTime('@' . $chainItem['validTo_time_t'], new \DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
 					}
 					$chainArr['displayName'] = $chainArr['name'] ?? ($chainArr['subject']['CN'] ?? '');
-					$fileData->signers[$index]['chain'][$chainIndex] = $chainArr;
+					$fileData->signers[$index]->chain[$chainIndex] = $chainArr;
 					if ($chainIndex === 0) {
-						$fileData->signers[$index] = array_merge($chainArr, $fileData->signers[$index] ?? []);
-						$fileData->signers[$index]['uid'] = $this->identifyMethodService->resolveUid($chainArr, $options->getHost());
+						foreach ($chainArr as $key => $value) {
+							if (!isset($fileData->signers[$index]->$key)) {
+								$fileData->signers[$index]->$key = $value;
+							}
+						}
+						$fileData->signers[$index]->uid = $this->identifyMethodService->resolveUid($chainArr, $options->getHost());
 					}
 				}
 			}
 			if (isset($signer['uid'])) {
-				$fileData->signers[$index]['uid'] = $signer['uid'];
+				$fileData->signers[$index]->uid = $signer['uid'];
 			}
 			if (isset($signer['signDate'])) {
-				$fileData->signers[$index]['signDate'] = $signer['signDate'];
+				$fileData->signers[$index]->signDate = $signer['signDate'];
 			}
 			if (isset($signer['type'])) {
-				$fileData->signers[$index]['type'] = $signer['type'];
+				$fileData->signers[$index]->type = $signer['type'];
 			}
 		}
 	}
