@@ -1099,6 +1099,9 @@
                     },
                     "signatureMethods": {
                         "$ref": "#/components/schemas/SignatureMethods"
+                    },
+                    "uid": {
+                        "type": "string"
                     }
                 }
             },
