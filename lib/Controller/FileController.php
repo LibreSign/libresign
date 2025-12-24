@@ -21,6 +21,7 @@ use OCA\Libresign\Middleware\Attribute\PrivateValidation;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestSignatureService;
@@ -71,6 +72,7 @@ class FileController extends AEnvironmentAwareController {
 		private IAppConfig $appConfig,
 		private IMimeIconProvider $mimeIconProvider,
 		private FileService $fileService,
+		private fileListService $fileListService,
 		private ValidateHelper $validateHelper,
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -286,8 +288,7 @@ class FileController extends AEnvironmentAwareController {
 		];
 
 		$user = $this->userSession->getUser();
-		$this->fileService->setMe($user);
-		$return = $this->fileService->listAssociatedFilesOfSignFlow($page, $length, $filter, $sort);
+		$return = $this->fileListService->listAssociatedFilesOfSignFlow($user, $page, $length, $filter, $sort);
 
 		if ($user && !empty($return['data'])) {
 			$firstFile = null;
