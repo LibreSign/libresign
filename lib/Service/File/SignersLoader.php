@@ -64,9 +64,8 @@ class SignersLoader {
 				if (!empty($found)) {
 					$index = key($found);
 				} else {
-					$totalSigners = count($signers);
-					$totalCert = count($certData);
-					$index = $totalSigners > $totalCert ? $totalCert : $totalSigners - 1;
+					// Find next available index
+					$index = count($fileData->signers);
 				}
 			} else {
 				$index = 0;
