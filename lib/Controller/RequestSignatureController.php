@@ -50,6 +50,9 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * Request that a file be signed by a group of people.
 	 * Each user in the users array can optionally include a 'signing_order' field
 	 * to control the order of signatures when ordered signing flow is enabled.
+	 * When the created entity is an envelope (`nodeType` = `envelope`),
+	 * the returned `data` includes `filesCount` and `files` as a list of
+	 * envelope child files.
 	 *
 	 * @param LibresignNewFile $file File object.
 	 * @param LibresignNewSigner[] $users Collection of users who must sign the document. Each user can have: identify, displayName, description, notify, signing_order
