@@ -82,6 +82,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected IL10N $l10n;
 	protected EnvelopeService $envelopeService;
 	protected vfsDirectory $tempFolder;
+	protected FileResponseFormatter $fileResponseFormatter;
 	protected FileUploadHelper $uploadHelper;
 
 	public function setUp(): void {
@@ -116,6 +117,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->logger = \OCP\Server::get(LoggerInterface::class);
 		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
 		$this->envelopeService = \OCP\Server::get(EnvelopeService::class);
+		$this->fileResponseFormatter = \OCP\Server::get(FileResponseFormatter::class);
 		$this->uploadHelper = \OCP\Server::get(FileUploadHelper::class);
 		return new FileService(
 			$this->fileMapper,
@@ -142,6 +144,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->logger,
 			$this->l10n,
 			$this->envelopeService,
+			$this->fileResponseFormatter,
 			$this->uploadHelper,
 		);
 	}
