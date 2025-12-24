@@ -64,7 +64,6 @@ class SignersLoader {
 				if (!empty($found)) {
 					$index = key($found);
 				} else {
-					// Find next available index
 					$index = count($fileData->signers);
 				}
 			} else {
@@ -144,21 +143,15 @@ class SignersLoader {
 			if ($options->getMe() || $options->getIdentifyMethodId()) {
 				$currentUserData = new stdClass();
 				$currentUserData->me = false;
-				if ($options->getMe()?->getUID() === $file->getUserId()) {
-					$currentUserData->me = true;
-				}
-				if (!$currentUserData->me) {
-					foreach ($identifyMethods as $methods) {
-						foreach ($methods as $identifyMethod) {
-							$entity = $identifyMethod->getEntity();
-							if (!$currentUserData->me) {
-								if ($options->getIdentifyMethodId() === $entity->getId()
-									|| $options->getMe()?->getUID() === $entity->getIdentifierValue()
-									|| $options->getMe()?->getEMailAddress() === $entity->getIdentifierValue()
-								) {
-									$currentUserData->me = true;
-								}
-							}
+				foreach ($identifyMethods as $methods) {
+					foreach ($methods as $identifyMethod) {
+						$entity = $identifyMethod->getEntity();
+						if ($options->getIdentifyMethodId() === $entity->getId()
+							|| $options->getMe()?->getUID() === $entity->getIdentifierValue()
+							|| $options->getMe()?->getEMailAddress() === $entity->getIdentifierValue()
+						) {
+							$currentUserData->me = true;
+							break 2;
 						}
 					}
 				}
