@@ -234,8 +234,8 @@ class ValidateHelper {
 		}
 
 		$getter = array_key_exists('signRequestId', $element)
-			? fn() => $this->signRequestMapper->getById($element['signRequestId'])
-			: fn() => $this->signRequestMapper->getByUuid($element['uuid']);
+			? fn () => $this->signRequestMapper->getById($element['signRequestId'])
+			: fn () => $this->signRequestMapper->getByUuid($element['uuid']);
 
 		try {
 			$getter();
