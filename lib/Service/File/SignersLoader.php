@@ -159,6 +159,7 @@ class SignersLoader {
 			}
 
 			if ($fileData->signers[$index]->me) {
+				$fileData->signers[$index]->sign_uuid = $signer->getUuid();
 				$fileData->signers[$index]->signatureMethods = [];
 				foreach ($identifyMethods as $methods) {
 					foreach ($methods as $identifyMethod) {
