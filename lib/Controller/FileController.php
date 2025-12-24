@@ -80,6 +80,8 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a file using Uuid
 	 *
 	 * Validate a file returning file data.
+	 * When `nodeType` is `envelope`, the response includes `filesCount`
+	 * and `files` as a list of envelope child files.
 	 *
 	 * @param string $uuid The UUID of the LibreSign file
 	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: list<array{message: string, title?: string}>, messages?: array{type: string, message: string}[]}, array{}>
@@ -101,6 +103,8 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a file using FileId
 	 *
 	 * Validate a file returning file data.
+	 * When `nodeType` is `envelope`, the response includes `filesCount`
+	 * and `files` as a list of envelope child files.
 	 *
 	 * @param int $fileId The identifier value of the LibreSign file
 	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: list<array{message: string, title?: string}>, messages?: array{type: string, message: string}[]}, array{}>
@@ -122,7 +126,9 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a binary file
 	 *
 	 * Validate a binary file returning file data.
-	 * Use field 'file' for the file upload
+	 * Use field 'file' for the file upload.
+	 * When `nodeType` is `envelope`, the response includes `filesCount`
+	 * and `files` as a list of envelope child files.
 	 *
 	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST, array{action: int, errors: list<array{message: string, title?: string}>, messages?: array{type: string, message: string}[], message?: string}, array{}>
 	 *
