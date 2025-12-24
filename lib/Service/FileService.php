@@ -45,6 +45,7 @@ use Psr\Log\LoggerInterface;
 use stdClass;
 
 /**
+ * @psalm-import-type LibresignEnvelopeChildFile from ResponseDefinitions
  * @psalm-import-type LibresignValidateFile from ResponseDefinitions
  * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
  */
@@ -798,80 +799,61 @@ class FileService {
 
 		$childrenFiles = $this->fileMapper->getChildrenFiles($this->file->getId());
 		foreach ($childrenFiles as $childFile) {
-			// Create a new FileService instance for each child file to load complete validation data
-			$childFileService = \OCP\Server::get(self::class);
-
-			try {
-				// Load complete file data including validation info
-				$childFileService
-					->setFile($childFile)
-					->setHost($this->host)
-					->showValidateFile()
-					->showSigners();
-
-				$childData = $childFileService->toArray();
-
-				// Extract relevant fields for envelope display
-				$fileData = [
-					'id' => $childFile->getId(),
-					'uuid' => $childFile->getUuid(),
-					'name' => $childFile->getName(),
-					'status' => $childFile->getStatus(),
-					'statusText' => $this->fileMapper->getTextOfStatus($childFile->getStatus()),
-					'nodeId' => $childFile->getNodeId(),
-					'signers' => $childData['signers'] ?? [],
-				];
-
-				$this->fileData->files[] = $fileData;
-			} catch (\Throwable $e) {
-
-				$fileData = [
-					'id' => $childFile->getId(),
-					'uuid' => $childFile->getUuid(),
-					'name' => $childFile->getName(),
-					'status' => $childFile->getStatus(),
-					'statusText' => $this->fileMapper->getTextOfStatus($childFile->getStatus()),
-					'nodeId' => $childFile->getNodeId(),
-					'signers' => [],
-				];
-
-				$signRequests = $this->signRequestMapper->getByFileId($childFile->getId());
-				foreach ($signRequests as $signRequest) {
-					$identifyMethods = $this->identifyMethodService
-						->setIsRequest(false)
-						->getIdentifyMethodsFromSignRequestId($signRequest->getId());
-
-					$signerData = [
-						'signRequestId' => $signRequest->getId(),
-						'displayName' => $signRequest->getDisplayName(),
-						'email' => '',
-						'signed' => null,
-						'status' => $signRequest->getStatus(),
-						'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signRequest->getStatus()),
-					];
-
-					foreach ($identifyMethods[IdentifyMethodService::IDENTIFY_EMAIL] ?? [] as $identifyMethod) {
-						$entity = $identifyMethod->getEntity();
-						if ($entity->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
-							$signerData['email'] = $entity->getIdentifierValue();
-							break;
-						}
-					}
-
-					if ($signRequest->getSigned()) {
-						$signerData['signed'] = $signRequest->getSigned()->format(DateTimeInterface::ATOM);
-					}
-
-					if (empty($signerData['displayName'])) {
-						$signerData['displayName'] = $signerData['email'];
-					}
-
-					$fileData['signers'][] = $signerData;
-				}
-
-				$this->fileData->files[] = $fileData;
-			}
+			$this->fileData->files[] = $this->buildEnvelopeChildData($childFile);
 		}
+	}
+
+	/**
+	 * @return LibresignEnvelopeChildFile
+	 * @psalm-return LibresignEnvelopeChildFile
+	 */
+	private function buildEnvelopeChildData(File $childFile): array {
+		$fileData = [
+			'id' => $childFile->getId(),
+			'uuid' => $childFile->getUuid(),
+			'name' => $childFile->getName(),
+			'status' => $childFile->getStatus(),
+			'statusText' => $this->fileMapper->getTextOfStatus($childFile->getStatus()),
+			'nodeId' => $childFile->getNodeId(),
+			'signers' => [],
+		];
+
+		$signRequests = $this->signRequestMapper->getByFileId($childFile->getId());
+		foreach ($signRequests as $signRequest) {
+			$identifyMethods = $this->identifyMethodService
+				->setIsRequest(false)
+				->getIdentifyMethodsFromSignRequestId($signRequest->getId());
+
+			$email = '';
+			foreach ($identifyMethods[IdentifyMethodService::IDENTIFY_EMAIL] ?? [] as $identifyMethod) {
+				$entity = $identifyMethod->getEntity();
+				if ($entity->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
+					$email = $entity->getIdentifierValue();
+					break;
+				}
+			}
+
+			$signed = null;
+			if ($signRequest->getSigned()) {
+				$signed = $signRequest->getSigned()->format(DateTimeInterface::ATOM);
+			}
+
+			$displayName = $signRequest->getDisplayName();
+			if ($displayName === '' && $email !== '') {
+				$displayName = $email;
+			}
+
+			$fileData['signers'][] = [
+				'signRequestId' => $signRequest->getId(),
+				'displayName' => $displayName,
+				'email' => $email,
+				'signed' => $signed,
+				'status' => $signRequest->getStatus(),
+				'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signRequest->getStatus()),
+			];
+		}
+
+		return $fileData;
 	}
 
 	private function loadEnvelopeData(): void {
@@ -923,6 +905,7 @@ class FileService {
 
 	/**
 	 * @return LibresignValidateFile
+	 * @psalm-return LibresignValidateFile
 	 */
 	public function toArray(): array {
 		$this->loadLibreSignData();
