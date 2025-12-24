@@ -583,7 +583,7 @@ class RequestSignatureService {
 		foreach ($children as $child) {
 			try {
 				$this->identifyMethod->clearCache();
-				$childSignRequest = $this->getSignRequestByIdentifyMethod(
+				$childSignRequest = $this->signRequestService->getSignRequestByIdentifyMethod(
 					current(reset($identifyMethods)),
 					$child->getId()
 				);
