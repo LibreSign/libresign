@@ -94,6 +94,7 @@ OC.L10N.register(
     "QR Code image in base64 format for document validation" : "用來驗證文件的 base64 格式 QR Code 影像",
     "QR Code size in pixels (includes margin)" : "QR Code 的大小（以畫素為單位，包含邊距）",
     "Message indicating the document was digitally signed" : "訊息顯示該文件已進行數位簽署",
+    "Array of signers with \"displayName\" and \"signed\" timestamp" : "簽署者陣列，包含「顯示名稱」與「簽署」時間戳",
     "Document unique identifier (UUID format)" : "文件的唯一識別字串（UUID 格式）",
     "Validation message template with placeholder" : "包含佔位字串的認證訊息範本",
     "Complete URL for document validation with UUID" : "用來驗證文件的完整 URL（包含 UUID）",
