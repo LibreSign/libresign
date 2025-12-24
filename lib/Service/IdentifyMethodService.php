@@ -22,6 +22,7 @@ use OCA\Libresign\Service\IdentifyMethod\Whatsapp;
 use OCA\Libresign\Service\IdentifyMethod\Xmpp;
 use OCP\IConfig;
 use OCP\IL10N;
+use OCP\IUserManager;
 
 class IdentifyMethodService {
 	public const IDENTIFY_ACCOUNT = 'account';
@@ -56,6 +57,7 @@ class IdentifyMethodService {
 		private IConfig $config,
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private IL10N $l10n,
+		private IUserManager $userManager,
 		private Account $account,
 		private Email $email,
 		private Signal $signal,
@@ -282,5 +284,69 @@ class IdentifyMethodService {
 			$this->identifyMethodsSettings[] = $this->xmpp->getSettings();
 		}
 		return $this->identifyMethodsSettings;
+	}
+
+	/**
+	 * Resolve UID from certificate chain data
+	 *
+	 * Extracts and resolves the identifier from certificate subject or extensions.
+	 * Supports fallbacks for older LibreSign versions and converts to standard
+	 * identifier format (account:uid or email:value).
+	 *
+	 * @param array $chainArr Certificate chain array with subject and extensions
+	 * @param string $host Host domain for email matching
+	 * @return string|null Resolved identifier in format "type:value" or null
+	 */
+	public function resolveUid(array $chainArr, string $host): ?string {
+		if (!empty($chainArr['subject']['UID'])) {
+			return $chainArr['subject']['UID'];
+		}
+		if (!empty($chainArr['subject']['CN'])) {
+			$cn = $chainArr['subject']['CN'];
+			if (is_array($cn)) {
+				$cn = $cn[0];
+			}
+			if (preg_match('/^(?<key>.*):(?<value>.*), /', (string)$cn, $matches)) {
+				return $matches['key'] . ':' . $matches['value'];
+			}
+		}
+		if (!empty($chainArr['extensions']['subjectAltName'])) {
+			$subjectAltName = $chainArr['extensions']['subjectAltName'];
+			if (is_array($subjectAltName)) {
+				$subjectAltName = $subjectAltName[0];
+			}
+			preg_match('/^(?<key>(email|account)):(?<value>.*)$/', (string)$subjectAltName, $matches);
+			if ($matches) {
+				if (str_ends_with($matches['value'], $host)) {
+					$uid = str_replace('@' . $host, '', $matches['value']);
+					$userFound = $this->userManager->get($uid);
+					if ($userFound) {
+						return 'account:' . $uid;
+					} else {
+						$userFound = $this->userManager->getByEmail($matches['value']);
+						if ($userFound) {
+							$userFound = current($userFound);
+							return 'account:' . $userFound->getUID();
+						} else {
+							return 'email:' . $matches['value'];
+						}
+					}
+				} else {
+					$userFound = $this->userManager->getByEmail($matches['value']);
+					if ($userFound) {
+						$userFound = current($userFound);
+						return 'account:' . $userFound->getUID();
+					} else {
+						$userFound = $this->userManager->get($matches['value']);
+						if ($userFound) {
+							return 'account:' . $userFound->getUID();
+						} else {
+							return $matches['key'] . ':' . $matches['value'];
+						}
+					}
+				}
+			}
+		}
+		return null;
 	}
 }
