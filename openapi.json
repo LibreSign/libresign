@@ -182,6 +182,81 @@
                     }
                 }
             },
+            "EnvelopeChildFile": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "uuid",
+                    "name",
+                    "status",
+                    "statusText",
+                    "nodeId",
+                    "signers"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "statusText": {
+                        "type": "string"
+                    },
+                    "nodeId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "signers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EnvelopeChildSignerSummary"
+                        }
+                    }
+                }
+            },
+            "EnvelopeChildSignerSummary": {
+                "type": "object",
+                "required": [
+                    "signRequestId",
+                    "displayName",
+                    "email",
+                    "signed",
+                    "status",
+                    "statusText"
+                ],
+                "properties": {
+                    "signRequestId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "displayName": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "signed": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "statusText": {
+                        "type": "string"
+                    }
+                }
+            },
             "File": {
                 "type": "object",
                 "required": [
@@ -986,6 +1061,17 @@
                         "type": "integer",
                         "format": "int64"
                     },
+                    "filesCount": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "files": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EnvelopeChildFile"
+                        }
+                    },
                     "totalPages": {
                         "type": "integer",
                         "format": "int64",
@@ -1758,55 +1844,6 @@
                         "required": true,
                         "schema": {
                             "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "text/html": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/index.php/apps/libresign/p/id-docs/approve/{uuid}/{path}": {
-            "get": {
-                "operationId": "page-sign-id-doc-private",
-                "summary": "Show signature page for identification document approval",
-                "tags": [
-                    "page"
-                ],
-                "security": [
-                    {
-                        "bearer_auth": []
-                    },
-                    {
-                        "basic_auth": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "uuid",
-                        "in": "path",
-                        "description": "File UUID for the identification document approval",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "path",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "pattern": "^.+$"
                         }
                     }
                 ],
@@ -3404,7 +3441,7 @@
             "get": {
                 "operationId": "file-validate-uuid",
                 "summary": "Validate a file using Uuid",
-                "description": "Validate a file returning file data.",
+                "description": "Validate a file returning file data. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.",
                 "tags": [
                     "file"
                 ],
@@ -3563,7 +3600,7 @@
             "get": {
                 "operationId": "file-validate-file-id",
                 "summary": "Validate a file using FileId",
-                "description": "Validate a file returning file data.",
+                "description": "Validate a file returning file data. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.",
                 "tags": [
                     "file"
                 ],
@@ -3723,7 +3760,7 @@
             "post": {
                 "operationId": "file-validate-binary",
                 "summary": "Validate a binary file",
-                "description": "Validate a binary file returning file data. Use field 'file' for the file upload",
+                "description": "Validate a binary file returning file data. Use field 'file' for the file upload. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.",
                 "tags": [
                     "file"
                 ],
@@ -6598,7 +6635,7 @@
             "post": {
                 "operationId": "request_signature-request",
                 "summary": "Request signature",
-                "description": "Request that a file be signed by a group of people. Each user in the users array can optionally include a 'signing_order' field to control the order of signatures when ordered signing flow is enabled.",
+                "description": "Request that a file be signed by a group of people. Each user in the users array can optionally include a 'signing_order' field to control the order of signatures when ordered signing flow is enabled. When the created entity is an envelope (`nodeType` = `envelope`), the returned `data` includes `filesCount` and `files` as a list of envelope child files.",
                 "tags": [
                     "request_signature"
                 ],

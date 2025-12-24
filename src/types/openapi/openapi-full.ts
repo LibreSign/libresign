@@ -261,23 +261,6 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/index.php/apps/libresign/p/id-docs/approve/{uuid}/{path}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Show signature page for identification document approval */
-        get: operations["page-sign-id-doc-private"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/index.php/apps/libresign/p/pdf/{uuid}": {
         parameters: {
             query?: never;
@@ -536,7 +519,7 @@ export type paths = {
         };
         /**
          * Validate a file using Uuid
-         * @description Validate a file returning file data.
+         * @description Validate a file returning file data. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.
          */
         get: operations["file-validate-uuid"];
         put?: never;
@@ -556,7 +539,7 @@ export type paths = {
         };
         /**
          * Validate a file using FileId
-         * @description Validate a file returning file data.
+         * @description Validate a file returning file data. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.
          */
         get: operations["file-validate-file-id"];
         put?: never;
@@ -578,7 +561,7 @@ export type paths = {
         put?: never;
         /**
          * Validate a binary file
-         * @description Validate a binary file returning file data. Use field 'file' for the file upload
+         * @description Validate a binary file returning file data. Use field 'file' for the file upload. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.
          */
         post: operations["file-validate-binary"];
         delete?: never;
@@ -859,7 +842,7 @@ export type paths = {
         put?: never;
         /**
          * Request signature
-         * @description Request that a file be signed by a group of people. Each user in the users array can optionally include a 'signing_order' field to control the order of signatures when ordered signing flow is enabled.
+         * @description Request that a file be signed by a group of people. Each user in the users array can optionally include a 'signing_order' field to control the order of signatures when ordered signing flow is enabled. When the created entity is an envelope (`nodeType` = `envelope`), the returned `data` includes `filesCount` and `files` as a list of envelope child files.
          */
         post: operations["request_signature-request"];
         delete?: never;
@@ -1548,6 +1531,28 @@ export type components = {
             policySection: components["schemas"]["PolicySection"][];
             rootCert: components["schemas"]["RootCertificate"];
         };
+        EnvelopeChildFile: {
+            /** Format: int64 */
+            id: number;
+            uuid: string;
+            name: string;
+            /** Format: int64 */
+            status: number;
+            statusText: string;
+            /** Format: int64 */
+            nodeId: number;
+            signers: components["schemas"]["EnvelopeChildSignerSummary"][];
+        };
+        EnvelopeChildSignerSummary: {
+            /** Format: int64 */
+            signRequestId: number;
+            displayName: string;
+            email: string;
+            signed: string | null;
+            /** Format: int64 */
+            status: number;
+            statusText: string;
+        };
         File: {
             account: {
                 userId: string;
@@ -1806,6 +1811,9 @@ export type components = {
             signatureFlow: number;
             /** Format: int64 */
             docmdpLevel: number;
+            /** Format: int64 */
+            filesCount?: number;
+            files?: components["schemas"]["EnvelopeChildFile"][];
             /** Format: int64 */
             totalPages: number;
             /** Format: int64 */
@@ -2198,30 +2206,6 @@ export interface operations {
             path: {
                 /** @description File UUID for the identification document approval */
                 uuid: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/html": string;
-                };
-            };
-        };
-    };
-    "page-sign-id-doc-private": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description File UUID for the identification document approval */
-                uuid: string;
-                path: string;
             };
             cookie?: never;
         };
