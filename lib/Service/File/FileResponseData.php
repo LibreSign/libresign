@@ -15,7 +15,7 @@ use stdClass;
  * Immutable data structure containing assembled file response data
  *
  * This object holds all data needed to format a file response.
- * It's created by FileDataAssembler and consumed by FileResponseFormatter.
+ * It's created by FileService and consumed by FileResponseFormatter.
  */
 class FileResponseData {
 	public function __construct(
