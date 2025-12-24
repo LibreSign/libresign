@@ -1298,6 +1298,7 @@ export type components = {
             identifyMethods?: components["schemas"]["IdentifyMethod"][];
             visibleElements?: components["schemas"]["VisibleElement"][];
             signatureMethods?: components["schemas"]["SignatureMethods"];
+            uid?: string;
         };
         UserElement: {
             /** Format: int64 */
