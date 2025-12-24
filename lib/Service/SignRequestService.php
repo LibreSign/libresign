@@ -92,7 +92,7 @@ class SignRequestService {
 		return $signRequest;
 	}
 
-	private function getSignRequestByIdentifyMethod(IIdentifyMethod $identifyMethod, int $fileId): SignRequestEntity {
+	public function getSignRequestByIdentifyMethod(IIdentifyMethod $identifyMethod, int $fileId): SignRequestEntity {
 		try {
 			$signRequest = $this->signRequestMapper->getByIdentifyMethodAndFileId($identifyMethod, $fileId);
 		} catch (DoesNotExistException) {
