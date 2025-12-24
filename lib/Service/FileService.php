@@ -26,6 +26,8 @@ use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\ResponseDefinitions;
+use OCA\Libresign\Service\File\FileResponseData;
+use OCA\Libresign\Service\File\FileResponseFormatter;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -96,6 +98,7 @@ class FileService {
 		protected LoggerInterface $logger,
 		protected IL10N $l10n,
 		private EnvelopeService $envelopeService,
+		private FileResponseFormatter $responseFormatter,
 		FileUploadHelper $uploadHelper,
 	) {
 		$this->docMdpHandler = $docMdpHandler;
@@ -592,6 +595,9 @@ class FileService {
 		if (!$this->showSigners) {
 			return;
 		}
+		if ($this->file && $this->file->getNodeType() === 'envelope') {
+			return;
+		}
 		$this->loadSignersFromCertData();
 		$this->loadLibreSignSigners();
 	}
@@ -914,9 +920,9 @@ class FileService {
 		$this->loadSigners();
 		$this->loadMessages();
 		$this->computeEnvelopeSignersProgress();
-		$return = json_decode(json_encode($this->fileData), true);
-		ksort($return);
-		return $return;
+
+		$data = new FileResponseData($this->file, $this->fileData);
+		return $this->responseFormatter->toArray($data);
 	}
 
 	private function computeEnvelopeSignersProgress(): void {
