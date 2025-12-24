@@ -414,7 +414,6 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[FrontpageRoute(verb: 'GET', url: '/p/id-docs/approve/{uuid}')]
-	#[FrontpageRoute(verb: 'GET', url: '/p/id-docs/approve/{uuid}/{path}', requirements: ['path' => '.+'], postfix: 'private')]
 	public function signIdDoc($uuid): TemplateResponse {
 		try {
 			$fileEntity = $this->signFileService->getFileByUuid($uuid);
