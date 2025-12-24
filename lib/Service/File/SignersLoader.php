@@ -79,6 +79,9 @@ class SignersLoader {
 			$fileData->signers[$index]->status = $signer->getStatus();
 			$fileData->signers[$index]->statusText = $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus());
 			$fileData->signers[$index]->signingOrder = $signer->getSigningOrder();
+			$fileData->signers[$index]->description = $signer->getDescription();
+			$fileData->signers[$index]->displayName = $signer->getDisplayName();
+			$fileData->signers[$index]->request_sign_date = $signer->getCreatedAt()->format(DateTimeInterface::ATOM);
 			$fileData->signers[$index]->identifyMethods = [];
 			$fileData->signers[$index]->visibleElements = [];
 			foreach ($identifyMethods as $type => $methods) {
