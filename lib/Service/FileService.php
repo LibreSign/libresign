@@ -320,7 +320,8 @@ class FileService {
 			return;
 		}
 
-		$resource = $file->fopen('rb');
+		$fileNode = $this->getFile();
+		$resource = $fileNode->fopen('rb');
 		$sha256 = $this->getSha256FromResource($resource);
 		if ($sha256 === $file->getSignedHash()) {
 			$this->pkcs12Handler->setIsLibreSignFile();
