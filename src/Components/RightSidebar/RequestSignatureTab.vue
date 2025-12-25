@@ -966,7 +966,7 @@ export default {
 }
 
 .action-form-box {
-	margin-top: 12px;
+	margin-top: 6px;
 }
 
 .iframe {
