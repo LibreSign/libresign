@@ -207,7 +207,9 @@ export default {
 				}
 
 				const urls = files.map(file => file.file)
-				this.fileNames = files.map(file => file.name)
+				this.fileNames = files.map(file => {
+					return `${file.name}.${file.metadata?.extension || 'pdf'}`
+				})
 				await this.handleInitialStatePdfs(urls)
 			} catch (error) {
 				this.signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
