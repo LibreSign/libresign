@@ -193,8 +193,8 @@ export default {
 		subscribe('libresign:visible-elements-select-signer', this.onSelectSigner)
 	},
 	beforeUnmount() {
-		unsubscribe('libresign:show-visible-elements')
-		unsubscribe('libresign:visible-elements-select-signer')
+		unsubscribe('libresign:show-visible-elements', this.showModal)
+		unsubscribe('libresign:visible-elements-select-signer', this.onSelectSigner)
 	},
 	methods: {
 		async showModal() {
