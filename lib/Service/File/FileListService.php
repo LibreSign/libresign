@@ -115,11 +115,10 @@ class FileListService {
 							}
 							return $carry;
 						}, false),
-						'visibleElements' => $this->formatVisibleElements(
-							$visibleElements[$signer->getId()] ?? [],
-							!empty($file['metadata'])?json_decode((string)$file['metadata'], true):[],
-							$file['uuid'],
-						),
+						'visibleElements'
+							=> $visibleElements[$signer->getId()]
+								? $this->formatVisibleElements($visibleElements[$signer->getId()])
+								: [],
 						'identifyMethods' => array_map(fn (IdentifyMethod $identifyMethod): array => [
 							'method' => $identifyMethod->getIdentifierKey(),
 							'value' => $identifyMethod->getIdentifierValue(),
@@ -181,7 +180,8 @@ class FileListService {
 
 				$files[$key]['statusText'] = $this->fileMapper->getTextOfStatus((int)$files[$key]['status']);
 			}
-			unset($files[$key]['id'], $files[$key]['fileId']);
+			$files[$key]['id'] = $files[$key]['fileId'];
+			unset($files[$key]['fileId']);
 			ksort($files[$key]);
 		}
 		return $files;
@@ -195,25 +195,25 @@ class FileListService {
 	 * @param string $uuid File UUID to include in response
 	 * @return array Formatted visible elements
 	 */
-	public function formatVisibleElements(array $visibleElements, array $metadata, string $uuid): array {
-		return array_map(function (FileElement $visibleElement) use ($metadata, $uuid) {
-			$page = $visibleElement->getPage();
-			$urx = (int)$visibleElement->getUrx();
-			$ury = (int)$visibleElement->getUry();
-			$llx = (int)$visibleElement->getLlx();
-			$lly = (int)$visibleElement->getLly();
+	public function formatVisibleElements(array $visibleElements): array {
+		return array_map(function ($visibleElement) {
+			$page = $visibleElement['page'];
+			$urx = (int)$visibleElement['urx'];
+			$ury = (int)$visibleElement['ury'];
+			$llx = (int)$visibleElement['llx'];
+			$lly = (int)$visibleElement['lly'];
 
-			$dimension = $metadata['d'][$page - 1];
+			$dimension = $visibleElement['metadata']['d'][$page - 1];
 			$height = abs($ury - $lly);
 			$width = $urx - $llx;
 			$top = (int)$dimension['h'] - $ury;
 			$left = $llx;
 
 			return [
-				'elementId' => $visibleElement->getId(),
-				'signRequestId' => $visibleElement->getSignRequestId(),
-				'type' => $visibleElement->getType(),
-				'uuid' => $uuid,
+				'elementId' => $visibleElement['id'],
+				'signRequestId' => $visibleElement['sign_request_id'],
+				'type' => $visibleElement['type'],
+				'fileId' => $visibleElement['file_id'],
 				'coordinates' => [
 					'page' => $page,
 					'urx' => $urx,
