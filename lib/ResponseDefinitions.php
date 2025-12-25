@@ -199,6 +199,11 @@ namespace OCA\Libresign;
  *     status: int,
  *     statusText: string,
  * }
+ * @psalm-type LibresignValidateMetadata = array{
+ *     extension: string,
+ *     p: int,
+ *     d?: list<array{w: float, h: float}>,
+ * }
  * @psalm-type LibresignEnvelopeChildFile = array{
  *     id: int,
  *     uuid: string,
@@ -207,6 +212,7 @@ namespace OCA\Libresign;
  *     statusText: string,
  *     nodeId: int,
  *     signers: list<LibresignEnvelopeChildSignerSummary>,
+ *     metadata?: LibresignValidateMetadata,
  * }
  * @psalm-type LibresignValidateFile = array{
  *     uuid: string,
@@ -229,11 +235,7 @@ namespace OCA\Libresign;
  *     },
  *     file: string,
  *     url?: string,
- *     metadata?: array{
- *         extension: string,
- *         p: int,
- *         d?: list<array{w: float, h: float}>,
- *     },
+ *     metadata?: LibresignValidateMetadata,
  *     signers?: LibresignSigner[],
  *     settings?: LibresignSettings,
  *     messages?: array{
