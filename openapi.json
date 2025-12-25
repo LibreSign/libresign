@@ -220,6 +220,9 @@
                         "items": {
                             "$ref": "#/components/schemas/EnvelopeChildSignerSummary"
                         }
+                    },
+                    "metadata": {
+                        "$ref": "#/components/schemas/ValidateMetadata"
                     }
                 }
             },
@@ -1113,40 +1116,7 @@
                         "type": "string"
                     },
                     "metadata": {
-                        "type": "object",
-                        "required": [
-                            "extension",
-                            "p"
-                        ],
-                        "properties": {
-                            "extension": {
-                                "type": "string"
-                            },
-                            "p": {
-                                "type": "integer",
-                                "format": "int64"
-                            },
-                            "d": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "required": [
-                                        "w",
-                                        "h"
-                                    ],
-                                    "properties": {
-                                        "w": {
-                                            "type": "number",
-                                            "format": "double"
-                                        },
-                                        "h": {
-                                            "type": "number",
-                                            "format": "double"
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        "$ref": "#/components/schemas/ValidateMetadata"
                     },
                     "signers": {
                         "type": "array",
@@ -1182,6 +1152,42 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/VisibleElement"
+                        }
+                    }
+                }
+            },
+            "ValidateMetadata": {
+                "type": "object",
+                "required": [
+                    "extension",
+                    "p"
+                ],
+                "properties": {
+                    "extension": {
+                        "type": "string"
+                    },
+                    "p": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "d": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "w",
+                                "h"
+                            ],
+                            "properties": {
+                                "w": {
+                                    "type": "number",
+                                    "format": "double"
+                                },
+                                "h": {
+                                    "type": "number",
+                                    "format": "double"
+                                }
+                            }
                         }
                     }
                 }
