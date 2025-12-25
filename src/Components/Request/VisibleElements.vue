@@ -146,7 +146,7 @@ export default {
 			if (this.isEnvelope) {
 				if (!this.envelopeFilesReady) return []
 				return this.envelopeFiles.map(f => {
-					const metadata = this.parseMetadata(f.metadata)
+					const metadata = f.metadata
 					return `${f.name}.${metadata?.extension || 'pdf'}`
 				})
 			}
