@@ -134,6 +134,7 @@ namespace OCA\Libresign;
  * @psalm-type LibresignVisibleElement = array{
  *     elementId: int,
  *     signRequestId: int,
+ *     fileId: int,
  *     type: string,
  *     coordinates: LibresignCoordinate,
  *     uuid: string,

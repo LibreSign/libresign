@@ -53,6 +53,7 @@ final class FileElementControllerTest extends ApiTestCase {
 					'height' => 90,
 					'page' => 1,
 				],
+				'fileId' => $file->getId(),
 				'type' => 'signature',
 				'signRequestId' => $signers[0]->getId(),
 			]);
@@ -87,6 +88,7 @@ final class FileElementControllerTest extends ApiTestCase {
 					'height' => 91,
 					'page' => 1,
 				],
+				'fileId' => $file->getId(),
 				'type' => 'signature',
 				'signRequestId' => $signers[0]->getId(),
 			]);

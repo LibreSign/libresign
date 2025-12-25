@@ -43,6 +43,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 * @param string $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
 	 * @param integer $signRequestId Id of sign request
 	 * @param integer|null $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
+	 * @param integer|null $fileId File ID when using node identifier instead of UUID
 	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
 	 * @param array{} $metadata Metadata of visible elements to associate with the document
 	 * @param LibresignCoordinate $coordinates Coortinates of a visible element on PDF
@@ -54,7 +55,7 @@ class FileElementController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file-element/{uuid}', requirements: ['apiVersion' => '(v1)'])]
-	public function post(string $uuid, int $signRequestId, ?int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
+	public function post(string $uuid, int $signRequestId, ?int $elementId = null, ?int $fileId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
 		$visibleElement = [
 			'elementId' => $elementId,
 			'type' => $type,
@@ -62,6 +63,7 @@ class FileElementController extends AEnvironmentAwareController {
 			'coordinates' => $coordinates,
 			'metadata' => $metadata,
 			'fileUuid' => $uuid,
+			'fileId' => $fileId,
 		];
 		try {
 			$this->validateHelper->validateVisibleElement($visibleElement, ValidateHelper::TYPE_VISIBLE_ELEMENT_PDF);
@@ -92,6 +94,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 * @param string $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
 	 * @param integer $signRequestId Id of sign request
 	 * @param integer|null $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
+	 * @param integer|null $fileId File ID when using node identifier instead of UUID
 	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
 	 * @param array{} $metadata Metadata of visible elements to associate with the document
 	 * @param LibresignCoordinate $coordinates Coortinates of a visible element on PDF
@@ -103,8 +106,8 @@ class FileElementController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'PATCH', url: '/api/{apiVersion}/file-element/{uuid}/{elementId}', requirements: ['apiVersion' => '(v1)'])]
-	public function patch(string $uuid, int $signRequestId, ?int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
-		return $this->post($uuid, $signRequestId, $elementId, $type, $metadata, $coordinates);
+	public function patch(string $uuid, int $signRequestId, ?int $elementId = null, ?int $fileId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
+		return $this->post($uuid, $signRequestId, $elementId, $fileId, $type, $metadata, $coordinates);
 	}
 
 	/**
