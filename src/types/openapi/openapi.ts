@@ -1086,6 +1086,7 @@ export type components = {
             /** Format: int64 */
             nodeId: number;
             signers: components["schemas"]["EnvelopeChildSignerSummary"][];
+            metadata?: components["schemas"]["ValidateMetadata"];
         };
         EnvelopeChildSignerSummary: {
             /** Format: int64 */
@@ -1349,17 +1350,7 @@ export type components = {
             };
             file: string;
             url?: string;
-            metadata?: {
-                extension: string;
-                /** Format: int64 */
-                p: number;
-                d?: {
-                    /** Format: double */
-                    w: number;
-                    /** Format: double */
-                    h: number;
-                }[];
-            };
+            metadata?: components["schemas"]["ValidateMetadata"];
             signers?: components["schemas"]["Signer"][];
             settings?: components["schemas"]["Settings"];
             messages?: {
@@ -1368,6 +1359,17 @@ export type components = {
                 message: string;
             }[];
             visibleElements?: components["schemas"]["VisibleElement"][];
+        };
+        ValidateMetadata: {
+            extension: string;
+            /** Format: int64 */
+            p: number;
+            d?: {
+                /** Format: double */
+                w: number;
+                /** Format: double */
+                h: number;
+            }[];
         };
         VisibleElement: {
             /** Format: int64 */
