@@ -225,7 +225,7 @@ export default {
 
 				for (let i = 0; i < pageCount; i++) {
 					this.filePagesMap[currentPage + i] = {
-						uuid: file.uuid,
+						id: file.id,
 						fileIndex: index,
 						startPage: currentPage,
 						fileName: file.name,
@@ -267,6 +267,15 @@ export default {
 				this.filesStore.loading = false
 			}
 		},
+		getPageHeightForFile(fileId, page) {
+			if (this.isEnvelope) {
+				const fileInfo = this.envelopeFiles.find(f => f.id === fileId)
+				const metadata = typeof fileInfo?.metadata === 'string' ? JSON.parse(fileInfo.metadata) : fileInfo?.metadata
+				return metadata?.d?.[page - 1]?.h
+			}
+
+			return this.document?.metadata?.d?.[page - 1]?.h
+		},
 		updateSigners(data) {
 			this.loadedPdfsCount++
 
@@ -284,27 +293,21 @@ export default {
 						if (element.signRequestId === signer.signRequestId) {
 							const object = structuredClone(signer)
 
-							if (this.isEnvelope && element.uuid) {
-								const fileInfo = this.envelopeFiles.find(f => f.uuid === element.uuid)
-
+							if (this.isEnvelope && element.fileId) {
+								const fileInfo = this.envelopeFiles.find(f => f.id === element.fileId)
 								if (fileInfo) {
-									for (const [page, info] of Object.entries(this.filePagesMap)) {
-										if (info.uuid === element.uuid) {
-											object.element = {
-												...element,
-												documentIndex: info.fileIndex,
-											}
-											object.element.coordinates.ury = Math.round(data.measurement[element.coordinates.page].height)
-												- element.coordinates.ury
-											this.$refs.pdfEditor.addSigner(object)
-											return
-										}
+									const fileIndex = this.envelopeFiles.indexOf(fileInfo)
+
+									object.element = {
+										...element,
+										documentIndex: fileIndex,
 									}
+
+									this.$refs.pdfEditor.addSigner(object)
+									return
 								}
 							}
 
-							element.coordinates.ury = Math.round(data.measurement[element.coordinates.page].height)
-								- element.coordinates.ury
 							object.element = element
 							this.$refs.pdfEditor.addSigner(object)
 						}
@@ -361,14 +364,29 @@ export default {
 			const normalizedX = clickX / scale
 			const normalizedY = clickY / scale
 
+			const pageHeight = this.getPageHeightForFile(this.isEnvelope ? this.envelopeFiles[documentIndex]?.id : this.document?.id, pageInDocument)
+			if (!pageHeight) {
+				console.error('Missing pageHeight when adding signer', { pageInDocument, documentIndex })
+				showError(this.$t('libresign', 'Page height metadata not available'))
+				return
+			}
+			const left = normalizedX - this.width / 2
+			const top = normalizedY - this.height / 2
+			const llx = left
+			const ury = pageHeight - top
+
+			const coordinates = {
+				page: pageInDocument,
+				width: this.width,
+				height: this.height,
+				left,
+				top,
+				llx,
+				ury,
+			}
+
 			this.signerSelected.element = {
-				coordinates: {
-					page: pageInDocument,
-					llx: normalizedX - this.width / 2,
-					ury: normalizedY - this.height / 2,
-					width: this.width,
-					height: this.height,
-				},
+				coordinates: coordinates,
 			}
 
 			if (this.isEnvelope && documentIndex > 0) {
@@ -428,6 +446,7 @@ export default {
 					if (!object.signer) return
 
 					let globalPageNumber = object.pageNumber
+
 					if (this.isEnvelope && docIndex > 0) {
 						for (const [page, info] of Object.entries(this.filePagesMap)) {
 							if (info.fileIndex === docIndex) {
@@ -437,11 +456,28 @@ export default {
 						}
 					}
 
-					const element = {
-						type: 'signature',
-						signRequestId: object.signer.signRequestId,
-						elementId: object.signer.element.elementId,
-						coordinates: {
+					let coordinates
+					if (this.isEnvelope && this.filePagesMap[globalPageNumber]) {
+						const pageInfo = this.filePagesMap[globalPageNumber]
+						const pageHeight = this.getPageHeightForFile(pageInfo.id, object.pageNumber)
+						if (!pageHeight) {
+
+						}
+
+						const left = Math.floor(object.normalizedCoordinates.llx)
+						const top = Math.floor(pageHeight - object.normalizedCoordinates.lly)
+						const width = Math.floor(object.normalizedCoordinates.width)
+						const height = Math.floor(object.normalizedCoordinates.height)
+
+						coordinates = {
+							page: globalPageNumber,
+							width,
+							height,
+							left,
+							top,
+						}
+					} else {
+						coordinates = {
 							page: globalPageNumber,
 							width: object.normalizedCoordinates.width,
 							height: object.normalizedCoordinates.height,
@@ -449,11 +485,18 @@ export default {
 							lly: object.normalizedCoordinates.lly,
 							ury: object.normalizedCoordinates.ury,
 							urx: object.normalizedCoordinates.urx,
-						},
+						}
+					}
+
+					const element = {
+						type: 'signature',
+						signRequestId: object.signer.signRequestId,
+						elementId: object.signer.element.elementId,
+						coordinates: coordinates,
 					}
 
 					if (this.isEnvelope && this.filePagesMap[globalPageNumber]) {
-						element.uuid = this.filePagesMap[globalPageNumber].uuid
+						element.fileId = this.filePagesMap[globalPageNumber].id
 						element.coordinates.page = globalPageNumber - this.filePagesMap[globalPageNumber].startPage + 1
 					}
 

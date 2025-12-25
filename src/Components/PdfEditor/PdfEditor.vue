@@ -80,8 +80,8 @@ export default {
 				height: signer.element.coordinates.height,
 				originWidth: signer.element.coordinates.width,
 				originHeight: signer.element.coordinates.height,
-				x: signer.element.coordinates.llx,
-				y: signer.element.coordinates.ury,
+				x: signer.element.coordinates.left,
+				y: signer.element.coordinates.top,
 			}
 
 			const docIndex = signer.element.documentIndex !== undefined
