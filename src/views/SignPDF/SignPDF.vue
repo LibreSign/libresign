@@ -12,7 +12,7 @@
 			width="100%"
 			height="100%"
 			:files="pdfBlobs"
-			:file-names="fileNames.length > 0 ? fileNames : pdfBlobs.map((_, i) => `${pdfFileName}_${i + 1}`)"
+			:file-names="fileNames.length > 0 ? fileNames : [pdfFileName]"
 			:read-only="true"
 			@pdf-editor:end-init="updateSigners" />
 		<div class="button-wrapper">
