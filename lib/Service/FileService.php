@@ -491,7 +491,6 @@ class FileService {
 		$this->fileData->signatureFlow = $this->file->getSignatureFlow();
 		$this->fileData->docmdpLevel = $this->file->getDocmdpLevel();
 		$this->fileData->nodeType = $this->file->getNodeType();
-		$this->file = $this->fileMapper->getById($this->file->getId());
 
 		if ($this->fileData->nodeType !== 'envelope' && !$this->file->getParentFileId()) {
 			$fileId = $this->file->getId();
