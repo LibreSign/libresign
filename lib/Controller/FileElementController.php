@@ -69,8 +69,7 @@ class FileElementController extends AEnvironmentAwareController {
 				'uuid' => $uuid,
 				'userManager' => $this->userSession->getUser()
 			]);
-			$fileElement = $this->fileElementService->saveVisibleElement($visibleElement, $uuid);
-			$statusCode = Http::STATUS_OK;
+			$fileElement = $this->fileElementService->saveVisibleElement($visibleElement);
 			return new DataResponse([
 				'fileElementId' => $fileElement->getId(),
 			]);

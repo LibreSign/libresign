@@ -459,18 +459,21 @@ class SignRequestMapper extends QBMapper {
 			return [];
 		}
 		$qb = $this->db->getQueryBuilder();
-		$qb->select('fe.*')
+
+		$qb->select('fe.*', 'f.metadata')
 			->from('libresign_file_element', 'fe')
+			->innerJoin('fe', 'libresign_file', 'f', $qb->expr()->eq('fe.file_id', 'f.id'))
 			->where(
 				$qb->expr()->in('fe.sign_request_id', $qb->createParameter('signRequestIds'))
 			);
+
 		$return = [];
 		foreach (array_chunk($signRequestIds, 1000) as $signRequestIdsChunk) {
 			$qb->setParameter('signRequestIds', $signRequestIdsChunk, IQueryBuilder::PARAM_INT_ARRAY);
 			$cursor = $qb->executeQuery();
 			while ($row = $cursor->fetch()) {
-				$fileElement = new FileElement();
-				$return[$row['sign_request_id']][] = $fileElement->fromRow($row);
+				$row['metadata'] = json_decode($row['metadata'], true);
+				$return[$row['sign_request_id']][] = $row;
 			}
 		}
 		return $return;

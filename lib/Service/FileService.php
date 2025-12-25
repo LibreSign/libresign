@@ -355,13 +355,16 @@ class FileService {
 			return;
 		}
 
-		if (!$this->options->isValidateFile() || !$this->file instanceof File || !$this->file->getSignedNodeId()) {
+		if (!$this->options->isValidateFile() || !$this->file instanceof File) {
 			return;
 		}
-		$fileNode = $this->getFile();
-		$certData = $this->loadCertificateChain($fileNode, $this->file);
-		if ($certData) {
-			$this->signersLoader->loadSignersFromCertData($this->fileData, $certData, $this->options->getHost());
+
+		if ($this->file->getSignedNodeId()) {
+			$fileNode = $this->getFile();
+			$certData = $this->loadCertificateChain($fileNode, $this->file);
+			if ($certData) {
+				$this->signersLoader->loadSignersFromCertData($this->fileData, $certData, $this->options->getHost());
+			}
 		}
 		$this->loadLibreSignSigners();
 	}
@@ -530,12 +533,16 @@ class FileService {
 			$signers = $this->signRequestMapper->getByMultipleFileId([$this->file->getId()]);
 			$this->fileData->visibleElements = [];
 			foreach ($this->signRequestMapper->getVisibleElementsFromSigners($signers) as $visibleElements) {
+				if (empty($visibleElements)) {
+					continue;
+				}
+				$file = array_filter($this->fileData->files, fn (stdClass $file) => $file->id === $visibleElements[0]['file_id']);
+				if (empty($file)) {
+					continue;
+				}
+				$file = current($file);
 				$this->fileData->visibleElements = array_merge(
-					$this->fileListService->formatVisibleElements(
-						$visibleElements,
-						$this->file->getMetadata(),
-						$this->file->getUuid(),
-					),
+					$this->fileListService->formatVisibleElements($visibleElements),
 					$this->fileData->visibleElements
 				);
 			}
@@ -586,6 +593,7 @@ class FileService {
 		$fileData->status = $childFile->getStatus();
 		$fileData->statusText = $this->fileMapper->getTextOfStatus($childFile->getStatus());
 		$fileData->nodeId = $childFile->getNodeId();
+		$fileData->metadata = $childFile->getMetadata();
 		$fileData->signers = [];
 
 		$signRequests = $this->signRequestMapper->getByFileId($childFile->getId());
