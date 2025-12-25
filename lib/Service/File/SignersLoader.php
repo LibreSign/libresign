@@ -191,7 +191,7 @@ class SignersLoader {
 		$this->signersLibreSignLoaded = true;
 	}
 
-	public function loadSignersFromCertData(stdClass $fileData, array $certData, FileResponseOptions $options): void {
+	public function loadSignersFromCertData(stdClass $fileData, array $certData, string $host): void {
 		foreach ($certData as $index => $signer) {
 			if (!isset($fileData->signers[$index])) {
 				$fileData->signers[$index] = new stdClass();
@@ -236,7 +236,7 @@ class SignersLoader {
 								$fileData->signers[$index]->$key = $value;
 							}
 						}
-						$fileData->signers[$index]->uid = $this->identifyMethodService->resolveUid($chainArr, $options->getHost());
+						$fileData->signers[$index]->uid = $this->identifyMethodService->resolveUid($chainArr, $host);
 					}
 				}
 			}
