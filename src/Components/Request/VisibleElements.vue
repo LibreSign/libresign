@@ -146,7 +146,7 @@ export default {
 			if (this.isEnvelope) {
 				if (!this.envelopeFilesReady) return []
 				return this.envelopeFiles.map(f => {
-					const metadata = typeof f.metadata === 'string' ? JSON.parse(f.metadata) : f.metadata
+					const metadata = this.parseMetadata(f.metadata)
 					return `${f.name}.${metadata?.extension || 'pdf'}`
 				})
 			}
@@ -197,6 +197,13 @@ export default {
 		unsubscribe('libresign:visible-elements-select-signer', this.onSelectSigner)
 	},
 	methods: {
+		getVuePdfEditor() {
+			return this.$refs.pdfEditor?.$refs?.vuePdfEditor
+		},
+		getCanvasList() {
+			const editor = this.getVuePdfEditor()
+			return editor?.$refs?.pdfBody?.querySelectorAll('canvas') || []
+		},
 		async showModal() {
 			if (!this.canRequestSign) {
 				return
@@ -220,7 +227,7 @@ export default {
 
 			let currentPage = 1
 			this.envelopeFiles.forEach((file, index) => {
-				const metadata = typeof file.metadata === 'string' ? JSON.parse(file.metadata) : file.metadata
+				const metadata = file.metadata
 				const pageCount = metadata?.p || 0
 
 				for (let i = 0; i < pageCount; i++) {
@@ -270,7 +277,7 @@ export default {
 		getPageHeightForFile(fileId, page) {
 			if (this.isEnvelope) {
 				const fileInfo = this.envelopeFiles.find(f => f.id === fileId)
-				const metadata = typeof fileInfo?.metadata === 'string' ? JSON.parse(fileInfo.metadata) : fileInfo?.metadata
+				const metadata = fileInfo?.metadata
 				return metadata?.d?.[page - 1]?.h
 			}
 
@@ -326,13 +333,13 @@ export default {
 				return
 			}
 			this.signerSelected = signer
-			const canvasList = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs.pdfBody.querySelectorAll('canvas')
+			const canvasList = this.getCanvasList()
 			canvasList.forEach((canvas) => {
 				canvas.addEventListener('click', this.doSelectSigner)
 			})
 		},
 		doSelectSigner(event) {
-			const canvasList = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs.pdfBody.querySelectorAll('canvas')
+			const canvasList = this.getCanvasList()
 			const canvasIndex = Array.from(canvasList).indexOf(event.target)
 			const globalPageNumber = canvasIndex + 1 // 1-based
 
@@ -366,8 +373,6 @@ export default {
 
 			const pageHeight = this.getPageHeightForFile(this.isEnvelope ? this.envelopeFiles[documentIndex]?.id : this.document?.id, pageInDocument)
 			if (!pageHeight) {
-				console.error('Missing pageHeight when adding signer', { pageInDocument, documentIndex })
-				showError(this.$t('libresign', 'Page height metadata not available'))
 				return
 			}
 			const left = normalizedX - this.width / 2
@@ -396,7 +401,7 @@ export default {
 			this.$refs.pdfEditor.addSigner(this.signerSelected)
 		},
 		stopAddSigner() {
-			const canvasList = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs.pdfBody.querySelectorAll('canvas')
+			const canvasList = this.getCanvasList()
 			canvasList.forEach((canvas) => {
 				canvas.removeEventListener('click', this.doSelectSigner)
 			})
@@ -461,7 +466,7 @@ export default {
 						const pageInfo = this.filePagesMap[globalPageNumber]
 						const pageHeight = this.getPageHeightForFile(pageInfo.id, object.pageNumber)
 						if (!pageHeight) {
-
+							return
 						}
 
 						const left = Math.floor(object.normalizedCoordinates.llx)
