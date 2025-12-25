@@ -1347,6 +1347,7 @@
                 "required": [
                     "elementId",
                     "signRequestId",
+                    "fileId",
                     "type",
                     "coordinates",
                     "uuid"
@@ -1357,6 +1358,10 @@
                         "format": "int64"
                     },
                     "signRequestId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "fileId": {
                         "type": "integer",
                         "format": "int64"
                     },
@@ -5132,6 +5137,12 @@
                                         "nullable": true,
                                         "description": "ID of visible element. Each element has an ID that is returned on validation endpoints."
                                     },
+                                    "fileId": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "description": "File ID when using node identifier instead of UUID"
+                                    },
                                     "type": {
                                         "type": "string",
                                         "default": "",
@@ -5310,6 +5321,12 @@
                                         "type": "integer",
                                         "format": "int64",
                                         "description": "Id of sign request"
+                                    },
+                                    "fileId": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "description": "File ID when using node identifier instead of UUID"
                                     },
                                     "type": {
                                         "type": "string",

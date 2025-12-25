@@ -1854,6 +1854,8 @@ export type components = {
             elementId: number;
             /** Format: int64 */
             signRequestId: number;
+            /** Format: int64 */
+            fileId: number;
             type: string;
             coordinates: components["schemas"]["Coordinate"];
             uuid: string;
@@ -3500,6 +3502,11 @@ export interface operations {
                      */
                     elementId?: number | null;
                     /**
+                     * Format: int64
+                     * @description File ID when using node identifier instead of UUID
+                     */
+                    fileId?: number | null;
+                    /**
                      * @description The type of element to create, sginature, sinitial, date, datetime, text
                      * @default
                      */
@@ -3633,6 +3640,11 @@ export interface operations {
                      * @description Id of sign request
                      */
                     signRequestId: number;
+                    /**
+                     * Format: int64
+                     * @description File ID when using node identifier instead of UUID
+                     */
+                    fileId?: number | null;
                     /**
                      * @description The type of element to create, sginature, sinitial, date, datetime, text
                      * @default
