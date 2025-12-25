@@ -74,6 +74,16 @@ class IdentifyMethodMapper extends QBMapper {
 		}
 	}
 
+	public function deleteBySignRequestId(int $signRequestId): void {
+		$qb = $this->db->getQueryBuilder();
+		$qb->delete('libresign_identify_method')
+			->where(
+				$qb->expr()->eq('sign_request_id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT))
+			)
+			->executeStatement();
+		unset($this->methodsBySignRequest[$signRequestId]);
+	}
+
 	/**
 	 * @return array<string, string>[]
 	 */

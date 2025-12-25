@@ -545,11 +545,7 @@ class RequestSignatureService {
 
 		try {
 			$this->signRequestMapper->delete($signRequest);
-			foreach ($groupedIdentifyMethods as $identifyMethods) {
-				foreach ($identifyMethods as $identifyMethod) {
-					$this->identifyMethodMapper->delete($identifyMethod->getEntity());
-				}
-			}
+			$this->identifyMethod->deleteBySignRequestId($signRequestId);
 			$visibleElements = $this->fileElementMapper->getByFileIdAndSignRequestId($file->getId(), $signRequestId);
 			foreach ($visibleElements as $visibleElement) {
 				$this->fileElementMapper->delete($visibleElement);
@@ -630,6 +626,7 @@ class RequestSignatureService {
 			throw new \Exception($this->l10n->t('Please provide either UUID or File object'));
 		}
 		foreach ($signatures as $signRequest) {
+			$this->identifyMethod->deleteBySignRequestId($signRequest->getId());
 			$this->signRequestMapper->delete($signRequest);
 		}
 		$this->fileMapper->delete($fileData);
