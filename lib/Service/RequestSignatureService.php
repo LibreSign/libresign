@@ -115,7 +115,7 @@ class RequestSignatureService {
 
 	public function save(array $data): FileEntity {
 		$file = $this->saveFile($data);
-		$this->saveVisibleElements($data, $file);
+		$this->saveVisibleElements($data);
 		if (!isset($data['status'])) {
 			$data['status'] = $file->getStatus();
 		}
@@ -493,17 +493,13 @@ class RequestSignatureService {
 
 
 
-	private function saveVisibleElements(array $data, FileEntity $file): array {
+	private function saveVisibleElements(array $data): array {
 		if (empty($data['visibleElements'])) {
 			return [];
 		}
 		$elements = $data['visibleElements'];
 		foreach ($elements as $key => $element) {
-			if (empty($element['uuid']) && empty($element['fileId'])) {
-				$element['fileId'] = $file->getId();
-			}
-			$uuid = $element['uuid'] ?? '';
-			$elements[$key] = $this->fileElementService->saveVisibleElement($element, $uuid);
+			$elements[$key] = $this->fileElementService->saveVisibleElement($element);
 		}
 		return $elements;
 	}

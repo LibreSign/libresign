@@ -22,8 +22,8 @@ class FileElementService {
 	) {
 	}
 
-	public function saveVisibleElement(array $element, string $uuid = ''): FileElement {
-		$fileElement = $this->getVisibleElementFromProperties($element, $uuid);
+	public function saveVisibleElement(array $element): FileElement {
+		$fileElement = $this->getVisibleElementFromProperties($element);
 		if ($fileElement->getId()) {
 			$this->fileElementMapper->update($fileElement);
 		} else {
@@ -32,7 +32,7 @@ class FileElementService {
 		return $fileElement;
 	}
 
-	private function getVisibleElementFromProperties(array $properties, string $uuid = ''): FileElement {
+	private function getVisibleElementFromProperties(array $properties): FileElement {
 		if (!empty($properties['elementId'])) {
 			$fileElement = $this->fileElementMapper->getById($properties['elementId']);
 		} else {
@@ -40,12 +40,15 @@ class FileElementService {
 			$fileElement->setCreatedAt($this->timeFactory->getDateTime());
 		}
 		$file = null;
-		if ($uuid) {
-			$file = $this->fileMapper->getByUuid($uuid);
+		if (!empty($properties['uuid'])) {
+			$file = $this->fileMapper->getByUuid($properties['uuid']);
 			$fileElement->setFileId($file->getId());
 		} elseif (!empty($properties['fileId'])) {
 			$file = $this->fileMapper->getById($properties['fileId']);
 			$fileElement->setFileId($properties['fileId']);
+		}
+		if (!$file) {
+			throw new \InvalidArgumentException('File not found for visible element');
 		}
 		$coordinates = $this->translateCoordinatesToInternalNotation($properties, $file);
 		$fileElement->setSignRequestId($properties['signRequestId']);
