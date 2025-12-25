@@ -708,10 +708,10 @@ class SignRequestMapper extends QBMapper {
 		$row['signatureFlow'] = SignatureFlow::fromNumeric((int)($row['signature_flow']))->value;
 		$row['docmdpLevel'] = (int)($row['docmdp_level'] ?? 0);
 		$row['nodeType'] = $row['node_type'] ?? 'file';
+		$row['metadata'] = json_decode($row['metadata'] ?? '{}', true);
 
 		if ($row['node_type'] === 'envelope') {
-			$metadata = json_decode($row['metadata'] ?? '{}', true);
-			$row['filesCount'] = $metadata['filesCount'] ?? 0;
+			$row['filesCount'] = $row['metadata']['filesCount'] ?? 0;
 			$row['files'] = [];
 		} else {
 			$row['filesCount'] = 1;
