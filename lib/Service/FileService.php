@@ -315,19 +315,25 @@ class FileService {
 		$this->fileData->pdfVersion = $pdfParserService->getPdfVersion();
 	}
 
-	private function loadCertDataFromLibreSignFile(?File $file = null): void {
-		if (!empty($this->certData) || !$this->options->isValidateFile() || !$file instanceof File || !$file->getSignedNodeId()) {
-			return;
+
+	private function loadCertificateChain(\OCP\Files\File $fileNode, File $libreSignFile): array {
+		if (!$this->options->isValidateFile() || !$libreSignFile->getSignedNodeId()) {
+			return [];
 		}
 
-		$fileNode = $this->getFile();
-		$resource = $fileNode->fopen('rb');
-		$sha256 = $this->getSha256FromResource($resource);
-		if ($sha256 === $file->getSignedHash()) {
-			$this->pkcs12Handler->setIsLibreSignFile();
+		try {
+			$resource = $fileNode->fopen('rb');
+			$sha256 = $this->getSha256FromResource($resource);
+			rewind($resource);
+			if ($sha256 === $libreSignFile->getSignedHash()) {
+				$this->pkcs12Handler->setIsLibreSignFile();
+			}
+			$certData = $this->pkcs12Handler->getCertificateChain($resource);
+			fclose($resource);
+			return $certData;
+		} catch (\Exception $e) {
+			return [];
 		}
-		$this->certData = $this->pkcs12Handler->getCertificateChain($resource);
-		fclose($resource);
 	}
 
 	private function getSha256FromResource($resource): string {
@@ -348,8 +354,15 @@ class FileService {
 		if (!$this->options->isShowSigners()) {
 			return;
 		}
-		$this->loadCertDataFromLibreSignFile($this->file);
-		$this->signersLoader->loadSignersFromCertData($this->fileData, $this->certData, $this->options);
+
+		if (!$this->options->isValidateFile() || !$this->file instanceof File || !$this->file->getSignedNodeId()) {
+			return;
+		}
+		$fileNode = $this->getFile();
+		$certData = $this->loadCertificateChain($fileNode, $this->file);
+		if ($certData) {
+			$this->signersLoader->loadSignersFromCertData($this->fileData, $certData, $this->options->getHost());
+		}
 		$this->loadLibreSignSigners();
 	}
 
@@ -565,16 +578,15 @@ class FileService {
 	 * @return LibresignEnvelopeChildFile
 	 * @psalm-return LibresignEnvelopeChildFile
 	 */
-	private function buildEnvelopeChildData(File $childFile): array {
-		$fileData = [
-			'id' => $childFile->getId(),
-			'uuid' => $childFile->getUuid(),
-			'name' => $childFile->getName(),
-			'status' => $childFile->getStatus(),
-			'statusText' => $this->fileMapper->getTextOfStatus($childFile->getStatus()),
-			'nodeId' => $childFile->getNodeId(),
-			'signers' => [],
-		];
+	private function buildEnvelopeChildData(File $childFile): stdClass {
+		$fileData = new stdClass();
+		$fileData->id = $childFile->getId();
+		$fileData->uuid = $childFile->getUuid();
+		$fileData->name = $childFile->getName();
+		$fileData->status = $childFile->getStatus();
+		$fileData->statusText = $this->fileMapper->getTextOfStatus($childFile->getStatus());
+		$fileData->nodeId = $childFile->getNodeId();
+		$fileData->signers = [];
 
 		$signRequests = $this->signRequestMapper->getByFileId($childFile->getId());
 		foreach ($signRequests as $signRequest) {
@@ -601,14 +613,24 @@ class FileService {
 				$displayName = $email;
 			}
 
-			$fileData['signers'][] = [
-				'signRequestId' => $signRequest->getId(),
-				'displayName' => $displayName,
-				'email' => $email,
-				'signed' => $signed,
-				'status' => $signRequest->getStatus(),
-				'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signRequest->getStatus()),
-			];
+			$signer = new stdClass();
+			$signer->signRequestId = $signRequest->getId();
+			$signer->displayName = $displayName;
+			$signer->email = $email;
+			$signer->signed = $signed;
+			$signer->status = $signRequest->getStatus();
+			$signer->statusText = $this->signRequestMapper->getTextOfSignerStatus($signRequest->getStatus());
+			$fileData->signers[] = $signer;
+		}
+
+		if ($this->options->isValidateFile() && $childFile->getSignedNodeId()) {
+			$fileNode = $this->root->getUserFolder($childFile->getUserId())->getFirstNodeById($childFile->getSignedNodeId());
+			if ($fileNode instanceof \OCP\Files\File) {
+				$certData = $this->loadCertificateChain($fileNode, $childFile);
+				if (!empty($certData)) {
+					$this->signersLoader->loadSignersFromCertData($fileData, $certData, $this->options->getHost());
+				}
+			}
 		}
 
 		return $fileData;
