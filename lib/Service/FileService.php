@@ -581,10 +581,6 @@ class FileService {
 		}
 	}
 
-	/**
-	 * @return LibresignEnvelopeChildFile
-	 * @psalm-return LibresignEnvelopeChildFile
-	 */
 	private function buildEnvelopeChildData(File $childFile): stdClass {
 		$fileData = new stdClass();
 		$fileData->id = $childFile->getId();
