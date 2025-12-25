@@ -809,6 +809,7 @@ class FileService {
 		$this->fileElementService->deleteVisibleElements($file->getId());
 		$list = $this->signRequestMapper->getByFileId($file->getId());
 		foreach ($list as $signRequest) {
+			$this->identifyMethodService->deleteBySignRequestId($signRequest->getId());
 			$this->signRequestMapper->delete($signRequest);
 		}
 		$this->idDocsMapper->deleteByFileId($file->getId());
