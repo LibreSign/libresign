@@ -56,12 +56,7 @@ export const useSignMethodsStore = defineStore('signMethods', {
 			set(this.settings.password, 'hasSignatureFile', hasSignatureFile)
 		},
 		needCreatePassword() {
-			return this.needSignWithPassword()
-				&& (
-					!Object.hasOwn(this.settings, 'password')
-					|| !Object.hasOwn(this.settings.password, 'hasSignatureFile')
-					|| !this.settings.password.hasSignatureFile
-				)
+			return this.needSignWithPassword() && !this.hasSignatureFile()
 		},
 		needSignWithPassword() {
 			return Object.hasOwn(this.settings, 'password')
