@@ -355,7 +355,7 @@ class FileService {
 			return;
 		}
 
-		if (!$this->options->isValidateFile() || !$this->file instanceof File) {
+		if (!$this->file instanceof File) {
 			return;
 		}
 
