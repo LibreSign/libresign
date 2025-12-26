@@ -416,6 +416,41 @@ class SignRequestMapper extends QBMapper {
 		return $return;
 	}
 
+	public function getFilesToSearchProvider(IUser $user, string $fileName, int $limit, int $offset): array {
+		$filter = [
+			'page' => ($offset / $limit) + 1,
+			'length' => $limit,
+			'fileName' => $fileName,
+		];
+
+		$sort = [
+			'sortBy' => 'created_at',
+			'sortDirection' => 'desc',
+		];
+
+		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder($user->getUID(), $filter, false, $sort);
+
+
+		$qb->orderBy('f.created_at', 'DESC');
+
+		$result = $qb->executeQuery();
+		$files = [];
+
+		while ($row = $result->fetch()) {
+			try {
+				$file = File::fromRow($row);
+
+				$files[] = $file;
+			} catch (\Exception $e) {
+				continue;
+			}
+		}
+
+		$result->closeCursor();
+
+		return $files;
+	}
+
 	/**
 	 * @param array<SignRequest> $signRequests
 	 * @return FileElement[][]
@@ -487,7 +522,7 @@ class SignRequestMapper extends QBMapper {
 		return $file->fromRow($row);
 	}
 
-	private function getFilesAssociatedFilesWithMeQueryBuilder(string $userId, array $filter = [], bool $count = false): IQueryBuilder {
+	private function getFilesAssociatedFilesWithMeQueryBuilder(string $userId, array $filter = [], bool $count = false, array $sort = []): IQueryBuilder {
 		$qb = $this->db->getQueryBuilder();
 		$qb->from('libresign_file', 'f')
 			->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id')
@@ -580,17 +615,14 @@ class SignRequestMapper extends QBMapper {
 					$qb->expr()->lte('f.created_at', $qb->createNamedParameter($end, IQueryBuilder::PARAM_STR))
 				);
 			}
+			if (!empty($filter['fileName'])) {
+				$qb->andWhere(
+					$qb->expr()->like('f.name', $qb->createNamedParameter('%' . $this->db->escapeLikeParameter($filter['fileName']) . '%'))
+				);
+			}
 		}
-		return $qb;
-	}
 
-	private function getFilesAssociatedFilesWithMeStmt(
-		string $userId,
-		?array $filter = [],
-		?array $sort = [],
-	): Pagination {
-		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder($userId, $filter);
-		if (!empty($sort['sortBy'])) {
+		if (!empty($sort['sortBy']) && !empty($sort['sortDirection'])) {
 			switch ($sort['sortBy']) {
 				case 'name':
 				case 'status':
@@ -606,6 +638,16 @@ class SignRequestMapper extends QBMapper {
 					);
 			}
 		}
+
+		return $qb;
+	}
+
+	private function getFilesAssociatedFilesWithMeStmt(
+		string $userId,
+		?array $filter = [],
+		?array $sort = [],
+	): Pagination {
+		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder($userId, $filter, false, $sort);
 
 		$countQb = $this->getFilesAssociatedFilesWithMeQueryBuilder(
 			userId: $userId,
