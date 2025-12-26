@@ -51,12 +51,14 @@ use OCP\IUserManager;
 use OCP\IUserSession;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
 /**
  * @internal
  */
+#[Group('DB')]
 final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected FileMapper $fileMapper;
 	protected SignRequestMapper $signRequestMapper;
