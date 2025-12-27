@@ -106,6 +106,7 @@ class SignFileService {
 		private DocMdpHandler $docMdpHandler,
 		private PdfSignatureDetectionService $pdfSignatureDetectionService,
 		private SequentialSigningService $sequentialSigningService,
+		private FileStatusService $fileStatusService,
 	) {
 	}
 
@@ -531,6 +532,10 @@ class SignFileService {
 		$this->libreSignFile->setSignedHash($hash);
 		$this->setNewStatusIfNecessary();
 		$this->fileMapper->update($this->libreSignFile);
+
+		if ($this->libreSignFile->hasParent()) {
+			$this->fileStatusService->propagateStatusToParent($this->libreSignFile->getParentFileId());
+		}
 	}
 
 	protected function dispatchSignedEvent(): void {

@@ -34,9 +34,9 @@ use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
 
 class RequestSignatureService {
-	use TFile;
 
 	public function __construct(
+		protected FileService $fileService,
 		protected IL10N $l10n,
 		protected IdentifyMethodService $identifyMethod,
 		protected SignRequestMapper $signRequestMapper,
@@ -115,13 +115,13 @@ class RequestSignatureService {
 
 	public function save(array $data): FileEntity {
 		$file = $this->saveFile($data);
-		$this->saveVisibleElements($data);
 		if (!isset($data['status'])) {
 			$data['status'] = $file->getStatus();
 		}
 		$this->sequentialSigningService->setFile($file);
 		$this->associateToSigners($data, $file);
 		$this->propagateSignersToChildren($file, $data);
+		$this->saveVisibleElements($data, $file);
 
 		return $file;
 	}
@@ -142,6 +142,10 @@ class RequestSignatureService {
 			$this->identifyMethod->clearCache();
 			$this->sequentialSigningService->setFile($child);
 			$this->associateToSigners($dataWithoutNotification, $child);
+		}
+
+		if ($envelope->getStatus() > FileEntity::STATUS_DRAFT) {
+			$this->fileStatusService->propagateStatusToChildren($envelope->getId(), $envelope->getStatus());
 		}
 	}
 
@@ -187,7 +191,7 @@ class RequestSignatureService {
 
 	private function processFileData(array $fileData, ?IUser $userManager, array $settings): Node {
 		if (isset($fileData['uploadedFile'])) {
-			return $this->getNodeFromData([
+			return $this->fileService->getNodeFromData([
 				'userManager' => $userManager,
 				'name' => $fileData['name'] ?? '',
 				'uploadedFile' => $fileData['uploadedFile'],
@@ -195,7 +199,7 @@ class RequestSignatureService {
 			]);
 		}
 
-		return $this->getNodeFromData([
+		return $this->fileService->getNodeFromData([
 			'userManager' => $userManager,
 			'name' => $fileData['name'] ?? '',
 			'file' => $fileData,
@@ -293,7 +297,7 @@ class RequestSignatureService {
 			}
 		}
 
-		$node = $this->getNodeFromData($data);
+		$node = $this->fileService->getNodeFromData($data);
 
 		$file = new FileEntity();
 		$file->setNodeId($node->getId());
@@ -493,15 +497,66 @@ class RequestSignatureService {
 
 
 
-	private function saveVisibleElements(array $data): array {
+	private function saveVisibleElements(array $data, FileEntity $file): array {
 		if (empty($data['visibleElements'])) {
 			return [];
 		}
-		$elements = $data['visibleElements'];
-		foreach ($elements as $key => $element) {
-			$elements[$key] = $this->fileElementService->saveVisibleElement($element);
+		$persisted = [];
+		foreach ($data['visibleElements'] as $element) {
+			$toPersist = $this->buildPropagatedElements($file, $element);
+			foreach ($toPersist as $item) {
+				$persisted[] = $this->fileElementService->saveVisibleElement($item);
+			}
 		}
-		return $elements;
+		return $persisted;
+	}
+
+	private function buildPropagatedElements(FileEntity $file, array $element): array {
+		$targetFileId = null;
+		if (!empty($element['fileId'])) {
+			$targetFileId = (int)$element['fileId'];
+		} elseif (!empty($element['uuid'])) {
+			try {
+				$targetFile = $this->fileMapper->getByUuid($element['uuid']);
+				$targetFileId = $targetFile->getId();
+				$element['fileId'] = $targetFileId;
+				unset($element['uuid']);
+			} catch (\Throwable) {
+				$targetFileId = null;
+			}
+		}
+
+		if ($file->isEnvelope() && !empty($element['signRequestId'])) {
+			$childrenSignRequests = $this->signRequestMapper->getByEnvelopeChildrenAndIdentifyMethod($file->getId(), (int)$element['signRequestId']);
+			if (empty($childrenSignRequests)) {
+				$identifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId((int)$element['signRequestId']);
+				$firstIdentifyMethodGroup = current(reset($identifyMethods));
+				$childFiles = $this->fileMapper->getChildrenFiles($file->getId());
+				foreach ($childFiles as $childFile) {
+					$childSr = $this->signRequestService->getSignRequestByIdentifyMethod($firstIdentifyMethodGroup, $childFile->getId());
+					if ($childSr && $childSr->getId()) {
+						$childrenSignRequests[] = $childSr;
+					}
+				}
+			}
+
+			$persistList = [];
+			$envelopeElement = $element;
+			$envelopeElement['fileId'] = $file->getId();
+			unset($envelopeElement['uuid']);
+			$persistList[] = $envelopeElement;
+
+			foreach ($childrenSignRequests as $childSignRequest) {
+				$clone = $element;
+				$clone['signRequestId'] = $childSignRequest->getId();
+				$clone['fileId'] = $childSignRequest->getFileId();
+				unset($clone['uuid']);
+				$persistList[] = $clone;
+			}
+			return $persistList;
+		}
+
+		return [$element];
 	}
 
 	public function validateNewRequestToFile(array $data): void {
