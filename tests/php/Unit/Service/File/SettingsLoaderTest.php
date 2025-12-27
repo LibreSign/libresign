@@ -232,4 +232,67 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->assertEquals(SettingsLoader::IDENTIFICATION_DOCUMENTS_NEED_SEND, $status);
 	}
+
+	public function testGetUserIdentificationSettingsDisabled(): void {
+		$this->appConfig->method('getValueBool')
+			->with(Application::APP_ID, 'identification_documents', false)
+			->willReturn(false);
+
+		$service = $this->getService();
+		$result = $service->getUserIdentificationSettings('user123');
+
+		$this->assertFalse($result['needIdentificationDocuments']);
+		$this->assertFalse($result['identificationDocumentsWaitingApproval']);
+	}
+
+	public function testGetUserIdentificationSettingsNeedSend(): void {
+		$this->appConfig->method('getValueBool')
+			->with(Application::APP_ID, 'identification_documents', false)
+			->willReturn(true);
+
+		$this->fileMapper->method('getFilesOfAccount')->with('user456')->willReturn([]);
+
+		$service = $this->getService();
+		$result = $service->getUserIdentificationSettings('user456');
+
+		$this->assertTrue($result['needIdentificationDocuments']);
+		$this->assertFalse($result['identificationDocumentsWaitingApproval']);
+	}
+
+	public function testGetUserIdentificationSettingsNeedApproval(): void {
+		$this->appConfig->method('getValueBool')
+			->with(Application::APP_ID, 'identification_documents', false)
+			->willReturn(true);
+
+		$file = new File();
+		$file->setStatus(File::STATUS_DRAFT);
+
+		$this->fileMapper->method('getFilesOfAccount')->with('user789')->willReturn([$file]);
+
+		$service = $this->getService();
+		$result = $service->getUserIdentificationSettings('user789');
+
+		$this->assertTrue($result['needIdentificationDocuments']);
+		$this->assertTrue($result['identificationDocumentsWaitingApproval']);
+	}
+
+	public function testGetUserIdentificationSettingsApproved(): void {
+		$this->appConfig->method('getValueBool')
+			->with(Application::APP_ID, 'identification_documents', false)
+			->willReturn(true);
+
+		$file1 = new File();
+		$file1->setStatus(File::STATUS_SIGNED);
+
+		$file2 = new File();
+		$file2->setStatus(File::STATUS_SIGNED);
+
+		$this->fileMapper->method('getFilesOfAccount')->with('user999')->willReturn([$file1, $file2]);
+
+		$service = $this->getService();
+		$result = $service->getUserIdentificationSettings('user999');
+
+		$this->assertFalse($result['needIdentificationDocuments']);
+		$this->assertFalse($result['identificationDocumentsWaitingApproval']);
+	}
 }
