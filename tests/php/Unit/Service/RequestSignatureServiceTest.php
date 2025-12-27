@@ -226,7 +226,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		return [
 			['pdfff', ['extension' => 'pdfff']],
 			['', []],
-			['PDF', ['extension' => 'pdf', 'isValid' => true]],
+			['PDF', ['extension' => 'pdf', 'isValid' => true, 'pdfVersion' => '']],
 		];
 	}
 
