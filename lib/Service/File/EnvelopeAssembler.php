@@ -13,6 +13,7 @@ use DateTimeInterface;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\Files\IRootFolder;
 use Psr\Log\LoggerInterface;
@@ -27,6 +28,7 @@ class EnvelopeAssembler {
 		private ?CertificateChainService $certificateChainService,
 		private \OCA\Libresign\Handler\SignEngine\Pkcs12Handler $pkcs12Handler,
 		private LoggerInterface $logger,
+		private FileElementService $fileElementService,
 	) {
 	}
 
@@ -40,6 +42,7 @@ class EnvelopeAssembler {
 		$fileData->nodeId = $childFile->getNodeId();
 		$fileData->metadata = $childFile->getMetadata();
 		$fileData->signers = [];
+		$fileData->visibleElements = [];
 
 		$signRequests = $this->signRequestMapper->getByFileId($childFile->getId());
 		foreach ($signRequests as $signRequest) {
@@ -74,6 +77,19 @@ class EnvelopeAssembler {
 			$signer->status = $signRequest->getStatus();
 			$signer->statusText = $this->signRequestMapper->getTextOfSignerStatus($signRequest->getStatus());
 			$fileData->signers[] = $signer;
+		}
+
+		if ($options->isShowVisibleElements()) {
+			$childMetadata = $childFile->getMetadata();
+			foreach ($this->signRequestMapper->getVisibleElementsFromSigners($signRequests) as $row) {
+				if (empty($row)) {
+					continue;
+				}
+				$fileData->visibleElements = array_merge(
+					$this->fileElementService->formatVisibleElements($row, $childMetadata),
+					$fileData->visibleElements
+				);
+			}
 		}
 
 		if ($options->isValidateFile() && $childFile->getSignedNodeId()) {
