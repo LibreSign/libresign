@@ -33,6 +33,9 @@ class MetadataLoader {
 
 		try {
 			$fileNode = $this->getFileNode($file);
+			$metadata = $file->getMetadata() ?? [];
+
+			$fileData->metadata = $metadata;
 
 			if (method_exists($fileNode, 'getSize')) {
 				$fileData->size = $fileNode->getSize();
@@ -46,9 +49,15 @@ class MetadataLoader {
 			}
 
 			$fileData->pages = $this->getPages($file);
+
+			$fileData->totalPages = (int)($metadata['p'] ?? count($fileData->pages ?? []));
+			$fileData->pdfVersion = (string)($metadata['pdfVersion'] ?? '');
 		} catch (\Throwable $e) {
 			$this->logger->warning('Failed to load file metadata: ' . $e->getMessage());
 		}
+
+		$fileData->totalPages ??= 0;
+		$fileData->pdfVersion ??= '';
 	}
 
 	/**
