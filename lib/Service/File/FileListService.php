@@ -120,8 +120,6 @@ class FileListService {
 			'signatureFlow' => $fileEntity->getSignatureFlow(),
 			'nodeType' => $fileEntity->getNodeType(),
 		];
-
-		$file['id'] = $file['nodeId'];
 		$file['signatureFlow'] = SignatureFlow::fromNumeric($file['signatureFlow'])->value;
 		$file['statusText'] = $this->fileMapper->getTextOfStatus($file['status']);
 		$file['requested_by'] = [
@@ -147,7 +145,7 @@ class FileListService {
 		}
 
 		// Remove raw fields not needed in response (keep fileId for signer loop)
-		unset($file['userId'], $file['createdAt'], $file['nodeId']);
+		unset($file['userId'], $file['createdAt']);
 
 		$file['signers'] = [];
 		foreach ($signers as $signer) {

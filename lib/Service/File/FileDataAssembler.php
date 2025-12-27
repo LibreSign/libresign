@@ -29,6 +29,7 @@ class FileDataAssembler {
 	}
 
 	public function assemble(File $file, \stdClass $fileData, FileResponseOptions $options): void {
+		$fileData->id = $file->getId();
 		$fileData->uuid = $file->getUuid();
 		$fileData->name = $file->getName();
 		$fileData->status = $file->getStatus();
