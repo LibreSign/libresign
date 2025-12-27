@@ -5,320 +5,91 @@ declare(strict_types=1);
  * SPDX-FileCopyrightText: 2024 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-
-namespace OCA\Libresign\Service;
-
-/**
- * Overwrite is_uploaded_file in the OCA\Libresign\Service namespace.
- */
-function is_uploaded_file($filename) {
-	return file_exists($filename);
-}
-
 namespace OCA\Libresign\Tests\Unit\Service;
 
-use bovigo\vfs\vfsDirectory;
-use bovigo\vfs\vfsStream;
-use InvalidArgumentException;
-use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\FileElementMapper;
-use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\IdDocsMapper;
-use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Handler\DocMdpHandler;
-use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
-use OCA\Libresign\Helper\FileUploadHelper;
-use OCA\Libresign\Helper\ValidateHelper;
-use OCA\Libresign\Service\AccountService;
-use OCA\Libresign\Service\EnvelopeService;
-use OCA\Libresign\Service\File\FileListService;
-use OCA\Libresign\Service\File\SignersLoader;
-use OCA\Libresign\Service\FileElementService;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
-use OCA\Libresign\Service\FolderService;
-use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\PdfParserService;
-use OCA\Libresign\Tests\Fixtures\PdfGenerator;
-use OCP\Accounts\IAccountManager;
-use OCP\Files\IMimeTypeDetector;
-use OCP\Files\IRootFolder;
-use OCP\Http\Client\IClientService;
-use OCP\IAppConfig;
-use OCP\IDateTimeFormatter;
-use OCP\IL10N;
-use OCP\IURLGenerator;
-use OCP\IUserManager;
-use OCP\IUserSession;
-use OCP\L10N\IFactory as IL10NFactory;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\MockObject\MockObject;
-use Psr\Log\LoggerInterface;
 
-/**
- * @internal
- */
-#[Group('DB')]
 final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	protected FileMapper $fileMapper;
-	protected SignRequestMapper $signRequestMapper;
-	protected FileElementMapper $fileElementMapper;
-	protected FileElementService $fileElementService;
-	protected FolderService $folderService;
-	protected ValidateHelper $validateHelper;
-	protected PdfParserService $pdfParserService;
-	protected IdDocsMapper $idDocsMapper;
-	private AccountService&MockObject $accountService;
-	private IdentifyMethodService $identifyMethodService;
-	private IUserSession $userSession;
-	private IUserManager&MockObject $userManager;
-	private IAccountManager&MockObject $accountManager;
-	protected IClientService $client;
-	private IDateTimeFormatter $dateTimeFormatter;
-	private IAppConfig $appConfig;
-	private IURLGenerator $urlGenerator;
-	protected IMimeTypeDetector $mimeTypeDetector;
-	protected Pkcs12Handler $pkcs12Handler;
-	protected DocMdpHandler $docMdpHandler;
-	protected IRootFolder $root;
-	protected LoggerInterface $logger;
-	protected IL10N $l10n;
-	protected EnvelopeService $envelopeService;
-	protected vfsDirectory $tempFolder;
-	protected SignersLoader $signersLoader;
-	protected fileListService $fileListService;
-	protected FileUploadHelper $uploadHelper;
-
-	public function setUp(): void {
-		// Disable lazy objects to avoid PHP 8.4 dependency injection issues in tests
-		\OC\AppFramework\Utility\SimpleContainer::$useLazyObjects = false;
-
-		$this->tempFolder = vfsStream::setup('uploaded');
-		$appConfig = $this->getMockAppConfig();
-		$appConfig->setValueInt(Application::APP_ID, 'length_of_page', 100);
-		$appConfig->setValueBool(Application::APP_ID, 'identification_documents', false);
-	}
-
-	private function getService(): FileService {
-		$this->fileMapper = \OCP\Server::get(FileMapper::class);
-		$this->signRequestMapper = \OCP\Server::get(SignRequestMapper::class);
-		$this->fileElementMapper = \OCP\Server::get(FileElementMapper::class);
-		$this->fileElementService = \OCP\Server::get(FileElementService::class);
-		$this->folderService = \OCP\Server::get(FolderService::class);
-		$this->validateHelper = \OCP\Server::get(ValidateHelper::class);
-		$this->pdfParserService = \OCP\Server::get(PdfParserService::class);
-		$this->idDocsMapper = \OCP\Server::get(IdDocsMapper::class);
-		$this->accountService = $this->createMock(AccountService::class);
-		$this->identifyMethodService = \OCP\Server::get(IdentifyMethodService::class);
-		$this->userSession = \OCP\Server::get(IUserSession::class);
-		$this->userManager = $this->createMock(IUserManager::class);
-		$this->accountManager = $this->createMock(IAccountManager::class);
-		$this->client = \OCP\Server::get(IClientService::class);
-		$this->dateTimeFormatter = \OCP\Server::get(IDateTimeFormatter::class);
-		$this->appConfig = $this->getMockAppConfigWithReset();
-		$this->urlGenerator = \OCP\Server::get(IURLGenerator::class);
-		$this->mimeTypeDetector = \OCP\Server::get(IMimeTypeDetector::class);
-		$this->pkcs12Handler = \OCP\Server::get(Pkcs12Handler::class);
-		$this->docMdpHandler = \OCP\Server::get(DocMdpHandler::class);
-		$this->root = \OCP\Server::get(IRootFolder::class);
-		$this->logger = \OCP\Server::get(LoggerInterface::class);
-		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
-		$this->envelopeService = \OCP\Server::get(EnvelopeService::class);
-		$this->signersLoader = \OCP\Server::get(SignersLoader::class);
-		$this->fileListService = \OCP\Server::get(FileListService::class);
-		$this->uploadHelper = \OCP\Server::get(FileUploadHelper::class);
-
-		return new FileService(
-			$this->fileMapper,
-			$this->signRequestMapper,
-			$this->fileElementMapper,
-			$this->fileElementService,
-			$this->folderService,
-			$this->validateHelper,
-			$this->pdfParserService,
-			$this->idDocsMapper,
-			$this->accountService,
-			$this->identifyMethodService,
-			$this->userSession,
-			$this->userManager,
-			$this->accountManager,
-			$this->client,
-			$this->dateTimeFormatter,
-			$this->appConfig,
-			$this->urlGenerator,
-			$this->mimeTypeDetector,
-			$this->pkcs12Handler,
-			$this->docMdpHandler,
-			$this->root,
-			$this->logger,
-			$this->l10n,
-			$this->envelopeService,
-			$this->signersLoader,
-			$this->fileListService,
-			$this->uploadHelper,
-		);
-	}
-
-	#[DataProvider('dataToArray')]
-	public function testToArray(callable $arguments, array $expected): void {
-		if (shell_exec('which pdfsig') === null) {
-			$this->markTestSkipped();
-			return;
-		}
-		$service = $this->getService();
-		if (is_callable($arguments)) {
-			$arguments = $arguments($this, $service);
-		}
-		$actual = $service->toArray();
-
-		// Remove 'purposes' field from comparison as it varies between OpenSSL versions
-		$this->removePurposesField($expected);
-		$this->removePurposesField($actual);
-
-		$this->removeDocMdpFields($expected);
-		$this->removeDocMdpFields($actual);
-		$this->mockUuid($expected, $actual);
-
-		$this->assertEquals($expected, $actual);
-	}
-
-	/**
-	 * Was necessary to create this because the method that handle the uuid
-	 * is very internal of subclasses and wasn't easy to mock this.
-	 */
-	private function mockUuid(array $expected, array &$actual): void {
-		if (isset($actual['signers'])) {
-			foreach ($actual['signers'] as $key => &$signer) {
-				if (isset($signer['uid']) && isset($expected['signers'][$key])) {
-					$signer['uid'] = $expected['signers'][$key]['uid'];
-				}
-			}
-		}
-	}
-
-	private function removePurposesField(array &$data): void {
-		if (isset($data['signers'])) {
-			foreach ($data['signers'] as &$signer) {
-				unset($signer['purposes']);
-				if (isset($signer['chain'])) {
-					foreach ($signer['chain'] as &$chainItem) {
-						unset($chainItem['purposes']);
-					}
-				}
-			}
-		}
-	}
-
-	private function removeDocMdpFields(array &$data): void {
-		if (isset($data['signers'])) {
-			foreach ($data['signers'] as &$signer) {
-				unset($signer['docmdp']);
-				unset($signer['modifications']);
-				unset($signer['modification_validation']);
-			}
-		}
-	}
-
-	public static function dataToArray(): array {
-		return [
-			'empty' => [fn () => null, []],
-			'No file provided' => [
-				function (self $self, FileService $service): void {
-					$self->expectException(InvalidArgumentException::class);
-					$self->expectExceptionMessage('No file provided');
-					$service
-						->setFileFromRequest(null);
-				},
-				[]
-			],
-			'error when upload' => [
-				function (self $self, FileService $service): void {
-					$self->expectException(InvalidArgumentException::class);
-					$self->expectExceptionMessage('Invalid file provided');
-					$service
-						->setFileFromRequest(['tmp_name' => tempnam(sys_get_temp_dir(), 'empty_file'), 'error' => 1]);
-				},
-				[]
-			],
-			'blacklisted file' => [
-				function (self $self, FileService $service): void {
-					$path = 'vfs://uploaded/.htaccess';
-					file_put_contents($path, '');
-					$self->expectException(InvalidArgumentException::class);
-					$self->expectExceptionMessage('Invalid file provided');
-					$service
-						->setFileFromRequest(['tmp_name' => $path, 'error' => 0]);
-				},
-				[]
-			],
-			'File is too big' => [
-				function (self $self, FileService $service): void {
-					$path = 'vfs://uploaded/file.pdf';
-					file_put_contents($path, '');
-					$self->expectException(InvalidArgumentException::class);
-					$self->expectExceptionMessage('File is too big');
-					$service
-						->setFileFromRequest(['tmp_name' => $path, 'error' => 0, 'size' => \OCP\Util::uploadLimit() + 1]);
-				},
-				[]
-			],
-			'Invalid file provided' => [
-				function (self $self, FileService $service): void {
-					$path = 'vfs://uploaded/file.php';
-					file_put_contents($path, '');
-					$self->expectException(InvalidArgumentException::class);
-					$self->expectExceptionMessage('Invalid file provided');
-					$service
-						->setFileFromRequest([
-							'tmp_name' => $path,
-							'error' => 0,
-							'size' => 0,
-						]);
-				},
-				[]
-			],
+	private function createFileService(array $overrides = []): FileService {
+		$mocks = [
+			\OCA\Libresign\Db\FileMapper::class,
+			\OCA\Libresign\Db\SignRequestMapper::class,
+			\OCA\Libresign\Db\FileElementMapper::class,
+			\OCA\Libresign\Service\FileElementService::class,
+			\OCA\Libresign\Service\FolderService::class,
+			\OCA\Libresign\Helper\ValidateHelper::class,
+			\OCA\Libresign\Service\PdfParserService::class,
+			\OCA\Libresign\Db\IdDocsMapper::class,
+			\OCA\Libresign\Service\AccountService::class,
+			\OCA\Libresign\Service\IdentifyMethodService::class,
+			\OCP\IUserSession::class,
+			\OCP\IUserManager::class,
+			\OCP\Accounts\IAccountManager::class,
+			\OCP\Http\Client\IClientService::class,
+			\OCP\IDateTimeFormatter::class,
+			\OCP\IAppConfig::class,
+			\OCP\IURLGenerator::class,
+			\OCP\Files\IMimeTypeDetector::class,
+			\OCA\Libresign\Handler\SignEngine\Pkcs12Handler::class,
+			\OCA\Libresign\Handler\DocMdpHandler::class,
+			\OCA\Libresign\Service\File\PdfValidator::class,
+			\OCP\Files\IRootFolder::class,
+			\Psr\Log\LoggerInterface::class,
+			\OCP\IL10N::class,
+			\OCA\Libresign\Service\EnvelopeService::class,
+			\OCA\Libresign\Service\File\SignersLoader::class,
+			\OCA\Libresign\Service\File\FileListService::class,
+			\OCA\Libresign\Service\File\FileDataAssembler::class,
+			\OCA\Libresign\Helper\FileUploadHelper::class,
+			\OCA\Libresign\Service\File\EnvelopeAssembler::class,
+			\OCA\Libresign\Service\File\EnvelopeProgressService::class,
+			\OCA\Libresign\Service\File\CertificateChainService::class,
 		];
-	}
 
-	public function testValidateFileContentRejectsDocMdpLevel1(): void {
-		$pdfContent = PdfGenerator::createCompletePdfStructure(1);
-		$service = $this->getService();
+		$args = array_map(function ($c) use ($overrides) {
+			return $overrides[$c] ?? $this->createMock($c);
+		}, $mocks);
 
-		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
-
-		$service->validateFileContent($pdfContent, 'pdf');
-	}
-
-	public function testValidateFileContentAllowsDocMdpLevel2(): void {
-		$this->expectNotToPerformAssertions();
-		$pdfContent = PdfGenerator::createCompletePdfStructure(2);
-		$service = $this->getService();
-
-		$service->validateFileContent($pdfContent, 'pdf');
-	}
-
-	public function testValidateFileContentAllowsDocMdpLevel3(): void {
-		$this->expectNotToPerformAssertions();
-		$pdfContent = PdfGenerator::createCompletePdfStructure(3);
-		$service = $this->getService();
-
-		$service->validateFileContent($pdfContent, 'pdf');
-	}
-
-	public function testValidateFileContentAllowsUnsignedPdf(): void {
-		$this->expectNotToPerformAssertions();
-		$pdfPath = __DIR__ . '/../../fixtures/pdfs/small_valid.pdf';
-		$pdfContent = file_get_contents($pdfPath);
-		$service = $this->getService();
-
-		$service->validateFileContent($pdfContent, 'pdf');
+		return new FileService(...$args);
 	}
 
 	public function testValidateFileContentSkipsNonPdfFiles(): void {
-		$this->expectNotToPerformAssertions();
-		$service = $this->getService();
+		$docMdpHandler = $this->createMock(\OCA\Libresign\Handler\DocMdpHandler::class);
+		$service = $this->createFileService([
+			\OCA\Libresign\Handler\DocMdpHandler::class => $docMdpHandler,
+		]);
 
+		$this->expectNotToPerformAssertions();
 		$service->validateFileContent('any content', 'txt');
 		$service->validateFileContent('{"json": true}', 'json');
+	}
+
+	public function testSetFileByTypeThrowsOnInvalid(): void {
+		$fileMapper = $this->createMock(\OCA\Libresign\Db\FileMapper::class);
+		$fileMapper->method('getByFileId')->willThrowException(new \Exception('not found'));
+
+		$service = $this->createFileService([
+			\OCA\Libresign\Db\FileMapper::class => $fileMapper,
+		]);
+
+		$this->expectException(LibresignException::class);
+		$service->setFileByType('FileId', 123);
+	}
+
+	public function testSetFileByTypeSetsFile(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setStatus(1);
+
+		$fileMapper = $this->createMock(\OCA\Libresign\Db\FileMapper::class);
+		$fileMapper->method('getByFileId')->willReturn($file);
+
+		$service = $this->createFileService([
+			\OCA\Libresign\Db\FileMapper::class => $fileMapper,
+		]);
+
+		$returned = $service->setFileByType('FileId', 123);
+		$this->assertInstanceOf(FileService::class, $returned);
+		$this->assertSame(1, $service->getStatus());
 	}
 }

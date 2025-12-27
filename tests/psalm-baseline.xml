@@ -166,9 +166,4 @@
       <code><![CDATA[Process]]></code>
     </UndefinedClass>
   </file>
-  <file src="lib/Service/TFile.php">
-    <UndefinedDocblockClass>
-      <code><![CDATA[PdfTypeException]]></code>
-    </UndefinedDocblockClass>
-  </file>
 </files>
