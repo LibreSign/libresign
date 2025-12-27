@@ -151,10 +151,12 @@ class FileElementService {
 	 * @param array $fileMetadata Metadata of the file (expects page dimensions under key 'd')
 	 * @psalm-return list<LibresignVisibleElement>
 	 */
-	public function formatVisibleElements(array $visibleElements, array $fileMetadata): array {
+	public function formatVisibleElements(array $visibleElements, array $fileMetadata = []): array {
 		$result = [];
 		foreach ($visibleElements as $fileElement) {
-			$dimension = $fileMetadata['d'][$fileElement->getPage() - 1] ?? ['h' => 0];
+			$elementMetadata = $fileElement->getMetadata();
+			$metadata = $fileMetadata ?: (is_array($elementMetadata) ? $elementMetadata : []);
+			$dimension = $metadata['d'][$fileElement->getPage() - 1] ?? ['h' => 0];
 			$height = (int)abs($fileElement->getUry() - $fileElement->getLly());
 			$width = (int)abs($fileElement->getUrx() - $fileElement->getLlx());
 			$top = (int)abs($dimension['h'] - $fileElement->getUry());

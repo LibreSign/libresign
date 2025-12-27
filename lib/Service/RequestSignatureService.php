@@ -379,12 +379,12 @@ class RequestSignatureService {
 				'extension' => $extension,
 			];
 			if ($metadata['extension'] === 'pdf') {
+				$pdfParser = $this->pdfParserService->setFile($node);
 				$metadata = array_merge(
 					$metadata,
-					$this->pdfParserService
-						->setFile($node)
-						->getPageDimensions()
+					$pdfParser->getPageDimensions()
 				);
+				$metadata['pdfVersion'] = $pdfParser->getPdfVersion();
 			}
 		}
 		return $metadata;
@@ -503,61 +503,25 @@ class RequestSignatureService {
 		}
 		$persisted = [];
 		foreach ($data['visibleElements'] as $element) {
-			$toPersist = $this->buildPropagatedElements($file, $element);
-			foreach ($toPersist as $item) {
-				$persisted[] = $this->fileElementService->saveVisibleElement($item);
-			}
-		}
-		return $persisted;
-	}
-
-	private function buildPropagatedElements(FileEntity $file, array $element): array {
-		$targetFileId = null;
-		if (!empty($element['fileId'])) {
-			$targetFileId = (int)$element['fileId'];
-		} elseif (!empty($element['uuid'])) {
-			try {
-				$targetFile = $this->fileMapper->getByUuid($element['uuid']);
-				$targetFileId = $targetFile->getId();
-				$element['fileId'] = $targetFileId;
-				unset($element['uuid']);
-			} catch (\Throwable) {
-				$targetFileId = null;
-			}
-		}
-
-		if ($file->isEnvelope() && !empty($element['signRequestId'])) {
-			$childrenSignRequests = $this->signRequestMapper->getByEnvelopeChildrenAndIdentifyMethod($file->getId(), (int)$element['signRequestId']);
-			if (empty($childrenSignRequests)) {
-				$identifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId((int)$element['signRequestId']);
-				$firstIdentifyMethodGroup = current(reset($identifyMethods));
-				$childFiles = $this->fileMapper->getChildrenFiles($file->getId());
-				foreach ($childFiles as $childFile) {
-					$childSr = $this->signRequestService->getSignRequestByIdentifyMethod($firstIdentifyMethodGroup, $childFile->getId());
-					if ($childSr && $childSr->getId()) {
-						$childrenSignRequests[] = $childSr;
+			if ($file->isEnvelope() && !empty($element['signRequestId'])) {
+				$envelopeSignRequest = $this->signRequestMapper->getById((int)$element['signRequestId']);
+				// Only translate if the provided SR belongs to the envelope itself
+				if ($envelopeSignRequest && $envelopeSignRequest->getFileId() === $file->getId()) {
+					$childrenSrs = $this->signRequestMapper->getByEnvelopeChildrenAndIdentifyMethod($file->getId(), (int)$element['signRequestId']);
+					foreach ($childrenSrs as $childSr) {
+						if ($childSr->getFileId() === (int)$element['fileId']) {
+							$element['signRequestId'] = $childSr->getId();
+							break;
+						}
 					}
 				}
 			}
 
-			$persistList = [];
-			$envelopeElement = $element;
-			$envelopeElement['fileId'] = $file->getId();
-			unset($envelopeElement['uuid']);
-			$persistList[] = $envelopeElement;
-
-			foreach ($childrenSignRequests as $childSignRequest) {
-				$clone = $element;
-				$clone['signRequestId'] = $childSignRequest->getId();
-				$clone['fileId'] = $childSignRequest->getFileId();
-				unset($clone['uuid']);
-				$persistList[] = $clone;
-			}
-			return $persistList;
+			$persisted[] = $this->fileElementService->saveVisibleElement($element);
 		}
-
-		return [$element];
+		return $persisted;
 	}
+
 
 	public function validateNewRequestToFile(array $data): void {
 		$this->validateNewFile($data);
