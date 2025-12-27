@@ -12,10 +12,11 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Service\FileStatusService;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class FileStatusServiceTest extends TestCase {
-	private FileMapper $fileMapper;
+	private FileMapper|MockObject $fileMapper;
 	private FileStatusService $service;
 
 	protected function setUp(): void {
@@ -225,5 +226,215 @@ class FileStatusServiceTest extends TestCase {
 		$this->fileMapper->expects($this->never())->method('update');
 
 		$this->service->propagateStatusToParent($parentId);
+	}
+
+	public function testPropagateStatusToChildrenUpdatesAllChildren(): void {
+		$envelopeId = 1;
+		$newStatus = FileEntity::STATUS_ABLE_TO_SIGN;
+
+		$envelope = new FileEntity();
+		$envelope->setId($envelopeId);
+		$envelope->setNodeType('envelope');
+		$envelope->setStatus($newStatus);
+
+		$child1 = new FileEntity();
+		$child1->setId(10);
+		$child1->setStatus(FileEntity::STATUS_DRAFT);
+
+		$child2 = new FileEntity();
+		$child2->setId(11);
+		$child2->setStatus(FileEntity::STATUS_DRAFT);
+
+		$children = [$child1, $child2];
+
+		$this->fileMapper->expects($this->once())
+			->method('getById')
+			->with($envelopeId)
+			->willReturn($envelope);
+
+		$this->fileMapper->expects($this->once())
+			->method('getChildrenFiles')
+			->with($envelopeId)
+			->willReturn($children);
+
+		$this->fileMapper->expects($this->exactly(2))
+			->method('update')
+			->with($this->callback(function (FileEntity $file) use ($newStatus) {
+				return $file->getStatus() === $newStatus;
+			}));
+
+		$this->service->propagateStatusToChildren($envelopeId, $newStatus);
+	}
+
+	public function testPropagateStatusToChildrenWhenEnvelopeNotFound(): void {
+		$envelopeId = 999;
+		$newStatus = FileEntity::STATUS_ABLE_TO_SIGN;
+
+		$this->fileMapper->expects($this->once())
+			->method('getById')
+			->with($envelopeId)
+			->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('Not found'));
+
+		$this->fileMapper->expects($this->never())->method('getChildrenFiles');
+		$this->fileMapper->expects($this->never())->method('update');
+
+		$this->service->propagateStatusToChildren($envelopeId, $newStatus);
+	}
+
+	public function testPropagateStatusToChildrenWhenNotEnvelope(): void {
+		$fileId = 1;
+		$newStatus = FileEntity::STATUS_ABLE_TO_SIGN;
+
+		$file = new FileEntity();
+		$file->setId($fileId);
+		$file->setNodeType('file');
+
+		$this->fileMapper->expects($this->once())
+			->method('getById')
+			->with($fileId)
+			->willReturn($file);
+
+		$this->fileMapper->expects($this->never())->method('getChildrenFiles');
+		$this->fileMapper->expects($this->never())->method('update');
+
+		$this->service->propagateStatusToChildren($fileId, $newStatus);
+	}
+
+	public function testPropagateStatusToChildrenSkipsChildrenWithSameStatus(): void {
+		$envelopeId = 1;
+		$newStatus = FileEntity::STATUS_ABLE_TO_SIGN;
+
+		$envelope = new FileEntity();
+		$envelope->setId($envelopeId);
+		$envelope->setNodeType('envelope');
+		$envelope->setStatus($newStatus);
+
+		$child1 = new FileEntity();
+		$child1->setId(10);
+		$child1->setStatus(FileEntity::STATUS_ABLE_TO_SIGN); // Already has the new status
+
+		$child2 = new FileEntity();
+		$child2->setId(11);
+		$child2->setStatus(FileEntity::STATUS_DRAFT); // Needs update
+
+		$children = [$child1, $child2];
+
+		$this->fileMapper->expects($this->once())
+			->method('getById')
+			->with($envelopeId)
+			->willReturn($envelope);
+
+		$this->fileMapper->expects($this->once())
+			->method('getChildrenFiles')
+			->with($envelopeId)
+			->willReturn($children);
+
+		// Should only update child2, not child1
+		$this->fileMapper->expects($this->once())
+			->method('update')
+			->with($this->callback(function (FileEntity $file) use ($newStatus) {
+				return $file->getId() === 11 && $file->getStatus() === $newStatus;
+			}));
+
+		$this->service->propagateStatusToChildren($envelopeId, $newStatus);
+	}
+
+	/**
+	 * Test to ensure envelope status is properly propagated to children files
+	 * This addresses the bug where envelope status changes but children remain in DRAFT
+	 */
+	public function testPropagateStatusFromEnvelopeToChildrenWhenSignersAdded(): void {
+		// Setup: Envelope with ABLE_TO_SIGN status
+		$envelopeId = 1;
+		$envelope = new FileEntity();
+		$envelope->setId($envelopeId);
+		$envelope->setNodeType('envelope');
+		$envelope->setStatus(FileEntity::STATUS_ABLE_TO_SIGN);
+
+		// Setup: Children files with DRAFT status (the bug scenario)
+		$child1 = new FileEntity();
+		$child1->setId(10);
+		$child1->setStatus(FileEntity::STATUS_DRAFT);
+
+		$child2 = new FileEntity();
+		$child2->setId(11);
+		$child2->setStatus(FileEntity::STATUS_DRAFT);
+
+		$children = [$child1, $child2];
+
+		// Mock expectations
+		$this->fileMapper->expects($this->once())
+			->method('getById')
+			->with($envelopeId)
+			->willReturn($envelope);
+
+		$this->fileMapper->expects($this->once())
+			->method('getChildrenFiles')
+			->with($envelopeId)
+			->willReturn($children);
+
+		// Both children should be updated to ABLE_TO_SIGN
+		$updateCount = 0;
+		$this->fileMapper->expects($this->exactly(2))
+			->method('update')
+			->with($this->callback(function (FileEntity $file) use (&$updateCount) {
+				$updateCount++;
+				// Verify status is updated correctly
+				$this->assertEquals(FileEntity::STATUS_ABLE_TO_SIGN, $file->getStatus());
+				// Verify it's one of our children
+				$this->assertContains($file->getId(), [10, 11]);
+				return true;
+			}));
+
+		// Execute: Propagate status from envelope to children
+		$this->service->propagateStatusToChildren($envelopeId, FileEntity::STATUS_ABLE_TO_SIGN);
+
+		// Assert: Both children were updated
+		$this->assertEquals(2, $updateCount, 'Both children should have been updated');
+	}
+
+	public function testEnvelopeStatusTransitionFromDraftToAbleToSign(): void {
+		// This test simulates the complete workflow:
+		// 1. Envelope is created (STATUS_DRAFT)
+		// 2. Files are added to envelope (all STATUS_DRAFT)
+		// 3. Signers are added to envelope (envelope changes to STATUS_ABLE_TO_SIGN)
+		// 4. Children should also change to STATUS_ABLE_TO_SIGN
+
+		$envelopeId = 1;
+		$envelope = new FileEntity();
+		$envelope->setId($envelopeId);
+		$envelope->setNodeType('envelope');
+		$envelope->setStatus(FileEntity::STATUS_ABLE_TO_SIGN);
+
+		$child1 = new FileEntity();
+		$child1->setId(10);
+		$child1->setStatus(FileEntity::STATUS_DRAFT);
+
+		$child2 = new FileEntity();
+		$child2->setId(11);
+		$child2->setStatus(FileEntity::STATUS_DRAFT);
+
+		$this->fileMapper->method('getById')->willReturn($envelope);
+		$this->fileMapper->method('getChildrenFiles')->willReturn([$child1, $child2]);
+
+		$updatedFiles = [];
+		$this->fileMapper->method('update')
+			->willReturnCallback(function (FileEntity $file) use (&$updatedFiles) {
+				$updatedFiles[] = [
+					'id' => $file->getId(),
+					'status' => $file->getStatus(),
+				];
+				return $file;
+			});
+
+		$this->service->propagateStatusToChildren($envelopeId, FileEntity::STATUS_ABLE_TO_SIGN);
+
+		// Verify both children were updated
+		$this->assertCount(2, $updatedFiles);
+
+		foreach ($updatedFiles as $updated) {
+			$this->assertEquals(FileEntity::STATUS_ABLE_TO_SIGN, $updated['status']);
+			$this->assertContains($updated['id'], [10, 11]);
+		}
 	}
 }
