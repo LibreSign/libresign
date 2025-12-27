@@ -1339,6 +1339,9 @@
                                 }
                             }
                         }
+                    },
+                    "pdfVersion": {
+                        "type": "string"
                     }
                 }
             },
@@ -4325,6 +4328,9 @@
                                                             "items": {
                                                                 "$ref": "#/components/schemas/File"
                                                             }
+                                                        },
+                                                        "settings": {
+                                                            "$ref": "#/components/schemas/Settings"
                                                         }
                                                     }
                                                 }

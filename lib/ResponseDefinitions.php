@@ -203,6 +203,7 @@ namespace OCA\Libresign;
  *     extension: string,
  *     p: int,
  *     d?: list<array{w: float, h: float}>,
+ *     pdfVersion?: string,
  * }
  * @psalm-type LibresignEnvelopeChildFile = array{
  *     id: int,
