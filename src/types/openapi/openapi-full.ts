@@ -1858,7 +1858,6 @@ export type components = {
             fileId: number;
             type: string;
             coordinates: components["schemas"]["Coordinate"];
-            uuid: string;
         };
     };
     responses: never;

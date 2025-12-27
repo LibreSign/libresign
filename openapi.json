@@ -1199,8 +1199,7 @@
                     "signRequestId",
                     "fileId",
                     "type",
-                    "coordinates",
-                    "uuid"
+                    "coordinates"
                 ],
                 "properties": {
                     "elementId": {
@@ -1220,9 +1219,6 @@
                     },
                     "coordinates": {
                         "$ref": "#/components/schemas/Coordinate"
-                    },
-                    "uuid": {
-                        "type": "string"
                     }
                 }
             }
