@@ -10,10 +10,11 @@ namespace OCA\Libresign\Service\File;
 
 use DateTimeInterface;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\ResponseDefinitions;
+use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\IAppConfig;
 use OCP\IL10N;
@@ -21,12 +22,13 @@ use OCP\IURLGenerator;
 use OCP\IUser;
 
 /**
- * Service for formatting file list responses with visible elements.
+ * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
  */
 class FileListService {
 	public function __construct(
 		private SignRequestMapper $signRequestMapper,
 		private IdentifyMethodService $identifyMethodService,
+		private FileElementService $fileElementService,
 		private FileMapper $fileMapper,
 		private IURLGenerator $urlGenerator,
 		private IAppConfig $appConfig,
@@ -117,7 +119,10 @@ class FileListService {
 						}, false),
 						'visibleElements'
 							=> $visibleElements[$signer->getId()]
-								? $this->formatVisibleElements($visibleElements[$signer->getId()])
+								? $this->fileElementService->formatVisibleElements(
+									$visibleElements[$signer->getId()],
+									$file['metadata'],
+								)
 								: [],
 						'identifyMethods' => array_map(fn (IdentifyMethod $identifyMethod): array => [
 							'method' => $identifyMethod->getIdentifierKey(),
@@ -185,47 +190,5 @@ class FileListService {
 			ksort($files[$key]);
 		}
 		return $files;
-	}
-
-	/**
-	 * Format visible elements for file list response.
-	 *
-	 * @param FileElement[] $visibleElements Array of FileElement objects
-	 * @param array $metadata File metadata containing page dimensions
-	 * @param string $uuid File UUID to include in response
-	 * @return array Formatted visible elements
-	 */
-	public function formatVisibleElements(array $visibleElements): array {
-		return array_map(function ($visibleElement) {
-			$page = $visibleElement['page'];
-			$urx = (int)$visibleElement['urx'];
-			$ury = (int)$visibleElement['ury'];
-			$llx = (int)$visibleElement['llx'];
-			$lly = (int)$visibleElement['lly'];
-
-			$dimension = $visibleElement['metadata']['d'][$page - 1];
-			$height = abs($ury - $lly);
-			$width = $urx - $llx;
-			$top = (int)$dimension['h'] - $ury;
-			$left = $llx;
-
-			return [
-				'elementId' => $visibleElement['id'],
-				'signRequestId' => $visibleElement['sign_request_id'],
-				'type' => $visibleElement['type'],
-				'fileId' => $visibleElement['file_id'],
-				'coordinates' => [
-					'page' => $page,
-					'urx' => $urx,
-					'ury' => $ury,
-					'llx' => $llx,
-					'lly' => $lly,
-					'left' => $left,
-					'top' => $top,
-					'width' => $width,
-					'height' => $height,
-				],
-			];
-		}, $visibleElements);
 	}
 }
