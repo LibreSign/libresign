@@ -84,7 +84,15 @@ class FileDataAssembler {
 		$fileData->file = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file->getUuid()]);
 
 		if ($options->isShowVisibleElements()) {
-			$signers = $this->signRequestMapper->getByMultipleFileId([$file->getId()]);
+			// For envelopes, the visibleElements are in the child files (buildEnvelopeChildData)
+			if ($fileData->nodeType === 'envelope') {
+				// The visibleElements of each child file are already loaded in the EnvelopeAssembler
+				// No need to duplicate the logic here
+				return;
+			}
+
+			// For individual files, fetch their visibleElements
+			$signers = $this->signRequestMapper->getByFileId($file->getId());
 			$fileData->visibleElements = [];
 			foreach ($this->signRequestMapper->getVisibleElementsFromSigners($signers) as $row) {
 				if (empty($row)) {
