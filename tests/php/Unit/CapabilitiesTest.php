@@ -7,6 +7,7 @@ declare(strict_types=1);
  */
 
 use OCA\Libresign\Capabilities;
+use OCA\Libresign\Service\EnvelopeService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\App\IAppManager;
@@ -18,11 +19,13 @@ final class CapabilitiesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignerElementsService&MockObject $signerElementsService;
 	private SignatureTextService&MockObject $signatureTextService;
 	private IAppManager&MockObject $appManager;
+	private EnvelopeService&MockObject $envelopeService;
 
 	public function setUp(): void {
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->signatureTextService = $this->createMock(SignatureTextService::class);
 		$this->appManager = $this->createMock(IAppManager::class);
+		$this->envelopeService = $this->createMock(EnvelopeService::class);
 	}
 
 
@@ -31,6 +34,7 @@ final class CapabilitiesTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->signerElementsService,
 			$this->signatureTextService,
 			$this->appManager,
+			$this->envelopeService,
 		);
 		return $this->capabilities;
 	}

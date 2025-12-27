@@ -54,11 +54,12 @@
 			</NcButton>
 		</div>
 		<div class="image-page">
-			<PdfEditor ref="pdfEditor"
+			<PdfEditor v-if="!isEnvelope || envelopeFilesReady"
+				ref="pdfEditor"
 				width="100%"
 				height="100%"
-				:files="[document.file]"
-				:file-names="[documentNameWithExtension]"
+				:files="pdfFiles"
+				:file-names="pdfFileNames"
 				@pdf-editor:end-init="updateSigners"
 				@pdf-editor:on-delete-signer="onDeleteSigner" />
 		</div>
@@ -108,6 +109,11 @@ export default {
 			signerSelected: null,
 			width: getCapabilities().libresign.config['sign-elements']['full-signature-width'],
 			height: getCapabilities().libresign.config['sign-elements']['full-signature-height'],
+			envelopeFiles: [],
+			filePagesMap: {},
+			envelopeFilesReady: false,
+			elementsLoaded: false,
+			loadedPdfsCount: 0,
 		}
 	},
 	computed: {
@@ -126,8 +132,31 @@ export default {
 		document() {
 			return this.filesStore.getFile()
 		},
+		isEnvelope() {
+			return this.document?.nodeType === 'envelope'
+		},
+		pdfFiles() {
+			if (this.isEnvelope) {
+				if (!this.envelopeFilesReady) return []
+				return this.envelopeFiles.map(f => f.file)
+			}
+			return [this.document.file]
+		},
+		pdfFileNames() {
+			if (this.isEnvelope) {
+				if (!this.envelopeFilesReady) return []
+				return this.envelopeFiles.map(f => {
+					const metadata = f.metadata
+					return `${f.name}.${metadata?.extension || 'pdf'}`
+				})
+			}
+			return [this.documentNameWithExtension]
+		},
 		documentNameWithExtension() {
 			const doc = this.document
+			if (!doc.metadata?.extension) {
+				return doc.name
+			}
 			return `${doc.name}.${doc.metadata.extension}`
 		},
 		canSign() {
@@ -164,11 +193,18 @@ export default {
 		subscribe('libresign:visible-elements-select-signer', this.onSelectSigner)
 	},
 	beforeUnmount() {
-		unsubscribe('libresign:show-visible-elements')
-		unsubscribe('libresign:visible-elements-select-signer')
+		unsubscribe('libresign:show-visible-elements', this.showModal)
+		unsubscribe('libresign:visible-elements-select-signer', this.onSelectSigner)
 	},
 	methods: {
-		showModal() {
+		getVuePdfEditor() {
+			return this.$refs.pdfEditor?.$refs?.vuePdfEditor
+		},
+		getCanvasList() {
+			const editor = this.getVuePdfEditor()
+			return editor?.$refs?.pdfBody?.querySelectorAll('canvas') || []
+		},
+		async showModal() {
 			if (!this.canRequestSign) {
 				return
 			}
@@ -177,25 +213,119 @@ export default {
 			}
 			this.modal = true
 			this.filesStore.loading = true
+
+			if (this.isEnvelope) {
+				await this.loadEnvelopeFiles()
+			}
+
+			this.filesStore.loading = false
+		},
+		buildFilePagesMap() {
+			if (!this.isEnvelope || this.envelopeFiles.length === 0) {
+				return
+			}
+
+			let currentPage = 1
+			this.envelopeFiles.forEach((file, index) => {
+				const metadata = file.metadata
+				const pageCount = metadata?.p || 0
+
+				for (let i = 0; i < pageCount; i++) {
+					this.filePagesMap[currentPage + i] = {
+						id: file.id,
+						fileIndex: index,
+						startPage: currentPage,
+						fileName: file.name,
+					}
+				}
+				currentPage += pageCount
+			})
 		},
 		closeModal() {
 			this.modal = false
 			this.filesStore.loading = false
+			this.envelopeFilesReady = false
+			this.elementsLoaded = false
+			this.loadedPdfsCount = 0
+		},
+		async loadEnvelopeFiles() {
+			if (!this.document?.nodeId) {
+				this.filesStore.loading = false
+				return
+			}
+
+			try {
+				const url = generateOcsUrl('/apps/libresign/api/v1/file/list')
+				const params = new URLSearchParams({
+					page: '1',
+					length: '100',
+					parentNodeId: this.document.nodeId.toString(),
+				})
+
+				const { data } = await axios.get(`${url}?${params.toString()}`)
+				if (data.ocs?.data?.data) {
+					this.envelopeFiles = data.ocs.data.data
+					this.envelopeFilesReady = true
+
+					this.buildFilePagesMap()
+				}
+			} catch (error) {
+				showError(this.$t('libresign', 'Failed to load envelope files'))
+				this.filesStore.loading = false
+			}
+		},
+		getPageHeightForFile(fileId, page) {
+			if (this.isEnvelope) {
+				const fileInfo = this.envelopeFiles.find(f => f.id === fileId)
+				const metadata = fileInfo?.metadata
+				return metadata?.d?.[page - 1]?.h
+			}
+
+			return this.document?.metadata?.d?.[page - 1]?.h
 		},
 		updateSigners(data) {
+			this.loadedPdfsCount++
+
+			if (this.isEnvelope) {
+				const expectedPdfsCount = this.envelopeFiles.length
+
+				if (this.elementsLoaded || this.loadedPdfsCount < expectedPdfsCount) {
+					return
+				}
+			}
+
 			this.document.signers.forEach(signer => {
 				if (this.document.visibleElements) {
 					Object.values(this.document.visibleElements).forEach(element => {
 						if (element.signRequestId === signer.signRequestId) {
 							const object = structuredClone(signer)
-							element.coordinates.ury = Math.round(data.measurement[element.coordinates.page].height)
-								- element.coordinates.ury
+
+							if (this.isEnvelope && element.fileId) {
+								const fileInfo = this.envelopeFiles.find(f => f.id === element.fileId)
+								if (fileInfo) {
+									const fileIndex = this.envelopeFiles.indexOf(fileInfo)
+
+									object.element = {
+										...element,
+										documentIndex: fileIndex,
+									}
+
+									this.$refs.pdfEditor.addSigner(object)
+									return
+								}
+							}
+
 							object.element = element
 							this.$refs.pdfEditor.addSigner(object)
 						}
 					})
 				}
 			})
+
+			if (this.isEnvelope) {
+				this.elementsLoaded = true
+			}
+
 			this.filesStore.loading = false
 		},
 		onSelectSigner(signer) {
@@ -203,18 +333,29 @@ export default {
 				return
 			}
 			this.signerSelected = signer
-			const canvasList = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs.pdfBody.querySelectorAll('canvas')
+			const canvasList = this.getCanvasList()
 			canvasList.forEach((canvas) => {
 				canvas.addEventListener('click', this.doSelectSigner)
 			})
 		},
 		doSelectSigner(event) {
-			const canvasList = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs.pdfBody.querySelectorAll('canvas')
-			const page = Array.from(canvasList).indexOf(event.target)
-			this.addSignerToPosition(event, page)
+			const canvasList = this.getCanvasList()
+			const canvasIndex = Array.from(canvasList).indexOf(event.target)
+			const globalPageNumber = canvasIndex + 1 // 1-based
+
+			let documentIndex = 0
+			let pageInDocument = globalPageNumber
+
+			if (this.isEnvelope && this.filePagesMap[globalPageNumber]) {
+				const pageInfo = this.filePagesMap[globalPageNumber]
+				documentIndex = pageInfo.fileIndex
+				pageInDocument = globalPageNumber - pageInfo.startPage + 1
+			}
+
+			this.addSignerToPosition(event, pageInDocument, documentIndex)
 			this.stopAddSigner()
 		},
-		addSignerToPosition(event, page) {
+		addSignerToPosition(event, pageInDocument, documentIndex) {
 			const canvas = event.target
 			const rect = canvas.getBoundingClientRect()
 			const scale = this.$refs.pdfEditor.$refs.vuePdfEditor.scale || 1
@@ -230,19 +371,37 @@ export default {
 			const normalizedX = clickX / scale
 			const normalizedY = clickY / scale
 
-			this.signerSelected.element = {
-				coordinates: {
-					page: page + 1,
-					llx: normalizedX - this.width / 2,
-					ury: normalizedY - this.height / 2,
-					width: this.width,
-					height: this.height,
-				},
+			const pageHeight = this.getPageHeightForFile(this.isEnvelope ? this.envelopeFiles[documentIndex]?.id : this.document?.id, pageInDocument)
+			if (!pageHeight) {
+				return
 			}
+			const left = normalizedX - this.width / 2
+			const top = normalizedY - this.height / 2
+			const llx = left
+			const ury = pageHeight - top
+
+			const coordinates = {
+				page: pageInDocument,
+				width: this.width,
+				height: this.height,
+				left,
+				top,
+				llx,
+				ury,
+			}
+
+			this.signerSelected.element = {
+				coordinates: coordinates,
+			}
+
+			if (this.isEnvelope && documentIndex > 0) {
+				this.signerSelected.element.documentIndex = documentIndex
+			}
+
 			this.$refs.pdfEditor.addSigner(this.signerSelected)
 		},
 		stopAddSigner() {
-			const canvasList = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs.pdfBody.querySelectorAll('canvas')
+			const canvasList = this.getCanvasList()
 			canvasList.forEach((canvas) => {
 				canvas.removeEventListener('click', this.doSelectSigner)
 			})
@@ -282,26 +441,74 @@ export default {
 		},
 		buildVisibleElements() {
 			const visibleElements = []
-			const objects = this.$refs.pdfEditor.$refs.vuePdfEditor.getAllObjects()
 
-			objects.forEach(object => {
-				if (!object.signer) return
+			const numDocuments = this.isEnvelope ? this.envelopeFiles.length : 1
 
-				visibleElements.push({
-					type: 'signature',
-					signRequestId: object.signer.signRequestId,
-					elementId: object.signer.element.elementId,
-					coordinates: {
-						page: object.pageNumber,
-						width: object.normalizedCoordinates.width,
-						height: object.normalizedCoordinates.height,
-						llx: object.normalizedCoordinates.llx,
-						lly: object.normalizedCoordinates.lly,
-						ury: object.normalizedCoordinates.ury,
-						urx: object.normalizedCoordinates.urx,
-					},
+			for (let docIndex = 0; docIndex < numDocuments; docIndex++) {
+				const objects = this.$refs.pdfEditor.$refs.vuePdfEditor.getAllObjects(docIndex)
+
+				objects.forEach(object => {
+					if (!object.signer) return
+
+					let globalPageNumber = object.pageNumber
+
+					if (this.isEnvelope && docIndex > 0) {
+						for (const [page, info] of Object.entries(this.filePagesMap)) {
+							if (info.fileIndex === docIndex) {
+								globalPageNumber = info.startPage + object.pageNumber - 1
+								break
+							}
+						}
+					}
+
+					let coordinates
+					if (this.isEnvelope && this.filePagesMap[globalPageNumber]) {
+						const pageInfo = this.filePagesMap[globalPageNumber]
+						const pageHeight = this.getPageHeightForFile(pageInfo.id, object.pageNumber)
+						if (!pageHeight) {
+							return
+						}
+
+						const left = Math.floor(object.normalizedCoordinates.llx)
+						const top = Math.floor(pageHeight - object.normalizedCoordinates.lly)
+						const width = Math.floor(object.normalizedCoordinates.width)
+						const height = Math.floor(object.normalizedCoordinates.height)
+
+						coordinates = {
+							page: globalPageNumber,
+							width,
+							height,
+							left,
+							top,
+						}
+					} else {
+						coordinates = {
+							page: globalPageNumber,
+							width: object.normalizedCoordinates.width,
+							height: object.normalizedCoordinates.height,
+							llx: object.normalizedCoordinates.llx,
+							lly: object.normalizedCoordinates.lly,
+							ury: object.normalizedCoordinates.ury,
+							urx: object.normalizedCoordinates.urx,
+						}
+					}
+
+					const element = {
+						type: 'signature',
+						signRequestId: object.signer.signRequestId,
+						elementId: object.signer.element.elementId,
+						coordinates: coordinates,
+					}
+
+					if (this.isEnvelope && this.filePagesMap[globalPageNumber]) {
+						element.fileId = this.filePagesMap[globalPageNumber].id
+						element.coordinates.page = globalPageNumber - this.filePagesMap[globalPageNumber].startPage + 1
+					}
+
+					visibleElements.push(element)
 				})
-			})
+			}
+
 			return visibleElements
 		},
 	},

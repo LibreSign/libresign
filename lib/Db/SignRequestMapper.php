@@ -191,6 +191,39 @@ class SignRequestMapper extends QBMapper {
 	}
 
 	/**
+	 * Get sign requests of child files from an envelope for the same signer
+	 *
+	 * @return SignRequest[]
+	 */
+	public function getByEnvelopeChildrenAndIdentifyMethod(int $parentFileId, int $signRequestId): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('sr.*')
+			->from('libresign_file', 'f')
+			->innerJoin('f', $this->getTableName(), 'sr', $qb->expr()->eq('sr.file_id', 'f.id'))
+			->innerJoin('sr', 'libresign_identify_method', 'im', $qb->expr()->eq('im.sign_request_id', 'sr.id'))
+			->innerJoin('im', 'libresign_identify_method', 'im2',
+				$qb->expr()->andX(
+					$qb->expr()->eq('im2.sign_request_id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->eq('im2.identifier_key', 'im.identifier_key'),
+					$qb->expr()->eq('im2.identifier_value', 'im.identifier_value')
+				)
+			)
+			->where(
+				$qb->expr()->eq('f.parent_file_id', $qb->createNamedParameter($parentFileId, IQueryBuilder::PARAM_INT))
+			);
+
+		/** @var SignRequest[] */
+		$signRequests = $this->findEntities($qb);
+		foreach ($signRequests as $signRequest) {
+			if (!isset($this->signers[$signRequest->getId()])) {
+				$this->signers[$signRequest->getId()] = $signRequest;
+			}
+		}
+		return $signRequests;
+	}
+
+	/**
 	 * @return \Generator<IdentifyMethod>
 	 */
 	public function findRemindersCandidates(): \Generator {
@@ -426,18 +459,19 @@ class SignRequestMapper extends QBMapper {
 			return [];
 		}
 		$qb = $this->db->getQueryBuilder();
+
 		$qb->select('fe.*')
 			->from('libresign_file_element', 'fe')
 			->where(
 				$qb->expr()->in('fe.sign_request_id', $qb->createParameter('signRequestIds'))
 			);
+
 		$return = [];
 		foreach (array_chunk($signRequestIds, 1000) as $signRequestIdsChunk) {
 			$qb->setParameter('signRequestIds', $signRequestIdsChunk, IQueryBuilder::PARAM_INT_ARRAY);
 			$cursor = $qb->executeQuery();
 			while ($row = $cursor->fetch()) {
-				$fileElement = new FileElement();
-				$return[$row['sign_request_id']][] = $fileElement->fromRow($row);
+				$return[$row['sign_request_id']][] = (new FileElement())->fromRow($row);
 			}
 		}
 		return $return;
@@ -483,6 +517,15 @@ class SignRequestMapper extends QBMapper {
 		if (!$row) {
 			throw new DoesNotExistException('LibreSign file not found');
 		}
+
+		unset(
+			$row['parent_id'],
+			$row['parent_uuid'],
+			$row['parent_name'],
+			$row['parent_status'],
+			$row['parent_created_at'],
+		);
+
 		$file = new File();
 		return $file->fromRow($row);
 	}
@@ -492,7 +535,8 @@ class SignRequestMapper extends QBMapper {
 		$qb->from('libresign_file', 'f')
 			->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id')
 			->leftJoin('f', 'libresign_identify_method', 'im', $qb->expr()->eq('sr.id', 'im.sign_request_id'))
-			->leftJoin('f', 'libresign_id_docs', 'id', 'id.file_id = f.id');
+			->leftJoin('f', 'libresign_id_docs', 'id', 'id.file_id = f.id')
+			->leftJoin('f', 'libresign_file', 'parent', $qb->expr()->eq('f.parent_file_id', 'parent.id'));
 		if ($count) {
 			$qb->select($qb->func()->count())
 				->setFirstResult(0)
@@ -510,6 +554,13 @@ class SignRequestMapper extends QBMapper {
 				'f.created_at',
 				'f.signature_flow',
 				'f.docmdp_level',
+				'f.node_type',
+				'f.parent_file_id',
+				'parent.id as parent_id',
+				'parent.uuid as parent_uuid',
+				'parent.name as parent_name',
+				'parent.status as parent_status',
+				'parent.created_at as parent_created_at'
 			)
 				->groupBy(
 					'f.id',
@@ -522,6 +573,13 @@ class SignRequestMapper extends QBMapper {
 					'f.created_at',
 					'f.signature_flow',
 					'f.docmdp_level',
+					'f.node_type',
+					'f.parent_file_id',
+					'parent.id',
+					'parent.uuid',
+					'parent.name',
+					'parent.status',
+					'parent.created_at'
 				);
 			// metadata is a json column, the right way is to use f.metadata::text
 			// when the database is PostgreSQL. The problem is that the command
@@ -545,7 +603,9 @@ class SignRequestMapper extends QBMapper {
 				$qb->expr()->neq('sr.status', $qb->createNamedParameter(SignRequestStatus::DRAFT->value)),
 			)
 		];
-		$qb->where($qb->expr()->orX(...$or))->andWhere($qb->expr()->isNull('id.id'));
+		$qb->where($qb->expr()->orX(...$or))
+			->andWhere($qb->expr()->isNull('id.id'));
+
 		if ($filter) {
 			if (isset($filter['email']) && filter_var($filter['email'], FILTER_VALIDATE_EMAIL)) {
 				$or[] = $qb->expr()->andX(
@@ -553,7 +613,10 @@ class SignRequestMapper extends QBMapper {
 					$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($filter['email']))
 				);
 			}
-			if (!empty($filter['signer_uuid'])) {
+			if (!empty($filter['signer_uuid']) && !empty($filter['parentNodeId'])) {
+				$qb->innerJoin('parent', 'libresign_sign_request', 'psr', $qb->expr()->eq('psr.file_id', 'parent.id'))
+					->andWhere($qb->expr()->eq('psr.uuid', $qb->createNamedParameter($filter['signer_uuid'])));
+			} elseif (!empty($filter['signer_uuid'])) {
 				$qb->andWhere(
 					$qb->expr()->eq('sr.uuid', $qb->createNamedParameter($filter['signer_uuid']))
 				);
@@ -580,6 +643,15 @@ class SignRequestMapper extends QBMapper {
 					$qb->expr()->lte('f.created_at', $qb->createNamedParameter($end, IQueryBuilder::PARAM_STR))
 				);
 			}
+			if (!empty($filter['parentNodeId'])) {
+				$qb->andWhere(
+					$qb->expr()->eq('parent.node_id', $qb->createNamedParameter($filter['parentNodeId'], IQueryBuilder::PARAM_INT))
+				);
+			} else {
+				$qb->andWhere($qb->expr()->isNull('f.parent_file_id'));
+			}
+		} else {
+			$qb->andWhere($qb->expr()->isNull('f.parent_file_id'));
 		}
 		return $qb;
 	}
@@ -618,7 +690,9 @@ class SignRequestMapper extends QBMapper {
 	}
 
 	private function formatListRow(array $row): array {
-		$row['id'] = (int)$row['id'];
+		$internalId = (int)$row['id'];
+		$row['fileId'] = $internalId;
+		$row['id'] = (int)$row['node_id'];
 		$row['status'] = (int)$row['status'];
 		$row['statusText'] = $this->fileMapper->getTextOfStatus($row['status']);
 		$row['nodeId'] = (int)$row['node_id'];
@@ -634,6 +708,23 @@ class SignRequestMapper extends QBMapper {
 		$row['name'] = $this->removeExtensionFromName($row['name'], $row['metadata']);
 		$row['signatureFlow'] = SignatureFlow::fromNumeric((int)($row['signature_flow']))->value;
 		$row['docmdpLevel'] = (int)($row['docmdp_level'] ?? 0);
+		$row['nodeType'] = $row['node_type'] ?? 'file';
+		$row['metadata'] = json_decode($row['metadata'] ?? '{}', true);
+
+		if ($row['node_type'] === 'envelope') {
+			$row['filesCount'] = $row['metadata']['filesCount'] ?? 0;
+			$row['files'] = [];
+		} else {
+			$row['filesCount'] = 1;
+			$row['files'] = [[
+				'fileId' => (int)$row['id'],
+				'nodeId' => (int)$row['node_id'],
+				'uuid' => $row['uuid'],
+				'name' => $row['name'],
+				'status' => (int)$row['status'],
+				'statusText' => $row['statusText'],
+			]];
+		}
 
 		unset(
 			$row['user_id'],
@@ -641,6 +732,13 @@ class SignRequestMapper extends QBMapper {
 			$row['signed_node_id'],
 			$row['signature_flow'],
 			$row['docmdp_level'],
+			$row['node_type'],
+			$row['parent_file_id'],
+			$row['parent_id'],
+			$row['parent_uuid'],
+			$row['parent_name'],
+			$row['parent_status'],
+			$row['parent_created_at'],
 		);
 		return $row;
 	}

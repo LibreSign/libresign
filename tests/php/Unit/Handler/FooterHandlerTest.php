@@ -229,7 +229,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNotEmpty($text, 'PDF without text');
 		$content = explode("\n", $text);
 		$this->assertNotEmpty($content, 'PDF without any row');
-		$content = array_map(fn ($row) => str_getcsv($row, ':'), $content);
+		$content = array_map(fn ($row) => str_getcsv($row, ':', '"', '\\'), $content);
 
 		// Necessary flip key/value when the language is LTR
 		$columnKey = $direction === 'rtl' ? 1 : 0;

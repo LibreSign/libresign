@@ -80,12 +80,18 @@ export default {
 				height: signer.element.coordinates.height,
 				originWidth: signer.element.coordinates.width,
 				originHeight: signer.element.coordinates.height,
-				x: signer.element.coordinates.llx,
-				y: signer.element.coordinates.ury,
+				x: signer.element.coordinates.left,
+				y: signer.element.coordinates.top,
 			}
+
+			const docIndex = signer.element.documentIndex !== undefined
+				? signer.element.documentIndex
+				: this.$refs.vuePdfEditor.selectedDocIndex
+
 			this.$refs.vuePdfEditor.addObjectToPage(
 				object,
 				signer.element.coordinates.page - 1,
+				docIndex,
 			)
 		},
 	},

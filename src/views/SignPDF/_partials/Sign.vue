@@ -418,6 +418,7 @@ export default {
 			}
 			if (this.signMethodsStore.needClickToSign()) {
 				this.showModalAndResetErrors('clickToSign')
+				return
 			}
 		},
 	},

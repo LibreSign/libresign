@@ -90,11 +90,11 @@ Feature: page/sign_identify_account
       """
       2500
       """
-    And the response should contain the initial state "libresign-pdf" with the following values:
+    And the response should contain the initial state "libresign-pdfs" with the following values:
       """
-      {
-        "url": "/index.php/apps/libresign/pdf/<SIGN_UUID>"
-      }
+      [
+        "/index.php/apps/libresign/pdf/<SIGN_UUID>"
+      ]
       """
     And the response should contain the initial state "libresign-filename" with the following values:
       """

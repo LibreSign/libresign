@@ -66,7 +66,7 @@ export const useFilesStore = function(...args) {
 				sidebarStore.activeRequestSignatureTab()
 			},
 			getFile(file) {
-				if (typeof file === 'object') {
+				if (typeof file === 'object' && file !== null) {
 					return file
 				}
 				return this.files[this.selectedNodeId] || emptyFile
@@ -76,6 +76,83 @@ export const useFilesStore = function(...args) {
 					'nodeIds[]': [this.selectedNodeId],
 				})
 				this.addFile(files[this.selectedNodeId])
+			},
+			async addFilesToEnvelope(envelopeUuid, formData, options = {}) {
+				return await axios.post(
+					generateOcsUrl('/apps/libresign/api/v1/file/{uuid}/add-file', { uuid: envelopeUuid }),
+					formData,
+					{
+						headers: {
+							'Content-Type': 'multipart/form-data',
+						},
+						signal: options.signal,
+						onUploadProgress: options.onUploadProgress,
+					},
+				)
+					.then(({ data }) => {
+						const addedFiles = data.ocs.data.files || []
+						const newFilesCount = data.ocs.data.filesCount || 0
+						const nodeId = data.ocs.data.nodeId
+
+						if (this.files[nodeId]) {
+							set(this.files[nodeId], 'filesCount', newFilesCount)
+						}
+
+						return {
+							success: true,
+							message: data.ocs.data.message,
+							files: addedFiles,
+							filesCount: newFilesCount,
+						}
+					})
+					.catch((error) => {
+						if (error.code === 'ERR_CANCELED') {
+							return {
+								success: false,
+								message: 'Upload cancelled',
+								error,
+							}
+						}
+						const message = error.response?.data?.ocs?.data?.message || 'Failed to add files to envelope'
+						return {
+							success: false,
+							message,
+							error,
+						}
+					})
+			},
+			async removeFilesFromEnvelope(envelopeNodeId, fileNodeIds) {
+				const nodeIds = Array.isArray(fileNodeIds) ? fileNodeIds : [fileNodeIds]
+
+				const deletePromises = nodeIds.map(nodeId =>
+					axios.delete(
+						generateOcsUrl('/apps/libresign/api/v1/file/file_id/{fileId}', { fileId: nodeId }),
+					),
+				)
+
+				return await Promise.all(deletePromises)
+					.then(() => {
+						if (this.files[envelopeNodeId] && this.files[envelopeNodeId].filesCount) {
+							const newCount = Math.max(0, this.files[envelopeNodeId].filesCount - nodeIds.length)
+							set(this.files[envelopeNodeId], 'filesCount', newCount)
+						}
+
+						const isSingle = nodeIds.length === 1
+						return {
+							success: true,
+							message: isSingle ? 'File removed from envelope' : 'Files removed from envelope',
+							removedCount: nodeIds.length,
+							removedIds: nodeIds,
+						}
+					})
+					.catch((error) => {
+						const message = error.response?.data?.ocs?.data?.message || 'Failed to remove file(s) from envelope'
+						return {
+							success: false,
+							message,
+							error,
+						}
+					})
 			},
 			enableIdentifySigner() {
 				this.identifyingSigner = true
@@ -287,15 +364,35 @@ export const useFilesStore = function(...args) {
 				}
 				this.loading = false
 			},
-			async upload({ file, name }) {
-				const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
-					file: { base64: file },
-					name,
-					settings: {
-						folderName: `requests/${Date.now().toString(16)}-${slugfy(name)}`,
-					},
-				})
-				return { ...data.ocs.data }
+			async upload(payload, options = {}) {
+				let data
+
+				const axiosConfig = {}
+
+				if (options.onUploadProgress) {
+					axiosConfig.onUploadProgress = options.onUploadProgress
+				}
+
+				if (options.signal) {
+					axiosConfig.signal = options.signal
+				}
+
+				if (payload instanceof FormData) {
+					const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), payload, {
+						...axiosConfig,
+						headers: {
+							'Content-Type': 'multipart/form-data',
+						},
+					})
+					data = response.data
+				} else {
+					const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), payload, axiosConfig)
+					data = response.data
+				}
+
+				const fileData = data.ocs.data
+				this.addFile(fileData)
+				return fileData.nodeId
 			},
 			async getAllFiles(filter) {
 				if (this.loading || this.loadedAll) {
@@ -369,6 +466,12 @@ export const useFilesStore = function(...args) {
 					identificationDocumentStore.setWaitingApproval(response.data.ocs.data.settings.identificationDocumentsWaitingApproval)
 				}
 
+				if (this.selectedNodeId && !this.files[this.selectedNodeId]) {
+					const sidebarStore = useSidebarStore()
+					sidebarStore.hideSidebar()
+					this.selectedNodeId = 0
+				}
+
 				this.loading = false
 				emit('libresign:files:updated')
 				return this.files
@@ -403,7 +506,7 @@ export const useFilesStore = function(...args) {
 				}
 
 
-							if (uuid || file.uuid) {
+				if (uuid || file.uuid) {
 					config.data.uuid = uuid || file.uuid
 				} else {
 					config.data.file = {
@@ -412,18 +515,24 @@ export const useFilesStore = function(...args) {
 				}
 
 				const { data } = await axios(config)
-				this.addFile(data.ocs.data.data)
+				const responseFile = data.ocs.data.data
+				if (responseFile.nodeId && this.files[responseFile.nodeId]) {
+					set(this.files, responseFile.nodeId, responseFile)
+					this.addUniqueIdentifierToAllSigners(this.files[responseFile.nodeId].signers)
+				} else {
+					this.addFile(responseFile)
+				}
 				return data.ocs.data
 			},
 			async updateSignatureRequest({ visibleElements = [], signers = null, uuid = null, nodeId = null, status = 1, signatureFlow = null }) {
 				const file = this.getFile()
-				
+
 				let flowValue = signatureFlow || file.signatureFlow
 				if (typeof flowValue === 'number') {
 					const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
 					flowValue = flowMap[flowValue] || 'parallel'
 				}
-				
+
 				const config = {
 					url: generateOcsUrl('/apps/libresign/api/v1/request-signature'),
 					method: uuid || file.uuid ? 'patch' : 'post',
@@ -444,7 +553,16 @@ export const useFilesStore = function(...args) {
 					}
 				}
 				const { data } = await axios(config)
-				this.addFile(data.ocs.data.data)
+				// Only update the existing file, don't trigger full reload via addFile
+				const responseFile = data.ocs.data.data
+				if (responseFile.nodeId && this.files[responseFile.nodeId]) {
+					// Update existing file in-place to avoid triggering side effects
+					set(this.files, responseFile.nodeId, responseFile)
+					this.addUniqueIdentifierToAllSigners(this.files[responseFile.nodeId].signers)
+				} else {
+					// Only add to store if it's a new file
+					this.addFile(responseFile)
+				}
 				return data.ocs.data
 			},
 		},

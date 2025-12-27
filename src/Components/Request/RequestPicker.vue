@@ -34,6 +34,12 @@
 				{{ t('libresign', 'Upload') }}
 			</NcActionButton>
 		</NcActions>
+		<UploadProgress :is-uploading="isUploading"
+			:upload-progress="uploadProgress"
+			:uploaded-bytes="uploadedBytes"
+			:total-bytes="totalBytes"
+			:upload-start-time="uploadStartTime"
+			@cancel="cancelUpload" />
 		<FilePicker v-if="showFilePicker"
 			:name="t('libresign', 'Select your file')"
 			:multiselect="false"
@@ -77,11 +83,10 @@ import LinkIcon from 'vue-material-design-icons/Link.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import UploadIcon from 'vue-material-design-icons/Upload.vue'
 
-import axios from '@nextcloud/axios'
+import { getCapabilities } from '@nextcloud/capabilities'
 import { showError } from '@nextcloud/dialogs'
 import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
 import { loadState } from '@nextcloud/initial-state'
-import { generateOcsUrl } from '@nextcloud/router'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -91,17 +96,11 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
+import UploadProgress from '../UploadProgress.vue'
+
 import { useActionsMenuStore } from '../../store/actionsmenu.js'
 import { useFilesStore } from '../../store/files.js'
 
-const loadFileToBase64 = file => {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.readAsDataURL(file)
-		reader.onload = () => resolve(reader.result)
-		reader.onerror = (error) => reject(error)
-	})
-}
 export default {
 	name: 'RequestPicker',
 	components: {
@@ -118,6 +117,7 @@ export default {
 		NcTextField,
 		PlusIcon,
 		UploadIcon,
+		UploadProgress,
 	},
 	props: {
 		inline: {
@@ -142,9 +142,19 @@ export default {
 			loading: false,
 			openedMenu: false,
 			canRequestSign: loadState('libresign', 'can_request_sign', false),
+			uploadProgress: 0,
+			isUploading: false,
+			uploadAbortController: null,
+			uploadedBytes: 0,
+			totalBytes: 0,
+			uploadStartTime: null,
 		}
 	},
 	computed: {
+		envelopeEnabled() {
+			const capabilities = getCapabilities()
+			return capabilities?.libresign?.config?.envelope?.['is-available'] === true
+		},
 		filePickerButtons() {
 			return [{
 				label: t('libresign', 'Choose'),
@@ -189,39 +199,79 @@ export default {
 			this.modalUploadFromUrl = false
 			this.loading = false
 		},
-		async upload(file) {
+		async upload(files) {
 			this.loading = true
-			const data = await loadFileToBase64(file)
-			await this.filesStore.upload({
-				name: file.name.replace(/\.pdf$/i, ''),
-				file: data,
+			this.isUploading = true
+			this.uploadProgress = 0
+			this.uploadedBytes = 0
+			this.totalBytes = 0
+			this.uploadStartTime = Date.now()
+
+			const formData = new FormData()
+
+			if (files.length === 1) {
+				const name = files[0].name.replace(/\.pdf$/i, '')
+				formData.append('name', name)
+				formData.append('file', files[0])
+				this.totalBytes = files[0].size
+			} else {
+				formData.append('name', '')
+				let totalSize = 0
+				files.forEach((file) => {
+					formData.append('files[]', file)
+					totalSize += file.size
+				})
+				this.totalBytes = totalSize
+			}
+
+			const abortController = new AbortController()
+			this.uploadAbortController = abortController
+
+			await this.filesStore.upload(formData, {
+				signal: abortController.signal,
+				onUploadProgress: (progressEvent) => {
+					if (progressEvent.total) {
+						this.uploadedBytes = progressEvent.loaded
+						this.uploadProgress = Math.round((progressEvent.loaded / progressEvent.total) * 100)
+					}
+				},
 			})
-				.then((response) => {
-					this.filesStore.addFile({
-						nodeId: response.id,
-						name: response.name,
-						status: response.status,
-						statusText: response.statusText,
-						created_at: response.created_at,
-					})
-					this.filesStore.selectFile(response.id)
+				.then((nodeId) => {
+					this.filesStore.selectFile(nodeId)
 				})
-				.catch(({ response }) => {
-					showError(response.data.ocs.data.message)
+				.catch((error) => {
+					if (error.code === 'ERR_CANCELED') {
+						return
+					}
+					if (error.response?.data?.ocs?.data?.message) {
+						showError(error.response.data.ocs.data.message)
+					} else {
+						showError(t('libresign', 'Upload failed'))
+					}
 				})
-			this.loading = false
+				.finally(() => {
+					this.loading = false
+					this.isUploading = false
+					this.uploadAbortController = null
+				})
+		},
+		cancelUpload() {
+			if (this.uploadAbortController) {
+				this.uploadAbortController.abort()
+			}
 		},
 		uploadFile() {
 			this.openedMenu = false
 			const input = document.createElement('input')
 			input.accept = 'application/pdf'
 			input.type = 'file'
+			input.multiple = this.envelopeEnabled
 
 			input.onchange = async (ev) => {
-				const file = ev.target.files[0]
+				const files = Array.from(ev.target.files)
 
-				if (file) {
-					this.upload(file)
+				if (files.length > 0) {
+					await this.upload(files)
 				}
 
 				input.remove()
@@ -231,17 +281,13 @@ export default {
 		},
 		async uploadUrl() {
 			this.loading = true
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
+			await this.filesStore.upload({
 				file: {
 					url: this.pdfUrl,
 				},
 			})
-				.then(({ data }) => {
-					this.filesStore.addFile({
-						nodeId: data.ocs.data.id,
-						name: data.ocs.data.name,
-					})
-					this.filesStore.selectFile(data.ocs.data.id)
+				.then((nodeId) => {
+					this.filesStore.selectFile(nodeId)
 					this.closeModalUploadFromUrl()
 				})
 				.catch(({ response }) => {
@@ -255,18 +301,14 @@ export default {
 				return
 			}
 
-			await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
+			await this.filesStore.upload({
 				file: {
 					path,
 				},
 				name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
 			})
-				.then(({ data }) => {
-					this.filesStore.addFile({
-						nodeId: data.ocs.data.id,
-						name: data.ocs.data.name,
-					})
-					this.filesStore.selectFile(data.ocs.data.id)
+				.then((nodeId) => {
+					this.filesStore.selectFile(nodeId)
 				})
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.message)

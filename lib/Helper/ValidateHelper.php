@@ -78,6 +78,7 @@ class ValidateHelper {
 		private IRootFolder $root,
 	) {
 	}
+
 	public function validateNewFile(array $data, int $type = self::TYPE_TO_SIGN, ?IUser $user = null): void {
 		$this->validateFile($data, $type, $user);
 		if (!empty($data['file']['fileId'])) {
@@ -227,12 +228,17 @@ class ValidateHelper {
 		if ($type !== self::TYPE_VISIBLE_ELEMENT_PDF) {
 			return;
 		}
-		if (!array_key_exists('signRequestId', $element)) {
+		if (!array_key_exists('signRequestId', $element) && !array_key_exists('uuid', $element)) {
 			// TRANSLATION The element can be an image or text. It has to be associated with an user. The element will be added to the document.
 			throw new LibresignException($this->l10n->t('Element must be associated with a user'));
 		}
+
+		$getter = array_key_exists('signRequestId', $element)
+			? fn () => $this->signRequestMapper->getById($element['signRequestId'])
+			: fn () => $this->signRequestMapper->getByUuid($element['uuid']);
+
 		try {
-			$this->signRequestMapper->getById($element['signRequestId']);
+			$getter();
 		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('User not found for element.'));
 		}

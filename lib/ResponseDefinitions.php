@@ -47,9 +47,14 @@ namespace OCA\Libresign;
  *     message: string,
  *     name: non-falsy-string,
  *     id: int,
+ *     nodeId: int,
+ *     uuid: string,
  *     status: int,
  *     statusText: string,
+ *     nodeType: 'file'|'envelope',
  *     created_at: string,
+ *     filesCount: int<0, max>,
+ *     files: list<array{nodeId: int, uuid: string, name: string, status: int, statusText: string}>,
  * }
  * @psalm-type LibresignIdentifyAccount = array{
  *     id: non-negative-int,
@@ -116,19 +121,20 @@ namespace OCA\Libresign;
  *     mandatory: non-negative-int,
  * }
  * @psalm-type LibresignCoordinate = array{
- *     page?: non-negative-int,
- *     urx?: non-negative-int,
- *     ury?: non-negative-int,
- *     llx?: non-negative-int,
- *     lly?: non-negative-int,
- *     top?: non-negative-int,
- *     left?: non-negative-int,
- *     width?: non-negative-int,
- *     height?: non-negative-int,
+ *     page?: int,
+ *     urx?: int,
+ *     ury?: int,
+ *     llx?: int,
+ *     lly?: int,
+ *     top?: int,
+ *     left?: int,
+ *     width?: int,
+ *     height?: int,
  * }
  * @psalm-type LibresignVisibleElement = array{
- *     elementId: non-negative-int,
- *     signRequestId: non-negative-int,
+ *     elementId: int,
+ *     signRequestId: int,
+ *     fileId: int,
  *     type: string,
  *     coordinates: LibresignCoordinate,
  * }
@@ -183,6 +189,30 @@ namespace OCA\Libresign;
  *     identifyMethods?: LibresignIdentifyMethod[],
  *     visibleElements?: LibresignVisibleElement[],
  *     signatureMethods?: LibresignSignatureMethods,
+ *     uid?: string,
+ * }
+ * @psalm-type LibresignEnvelopeChildSignerSummary = array{
+ *     signRequestId: int,
+ *     displayName: string,
+ *     email: string,
+ *     signed: ?string,
+ *     status: int,
+ *     statusText: string,
+ * }
+ * @psalm-type LibresignValidateMetadata = array{
+ *     extension: string,
+ *     p: int,
+ *     d?: list<array{w: float, h: float}>,
+ * }
+ * @psalm-type LibresignEnvelopeChildFile = array{
+ *     id: int,
+ *     uuid: string,
+ *     name: string,
+ *     status: int,
+ *     statusText: string,
+ *     nodeId: int,
+ *     signers: list<LibresignEnvelopeChildSignerSummary>,
+ *     metadata?: LibresignValidateMetadata,
  * }
  * @psalm-type LibresignValidateFile = array{
  *     uuid: string,
@@ -190,8 +220,11 @@ namespace OCA\Libresign;
  *     status: 0|1|2|3|4,
  *     statusText: string,
  *     nodeId: non-negative-int,
+ *     nodeType: 'file'|'envelope',
  *     signatureFlow: int,
  *     docmdpLevel: int,
+ *     filesCount?: int<0, max>,
+ *     files?: list<LibresignEnvelopeChildFile>,
  *     totalPages: non-negative-int,
  *     size: non-negative-int,
  *     pdfVersion: string,
@@ -202,11 +235,7 @@ namespace OCA\Libresign;
  *     },
  *     file: string,
  *     url?: string,
- *     metadata?: array{
- *         extension: string,
- *         p: int,
- *         d?: list<array{w: float, h: float}>,
- *     },
+ *     metadata?: LibresignValidateMetadata,
  *     signers?: LibresignSigner[],
  *     settings?: LibresignSettings,
  *     messages?: array{
@@ -270,6 +299,9 @@ namespace OCA\Libresign;
  *             full-signature-height: float,
  *             signature-width: float,
  *             signature-height: float,
+ *         },
+ *         envelope: array{
+ *             is-available: bool,
  *         },
  *     },
  *     version: string,

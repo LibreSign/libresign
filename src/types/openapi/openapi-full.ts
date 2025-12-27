@@ -251,25 +251,8 @@ export type paths = {
             path?: never;
             cookie?: never;
         };
-        /** Show signature page */
+        /** Show signature page for identification document approval */
         get: operations["page-sign-id-doc"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/index.php/apps/libresign/p/id-docs/approve/{uuid}/{path}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Show signature page */
-        get: operations["page-sign-id-doc-private"];
         put?: never;
         post?: never;
         delete?: never;
@@ -536,7 +519,7 @@ export type paths = {
         };
         /**
          * Validate a file using Uuid
-         * @description Validate a file returning file data.
+         * @description Validate a file returning file data. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.
          */
         get: operations["file-validate-uuid"];
         put?: never;
@@ -556,7 +539,7 @@ export type paths = {
         };
         /**
          * Validate a file using FileId
-         * @description Validate a file returning file data.
+         * @description Validate a file returning file data. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.
          */
         get: operations["file-validate-file-id"];
         put?: never;
@@ -578,7 +561,7 @@ export type paths = {
         put?: never;
         /**
          * Validate a binary file
-         * @description Validate a binary file returning file data. Use field 'file' for the file upload
+         * @description Validate a binary file returning file data. Use field 'file' for the file upload. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.
          */
         post: operations["file-validate-binary"];
         delete?: never;
@@ -632,9 +615,29 @@ export type paths = {
         put?: never;
         /**
          * Send a file
-         * @description Send a new file to Nextcloud and return the fileId to request signature
+         * @description Send a new file to Nextcloud and return the fileId to request signature. Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.
          */
         post: operations["file-save"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/{uuid}/add-file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add file to envelope
+         * @description Add one or more files to an existing envelope that is in DRAFT status. Files must be uploaded as multipart/form-data with field name 'files[]'.
+         */
+        post: operations["file-add-file-to-envelope"];
         delete?: never;
         options?: never;
         head?: never;
@@ -839,7 +842,7 @@ export type paths = {
         put?: never;
         /**
          * Request signature
-         * @description Request that a file be signed by a group of people. Each user in the users array can optionally include a 'signing_order' field to control the order of signatures when ordered signing flow is enabled.
+         * @description Request that a file be signed by a group of people. Each user in the users array can optionally include a 'signing_order' field to control the order of signatures when ordered signing flow is enabled. When the created entity is an envelope (`nodeType` = `envelope`), the returned `data` includes `filesCount` and `files` as a list of envelope child files.
          */
         post: operations["request_signature-request"];
         delete?: never;
@@ -1474,6 +1477,9 @@ export type components = {
                     /** Format: double */
                     "signature-height": number;
                 };
+                envelope: {
+                    "is-available": boolean;
+                };
             };
             version: string;
         };
@@ -1524,6 +1530,29 @@ export type components = {
             cfsslUri?: string;
             policySection: components["schemas"]["PolicySection"][];
             rootCert: components["schemas"]["RootCertificate"];
+        };
+        EnvelopeChildFile: {
+            /** Format: int64 */
+            id: number;
+            uuid: string;
+            name: string;
+            /** Format: int64 */
+            status: number;
+            statusText: string;
+            /** Format: int64 */
+            nodeId: number;
+            signers: components["schemas"]["EnvelopeChildSignerSummary"][];
+            metadata?: components["schemas"]["ValidateMetadata"];
+        };
+        EnvelopeChildSignerSummary: {
+            /** Format: int64 */
+            signRequestId: number;
+            displayName: string;
+            email: string;
+            signed: string | null;
+            /** Format: int64 */
+            status: number;
+            statusText: string;
         };
         File: {
             account: {
@@ -1617,9 +1646,25 @@ export type components = {
             /** Format: int64 */
             id: number;
             /** Format: int64 */
+            nodeId: number;
+            uuid: string;
+            /** Format: int64 */
             status: number;
             statusText: string;
+            /** @enum {string} */
+            nodeType: "file" | "envelope";
             created_at: string;
+            /** Format: int64 */
+            filesCount: number;
+            files: {
+                /** Format: int64 */
+                nodeId: number;
+                uuid: string;
+                name: string;
+                /** Format: int64 */
+                status: number;
+                statusText: string;
+            }[];
         };
         Notify: {
             date: string;
@@ -1732,6 +1777,7 @@ export type components = {
             identifyMethods?: components["schemas"]["IdentifyMethod"][];
             visibleElements?: components["schemas"]["VisibleElement"][];
             signatureMethods?: components["schemas"]["SignatureMethods"];
+            uid?: string;
         };
         UserElement: {
             /** Format: int64 */
@@ -1761,10 +1807,15 @@ export type components = {
             statusText: string;
             /** Format: int64 */
             nodeId: number;
+            /** @enum {string} */
+            nodeType: "file" | "envelope";
             /** Format: int64 */
             signatureFlow: number;
             /** Format: int64 */
             docmdpLevel: number;
+            /** Format: int64 */
+            filesCount?: number;
+            files?: components["schemas"]["EnvelopeChildFile"][];
             /** Format: int64 */
             totalPages: number;
             /** Format: int64 */
@@ -1777,17 +1828,7 @@ export type components = {
             };
             file: string;
             url?: string;
-            metadata?: {
-                extension: string;
-                /** Format: int64 */
-                p: number;
-                d?: {
-                    /** Format: double */
-                    w: number;
-                    /** Format: double */
-                    h: number;
-                }[];
-            };
+            metadata?: components["schemas"]["ValidateMetadata"];
             signers?: components["schemas"]["Signer"][];
             settings?: components["schemas"]["Settings"];
             messages?: {
@@ -1797,11 +1838,24 @@ export type components = {
             }[];
             visibleElements?: components["schemas"]["VisibleElement"][];
         };
+        ValidateMetadata: {
+            extension: string;
+            /** Format: int64 */
+            p: number;
+            d?: {
+                /** Format: double */
+                w: number;
+                /** Format: double */
+                h: number;
+            }[];
+        };
         VisibleElement: {
             /** Format: int64 */
             elementId: number;
             /** Format: int64 */
             signRequestId: number;
+            /** Format: int64 */
+            fileId: number;
             type: string;
             coordinates: components["schemas"]["Coordinate"];
         };
@@ -2154,32 +2208,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Sign request uuid */
+                /** @description File UUID for the identification document approval */
                 uuid: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/html": string;
-                };
-            };
-        };
-    };
-    "page-sign-id-doc-private": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Sign request uuid */
-                uuid: string;
-                path: string;
             };
             cookie?: never;
         };
@@ -3098,6 +3128,8 @@ export interface operations {
                 sortBy?: string | null;
                 /** @description Ascending or descending order */
                 sortDirection?: string | null;
+                /** @description Filter files by parent envelope node ID */
+                parentNodeId?: number | null;
             };
             header: {
                 /** @description Required to be true for the API request to pass */
@@ -3231,11 +3263,14 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
+        requestBody?: {
             content: {
                 "application/json": {
-                    /** @description File to save */
-                    file: components["schemas"]["NewFile"];
+                    /**
+                     * @description File to save
+                     * @default []
+                     */
+                    file?: components["schemas"]["NewFile"];
                     /**
                      * @description The name of file to sign
                      * @default
@@ -3246,6 +3281,11 @@ export interface operations {
                      * @default []
                      */
                     settings?: components["schemas"]["FolderSettings"];
+                    /**
+                     * @description Multiple files to create an envelope (optional, use either file or files)
+                     * @default []
+                     */
+                    files?: components["schemas"]["NewFile"][];
                 };
             };
         };
@@ -3265,6 +3305,86 @@ export interface operations {
                 };
             };
             /** @description Failed to save data */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "file-add-file-to-envelope": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description The UUID of the envelope */
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Files added successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: components["schemas"]["NextcloudFile"];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Envelope not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Cannot add files (envelope not in DRAFT status or validation failed) */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -3380,6 +3500,11 @@ export interface operations {
                      * @description ID of visible element. Each element has an ID that is returned on validation endpoints.
                      */
                     elementId?: number | null;
+                    /**
+                     * Format: int64
+                     * @description File ID when using node identifier instead of UUID
+                     */
+                    fileId?: number | null;
                     /**
                      * @description The type of element to create, sginature, sinitial, date, datetime, text
                      * @default
@@ -3514,6 +3639,11 @@ export interface operations {
                      * @description Id of sign request
                      */
                     signRequestId: number;
+                    /**
+                     * Format: int64
+                     * @description File ID when using node identifier instead of UUID
+                     */
+                    fileId?: number | null;
                     /**
                      * @description The type of element to create, sginature, sinitial, date, datetime, text
                      * @default

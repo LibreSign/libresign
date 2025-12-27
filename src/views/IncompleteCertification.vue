@@ -43,7 +43,7 @@ export default {
 	data() {
 		return {
 			image: BackgroundImage,
-			isAdmin: getCurrentUser().isAdmin,
+			isAdmin: getCurrentUser()?.isAdmin ?? false,
 		}
 	},
 	methods: {

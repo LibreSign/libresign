@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="6.13.1@1e3b7f0a8ab32b23197b91107adc0a7ed8a05b51">
+<files psalm-version="6.14.2@bbd217fc98c0daa0a13aea2a7f119d03ba3fc9a0">
   <file src="lib/AppInfo/Application.php">
     <InvalidArgument>
       <code><![CDATA[LoadAdditionalListener::class]]></code>
@@ -140,8 +140,6 @@
     <UndefinedClass>
       <code><![CDATA[$this->newUserMail]]></code>
       <code><![CDATA[$this->newUserMail]]></code>
-      <code><![CDATA[UUIDUtil]]></code>
-      <code><![CDATA[UUIDUtil]]></code>
       <code><![CDATA[private]]></code>
     </UndefinedClass>
   </file>
@@ -167,31 +165,5 @@
     <UndefinedClass>
       <code><![CDATA[Process]]></code>
     </UndefinedClass>
-  </file>
-  <file src="lib/Service/IdDocsService.php">
-    <UndefinedClass>
-      <code><![CDATA[UUIDUtil]]></code>
-    </UndefinedClass>
-  </file>
-  <file src="lib/Service/RequestSignatureService.php">
-    <UndefinedClass>
-      <code><![CDATA[UUIDUtil]]></code>
-      <code><![CDATA[UUIDUtil]]></code>
-    </UndefinedClass>
-  </file>
-  <file src="lib/Service/SignFileService.php">
-    <UndefinedClass>
-      <code><![CDATA[UUIDUtil]]></code>
-    </UndefinedClass>
-  </file>
-  <file src="lib/Service/SignatureTextService.php">
-    <UndefinedClass>
-      <code><![CDATA[UUIDUtil]]></code>
-    </UndefinedClass>
-  </file>
-  <file src="lib/Service/TFile.php">
-    <UndefinedDocblockClass>
-      <code><![CDATA[PdfTypeException]]></code>
-    </UndefinedDocblockClass>
   </file>
 </files>

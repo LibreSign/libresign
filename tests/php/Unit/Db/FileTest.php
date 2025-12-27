@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Db;
 
 use OCA\Libresign\Db\File;
+use OCA\Libresign\Enum\NodeType;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Tests\Unit\TestCase;
 
@@ -34,5 +35,23 @@ final class FileTest extends TestCase {
 
 		$this->file->setSignatureFlowEnum(SignatureFlow::ORDERED_NUMERIC);
 		$this->assertEquals(2, $this->file->getSignatureFlow());
+	}
+
+	public function testIsEnvelopeReturnsFalseByDefault(): void {
+		$this->assertFalse($this->file->isEnvelope());
+	}
+
+	public function testIsEnvelopeReturnsTrueWhenNodeTypeIsEnvelope(): void {
+		$this->file->setNodeTypeEnum(NodeType::ENVELOPE);
+		$this->assertTrue($this->file->isEnvelope());
+	}
+
+	public function testHasParentReturnsFalseByDefault(): void {
+		$this->assertFalse($this->file->hasParent());
+	}
+
+	public function testHasParentReturnsTrueWhenParentFileIdIsSet(): void {
+		$this->file->setParentFileId(123);
+		$this->assertTrue($this->file->hasParent());
 	}
 }

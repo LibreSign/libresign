@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
+use OCA\Libresign\Enum\NodeType;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCP\AppFramework\Db\Entity;
 use OCP\DB\Types;
@@ -30,7 +31,7 @@ use OCP\DB\Types;
  * @method void setCreatedAt(\DateTime $createdAt)
  * @method \DateTime getCreatedAt()
  * @method void setName(string $name)
- * @method string getName()
+ * @method non-falsy-string getName()
  * @method void setCallback(string $callback)
  * @method ?string getCallback()
  * @method void setStatus(int $status)
@@ -43,6 +44,10 @@ use OCP\DB\Types;
  * @method int getSignatureFlow()
  * @method void setDocmdpLevel(int $docmdpLevel)
  * @method int getDocmdpLevel()
+ * @method void setNodeType(string $nodeType)
+ * @method 'file'|'envelope' getNodeType()
+ * @method void setParentFileId(?int $parentFileId)
+ * @method ?int getParentFileId()
  */
 class File extends Entity {
 	protected int $nodeId = 0;
@@ -59,6 +64,8 @@ class File extends Entity {
 	protected int $modificationStatus = 0;
 	protected int $signatureFlow = SignatureFlow::NUMERIC_NONE;
 	protected int $docmdpLevel = 0;
+	protected string $nodeType = 'file';
+	protected ?int $parentFileId = null;
 	public const STATUS_NOT_LIBRESIGN_FILE = -1;
 	public const STATUS_DRAFT = 0;
 	public const STATUS_ABLE_TO_SIGN = 1;
@@ -87,6 +94,8 @@ class File extends Entity {
 		$this->addType('modificationStatus', Types::SMALLINT);
 		$this->addType('signatureFlow', Types::SMALLINT);
 		$this->addType('docmdpLevel', Types::SMALLINT);
+		$this->addType('nodeType', Types::STRING);
+		$this->addType('parentFileId', Types::INTEGER);
 	}
 
 	public function isDeletedAccount(): bool {
@@ -113,5 +122,21 @@ class File extends Entity {
 
 	public function setDocmdpLevelEnum(\OCA\Libresign\Enum\DocMdpLevel $level): void {
 		$this->setDocmdpLevel($level->value);
+	}
+
+	public function getNodeTypeEnum(): NodeType {
+		return NodeType::from($this->nodeType);
+	}
+
+	public function setNodeTypeEnum(NodeType $nodeType): void {
+		$this->setNodeType($nodeType->value);
+	}
+
+	public function isEnvelope(): bool {
+		return $this->getNodeTypeEnum()->isEnvelope();
+	}
+
+	public function hasParent(): bool {
+		return $this->parentFileId !== null;
 	}
 }

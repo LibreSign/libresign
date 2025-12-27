@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use InvalidArgumentException;
-use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
@@ -23,6 +22,7 @@ use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
+use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
@@ -77,6 +77,7 @@ class AccountService {
 		private FolderService $folderService,
 		private IClientService $clientService,
 		private ITimeFactory $timeFactory,
+		private FileUploadHelper $uploadHelper,
 	) {
 	}
 
@@ -509,14 +510,13 @@ class AccountService {
 	 * @throws InvalidArgumentException
 	 */
 	public function uploadPfx(array $file, IUser $user): void {
-		if (
-			$file['error'] !== 0
-			|| !is_uploaded_file($file['tmp_name'])
-			|| Filesystem::isFileBlacklisted($file['tmp_name'])
-		) {
+		try {
+			$this->uploadHelper->validateUploadedFile($file);
+		} catch (InvalidArgumentException) {
 			// TRANSLATORS Error when the uploaded certificate file is not valid
 			throw new InvalidArgumentException($this->l10n->t('Invalid file provided. Need to be a .pfx file.'));
 		}
+
 		if ($file['size'] > 10 * 1024) {
 			// TRANSLATORS Error when the certificate file is bigger than normal
 			throw new InvalidArgumentException($this->l10n->t('File is too big'));

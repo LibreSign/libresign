@@ -72,14 +72,28 @@ cd tests/integration
 composer i
 chown -R www-data: .
 
+# List available test steps
+cd tests/integration
+runuser -u www-data -- vendor/bin/behat -dl
+
 # Running integration tests (from libresign root directory)
 cd tests/integration
 runuser -u www-data -- vendor/bin/behat features/<path>.feature
+
+# Run with verbose output (shows nextcloud.log entries)
+runuser -u www-data -- vendor/bin/behat features/<path>.feature -v
 
 # Example: Run specific feature file
 cd tests/integration
 runuser -u www-data -- vendor/bin/behat features/auth/login.feature
 ```
+
+**CRITICAL**: Like unit tests, ALWAYS run specific scenarios, NEVER run the entire integration test suite:
+- Always specify which feature file to run and the row of scenario if needed
+- Use `-dl` to list available test steps when writing new tests
+- Use `-v` flag to see nextcloud.log output during test execution
+- **Important**: steps with OCC command outputs (even with `-v`) don't appear in Behat output but are logged to `nextcloud.log`
+- Running all integration tests is extremely slow and resource-intensive
 
 **Frontend Testing**:
 ```bash
