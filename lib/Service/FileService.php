@@ -10,7 +10,6 @@ namespace OCA\Libresign\Service;
 
 use DateTimeInterface;
 use InvalidArgumentException;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
@@ -21,25 +20,28 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\FileUploadHelper;
-use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\ResponseDefinitions;
-use OCA\Libresign\Service\File\FileListService;
+use OCA\Libresign\Service\File\CertificateChainService;
+use OCA\Libresign\Service\File\EnvelopeAssembler;
+use OCA\Libresign\Service\File\EnvelopeProgressService;
+use OCA\Libresign\Service\File\FileContentProvider;
 use OCA\Libresign\Service\File\FileResponseOptions;
+use OCA\Libresign\Service\File\MessagesLoader;
+use OCA\Libresign\Service\File\MetadataLoader;
+use OCA\Libresign\Service\File\MimeService;
+use OCA\Libresign\Service\File\PdfValidator;
+use OCA\Libresign\Service\File\SettingsLoader;
 use OCA\Libresign\Service\File\SignersLoader;
-use OCP\Accounts\IAccountManager;
+use OCA\Libresign\Service\File\UploadProcessor;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
-use OCP\Http\Client\IClientService;
-use OCP\IAppConfig;
-use OCP\IDateTimeFormatter;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use stdClass;
 
@@ -49,9 +51,7 @@ use stdClass;
  * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
  */
 class FileService {
-	use TFile;
 
-	private bool $signersLibreSignLoaded = false;
 	private string $fileContent = '';
 	private ?File $file = null;
 	private ?SignRequest $signRequest = null;
@@ -68,33 +68,80 @@ class FileService {
 		protected FileElementMapper $fileElementMapper,
 		protected FileElementService $fileElementService,
 		protected FolderService $folderService,
-		protected ValidateHelper $validateHelper,
-		protected PdfParserService $pdfParserService,
 		private IdDocsMapper $idDocsMapper,
-		private AccountService $accountService,
 		private IdentifyMethodService $identifyMethodService,
-		private IUserSession $userSession,
 		private IUserManager $userManager,
-		private IAccountManager $accountManager,
-		protected IClientService $client,
-		private IDateTimeFormatter $dateTimeFormatter,
-		private IAppConfig $appConfig,
 		private IURLGenerator $urlGenerator,
 		protected IMimeTypeDetector $mimeTypeDetector,
 		protected Pkcs12Handler $pkcs12Handler,
-		DocMdpHandler $docMdpHandler,
+		protected DocMdpHandler $docMdpHandler,
+		protected PdfValidator $pdfValidator,
 		private IRootFolder $root,
 		protected LoggerInterface $logger,
 		protected IL10N $l10n,
 		private EnvelopeService $envelopeService,
 		private SignersLoader $signersLoader,
-		private FileListService $fileListService,
-		FileUploadHelper $uploadHelper,
+		protected FileUploadHelper $uploadHelper,
+		private EnvelopeAssembler $envelopeAssembler,
+		private EnvelopeProgressService $envelopeProgressService,
+		private CertificateChainService $certificateChainService,
+		private MimeService $mimeService,
+		private FileContentProvider $contentProvider,
+		private UploadProcessor $uploadProcessor,
+		private MetadataLoader $metadataLoader,
+		private SettingsLoader $settingsLoader,
+		private MessagesLoader $messagesLoader,
 	) {
 		$this->fileData = new stdClass();
 		$this->options = new FileResponseOptions();
-		$this->docMdpHandler = $docMdpHandler;
-		$this->uploadHelper = $uploadHelper;
+	}
+
+	public function getNodeFromData(array $data): Node {
+		if (!$this->folderService->getUserId()) {
+			$this->folderService->setUserId($data['userManager']->getUID());
+		}
+
+		if (isset($data['uploadedFile'])) {
+			return $this->getNodeFromUploadedFile($data);
+		}
+
+		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
+			return $data['file']['fileNode'];
+		}
+		if (isset($data['file']['fileId'])) {
+			return $this->folderService->getFileById($data['file']['fileId']);
+		}
+		if (isset($data['file']['path'])) {
+			return $this->folderService->getFileByPath($data['file']['path']);
+		}
+
+		$content = $this->getFileRaw($data);
+		$extension = $this->getExtension($content);
+
+		$this->validateFileContent($content, $extension);
+
+		$userFolder = $this->folderService->getFolder();
+		$folderName = $this->folderService->getFolderName($data, $data['userManager']);
+		$folderToFile = $userFolder->newFolder($folderName);
+		return $folderToFile->newFile($data['name'] . '.' . $extension, $content);
+	}
+
+	public function getNodeFromUploadedFile(array $data): Node {
+		return $this->uploadProcessor->getNodeFromUploadedFile($data);
+	}
+
+	public function validateFileContent(string $content, string $extension): void {
+		if ($extension === 'pdf') {
+			$this->pdfValidator->validate($content);
+		}
+	}
+
+	private function getExtension(string $content): string {
+		return $this->mimeService->getExtension($content);
+	}
+
+	private function getFileRaw(array $data): string {
+		return $this->contentProvider->getContentFromData($data);
 	}
 
 	/**
@@ -212,7 +259,7 @@ class FileService {
 		$this->uploadHelper->validateUploadedFile($file);
 
 		$this->fileContent = file_get_contents($file['tmp_name']);
-		$mimeType = $this->mimeTypeDetector->detectString($this->fileContent);
+		$mimeType = $this->mimeService->getMimeType($this->fileContent);
 		if ($mimeType !== 'application/pdf') {
 			$this->fileContent = '';
 			unlink($file['tmp_name']);
@@ -266,90 +313,6 @@ class FileService {
 		return $this->file->getSignedNodeId();
 	}
 
-	private function getFileContent(): string {
-		if ($this->fileContent) {
-			return $this->fileContent;
-		} elseif ($this->file) {
-			try {
-				return $this->fileContent = $this->getFile()->getContent();
-			} catch (LibresignException $e) {
-				throw $e;
-			} catch (\Throwable $e) {
-				$this->logger->error('Failed to get file content: ' . $e->getMessage(), [
-					'fileId' => $this->file->getId(),
-					'exception' => $e,
-				]);
-				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404, $e);
-			}
-		}
-		return '';
-	}
-
-	public function isLibresignFile(int $nodeId): bool {
-		try {
-			return $this->fileMapper->fileIdExists($nodeId);
-		} catch (\Throwable) {
-			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
-		}
-	}
-
-	private function loadFileMetadata(): void {
-		if (
-			($this->file instanceof File && $this->file->getNodeType() !== 'file')
-			|| !$content = $this->getFileContent()
-		) {
-			return;
-		}
-		$pdfParserService = $this->pdfParserService->setFile($content);
-		if ($this->file) {
-			$metadata = $this->file->getMetadata();
-			$this->fileData->metadata = $metadata;
-		}
-		if (isset($metadata) && isset($metadata['p'])) {
-			$dimensions = $metadata;
-		} else {
-			$dimensions = $pdfParserService->getPageDimensions();
-		}
-		$this->fileData->totalPages = $dimensions['p'];
-		$this->fileData->size = strlen($content);
-		$this->fileData->pdfVersion = $pdfParserService->getPdfVersion();
-	}
-
-
-	private function loadCertificateChain(\OCP\Files\File $fileNode, File $libreSignFile): array {
-		if (!$this->options->isValidateFile() || !$libreSignFile->getSignedNodeId()) {
-			return [];
-		}
-
-		try {
-			$resource = $fileNode->fopen('rb');
-			$sha256 = $this->getSha256FromResource($resource);
-			rewind($resource);
-			if ($sha256 === $libreSignFile->getSignedHash()) {
-				$this->pkcs12Handler->setIsLibreSignFile();
-			}
-			$certData = $this->pkcs12Handler->getCertificateChain($resource);
-			fclose($resource);
-			return $certData;
-		} catch (\Exception $e) {
-			return [];
-		}
-	}
-
-	private function getSha256FromResource($resource): string {
-		$hashContext = hash_init('sha256');
-		while (!feof($resource)) {
-			$buffer = fread($resource, 8192); // 8192 bytes = 8 KB
-			hash_update($hashContext, $buffer);
-		}
-		return hash_final($hashContext);
-	}
-
-	private function loadLibreSignSigners(): void {
-		$this->signersLoader->loadLibreSignSigners($this->file, $this->fileData, $this->options, $this->certData);
-		$this->signersLibreSignLoaded = $this->signersLoader->reset() || true;
-	}
-
 	private function loadSigners(): void {
 		if (!$this->options->isShowSigners()) {
 			return;
@@ -361,121 +324,24 @@ class FileService {
 
 		if ($this->file->getSignedNodeId()) {
 			$fileNode = $this->getFile();
-			$certData = $this->loadCertificateChain($fileNode, $this->file);
+			$certData = $this->certificateChainService->getCertificateChain($fileNode, $this->file, $this->options);
 			if ($certData) {
 				$this->signersLoader->loadSignersFromCertData($this->fileData, $certData, $this->options->getHost());
 			}
 		}
-		$this->loadLibreSignSigners();
+		$this->signersLoader->loadLibreSignSigners($this->file, $this->fileData, $this->options, $this->certData);
 	}
 
-	/**
-	 * @return (mixed|string)[][]
-	 *
-	 * @psalm-return list<array{url: string, resolution: mixed}>
-	 */
-	private function getPages(): array {
-		$return = [];
-
-		$metadata = $this->file->getMetadata();
-		for ($page = 1; $page <= $metadata['p']; $page++) {
-			$return[] = [
-				'url' => $this->urlGenerator->linkToRoute('ocs.libresign.File.getPage', [
-					'apiVersion' => 'v1',
-					'uuid' => $this->file->getUuid(),
-					'page' => $page,
-				]),
-				'resolution' => $metadata['d'][$page - 1]
-			];
-		}
-		return $return;
-	}
-
-	private function getVisibleElements(int $signRequestId): array {
-		$return = [];
-		if (!$this->options->isShowVisibleElements()) {
-			return $return;
-		}
-		try {
-			$visibleElements = $this->fileElementMapper->getByFileIdAndSignRequestId($this->file->getId(), $signRequestId);
-			foreach ($visibleElements as $visibleElement) {
-				$element = [
-					'elementId' => $visibleElement->getId(),
-					'signRequestId' => $visibleElement->getSignRequestId(),
-					'type' => $visibleElement->getType(),
-					'coordinates' => [
-						'page' => $visibleElement->getPage(),
-						'urx' => $visibleElement->getUrx(),
-						'ury' => $visibleElement->getUry(),
-						'llx' => $visibleElement->getLlx(),
-						'lly' => $visibleElement->getLly()
-					]
-				];
-				$element['coordinates'] = array_merge(
-					$element['coordinates'],
-					$this->fileElementService->translateCoordinatesFromInternalNotation($element, $this->file)
-				);
-				$return[] = $element;
-			}
-		} catch (\Throwable) {
-		}
-		return $return;
-	}
-
-	private function getPhoneNumber(): string {
-		if (!$this->options->getMe()) {
-			return '';
-		}
-		$userAccount = $this->accountManager->getAccount($this->options->getMe());
-		return $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
+	private function loadFileMetadata(): void {
+		$this->metadataLoader->loadMetadata($this->file, $this->fileData);
 	}
 
 	private function loadSettings(): void {
-		if (!$this->options->isShowSettings()) {
-			return;
-		}
-		if ($this->options->getMe()) {
-			$this->fileData->settings = array_merge($this->fileData->settings, $this->accountService->getSettings($this->options->getMe()));
-			$this->fileData->settings['phoneNumber'] = $this->getPhoneNumber();
-		}
-		if ($this->options->isSignerIdentified() || $this->options->getMe()) {
-			$status = $this->getIdentificationDocumentsStatus();
-			if ($status === self::IDENTIFICATION_DOCUMENTS_NEED_SEND) {
-				$this->fileData->settings['needIdentificationDocuments'] = true;
-				$this->fileData->settings['identificationDocumentsWaitingApproval'] = false;
-			} elseif ($status === self::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL) {
-				$this->fileData->settings['needIdentificationDocuments'] = true;
-				$this->fileData->settings['identificationDocumentsWaitingApproval'] = true;
-			}
-		}
+		$this->settingsLoader->loadSettings($this->fileData, $this->options);
 	}
 
 	public function getIdentificationDocumentsStatus(string $userId = ''): int {
-		if (!$this->appConfig->getValueBool(Application::APP_ID, 'identification_documents', false)) {
-			return self::IDENTIFICATION_DOCUMENTS_DISABLED;
-		}
-
-		if (!$userId && $this->options->getMe() instanceof IUser) {
-			$userId = $this->options->getMe()->getUID();
-		}
-		if (!empty($userId)) {
-			$files = $this->fileMapper->getFilesOfAccount($userId);
-		}
-
-		if (empty($files) || !count($files)) {
-			return self::IDENTIFICATION_DOCUMENTS_NEED_SEND;
-		}
-		$deleted = array_filter($files, fn (File $file) => $file->getStatus() === File::STATUS_DELETED);
-		if (count($deleted) === count($files)) {
-			return self::IDENTIFICATION_DOCUMENTS_NEED_SEND;
-		}
-
-		$signed = array_filter($files, fn (File $file) => $file->getStatus() === File::STATUS_SIGNED);
-		if (count($signed) !== count($files)) {
-			return self::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL;
-		}
-
-		return self::IDENTIFICATION_DOCUMENTS_APPROVED;
+		return $this->settingsLoader->getIdentificationDocumentsStatus($userId);
 	}
 
 	private function loadLibreSignData(): void {
@@ -535,13 +401,14 @@ class FileService {
 				if (empty($visibleElements)) {
 					continue;
 				}
-				$file = array_filter($this->fileData->files, fn (stdClass $file) => $file->id === $visibleElements[0]['file_id']);
+				$file = array_filter($this->fileData->files, fn (stdClass $file) => $file->id === $visibleElements[0]->getFileId());
 				if (empty($file)) {
 					continue;
 				}
 				$file = current($file);
+				$fileMetadata = $this->file->getMetadata();
 				$this->fileData->visibleElements = array_merge(
-					$this->fileListService->formatVisibleElements($visibleElements),
+					$this->fileElementService->formatVisibleElements($visibleElements, $fileMetadata),
 					$this->fileData->visibleElements
 				);
 			}
@@ -581,62 +448,7 @@ class FileService {
 	}
 
 	private function buildEnvelopeChildData(File $childFile): stdClass {
-		$fileData = new stdClass();
-		$fileData->id = $childFile->getId();
-		$fileData->uuid = $childFile->getUuid();
-		$fileData->name = $childFile->getName();
-		$fileData->status = $childFile->getStatus();
-		$fileData->statusText = $this->fileMapper->getTextOfStatus($childFile->getStatus());
-		$fileData->nodeId = $childFile->getNodeId();
-		$fileData->metadata = $childFile->getMetadata();
-		$fileData->signers = [];
-
-		$signRequests = $this->signRequestMapper->getByFileId($childFile->getId());
-		foreach ($signRequests as $signRequest) {
-			$identifyMethods = $this->identifyMethodService
-				->setIsRequest(false)
-				->getIdentifyMethodsFromSignRequestId($signRequest->getId());
-
-			$email = '';
-			foreach ($identifyMethods[IdentifyMethodService::IDENTIFY_EMAIL] ?? [] as $identifyMethod) {
-				$entity = $identifyMethod->getEntity();
-				if ($entity->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
-					$email = $entity->getIdentifierValue();
-					break;
-				}
-			}
-
-			$signed = null;
-			if ($signRequest->getSigned()) {
-				$signed = $signRequest->getSigned()->format(DateTimeInterface::ATOM);
-			}
-
-			$displayName = $signRequest->getDisplayName();
-			if ($displayName === '' && $email !== '') {
-				$displayName = $email;
-			}
-
-			$signer = new stdClass();
-			$signer->signRequestId = $signRequest->getId();
-			$signer->displayName = $displayName;
-			$signer->email = $email;
-			$signer->signed = $signed;
-			$signer->status = $signRequest->getStatus();
-			$signer->statusText = $this->signRequestMapper->getTextOfSignerStatus($signRequest->getStatus());
-			$fileData->signers[] = $signer;
-		}
-
-		if ($this->options->isValidateFile() && $childFile->getSignedNodeId()) {
-			$fileNode = $this->root->getUserFolder($childFile->getUserId())->getFirstNodeById($childFile->getSignedNodeId());
-			if ($fileNode instanceof \OCP\Files\File) {
-				$certData = $this->loadCertificateChain($fileNode, $childFile);
-				if (!empty($certData)) {
-					$this->signersLoader->loadSignersFromCertData($fileData, $certData, $this->options->getHost());
-				}
-			}
-		}
-
-		return $fileData;
+		return $this->envelopeAssembler->buildEnvelopeChildData($childFile, $this->options);
 	}
 
 	private function loadEnvelopeData(): void {
@@ -662,28 +474,7 @@ class FileService {
 	}
 
 	private function loadMessages(): void {
-		if (!$this->options->isShowMessages()) {
-			return;
-		}
-		$messages = [];
-		if ($this->fileData->settings['canSign']) {
-			$messages[] = [
-				'type' => 'info',
-				'message' => $this->l10n->t('You need to sign this document')
-			];
-		}
-		if ($this->fileData->settings['canRequestSign']) {
-			$this->loadLibreSignSigners();
-			if (empty($this->fileData->signers)) {
-				$messages[] = [
-					'type' => 'info',
-					'message' => $this->l10n->t('You cannot request signature for this document, please contact your administrator')
-				];
-			}
-		}
-		if ($messages) {
-			$this->fileData->messages = $messages;
-		}
+		$this->messagesLoader->loadMessages($this->file, $this->fileData, $this->options, $this->certData);
 	}
 
 	/**
@@ -716,81 +507,21 @@ class FileService {
 			return;
 		}
 
-		$signerProgress = [];
-		foreach ($childrenFiles as $childFile) {
-			$signRequests = $this->signRequestMapper->getByFileId($childFile->getId());
-			foreach ($signRequests as $signRequest) {
-				$signRequestId = $signRequest->getId();
-
-				$identifyMethods = $this->identifyMethodService
-					->setIsRequest(false)
-					->getIdentifyMethodsFromSignRequestId($signRequestId);
-
-				$signerKey = $this->buildSignerKey($identifyMethods);
-
-				if (!isset($signerProgress[$signerKey])) {
-					$signerProgress[$signerKey] = [
-						'total' => 0,
-						'signed' => 0,
-					];
-				}
-
-				$signerProgress[$signerKey]['total']++;
-				if ($signRequest->getSigned()) {
-					$signerProgress[$signerKey]['signed']++;
-				}
+		$signRequestsByFileId = [];
+		$identifyMethodsBySignRequest = [];
+		foreach ($childrenFiles as $child) {
+			$signRequestsByFileId[$child->getId()] = $this->signRequestMapper->getByFileId($child->getId());
+			foreach ($signRequestsByFileId[$child->getId()] as $sr) {
+				$identifyMethodsBySignRequest[$sr->getId()] = $this->identifyMethodService->setIsRequest(false)->getIdentifyMethodsFromSignRequestId($sr->getId());
 			}
 		}
 
-		foreach ($this->fileData->signers as $index => $signer) {
-			$signerKey = $this->buildSignerKeyFromEnvelopeSigner($signer);
-			if (isset($signerProgress[$signerKey])) {
-				$this->fileData->signers[$index]->totalDocuments = $signerProgress[$signerKey]['total'];
-				$this->fileData->signers[$index]->documentsSignedCount = $signerProgress[$signerKey]['signed'];
-			} else {
-				$this->fileData->signers[$index]->totalDocuments = 0;
-				$this->fileData->signers[$index]->documentsSignedCount = 0;
-			}
-		}
-	}
-
-	private function buildSignerKey(array $identifyMethods): string {
-		$keys = [];
-		foreach ($identifyMethods as $methods) {
-			foreach ($methods as $identifyMethod) {
-				$entity = $identifyMethod->getEntity();
-				$keys[] = $entity->getIdentifierKey() . ':' . $entity->getIdentifierValue();
-			}
-		}
-		sort($keys);
-		return implode('|', $keys);
-	}
-
-	private function buildSignerKeyFromEnvelopeSigner(stdClass $signer): string {
-		if (empty($signer->identifyMethods)) {
-			return '';
-		}
-		$keys = [];
-		foreach ($signer->identifyMethods as $method) {
-			$keys[] = $method['method'] . ':' . $method['value'];
-		}
-		sort($keys);
-		return implode('|', $keys);
-	}
-
-	public function setFileByPath(string $path): self {
-		$node = $this->folderService->getFileByPath($path);
-		$this->setFileByType('FileId', $node->getId());
-		return $this;
-	}
-
-	public function getMyLibresignFile(int $nodeId): File {
-		return $this->signRequestMapper->getMyLibresignFile(
-			userId: $this->options->getMe()->getUID(),
-			filter: [
-				'email' => $this->options->getMe()->getEMailAddress(),
-				'nodeId' => $nodeId,
-			],
+		$this->envelopeProgressService->computeProgress(
+			$this->fileData,
+			$this->file,
+			$childrenFiles,
+			$signRequestsByFileId,
+			$identifyMethodsBySignRequest
 		);
 	}
 
@@ -825,67 +556,8 @@ class FileService {
 		}
 	}
 
-	/**
-	 * Process uploaded files with automatic rollback on error
-	 *
-	 * @param array $filesArray Normalized array of uploaded files
-	 * @param IUser $user User who is uploading
-	 * @param array $settings Upload settings
-	 * @return list<array{fileNode: Node, name: string}>
-	 * @throws LibresignException
-	 */
 	public function processUploadedFilesWithRollback(array $filesArray, IUser $user, array $settings): array {
-		$processedFiles = [];
-		$createdNodes = [];
-		$shouldRollback = true;
-
-		try {
-			foreach ($filesArray as $uploadedFile) {
-				$fileName = pathinfo($uploadedFile['name'], PATHINFO_FILENAME);
-
-				$node = $this->getNodeFromUploadedFile([
-					'userManager' => $user,
-					'name' => $fileName,
-					'uploadedFile' => $uploadedFile,
-					'settings' => $settings,
-				]);
-
-				$createdNodes[] = $node;
-
-				$this->validateHelper->validateNewFile([
-					'file' => ['fileId' => $node->getId()],
-					'userManager' => $user,
-				]);
-
-				$processedFiles[] = [
-					'fileNode' => $node,
-					'name' => $fileName,
-				];
-			}
-
-			$shouldRollback = false;
-			return $processedFiles;
-		} finally {
-			if ($shouldRollback) {
-				$this->rollbackCreatedNodes($createdNodes);
-			}
-		}
-	}
-
-	/**
-	 * @param Node[] $nodes
-	 */
-	private function rollbackCreatedNodes(array $nodes): void {
-		foreach ($nodes as $node) {
-			try {
-				$node->delete();
-			} catch (\Exception $deleteError) {
-				$this->logger->error('Failed to rollback uploaded file', [
-					'nodeId' => $node->getId(),
-					'error' => $deleteError->getMessage(),
-				]);
-			}
-		}
+		return $this->uploadProcessor->processUploadedFilesWithRollback($filesArray, $user, $settings);
 	}
 
 	public function updateEnvelopeFilesCount(File $envelope, int $delta = 0): void {
