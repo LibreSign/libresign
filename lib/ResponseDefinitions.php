@@ -137,7 +137,6 @@ namespace OCA\Libresign;
  *     fileId: int,
  *     type: string,
  *     coordinates: LibresignCoordinate,
- *     uuid: string,
  * }
  * @psalm-type LibresignSignatureMethod = array{
  *     enabled: bool,

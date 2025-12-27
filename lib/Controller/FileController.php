@@ -195,10 +195,7 @@ class FileController extends AEnvironmentAwareController {
 			} elseif (!empty($type) && !empty($identifier)) {
 				$this->fileService
 					->setFileByType($type, $identifier);
-			} elseif ($this->request->getParam('path')) {
-				$this->fileService
-					->setMe($this->userSession->getUser())
-					->setFileByPath($this->request->getParam('path'));
+
 			} elseif ($this->request->getParam('fileId')) {
 				$this->fileService->setFileByType(
 					'FileId',
