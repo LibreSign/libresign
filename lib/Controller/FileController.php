@@ -253,7 +253,7 @@ class FileController extends AEnvironmentAwareController {
 	 * @param string|null $sortBy Name of the column to sort by
 	 * @param string|null $sortDirection Ascending or descending order
 	 * @param int|null $parentNodeId Filter files by parent envelope node ID
-	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[], settings?: LibresignSettings}, array{}>
 	 *
 	 * 200: OK
 	 */

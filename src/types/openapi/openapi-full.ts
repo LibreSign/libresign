@@ -1848,6 +1848,7 @@ export type components = {
                 /** Format: double */
                 h: number;
             }[];
+            pdfVersion?: string;
         };
         VisibleElement: {
             /** Format: int64 */
@@ -3154,6 +3155,7 @@ export interface operations {
                             data: {
                                 pagination: components["schemas"]["Pagination"];
                                 data: components["schemas"]["File"][] | null;
+                                settings?: components["schemas"]["Settings"];
                             };
                         };
                     };
