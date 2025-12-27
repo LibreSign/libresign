@@ -515,7 +515,13 @@ export const useFilesStore = function(...args) {
 				}
 
 				const { data } = await axios(config)
-				this.addFile(data.ocs.data.data)
+				const responseFile = data.ocs.data.data
+				if (responseFile.nodeId && this.files[responseFile.nodeId]) {
+					set(this.files, responseFile.nodeId, responseFile)
+					this.addUniqueIdentifierToAllSigners(this.files[responseFile.nodeId].signers)
+				} else {
+					this.addFile(responseFile)
+				}
 				return data.ocs.data
 			},
 			async updateSignatureRequest({ visibleElements = [], signers = null, uuid = null, nodeId = null, status = 1, signatureFlow = null }) {
@@ -547,7 +553,16 @@ export const useFilesStore = function(...args) {
 					}
 				}
 				const { data } = await axios(config)
-				this.addFile(data.ocs.data.data)
+				// Only update the existing file, don't trigger full reload via addFile
+				const responseFile = data.ocs.data.data
+				if (responseFile.nodeId && this.files[responseFile.nodeId]) {
+					// Update existing file in-place to avoid triggering side effects
+					set(this.files, responseFile.nodeId, responseFile)
+					this.addUniqueIdentifierToAllSigners(this.files[responseFile.nodeId].signers)
+				} else {
+					// Only add to store if it's a new file
+					this.addFile(responseFile)
+				}
 				return data.ocs.data
 			},
 		},
