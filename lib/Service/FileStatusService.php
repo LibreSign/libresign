@@ -91,4 +91,25 @@ class FileStatusService {
 
 		return $file;
 	}
+
+	public function propagateStatusToChildren(int $envelopeId, int $newStatus): void {
+		try {
+			$envelope = $this->fileMapper->getById($envelopeId);
+		} catch (DoesNotExistException) {
+			return;
+		}
+
+		if (!$envelope->isEnvelope()) {
+			return;
+		}
+
+		$children = $this->fileMapper->getChildrenFiles($envelopeId);
+
+		foreach ($children as $child) {
+			if ($child->getStatus() !== $newStatus) {
+				$child->setStatus($newStatus);
+				$this->fileMapper->update($child);
+			}
+		}
+	}
 }
