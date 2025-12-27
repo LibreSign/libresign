@@ -83,4 +83,22 @@ class SettingsLoader {
 
 		return self::IDENTIFICATION_DOCUMENTS_APPROVED;
 	}
+
+	/**
+	 * Get user identification documents settings
+	 * These are user-specific settings, not file-specific
+	 *
+	 * @return array{needIdentificationDocuments: bool, identificationDocumentsWaitingApproval: bool}
+	 */
+	public function getUserIdentificationSettings(string $userId): array {
+		$status = $this->getIdentificationDocumentsStatus($userId);
+
+		return [
+			'needIdentificationDocuments' => in_array($status, [
+				self::IDENTIFICATION_DOCUMENTS_NEED_SEND,
+				self::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL,
+			], true),
+			'identificationDocumentsWaitingApproval' => $status === self::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL,
+		];
+	}
 }
