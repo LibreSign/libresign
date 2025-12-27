@@ -8,8 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
-use DateTimeInterface;
-use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Helper\Pagination;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -290,16 +288,21 @@ class SignRequestMapper extends QBMapper {
 
 	/**
 	 * Get all signers by multiple fileId
+	 * Includes signers from both the files themselves and their children files (for envelopes)
 	 *
 	 * @return SignRequest[]
 	 */
 	public function getByMultipleFileId(array $fileId) {
 		$qb = $this->db->getQueryBuilder();
 
-		$qb->select('*')
+		$qb->select('sr.*')
 			->from($this->getTableName(), 'sr')
+			->join('sr', 'libresign_file', 'f', $qb->expr()->eq('sr.file_id', 'f.id'))
 			->where(
-				$qb->expr()->in('sr.file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT_ARRAY))
+				$qb->expr()->orX(
+					$qb->expr()->in('f.id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT_ARRAY)),
+					$qb->expr()->in('f.parent_file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT_ARRAY))
+				)
 			)
 			->orderBy('sr.id', 'ASC');
 
@@ -425,7 +428,7 @@ class SignRequestMapper extends QBMapper {
 		return end($this->signers);
 	}
 
-	public function getFilesAssociatedFilesWithMeFormatted(
+	public function getFilesAssociatedFilesWithMe(
 		IUser $user,
 		array $filter,
 		?int $page = null,
@@ -442,7 +445,8 @@ class SignRequestMapper extends QBMapper {
 
 		$data = [];
 		foreach ($currentPageResults as $row) {
-			$data[] = $this->formatListRow($row);
+			$file = new File();
+			$data[] = $file->fromRow($row);
 		}
 		$return['data'] = $data;
 		$return['pagination'] = $pagination;
@@ -518,14 +522,6 @@ class SignRequestMapper extends QBMapper {
 			throw new DoesNotExistException('LibreSign file not found');
 		}
 
-		unset(
-			$row['parent_id'],
-			$row['parent_uuid'],
-			$row['parent_name'],
-			$row['parent_status'],
-			$row['parent_created_at'],
-		);
-
 		$file = new File();
 		return $file->fromRow($row);
 	}
@@ -535,8 +531,7 @@ class SignRequestMapper extends QBMapper {
 		$qb->from('libresign_file', 'f')
 			->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id')
 			->leftJoin('f', 'libresign_identify_method', 'im', $qb->expr()->eq('sr.id', 'im.sign_request_id'))
-			->leftJoin('f', 'libresign_id_docs', 'id', 'id.file_id = f.id')
-			->leftJoin('f', 'libresign_file', 'parent', $qb->expr()->eq('f.parent_file_id', 'parent.id'));
+			->leftJoin('f', 'libresign_id_docs', 'id', 'id.file_id = f.id');
 		if ($count) {
 			$qb->select($qb->func()->count())
 				->setFirstResult(0)
@@ -555,12 +550,7 @@ class SignRequestMapper extends QBMapper {
 				'f.signature_flow',
 				'f.docmdp_level',
 				'f.node_type',
-				'f.parent_file_id',
-				'parent.id as parent_id',
-				'parent.uuid as parent_uuid',
-				'parent.name as parent_name',
-				'parent.status as parent_status',
-				'parent.created_at as parent_created_at'
+				'f.parent_file_id'
 			)
 				->groupBy(
 					'f.id',
@@ -574,12 +564,7 @@ class SignRequestMapper extends QBMapper {
 					'f.signature_flow',
 					'f.docmdp_level',
 					'f.node_type',
-					'f.parent_file_id',
-					'parent.id',
-					'parent.uuid',
-					'parent.name',
-					'parent.status',
-					'parent.created_at'
+					'f.parent_file_id'
 				);
 			// metadata is a json column, the right way is to use f.metadata::text
 			// when the database is PostgreSQL. The problem is that the command
@@ -614,6 +599,7 @@ class SignRequestMapper extends QBMapper {
 				);
 			}
 			if (!empty($filter['signer_uuid']) && !empty($filter['parentNodeId'])) {
+				$qb->leftJoin('f', 'libresign_file', 'parent', $qb->expr()->eq('f.parent_file_id', 'parent.id'));
 				$qb->innerJoin('parent', 'libresign_sign_request', 'psr', $qb->expr()->eq('psr.file_id', 'parent.id'))
 					->andWhere($qb->expr()->eq('psr.uuid', $qb->createNamedParameter($filter['signer_uuid'])));
 			} elseif (!empty($filter['signer_uuid'])) {
@@ -644,6 +630,7 @@ class SignRequestMapper extends QBMapper {
 				);
 			}
 			if (!empty($filter['parentNodeId'])) {
+				$qb->leftJoin('f', 'libresign_file', 'parent', $qb->expr()->eq('f.parent_file_id', 'parent.id'));
 				$qb->andWhere(
 					$qb->expr()->eq('parent.node_id', $qb->createNamedParameter($filter['parentNodeId'], IQueryBuilder::PARAM_INT))
 				);
@@ -687,75 +674,6 @@ class SignRequestMapper extends QBMapper {
 
 		$pagination = new Pagination($qb, $this->urlGenerator, $countQb);
 		return $pagination;
-	}
-
-	private function formatListRow(array $row): array {
-		$internalId = (int)$row['id'];
-		$row['fileId'] = $internalId;
-		$row['id'] = (int)$row['node_id'];
-		$row['status'] = (int)$row['status'];
-		$row['statusText'] = $this->fileMapper->getTextOfStatus($row['status']);
-		$row['nodeId'] = (int)$row['node_id'];
-		$row['signedNodeId'] = (int)$row['signed_node_id'];
-		$row['requested_by'] = [
-			'userId' => $row['user_id'],
-			'displayName' => $this->userManager->get($row['user_id'])?->getDisplayName(),
-		];
-		$row['created_at'] = (new \DateTime($row['created_at']))->setTimezone(new \DateTimeZone('UTC'))->format(DateTimeInterface::ATOM);
-		$row['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $row['uuid']]);
-		$row['nodeId'] = (int)$row['node_id'];
-
-		$row['name'] = $this->removeExtensionFromName($row['name'], $row['metadata']);
-		$row['signatureFlow'] = SignatureFlow::fromNumeric((int)($row['signature_flow']))->value;
-		$row['docmdpLevel'] = (int)($row['docmdp_level'] ?? 0);
-		$row['nodeType'] = $row['node_type'] ?? 'file';
-		$row['metadata'] = json_decode($row['metadata'] ?? '{}', true);
-
-		if ($row['node_type'] === 'envelope') {
-			$row['filesCount'] = $row['metadata']['filesCount'] ?? 0;
-			$row['files'] = [];
-		} else {
-			$row['filesCount'] = 1;
-			$row['files'] = [[
-				'fileId' => (int)$row['id'],
-				'nodeId' => (int)$row['node_id'],
-				'uuid' => $row['uuid'],
-				'name' => $row['name'],
-				'status' => (int)$row['status'],
-				'statusText' => $row['statusText'],
-			]];
-		}
-
-		unset(
-			$row['user_id'],
-			$row['node_id'],
-			$row['signed_node_id'],
-			$row['signature_flow'],
-			$row['docmdp_level'],
-			$row['node_type'],
-			$row['parent_file_id'],
-			$row['parent_id'],
-			$row['parent_uuid'],
-			$row['parent_name'],
-			$row['parent_status'],
-			$row['parent_created_at'],
-		);
-		return $row;
-	}
-
-	private function removeExtensionFromName(string $name, ?string $metadataJson): string {
-		if (empty($name) || empty($metadataJson)) {
-			return $name;
-		}
-
-		$metadata = json_decode($metadataJson, true);
-		if (!isset($metadata['extension'])) {
-			return $name;
-		}
-
-		$extensionPattern = '/\.' . preg_quote($metadata['extension'], '/') . '$/i';
-		$result = preg_replace($extensionPattern, '', $name);
-		return $result ?? $name;
 	}
 
 	public function getTextOfSignerStatus(int $status): string {

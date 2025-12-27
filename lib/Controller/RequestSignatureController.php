@@ -13,6 +13,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\ResponseDefinitions;
+use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCP\AppFramework\Http;
@@ -38,6 +39,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		protected IL10N $l10n,
 		protected IUserSession $userSession,
 		protected FileService $fileService,
+		protected FileListService $fileListService,
 		protected ValidateHelper $validateHelper,
 		protected RequestSignatureService $requestSignatureService,
 	) {
@@ -90,15 +92,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		try {
 			$this->requestSignatureService->validateNewRequestToFile($data);
 			$file = $this->requestSignatureService->save($data);
-			$return = $this->fileService
-				->setFile($file)
-				->setHost($this->request->getServerHost())
-				->setMe($data['userManager'])
-				->showVisibleElements()
-				->showSigners()
-				->showSettings()
-				->showMessages()
-				->toArray();
+			$return = $this->fileListService->formatSingleFile($user, $file);
 			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Success'),
@@ -175,15 +169,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				$this->validateHelper->validateVisibleElements($data['visibleElements'], $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
 			}
 			$file = $this->requestSignatureService->save($data);
-			$return = $this->fileService
-				->setFile($file)
-				->setHost($this->request->getServerHost())
-				->setMe($data['userManager'])
-				->showVisibleElements()
-				->showSigners()
-				->showSettings()
-				->showMessages()
-				->toArray();
+			$return = $this->fileListService->formatSingleFile($user, $file);
 			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Success'),

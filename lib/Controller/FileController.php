@@ -74,6 +74,7 @@ class FileController extends AEnvironmentAwareController {
 		private FileService $fileService,
 		private fileListService $fileListService,
 		private ValidateHelper $validateHelper,
+		private \OCA\Libresign\Service\File\SettingsLoader $settingsLoader,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -287,26 +288,8 @@ class FileController extends AEnvironmentAwareController {
 		$user = $this->userSession->getUser();
 		$return = $this->fileListService->listAssociatedFilesOfSignFlow($user, $page, $length, $filter, $sort);
 
-		if ($user && !empty($return['data'])) {
-			$firstFile = null;
-			foreach ($return['data'] as $file) {
-				if (($file['nodeType'] ?? 'file') !== 'envelope') {
-					$firstFile = $file;
-					break;
-				}
-			}
-
-			if ($firstFile) {
-				$fileSettings = $this->fileService
-					->setFileByType('FileId', $firstFile['nodeId'])
-					->showSettings()
-					->toArray();
-
-				$return['settings'] = [
-					'needIdentificationDocuments' => $fileSettings['settings']['needIdentificationDocuments'] ?? false,
-					'identificationDocumentsWaitingApproval' => $fileSettings['settings']['identificationDocumentsWaitingApproval'] ?? false,
-				];
-			}
+		if ($user) {
+			$return['settings'] = $this->settingsLoader->getUserIdentificationSettings($user->getUID());
 		}
 
 		return new DataResponse($return, Http::STATUS_OK);
