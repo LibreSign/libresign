@@ -17,6 +17,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\DocMdpConfigService;
 use OCA\Libresign\Service\EnvelopeService;
 use OCA\Libresign\Service\FileElementService;
+use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -38,6 +39,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
 final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
+	private FileService&MockObject $fileService;
 	private IL10N&MockObject $l10n;
 	private FileMapper&MockObject $fileMapper;
 	private SignRequestMapper&MockObject $signRequestMapper;
@@ -66,6 +68,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 
 	public function setUp(): void {
 		parent::setUp();
+		$this->fileService = $this->createMock(FileService::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
 			->method('t')
@@ -99,6 +102,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 
 	private function getService(): RequestSignatureService {
 		return new RequestSignatureService(
+			$this->fileService,
 			$this->l10n,
 			$this->identifyMethodService,
 			$this->signRequestMapper,
