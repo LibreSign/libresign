@@ -10,9 +10,11 @@ namespace OCA\Libresign\Service\File;
 
 use DateTimeInterface;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -20,6 +22,7 @@ use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
+use OCP\IUserManager;
 
 /**
  * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
@@ -33,13 +36,12 @@ class FileListService {
 		private IURLGenerator $urlGenerator,
 		private IAppConfig $appConfig,
 		private IL10N $l10n,
+		private IUserManager $userManager,
 	) {
 	}
 
 	/**
-	 * @return array[]
-	 *
-	 * @psalm-return array{data: array, pagination: array}
+	 * @return array{data: array, pagination: array}
 	 */
 	public function listAssociatedFilesOfSignFlow(
 		IUser $user,
@@ -51,7 +53,7 @@ class FileListService {
 		$page ??= 1;
 		$length ??= (int)$this->appConfig->getValueInt(Application::APP_ID, 'length_of_page', 100);
 
-		$return = $this->signRequestMapper->getFilesAssociatedFilesWithMeFormatted(
+		$return = $this->signRequestMapper->getFilesAssociatedFilesWithMe(
 			$user,
 			$filter,
 			$page,
@@ -59,7 +61,7 @@ class FileListService {
 			$sort,
 		);
 
-		$signers = $this->signRequestMapper->getByMultipleFileId(array_column($return['data'], 'fileId'));
+		$signers = $this->signRequestMapper->getByMultipleFileId(array_map(fn (File $file) => $file->getId(), $return['data']));
 		$identifyMethods = $this->signRequestMapper->getIdentifyMethodsFromSigners($signers);
 		$visibleElements = $this->signRequestMapper->getVisibleElementsFromSigners($signers);
 		$return['data'] = $this->associateAllAndFormat($user, $return['data'], $signers, $identifyMethods, $visibleElements);
@@ -67,128 +69,194 @@ class FileListService {
 		$return['pagination']->setRouteName('ocs.libresign.File.list');
 		return [
 			'data' => $return['data'],
-			'pagination' => $return['pagination']->getPagination($page, $length, $filter)
+			'pagination' => $return['pagination']->getPagination($page, $length, $filter),
 		];
 	}
 
-	private function associateAllAndFormat(IUser $user, array $files, array $signers, array $identifyMethods, array $visibleElements): array {
-		foreach ($files as $key => $file) {
-			$totalSigned = 0;
-			foreach ($signers as $signerKey => $signer) {
-				if ($signer->getFileId() === $file['fileId']) {
-					/** @var array<IdentifyMethod> */
-					$identifyMethodsOfSigner = $identifyMethods[$signer->getId()] ?? [];
-					$data = [
-						'email' => array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
-							if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
-								return $identifyMethod->getIdentifierValue();
-							}
-							if (filter_var($identifyMethod->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
-								return $identifyMethod->getIdentifierValue();
-							}
-							return $carry;
-						}, ''),
-						'description' => $signer->getDescription(),
-						'displayName'
-							=> array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
-								if (!$carry && $identifyMethod->getMandatory()) {
-									return $identifyMethod->getIdentifierValue();
-								}
-								return $carry;
-							}, $signer->getDisplayName()),
-						'request_sign_date' => $signer->getCreatedAt()->format(DateTimeInterface::ATOM),
-						'signed' => null,
-						'signRequestId' => $signer->getId(),
-						'signingOrder' => $signer->getSigningOrder(),
-						'status' => $signer->getStatus(),
-						'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus()),
-						'me' => array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
-							if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
-								if ($user->getUID() === $identifyMethod->getIdentifierValue()) {
-									return true;
-								}
-							} elseif ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
-								if (!$user->getEMailAddress()) {
-									return false;
-								}
-								if ($user->getEMailAddress() === $identifyMethod->getIdentifierValue()) {
-									return true;
-								}
-							}
-							return $carry;
-						}, false),
-						'visibleElements'
-							=> $visibleElements[$signer->getId()]
-								? $this->fileElementService->formatVisibleElements(
-									$visibleElements[$signer->getId()],
-									$file['metadata'],
-								)
-								: [],
-						'identifyMethods' => array_map(fn (IdentifyMethod $identifyMethod): array => [
-							'method' => $identifyMethod->getIdentifierKey(),
-							'value' => $identifyMethod->getIdentifierValue(),
-							'mandatory' => $identifyMethod->getMandatory(),
-						], array_values($identifyMethodsOfSigner)),
-					];
+	public function formatSingleFile(IUser $user, File $file): array {
+		$signers = $this->signRequestMapper->getByMultipleFileId([$file->getId()]);
+		$identifyMethods = $this->signRequestMapper->getIdentifyMethodsFromSigners($signers);
+		$visibleElements = $this->signRequestMapper->getVisibleElementsFromSigners($signers);
 
-					if ($data['me']) {
-						$temp = array_map(function (IdentifyMethod $identifyMethodEntity) use ($signer): array {
-							$this->identifyMethodService->setCurrentIdentifyMethod($identifyMethodEntity);
-							$identifyMethod = $this->identifyMethodService
-								->setIsRequest(false)
-								->getInstanceOfIdentifyMethod(
-									$identifyMethodEntity->getIdentifierKey(),
-									$identifyMethodEntity->getIdentifierValue(),
-								);
-							$signatureMethods = $identifyMethod->getSignatureMethods();
-							$return = [];
-							foreach ($signatureMethods as $signatureMethod) {
-								if (!$signatureMethod->isEnabled()) {
-									continue;
-								}
-								$signatureMethod->setEntity($identifyMethod->getEntity());
-								$return[$signatureMethod->getName()] = $signatureMethod->toArray();
-							}
-							return $return;
-						}, array_values($identifyMethodsOfSigner));
-						$data['signatureMethods'] = [];
-						foreach ($temp as $methods) {
-							$data['signatureMethods'] = array_merge($data['signatureMethods'], $methods);
+		return $this->formatSingleFileData($file, $signers, $identifyMethods, $visibleElements, $user);
+	}
+
+	private function associateAllAndFormat(
+		IUser $user,
+		array $files,
+		array $signers,
+		array $identifyMethods,
+		array $visibleElements,
+	): array {
+		$formattedFiles = [];
+		foreach ($files as $file) {
+			$fileSigners = array_filter($signers, fn ($signer) => $signer->getFileId() === $file->getId());
+			$formattedFiles[] = $this->formatSingleFileData($file, $fileSigners, $identifyMethods, $visibleElements, $user);
+		}
+		return $formattedFiles;
+	}
+
+	/**
+	 * Format a single file with its signers, identifyMethods and visibleElements.
+	 * Core formatting used by list and single file operations.
+	 */
+	private function formatSingleFileData(
+		File $fileEntity,
+		array $signers,
+		array $identifyMethods,
+		array $visibleElements,
+		IUser $user,
+	): array {
+		$file = [
+			'id' => $fileEntity->getId(),
+			'fileId' => $fileEntity->getId(),
+			'nodeId' => $fileEntity->getNodeId(),
+			'uuid' => $fileEntity->getUuid(),
+			'name' => $fileEntity->getName(),
+			'status' => $fileEntity->getStatus(),
+			'metadata' => $fileEntity->getMetadata(),
+			'createdAt' => $fileEntity->getCreatedAt(),
+			'userId' => $fileEntity->getUserId(),
+			'signatureFlow' => $fileEntity->getSignatureFlow(),
+			'nodeType' => $fileEntity->getNodeType(),
+		];
+
+		$file['id'] = $file['nodeId'];
+		$file['signatureFlow'] = SignatureFlow::fromNumeric($file['signatureFlow'])->value;
+		$file['statusText'] = $this->fileMapper->getTextOfStatus($file['status']);
+		$file['requested_by'] = [
+			'userId' => $file['userId'],
+			'displayName' => $this->userManager->get($file['userId'])?->getDisplayName(),
+		];
+		$file['created_at'] = $file['createdAt']->setTimezone(new \DateTimeZone('UTC'))->format(DateTimeInterface::ATOM);
+		$file['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file['uuid']]);
+
+		if ($file['nodeType'] === 'envelope') {
+			$file['filesCount'] = $file['metadata']['filesCount'] ?? 0;
+			$file['files'] = [];
+		} else {
+			$file['filesCount'] = 1;
+			$file['files'] = [[
+				'fileId' => $file['fileId'],
+				'nodeId' => $file['nodeId'],
+				'uuid' => $file['uuid'],
+				'name' => $file['name'],
+				'status' => $file['status'],
+				'statusText' => $file['statusText'],
+			]];
+		}
+
+		// Remove raw fields not needed in response (keep fileId for signer loop)
+		unset($file['userId'], $file['createdAt'], $file['nodeId']);
+
+		$file['signers'] = [];
+		foreach ($signers as $signer) {
+			if ($signer->getFileId() !== $file['fileId']) {
+				continue;
+			}
+
+			$identifyMethodsOfSigner = $identifyMethods[$signer->getId()] ?? [];
+			$data = [
+				'email' => array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
+					if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
+						return $identifyMethod->getIdentifierValue();
+					}
+					if (filter_var($identifyMethod->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
+						return $identifyMethod->getIdentifierValue();
+					}
+					return $carry;
+				}, ''),
+				'description' => $signer->getDescription(),
+				'displayName' => array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
+					if (!$carry && $identifyMethod->getMandatory()) {
+						return $identifyMethod->getIdentifierValue();
+					}
+					return $carry;
+				}, $signer->getDisplayName()),
+				'request_sign_date' => $signer->getCreatedAt()->format(DateTimeInterface::ATOM),
+				'signed' => null,
+				'signRequestId' => $signer->getId(),
+				'signingOrder' => $signer->getSigningOrder(),
+				'status' => $signer->getStatus(),
+				'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus()),
+				'me' => array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
+					if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
+						return $user->getUID() === $identifyMethod->getIdentifierValue();
+					}
+					if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL && $user->getEMailAddress()) {
+						return $user->getEMailAddress() === $identifyMethod->getIdentifierValue();
+					}
+					return $carry;
+				}, false),
+				'visibleElements' => isset($visibleElements[$signer->getId()])
+					? $this->fileElementService->formatVisibleElements(
+						$visibleElements[$signer->getId()],
+						$file['metadata'],
+					)
+					: [],
+				'identifyMethods' => array_map(fn (IdentifyMethod $identifyMethod): array => [
+					'method' => $identifyMethod->getIdentifierKey(),
+					'value' => $identifyMethod->getIdentifierValue(),
+					'mandatory' => $identifyMethod->getMandatory(),
+				], array_values($identifyMethodsOfSigner)),
+			];
+
+			if ($data['me']) {
+				$temp = array_map(function (IdentifyMethod $identifyMethodEntity) use ($signer): array {
+					$this->identifyMethodService->setCurrentIdentifyMethod($identifyMethodEntity);
+					$identifyMethod = $this->identifyMethodService
+						->setIsRequest(false)
+						->getInstanceOfIdentifyMethod(
+							$identifyMethodEntity->getIdentifierKey(),
+							$identifyMethodEntity->getIdentifierValue(),
+						);
+					$signatureMethods = $identifyMethod->getSignatureMethods();
+					$return = [];
+					foreach ($signatureMethods as $signatureMethod) {
+						if (!$signatureMethod->isEnabled()) {
+							continue;
 						}
-						$data['sign_uuid'] = $signer->getUuid();
-						$files[$key]['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signer->getuuid()]);
+						$signatureMethod->setEntity($identifyMethod->getEntity());
+						$return[$signatureMethod->getName()] = $signatureMethod->toArray();
 					}
+					return $return;
+				}, array_values($identifyMethodsOfSigner));
+				$data['signatureMethods'] = [];
+				foreach ($temp as $methods) {
+					$data['signatureMethods'] = array_merge($data['signatureMethods'], $methods);
+				}
+				$data['sign_uuid'] = $signer->getUuid();
+				$file['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signer->getuuid()]);
+			}
 
-					if ($signer->getSigned()) {
-						$data['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
-						$totalSigned++;
-					}
-					ksort($data);
-					$files[$key]['signers'][] = $data;
-					unset($signers[$signerKey]);
+			if ($signer->getSigned()) {
+				$data['signed'] = $signer->getSigned()->format(DateTimeInterface::ATOM);
+			}
+			ksort($data);
+			$file['signers'][] = $data;
+		}
+
+		if (empty($file['signers'])) {
+			$file['statusText'] = $this->l10n->t('no signers');
+			$file['visibleElements'] = [];
+		} else {
+			usort($file['signers'], function ($a, $b) {
+				$orderA = $a['signingOrder'] ?? PHP_INT_MAX;
+				$orderB = $b['signingOrder'] ?? PHP_INT_MAX;
+				return $orderA <=> $orderB ?: (($a['signRequestId'] ?? 0) <=> ($b['signRequestId'] ?? 0));
+			});
+
+			$file['statusText'] = $this->fileMapper->getTextOfStatus((int)$file['status']);
+			$file['visibleElements'] = [];
+			foreach ($file['signers'] as $signer) {
+				if (!empty($signer['visibleElements']) && is_array($signer['visibleElements'])) {
+					$file['visibleElements'] = array_merge($file['visibleElements'], $signer['visibleElements']);
 				}
 			}
-			if (empty($files[$key]['signers'])) {
-				$files[$key]['signers'] = [];
-				$files[$key]['statusText'] = $this->l10n->t('no signers');
-			} else {
-				usort($files[$key]['signers'], function ($a, $b) {
-					$orderA = $a['signingOrder'] ?? PHP_INT_MAX;
-					$orderB = $b['signingOrder'] ?? PHP_INT_MAX;
-
-					if ($orderA !== $orderB) {
-						return $orderA <=> $orderB;
-					}
-
-					return ($a['signRequestId'] ?? 0) <=> ($b['signRequestId'] ?? 0);
-				});
-
-				$files[$key]['statusText'] = $this->fileMapper->getTextOfStatus((int)$files[$key]['status']);
-			}
-			$files[$key]['id'] = $files[$key]['fileId'];
-			unset($files[$key]['fileId']);
-			ksort($files[$key]);
 		}
-		return $files;
+
+		unset($file['fileId']);
+		ksort($file);
+		return $file;
 	}
 }
