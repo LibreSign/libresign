@@ -73,7 +73,7 @@ class SignersLoader {
 				$fileData->signers[$index] = new stdClass();
 			}
 			$fileData->signers[$index]->signRequestId = $signer->getId();
-			$fileData->signers[$index]->signed = $signer->getSigned();
+			$fileData->signers[$index]->signed = $signer->getSigned()?->format(DateTimeInterface::ATOM);
 			$fileData->signers[$index]->status = $signer->getStatus();
 			$fileData->signers[$index]->statusText = $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus());
 			$fileData->signers[$index]->signingOrder = $signer->getSigningOrder();
