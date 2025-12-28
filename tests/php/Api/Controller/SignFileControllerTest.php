@@ -279,7 +279,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password')
 			])
-			->withPath('/api/v1/sign/file_id/' . $file->getNodeId() . '/' . $signers[0]->getId());
+			->withPath('/api/v1/sign/file_id/' . $file->getId() . '/' . $signers[0]->getId());
 
 		$this->assertRequest();
 	}
@@ -326,7 +326,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password')
 			])
-			->withPath('/api/v1/sign/file_id/' . $file->getNodeId());
+			->withPath('/api/v1/sign/file_id/' . $file->getId());
 
 		$this->assertRequest();
 	}
