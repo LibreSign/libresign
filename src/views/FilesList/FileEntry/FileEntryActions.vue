@@ -163,7 +163,7 @@ export default {
 	},
 	methods: {
 		visibleIf(action) {
-			const file = this.filesStore.files[this.source.nodeId]
+			const file = this.filesStore.files[this.source.id]
 			let visible = false
 			if (action.id === 'sign') {
 				visible = this.filesStore.canSign(file)
@@ -191,14 +191,14 @@ export default {
 					signer_uuid: signUuid,
 					force_fetch: true,
 				})
-				this.signStore.setFileToSign(files[this.source.nodeId])
+				this.signStore.setFileToSign(files[this.source.id])
 				this.$router.push({
 					name: 'SignPDF',
 					params: {
 						uuid: signUuid,
 					},
 				})
-				this.filesStore.selectFile(this.source.nodeId)
+				this.filesStore.selectFile(this.source.id)
 			} else if (action.id === 'validate') {
 				this.$router.push({
 					name: 'ValidationFile',

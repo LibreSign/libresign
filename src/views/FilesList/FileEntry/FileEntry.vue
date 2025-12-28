@@ -19,7 +19,7 @@
 
 		<!-- Actions -->
 		<FileEntryActions ref="actions"
-			:class="`files-list__row-actions-${source.nodeId}`"
+			:class="`files-list__row-actions-${source.id}`"
 			:opened.sync="openedMenu"
 			:source="source"
 			:loading="loading" />
