@@ -1587,6 +1587,43 @@ export type components = {
                 signers: components["schemas"]["Signer"][];
             };
         };
+        FileDetail: {
+            created_at: string;
+            file: string;
+            files: {
+                /** Format: int64 */
+                fileId?: number;
+                /** Format: int64 */
+                nodeId: number;
+                uuid: string;
+                name: string;
+                /** Format: int64 */
+                status: number;
+                statusText: string;
+            }[];
+            /** Format: int64 */
+            filesCount: number;
+            /** Format: int64 */
+            id: number;
+            metadata: {
+                [key: string]: Record<string, never>;
+            };
+            name: string;
+            /** Format: int64 */
+            nodeId: number;
+            nodeType: string;
+            requested_by: {
+                userId: string;
+                displayName: string | null;
+            };
+            signatureFlow: number | string;
+            signers: components["schemas"]["Signer"][];
+            /** Format: int64 */
+            status: number;
+            statusText: string;
+            uuid: string;
+            visibleElements: components["schemas"]["VisibleElement"][];
+        };
         FolderSettings: {
             folderName?: string;
             separator?: string;
@@ -1716,10 +1753,10 @@ export type components = {
             canSign: boolean;
             canRequestSign: boolean;
             signerFileUuid: string | null;
-            hasSignatureFile?: boolean;
             phoneNumber: string;
-            needIdentificationDocuments?: boolean;
-            identificationDocumentsWaitingApproval?: boolean;
+            hasSignatureFile: boolean;
+            needIdentificationDocuments: boolean;
+            identificationDocumentsWaitingApproval: boolean;
         };
         SignatureMethod: {
             enabled: boolean;
@@ -1797,6 +1834,8 @@ export type components = {
             createdAt: string;
         };
         ValidateFile: {
+            /** Format: int64 */
+            id: number;
             uuid: string;
             name: string;
             /**
@@ -3129,8 +3168,8 @@ export interface operations {
                 sortBy?: string | null;
                 /** @description Ascending or descending order */
                 sortDirection?: string | null;
-                /** @description Filter files by parent envelope node ID */
-                parentNodeId?: number | null;
+                /** @description Filter files by parent envelope file ID */
+                parentFileId?: number | null;
             };
             header: {
                 /** @description Required to be true for the API request to pass */
@@ -3154,7 +3193,7 @@ export interface operations {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
                                 pagination: components["schemas"]["Pagination"];
-                                data: components["schemas"]["File"][] | null;
+                                data: components["schemas"]["FileDetail"][];
                                 settings?: components["schemas"]["Settings"];
                             };
                         };
@@ -4184,7 +4223,7 @@ export interface operations {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
-                                data: components["schemas"]["ValidateFile"];
+                                data: components["schemas"]["FileDetail"];
                                 message: string;
                             };
                         };
@@ -4266,7 +4305,7 @@ export interface operations {
                             meta: components["schemas"]["OCSMeta"];
                             data: {
                                 message: string;
-                                data: components["schemas"]["ValidateFile"];
+                                data: components["schemas"]["FileDetail"];
                             };
                         };
                     };

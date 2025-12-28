@@ -4417,9 +4417,9 @@
                         }
                     },
                     {
-                        "name": "parentNodeId",
+                        "name": "parentFileId",
                         "in": "query",
-                        "description": "Filter files by parent envelope node ID",
+                        "description": "Filter files by parent envelope file ID",
                         "schema": {
                             "type": "integer",
                             "format": "int64",
