@@ -600,7 +600,7 @@ class SignRequestMapper extends QBMapper {
 					$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($filter['email']))
 				);
 			}
-			if (!empty($filter['signer_uuid']) && !empty($filter['parentNodeId'])) {
+			if (!empty($filter['signer_uuid']) && !empty($filter['parentFileId'])) {
 				$qb->leftJoin('f', 'libresign_file', 'parent', $qb->expr()->eq('f.parent_file_id', 'parent.id'));
 				$qb->innerJoin('parent', 'libresign_sign_request', 'psr', $qb->expr()->eq('psr.file_id', 'parent.id'))
 					->andWhere($qb->expr()->eq('psr.uuid', $qb->createNamedParameter($filter['signer_uuid'])));
