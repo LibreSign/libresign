@@ -33,9 +33,19 @@ class SettingsLoader {
 			return;
 		}
 
+		$fileData->settings = [
+			'canSign' => false,
+			'canRequestSign' => false,
+			'signerFileUuid' => null,
+			'phoneNumber' => '',
+			'hasSignatureFile' => false,
+			'needIdentificationDocuments' => false,
+			'identificationDocumentsWaitingApproval' => false,
+		];
+
 		if ($options->getMe()) {
 			$fileData->settings = array_merge(
-				$fileData->settings ?? [],
+				$fileData->settings,
 				$this->accountSettingsProvider->getSettings($options->getMe())
 			);
 			$fileData->settings['phoneNumber'] = $this->accountSettingsProvider->getPhoneNumber($options->getMe());
@@ -87,13 +97,19 @@ class SettingsLoader {
 	/**
 	 * Get user identification documents settings
 	 * These are user-specific settings, not file-specific
+	 * Always returns complete LibresignSettings with defaults
 	 *
-	 * @return array{needIdentificationDocuments: bool, identificationDocumentsWaitingApproval: bool}
+	 * @return array{canSign: bool, canRequestSign: bool, signerFileUuid: ?string, phoneNumber: string, hasSignatureFile: bool, needIdentificationDocuments: bool, identificationDocumentsWaitingApproval: bool}
 	 */
 	public function getUserIdentificationSettings(string $userId): array {
 		$status = $this->getIdentificationDocumentsStatus($userId);
 
 		return [
+			'canSign' => false,
+			'canRequestSign' => false,
+			'signerFileUuid' => null,
+			'phoneNumber' => '',
+			'hasSignatureFile' => false,
 			'needIdentificationDocuments' => in_array($status, [
 				self::IDENTIFICATION_DOCUMENTS_NEED_SEND,
 				self::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL,
