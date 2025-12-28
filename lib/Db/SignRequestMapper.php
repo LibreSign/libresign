@@ -427,6 +427,9 @@ class SignRequestMapper extends QBMapper {
 		return end($this->signers);
 	}
 
+	/**
+	 * @return array{data: list<File>, pagination: Pagination}
+	 */
 	public function getFilesAssociatedFilesWithMe(
 		IUser $user,
 		array $filter,
@@ -447,9 +450,10 @@ class SignRequestMapper extends QBMapper {
 			$file = new File();
 			$data[] = $file->fromRow($row);
 		}
-		$return['data'] = $data;
-		$return['pagination'] = $pagination;
-		return $return;
+		return [
+			'data' => $data,
+			'pagination' => $pagination,
+		];
 	}
 
 	/**
