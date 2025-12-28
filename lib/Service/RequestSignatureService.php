@@ -556,16 +556,16 @@ class RequestSignatureService {
 
 	public function unassociateToUser(int $fileId, int $signRequestId): void {
 		$file = $this->fileMapper->getById($fileId);
-		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($file->getNodeId(), $signRequestId);
+		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
 		$deletedOrder = $signRequest->getSigningOrder();
 		$groupedIdentifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequestId);
 
-		$this->dispatchCancellationEventIfNeeded($signRequest, $file->getNodeId(), $groupedIdentifyMethods);
+		$this->dispatchCancellationEventIfNeeded($signRequest, $file, $groupedIdentifyMethods);
 
 		try {
 			$this->signRequestMapper->delete($signRequest);
 			$this->identifyMethod->deleteBySignRequestId($signRequestId);
-			$visibleElements = $this->fileElementMapper->getByFileIdAndSignRequestId($file->getId(), $signRequestId);
+			$visibleElements = $this->fileElementMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
 			foreach ($visibleElements as $visibleElement) {
 				$this->fileElementMapper->delete($visibleElement);
 			}
@@ -610,7 +610,7 @@ class RequestSignatureService {
 
 	private function dispatchCancellationEventIfNeeded(
 		SignRequestEntity $signRequest,
-		int $fileId,
+		FileEntity $file,
 		array $groupedIdentifyMethods,
 	): void {
 		if ($signRequest->getStatus() !== \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN->value) {
@@ -618,12 +618,11 @@ class RequestSignatureService {
 		}
 
 		try {
-			$libreSignFile = $this->fileMapper->getByNodeId($fileId);
 			foreach ($groupedIdentifyMethods as $identifyMethods) {
 				foreach ($identifyMethods as $identifyMethod) {
 					$event = new SignRequestCanceledEvent(
 						$signRequest,
-						$libreSignFile,
+						$file,
 						$identifyMethod,
 					);
 					$this->eventDispatcher->dispatchTyped($event);

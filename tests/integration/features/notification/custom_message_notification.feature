@@ -47,7 +47,7 @@ Feature: Custom message for signers
       | name | Document for email with description |
       | users | [{"identify":{"email":"external@domain.test"},"displayName":"External Signer","description":"Urgent: Please sign by end of day."}] |
     And the response should have a status code 200
-    And fetch field "(FILE_ID)ocs.data.data.nodeId" from previous JSON response
+    And fetch field "(FILE_ID)ocs.data.data.id" from previous JSON response
     And fetch field "(SIGN_REQUEST_ID)ocs.data.data.signers.0.signRequestId" from previous JSON response
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/notify/signer"

@@ -412,9 +412,8 @@ class SignRequestMapper extends QBMapper {
 
 		$qb->select('sr.*')
 			->from($this->getTableName(), 'sr')
-			->join('sr', 'libresign_file', 'f', 'sr.file_id = f.id')
 			->where(
-				$qb->expr()->eq('f.node_id', $qb->createNamedParameter($fileId))
+				$qb->expr()->eq('sr.file_id', $qb->createNamedParameter($fileId))
 			)
 			->andWhere(
 				$qb->expr()->eq('sr.id', $qb->createNamedParameter($signRequestId))
