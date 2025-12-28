@@ -657,7 +657,7 @@ class FileController extends AEnvironmentAwareController {
 	private function formatFileResponse(FileEntity $mainEntity, array $childFiles): DataResponse {
 		$response = [
 			'message' => $this->l10n->t('Success'),
-			'id' => $mainEntity->getNodeId(),
+			'id' => $mainEntity->getId(),
 			'nodeId' => $mainEntity->getNodeId(),
 			'uuid' => $mainEntity->getUuid(),
 			'name' => $mainEntity->getName(),

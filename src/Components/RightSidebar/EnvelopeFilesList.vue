@@ -186,15 +186,11 @@ export default {
 		envelope() {
 			return this.filesStore.getFile()
 		},
-		envelopeFileId() {
-			const envelope = this.envelope || {}
-			return envelope.id ?? envelope.fileId ?? null
-		},
 		envelopeUuid() {
-			return this.envelope?.uuid || ''
+			return this.envelope.uuid
 		},
 		envelopeId() {
-			return this.envelope?.id || null
+			return this.envelope.id
 		},
 		canDelete() {
 			return this.envelope?.status === SIGN_STATUS.DRAFT && this.files.length >= 1
@@ -256,8 +252,7 @@ export default {
 	},
 	methods: {
 		async loadFiles(page = 1) {
-			if (!this.envelopeFileId) {
-				console.error('EnvelopeFilesList - No envelopeFileId found!')
+			if (!this.envelopeId) {
 				return
 			}
 
@@ -270,9 +265,9 @@ export default {
 
 			const url = generateOcsUrl('/apps/libresign/api/v1/file/list')
 			const params = new URLSearchParams({
-				page: page.toString(),
-				length: '50',
-				parentFileId: this.envelopeFileId.toString(),
+				page: page,
+				length: 50,
+				parentFileId: this.envelopeId,
 			})
 
 			await axios.get(`${url}?${params.toString()}`)
