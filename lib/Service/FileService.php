@@ -233,11 +233,9 @@ class FileService {
 	 */
 	public function setFileByType(string $type, $identifier): self {
 		try {
+			$method = $type === 'FileId' ? 'getById' : 'getBy' . $type;
 			/** @var File */
-			$file = call_user_func(
-				[$this->fileMapper, 'getBy' . $type],
-				$identifier
-			);
+			$file = call_user_func([$this->fileMapper, $method], $identifier);
 		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 		}
@@ -348,6 +346,7 @@ class FileService {
 		if (!$this->file) {
 			return;
 		}
+		$this->fileData->id = $this->file->getId();
 		$this->fileData->uuid = $this->file->getUuid();
 		$this->fileData->name = $this->file->getName();
 		$this->fileData->status = $this->file->getStatus();
@@ -526,14 +525,14 @@ class FileService {
 	}
 
 	public function delete(int $fileId): void {
-		$file = $this->fileMapper->getByFileId($fileId);
+		$file = $this->fileMapper->getById($fileId);
 
 		$this->decrementEnvelopeFilesCountIfNeeded($file);
 
 		if ($file->getNodeType() === 'envelope') {
 			$childrenFiles = $this->fileMapper->getChildrenFiles($file->getId());
 			foreach ($childrenFiles as $childFile) {
-				$this->delete($childFile->getNodeId());
+				$this->delete($childFile->getId());
 			}
 		}
 

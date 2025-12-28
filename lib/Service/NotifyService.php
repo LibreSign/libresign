@@ -29,25 +29,27 @@ class NotifyService {
 	) {
 	}
 
-	public function signer(int $nodeId, int $signRequestId): void {
+	public function signer(int $fileId, int $signRequestId): void {
 		$this->validateHelper->canRequestSign($this->userSession->getUser());
-		$this->validateHelper->validateLibreSignNodeId($nodeId);
-		$this->validateHelper->iRequestedSignThisFile($this->userSession->getUser(), $nodeId);
-		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($nodeId, $signRequestId);
+		$this->validateHelper->validateLibreSignFileId($fileId);
+		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
+		$this->validateHelper->iRequestedSignThisFile($this->userSession->getUser(), $fileId);
 		$this->notify($signRequest);
 	}
 
-	public function signers(int $nodeId, array $signers): void {
+	public function signers(int $fileId, array $signers): void {
 		$this->validateHelper->canRequestSign($this->userSession->getUser());
-		$this->validateHelper->validateLibreSignNodeId($nodeId);
-		$this->validateHelper->iRequestedSignThisFile($this->userSession->getUser(), $nodeId);
+		$this->validateHelper->validateLibreSignFileId($fileId);
+		$signRequests = $this->signRequestMapper->getByFileId($fileId);
+		if (!empty($signRequests)) {
+			$this->validateHelper->iRequestedSignThisFile($this->userSession->getUser(), $fileId);
+		}
 		foreach ($signers as $signer) {
 			$this->validateHelper->haveValidMail($signer);
 			$this->validateHelper->signerWasAssociated($signer);
 			$this->validateHelper->notSigned($signer);
 		}
 		// @todo refactor this code
-		$signRequests = $this->signRequestMapper->getByNodeId($nodeId);
 		foreach ($signRequests as $signRequest) {
 			$this->notify($signRequest, $signers);
 		}

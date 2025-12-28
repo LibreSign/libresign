@@ -290,7 +290,7 @@ class RequestSignatureService {
 		}
 		if (!is_null($fileId)) {
 			try {
-				$file = $this->fileMapper->getByFileId($fileId);
+				$file = $this->fileMapper->getByNodeId($fileId);
 				$this->updateSignatureFlowIfAllowed($file, $data);
 				return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
 			} catch (\Throwable) {
@@ -404,14 +404,14 @@ class RequestSignatureService {
 		foreach ($signRequests as $key => $signRequest) {
 			$identifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 			if (empty($identifyMethods)) {
-				$this->unassociateToUser($file->getNodeId(), $signRequest->getId());
+				$this->unassociateToUser($file->getId(), $signRequest->getId());
 				continue;
 			}
 			foreach ($identifyMethods as $methodName => $list) {
 				foreach ($list as $method) {
 					$exists[$key]['identify'][$methodName] = $method->getEntity()->getIdentifierValue();
 					if (!$this->identifyMethodExists($users, $method)) {
-						$this->unassociateToUser($file->getNodeId(), $signRequest->getId());
+						$this->unassociateToUser($file->getId(), $signRequest->getId());
 						continue 3;
 					}
 				}
@@ -555,7 +555,7 @@ class RequestSignatureService {
 
 
 	public function unassociateToUser(int $fileId, int $signRequestId): void {
-		$file = $this->fileMapper->getByFileId($fileId);
+		$file = $this->fileMapper->getById($fileId);
 		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($file->getNodeId(), $signRequestId);
 		$deletedOrder = $signRequest->getSigningOrder();
 		$groupedIdentifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequestId);
@@ -600,7 +600,7 @@ class RequestSignatureService {
 				);
 
 				if ($childSignRequest->getId()) {
-					$this->unassociateToUser($child->getNodeId(), $childSignRequest->getId());
+					$this->unassociateToUser($child->getId(), $childSignRequest->getId());
 				}
 			} catch (\Throwable $e) {
 				continue;
@@ -618,7 +618,7 @@ class RequestSignatureService {
 		}
 
 		try {
-			$libreSignFile = $this->fileMapper->getByFileId($fileId);
+			$libreSignFile = $this->fileMapper->getByNodeId($fileId);
 			foreach ($groupedIdentifyMethods as $identifyMethods) {
 				foreach ($identifyMethods as $identifyMethod) {
 					$event = new SignRequestCanceledEvent(
@@ -639,8 +639,8 @@ class RequestSignatureService {
 			$signatures = $this->signRequestMapper->getByFileUuid($data['uuid']);
 			$fileData = $this->fileMapper->getByUuid($data['uuid']);
 		} elseif (!empty($data['file']['fileId'])) {
-			$signatures = $this->signRequestMapper->getByNodeId($data['file']['fileId']);
-			$fileData = $this->fileMapper->getByFileId($data['file']['fileId']);
+			$fileData = $this->fileMapper->getById($data['file']['fileId']);
+			$signatures = $this->signRequestMapper->getByFileId($fileData->getId());
 		} else {
 			throw new \Exception($this->l10n->t('Please provide either UUID or File object'));
 		}

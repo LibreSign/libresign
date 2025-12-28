@@ -752,7 +752,7 @@ class SignFileService {
 	public function getLibresignFile(?int $nodeId, ?string $signRequestUuid = null): FileEntity {
 		try {
 			if ($nodeId) {
-				return $this->fileMapper->getByFileId($nodeId);
+				return $this->fileMapper->getByNodeId($nodeId);
 			}
 
 			if ($signRequestUuid) {
