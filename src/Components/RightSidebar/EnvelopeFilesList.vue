@@ -57,8 +57,8 @@
 					:details="file.statusText">
 					<template #icon>
 						<NcCheckboxRadioSwitch v-if="canDelete"
-							:checked="isSelected(file.nodeId)"
-							@update:checked="toggleSelect(file.nodeId)" />
+						:checked="isSelected(file.id)"
+						@update:checked="toggleSelect(file.id)" />
 						<img v-if="getPreviewUrl(file)"
 							:src="getPreviewUrl(file)"
 							alt=""
@@ -189,8 +189,8 @@ export default {
 		envelopeUuid() {
 			return this.envelope?.uuid || ''
 		},
-		envelopeNodeId() {
-			return this.envelope?.nodeId || null
+		envelopeId() {
+			return this.envelope?.id || null
 		},
 		canDelete() {
 			return this.envelope?.status === SIGN_STATUS.DRAFT && this.files.length >= 1
@@ -386,11 +386,11 @@ export default {
 			this.hasLoading = true
 			const nodeIds = [...this.selectedFiles]
 
-			const result = await this.filesStore.removeFilesFromEnvelope(this.envelopeNodeId, nodeIds)
+			const result = await this.filesStore.removeFilesFromEnvelope(this.envelopeId, nodeIds)
 
 			if (result.success) {
 				// Remover arquivos da lista local
-				this.files = this.files.filter(f => !nodeIds.includes(f.nodeId))
+				this.files = this.files.filter(f => !nodeIds.includes(f.id))
 				this.selectedFiles = []
 				this.totalFiles = Math.max(0, this.totalFiles - result.removedCount)
 				this.showSuccess(this.t('libresign', result.message))
@@ -473,11 +473,11 @@ export default {
 		async confirmDelete(file) {
 			this.hasLoading = true
 
-			const result = await this.filesStore.removeFilesFromEnvelope(this.envelopeNodeId, file.nodeId)
+			const result = await this.filesStore.removeFilesFromEnvelope(this.envelopeId, file.id)
 
 			if (result.success) {
 				this.showSuccess(this.t('libresign', result.message))
-				this.files = this.files.filter(f => f.nodeId !== file.nodeId)
+				this.files = this.files.filter(f => f.id !== file.id)
 				this.totalFiles = Math.max(0, this.totalFiles - result.removedCount)
 			} else {
 				this.showError(this.t('libresign', result.message))
