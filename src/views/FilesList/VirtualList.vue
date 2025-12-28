@@ -42,7 +42,7 @@
 				data-cy-files-list-tbody>
 				<component :is="dataComponent"
 					v-for="(item) in filesStore.filesSorted()"
-					:key="item.nodeId"
+					:key="item.id"
 					:source="item"
 					:loading="loading" />
 			</tbody>
