@@ -62,7 +62,7 @@ class FileElementController extends AEnvironmentAwareController {
 			'signRequestId' => $signRequestId,
 			'coordinates' => $coordinates,
 			'metadata' => $metadata,
-			'fileUuid' => $uuid,
+			'uuid' => $uuid,
 			'fileId' => $fileId,
 		];
 		try {
