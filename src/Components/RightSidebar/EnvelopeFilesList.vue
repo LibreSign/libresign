@@ -186,6 +186,10 @@ export default {
 		envelope() {
 			return this.filesStore.getFile()
 		},
+		envelopeFileId() {
+			const envelope = this.envelope || {}
+			return envelope.id ?? envelope.fileId ?? null
+		},
 		envelopeUuid() {
 			return this.envelope?.uuid || ''
 		},
@@ -252,8 +256,8 @@ export default {
 	},
 	methods: {
 		async loadFiles(page = 1) {
-			if (!this.envelopeNodeId) {
-				console.error('EnvelopeFilesList - No envelopeNodeId found!')
+			if (!this.envelopeFileId) {
+				console.error('EnvelopeFilesList - No envelopeFileId found!')
 				return
 			}
 
@@ -268,7 +272,7 @@ export default {
 			const params = new URLSearchParams({
 				page: page.toString(),
 				length: '50',
-				parentNodeId: this.envelopeNodeId.toString(),
+				parentFileId: this.envelopeFileId.toString(),
 			})
 
 			await axios.get(`${url}?${params.toString()}`)
@@ -369,7 +373,7 @@ export default {
 			if (this.allSelected) {
 				this.selectedFiles = []
 			} else {
-				this.selectedFiles = this.files.map(f => f.nodeId)
+				this.selectedFiles = this.files.map(f => f.id)
 			}
 		},
 		async handleDeleteSelected() {
@@ -384,13 +388,13 @@ export default {
 		},
 		async confirmDeleteSelected() {
 			this.hasLoading = true
-			const nodeIds = [...this.selectedFiles]
+			const fileIds = [...this.selectedFiles]
 
-			const result = await this.filesStore.removeFilesFromEnvelope(this.envelopeId, nodeIds)
+			const result = await this.filesStore.removeFilesFromEnvelope(this.envelopeId, fileIds)
 
 			if (result.success) {
 				// Remover arquivos da lista local
-				this.files = this.files.filter(f => !nodeIds.includes(f.id))
+				this.files = this.files.filter(f => !fileIds.includes(f.id))
 				this.selectedFiles = []
 				this.totalFiles = Math.max(0, this.totalFiles - result.removedCount)
 				this.showSuccess(this.t('libresign', result.message))
@@ -443,6 +447,9 @@ export default {
 					this.showSuccess(this.t('libresign', result.message))
 					this.files.push(...result.files)
 					this.totalFiles = result.filesCount
+					if (this.envelopeId && this.filesStore.files[this.envelopeId]) {
+						this.filesStore.files[this.envelopeId].filesCount = result.filesCount
+					}
 				} else {
 					if (result.message !== 'Upload cancelled') {
 						this.showError(this.t('libresign', result.message))
