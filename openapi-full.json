@@ -1411,6 +1411,41 @@
                     "url": {
                         "type": "string"
                     },
+                    "mime": {
+                        "type": "string"
+                    },
+                    "pages": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "url",
+                                "resolution"
+                            ],
+                            "properties": {
+                                "url": {
+                                    "type": "string"
+                                },
+                                "resolution": {
+                                    "type": "object",
+                                    "required": [
+                                        "w",
+                                        "h"
+                                    ],
+                                    "properties": {
+                                        "w": {
+                                            "type": "number",
+                                            "format": "double"
+                                        },
+                                        "h": {
+                                            "type": "number",
+                                            "format": "double"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "metadata": {
                         "$ref": "#/components/schemas/ValidateMetadata"
                     },
