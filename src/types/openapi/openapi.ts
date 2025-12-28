@@ -2935,7 +2935,7 @@ export interface operations {
             };
             path: {
                 apiVersion: "v1";
-                /** @description Node id of a Nextcloud file */
+                /** @description LibreSign file ID */
                 fileId: number;
             };
             cookie?: never;
@@ -3827,7 +3827,7 @@ export interface operations {
             };
             path: {
                 apiVersion: "v1";
-                /** @description Node id of a Nextcloud file */
+                /** @description LibreSign file ID */
                 fileId: number;
                 /** @description The sign request id */
                 signRequestId: number;
