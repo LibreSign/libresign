@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div v-if="currentNodeId > 0" class="content-file" @click="openSidebar">
+	<div v-if="currentFileId > 0" class="content-file" @click="openSidebar">
 		<img v-if="previewUrl && backgroundFailed !== true"
 			ref="previewImg"
 			alt=""
@@ -15,10 +15,10 @@
 			@load="backgroundFailed = false">
 		<FileIcon v-else v-once :size="128" />
 		<div class="enDot">
-			<div :class="filesStore.files[currentNodeId].statusText !== 'none' ? 'dot ' + statusToClass(filesStore.files[currentNodeId].status) : '' " />
-			<span>{{ filesStore.files[currentNodeId].statusText !== 'none' ? filesStore.files[currentNodeId].statusText : '' }}</span>
+			<div :class="filesStore.files[currentFileId].statusText !== 'none' ? 'dot ' + statusToClass(filesStore.files[currentFileId].status) : '' " />
+			<span>{{ filesStore.files[currentFileId].statusText !== 'none' ? filesStore.files[currentFileId].statusText : '' }}</span>
 		</div>
-		<h1>{{ filesStore.files[currentNodeId].name }}</h1>
+		<h1>{{ filesStore.files[currentFileId].name }}</h1>
 	</div>
 </template>
 
@@ -35,7 +35,7 @@ export default {
 		FileIcon,
 	},
 	props: {
-		nodeId: {
+		fileId: {
 			type: Number,
 			default: 0,
 			required: false,
@@ -53,25 +53,30 @@ export default {
 		}
 	},
 	computed: {
-		currentNodeId() {
-			if (this.nodeId) {
-				return this.nodeId
+		currentFileId() {
+			if (this.fileId) {
+				return this.fileId
 			}
-			return this.filesStore.selectedNodeId
+			return this.filesStore.selectedId
 		},
 		previewUrl() {
 			if (this.backgroundFailed === true) {
 				return null
 			}
 
+			const file = this.filesStore.files[this.currentFileId]
+			if (!file) {
+				return null
+			}
+
 			let previewUrl = ''
-			if (this.currentNodeId) {
+			if (file.nodeId) {
 				previewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
-					nodeId: this.currentNodeId,
+					nodeId: file.nodeId,
 				})
 			} else {
 				previewUrl = window.location.origin + generateUrl('/core/preview?fileId={fileid}', {
-					fileid: this.currentNodeId,
+					fileid: this.currentFileId,
 				})
 			}
 
@@ -89,7 +94,7 @@ export default {
 	},
 	methods: {
 		openSidebar() {
-			this.filesStore.selectFile(this.currentNodeId)
+			this.filesStore.selectFile(this.currentFileId)
 		},
 		statusToClass(status) {
 			switch (Number(status)) {
