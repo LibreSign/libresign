@@ -454,6 +454,144 @@
                     }
                 }
             },
+            "FileDetail": {
+                "type": "object",
+                "required": [
+                    "created_at",
+                    "file",
+                    "files",
+                    "filesCount",
+                    "id",
+                    "metadata",
+                    "name",
+                    "nodeId",
+                    "nodeType",
+                    "requested_by",
+                    "signatureFlow",
+                    "signers",
+                    "status",
+                    "statusText",
+                    "uuid",
+                    "visibleElements"
+                ],
+                "properties": {
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "file": {
+                        "type": "string"
+                    },
+                    "files": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "nodeId",
+                                "uuid",
+                                "name",
+                                "status",
+                                "statusText"
+                            ],
+                            "properties": {
+                                "fileId": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "nodeId": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "uuid": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "statusText": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "filesCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object"
+                        }
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "nodeId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "nodeType": {
+                        "type": "string"
+                    },
+                    "requested_by": {
+                        "type": "object",
+                        "required": [
+                            "userId",
+                            "displayName"
+                        ],
+                        "properties": {
+                            "userId": {
+                                "type": "string"
+                            },
+                            "displayName": {
+                                "type": "string",
+                                "nullable": true
+                            }
+                        }
+                    },
+                    "signatureFlow": {
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "format": "int64"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "signers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Signer"
+                        }
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "statusText": {
+                        "type": "string"
+                    },
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "visibleElements": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/VisibleElement"
+                        }
+                    }
+                }
+            },
             "FolderSettings": {
                 "type": "object",
                 "properties": {
@@ -881,7 +1019,10 @@
                     "canSign",
                     "canRequestSign",
                     "signerFileUuid",
-                    "phoneNumber"
+                    "phoneNumber",
+                    "hasSignatureFile",
+                    "needIdentificationDocuments",
+                    "identificationDocumentsWaitingApproval"
                 ],
                 "properties": {
                     "canSign": {
@@ -894,11 +1035,11 @@
                         "type": "string",
                         "nullable": true
                     },
-                    "hasSignatureFile": {
-                        "type": "boolean"
-                    },
                     "phoneNumber": {
                         "type": "string"
+                    },
+                    "hasSignatureFile": {
+                        "type": "boolean"
                     },
                     "needIdentificationDocuments": {
                         "type": "boolean"
@@ -1161,6 +1302,7 @@
             "ValidateFile": {
                 "type": "object",
                 "required": [
+                    "id",
                     "uuid",
                     "name",
                     "status",
@@ -1177,6 +1319,10 @@
                     "file"
                 ],
                 "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
                     "uuid": {
                         "type": "string"
                     },
@@ -4324,9 +4470,8 @@
                                                         },
                                                         "data": {
                                                             "type": "array",
-                                                            "nullable": true,
                                                             "items": {
-                                                                "$ref": "#/components/schemas/File"
+                                                                "$ref": "#/components/schemas/FileDetail"
                                                             }
                                                         },
                                                         "settings": {
@@ -4947,7 +5092,7 @@
                     {
                         "name": "fileId",
                         "in": "path",
-                        "description": "Node id of a Nextcloud file",
+                        "description": "LibreSign file ID",
                         "required": true,
                         "schema": {
                             "type": "integer",
@@ -6927,7 +7072,7 @@
                                                     ],
                                                     "properties": {
                                                         "data": {
-                                                            "$ref": "#/components/schemas/ValidateFile"
+                                                            "$ref": "#/components/schemas/FileDetail"
                                                         },
                                                         "message": {
                                                             "type": "string"
@@ -7129,7 +7274,7 @@
                                                             "type": "string"
                                                         },
                                                         "data": {
-                                                            "$ref": "#/components/schemas/ValidateFile"
+                                                            "$ref": "#/components/schemas/FileDetail"
                                                         }
                                                     }
                                                 }
@@ -7231,7 +7376,7 @@
                     {
                         "name": "fileId",
                         "in": "path",
-                        "description": "Node id of a Nextcloud file",
+                        "description": "LibreSign file ID",
                         "required": true,
                         "schema": {
                             "type": "integer",
