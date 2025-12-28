@@ -117,7 +117,6 @@ class FileListService {
 	): array {
 		$file = [
 			'id' => $fileEntity->getId(),
-			'fileId' => $fileEntity->getId(),
 			'nodeId' => $fileEntity->getNodeId(),
 			'uuid' => $fileEntity->getUuid(),
 			'name' => $fileEntity->getName(),
@@ -143,7 +142,6 @@ class FileListService {
 		} else {
 			$file['filesCount'] = 1;
 			$file['files'] = [[
-				'fileId' => $file['fileId'],
 				'nodeId' => $file['nodeId'],
 				'uuid' => $file['uuid'],
 				'name' => $file['name'],
@@ -152,12 +150,12 @@ class FileListService {
 			]];
 		}
 
-		// Remove raw fields not needed in response (keep fileId for signer loop)
+		// Remove raw fields not needed in response
 		unset($file['userId'], $file['createdAt']);
 
 		$file['signers'] = [];
 		foreach ($signers as $signer) {
-			if ($signer->getFileId() !== $file['fileId']) {
+			if ($signer->getFileId() !== $fileEntity->getId()) {
 				continue;
 			}
 
@@ -261,7 +259,6 @@ class FileListService {
 			}
 		}
 
-		unset($file['fileId']);
 		ksort($file);
 		/** @psalm-suppress LessSpecificReturnStatement,MoreSpecificReturnType */
 		return $file;
