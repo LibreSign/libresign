@@ -63,7 +63,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testSetFileByTypeThrowsOnInvalid(): void {
 		$fileMapper = $this->createMock(\OCA\Libresign\Db\FileMapper::class);
-		$fileMapper->method('getByFileId')->willThrowException(new \Exception('not found'));
+		$fileMapper->method('getById')->willThrowException(new \Exception('not found'));
 
 		$service = $this->createFileService([
 			\OCA\Libresign\Db\FileMapper::class => $fileMapper,
@@ -78,7 +78,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->setStatus(1);
 
 		$fileMapper = $this->createMock(\OCA\Libresign\Db\FileMapper::class);
-		$fileMapper->method('getByFileId')->willReturn($file);
+		$fileMapper->method('getById')->willReturn($file);
 
 		$service = $this->createFileService([
 			\OCA\Libresign\Db\FileMapper::class => $fileMapper,
