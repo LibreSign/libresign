@@ -326,6 +326,8 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('config', [
 			'identificationDocumentsFlow' => $file['settings']['needIdentificationDocuments'] ?? false,
 		]);
+		$this->initialState->provideInitialState('id', $file['id']);
+		$this->initialState->provideInitialState('nodeId', $file['nodeId']);
 		$this->initialState->provideInitialState('needIdentificationDocuments', $file['settings']['needIdentificationDocuments'] ?? false);
 		$this->initialState->provideInitialState('identificationDocumentsWaitingApproval', $file['settings']['identificationDocumentsWaitingApproval'] ?? false);
 		$this->initialState->provideInitialState('status', $file['status']);
@@ -445,7 +447,8 @@ class PageController extends AEnvironmentPageAwareController {
 			->showVisibleElements()
 			->showSigners()
 			->toArray();
-		$this->initialState->provideInitialState('fileId', $file['nodeId']);
+		$this->initialState->provideInitialState('id', $file['id']);
+		$this->initialState->provideInitialState('nodeId', $file['nodeId']);
 		$this->initialState->provideInitialState('status', $file['status']);
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
 		$this->initialState->provideInitialState('visibleElements', []);
