@@ -286,8 +286,8 @@ export default {
 					url: this.pdfUrl,
 				},
 			})
-				.then((nodeId) => {
-					this.filesStore.selectFile(nodeId)
+				.then((fileId) => {
+					this.filesStore.selectFile(fileId)
 					this.closeModalUploadFromUrl()
 				})
 				.catch(({ response }) => {
@@ -307,8 +307,8 @@ export default {
 				},
 				name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
 			})
-				.then((nodeId) => {
-					this.filesStore.selectFile(nodeId)
+				.then((fileId) => {
+					this.filesStore.selectFile(fileId)
 				})
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.message)
