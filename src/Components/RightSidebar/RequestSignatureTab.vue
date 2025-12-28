@@ -594,7 +594,7 @@ export default {
 		signers(signers) {
 			this.init(signers)
 		},
-		'filesStore.selectedNodeId': {
+		'filesStore.selectedId': {
 			handler(newFileId, oldFileId) {
 				if (newFileId && newFileId !== this.lastSyncedFileId) {
 					this.syncPreserveOrderWithFile()
@@ -684,7 +684,7 @@ export default {
 
 			const flow = file.signatureFlow
 
-			this.lastSyncedFileId = this.filesStore.selectedNodeId
+			this.lastSyncedFileId = this.filesStore.selectedId
 
 			if ((flow === 'ordered_numeric' || flow === 2) && !this.isAdminFlowForced) {
 				this.preserveOrder = true
@@ -845,7 +845,7 @@ export default {
 		},
 		async sendNotify(signer) {
 			const body = {
-				fileId: this.filesStore.selectedNodeId,
+				fileId: this.filesStore.selectedId,
 				signRequestId: signer.signRequestId,
 			}
 
