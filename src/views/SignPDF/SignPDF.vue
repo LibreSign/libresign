@@ -114,11 +114,11 @@ export default {
 			const files = await this.fileStore.getAllFiles({
 				signer_uuid: this.$route.params.uuid,
 			})
-			for (const nodeId in files) {
-				const signer = files[nodeId].signers.find(row => row.me) || {}
+			for (const fileId in files) {
+				const signer = files[fileId].signers.find(row => row.me) || {}
 				if (Object.keys(signer).length > 0) {
-					this.signStore.setFileToSign(files[nodeId])
-					this.fileStore.selectedNodeId = nodeId
+					this.signStore.setFileToSign(files[fileId])
+					this.fileStore.selectedId = parseInt(fileId)
 					return
 				}
 			}
@@ -128,7 +128,7 @@ export default {
 				generateOcsUrl('/apps/libresign/api/v1/file/validate/uuid/{uuid}', { uuid: this.$route.params.uuid })
 			)
 			this.signStore.setFileToSign(response.data.ocs.data)
-			this.fileStore.selectedNodeId = response.data.ocs.data.nodeId
+			this.fileStore.selectedId = response.data.ocs.data.id
 		},
 		async handleInitialStatePdfs(urls) {
 			if (!Array.isArray(urls) || urls.length === 0) {
