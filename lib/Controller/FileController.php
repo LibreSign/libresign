@@ -188,26 +188,22 @@ class FileController extends AEnvironmentAwareController {
 		try {
 			if ($type === 'Uuid' && !empty($identifier)) {
 				try {
-					$this->fileService
-						->setFileByType('Uuid', $identifier);
+					$this->fileService->setFileByUuid((string)$identifier);
 				} catch (LibresignException) {
-					$this->fileService
-						->setFileByType('SignerUuid', $identifier);
+					$this->fileService->setFileBySignerUuid((string)$identifier);
 				}
-			} elseif (!empty($type) && !empty($identifier)) {
-				$this->fileService
-					->setFileByType($type, $identifier);
-
+			} elseif ($type === 'SignerUuid' && !empty($identifier)) {
+				$this->fileService->setFileBySignerUuid((string)$identifier);
+			} elseif ($type === 'FileId' && !empty($identifier)) {
+				$this->fileService->setFileById((int)$identifier);
 			} elseif ($this->request->getParam('fileId')) {
-				$this->fileService->setFileByType(
-					'FileId',
-					$this->request->getParam('fileId')
-				);
+				$this->fileService->setFileById((int)$this->request->getParam('fileId'));
 			} elseif ($this->request->getParam('uuid')) {
-				$this->fileService->setFileByType(
-					'Uuid',
-					$this->request->getParam('uuid')
-				);
+				try {
+					$this->fileService->setFileByUuid((string)$this->request->getParam('uuid'));
+				} catch (LibresignException) {
+					$this->fileService->setFileBySignerUuid((string)$this->request->getParam('uuid'));
+				}
 			}
 
 			$return = $this->fileService

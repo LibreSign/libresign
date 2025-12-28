@@ -61,7 +61,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service->validateFileContent('{"json": true}', 'json');
 	}
 
-	public function testSetFileByTypeThrowsOnInvalid(): void {
+	public function testSetFileByIdThrowsOnInvalid(): void {
 		$fileMapper = $this->createMock(\OCA\Libresign\Db\FileMapper::class);
 		$fileMapper->method('getById')->willThrowException(new \Exception('not found'));
 
@@ -70,10 +70,10 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 
 		$this->expectException(LibresignException::class);
-		$service->setFileByType('FileId', 123);
+		$service->setFileById(123);
 	}
 
-	public function testSetFileByTypeSetsFile(): void {
+	public function testSetFileByIdSetsFile(): void {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setStatus(1);
 
@@ -84,7 +84,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			\OCA\Libresign\Db\FileMapper::class => $fileMapper,
 		]);
 
-		$returned = $service->setFileByType('FileId', 123);
+		$returned = $service->setFileById(123);
 		$this->assertInstanceOf(FileService::class, $returned);
 		$this->assertSame(1, $service->getStatus());
 	}
