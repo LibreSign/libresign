@@ -53,6 +53,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-import-type LibresignNextcloudFile from ResponseDefinitions
  * @psalm-import-type LibresignPagination from ResponseDefinitions
  * @psalm-import-type LibresignSettings from ResponseDefinitions
+ * @psalm-import-type LibresignFileDetail from ResponseDefinitions
  * @psalm-import-type LibresignSigner from ResponseDefinitions
  * @psalm-import-type LibresignValidateFile from ResponseDefinitions
  */
@@ -253,7 +254,7 @@ class FileController extends AEnvironmentAwareController {
 	 * @param string|null $sortBy Name of the column to sort by
 	 * @param string|null $sortDirection Ascending or descending order
 	 * @param int|null $parentNodeId Filter files by parent envelope node ID
-	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[], settings?: LibresignSettings}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: list<LibresignFileDetail>, settings?: LibresignSettings}, array{}>
 	 *
 	 * 200: OK
 	 */
@@ -330,7 +331,7 @@ class FileController extends AEnvironmentAwareController {
 		}
 
 		try {
-			$libreSignFile = $this->fileMapper->getByFileId($nodeId);
+			$libreSignFile = $this->fileMapper->getByNodeId($nodeId);
 			if ($libreSignFile->getUserId() !== $this->userSession->getUser()->getUID()) {
 				return new DataResponse([], Http::STATUS_FORBIDDEN);
 			}
@@ -707,7 +708,7 @@ class FileController extends AEnvironmentAwareController {
 	 *
 	 * This will delete the file and all data
 	 *
-	 * @param integer $fileId Node id of a Nextcloud file
+	 * @param integer $fileId LibreSign file ID
 	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>}, array{}>
 	 *
 	 * 200: OK
