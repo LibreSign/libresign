@@ -166,14 +166,14 @@ export default {
 			}
 
 			if (doc.nodeType === 'envelope') {
-				await this.loadEnvelopePdfs(doc.nodeId)
+				await this.loadEnvelopePdfs(doc.id)
 			} else if (doc.url) {
 				await this.handleInitialStatePdfs([doc.url])
 			} else {
 				this.signStore.errors = [{ message: t('libresign', 'Document URL not found') }]
 			}
 		},
-		async loadEnvelopePdfs(parentNodeId) {
+		async loadEnvelopePdfs(parentFileId) {
 			try {
 				const envelopeFiles = loadState('libresign', 'envelopeFiles', [])
 
@@ -185,7 +185,7 @@ export default {
 					const params = new URLSearchParams({
 						page: '1',
 						length: '100',
-						parentNodeId: parentNodeId.toString(),
+						parentFileId: parentFileId.toString(),
 						signer_uuid: this.$route.params.uuid,
 					})
 
