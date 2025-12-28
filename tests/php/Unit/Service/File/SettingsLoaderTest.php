@@ -89,8 +89,10 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = $this->getService();
 		$service->loadSettings($fileData, $options);
 
-		// When there's no user and signer is not identified, settings should not be set
-		$this->assertFalse(isset($fileData->settings));
+		$this->assertTrue(isset($fileData->settings));
+		$this->assertFalse($fileData->settings['canSign']);
+		$this->assertFalse($fileData->settings['canRequestSign']);
+		$this->assertFalse($fileData->settings['hasSignatureFile']);
 	}
 
 	public function testGetIdentificationDocumentsStatusDisabled(): void {
