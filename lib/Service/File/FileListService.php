@@ -142,6 +142,7 @@ class FileListService {
 		} else {
 			$file['filesCount'] = 1;
 			$file['files'] = [[
+				'fileId' => $file['id'],
 				'nodeId' => $file['nodeId'],
 				'uuid' => $file['uuid'],
 				'name' => $file['name'],
