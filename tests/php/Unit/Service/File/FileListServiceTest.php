@@ -112,7 +112,8 @@ final class FileListServiceTest extends TestCase {
 		$service = $this->getService();
 		$result = $service->formatSingleFile($this->user, $file);
 
-		$this->assertEquals(456, $result['id']);
+		$this->assertEquals(123, $result['id']);
+		$this->assertEquals(456, $result['nodeId']);
 		$this->assertArrayNotHasKey('fileId', $result);
 	}
 
