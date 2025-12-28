@@ -228,22 +228,34 @@ class FileService {
 		return $this;
 	}
 
-	/**
-	 * @return static
-	 */
-	public function setFileByType(string $type, $identifier): self {
+	private function setFileOrFail(callable $resolver): self {
 		try {
-			$method = $type === 'FileId' ? 'getById' : 'getBy' . $type;
-			/** @var File */
-			$file = call_user_func([$this->fileMapper, $method], $identifier);
+			$file = $resolver();
 		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 		}
-		if (!$file) {
+
+		if (!$file instanceof File) {
 			throw new LibresignException($this->l10n->t('Invalid file identifier'), 404);
 		}
-		$this->setFile($file);
-		return $this;
+
+		return $this->setFile($file);
+	}
+
+	public function setFileById(int $fileId): self {
+		return $this->setFileOrFail(fn () => $this->fileMapper->getById($fileId));
+	}
+
+	public function setFileByUuid(string $uuid): self {
+		return $this->setFileOrFail(fn () => $this->fileMapper->getByUuid($uuid));
+	}
+
+	public function setFileBySignerUuid(string $uuid): self {
+		return $this->setFileOrFail(fn () => $this->fileMapper->getBySignerUuid($uuid));
+	}
+
+	public function setFileByNodeId(int $nodeId): self {
+		return $this->setFileOrFail(fn () => $this->fileMapper->getByNodeId($nodeId));
 	}
 
 	public function validateUploadedFile(array $file): void {
@@ -300,6 +312,10 @@ class FileService {
 
 	public function getStatus(): int {
 		return $this->file->getStatus();
+	}
+
+	public function isLibresignFile(int $nodeId): bool {
+		return $this->fileMapper->fileIdExists($nodeId);
 	}
 
 	public function getSignedNodeId(): ?int {

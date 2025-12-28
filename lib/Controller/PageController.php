@@ -190,7 +190,7 @@ class PageController extends AEnvironmentPageAwareController {
 			try {
 				$this->initialState->provideInitialState('file_info',
 					$this->fileService
-						->setFileByType('uuid', $matches['uuid'])
+						->setFileByUuid($matches['uuid'])
 						->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
 						->setHost($this->request->getServerHost())
 						->setMe($this->userSession->getUser())
@@ -635,7 +635,7 @@ class PageController extends AEnvironmentPageAwareController {
 	public function validationFilePublic(string $uuid): TemplateResponse {
 		try {
 			$this->signFileService->getFileByUuid($uuid);
-			$this->fileService->setFileByType('uuid', $uuid);
+			$this->fileService->setFileByUuid($uuid);
 		} catch (DoesNotExistException) {
 			try {
 				$signRequest = $this->signFileService->getSignRequestByUuid($uuid);
