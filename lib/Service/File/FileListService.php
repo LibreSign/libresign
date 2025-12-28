@@ -26,6 +26,8 @@ use OCP\IUserManager;
 
 /**
  * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
+ * @psalm-import-type LibresignFileDetail from ResponseDefinitions
+ * @psalm-import-type LibresignPagination from ResponseDefinitions
  */
 class FileListService {
 	public function __construct(
@@ -41,7 +43,7 @@ class FileListService {
 	}
 
 	/**
-	 * @return array{data: array, pagination: array}
+	 * @return array{data: list<LibresignFileDetail>, pagination: LibresignPagination}
 	 */
 	public function listAssociatedFilesOfSignFlow(
 		IUser $user,
@@ -81,6 +83,9 @@ class FileListService {
 		return $this->formatSingleFileData($file, $signers, $identifyMethods, $visibleElements, $user);
 	}
 
+	/**
+	 * @return list<LibresignFileDetail>
+	 */
 	private function associateAllAndFormat(
 		IUser $user,
 		array $files,
@@ -99,6 +104,9 @@ class FileListService {
 	/**
 	 * Format a single file with its signers, identifyMethods and visibleElements.
 	 * Core formatting used by list and single file operations.
+	 *
+	 * @return LibresignFileDetail
+	 * @psalm-suppress MoreSpecificReturnType
 	 */
 	private function formatSingleFileData(
 		File $fileEntity,
@@ -255,6 +263,7 @@ class FileListService {
 
 		unset($file['fileId']);
 		ksort($file);
+		/** @psalm-suppress LessSpecificReturnStatement,MoreSpecificReturnType */
 		return $file;
 	}
 }
