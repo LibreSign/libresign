@@ -1389,6 +1389,16 @@ export type components = {
             };
             file: string;
             url?: string;
+            mime?: string;
+            pages?: {
+                url: string;
+                resolution: {
+                    /** Format: double */
+                    w: number;
+                    /** Format: double */
+                    h: number;
+                };
+            }[];
             metadata?: components["schemas"]["ValidateMetadata"];
             signers?: components["schemas"]["Signer"][];
             settings?: components["schemas"]["Settings"];
