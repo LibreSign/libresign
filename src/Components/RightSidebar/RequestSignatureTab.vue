@@ -139,7 +139,7 @@
 				</template>
 				{{ t('libresign', 'Validation info') }}
 			</NcButton>
-			<NcButton
+			<NcButton v-if="!isEnvelope"
 				wide
 				variant="secondary"
 				@click="openFile()">
