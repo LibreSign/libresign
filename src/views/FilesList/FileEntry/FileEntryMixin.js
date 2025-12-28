@@ -76,7 +76,7 @@ export default {
 		openDetailsIfAvailable(event) {
 			event.preventDefault()
 			event.stopPropagation()
-			this.filesStore.selectFile(this.source.nodeId)
+			this.filesStore.selectFile(this.source.id)
 		},
 	},
 }
