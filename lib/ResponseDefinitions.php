@@ -110,10 +110,10 @@ namespace OCA\Libresign;
  *     canSign: bool,
  *     canRequestSign: bool,
  *     signerFileUuid: ?string,
- *     hasSignatureFile?: bool,
  *     phoneNumber: string,
- *     needIdentificationDocuments?: bool,
- *     identificationDocumentsWaitingApproval?: bool,
+ *     hasSignatureFile: bool,
+ *     needIdentificationDocuments: bool,
+ *     identificationDocumentsWaitingApproval: bool,
  * }
  * @psalm-type LibresignIdentifyMethod = array{
  *     method: "email"|"account",
@@ -216,6 +216,7 @@ namespace OCA\Libresign;
  *     metadata?: LibresignValidateMetadata,
  * }
  * @psalm-type LibresignValidateFile = array{
+ *     id: int,
  *     uuid: string,
  *     name: string,
  *     status: 0|1|2|3|4,
@@ -244,6 +245,34 @@ namespace OCA\Libresign;
  *         message: string,
  *     }[],
  *     visibleElements?: LibresignVisibleElement[],
+ * }
+ * @psalm-type LibresignFileDetail = array{
+ *     created_at: string,
+ *     file: string,
+ *     files: list<array{
+ *         fileId?: int,
+ *         nodeId: int,
+ *         uuid: string,
+ *         name: string,
+ *         status: int,
+ *         statusText: string,
+ *     }>,
+ *     filesCount: int,
+ *     id: int,
+ *     metadata: array<string, mixed>,
+ *     name: string,
+ *     nodeId: int,
+ *     nodeType: string,
+ *     requested_by: array{
+ *         userId: string,
+ *         displayName: ?string,
+ *     },
+ *     signatureFlow: int|string,
+ *     signers: list<LibresignSigner>,
+ *     status: int,
+ *     statusText: string,
+ *     uuid: string,
+ *     visibleElements: LibresignVisibleElement[],
  * }
  * @psalm-type LibresignFile = array{
  *     account: array{
