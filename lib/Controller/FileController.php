@@ -23,6 +23,7 @@ use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\File\FileListService;
+use OCA\Libresign\Service\File\SettingsLoader;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestSignatureService;
@@ -77,7 +78,7 @@ class FileController extends AEnvironmentAwareController {
 		private FileService $fileService,
 		private fileListService $fileListService,
 		private ValidateHelper $validateHelper,
-		private \OCA\Libresign\Service\File\SettingsLoader $settingsLoader,
+		private SettingsLoader $settingsLoader,
 		private IURLGenerator $urlGenerator,
 	) {
 		parent::__construct(Application::APP_ID, $request);
