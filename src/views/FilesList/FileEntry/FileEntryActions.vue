@@ -58,6 +58,7 @@
 <script>
 import svgDelete from '@mdi/svg/svg/delete.svg?raw'
 import svgFileDocument from '@mdi/svg/svg/file-document-outline.svg?raw'
+import svgPencil from '@mdi/svg/svg/pencil-outline.svg?raw'
 import svgSignature from '@mdi/svg/svg/signature.svg?raw'
 import svgTextBoxCheck from '@mdi/svg/svg/text-box-check.svg?raw'
 
@@ -123,6 +124,7 @@ export default {
 			hasInfo: false,
 		}
 	},
+	emits: ['rename', 'start-rename'],
 	computed: {
 		openedMenu: {
 			get() {
@@ -137,6 +139,11 @@ export default {
 		},
 	},
 	mounted() {
+		this.registerAction({
+			id: 'rename',
+			title: t('libresign', 'Rename'),
+			iconSvgInline: svgPencil,
+		})
 		this.registerAction({
 			id: 'validate',
 			title: t('libresign', 'Validate'),
@@ -165,7 +172,9 @@ export default {
 		visibleIf(action) {
 			const file = this.filesStore.files[this.source.id]
 			let visible = false
-			if (action.id === 'sign') {
+			if (action.id === 'rename') {
+				visible = true
+			} else if (action.id === 'sign') {
 				visible = this.filesStore.canSign(file)
 			} else if (action.id === 'validate') {
 				visible = this.filesStore.canValidate(file)
@@ -208,6 +217,8 @@ export default {
 				})
 			} else if (action.id === 'delete') {
 				this.confirmDelete = true
+			} else if (action.id === 'rename') {
+				this.$emit('start-rename')
 			} else if (action.id === 'open') {
 				this.openFile()
 			}
@@ -235,6 +246,9 @@ export default {
 			} else {
 				window.open(`${this.source.file}?_t=${Date.now()}`)
 			}
+		},
+		doRename(newName) {
+			return this.filesStore.rename(this.source.uuid, newName)
 		},
 	},
 }
