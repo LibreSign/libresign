@@ -74,6 +74,27 @@
 				</NcButton>
 			</template>
 		</NcDialog>
+		<NcDialog v-if="showEnvelopeNameModal"
+			:name="t('libresign', 'Envelope name')"
+			:no-close="loading"
+			is-form
+			@submit.prevent="confirmEnvelopeName"
+			@closing="cancelEnvelopeName">
+			<NcTextField v-model="envelopeName"
+				:label="t('libresign', 'Enter a name for the envelope')"
+				maxlength="256" />
+			<template #actions>
+				<NcButton @click="cancelEnvelopeName">
+					{{ t('libresign', 'Cancel') }}
+				</NcButton>
+				<NcButton :disabled="!envelopeName.trim()"
+					type="submit"
+					variant="primary"
+					@click="confirmEnvelopeName">
+					{{ t('libresign', 'Continue') }}
+				</NcButton>
+			</template>
+		</NcDialog>
 	</div>
 </template>
 <script>
@@ -148,6 +169,9 @@ export default {
 			uploadedBytes: 0,
 			totalBytes: 0,
 			uploadStartTime: null,
+			showEnvelopeNameModal: false,
+			envelopeName: '',
+			pendingFiles: [],
 		}
 	},
 	computed: {
@@ -215,7 +239,7 @@ export default {
 				formData.append('file', files[0])
 				this.totalBytes = files[0].size
 			} else {
-				formData.append('name', '')
+				formData.append('name', this.envelopeName.trim())
 				let totalSize = 0
 				files.forEach((file) => {
 					formData.append('files[]', file)
@@ -253,6 +277,8 @@ export default {
 					this.loading = false
 					this.isUploading = false
 					this.uploadAbortController = null
+					this.pendingFiles = []
+					this.envelopeName = ''
 				})
 		},
 		cancelUpload() {
@@ -269,6 +295,14 @@ export default {
 
 			input.onchange = async (ev) => {
 				const files = Array.from(ev.target.files)
+
+				if (files.length > 1 && this.envelopeEnabled) {
+					this.pendingFiles = files
+					this.envelopeName = ''
+					this.showEnvelopeNameModal = true
+					input.remove()
+					return
+				}
 
 				if (files.length > 0) {
 					await this.upload(files)
@@ -313,6 +347,19 @@ export default {
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.message)
 				})
+		},
+		confirmEnvelopeName() {
+			if (!this.envelopeName.trim()) {
+				return
+			}
+			const files = this.pendingFiles
+			this.showEnvelopeNameModal = false
+			this.upload(files)
+		},
+		cancelEnvelopeName() {
+			this.pendingFiles = []
+			this.envelopeName = ''
+			this.showEnvelopeNameModal = false
 		},
 	},
 }
