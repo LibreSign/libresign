@@ -364,6 +364,27 @@ export const useFilesStore = function(...args) {
 				}
 				this.loading = false
 			},
+			async rename(uuid, newName) {
+				const url = generateOcsUrl('/apps/libresign/api/v1/request-signature')
+				return axios.patch(url, {
+					uuid,
+					name: newName,
+				})
+					.then((response) => {
+						if (response.data?.ocs?.meta?.status === 'ok') {
+							const fileId = Object.keys(this.files).find(id => this.files[id].uuid === uuid)
+							if (fileId && this.files[fileId]) {
+								this.files[fileId].name = newName
+							}
+							return true
+						}
+						return false
+					})
+					.catch((error) => {
+						console.error('Failed to rename file:', error)
+						return false
+					})
+			},
 			async upload(payload, options = {}) {
 				let data
 
