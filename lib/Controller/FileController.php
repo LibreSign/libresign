@@ -14,6 +14,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -42,6 +43,7 @@ use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IPreview;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\Preview\IMimeIconProvider;
 use Psr\Log\LoggerInterface;
@@ -76,6 +78,7 @@ class FileController extends AEnvironmentAwareController {
 		private fileListService $fileListService,
 		private ValidateHelper $validateHelper,
 		private \OCA\Libresign\Service\File\SettingsLoader $settingsLoader,
+		private IURLGenerator $urlGenerator,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -661,6 +664,15 @@ class FileController extends AEnvironmentAwareController {
 			'statusText' => $this->fileMapper->getTextOfStatus($mainEntity->getStatus()),
 			'nodeType' => $mainEntity->getNodeType(),
 			'created_at' => $mainEntity->getCreatedAt()->format(\DateTimeInterface::ATOM),
+			'file' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $mainEntity->getUuid()]),
+			'metadata' => $mainEntity->getMetadata() ?? [],
+			'signatureFlow' => SignatureFlow::fromNumeric($mainEntity->getSignatureFlow())->value,
+			'visibleElements' => [],
+			'signers' => [],
+			'requested_by' => [
+				'userId' => $mainEntity->getUserId(),
+				'displayName' => $this->userSession->getUser()?->getDisplayName() ?? $mainEntity->getUserId(),
+			],
 		];
 
 		if ($mainEntity->getNodeType() === 'envelope') {
