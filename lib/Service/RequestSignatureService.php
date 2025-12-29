@@ -309,7 +309,11 @@ class RequestSignatureService {
 		$file->setUuid(UUIDUtil::getUUID());
 		$file->setCreatedAt(new \DateTime('now', new \DateTimeZone('UTC')));
 		$metadata = $this->getFileMetadata($node);
-		$file->setName($this->removeExtensionFromName($data['name'], $metadata));
+		$name = trim((string)($data['name'] ?? ''));
+		if ($name === '') {
+			$name = $node->getName();
+		}
+		$file->setName($this->removeExtensionFromName($name, $metadata));
 		$file->setMetadata($metadata);
 		if (!empty($data['callback'])) {
 			$file->setCallback($data['callback']);
