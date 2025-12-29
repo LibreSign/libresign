@@ -123,7 +123,8 @@ class FileService {
 		$userFolder = $this->folderService->getFolder();
 		$folderName = $this->folderService->getFolderName($data, $data['userManager']);
 		$folderToFile = $userFolder->newFolder($folderName);
-		return $folderToFile->newFile($data['name'] . '.' . $extension, $content);
+		$filename = $this->resolveFileName($data, $extension);
+		return $folderToFile->newFile($filename, $content);
 	}
 
 	public function getNodeFromUploadedFile(array $data): Node {
@@ -142,6 +143,33 @@ class FileService {
 
 	private function getFileRaw(array $data): string {
 		return $this->contentProvider->getContentFromData($data);
+	}
+
+	private function resolveFileName(array $data, string $extension): string {
+		$name = '';
+		if (isset($data['name'])) {
+			$name = trim((string)$data['name']);
+		}
+
+		if ($name === '') {
+			$basename = '';
+			if (!empty($data['file']['url'])) {
+				$path = (string)parse_url((string)$data['file']['url'], PHP_URL_PATH);
+				if ($path !== '') {
+					$basename = basename($path);
+				}
+			}
+			if ($basename !== '') {
+				$filenameNoExt = pathinfo($basename, PATHINFO_FILENAME);
+				$name = $filenameNoExt !== '' ? $filenameNoExt : $basename;
+			} else {
+				$name = 'document';
+			}
+		}
+
+		$name = preg_replace('/\s+/', '_', $name);
+		$name = $name !== '' ? $name : 'document';
+		return $name . '.' . $extension;
 	}
 
 	/**
