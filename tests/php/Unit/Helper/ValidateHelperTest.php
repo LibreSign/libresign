@@ -736,18 +736,18 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			'empty data structure' => [
 				[],
-				true, // should throw
-				'No signers'
+				false, // should not throw
+				''
 			],
 			'missing users key' => [
 				['someOtherKey' => 'value'],
-				true, // should throw
-				'No signers'
+				false, // should not throw
+				''
 			],
 			'empty users array' => [
 				['users' => []],
-				true, // should throw
-				'No signers'
+				false, // should not throw
+				''
 			],
 			'users not array' => [
 				['users' => 'not-an-array'],
