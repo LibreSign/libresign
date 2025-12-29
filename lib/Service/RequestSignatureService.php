@@ -17,10 +17,11 @@ use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
+use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\Node;
@@ -33,9 +34,9 @@ use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
 
 class RequestSignatureService {
-	use TFile;
 
 	public function __construct(
+		protected FileService $fileService,
 		protected IL10N $l10n,
 		protected IdentifyMethodService $identifyMethod,
 		protected SignRequestMapper $signRequestMapper,
@@ -55,20 +56,219 @@ class RequestSignatureService {
 		protected IAppConfig $appConfig,
 		protected IEventDispatcher $eventDispatcher,
 		protected FileStatusService $fileStatusService,
-		protected SignRequestStatusService $signRequestStatusService,
 		protected DocMdpConfigService $docMdpConfigService,
+		protected EnvelopeService $envelopeService,
+		protected FileUploadHelper $uploadHelper,
+		protected SignRequestService $signRequestService,
 	) {
+	}
+
+	/**
+	 * Save files - creates single file or envelope based on files count
+	 *
+	 * @param array{files: array, name: string, settings: array, userManager: IUser} $data
+	 * @return array{file: FileEntity, children: FileEntity[]}
+	 */
+	public function saveFiles(array $data): array {
+		if (empty($data['files'])) {
+			throw new LibresignException('Files parameter is required');
+		}
+
+		if (count($data['files']) === 1) {
+			$fileData = $data['files'][0];
+
+			$saveData = [
+				'name' => $data['name'] ?? $fileData['name'] ?? '',
+				'userManager' => $data['userManager'],
+				'status' => FileEntity::STATUS_DRAFT,
+				'settings' => $data['settings'],
+			];
+
+			if (isset($fileData['uploadedFile'])) {
+				$saveData['uploadedFile'] = $fileData['uploadedFile'];
+			} elseif (isset($fileData['fileNode'])) {
+				$saveData['file'] = ['fileNode' => $fileData['fileNode']];
+			} else {
+				$saveData['file'] = $fileData;
+			}
+
+			$savedFile = $this->save($saveData);
+
+			return [
+				'file' => $savedFile,
+				'children' => [$savedFile],
+			];
+		}
+
+		$result = $this->saveEnvelope([
+			'files' => $data['files'],
+			'name' => $data['name'],
+			'userManager' => $data['userManager'],
+			'settings' => $data['settings'],
+		]);
+
+		return [
+			'file' => $result['envelope'],
+			'children' => $result['files'],
+		];
 	}
 
 	public function save(array $data): FileEntity {
 		$file = $this->saveFile($data);
-		$this->saveVisibleElements($data, $file);
 		if (!isset($data['status'])) {
 			$data['status'] = $file->getStatus();
 		}
 		$this->sequentialSigningService->setFile($file);
-		$this->associateToSigners($data, $file->getId());
+		$this->associateToSigners($data, $file);
+		$this->propagateSignersToChildren($file, $data);
+		$this->saveVisibleElements($data, $file);
+
 		return $file;
+	}
+
+	private function propagateSignersToChildren(FileEntity $envelope, array $data): void {
+		if ($envelope->getNodeType() !== 'envelope' || empty($data['users'])) {
+			return;
+		}
+
+		$children = $this->fileMapper->getChildrenFiles($envelope->getId());
+
+		$dataWithoutNotification = $data;
+		foreach ($dataWithoutNotification['users'] as &$user) {
+			$user['notify'] = 0;
+		}
+
+		foreach ($children as $child) {
+			$this->identifyMethod->clearCache();
+			$this->sequentialSigningService->setFile($child);
+			$this->associateToSigners($dataWithoutNotification, $child);
+		}
+
+		if ($envelope->getStatus() > FileEntity::STATUS_DRAFT) {
+			$this->fileStatusService->propagateStatusToChildren($envelope->getId(), $envelope->getStatus());
+		}
+	}
+
+	public function saveEnvelope(array $data): array {
+		$this->envelopeService->validateEnvelopeConstraints(count($data['files']));
+
+		$envelopeName = $data['name'] ?: $this->l10n->t('Envelope %s', [date('Y-m-d H:i:s')]);
+		$userManager = $data['userManager'] ?? null;
+		$userId = $userManager instanceof IUser ? $userManager->getUID() : null;
+		$filesCount = count($data['files']);
+
+		$envelope = null;
+		$files = [];
+		$createdNodes = [];
+
+		try {
+			$envelope = $this->envelopeService->createEnvelope($envelopeName, $userId, $filesCount);
+
+			$envelopeFolderName = 'envelope-' . $envelope->getUuid();
+			$envelopeSettings = array_merge($data['settings'] ?? [], [
+				'folderName' => $envelopeFolderName,
+			]);
+
+			foreach ($data['files'] as $fileData) {
+				$node = $this->processFileData($fileData, $userManager, $envelopeSettings);
+				$createdNodes[] = $node;
+
+				$fileData['node'] = $node;
+				$fileEntity = $this->createFileForEnvelope($fileData, $userManager, $envelopeSettings);
+				$this->envelopeService->addFileToEnvelope($envelope->getId(), $fileEntity);
+				$files[] = $fileEntity;
+			}
+
+			return [
+				'envelope' => $envelope,
+				'files' => $files,
+			];
+		} catch (\Throwable $e) {
+			$this->rollbackEnvelopeCreation($envelope, $files, $createdNodes);
+			throw $e;
+		}
+	}
+
+	private function processFileData(array $fileData, ?IUser $userManager, array $settings): Node {
+		if (isset($fileData['uploadedFile'])) {
+			return $this->fileService->getNodeFromData([
+				'userManager' => $userManager,
+				'name' => $fileData['name'] ?? '',
+				'uploadedFile' => $fileData['uploadedFile'],
+				'settings' => $settings,
+			]);
+		}
+
+		return $this->fileService->getNodeFromData([
+			'userManager' => $userManager,
+			'name' => $fileData['name'] ?? '',
+			'file' => $fileData,
+			'settings' => $settings,
+		]);
+	}
+
+	private function rollbackEnvelopeCreation(?FileEntity $envelope, array $files, array $createdNodes): void {
+		$this->rollbackCreatedNodes($createdNodes);
+		$this->rollbackCreatedFiles($files);
+		$this->rollbackEnvelope($envelope);
+	}
+
+	private function rollbackCreatedNodes(array $nodes): void {
+		foreach ($nodes as $node) {
+			try {
+				$node->delete();
+			} catch (\Throwable $deleteError) {
+				$this->logger->error('Failed to rollback created node in envelope', [
+					'nodeId' => $node->getId(),
+					'error' => $deleteError->getMessage(),
+				]);
+			}
+		}
+	}
+
+	private function rollbackCreatedFiles(array $files): void {
+		foreach ($files as $file) {
+			try {
+				$this->fileMapper->delete($file);
+			} catch (\Throwable $deleteError) {
+				$this->logger->error('Failed to rollback created file entity in envelope', [
+					'fileId' => $file->getId(),
+					'error' => $deleteError->getMessage(),
+				]);
+			}
+		}
+	}
+
+	private function rollbackEnvelope(?FileEntity $envelope): void {
+		if ($envelope === null) {
+			return;
+		}
+
+		try {
+			$this->fileMapper->delete($envelope);
+		} catch (\Throwable $deleteError) {
+			$this->logger->error('Failed to rollback created envelope', [
+				'envelopeId' => $envelope->getId(),
+				'error' => $deleteError->getMessage(),
+			]);
+		}
+	}
+
+	private function createFileForEnvelope(array $fileData, ?IUser $userManager, array $settings): FileEntity {
+		if (!isset($fileData['node'])) {
+			throw new \InvalidArgumentException('Node not provided in file data');
+		}
+
+		$node = $fileData['node'];
+		$fileName = $fileData['name'] ?? $node->getName();
+
+		return $this->saveFile([
+			'file' => ['fileNode' => $node],
+			'name' => $fileName,
+			'userManager' => $userManager,
+			'status' => FileEntity::STATUS_DRAFT,
+			'settings' => $settings,
+		]);
 	}
 
 	/**
@@ -80,6 +280,10 @@ class RequestSignatureService {
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
 			$this->updateSignatureFlowIfAllowed($file, $data);
+			if (!empty($data['name'])) {
+				$file->setName($data['name']);
+				$this->fileMapper->update($file);
+			}
 			return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
 		}
 		$fileId = null;
@@ -90,14 +294,14 @@ class RequestSignatureService {
 		}
 		if (!is_null($fileId)) {
 			try {
-				$file = $this->fileMapper->getByFileId($fileId);
+				$file = $this->fileMapper->getByNodeId($fileId);
 				$this->updateSignatureFlowIfAllowed($file, $data);
 				return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
 			} catch (\Throwable) {
 			}
 		}
 
-		$node = $this->getNodeFromData($data);
+		$node = $this->fileService->getNodeFromData($data);
 
 		$file = new FileEntity();
 		$file->setNodeId($node->getId());
@@ -109,7 +313,11 @@ class RequestSignatureService {
 		$file->setUuid(UUIDUtil::getUUID());
 		$file->setCreatedAt(new \DateTime('now', new \DateTimeZone('UTC')));
 		$metadata = $this->getFileMetadata($node);
-		$file->setName($this->removeExtensionFromName($data['name'], $metadata));
+		$name = trim((string)($data['name'] ?? ''));
+		if ($name === '') {
+			$name = $node->getName();
+		}
+		$file->setName($this->removeExtensionFromName($name, $metadata));
 		$file->setMetadata($metadata);
 		if (!empty($data['callback'])) {
 			$file->setCallback($data['callback']);
@@ -118,6 +326,10 @@ class RequestSignatureService {
 			$file->setStatus($data['status']);
 		} else {
 			$file->setStatus(FileEntity::STATUS_ABLE_TO_SIGN);
+		}
+
+		if (isset($data['parentFileId'])) {
+			$file->setParentFileId($data['parentFileId']);
 		}
 
 		$this->setSignatureFlow($file, $data);
@@ -175,12 +387,12 @@ class RequestSignatureService {
 				'extension' => $extension,
 			];
 			if ($metadata['extension'] === 'pdf') {
+				$pdfParser = $this->pdfParserService->setFile($node);
 				$metadata = array_merge(
 					$metadata,
-					$this->pdfParserService
-						->setFile($node)
-						->getPageDimensions()
+					$pdfParser->getPageDimensions()
 				);
+				$metadata['pdfVersion'] = $pdfParser->getPdfVersion();
 			}
 		}
 		return $metadata;
@@ -195,20 +407,19 @@ class RequestSignatureService {
 		return $result ?? $name;
 	}
 
-	private function deleteIdentifyMethodIfNotExits(array $users, int $fileId): void {
-		$file = $this->fileMapper->getById($fileId);
-		$signRequests = $this->signRequestMapper->getByFileId($fileId);
+	private function deleteIdentifyMethodIfNotExits(array $users, FileEntity $file): void {
+		$signRequests = $this->signRequestMapper->getByFileId($file->getId());
 		foreach ($signRequests as $key => $signRequest) {
 			$identifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 			if (empty($identifyMethods)) {
-				$this->unassociateToUser($file->getNodeId(), $signRequest->getId());
+				$this->unassociateToUser($file->getId(), $signRequest->getId());
 				continue;
 			}
 			foreach ($identifyMethods as $methodName => $list) {
 				foreach ($list as $method) {
 					$exists[$key]['identify'][$methodName] = $method->getEntity()->getIdentifierValue();
 					if (!$this->identifyMethodExists($users, $method)) {
-						$this->unassociateToUser($file->getNodeId(), $signRequest->getId());
+						$this->unassociateToUser($file->getId(), $signRequest->getId());
 						continue 3;
 					}
 				}
@@ -246,10 +457,10 @@ class RequestSignatureService {
 	 *
 	 * @psalm-return list<SignRequestEntity>
 	 */
-	private function associateToSigners(array $data, int $fileId): array {
+	private function associateToSigners(array $data, FileEntity $file): array {
 		$return = [];
 		if (!empty($data['users'])) {
-			$this->deleteIdentifyMethodIfNotExits($data['users'], $fileId);
+			$this->deleteIdentifyMethodIfNotExits($data['users'], $file);
 
 			$this->sequentialSigningService->resetOrderCounter();
 			$fileStatus = $data['status'] ?? null;
@@ -258,29 +469,30 @@ class RequestSignatureService {
 				$userProvidedOrder = isset($user['signingOrder']) ? (int)$user['signingOrder'] : null;
 				$signingOrder = $this->sequentialSigningService->determineSigningOrder($userProvidedOrder);
 				$signerStatus = $user['status'] ?? null;
+				$shouldNotify = !isset($user['notify']) || $user['notify'] !== 0;
 
 				if (isset($user['identifyMethods'])) {
 					foreach ($user['identifyMethods'] as $identifyMethod) {
-						$return[] = $this->associateToSigner(
+						$return[] = $this->signRequestService->createOrUpdateSignRequest(
 							identifyMethods: [
 								$identifyMethod['method'] => $identifyMethod['value'],
 							],
 							displayName: $user['displayName'] ?? '',
 							description: $user['description'] ?? '',
-							notify: empty($user['notify']),
-							fileId: $fileId,
+							notify: $shouldNotify,
+							fileId: $file->getId(),
 							signingOrder: $signingOrder,
 							fileStatus: $fileStatus,
 							signerStatus: $signerStatus,
 						);
 					}
 				} else {
-					$return[] = $this->associateToSigner(
+					$return[] = $this->signRequestService->createOrUpdateSignRequest(
 						identifyMethods: $user['identify'],
 						displayName: $user['displayName'] ?? '',
 						description: $user['description'] ?? '',
-						notify: empty($user['notify']),
-						fileId: $fileId,
+						notify: $shouldNotify,
+						fileId: $file->getId(),
 						signingOrder: $signingOrder,
 						fileStatus: $fileStatus,
 						signerStatus: $signerStatus,
@@ -291,85 +503,33 @@ class RequestSignatureService {
 		return $return;
 	}
 
-	private function associateToSigner(
-		array $identifyMethods,
-		string $displayName,
-		string $description,
-		bool $notify,
-		int $fileId,
-		int $signingOrder = 0,
-		?int $fileStatus = null,
-		?int $signerStatus = null,
-	): SignRequestEntity {
-		$identifyMethodsIncances = $this->identifyMethod->getByUserData($identifyMethods);
-		if (empty($identifyMethodsIncances)) {
-			throw new \Exception($this->l10n->t('Invalid identification method'));
-		}
-		$signRequest = $this->getSignRequestByIdentifyMethod(
-			current($identifyMethodsIncances),
-			$fileId
-		);
-		$displayName = $this->getDisplayNameFromIdentifyMethodIfEmpty($identifyMethodsIncances, $displayName);
-		$this->setDataToUser($signRequest, $displayName, $description, $fileId);
 
-		$signRequest->setSigningOrder($signingOrder);
-
-		$isNewSignRequest = !$signRequest->getId();
-		$currentStatus = $signRequest->getStatusEnum();
-
-		if ($isNewSignRequest || $currentStatus === \OCA\Libresign\Enum\SignRequestStatus::DRAFT) {
-			$desiredStatus = $this->signRequestStatusService->determineInitialStatus($signingOrder, $fileId, $fileStatus, $signerStatus, $currentStatus);
-			$this->signRequestStatusService->updateStatusIfAllowed($signRequest, $currentStatus, $desiredStatus, $isNewSignRequest);
-		}
-
-		$this->saveSignRequest($signRequest);
-
-		$shouldNotify = $notify && $this->signRequestStatusService->shouldNotifySignRequest(
-			$signRequest->getStatusEnum(),
-			$fileStatus
-		);
-
-		foreach ($identifyMethodsIncances as $identifyMethod) {
-			$identifyMethod->getEntity()->setSignRequestId($signRequest->getId());
-			$identifyMethod->willNotifyUser($shouldNotify);
-			$identifyMethod->save();
-		}
-		return $signRequest;
-	}
-
-	/**
-	 * @param IIdentifyMethod[] $identifyMethodsIncances
-	 * @param string $displayName
-	 * @return string
-	 */
-	private function getDisplayNameFromIdentifyMethodIfEmpty(array $identifyMethodsIncances, string $displayName): string {
-		if (!empty($displayName)) {
-			return $displayName;
-		}
-		foreach ($identifyMethodsIncances as $identifyMethod) {
-			if ($identifyMethod->getName() === 'account') {
-				return $this->userManager->get($identifyMethod->getEntity()->getIdentifierValue())->getDisplayName();
-			}
-		}
-		foreach ($identifyMethodsIncances as $identifyMethod) {
-			if ($identifyMethod->getName() !== 'account') {
-				return $identifyMethod->getEntity()->getIdentifierValue();
-			}
-		}
-		return '';
-	}
 
 	private function saveVisibleElements(array $data, FileEntity $file): array {
 		if (empty($data['visibleElements'])) {
 			return [];
 		}
-		$elements = $data['visibleElements'];
-		foreach ($elements as $key => $element) {
-			$element['fileId'] = $file->getId();
-			$elements[$key] = $this->fileElementService->saveVisibleElement($element);
+		$persisted = [];
+		foreach ($data['visibleElements'] as $element) {
+			if ($file->isEnvelope() && !empty($element['signRequestId'])) {
+				$envelopeSignRequest = $this->signRequestMapper->getById((int)$element['signRequestId']);
+				// Only translate if the provided SR belongs to the envelope itself
+				if ($envelopeSignRequest && $envelopeSignRequest->getFileId() === $file->getId()) {
+					$childrenSrs = $this->signRequestMapper->getByEnvelopeChildrenAndIdentifyMethod($file->getId(), (int)$element['signRequestId']);
+					foreach ($childrenSrs as $childSr) {
+						if ($childSr->getFileId() === (int)$element['fileId']) {
+							$element['signRequestId'] = $childSr->getId();
+							break;
+						}
+					}
+				}
+			}
+
+			$persisted[] = $this->fileElementService->saveVisibleElement($element);
 		}
-		return $elements;
+		return $persisted;
 	}
+
 
 	public function validateNewRequestToFile(array $data): void {
 		$this->validateNewFile($data);
@@ -400,69 +560,65 @@ class RequestSignatureService {
 		}
 	}
 
-	public function saveSignRequest(SignRequestEntity $signRequest): void {
-		if ($signRequest->getId()) {
-			$this->signRequestMapper->update($signRequest);
-		} else {
-			$this->signRequestMapper->insert($signRequest);
-		}
-	}
 
-	/**
-	 * @psalm-suppress MixedMethodCall
-	 */
-	private function setDataToUser(SignRequestEntity $signRequest, string $displayName, string $description, int $fileId): void {
-		$signRequest->setFileId($fileId);
-		if (!$signRequest->getUuid()) {
-			$signRequest->setUuid(UUIDUtil::getUUID());
-		}
-		if (!empty($displayName)) {
-			$signRequest->setDisplayName($displayName);
-		}
-		if (!empty($description)) {
-			$signRequest->setDescription($description);
-		}
-		if (!$signRequest->getId()) {
-			$signRequest->setCreatedAt(new \DateTime('now', new \DateTimeZone('UTC')));
-		}
-	}
-
-	private function getSignRequestByIdentifyMethod(IIdentifyMethod $identifyMethod, int $fileId): SignRequestEntity {
-		try {
-			$signRequest = $this->signRequestMapper->getByIdentifyMethodAndFileId($identifyMethod, $fileId);
-		} catch (DoesNotExistException) {
-			$signRequest = new SignRequestEntity();
-		}
-		return $signRequest;
-	}
 
 	public function unassociateToUser(int $fileId, int $signRequestId): void {
+		$file = $this->fileMapper->getById($fileId);
 		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
 		$deletedOrder = $signRequest->getSigningOrder();
 		$groupedIdentifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequestId);
 
-		$this->dispatchCancellationEventIfNeeded($signRequest, $fileId, $groupedIdentifyMethods);
+		$this->dispatchCancellationEventIfNeeded($signRequest, $file, $groupedIdentifyMethods);
 
 		try {
 			$this->signRequestMapper->delete($signRequest);
-			foreach ($groupedIdentifyMethods as $identifyMethods) {
-				foreach ($identifyMethods as $identifyMethod) {
-					$identifyMethod->delete();
-				}
-			}
+			$this->identifyMethod->deleteBySignRequestId($signRequestId);
 			$visibleElements = $this->fileElementMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
 			foreach ($visibleElements as $visibleElement) {
 				$this->fileElementMapper->delete($visibleElement);
 			}
 
-			$this->sequentialSigningService->reorderAfterDeletion($fileId, $deletedOrder);
+			$this->sequentialSigningService
+				->setFile($file)
+				->reorderAfterDeletion($file->getId(), $deletedOrder);
+
+			$this->propagateSignerDeletionToChildren($file, $signRequest);
 		} catch (\Throwable) {
+		}
+	}
+
+	private function propagateSignerDeletionToChildren(FileEntity $envelope, SignRequestEntity $deletedSignRequest): void {
+		if ($envelope->getNodeType() !== 'envelope') {
+			return;
+		}
+
+		$children = $this->fileMapper->getChildrenFiles($envelope->getId());
+
+		$identifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($deletedSignRequest->getId());
+		if (empty($identifyMethods)) {
+			return;
+		}
+
+		foreach ($children as $child) {
+			try {
+				$this->identifyMethod->clearCache();
+				$childSignRequest = $this->signRequestService->getSignRequestByIdentifyMethod(
+					current(reset($identifyMethods)),
+					$child->getId()
+				);
+
+				if ($childSignRequest->getId()) {
+					$this->unassociateToUser($child->getId(), $childSignRequest->getId());
+				}
+			} catch (\Throwable $e) {
+				continue;
+			}
 		}
 	}
 
 	private function dispatchCancellationEventIfNeeded(
 		SignRequestEntity $signRequest,
-		int $fileId,
+		FileEntity $file,
 		array $groupedIdentifyMethods,
 	): void {
 		if ($signRequest->getStatus() !== \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN->value) {
@@ -470,12 +626,11 @@ class RequestSignatureService {
 		}
 
 		try {
-			$libreSignFile = $this->fileMapper->getByFileId($fileId);
 			foreach ($groupedIdentifyMethods as $identifyMethods) {
 				foreach ($identifyMethods as $identifyMethod) {
 					$event = new SignRequestCanceledEvent(
 						$signRequest,
-						$libreSignFile,
+						$file,
 						$identifyMethod,
 					);
 					$this->eventDispatcher->dispatchTyped($event);
@@ -491,12 +646,13 @@ class RequestSignatureService {
 			$signatures = $this->signRequestMapper->getByFileUuid($data['uuid']);
 			$fileData = $this->fileMapper->getByUuid($data['uuid']);
 		} elseif (!empty($data['file']['fileId'])) {
-			$signatures = $this->signRequestMapper->getByNodeId($data['file']['fileId']);
-			$fileData = $this->fileMapper->getByFileId($data['file']['fileId']);
+			$fileData = $this->fileMapper->getById($data['file']['fileId']);
+			$signatures = $this->signRequestMapper->getByFileId($fileData->getId());
 		} else {
 			throw new \Exception($this->l10n->t('Please provide either UUID or File object'));
 		}
 		foreach ($signatures as $signRequest) {
+			$this->identifyMethod->deleteBySignRequestId($signRequest->getId());
 			$this->signRequestMapper->delete($signRequest);
 		}
 		$this->fileMapper->delete($fileData);

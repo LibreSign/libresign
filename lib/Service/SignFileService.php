@@ -62,7 +62,7 @@ use RuntimeException;
 use Sabre\DAV\UUIDUtil;
 
 class SignFileService {
-	private SignRequestEntity $signRequest;
+	private ?SignRequestEntity $signRequest = null;
 	private string $password = '';
 	private ?FileEntity $libreSignFile = null;
 	/** @var VisibleElementAssoc[] */
@@ -106,6 +106,7 @@ class SignFileService {
 		private DocMdpHandler $docMdpHandler,
 		private PdfSignatureDetectionService $pdfSignatureDetectionService,
 		private SequentialSigningService $sequentialSigningService,
+		private FileStatusService $fileStatusService,
 	) {
 	}
 
@@ -214,6 +215,9 @@ class SignFileService {
 	}
 
 	public function setVisibleElements(array $list): self {
+		if (!$this->signRequest instanceof SignRequestEntity) {
+			return $this;
+		}
 		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($this->signRequest->getFileId(), $this->signRequest->getId());
 		$canCreateSignature = $this->signerElementsService->canCreateSignature();
 
@@ -320,18 +324,138 @@ class SignFileService {
 		return $this->elements;
 	}
 
-	public function sign(): File {
-		$this->validateDocMdpAllowsSignatures();
-		$signedFile = $this->getEngine()->sign();
+	public function sign(): void {
+		$originalLibreSignFile = $this->libreSignFile;
+		$originalSignRequest = $this->signRequest;
+		$envelopeLastSignedDate = null;
+		$lastSignedFile = null;
 
-		$hash = $this->computeHash($signedFile);
+		$signRequests = $this->getSignRequestsToSign();
 
-		$this->updateSignRequest($hash);
-		$this->updateLibreSignFile($hash);
+		if (empty($signRequests)) {
+			throw new LibresignException('No sign requests found to process');
+		}
 
-		$this->dispatchSignedEvent();
+		foreach ($signRequests as $signRequestData) {
+			$this->libreSignFile = $signRequestData['file'];
+			$this->signRequest = $signRequestData['signRequest'];
+			$this->engine = null;
+			$this->elements = [];
+			$this->fileToSign = null;
 
-		return $signedFile;
+			$this->validateDocMdpAllowsSignatures();
+			$signedFile = $this->getEngine()->sign();
+			$lastSignedFile = $signedFile;
+
+			$hash = $this->computeHash($signedFile);
+			$envelopeLastSignedDate = $this->getEngine()->getLastSignedDate();
+
+			$this->updateSignRequest($hash);
+			$this->updateLibreSignFile($signedFile->getId(), $hash);
+
+			$this->dispatchSignedEvent();
+		}
+
+		$this->libreSignFile = $originalLibreSignFile;
+		$this->signRequest = $originalSignRequest;
+
+		if ($originalLibreSignFile->isEnvelope()) {
+			if ($envelopeLastSignedDate) {
+				$this->signRequest->setSigned($envelopeLastSignedDate);
+				$this->signRequest->setStatusEnum(\OCA\Libresign\Enum\SignRequestStatus::SIGNED);
+				$this->signRequestMapper->update($this->signRequest);
+				$this->sequentialSigningService
+					->setFile($this->libreSignFile)
+					->releaseNextOrder(
+						$this->signRequest->getFileId(),
+						$this->signRequest->getSigningOrder()
+					);
+			}
+			$this->updateEnvelopeStatus();
+
+			if ($lastSignedFile instanceof File) {
+				$event = $this->signedEventFactory->make(
+					$this->signRequest,
+					$this->libreSignFile,
+					$lastSignedFile,
+				);
+				$this->eventDispatcher->dispatchTyped($event);
+			}
+		}
+	}
+
+	/**
+	 * @return array Array of ['file' => FileEntity, 'signRequest' => SignRequestEntity]
+	 */
+	private function getSignRequestsToSign(): array {
+		if (!$this->libreSignFile->isEnvelope()) {
+			return [[
+				'file' => $this->libreSignFile,
+				'signRequest' => $this->signRequest,
+			]];
+		}
+
+		$childFiles = $this->fileMapper->getChildrenFiles($this->libreSignFile->getId());
+
+		if (empty($childFiles)) {
+			throw new LibresignException('No files found in envelope');
+		}
+
+		$childSignRequests = $this->signRequestMapper->getByEnvelopeChildrenAndIdentifyMethod(
+			$this->libreSignFile->getId(),
+			$this->signRequest->getId()
+		);
+
+		if (empty($childSignRequests)) {
+			throw new LibresignException('No sign requests found for envelope files');
+		}
+
+		$signRequestsData = [];
+		foreach ($childSignRequests as $childSignRequest) {
+			$childFile = $this->array_find(
+				$childFiles,
+				fn (FileEntity $file) => $file->getId() === $childSignRequest->getFileId()
+			);
+
+			if ($childFile) {
+				$signRequestsData[] = [
+					'file' => $childFile,
+					'signRequest' => $childSignRequest,
+				];
+			}
+		}
+
+		return $signRequestsData;
+	}
+
+	private function updateEnvelopeStatus(): void {
+		$childFiles = $this->fileMapper->getChildrenFiles($this->libreSignFile->getId());
+
+		$totalSignRequests = 0;
+		$signedSignRequests = 0;
+
+		foreach ($childFiles as $childFile) {
+			$signRequests = $this->signRequestMapper->getByFileId($childFile->getId());
+			$totalSignRequests += count($signRequests);
+
+			foreach ($signRequests as $signRequest) {
+				if ($signRequest->getSigned()) {
+					$signedSignRequests++;
+				}
+			}
+		}
+
+		if ($totalSignRequests === 0) {
+			$this->libreSignFile->setStatus(FileEntity::STATUS_DRAFT);
+		} elseif ($signedSignRequests === 0) {
+			$this->libreSignFile->setStatus(FileEntity::STATUS_ABLE_TO_SIGN);
+		} elseif ($signedSignRequests === $totalSignRequests) {
+			$this->libreSignFile->setStatus(FileEntity::STATUS_SIGNED);
+		} else {
+			$this->libreSignFile->setStatus(FileEntity::STATUS_PARTIAL_SIGNED);
+		}
+
+		$this->fileMapper->update($this->libreSignFile);
 	}
 
 	/**
@@ -368,7 +492,11 @@ class SignFileService {
 	 * @throws LibresignException
 	 */
 	protected function getLibreSignFileAsResource() {
-		$fileToSign = $this->getNextcloudFile($this->libreSignFile);
+		$files = $this->getNextcloudFiles($this->libreSignFile);
+		if (empty($files)) {
+			throw new LibresignException('File not found');
+		}
+		$fileToSign = current($files);
 		$content = $fileToSign->getContent();
 		$resource = fopen('php://memory', 'r+');
 		if ($resource === false) {
@@ -399,12 +527,15 @@ class SignFileService {
 			);
 	}
 
-	protected function updateLibreSignFile(string $hash): void {
-		$nodeId = $this->getEngine()->getInputFile()->getId();
+	protected function updateLibreSignFile(int $nodeId, string $hash): void {
 		$this->libreSignFile->setSignedNodeId($nodeId);
 		$this->libreSignFile->setSignedHash($hash);
 		$this->setNewStatusIfNecessary();
 		$this->fileMapper->update($this->libreSignFile);
+
+		if ($this->libreSignFile->hasParent()) {
+			$this->fileStatusService->propagateStatusToParent($this->libreSignFile->getParentFileId());
+		}
 	}
 
 	protected function dispatchSignedEvent(): void {
@@ -451,7 +582,7 @@ class SignFileService {
 		if (empty($signatureParams['SignerEmail']) && $this->user instanceof IUser) {
 			$signatureParams['SignerEmail'] = $this->user->getEMailAddress();
 		}
-		if (empty($signatureParams['SignerEmail'])) {
+		if (empty($signatureParams['SignerEmail']) && $this->signRequest instanceof SignRequestEntity) {
 			$identifyMethod = $this->identifyMethodService->getIdentifiedMethod($this->signRequest->getId());
 			if ($identifyMethod->getName() === IdentifyMethodService::IDENTIFY_EMAIL) {
 				$signatureParams['SignerEmail'] = $identifyMethod->getEntity()->getIdentifierValue();
@@ -621,7 +752,7 @@ class SignFileService {
 	public function getLibresignFile(?int $nodeId, ?string $signRequestUuid = null): FileEntity {
 		try {
 			if ($nodeId) {
-				return $this->fileMapper->getByFileId($nodeId);
+				return $this->fileMapper->getByNodeId($nodeId);
 			}
 
 			if ($signRequestUuid) {
@@ -681,7 +812,17 @@ class SignFileService {
 	public function getSignRequestToSign(FileEntity $libresignFile, ?string $signRequestUuid, ?IUser $user): SignRequestEntity {
 		$this->validateHelper->fileCanBeSigned($libresignFile);
 		try {
-			$signRequests = $this->signRequestMapper->getByFileId($libresignFile->getId());
+			if ($libresignFile->isEnvelope()) {
+				$childFiles = $this->fileMapper->getChildrenFiles($libresignFile->getId());
+				$allSignRequests = [];
+				foreach ($childFiles as $childFile) {
+					$childSignRequests = $this->signRequestMapper->getByFileId($childFile->getId());
+					$allSignRequests = array_merge($allSignRequests, $childSignRequests);
+				}
+				$signRequests = $allSignRequests;
+			} else {
+				$signRequests = $this->signRequestMapper->getByFileId($libresignFile->getId());
+			}
 
 			if (!empty($signRequestUuid)) {
 				$signRequest = $this->getSignRequestByUuid($signRequestUuid);
@@ -834,7 +975,22 @@ class SignFileService {
 		return $this->idDocsMapper->getByFileId($fileId);
 	}
 
-	public function getNextcloudFile(FileEntity $fileData): File {
+	/**
+	 * @return File[] Array of files
+	 */
+	public function getNextcloudFiles(FileEntity $fileData): array {
+		if ($fileData->getNodeType() === 'envelope') {
+			$children = $this->fileMapper->getChildrenFiles($fileData->getId());
+			$files = [];
+			foreach ($children as $child) {
+				$file = $this->root->getUserFolder($child->getUserId())->getFirstNodeById($child->getNodeId());
+				if ($file instanceof File) {
+					$files[] = $file;
+				}
+			}
+			return $files;
+		}
+
 		$fileToSign = $this->root->getUserFolder($fileData->getUserId())->getFirstNodeById($fileData->getNodeId());
 		if (!$fileToSign instanceof File) {
 			throw new LibresignException(json_encode([
@@ -842,7 +998,33 @@ class SignFileService {
 				'errors' => [['message' => $this->l10n->t('File not found')]],
 			]), AppFrameworkHttp::STATUS_NOT_FOUND);
 		}
-		return $fileToSign;
+		return [$fileToSign];
+	}
+
+	/**
+	 * @return array<FileEntity>
+	 */
+	public function getNextcloudFilesWithEntities(FileEntity $fileData): array {
+		if ($fileData->getNodeType() === 'envelope') {
+			$children = $this->fileMapper->getChildrenFiles($fileData->getId());
+			$result = [];
+			foreach ($children as $child) {
+				$file = $this->root->getUserFolder($child->getUserId())->getFirstNodeById($child->getNodeId());
+				if ($file instanceof File) {
+					$result[] = $child;
+				}
+			}
+			return $result;
+		}
+
+		$fileToSign = $this->root->getUserFolder($fileData->getUserId())->getFirstNodeById($fileData->getNodeId());
+		if (!$fileToSign instanceof File) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [['message' => $this->l10n->t('File not found')]],
+			]), AppFrameworkHttp::STATUS_NOT_FOUND);
+		}
+		return [$fileData];
 	}
 
 	public function validateSigner(string $uuid, ?IUser $user = null): void {
@@ -874,30 +1056,42 @@ class SignFileService {
 		return $return;
 	}
 
-	/**
-	 * @psalm-return array{file?: File, nodeId?: int, url?: string, base64?: string}
-	 */
-	public function getFileUrl(string $format, FileEntity $fileEntity, File $fileToSign, string $uuid): array {
-		$url = [];
-		switch ($format) {
-			case 'base64':
-				$url = ['base64' => base64_encode($fileToSign->getContent())];
-				break;
-			case 'url':
-				try {
-					$this->idDocsMapper->getByFileId($fileEntity->getId());
-					$url = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $uuid])];
-				} catch (DoesNotExistException) {
-					$url = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $uuid])];
-				}
-				break;
-			case 'nodeId':
-				$url = ['nodeId' => $fileToSign->getId()];
-				break;
-			case 'file':
-				$url = ['file' => $fileToSign];
-				break;
+	public function getFileUrl(int $fileId, string $uuid): string {
+		try {
+			$this->idDocsMapper->getByFileId($fileId);
+			return $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $uuid]);
+		} catch (DoesNotExistException) {
+			return $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $uuid]);
 		}
-		return $url;
+	}
+
+	/**
+	 * Get PDF URLs for signing
+	 * For envelopes: returns URLs for all child files
+	 * For regular files: returns URL for the file itself
+	 *
+	 * @return string[]
+	 */
+	public function getPdfUrlsForSigning(FileEntity $fileEntity, SignRequestEntity $signRequestEntity): array {
+		if (!$fileEntity->isEnvelope()) {
+			return [
+				$this->getFileUrl($fileEntity->getId(), $signRequestEntity->getUuid())
+			];
+		}
+
+		$childSignRequests = $this->signRequestMapper->getByEnvelopeChildrenAndIdentifyMethod(
+			$fileEntity->getId(),
+			$signRequestEntity->getId()
+		);
+
+		$pdfUrls = [];
+		foreach ($childSignRequests as $childSignRequest) {
+			$pdfUrls[] = $this->getFileUrl(
+				$childSignRequest->getFileId(),
+				$childSignRequest->getUuid()
+			);
+		}
+
+		return $pdfUrls;
 	}
 }

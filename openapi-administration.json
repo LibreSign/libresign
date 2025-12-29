@@ -37,7 +37,8 @@
                     "config": {
                         "type": "object",
                         "required": [
-                            "sign-elements"
+                            "sign-elements",
+                            "envelope"
                         ],
                         "properties": {
                             "sign-elements": {
@@ -72,6 +73,17 @@
                                     "signature-height": {
                                         "type": "number",
                                         "format": "double"
+                                    }
+                                }
+                            },
+                            "envelope": {
+                                "type": "object",
+                                "required": [
+                                    "is-available"
+                                ],
+                                "properties": {
+                                    "is-available": {
+                                        "type": "boolean"
                                     }
                                 }
                             }

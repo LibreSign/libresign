@@ -12,15 +12,19 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Handler\DocMdpHandler;
+use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\DocMdpConfigService;
+use OCA\Libresign\Service\EnvelopeService;
 use OCA\Libresign\Service\FileElementService;
+use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\PdfParserService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SequentialSigningService;
+use OCA\Libresign\Service\SignRequestService;
 use OCA\Libresign\Service\SignRequestStatusService;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
@@ -35,6 +39,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
 final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
+	private FileService&MockObject $fileService;
 	private IL10N&MockObject $l10n;
 	private FileMapper&MockObject $fileMapper;
 	private SignRequestMapper&MockObject $signRequestMapper;
@@ -56,11 +61,14 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private IAppConfig&MockObject $appConfig;
 	private IEventDispatcher&MockObject $eventDispatcher;
 	private FileStatusService&MockObject $fileStatusService;
-	private SignRequestStatusService&MockObject $signRequestStatusService;
 	private DocMdpConfigService&MockObject $docMdpConfigService;
+	private EnvelopeService&MockObject $envelopeService;
+	private FileUploadHelper&MockObject $uploadHelper;
+	private SignRequestService&MockObject $signRequestService;
 
 	public function setUp(): void {
 		parent::setUp();
+		$this->fileService = $this->createMock(FileService::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
 			->method('t')
@@ -86,12 +94,15 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 		$this->fileStatusService = $this->createMock(FileStatusService::class);
-		$this->signRequestStatusService = $this->createMock(SignRequestStatusService::class);
 		$this->docMdpConfigService = $this->createMock(DocMdpConfigService::class);
+		$this->envelopeService = $this->createMock(EnvelopeService::class);
+		$this->uploadHelper = $this->createMock(FileUploadHelper::class);
+		$this->signRequestService = $this->createMock(SignRequestService::class);
 	}
 
 	private function getService(): RequestSignatureService {
 		return new RequestSignatureService(
+			$this->fileService,
 			$this->l10n,
 			$this->identifyMethodService,
 			$this->signRequestMapper,
@@ -111,8 +122,10 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->appConfig,
 			$this->eventDispatcher,
 			$this->fileStatusService,
-			$this->signRequestStatusService,
 			$this->docMdpConfigService,
+			$this->envelopeService,
+			$this->uploadHelper,
+			$this->signRequestService,
 		);
 	}
 
@@ -191,26 +204,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertNull($actual);
 	}
 
-	public function testSaveSignRequestWhenUserExists():void {
-		$signRequest = $this->createMock(\OCA\Libresign\Db\SignRequest::class);
-		$signRequest
-			->method('__call')
-			->with('getId')
-			->willReturn(123);
-		$actual = $this->getService()->saveSignRequest($signRequest);
-		$this->assertNull($actual);
-	}
-
-	public function testSaveSignRequestWhenUserDontExists():void {
-		$signRequest = $this->createMock(\OCA\Libresign\Db\SignRequest::class);
-		$signRequest
-			->method('__call')
-			->with('getId')
-			->willReturn(null);
-		$actual = $this->getService()->saveSignRequest($signRequest);
-		$this->assertNull($actual);
-	}
-
 	/**
 	 * @dataProvider dataGetFileMetadata
 	 */
@@ -233,7 +226,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		return [
 			['pdfff', ['extension' => 'pdfff']],
 			['', []],
-			['PDF', ['extension' => 'pdf', 'isValid' => true]],
+			['PDF', ['extension' => 'pdf', 'isValid' => true, 'pdfVersion' => '']],
 		];
 	}
 

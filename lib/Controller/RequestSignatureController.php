@@ -13,6 +13,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\ResponseDefinitions;
+use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCP\AppFramework\Http;
@@ -28,6 +29,7 @@ use OCP\IUserSession;
  * @psalm-import-type LibresignNewFile from ResponseDefinitions
  * @psalm-import-type LibresignNewSigner from ResponseDefinitions
  * @psalm-import-type LibresignValidateFile from ResponseDefinitions
+ * @psalm-import-type LibresignFileDetail from ResponseDefinitions
  * @psalm-import-type LibresignSettings from ResponseDefinitions
  * @psalm-import-type LibresignSigner from ResponseDefinitions
  * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
@@ -38,6 +40,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		protected IL10N $l10n,
 		protected IUserSession $userSession,
 		protected FileService $fileService,
+		protected FileListService $fileListService,
 		protected ValidateHelper $validateHelper,
 		protected RequestSignatureService $requestSignatureService,
 	) {
@@ -50,6 +53,9 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * Request that a file be signed by a group of people.
 	 * Each user in the users array can optionally include a 'signing_order' field
 	 * to control the order of signatures when ordered signing flow is enabled.
+	 * When the created entity is an envelope (`nodeType` = `envelope`),
+	 * the returned `data` includes `filesCount` and `files` as a list of
+	 * envelope child files.
 	 *
 	 * @param LibresignNewFile $file File object.
 	 * @param LibresignNewSigner[] $users Collection of users who must sign the document. Each user can have: identify, displayName, description, notify, signing_order
@@ -57,7 +63,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param string|null $callback URL that will receive a POST after the document is signed
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
 	 * @param string|null $signatureFlow Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration
-	 * @return DataResponse<Http::STATUS_OK, array{data: LibresignValidateFile, message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string, action?: integer, errors?: list<array{message: string, title?: string}>}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{data: LibresignFileDetail, message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string, action?: integer, errors?: list<array{message: string, title?: string}>}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Unauthorized
@@ -87,15 +93,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		try {
 			$this->requestSignatureService->validateNewRequestToFile($data);
 			$file = $this->requestSignatureService->save($data);
-			$return = $this->fileService
-				->setFile($file)
-				->setHost($this->request->getServerHost())
-				->setMe($data['userManager'])
-				->showVisibleElements()
-				->showSigners()
-				->showSettings()
-				->showMessages()
-				->toArray();
+			$return = $this->fileListService->formatSingleFile($user, $file);
 			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Success'),
@@ -137,7 +135,8 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param LibresignNewFile|array<empty>|null $file File object.
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
 	 * @param string|null $signatureFlow Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration
-	 * @return DataResponse<Http::STATUS_OK, array{message: string, data: LibresignValidateFile}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string, action?: integer, errors?: list<array{message: string, title?: string}>}, array{}>
+	 * @param string|null $name The name of file to sign
+	 * @return DataResponse<Http::STATUS_OK, array{message: string, data: LibresignFileDetail}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string, action?: integer, errors?: list<array{message: string, title?: string}>}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Unauthorized
@@ -153,6 +152,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		?array $file = [],
 		?int $status = null,
 		?string $signatureFlow = null,
+		?string $name = null,
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		$data = [
@@ -163,6 +163,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			'status' => $status,
 			'visibleElements' => $visibleElements,
 			'signatureFlow' => $signatureFlow,
+			'name' => $name,
 		];
 		try {
 			$this->validateHelper->validateExistingFile($data);
@@ -172,15 +173,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				$this->validateHelper->validateVisibleElements($data['visibleElements'], $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
 			}
 			$file = $this->requestSignatureService->save($data);
-			$return = $this->fileService
-				->setFile($file)
-				->setHost($this->request->getServerHost())
-				->setMe($data['userManager'])
-				->showVisibleElements()
-				->showSigners()
-				->showSettings()
-				->showMessages()
-				->toArray();
+			$return = $this->fileListService->formatSingleFile($user, $file);
 			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Success'),
@@ -203,7 +196,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 *
 	 * You can only request exclusion as any sign
 	 *
-	 * @param integer $fileId Node id of a Nextcloud file
+	 * @param integer $fileId LibreSign file ID
 	 * @param integer $signRequestId The sign request id
 	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>}, array{}>
 	 *

@@ -73,6 +73,7 @@ final class FileControllerTest extends ApiTestCase {
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
 		$this->assertFalse($body['ocs']['data']['signers'][0]['me'], "It's me");
+		// When there's no user and signer is not identified, settings is returned with default values
 		$this->assertFalse($body['ocs']['data']['settings']['canRequestSign'], 'Can permission to request sign');
 		$this->assertFalse($body['ocs']['data']['settings']['canSign'], 'Can permission to sign');
 	}
