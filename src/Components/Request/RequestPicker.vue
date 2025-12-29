@@ -74,27 +74,15 @@
 				</NcButton>
 			</template>
 		</NcDialog>
-		<NcDialog v-if="showEnvelopeNameModal"
-			:name="t('libresign', 'Envelope name')"
-			:no-close="loading"
-			is-form
-			@submit.prevent="confirmEnvelopeName"
-			@closing="cancelEnvelopeName">
-			<NcTextField v-model="envelopeName"
-				:label="t('libresign', 'Enter a name for the envelope')"
-				maxlength="256" />
-			<template #actions>
-				<NcButton @click="cancelEnvelopeName">
-					{{ t('libresign', 'Cancel') }}
-				</NcButton>
-				<NcButton :disabled="!envelopeName.trim()"
-					type="submit"
-					variant="primary"
-					@click="confirmEnvelopeName">
-					{{ t('libresign', 'Continue') }}
-				</NcButton>
-			</template>
-		</NcDialog>
+		<EditNameDialog v-if="showEnvelopeNameModal"
+			:open="showEnvelopeNameModal"
+			:name="envelopeName"
+			:title="t('libresign', 'Envelope name')"
+			:label="t('libresign', 'Enter a name for the envelope')"
+			:placeholder="t('libresign', 'Envelope name')"
+			:loading="loading"
+			@save="confirmEnvelopeName"
+			@close="cancelEnvelopeName" />
 	</div>
 </template>
 <script>
@@ -118,6 +106,7 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import UploadProgress from '../UploadProgress.vue'
+import EditNameDialog from '../Common/EditNameDialog.vue'
 
 import { useActionsMenuStore } from '../../store/actionsmenu.js'
 import { useFilesStore } from '../../store/files.js'
@@ -126,6 +115,7 @@ export default {
 	name: 'RequestPicker',
 	components: {
 		CloudUploadIcon,
+		EditNameDialog,
 		FilePicker,
 		FolderIcon,
 		LinkIcon,
@@ -348,10 +338,8 @@ export default {
 					showError(response.data.ocs.data.message)
 				})
 		},
-		confirmEnvelopeName() {
-			if (!this.envelopeName.trim()) {
-				return
-			}
+		confirmEnvelopeName(newName) {
+			this.envelopeName = newName
 			const files = this.pendingFiles
 			this.showEnvelopeNameModal = false
 			this.upload(files)
