@@ -24,7 +24,7 @@
 				<template #icon>
 					<FolderIcon :size="20" />
 				</template>
-				{{ t('libresign', 'Choose from Files') }}
+				{{ envelopeEnabled ? t('libresign', 'Choose from Files (multiple)') : t('libresign', 'Choose from Files') }}
 			</NcActionButton>
 			<NcActionButton :wide="true"
 				@click="uploadFile">
@@ -41,8 +41,8 @@
 			:upload-start-time="uploadStartTime"
 			@cancel="cancelUpload" />
 		<FilePicker v-if="showFilePicker"
-			:name="t('libresign', 'Select your file')"
-			:multiselect="false"
+			:name="envelopeEnabled ? t('libresign', 'Select your files') : t('libresign', 'Select your file')"
+			:multiselect="envelopeEnabled"
 			:buttons="filePickerButtons"
 			:mimetype-filter="['application/pdf']"
 			@close="showFilePicker = false" />
@@ -161,6 +161,7 @@ export default {
 			uploadStartTime: null,
 			showEnvelopeNameModal: false,
 			envelopeName: '',
+			pendingPaths: [],
 			pendingFiles: [],
 		}
 	},
@@ -320,11 +321,19 @@ export default {
 				})
 		},
 		async handleFileChoose(nodes) {
-			const path = nodes[0]?.path
-			if (!path) {
+			const paths = (nodes || []).map(n => n?.path).filter(Boolean)
+			if (!paths.length) {
 				return
 			}
 
+			if (this.envelopeEnabled && paths.length > 1) {
+				this.pendingPaths = paths
+				this.envelopeName = ''
+				this.showEnvelopeNameModal = true
+				return
+			}
+
+			const path = paths[0]
 			await this.filesStore.upload({
 				file: {
 					path,
@@ -340,12 +349,36 @@ export default {
 		},
 		confirmEnvelopeName(newName) {
 			this.envelopeName = newName
-			const files = this.pendingFiles
 			this.showEnvelopeNameModal = false
+
+			if (this.pendingPaths.length > 0) {
+				const filesPayload = this.pendingPaths.map((path) => ({
+					file: { path },
+					name: (path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? ''),
+				}))
+				this.filesStore.upload({
+					files: filesPayload,
+					name: this.envelopeName.trim(),
+				})
+					.then((fileId) => {
+						this.filesStore.selectFile(fileId)
+					})
+					.catch(({ response }) => {
+						showError(response?.data?.ocs?.data?.message || t('libresign', 'Upload failed'))
+					})
+					.finally(() => {
+						this.pendingPaths = []
+						this.envelopeName = ''
+					})
+				return
+			}
+
+			const files = this.pendingFiles
 			this.upload(files)
 		},
 		cancelEnvelopeName() {
 			this.pendingFiles = []
+			this.pendingPaths = []
 			this.envelopeName = ''
 			this.showEnvelopeNameModal = false
 		},
