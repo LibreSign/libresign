@@ -53,6 +53,15 @@ namespace OCA\Libresign;
  *     statusText: string,
  *     nodeType: 'file'|'envelope',
  *     created_at: string,
+ *     file: string,
+ *     metadata: LibresignValidateMetadata,
+ *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
+ *     visibleElements: LibresignVisibleElement[],
+ *     signers: LibresignSigner[],
+ *     requested_by: array{
+ *         userId: string,
+ *         displayName: string,
+ *     },
  *     filesCount: int<0, max>,
  *     files: list<array{nodeId: int, uuid: string, name: string, status: int, statusText: string}>,
  * }
