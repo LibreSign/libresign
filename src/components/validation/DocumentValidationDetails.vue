@@ -154,5 +154,12 @@ export default {
 			border-radius: var(--border-radius-large);
 		}
 	}
+
+	:deep(.list-item__wrapper) {
+		margin-left: 0;
+		margin-right: 0;
+		border-radius: 8px;
+		box-sizing: border-box;
+	}
 }
 </style>
