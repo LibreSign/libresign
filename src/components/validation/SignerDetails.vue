@@ -413,6 +413,16 @@ export default {
 
 .extra-chain {
 	padding-left: 48px;
+
+	:deep(.list-item) {
+		--list-item-height: auto;
+	}
+
+	:deep(.list-item-content__name) {
+		white-space: normal !important;
+		overflow: visible !important;
+		text-overflow: clip !important;
+	}
 }
 
 .icon-success {
