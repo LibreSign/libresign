@@ -280,6 +280,10 @@ class RequestSignatureService {
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
 			$this->updateSignatureFlowIfAllowed($file, $data);
+			if (!empty($data['name'])) {
+				$file->setName($data['name']);
+				$this->fileMapper->update($file);
+			}
 			return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
 		}
 		$fileId = null;
