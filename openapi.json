@@ -215,6 +215,19 @@
                         "type": "integer",
                         "format": "int64"
                     },
+                    "totalPages": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "pdfVersion": {
+                        "type": "string"
+                    },
                     "signers": {
                         "type": "array",
                         "items": {
