@@ -14,12 +14,22 @@
 			<p>{{ deleteDialogConfig.message }}</p>
 		</NcDialog>
 		<div class="envelope-files-dialog">
-			<NcNoteCard v-if="successMessage" type="success">
-				{{ successMessage }}
-			</NcNoteCard>
-			<NcNoteCard v-if="errorMessage" type="error">
-				{{ errorMessage }}
-			</NcNoteCard>
+			<div v-if="envelope && envelope.status === SIGN_STATUS.DRAFT" class="envelope-header">
+				<div class="envelope-name-field">
+					<NcTextField v-model="editableEnvelopeName"
+						:label="t('libresign', 'Envelope name')"
+						:placeholder="t('libresign', 'Enter envelope name')"
+						:success="nameUpdateSuccess"
+						:error="nameUpdateError"
+						:helper-text="nameHelperText"
+						minlength="3"
+						maxlength="255"
+						@update:value="onEnvelopeNameChange" />
+					<span v-if="isSavingName" class="saving-indicator">
+						<NcLoadingIcon :size="20" />
+					</span>
+				</div>
+			</div>
 			<div v-if="isUploading" class="upload-progress-wrapper">
 				<UploadProgress :is-uploading="isUploading"
 					:upload-progress="uploadProgress"
@@ -123,7 +133,9 @@ import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwit
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
+import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
+import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import UploadProgress from '../UploadProgress.vue'
 
@@ -143,7 +155,9 @@ export default {
 		NcDialog,
 		NcEmptyContent,
 		NcListItem,
+		NcLoadingIcon,
 		NcNoteCard,
+		NcTextField,
 		UploadProgress,
 	},
 	props: {
@@ -154,7 +168,7 @@ export default {
 	},
 	setup() {
 		const filesStore = useFilesStore()
-		return { filesStore }
+		return { filesStore, SIGN_STATUS }
 	},
 	data() {
 		return {
@@ -180,6 +194,12 @@ export default {
 			uploadedBytes: 0,
 			totalBytes: 0,
 			uploadStartTime: null,
+			editableEnvelopeName: '',
+			isSavingName: false,
+			nameUpdateSuccess: false,
+			nameUpdateError: false,
+			nameHelperText: '',
+			debounceTimer: null,
 		}
 	},
 	computed: {
@@ -237,6 +257,10 @@ export default {
 				this.currentPage = 1
 				this.totalFiles = this.envelope?.filesCount || 0
 				this.hasMore = this.totalFiles > 0
+				this.editableEnvelopeName = this.envelope?.name || ''
+				this.nameUpdateSuccess = false
+				this.nameUpdateError = false
+				this.nameHelperText = ''
 
 				if (this.totalFiles > 0) {
 					this.loadFiles(1)
@@ -462,6 +486,64 @@ export default {
 				this.uploadAbortController.abort()
 			}
 		},
+		onEnvelopeNameChange(newName) {
+			if (this.debounceTimer) {
+				clearTimeout(this.debounceTimer)
+			}
+
+			this.nameUpdateSuccess = false
+			this.nameUpdateError = false
+			this.nameHelperText = ''
+
+			const trimmedName = newName.trim()
+			if (trimmedName.length < 3) {
+				this.nameUpdateError = true
+				this.nameHelperText = this.t('libresign', 'Name must be at least {min} characters', { min: 3 })
+				return
+			}
+
+			if (trimmedName === this.envelope?.name) {
+				return
+			}
+
+			this.debounceTimer = setTimeout(() => {
+				this.saveEnvelopeNameDebounced(trimmedName)
+			}, 1000)
+		},
+		async saveEnvelopeNameDebounced(newName) {
+			this.isSavingName = true
+			this.nameUpdateSuccess = false
+			this.nameUpdateError = false
+			this.nameHelperText = ''
+
+			try {
+				const url = generateOcsUrl('/apps/libresign/api/v1/request-signature')
+
+				const response = await axios.patch(url, {
+					uuid: this.envelopeUuid,
+					name: newName,
+				})
+
+				if (response.data?.ocs?.meta?.status === 'ok') {
+					this.envelope.name = newName
+					this.nameUpdateSuccess = true
+					this.nameHelperText = this.t('libresign', 'Saved')
+					setTimeout(() => {
+						this.nameUpdateSuccess = false
+						this.nameHelperText = ''
+					}, 3000)
+				} else {
+					this.nameUpdateError = true
+					this.nameHelperText = this.t('libresign', 'Failed to update')
+				}
+			} catch (error) {
+				console.error('Failed to update envelope name:', error)
+				this.nameUpdateError = true
+				this.nameHelperText = error.response?.data?.ocs?.data?.message || this.t('libresign', 'Failed to update')
+			} finally {
+				this.isSavingName = false
+			}
+		},
 		handleDelete(file) {
 			this.deleteDialogConfig = {
 				title: this.t('libresign', 'Delete'),
@@ -536,5 +618,38 @@ export default {
 	gap: 8px;
 	padding: 16px;
 	color: var(--color-text-maxcontrast);
+}
+
+.dialog-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+}
+
+.edit-envelope-btn {
+	margin-left: 8px;
+}
+
+.envelope-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	margin-bottom: 16px;
+	padding-bottom: 12px;
+	border-bottom: 1px solid var(--color-border);
+}
+
+.envelope-name-field {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex: 1;
+}
+
+.saving-indicator {
+	display: flex;
+	align-items: center;
+	margin-top: 24px;
 }
 </style>
