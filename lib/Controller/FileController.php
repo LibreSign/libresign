@@ -25,7 +25,6 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\File\SettingsLoader;
 use OCA\Libresign\Service\FileService;
-use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -40,7 +39,6 @@ use OCP\AppFramework\Http\RedirectResponse;
 use OCP\Files\File;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
-use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IPreview;
 use OCP\IRequest;
@@ -69,11 +67,9 @@ class FileController extends AEnvironmentAwareController {
 		private SessionService $sessionService,
 		private SignRequestMapper $signRequestMapper,
 		private FileMapper $fileMapper,
-		private IdentifyMethodService $identifyMethodService,
 		private RequestSignatureService $requestSignatureService,
 		private AccountService $accountService,
 		private IPreview $preview,
-		private IAppConfig $appConfig,
 		private IMimeIconProvider $mimeIconProvider,
 		private FileService $fileService,
 		private fileListService $fileListService,
