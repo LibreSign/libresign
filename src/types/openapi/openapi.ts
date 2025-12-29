@@ -1085,6 +1085,11 @@ export type components = {
             statusText: string;
             /** Format: int64 */
             nodeId: number;
+            /** Format: int64 */
+            totalPages?: number;
+            /** Format: int64 */
+            size?: number;
+            pdfVersion?: string;
             signers: components["schemas"]["EnvelopeChildSignerSummary"][];
             metadata?: components["schemas"]["ValidateMetadata"];
         };
