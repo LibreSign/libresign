@@ -41,6 +41,21 @@ class EnvelopeAssembler {
 		$fileData->statusText = $this->fileMapper->getTextOfStatus($childFile->getStatus());
 		$fileData->nodeId = $childFile->getNodeId();
 		$fileData->metadata = $childFile->getMetadata();
+		$childMetadata = $childFile->getMetadata() ?? [];
+		$fileData->totalPages = (int)($childMetadata['p'] ?? 0);
+		$fileData->pdfVersion = (string)($childMetadata['pdfVersion'] ?? '');
+
+		$nodeId = $childFile->getSignedNodeId() ?: $childFile->getNodeId();
+		$fileNode = $this->root->getUserFolder($childFile->getUserId())->getFirstNodeById($nodeId);
+		if ($fileNode instanceof \OCP\Files\File) {
+			if (method_exists($fileNode, 'getSize')) {
+				$fileData->size = $fileNode->getSize();
+			}
+			if (method_exists($fileNode, 'getMimeType')) {
+				$fileData->mime = $fileNode->getMimeType();
+			}
+		}
+
 		$fileData->signers = [];
 		$fileData->visibleElements = [];
 

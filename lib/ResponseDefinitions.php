@@ -212,6 +212,9 @@ namespace OCA\Libresign;
  *     status: int,
  *     statusText: string,
  *     nodeId: int,
+ *     totalPages?: non-negative-int,
+ *     size?: non-negative-int,
+ *     pdfVersion?: string,
  *     signers: list<LibresignEnvelopeChildSignerSummary>,
  *     metadata?: LibresignValidateMetadata,
  * }
