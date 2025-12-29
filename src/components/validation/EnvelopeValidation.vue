@@ -66,11 +66,11 @@
 							<strong>{{ t('libresign', 'Status:') }}</strong> {{ file.statusText }}
 						</template>
 						<template #actions>
-							<NcActionButton v-if="file.uuid" @click.stop="viewFile(file)">
+							<NcActionButton v-if="file.nodeId" @click.stop="viewFile(file)">
 								<template #icon>
 									<NcIconSvgWrapper :path="mdiEye" :size="20" />
 								</template>
-								{{ t('libresign', 'View document') }}
+								{{ t('libresign', 'View PDF') }}
 							</NcActionButton>
 						</template>
 						<template #extra-actions>
@@ -82,13 +82,11 @@
 							</NcButton>
 						</template>
 					</NcListItem>
-					<div v-if="file.opened && file.signers && file.signers.length > 0" class="file-signers">
-						<h4 class="signers-title">{{ t('libresign', 'Signatories of this document') }}</h4>
-						<ul class="file-signers-list">
-							<SignerDetails v-for="(fileSigner, signerIdx) in file.signers"
-								:key="signerIdx"
-								:signer="fileSigner" />
-						</ul>
+					<div v-if="file.opened" class="file-signers">
+						<DocumentValidationDetails
+							:document="file"
+							:legalInformation="legalInformation"
+						/>
 					</div>
 				</li>
 			</ul>
@@ -180,6 +178,7 @@ import {
 import Moment from '@nextcloud/moment'
 import { fileStatus } from '../../helpers/fileStatus.js'
 import SignerDetails from './SignerDetails.vue'
+import DocumentValidationDetails from './DocumentValidationDetails.vue'
 
 export default {
 	name: 'EnvelopeValidation',
@@ -192,6 +191,7 @@ export default {
 		NcNoteCard,
 		NcRichText,
 		SignerDetails,
+		DocumentValidationDetails,
 	},
 	props: {
 		document: { type: Object, required: true },
@@ -248,9 +248,21 @@ export default {
 			return n('libresign', '{progress} of {total} document signed', '{progress} of {total} documents signed', total, { progress, total })
 		},
 		viewFile(file) {
-			if (file.uuid) {
-				// Navigate to the validation view for the specific file
-				window.location.href = generateUrl(`/apps/libresign/validation/${file.uuid}`)
+			if (OCA?.Viewer !== undefined) {
+				const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
+				const fileInfo = {
+					source: fileUrl,
+					basename: file.name,
+					mime: 'application/pdf',
+					fileid: file.nodeId,
+				}
+				OCA.Viewer.open({
+					fileInfo,
+					list: [fileInfo],
+				})
+			} else {
+				const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
+				window.open(`${fileUrl}?_t=${Date.now()}`)
 			}
 		},
 	},
