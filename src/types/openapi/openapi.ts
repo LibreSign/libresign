@@ -1240,6 +1240,16 @@ export type components = {
             /** @enum {string} */
             nodeType: "file" | "envelope";
             created_at: string;
+            file: string;
+            metadata: components["schemas"]["ValidateMetadata"];
+            /** @enum {string} */
+            signatureFlow: "none" | "parallel" | "ordered_numeric";
+            visibleElements: components["schemas"]["VisibleElement"][];
+            signers: components["schemas"]["Signer"][];
+            requested_by: {
+                userId: string;
+                displayName: string;
+            };
             /** Format: int64 */
             filesCount: number;
             files: {

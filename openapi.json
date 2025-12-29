@@ -709,6 +709,12 @@
                     "statusText",
                     "nodeType",
                     "created_at",
+                    "file",
+                    "metadata",
+                    "signatureFlow",
+                    "visibleElements",
+                    "signers",
+                    "requested_by",
                     "filesCount",
                     "files"
                 ],
@@ -746,6 +752,47 @@
                     },
                     "created_at": {
                         "type": "string"
+                    },
+                    "file": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "$ref": "#/components/schemas/ValidateMetadata"
+                    },
+                    "signatureFlow": {
+                        "type": "string",
+                        "enum": [
+                            "none",
+                            "parallel",
+                            "ordered_numeric"
+                        ]
+                    },
+                    "visibleElements": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/VisibleElement"
+                        }
+                    },
+                    "signers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Signer"
+                        }
+                    },
+                    "requested_by": {
+                        "type": "object",
+                        "required": [
+                            "userId",
+                            "displayName"
+                        ],
+                        "properties": {
+                            "userId": {
+                                "type": "string"
+                            },
+                            "displayName": {
+                                "type": "string"
+                            }
+                        }
                     },
                     "filesCount": {
                         "type": "integer",

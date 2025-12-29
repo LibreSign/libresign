@@ -18,6 +18,8 @@ use OCA\Libresign\Service\File\FileResponseOptions;
 use OCA\Libresign\Service\File\SignersLoader;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCP\Files\File;
+use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\NullLogger;
@@ -56,7 +58,16 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
+	private function mockFileNode(): void {
+		$folder = $this->createMock(Folder::class);
+		$fileNode = $this->createMock(File::class);
+		$folder->method('getFirstNodeById')->willReturn($fileNode);
+		$this->root->method('getUserFolder')->willReturn($folder);
+	}
+
 	public function testBuildsChildDataWithoutCertificateChain(): void {
+		$this->mockFileNode();
+
 		$signRequest = new DbSignRequest();
 		$signRequest->setId(42);
 		$signRequest->setSigned(null);
@@ -96,6 +107,8 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testBuildsChildDataWithVisibleElements(): void {
+		$this->mockFileNode();
+
 		$signRequest = new DbSignRequest();
 		$signRequest->setId(100);
 		$signRequest->setDisplayName('Signer A');
@@ -148,6 +161,8 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testBuildsChildDataWithoutVisibleElementsWhenNotRequested(): void {
+		$this->mockFileNode();
+
 		$signRequest = new DbSignRequest();
 		$signRequest->setId(50);
 		$signRequest->setDisplayName('Signer B');
@@ -182,6 +197,8 @@ final class EnvelopeAssemblerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testBuildsChildDataWithMultipleSigners(): void {
+		$this->mockFileNode();
+
 		$signer1 = new DbSignRequest();
 		$signer1->setId(1);
 		$signer1->setDisplayName('Alice');
