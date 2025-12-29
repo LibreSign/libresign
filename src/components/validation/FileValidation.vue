@@ -63,19 +63,28 @@ export default {
 
 <style lang="scss" scoped>
 .section {
-	margin-bottom: 30px;
+	background-color: var(--color-main-background);
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0 0 6px 0 var(--color-box-shadow);
+	margin-bottom: 16px;
 
 	.header {
 		display: flex;
 		align-items: center;
 		gap: 12px;
-		margin-bottom: 16px;
+		margin-bottom: 1.5rem;
 
 		h1 {
 			font-size: 20px;
 			font-weight: 600;
 			margin: 0;
 		}
+	}
+
+	@media screen and (max-width: 900px) {
+		padding: 12px;
+		box-shadow: none;
 	}
 }
 </style>
