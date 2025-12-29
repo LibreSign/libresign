@@ -449,6 +449,7 @@ class SignRequestMapper extends QBMapper {
 			$file = new File();
 			$data[] = $file->fromRow($row);
 		}
+		/** @var array{data: list<File>, pagination: Pagination} */
 		return [
 			'data' => $data,
 			'pagination' => $pagination,
