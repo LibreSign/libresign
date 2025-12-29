@@ -7260,6 +7260,11 @@
                                         "type": "string",
                                         "nullable": true,
                                         "description": "Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "description": "The name of file to sign"
                                     }
                                 }
                             }

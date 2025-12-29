@@ -3827,6 +3827,8 @@ export interface operations {
                     status?: number | null;
                     /** @description Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration */
                     signatureFlow?: string | null;
+                    /** @description The name of file to sign */
+                    name?: string | null;
                 };
             };
         };
