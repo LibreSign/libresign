@@ -5,7 +5,7 @@
 <template>
 	<div>
 		<!-- Envelope Summary -->
-		<div class="section">
+		<div class="section card-list-context">
 			<div class="header">
 				<NcIconSvgWrapper :path="mdiPackageVariantClosed" :size="30" />
 				<h1>{{ t('libresign', 'Envelope information') }}</h1>
@@ -48,7 +48,7 @@
 		</div>
 
 		<!-- Documents List -->
-		<div v-if="document.files && document.files.length > 0" class="section">
+		<div v-if="document.files && document.files.length > 0" class="section card-list-context">
 			<div class="header">
 				<NcIconSvgWrapper :path="mdiFileMultiple" :size="30" />
 				<h1>{{ t('libresign', 'Documents in this envelope') }}</h1>
@@ -93,7 +93,7 @@
 		</div>
 
 		<!-- Consolidated Signers -->
-		<div v-if="document.signers && document.signers.length > 0" class="section">
+		<div v-if="document.signers && document.signers.length > 0" class="section card-list-context">
 			<div class="header">
 				<NcIconSvgWrapper :path="mdiAccountMultiple" :size="30" />
 				<h1>{{ t('libresign', 'Signers summary') }}</h1>
@@ -222,7 +222,6 @@ export default {
 		},
 	},
 	created() {
-		// Normalize per-file UI state and status text
 		this.document.files?.forEach(file => {
 			this.$set(file, 'opened', false)
 			const actual = fileStatus.find(item => item.id === file.status)
@@ -330,7 +329,7 @@ export default {
 .document-item {
 	border: 1px solid var(--color-border);
 	border-radius: 8px;
-	overflow: hidden;
+	overflow: visible;
 	margin-bottom: 12px;
 
 	&:last-child {
@@ -354,6 +353,14 @@ export default {
 		list-style: none;
 		padding: 0;
 		margin: 0;
+	}
+}
+
+.card-list-context {
+	:deep(.list-item__wrapper) {
+		margin-left: 0;
+		margin-right: 0;
+		border-radius: 8px;
 	}
 }
 
@@ -381,7 +388,6 @@ export default {
 	font-size: 0.95em;
 	color: var(--color-text-maxcontrast);
 
-	// Ensure readable contrast when the row is active (blue background)
 	:deep(.list-item__wrapper--active) & {
 		color: var(--color-primary-element-text);
 	}
