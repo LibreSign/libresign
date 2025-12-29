@@ -49,14 +49,20 @@ use Psr\Log\LoggerInterface;
 
 /**
  * @psalm-import-type LibresignFile from ResponseDefinitions
- * @psalm-import-type LibresignNewFile from ResponseDefinitions
+ * @psalm-import-type LibresignFileDetail from ResponseDefinitions
  * @psalm-import-type LibresignFolderSettings from ResponseDefinitions
+ * @psalm-import-type LibresignNewFile from ResponseDefinitions
+ * @psalm-import-type LibresignNextcloudFile from ResponseDefinitions
  * @psalm-import-type LibresignNextcloudFile from ResponseDefinitions
  * @psalm-import-type LibresignPagination from ResponseDefinitions
  * @psalm-import-type LibresignSettings from ResponseDefinitions
- * @psalm-import-type LibresignFileDetail from ResponseDefinitions
+ * @psalm-import-type LibresignSigner from ResponseDefinitions
  * @psalm-import-type LibresignSigner from ResponseDefinitions
  * @psalm-import-type LibresignValidateFile from ResponseDefinitions
+ * @psalm-import-type LibresignValidateMetadata from ResponseDefinitions
+ * @psalm-import-type LibresignValidateMetadata from ResponseDefinitions
+ * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
+ * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
  */
 class FileController extends AEnvironmentAwareController {
 	public function __construct(
@@ -651,6 +657,23 @@ class FileController extends AEnvironmentAwareController {
 	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>
 	 */
 	private function formatFileResponse(FileEntity $mainEntity, array $childFiles): DataResponse {
+		$rawMetadata = $mainEntity->getMetadata() ?? [];
+		$rawMetadata['extension'] = (string)($rawMetadata['extension'] ?? pathinfo($mainEntity->getName(), PATHINFO_EXTENSION));
+		$rawMetadata['p'] = isset($rawMetadata['p']) ? (int)$rawMetadata['p'] : 0;
+		/** @psalm-var LibresignValidateMetadata $metadata */
+		$metadata = $rawMetadata;
+
+		/** @psalm-var list<LibresignVisibleElement> $visibleElements */
+		$visibleElements = [];
+		/** @psalm-var list<LibresignSigner> $signers */
+		$signers = [];
+
+		$rawFilesCount = $rawMetadata['filesCount'] ?? null;
+		$filesCount = is_numeric($rawFilesCount) ? (int)$rawFilesCount : count($childFiles);
+		$filesCount = max(0, $filesCount);
+		/** @var int<0, max> $filesCount */
+
+		/** @psalm-var LibresignNextcloudFile $response */
 		$response = [
 			'message' => $this->l10n->t('Success'),
 			'id' => $mainEntity->getId(),
@@ -662,10 +685,10 @@ class FileController extends AEnvironmentAwareController {
 			'nodeType' => $mainEntity->getNodeType(),
 			'created_at' => $mainEntity->getCreatedAt()->format(\DateTimeInterface::ATOM),
 			'file' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $mainEntity->getUuid()]),
-			'metadata' => $mainEntity->getMetadata() ?? [],
+			'metadata' => $metadata,
 			'signatureFlow' => SignatureFlow::fromNumeric($mainEntity->getSignatureFlow())->value,
-			'visibleElements' => [],
-			'signers' => [],
+			'visibleElements' => $visibleElements,
+			'signers' => $signers,
 			'requested_by' => [
 				'userId' => $mainEntity->getUserId(),
 				'displayName' => $this->userSession->getUser()?->getDisplayName() ?? $mainEntity->getUserId(),
@@ -673,8 +696,7 @@ class FileController extends AEnvironmentAwareController {
 		];
 
 		if ($mainEntity->getNodeType() === 'envelope') {
-			$metadata = $mainEntity->getMetadata();
-			$response['filesCount'] = $metadata['filesCount'] ?? count($childFiles);
+			$response['filesCount'] = $filesCount;
 			$response['files'] = !empty($childFiles) ? $this->formatFilesResponse($childFiles) : [];
 		} else {
 			$response['filesCount'] = 1;

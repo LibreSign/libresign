@@ -43,28 +43,6 @@ namespace OCA\Libresign;
  *     name?: string,
  *     type?: string,
  * }
- * @psalm-type LibresignNextcloudFile = array{
- *     message: string,
- *     name: non-falsy-string,
- *     id: int,
- *     nodeId: int,
- *     uuid: string,
- *     status: int,
- *     statusText: string,
- *     nodeType: 'file'|'envelope',
- *     created_at: string,
- *     file: string,
- *     metadata: LibresignValidateMetadata,
- *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
- *     visibleElements: LibresignVisibleElement[],
- *     signers: LibresignSigner[],
- *     requested_by: array{
- *         userId: string,
- *         displayName: string,
- *     },
- *     filesCount: int<0, max>,
- *     files: list<array{nodeId: int, uuid: string, name: string, status: int, statusText: string}>,
- * }
  * @psalm-type LibresignIdentifyAccount = array{
  *     id: non-negative-int,
  *     isNoUser: boolean,
@@ -259,6 +237,28 @@ namespace OCA\Libresign;
  *         message: string,
  *     }[],
  *     visibleElements?: LibresignVisibleElement[],
+ * }
+ * @psalm-type LibresignNextcloudFile = array{
+ *     message: string,
+ *     name: non-falsy-string,
+ *     id: int,
+ *     nodeId: int,
+ *     uuid: string,
+ *     status: int,
+ *     statusText: string,
+ *     nodeType: 'file'|'envelope',
+ *     created_at: string,
+ *     file: string,
+ *     metadata: LibresignValidateMetadata,
+ *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
+ *     visibleElements: LibresignVisibleElement[],
+ *     signers: LibresignSigner[],
+ *     requested_by: array{
+ *         userId: string,
+ *         displayName: string,
+ *     },
+ *     filesCount: int<0, max>,
+ *     files: list<array{nodeId: int, uuid: string, name: string, status: int, statusText: string}>,
  * }
  * @psalm-type LibresignFileDetail = array{
  *     created_at: string,
