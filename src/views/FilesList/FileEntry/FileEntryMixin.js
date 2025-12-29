@@ -61,16 +61,18 @@ export default {
 				return
 			}
 
-			// Reset any right menu position potentially set
-			const root = this.$el?.closest('main.app-content')
-			root.style.removeProperty('--mouse-pos-x')
-			root.style.removeProperty('--mouse-pos-y')
-
 			this.actionsMenuStore.opened = this.source.nodeId
 
 			// Prevent any browser defaults
 			event.preventDefault()
 			event.stopPropagation()
+
+			const root = this.$el?.closest('.app-content')
+			if (root) {
+				const contentRect = root.getBoundingClientRect()
+				root.style.setProperty('--mouse-pos-x', Math.max(0, event.clientX - contentRect.left - 200) + 'px')
+				root.style.setProperty('--mouse-pos-y', Math.max(0, event.clientY - contentRect.top) + 'px')
+			}
 		},
 
 		openDetailsIfAvailable(event) {

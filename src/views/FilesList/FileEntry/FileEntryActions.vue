@@ -6,10 +6,13 @@
 	<td class="files-list__row-actions">
 		<!-- Menu actions -->
 		<NcActions ref="actionsMenu"
+			:boundaries-element="boundariesElement"
+			:container="boundariesElement"
 			:force-name="true"
 			type="tertiary"
 			:open.sync="openedMenu"
-			@close="openedMenu = null">
+			@close="openedMenu = null"
+			@closed="onMenuClosed">
 			<!-- Default actions list-->
 			<NcActionButton v-for="action in visibleMenu"
 				:key="action.id"
@@ -137,6 +140,12 @@ export default {
 		visibleMenu() {
 			return this.enabledMenuActions.filter(action => this.visibleIf(action))
 		},
+		file() {
+			return this.filesStore.files[this.source.id]
+		},
+		boundariesElement() {
+			return document.querySelector('.app-content > .files-list')
+		},
 	},
 	mounted() {
 		this.registerAction({
@@ -170,18 +179,17 @@ export default {
 	},
 	methods: {
 		visibleIf(action) {
-			const file = this.filesStore.files[this.source.id]
 			let visible = false
 			if (action.id === 'rename') {
 				visible = true
 			} else if (action.id === 'sign') {
-				visible = this.filesStore.canSign(file)
+				visible = this.filesStore.canSign(this.file)
 			} else if (action.id === 'validate') {
-				visible = this.filesStore.canValidate(file)
+				visible = this.filesStore.canValidate(this.file)
 			} else if (action.id === 'delete') {
-				visible = this.filesStore.canDelete(file)
+				visible = this.filesStore.canDelete(this.file)
 			} else if (action.id === 'open') {
-				visible = true
+				visible = this.source?.nodeType !== 'envelope'
 			}
 			return visible
 		},
@@ -250,14 +258,22 @@ export default {
 		doRename(newName) {
 			return this.filesStore.rename(this.source.uuid, newName)
 		},
+		onMenuClosed() {
+			if (this.actionsMenuStore.opened === null) {
+				const root = this.$el?.closest('.app-content')
+				if (root) {
+					root.style.removeProperty('--mouse-pos-x')
+					root.style.removeProperty('--mouse-pos-y')
+				}
+			}
+		},
 	},
 }
 </script>
 
 <style lang="scss">
 // Allow right click to define the position of the menu
-// only if defined
-main.app-content[style*="mouse-pos-x"] .v-popper__popper {
+.app-content[style*="mouse-pos-x"] .v-popper__popper {
 	transform: translate3d(var(--mouse-pos-x), var(--mouse-pos-y), 0px) !important;
 
 	// If the menu is too close to the bottom, we move it up
