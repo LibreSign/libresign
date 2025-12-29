@@ -510,6 +510,10 @@ class ValidateHelper {
 	}
 
 	public function validateIdentifySigners(array $data): void {
+		if (empty($data['users'])) {
+			return;
+		}
+
 		$this->validateSignersDataStructure($data);
 
 		foreach ($data['users'] as $signer) {
