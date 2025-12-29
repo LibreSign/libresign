@@ -135,6 +135,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param LibresignNewFile|array<empty>|null $file File object.
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
 	 * @param string|null $signatureFlow Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration
+	 * @param string|null $name The name of file to sign
 	 * @return DataResponse<Http::STATUS_OK, array{message: string, data: LibresignFileDetail}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string, action?: integer, errors?: list<array{message: string, title?: string}>}, array{}>
 	 *
 	 * 200: OK
@@ -151,6 +152,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		?array $file = [],
 		?int $status = null,
 		?string $signatureFlow = null,
+		?string $name = null,
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		$data = [
@@ -161,6 +163,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			'status' => $status,
 			'visibleElements' => $visibleElements,
 			'signatureFlow' => $signatureFlow,
+			'name' => $name,
 		];
 		try {
 			$this->validateHelper->validateExistingFile($data);
