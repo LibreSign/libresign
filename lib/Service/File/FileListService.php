@@ -11,13 +11,16 @@ namespace OCA\Libresign\Service\File;
 use DateTimeInterface;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
+use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCP\AppFramework\Db\Entity;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -84,6 +87,10 @@ class FileListService {
 	}
 
 	/**
+	 * @param File[] $files
+	 * @param SignRequest[] $signers
+	 * @param array<int, array<string, Entity&IdentifyMethod>> $identifyMethods
+	 * @param array<int, FileElement[]> $visibleElements
 	 * @return list<LibresignFileDetail>
 	 */
 	private function associateAllAndFormat(
@@ -105,6 +112,11 @@ class FileListService {
 	 * Format a single file with its signers, identifyMethods and visibleElements.
 	 * Core formatting used by list and single file operations.
 	 *
+	 * @param File $fileEntity
+	 * @param SignRequest[] $signers
+	 * @param array<int, array<string, Entity&IdentifyMethod>> $identifyMethods
+	 * @param array<int, FileElement[]> $visibleElements
+	 * @param IUser $user
 	 * @return LibresignFileDetail
 	 * @psalm-suppress MoreSpecificReturnType
 	 */
