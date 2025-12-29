@@ -300,6 +300,9 @@ export default {
 			validationStatusOpen: false,
 			docMdpOpen: false,
 			chainOpen: false,
+			MODIFICATION_UNMODIFIED: 1,
+			MODIFICATION_ALLOWED: 2,
+			MODIFICATION_VIOLATION: 3,
 			crlStatusMap: {
 				CRL_VERIFIED_VALID: { icon: mdiCheckCircle, text: t('libresign', 'CRL: Certificate Valid'), class: 'icon-success' },
 				CRL_VERIFIED_REVOKED: { icon: mdiCloseCircle, text: t('libresign', 'CRL: Certificate Revoked'), class: 'icon-error' },
@@ -371,12 +374,19 @@ export default {
 		},
 		getModificationStatusIcon(signer) {
 			if (!signer.modification_validation) return null
-			if (signer.modification_validation.id === 1) return mdiCheckCircle
+			const status = signer.modification_validation.status
+			if (status === this.MODIFICATION_UNMODIFIED || status === this.MODIFICATION_ALLOWED) {
+				return mdiCheckCircle
+			}
 			return mdiAlertCircle
 		},
 		getModificationStatusClass(signer) {
 			if (!signer.modification_validation) return ''
-			return signer.modification_validation.id === 1 ? 'icon-success' : 'icon-error'
+			const status = signer.modification_validation.status
+			if (status === this.MODIFICATION_UNMODIFIED || status === this.MODIFICATION_ALLOWED) {
+				return 'icon-success'
+			}
+			return 'icon-error'
 		},
 		dateFromSqlAnsi(date) {
 			if (!date) return ''
