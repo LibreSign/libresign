@@ -624,12 +624,15 @@ export default {
 			width: 100%;
 			box-shadow: 0 0 6px 0 var(--color-box-shadow);
 
-			@media screen and (max-width: 900px) {
+			@media screen and (max-width: 700px) {
 				width: 100%;
 				display: flex;
 				justify-content: center;
 				align-items: center;
 				max-width: 100%;
+				padding: 12px;
+				margin: 12px;
+				box-shadow: none;
 			}
 		}
 		button {
@@ -647,8 +650,18 @@ export default {
 				margin-bottom: 10px;
 				width: unset;
 				overflow: hidden;
-				@media screen and (max-width: 900px) {
+				@media screen and (max-width: 700px) {
 					max-width: 100%;
+					padding: 12px 8px;
+					box-shadow: none;
+					border-top: 2px solid var(--color-border-dark);
+					border-radius: 0;
+					margin-bottom: 0;
+					margin-top: 12px;
+					&:first-child {
+						border-top: none;
+						margin-top: 0;
+					}
 				}
 				.action-items {
 					gap: 12px;
@@ -773,8 +786,6 @@ export default {
 			margin-inline-end: 0;
 			.section {
 				width: unset;
-				box-shadow: none;
-				padding: 10px !important;
 
 				.signers {
 					.date-signed-desktop {

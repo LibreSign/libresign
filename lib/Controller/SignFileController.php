@@ -132,12 +132,18 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				->setVisibleElements($elements)
 				->sign();
 
+			$validationUuid = $libreSignFile->getUuid();
+			if ($libreSignFile->hasParent()) {
+				$parentFile = $this->signFileService->getFile($libreSignFile->getParentFileId());
+				$validationUuid = $parentFile->getUuid();
+			}
+
 			return new DataResponse(
 				[
 					'action' => JSActions::ACTION_SIGNED,
 					'message' => $this->l10n->t('File signed'),
 					'file' => [
-						'uuid' => $libreSignFile->getUuid()
+						'uuid' => $validationUuid
 					]
 				],
 				Http::STATUS_OK
