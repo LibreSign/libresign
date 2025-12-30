@@ -48,9 +48,7 @@ class UploadProcessor {
 		$extension = $this->mimeService->getExtension($content);
 		$this->validateFileContent($content, $extension);
 
-		$userFolder = $this->folderService->getFolder();
-		$folderName = $this->folderService->getFolderName($data, $data['userManager']);
-		$folderToFile = $userFolder->newFolder($folderName);
+		$folderToFile = $this->folderService->getFolderForFile($data, $data['userManager']);
 
 		@unlink($uploadedFile['tmp_name']);
 
