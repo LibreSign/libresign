@@ -243,16 +243,16 @@ class FileMapper extends QBMapper {
 		}
 
 		if (!empty($row['signed_file_id'])) {
-			return ['type' => 'signed_file', 'fileId' => (int) $row['signed_file_id']];
+			return ['type' => 'signed_file', 'fileId' => (int)$row['signed_file_id']];
 		}
 		if (!empty($row['file_id'])) {
-			return ['type' => 'file', 'fileId' => (int) $row['file_id']];
+			return ['type' => 'file', 'fileId' => (int)$row['file_id']];
 		}
 		if (!empty($row['user_element_id'])) {
 			return ['type' => 'user_element', 'fileId' => null];
 		}
 		if (!empty($row['file_element_file_id'])) {
-			return ['type' => 'file_element', 'fileId' => (int) $row['file_element_file_id']];
+			return ['type' => 'file_element', 'fileId' => (int)$row['file_element_file_id']];
 		}
 
 		return ['type' => 'not_libresign_file', 'fileId' => null];
