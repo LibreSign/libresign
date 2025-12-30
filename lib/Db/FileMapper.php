@@ -227,9 +227,9 @@ class FileMapper extends QBMapper {
 		$qb = $this->db->getQueryBuilder();
 		$qb
 			->selectAlias('f.id', 'file_id')
-			->addSelect('sf.id', 'signed_file_id')
-			->addSelect('ue.id', 'user_element_id')
-			->addSelect('fe.file_id', 'file_element_file_id')
+			->selectAlias('sf.id', 'signed_file_id')
+			->selectAlias('ue.id', 'user_element_id')
+			->selectAlias('fe.file_id', 'file_element_file_id')
 			->from($qb->createFunction('(' . $fullOuterJoin->getSQL() . ')'), 'foj')
 			->leftJoin('foj', 'libresign_file', 'f', $qb->expr()->eq('f.node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)))
 			->leftJoin('foj', 'libresign_file', 'sf', $qb->expr()->eq('sf.signed_node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)))
