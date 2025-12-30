@@ -51,14 +51,16 @@ class BeforeNodeDeletedListener implements IEventListener {
 	}
 
 	private function delete(int $nodeId): void {
-		$type = $this->fileMapper->getFileType($nodeId);
-		if ($type === 'not_libresign_file') {
+		$context = $this->fileMapper->getDeletionContext($nodeId);
+		if ($context['type'] === 'not_libresign_file') {
 			return;
 		}
-		switch ($type) {
+		switch ($context['type']) {
 			case 'signed_file':
-				$file = $this->fileMapper->getByNodeId($nodeId);
-				$this->requestSignatureService->deleteRequestSignature(['file' => ['fileId' => $file->getId()]]);
+				if (!isset($context['fileId'])) {
+					return;
+				}
+				$this->requestSignatureService->deleteRequestSignature(['file' => ['fileId' => $context['fileId']]]);
 				break;
 			case 'file':
 				$libresignFile = $this->fileMapper->getByNodeId($nodeId);
@@ -66,11 +68,18 @@ class BeforeNodeDeletedListener implements IEventListener {
 				$this->fileMapper->delete($libresignFile);
 				break;
 			case 'user_element':
-			case 'file_element':
-				$field = $type === 'file' ? 'node_id' : 'file_id';
 				$qb = $this->db->getQueryBuilder();
-				$qb->delete('libresign_' . $type)
-					->where($qb->expr()->eq($field, $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)))
+				$qb->delete('libresign_user_element')
+					->where($qb->expr()->eq('node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)))
+					->executeStatement();
+				break;
+			case 'file_element':
+				if (!isset($context['fileId'])) {
+					return;
+				}
+				$qb = $this->db->getQueryBuilder();
+				$qb->delete('libresign_file_element')
+					->where($qb->expr()->eq('file_id', $qb->createNamedParameter($context['fileId'], IQueryBuilder::PARAM_INT)))
 					->executeStatement();
 		}
 	}

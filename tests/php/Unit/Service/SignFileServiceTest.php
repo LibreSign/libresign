@@ -1029,7 +1029,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			throw new DoesNotExistException('User element not found');
 		});
 
-		$this->folderService->method('getFileById')
+		$this->folderService->method('getFileByNodeId')
 			->willReturnCallback(function ($id) use ($signatureFile) {
 				if (isset($signatureFile[$id]) && $signatureFile[$id]['valid']) {
 					$file = $this->getMockBuilder(\OCP\Files\File::class)->getMock();
