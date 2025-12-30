@@ -237,7 +237,7 @@ class FileMapper extends QBMapper {
 			->leftJoin('foj', 'libresign_file_element', 'fe', $qb->expr()->eq('fe.file_id', 'f.id'))
 			->setMaxResults(1);
 
-		$row = $qb->executeQuery()->fetchAssociative();
+		$row = $qb->executeQuery()->fetch();
 		if (!$row) {
 			return ['type' => 'not_libresign_file', 'fileId' => null];
 		}
