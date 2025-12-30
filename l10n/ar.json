@@ -23,6 +23,7 @@
     "Name is mandatory" : "الاسم إلزامي",
     "Invalid UUID" : "UUID غير صالح",
     "Notification sent with success." : "تم إرسال الإخطار بنجاح.",
+    "File not found" : "تعذر العثور على الملف",
     "File signed" : "الملف موقّع",
     "Internal Server Error" : "خطأ داخلي في الخادم",
     "Renewed with success. Access the link again." : "تمّ التجديد بنحاحٍ. عاوِد الدخول على الرابط.",
@@ -69,6 +70,8 @@
     "You do not have permission for this action." : "ليس لديك إذن لهذا الإجراء.",
     "Password to sign not defined. Create a password to sign." : "لم يتم تحديد كلمة المرور للتوقيع. أنشئ كلمة مرور للتوقيع.",
     "Invalid password" : "كلمة المرور غير صحيحة",
+    "Invalid file provided" : "تمّ تقديم ملف غير صالح",
+    "File is too big" : "الملف كبير جدًا",
     "Invalid data to validate file" : "بيانات غير صالحة للتحقق من صحة الملف",
     "File type: %s. Empty file." : "نوع الملف:%s. ملف فارغ.",
     "Elements of type %s need file." : "تحتاج العناصر من النوع%sإلى ملف.",
@@ -78,7 +81,6 @@
     "document to sign" : "وثيقة للتوقيع",
     "visible element" : "عنصر مرئي",
     "File type: %s. Invalid Base64 file." : "نوع الملف: %s. الملف ليس من النوع Base64.",
-    "File is too big" : "الملف كبير جدًا",
     "Already asked to sign this document" : "طلبت بالفعل التوقيع على هذه الوثيقة",
     "Visible elements need to be an array" : "يجب أن تكون العناصر المرئية مصفوفة",
     "Element must be associated with a user" : "يجب أن يرتبط العنصر بالمستخدم",
@@ -123,7 +125,6 @@
     "Dismiss notification" : "تجاهل الإشعار",
     "UUID not found" : "UUID غير موجود",
     "Password is mandatory" : "كلمة المرور إلزامية",
-    "File not found" : "تعذر العثور على الملف",
     "You must have an email. You can define the email in your profile." : "يجب أن يكون لديك بريد إلكتروني. يمكنك تحديد البريد الإلكتروني في ملف التعريف الخاص بك.",
     "Password to sign is mandatory" : "كلمة المرور للتوقيع إلزامية",
     "Invalid URL file" : "عنوا URL ملف غير صالح",
@@ -135,12 +136,12 @@
     "Name of a locality or place, such as a city, county, or other geographic region" : "اسم المكان، مثل المدينة أو المحافظة أو المنطقة أو الولاية",
     "Name of an organization" : "اسم المؤسسة",
     "Name of an organizational unit" : "اسم الوحدة الإدارية",
-    "Invalid file identifier" : "معرّف الملف غير صالح",
-    "No file provided" : "لم يتم إعطاء أي ملف",
-    "Invalid file provided" : "تمّ تقديم ملف غير صالح",
+    "no signers" : "لا يوجد مُوقِّعون",
     "You need to sign this document" : "تحتاج إلى توقيع هذه الوثيقة",
     "You cannot request signature for this document, please contact your administrator" : "لا يمكنك طلب التوقيع على هذه الوثيقة، الرجاء الاتصال بالمسؤول",
-    "no signers" : "لا يوجد مُوقِّعون",
+    "Invalid PDF" : "PDF غير صالح",
+    "Invalid file identifier" : "معرّف الملف غير صالح",
+    "No file provided" : "لم يتم إعطاء أي ملف",
     "Link expired." : "إنتهت صلاحية الرابط.",
     "Invalid code." : "الكود غير صحيح.",
     "Link expired" : "إنتهت صلاحية الرابط",
@@ -167,11 +168,12 @@
     "User list needs to be an array" : "يجب أن تكون قائمة المستخدمين مصفوفة",
     "Sending authorization code not enabled." : "لم يتم تمكين إرسال رمز التفويض.",
     "File already signed by you" : "الملف موقع بالفعل من جانبك",
-    "Invalid PDF" : "PDF غير صالح",
     "LibreSign" : "تطبيق التوقيع الإلكتروني LibreSign",
     "✍️ Self-hosted document signer using digital certificate" : "✍️ توقيع المستندات المستضاف ذاتيًا باستعمال الشهادات الرقمية",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ **Sign PDF** documents using digital certificates\n* 🔄 **Hybrid signatures**: You can choose between personal or system-generated digital certificates\n* 👥 **Multiple signers**: Request signature on a document for as many people as you need\n* 📸 **QR Code**: Document validation by QR Code\n* 🔒 **Privacy**: Fully self-hosted document signer\n* 📲 **Connect to your software**: Easily integrate [LibreSign](https://libresign.coop) into your service with our full-fledged [REST-API](https://libresign.coop/posts/libresign-api-guide/).\n* 🙋 **Get involved**! We have lots of stuff planned. More information at [LibreSign](https://github.com/libresign/libresign) repository.\n\n🌍 Help us translate this application on [Transifex](https://app.transifex.com/nextcloud/nextcloud/libresign/)\n\nIf you enjoy this app and want to help maintain its development or want enterprise support, please contact us:\n\n[https://libresign.coop](https://libresign.coop)\n\n## Donation\n\nDeveloped with ❤️ by [LibreCode](https://librecode.coop). Help us transform people and businesses through cooperativism.\n\n* [Donate with GitHub Sponsor: ![Donate using GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/libresign)" : "*هذا تطبيق توقيع رقمي مجاني لملفات PDF  من نكست كلاود** \n\n* ✍️ **توقيع مستندات PDF** باستخدام الشهادات الرقمية \n* 🔄 **التوقيعات الهجينة**: يمكنك الاختيار بين الشهادات الرقمية الشخصية أو التي يتم إنشاؤها بواسطة النظام \n* 👥 **موقعون متعددون**: اطلب التوقيع على مستند لأي عدد من الأشخاص حسب حاجتك \n* 📸 **رمز الاستجابة السريعة**: التحقق من صحة المستند باستخدام رمز الاستجابة السريعة \n* 🔒 **الخصوصية**: موقِّع مستندات مُستضاف ذاتيًا بالكامل \n* 📲 **الاتصال ببرنامجك**: يمكنك بسهولة دمج [LibreSign](https://libresign.coop) في خدمتك باستخدام [REST-API](https://libresign.coop/posts/libresign-api-guide/) الخاص بنا. \n* 🙋 **شارك معنا**! لدينا الكثير من الأشياء المخطط لها. \n\nمزيد من المعلومات في مستودع [LibreSign](https://github.com/libresign/libresign). \n\n🌍 ساعدنا في ترجمة هذا التطبيق على [Transifex](https://app.transifex.com/nextcloud/nextcloud/libresign/) \n\nإذا كنت تستمتع بهذا التطبيق وترغب في المساعدة في الحفاظ على تطويره أو تريد دعمًا مؤسسيًا، فيرجى الاتصال بنا: [https://libresign.coop](https://libresign.coop) ## \n\nتبرع:  \nتم التطوير بحب من قبل [LibreCode](https://librecode.coop). ساعدنا في تطوير الأشخاص و المؤسسات من خلال التعاون. \n\n* [تبرع من خلال راعي \"قيت هب\": ! [تبرع باستخدام راعي GitHub](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/libresign)",
     "LibreSign, digital signature app for Nextcloud." : "تطبيق LibreSign، تطبيق التوقيع الرقمي لنكست كلود.",
+    "Cancel" : "إلغاء",
+    "Save" : "حفظ",
     "Customize your signatures" : "تخصيص التوقيعات الخاصة بك",
     "Draw" : "إرسم",
     "Text" : "نص",
@@ -179,8 +181,6 @@
     "Color" : "اللون",
     "Choose color" : "إختر لوناً",
     "Delete" : "حذف",
-    "Save" : "حفظ",
-    "Cancel" : "إلغاء",
     "Confirm your signature" : "قم بتأكيد توقيعك",
     "Select other file" : "حدد ملفًا آخر",
     "Select your signature file." : "اختر ملف التوقيع الخاص بك.",
@@ -213,12 +213,13 @@
     "Select a signer to set their signature position" : "حدِّد صاحب توقيع لتعيين مكان توقيعه ",
     "Click on the place you want to add." : "أنقُر على المكان الذي تريد إضافته",
     "Sign" : "وقع",
+    "_{count} selected_::_{count} selected_" : ["{count} تمّ تحديده","{count} تمّ تحديده","{count} تمّ تحديده","{count} تمّ تحديده","{count} تمّ تحديده","{count} تمّ تحديده"],
+    "Open file" : "فتح ملف",
+    "Close" : "إغلاق",
     "Add signer" : "أضِف صاحب توقيع",
     "Request signature" : "طلب توقيع",
     "Send reminder" : "إرسال تذكير",
-    "Open file" : "فتح ملف",
     "Confirm" : "تأكيد",
-    "Close" : "إغلاق",
     "Enter who will receive the request" : "أدخِل من سيستلم الطلب",
     "Document not available for signature." : "الوثيقة ليست متاحة للتوقيع.",
     "Administration" : "الإدارة",
@@ -231,6 +232,21 @@
     "Width" : "العرض",
     "Height" : "الطول",
     "Copy to clipboard" : "نسخ الرابط إلى الحافظة",
+    "Issuer:" : "المُصدِر:",
+    "Issued by:" : "أصدرت بواسطة",
+    "Name:" : "الاسم:",
+    "Status:" : "الحالة status:",
+    "Total pages:" : "إجمالي الصحفات:",
+    "File size:" : "حجم الملف:",
+    "PDF version:" : "إصدار PDF: ",
+    "Unknown" : "غير معروف",
+    "Congratulations you have digitally signed a document using LibreSign" : "تهانينا، لقد قمت بالتوقيع على مستند رقميًا باستخدام تطبيق LibreSign",
+    "Requested on:" : "طُلبت في:",
+    "Date signed:" : "تاريخ التوقيع:",
+    "Remote address:" : "العنوان القَصِي:",
+    "User agent:" : "وكيل المستخدِم:",
+    "No date" : "لا يوجد تاريخ",
+    "Hash algorithm:" : "خوارزمية الاختزال:",
     "Details" : "التفاصيل",
     "Certificate" : "الشهادة",
     "Not sent yet" : "لم ترسل بعد",
@@ -264,7 +280,6 @@
     "Enter a password" : "أدخِل كلمة المرور",
     "Expired" : "منتهي",
     "Unspecified" : "غير محدد",
-    "Unknown" : "غير معروف",
     "Filters" : "فلاتر",
     "Owner" : "المالك",
     "Clear filters" : "إزالة التصفية",
@@ -306,7 +321,6 @@
     "\"{displayName}\" batch action executed successfully" : "\"{displayName}\" حزمة الأوامر تم تنفيذها بنجاح",
     "\"{displayName}\" action failed" : "\"{displayName}\" الأمر أخفق عند التنفيذ",
     "(selected)" : "(تم اختياره)",
-    "_{count} selected_::_{count} selected_" : ["{count} تمّ تحديده","{count} تمّ تحديده","{count} تمّ تحديده","{count} تمّ تحديده","{count} تمّ تحديده","{count} تمّ تحديده"],
     "Welcome to LibreSign" : "أهلاً بكم في تطبيق التوقيع الالكتروني LibreSign",
     "Finish the setup" : "إنهاء الإعداد",
     "Owner of certificate" : "مالك الشهادة",
@@ -414,24 +428,6 @@
     "From UUID" : "من UUID",
     "Enter the ID or UUID of the document to validate." : "أدخل المعرف أو UUID الخاص بالمستند للتحقق من صحته.",
     "Validation" : "التصديق",
-    "Congratulations you have digitally signed a document using LibreSign" : "تهانينا، لقد قمت بالتوقيع على مستند رقميًا باستخدام تطبيق LibreSign",
-    "Name:" : "الاسم:",
-    "Status:" : "الحالة status:",
-    "Total pages:" : "إجمالي الصحفات:",
-    "File size:" : "حجم الملف:",
-    "PDF version:" : "إصدار PDF: ",
-    "Signatories:" : "الموقعون:",
-    "Date signed:" : "تاريخ التوقيع:",
-    "No date" : "لا يوجد تاريخ",
-    "Requested on:" : "طُلبت في:",
-    "Hash algorithm:" : "خوارزمية الاختزال:",
-    "Remote address:" : "العنوان القَصِي:",
-    "User agent:" : "وكيل المستخدِم:",
-    "Time:" : "الوقت:",
-    "Subject:" : "الموضوع:",
-    "Notifications" : "الإشعارات",
-    "Issuer:" : "المُصدِر:",
-    "Issued by:" : "أصدرت بواسطة",
     "Return" : "أعد",
     "Open in LibreSign" : "فتح فى تطبيق التوقيع الرقمي LibreSign",
     "not a LibreSign file" : "ليس ملف LibreSign",
