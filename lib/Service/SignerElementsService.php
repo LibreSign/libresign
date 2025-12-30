@@ -89,7 +89,7 @@ class SignerElementsService {
 
 	private function signatureFileExists(UserElement $userElement): bool {
 		try {
-			$this->folderService->getFileById($userElement->getFileId());
+			$this->folderService->getFileByNodeId($userElement->getFileId());
 		} catch (\Exception) {
 			$this->userElementMapper->delete($userElement);
 			return false;

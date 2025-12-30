@@ -336,7 +336,7 @@ class AccountService {
 
 	public function getFileByNodeId(int $nodeId): File {
 		try {
-			return $this->folderService->getFileById($nodeId);
+			return $this->folderService->getFileByNodeId($nodeId);
 		} catch (NotFoundException) {
 			throw new DoesNotExistException('Not found');
 		}
@@ -394,7 +394,7 @@ class AccountService {
 			return;
 		}
 		$userElement = $this->userElementMapper->findOne(['id' => $data['elementId']]);
-		$file = $this->folderService->getFileById($userElement->getFileId());
+		$file = $this->folderService->getFileByNodeId($userElement->getFileId());
 		$file->putContent($this->getFileRaw($data));
 	}
 
@@ -494,7 +494,7 @@ class AccountService {
 			]);
 			$this->userElementMapper->delete($element);
 			try {
-				$file = $this->folderService->getFileById($element->getFileId());
+				$file = $this->folderService->getFileByNodeId($element->getFileId());
 				$file->delete();
 			} catch (NotFoundException) {
 			}
