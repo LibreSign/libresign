@@ -125,6 +125,29 @@ class FolderService {
 	}
 
 	/**
+	 * Get or create the folder where a file should be stored
+	 *
+	 * @param array $data Must contain 'settings' and optionally 'name', 'userManager'
+	 * @param mixed $identifier User or string identifier
+	 * @return Folder The folder where files should be created
+	 * @throws LibresignException
+	 */
+	public function getFolderForFile(array $data, $identifier): Folder {
+		$userFolder = $this->getFolder();
+
+		if (isset($data['settings']['envelopeFolderId'])) {
+			$envelopeFolder = $userFolder->getFirstNodeById($data['settings']['envelopeFolderId']);
+			if ($envelopeFolder === null || !$envelopeFolder instanceof Folder) {
+				throw new LibresignException($this->l10n->t('Envelope folder not found'));
+			}
+			return $envelopeFolder;
+		}
+
+		$folderName = $this->getFolderName($data, $identifier);
+		return $userFolder->newFolder($folderName);
+	}
+
+	/**
 	 * @param array{settings: array, name: string} $data
 	 * @param IUser $owner
 	 */

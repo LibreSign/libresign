@@ -4847,7 +4847,7 @@
                                     "settings": {
                                         "$ref": "#/components/schemas/FolderSettings",
                                         "default": [],
-                                        "description": "Settings to define the pattern to store the file. See more informations at FolderService::getFolderName method."
+                                        "description": "Settings to define how and where the file should be stored"
                                     },
                                     "files": {
                                         "type": "array",
