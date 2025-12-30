@@ -362,19 +362,20 @@ export default {
 			return url.toString()
 		},
 		openFile(file) {
-			if (window.OCA?.Viewer !== undefined) {
+			const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
+			if (OCA?.Viewer !== undefined) {
 				const fileInfo = {
-					source: generateUrl('/apps/libresign/p/pdf/{uuid}', {
-						uuid: file.uuid,
-					}),
+					source: fileUrl,
 					basename: file.name,
 					mime: 'application/pdf',
 					fileid: file.nodeId,
 				}
-				window.OCA.Viewer.open({
+				OCA.Viewer.open({
 					fileInfo,
 					list: [fileInfo],
 				})
+			} else {
+				window.open(`${fileUrl}?_t=${Date.now()}`)
 			}
 		},
 		isSelected(fileId) {
