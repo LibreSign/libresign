@@ -753,12 +753,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-code-coverage.git",
-                "reference": "42e62627beea4652e6ee8a070a90e7044c57fb7a"
+                "reference": "11775ba4125a1e8ab6ab9c21e0607d9a484744dd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/42e62627beea4652e6ee8a070a90e7044c57fb7a",
-                "reference": "42e62627beea4652e6ee8a070a90e7044c57fb7a",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/11775ba4125a1e8ab6ab9c21e0607d9a484744dd",
+                "reference": "11775ba4125a1e8ab6ab9c21e0607d9a484744dd",
                 "shasum": ""
             },
             "require": {
@@ -835,7 +835,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-11-26T14:30:18+00:00"
+            "time": "2025-12-19T18:25:59+00:00"
         },
         {
             "name": "phpunit/php-file-iterator",
@@ -1136,12 +1136,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "4d8446c3266ddd97061328c43fb8b8d0517d3027"
+                "reference": "132b97b872305a8470cb2384204a563030731794"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/4d8446c3266ddd97061328c43fb8b8d0517d3027",
-                "reference": "4d8446c3266ddd97061328c43fb8b8d0517d3027",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/132b97b872305a8470cb2384204a563030731794",
+                "reference": "132b97b872305a8470cb2384204a563030731794",
                 "shasum": ""
             },
             "require": {
@@ -1237,7 +1237,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-12-08T07:14:12+00:00"
+            "time": "2025-12-28T07:26:21+00:00"
         },
         {
             "name": "psr/http-client",
@@ -1451,12 +1451,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/cli-parser.git",
-                "reference": "f57c49fcd8e15e045bb7530b5902e77ef44330a8"
+                "reference": "079406160fa9290d5a7f585602e0fe5b5f003756"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/cli-parser/zipball/f57c49fcd8e15e045bb7530b5902e77ef44330a8",
-                "reference": "f57c49fcd8e15e045bb7530b5902e77ef44330a8",
+                "url": "https://api.github.com/repos/sebastianbergmann/cli-parser/zipball/079406160fa9290d5a7f585602e0fe5b5f003756",
+                "reference": "079406160fa9290d5a7f585602e0fe5b5f003756",
                 "shasum": ""
             },
             "require": {
@@ -1512,7 +1512,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-09-26T08:53:55+00:00"
+            "time": "2025-12-20T08:57:34+00:00"
         },
         {
             "name": "sebastian/code-unit",
