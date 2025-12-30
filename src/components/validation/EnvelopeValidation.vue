@@ -247,8 +247,8 @@ export default {
 			return n('libresign', '{progress} of {total} document signed', '{progress} of {total} documents signed', total, { progress, total })
 		},
 		viewFile(file) {
+			const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
 			if (OCA?.Viewer !== undefined) {
-				const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
 				const fileInfo = {
 					source: fileUrl,
 					basename: file.name,
@@ -260,7 +260,6 @@ export default {
 					list: [fileInfo],
 				})
 			} else {
-				const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
 				window.open(`${fileUrl}?_t=${Date.now()}`)
 			}
 		},
