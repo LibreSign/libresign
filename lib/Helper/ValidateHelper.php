@@ -302,7 +302,7 @@ class ValidateHelper {
 			$this->validateSignerIsOwnerOfPdfVisibleElement($elements['documentElementId'], $signRequest);
 			if ($canCreateSignature && $user instanceof IUser) {
 				try {
-					$this->userElementMapper->findOne(['file_id' => $elements['profileNodeId'], 'user_id' => $user->getUID()]);
+					$this->userElementMapper->findOne(['node_id' => $elements['profileNodeId'], 'user_id' => $user->getUID()]);
 				} catch (\Throwable) {
 					throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileNodeId']));
 				}
