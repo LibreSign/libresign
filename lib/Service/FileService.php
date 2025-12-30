@@ -120,9 +120,7 @@ class FileService {
 
 		$this->validateFileContent($content, $extension);
 
-		$userFolder = $this->folderService->getFolder();
-		$folderName = $this->folderService->getFolderName($data, $data['userManager']);
-		$folderToFile = $userFolder->newFolder($folderName);
+		$folderToFile = $this->folderService->getFolderForFile($data, $data['userManager']);
 		$filename = $this->resolveFileName($data, $extension);
 		return $folderToFile->newFile($filename, $content);
 	}
