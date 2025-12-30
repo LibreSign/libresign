@@ -292,7 +292,7 @@ class SignFileService {
 
 	private function getNode(int $nodeId): ?File {
 		if ($this->user instanceof IUser) {
-			return $this->folderService->getFileById($nodeId);
+			return $this->folderService->getFileByNodeId($nodeId);
 		}
 
 		$filesOfElementes = $this->signerElementsService->getElementsFromSession();

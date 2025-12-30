@@ -69,7 +69,7 @@ class FolderService {
 	/**
 	 * @throws NotFoundException
 	 */
-	public function getFileById(?int $nodeId = null): File {
+	public function getFileByNodeId(?int $nodeId = null): File {
 		if ($this->getUserId()) {
 
 			$file = $this->root->getUserFolder($this->getUserId())->getFirstNodeById($nodeId);
