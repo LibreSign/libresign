@@ -163,4 +163,27 @@ final class EnvelopeServiceTest extends TestCase {
 		$this->assertNotNull($result);
 		$this->assertSame(5, $result->getId());
 	}
+
+	public function testEnvelopeUuidMatchesFolderName(): void {
+		$this->fileMapper->method('insert')->willReturnArgument(0);
+
+		$mockFolder = $this->createMock(Folder::class);
+		$mockEnvelopeFolder = $this->createMock(Folder::class);
+		$mockEnvelopeFolder->method('getId')->willReturn(999);
+
+		$capturedFolderName = '';
+		$mockFolder->method('newFolder')->willReturnCallback(
+			function ($folderName) use ($mockEnvelopeFolder, &$capturedFolderName) {
+				$capturedFolderName = $folderName;
+				return $mockEnvelopeFolder;
+			}
+		);
+
+		$this->folderService->method('getFolder')->willReturn($mockFolder);
+
+		$envelope = $this->service->createEnvelope('Contract', 'user1');
+
+		$this->assertStringStartsWith('Contract_', $capturedFolderName);
+		$this->assertStringContainsString($envelope->getUuid(), $capturedFolderName);
+	}
 }

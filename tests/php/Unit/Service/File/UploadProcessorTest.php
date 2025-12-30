@@ -69,12 +69,8 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mimeService->method('getExtension')->with($content)->willReturn($extension);
 		$this->pdfValidator->method('validate');
 
-		$folder = $this->createMock(Folder::class);
-		$this->folderService->method('getFolder')->willReturn($folder);
-		$this->folderService->method('getFolderName')->willReturn('LibreSign');
-
 		$targetFolder = $this->createMock(Folder::class);
-		$folder->method('newFolder')->willReturn($targetFolder);
+		$this->folderService->method('getFolderForFile')->willReturn($targetFolder);
 
 		$node = $this->createMock(Node::class);
 		$targetFolder->method('newFile')->willReturn($node);
@@ -110,12 +106,8 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mimeService->method('getExtension')->willReturn('pdf');
 		$this->pdfValidator->method('validate');
 
-		$folder = $this->createMock(Folder::class);
-		$this->folderService->method('getFolder')->willReturn($folder);
-		$this->folderService->method('getFolderName')->willReturn('LibreSign');
-
 		$targetFolder = $this->createMock(Folder::class);
-		$folder->method('newFolder')->willReturn($targetFolder);
+		$this->folderService->method('getFolderForFile')->willReturn($targetFolder);
 
 		$node = $this->createMock(Node::class);
 		$targetFolder->method('newFile')->willReturn($node);
@@ -151,12 +143,8 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('validate')
 			->with($content);
 
-		$folder = $this->createMock(Folder::class);
-		$this->folderService->method('getFolder')->willReturn($folder);
-		$this->folderService->method('getFolderName')->willReturn('LibreSign');
-
 		$targetFolder = $this->createMock(Folder::class);
-		$folder->method('newFolder')->willReturn($targetFolder);
+		$this->folderService->method('getFolderForFile')->willReturn($targetFolder);
 
 		$node = $this->createMock(Node::class);
 		$targetFolder->method('newFile')->willReturn($node);
@@ -187,12 +175,8 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pdfValidator->method('validate');
 		$this->validateHelper->method('validateNewFile');
 
-		$folder = $this->createMock(Folder::class);
-		$this->folderService->method('getFolder')->willReturn($folder);
-		$this->folderService->method('getFolderName')->willReturn('LibreSign');
-
 		$targetFolder = $this->createMock(Folder::class);
-		$folder->method('newFolder')->willReturn($targetFolder);
+		$this->folderService->method('getFolderForFile')->willReturn($targetFolder);
 
 		$node = $this->createMock(Node::class);
 		$node->method('getId')->willReturn(123);
@@ -229,12 +213,8 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'userManager' => $user,
 			]);
 
-		$folder = $this->createMock(Folder::class);
-		$this->folderService->method('getFolder')->willReturn($folder);
-		$this->folderService->method('getFolderName')->willReturn('LibreSign');
-
 		$targetFolder = $this->createMock(Folder::class);
-		$folder->method('newFolder')->willReturn($targetFolder);
+		$this->folderService->method('getFolderForFile')->willReturn($targetFolder);
 
 		$node = $this->createMock(Node::class);
 		$node->method('getId')->willReturn(123);
@@ -261,12 +241,8 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('validateNewFile')
 			->willThrowException(new LibresignException('Invalid file'));
 
-		$folder = $this->createMock(Folder::class);
-		$this->folderService->method('getFolder')->willReturn($folder);
-		$this->folderService->method('getFolderName')->willReturn('LibreSign');
-
 		$targetFolder = $this->createMock(Folder::class);
-		$folder->method('newFolder')->willReturn($targetFolder);
+		$this->folderService->method('getFolderForFile')->willReturn($targetFolder);
 
 		$node = $this->createMock(Node::class);
 		$node->method('getId')->willReturn(123);
@@ -299,12 +275,8 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('validateNewFile')
 			->willThrowException(new LibresignException('Invalid file'));
 
-		$folder = $this->createMock(Folder::class);
-		$this->folderService->method('getFolder')->willReturn($folder);
-		$this->folderService->method('getFolderName')->willReturn('LibreSign');
-
 		$targetFolder = $this->createMock(Folder::class);
-		$folder->method('newFolder')->willReturn($targetFolder);
+		$this->folderService->method('getFolderForFile')->willReturn($targetFolder);
 
 		$node = $this->createMock(Node::class);
 		$node->method('getId')->willReturn(123);
@@ -344,12 +316,8 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pdfValidator->method('validate');
 		$this->validateHelper->method('validateNewFile');
 
-		$folder = $this->createMock(Folder::class);
-		$this->folderService->method('getFolder')->willReturn($folder);
-		$this->folderService->method('getFolderName')->willReturn('LibreSign');
-
 		$targetFolder = $this->createMock(Folder::class);
-		$folder->method('newFolder')->willReturn($targetFolder);
+		$this->folderService->method('getFolderForFile')->willReturn($targetFolder);
 
 		$node = $this->createMock(Node::class);
 		$node->method('getId')->willReturn(123);
