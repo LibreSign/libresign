@@ -325,16 +325,13 @@ class SignFileService {
 	}
 
 	public function sign(): void {
-		$originalLibreSignFile = $this->libreSignFile;
-		$originalSignRequest = $this->signRequest;
-		$envelopeLastSignedDate = null;
-		$lastSignedFile = null;
-
 		$signRequests = $this->getSignRequestsToSign();
 
 		if (empty($signRequests)) {
 			throw new LibresignException('No sign requests found to process');
 		}
+
+		$envelopeLastSignedDate = null;
 
 		foreach ($signRequests as $signRequestData) {
 			$this->libreSignFile = $signRequestData['file'];
@@ -345,7 +342,6 @@ class SignFileService {
 
 			$this->validateDocMdpAllowsSignatures();
 			$signedFile = $this->getEngine()->sign();
-			$lastSignedFile = $signedFile;
 
 			$hash = $this->computeHash($signedFile);
 			$envelopeLastSignedDate = $this->getEngine()->getLastSignedDate();
@@ -356,36 +352,20 @@ class SignFileService {
 			$this->dispatchSignedEvent();
 		}
 
-		$this->libreSignFile = $originalLibreSignFile;
-		$this->signRequest = $originalSignRequest;
-
-		if ($originalLibreSignFile->isEnvelope()) {
-			if ($envelopeLastSignedDate) {
-				$this->signRequest->setSigned($envelopeLastSignedDate);
-				$this->signRequest->setStatusEnum(\OCA\Libresign\Enum\SignRequestStatus::SIGNED);
-				$this->signRequestMapper->update($this->signRequest);
-				$this->sequentialSigningService
-					->setFile($this->libreSignFile)
-					->releaseNextOrder(
-						$this->signRequest->getFileId(),
-						$this->signRequest->getSigningOrder()
-					);
-			}
-			$this->updateEnvelopeStatus();
-
-			if ($lastSignedFile instanceof File) {
-				$event = $this->signedEventFactory->make(
-					$this->signRequest,
-					$this->libreSignFile,
-					$lastSignedFile,
-				);
-				$this->eventDispatcher->dispatchTyped($event);
-			}
+		$envelopeContext = $this->getEnvelopeContext();
+		if ($envelopeContext['envelope'] instanceof FileEntity) {
+			$this->updateEnvelopeStatus(
+				$envelopeContext['envelope'],
+				$envelopeContext['envelopeSignRequest'] ?? null,
+				$envelopeLastSignedDate
+			);
 		}
 	}
 
 	/**
-	 * @return array Array of ['file' => FileEntity, 'signRequest' => SignRequestEntity]
+	 * Get sign requests to process.
+	 *
+	 * @return array Array of sign request data with 'file' => FileEntity, 'signRequest' => SignRequestEntity
 	 */
 	private function getSignRequestsToSign(): array {
 		if (!$this->libreSignFile->isEnvelope()
@@ -397,6 +377,13 @@ class SignFileService {
 			]];
 		}
 
+		return $this->buildEnvelopeSignRequests();
+	}
+
+	/**
+	 * @return array Array of sign request data with 'file' => FileEntity, 'signRequest' => SignRequestEntity
+	 */
+	private function buildEnvelopeSignRequests(): array {
 		$envelopeId = $this->libreSignFile->isEnvelope()
 			? $this->libreSignFile->getId()
 			: $this->libreSignFile->getParentFileId();
@@ -433,8 +420,46 @@ class SignFileService {
 		return $signRequestsData;
 	}
 
-	private function updateEnvelopeStatus(): void {
-		$childFiles = $this->fileMapper->getChildrenFiles($this->libreSignFile->getId());
+	/**
+	 * Get envelope context if the current file is or belongs to an envelope.
+	 *
+	 * @return array Array with 'envelope' => FileEntity or null, 'envelopeSignRequest' => SignRequestEntity or null
+	 */
+	private function getEnvelopeContext(): array {
+		$result = [
+			'envelope' => null,
+			'envelopeSignRequest' => null,
+		];
+
+		if (!$this->libreSignFile->isEnvelope() && !$this->libreSignFile->hasParent()) {
+			return $result;
+		}
+
+		if ($this->libreSignFile->isEnvelope()) {
+			$result['envelope'] = $this->libreSignFile;
+			$result['envelopeSignRequest'] = $this->signRequest;
+			return $result;
+		}
+
+		try {
+			$envelopeId = $this->libreSignFile->isEnvelope()
+				? $this->libreSignFile->getId()
+				: $this->libreSignFile->getParentFileId();
+			$result['envelope'] = $this->fileMapper->getById($envelopeId);
+			$identifyMethod = $this->identifyMethodService->getIdentifiedMethod($this->signRequest->getId());
+			$result['envelopeSignRequest'] = $this->signRequestMapper->getByIdentifyMethodAndFileId(
+				$identifyMethod,
+				$result['envelope']->getId()
+			);
+		} catch (DoesNotExistException $e) {
+			// Envelope not found or sign request not found, leave as null
+		}
+
+		return $result;
+	}
+
+	private function updateEnvelopeStatus(FileEntity $envelope, ?SignRequestEntity $envelopeSignRequest = null, ?DateTimeInterface $signedDate = null): void {
+		$childFiles = $this->fileMapper->getChildrenFiles($envelope->getId());
 
 		$totalSignRequests = 0;
 		$signedSignRequests = 0;
@@ -451,16 +476,27 @@ class SignFileService {
 		}
 
 		if ($totalSignRequests === 0) {
-			$this->libreSignFile->setStatus(FileEntity::STATUS_DRAFT);
+			$envelope->setStatus(FileEntity::STATUS_DRAFT);
 		} elseif ($signedSignRequests === 0) {
-			$this->libreSignFile->setStatus(FileEntity::STATUS_ABLE_TO_SIGN);
+			$envelope->setStatus(FileEntity::STATUS_ABLE_TO_SIGN);
 		} elseif ($signedSignRequests === $totalSignRequests) {
-			$this->libreSignFile->setStatus(FileEntity::STATUS_SIGNED);
+			$envelope->setStatus(FileEntity::STATUS_SIGNED);
+			if ($envelopeSignRequest instanceof SignRequestEntity) {
+				$envelopeSignRequest->setSigned($signedDate ?: new DateTime());
+				$envelopeSignRequest->setStatusEnum(\OCA\Libresign\Enum\SignRequestStatus::SIGNED);
+				$this->signRequestMapper->update($envelopeSignRequest);
+				$this->sequentialSigningService
+					->setFile($envelope)
+					->releaseNextOrder(
+						$envelopeSignRequest->getFileId(),
+						$envelopeSignRequest->getSigningOrder()
+					);
+			}
 		} else {
-			$this->libreSignFile->setStatus(FileEntity::STATUS_PARTIAL_SIGNED);
+			$envelope->setStatus(FileEntity::STATUS_PARTIAL_SIGNED);
 		}
 
-		$this->fileMapper->update($this->libreSignFile);
+		$this->fileMapper->update($envelope);
 	}
 
 	/**
