@@ -275,9 +275,18 @@ export default {
 	box-shadow: 0 0 6px 0 var(--color-box-shadow);
 	margin-bottom: 16px;
 
-	@media screen and (max-width: 900px) {
-		padding: 12px;
+	@media screen and (max-width: 700px) {
+		padding: 12px 8px;
 		box-shadow: none;
+		border-top: 2px solid var(--color-border-dark);
+		border-radius: 0;
+		margin-bottom: 0;
+		margin-top: 12px;
+
+		&:first-child {
+			border-top: none;
+			margin-top: 0;
+		}
 	}
 
 	.header {
