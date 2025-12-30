@@ -12,6 +12,7 @@ use OCA\Files\Event\LoadAdditionalScriptsEvent;
 use OCA\Files\Event\LoadSidebar;
 use OCA\Libresign\Activity\Listener as ActivityListener;
 use OCA\Libresign\Capabilities;
+use OCA\Libresign\Dashboard\PendingSignaturesWidget;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
@@ -89,5 +90,8 @@ class Application extends App implements IBootstrap {
 		$context->registerEventListener(SignedEvent::class, TwofactorGatewayListener::class);
 
 		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
+
+		// Register Dashboard Widget
+		$context->registerDashboardWidget(PendingSignaturesWidget::class);
 	}
 }
