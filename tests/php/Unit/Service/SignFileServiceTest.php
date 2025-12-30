@@ -625,6 +625,52 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	public function testGetSignRequestsToSignWhenFileHasParentEnvelope(): void {
+		$service = $this->getService();
+
+		$envelopeId = 99;
+		$childFile = new File();
+		$childFile->setId(10);
+		$childFile->setParentFileId($envelopeId);
+
+		$siblingFile = new File();
+		$siblingFile->setId(11);
+		$siblingFile->setParentFileId($envelopeId);
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(200);
+		$signRequest->setFileId($childFile->getId());
+
+		$siblingSignRequest = new SignRequest();
+		$siblingSignRequest->setId(201);
+		$siblingSignRequest->setFileId($siblingFile->getId());
+
+		$this->fileMapper
+			->expects($this->once())
+			->method('getChildrenFiles')
+			->with($envelopeId)
+			->willReturn([$childFile, $siblingFile]);
+
+		$this->signRequestMapper
+			->expects($this->once())
+			->method('getByEnvelopeChildrenAndIdentifyMethod')
+			->with($envelopeId, $signRequest->getId())
+			->willReturn([$signRequest, $siblingSignRequest]);
+
+		$result = self::invokePrivate(
+			$service
+				->setLibreSignFile($childFile)
+				->setSignRequest($signRequest),
+			'getSignRequestsToSign'
+		);
+
+		$this->assertCount(2, $result);
+		$this->assertSame($childFile, $result[0]['file']);
+		$this->assertSame($signRequest, $result[0]['signRequest']);
+		$this->assertSame($siblingFile, $result[1]['file']);
+		$this->assertSame($siblingSignRequest, $result[1]['signRequest']);
+	}
+
 	#[DataProvider('providerStoreUserMetadata')]
 	public function testStoreUserMetadata(bool $collectMetadata, ?array $previous, array $new, ?array $expected): void {
 		$signRequest = new \OCA\Libresign\Db\SignRequest();
