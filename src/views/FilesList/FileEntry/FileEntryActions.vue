@@ -6,10 +6,13 @@
 	<td class="files-list__row-actions">
 		<!-- Menu actions -->
 		<NcActions ref="actionsMenu"
+			:boundaries-element="boundariesElement"
+			:container="boundariesElement"
 			:force-name="true"
 			type="tertiary"
 			:open.sync="openedMenu"
-			@close="openedMenu = null">
+			@close="openedMenu = null"
+			@closed="onMenuClosed">
 			<!-- Default actions list-->
 			<NcActionButton v-for="action in visibleMenu"
 				:key="action.id"
@@ -58,6 +61,7 @@
 <script>
 import svgDelete from '@mdi/svg/svg/delete.svg?raw'
 import svgFileDocument from '@mdi/svg/svg/file-document-outline.svg?raw'
+import svgPencil from '@mdi/svg/svg/pencil-outline.svg?raw'
 import svgSignature from '@mdi/svg/svg/signature.svg?raw'
 import svgTextBoxCheck from '@mdi/svg/svg/text-box-check.svg?raw'
 
@@ -123,6 +127,7 @@ export default {
 			hasInfo: false,
 		}
 	},
+	emits: ['rename', 'start-rename'],
 	computed: {
 		openedMenu: {
 			get() {
@@ -135,8 +140,19 @@ export default {
 		visibleMenu() {
 			return this.enabledMenuActions.filter(action => this.visibleIf(action))
 		},
+		file() {
+			return this.filesStore.files[this.source.id]
+		},
+		boundariesElement() {
+			return document.querySelector('.app-content > .files-list')
+		},
 	},
 	mounted() {
+		this.registerAction({
+			id: 'rename',
+			title: t('libresign', 'Rename'),
+			iconSvgInline: svgPencil,
+		})
 		this.registerAction({
 			id: 'validate',
 			title: t('libresign', 'Validate'),
@@ -163,16 +179,17 @@ export default {
 	},
 	methods: {
 		visibleIf(action) {
-			const file = this.filesStore.files[this.source.nodeId]
 			let visible = false
-			if (action.id === 'sign') {
-				visible = this.filesStore.canSign(file)
-			} else if (action.id === 'validate') {
-				visible = this.filesStore.canValidate(file)
-			} else if (action.id === 'delete') {
-				visible = this.filesStore.canDelete(file)
-			} else if (action.id === 'open') {
+			if (action.id === 'rename') {
 				visible = true
+			} else if (action.id === 'sign') {
+				visible = this.filesStore.canSign(this.file)
+			} else if (action.id === 'validate') {
+				visible = this.filesStore.canValidate(this.file)
+			} else if (action.id === 'delete') {
+				visible = this.filesStore.canDelete(this.file)
+			} else if (action.id === 'open') {
+				visible = this.source?.nodeType !== 'envelope'
 			}
 			return visible
 		},
@@ -191,14 +208,14 @@ export default {
 					signer_uuid: signUuid,
 					force_fetch: true,
 				})
-				this.signStore.setDocumentToSign(files[this.source.nodeId])
+				this.signStore.setFileToSign(files[this.source.id])
 				this.$router.push({
 					name: 'SignPDF',
 					params: {
 						uuid: signUuid,
 					},
 				})
-				this.filesStore.selectFile(this.source.nodeId)
+				this.filesStore.selectFile(this.source.id)
 			} else if (action.id === 'validate') {
 				this.$router.push({
 					name: 'ValidationFile',
@@ -208,6 +225,8 @@ export default {
 				})
 			} else if (action.id === 'delete') {
 				this.confirmDelete = true
+			} else if (action.id === 'rename') {
+				this.$emit('start-rename')
 			} else if (action.id === 'open') {
 				this.openFile()
 			}
@@ -236,14 +255,25 @@ export default {
 				window.open(`${this.source.file}?_t=${Date.now()}`)
 			}
 		},
+		doRename(newName) {
+			return this.filesStore.rename(this.source.uuid, newName)
+		},
+		onMenuClosed() {
+			if (this.actionsMenuStore.opened === null) {
+				const root = this.$el?.closest('.app-content')
+				if (root) {
+					root.style.removeProperty('--mouse-pos-x')
+					root.style.removeProperty('--mouse-pos-y')
+				}
+			}
+		},
 	},
 }
 </script>
 
 <style lang="scss">
 // Allow right click to define the position of the menu
-// only if defined
-main.app-content[style*="mouse-pos-x"] .v-popper__popper {
+.app-content[style*="mouse-pos-x"] .v-popper__popper {
 	transform: translate3d(var(--mouse-pos-x), var(--mouse-pos-y), 0px) !important;
 
 	// If the menu is too close to the bottom, we move it up

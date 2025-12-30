@@ -47,10 +47,48 @@ class IdentifyService {
 		$this->refreshIdFromDatabaseIfNecessary($identifyMethod);
 		if ($identifyMethod->getId()) {
 			$this->identifyMethodMapper->update($identifyMethod);
+			$this->propagateIdentifiedDateToEnvelopeChildren($identifyMethod);
 			return;
 		}
 		$this->identifyMethodMapper->insertOrUpdate($identifyMethod);
+		$this->propagateIdentifiedDateToEnvelopeChildren($identifyMethod);
 		return;
+	}
+
+	private function propagateIdentifiedDateToEnvelopeChildren(IdentifyMethod $identifyMethod): void {
+		if (!$identifyMethod->getIdentifiedAtDate()) {
+			return;
+		}
+
+		if (!$identifyMethod->getSignRequestId()) {
+			return;
+		}
+
+		$signRequest = $this->signRequestMapper->getById($identifyMethod->getSignRequestId());
+		$fileEntity = $this->fileMapper->getById($signRequest->getFileId());
+
+		if (method_exists($fileEntity, 'getNodeType') && $fileEntity->getNodeType() !== 'envelope') {
+			return;
+		}
+
+		$children = $this->signRequestMapper->getByEnvelopeChildrenAndIdentifyMethod(
+			$fileEntity->getId(),
+			$signRequest->getId(),
+		);
+
+		foreach ($children as $childSignRequest) {
+			$childMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($childSignRequest->getId());
+
+			foreach ($childMethods as $childEntity) {
+				if (
+					$childEntity->getIdentifierKey() === $identifyMethod->getIdentifierKey()
+					&& $childEntity->getIdentifierValue() === $identifyMethod->getIdentifierValue()
+				) {
+					$childEntity->setIdentifiedAtDate($identifyMethod->getIdentifiedAtDate());
+					$this->identifyMethodMapper->update($childEntity);
+				}
+			}
+		}
 	}
 
 	public function delete(IdentifyMethod $identifyMethod): void {

@@ -23,6 +23,7 @@
 		<SignatureStamp />
 		<SignatureHashAlgorithm />
 		<DefaultUserFolder />
+		<Envelope />
 		<Reminders />
 		<TSA />
 	</NcSettingsSection>
@@ -48,6 +49,7 @@ import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
 import SignatureFlow from './SignatureFlow.vue'
 import SignatureHashAlgorithm from './SignatureHashAlgorithm.vue'
 import SignatureStamp from './SignatureStamp.vue'
+import Envelope from './Envelope.vue'
 import SupportProject from './SupportProject.vue'
 import TSA from './TSA.vue'
 import Validation from './Validation.vue'
@@ -73,6 +75,7 @@ export default {
 		SignatureFlow,
 		SignatureHashAlgorithm,
 		SignatureStamp,
+		Envelope,
 		SupportProject,
 		TSA,
 		Validation,

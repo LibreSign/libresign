@@ -26,9 +26,9 @@ Feature: file-list
       | (jq).ocs.data.data[0].signers[1].me                        | false                   |
       | (jq).ocs.data.data[0].signers[0].identifyMethods\|length   | 1                       |
       | (jq).ocs.data.data[0].signers[1].identifyMethods[0].method | account                 |
-    When fetch field "(NODE_ID)ocs.data.data.0.nodeId" from previous JSON response
+    When fetch field "(FILE_ID)ocs.data.data.0.id" from previous JSON response
     And fetch field "(SIGN_REQUEST_ID)ocs.data.data.0.signers.0.signRequestId" from previous JSON response
-    And sending "delete" to ocs "/apps/libresign/api/v1/sign/file_id/<NODE_ID>/<SIGN_REQUEST_ID>"
+    And sending "delete" to ocs "/apps/libresign/api/v1/sign/file_id/<FILE_ID>/<SIGN_REQUEST_ID>"
     And sending "get" to ocs "/apps/libresign/api/v1/file/list"
     Then the response should be a JSON array with the following mandatory values
       | key                                                        | value                   |

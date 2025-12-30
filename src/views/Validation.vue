@@ -8,27 +8,21 @@
 			<img :src="logo" :alt="t('libresign', 'LibreSign logo')" draggable="false">
 		</div>
 		<div id="validation-content">
-			<div v-show="!hasInfo" class="infor-container">
+			<div v-if="!hasInfo" class="infor-container">
 				<div class="section">
 					<h1>{{ t('libresign', 'Validate signature') }}</h1>
 					<NcNoteCard v-if="validationErrorMessage" type="error">
 						{{ validationErrorMessage }}
 					</NcNoteCard>
-					<NcActions :menu-name="t('libresign', 'Validate signature')"
-						:inline="3"
-						:force-name="true">
-						<NcActionButton :wide="true"
-							:disabled="loading"
-							@click="openUuidDialog()">
+					<NcActions :menu-name="t('libresign', 'Validate signature')" :inline="3" :force-name="true">
+						<NcActionButton :wide="true" :disabled="loading" @click="openUuidDialog()">
 							{{ t('libresign', 'From UUID') }}
 							<template #icon>
 								<NcLoadingIcon v-if="loading" :size="20" />
 								<NcIconSvgWrapper v-else :path="mdiKey" />
 							</template>
 						</NcActionButton>
-						<NcActionButton :wide="true"
-							:disabled="loading"
-							@click="uploadFile">
+						<NcActionButton :wide="true" :disabled="loading" @click="uploadFile">
 							{{ t('libresign', 'Upload') }}
 							<template #icon>
 								<NcLoadingIcon v-if="loading" :size="20" />
@@ -36,18 +30,14 @@
 							</template>
 						</NcActionButton>
 					</NcActions>
-					<NcDialog v-if="getUUID"
-						:name="t('libresign', 'Validate signature')"
-						is-form
+					<NcDialog v-if="getUUID" :name="t('libresign', 'Validate signature')" is-form
 						@closing="getUUID = false">
 						<h1>{{ t('libresign', 'Validate signature') }}</h1>
 						<NcTextField v-model="uuidToValidate"
 							:label="t('libresign', 'Enter the ID or UUID of the document to validate.')"
-							:helper-text="helperTextValidation"
-							:error="!!uuidToValidate && !canValidate" />
+							:helper-text="helperTextValidation" :error="!!uuidToValidate && !canValidate" />
 						<template #actions>
-							<NcButton variant="primary"
-								:disabled="loading || !canValidate"
+							<NcButton variant="primary" :disabled="loading || !canValidate"
 								@click.prevent="validateAndProceed">
 								<template #icon>
 									<NcLoadingIcon v-if="loading" :size="20" />
@@ -58,625 +48,14 @@
 					</NcDialog>
 				</div>
 			</div>
-			<div v-if="hasInfo" class="infor-container">
-				<div class="section">
-					<div class="header">
-						<NcIconSvgWrapper :path="mdiInformationSlabCircle" :size="30" />
-						<h1>{{ t('libresign', 'Document information') }}</h1>
-					</div>
-					<NcNoteCard v-if="documentValidMessage" type="success">
-						{{ documentValidMessage }}
-					</NcNoteCard>
-					<NcNoteCard v-if="isAfterSigned" type="success">
-						{{ t('libresign', 'Congratulations you have digitally signed a document using LibreSign') }}
-					</NcNoteCard>
-					<ul>
-						<NcListItem class="extra"
-							compact
-							:name="t('libresign', 'Name:')">
-							<template #name>
-								<strong>{{ t('libresign', 'Name:') }}</strong>
-								{{ document.name }}
-							</template>
-						</NcListItem>
-						<NcListItem v-if="document.status"
-							class="extra"
-							compact
-							:name="t('libresign', 'Status:')">
-							<template #name>
-								<strong>{{ t('libresign', 'Status:') }}</strong>
-								{{ documentStatus }}
-							</template>
-						</NcListItem>
-						<NcListItem class="extra"
-							compact
-							:name="t('libresign', 'Total pages:')">
-							<template #name>
-								<strong>{{ t('libresign', 'Total pages:') }}</strong>
-								{{ document.totalPages }}
-							</template>
-						</NcListItem>
-						<NcListItem class="extra"
-							compact
-							:name="t('libresign', 'File size:')">
-							<template #name>
-								<strong>{{ t('libresign', 'File size:') }}</strong>
-								{{ size }}
-							</template>
-						</NcListItem>
-						<NcListItem class="extra"
-							compact
-							:name="t('libresign', 'PDF version:')">
-							<template #name>
-								<strong>{{ t('libresign', 'PDF version:') }}</strong>
-								{{ document.pdfVersion }}
-							</template>
-						</NcListItem>
-					</ul>
-					<div class="info-document">
-						<NcRichText v-if="document.signers && document.signers.length > 0"
-							class="legal-information"
-							:text="legalInformation"
-							:use-markdown="true" />
-
-						<NcButton v-if="document.nodeId"
-							variant="primary"
-							@click="viewDocument()">
-							<template #icon>
-								<NcLoadingIcon v-if="loading" :size="20" />
-							</template>
-							{{ t('libresign', 'View') }}
-						</NcButton>
-					</div>
-				</div>
-				<div v-if="document.signers && document.signers.length > 0" class="section">
-					<div class="header">
-						<NcIconSvgWrapper :path="mdiSignatureFreehand" :size="30" />
-						<h1>{{ t('libresign', 'Signatories:') }}</h1>
-					</div>
-					<ul class="signers">
-						<li v-for="(signer, signerIndex) in document.signers"
-							:key="signerIndex">
-							<NcListItem :name="getName(signer)"
-								:active="signer.opened"
-								@click="toggleDetail(signer)">
-								<template #icon>
-									<NcAvatar disable-menu
-										:is-no-user="!signer.userId"
-										:size="44"
-										:user="signer.userId ? signer.userId : getName(signer)"
-										:display-name="getName(signer)" />
-								</template>
-								<template #subname>
-									<span class="date-signed-desktop">
-										<strong>{{ t('libresign', 'Date signed:') }}</strong>
-										<span v-if="signer.signed" class="data-signed">
-											{{ dateFromSqlAnsi(signer.signed) }}
-										</span>
-										<span v-else>{{ t('libresign', 'No date') }}</span>
-									</span>
-								</template>
-								<template #extra-actions>
-									<NcButton variant="tertiary"
-										:aria-label="signer.opened ? t('libresign', 'Collapse details') : t('libresign', 'Expand details')"
-										@click="toggleDetail(signer)">
-										<template #icon>
-											<NcIconSvgWrapper v-if="signer.opened"
-												:path="mdiUnfoldLessHorizontal"
-												:size="20" />
-											<NcIconSvgWrapper v-else
-												:path="mdiUnfoldMoreHorizontal"
-												:size="20" />
-										</template>
-									</NcButton>
-								</template>
-								<template #indicator>
-									<NcIconSvgWrapper v-if="signer.signature_validation"
-										:name="signer.signature_validation.label"
-										:path="getIconValidityPath(signer)"
-										:class="signer.signature_validation?.id === 1 ? 'icon-success' : 'icon-error'"
-										:size="20" />
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.request_sign_date"
-								class="extra"
-								compact
-								:name="t('libresign', 'Requested on:')">
-								<template #name>
-									<strong>{{ t('libresign', 'Requested on:') }}</strong>
-									{{ dateFromSqlAnsi(signer.request_sign_date) }}
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened"
-								class="extra"
-								compact
-								:name="t('libresign', 'Date signed:')">
-								<template #name>
-									<strong>{{ t('libresign', 'Date signed:') }}</strong>
-									<span v-if="signer.signed">
-										{{ dateFromSqlAnsi(signer.signed) }}
-									</span>
-									<span v-else>{{ t('libresign', 'No date') }}</span>
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && hasValidationStatus(signer)"
-								class="extra"
-								compact
-								:name="t('libresign', 'Validation status')"
-								:aria-expanded="validationStatusOpenState[signerIndex] ? 'true' : 'false'"
-								:aria-label="validationStatusOpenState[signerIndex] ? t('libresign', 'Validation status, expanded. Click to collapse') : t('libresign', 'Validation status, collapsed. Click to expand')"
-								role="button"
-								@click="toggleState(validationStatusOpenState, signerIndex)">
-								<template #name>
-									<strong>{{ t('libresign', 'Validation status') }}</strong>
-								</template>
-								<template #extra-actions>
-									<NcButton variant="tertiary"
-										:aria-label="validationStatusOpenState[signerIndex] ? t('libresign', 'Collapse validation status') : t('libresign', 'Expand validation status')"
-										@click.stop="toggleState(validationStatusOpenState, signerIndex)">
-										<template #icon>
-											<NcIconSvgWrapper v-if="validationStatusOpenState[signerIndex]"
-												:path="mdiUnfoldLessHorizontal"
-												:size="20" />
-											<NcIconSvgWrapper v-else
-												:path="mdiUnfoldMoreHorizontal"
-												:size="20" />
-										</template>
-									</NcButton>
-								</template>
-							</NcListItem>
-							<div v-if="signer.opened && validationStatusOpenState[signerIndex]"
-								role="region"
-								:aria-label="t('libresign', 'Validation status details')">
-								<NcListItem v-if="signer.signature_validation"
-									class="extra-chain"
-									compact>
-									<template #icon>
-										<NcIconSvgWrapper :path="signer.signature_validation.id === 1 ? mdiCheckCircle : mdiAlertCircle"
-											:class="signer.signature_validation?.id === 1 ? 'icon-success' : 'icon-error'" />
-									</template>
-									<template #name>
-										{{ getSignatureValidationMessage(signer) }}
-									</template>
-								</NcListItem>
-								<NcListItem v-if="signer.certificate_validation"
-									class="extra-chain"
-									compact>
-									<template #icon>
-										<NcIconSvgWrapper :path="signer.certificate_validation.id === 1 ? mdiCheckCircle : mdiAlertCircle"
-											:class="signer.certificate_validation?.id === 1 ? 'icon-success' : 'icon-error'" />
-									</template>
-									<template #name>
-										{{ getCertificateTrustMessage(signer) }}
-									</template>
-								</NcListItem>
-								<NcListItem v-if="signer.valid_from && signer.valid_to && signer.signed"
-									class="extra-chain"
-									compact>
-									<template #icon>
-										<NcIconSvgWrapper :path="getValidityStatusAtSigning(signer) === 'valid' ? mdiCheckCircle : mdiCancel"
-											:class="getValidityStatusAtSigning(signer) === 'valid' ? 'icon-success' : 'icon-error'" />
-									</template>
-									<template #name>
-										{{ getValidityStatusAtSigning(signer) === 'valid' ? t('libresign', 'Valid at signing time') : t('libresign', 'NOT valid at signing time') }}
-									</template>
-								</NcListItem>
-								<NcListItem v-if="signer.crl_validation"
-									class="extra-chain"
-									compact>
-									<template #icon>
-										<NcIconSvgWrapper :path="crlStatusMap[signer.crl_validation]?.icon || mdiHelpCircle"
-											:class="getCrlValidationIconClass(signer)" />
-									</template>
-									<template #name>
-										{{ crlStatusMap[signer.crl_validation]?.text || signer.crl_validation }}
-									</template>
-								</NcListItem>
-							</div>
-							<NcListItem v-if="signer.opened && hasDocMdpInfo(signer)"
-								class="extra"
-								compact
-								:name="t('libresign', 'Document certification')"
-								:aria-expanded="docMdpOpenState[signerIndex] ? 'true' : 'false'"
-								:aria-label="docMdpOpenState[signerIndex] ? t('libresign', 'Document certification, expanded. Click to collapse') : t('libresign', 'Document certification, collapsed. Click to expand')"
-								role="button"
-								@click="toggleState(docMdpOpenState, signerIndex)">
-								<template #name>
-									<strong>{{ t('libresign', 'Document certification') }}</strong>
-								</template>
-								<template #extra-actions>
-									<NcButton variant="tertiary"
-										:aria-label="docMdpOpenState[signerIndex] ? t('libresign', 'Collapse certification details') : t('libresign', 'Expand certification details')"
-										@click.stop="toggleState(docMdpOpenState, signerIndex)">
-										<template #icon>
-											<NcIconSvgWrapper v-if="docMdpOpenState[signerIndex]"
-												:path="mdiUnfoldLessHorizontal"
-												:size="20" />
-											<NcIconSvgWrapper v-else
-												:path="mdiUnfoldMoreHorizontal"
-												:size="20" />
-										</template>
-									</NcButton>
-								</template>
-								<template #indicator>
-									<NcIconSvgWrapper v-if="getModificationStatusIcon(signer)"
-										:path="getModificationStatusIcon(signer)"
-										:class="getModificationStatusClass(signer)"
-										:size="20" />
-								</template>
-							</NcListItem>
-							<div v-if="signer.opened && docMdpOpenState[signerIndex] && hasDocMdpInfo(signer)"
-								role="region"
-								:aria-label="t('libresign', 'Document certification details')">
-								<NcListItem v-if="signer.docmdp"
-									class="extra-chain"
-									compact>
-									<template #icon>
-										<NcIconSvgWrapper :path="signer.docmdp.isCertifying ? mdiShieldCheck : mdiShieldOff" />
-									</template>
-									<template #name>
-										<strong>{{ t('libresign', 'Certification level:') }}</strong>
-										{{ signer.docmdp.label }}
-									</template>
-								</NcListItem>
-								<NcListItem v-if="signer.docmdp && signer.docmdp.description"
-									class="extra-chain"
-									compact>
-									<template #name>
-										{{ signer.docmdp.description }}
-									</template>
-								</NcListItem>
-								<NcListItem v-if="signer.modification_validation"
-									class="extra-chain"
-									compact>
-									<template #icon>
-										<NcIconSvgWrapper :path="getModificationStatusIcon(signer)"
-											:class="getModificationStatusClass(signer)" />
-									</template>
-									<template #name>
-										{{ signer.modification_validation.message }}
-									</template>
-								</NcListItem>
-								<NcListItem v-if="signer.modifications && signer.modifications.modified"
-									class="extra-chain"
-									compact>
-									<template #icon>
-										<NcIconSvgWrapper :path="mdiInformationOutline" />
-									</template>
-									<template #name>
-										{{ n('libresign', 'Document has %n revision', 'Document has %n revisions', signer.modifications.revisionCount) }}
-									</template>
-								</NcListItem>
-							</div>
-							<NcListItem v-if="signer.opened && signer.signatureTypeSN"
-								class="extra"
-								compact
-								:name="t('libresign', 'Hash algorithm:')">
-								<template #name>
-									<strong>{{ t('libresign', 'Hash algorithm:') }}</strong>
-									{{ signer.signatureTypeSN }}
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.hash"
-								class="extra"
-								compact
-								:name="t('libresign', 'Certificate hash:')">
-								<template #name>
-									<strong>{{ t('libresign', 'Certificate hash:') }}</strong>
-									{{ signer.hash }}
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.field"
-								class="extra"
-								compact
-								:name="t('libresign', 'Field:')">
-								<template #name>
-									<strong>{{ t('libresign', 'Field:') }}</strong>
-									{{ signer.field }}
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.remote_address"
-								class="extra"
-								compact
-								:name="t('libresign', 'Remote address:')">
-								<template #name>
-									<strong>{{ t('libresign', 'Remote address:') }}</strong>
-									{{ signer.remote_address }}
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.user_agent"
-								class="extra"
-								compact
-								:name="t('libresign', 'User agent:')">
-								<template #name>
-									<strong>{{ t('libresign', 'User agent:') }}</strong>
-									{{ signer.user_agent }}
-								</template>
-							</NcListItem>
-							<NcListItem v-if="signer.opened && signer.extensions"
-								class="extra"
-								compact
-								:name="t('libresign', 'Certificate extensions')"
-								:aria-expanded="extensionsOpenState[signerIndex] ? 'true' : 'false'"
-								:aria-label="extensionsOpenState[signerIndex] ? t('libresign', 'Certificate extensions, expanded. Click to collapse') : t('libresign', 'Certificate extensions, collapsed. Click to expand')"
-								role="button"
-								@click="toggleState(extensionsOpenState, signerIndex)">
-								<template #name>
-									<strong>{{ t('libresign', 'Certificate extensions') }}</strong>
-								</template>
-								<template #extra-actions>
-									<NcButton variant="tertiary"
-										:aria-label="extensionsOpenState[signerIndex] ? t('libresign', 'Collapse extensions') : t('libresign', 'Expand extensions')"
-										@click.stop="toggleState(extensionsOpenState, signerIndex)">
-										<template #icon>
-											<NcIconSvgWrapper v-if="extensionsOpenState[signerIndex]"
-												:path="mdiUnfoldLessHorizontal"
-												:size="20" />
-											<NcIconSvgWrapper v-else
-												:path="mdiUnfoldMoreHorizontal"
-												:size="20" />
-										</template>
-									</NcButton>
-								</template>
-							</NcListItem>
-							<div v-if="signer.opened && signer.extensions && extensionsOpenState[signerIndex]"
-								role="region"
-								:aria-label="t('libresign', 'Certificate extensions details')">
-								<NcListItem v-for="(value, key) in signer.extensions"
-									:key="key"
-									class="extra-chain"
-									compact
-									:name="camelCaseToTitleCase(key)">
-									<template #name>
-										<strong>{{ camelCaseToTitleCase(key) }}:</strong>
-										<span class="extension-value">{{ value }}</span>
-									</template>
-								</NcListItem>
-							</div>
-							<NcListItem v-if="signer.opened && signer.timestamp && signer.timestamp.displayName"
-								class="extra"
-								compact
-								:name="t('libresign', 'Timestamp Authority')"
-								:aria-expanded="tsaOpenState[signerIndex] ? 'true' : 'false'"
-								:aria-label="tsaOpenState[signerIndex] ? t('libresign', 'Timestamp Authority, expanded. Click to collapse') : t('libresign', 'Timestamp Authority, collapsed. Click to expand')"
-								role="button"
-								@click="toggleState(tsaOpenState, signerIndex)">
-								<template #name>
-									<strong>{{ t('libresign', 'Timestamp Authority') }}</strong>
-								</template>
-								<template #extra-actions>
-									<NcButton variant="tertiary"
-										:aria-label="tsaOpenState[signerIndex] ? t('libresign', 'Collapse timestamp details') : t('libresign', 'Expand timestamp details')"
-										@click.stop="toggleState(tsaOpenState, signerIndex)">
-										<template #icon>
-											<NcIconSvgWrapper v-if="tsaOpenState[signerIndex]"
-												:path="mdiUnfoldLessHorizontal"
-												:size="20" />
-											<NcIconSvgWrapper v-else
-												:path="mdiUnfoldMoreHorizontal"
-												:size="20" />
-										</template>
-									</NcButton>
-								</template>
-							</NcListItem>
-							<div v-if="signer.opened && signer.timestamp && signer.timestamp.displayName && tsaOpenState[signerIndex]"
-								role="region"
-								:aria-label="t('libresign', 'Timestamp Authority details')">
-								<NcListItem v-if="signer.timestamp.displayName"
-									class="extra-chain"
-									compact
-									:name="t('libresign', 'TSA:')">
-									<template #name>
-										<strong>{{ t('libresign', 'TSA:') }}</strong>
-										{{ signer.timestamp.displayName }}
-									</template>
-								</NcListItem>
-								<NcListItem class="extra-chain"
-									compact
-									:name="t('libresign', 'Time:')">
-									<template #name>
-										<strong>{{ t('libresign', 'Time:') }}</strong>
-										{{ dateFromSqlAnsi(signer.timestamp.genTime) }}
-									</template>
-								</NcListItem>
-								<NcListItem v-if="signer.timestamp.policy"
-									class="extra-chain"
-									compact
-									:name="t('libresign', 'TSA Policy:')">
-									<template #name>
-										<strong>{{ t('libresign', 'TSA Policy:') }}</strong>
-										<span v-if="signer.timestamp.policyName">
-											{{ signer.timestamp.policyName }} ({{ signer.timestamp.policy }})
-										</span>
-										<span v-else>
-											{{ signer.timestamp.policy }}
-										</span>
-									</template>
-								</NcListItem>
-								<NcListItem v-if="signer.timestamp.serialNumber"
-									class="extra-chain"
-									compact
-									:name="t('libresign', 'TSA Serial:')">
-									<template #name>
-										<strong>{{ t('libresign', 'TSA Serial:') }}</strong>
-										{{ signer.timestamp.serialNumber }}
-									</template>
-								</NcListItem>
-								<NcListItem v-if="signer.timestamp.hashAlgorithm"
-									class="extra-chain"
-									compact
-									:name="t('libresign', 'TSA Hash Algorithm:')">
-									<template #name>
-										<strong>{{ t('libresign', 'TSA Hash Algorithm:') }}</strong>
-										<span>{{ signer.timestamp.hashAlgorithm || signer.timestamp.hashAlgorithmOID }}</span>
-										<span v-if="signer.timestamp.hashAlgorithmOID && signer.timestamp.hashAlgorithm && signer.timestamp.hashAlgorithm !== signer.timestamp.hashAlgorithmOID">
-											({{ signer.timestamp.hashAlgorithmOID }})
-										</span>
-									</template>
-								</NcListItem>
-								<NcListItem v-if="signer.timestamp.accuracy && (signer.timestamp.accuracy.seconds || signer.timestamp.accuracy.millis || signer.timestamp.accuracy.micros)"
-									class="extra-chain"
-									compact
-									:name="t('libresign', 'TSA Accuracy:')">
-									<template #name>
-										<strong>{{ t('libresign', 'TSA Accuracy:') }}</strong>
-										<span v-if="signer.timestamp.accuracy.seconds">{{ signer.timestamp.accuracy.seconds }}s</span>
-										<span v-if="signer.timestamp.accuracy.millis"> {{ signer.timestamp.accuracy.millis }}ms</span>
-										<span v-if="signer.timestamp.accuracy.micros"> {{ signer.timestamp.accuracy.micros }}μs</span>
-									</template>
-								</NcListItem>
-								<NcListItem v-if="signer.timestamp.ordering !== undefined"
-									class="extra-chain"
-									compact
-									:name="t('libresign', 'TSA Ordering:')">
-									<template #name>
-										<strong>{{ t('libresign', 'TSA Ordering:') }}</strong>
-										{{ signer.timestamp.ordering ? t('libresign', 'Yes') : t('libresign', 'No') }}
-									</template>
-								</NcListItem>
-								<NcListItem v-if="signer.timestamp.nonce"
-									class="extra-chain"
-									compact
-									:name="t('libresign', 'TSA Nonce:')">
-									<template #name>
-										<strong>{{ t('libresign', 'TSA Nonce:') }}</strong>
-										{{ signer.timestamp.nonce }}
-									</template>
-								</NcListItem>
-								<div v-if="signer.timestamp.chain && signer.timestamp.chain.length > 0">
-									<NcListItem class="extra-chain"
-										compact
-										:name="t('libresign', 'TSA Certificate Chain:')">
-										<template #name>
-											<strong>{{ t('libresign', 'TSA Certificate Chain:') }}</strong>
-										</template>
-									</NcListItem>
-									<NcListItem v-for="(cert, certIndex) in signer.timestamp.chain"
-										:key="`tsa-cert-${certIndex}`"
-										class="extra-chain"
-										compact>
-										<template #name>
-											<strong>{{ t('libresign', 'Subject:') }}</strong>
-											{{ cert.name || cert.subject?.CN || t('libresign', 'Unknown') }}
-											<br>
-											<small>
-												<strong>{{ t('libresign', 'Valid from:') }}</strong>
-												{{ formatTimestamp(cert.validFrom_time_t) || t('libresign', 'Unknown') }}
-												<br>
-												<strong>{{ t('libresign', 'Valid to:') }}</strong>
-												{{ formatTimestamp(cert.validTo_time_t) || t('libresign', 'Unknown') }}
-											</small>
-										</template>
-									</NcListItem>
-								</div>
-							</div>
-							<NcListItem v-if="signer.opened && signer.notify"
-								class="extra"
-								compact
-								:name="t('libresign', 'Notifications')"
-								:aria-expanded="notificationsOpenState[signerIndex] ? 'true' : 'false'"
-								:aria-label="notificationsOpenState[signerIndex] ? t('libresign', 'Notifications, expanded. Click to collapse') : t('libresign', 'Notifications, collapsed. Click to expand')"
-								role="button"
-								@click="toggleState(notificationsOpenState, signerIndex)">
-								<template #name>
-									<strong>{{ t('libresign', 'Notifications') }}</strong>
-								</template>
-								<template #extra-actions>
-									<NcButton variant="tertiary"
-										:aria-label="notificationsOpenState[signerIndex] ? t('libresign', 'Collapse notifications') : t('libresign', 'Expand notifications')"
-										@click.stop="toggleState(notificationsOpenState, signerIndex)">
-										<template #icon>
-											<NcIconSvgWrapper v-if="notificationsOpenState[signerIndex]"
-												:path="mdiUnfoldLessHorizontal"
-												:size="20" />
-											<NcIconSvgWrapper v-else
-												:path="mdiUnfoldMoreHorizontal"
-												:size="20" />
-										</template>
-									</NcButton>
-								</template>
-							</NcListItem>
-							<div v-if="signer.opened && signer.notify && notificationsOpenState[signerIndex]"
-								role="region"
-								:aria-label="t('libresign', 'Notifications details')">
-								<NcListItem v-for="(notify, notifyIndex) in signer.notify"
-									:key="notifyIndex"
-									class="extra-chain"
-									compact
-									:name="notify.method">
-									<template #name>
-										<strong>{{ notify.method }}:</strong>
-										{{ dateFromSqlAnsi(notify.date) }}
-									</template>
-								</NcListItem>
-							</div>
-							<NcListItem v-if="signer.opened && signer.chain && signer.chain.length > 0"
-								class="extra"
-								compact
-								:name="t('libresign', 'Certificate chain')"
-								:aria-expanded="chainOpenState[signerIndex] ? 'true' : 'false'"
-								role="button"
-								@click="toggleState(chainOpenState, signerIndex)">
-								<template #name>
-									<strong>{{ t('libresign', 'Certificate chain') }}</strong>
-								</template>
-								<template #extra-actions>
-									<NcButton variant="tertiary"
-										:aria-label="chainOpenState[signerIndex] ? t('libresign', 'Collapse certificate chain') : t('libresign', 'Expand certificate chain')"
-										@click.stop="toggleState(chainOpenState, signerIndex)">
-										<template #icon>
-											<NcIconSvgWrapper v-if="chainOpenState[signerIndex]"
-												:path="mdiUnfoldLessHorizontal" />
-											<NcIconSvgWrapper v-else
-												:path="mdiUnfoldMoreHorizontal" />
-										</template>
-									</NcButton>
-								</template>
-							</NcListItem>
-							<div v-if="signer.opened && signer.chain && chainOpenState[signerIndex]"
-								role="region"
-								:aria-label="t('libresign', 'Certificate chain details')">
-								<NcListItem v-for="(cert, certIndex) in signer.chain"
-									:key="certIndex"
-									class="extra-chain certificate-item"
-									compact
-									:name="certIndex === 0 ? t('libresign', 'Signer:') : t('libresign', 'Issuer:')">
-									<template #name>
-										<div class="cert-details">
-											<div>
-												<strong>{{ certIndex === 0 ? t('libresign', 'Signer:') : t('libresign', 'Issuer:') }}</strong>
-												{{ cert.subject?.CN || cert.name || cert.displayName }}
-											</div>
-											<div v-if="cert.issuer?.CN" class="cert-issuer">
-												<strong>{{ t('libresign', 'Issued by:') }}</strong>
-												{{ cert.issuer.CN }}
-											</div>
-											<div v-if="cert.serialNumber">
-												<strong>{{ t('libresign', 'Serial Number:') }}</strong>
-												{{ cert.serialNumber }}
-												<span v-if="cert.serialNumberHex" class="serial-hex">
-													(hex: {{ cert.serialNumberHex }})
-												</span>
-											</div>
-											<div v-if="cert.validFrom_time_t || cert.validTo_time_t">
-												<small>
-													<strong v-if="cert.validFrom_time_t">{{ t('libresign', 'Valid from:') }}</strong>
-													{{ formatTimestamp(cert.validFrom_time_t) }}
-													<br v-if="cert.validFrom_time_t && cert.validTo_time_t">
-													<strong v-if="cert.validTo_time_t">{{ t('libresign', 'Valid to:') }}</strong>
-													{{ formatTimestamp(cert.validTo_time_t) }}
-												</small>
-											</div>
-										</div>
-									</template>
-								</NcListItem>
-							</div>
-						</li>
-					</ul>
-				</div>
-				<NcButton v-if="clickedValidate"
-					variant="primary"
-					@click.prevent="goBack">
+			<div v-else class="infor-container">
+				<component :is="isEnvelope ? 'EnvelopeValidation' : 'FileValidation'" :document="document"
+					:legal-information="legalInformation" :document-valid-message="documentValidMessage"
+					:is-after-signed="isAfterSigned" />
+				<NcButton v-if="clickedValidate" class="change" type="primary" @click="goBack()">
+					<template #icon>
+						<NcIconSvgWrapper :path="mdiArrowLeft" />
+					</template>
 					{{ t('libresign', 'Return') }}
 				</NcButton>
 			</div>
@@ -688,9 +67,12 @@
 import {
 	mdiAlertCircle,
 	mdiAlertCircleOutline,
+	mdiArrowLeft,
 	mdiCancel,
 	mdiCheckboxMarkedCircle,
 	mdiCheckCircle,
+	mdiFileMultiple,
+	mdiFilePdfBox,
 	mdiHelpCircle,
 	mdiInformationOutline,
 	mdiInformationSlabCircle,
@@ -724,13 +106,15 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcRichText from '@nextcloud/vue/components/NcRichText'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
+const EnvelopeValidation = () => import('../components/validation/EnvelopeValidation.vue')
+const FileValidation = () => import('../components/validation/FileValidation.vue')
+
 import logoGray from '../../img/logo-gray.svg'
 import { fileStatus } from '../helpers/fileStatus.js'
 import logger from '../logger.js'
 
 export default {
 	name: 'Validation',
-
 	components: {
 		NcActionButton,
 		NcActions,
@@ -743,14 +127,25 @@ export default {
 		NcNoteCard,
 		NcRichText,
 		NcTextField,
+		EnvelopeValidation,
+		FileValidation,
 	},
 	setup() {
 		return {
+			t,
+			n,
+		}
+	},
+	data() {
+		return {
 			mdiAlertCircle,
 			mdiAlertCircleOutline,
+			mdiArrowLeft,
 			mdiCancel,
 			mdiCheckboxMarkedCircle,
 			mdiCheckCircle,
+			mdiFileMultiple,
+			mdiFilePdfBox,
 			mdiHelpCircle,
 			mdiInformationOutline,
 			mdiInformationSlabCircle,
@@ -761,10 +156,6 @@ export default {
 			mdiUnfoldLessHorizontal,
 			mdiUnfoldMoreHorizontal,
 			mdiUpload,
-		}
-	},
-	data() {
-		return {
 			logo: logoGray,
 			uuidToValidate: this.$route.params?.uuid ?? '',
 			hasInfo: false,
@@ -787,6 +178,10 @@ export default {
 	computed: {
 		isAfterSigned() {
 			return this.$route.params.isAfterSigned ?? false
+		},
+		isEnvelope() {
+			return this.document?.nodeType === 'envelope'
+				|| (Array.isArray(this.document?.files) && this.document.files.length > 0)
 		},
 		canValidate() {
 			if (!this.uuidToValidate) {
@@ -892,6 +287,17 @@ export default {
 		},
 		toggleDetail(signer) {
 			this.$set(signer, 'opened', !signer.opened)
+		},
+		toggleFileDetail(file) {
+			this.$set(file, 'opened', !file.opened)
+		},
+		getSignerStatus(status) {
+			const statusMap = {
+				pending: t('libresign', 'Pending'),
+				partial: t('libresign', 'Partial'),
+				complete: t('libresign', 'Complete'),
+			}
+			return statusMap[status] || status
 		},
 		validate(id) {
 			this.validationErrorMessage = null
@@ -1038,7 +444,6 @@ export default {
 				return t('libresign', 'Trust Chain: Trusted')
 			}
 
-			// TRANSLATORS validationStatus is the certificate chain validation status (e.g., "Trusted", "Untrusted")
 			return t('libresign', 'Trust chain: {validationStatus}', { validationStatus: signer.certificate_validation.label })
 		},
 		getCrlValidationIconClass(signer) {
@@ -1085,8 +490,6 @@ export default {
 			if (!signer.modification_validation) {
 				return null
 			}
-			// Based on File::MODIFICATION_* constants
-			// 0=unchecked, 1=unmodified, 2=modified(allowed), 3=modified(violation)
 			const status = signer.modification_validation.status
 			const valid = signer.modification_validation.valid
 
@@ -1137,9 +540,15 @@ export default {
 		},
 		handleValidationSuccess(data) {
 			this.documentValidMessage = t('libresign', 'This document is valid')
+			if (!data?.nodeType && Array.isArray(data?.files) && data.files.length > 0) {
+				data.nodeType = 'envelope'
+			}
 			this.document = data
 			this.document.signers?.forEach(signer => {
 				this.$set(signer, 'opened', false)
+			})
+			this.document.files?.forEach(file => {
+				this.$set(file, 'opened', false)
 			})
 			this.hasInfo = true
 			if (this.isAfterSigned) {
@@ -1249,12 +658,14 @@ export default {
 				.header {
 					display: flex;
 					margin-bottom: 2rem;
-				}
+			}
+
 				h1 {
 					font-size: 1.5rem;
 				}
 
-				.extra, .extra-chain {
+				.extra,
+				.extra-chain {
 					:deep(.list-item-content__name) {
 						white-space: unset;
 						display: flex;

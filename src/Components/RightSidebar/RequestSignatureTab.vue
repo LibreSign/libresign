@@ -13,6 +13,9 @@
 		<NcButton v-if="filesStore.canAddSigner()"
 			:variant="hasSigners ? 'secondary' : 'primary'"
 			@click="addSigner">
+			<template #icon>
+				<AccountPlus :size="20" />
+			</template>
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
 		<NcCheckboxRadioSwitch v-if="showPreserveOrder"
@@ -78,63 +81,74 @@
 				</NcActionButton>
 			</template>
 		</Signers>
-		<div class="action-buttons">
-			<div v-if="showSaveButton || showRequestButton" class="button-group">
-				<NcButton v-if="showSaveButton"
-					wide
-					variant="secondary"
-					:disabled="hasLoading"
-					@click="save()">
-					<template #icon>
-						<NcLoadingIcon v-if="hasLoading" :size="20" />
-						<Pencil v-else-if="isSignElementsAvailable()" :size="20" />
-					</template>
-					{{ isSignElementsAvailable() ? t('libresign', 'Setup signature positions') : t('libresign', 'Save') }}
-				</NcButton>
-				<NcButton v-if="showRequestButton"
-					wide
-					:variant="filesStore.canSign() ? 'secondary' : 'primary'"
-					:disabled="hasLoading"
-					@click="request()">
-					<template #icon>
-						<NcLoadingIcon v-if="hasLoading" :size="20" />
-						<Send v-else :size="20" />
-					</template>
-					{{ t('libresign', 'Request signatures') }}
-				</NcButton>
-			</div>
-			<div v-if="filesStore.canSign()" class="button-group">
-				<NcButton wide
-					variant="primary"
-					:disabled="hasLoading"
-					@click="sign()">
-					<template #icon>
-						<NcLoadingIcon v-if="hasLoading" :size="20" />
-						<Draw v-else :size="20" />
-					</template>
-					{{ t('libresign', 'Sign document') }}
-				</NcButton>
-			</div>
-			<div class="button-group">
-				<NcButton v-if="filesStore.canValidate()"
-					wide
-					variant="secondary"
-					@click="validationFile()">
-					<template #icon>
-						<Information :size="20" />
-					</template>
-					{{ t('libresign', 'Validation info') }}
-				</NcButton>
-				<NcButton wide
-					variant="secondary"
-					@click="openFile()">
-					<template #icon>
-						<FileDocument :size="20" />
-					</template>
-					{{ t('libresign', 'Open file') }}
-				</NcButton>
-			</div>
-		</div>
+		<NcFormBox v-if="isEnvelope" class="action-form-box">
+			<NcButton
+				wide
+				type="secondary"
+				@click="showEnvelopeFilesDialog = true">
+				<template #icon>
+					<FileMultiple :size="20" />
+				</template>
+				{{ t('libresign', 'Manage files ({count})', { count: envelopeFilesCount }) }}
+			</NcButton>
+		</NcFormBox>
+		<NcFormBox v-if="showSaveButton || showRequestButton" class="action-form-box">
+			<NcButton v-if="showSaveButton"
+				wide
+				variant="secondary"
+				:disabled="hasLoading"
+				@click="save()">
+				<template #icon>
+					<NcLoadingIcon v-if="hasLoading" :size="20" />
+					<Pencil v-else-if="isSignElementsAvailable()" :size="20" />
+				</template>
+				{{ isSignElementsAvailable() ? t('libresign', 'Setup signature positions') : t('libresign', 'Save') }}
+			</NcButton>
+			<NcButton v-if="showRequestButton"
+				wide
+				:variant="filesStore.canSign() ? 'secondary' : 'primary'"
+				:disabled="hasLoading"
+				@click="request()">
+				<template #icon>
+					<NcLoadingIcon v-if="hasLoading" :size="20" />
+					<Send v-else :size="20" />
+				</template>
+				{{ t('libresign', 'Request signatures') }}
+			</NcButton>
+		</NcFormBox>
+		<NcFormBox v-if="filesStore.canSign()" class="action-form-box">
+			<NcButton
+				wide
+				variant="primary"
+				:disabled="hasLoading"
+				@click="sign()">
+				<template #icon>
+					<NcLoadingIcon v-if="hasLoading" :size="20" />
+					<Draw v-else :size="20" />
+				</template>
+				{{ t('libresign', 'Sign document') }}
+			</NcButton>
+		</NcFormBox>
+		<NcFormBox class="action-form-box">
+			<NcButton v-if="filesStore.canValidate()"
+				wide
+				variant="secondary"
+				@click="validationFile()">
+				<template #icon>
+					<Information :size="20" />
+				</template>
+				{{ t('libresign', 'Validation info') }}
+			</NcButton>
+			<NcButton v-if="!isEnvelope"
+				wide
+				variant="secondary"
+				@click="openFile()">
+				<template #icon>
+					<FileDocument :size="20" />
+				</template>
+				{{ t('libresign', 'Open file') }}
+			</NcButton>
+		</NcFormBox>
 		<VisibleElements />
 		<NcModal v-if="modalSrc"
 			size="full"
@@ -218,6 +232,8 @@
 				</NcButton>
 			</template>
 		</NcDialog>
+		<EnvelopeFilesList :open="showEnvelopeFilesDialog"
+			@close="showEnvelopeFilesDialog = false" />
 	</div>
 </template>
 <script>
@@ -231,11 +247,14 @@ import svgSms from '@mdi/svg/svg/message-processing.svg?raw'
 import svgWhatsapp from '@mdi/svg/svg/whatsapp.svg?raw'
 import svgXmpp from '@mdi/svg/svg/xmpp.svg?raw'
 
+import AccountPlus from 'vue-material-design-icons/AccountPlus.vue'
 import Bell from 'vue-material-design-icons/Bell.vue'
 import ChartGantt from 'vue-material-design-icons/ChartGantt.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import Draw from 'vue-material-design-icons/Draw.vue'
 import FileDocument from 'vue-material-design-icons/FileDocument.vue'
+import FileMultiple from 'vue-material-design-icons/FileMultiple.vue'
+import FilePlus from 'vue-material-design-icons/FilePlus.vue'
 import Information from 'vue-material-design-icons/Information.vue'
 import MessageText from 'vue-material-design-icons/MessageText.vue'
 import OrderNumericAscending from 'vue-material-design-icons/OrderNumericAscending.vue'
@@ -257,11 +276,13 @@ import NcAppSidebarTab from '@nextcloud/vue/components/NcAppSidebarTab'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
+import NcFormBox from '@nextcloud/vue/components/NcFormBox'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 
+import EnvelopeFilesList from './EnvelopeFilesList.vue'
 import IdentifySigner from '../Request/IdentifySigner.vue'
 import Signers from '../Signers/Signers.vue'
 import SigningOrderDiagram from '../SigningOrder/SigningOrderDiagram.vue'
@@ -292,11 +313,15 @@ export default {
 	name: 'RequestSignatureTab',
 	mixins: [signingOrderMixin],
 	components: {
+		AccountPlus,
 		Bell,
 		ChartGantt,
 		Delete,
 		Draw,
+		EnvelopeFilesList,
 		FileDocument,
+		FilePlus,
+		FileMultiple,
 		IdentifySigner,
 		Information,
 		MessageText,
@@ -309,6 +334,7 @@ export default {
 		NcCheckboxRadioSwitch,
 		NcDialog,
 		NcIconSvgWrapper,
+		NcFormBox,
 		NcLoadingIcon,
 		NcModal,
 		NcNoteCard,
@@ -346,6 +372,7 @@ export default {
 			activeTab: '',
 			preserveOrder: false,
 			showOrderDiagram: false,
+			showEnvelopeFilesDialog: false,
 			infoIcon: svgInfo,
 			adminSignatureFlow: '',
 			lastSyncedFileId: null,
@@ -519,6 +546,12 @@ export default {
 		fileName() {
 			return this.filesStore.getFile()?.name ?? ''
 		},
+		isEnvelope() {
+			return this.filesStore.getFile()?.nodeType === 'envelope'
+		},
+		envelopeFilesCount() {
+			return this.filesStore.getFile()?.filesCount || 0
+		},
 		size() {
 			return window.matchMedia('(max-width: 512px)').matches ? 'full' : 'normal'
 		},
@@ -561,7 +594,7 @@ export default {
 		signers(signers) {
 			this.init(signers)
 		},
-		'filesStore.selectedNodeId': {
+		'filesStore.selectedId': {
 			handler(newFileId, oldFileId) {
 				if (newFileId && newFileId !== this.lastSyncedFileId) {
 					this.syncPreserveOrderWithFile()
@@ -651,7 +684,7 @@ export default {
 
 			const flow = file.signatureFlow
 
-			this.lastSyncedFileId = this.filesStore.selectedNodeId
+			this.lastSyncedFileId = this.filesStore.selectedId
 
 			if ((flow === 'ordered_numeric' || flow === 2) && !this.isAdminFlowForced) {
 				this.preserveOrder = true
@@ -812,7 +845,7 @@ export default {
 		},
 		async sendNotify(signer) {
 			const body = {
-				fileId: this.filesStore.selectedNodeId,
+				fileId: this.filesStore.selectedId,
 				signRequestId: signer.signRequestId,
 			}
 
@@ -870,9 +903,10 @@ export default {
 				this.modalSrc = route.href
 				return
 			}
-			this.signStore.setDocumentToSign(this.filesStore.getFile())
+			this.signStore.setFileToSign(this.filesStore.getFile())
 			this.$router.push({ name: 'SignPDF', params: { uuid } })
 		},
+
 		async save() {
 			this.hasLoading = true
 			try {
@@ -931,17 +965,8 @@ export default {
 	margin: 8px 0;
 }
 
-.action-buttons {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	margin-top: 12px;
-}
-
-.button-group {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
+.action-form-box {
+	margin-top: 6px;
 }
 
 .iframe {

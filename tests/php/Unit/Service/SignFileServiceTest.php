@@ -30,6 +30,7 @@ use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -90,6 +91,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private DocMdpHandler $docMdpHandler;
 	private PdfSignatureDetectionService&MockObject $pdfSignatureDetectionService;
 	private \OCA\Libresign\Service\SequentialSigningService&MockObject $sequentialSigningService;
+	private FileStatusService&MockObject $fileStatusService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -127,6 +129,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->docMdpHandler = new DocMdpHandler($this->l10n);
 		$this->pdfSignatureDetectionService = $this->createMock(PdfSignatureDetectionService::class);
 		$this->sequentialSigningService = $this->createMock(\OCA\Libresign\Service\SequentialSigningService::class);
+		$this->fileStatusService = $this->createMock(FileStatusService::class);
 	}
 
 	private function getService(array $methods = []): SignFileService|MockObject {
@@ -163,6 +166,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->docMdpHandler,
 					$this->pdfSignatureDetectionService,
 					$this->sequentialSigningService,
+					$this->fileStatusService,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -198,6 +202,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->docMdpHandler,
 			$this->pdfSignatureDetectionService,
 			$this->sequentialSigningService,
+			$this->fileStatusService,
 		);
 	}
 
@@ -275,17 +280,20 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = $this->getService([
 			'getEngine',
 			'setNewStatusIfNecessary',
-			'getNextcloudFile',
+			'getNextcloudFiles',
 			'validateDocMdpAllowsSignatures',
 		]);
 
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
 		$nextcloudFile->method('getContent')->willReturn($signedContent);
-		$service->method('getNextcloudFile')->willReturn($nextcloudFile);
+		$nextcloudFile->method('getId')->willReturn(123);
+		$service->method('getNextcloudFiles')->willReturn([$nextcloudFile]);
 		$service->method('validateDocMdpAllowsSignatures');
 
 		$pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$pkcs12Handler->method('sign')->willReturn($nextcloudFile);
+		$pkcs12Handler->method('getLastSignedDate')->willReturn(new \DateTime());
+		$pkcs12Handler->method('getInputFile')->willReturn($nextcloudFile);
 		$service->method('getEngine')->willReturn($pkcs12Handler);
 
 		$expectedHash = hash('sha256', $signedContent);
@@ -303,6 +311,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					return 1;
 				case 'getDocmdpLevelEnum':
 					return \OCA\Libresign\Enum\DocMdpLevel::NOT_CERTIFIED;
+				case 'isEnvelope':
+					return false;
 				default: return null;
 			}
 		};
@@ -331,17 +341,24 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'getEngine',
 			'setNewStatusIfNecessary',
 			'computeHash',
-			'getNextcloudFile',
+			'getNextcloudFiles',
 			'validateDocMdpAllowsSignatures',
 		]);
 
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
 		$nextcloudFile->method('getContent')->willReturn('pdf content');
-		$service->method('getNextcloudFile')->willReturn($nextcloudFile);
+		$nextcloudFile->method('getId')->willReturn(456);
+		$service->method('getNextcloudFiles')->willReturn([$nextcloudFile]);
 		$service->method('validateDocMdpAllowsSignatures');
+		$service->method('computeHash')->willReturn('hash');
 
 		$this->fileMapper->expects($this->once())->method('update');
 		$this->signRequestMapper->expects($this->once())->method('update');
+
+		$pkcs12Handler = $this->createMock(Pkcs12Handler::class);
+		$pkcs12Handler->method('sign')->willReturn($nextcloudFile);
+		$pkcs12Handler->method('getLastSignedDate')->willReturn(new \DateTime());
+		$service->method('getEngine')->willReturn($pkcs12Handler);
 
 		$signRequest = $this->createMock(SignRequest::class);
 		$signRequest->method('__call')->willReturnCallback(function ($method, $args) {
@@ -357,6 +374,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$libreSignFile->method('__call')->willReturnCallback(function ($method) {
 			if ($method === 'getDocmdpLevelEnum') {
 				return \OCA\Libresign\Enum\DocMdpLevel::NOT_CERTIFIED;
+			} elseif ($method === 'isEnvelope') {
+				return false;
 			}
 			return null;
 		});
@@ -372,19 +391,27 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'getEngine',
 			'setNewStatusIfNecessary',
 			'computeHash',
-			'getNextcloudFile',
+			'getNextcloudFiles',
 			'validateDocMdpAllowsSignatures',
 		]);
 
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
 		$nextcloudFile->method('getContent')->willReturn('pdf content');
-		$service->method('getNextcloudFile')->willReturn($nextcloudFile);
+		$nextcloudFile->method('getId')->willReturn(789);
+		$service->method('getNextcloudFiles')->willReturn([$nextcloudFile]);
 		$service->method('validateDocMdpAllowsSignatures');
+		$service->method('computeHash')->willReturn('hash');
 
 		$this->eventDispatcher
 			->expects($this->once())
 			->method('dispatchTyped')
 			->with($this->isInstanceOf(SignedEvent::class));
+
+		$pkcs12Handler = $this->createMock(Pkcs12Handler::class);
+		$pkcs12Handler->method('sign')->willReturn($nextcloudFile);
+		$pkcs12Handler->method('getLastSignedDate')->willReturn(new \DateTime());
+		$pkcs12Handler->method('getInputFile')->willReturn($nextcloudFile);
+		$service->method('getEngine')->willReturn($pkcs12Handler);
 
 		$signRequest = $this->createMock(SignRequest::class);
 		$signRequest->method('__call')->willReturnCallback(function ($method, $args) {
@@ -400,6 +427,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$libreSignFile->method('__call')->willReturnCallback(function ($method) {
 			if ($method === 'getDocmdpLevelEnum') {
 				return \OCA\Libresign\Enum\DocMdpLevel::NOT_CERTIFIED;
+			} elseif ($method === 'isEnvelope') {
+				return false;
 			}
 			return null;
 		});
@@ -416,14 +445,21 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'getEngine',
 			'computeHash',
 			'getSigners',
-			'getNextcloudFile',
+			'getNextcloudFiles',
 		]);
 
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
 		$nextcloudFile->method('getContent')->willReturn('pdf content');
-		$service->method('getNextcloudFile')->willReturn($nextcloudFile);
+		$nextcloudFile->method('getId')->willReturn(999);
+		$service->method('getNextcloudFiles')->willReturn([$nextcloudFile]);
+		$service->method('computeHash')->willReturn('hash');
 
 		$service->method('getSigners')->willReturn($inputSigners);
+
+		$pkcs12Handler = $this->createMock(Pkcs12Handler::class);
+		$pkcs12Handler->method('sign')->willReturn($nextcloudFile);
+		$pkcs12Handler->method('getLastSignedDate')->willReturn(new \DateTime());
+		$service->method('getEngine')->willReturn($pkcs12Handler);
 
 		$signRequestCallback = function ($method, $args) {
 			switch ($method) {
@@ -528,6 +564,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'updateLibreSignFile',
 			'dispatchSignedEvent',
 			'validateDocMdpAllowsSignatures',
+			'getNextcloudFiles',
 		]);
 
 		$signEngineHandler = $this->getMockBuilder(Pkcs12Handler::class)
@@ -537,13 +574,46 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'getPfxOfCurrentSigner',
 				'generateCertificate',
 				'sign',
+				'getLastSignedDate',
 			])
 			->getMock();
 
+		$mockFile = $this->createMock(\OCP\Files\File::class);
+		$mockFile->method('getId')->willReturn(555);
+
 		$signEngineHandler->expects($this->{$occurrency}())->method('generateCertificate');
+		$signEngineHandler->method('sign')->willReturn($mockFile);
+		$signEngineHandler->method('getLastSignedDate')->willReturn(new \DateTime());
 		$service->method('identifyEngine')->willReturn($signEngineHandler);
+		$service->method('getNextcloudFiles')->willReturn([$mockFile]);
+
+		$libreSignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$libreSignFile->method('__call')->willReturnCallback(function ($method) {
+			switch ($method) {
+				case 'isEnvelope':
+					return false;
+				case 'getDocmdpLevelEnum':
+					return \OCA\Libresign\Enum\DocMdpLevel::NOT_CERTIFIED;
+				default:
+					return null;
+			}
+		});
+
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest->method('__call')->willReturnCallback(function ($method) {
+			switch ($method) {
+				case 'getFileId':
+					return 1;
+				case 'getSigningOrder':
+					return 1;
+				default:
+					return null;
+			}
+		});
 
 		$service
+			->setLibreSignFile($libreSignFile)
+			->setSignRequest($signRequest)
 			->setSignWithoutPassword($signWithoutPassword)
 			->sign();
 	}
@@ -1234,11 +1304,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testSignThrowsExceptionWhenDocMdpLevel1Detected(): void {
 		$this->expectException(LibresignException::class);
-		$service = $this->getService(['getNextcloudFile', 'getEngine']);
+		$service = $this->getService(['getNextcloudFiles', 'getEngine']);
 
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
 		$nextcloudFile->method('getContent')->willReturn(file_get_contents(__DIR__ . '/../../fixtures/pdfs/real_jsignpdf_level1.pdf'));
-		$service->method('getNextcloudFile')->willReturn($nextcloudFile);
+		$service->method('getNextcloudFiles')->willReturn([$nextcloudFile]);
 
 		$engineMock = $this->createMock(Pkcs12Handler::class);
 		$service->method('getEngine')->willReturn($engineMock);

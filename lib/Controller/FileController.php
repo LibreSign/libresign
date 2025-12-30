@@ -14,6 +14,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -21,8 +22,9 @@ use OCA\Libresign\Middleware\Attribute\PrivateValidation;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\File\FileListService;
+use OCA\Libresign\Service\File\SettingsLoader;
 use OCA\Libresign\Service\FileService;
-use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -37,23 +39,30 @@ use OCP\AppFramework\Http\RedirectResponse;
 use OCP\Files\File;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
-use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IPreview;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\Preview\IMimeIconProvider;
 use Psr\Log\LoggerInterface;
 
 /**
  * @psalm-import-type LibresignFile from ResponseDefinitions
- * @psalm-import-type LibresignNewFile from ResponseDefinitions
+ * @psalm-import-type LibresignFileDetail from ResponseDefinitions
  * @psalm-import-type LibresignFolderSettings from ResponseDefinitions
+ * @psalm-import-type LibresignNewFile from ResponseDefinitions
+ * @psalm-import-type LibresignNextcloudFile from ResponseDefinitions
  * @psalm-import-type LibresignNextcloudFile from ResponseDefinitions
  * @psalm-import-type LibresignPagination from ResponseDefinitions
  * @psalm-import-type LibresignSettings from ResponseDefinitions
  * @psalm-import-type LibresignSigner from ResponseDefinitions
+ * @psalm-import-type LibresignSigner from ResponseDefinitions
  * @psalm-import-type LibresignValidateFile from ResponseDefinitions
+ * @psalm-import-type LibresignValidateMetadata from ResponseDefinitions
+ * @psalm-import-type LibresignValidateMetadata from ResponseDefinitions
+ * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
+ * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
  */
 class FileController extends AEnvironmentAwareController {
 	public function __construct(
@@ -64,14 +73,15 @@ class FileController extends AEnvironmentAwareController {
 		private SessionService $sessionService,
 		private SignRequestMapper $signRequestMapper,
 		private FileMapper $fileMapper,
-		private IdentifyMethodService $identifyMethodService,
 		private RequestSignatureService $requestSignatureService,
 		private AccountService $accountService,
 		private IPreview $preview,
-		private IAppConfig $appConfig,
 		private IMimeIconProvider $mimeIconProvider,
 		private FileService $fileService,
+		private fileListService $fileListService,
 		private ValidateHelper $validateHelper,
+		private SettingsLoader $settingsLoader,
+		private IURLGenerator $urlGenerator,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -80,6 +90,8 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a file using Uuid
 	 *
 	 * Validate a file returning file data.
+	 * When `nodeType` is `envelope`, the response includes `filesCount`
+	 * and `files` as a list of envelope child files.
 	 *
 	 * @param string $uuid The UUID of the LibreSign file
 	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: list<array{message: string, title?: string}>, messages?: array{type: string, message: string}[]}, array{}>
@@ -101,6 +113,8 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a file using FileId
 	 *
 	 * Validate a file returning file data.
+	 * When `nodeType` is `envelope`, the response includes `filesCount`
+	 * and `files` as a list of envelope child files.
 	 *
 	 * @param int $fileId The identifier value of the LibreSign file
 	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: list<array{message: string, title?: string}>, messages?: array{type: string, message: string}[]}, array{}>
@@ -122,7 +136,9 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a binary file
 	 *
 	 * Validate a binary file returning file data.
-	 * Use field 'file' for the file upload
+	 * Use field 'file' for the file upload.
+	 * When `nodeType` is `envelope`, the response includes `filesCount`
+	 * and `files` as a list of envelope child files.
 	 *
 	 * @return DataResponse<Http::STATUS_OK, LibresignValidateFile, array{}>|DataResponse<Http::STATUS_NOT_FOUND|Http::STATUS_BAD_REQUEST, array{action: int, errors: list<array{message: string, title?: string}>, messages?: array{type: string, message: string}[], message?: string}, array{}>
 	 *
@@ -178,29 +194,22 @@ class FileController extends AEnvironmentAwareController {
 		try {
 			if ($type === 'Uuid' && !empty($identifier)) {
 				try {
-					$this->fileService
-						->setFileByType('Uuid', $identifier);
+					$this->fileService->setFileByUuid((string)$identifier);
 				} catch (LibresignException) {
-					$this->fileService
-						->setFileByType('SignerUuid', $identifier);
+					$this->fileService->setFileBySignerUuid((string)$identifier);
 				}
-			} elseif (!empty($type) && !empty($identifier)) {
-				$this->fileService
-					->setFileByType($type, $identifier);
-			} elseif ($this->request->getParam('path')) {
-				$this->fileService
-					->setMe($this->userSession->getUser())
-					->setFileByPath($this->request->getParam('path'));
+			} elseif ($type === 'SignerUuid' && !empty($identifier)) {
+				$this->fileService->setFileBySignerUuid((string)$identifier);
+			} elseif ($type === 'FileId' && !empty($identifier)) {
+				$this->fileService->setFileById((int)$identifier);
 			} elseif ($this->request->getParam('fileId')) {
-				$this->fileService->setFileByType(
-					'FileId',
-					$this->request->getParam('fileId')
-				);
+				$this->fileService->setFileById((int)$this->request->getParam('fileId'));
 			} elseif ($this->request->getParam('uuid')) {
-				$this->fileService->setFileByType(
-					'Uuid',
-					$this->request->getParam('uuid')
-				);
+				try {
+					$this->fileService->setFileByUuid((string)$this->request->getParam('uuid'));
+				} catch (LibresignException) {
+					$this->fileService->setFileBySignerUuid((string)$this->request->getParam('uuid'));
+				}
 			}
 
 			$return = $this->fileService
@@ -246,7 +255,8 @@ class FileController extends AEnvironmentAwareController {
 	 * @param int|null $end End date of signature request (UNIX timestamp)
 	 * @param string|null $sortBy Name of the column to sort by
 	 * @param string|null $sortDirection Ascending or descending order
-	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>
+	 * @param int|null $parentFileId Filter files by parent envelope file ID
+	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: list<LibresignFileDetail>, settings?: LibresignSettings}, array{}>
 	 *
 	 * 200: OK
 	 */
@@ -263,6 +273,7 @@ class FileController extends AEnvironmentAwareController {
 		?int $end = null,
 		?string $sortBy = null,
 		?string $sortDirection = null,
+		?int $parentFileId = null,
 	): DataResponse {
 		$filter = array_filter([
 			'signer_uuid' => $signer_uuid,
@@ -270,6 +281,7 @@ class FileController extends AEnvironmentAwareController {
 			'status' => $status,
 			'start' => $start,
 			'end' => $end,
+			'parentFileId' => $parentFileId,
 		], static fn ($var) => $var !== null);
 		$sort = [
 			'sortBy' => $sortBy,
@@ -277,20 +289,10 @@ class FileController extends AEnvironmentAwareController {
 		];
 
 		$user = $this->userSession->getUser();
-		$this->fileService->setMe($user);
-		$return = $this->fileService->listAssociatedFilesOfSignFlow($page, $length, $filter, $sort);
+		$return = $this->fileListService->listAssociatedFilesOfSignFlow($user, $page, $length, $filter, $sort);
 
-		if ($user && !empty($return['data'])) {
-			$firstFile = $return['data'][0];
-			$fileSettings = $this->fileService
-				->setFileByType('FileId', $firstFile['nodeId'])
-				->showSettings()
-				->toArray();
-
-			$return['settings'] = [
-				'needIdentificationDocuments' => $fileSettings['settings']['needIdentificationDocuments'] ?? false,
-				'identificationDocumentsWaitingApproval' => $fileSettings['settings']['identificationDocumentsWaitingApproval'] ?? false,
-			];
+		if ($user) {
+			$return['settings'] = $this->settingsLoader->getUserIdentificationSettings($user->getUID());
 		}
 
 		return new DataResponse($return, Http::STATUS_OK);
@@ -331,10 +333,22 @@ class FileController extends AEnvironmentAwareController {
 		}
 
 		try {
-			$myLibreSignFile = $this->fileService
-				->setMe($this->userSession->getUser())
-				->getMyLibresignFile($nodeId);
-			$node = $this->accountService->getPdfByUuid($myLibreSignFile->getUuid());
+			$libreSignFile = $this->fileMapper->getByNodeId($nodeId);
+			if ($libreSignFile->getUserId() !== $this->userSession->getUser()->getUID()) {
+				return new DataResponse([], Http::STATUS_FORBIDDEN);
+			}
+
+			if ($libreSignFile->getNodeType() === 'envelope') {
+				if ($mimeFallback) {
+					$url = $this->mimeIconProvider->getMimeIconUrl('folder');
+					if ($url) {
+						return new RedirectResponse($url);
+					}
+				}
+				return new DataResponse([], Http::STATUS_NOT_FOUND);
+			}
+
+			$node = $this->accountService->getPdfByUuid($libreSignFile->getUuid());
 		} catch (DoesNotExistException) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
@@ -395,11 +409,13 @@ class FileController extends AEnvironmentAwareController {
 	/**
 	 * Send a file
 	 *
-	 * Send a new file to Nextcloud and return the fileId to request signature
+	 * Send a new file to Nextcloud and return the fileId to request signature.
+	 * Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.
 	 *
 	 * @param LibresignNewFile $file File to save
 	 * @param string $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define the pattern to store the file. See more informations at FolderService::getFolderName method.
+	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files)
 	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
 	 * 200: OK
@@ -409,51 +425,19 @@ class FileController extends AEnvironmentAwareController {
 	#[NoCSRFRequired]
 	#[RequireManager]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file', requirements: ['apiVersion' => '(v1)'])]
-	public function save(array $file, string $name = '', array $settings = []): DataResponse {
+	public function save(
+		array $file = [],
+		string $name = '',
+		array $settings = [],
+		array $files = [],
+	): DataResponse {
 		try {
-			if (empty($name)) {
-				if (!empty($file['url'])) {
-					$name = rawurldecode(pathinfo($file['url'], PATHINFO_FILENAME));
-				}
-			}
-			if (empty($name)) {
-				// The name of file to sign is mandatory. This phrase is used when we do a request to API sending a file to sign.
-				throw new \Exception($this->l10n->t('Name is mandatory'));
-			}
-			$this->validateHelper->validateNewFile([
-				'file' => $file,
-				'userManager' => $this->userSession->getUser(),
-			]);
 			$this->validateHelper->canRequestSign($this->userSession->getUser());
 
-			$node = $this->fileService->getNodeFromData([
-				'userManager' => $this->userSession->getUser(),
-				'name' => $name,
-				'file' => $file,
-				'settings' => $settings
-			]);
-			$data = [
-				'file' => [
-					'fileNode' => $node,
-				],
-				'name' => $name,
-				'userManager' => $this->userSession->getUser(),
-				'status' => FileEntity::STATUS_DRAFT,
-			];
-			$file = $this->requestSignatureService->save($data);
+			$normalizedFiles = $this->prepareFilesForSaving($file, $files, $settings);
 
-			return new DataResponse(
-				[
-					'message' => $this->l10n->t('Success'),
-					'name' => $name,
-					'id' => $node->getId(),
-					'status' => $file->getStatus(),
-					'statusText' => $this->fileMapper->getTextOfStatus($file->getStatus()),
-					'created_at' => $file->getCreatedAt()->format(\DateTimeInterface::ATOM),
-				],
-				Http::STATUS_OK
-			);
-		} catch (\Exception $e) {
+			return $this->saveFiles($normalizedFiles, $name, $settings);
+		} catch (LibresignException $e) {
 			return new DataResponse(
 				[
 					'message' => $e->getMessage(),
@@ -464,11 +448,294 @@ class FileController extends AEnvironmentAwareController {
 	}
 
 	/**
+	 * Add file to envelope
+	 *
+	 * Add one or more files to an existing envelope that is in DRAFT status.
+	 * Files must be uploaded as multipart/form-data with field name 'files[]'.
+	 *
+	 * @param string $uuid The UUID of the envelope
+	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_NOT_FOUND|Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 *
+	 * 200: Files added successfully
+	 * 400: Invalid request
+	 * 404: Envelope not found
+	 * 422: Cannot add files (envelope not in DRAFT status or validation failed)
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[RequireManager]
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/file/{uuid}/add-file', requirements: ['apiVersion' => '(v1)'])]
+	public function addFileToEnvelope(string $uuid): DataResponse {
+		try {
+			$this->validateHelper->canRequestSign($this->userSession->getUser());
+
+			$envelope = $this->fileMapper->getByUuid($uuid);
+
+			if ($envelope->getNodeType() !== 'envelope') {
+				throw new LibresignException($this->l10n->t('This is not an envelope'));
+			}
+
+			if ($envelope->getStatus() !== FileEntity::STATUS_DRAFT) {
+				throw new LibresignException($this->l10n->t('Cannot add files to an envelope that is not in draft status'));
+			}
+
+			$settings = $envelope->getMetadata()['settings'] ?? [];
+
+			$uploadedFiles = $this->request->getUploadedFile('files');
+			if (!$uploadedFiles) {
+				throw new LibresignException($this->l10n->t('No files uploaded'));
+			}
+
+			$normalizedFiles = $this->processUploadedFiles($uploadedFiles);
+
+			$addedFiles = [];
+			foreach ($normalizedFiles as $fileData) {
+				$prepared = $this->prepareFileForSaving($fileData, '', $settings);
+
+				$childFile = $this->requestSignatureService->save([
+					'file' => ['fileNode' => $prepared['node']],
+					'name' => $prepared['name'],
+					'userManager' => $this->userSession->getUser(),
+					'status' => FileEntity::STATUS_DRAFT,
+					'parentFileId' => $envelope->getId(),
+				]);
+
+				$addedFiles[] = $childFile;
+			}
+
+			$this->fileService->updateEnvelopeFilesCount($envelope, count($addedFiles));
+
+			$envelope = $this->fileMapper->getById($envelope->getId());
+			return $this->formatFileResponse($envelope, $addedFiles);
+
+		} catch (DoesNotExistException $e) {
+			return new DataResponse(
+				['message' => $this->l10n->t('Envelope not found')],
+				Http::STATUS_NOT_FOUND,
+			);
+		} catch (LibresignException $e) {
+			return new DataResponse(
+				['message' => $e->getMessage()],
+				Http::STATUS_UNPROCESSABLE_ENTITY,
+			);
+		} catch (\Exception $e) {
+			$this->logger->error('Failed to add file to envelope', [
+				'exception' => $e,
+			]);
+			return new DataResponse(
+				['message' => $this->l10n->t('Failed to add file to envelope')],
+				Http::STATUS_BAD_REQUEST,
+			);
+		}
+	}
+
+	/**
+	 * @return array{node: Node, name: string}
+	 */
+	private function prepareFileForSaving(array $fileData, string $name, array $settings): array {
+		if (empty($name)) {
+			$name = $this->extractFileName($fileData);
+		}
+		if (empty($name)) {
+			throw new LibresignException($this->l10n->t('Name is mandatory'));
+		}
+
+		if (isset($fileData['fileNode']) && $fileData['fileNode'] instanceof Node) {
+			$node = $fileData['fileNode'];
+			$name = $fileData['name'] ?? $name;
+		} elseif (isset($fileData['uploadedFile'])) {
+			$this->fileService->validateUploadedFile($fileData['uploadedFile']);
+
+			$node = $this->fileService->getNodeFromData([
+				'userManager' => $this->userSession->getUser(),
+				'name' => $name,
+				'uploadedFile' => $fileData['uploadedFile'],
+				'settings' => $settings
+			]);
+		} else {
+			$this->validateHelper->validateNewFile([
+				'file' => $fileData,
+				'userManager' => $this->userSession->getUser(),
+			]);
+
+			$node = $this->fileService->getNodeFromData([
+				'userManager' => $this->userSession->getUser(),
+				'name' => $name,
+				'file' => $fileData,
+				'settings' => $settings
+			]);
+		}
+
+		return [
+			'node' => $node,
+			'name' => $name,
+		];
+	}
+
+	/**
+	 * @return list<array{fileNode?: Node, name?: string, uploadedFile?: array}> Normalized files array
+	 */
+	private function prepareFilesForSaving(array $file, array $files, array $settings): array {
+		$uploadedFiles = $this->request->getUploadedFile('files') ?: $this->request->getUploadedFile('file');
+
+		if ($uploadedFiles) {
+			return $this->processUploadedFiles($uploadedFiles);
+		}
+
+		if (!empty($files)) {
+			/** @var list<array{fileNode?: Node, name?: string}> $files */
+			return $files;
+		}
+
+		if (!empty($file)) {
+			return [$file];
+		}
+
+		throw new LibresignException($this->l10n->t('File or files parameter is required'));
+	}
+
+	/**
+	 * @return list<array{uploadedFile: array, name: string}>
+	 */
+	private function processUploadedFiles(array $uploadedFiles): array {
+		$filesArray = [];
+
+		if (isset($uploadedFiles['tmp_name'])) {
+			if (is_array($uploadedFiles['tmp_name'])) {
+				$count = count($uploadedFiles['tmp_name']);
+				for ($i = 0; $i < $count; $i++) {
+					$uploadedFile = [
+						'tmp_name' => $uploadedFiles['tmp_name'][$i],
+						'name' => $uploadedFiles['name'][$i],
+						'type' => $uploadedFiles['type'][$i],
+						'size' => $uploadedFiles['size'][$i],
+						'error' => $uploadedFiles['error'][$i],
+					];
+					$this->fileService->validateUploadedFile($uploadedFile);
+					$filesArray[] = [
+						'uploadedFile' => $uploadedFile,
+						'name' => pathinfo($uploadedFile['name'], PATHINFO_FILENAME),
+					];
+				}
+			} else {
+				$this->fileService->validateUploadedFile($uploadedFiles);
+				$filesArray[] = [
+					'uploadedFile' => $uploadedFiles,
+					'name' => pathinfo($uploadedFiles['name'], PATHINFO_FILENAME),
+				];
+			}
+		}
+
+		if (empty($filesArray)) {
+			throw new LibresignException($this->l10n->t('No files uploaded'));
+		}
+
+		return $filesArray;
+	}
+
+	/**
+	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>
+	 */
+	private function saveFiles(array $files, string $name, array $settings): DataResponse {
+		if (empty($files)) {
+			throw new LibresignException($this->l10n->t('File or files parameter is required'));
+		}
+
+		$result = $this->requestSignatureService->saveFiles([
+			'files' => $files,
+			'name' => $name,
+			'userManager' => $this->userSession->getUser(),
+			'settings' => $settings,
+		]);
+
+		return $this->formatFileResponse($result['file'], $result['children']);
+	}
+
+	/**
+	 * @param FileEntity $mainEntity The main entity (file or envelope)
+	 * @param FileEntity[] $childFiles Child files (for envelope) or same as mainEntity (for single file)
+	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>
+	 */
+	private function formatFileResponse(FileEntity $mainEntity, array $childFiles): DataResponse {
+		$rawMetadata = $mainEntity->getMetadata() ?? [];
+		$rawMetadata['extension'] = (string)($rawMetadata['extension'] ?? pathinfo($mainEntity->getName(), PATHINFO_EXTENSION));
+		$rawMetadata['p'] = isset($rawMetadata['p']) ? (int)$rawMetadata['p'] : 0;
+		/** @psalm-var LibresignValidateMetadata $metadata */
+		$metadata = $rawMetadata;
+
+		/** @psalm-var list<LibresignVisibleElement> $visibleElements */
+		$visibleElements = [];
+		/** @psalm-var list<LibresignSigner> $signers */
+		$signers = [];
+
+		$rawFilesCount = $rawMetadata['filesCount'] ?? null;
+		$filesCount = is_numeric($rawFilesCount) ? (int)$rawFilesCount : count($childFiles);
+		$filesCount = max(0, $filesCount);
+		/** @var int<0, max> $filesCount */
+
+		/** @psalm-var LibresignNextcloudFile $response */
+		$response = [
+			'message' => $this->l10n->t('Success'),
+			'id' => $mainEntity->getId(),
+			'nodeId' => $mainEntity->getNodeId(),
+			'uuid' => $mainEntity->getUuid(),
+			'name' => $mainEntity->getName(),
+			'status' => $mainEntity->getStatus(),
+			'statusText' => $this->fileMapper->getTextOfStatus($mainEntity->getStatus()),
+			'nodeType' => $mainEntity->getNodeType(),
+			'created_at' => $mainEntity->getCreatedAt()->format(\DateTimeInterface::ATOM),
+			'file' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $mainEntity->getUuid()]),
+			'metadata' => $metadata,
+			'signatureFlow' => SignatureFlow::fromNumeric($mainEntity->getSignatureFlow())->value,
+			'visibleElements' => $visibleElements,
+			'signers' => $signers,
+			'requested_by' => [
+				'userId' => $mainEntity->getUserId(),
+				'displayName' => $this->userSession->getUser()?->getDisplayName() ?? $mainEntity->getUserId(),
+			],
+		];
+
+		if ($mainEntity->getNodeType() === 'envelope') {
+			$response['filesCount'] = $filesCount;
+			$response['files'] = !empty($childFiles) ? $this->formatFilesResponse($childFiles) : [];
+		} else {
+			$response['filesCount'] = 1;
+			$response['files'] = $this->formatFilesResponse($childFiles);
+		}
+
+		return new DataResponse($response, Http::STATUS_OK);
+	}
+
+	private function extractFileName(array $fileData): string {
+		if (!empty($fileData['name'])) {
+			return $fileData['name'];
+		}
+		if (!empty($fileData['url'])) {
+			return rawurldecode(pathinfo($fileData['url'], PATHINFO_FILENAME));
+		}
+		return '';
+	}
+
+	/**
+	 * @param FileEntity[] $files
+	 * @return list<array{nodeId: int, uuid: string, name: string, status: int, statusText: string}>
+	 */
+	private function formatFilesResponse(array $files): array {
+		return array_values(array_map(fn (FileEntity $file) => [
+			'nodeId' => $file->getNodeId(),
+			'uuid' => $file->getUuid(),
+			'name' => $file->getName(),
+			'status' => $file->getStatus(),
+			'statusText' => $this->fileMapper->getTextOfStatus($file->getStatus()),
+		], $files));
+	}
+
+	/**
 	 * Delete File
 	 *
 	 * This will delete the file and all data
 	 *
-	 * @param integer $fileId Node id of a Nextcloud file
+	 * @param integer $fileId LibreSign file ID
 	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>}, array{}>
 	 *
 	 * 200: OK

@@ -12,8 +12,12 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\ResponseDefinitions;
 use OCP\AppFramework\Utility\ITimeFactory;
 
+/**
+ * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
+ */
 class FileElementService {
 	public function __construct(
 		private FileMapper $fileMapper,
@@ -22,8 +26,8 @@ class FileElementService {
 	) {
 	}
 
-	public function saveVisibleElement(array $element, string $uuid = ''): FileElement {
-		$fileElement = $this->getVisibleElementFromProperties($element, $uuid);
+	public function saveVisibleElement(array $element): FileElement {
+		$fileElement = $this->getVisibleElementFromProperties($element);
 		if ($fileElement->getId()) {
 			$this->fileElementMapper->update($fileElement);
 		} else {
@@ -32,7 +36,7 @@ class FileElementService {
 		return $fileElement;
 	}
 
-	private function getVisibleElementFromProperties(array $properties, string $uuid = ''): FileElement {
+	private function getVisibleElementFromProperties(array $properties): FileElement {
 		if (!empty($properties['elementId'])) {
 			$fileElement = $this->fileElementMapper->getById($properties['elementId']);
 		} else {
@@ -40,12 +44,15 @@ class FileElementService {
 			$fileElement->setCreatedAt($this->timeFactory->getDateTime());
 		}
 		$file = null;
-		if ($uuid) {
-			$file = $this->fileMapper->getByUuid($uuid);
+		if (!empty($properties['uuid'])) {
+			$file = $this->fileMapper->getByUuid($properties['uuid']);
 			$fileElement->setFileId($file->getId());
 		} elseif (!empty($properties['fileId'])) {
 			$file = $this->fileMapper->getById($properties['fileId']);
 			$fileElement->setFileId($properties['fileId']);
+		}
+		if (!$file) {
+			throw new \InvalidArgumentException('File not found for visible element');
 		}
 		$coordinates = $this->translateCoordinatesToInternalNotation($properties, $file);
 		$fileElement->setSignRequestId($properties['signRequestId']);
@@ -114,18 +121,6 @@ class FileElementService {
 		return $translated;
 	}
 
-	public function translateCoordinatesFromInternalNotation(array $properties, File $file): array {
-		$metadata = $file->getMetadata();
-		$dimension = $metadata['d'][$properties['coordinates']['page'] - 1];
-
-		$translated['left'] = $properties['coordinates']['llx'];
-		$translated['height'] = abs($properties['coordinates']['ury'] - $properties['coordinates']['lly']);
-		$translated['top'] = $dimension['h'] - $properties['coordinates']['ury'];
-		$translated['width'] = $properties['coordinates']['urx'] - $properties['coordinates']['llx'];
-
-		return $translated;
-	}
-
 	public function deleteVisibleElement(int $elementId): void {
 		$fileElement = new FileElement();
 		$fileElement = $fileElement->fromRow(['id' => $elementId]);
@@ -137,5 +132,53 @@ class FileElementService {
 		foreach ($visibleElements as $visibleElement) {
 			$this->fileElementMapper->delete($visibleElement);
 		}
+	}
+
+	/**
+	 * Return visible elements formatted for API responses for given file and signRequestId
+	 *
+	 * @psalm-return list<LibresignVisibleElement>
+	 */
+	public function getVisibleElementsForSignRequest(File $file, int $signRequestId): array {
+		$rows = $this->fileElementMapper->getByFileIdAndSignRequestId($file->getId(), $signRequestId);
+		return $this->formatVisibleElements($rows, $file->getMetadata());
+	}
+
+	/**
+	 * Format visible elements returned from DB rows for API responses.
+	 *
+	 * @param array<int, FileElement> $visibleElements Array of file elements as returned by mappers
+	 * @param array $fileMetadata Metadata of the file (expects page dimensions under key 'd')
+	 * @psalm-return list<LibresignVisibleElement>
+	 */
+	public function formatVisibleElements(array $visibleElements, array $fileMetadata = []): array {
+		$result = [];
+		foreach ($visibleElements as $fileElement) {
+			$elementMetadata = $fileElement->getMetadata();
+			$metadata = $fileMetadata ?: (is_array($elementMetadata) ? $elementMetadata : []);
+			$dimension = $metadata['d'][$fileElement->getPage() - 1] ?? ['h' => 0];
+			$height = (int)abs($fileElement->getUry() - $fileElement->getLly());
+			$width = (int)abs($fileElement->getUrx() - $fileElement->getLlx());
+			$top = (int)abs($dimension['h'] - $fileElement->getUry());
+			$left = (int)$fileElement->getLlx();
+			$result[] = [
+				'elementId' => $fileElement->getId(),
+				'signRequestId' => $fileElement->getSignRequestId(),
+				'fileId' => $fileElement->getFileId(),
+				'type' => $fileElement->getType(),
+				'coordinates' => [
+					'page' => $fileElement->getPage(),
+					'urx' => $fileElement->getUrx(),
+					'ury' => $fileElement->getUry(),
+					'llx' => (int)$fileElement->getLlx(),
+					'lly' => (int)$fileElement->getLly(),
+					'left' => $left,
+					'top' => $top,
+					'width' => $width,
+					'height' => $height,
+				],
+			];
+		}
+		return $result;
 	}
 }

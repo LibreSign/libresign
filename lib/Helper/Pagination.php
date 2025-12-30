@@ -13,6 +13,9 @@ use OCA\Libresign\Vendor\Pagerfanta\Pagerfanta;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IURLGenerator;
 
+/**
+ * @psalm-import-type LibresignPagination from \OCA\Libresign\ResponseDefinitions
+ */
 class Pagination extends Pagerfanta {
 	private string $routeName;
 	public function __construct(
@@ -32,6 +35,9 @@ class Pagination extends Pagerfanta {
 		return $this;
 	}
 
+	/**
+	 * @return LibresignPagination
+	 */
 	public function getPagination(int $page, int $length, array $filter = []): array {
 		$this->setMaxPerPage($length);
 		$total = $this->count();
