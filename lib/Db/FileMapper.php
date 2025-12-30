@@ -281,7 +281,7 @@ class FileMapper extends QBMapper {
 	 */
 	public function getChildrenFiles(int $parentId): array {
 		$cached = array_filter($this->file, fn ($f) => $f->getParentFileId() === $parentId);
-		if (!empty($cached)) {
+		if (!empty($cached) && count($cached) > 1) {
 			return array_values($cached);
 		}
 
