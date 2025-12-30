@@ -137,6 +137,9 @@ class FolderService {
 
 		if (isset($data['settings']['envelopeFolderId'])) {
 			$envelopeFolder = $userFolder->getFirstNodeById($data['settings']['envelopeFolderId']);
+			if ($envelopeFolder === null || !$envelopeFolder instanceof Folder) {
+				throw new LibresignException($this->l10n->t('Envelope folder not found'));
+			}
 			return $envelopeFolder;
 		}
 
