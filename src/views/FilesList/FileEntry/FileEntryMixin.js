@@ -45,6 +45,13 @@ export default {
 				color: `color-mix(in srgb, var(--color-main-text) ${ratio}%, var(--color-text-maxcontrast))`,
 			}
 		},
+
+		fileExtension() {
+			if (this.source.nodeType === 'envelope') {
+				return ''
+			}
+			return this.source.metadata?.extension ? '.' + this.source.metadata.extension : '.pdf'
+		},
 	},
 	methods: {
 		// Open the actions menu on right click
@@ -54,22 +61,24 @@ export default {
 				return
 			}
 
-			// Reset any right menu position potentially set
-			const root = this.$el?.closest('main.app-content')
-			root.style.removeProperty('--mouse-pos-x')
-			root.style.removeProperty('--mouse-pos-y')
-
 			this.actionsMenuStore.opened = this.source.nodeId
 
 			// Prevent any browser defaults
 			event.preventDefault()
 			event.stopPropagation()
+
+			const root = this.$el?.closest('.app-content')
+			if (root) {
+				const contentRect = root.getBoundingClientRect()
+				root.style.setProperty('--mouse-pos-x', Math.max(0, event.clientX - contentRect.left - 200) + 'px')
+				root.style.setProperty('--mouse-pos-y', Math.max(0, event.clientY - contentRect.top) + 'px')
+			}
 		},
 
 		openDetailsIfAvailable(event) {
 			event.preventDefault()
 			event.stopPropagation()
-			this.filesStore.selectFile(this.source.nodeId)
+			this.filesStore.selectFile(this.source.id)
 		},
 	},
 }

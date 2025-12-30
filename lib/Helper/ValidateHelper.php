@@ -78,6 +78,7 @@ class ValidateHelper {
 		private IRootFolder $root,
 	) {
 	}
+
 	public function validateNewFile(array $data, int $type = self::TYPE_TO_SIGN, ?IUser $user = null): void {
 		$this->validateFile($data, $type, $user);
 		if (!empty($data['file']['fileId'])) {
@@ -227,12 +228,17 @@ class ValidateHelper {
 		if ($type !== self::TYPE_VISIBLE_ELEMENT_PDF) {
 			return;
 		}
-		if (!array_key_exists('signRequestId', $element)) {
+		if (!array_key_exists('signRequestId', $element) && !array_key_exists('uuid', $element)) {
 			// TRANSLATION The element can be an image or text. It has to be associated with an user. The element will be added to the document.
 			throw new LibresignException($this->l10n->t('Element must be associated with a user'));
 		}
+
+		$getter = array_key_exists('signRequestId', $element)
+			? fn () => $this->signRequestMapper->getById($element['signRequestId'])
+			: fn () => $this->signRequestMapper->getByUuid($element['uuid']);
+
 		try {
-			$this->signRequestMapper->getById($element['signRequestId']);
+			$getter();
 		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('User not found for element.'));
 		}
@@ -375,7 +381,7 @@ class ValidateHelper {
 
 	public function validateIfNodeIdExists(int $nodeId, string $userId = '', int $type = self::TYPE_TO_SIGN): void {
 		if (!$userId) {
-			$libresignFile = $this->fileMapper->getByFileId($nodeId);
+			$libresignFile = $this->fileMapper->getByNodeId($nodeId);
 			$userId = $libresignFile->getUserId();
 		}
 		try {
@@ -392,7 +398,7 @@ class ValidateHelper {
 
 	public function validateMimeTypeAcceptedByNodeId(int $nodeId, string $userId = '', int $type = self::TYPE_TO_SIGN): void {
 		if (!$userId) {
-			$libresignFile = $this->fileMapper->getByFileId($nodeId);
+			$libresignFile = $this->fileMapper->getByNodeId($nodeId);
 			$userId = $libresignFile->getUserId();
 		}
 		$file = $this->root->getUserFolder($userId)->getFirstNodeById($nodeId);
@@ -415,9 +421,9 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateLibreSignNodeId(int $nodeId): void {
+	public function validateLibreSignFileId(int $fileId): void {
 		try {
-			$this->getLibreSignFileByNodeId($nodeId);
+			$this->fileMapper->getById($fileId);
 		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('Invalid fileID'));
 		}
@@ -427,7 +433,7 @@ class ValidateHelper {
 		if (isset($this->file[$nodeId])) {
 			return $this->file[$nodeId];
 		}
-		$libresignFile = $this->fileMapper->getByFileId($nodeId);
+		$libresignFile = $this->fileMapper->getByNodeId($nodeId);
 
 		$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
 		$file = $userFolder->getFirstNodeById($nodeId);
@@ -464,8 +470,8 @@ class ValidateHelper {
 		}
 	}
 
-	public function iRequestedSignThisFile(IUser $user, int $nodeId): void {
-		$libresignFile = $this->fileMapper->getByFileId($nodeId);
+	public function iRequestedSignThisFile(IUser $user, int $fileId): void {
+		$libresignFile = $this->fileMapper->getById($fileId);
 		if ($libresignFile->getUserId() !== $user->getUID()) {
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
 		}
@@ -485,7 +491,7 @@ class ValidateHelper {
 				$file = $this->fileMapper->getByUuid($data['uuid']);
 			} elseif (!empty($data['file']['fileId'])) {
 				try {
-					$file = $this->fileMapper->getByFileId($data['file']['fileId']);
+					$file = $this->fileMapper->getById($data['file']['fileId']);
 				} catch (\Throwable) {
 				}
 			}
@@ -504,6 +510,10 @@ class ValidateHelper {
 	}
 
 	public function validateIdentifySigners(array $data): void {
+		if (empty($data['users'])) {
+			return;
+		}
+
 		$this->validateSignersDataStructure($data);
 
 		foreach ($data['users'] as $signer) {
@@ -603,12 +613,12 @@ class ValidateHelper {
 		if (isset($data['uuid'])) {
 			$this->validateFileUuid($data);
 			$file = $this->fileMapper->getByUuid($data['uuid']);
-			$this->iRequestedSignThisFile($data['userManager'], $file->getNodeId());
+			$this->iRequestedSignThisFile($data['userManager'], $file->getId());
 		} elseif (isset($data['file'])) {
 			if (!isset($data['file']['fileId'])) {
 				throw new LibresignException($this->l10n->t('Invalid fileID'));
 			}
-			$this->validateLibreSignNodeId($data['file']['fileId']);
+			$this->validateLibreSignFileId($data['file']['fileId']);
 			$this->iRequestedSignThisFile($data['userManager'], $data['file']['fileId']);
 		} else {
 			// TRANSLATORS This message is at API side. When an application or a
@@ -647,7 +657,7 @@ class ValidateHelper {
 
 	public function signerWasAssociated(array $signer): void {
 		try {
-			$libresignFile = $this->fileMapper->getByFileId();
+			$libresignFile = $this->fileMapper->getByNodeId();
 		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('File not loaded'));
 		}
@@ -671,7 +681,7 @@ class ValidateHelper {
 
 	public function notSigned(array $signer): void {
 		try {
-			$libresignFile = $this->fileMapper->getByFileId();
+			$libresignFile = $this->fileMapper->getByNodeId();
 		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('File not loaded'));
 		}

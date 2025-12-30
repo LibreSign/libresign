@@ -175,6 +175,7 @@ class TestCase extends \Test\TestCase {
 
 		$delete = $db->getQueryBuilder();
 		$delete->delete('libresign_file')->executeStatement();
+		$delete->delete('libresign_identify_method')->executeStatement();
 		$delete->delete('libresign_sign_request')->executeStatement();
 		$delete->delete('libresign_user_element')->executeStatement();
 		$delete->delete('libresign_file_element')->executeStatement();

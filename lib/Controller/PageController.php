@@ -9,6 +9,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -43,6 +45,7 @@ use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\Util;
+use Psr\Log\LoggerInterface;
 
 class PageController extends AEnvironmentPageAwareController {
 	public function __construct(
@@ -58,6 +61,9 @@ class PageController extends AEnvironmentPageAwareController {
 		private IdentifyMethodService $identifyMethodService,
 		private IAppConfig $appConfig,
 		private FileService $fileService,
+		private FileMapper $fileMapper,
+		private SignRequestMapper $signRequestMapper,
+		private LoggerInterface $logger,
 		private ValidateHelper $validateHelper,
 		private IEventDispatcher $eventDispatcher,
 		private IURLGenerator $urlGenerator,
@@ -184,7 +190,7 @@ class PageController extends AEnvironmentPageAwareController {
 			try {
 				$this->initialState->provideInitialState('file_info',
 					$this->fileService
-						->setFileByType('uuid', $matches['uuid'])
+						->setFileByUuid($matches['uuid'])
 						->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
 						->setHost($this->request->getServerHost())
 						->setMe($this->userSession->getUser())
@@ -320,6 +326,8 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('config', [
 			'identificationDocumentsFlow' => $file['settings']['needIdentificationDocuments'] ?? false,
 		]);
+		$this->initialState->provideInitialState('id', $file['id']);
+		$this->initialState->provideInitialState('nodeId', $file['nodeId']);
 		$this->initialState->provideInitialState('needIdentificationDocuments', $file['settings']['needIdentificationDocuments'] ?? false);
 		$this->initialState->provideInitialState('identificationDocumentsWaitingApproval', $file['settings']['identificationDocumentsWaitingApproval'] ?? false);
 		$this->initialState->provideInitialState('status', $file['status']);
@@ -329,10 +337,15 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->provideSignerSignatues();
 		$this->initialState->provideInitialState('token_length', TokenService::TOKEN_LENGTH);
 		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');
-		$this->initialState->provideInitialState('pdf',
-			$this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $uuid)
-		);
+		if ($this->getFileEntity()->getNodeType() === 'envelope') {
+			$this->initialState->provideInitialState('pdfs', []);
+			$this->initialState->provideInitialState('envelopeFiles', $this->getEnvelopeChildFiles());
+		} else {
+			$this->initialState->provideInitialState('pdfs', $this->getPdfUrls());
+			$this->initialState->provideInitialState('envelopeFiles', []);
+		}
 		$this->initialState->provideInitialState('nodeId', $this->getFileEntity()->getNodeId());
+		$this->initialState->provideInitialState('nodeType', $this->getFileEntity()->getNodeType());
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
@@ -355,9 +368,45 @@ class PageController extends AEnvironmentPageAwareController {
 	}
 
 	/**
-	 * Show signature page
+	 * @return string[] Array of PDF URLs
+	 */
+	private function getPdfUrls(): array {
+		return $this->signFileService->getPdfUrlsForSigning(
+			$this->getFileEntity(),
+			$this->getSignRequestEntity()
+		);
+	}
+
+	private function getEnvelopeChildFiles(): array {
+		$childFiles = $this->fileMapper->getChildrenFiles($this->getFileEntity()->getId());
+		$result = [];
+
+		foreach ($childFiles as $childFile) {
+
+			$childSignRequest = $this->signRequestMapper->getByFileIdAndSignRequestId(
+				$childFile->getId(),
+				$this->getSignRequestEntity()->getId()
+			);
+
+			$fileData = $this->fileService
+				->setFile($childFile)
+				->setHost($this->request->getServerHost())
+				->setSignerIdentified()
+				->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
+				->setSignRequest($childSignRequest)
+				->showSigners()
+				->toArray();
+
+			$result[] = $fileData;
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Show signature page for identification document approval
 	 *
-	 * @param string $uuid Sign request uuid
+	 * @param string $uuid File UUID for the identification document approval
 	 * @return TemplateResponse<Http::STATUS_OK, array{}>
 	 *
 	 * 200: OK
@@ -367,7 +416,6 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[FrontpageRoute(verb: 'GET', url: '/p/id-docs/approve/{uuid}')]
-	#[FrontpageRoute(verb: 'GET', url: '/p/id-docs/approve/{uuid}/{path}', requirements: ['path' => '.+'], postfix: 'private')]
 	public function signIdDoc($uuid): TemplateResponse {
 		try {
 			$fileEntity = $this->signFileService->getFileByUuid($uuid);
@@ -399,7 +447,8 @@ class PageController extends AEnvironmentPageAwareController {
 			->showVisibleElements()
 			->showSigners()
 			->toArray();
-		$this->initialState->provideInitialState('fileId', $file['nodeId']);
+		$this->initialState->provideInitialState('id', $file['id']);
+		$this->initialState->provideInitialState('nodeId', $file['nodeId']);
 		$this->initialState->provideInitialState('status', $file['status']);
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
 		$this->initialState->provideInitialState('visibleElements', []);
@@ -409,10 +458,9 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('signature_methods', $signatureMethods);
 		$this->initialState->provideInitialState('token_length', TokenService::TOKEN_LENGTH);
 		$this->initialState->provideInitialState('description', '');
-		$nextcloudFile = $this->signFileService->getNextcloudFile($fileEntity);
-		$this->initialState->provideInitialState('pdf',
-			$this->signFileService->getFileUrl('url', $fileEntity, $nextcloudFile, $uuid)
-		);
+		$this->initialState->provideInitialState('pdf', [
+			'url' => $this->signFileService->getFileUrl($fileEntity->getId(), $uuid)
+		]);
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
@@ -469,7 +517,14 @@ class PageController extends AEnvironmentPageAwareController {
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[FrontpageRoute(verb: 'GET', url: '/pdf/{uuid}')]
 	public function getPdfFile($uuid): FileDisplayResponse {
-		$file = $this->getNextcloudFile();
+		$files = $this->getNextcloudFiles();
+		if (empty($files)) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [['message' => $this->l10n->t('File not found')]],
+			]), Http::STATUS_NOT_FOUND);
+		}
+		$file = current($files);
 		return new FileDisplayResponse($file, Http::STATUS_OK, ['Content-Type' => $file->getMimeType()]);
 	}
 
@@ -498,9 +553,7 @@ class PageController extends AEnvironmentPageAwareController {
 				'description' => $this->getSignRequestEntity()?->getDescription(),
 			]);
 			$this->initialState->provideInitialState('filename', $this->getFileEntity()?->getName());
-			$this->initialState->provideInitialState('pdf',
-				$this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $this->request->getParam('uuid'))
-			);
+			$this->initialState->provideInitialState('pdfs', $this->getPdfUrls());
 			$this->initialState->provideInitialState('signer',
 				$this->signFileService->getSignerData(
 					$this->userSession->getUser(),
@@ -582,7 +635,7 @@ class PageController extends AEnvironmentPageAwareController {
 	public function validationFilePublic(string $uuid): TemplateResponse {
 		try {
 			$this->signFileService->getFileByUuid($uuid);
-			$this->fileService->setFileByType('uuid', $uuid);
+			$this->fileService->setFileByUuid($uuid);
 		} catch (DoesNotExistException) {
 			try {
 				$signRequest = $this->signFileService->getSignRequestByUuid($uuid);

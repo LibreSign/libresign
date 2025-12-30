@@ -6,7 +6,7 @@
 	<tr class="files-list__row"
 		@contextmenu="onRightClick">
 		<!-- Checkbox -->
-		<FileEntryCheckbox :is-loading="filesStore.loading"
+		<FileEntryCheckbox :is-loading="filesStore.loading || renamingSaving"
 			:source="source" />
 
 		<td class="files-list__row-name"
@@ -14,15 +14,19 @@
 			<FileEntryPreview :source="source" />
 			<FileEntryName ref="name"
 				:basename="source.name"
-				:extension="'.pdf'" />
+				:extension="fileExtension"
+				@rename="onRename"
+				@renaming="onFileRenaming" />
 		</td>
 
 		<!-- Actions -->
 		<FileEntryActions ref="actions"
-			:class="`files-list__row-actions-${source.nodeId}`"
+			:class="`files-list__row-actions-${source.id}`"
 			:opened.sync="openedMenu"
 			:source="source"
-			:loading="loading" />
+			:loading="loading"
+			@rename="onRename"
+			@start-rename="onStartRename" />
 
 		<!-- Status -->
 		<td class="files-list__row-status"
@@ -42,6 +46,7 @@
 </template>
 
 <script>
+import { showSuccess } from '@nextcloud/dialogs'
 import NcDateTime from '@nextcloud/vue/components/NcDateTime'
 
 import FileEntryActions from './FileEntryActions.vue'
@@ -74,6 +79,34 @@ export default {
 			actionsMenuStore,
 			filesStore,
 		}
+	},
+	data() {
+		return {
+			isRenaming: false,
+			renamingSaving: false,
+		}
+	},
+	methods: {
+		async onRename(newName) {
+			const oldName = this.source.name
+			this.renamingSaving = true
+			try {
+				await this.$refs.actions.doRename(newName)
+				this.$refs.name?.stopRenaming?.()
+				showSuccess(t('libresign', 'Renamed "{oldName}" to "{newName}"', {
+					oldName,
+					newName,
+				}))
+			} finally {
+				this.renamingSaving = false
+			}
+		},
+		onStartRename() {
+			this.$refs.name?.startRenaming?.()
+		},
+		onFileRenaming(isRenaming) {
+			this.isRenaming = isRenaming
+		},
 	},
 }
 </script>

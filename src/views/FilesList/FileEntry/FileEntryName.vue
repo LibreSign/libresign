@@ -3,7 +3,29 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<component :is="linkTo.is"
+	<!-- Rename input -->
+	<form
+		v-if="isRenaming"
+		ref="renameForm"
+		class="files-list__row-rename"
+		@submit.prevent.stop="onRename"
+		@click.stop>
+		<NcTextField
+			ref="renameInput"
+			v-model="newName"
+			:label="t('libresign', 'File name')"
+			:autofocus="true"
+			:minlength="3"
+			:maxlength="255"
+			:required="true"
+			enterkeyhint="done"
+			@keyup.esc="stopRenaming"
+			@blur="onRename" />
+	</form>
+
+	<!-- Display name -->
+	<component v-else
+		:is="linkTo.is"
 		ref="basename"
 		class="files-list__row-name-link"
 		v-bind="linkTo.params"
@@ -45,6 +67,15 @@ export default {
 		},
 	},
 
+	emits: ['rename', 'update:basename', 'renaming'],
+
+	data() {
+		return {
+			isRenaming: false,
+			newName: '',
+		}
+	},
+
 	computed: {
 		linkTo() {
 			return {
@@ -55,6 +86,51 @@ export default {
 					tabindex: '0',
 				},
 			}
+		},
+	},
+
+	watch: {
+		basename(newVal) {
+			if (!this.isRenaming) {
+				this.newName = newVal
+			}
+		},
+	},
+
+	methods: {
+		startRenaming() {
+			this.isRenaming = true
+			this.$emit('renaming', true)
+			this.newName = this.basename
+			this.$nextTick(() => {
+				const input = this.$refs.renameInput?.$el?.querySelector('input')
+				if (input) {
+					input.focus()
+					input.setSelectionRange(0, this.basename.length)
+				}
+			})
+		},
+
+		stopRenaming() {
+			this.isRenaming = false
+			this.$emit('renaming', false)
+			this.newName = ''
+		},
+
+		async onRename() {
+			const trimmedName = this.newName.trim()
+
+			if (!trimmedName || trimmedName.length < 3) {
+				this.stopRenaming()
+				return
+			}
+
+			if (trimmedName === this.basename) {
+				this.stopRenaming()
+				return
+			}
+
+			this.$emit('rename', trimmedName)
 		},
 	},
 }
@@ -69,6 +145,16 @@ button.files-list__row-name-link {
 	&:active {
 		// No active styles - handled by the row entry
 		background-color: unset !important;
+	}
+}
+
+.files-list__row-rename {
+	display: contents;
+
+	:deep(input) {
+		padding: 4px 8px;
+		border: 2px solid var(--color-primary-element);
+		border-radius: var(--border-radius-large);
 	}
 }
 </style>

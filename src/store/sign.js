@@ -15,12 +15,14 @@ import { useSignMethodsStore } from './signMethods.js'
 const defaultState = {
 	errors: [],
 	document: {
+		id: 0,
 		name: '',
 		description: '',
 		status: '',
 		statusText: '',
 		url: '',
 		nodeId: 0,
+		nodeType: 'file',
 		uuid: '',
 		signers: [],
 	},
@@ -33,33 +35,36 @@ export const useSignStore = defineStore('sign', {
 	actions: {
 		initFromState() {
 			this.errors = loadState('libresign', 'errors', [])
-			const pdf = loadState('libresign', 'pdf', [])
+
 			const file = {
+				id: loadState('libresign', 'id', 0),
 				name: loadState('libresign', 'filename', ''),
 				description: loadState('libresign', 'description', ''),
 				status: loadState('libresign', 'status', ''),
 				statusText: loadState('libresign', 'statusText', ''),
-				url: pdf.url,
 				nodeId: loadState('libresign', 'nodeId', 0),
+				nodeType: loadState('libresign', 'nodeType', ''),
 				uuid: loadState('libresign', 'uuid', null),
 				signers: loadState('libresign', 'signers', []),
 			}
-			this.setDocumentToSign(file)
+			this.setFileToSign(file)
 			const filesStore = useFilesStore()
 			filesStore.addFile(file)
-			filesStore.selectedNodeId = file.nodeId
+			filesStore.selectedId = file.id
 		},
-		setDocumentToSign(document) {
-			if (document) {
+		setFileToSign(file) {
+			if (file) {
 				this.errors = []
-				set(this, 'document', document)
+				set(this, 'document', file)
 
 				const sidebarStore = useSidebarStore()
 				sidebarStore.activeSignTab()
 
 				const signMethodsStore = useSignMethodsStore()
-				const signer = document.signers.find(row => row.me) || {}
-				signMethodsStore.settings = signer.signatureMethods
+				const signer = file.signers.find(row => row.me) || {}
+
+				signMethodsStore.settings = signer.signatureMethods || {}
+
 				return
 			}
 			this.reset()

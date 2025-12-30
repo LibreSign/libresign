@@ -137,6 +137,7 @@ class Pkcs12Handler extends SignEngineHandler {
 
 		foreach ($signer['chain'] as $key => $cert) {
 			if ($cert['isLibreSignRootCA']
+				&& isset($cert['certificate_validation'])
 				&& $cert['certificate_validation']['id'] !== 1
 			) {
 				$signer['chain'][$key]['certificate_validation'] = [

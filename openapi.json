@@ -37,7 +37,8 @@
                     "config": {
                         "type": "object",
                         "required": [
-                            "sign-elements"
+                            "sign-elements",
+                            "envelope"
                         ],
                         "properties": {
                             "sign-elements": {
@@ -72,6 +73,17 @@
                                     "signature-height": {
                                         "type": "number",
                                         "format": "double"
+                                    }
+                                }
+                            },
+                            "envelope": {
+                                "type": "object",
+                                "required": [
+                                    "is-available"
+                                ],
+                                "properties": {
+                                    "is-available": {
+                                        "type": "boolean"
                                     }
                                 }
                             }
@@ -134,48 +146,130 @@
                 "properties": {
                     "page": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "urx": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "ury": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "llx": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "lly": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "top": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "left": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "width": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "height": {
                         "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
+            "EnvelopeChildFile": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "uuid",
+                    "name",
+                    "status",
+                    "statusText",
+                    "nodeId",
+                    "signers"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "statusText": {
+                        "type": "string"
+                    },
+                    "nodeId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "totalPages": {
+                        "type": "integer",
                         "format": "int64",
                         "minimum": 0
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "pdfVersion": {
+                        "type": "string"
+                    },
+                    "signers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EnvelopeChildSignerSummary"
+                        }
+                    },
+                    "metadata": {
+                        "$ref": "#/components/schemas/ValidateMetadata"
+                    }
+                }
+            },
+            "EnvelopeChildSignerSummary": {
+                "type": "object",
+                "required": [
+                    "signRequestId",
+                    "displayName",
+                    "email",
+                    "signed",
+                    "status",
+                    "statusText"
+                ],
+                "properties": {
+                    "signRequestId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "displayName": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "signed": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "statusText": {
+                        "type": "string"
                     }
                 }
             },
@@ -299,6 +393,144 @@
                                     "$ref": "#/components/schemas/Signer"
                                 }
                             }
+                        }
+                    }
+                }
+            },
+            "FileDetail": {
+                "type": "object",
+                "required": [
+                    "created_at",
+                    "file",
+                    "files",
+                    "filesCount",
+                    "id",
+                    "metadata",
+                    "name",
+                    "nodeId",
+                    "nodeType",
+                    "requested_by",
+                    "signatureFlow",
+                    "signers",
+                    "status",
+                    "statusText",
+                    "uuid",
+                    "visibleElements"
+                ],
+                "properties": {
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "file": {
+                        "type": "string"
+                    },
+                    "files": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "nodeId",
+                                "uuid",
+                                "name",
+                                "status",
+                                "statusText"
+                            ],
+                            "properties": {
+                                "fileId": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "nodeId": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "uuid": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "statusText": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "filesCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object"
+                        }
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "nodeId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "nodeType": {
+                        "type": "string"
+                    },
+                    "requested_by": {
+                        "type": "object",
+                        "required": [
+                            "userId",
+                            "displayName"
+                        ],
+                        "properties": {
+                            "userId": {
+                                "type": "string"
+                            },
+                            "displayName": {
+                                "type": "string",
+                                "nullable": true
+                            }
+                        }
+                    },
+                    "signatureFlow": {
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "format": "int64"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "signers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Signer"
+                        }
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "statusText": {
+                        "type": "string"
+                    },
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "visibleElements": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/VisibleElement"
                         }
                     }
                 }
@@ -471,9 +703,20 @@
                     "message",
                     "name",
                     "id",
+                    "nodeId",
+                    "uuid",
                     "status",
                     "statusText",
-                    "created_at"
+                    "nodeType",
+                    "created_at",
+                    "file",
+                    "metadata",
+                    "signatureFlow",
+                    "visibleElements",
+                    "signers",
+                    "requested_by",
+                    "filesCount",
+                    "files"
                 ],
                 "properties": {
                     "message": {
@@ -486,6 +729,13 @@
                         "type": "integer",
                         "format": "int64"
                     },
+                    "nodeId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "uuid": {
+                        "type": "string"
+                    },
                     "status": {
                         "type": "integer",
                         "format": "int64"
@@ -493,8 +743,93 @@
                     "statusText": {
                         "type": "string"
                     },
+                    "nodeType": {
+                        "type": "string",
+                        "enum": [
+                            "file",
+                            "envelope"
+                        ]
+                    },
                     "created_at": {
                         "type": "string"
+                    },
+                    "file": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "$ref": "#/components/schemas/ValidateMetadata"
+                    },
+                    "signatureFlow": {
+                        "type": "string",
+                        "enum": [
+                            "none",
+                            "parallel",
+                            "ordered_numeric"
+                        ]
+                    },
+                    "visibleElements": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/VisibleElement"
+                        }
+                    },
+                    "signers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Signer"
+                        }
+                    },
+                    "requested_by": {
+                        "type": "object",
+                        "required": [
+                            "userId",
+                            "displayName"
+                        ],
+                        "properties": {
+                            "userId": {
+                                "type": "string"
+                            },
+                            "displayName": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "filesCount": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "files": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "nodeId",
+                                "uuid",
+                                "name",
+                                "status",
+                                "statusText"
+                            ],
+                            "properties": {
+                                "nodeId": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "uuid": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "statusText": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -594,7 +929,10 @@
                     "canSign",
                     "canRequestSign",
                     "signerFileUuid",
-                    "phoneNumber"
+                    "phoneNumber",
+                    "hasSignatureFile",
+                    "needIdentificationDocuments",
+                    "identificationDocumentsWaitingApproval"
                 ],
                 "properties": {
                     "canSign": {
@@ -607,11 +945,11 @@
                         "type": "string",
                         "nullable": true
                     },
-                    "hasSignatureFile": {
-                        "type": "boolean"
-                    },
                     "phoneNumber": {
                         "type": "string"
+                    },
+                    "hasSignatureFile": {
+                        "type": "boolean"
                     },
                     "needIdentificationDocuments": {
                         "type": "boolean"
@@ -815,6 +1153,9 @@
                     },
                     "signatureMethods": {
                         "$ref": "#/components/schemas/SignatureMethods"
+                    },
+                    "uid": {
+                        "type": "string"
                     }
                 }
             },
@@ -871,11 +1212,13 @@
             "ValidateFile": {
                 "type": "object",
                 "required": [
+                    "id",
                     "uuid",
                     "name",
                     "status",
                     "statusText",
                     "nodeId",
+                    "nodeType",
                     "signatureFlow",
                     "docmdpLevel",
                     "totalPages",
@@ -886,6 +1229,10 @@
                     "file"
                 ],
                 "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
                     "uuid": {
                         "type": "string"
                     },
@@ -911,6 +1258,13 @@
                         "format": "int64",
                         "minimum": 0
                     },
+                    "nodeType": {
+                        "type": "string",
+                        "enum": [
+                            "file",
+                            "envelope"
+                        ]
+                    },
                     "signatureFlow": {
                         "type": "integer",
                         "format": "int64"
@@ -918,6 +1272,17 @@
                     "docmdpLevel": {
                         "type": "integer",
                         "format": "int64"
+                    },
+                    "filesCount": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "files": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EnvelopeChildFile"
+                        }
                     },
                     "totalPages": {
                         "type": "integer",
@@ -956,23 +1321,22 @@
                     "url": {
                         "type": "string"
                     },
-                    "metadata": {
-                        "type": "object",
-                        "required": [
-                            "extension",
-                            "p"
-                        ],
-                        "properties": {
-                            "extension": {
-                                "type": "string"
-                            },
-                            "p": {
-                                "type": "integer",
-                                "format": "int64"
-                            },
-                            "d": {
-                                "type": "array",
-                                "items": {
+                    "mime": {
+                        "type": "string"
+                    },
+                    "pages": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "url",
+                                "resolution"
+                            ],
+                            "properties": {
+                                "url": {
+                                    "type": "string"
+                                },
+                                "resolution": {
                                     "type": "object",
                                     "required": [
                                         "w",
@@ -991,6 +1355,9 @@
                                 }
                             }
                         }
+                    },
+                    "metadata": {
+                        "$ref": "#/components/schemas/ValidateMetadata"
                     },
                     "signers": {
                         "type": "array",
@@ -1030,24 +1397,66 @@
                     }
                 }
             },
+            "ValidateMetadata": {
+                "type": "object",
+                "required": [
+                    "extension",
+                    "p"
+                ],
+                "properties": {
+                    "extension": {
+                        "type": "string"
+                    },
+                    "p": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "d": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "w",
+                                "h"
+                            ],
+                            "properties": {
+                                "w": {
+                                    "type": "number",
+                                    "format": "double"
+                                },
+                                "h": {
+                                    "type": "number",
+                                    "format": "double"
+                                }
+                            }
+                        }
+                    },
+                    "pdfVersion": {
+                        "type": "string"
+                    }
+                }
+            },
             "VisibleElement": {
                 "type": "object",
                 "required": [
                     "elementId",
                     "signRequestId",
+                    "fileId",
                     "type",
                     "coordinates"
                 ],
                 "properties": {
                     "elementId": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
                     },
                     "signRequestId": {
                         "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
+                        "format": "int64"
+                    },
+                    "fileId": {
+                        "type": "integer",
+                        "format": "int64"
                     },
                     "type": {
                         "type": "string"
@@ -1669,7 +2078,7 @@
         "/index.php/apps/libresign/p/id-docs/approve/{uuid}": {
             "get": {
                 "operationId": "page-sign-id-doc",
-                "summary": "Show signature page",
+                "summary": "Show signature page for identification document approval",
                 "tags": [
                     "page"
                 ],
@@ -1685,59 +2094,10 @@
                     {
                         "name": "uuid",
                         "in": "path",
-                        "description": "Sign request uuid",
+                        "description": "File UUID for the identification document approval",
                         "required": true,
                         "schema": {
                             "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "text/html": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/index.php/apps/libresign/p/id-docs/approve/{uuid}/{path}": {
-            "get": {
-                "operationId": "page-sign-id-doc-private",
-                "summary": "Show signature page",
-                "tags": [
-                    "page"
-                ],
-                "security": [
-                    {
-                        "bearer_auth": []
-                    },
-                    {
-                        "basic_auth": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "uuid",
-                        "in": "path",
-                        "description": "Sign request uuid",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "path",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "pattern": "^.+$"
                         }
                     }
                 ],
@@ -3335,7 +3695,7 @@
             "get": {
                 "operationId": "file-validate-uuid",
                 "summary": "Validate a file using Uuid",
-                "description": "Validate a file returning file data.",
+                "description": "Validate a file returning file data. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.",
                 "tags": [
                     "file"
                 ],
@@ -3494,7 +3854,7 @@
             "get": {
                 "operationId": "file-validate-file-id",
                 "summary": "Validate a file using FileId",
-                "description": "Validate a file returning file data.",
+                "description": "Validate a file returning file data. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.",
                 "tags": [
                     "file"
                 ],
@@ -3654,7 +4014,7 @@
             "post": {
                 "operationId": "file-validate-binary",
                 "summary": "Validate a binary file",
-                "description": "Validate a binary file returning file data. Use field 'file' for the file upload",
+                "description": "Validate a binary file returning file data. Use field 'file' for the file upload. When `nodeType` is `envelope`, the response includes `filesCount` and `files` as a list of envelope child files.",
                 "tags": [
                     "file"
                 ],
@@ -4002,6 +4362,16 @@
                         }
                     },
                     {
+                        "name": "parentFileId",
+                        "in": "query",
+                        "description": "Filter files by parent envelope file ID",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true
+                        }
+                    },
+                    {
                         "name": "OCS-APIRequest",
                         "in": "header",
                         "description": "Required to be true for the API request to pass",
@@ -4045,10 +4415,12 @@
                                                         },
                                                         "data": {
                                                             "type": "array",
-                                                            "nullable": true,
                                                             "items": {
-                                                                "$ref": "#/components/schemas/File"
+                                                                "$ref": "#/components/schemas/FileDetail"
                                                             }
+                                                        },
+                                                        "settings": {
+                                                            "$ref": "#/components/schemas/Settings"
                                                         }
                                                     }
                                                 }
@@ -4293,7 +4665,7 @@
             "post": {
                 "operationId": "file-save",
                 "summary": "Send a file",
-                "description": "Send a new file to Nextcloud and return the fileId to request signature",
+                "description": "Send a new file to Nextcloud and return the fileId to request signature. Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.",
                 "tags": [
                     "file"
                 ],
@@ -4306,17 +4678,15 @@
                     }
                 ],
                 "requestBody": {
-                    "required": true,
+                    "required": false,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "type": "object",
-                                "required": [
-                                    "file"
-                                ],
                                 "properties": {
                                     "file": {
                                         "$ref": "#/components/schemas/NewFile",
+                                        "default": [],
                                         "description": "File to save"
                                     },
                                     "name": {
@@ -4328,6 +4698,14 @@
                                         "$ref": "#/components/schemas/FolderSettings",
                                         "default": [],
                                         "description": "Settings to define the pattern to store the file. See more informations at FolderService::getFolderName method."
+                                    },
+                                    "files": {
+                                        "type": "array",
+                                        "default": [],
+                                        "description": "Multiple files to create an envelope (optional, use either file or files)",
+                                        "items": {
+                                            "$ref": "#/components/schemas/NewFile"
+                                        }
                                     }
                                 }
                             }
@@ -4430,6 +4808,203 @@
                 }
             }
         },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/{uuid}/add-file": {
+            "post": {
+                "operationId": "file-add-file-to-envelope",
+                "summary": "Add file to envelope",
+                "description": "Add one or more files to an existing envelope that is in DRAFT status. Files must be uploaded as multipart/form-data with field name 'files[]'.",
+                "tags": [
+                    "file"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "The UUID of the envelope",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Files added successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/NextcloudFile"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Envelope not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Cannot add files (envelope not in DRAFT status or validation failed)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/file_id/{fileId}": {
             "delete": {
                 "operationId": "file-delete-all-request-signature-using-file-id",
@@ -4462,7 +5037,7 @@
                     {
                         "name": "fileId",
                         "in": "path",
-                        "description": "Node id of a Nextcloud file",
+                        "description": "LibreSign file ID",
                         "required": true,
                         "schema": {
                             "type": "integer",
@@ -4654,6 +5229,12 @@
                                         "nullable": true,
                                         "description": "ID of visible element. Each element has an ID that is returned on validation endpoints."
                                     },
+                                    "fileId": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "description": "File ID when using node identifier instead of UUID"
+                                    },
                                     "type": {
                                         "type": "string",
                                         "default": "",
@@ -4832,6 +5413,12 @@
                                         "type": "integer",
                                         "format": "int64",
                                         "description": "Id of sign request"
+                                    },
+                                    "fileId": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "description": "File ID when using node identifier instead of UUID"
                                     },
                                     "type": {
                                         "type": "string",
@@ -6316,7 +6903,7 @@
             "post": {
                 "operationId": "request_signature-request",
                 "summary": "Request signature",
-                "description": "Request that a file be signed by a group of people. Each user in the users array can optionally include a 'signing_order' field to control the order of signatures when ordered signing flow is enabled.",
+                "description": "Request that a file be signed by a group of people. Each user in the users array can optionally include a 'signing_order' field to control the order of signatures when ordered signing flow is enabled. When the created entity is an envelope (`nodeType` = `envelope`), the returned `data` includes `filesCount` and `files` as a list of envelope child files.",
                 "tags": [
                     "request_signature"
                 ],
@@ -6430,7 +7017,7 @@
                                                     ],
                                                     "properties": {
                                                         "data": {
-                                                            "$ref": "#/components/schemas/ValidateFile"
+                                                            "$ref": "#/components/schemas/FileDetail"
                                                         },
                                                         "message": {
                                                             "type": "string"
@@ -6570,6 +7157,11 @@
                                         "type": "string",
                                         "nullable": true,
                                         "description": "Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "description": "The name of file to sign"
                                     }
                                 }
                             }
@@ -6632,7 +7224,7 @@
                                                             "type": "string"
                                                         },
                                                         "data": {
-                                                            "$ref": "#/components/schemas/ValidateFile"
+                                                            "$ref": "#/components/schemas/FileDetail"
                                                         }
                                                     }
                                                 }
@@ -6734,7 +7326,7 @@
                     {
                         "name": "fileId",
                         "in": "path",
-                        "description": "Node id of a Nextcloud file",
+                        "description": "LibreSign file ID",
                         "required": true,
                         "schema": {
                             "type": "integer",

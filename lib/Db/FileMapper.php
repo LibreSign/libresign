@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Db;
 
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\NodeType;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\Comments\ICommentsManager;
@@ -141,7 +142,7 @@ class FileMapper extends QBMapper {
 	/**
 	 * Return LibreSign file by nodeId
 	 */
-	public function getByFileId(?int $nodeId = null): File {
+	public function getByNodeId(?int $nodeId = null): File {
 		$exists = array_filter($this->file, fn ($f) => $f->getNodeId() === $nodeId || $f->getSignedNodeId() === $nodeId);
 		if (!empty($exists)) {
 			return current($exists);
@@ -273,5 +274,69 @@ class FileMapper extends QBMapper {
 				->where($update->expr()->eq('id', $update->createNamedParameter($row['id'])));
 			$update->executeStatement();
 		}
+	}
+
+	/**
+	 * @return File[]
+	 */
+	public function getChildrenFiles(int $parentId): array {
+		$cached = array_filter($this->file, fn ($f) => $f->getParentFileId() === $parentId);
+		if (!empty($cached)) {
+			return array_values($cached);
+		}
+
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('parent_file_id', $qb->createNamedParameter($parentId, IQueryBuilder::PARAM_INT))
+			)
+			->andWhere(
+				$qb->expr()->eq('node_type', $qb->createNamedParameter(NodeType::FILE->value))
+			)
+			->orderBy('id', 'ASC');
+
+		$children = $this->findEntities($qb);
+
+		foreach ($children as $child) {
+			$this->file[] = $child;
+		}
+
+		return $children;
+	}
+
+	public function getParentEnvelope(int $fileId): ?File {
+		$file = $this->getById($fileId);
+
+		if (!$file->hasParent()) {
+			return null;
+		}
+
+		return $this->getById($file->getParentFileId());
+	}
+
+	public function countChildrenFiles(int $envelopeId): int {
+		$cached = array_filter($this->file, fn ($f) => $f->getParentFileId() === $envelopeId);
+		if (!empty($cached)) {
+			return count($cached);
+		}
+
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select($qb->func()->count('*', 'count'))
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('parent_file_id', $qb->createNamedParameter($envelopeId, IQueryBuilder::PARAM_INT))
+			)
+			->andWhere(
+				$qb->expr()->eq('node_type', $qb->createNamedParameter(NodeType::FILE->value))
+			);
+
+		$cursor = $qb->executeQuery();
+		$row = $cursor->fetch();
+		$cursor->closeCursor();
+
+		return $row ? (int)$row['count'] : 0;
 	}
 }

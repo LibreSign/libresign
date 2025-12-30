@@ -168,11 +168,8 @@ export default {
 		identifyMethodsNames() {
 			return this.signer.identifyMethods.map(method => method.method)
 		},
-		signerStatus() {
-			return this.signer.status
-		},
 		chipType() {
-			switch (this.signerStatus) {
+			switch (this.signer.status) {
 			case 2: // SIGNED
 				return 'success'
 			case 1: // ABLE_TO_SIGN (pending)
@@ -183,7 +180,7 @@ export default {
 			}
 		},
 		statusIconPath() {
-			switch (this.signerStatus) {
+			switch (this.signer.status) {
 			case 2: // SIGNED
 				return this.mdiCheckCircle
 			case 1: // ABLE_TO_SIGN (pending)
