@@ -115,7 +115,7 @@ class Version16002Date20251230120000 extends SimpleMigrationStep {
 				continue;
 			}
 
-			$userElementId = (int) $row[$columnIndex['id']];
+			$userElementId = (int)$row[$columnIndex['id']];
 			$nodeId = $row[$columnIndex['file_id']] ?? null;
 			if ($nodeId === null || $nodeId === '') {
 				continue;
@@ -123,7 +123,7 @@ class Version16002Date20251230120000 extends SimpleMigrationStep {
 
 			$qb = $this->connection->getQueryBuilder();
 			$qb->update('libresign_user_element')
-				->set('node_id', $qb->createNamedParameter((int) $nodeId, IQueryBuilder::PARAM_INT))
+				->set('node_id', $qb->createNamedParameter((int)$nodeId, IQueryBuilder::PARAM_INT))
 				->where($qb->expr()->eq('id', $qb->createNamedParameter($userElementId, IQueryBuilder::PARAM_INT)));
 
 			$qb->executeStatement();
