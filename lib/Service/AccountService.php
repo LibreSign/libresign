@@ -336,7 +336,7 @@ class AccountService {
 
 	public function getFileByNodeId(int $nodeId): File {
 		try {
-			return $this->folderService->getFileById($nodeId);
+			return $this->folderService->getFileByNodeId($nodeId);
 		} catch (NotFoundException) {
 			throw new DoesNotExistException('Not found');
 		}
@@ -394,7 +394,7 @@ class AccountService {
 			return;
 		}
 		$userElement = $this->userElementMapper->findOne(['id' => $data['elementId']]);
-		$file = $this->folderService->getFileById($userElement->getFileId());
+		$file = $this->folderService->getFileByNodeId($userElement->getNodeId());
 		$file->putContent($this->getFileRaw($data));
 	}
 
@@ -449,7 +449,7 @@ class AccountService {
 	private function insertVisibleElement(array $data, IUser $user, File $file): void {
 		$userElement = new UserElement();
 		$userElement->setType($data['type']);
-		$userElement->setFileId($file->getId());
+		$userElement->setNodeId($file->getId());
 		$userElement->setUserId($user->getUID());
 		$userElement->setStarred(isset($data['starred']) && $data['starred'] ? 1 : 0);
 		$userElement->setCreatedAt($this->timeFactory->getDateTime());
@@ -489,12 +489,12 @@ class AccountService {
 	public function deleteSignatureElement(?IUser $user, string $sessionId, int $nodeId): void {
 		if ($user instanceof IUser) {
 			$element = $this->userElementMapper->findOne([
-				'file_id' => $nodeId,
+				'node_id' => $nodeId,
 				'user_id' => $user->getUID(),
 			]);
 			$this->userElementMapper->delete($element);
 			try {
-				$file = $this->folderService->getFileById($element->getFileId());
+				$file = $this->folderService->getFileByNodeId($element->getNodeId());
 				$file->delete();
 			} catch (NotFoundException) {
 			}

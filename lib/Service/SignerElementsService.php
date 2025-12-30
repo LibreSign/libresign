@@ -37,7 +37,7 @@ class SignerElementsService {
 	 * @return LibresignUserElement
 	 */
 	public function getUserElementByNodeId(string $userId, int $nodeId): array {
-		$element = $this->userElementMapper->findOne(['file_id' => $nodeId, 'user_id' => $userId]);
+		$element = $this->userElementMapper->findOne(['node_id' => $nodeId, 'user_id' => $userId]);
 		$exists = $this->signatureFileExists($element);
 		if (!$exists) {
 			throw new NotFoundException();
@@ -48,9 +48,9 @@ class SignerElementsService {
 			'file' => [
 				'url' => $this->urlGenerator->linkToRoute('ocs.libresign.SignatureElements.getSignatureElementPreview', [
 					'apiVersion' => 'v1',
-					'nodeId' => $element->getFileId(),
+					'nodeId' => $element->getNodeId(),
 				]),
-				'nodeId' => $element->getFileId()
+				'nodeId' => $element->getNodeId()
 			],
 			'userId' => $element->getUserId(),
 			'starred' => $element->getStarred() ? 1 : 0,
@@ -75,9 +75,9 @@ class SignerElementsService {
 				'file' => [
 					'url' => $this->urlGenerator->linkToRoute('ocs.libresign.SignatureElements.getSignatureElementPreview', [
 						'apiVersion' => 'v1',
-						'nodeId' => $element->getFileId(),
+						'nodeId' => $element->getNodeId(),
 					]),
-					'nodeId' => $element->getFileId()
+					'nodeId' => $element->getNodeId()
 				],
 				'starred' => $element->getStarred() ? 1 : 0,
 				'userId' => $element->getUserId(),
@@ -89,7 +89,7 @@ class SignerElementsService {
 
 	private function signatureFileExists(UserElement $userElement): bool {
 		try {
-			$this->folderService->getFileById($userElement->getFileId());
+			$this->folderService->getFileByNodeId($userElement->getNodeId());
 		} catch (\Exception) {
 			$this->userElementMapper->delete($userElement);
 			return false;
