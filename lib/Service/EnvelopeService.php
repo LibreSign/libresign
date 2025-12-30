@@ -53,14 +53,15 @@ class EnvelopeService {
 
 		$parentFolder = $this->folderService->getFolder();
 
-		$folderName = $name . '_' . substr(UUIDUtil::getUUID(), 0, 8);
+		$uuid = UUIDUtil::getUUID();
+		$folderName = $name . '_' . $uuid;
 		$envelopeFolder = $parentFolder->newFolder($folderName);
 
 		$envelope = new FileEntity();
 		$envelope->setNodeId($envelopeFolder->getId());
 		$envelope->setNodeTypeEnum(NodeType::ENVELOPE);
 		$envelope->setName($name);
-		$envelope->setUuid(UUIDUtil::getUUID());
+		$envelope->setUuid($uuid);
 		$envelope->setCreatedAt(new DateTime());
 		$envelope->setStatus(FileEntity::STATUS_DRAFT);
 
@@ -104,6 +105,23 @@ class EnvelopeService {
 		} catch (DoesNotExistException) {
 			return null;
 		}
+	}
+
+	public function getEnvelopeFolder(FileEntity $envelope): \OCP\Files\Folder {
+		$userId = $envelope->getUserId();
+		if (!$userId) {
+			throw new LibresignException('Envelope does not have a user');
+		}
+
+		$this->folderService->setUserId($userId);
+		$userFolder = $this->folderService->getFolder();
+
+		$envelopeFolderNode = $userFolder->getFirstNodeById($envelope->getNodeId());
+		if (!$envelopeFolderNode instanceof \OCP\Files\Folder) {
+			throw new LibresignException('Envelope folder not found');
+		}
+
+		return $envelopeFolderNode;
 	}
 
 	private function getMaxFilesPerEnvelope(): int {

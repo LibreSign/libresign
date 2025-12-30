@@ -274,4 +274,64 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 		];
 	}
+
+	public function testGetFolderForFileUsesEnvelopeFolderWhenProvided(): void {
+		$envelopeFolderId = 456;
+		$data = [
+			'settings' => [
+				'envelopeFolderId' => $envelopeFolderId,
+			],
+		];
+
+		$mockUserFolder = $this->createMock(Folder::class);
+		$mockEnvelopeFolder = $this->createMock(Folder::class);
+
+		$mockUserFolder->expects($this->once())
+			->method('getFirstNodeById')
+			->with($envelopeFolderId)
+			->willReturn($mockEnvelopeFolder);
+
+		$this->appConfig->method('getUserValue')->willReturn('/LibreSign');
+		$this->groupManager->method('isInGroup')->willReturn(false);
+
+		$userFolder = $this->createMock(Folder::class);
+		$userFolder->method('isUpdateable')->willReturn(true);
+		$userFolder->method('get')->willReturn($mockUserFolder);
+		$this->root->method('getUserFolder')->willReturn($userFolder);
+
+		$service = $this->getInstance('testuser');
+		$result = $service->getFolderForFile($data, 'testuser');
+
+		$this->assertInstanceOf(Folder::class, $result);
+	}
+
+	public function testGetFolderForFileCreatesNewFolderWhenNoEnvelopeId(): void {
+		$data = [
+			'name' => 'Document',
+			'settings' => [],
+		];
+
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('user1');
+
+		$mockUserFolder = $this->createMock(Folder::class);
+		$mockNewFolder = $this->createMock(Folder::class);
+
+		$mockUserFolder->expects($this->once())
+			->method('newFolder')
+			->willReturn($mockNewFolder);
+
+		$this->appConfig->method('getUserValue')->willReturn('/LibreSign');
+		$this->groupManager->method('isInGroup')->willReturn(false);
+
+		$userFolder = $this->createMock(Folder::class);
+		$userFolder->method('isUpdateable')->willReturn(true);
+		$userFolder->method('get')->willReturn($mockUserFolder);
+		$this->root->method('getUserFolder')->willReturn($userFolder);
+
+		$service = $this->getInstance('user1');
+		$result = $service->getFolderForFile($data, $user);
+
+		$this->assertInstanceOf(Folder::class, $result);
+	}
 }
