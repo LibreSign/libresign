@@ -6,7 +6,7 @@ Feature: Custom message for signers
   Background:
     Given as user "admin"
     And user "signer1" exists
-    And set the email of user "signer1" to "signer1@test.com"
+    And set the libresign email of user "signer1" to "signer1@test.com"
     And my inbox is empty
     And reset notifications of user "signer1"
     And run the command "libresign:configure:openssl --cn test" with result code 0

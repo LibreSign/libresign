@@ -169,7 +169,6 @@ jobs:
           ./occ config:system:set allow_local_remote_servers --value true --type boolean
           ./occ config:system:set auth.bruteforce.protection.enabled --value false --type boolean
           ./occ config:app:set dav enableDefaultContact --value false --type boolean
-          ./occ config:system:set ratelimit.protection.enabled --value false --type boolean
 
       - name: Run behat
         working-directory: apps/${{ env.APP_NAME }}/tests/integration
@@ -177,7 +176,7 @@ jobs:
           BEHAT_ROOT_DIR: ../../../../
         run: |
           export BEHAT_RUN_AS=runner
-          export BEHAT_VERBOSE=1
+          export BEHAT_VERBOSE="$RUNNER_DEBUG"
           vendor/bin/behat -f junit -f pretty --colors
 
       - name: Print logs

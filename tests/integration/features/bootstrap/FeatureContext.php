@@ -39,6 +39,35 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$this->openedEmailStorage = $storage;
 	}
 
+	#[Given('set the libresign email of user :user to :email')]
+	public function setUserEmail(string $user, string $email): void {
+		$currentUser = $this->currentUser;
+		$this->setCurrentUser('admin');
+		// Avoid unnecessary PUTs that can trigger user edit rate limits.
+		try {
+			$this->sendOCSRequest('GET', '/cloud/users/' . $user);
+			$body = $this->response->getBody()->getContents();
+			$this->response->getBody()->seek(0);
+			$decoded = json_decode($body, true);
+			if (is_array($decoded) && isset($decoded['ocs']['data']['email']) && $decoded['ocs']['data']['email'] === $email) {
+				$this->setCurrentUser($currentUser);
+				return;
+			}
+		} catch (\Throwable $e) {
+			// If checking failed, continue to attempt to set the email below.
+		}
+
+		$this->sendOCSRequest('PUT', '/cloud/users/' . $user, [
+			'key' => 'email',
+			'value' => $email
+		]);
+		// Fail fast with a clear message if we hit the rate limit (429)
+		if ($this->response->getStatusCode() === 429) {
+			throw new \RuntimeException('Rate limit when setting user email for ' . $user . ': ' . $this->response->getBody()->getContents());
+		}
+		$this->setCurrentUser($currentUser);
+	}
+
 	protected function beforeRequest(string $fullUrl, array $options): array {
 		[$fullUrl, $options] = parent::beforeRequest($fullUrl, $options);
 		$options = $this->parseFormParams($options);

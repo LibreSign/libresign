@@ -3,8 +3,8 @@ Feature: file-list
     Given as user "admin"
     Given user "signer1" exists
     Given user "signer2" exists
-    And set the email of user "signer1" to "signer1@domain.test"
-    And set the email of user "signer2" to ""
+    And set the libresign email of user "signer1" to "signer1@domain.test"
+    And set the libresign email of user "signer2" to ""
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | users | [{"identify":{"email":"signer1@domain.test"}},{"identify":{"account":"signer2"}}] |

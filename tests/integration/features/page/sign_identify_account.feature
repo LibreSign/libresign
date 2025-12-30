@@ -5,7 +5,7 @@ Feature: page/sign_identify_account
   Scenario: Open sign file with invalid account data
     Given user "signer1" exists
     And as user "admin"
-    And set the email of user "signer1" to "signer1@domain.test"
+    And set the libresign email of user "signer1" to "signer1@domain.test"
     And my inbox is empty
     And reset notifications of user "signer1"
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
@@ -59,7 +59,7 @@ Feature: page/sign_identify_account
   Scenario: Open sign file with all data valid
     Given user "signer1" exists
     And as user "admin"
-    And set the email of user "signer1" to "signer1@domain.test"
+    And set the libresign email of user "signer1" to "signer1@domain.test"
     And my inbox is empty
     And reset notifications of user "signer1"
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"

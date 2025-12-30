@@ -44,7 +44,7 @@ Feature: signed
   Scenario: Signing a file sends an email and notification
     Given as user "admin"
     And user "signer1" exists
-    And set the email of user "signer1" to "signer@domain.test"
+    And set the libresign email of user "signer1" to "signer@domain.test"
     And set the email of user "admin" to "admin@email.tld"
     And run the command "config:app:set activity notify_notification_libresign_file_to_sign --value=1" with result code 0
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0

@@ -63,6 +63,7 @@ class MailNotifyListener implements IEventListener {
 		IIdentifyMethod $identifyMethod,
 	): void {
 		try {
+			\OCP\Server::get(\Psr\Log\LoggerInterface::class)->error('[DEBUG]', ['isDeletedAccount' => $identifyMethod->getEntity()->isDeletedAccount()]);
 			if ($identifyMethod->getEntity()->isDeletedAccount()) {
 				return;
 			}
@@ -75,6 +76,7 @@ class MailNotifyListener implements IEventListener {
 			} elseif ($identifyMethod->getName() === 'email') {
 				$email = $identifyMethod->getEntity()->getIdentifierValue();
 			}
+			\OCP\Server::get(\Psr\Log\LoggerInterface::class)->error('[DEBUG]', ['email' => $email]);
 			if (empty($email)) {
 				return;
 			}
@@ -172,6 +174,7 @@ class MailNotifyListener implements IEventListener {
 	}
 
 	private function isNotificationDisabledAtActivity(string $userId, string $type): bool {
+		\OCP\Server::get(\Psr\Log\LoggerInterface::class)->error('[DEBUG]', ['class usersettings exists' => class_exists(\OCA\Activity\UserSettings::class)]);
 		if (!class_exists(\OCA\Activity\UserSettings::class)) {
 			return false;
 		}
@@ -181,10 +184,12 @@ class MailNotifyListener implements IEventListener {
 			try {
 				$manager->getSettingById($type);
 			} catch (\Exception $e) {
+				\OCP\Server::get(\Psr\Log\LoggerInterface::class)->error('[DEBUG]', ['exception' => $e]);
 				return false;
 			}
 
 			$adminSetting = $activityUserSettings->getAdminSetting('email', $type);
+			\OCP\Server::get(\Psr\Log\LoggerInterface::class)->error('[DEBUG]', ['admin setting' => $adminSetting]);
 			if (!$adminSetting) {
 				return true;
 			}
@@ -193,6 +198,7 @@ class MailNotifyListener implements IEventListener {
 				'email',
 				$type
 			);
+			\OCP\Server::get(\Psr\Log\LoggerInterface::class)->error('[DEBUG]', ['user setting' => $notificationSetting]);
 			if (!$notificationSetting) {
 				return true;
 			}

@@ -133,6 +133,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 	#[\Override]
 	public function notify(): bool {
+		\OCP\Server::get(\Psr\Log\LoggerInterface::class)->error('[DEBUG]', ['willNotify' => $this->willNotify]);
 		if (!$this->willNotify) {
 			return false;
 		}

@@ -32,8 +32,8 @@ Feature: request-signature
     Given as user "admin"
     And user "signer1" exists
     And user "signer2" exists
-    And set the email of user "signer1" to "signer1@domain.test"
-    And set the email of user "signer2" to "signer2@domain.test"
+    And set the libresign email of user "signer1" to "signer1@domain.test"
+    And set the libresign email of user "signer2" to "signer2@domain.test"
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
     And run the command "user:setting signer1 activity notify_email_libresign_file_to_sign 1" with result code 0
     And my inbox is empty
@@ -68,8 +68,8 @@ Feature: request-signature
     Given as user "admin"
     And user "signer1" exists
     And user "signer2" exists
-    And set the email of user "signer1" to "contact@domain.test"
-    And set the email of user "signer2" to "contact@domain.test"
+    And set the libresign email of user "signer1" to "contact@domain.test"
+    And set the libresign email of user "signer2" to "contact@domain.test"
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
     And run the command "user:setting signer1 activity notify_email_libresign_file_to_sign 1" with result code 0
     And run the command "user:setting signer2 activity notify_email_libresign_file_to_sign 1" with result code 0
@@ -129,7 +129,7 @@ Feature: request-signature
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
     And reset notifications of user "signer1"
-    And set the email of user "signer1" to "signer1@domain.test"
+    And set the libresign email of user "signer1" to "signer1@domain.test"
     And my inbox is empty
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
@@ -140,7 +140,7 @@ Feature: request-signature
     And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
     And I fetch the signer UUID from opened email
     And user "signer2" exists
-    And set the email of user "signer2" to "signer2@domain.test"
+    And set the libresign email of user "signer2" to "signer2@domain.test"
     And as user "signer2"
     When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     Then the response should have a status code 422
@@ -244,7 +244,7 @@ Feature: request-signature
     And user "signer1" exists
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
-    And set the email of user "signer1" to "signer1@domain.test"
+    And set the libresign email of user "signer1" to "signer1@domain.test"
     And reset notifications of user "signer1"
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
@@ -324,7 +324,7 @@ Feature: request-signature
     And user "signer1" exists
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
-    And set the email of user "signer1" to ""
+    And set the libresign email of user "signer1" to ""
     And reset notifications of user "signer1"
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
@@ -343,7 +343,7 @@ Feature: request-signature
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
-    And set the email of user "signer1" to "signer1@domain.test"
+    And set the libresign email of user "signer1" to "signer1@domain.test"
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
@@ -387,7 +387,7 @@ Feature: request-signature
     And user "signer1" exists
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
       | rootCert | {"commonName":"test"} |
-    And set the email of user "signer1" to ""
+    And set the libresign email of user "signer1" to ""
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
@@ -578,7 +578,7 @@ Feature: request-signature
   Scenario: Not notify with status 0 and notify with status 1
     Given run the command "libresign:configure:openssl --cn test" with result code 0
     And user "signer1" exists
-    And set the email of user "signer1" to "signer1@domain.test"
+    And set the libresign email of user "signer1" to "signer1@domain.test"
     And my inbox is empty
     And as user "admin"
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"

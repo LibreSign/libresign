@@ -9,7 +9,7 @@ Feature: account/me
 
   Scenario: who a me with success
     Given as user "signer1"
-    And set the email of user "signer1" to ""
+    And set the libresign email of user "signer1" to ""
     And sending "get" to ocs "/apps/libresign/api/v1/account/me"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values

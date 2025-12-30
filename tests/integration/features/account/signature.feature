@@ -46,7 +46,7 @@ Feature: account/signature
   Scenario: Create pfx with success using CFSSL
     Given user "signer1" exists
     And as user "signer1"
-    And set the email of user "signer1" to "signer@domain.test"
+    And set the libresign email of user "signer1" to "signer@domain.test"
     And run the command "config:app:set libresign certificate_engine --value=cfssl" with result code 0
     And run the command "libresign:install --use-local-cert --cfssl" with result code 0
     And run the command "libresign:configure:cfssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
@@ -108,7 +108,7 @@ Feature: account/signature
   Scenario: Create pfx with success using OpenSSL
     Given user "signer1" exists
     And as user "signer1"
-    And set the email of user "signer1" to "signer@domain.test"
+    And set the libresign email of user "signer1" to "signer@domain.test"
     And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
     When sending "delete" to ocs "/apps/libresign/api/v1/account/pfx"
     Then the response should have a status code 202
