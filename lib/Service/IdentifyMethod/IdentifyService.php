@@ -67,16 +67,25 @@ class IdentifyService {
 		$signRequest = $this->signRequestMapper->getById($identifyMethod->getSignRequestId());
 		$fileEntity = $this->fileMapper->getById($signRequest->getFileId());
 
-		if (method_exists($fileEntity, 'getNodeType') && $fileEntity->getNodeType() !== 'envelope') {
+		if ($fileEntity->getNodeType() === 'envelope') {
+			$envelopeId = $fileEntity->getId();
+		} elseif ($fileEntity->hasParent()) {
+			$envelopeId = $fileEntity->getParentFileId();
+		} else {
 			return;
 		}
 
 		$children = $this->signRequestMapper->getByEnvelopeChildrenAndIdentifyMethod(
-			$fileEntity->getId(),
+			$envelopeId,
 			$signRequest->getId(),
 		);
 
 		foreach ($children as $childSignRequest) {
+			// Skip the current sign request to avoid updating it twice
+			if ($childSignRequest->getId() === $signRequest->getId()) {
+				continue;
+			}
+
 			$childMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($childSignRequest->getId());
 
 			foreach ($childMethods as $childEntity) {

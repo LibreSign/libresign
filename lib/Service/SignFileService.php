@@ -388,21 +388,26 @@ class SignFileService {
 	 * @return array Array of ['file' => FileEntity, 'signRequest' => SignRequestEntity]
 	 */
 	private function getSignRequestsToSign(): array {
-		if (!$this->libreSignFile->isEnvelope()) {
+		if (!$this->libreSignFile->isEnvelope()
+			&& !$this->libreSignFile->hasParent()
+		) {
 			return [[
 				'file' => $this->libreSignFile,
 				'signRequest' => $this->signRequest,
 			]];
 		}
 
-		$childFiles = $this->fileMapper->getChildrenFiles($this->libreSignFile->getId());
+		$envelopeId = $this->libreSignFile->isEnvelope()
+			? $this->libreSignFile->getId()
+			: $this->libreSignFile->getParentFileId();
 
+		$childFiles = $this->fileMapper->getChildrenFiles($envelopeId);
 		if (empty($childFiles)) {
 			throw new LibresignException('No files found in envelope');
 		}
 
 		$childSignRequests = $this->signRequestMapper->getByEnvelopeChildrenAndIdentifyMethod(
-			$this->libreSignFile->getId(),
+			$envelopeId,
 			$this->signRequest->getId()
 		);
 
