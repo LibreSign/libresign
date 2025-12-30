@@ -49,6 +49,9 @@ class UploadProcessor {
 		$this->validateFileContent($content, $extension);
 
 		$folderToFile = $this->folderService->getFolderForFile($data, $data['userManager']);
+		if (!$folderToFile instanceof \OCP\Files\Folder) {
+			throw new LibresignException('Envelope folder not found');
+		}
 
 		@unlink($uploadedFile['tmp_name']);
 
