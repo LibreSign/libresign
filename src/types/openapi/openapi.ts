@@ -2865,7 +2865,7 @@ export interface operations {
                      */
                     name?: string;
                     /**
-                     * @description Settings to define the pattern to store the file. See more informations at FolderService::getFolderName method.
+                     * @description Settings to define how and where the file should be stored
                      * @default []
                      */
                     settings?: components["schemas"]["FolderSettings"];
