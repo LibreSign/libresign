@@ -11,10 +11,11 @@ namespace OCA\Libresign\Dashboard;
 
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\SignFileService;
-use OCA\UserStatus\AppInfo\Application;
+use OCA\Libresign\AppInfo\Application;
 use OCP\Dashboard\IAPIWidget;
 use OCP\Dashboard\IAPIWidgetV2;
 use OCP\Dashboard\IButtonWidget;
+use OCP\Dashboard\IIconWidget;
 use OCP\Dashboard\Model\WidgetButton;
 use OCP\Dashboard\Model\WidgetItem;
 use OCP\Dashboard\Model\WidgetItems;
@@ -23,7 +24,7 @@ use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\Util;
 
-class PendingSignaturesWidget implements IAPIWidget, IAPIWidgetV2, IButtonWidget {
+class PendingSignaturesWidget implements IAPIWidget, IAPIWidgetV2, IButtonWidget, IIconWidget {
 	public function __construct(
 		private IL10N $l10n,
 		private IURLGenerator $urlGenerator,
@@ -81,7 +82,7 @@ class PendingSignaturesWidget implements IAPIWidget, IAPIWidgetV2, IButtonWidget
 	 * @inheritDoc
 	 */
 	public function load(): void {
-		//Util::addScript('libresign', 'libresign-dashboard');
+
 	}
 
 	/**
@@ -117,7 +118,7 @@ class PendingSignaturesWidget implements IAPIWidget, IAPIWidgetV2, IButtonWidget
 						$this->getSubtitle($signRequest, $fileEntity),
 						$this->urlGenerator->linkToRouteAbsolute('libresign.page.signFPath', ['uuid' => $signRequest->getUuid(), 'path' => 'pdf']),
 						$this->urlGenerator->getAbsoluteURL(
-							$this->urlGenerator->imagePath('libresign', 'app-dark.svg')
+							$this->urlGenerator->imagePath('core', 'filetypes/application-pdf.svg')
 						),
 						$this->getTimestamp($fileEntity)
 					);
