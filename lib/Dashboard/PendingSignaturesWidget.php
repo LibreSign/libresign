@@ -11,6 +11,8 @@ namespace OCA\Libresign\Dashboard;
 
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\SignFileService;
+use OCA\UserStatus\AppInfo\Application;
+use OCP\Dashboard\IAPIWidget;
 use OCP\Dashboard\IAPIWidgetV2;
 use OCP\Dashboard\IButtonWidget;
 use OCP\Dashboard\Model\WidgetButton;
@@ -21,7 +23,7 @@ use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\Util;
 
-class PendingSignaturesWidget implements IAPIWidgetV2, IButtonWidget {
+class PendingSignaturesWidget implements IAPIWidget, IAPIWidgetV2, IButtonWidget {
 	public function __construct(
 		private IL10N $l10n,
 		private IURLGenerator $urlGenerator,
@@ -56,7 +58,16 @@ class PendingSignaturesWidget implements IAPIWidgetV2, IButtonWidget {
 	 * @inheritDoc
 	 */
 	public function getIconClass(): string {
-		return 'icon-libresign-dark';
+		return 'icon-libresign';
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function getIconUrl(): string {
+		return $this->urlGenerator->getAbsoluteURL(
+			$this->urlGenerator->imagePath(Application::APP_ID, 'app-dark.svg')
+		);
 	}
 
 	/**
@@ -104,7 +115,7 @@ class PendingSignaturesWidget implements IAPIWidgetV2, IButtonWidget {
 					$item = new WidgetItem(
 						$this->getDocumentTitle($fileEntity),
 						$this->getSubtitle($signRequest, $fileEntity),
-						$this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]),
+						$this->urlGenerator->linkToRouteAbsolute('libresign.page.signFPath', ['uuid' => $signRequest->getUuid(), 'path' => 'pdf']),
 						$this->urlGenerator->getAbsoluteURL(
 							$this->urlGenerator->imagePath('libresign', 'app-dark.svg')
 						),
