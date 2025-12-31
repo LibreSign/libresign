@@ -9,9 +9,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Dashboard;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\SignFileService;
-use OCA\Libresign\AppInfo\Application;
 use OCP\Dashboard\IAPIWidget;
 use OCP\Dashboard\IAPIWidgetV2;
 use OCP\Dashboard\IButtonWidget;
@@ -22,7 +22,7 @@ use OCP\Dashboard\Model\WidgetItems;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
-use OCP\Util;
+use Override;
 
 class PendingSignaturesWidget implements IAPIWidget, IAPIWidgetV2, IButtonWidget, IIconWidget {
 	public function __construct(
@@ -34,60 +34,44 @@ class PendingSignaturesWidget implements IAPIWidget, IAPIWidgetV2, IButtonWidget
 	) {
 	}
 
-	/**
-	 * @inheritDoc
-	 */
+	#[Override]
 	public function getId(): string {
 		return 'libresign_pending_signatures';
 	}
 
-	/**
-	 * @inheritDoc
-	 */
+	#[Override]
 	public function getTitle(): string {
 		return $this->l10n->t('Pending signatures');
 	}
 
-	/**
-	 * @inheritDoc
-	 */
+	#[Override]
 	public function getOrder(): int {
 		return 10;
 	}
 
-	/**
-	 * @inheritDoc
-	 */
+	#[Override]
 	public function getIconClass(): string {
 		return 'icon-libresign';
 	}
 
-	/**
-	 * @inheritDoc
-	 */
+	#[Override]
 	public function getIconUrl(): string {
 		return $this->urlGenerator->getAbsoluteURL(
 			$this->urlGenerator->imagePath(Application::APP_ID, 'app-dark.svg')
 		);
 	}
 
-	/**
-	 * @inheritDoc
-	 */
+	#[Override]
 	public function getUrl(): ?string {
 		return $this->urlGenerator->linkToRouteAbsolute('libresign.page.index');
 	}
 
-	/**
-	 * @inheritDoc
-	 */
+	#[Override]
 	public function load(): void {
-
+		// No special loading required
 	}
 
-	/**
-	 * @inheritDoc
-	 */
+	#[Override]
 	public function getItemsV2(string $userId, ?string $since = null, int $limit = 7): WidgetItems {
 		try {
 			$user = $this->userSession->getUser();
@@ -213,18 +197,13 @@ class PendingSignaturesWidget implements IAPIWidget, IAPIWidgetV2, IButtonWidget
 		return '';
 	}
 
-	/**
-	 * @inheritDoc
-	 * @deprecated Use getItemsV2 instead
-	 */
+	#[Override]
 	public function getItems(string $userId, ?string $since = null, int $limit = 7): array {
 		$widgetItems = $this->getItemsV2($userId, $since, $limit);
 		return $widgetItems->getItems();
 	}
 
-	/**
-	 * @inheritDoc
-	 */
+	#[Override]
 	public function getWidgetButtons(string $userId): array {
 		return [
 			new WidgetButton(
