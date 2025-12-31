@@ -54,7 +54,8 @@
 			</NcButton>
 		</div>
 		<div class="image-page">
-		<PdfEditor ref="pdfEditor"
+		<PdfEditor v-if="!filesStore.loading && pdfFiles.length > 0"
+				ref="pdfEditor"
 				width="100%"
 				height="100%"
 				:files="pdfFiles"
@@ -69,9 +70,9 @@
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { showSuccess, showError } from '@nextcloud/dialogs'
-import { subscribe, unsubscribe, emit } from '@nextcloud/event-bus'
+import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
-import { generateOcsUrl } from '@nextcloud/router'
+import { generateOcsUrl, generateUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
@@ -108,7 +109,7 @@ export default {
 			signerSelected: null,
 			width: getCapabilities().libresign.config['sign-elements']['full-signature-width'],
 			height: getCapabilities().libresign.config['sign-elements']['full-signature-height'],
-		filePagesMap: {},
+			filePagesMap: {},
 			elementsLoaded: false,
 			loadedPdfsCount: 0,
 		}
@@ -130,14 +131,10 @@ export default {
 			return this.filesStore.getFile()
 		},
 		pdfFiles() {
-			return this.document.files.map(f => f.file)
+			return (this.document.files || []).map(f => f.file)
 		},
 		pdfFileNames() {
-			return this.document.files.map(f => {
-				const metadata = f.metadata
-				const ext = metadata?.extension || 'pdf'
-				return `${f.name}.${ext}`
-			})
+			return (this.document.files || []).map(f => `${f.name}.${f.metadata?.extension || 'pdf'}`)
 		},
 		documentNameWithExtension() {
 			const doc = this.document
@@ -200,14 +197,56 @@ export default {
 			}
 			this.modal = true
 			this.filesStore.loading = true
+
+			if (this.document.nodeType === 'envelope' && this.document.files.length === 0) {
+				await this.fetchEnvelopeFiles()
+			} else if (this.document.nodeType !== 'envelope') {
+				if (!this.document.files || this.document.files.length === 0) {
+					const fileUrl = this.document.file || generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: this.document.uuid })
+					this.document.files = [{
+						id: this.document.id,
+						nodeId: this.document.nodeId,
+						uuid: this.document.uuid,
+						name: this.document.name,
+						file: fileUrl,
+						metadata: this.document.metadata,
+						signers: this.document.signers,
+						visibleElements: this.document.visibleElements || [],
+					}]
+				} else {
+					this.document.files = this.document.files.map(f => {
+						if (!f.file) {
+							const fileUrl = this.document.file || generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: f.uuid || this.document.uuid })
+							return { ...f, file: fileUrl }
+						}
+						return f
+					})
+				}
+			}
+
 			this.buildFilePagesMap()
 			this.filesStore.loading = false
+		},
+		async fetchEnvelopeFiles() {
+			const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'), {
+				params: {
+					parentFileId: this.document.id,
+					force_fetch: true,
+				},
+			})
+			const childFiles = response?.data?.ocs?.data?.data || []
+			this.document.files = Array.isArray(childFiles) ? childFiles : []
 		},
 		buildFilePagesMap() {
 			this.filePagesMap = {}
 
+			const filesToProcess = this.document.files || []
+			if (!Array.isArray(filesToProcess)) {
+				return
+			}
+
 			let currentPage = 1
-			this.document.files.forEach((file, index) => {
+			filesToProcess.forEach((file, index) => {
 				const metadata = file.metadata
 				const pageCount = metadata?.p || 0
 				for (let i = 0; i < pageCount; i++) {
@@ -228,21 +267,22 @@ export default {
 			this.loadedPdfsCount = 0
 		},
 		getPageHeightForFile(fileId, page) {
-			const fileInfo = this.document.files.find(f => f.id === fileId)
+			const filesToSearch = this.document.files || []
+			const fileInfo = filesToSearch.find(f => f.id === fileId)
 			const metadata = fileInfo?.metadata
 			return metadata?.d?.[page - 1]?.h
 		},
 		updateSigners(data) {
 			this.loadedPdfsCount++
 
-			const expectedPdfsCount = this.document.files.length
+			const filesToProcess = this.document.files || []
+			const expectedPdfsCount = filesToProcess.length
 			if (this.elementsLoaded || this.loadedPdfsCount < expectedPdfsCount) {
 				return
 			}
 
-			// Coletar visibleElements de múltiplas fontes no array unificado `files`
 			let visibleElementsToAdd = []
-			this.document.files.forEach((f, fileIndex) => {
+			filesToProcess.forEach((f, fileIndex) => {
 				const elements = Array.isArray(f.visibleElements) ? f.visibleElements : []
 				elements.forEach(element => {
 					visibleElementsToAdd.push({
@@ -253,12 +293,11 @@ export default {
 				})
 			})
 
-			// Adicionar signers com seus elementos usando correspondência por identifyMethods
 			visibleElementsToAdd.forEach(element => {
 				let envelopeSignerMatch = null
 				let childSigner = null
 				if (element.fileId) {
-					const fileInfo = this.document.files.find(f => f.id === element.fileId)
+					const fileInfo = filesToProcess.find(f => f.id === element.fileId)
 					if (fileInfo) {
 						childSigner = (fileInfo.signers || []).find(s => s.signRequestId === element.signRequestId)
 					}
@@ -286,7 +325,6 @@ export default {
 					return
 				}
 
-				// fallback: add without documentIndex
 				object.element = element
 				this.$refs.pdfEditor.addSigner(object)
 			})
@@ -413,7 +451,6 @@ export default {
 				objects.forEach(object => {
 					if (!object.signer) return
 
-					// Map per-file page index to global using filePagesMap
 					let globalPageNumber = object.pageNumber
 					for (const [page, info] of Object.entries(this.filePagesMap)) {
 						if (info.fileIndex === docIndex) {
@@ -422,7 +459,6 @@ export default {
 						}
 					}
 
-					// Coordinates normalized for PDF editor
 					const pageInfo = this.filePagesMap[globalPageNumber]
 					const pageHeight = this.getPageHeightForFile(pageInfo.id, object.pageNumber)
 					if (!pageHeight) {
@@ -448,12 +484,10 @@ export default {
 						coordinates,
 					}
 
-					// Target file and per-file page number
 					const targetFileId = pageInfo.id
 					element.fileId = targetFileId
 					element.coordinates.page = globalPageNumber - pageInfo.startPage + 1
 
-					// Resolve child signer SR for the specific file via identifyMethods
 					const fileInfo = this.document.files.find(f => f.id === targetFileId)
 					if (!fileInfo || !Array.isArray(fileInfo.signers)) {
 						return
