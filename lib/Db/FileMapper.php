@@ -220,31 +220,42 @@ class FileMapper extends QBMapper {
 		return $return;
 	}
 
-	public function getFileType(int $id): string {
+	public function getDeletionContext(int $nodeId): array {
 		$fullOuterJoin = $this->db->getQueryBuilder();
 		$fullOuterJoin->select($fullOuterJoin->expr()->literal(1));
 
 		$qb = $this->db->getQueryBuilder();
 		$qb
-			->selectAlias('f.id', 'file')
-			->selectAlias('sf.signed_node_id', 'signed_file')
-			->selectAlias('ue.id', 'user_element')
-			->selectAlias('fe.id', 'file_element')
+			->selectAlias('f.id', 'file_id')
+			->selectAlias('sf.id', 'signed_file_id')
+			->selectAlias('ue.id', 'user_element_id')
+			->selectAlias('fe.file_id', 'file_element_file_id')
 			->from($qb->createFunction('(' . $fullOuterJoin->getSQL() . ')'), 'foj')
-			->leftJoin('foj', 'libresign_file', 'f', $qb->expr()->eq('f.node_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
-			->leftJoin('foj', 'libresign_file', 'sf', $qb->expr()->eq('sf.signed_node_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
-			->leftJoin('foj', 'libresign_user_element', 'ue', $qb->expr()->eq('ue.file_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
-			->leftJoin('foj', 'libresign_file_element', 'fe', $qb->expr()->eq('fe.file_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
-		$cursor = $qb->executeQuery();
-		$row = $cursor->fetch();
-		if ($row) {
-			foreach ($row as $key => $value) {
-				if ($value) {
-					return $key;
-				}
-			}
+			->leftJoin('foj', 'libresign_file', 'f', $qb->expr()->eq('f.node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)))
+			->leftJoin('foj', 'libresign_file', 'sf', $qb->expr()->eq('sf.signed_node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)))
+			->leftJoin('foj', 'libresign_user_element', 'ue', $qb->expr()->eq('ue.node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)))
+			->leftJoin('foj', 'libresign_file_element', 'fe', $qb->expr()->eq('fe.file_id', 'f.id'))
+			->setMaxResults(1);
+
+		$row = $qb->executeQuery()->fetch();
+		if (!$row) {
+			return ['type' => 'not_libresign_file', 'fileId' => null];
 		}
-		return 'not_libresign_file';
+
+		if (!empty($row['signed_file_id'])) {
+			return ['type' => 'signed_file', 'fileId' => (int)$row['signed_file_id']];
+		}
+		if (!empty($row['file_id'])) {
+			return ['type' => 'file', 'fileId' => (int)$row['file_id']];
+		}
+		if (!empty($row['user_element_id'])) {
+			return ['type' => 'user_element', 'fileId' => null];
+		}
+		if (!empty($row['file_element_file_id'])) {
+			return ['type' => 'file_element', 'fileId' => (int)$row['file_element_file_id']];
+		}
+
+		return ['type' => 'not_libresign_file', 'fileId' => null];
 	}
 
 	public function getTextOfStatus(int|FileStatus $status): string {

@@ -16,8 +16,8 @@ use OCP\DB\Types;
  * @method int getId()
  * @method void setType(string $type)
  * @method string getType()
- * @method void setFileId(int $fileId)
- * @method int getFileId()
+ * @method void setNodeId(int $nodeId)
+ * @method int getNodeId()
  * @method void setUserId(string $userId)
  * @method void setStarred(int $starred)
  * @method int getStarred()
@@ -28,7 +28,7 @@ use OCP\DB\Types;
  */
 class UserElement extends Entity {
 	public string $type = '';
-	protected int $fileId = 0;
+	protected int $nodeId = 0;
 	protected string $userId = '';
 	public bool $starred = false;
 	public ?\DateTime $createdAt = null;
@@ -38,7 +38,7 @@ class UserElement extends Entity {
 	public function __construct() {
 		$this->addType('id', Types::INTEGER);
 		$this->addType('type', Types::STRING);
-		$this->addType('fileId', Types::INTEGER);
+		$this->addType('nodeId', Types::INTEGER);
 		$this->addType('userId', Types::STRING);
 		$this->addType('starred', Types::INTEGER);
 		$this->addType('createdAt', Types::DATETIME);

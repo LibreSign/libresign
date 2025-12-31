@@ -109,7 +109,7 @@ class FileService {
 			return $data['file']['fileNode'];
 		}
 		if (isset($data['file']['fileId'])) {
-			return $this->folderService->getFileById($data['file']['fileId']);
+			return $this->folderService->getFileByNodeId($data['file']['fileId']);
 		}
 		if (isset($data['file']['path'])) {
 			return $this->folderService->getFileByPath($data['file']['path']);
@@ -587,11 +587,11 @@ class FileService {
 		$this->idDocsMapper->deleteByFileId($file->getId());
 		$this->fileMapper->delete($file);
 		if ($file->getSignedNodeId()) {
-			$signedNextcloudFile = $this->folderService->getFileById($file->getSignedNodeId());
+			$signedNextcloudFile = $this->folderService->getFileByNodeId($file->getSignedNodeId());
 			$signedNextcloudFile->delete();
 		}
 		try {
-			$nextcloudFile = $this->folderService->getFileById($fileId);
+			$nextcloudFile = $this->folderService->getFileByNodeId($file->getNodeId());
 			$nextcloudFile->delete();
 		} catch (NotFoundException) {
 		}
