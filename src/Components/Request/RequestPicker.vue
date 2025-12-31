@@ -20,11 +20,12 @@
 				{{ t('libresign', 'Upload from URL') }}
 			</NcActionButton>
 			<NcActionButton :wide="true"
+				:title="envelopeEnabled ? t('libresign', 'Multiple files allowed') : null"
 				@click="showFilePicker = true">
 				<template #icon>
 					<FolderIcon :size="20" />
 				</template>
-				{{ envelopeEnabled ? t('libresign', 'Choose from Files (multiple)') : t('libresign', 'Choose from Files') }}
+				{{ t('libresign', 'Choose from Files') }}
 			</NcActionButton>
 			<NcActionButton :wide="true"
 				@click="uploadFile">
