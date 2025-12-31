@@ -46,6 +46,7 @@ OC.L10N.register(
     "Order" : "Buyurtma",
     "Preview" : "Ko‘rib chiqish",
     "Unknown" : "Noma'lum",
+    "Hide details" : "Tafsilotlarni yashirish",
     "Show details" : "Tafsilotlarni ko'rsatish",
     "Details" : "Details",
     "Upload file" : "Upload file",

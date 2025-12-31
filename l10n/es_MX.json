@@ -38,6 +38,7 @@
     "Name" : "Nombre",
     "Update" : "Actualizar",
     "Choose" : "Seleccionar",
+    "Upload failed" : "Falla en la carga",
     "Send" : "Enviar",
     "Previous" : "Previo",
     "Next" : "Siguiente",
@@ -54,6 +55,8 @@
     "Status" : "Estatus",
     "Order" : "Orden",
     "Open sidebar" : "Abrir barra lateral",
+    "{seconds} seconds left" : "faltan {seconds} segundos",
+    "Cancel upload" : "Cancelar carga",
     "Preview" : "Previsualizar",
     "Height" : "Altura",
     "Copy to clipboard" : "Copiar al portapapeles",
@@ -61,6 +64,10 @@
     "Name:" : "Nombre:",
     "Status:" : "Estado:",
     "Unknown" : "Desconocido",
+    "Number of documents:" : "Número de documentos:",
+    "Hide details" : "Ocultar detalles",
+    "Show details" : "Mostrar detalles",
+    "Expiration:" : "Caducidad:",
     "No date" : "Sin fecha",
     "Details" : "Detalles",
     "Certificate" : "Certificado",
@@ -83,6 +90,7 @@
     "Type:" : "Tipo:",
     "Page not found" : "Página no encontrada",
     "Renamed \"{oldName}\" to \"{newName}\"" : "Renombrado \"{oldName}\" a \"{newName}\"",
+    "Rename" : "Renombrar",
     "Toggle selection for file \"{displayName}\"" : "Alternar selección para archivo \"{displayName}\"",
     "File is loading" : "El archivo se está cargando",
     "File name" : "Nombre de archivo",
@@ -127,6 +135,7 @@
     "Learn more" : "Conoce más",
     "Invalid URL" : "URL inválida",
     "Username" : "Usuario",
-    "Optional" : "Opcional"
+    "Optional" : "Opcional",
+    "Complete" : "Terminar"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

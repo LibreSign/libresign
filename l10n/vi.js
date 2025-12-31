@@ -61,6 +61,7 @@ OC.L10N.register(
     "Issued by:" : "Nơi cấp:",
     "Name:" : "Tên:",
     "Unknown" : "Không xác định",
+    "Hide details" : "Ẩn chi tiết",
     "Show details" : "Hiển thị chi tiết",
     "No date" : "No date",
     "Details" : "Chi tiết",

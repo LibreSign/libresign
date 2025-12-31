@@ -362,6 +362,7 @@ OC.L10N.register(
     "PDF version:" : "PDF نۇسخىسى:",
     "Unknown" : "نامەلۇم",
     "Congratulations you have digitally signed a document using LibreSign" : "LibreSign ئارقىلىق ھۆججەتكە رەقەملىك ئىمزا قويغانلىقىڭىزنى تەبرىكلەيمەن",
+    "Hide details" : "تەپسىلاتلارنى يوشۇرۇش",
     "Show details" : "تەپسىلاتلارنى كۆرسەت",
     "Requested on:" : "تەلەپ قىلىنغان ۋاقىت:",
     "Date signed:" : "ئىمزا قويۇلغان ۋاقىت:",

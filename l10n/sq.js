@@ -51,6 +51,7 @@ OC.L10N.register(
     "Name:" : "Emri",
     "Unknown" : "I panjohur",
     "Number of documents:" : "Numri i dokumenteve:",
+    "Hide details" : "Fsheh detajet",
     "No date" : "No date",
     "Details" : "Detajet",
     "Certificate" : "Çertifikata",

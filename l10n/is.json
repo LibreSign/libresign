@@ -41,6 +41,7 @@
     "Name" : "Heiti",
     "Update" : "Uppfæra",
     "Choose" : "Velja",
+    "Upload failed" : "Innsending mistókst",
     "Send" : "Senda",
     "Previous" : "Fyrra",
     "Next" : "Næsta",
@@ -59,6 +60,8 @@
     "Status" : "Staða",
     "Order" : "Röðun",
     "Open sidebar" : "Opna hliðarspjald",
+    "{seconds} seconds left" : "{seconds} sekúndur eftir",
+    "Cancel upload" : "Hætta við innsendingu",
     "Preview" : "Forskoðun",
     "Width" : "Breidd",
     "Height" : "Hæð",
@@ -67,6 +70,7 @@
     "Name:" : "Nafn:",
     "Unknown" : "Óþekkt",
     "Number of documents:" : "Fjöldi skjala:",
+    "Hide details" : "Fela nánari upplýsingar",
     "Show details" : "Birta nánari upplýsingar",
     "Expiration:" : "Gildistími:",
     "No date" : "Engin dagsetning",
@@ -93,6 +97,7 @@
     "Type:" : "Tegund:",
     "Page not found" : "Síða fannst ekki",
     "Renamed \"{oldName}\" to \"{newName}\"" : "Endurnefndi \"{oldName}\" sem \"{newName}\"",
+    "Rename" : "Endurnefna",
     "Ok" : "Í lagi",
     "Toggle selection for file \"{displayName}\"" : "Víxla vali af/á} fyrir skrána \"{displayName}\"",
     "File is loading" : "Skrá er að hlaðast inn",
@@ -137,6 +142,7 @@
     "Invalid URL" : "Ógild slóð",
     "Username" : "Notandanafn",
     "Optional" : "Valkvætt",
+    "Partial" : "Að hluta",
     "Complete" : "Fullklárað"
 },"pluralForm" :"nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);"
 }
