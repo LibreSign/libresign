@@ -22,6 +22,7 @@ OC.L10N.register(
     "Invalid password" : "Погрешна лозинка",
     "Invalid file provided" : "Доставена е невалидна датотека",
     "File is too big" : "Датотеката е премногу голема",
+    "Cannot read file" : "Неможе да се прочита датотеката",
     "File sharing" : "Споделување на датотеки",
     "View" : "Погледни",
     "Dismiss notification" : "Отфрли известување",
@@ -64,11 +65,13 @@ OC.L10N.register(
     "Contact" : "Контакт",
     "Status" : "Статус",
     "Open sidebar" : "Отвори странична лента",
+    "Cancel upload" : "Откажи прикачување",
     "Copy to clipboard" : "Копирај во клипборд",
     "Issued by:" : "Издаден од:",
     "Name:" : "Име:",
     "Status:" : "Статус:",
     "Unknown" : "Непознат",
+    "Hide details" : "Сокриј детали",
     "Show details" : "Прикажи детали",
     "Expiration:" : "Рок на траење:",
     "No date" : "No date",
@@ -95,6 +98,7 @@ OC.L10N.register(
     "Type:" : "Вид:",
     "Page not found" : "Страницата не е пронајдена",
     "Renamed \"{oldName}\" to \"{newName}\"" : "Преименувано \"{oldName}\" во \"{newName}\"",
+    "Rename" : "Преименувај",
     "Ok" : "Во ред",
     "Toggle selection for file \"{displayName}\"" : "Префрли избор за датотека \"{displayName}\"",
     "File is loading" : "Датотеката се вчитува",
@@ -137,6 +141,7 @@ OC.L10N.register(
     "Invalid URL" : "Неправилна URL",
     "Username" : "Корисничко име",
     "Optional" : "Опционално",
-    "Forgot password?" : "Заборавена лозинка?"
+    "Forgot password?" : "Заборавена лозинка?",
+    "Partial" : "Делумно"
 },
 "nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;");
