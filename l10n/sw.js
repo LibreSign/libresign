@@ -344,6 +344,7 @@ OC.L10N.register(
     "Status:" : "Status:",
     "Unknown" : "Haijulikani",
     "Congratulations you have digitally signed a document using LibreSign" : "Congratulations you have digitally signed a document using LibreSign",
+    "Hide details" : "Ficha maelezo",
     "Show details" : "Onesha maelezo",
     "Document information" : "Document information",
     "Document integrity verified" : "Document integrity verified",

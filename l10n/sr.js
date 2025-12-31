@@ -293,6 +293,7 @@ OC.L10N.register(
     "Unknown" : "Непознато",
     "Congratulations you have digitally signed a document using LibreSign" : "Честитамо, дигитално сте потписали документ помоћу LibreSign",
     "Number of documents:" : "Број докумената:",
+    "Hide details" : "Сакриј детаље",
     "Show details" : "Прикажи детаље",
     "Requested on:" : "Датум захтева:",
     "Date signed:" : "Датум потписивања:",

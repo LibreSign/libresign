@@ -26,6 +26,7 @@
     "Name" : "Nombre",
     "Update" : "Actualizar",
     "Choose" : "Seleccionar",
+    "Upload failed" : "Falla en la carga",
     "Send" : "Enviar",
     "Previous" : "Anterior",
     "Next" : "Siguiente",
@@ -39,9 +40,13 @@
     "Contact" : "Contacto",
     "Status" : "Estatus",
     "Open sidebar" : "Abrir barra lateral",
+    "{seconds} seconds left" : "faltan {seconds} segundos",
+    "Cancel upload" : "Cancelar carga",
     "Preview" : "Previsualizar",
     "Copy to clipboard" : "Copiar al portapapeles",
     "Issued by:" : "Emitido por:",
+    "Number of documents:" : "Número de documentos:",
+    "Hide details" : "Ocultar detalles",
     "No date" : "Sin fecha",
     "Details" : "Detalles",
     "Certificate" : "Certificado",
@@ -79,6 +84,7 @@
     "Reset to default" : "Restablecer al predeterminado",
     "Learn more" : "Conoce más",
     "Username" : "Usuario",
-    "Optional" : "Opcional"
+    "Optional" : "Opcional",
+    "Complete" : "Terminar"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }
