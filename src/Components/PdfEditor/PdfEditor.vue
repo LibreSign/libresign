@@ -64,8 +64,36 @@ export default {
 			default: false,
 		},
 	},
+	mounted() {
+		window.addEventListener('resize', this.adjustZoomToFit)
+	},
+	beforeDestroy() {
+		window.removeEventListener('resize', this.adjustZoomToFit)
+	},
 	methods: {
+		calculateOptimalScale(maxPageWidth) {
+			const containerWidth = this.$el?.clientWidth || 0
+			if (!containerWidth || !maxPageWidth) return 1
+
+			const availableWidth = containerWidth - 80
+			return Math.max(0.1, Math.min(2, availableWidth / maxPageWidth))
+		},
+		adjustZoomToFit() {
+			const vuePdfEditor = this.$refs.vuePdfEditor
+			const canvases = this.$el?.querySelectorAll('canvas')
+			if (!vuePdfEditor?.pdfDocuments?.length || !canvases?.length) return
+
+			const maxCanvasWidth = Math.max(...Array.from(canvases).map(canvas =>
+				canvas.width / (vuePdfEditor.scale || 1)
+			))
+
+			const optimalScale = this.calculateOptimalScale(maxCanvasWidth)
+			if (Math.abs(optimalScale - vuePdfEditor.scale) > 0.01) {
+				vuePdfEditor.scale = optimalScale
+			}
+		},
 		endInit(event) {
+			setTimeout(() => this.adjustZoomToFit(), 200)
 			this.$emit('pdf-editor:end-init', { ...event })
 		},
 		onDeleteSigner(object) {
