@@ -267,7 +267,7 @@ class SignFileService {
 		} catch (MultipleObjectsReturnedException|DoesNotExistException|Exception) {
 			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 		}
-		return $userElement->getFileId();
+		return $userElement->getNodeId();
 	}
 
 	private function bindFileElementWithTempFile(FileElement $fileElement, int $nodeId): VisibleElementAssoc {
@@ -292,7 +292,7 @@ class SignFileService {
 
 	private function getNode(int $nodeId): ?File {
 		if ($this->user instanceof IUser) {
-			return $this->folderService->getFileById($nodeId);
+			return $this->folderService->getFileByNodeId($nodeId);
 		}
 
 		$filesOfElementes = $this->signerElementsService->getElementsFromSession();
