@@ -46,6 +46,14 @@
       <code><![CDATA[$storage]]></code>
     </UndefinedDocblockClass>
   </file>
+  <file src="lib/Dashboard/PendingSignaturesWidget.php">
+    <LessSpecificReturnStatement>
+      <code><![CDATA[$widgetItems->getItems()]]></code>
+    </LessSpecificReturnStatement>
+    <MoreSpecificReturnType>
+      <code><![CDATA[array]]></code>
+    </MoreSpecificReturnType>
+  </file>
   <file src="lib/Dav/SignatureStatusPlugin.php">
     <UndefinedClass>
       <code><![CDATA[ServerPlugin]]></code>
