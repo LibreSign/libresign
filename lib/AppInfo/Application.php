@@ -15,10 +15,9 @@ use OCA\Libresign\Capabilities;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
-use OCA\Libresign\Files\TemplateLoader as FilesTemplateLoader;
+use OCA\Libresign\Files\TemplateLoader;
 use OCA\Libresign\Listener\BeforeNodeDeletedListener;
 use OCA\Libresign\Listener\LoadAdditionalListener;
-use OCA\Libresign\Listener\LoadSidebarListener;
 use OCA\Libresign\Listener\MailNotifyListener;
 use OCA\Libresign\Listener\NotificationListener;
 use OCA\Libresign\Listener\SignedCallbackListener;
@@ -31,7 +30,6 @@ use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
-use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Cache\CacheEntryRemovedEvent;
 use OCP\Files\Events\Node\BeforeNodeDeletedEvent;
 use OCP\User\Events\UserDeletedEvent;
@@ -47,12 +45,6 @@ class Application extends App implements IBootstrap {
 	}
 
 	public function boot(IBootContext $context): void {
-		$server = $context->getServerContainer();
-
-		/** @var IEventDispatcher $dispatcher */
-		$dispatcher = $server->get(IEventDispatcher::class);
-
-		FilesTemplateLoader::register($dispatcher);
 	}
 
 	public function register(IRegistrationContext $context): void {
@@ -62,7 +54,7 @@ class Application extends App implements IBootstrap {
 
 		$context->registerNotifierService(Notifier::class);
 
-		$context->registerEventListener(LoadSidebar::class, LoadSidebarListener::class);
+		$context->registerEventListener(LoadSidebar::class, TemplateLoader::class);
 		$context->registerEventListener(BeforeNodeDeletedEvent::class, BeforeNodeDeletedListener::class);
 		$context->registerEventListener(CacheEntryRemovedEvent::class, BeforeNodeDeletedListener::class);
 		$context->registerEventListener(SignedEvent::class, SignedCallbackListener::class);
