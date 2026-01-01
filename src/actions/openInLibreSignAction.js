@@ -15,22 +15,17 @@ export const action = new FileAction({
 	displayName: () => t('libresign', 'Open in LibreSign'),
 	iconSvgInline: () => SvgIcon,
 
-	enabled(nodes) {
-		return loadState('libresign', 'certificate_ok')
-			&& nodes.length > 0 && nodes
-			.map(node => node.mime)
-			.every(mime => mime === 'application/pdf')
+	enabled({ nodes }) {
+		const certificateOk = loadState('libresign', 'certificate_ok')
+		const allPdf = nodes?.length > 0 && nodes.every(node => node.mime === 'application/pdf')
+		return certificateOk && allPdf
 	},
 
-	async exec(node) {
-		try {
-			await window.OCA.Files.Sidebar.open(node.path)
-			OCA.Files.Sidebar.setActiveTab('libresign')
-			return null
-		} catch (error) {
-			logger.error('Error while opening sidebar', { error })
-			return false
-		}
+	async exec({ nodes }) {
+		const node = nodes[0]
+		await window.OCA.Files.Sidebar.open(node.path)
+		window.OCA.Files.Sidebar.setActiveTab('libresign')
+		return null
 	},
 
 	order: -1000,
