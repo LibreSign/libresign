@@ -12,8 +12,9 @@ import { fileStatus } from '../helpers/fileStatus.js'
 const action = new FileAction({
 	id: 'show-status-inline',
 	displayName: () => '',
-	title: (nodes) => {
-		const node = nodes[0]
+	title: ({ nodes }) => {
+		const node = nodes?.[0]
+		if (!node) return ''
 
 		const signedNodeId = node.attributes['libresign-signed-node-id']
 
@@ -23,13 +24,15 @@ const action = new FileAction({
 		}
 		return t('libresign', 'original file')
 	},
-	exec: async (node) => {
+	exec: async ({ nodes }) => {
+		const node = nodes[0]
 		await window.OCA.Files.Sidebar.open(node.path)
-		OCA.Files.Sidebar.setActiveTab('libresign')
+		window.OCA.Files.Sidebar.setActiveTab('libresign')
 		return null
 	},
-	iconSvgInline: (nodes) => {
-		const node = nodes[0]
+	iconSvgInline: ({ nodes }) => {
+		const node = nodes?.[0]
+		if (!node) return ''
 
 		const signedNodeId = node.attributes['libresign-signed-node-id']
 
@@ -41,13 +44,12 @@ const action = new FileAction({
 		return ableToSignStatus?.icon ?? ''
 	},
 	inline: () => true,
-	enabled: (nodes) => {
-		return loadState('libresign', 'certificate_ok')
-			&& nodes.length > 0
-			&& nodes
-			.map(node => node.mime)
-			.every(mime => mime === 'application/pdf')
-		&& nodes.every(node => node.attributes['libresign-signature-status'])
+	enabled: ({ nodes }) => {
+		const certificateOk = loadState('libresign', 'certificate_ok')
+		const allPdf = nodes?.length > 0 && nodes.every(node => node.mime === 'application/pdf')
+		const allHaveStatus = nodes?.every(node => node.attributes['libresign-signature-status'])
+		
+		return certificateOk && allPdf && allHaveStatus
 	},
 	order: -1,
 })
