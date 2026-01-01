@@ -3,10 +3,9 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcDialog v-if="open"
+	<NcDialog
 		:name="title"
-		:buttons="dialogButtons"
-		@closing="$emit('close')">
+		:buttons="dialogButtons">
 		<NcNoteCard v-if="localSuccessMessage" type="success">
 			{{ localSuccessMessage }}
 		</NcNoteCard>
@@ -42,10 +41,6 @@ export default {
 		NcNoteCard,
 	},
 	props: {
-		open: {
-			type: Boolean,
-			required: true,
-		},
 		name: {
 			type: String,
 			default: '',
@@ -62,15 +57,11 @@ export default {
 			type: String,
 			default: 'Enter name',
 		},
-		loading: {
-			type: Boolean,
-			default: false,
-		},
 	},
-	emits: ['close', 'save'],
+	emits: ['close'],
 	data() {
 		return {
-			localName: '',
+			localName: this.name || '',
 			localSuccessMessage: '',
 			localErrorMessage: '',
 			inputId: `edit-name-${Math.random().toString(36).substr(2, 9)}`,
@@ -86,13 +77,13 @@ export default {
 				{
 					label: this.t('libresign', 'Cancel'),
 					callback: () => {
-						this.$emit('close')
+						this.handleClose()
 					},
 				},
 				{
 					label: this.t('libresign', 'Save'),
 					type: 'primary',
-					disabled: !this.isNameValid || this.loading,
+					disabled: !this.isNameValid,
 					callback: () => {
 						this.handleSave()
 					},
@@ -101,16 +92,8 @@ export default {
 		},
 	},
 	watch: {
-		open(newVal) {
-			if (newVal) {
-				this.localName = this.name || ''
-				this.clearMessages()
-			}
-		},
 		name(newVal) {
-			if (this.open) {
-				this.localName = newVal || ''
-			}
+			this.localName = newVal || ''
 		},
 	},
 	methods: {
@@ -129,8 +112,11 @@ export default {
 			this.clearMessages()
 			this.localErrorMessage = message
 		},
+		handleClose() {
+			this.$emit('close', null)
+		},
 		handleSave() {
-			if (!this.isNameValid || this.loading) {
+			if (!this.isNameValid) {
 				return
 			}
 
@@ -151,12 +137,7 @@ export default {
 				return
 			}
 
-			if (trimmedName === this.name) {
-				this.$emit('close')
-				return
-			}
-
-			this.$emit('save', trimmedName)
+			this.$emit('close', trimmedName)
 		},
 	},
 }
