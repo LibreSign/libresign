@@ -15,13 +15,14 @@ use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCP\App\IAppManager;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\Event;
-use OCP\EventDispatcher\IEventDispatcher;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IAppConfig;
 use OCP\IRequest;
 use OCP\IUserSession;
+use OCP\Util;
 
 /**
  * @template-implements IEventListener<Event>
@@ -36,17 +37,20 @@ class TemplateLoader implements IEventListener {
 		private IdentifyMethodService $identifyMethodService,
 		private CertificateEngineFactory $certificateEngineFactory,
 		private IAppConfig $appConfig,
+		private IAppManager $appManager,
 	) {
 	}
 
-	public static function register(IEventDispatcher $dispatcher): void {
-		$dispatcher->addServiceListener(LoadSidebar::class, self::class);
-	}
-
+	#[\Override]
 	public function handle(Event $event): void {
 		if (!($event instanceof LoadSidebar)) {
 			return;
 		}
+
+		if (!$this->appManager->isEnabledForUser('libresign')) {
+			return;
+		}
+
 		$this->initialState->provideInitialState(
 			'certificate_ok',
 			$this->certificateEngineFactory->getEngine()->isSetupOk()
@@ -68,5 +72,8 @@ class TemplateLoader implements IEventListener {
 		} catch (LibresignException) {
 			$this->initialState->provideInitialState('can_request_sign', false);
 		}
+
+		Util::addScript(Application::APP_ID, 'libresign-tab');
+		Util::addStyle(Application::APP_ID, 'icons');
 	}
 }
