@@ -75,15 +75,6 @@
 				</NcButton>
 			</template>
 		</NcDialog>
-		<EditNameDialog v-if="showEnvelopeNameModal"
-			:open="showEnvelopeNameModal"
-			:name="envelopeName"
-			:title="t('libresign', 'Envelope name')"
-			:label="t('libresign', 'Enter a name for the envelope')"
-			:placeholder="t('libresign', 'Envelope name')"
-			:loading="loading"
-			@save="confirmEnvelopeName"
-			@close="cancelEnvelopeName" />
 	</div>
 </template>
 <script>
@@ -97,6 +88,7 @@ import { getCapabilities } from '@nextcloud/capabilities'
 import { showError } from '@nextcloud/dialogs'
 import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
 import { loadState } from '@nextcloud/initial-state'
+import { spawnDialog } from '@nextcloud/vue/functions/dialog'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -116,7 +108,6 @@ export default {
 	name: 'RequestPicker',
 	components: {
 		CloudUploadIcon,
-		EditNameDialog,
 		FilePicker,
 		FolderIcon,
 		LinkIcon,
@@ -160,8 +151,6 @@ export default {
 			uploadedBytes: 0,
 			totalBytes: 0,
 			uploadStartTime: null,
-			showEnvelopeNameModal: false,
-			envelopeName: '',
 			pendingPaths: [],
 			pendingFiles: [],
 		}
@@ -290,9 +279,20 @@ export default {
 
 				if (files.length > 1 && this.envelopeEnabled) {
 					this.pendingFiles = files
-					this.envelopeName = ''
-					this.showEnvelopeNameModal = true
+					const [envelopeName] = await spawnDialog(
+						EditNameDialog,
+						{
+							title: this.t('libresign', 'Envelope name'),
+							label: this.t('libresign', 'Enter a name for the envelope'),
+							placeholder: this.t('libresign', 'Envelope name'),
+						},
+					)
 					input.remove()
+
+					if (envelopeName) {
+						await this.upload(files, envelopeName)
+					}
+					this.pendingFiles = []
 					return
 				}
 
@@ -329,8 +329,36 @@ export default {
 
 			if (this.envelopeEnabled && paths.length > 1) {
 				this.pendingPaths = paths
-				this.envelopeName = ''
-				this.showEnvelopeNameModal = true
+				const [envelopeName] = await spawnDialog(
+					EditNameDialog,
+					{
+						title: this.t('libresign', 'Envelope name'),
+						label: this.t('libresign', 'Enter a name for the envelope'),
+						placeholder: this.t('libresign', 'Envelope name'),
+					},
+				)
+
+				if (envelopeName) {
+					const filesPayload = paths.map((path) => ({
+						file: { path },
+						name: (path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? ''),
+					}))
+					await this.filesStore.upload({
+						files: filesPayload,
+						name: envelopeName.trim(),
+					})
+						.then((fileId) => {
+							this.filesStore.selectFile(fileId)
+						})
+						.catch(({ response }) => {
+							showError(response?.data?.ocs?.data?.message || this.t('libresign', 'Upload failed'))
+						})
+						.finally(() => {
+							this.pendingPaths = []
+						})
+				} else {
+					this.pendingPaths = []
+				}
 				return
 			}
 
@@ -347,41 +375,6 @@ export default {
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.message)
 				})
-		},
-		confirmEnvelopeName(newName) {
-			this.envelopeName = newName
-			this.showEnvelopeNameModal = false
-
-			if (this.pendingPaths.length > 0) {
-				const filesPayload = this.pendingPaths.map((path) => ({
-					file: { path },
-					name: (path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? ''),
-				}))
-				this.filesStore.upload({
-					files: filesPayload,
-					name: this.envelopeName.trim(),
-				})
-					.then((fileId) => {
-						this.filesStore.selectFile(fileId)
-					})
-					.catch(({ response }) => {
-						showError(response?.data?.ocs?.data?.message || t('libresign', 'Upload failed'))
-					})
-					.finally(() => {
-						this.pendingPaths = []
-						this.envelopeName = ''
-					})
-				return
-			}
-
-			const files = this.pendingFiles
-			this.upload(files)
-		},
-		cancelEnvelopeName() {
-			this.pendingFiles = []
-			this.pendingPaths = []
-			this.envelopeName = ''
-			this.showEnvelopeNameModal = false
 		},
 	},
 }
