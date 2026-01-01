@@ -3,7 +3,6 @@
   <file src="lib/AppInfo/Application.php">
     <InvalidArgument>
       <code><![CDATA[LoadAdditionalListener::class]]></code>
-      <code><![CDATA[LoadSidebarListener::class]]></code>
       <code><![CDATA[registerEventListener]]></code>
     </InvalidArgument>
     <UndefinedClass>
@@ -61,9 +60,6 @@
     </UndefinedClass>
   </file>
   <file src="lib/Files/TemplateLoader.php">
-    <InvalidArgument>
-      <code><![CDATA[addServiceListener]]></code>
-    </InvalidArgument>
   </file>
   <file src="lib/Handler/CertificateEngine/CfsslHandler.php">
     <InvalidArgument>
@@ -86,17 +82,7 @@
       <code><![CDATA[LoadAdditionalListener]]></code>
     </UndefinedDocblockClass>
   </file>
-  <file src="lib/Listener/LoadSidebarListener.php">
-    <InvalidTemplateParam>
-      <code><![CDATA[IEventListener]]></code>
-    </InvalidTemplateParam>
-    <MoreSpecificImplementedParamType>
-      <code><![CDATA[$event]]></code>
-    </MoreSpecificImplementedParamType>
-    <UndefinedDocblockClass>
-      <code><![CDATA[LoadSidebarListener]]></code>
-    </UndefinedDocblockClass>
-  </file>
+
   <file src="lib/Listener/TwofactorGatewayListener.php">
     <UndefinedClass>
       <code><![CDATA[Factory]]></code>
