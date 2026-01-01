@@ -399,7 +399,7 @@ export default {
 		async handleDeleteSelected() {
 			this.deleteDialogConfig = {
 				title: this.t('libresign', 'Delete'),
-				message: this.n('libresign', 'Are you sure you want to remove this file from the envelope?', 'Are you sure you want to remove %n files from the envelope?', this.selectedCount),
+				message: this.n('libresign', 'Are you sure you want to remove %n file from the envelope?', 'Are you sure you want to remove %n files from the envelope?', this.selectedCount),
 				action: async () => {
 					await this.confirmDeleteSelected()
 				},
