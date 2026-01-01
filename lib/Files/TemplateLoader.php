@@ -41,10 +41,6 @@ class TemplateLoader implements IEventListener {
 	) {
 	}
 
-	public static function register(IEventDispatcher $dispatcher): void {
-		$dispatcher->addServiceListener(LoadSidebar::class, self::class);
-	}
-
 	public function handle(Event $event): void {
 		if (!($event instanceof LoadSidebar)) {
 			return;
