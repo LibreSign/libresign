@@ -75,7 +75,7 @@ export default {
 			const containerWidth = this.$el?.clientWidth || 0
 			if (!containerWidth || !maxPageWidth) return 1
 
-			const availableWidth = containerWidth - 80
+			const availableWidth = containerWidth - 40
 			return Math.max(0.1, Math.min(2, availableWidth / maxPageWidth))
 		},
 		adjustZoomToFit() {
