@@ -30,14 +30,73 @@ export default {
 	},
 	data() {
 		return {
-			file: {},
-			signers: [],
-			requested_by: {},
-			requestDate: '',
+			sidebarTitleObserver: null,
 		}
 	},
 	methods: {
+		checkAndLoadPendingEnvelope() {
+			const pendingEnvelope = window.OCA?.Libresign?.pendingEnvelope
+			if (pendingEnvelope?.id) {
+				this.filesStore.addFile(pendingEnvelope)
+				this.filesStore.selectFile(pendingEnvelope.id)
+				delete window.OCA.Libresign.pendingEnvelope
+
+				this.$nextTick(() => {
+					this.updateSidebarTitle(pendingEnvelope.name)
+				})
+
+				return true
+			}
+			return false
+		},
+
+		updateSidebarTitle(envelopeName) {
+			if (!envelopeName) return
+
+			this.disconnectTitleObserver()
+
+			const titleElement = document.querySelector('.app-sidebar-header__mainname')
+
+			if (titleElement) {
+				titleElement.textContent = envelopeName
+				titleElement.setAttribute('title', envelopeName)
+
+				this.sidebarTitleObserver = new MutationObserver(() => {
+					if (titleElement.textContent !== envelopeName) {
+						titleElement.textContent = envelopeName
+						titleElement.setAttribute('title', envelopeName)
+					}
+				})
+
+				this.sidebarTitleObserver.observe(titleElement, {
+					childList: true,
+					characterData: true,
+					subtree: true
+				})
+
+				setTimeout(() => this.disconnectTitleObserver(), 5000)
+			}
+		},
+
+		disconnectTitleObserver() {
+			if (this.sidebarTitleObserver) {
+				console.log('Disconnecting sidebar title observer')
+				this.sidebarTitleObserver.disconnect()
+				this.sidebarTitleObserver = null
+			}
+		},
+
 		async update(fileInfo) {
+			if (this.checkAndLoadPendingEnvelope()) {
+				return
+			}
+
+			this.disconnectTitleObserver()
+
+			if (this.filesStore.selectedId === fileInfo.id) {
+				return
+			}
+
 			this.filesStore.addFile({
 				nodeId: fileInfo.id,
 				name: fileInfo.name,
@@ -46,6 +105,14 @@ export default {
 				signers: [],
 			})
 			this.filesStore.selectFile(fileInfo.id)
+
+			this.$nextTick(() => {
+				const titleElement = document.querySelector('.app-sidebar-header__mainname')
+				if (titleElement) {
+					titleElement.textContent = fileInfo.name
+					titleElement.setAttribute('title', fileInfo.name)
+				}
+			})
 		},
 	},
 }
