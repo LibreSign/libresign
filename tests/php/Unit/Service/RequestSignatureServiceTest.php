@@ -15,7 +15,8 @@ use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\DocMdpConfigService;
-use OCA\Libresign\Service\EnvelopeService;
+use OCA\Libresign\Service\Envelope\EnvelopeFileRelocator;
+use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\FileStatusService;
@@ -63,6 +64,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private FileStatusService&MockObject $fileStatusService;
 	private DocMdpConfigService&MockObject $docMdpConfigService;
 	private EnvelopeService&MockObject $envelopeService;
+	private EnvelopeFileRelocator&MockObject $envelopeFileRelocator;
 	private FileUploadHelper&MockObject $uploadHelper;
 	private SignRequestService&MockObject $signRequestService;
 
@@ -96,6 +98,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->fileStatusService = $this->createMock(FileStatusService::class);
 		$this->docMdpConfigService = $this->createMock(DocMdpConfigService::class);
 		$this->envelopeService = $this->createMock(EnvelopeService::class);
+		$this->envelopeFileRelocator = $this->createMock(EnvelopeFileRelocator::class);
 		$this->uploadHelper = $this->createMock(FileUploadHelper::class);
 		$this->signRequestService = $this->createMock(SignRequestService::class);
 	}
@@ -124,6 +127,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->fileStatusService,
 			$this->docMdpConfigService,
 			$this->envelopeService,
+			$this->envelopeFileRelocator,
 			$this->uploadHelper,
 			$this->signRequestService,
 		);
