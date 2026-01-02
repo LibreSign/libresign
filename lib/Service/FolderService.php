@@ -46,6 +46,19 @@ class FolderService {
 	}
 
 	/**
+	 * Get the user's root folder (full home), not the LibreSign container.
+	 *
+	 * @throws LibresignException
+	 */
+	public function getUserRootFolder(): Folder {
+		if (!$this->userId) {
+			throw new LibresignException('Invalid user to resolve folder');
+		}
+
+		return $this->root->getUserFolder($this->userId);
+	}
+
+	/**
 	 * Get folder for user and creates it if non-existent
 	 *
 	 * @psalm-suppress MixedReturnStatement
@@ -199,5 +212,51 @@ class FolderService {
 		} catch (NotFoundException) {
 			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 		}
+	}
+
+	/**
+	 * Ensure a folder exists at a given absolute user path, creating missing segments.
+	 * If the final folder already exists, it must be empty.
+	 *
+	 * @throws LibresignException
+	 */
+	public function getOrCreateFolderByAbsolutePath(string $path): Folder {
+		if (!$this->userId) {
+			throw new LibresignException('Invalid user to create envelope folder');
+		}
+
+		$cleanPath = ltrim($path, '/');
+		$userFolder = $this->root->getUserFolder($this->userId);
+
+		if ($cleanPath === '') {
+			return $userFolder;
+		}
+
+		$segments = array_filter(explode('/', $cleanPath), static fn (string $segment) => $segment !== '');
+		$folder = $userFolder;
+		$isLastSegment = false;
+
+		foreach ($segments as $index => $segment) {
+			$isLastSegment = ($index === count($segments) - 1);
+
+			try {
+				$node = $folder->get($segment);
+				if (!$node instanceof Folder) {
+					throw new LibresignException('Invalid folder path');
+				}
+				$folder = $node;
+
+				if ($isLastSegment) {
+					$contents = $folder->getDirectoryListing();
+					if (count($contents) > 0) {
+						throw new LibresignException($this->l10n->t('Folder already exists and is not empty: %s', [$path]));
+					}
+				}
+			} catch (NotFoundException) {
+				$folder = $folder->newFolder($segment);
+			}
+		}
+
+		return $folder;
 	}
 }
