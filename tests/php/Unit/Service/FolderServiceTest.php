@@ -334,4 +334,100 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$this->assertInstanceOf(Folder::class, $result);
 	}
+
+	public function testGetUserRootFolderReturnsUserFolder(): void {
+		$mockUserFolder = $this->createMock(Folder::class);
+		$this->root->expects($this->once())
+			->method('getUserFolder')
+			->with('171')
+			->willReturn($mockUserFolder);
+
+		$service = $this->getInstance('171');
+		$result = $service->getUserRootFolder();
+
+		$this->assertSame($mockUserFolder, $result);
+	}
+
+	#[DataProvider('providerGetOrCreateFolderByAbsolutePath')]
+	public function testGetOrCreateFolderByAbsolutePathCreatesNestedFolders(
+		string $path,
+		array $existingFolders,
+		array $expectedNewFolders,
+	): void {
+		$mockUserFolder = $this->createMock(Folder::class);
+		$this->root->method('getUserFolder')->willReturn($mockUserFolder);
+
+		$currentFolder = $mockUserFolder;
+		$segments = array_filter(explode('/', ltrim($path, '/')));
+
+		foreach ($segments as $index => $segment) {
+			if (in_array($segment, $existingFolders)) {
+				$existingFolder = $this->createMock(Folder::class);
+				$existingFolder->method('getDirectoryListing')->willReturn([]);
+				$currentFolder->method('get')
+					->with($segment)
+					->willReturn($existingFolder);
+				$currentFolder = $existingFolder;
+			} elseif (in_array($segment, $expectedNewFolders)) {
+				$currentFolder->method('get')
+					->with($segment)
+					->willThrowException(new \OCP\Files\NotFoundException());
+
+				$newFolder = $this->createMock(Folder::class);
+				$newFolder->method('getDirectoryListing')->willReturn([]);
+				$currentFolder->method('newFolder')
+					->with($segment)
+					->willReturn($newFolder);
+				$currentFolder = $newFolder;
+			}
+		}
+
+		$service = $this->getInstance('171');
+		$result = $service->getOrCreateFolderByAbsolutePath($path);
+
+		$this->assertInstanceOf(Folder::class, $result);
+	}
+
+	public static function providerGetOrCreateFolderByAbsolutePath(): array {
+		return [
+			'create single folder at root' => [
+				'/Envelopes',
+				[],
+				['Envelopes'],
+			],
+			'create nested folders' => [
+				'/Documents/Legal/Contracts',
+				[],
+				['Documents', 'Legal', 'Contracts'],
+			],
+			'use existing folder' => [
+				'/Existing',
+				['Existing'],
+				[],
+			],
+			'create inside existing folder' => [
+				'/Documents/NewFolder',
+				['Documents'],
+				['NewFolder'],
+			],
+		];
+	}
+
+	public function testGetOrCreateFolderByAbsolutePathFailsWhenFolderNotEmpty(): void {
+		$mockUserFolder = $this->createMock(Folder::class);
+		$this->root->method('getUserFolder')->willReturn($mockUserFolder);
+
+		$existingFolder = $this->createMock(Folder::class);
+		$existingFile = $this->createMock(\OCP\Files\File::class);
+		$existingFolder->method('getDirectoryListing')->willReturn([$existingFile]);
+
+		$mockUserFolder->method('get')
+			->with('NotEmpty')
+			->willReturn($existingFolder);
+
+		$service = $this->getInstance('171');
+
+		$this->expectException(\OCA\Libresign\Exception\LibresignException::class);
+		$service->getOrCreateFolderByAbsolutePath('/NotEmpty');
+	}
 }
