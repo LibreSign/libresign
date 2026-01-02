@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign;
 
-use OCA\Libresign\Service\EnvelopeService;
+use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\App\IAppManager;
