@@ -21,6 +21,7 @@ use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\ResponseDefinitions;
+use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\File\CertificateChainService;
 use OCA\Libresign\Service\File\EnvelopeAssembler;
 use OCA\Libresign\Service\File\EnvelopeProgressService;
