@@ -7,7 +7,7 @@ declare(strict_types=1);
  */
 
 use OCA\Libresign\Capabilities;
-use OCA\Libresign\Service\EnvelopeService;
+use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\App\IAppManager;
