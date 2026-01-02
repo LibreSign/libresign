@@ -21,6 +21,8 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\Envelope\EnvelopeFileRelocator;
+use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
@@ -58,6 +60,7 @@ class RequestSignatureService {
 		protected FileStatusService $fileStatusService,
 		protected DocMdpConfigService $docMdpConfigService,
 		protected EnvelopeService $envelopeService,
+		protected EnvelopeFileRelocator $envelopeFileRelocator,
 		protected FileUploadHelper $uploadHelper,
 		protected SignRequestService $signRequestService,
 	) {
@@ -162,7 +165,8 @@ class RequestSignatureService {
 		$createdNodes = [];
 
 		try {
-			$envelope = $this->envelopeService->createEnvelope($envelopeName, $userId, $filesCount);
+			$envelopePath = $data['settings']['path'] ?? null;
+			$envelope = $this->envelopeService->createEnvelope($envelopeName, $userId, $filesCount, $envelopePath);
 
 			$envelopeFolder = $this->envelopeService->getEnvelopeFolder($envelope);
 			$envelopeSettings = array_merge($data['settings'] ?? [], [
@@ -191,20 +195,30 @@ class RequestSignatureService {
 
 	private function processFileData(array $fileData, ?IUser $userManager, array $settings): Node {
 		if (isset($fileData['uploadedFile'])) {
-			return $this->fileService->getNodeFromData([
+			$sourceNode = $this->fileService->getNodeFromData([
 				'userManager' => $userManager,
 				'name' => $fileData['name'] ?? '',
 				'uploadedFile' => $fileData['uploadedFile'],
 				'settings' => $settings,
 			]);
+		} else {
+			$sourceNode = $this->fileService->getNodeFromData([
+				'userManager' => $userManager,
+				'name' => $fileData['name'] ?? '',
+				'file' => $fileData,
+				'settings' => $settings,
+			]);
 		}
 
-		return $this->fileService->getNodeFromData([
-			'userManager' => $userManager,
-			'name' => $fileData['name'] ?? '',
-			'file' => $fileData,
-			'settings' => $settings,
-		]);
+		if (isset($settings['envelopeFolderId'])) {
+			return $this->envelopeFileRelocator->ensureFileInEnvelopeFolder(
+				$sourceNode,
+				$settings['envelopeFolderId'],
+				$userManager,
+			);
+		}
+
+		return $sourceNode;
 	}
 
 	private function rollbackEnvelopeCreation(?FileEntity $envelope, array $files, array $createdNodes): void {

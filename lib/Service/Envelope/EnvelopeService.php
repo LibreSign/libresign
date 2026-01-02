@@ -6,7 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service;
+namespace OCA\Libresign\Service\Envelope;
 
 use DateTime;
 use OCA\Libresign\AppInfo\Application;
@@ -14,6 +14,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\NodeType;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\FolderService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IAppConfig;
 use OCP\IL10N;
