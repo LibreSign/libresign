@@ -29,7 +29,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			\OCP\Files\IRootFolder::class,
 			\Psr\Log\LoggerInterface::class,
 			\OCP\IL10N::class,
-			\OCA\Libresign\Service\EnvelopeService::class,
+			\OCA\Libresign\Service\Envelope\EnvelopeService::class,
 			\OCA\Libresign\Service\File\SignersLoader::class,
 			\OCA\Libresign\Helper\FileUploadHelper::class,
 			\OCA\Libresign\Service\File\EnvelopeAssembler::class,
