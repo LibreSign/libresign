@@ -13,12 +13,13 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\NodeType;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Service\EnvelopeService;
+use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\Files\Folder;
 use OCP\IAppConfig;
 use OCP\IL10N;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class EnvelopeServiceTest extends TestCase {
@@ -185,5 +186,142 @@ final class EnvelopeServiceTest extends TestCase {
 
 		$this->assertStringStartsWith('Contract_', $capturedFolderName);
 		$this->assertStringContainsString($envelope->getUuid(), $capturedFolderName);
+	}
+
+	#[DataProvider('envelopeCreationProvider')]
+	public function testEnvelopeCreationWithCustomPathOrDefaultNaming(
+		string $name,
+		string $userId,
+		int $filesCount,
+		?string $customPath,
+		bool $expectCustomPath,
+		int $expectedNodeId,
+	): void {
+		$this->fileMapper->method('insert')->willReturnArgument(0);
+
+		if ($expectCustomPath) {
+			$mockEnvelopeFolder = $this->createMock(Folder::class);
+			$mockEnvelopeFolder->method('getId')->willReturn($expectedNodeId);
+
+			$this->folderService
+				->expects($this->once())
+				->method('getOrCreateFolderByAbsolutePath')
+				->with($customPath)
+				->willReturn($mockEnvelopeFolder);
+
+			$envelope = $this->service->createEnvelope($name, $userId, $filesCount, $customPath);
+
+			$this->assertSame($expectedNodeId, $envelope->getNodeId());
+			$this->assertSame($name, $envelope->getName());
+			$this->assertSame($userId, $envelope->getUserId());
+			$this->assertSame(['filesCount' => $filesCount], $envelope->getMetadata());
+		} else {
+			$mockDefaultFolder = $this->createMock(Folder::class);
+			$mockEnvelopeFolder = $this->createMock(Folder::class);
+			$mockEnvelopeFolder->method('getId')->willReturn($expectedNodeId);
+
+			$this->folderService
+				->expects($this->once())
+				->method('getFolder')
+				->willReturn($mockDefaultFolder);
+
+			$capturedFolderName = '';
+			$mockDefaultFolder->method('newFolder')
+				->willReturnCallback(function ($folderName) use ($mockEnvelopeFolder, &$capturedFolderName) {
+					$capturedFolderName = $folderName;
+					return $mockEnvelopeFolder;
+				});
+
+			$envelope = $this->service->createEnvelope($name, $userId, $filesCount, $customPath);
+
+			$this->assertStringStartsWith($name . '_', $capturedFolderName);
+			$this->assertStringContainsString($envelope->getUuid(), $capturedFolderName);
+			$this->assertSame($expectedNodeId, $envelope->getNodeId());
+			$this->assertSame($name, $envelope->getName());
+		}
+
+		$this->assertTrue($envelope->isEnvelope());
+		$this->assertSame(FileEntity::STATUS_DRAFT, $envelope->getStatus());
+	}
+
+	public static function envelopeCreationProvider(): array {
+		return [
+			'custom path - root level' => [
+				'name' => 'Root Envelope',
+				'userId' => 'user1',
+				'filesCount' => 2,
+				'customPath' => '/EnvelopeAtRoot',
+				'expectCustomPath' => true,
+				'expectedNodeId' => 100,
+			],
+			'custom path - nested' => [
+				'name' => 'Legal Contract',
+				'userId' => 'user2',
+				'filesCount' => 5,
+				'customPath' => '/Documents/Legal/Contracts/2026',
+				'expectCustomPath' => true,
+				'expectedNodeId' => 200,
+			],
+			'custom path - with spaces' => [
+				'name' => 'Important Files',
+				'userId' => 'user3',
+				'filesCount' => 3,
+				'customPath' => '/My Documents/Important Files',
+				'expectCustomPath' => true,
+				'expectedNodeId' => 300,
+			],
+			'default path - no custom path provided' => [
+				'name' => 'Standard Envelope',
+				'userId' => 'user4',
+				'filesCount' => 1,
+				'customPath' => null,
+				'expectCustomPath' => false,
+				'expectedNodeId' => 888,
+			],
+			'default path - single file' => [
+				'name' => 'Contract Package',
+				'userId' => 'testuser',
+				'filesCount' => 1,
+				'customPath' => null,
+				'expectCustomPath' => false,
+				'expectedNodeId' => 999,
+			],
+		];
+	}
+
+	public function testEnvelopeCreationFailsWhenCustomPathNotEmpty(): void {
+		$this->expectException(LibresignException::class);
+
+		$this->folderService
+			->method('getOrCreateFolderByAbsolutePath')
+			->willThrowException(new LibresignException('Folder not empty'));
+
+		$this->service->createEnvelope('Test', 'user', 1, '/Documents/Existing');
+	}
+
+	#[DataProvider('envelopeConstraintsProvider')]
+	public function testValidateEnvelopeConstraints(
+		int $fileCount,
+		bool $shouldPass,
+	): void {
+		if (!$shouldPass) {
+			$this->expectException(LibresignException::class);
+		}
+
+		$this->service->validateEnvelopeConstraints($fileCount);
+
+		if ($shouldPass) {
+			$this->assertTrue(true);
+		}
+	}
+
+	public static function envelopeConstraintsProvider(): array {
+		return [
+			'valid - 1 file' => [1, true],
+			'valid - 10 files' => [10, true],
+			'valid - exactly max (50)' => [50, true],
+			'invalid - exceeds max' => [51, false],
+			'invalid - way over max' => [100, false],
+		];
 	}
 }
