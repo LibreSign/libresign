@@ -93,9 +93,16 @@ export const action = new FileAction({
 			return new Array(nodes.length).fill(null)
 		}
 
+		const rawDir = nodes[0].dirname ?? nodes[0].path.substring(0, nodes[0].path.lastIndexOf('/'))
+		const normalizedDir = (rawDir && rawDir !== '/') ? rawDir.replace(/\/+$/, '') : ''
+		const envelopePath = normalizedDir ? `${normalizedDir}/${envelopeName}` : `/${envelopeName}`
+
 		return axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
 			files: nodes.map(node => ({ fileId: node.fileid })),
 			name: envelopeName,
+			settings: {
+				path: envelopePath,
+			},
 		}).then((response) => {
 			const envelopeData = response.data?.ocs?.data
 
