@@ -48,14 +48,22 @@ class EnvelopeService {
 		}
 	}
 
-	public function createEnvelope(string $name, string $userId, int $filesCount = 0): FileEntity {
+	public function createEnvelope(
+		string $name,
+		string $userId,
+		int $filesCount = 0,
+		?string $path = null,
+	): FileEntity {
 		$this->folderService->setUserId($userId);
 
-		$parentFolder = $this->folderService->getFolder();
-
 		$uuid = UUIDUtil::getUUID();
-		$folderName = $name . '_' . $uuid;
-		$envelopeFolder = $parentFolder->newFolder($folderName);
+		if ($path) {
+			$envelopeFolder = $this->folderService->getOrCreateFolderByAbsolutePath($path);
+		} else {
+			$parentFolder = $this->folderService->getFolder();
+			$folderName = $name . '_' . $uuid;
+			$envelopeFolder = $parentFolder->newFolder($folderName);
+		}
 
 		$envelope = new FileEntity();
 		$envelope->setNodeId($envelopeFolder->getId());
@@ -114,9 +122,9 @@ class EnvelopeService {
 		}
 
 		$this->folderService->setUserId($userId);
-		$userFolder = $this->folderService->getFolder();
+		$userRootFolder = $this->folderService->getUserRootFolder();
 
-		$envelopeFolderNode = $userFolder->getFirstNodeById($envelope->getNodeId());
+		$envelopeFolderNode = $userRootFolder->getFirstNodeById($envelope->getNodeId());
 		if (!$envelopeFolderNode instanceof \OCP\Files\Folder) {
 			throw new LibresignException('Envelope folder not found');
 		}
