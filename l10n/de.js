@@ -314,6 +314,7 @@ OC.L10N.register(
     "Click on the place you want to add." : "Klicke auf den Ort, den du hinzufügen möchtest.",
     "Sign" : "Signiere",
     "Failed to load files" : "Dateien konnten nicht geladen werden",
+    "_Are you sure you want to remove %n file from the envelope?_::_Are you sure you want to remove %n files from the envelope?_" : ["Soll %n Datei aus dem Umschlag entfernt werden?","Sollen %n Dateien aus dem Umschlag entfernt werden?"],
     "Saved" : "Gespeichert",
     "Failed to update" : "Aktualisierung fehlgeschlagen",
     "Are you sure you want to remove this file from the envelope?" : "Soll diese Datei aus dem Umschlag entfernt werden?",
