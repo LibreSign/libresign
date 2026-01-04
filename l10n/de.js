@@ -195,6 +195,7 @@ OC.L10N.register(
     "Invalid file identifier" : "Ungültiger Datei-Identifizierer",
     "No file provided" : "Keine Datei bereitgestellt",
     "Envelope folder not found" : "Umschlagordner nicht gefunden",
+    "Folder already exists and is not empty: %s" : "Ordner existiert bereits und ist nicht leer: %s",
     "Link expired." : "Link abgelaufen.",
     "Invalid code." : "Ungültiger Code",
     "Link expired" : "Link abgelaufen",
