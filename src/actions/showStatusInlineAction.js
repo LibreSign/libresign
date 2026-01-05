@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2025 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { FileAction, registerFileAction } from '@nextcloud/files'
+import { FileAction, registerFileAction, getSidebar } from '@nextcloud/files'
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 
@@ -26,8 +26,8 @@ const action = new FileAction({
 	},
 	exec: async ({ nodes }) => {
 		const node = nodes[0]
-		await window.OCA.Files.Sidebar.open(node.path)
-		window.OCA.Files.Sidebar.setActiveTab('libresign')
+		sidebar.open(node, 'libresign')
+		sidebar.setActiveTab('libresign')
 		return null
 	},
 	iconSvgInline: ({ nodes }) => {
@@ -48,7 +48,7 @@ const action = new FileAction({
 		const certificateOk = loadState('libresign', 'certificate_ok')
 		const allPdf = nodes?.length > 0 && nodes.every(node => node.mime === 'application/pdf')
 		const allHaveStatus = nodes?.every(node => node.attributes['libresign-signature-status'])
-		
+
 		return certificateOk && allPdf && allHaveStatus
 	},
 	order: -1,
