@@ -54,6 +54,7 @@ addNewFileMenuEntry({
 					name: upload.file.name,
 				})
 					.then(async ({ data }) => {
+						const sidebar = getSidebar()
 						sidebar.open({ path }, 'libresign')
 						sidebar.setActiveTab('libresign')
 					})

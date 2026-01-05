@@ -92,6 +92,7 @@ export const action = new FileAction({
 	 * Single file: open in sidebar
 	 */
 	async exec({ nodes }) {
+		const sidebar = getSidebar()
 		const node = nodes[0]
 		await sidebar.open(node, 'libresign')
 		sidebar.setActiveTab('libresign')
