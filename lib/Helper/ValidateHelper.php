@@ -125,6 +125,17 @@ class ValidateHelper {
 			}
 			$this->validateIfNodeIdExists((int)$data['file']['fileId'], $data['userManager']->getUID(), $type);
 			$this->validateMimeTypeAcceptedByNodeId((int)$data['file']['fileId'], $data['userManager']->getUID(), $type);
+		} elseif (!empty($data['file']['nodeId'])) {
+			if (!is_numeric($data['file']['nodeId'])) {
+				throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
+			}
+			if (!is_a($user, IUser::class)) {
+				if (!is_a($data['userManager'], IUser::class)) {
+					throw new LibresignException($this->l10n->t('User not found.'));
+				}
+			}
+			$this->validateIfNodeIdExists((int)$data['file']['nodeId'], $data['userManager']->getUID(), $type);
+			$this->validateMimeTypeAcceptedByNodeId((int)$data['file']['nodeId'], $data['userManager']->getUID(), $type);
 		} elseif (!empty($data['file']['base64'])) {
 			$this->validateBase64($data['file']['base64'], $type);
 		} elseif (!empty($data['file']['path'])) {
