@@ -34,10 +34,10 @@ export default {
 		}
 	},
 	methods: {
-		checkAndLoadPendingEnvelope() {
+		async checkAndLoadPendingEnvelope() {
 			const pendingEnvelope = window.OCA?.Libresign?.pendingEnvelope
 			if (pendingEnvelope?.id) {
-				this.filesStore.addFile(pendingEnvelope)
+				await this.filesStore.addFile(pendingEnvelope)
 				this.filesStore.selectFile(pendingEnvelope.id)
 				delete window.OCA.Libresign.pendingEnvelope
 
@@ -87,7 +87,7 @@ export default {
 		},
 
 		async update(fileInfo) {
-			if (this.checkAndLoadPendingEnvelope()) {
+			if (await this.checkAndLoadPendingEnvelope()) {
 				return
 			}
 
@@ -97,7 +97,7 @@ export default {
 				return
 			}
 
-			this.filesStore.addFile({
+			await this.filesStore.addFile({
 				nodeId: fileInfo.id,
 				name: fileInfo.name,
 				file: generateRemoteUrl(`dav/files/${getCurrentUser()?.uid}/${fileInfo.path + '/' + fileInfo.name}`)
