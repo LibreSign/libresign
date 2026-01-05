@@ -310,10 +310,12 @@ export const useFilesStore = function(...args) {
 				this.selectFile(selected) // to force reactivity
 			},
 			async deleteSigner(signer) {
+				const file = this.getFile()
+
 				if (!isNaN(signer.signRequestId)) {
 					await axios.delete(generateOcsUrl('/apps/libresign/api/{apiVersion}/sign/file_id/{fileId}/{signRequestId}', {
 						apiVersion: 'v1',
-						fileId: this.getFile().id,
+						fileId: file.id,
 						signRequestId: signer.signRequestId,
 					}))
 				}
@@ -324,7 +326,7 @@ export const useFilesStore = function(...args) {
 					this.files[this.selectedNodeId].signers.filter((i) => i.identify !== signer.identify),
 				)
 
-				if (this.getFile().signatureFlow === 'ordered_numeric' && signer.signingOrder) {
+				if (file.signatureFlow === 'ordered_numeric' && signer.signingOrder) {
 					this.files[this.selectedNodeId].signers.forEach((s) => {
 						if (s.signingOrder && s.signingOrder > signer.signingOrder) {
 							s.signingOrder -= 1
