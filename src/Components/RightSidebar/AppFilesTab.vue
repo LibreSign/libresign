@@ -93,7 +93,7 @@ export default {
 
 			this.disconnectTitleObserver()
 
-			if (this.filesStore.selectedId === fileInfo.id) {
+			if (this.filesStore.selectedNodeId === fileInfo.id) {
 				return
 			}
 

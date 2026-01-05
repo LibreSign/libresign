@@ -375,7 +375,7 @@ export default {
 			showEnvelopeFilesDialog: false,
 			infoIcon: svgInfo,
 			adminSignatureFlow: '',
-			lastSyncedFileId: null,
+			lastSyncedNodeId: null,
 		}
 	},
 	computed: {
@@ -594,11 +594,11 @@ export default {
 		signers(signers) {
 			this.init(signers)
 		},
-		'filesStore.selectedId': {
-			handler(newFileId, oldFileId) {
-				if (newFileId && newFileId !== this.lastSyncedFileId) {
+		'filesStore.selectedNodeId': {
+			handler(newNodeId, oldNodeId) {
+				if (newNodeId && newNodeId !== this.lastSyncedNodeId) {
 					this.syncPreserveOrderWithFile()
-					this.lastSyncedFileId = newFileId
+					this.lastSyncedNodeId = newNodeId
 				}
 			},
 			immediate: true,
@@ -684,7 +684,7 @@ export default {
 
 			const flow = file.signatureFlow
 
-			this.lastSyncedFileId = this.filesStore.selectedId
+			this.lastSyncedNodeId = this.filesStore.selectedNodeId
 
 			if ((flow === 'ordered_numeric' || flow === 2) && !this.isAdminFlowForced) {
 				this.preserveOrder = true
@@ -845,7 +845,7 @@ export default {
 		},
 		async sendNotify(signer) {
 			const body = {
-				fileId: this.filesStore.selectedId,
+				fileId: this.filesStore.getFile().id,
 				signRequestId: signer.signRequestId,
 			}
 

@@ -206,12 +206,6 @@ export default {
 		envelope() {
 			return this.filesStore.getFile()
 		},
-		envelopeUuid() {
-			return this.envelope.uuid
-		},
-		envelopeId() {
-			return this.envelope.id
-		},
 		canDelete() {
 			return this.envelope?.status === SIGN_STATUS.DRAFT && this.files.length >= 1
 		},
@@ -276,7 +270,7 @@ export default {
 	},
 	methods: {
 		async loadFiles(page = 1) {
-			if (!this.envelopeId) {
+			if (!this.envelope?.id) {
 				return
 			}
 
@@ -291,7 +285,7 @@ export default {
 			const params = new URLSearchParams({
 				page: page,
 				length: 50,
-				parentFileId: this.envelopeId,
+				parentFileId: this.envelope.id,
 			})
 
 			await axios.get(`${url}?${params.toString()}`)
@@ -368,7 +362,7 @@ export default {
 					source: fileUrl,
 					basename: file.name,
 					mime: 'application/pdf',
-					fileid: file.nodeId,
+					fileid: file.id,
 				}
 				OCA.Viewer.open({
 					fileInfo,
@@ -410,7 +404,7 @@ export default {
 			this.hasLoading = true
 			const fileIds = [...this.selectedFiles]
 
-			const result = await this.filesStore.removeFilesFromEnvelope(this.envelopeId, fileIds)
+			const result = await this.filesStore.removeFilesFromEnvelope(fileIds)
 
 			if (result.success) {
 				// Remover arquivos da lista local
@@ -453,7 +447,7 @@ export default {
 				const abortController = new AbortController()
 				this.uploadAbortController = abortController
 
-				const result = await this.filesStore.addFilesToEnvelope(this.envelopeUuid, formData, {
+				const result = await this.filesStore.addFilesToEnvelope(this.envelope.uuid, formData, {
 					signal: abortController.signal,
 					onUploadProgress: (progressEvent) => {
 						if (progressEvent.total) {
@@ -467,9 +461,6 @@ export default {
 					this.showSuccess(this.t('libresign', result.message))
 					this.files.push(...result.files)
 					this.totalFiles = result.filesCount
-					if (this.envelopeId && this.filesStore.files[this.envelopeId]) {
-						this.filesStore.files[this.envelopeId].filesCount = result.filesCount
-					}
 				} else {
 					if (result.message !== 'Upload cancelled') {
 						this.showError(this.t('libresign', result.message))
@@ -558,7 +549,7 @@ export default {
 		async confirmDelete(file) {
 			this.hasLoading = true
 
-			const result = await this.filesStore.removeFilesFromEnvelope(this.envelopeId, file.id)
+			const result = await this.filesStore.removeFilesFromEnvelope([file.id])
 
 			if (result.success) {
 				this.showSuccess(this.t('libresign', result.message))
