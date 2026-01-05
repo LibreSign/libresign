@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { registerFileAction, FileAction } from '@nextcloud/files'
+import { registerFileAction, FileAction, getSidebar } from '@nextcloud/files'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
@@ -71,10 +71,9 @@ export const action = new FileAction({
 	 * Single file: open in sidebar
 	 */
 	async exec({ nodes }) {
-		window.OCA.Files.Sidebar.close()
 		const node = nodes[0]
-		await window.OCA.Files.Sidebar.open(node.path)
-		window.OCA.Files.Sidebar.setActiveTab('libresign')
+		await sidebar.open(node, 'libresign')
+		sidebar.setActiveTab('libresign')
 		return null
 	},
 
@@ -103,16 +102,15 @@ export const action = new FileAction({
 			settings: {
 				path: envelopePath,
 			},
-		}).then((response) => {
+		}).then(async (response) => {
 			const envelopeData = response.data?.ocs?.data
 
 			window.OCA.Libresign.pendingEnvelope = envelopeData
 
-			window.OCA.Files.Sidebar.close()
-
-			window.OCA.Files.Sidebar.setActiveTab('libresign')
+			const sidebar = getSidebar()
 			const firstNode = nodes[0]
-			window.OCA.Files.Sidebar.open(firstNode.path)
+			await sidebar.open(firstNode, 'libresign')
+			sidebar.setActiveTab('libresign')
 
 			return new Array(nodes.length).fill(null)
 		}).catch((error) => {
