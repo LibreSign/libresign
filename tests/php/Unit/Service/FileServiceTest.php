@@ -88,4 +88,76 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertInstanceOf(FileService::class, $returned);
 		$this->assertSame(1, $service->getStatus());
 	}
+
+	public function testGetNodeFromDataWithNodeId(): void {
+		$node = $this->createMock(\OCP\Files\File::class);
+		$folderService = $this->createMock(\OCA\Libresign\Service\FolderService::class);
+		$folderService->method('getUserId')->willReturn('testuser');
+		$folderService->method('getFileByNodeId')->with(35523)->willReturn($node);
+
+		$userManager = $this->createMock(\OCP\IUser::class);
+		$userManager->method('getUID')->willReturn('testuser');
+
+		$service = $this->createFileService([
+			\OCA\Libresign\Service\FolderService::class => $folderService,
+		]);
+
+		$data = [
+			'file' => ['nodeId' => 35523],
+			'userManager' => $userManager,
+		];
+
+		$result = $service->getNodeFromData($data);
+		$this->assertSame($node, $result);
+	}
+
+	public function testGetNodeFromDataWithFileId(): void {
+		$node = $this->createMock(\OCP\Files\File::class);
+		$folderService = $this->createMock(\OCA\Libresign\Service\FolderService::class);
+		$folderService->method('getUserId')->willReturn('testuser');
+		$folderService->method('getFileByNodeId')->with(12345)->willReturn($node);
+
+		$userManager = $this->createMock(\OCP\IUser::class);
+		$userManager->method('getUID')->willReturn('testuser');
+
+		$service = $this->createFileService([
+			\OCA\Libresign\Service\FolderService::class => $folderService,
+		]);
+
+		$data = [
+			'file' => ['fileId' => 12345],
+			'userManager' => $userManager,
+		];
+
+		$result = $service->getNodeFromData($data);
+		$this->assertSame($node, $result);
+	}
+
+	public function testGetNodeFromDataPrefersFileIdOverNodeId(): void {
+		$nodeFromFileId = $this->createMock(\OCP\Files\File::class);
+		$folderService = $this->createMock(\OCA\Libresign\Service\FolderService::class);
+		$folderService->method('getUserId')->willReturn('testuser');
+		$folderService->expects($this->once())
+			->method('getFileByNodeId')
+			->with(12345)
+			->willReturn($nodeFromFileId);
+
+		$userManager = $this->createMock(\OCP\IUser::class);
+		$userManager->method('getUID')->willReturn('testuser');
+
+		$service = $this->createFileService([
+			\OCA\Libresign\Service\FolderService::class => $folderService,
+		]);
+
+		$data = [
+			'file' => [
+				'fileId' => 12345,
+				'nodeId' => 35523, // This should be ignored
+			],
+			'userManager' => $userManager,
+		];
+
+		$result = $service->getNodeFromData($data);
+		$this->assertSame($nodeFromFileId, $result);
+	}
 }
