@@ -195,6 +195,7 @@ OC.L10N.register(
     "Invalid file identifier" : "Aitheantóir comhaid neamhbhailí",
     "No file provided" : "Níor soláthraíodh aon chomhad",
     "Envelope folder not found" : "Níor aimsíodh fillteán clúdaigh",
+    "Folder already exists and is not empty: %s" : "Tá fillteán ann cheana féin agus níl sé folamh: %s",
     "Link expired." : "Chuaigh an nasc in éag.",
     "Invalid code." : "Cód neamhbhailí.",
     "Link expired" : "Chuaigh an nasc in éag",
