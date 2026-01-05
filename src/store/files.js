@@ -347,7 +347,7 @@ export const useFilesStore = function(...args) {
 								sidebarStore.hideSidebar()
 								this.selectedNodeId = 0
 							}
-							del(this.nodeIdToFileId, file.nodeId)
+
 							del(this.files, file.nodeId)
 							const index = this.ordered.indexOf(file.nodeId)
 							if (index > -1) {
