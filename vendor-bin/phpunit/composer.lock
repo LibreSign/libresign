@@ -514,12 +514,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/myclabs/DeepCopy.git",
-                "reference": "07d290f0c47959fd5eed98c95ee5602db07e0b6a"
+                "reference": "5ee4e978b7fec6dbd844282126a5a32daa2044c6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/07d290f0c47959fd5eed98c95ee5602db07e0b6a",
-                "reference": "07d290f0c47959fd5eed98c95ee5602db07e0b6a",
+                "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/5ee4e978b7fec6dbd844282126a5a32daa2044c6",
+                "reference": "5ee4e978b7fec6dbd844282126a5a32daa2044c6",
                 "shasum": ""
             },
             "require": {
@@ -559,7 +559,7 @@
             ],
             "support": {
                 "issues": "https://github.com/myclabs/DeepCopy/issues",
-                "source": "https://github.com/myclabs/DeepCopy/tree/1.13.4"
+                "source": "https://github.com/myclabs/DeepCopy/tree/1.x"
             },
             "funding": [
                 {
@@ -567,7 +567,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-08-01T08:46:24+00:00"
+            "time": "2025-12-30T16:10:21+00:00"
         },
         {
             "name": "nikic/php-parser",
@@ -1136,12 +1136,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "132b97b872305a8470cb2384204a563030731794"
+                "reference": "205b1c31b03654ea0a59671174470d8c4eadfa4a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/132b97b872305a8470cb2384204a563030731794",
-                "reference": "132b97b872305a8470cb2384204a563030731794",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/205b1c31b03654ea0a59671174470d8c4eadfa4a",
+                "reference": "205b1c31b03654ea0a59671174470d8c4eadfa4a",
                 "shasum": ""
             },
             "require": {
@@ -1237,7 +1237,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-12-28T07:26:21+00:00"
+            "time": "2026-01-04T06:48:24+00:00"
         },
         {
             "name": "psr/http-client",
