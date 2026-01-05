@@ -33,7 +33,7 @@ export const useSignStore = defineStore('sign', {
 	state: () => ({ ...defaultState }),
 
 	actions: {
-		initFromState() {
+		async initFromState() {
 			this.errors = loadState('libresign', 'errors', [])
 
 			const file = {
@@ -50,7 +50,7 @@ export const useSignStore = defineStore('sign', {
 			}
 			this.setFileToSign(file)
 			const filesStore = useFilesStore()
-			filesStore.addFile(file)
+			await filesStore.addFile(file)
 			filesStore.selectedNodeId = file.nodeId
 		},
 		setFileToSign(file) {
