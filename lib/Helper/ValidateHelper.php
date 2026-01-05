@@ -130,7 +130,7 @@ class ValidateHelper {
 				throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
 			}
 			if (!is_a($user, IUser::class)) {
-				if (!is_a($data['userManager'], IUser::class)) {
+				if (!isset($data['userManager']) || !is_a($data['userManager'], IUser::class)) {
 					throw new LibresignException($this->l10n->t('User not found.'));
 				}
 			}
