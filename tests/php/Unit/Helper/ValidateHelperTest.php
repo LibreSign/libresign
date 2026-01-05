@@ -135,6 +135,47 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
+	public function testValidateNewFileUsingNodeIdWithSuccess():void {
+		$file = $this->createMock(\OCP\Files\File::class);
+		$file
+			->method('getMimeType')
+			->willReturn('application/pdf');
+		$this->root
+			->method('getUserFolder')
+			->willReturn($this->root);
+		$this->root
+			->method('getFirstNodeById')
+			->willReturn($file);
+
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')->willReturn('john.doe');
+		$actual = $this->getValidateHelper()->validateNewFile([
+			'file' => ['nodeId' => 35523],
+			'name' => 'test',
+			'userManager' => $user,
+		]);
+		$this->assertNull($actual);
+	}
+
+	public function testValidateFileWithInvalidNodeId():void {
+		$this->expectExceptionMessage('Invalid fileID');
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')->willReturn('john.doe');
+		$this->getValidateHelper()->validateFile([
+			'file' => ['nodeId' => 'invalid'],
+			'name' => 'test',
+			'userManager' => $user,
+		]);
+	}
+
+	public function testValidateFileWithNodeIdWithoutUser():void {
+		$this->expectExceptionMessage('User not found');
+		$this->getValidateHelper()->validateFile([
+			'file' => ['nodeId' => 35523],
+			'name' => 'test',
+		]);
+	}
+
 	public function testValidateNotRequestedSignWhenAlreadyAskedToSignThisDocument():void {
 		$this->signRequestMapper->method('getByNodeId')->willReturn('exists');
 		$this->expectExceptionMessage('Already asked to sign this document');
