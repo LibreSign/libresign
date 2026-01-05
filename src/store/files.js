@@ -50,8 +50,10 @@ export const useFilesStore = function(...args) {
 						? { file_id: file.id, force_fetch: true }
 						: { 'nodeIds[]': [nodeId], force_fetch: true }
 
+					const savedSelectedNodeId = this.selectedNodeId
 					const fetchedFiles = await this.getAllFiles(filter)
 					fileData = fetchedFiles[nodeId] || { ...file, signers: [] }
+					this.selectedNodeId = savedSelectedNodeId
 				}
 
 				if (fileData.signers) {
@@ -531,9 +533,13 @@ export const useFilesStore = function(...args) {
 
 				if (uuid || file.uuid) {
 					config.data.uuid = uuid || file.uuid
-				} else {
+				} else if (file.id) {
 					config.data.file = {
-						fileId: fileId || this.getFile().id,
+						fileId: file.id,
+					}
+				} else if (file.nodeId) {
+					config.data.file = {
+						nodeId: file.nodeId,
 					}
 				}
 
@@ -571,9 +577,13 @@ export const useFilesStore = function(...args) {
 
 				if (uuid || file.uuid) {
 					config.data.uuid = uuid || file.uuid
-				} else {
+				} else if (file.id) {
 					config.data.file = {
-						fileId: fileId || this.getFile().id,
+						fileId: file.id,
+					}
+				} else if (file.nodeId) {
+					config.data.file = {
+						nodeId: file.nodeId,
 					}
 				}
 				const { data } = await axios(config)
