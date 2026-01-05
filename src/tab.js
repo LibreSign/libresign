@@ -7,7 +7,10 @@ import { createPinia, PiniaVuePlugin } from 'pinia'
 import Vue from 'vue'
 
 import { loadState } from '@nextcloud/initial-state'
-import { translate, translatePlural } from '@nextcloud/l10n'
+import { translate as t, translatePlural } from '@nextcloud/l10n'
+import { FileType, registerSidebarTab } from '@nextcloud/files'
+
+import LibreSignLogoDarkSvg from '../img/app-dark.svg?raw'
 
 import AppFilesTab from './Components/RightSidebar/AppFilesTab.vue'
 
@@ -17,7 +20,7 @@ import './plugins/vuelidate.js'
 
 import './style/icons.scss'
 
-Vue.prototype.t = translate
+Vue.prototype.t = t
 Vue.prototype.n = translatePlural
 
 if (!window.OCA.Libresign) {
@@ -28,58 +31,121 @@ Vue.use(PiniaVuePlugin)
 
 const pinia = createPinia()
 
-const isEnabled = function(fileInfo) {
-	if (fileInfo?.isDirectory() || !loadState('libresign', 'certificate_ok')) {
+const tagName = 'libresign-files-sidebar-tab'
+const View = Vue.extend(AppFilesTab)
+
+function mapNodeToFileInfo(node = {}) {
+	const name = node.basename || node.displayname || node.name || ''
+	const dirname = node.dirname || (node.path ? node.path.substring(0, node.path.lastIndexOf('/')) : '')
+	return {
+		id: node.fileid || node.id,
+		name,
+		path: dirname,
+		isDirectory() {
+			return node.type === FileType.Folder || node.type === FileType.Collection || node.type === 'folder'
+		},
+		get(key) {
+			if (key === 'mimetype') {
+				return node.mime || node.mimetype
+			}
+			return undefined
+		},
+	}
+}
+
+function setupCustomElement() {
+	if (window.customElements.get(tagName)) {
+		return
+	}
+
+	class LibreSignSidebarTab extends HTMLElement {
+		connectedCallback() {
+			this.mountVue()
+			this.updateFromNode()
+		}
+
+		disconnectedCallback() {
+			this.destroyVue()
+		}
+
+		set node(value) {
+			this._node = value
+			this.updateFromNode()
+		}
+
+		get node() {
+			return this._node
+		}
+
+		async setActive(active) {
+			this._active = active
+			if (active) {
+				this.updateFromNode()
+			}
+			return Promise.resolve()
+		}
+
+		mountVue() {
+			if (this._vueInstance) {
+				return
+			}
+
+			const instance = new View({ pinia })
+			instance.$mount()
+			this._vueInstance = instance
+			this.appendChild(instance.$el)
+		}
+
+		destroyVue() {
+			if (this._vueInstance) {
+				this._vueInstance.$destroy()
+				this._vueInstance.$el.remove()
+				this._vueInstance = null
+			}
+		}
+
+		updateFromNode() {
+			if (!this._vueInstance || !this._node) {
+				return
+			}
+			const fileInfo = mapNodeToFileInfo(this._node)
+			this._vueInstance.update?.(fileInfo)
+		}
+	}
+
+	window.customElements.define(tagName, LibreSignSidebarTab)
+}
+
+function isEnabled(context) {
+	if (!context?.node) {
 		return false
 	}
 
-	window.OCA.Libresign.fileInfo = fileInfo
-
-	const mimetype = fileInfo.get('mimetype') || ''
-	if (mimetype === 'application/pdf') {
-		return true
+	if (!loadState('libresign', 'certificate_ok')) {
+		return false
 	}
 
-	return false
+	const node = context.node
+	const mimetype = node.mime || node.mimetype || ''
+	const isFolder = node.type === FileType.Folder || node.type === FileType.Collection || node.type === 'folder'
+
+	if (isFolder) {
+		return false
+	}
+
+	window.OCA.Libresign.fileInfo = mapNodeToFileInfo(node)
+
+	return mimetype === 'application/pdf'
 }
 
-const View = Vue.extend(AppFilesTab)
-let TabInstance = null
-
 window.addEventListener('DOMContentLoaded', () => {
-	/**
-	 * Register a new tab in the sidebar
-	 */
-	if (OCA.Files && OCA.Files.Sidebar) {
-		OCA.Files.Sidebar.registerTab(new OCA.Files.Sidebar.Tab({
-			id: 'libresign',
-			name: t('libresign', 'LibreSign'),
-			icon: 'icon-rename',
-			enabled: isEnabled,
-
-			async mount(el, fileInfo, context) {
-				if (TabInstance) {
-					TabInstance.$destroy()
-				}
-
-				TabInstance = new View({
-					// Better integration with vue parent component
-					parent: context,
-					pinia,
-				})
-
-				// Only mount after we hahve all theh info we need
-				await TabInstance.update(fileInfo)
-
-				TabInstance.$mount(el)
-			},
-			update(fileInfo) {
-				TabInstance.update(fileInfo)
-			},
-			destroy() {
-				TabInstance.$destroy()
-				TabInstance = null
-			},
-		}))
-	}
+	setupCustomElement()
+	registerSidebarTab({
+		id: 'libresign',
+		order: 95,
+		displayName: t('libresign', 'LibreSign'),
+		iconSvgInline: LibreSignLogoDarkSvg,
+		enabled: isEnabled,
+		tagName,
+	})
 })

@@ -6,7 +6,7 @@
 import Vue from 'vue'
 
 import axios from '@nextcloud/axios'
-import { addNewFileMenuEntry, Permission } from '@nextcloud/files'
+import { addNewFileMenuEntry, Permission, getSidebar } from '@nextcloud/files'
 import { registerDavProperty } from '@nextcloud/files/dav'
 import { translate, translatePlural } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -34,7 +34,7 @@ addNewFileMenuEntry({
 	enabled() {
 		return Permission.CREATE !== 0
 	},
-	async handler(context, content) {
+	async handler(context, content) {s
 		const input = document.createElement('input')
 		input.accept = 'application/pdf'
 		input.type = 'file'
@@ -54,9 +54,10 @@ addNewFileMenuEntry({
 					name: upload.file.name,
 				})
 					.then(async ({ data }) => {
-						await window.OCA.Files.Sidebar.open(path)
-						OCA.Files.Sidebar.setActiveTab('libresign')
+						sidebar.open({ path }, 'libresign')
+						sidebar.setActiveTab('libresign')
 					})
+					.catch((error) => logger.error('Error uploading file:', error))
 			})
 			this.uploadManager
 				.upload(file.name, file)
