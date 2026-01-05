@@ -141,7 +141,7 @@ export default {
 			return this.enabledMenuActions.filter(action => this.visibleIf(action))
 		},
 		file() {
-			return this.filesStore.files[this.source.id]
+			return this.filesStore.files[this.source.nodeId]
 		},
 		boundariesElement() {
 			return document.querySelector('.app-content > .files-list')
@@ -208,14 +208,14 @@ export default {
 					signer_uuid: signUuid,
 					force_fetch: true,
 				})
-				this.signStore.setFileToSign(files[this.source.id])
+				this.signStore.setFileToSign(files[this.source.nodeId])
 				this.$router.push({
 					name: 'SignPDF',
 					params: {
 						uuid: signUuid,
 					},
 				})
-				this.filesStore.selectFile(this.source.id)
+				this.filesStore.selectFile(this.source.nodeId)
 			} else if (action.id === 'validate') {
 				this.$router.push({
 					name: 'ValidationFile',
