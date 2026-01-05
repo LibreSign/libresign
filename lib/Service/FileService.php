@@ -115,6 +115,9 @@ class FileService {
 		if (isset($data['file']['path'])) {
 			return $this->folderService->getFileByPath($data['file']['path']);
 		}
+		if (isset($data['file']['nodeId'])) {
+			return $this->folderService->getFileByNodeId($data['file']['nodeId']);
+		}
 
 		$content = $this->getFileRaw($data);
 		$extension = $this->getExtension($content);
