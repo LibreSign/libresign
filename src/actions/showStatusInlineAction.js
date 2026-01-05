@@ -25,6 +25,7 @@ const action = new FileAction({
 		return t('libresign', 'original file')
 	},
 	exec: async ({ nodes }) => {
+		const sidebar = getSidebar()
 		const node = nodes[0]
 		sidebar.open(node, 'libresign')
 		sidebar.setActiveTab('libresign')
