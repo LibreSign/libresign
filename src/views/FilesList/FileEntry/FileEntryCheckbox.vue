@@ -88,17 +88,15 @@ export default {
 
 				// If already selected, update the new selection _without_ the current file
 				const selection = [...new Set([...lastSelection, ...filesToSelect])]
-					.filter(fileId => !isAlreadySelected || fileId !== this.source.id)
-
-				logger.debug('Shift key pressed, selecting all files in between', { start, end, filesToSelect, isAlreadySelected })
+					.filter(nodeId => !isAlreadySelected || nodeId !== this.source.nodeId)
 				// Keep previous lastSelectedIndex to be use for further shift selections
 				this.selectionStore.set(selection)
 				return
 			}
 
 			const selection = selected
-				? [...this.selectedFiles, this.source.id]
-				: this.selectedFiles.filter(fileId => fileId !== this.source.id)
+				? [...this.selectedFiles, this.source.nodeId]
+				: this.selectedFiles.filter(nodeId => nodeId !== this.source.nodeId)
 
 			logger.debug('Updating selection', { selection })
 			this.selectionStore.set(selection)
