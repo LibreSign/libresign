@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div v-if="currentFileId > 0" class="content-file" @click="openSidebar">
+	<div v-if="currentNodeId > 0 && currentFile" class="content-file" @click="openSidebar">
 		<img v-if="previewUrl && backgroundFailed !== true"
 			ref="previewImg"
 			alt=""
@@ -15,10 +15,10 @@
 			@load="backgroundFailed = false">
 		<FileIcon v-else v-once :size="128" />
 		<div class="enDot">
-			<div :class="filesStore.files[currentFileId].statusText !== 'none' ? 'dot ' + statusToClass(filesStore.files[currentFileId].status) : '' " />
-			<span>{{ filesStore.files[currentFileId].statusText !== 'none' ? filesStore.files[currentFileId].statusText : '' }}</span>
+			<div :class="currentFile.statusText !== 'none' ? 'dot ' + statusToClass(currentFile.status) : '' " />
+			<span>{{ currentFile.statusText }}</span>
 		</div>
-		<h1>{{ filesStore.files[currentFileId].name }}</h1>
+		<h1>{{ currentFile.name }}</h1>
 	</div>
 </template>
 
@@ -35,7 +35,7 @@ export default {
 		FileIcon,
 	},
 	props: {
-		fileId: {
+		nodeId: {
 			type: Number,
 			default: 0,
 			required: false,
@@ -53,30 +53,32 @@ export default {
 		}
 	},
 	computed: {
-		currentFileId() {
-			if (this.fileId) {
-				return this.fileId
+		currentNodeId() {
+			if (this.nodeId) {
+				return this.nodeId
 			}
-			return this.filesStore.selectedId
+			return this.filesStore.selectedNodeId
+		},
+		currentFile() {
+			return this.filesStore.files[this.currentNodeId]
 		},
 		previewUrl() {
 			if (this.backgroundFailed === true) {
 				return null
 			}
 
-			const file = this.filesStore.files[this.currentFileId]
-			if (!file) {
+			if (!this.currentFile) {
 				return null
 			}
 
 			let previewUrl = ''
-			if (file.nodeId) {
+			if (this.currentFile.nodeId) {
 				previewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
-					nodeId: file.nodeId,
+					nodeId: this.currentFile.nodeId,
 				})
 			} else {
 				previewUrl = window.location.origin + generateUrl('/core/preview?fileId={fileid}', {
-					fileid: this.currentFileId,
+					fileid: this.currentFile.id,
 				})
 			}
 
@@ -89,12 +91,12 @@ export default {
 
 			// Handle cropping
 			url.searchParams.set('a', this.cropPreviews === true ? '0' : '1')
-			return url
+			return url.toString()
 		},
 	},
 	methods: {
 		openSidebar() {
-			this.filesStore.selectFile(this.currentFileId)
+			this.filesStore.selectFile(this.currentNodeId)
 		},
 		statusToClass(status) {
 			switch (Number(status)) {
