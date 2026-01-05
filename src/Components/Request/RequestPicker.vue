@@ -312,8 +312,8 @@ export default {
 					url: this.pdfUrl,
 				},
 			})
-				.then((fileId) => {
-					this.filesStore.selectFile(fileId)
+				.then((nodeId) => {
+					this.filesStore.selectFile(nodeId)
 					this.closeModalUploadFromUrl()
 				})
 				.catch(({ response }) => {
@@ -347,8 +347,8 @@ export default {
 						files: filesPayload,
 						name: envelopeName.trim(),
 					})
-						.then((fileId) => {
-							this.filesStore.selectFile(fileId)
+						.then((nodeId) => {
+							this.filesStore.selectFile(nodeId)
 						})
 						.catch(({ response }) => {
 							showError(response?.data?.ocs?.data?.message || this.t('libresign', 'Upload failed'))
@@ -369,8 +369,8 @@ export default {
 				},
 				name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
 			})
-				.then((fileId) => {
-					this.filesStore.selectFile(fileId)
+				.then((nodeId) => {
+					this.filesStore.selectFile(nodeId)
 				})
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.message)
