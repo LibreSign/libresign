@@ -57,10 +57,10 @@ export default {
 			return this.selectionStore.selected
 		},
 		isSelected() {
-			return this.selectedFiles.includes(this.source.id)
+			return this.selectedFiles.includes(this.source.nodeId)
 		},
 		index() {
-			return this.filesStore.ordered.findIndex(fileId => Number(fileId) === this.source.id)
+			return this.filesStore.ordered.findIndex(nodeId => Number(nodeId) === this.source.nodeId)
 		},
 		ariaLabel() {
 			return t('libresign', 'Toggle selection for file "{displayName}"', { displayName: this.source.basename })
@@ -77,7 +77,7 @@ export default {
 
 			// Get the last selected and select all files in between
 			if (this.keyboardStore?.shiftKey && lastSelectedIndex !== null) {
-				const isAlreadySelected = this.selectedFiles.includes(this.source.id)
+				const isAlreadySelected = this.selectedFiles.includes(this.source.nodeId)
 
 				const start = Math.min(newSelectedIndex, lastSelectedIndex)
 				const end = Math.max(lastSelectedIndex, newSelectedIndex)
