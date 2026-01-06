@@ -12,7 +12,6 @@ import { emit, subscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import Moment from '@nextcloud/moment'
 import { generateOcsUrl } from '@nextcloud/router'
-import { getClient, getDefaultPropfind, getRootPath, resultToNode } from '@nextcloud/files/dav'
 
 import { useFilesSortingStore } from './filesSorting.js'
 import { useFiltersStore } from './filters.js'
@@ -50,6 +49,11 @@ export const useFilesStore = function(...args) {
 					this.addUniqueIdentifierToAllSigners(fileData.signers)
 				}
 
+				const existingFile = this.files[nodeId]
+				if (existingFile?.settings) {
+					fileData.settings = { ...existingFile.settings, ...fileData.settings }
+				}
+
 				set(this.files, nodeId, fileData)
 
 				if (!this.ordered.includes(nodeId)) {
@@ -65,28 +69,6 @@ export const useFilesStore = function(...args) {
 				}
 				const sidebarStore = useSidebarStore()
 				sidebarStore.activeRequestSignatureTab()
-			},
-			async emitEnvelopeNodeCreated(envelopePath) {
-				try {
-					const client = getClient()
-					const propfindPayload = getDefaultPropfind()
-					const rootPath = getRootPath()
-
-					const result = await client.stat(`${rootPath}${envelopePath}`, {
-						details: true,
-						data: propfindPayload,
-					})
-					emit('files:node:created', resultToNode(result.data))
-
-					const parentPath = envelopePath.substring(0, envelopePath.lastIndexOf('/')) || '/'
-					const parentResult = await client.stat(`${rootPath}${parentPath}`, {
-						details: true,
-						data: propfindPayload,
-					})
-					emit('files:node:updated', resultToNode(parentResult.data))
-				} catch (error) {
-					console.warn('[LibreSign] Failed to emit envelope node events:', error)
-				}
 			},
 			getNodeIdByFileId(fileId) {
 				if (!fileId) return null
@@ -355,10 +337,11 @@ export const useFilesStore = function(...args) {
 						? '/apps/libresign/api/v1/file/file_id/{fileId}'
 						: '/apps/libresign/api/v1/sign/file_id/{fileId}'
 					const params = deleteFile ? { deleteFile: true } : {}
+					const nodeId = file.nodeId
 					await axios.delete(generateOcsUrl(url, {
 						fileId: file.id,
 					}), { params })
-						.then(() => {
+						.then(async () => {
 							if (this.selectedNodeId === file.nodeId) {
 								const sidebarStore = useSidebarStore()
 								sidebarStore.hideSidebar()
@@ -389,9 +372,9 @@ export const useFilesStore = function(...args) {
 				})
 					.then((response) => {
 						if (response.data?.ocs?.meta?.status === 'ok') {
-							const fileId = Object.keys(this.files).find(id => this.files[id].uuid === uuid)
-							if (fileId && this.files[fileId]) {
-								this.files[fileId].name = newName
+							const nodeId = Object.keys(this.files).find(id => this.files[id].uuid === uuid)
+							if (nodeId && this.files[nodeId]) {
+								this.files[nodeId].name = newName
 							}
 							return true
 						}
@@ -430,6 +413,10 @@ export const useFilesStore = function(...args) {
 
 				const fileData = data.ocs.data
 				this.addFile(fileData)
+				emit('libresign:file:created', {
+					path: fileData.settings?.path,
+					nodeId: fileData.nodeId,
+				})
 				return fileData.nodeId
 			},
 			async getAllFiles(filter) {
@@ -574,6 +561,10 @@ export const useFilesStore = function(...args) {
 
 				if (responseFile.nodeId) {
 					const nodeId = responseFile.nodeId
+					const existingFile = this.files[file.nodeId] || this.files[nodeId]
+					if (existingFile?.settings) {
+						responseFile.settings = { ...existingFile.settings, ...responseFile.settings }
+					}
 					set(this.files, nodeId, responseFile)
 					this.addUniqueIdentifierToAllSigners(this.files[nodeId].signers)
 					if (!this.ordered.includes(nodeId)) {
@@ -585,9 +576,11 @@ export const useFilesStore = function(...args) {
 				} else {
 					this.addFile(responseFile)
 				}
-				if (!uuid && !file.uuid && responseFile.nodeType === 'envelope' && file.settings?.path) {
-					await this.emitEnvelopeNodeCreated(file.settings.path)
-				}
+				const eventName = (!uuid && !file.uuid) ? 'libresign:file:created' : 'libresign:file:updated'
+				emit(eventName, {
+					path: responseFile.settings?.path,
+					nodeId: responseFile.nodeId,
+				})
 				return data.ocs.data
 			},
 			async updateSignatureRequest({ visibleElements = [], signers = null, uuid = null, fileId = null, status = 1, signatureFlow = null }) {
@@ -641,6 +634,10 @@ export const useFilesStore = function(...args) {
 
 				if (responseFile.nodeId) {
 					const nodeId = responseFile.nodeId
+					const existingFile = this.files[file.nodeId] || this.files[nodeId]
+					if (existingFile?.settings) {
+						responseFile.settings = { ...existingFile.settings, ...responseFile.settings }
+					}
 					set(this.files, nodeId, responseFile)
 					this.addUniqueIdentifierToAllSigners(this.files[nodeId].signers)
 					if (!this.ordered.includes(nodeId)) {
@@ -652,9 +649,11 @@ export const useFilesStore = function(...args) {
 				} else {
 					this.addFile(responseFile)
 				}
-				if (!uuid && !file.uuid && responseFile.nodeType === 'envelope' && file.settings?.path) {
-					await this.emitEnvelopeNodeCreated(file.settings.path)
-				}
+				const eventName = (!uuid && !file.uuid) ? 'libresign:file:created' : 'libresign:file:updated'
+				emit(eventName, {
+					path: responseFile.settings?.path,
+					nodeId: responseFile.nodeId,
+				})
 				return data.ocs.data
 			},
 		},
