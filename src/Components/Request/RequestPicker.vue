@@ -75,6 +75,27 @@
 				</NcButton>
 			</template>
 		</NcDialog>
+		<NcDialog v-if="showEnvelopeNameDialog"
+			:name="t('libresign', 'Envelope name')"
+			:no-close="false"
+			is-form
+			@submit.prevent="handleEnvelopeNameSubmit()"
+			@closing="closeEnvelopeNameDialog">
+			<NcTextField v-model="envelopeNameInput"
+				:label="t('libresign', 'Enter a name for the envelope')"
+				:placeholder="t('libresign', 'Envelope name')" />
+			<template #actions>
+				<NcButton type="submit"
+					variant="primary"
+					:disabled="!envelopeNameInput.trim()"
+					@click="handleEnvelopeNameSubmit()">
+					{{ t('libresign', 'Create') }}
+				</NcButton>
+				<NcButton @click="closeEnvelopeNameDialog">
+					{{ t('libresign', 'Cancel') }}
+				</NcButton>
+			</template>
+		</NcDialog>
 	</div>
 </template>
 <script>
@@ -88,7 +109,6 @@ import { getCapabilities } from '@nextcloud/capabilities'
 import { showError } from '@nextcloud/dialogs'
 import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
 import { loadState } from '@nextcloud/initial-state'
-import { spawnDialog } from '@nextcloud/vue/functions/dialog'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -99,7 +119,6 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import UploadProgress from '../UploadProgress.vue'
-import EditNameDialog from '../Common/EditNameDialog.vue'
 
 import { useActionsMenuStore } from '../../store/actionsmenu.js'
 import { useFilesStore } from '../../store/files.js'
@@ -153,6 +172,9 @@ export default {
 			uploadStartTime: null,
 			pendingPaths: [],
 			pendingFiles: [],
+			envelopeName: '',
+			showEnvelopeNameDialog: false,
+			envelopeNameInput: '',
 		}
 	},
 	computed: {
@@ -192,6 +214,19 @@ export default {
 		},
 	},
 	methods: {
+		handleEnvelopeNameSubmit() {
+			if (this.envelopeNameInput.trim() && this.pendingFiles.length > 0) {
+				this.showEnvelopeNameDialog = false
+				this.upload(this.pendingFiles, this.envelopeNameInput)
+				this.pendingFiles = []
+				this.envelopeNameInput = ''
+			}
+		},
+		closeEnvelopeNameDialog() {
+			this.showEnvelopeNameDialog = false
+			this.pendingFiles = []
+			this.envelopeNameInput = ''
+		},
 		showModalUploadFromUrl() {
 			this.actionsMenuStore.opened = false
 			this.modalUploadFromUrl = true
@@ -204,7 +239,7 @@ export default {
 			this.modalUploadFromUrl = false
 			this.loading = false
 		},
-		async upload(files) {
+		async upload(files, envelopeName = null) {
 			this.loading = true
 			this.isUploading = true
 			this.uploadProgress = 0
@@ -220,7 +255,7 @@ export default {
 				formData.append('file', files[0])
 				this.totalBytes = files[0].size
 			} else {
-				formData.append('name', this.envelopeName.trim())
+				formData.append('name', envelopeName.trim())
 				let totalSize = 0
 				files.forEach((file) => {
 					formData.append('files[]', file)
@@ -279,20 +314,9 @@ export default {
 
 				if (files.length > 1 && this.envelopeEnabled) {
 					this.pendingFiles = files
-					const [envelopeName] = await spawnDialog(
-						EditNameDialog,
-						{
-							title: this.t('libresign', 'Envelope name'),
-							label: this.t('libresign', 'Enter a name for the envelope'),
-							placeholder: this.t('libresign', 'Envelope name'),
-						},
-					)
+					this.envelopeNameInput = ''
+					this.showEnvelopeNameDialog = true
 					input.remove()
-
-					if (envelopeName) {
-						await this.upload(files, envelopeName)
-					}
-					this.pendingFiles = []
 					return
 				}
 
