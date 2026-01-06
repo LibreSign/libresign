@@ -7079,15 +7079,10 @@
                             "schema": {
                                 "type": "object",
                                 "required": [
-                                    "file",
                                     "users",
                                     "name"
                                 ],
                                 "properties": {
-                                    "file": {
-                                        "$ref": "#/components/schemas/NewFile",
-                                        "description": "File object."
-                                    },
                                     "users": {
                                         "type": "array",
                                         "description": "Collection of users who must sign the document. Each user can have: identify, displayName, description, notify, signing_order",
@@ -7103,6 +7098,11 @@
                                         "$ref": "#/components/schemas/FolderSettings",
                                         "default": [],
                                         "description": "Settings to define how and where the file should be stored"
+                                    },
+                                    "file": {
+                                        "$ref": "#/components/schemas/NewFile",
+                                        "default": [],
+                                        "description": "File object."
                                     },
                                     "files": {
                                         "type": "array",
