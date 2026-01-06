@@ -668,6 +668,7 @@ class FileController extends AEnvironmentAwareController {
 	 * This will delete the file and all data
 	 *
 	 * @param integer $fileId LibreSign file ID
+	 * @param boolean $deleteFile Whether to delete the physical file from Nextcloud (default: true)
 	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>}, array{}>
 	 *
 	 * 200: OK
@@ -678,7 +679,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoCSRFRequired]
 	#[RequireManager]
 	#[ApiRoute(verb: 'DELETE', url: '/api/{apiVersion}/file/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
-	public function deleteAllRequestSignatureUsingFileId(int $fileId): DataResponse {
+	public function deleteAllRequestSignatureUsingFileId(int $fileId, bool $deleteFile = true): DataResponse {
 		try {
 			$data = [
 				'userManager' => $this->userSession->getUser(),
@@ -687,7 +688,7 @@ class FileController extends AEnvironmentAwareController {
 				]
 			];
 			$this->validateHelper->validateExistingFile($data);
-			$this->fileService->delete($fileId);
+			$this->fileService->delete($fileId, $deleteFile);
 		} catch (\Throwable $th) {
 			return new DataResponse(
 				[
