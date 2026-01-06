@@ -8,6 +8,7 @@
 namespace OCA\Libresign\Dav;
 
 use OC;
+use OCA\DAV\Connector\Sabre\Directory;
 use OCA\DAV\Connector\Sabre\File;
 use OCA\Libresign\Service\FileService;
 use Sabre\DAV\INode;
@@ -21,7 +22,7 @@ class SignatureStatusPlugin extends ServerPlugin {
 	}
 
 	public function propFind(PropFind $propFind, INode $node): void {
-		if (!$node instanceof File) {
+		if (!$node instanceof File && !$node instanceof Directory) {
 			return;
 		}
 
