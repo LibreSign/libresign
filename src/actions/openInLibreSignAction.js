@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { registerFileAction, FileAction } from '@nextcloud/files'
+import { registerFileAction, FileAction, getSidebar } from '@nextcloud/files'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
@@ -43,22 +43,36 @@ export const action = new FileAction({
 	displayName: () => t('libresign', 'Open in LibreSign'),
 	iconSvgInline: () => SvgIcon,
 
-	enabled(nodes) {
-		return loadState('libresign', 'certificate_ok')
-			&& nodes.length > 0 && nodes
-			.map(node => node.mime)
-			.every(mime => mime === 'application/pdf')
-	},
-
-	async exec(node) {
-		try {
-			await window.OCA.Files.Sidebar.open(node.path)
-			OCA.Files.Sidebar.setActiveTab('libresign')
-			return null
-		} catch (error) {
-			logger.error('Error while opening sidebar', { error })
+	enabled({ nodes }) {
+		if (!loadState('libresign', 'certificate_ok', false)) {
 			return false
 		}
+
+		if (!nodes?.length) {
+			return false
+		}
+
+		const allPdf = nodes.every(node => node.mime === 'application/pdf')
+		if (!allPdf) {
+			return false
+		}
+
+		if (nodes.length > 1) {
+			return getCapabilities()?.libresign?.config?.envelope?.['is-available'] === true
+		}
+
+		return true
+	},
+
+	/**
+	 * Single file: open in sidebar
+	 */
+	async exec({ nodes }) {
+		const sidebar = getSidebar()
+		const node = nodes[0]
+		await sidebar.open(node, 'libresign')
+		sidebar.setActiveTab('libresign')
+		return null
 	},
 
 	/**
@@ -99,20 +113,7 @@ export const action = new FileAction({
 		await sidebar.open(firstNode, 'libresign')
 		sidebar.setActiveTab('libresign')
 
-			await emitEnvelopeNodeCreated(envelopePath)
-
-			window.OCA.Files.Sidebar.close()
-
-			window.OCA.Files.Sidebar.setActiveTab('libresign')
-			const firstNode = nodes[0]
-			window.OCA.Files.Sidebar.open(firstNode.path)
-
-			return new Array(nodes.length).fill(null)
-		}).catch((error) => {
-			console.error('[LibreSign] API error:', error)
-			showError(error.response?.data?.ocs?.data?.message)
-			return new Array(nodes.length).fill(null)
-		})
+		return new Array(nodes.length).fill(null)
 	},
 
 	order: -1000,
