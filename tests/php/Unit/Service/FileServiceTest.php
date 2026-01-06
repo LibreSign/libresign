@@ -11,50 +11,103 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
 
 final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	private function createFileService(array $overrides = []): FileService {
-		$mocks = [
-			\OCA\Libresign\Db\FileMapper::class,
-			\OCA\Libresign\Db\SignRequestMapper::class,
-			\OCA\Libresign\Db\FileElementMapper::class,
-			\OCA\Libresign\Service\FileElementService::class,
-			\OCA\Libresign\Service\FolderService::class,
-			\OCA\Libresign\Db\IdDocsMapper::class,
-			\OCA\Libresign\Service\IdentifyMethodService::class,
-			\OCP\IUserManager::class,
-			\OCP\IURLGenerator::class,
-			\OCP\Files\IMimeTypeDetector::class,
-			\OCA\Libresign\Handler\SignEngine\Pkcs12Handler::class,
-			\OCA\Libresign\Handler\DocMdpHandler::class,
-			\OCA\Libresign\Service\File\PdfValidator::class,
-			\OCP\Files\IRootFolder::class,
-			\Psr\Log\LoggerInterface::class,
-			\OCP\IL10N::class,
-			\OCA\Libresign\Service\Envelope\EnvelopeService::class,
-			\OCA\Libresign\Service\File\SignersLoader::class,
-			\OCA\Libresign\Helper\FileUploadHelper::class,
-			\OCA\Libresign\Service\File\EnvelopeAssembler::class,
-			\OCA\Libresign\Service\File\EnvelopeProgressService::class,
-			\OCA\Libresign\Service\File\CertificateChainService::class,
-			\OCA\Libresign\Service\File\MimeService::class,
-			\OCA\Libresign\Service\File\FileContentProvider::class,
-			\OCA\Libresign\Service\File\UploadProcessor::class,
-			\OCA\Libresign\Service\File\MetadataLoader::class,
-			\OCA\Libresign\Service\File\SettingsLoader::class,
-			\OCA\Libresign\Service\File\MessagesLoader::class,
-		];
+	private $fileMapper;
+	private $signRequestMapper;
+	private $fileElementMapper;
+	private $fileElementService;
+	private $folderService;
+	private $idDocsMapper;
+	private $identifyMethodService;
+	private $userManager;
+	private $urlGenerator;
+	private $mimeTypeDetector;
+	private $pkcs12Handler;
+	private $docMdpHandler;
+	private $pdfValidator;
+	private $rootFolder;
+	private $logger;
+	private $l10n;
+	private $envelopeService;
+	private $signersLoader;
+	private $uploadHelper;
+	private $envelopeAssembler;
+	private $envelopeProgressService;
+	private $certificateChainService;
+	private $mimeService;
+	private $contentProvider;
+	private $uploadProcessor;
+	private $metadataLoader;
+	private $settingsLoader;
+	private $messagesLoader;
 
-		$args = array_map(function ($c) use ($overrides) {
-			return $overrides[$c] ?? $this->createMock($c);
-		}, $mocks);
+	public function setUp(): void {
+		parent::setUp();
 
-		return new FileService(...$args);
+		$this->fileMapper = $this->createMock(\OCA\Libresign\Db\FileMapper::class);
+		$this->signRequestMapper = $this->createMock(\OCA\Libresign\Db\SignRequestMapper::class);
+		$this->fileElementMapper = $this->createMock(\OCA\Libresign\Db\FileElementMapper::class);
+		$this->fileElementService = $this->createMock(\OCA\Libresign\Service\FileElementService::class);
+		$this->folderService = $this->createMock(\OCA\Libresign\Service\FolderService::class);
+		$this->idDocsMapper = $this->createMock(\OCA\Libresign\Db\IdDocsMapper::class);
+		$this->identifyMethodService = $this->createMock(\OCA\Libresign\Service\IdentifyMethodService::class);
+		$this->userManager = $this->createMock(\OCP\IUserManager::class);
+		$this->urlGenerator = $this->createMock(\OCP\IURLGenerator::class);
+		$this->mimeTypeDetector = $this->createMock(\OCP\Files\IMimeTypeDetector::class);
+		$this->pkcs12Handler = $this->createMock(\OCA\Libresign\Handler\SignEngine\Pkcs12Handler::class);
+		$this->docMdpHandler = $this->createMock(\OCA\Libresign\Handler\DocMdpHandler::class);
+		$this->pdfValidator = $this->createMock(\OCA\Libresign\Service\File\PdfValidator::class);
+		$this->rootFolder = $this->createMock(\OCP\Files\IRootFolder::class);
+		$this->logger = $this->createMock(\Psr\Log\LoggerInterface::class);
+		$this->l10n = $this->createMock(\OCP\IL10N::class);
+		$this->envelopeService = $this->createMock(\OCA\Libresign\Service\Envelope\EnvelopeService::class);
+		$this->signersLoader = $this->createMock(\OCA\Libresign\Service\File\SignersLoader::class);
+		$this->uploadHelper = $this->createMock(\OCA\Libresign\Helper\FileUploadHelper::class);
+		$this->envelopeAssembler = $this->createMock(\OCA\Libresign\Service\File\EnvelopeAssembler::class);
+		$this->envelopeProgressService = $this->createMock(\OCA\Libresign\Service\File\EnvelopeProgressService::class);
+		$this->certificateChainService = $this->createMock(\OCA\Libresign\Service\File\CertificateChainService::class);
+		$this->mimeService = $this->createMock(\OCA\Libresign\Service\File\MimeService::class);
+		$this->contentProvider = $this->createMock(\OCA\Libresign\Service\File\FileContentProvider::class);
+		$this->uploadProcessor = $this->createMock(\OCA\Libresign\Service\File\UploadProcessor::class);
+		$this->metadataLoader = $this->createMock(\OCA\Libresign\Service\File\MetadataLoader::class);
+		$this->settingsLoader = $this->createMock(\OCA\Libresign\Service\File\SettingsLoader::class);
+		$this->messagesLoader = $this->createMock(\OCA\Libresign\Service\File\MessagesLoader::class);
+	}
+
+	private function createFileService(): FileService {
+		return new FileService(
+			$this->fileMapper,
+			$this->signRequestMapper,
+			$this->fileElementMapper,
+			$this->fileElementService,
+			$this->folderService,
+			$this->idDocsMapper,
+			$this->identifyMethodService,
+			$this->userManager,
+			$this->urlGenerator,
+			$this->mimeTypeDetector,
+			$this->pkcs12Handler,
+			$this->docMdpHandler,
+			$this->pdfValidator,
+			$this->rootFolder,
+			$this->logger,
+			$this->l10n,
+			$this->envelopeService,
+			$this->signersLoader,
+			$this->uploadHelper,
+			$this->envelopeAssembler,
+			$this->envelopeProgressService,
+			$this->certificateChainService,
+			$this->mimeService,
+			$this->contentProvider,
+			$this->uploadProcessor,
+			$this->metadataLoader,
+			$this->settingsLoader,
+			$this->messagesLoader,
+		);
 	}
 
 	public function testValidateFileContentSkipsNonPdfFiles(): void {
-		$docMdpHandler = $this->createMock(\OCA\Libresign\Handler\DocMdpHandler::class);
-		$service = $this->createFileService([
-			\OCA\Libresign\Handler\DocMdpHandler::class => $docMdpHandler,
-		]);
+		$service = $this->createFileService();
 
 		$this->expectNotToPerformAssertions();
 		$service->validateFileContent('any content', 'txt');
@@ -62,12 +115,9 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testSetFileByIdThrowsOnInvalid(): void {
-		$fileMapper = $this->createMock(\OCA\Libresign\Db\FileMapper::class);
-		$fileMapper->method('getById')->willThrowException(new \Exception('not found'));
+		$this->fileMapper->method('getById')->willThrowException(new \Exception('not found'));
 
-		$service = $this->createFileService([
-			\OCA\Libresign\Db\FileMapper::class => $fileMapper,
-		]);
+		$service = $this->createFileService();
 
 		$this->expectException(LibresignException::class);
 		$service->setFileById(123);
@@ -77,12 +127,9 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setStatus(1);
 
-		$fileMapper = $this->createMock(\OCA\Libresign\Db\FileMapper::class);
-		$fileMapper->method('getById')->willReturn($file);
+		$this->fileMapper->method('getById')->willReturn($file);
 
-		$service = $this->createFileService([
-			\OCA\Libresign\Db\FileMapper::class => $fileMapper,
-		]);
+		$service = $this->createFileService();
 
 		$returned = $service->setFileById(123);
 		$this->assertInstanceOf(FileService::class, $returned);
@@ -91,16 +138,13 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testGetNodeFromDataWithNodeId(): void {
 		$node = $this->createMock(\OCP\Files\File::class);
-		$folderService = $this->createMock(\OCA\Libresign\Service\FolderService::class);
-		$folderService->method('getUserId')->willReturn('testuser');
-		$folderService->method('getFileByNodeId')->with(35523)->willReturn($node);
+		$this->folderService->method('getUserId')->willReturn('testuser');
+		$this->folderService->method('getFileByNodeId')->with(35523)->willReturn($node);
 
 		$userManager = $this->createMock(\OCP\IUser::class);
 		$userManager->method('getUID')->willReturn('testuser');
 
-		$service = $this->createFileService([
-			\OCA\Libresign\Service\FolderService::class => $folderService,
-		]);
+		$service = $this->createFileService();
 
 		$data = [
 			'file' => ['nodeId' => 35523],
@@ -113,16 +157,13 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testGetNodeFromDataWithFileId(): void {
 		$node = $this->createMock(\OCP\Files\File::class);
-		$folderService = $this->createMock(\OCA\Libresign\Service\FolderService::class);
-		$folderService->method('getUserId')->willReturn('testuser');
-		$folderService->method('getFileByNodeId')->with(12345)->willReturn($node);
+		$this->folderService->method('getUserId')->willReturn('testuser');
+		$this->folderService->method('getFileByNodeId')->with(12345)->willReturn($node);
 
 		$userManager = $this->createMock(\OCP\IUser::class);
 		$userManager->method('getUID')->willReturn('testuser');
 
-		$service = $this->createFileService([
-			\OCA\Libresign\Service\FolderService::class => $folderService,
-		]);
+		$service = $this->createFileService();
 
 		$data = [
 			'file' => ['fileId' => 12345],
@@ -135,9 +176,8 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testGetNodeFromDataPrefersFileIdOverNodeId(): void {
 		$nodeFromFileId = $this->createMock(\OCP\Files\File::class);
-		$folderService = $this->createMock(\OCA\Libresign\Service\FolderService::class);
-		$folderService->method('getUserId')->willReturn('testuser');
-		$folderService->expects($this->once())
+		$this->folderService->method('getUserId')->willReturn('testuser');
+		$this->folderService->expects($this->once())
 			->method('getFileByNodeId')
 			->with(12345)
 			->willReturn($nodeFromFileId);
@@ -145,9 +185,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$userManager = $this->createMock(\OCP\IUser::class);
 		$userManager->method('getUID')->willReturn('testuser');
 
-		$service = $this->createFileService([
-			\OCA\Libresign\Service\FolderService::class => $folderService,
-		]);
+		$service = $this->createFileService();
 
 		$data = [
 			'file' => [
@@ -159,5 +197,103 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$result = $service->getNodeFromData($data);
 		$this->assertSame($nodeFromFileId, $result);
+	}
+
+	public function testDeleteRemovesEmptyFolder(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(1);
+		$file->setNodeId(100);
+		$file->setNodeType('single');
+		$file->setParentFileId(null);
+
+		$parentFolder = $this->createMock(\OCP\Files\Folder::class);
+		$parentFolder->expects($this->once())
+			->method('getDirectoryListing')
+			->willReturn([]);
+		$parentFolder->expects($this->once())
+			->method('delete');
+
+		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
+		$nextcloudFile->expects($this->once())
+			->method('getParent')
+			->willReturn($parentFolder);
+		$nextcloudFile->expects($this->once())
+			->method('delete');
+
+		$this->fileMapper->method('getById')->willReturn($file);
+		$this->fileMapper->expects($this->once())->method('delete')->with($file);
+
+		$this->folderService->expects($this->once())
+			->method('getFileByNodeId')
+			->with(100)
+			->willReturn($nextcloudFile);
+
+		$this->signRequestMapper->method('getByFileId')->willReturn([]);
+		$this->fileElementService->expects($this->once())->method('deleteVisibleElements');
+		$this->idDocsMapper->expects($this->once())->method('deleteByFileId');
+
+		$service = $this->createFileService();
+
+		$service->delete(1, true);
+	}
+
+	public function testDeleteKeepsNonEmptyFolder(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(1);
+		$file->setNodeId(100);
+		$file->setNodeType('single');
+		$file->setParentFileId(null);
+
+		$parentFolder = $this->createMock(\OCP\Files\Folder::class);
+		$existingFile = $this->createMock(\OCP\Files\File::class);
+		$parentFolder->expects($this->once())
+			->method('getDirectoryListing')
+			->willReturn([$existingFile]);
+		$parentFolder->expects($this->never())
+			->method('delete');
+
+		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
+		$nextcloudFile->expects($this->once())
+			->method('getParent')
+			->willReturn($parentFolder);
+		$nextcloudFile->expects($this->once())
+			->method('delete');
+
+		$this->fileMapper->method('getById')->willReturn($file);
+		$this->fileMapper->expects($this->once())->method('delete')->with($file);
+
+		$this->folderService->expects($this->once())
+			->method('getFileByNodeId')
+			->with(100)
+			->willReturn($nextcloudFile);
+
+		$this->signRequestMapper->method('getByFileId')->willReturn([]);
+		$this->fileElementService->expects($this->once())->method('deleteVisibleElements');
+		$this->idDocsMapper->expects($this->once())->method('deleteByFileId');
+
+		$service = $this->createFileService();
+
+		$service->delete(1, true);
+	}
+
+	public function testDeleteWithoutDeletingFile(): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(1);
+		$file->setNodeId(100);
+		$file->setNodeType('single');
+		$file->setParentFileId(null);
+
+		$this->fileMapper->method('getById')->willReturn($file);
+		$this->fileMapper->expects($this->once())->method('delete')->with($file);
+
+		$this->folderService->expects($this->never())->method('getFileByNodeId');
+
+		$this->signRequestMapper->method('getByFileId')->willReturn([]);
+		$this->fileElementService->expects($this->once())->method('deleteVisibleElements');
+		$this->idDocsMapper->expects($this->once())->method('deleteByFileId');
+
+		$service = $this->createFileService();
+
+		$service->delete(1, false);
 	}
 }
