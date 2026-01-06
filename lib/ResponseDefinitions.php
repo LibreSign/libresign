@@ -22,6 +22,7 @@ namespace OCA\Libresign;
  *         name: string,
  *         setting?: string,
  *     },
+ *     envelopeFolderId?: int,
  * }
  * @psalm-type LibresignNewSigner = array{
  *     identify: array{
@@ -238,6 +239,13 @@ namespace OCA\Libresign;
  *     }[],
  *     visibleElements?: LibresignVisibleElement[],
  * }
+ * @psalm-type LibresignFileListItem = array{
+ *     nodeId: int,
+ *     uuid: string,
+ *     name: string,
+ *     status: int,
+ *     statusText: string,
+ * }
  * @psalm-type LibresignNextcloudFile = array{
  *     message: string,
  *     name: non-falsy-string,
@@ -258,7 +266,7 @@ namespace OCA\Libresign;
  *         displayName: string,
  *     },
  *     filesCount: int<0, max>,
- *     files: list<array{nodeId: int, uuid: string, name: string, status: int, statusText: string}>,
+ *     files: list<LibresignFileListItem>,
  * }
  * @psalm-type LibresignFileDetail = array{
  *     created_at: string,
