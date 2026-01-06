@@ -13,6 +13,9 @@
 
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
+import { emit, subscribe } from '@nextcloud/event-bus'
+import { getClient, getDefaultPropfind, getRootPath, resultToNode } from '@nextcloud/files/dav'
+import { getNavigation } from '@nextcloud/files'
 import { generateRemoteUrl } from '@nextcloud/router'
 
 import RequestSignatureTab from '../RightSidebar/RequestSignatureTab.vue'
@@ -31,6 +34,21 @@ export default {
 	data() {
 		return {
 			sidebarTitleObserver: null,
+			unsubscribeCreated: null,
+			unsubscribeUpdated: null,
+		}
+	},
+	mounted() {
+		this.unsubscribeCreated = subscribe('libresign:file:created', this.handleLibreSignFileCreated)
+		this.unsubscribeUpdated = subscribe('libresign:file:updated', this.handleLibreSignFileUpdated)
+	},
+	beforeUnmount() {
+		this.disconnectTitleObserver()
+		if (this.unsubscribeCreated) {
+			this.unsubscribeCreated()
+		}
+		if (this.unsubscribeUpdated) {
+			this.unsubscribeUpdated()
 		}
 	},
 	methods: {
@@ -114,6 +132,53 @@ export default {
 					titleElement.setAttribute('title', fileInfo.name)
 				}
 			})
+		},
+
+		async handleLibreSignFileChangeWithPath(path, eventType) {
+			const client = getClient()
+			const propfindPayload = getDefaultPropfind()
+			const rootPath = getRootPath()
+
+			const result = await client.stat(`${rootPath}${path}`, {
+				details: true,
+				data: propfindPayload,
+			})
+			emit(`files:node:${eventType}`, resultToNode(result.data))
+		},
+
+		async handleLibreSignFileChangeWithNodeId(nodeId, eventType) {
+			const client = getClient()
+			const propfindPayload = getDefaultPropfind()
+			const rootPath = getRootPath()
+
+			const navigation = getNavigation()
+			const currentFolder = navigation?.active?.params?.dir || '/'
+
+			const result = await client.stat(`${rootPath}${currentFolder}`, {
+				details: true,
+				data: propfindPayload,
+			})
+			emit('files:node:updated', resultToNode(result.data))
+		},
+
+		async handleLibreSignFileChange({ path, nodeId }, eventType) {
+			if (!window.location.pathname.includes('/apps/files')) {
+				return
+			}
+
+			if (path) {
+				await this.handleLibreSignFileChangeWithPath(path, eventType)
+			} else if (nodeId) {
+				await this.handleLibreSignFileChangeWithNodeId(nodeId, eventType)
+			}
+		},
+
+		async handleLibreSignFileCreated(payload) {
+			await this.handleLibreSignFileChange(payload, 'created')
+		},
+
+		async handleLibreSignFileUpdated(payload) {
+			await this.handleLibreSignFileChange(payload, 'updated')
 		},
 	},
 }
