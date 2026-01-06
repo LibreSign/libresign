@@ -194,8 +194,8 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			$fileEntity = $this->requestSignatureService->save($data);
 			$childFiles = [];
 
-			$response = $this->fileListService->formatFileWithChildren($fileEntity, $childFiles, $user);
-			return new DataResponse($response, Http::STATUS_OK);
+			$fileData = $this->fileListService->formatFileWithChildren($fileEntity, $childFiles, $user);
+			return new DataResponse($fileData, Http::STATUS_OK);
 		} catch (\Throwable $th) {
 			return new DataResponse(
 				[
@@ -262,8 +262,8 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			$childFiles = [];
 		}
 
-		$response = $this->fileListService->formatFileWithChildren($fileEntity, $childFiles, $user);
-		return new DataResponse($response, Http::STATUS_OK);
+		$fileData = $this->fileListService->formatFileWithChildren($fileEntity, $childFiles, $user);
+		return new DataResponse($fileData, Http::STATUS_OK);
 	}
 
 	/**
