@@ -14,7 +14,6 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -506,7 +505,8 @@ class FileController extends AEnvironmentAwareController {
 			$this->fileService->updateEnvelopeFilesCount($envelope, count($addedFiles));
 
 			$envelope = $this->fileMapper->getById($envelope->getId());
-			return $this->formatFileResponse($envelope, $addedFiles);
+			$response = $this->fileListService->formatFileWithChildren($envelope, $addedFiles, $this->userSession->getUser());
+			return new DataResponse($response, Http::STATUS_OK);
 
 		} catch (DoesNotExistException $e) {
 			return new DataResponse(
@@ -648,61 +648,7 @@ class FileController extends AEnvironmentAwareController {
 			'settings' => $settings,
 		]);
 
-		return $this->formatFileResponse($result['file'], $result['children']);
-	}
-
-	/**
-	 * @param FileEntity $mainEntity The main entity (file or envelope)
-	 * @param FileEntity[] $childFiles Child files (for envelope) or same as mainEntity (for single file)
-	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>
-	 */
-	private function formatFileResponse(FileEntity $mainEntity, array $childFiles): DataResponse {
-		$rawMetadata = $mainEntity->getMetadata() ?? [];
-		$rawMetadata['extension'] = (string)($rawMetadata['extension'] ?? pathinfo($mainEntity->getName(), PATHINFO_EXTENSION));
-		$rawMetadata['p'] = isset($rawMetadata['p']) ? (int)$rawMetadata['p'] : 0;
-		/** @psalm-var LibresignValidateMetadata $metadata */
-		$metadata = $rawMetadata;
-
-		/** @psalm-var list<LibresignVisibleElement> $visibleElements */
-		$visibleElements = [];
-		/** @psalm-var list<LibresignSigner> $signers */
-		$signers = [];
-
-		$rawFilesCount = $rawMetadata['filesCount'] ?? null;
-		$filesCount = is_numeric($rawFilesCount) ? (int)$rawFilesCount : count($childFiles);
-		$filesCount = max(0, $filesCount);
-		/** @var int<0, max> $filesCount */
-
-		/** @psalm-var LibresignNextcloudFile $response */
-		$response = [
-			'message' => $this->l10n->t('Success'),
-			'id' => $mainEntity->getId(),
-			'nodeId' => $mainEntity->getNodeId(),
-			'uuid' => $mainEntity->getUuid(),
-			'name' => $mainEntity->getName(),
-			'status' => $mainEntity->getStatus(),
-			'statusText' => $this->fileMapper->getTextOfStatus($mainEntity->getStatus()),
-			'nodeType' => $mainEntity->getNodeType(),
-			'created_at' => $mainEntity->getCreatedAt()->format(\DateTimeInterface::ATOM),
-			'file' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $mainEntity->getUuid()]),
-			'metadata' => $metadata,
-			'signatureFlow' => SignatureFlow::fromNumeric($mainEntity->getSignatureFlow())->value,
-			'visibleElements' => $visibleElements,
-			'signers' => $signers,
-			'requested_by' => [
-				'userId' => $mainEntity->getUserId(),
-				'displayName' => $this->userSession->getUser()?->getDisplayName() ?? $mainEntity->getUserId(),
-			],
-		];
-
-		if ($mainEntity->getNodeType() === 'envelope') {
-			$response['filesCount'] = $filesCount;
-			$response['files'] = !empty($childFiles) ? $this->formatFilesResponse($childFiles) : [];
-		} else {
-			$response['filesCount'] = 1;
-			$response['files'] = $this->formatFilesResponse($childFiles);
-		}
-
+		$response = $this->fileListService->formatFileWithChildren($result['file'], $result['children'], $this->userSession->getUser());
 		return new DataResponse($response, Http::STATUS_OK);
 	}
 
@@ -714,20 +660,6 @@ class FileController extends AEnvironmentAwareController {
 			return rawurldecode(pathinfo($fileData['url'], PATHINFO_FILENAME));
 		}
 		return '';
-	}
-
-	/**
-	 * @param FileEntity[] $files
-	 * @return list<array{nodeId: int, uuid: string, name: string, status: int, statusText: string}>
-	 */
-	private function formatFilesResponse(array $files): array {
-		return array_values(array_map(fn (FileEntity $file) => [
-			'nodeId' => $file->getNodeId(),
-			'uuid' => $file->getUuid(),
-			'name' => $file->getName(),
-			'status' => $file->getStatus(),
-			'statusText' => $this->fileMapper->getTextOfStatus($file->getStatus()),
-		], $files));
 	}
 
 	/**
