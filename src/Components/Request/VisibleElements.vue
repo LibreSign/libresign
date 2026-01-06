@@ -432,7 +432,7 @@ export default {
 			const visibleElements = this.buildVisibleElements()
 
 			try {
-				const response = await this.filesStore.saveWithVisibleElements({ visibleElements })
+				const response = await this.filesStore.saveOrUpdateSignatureRequest({ visibleElements })
 				showSuccess(t('libresign', response.message))
 				this.closeModal()
 				this.loading = false
