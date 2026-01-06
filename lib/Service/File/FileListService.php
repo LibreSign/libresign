@@ -173,7 +173,11 @@ class FileListService {
 			if ($signer->getFileId() !== $fileEntity->getId()) {
 				continue;
 			}
-			$file['signers'][] = $this->formatSignerData($signer, $identifyMethods, $visibleElements, $file['metadata'], $user, $file);
+			$signerData = $this->formatSignerData($signer, $identifyMethods, $visibleElements, $file['metadata'], $user);
+			$file['signers'][] = $signerData;
+			if (!empty($signerData['me']) && !isset($file['url'])) {
+				$file['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signer->getUuid()]);
+			}
 		}
 
 		if (empty($file['signers'])) {
@@ -208,7 +212,6 @@ class FileListService {
 	 * @param array<int, FileElement[]> $visibleElements
 	 * @param array $metadata
 	 * @param IUser $user
-	 * @param array|null &$file Optional reference to file array to set 'url' when me=true
 	 * @return LibresignSigner
 	 */
 	private function formatSignerData(
@@ -217,7 +220,6 @@ class FileListService {
 		array $visibleElements,
 		array $metadata,
 		IUser $user,
-		?array &$file = null,
 	): array {
 		$identifyMethodsOfSigner = $identifyMethods[$signer->getId()] ?? [];
 		/** @var LibresignSigner */
@@ -291,9 +293,6 @@ class FileListService {
 				$data['signatureMethods'] = array_merge($data['signatureMethods'], $methods);
 			}
 			$data['sign_uuid'] = $signer->getUuid();
-			if ($file !== null) {
-				$file['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signer->getuuid()]);
-			}
 		}
 
 		if ($signer->getSigned()) {
