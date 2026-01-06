@@ -100,6 +100,16 @@ class ValidateHelper {
 	 */
 	public function validateFile(array $data, int $type = self::TYPE_TO_SIGN, ?IUser $user = null): void {
 		if (empty($data['file'])) {
+			if (!empty($data['files'])) {
+				foreach ($data['files'] as $fileItem) {
+					$this->validateFile([
+						'file' => $fileItem,
+						'userManager' => $data['userManager'] ?? null,
+						'type' => $data['type'] ?? null,
+					], $type, $user);
+				}
+				return;
+			}
 			if ($type === self::TYPE_TO_SIGN) {
 				throw new LibresignException($this->l10n->t('File type: %s. Empty file.', [$this->getTypeOfFile($type)]));
 			}
