@@ -41,13 +41,12 @@ const action = new FileAction({
 		return ableToSignStatus?.icon ?? ''
 	},
 	inline: () => true,
-	enabled: (nodes) => {
-		return loadState('libresign', 'certificate_ok')
-			&& nodes.length > 0
-			&& nodes
-			.map(node => node.mime)
-			.every(mime => mime === 'application/pdf')
-		&& nodes.every(node => node.attributes['libresign-signature-status'])
+	enabled: ({ nodes }) => {
+		const certificateOk = loadState('libresign', 'certificate_ok')
+		const allPdf = nodes?.length > 0 && nodes.every(node => node.mime === 'application/pdf')
+		const allHaveStatus = nodes?.every(node => node.attributes['libresign-signature-status'] !== undefined)
+
+		return certificateOk && allPdf && allHaveStatus
 	},
 	order: -1,
 })
