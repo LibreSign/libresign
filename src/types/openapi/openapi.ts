@@ -1173,6 +1173,15 @@ export type components = {
             uuid: string;
             visibleElements: components["schemas"]["VisibleElement"][];
         };
+        FileListItem: {
+            /** Format: int64 */
+            nodeId: number;
+            uuid: string;
+            name: string;
+            /** Format: int64 */
+            status: number;
+            statusText: string;
+        };
         FolderSettings: {
             folderName?: string;
             separator?: string;
@@ -1180,6 +1189,8 @@ export type components = {
                 name: string;
                 setting?: string;
             };
+            /** Format: int64 */
+            envelopeFolderId?: number;
         };
         IdDocs: {
             file: components["schemas"]["NewFile"];
@@ -1252,15 +1263,7 @@ export type components = {
             };
             /** Format: int64 */
             filesCount: number;
-            files: {
-                /** Format: int64 */
-                nodeId: number;
-                uuid: string;
-                name: string;
-                /** Format: int64 */
-                status: number;
-                statusText: string;
-            }[];
+            files: components["schemas"]["FileListItem"][];
         };
         Notify: {
             date: string;
@@ -3746,6 +3749,16 @@ export interface operations {
                     users: components["schemas"]["NewSigner"][];
                     /** @description The name of file to sign */
                     name: string;
+                    /**
+                     * @description Settings to define how and where the file should be stored
+                     * @default []
+                     */
+                    settings?: components["schemas"]["FolderSettings"];
+                    /**
+                     * @description Multiple files to create an envelope (optional, use either file or files)
+                     * @default []
+                     */
+                    files?: components["schemas"]["NewFile"][];
                     /** @description URL that will receive a POST after the document is signed */
                     callback?: string | null;
                     /**
@@ -3769,10 +3782,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                data: components["schemas"]["FileDetail"];
-                                message: string;
-                            };
+                            data: components["schemas"]["NextcloudFile"];
                         };
                     };
                 };
@@ -3839,6 +3849,16 @@ export interface operations {
                     signatureFlow?: string | null;
                     /** @description The name of file to sign */
                     name?: string | null;
+                    /**
+                     * @description Settings to define how and where the file should be stored
+                     * @default []
+                     */
+                    settings?: components["schemas"]["FolderSettings"];
+                    /**
+                     * @description Multiple files to create an envelope (optional, use either file or files)
+                     * @default []
+                     */
+                    files?: components["schemas"]["NewFile"][];
                 };
             };
         };
@@ -3852,10 +3872,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                                data: components["schemas"]["FileDetail"];
-                            };
+                            data: components["schemas"]["NextcloudFile"];
                         };
                     };
                 };
