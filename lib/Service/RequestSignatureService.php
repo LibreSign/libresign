@@ -21,7 +21,6 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
-use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\Envelope\EnvelopeFileRelocator;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
