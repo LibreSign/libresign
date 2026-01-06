@@ -3743,8 +3743,6 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** @description File object. */
-                    file: components["schemas"]["NewFile"];
                     /** @description Collection of users who must sign the document. Each user can have: identify, displayName, description, notify, signing_order */
                     users: components["schemas"]["NewSigner"][];
                     /** @description The name of file to sign */
@@ -3754,6 +3752,11 @@ export interface operations {
                      * @default []
                      */
                     settings?: components["schemas"]["FolderSettings"];
+                    /**
+                     * @description File object.
+                     * @default []
+                     */
+                    file?: components["schemas"]["NewFile"];
                     /**
                      * @description Multiple files to create an envelope (optional, use either file or files)
                      * @default []
