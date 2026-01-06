@@ -43,10 +43,17 @@ const action = new FileAction({
 	inline: () => true,
 	enabled: ({ nodes }) => {
 		const certificateOk = loadState('libresign', 'certificate_ok')
-		const allPdf = nodes?.length > 0 && nodes.every(node => node.mime === 'application/pdf')
 		const allHaveStatus = nodes?.every(node => node.attributes['libresign-signature-status'] !== undefined)
 
-		return certificateOk && allPdf && allHaveStatus
+		if (!certificateOk || !allHaveStatus) {
+			return false
+		}
+
+		const allPdfOrFolder = nodes?.length > 0 && nodes.every(node =>
+			node.mime === 'application/pdf' || node.type === 'folder'
+		)
+
+		return allPdfOrFolder
 	},
 	order: -1,
 })
