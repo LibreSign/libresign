@@ -108,6 +108,10 @@ class RequestSignatureService {
 			'name' => $data['name'],
 			'userManager' => $data['userManager'],
 			'settings' => $data['settings'],
+			'users' => $data['users'] ?? [],
+			'status' => $data['status'] ?? FileEntity::STATUS_DRAFT,
+			'visibleElements' => $data['visibleElements'] ?? [],
+			'signatureFlow' => $data['signatureFlow'] ?? null,
 		]);
 
 		return [
@@ -181,6 +185,12 @@ class RequestSignatureService {
 				$fileEntity = $this->createFileForEnvelope($fileData, $userManager, $envelopeSettings);
 				$this->envelopeService->addFileToEnvelope($envelope->getId(), $fileEntity);
 				$files[] = $fileEntity;
+			}
+
+			if (!empty($data['users'])) {
+				$this->sequentialSigningService->setFile($envelope);
+				$this->associateToSigners($data, $envelope);
+				$this->propagateSignersToChildren($envelope, $data);
 			}
 
 			return [

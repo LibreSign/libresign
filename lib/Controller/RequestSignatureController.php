@@ -225,18 +225,15 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		?string $signatureFlow,
 		?array $visibleElements = null,
 	): DataResponse {
-		$filesToSave = !empty($files) ? $files : ($file['files'] ?? null);
+		$isEnvelope = !empty($files);
 
-		if (!$filesToSave && !empty($file)) {
-			$filesToSave = [$file];
-		}
+		$filesToSave = $isEnvelope ? $files : null;
 
-		if (empty($filesToSave)) {
+		if (empty($file) && empty($files)) {
 			throw new LibresignException($this->l10n->t('File or files parameter is required'));
 		}
 
 		$data = [
-			'files' => $filesToSave,
 			'file' => $file,
 			'name' => $name,
 			'users' => $users,
@@ -246,14 +243,24 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			'signatureFlow' => $signatureFlow,
 			'settings' => !empty($settings) ? $settings : ($file['settings'] ?? []),
 		];
+
+		if ($isEnvelope) {
+			$data['files'] = $filesToSave;
+		}
+
 		if ($visibleElements !== null) {
 			$data['visibleElements'] = $visibleElements;
 		}
 		$this->requestSignatureService->validateNewRequestToFile($data);
 
-		$result = $this->requestSignatureService->saveFiles($data);
-		$fileEntity = $result['file'];
-		$childFiles = $result['children'] ?? [];
+		if ($isEnvelope) {
+			$result = $this->requestSignatureService->saveFiles($data);
+			$fileEntity = $result['file'];
+			$childFiles = $result['children'] ?? [];
+		} else {
+			$fileEntity = $this->requestSignatureService->save($data);
+			$childFiles = [];
+		}
 
 		$response = $this->fileListService->formatFileWithChildren($fileEntity, $childFiles, $user);
 		return new DataResponse($response, Http::STATUS_OK);
