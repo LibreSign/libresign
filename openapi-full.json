@@ -605,6 +605,35 @@
                     }
                 }
             },
+            "FileListItem": {
+                "type": "object",
+                "required": [
+                    "nodeId",
+                    "uuid",
+                    "name",
+                    "status",
+                    "statusText"
+                ],
+                "properties": {
+                    "nodeId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "statusText": {
+                        "type": "string"
+                    }
+                }
+            },
             "FolderSettings": {
                 "type": "object",
                 "properties": {
@@ -627,6 +656,10 @@
                                 "type": "string"
                             }
                         }
+                    },
+                    "envelopeFolderId": {
+                        "type": "integer",
+                        "format": "int64"
                     }
                 }
             },
@@ -872,33 +905,7 @@
                     "files": {
                         "type": "array",
                         "items": {
-                            "type": "object",
-                            "required": [
-                                "nodeId",
-                                "uuid",
-                                "name",
-                                "status",
-                                "statusText"
-                            ],
-                            "properties": {
-                                "nodeId": {
-                                    "type": "integer",
-                                    "format": "int64"
-                                },
-                                "uuid": {
-                                    "type": "string"
-                                },
-                                "name": {
-                                    "type": "string"
-                                },
-                                "status": {
-                                    "type": "integer",
-                                    "format": "int64"
-                                },
-                                "statusText": {
-                                    "type": "string"
-                                }
-                            }
+                            "$ref": "#/components/schemas/FileListItem"
                         }
                     }
                 }
@@ -7092,6 +7099,19 @@
                                         "type": "string",
                                         "description": "The name of file to sign"
                                     },
+                                    "settings": {
+                                        "$ref": "#/components/schemas/FolderSettings",
+                                        "default": [],
+                                        "description": "Settings to define how and where the file should be stored"
+                                    },
+                                    "files": {
+                                        "type": "array",
+                                        "default": [],
+                                        "description": "Multiple files to create an envelope (optional, use either file or files)",
+                                        "items": {
+                                            "$ref": "#/components/schemas/NewFile"
+                                        }
+                                    },
                                     "callback": {
                                         "type": "string",
                                         "nullable": true,
@@ -7160,19 +7180,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "data",
-                                                        "message"
-                                                    ],
-                                                    "properties": {
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/FileDetail"
-                                                        },
-                                                        "message": {
-                                                            "type": "string"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/NextcloudFile"
                                                 }
                                             }
                                         }
@@ -7312,6 +7320,19 @@
                                         "type": "string",
                                         "nullable": true,
                                         "description": "The name of file to sign"
+                                    },
+                                    "settings": {
+                                        "$ref": "#/components/schemas/FolderSettings",
+                                        "default": [],
+                                        "description": "Settings to define how and where the file should be stored"
+                                    },
+                                    "files": {
+                                        "type": "array",
+                                        "default": [],
+                                        "description": "Multiple files to create an envelope (optional, use either file or files)",
+                                        "items": {
+                                            "$ref": "#/components/schemas/NewFile"
+                                        }
                                     }
                                 }
                             }
@@ -7364,19 +7385,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "message",
-                                                        "data"
-                                                    ],
-                                                    "properties": {
-                                                        "message": {
-                                                            "type": "string"
-                                                        },
-                                                        "data": {
-                                                            "$ref": "#/components/schemas/FileDetail"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/NextcloudFile"
                                                 }
                                             }
                                         }
