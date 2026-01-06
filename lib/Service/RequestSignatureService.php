@@ -69,8 +69,7 @@ class RequestSignatureService {
 	/**
 	 * Save files - creates single file or envelope based on files count
 	 *
-	 * @param array{files: array, name: string, settings: array, userManager: IUser} $data
-	 * @return array{file: FileEntity, children: FileEntity[]}
+	 * @return array{file: FileEntity, children: list<FileEntity>}
 	 */
 	public function saveFiles(array $data): array {
 		if (empty($data['files'])) {
@@ -108,6 +107,10 @@ class RequestSignatureService {
 			'name' => $data['name'],
 			'userManager' => $data['userManager'],
 			'settings' => $data['settings'],
+			'users' => $data['users'] ?? [],
+			'status' => $data['status'] ?? FileEntity::STATUS_DRAFT,
+			'visibleElements' => $data['visibleElements'] ?? [],
+			'signatureFlow' => $data['signatureFlow'] ?? null,
 		]);
 
 		return [
@@ -181,6 +184,12 @@ class RequestSignatureService {
 				$fileEntity = $this->createFileForEnvelope($fileData, $userManager, $envelopeSettings);
 				$this->envelopeService->addFileToEnvelope($envelope->getId(), $fileEntity);
 				$files[] = $fileEntity;
+			}
+
+			if (!empty($data['users'])) {
+				$this->sequentialSigningService->setFile($envelope);
+				$this->associateToSigners($data, $envelope);
+				$this->propagateSignersToChildren($envelope, $data);
 			}
 
 			return [
