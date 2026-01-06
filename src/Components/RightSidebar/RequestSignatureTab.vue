@@ -624,8 +624,7 @@ export default {
 		this.debouncedSave = debounce(async () => {
 			try {
 				const file = this.filesStore.getFile()
-				await this.filesStore.saveWithVisibleElements({
-					visibleElements: [],
+				await this.filesStore.saveOrUpdateSignatureRequest({
 					signatureFlow: file?.signatureFlow,
 				})
 			} catch (error) {
@@ -874,9 +873,9 @@ export default {
 					}
 					return s
 				})
-				await this.filesStore.updateSignatureRequest({
-					visibleElements: [],
+				await this.filesStore.saveOrUpdateSignatureRequest({
 					signers,
+					status: 1,
 				})
 				showSuccess(t('libresign', 'Signature requested'))
 				this.showConfirmRequestSigner = false
@@ -910,7 +909,7 @@ export default {
 		async save() {
 			this.hasLoading = true
 			try {
-				await this.filesStore.saveWithVisibleElements({ visibleElements: [] })
+				await this.filesStore.saveOrUpdateSignatureRequest({})
 				emit('libresign:show-visible-elements')
 			} catch (error) {
 				if (error.response?.data?.ocs?.data?.message) {
@@ -927,7 +926,7 @@ export default {
 		async confirmRequest() {
 			this.hasLoading = true
 			try {
-				const response = await this.filesStore.updateSignatureRequest({ visibleElements: [], status: 1 })
+				const response = await this.filesStore.saveOrUpdateSignatureRequest({ status: 1 })
 				showSuccess(t('libresign', response.message))
 				this.showConfirmRequest = false
 			} catch (error) {
