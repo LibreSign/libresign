@@ -3,15 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 import { registerFileAction, FileAction, getSidebar } from '@nextcloud/files'
-import { emit } from '@nextcloud/event-bus'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
-import { showError } from '@nextcloud/dialogs'
 import { spawnDialog } from '@nextcloud/vue/functions/dialog'
-import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
-import { getClient, getDefaultPropfind, getRootPath, resultToNode } from '@nextcloud/files/dav'
 import EditNameDialog from '../Components/Common/EditNameDialog.vue'
 
 // eslint-disable-next-line import/no-unresolved
@@ -41,25 +36,6 @@ function promptEnvelopeName() {
 			propsData,
 		)
 	})
-}
-
-async function emitEnvelopeNodeCreated(envelopePath) {
-	const client = getClient()
-	const propfindPayload = getDefaultPropfind()
-	const rootPath = getRootPath()
-
-	const result = await client.stat(`${rootPath}${envelopePath}`, {
-		details: true,
-		data: propfindPayload,
-	})
-	emit('files:node:created', resultToNode(result.data))
-
-	const parentPath = envelopePath.substring(0, envelopePath.lastIndexOf('/')) || '/'
-	const parentResult = await client.stat(`${rootPath}${parentPath}`, {
-		details: true,
-		data: propfindPayload,
-	})
-	emit('files:node:updated', resultToNode(parentResult.data))
 }
 
 export const action = new FileAction({
@@ -100,7 +76,8 @@ export const action = new FileAction({
 	},
 
 	/**
-	 * Multiple files: create envelope (if > 1) or delegate to exec (if = 1)
+	 * Multiple files: prepare envelope data and delegate to sidebar
+	 * Similar to exec, but passes multiple files to the sidebar for processing
 	 */
 	async execBatch({ nodes }) {
 		if (nodes.length === 1) {
@@ -118,30 +95,25 @@ export const action = new FileAction({
 		const normalizedDir = (rawDir && rawDir !== '/') ? rawDir.replace(/\/+$/, '') : ''
 		const envelopePath = normalizedDir ? `${normalizedDir}/${envelopeName}` : `/${envelopeName}`
 
-		return axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
-			files: nodes.map(node => ({ fileId: node.fileid })),
+		window.OCA.Libresign.pendingEnvelope = {
+			nodeId: `envelope_${Date.now()}`,
+			nodeType: 'envelope',
 			name: envelopeName,
 			settings: {
 				path: envelopePath,
 			},
-		}).then(async (response) => {
-			const envelopeData = response.data?.ocs?.data
+			files: nodes.map(node => ({ fileId: node.fileid })),
+			filesCount: nodes.length,
+			signers: [],
+			uuid: null,
+		}
 
-			window.OCA.Libresign.pendingEnvelope = envelopeData
+		const sidebar = getSidebar()
+		const firstNode = nodes[0]
+		await sidebar.open(firstNode, 'libresign')
+		sidebar.setActiveTab('libresign')
 
-			await emitEnvelopeNodeCreated(envelopePath)
-
-			const sidebar = getSidebar()
-			const firstNode = nodes[0]
-			await sidebar.open(firstNode, 'libresign')
-			sidebar.setActiveTab('libresign')
-
-			return new Array(nodes.length).fill(null)
-		}).catch((error) => {
-			console.error('[LibreSign] API error:', error)
-			showError(error.response?.data?.ocs?.data?.message)
-			return new Array(nodes.length).fill(null)
-		})
+		return new Array(nodes.length).fill(null)
 	},
 
 	order: -1000,
