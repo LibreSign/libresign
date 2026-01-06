@@ -2995,7 +2995,10 @@ export interface operations {
     };
     "file-delete-all-request-signature-using-file-id": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Whether to delete the physical file from Nextcloud (default: true) */
+                deleteFile?: 0 | 1;
+            };
             header: {
                 /** @description Required to be true for the API request to pass */
                 "OCS-APIRequest": boolean;

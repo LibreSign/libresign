@@ -5202,6 +5202,19 @@
                         }
                     },
                     {
+                        "name": "deleteFile",
+                        "in": "query",
+                        "description": "Whether to delete the physical file from Nextcloud (default: true)",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "enum": [
+                                0,
+                                1
+                            ]
+                        }
+                    },
+                    {
                         "name": "OCS-APIRequest",
                         "in": "header",
                         "description": "Required to be true for the API request to pass",

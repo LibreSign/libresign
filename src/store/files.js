@@ -354,9 +354,10 @@ export const useFilesStore = function(...args) {
 					const url = deleteFile
 						? '/apps/libresign/api/v1/file/file_id/{fileId}'
 						: '/apps/libresign/api/v1/sign/file_id/{fileId}'
+					const params = deleteFile ? { deleteFile: true } : {}
 					await axios.delete(generateOcsUrl(url, {
 						fileId: file.id,
-					}))
+					}), { params })
 						.then(() => {
 							if (this.selectedNodeId === file.nodeId) {
 								const sidebarStore = useSidebarStore()
