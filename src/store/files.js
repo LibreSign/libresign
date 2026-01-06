@@ -12,6 +12,7 @@ import { emit, subscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import Moment from '@nextcloud/moment'
 import { generateOcsUrl } from '@nextcloud/router'
+import { getClient, getDefaultPropfind, getRootPath, resultToNode } from '@nextcloud/files/dav'
 
 import { useFilesSortingStore } from './filesSorting.js'
 import { useFiltersStore } from './filters.js'
@@ -43,18 +44,7 @@ export const useFilesStore = function(...args) {
 				}
 
 				const nodeId = file.nodeId
-				let fileData = file
-
-				if (!file.uuid) {
-					const filter = file.id
-						? { file_id: file.id, force_fetch: true }
-						: { 'nodeIds[]': [nodeId], force_fetch: true }
-
-					const savedSelectedNodeId = this.selectedNodeId
-					const fetchedFiles = await this.getAllFiles(filter)
-					fileData = fetchedFiles[nodeId] || { ...file, signers: [] }
-					this.selectedNodeId = savedSelectedNodeId
-				}
+				const fileData = file
 
 				if (fileData.signers) {
 					this.addUniqueIdentifierToAllSigners(fileData.signers)
@@ -75,6 +65,28 @@ export const useFilesStore = function(...args) {
 				}
 				const sidebarStore = useSidebarStore()
 				sidebarStore.activeRequestSignatureTab()
+			},
+			async emitEnvelopeNodeCreated(envelopePath) {
+				try {
+					const client = getClient()
+					const propfindPayload = getDefaultPropfind()
+					const rootPath = getRootPath()
+
+					const result = await client.stat(`${rootPath}${envelopePath}`, {
+						details: true,
+						data: propfindPayload,
+					})
+					emit('files:node:created', resultToNode(result.data))
+
+					const parentPath = envelopePath.substring(0, envelopePath.lastIndexOf('/')) || '/'
+					const parentResult = await client.stat(`${rootPath}${parentPath}`, {
+						details: true,
+						data: propfindPayload,
+					})
+					emit('files:node:updated', resultToNode(parentResult.data))
+				} catch (error) {
+					console.warn('[LibreSign] Failed to emit envelope node events:', error)
+				}
 			},
 			getNodeIdByFileId(fileId) {
 				if (!fileId) return null
@@ -523,34 +535,57 @@ export const useFilesStore = function(...args) {
 					method: uuid || file.uuid ? 'patch' : 'post',
 					data: {
 						name: file?.name,
-						users: signers || file.signers,
+						users: signers || file.signers || [],
 						visibleElements,
 						status: 0,
 						signatureFlow: flowValue,
 					},
 				}
 
-
 				if (uuid || file.uuid) {
 					config.data.uuid = uuid || file.uuid
 				} else if (file.id) {
-					config.data.file = {
-						fileId: file.id,
-					}
-				} else if (file.nodeId) {
-					config.data.file = {
-						nodeId: file.nodeId,
+					config.data.file = { fileId: file.id }
+				} else if (file.files) {
+					config.data.files = file.files
+				} else if (!isNaN(file.nodeId)) {
+					config.data.file = { nodeId: file.nodeId }
+				}
+
+				if (file.settings) {
+					if (config.data.file) {
+						config.data.file.settings = file.settings
+					} else if (config.data.files) {
+						config.data.settings = file.settings
 					}
 				}
 
 				const { data } = await axios(config)
-				const responseFile = data.ocs.data.data
+				const responseFile = data?.ocs?.data
+
+				if (file.nodeType === 'envelope' && typeof file.nodeId === 'string' && responseFile.nodeId !== file.nodeId) {
+					delete this.files[file.nodeId]
+					const index = this.ordered.indexOf(file.nodeId)
+					if (index !== -1) {
+						this.ordered.splice(index, 1)
+					}
+				}
+
 				if (responseFile.nodeId) {
 					const nodeId = responseFile.nodeId
 					set(this.files, nodeId, responseFile)
 					this.addUniqueIdentifierToAllSigners(this.files[nodeId].signers)
+					if (!this.ordered.includes(nodeId)) {
+						this.ordered.push(nodeId)
+					}
+					if (this.selectedNodeId === file.nodeId) {
+						this.selectedNodeId = nodeId
+					}
 				} else {
 					this.addFile(responseFile)
+				}
+				if (!uuid && !file.uuid && responseFile.nodeType === 'envelope' && file.settings?.path) {
+					await this.emitEnvelopeNodeCreated(file.settings.path)
 				}
 				return data.ocs.data
 			},
@@ -568,7 +603,7 @@ export const useFilesStore = function(...args) {
 					method: uuid || file.uuid ? 'patch' : 'post',
 					data: {
 						name: file?.name,
-						users: signers || file.signers,
+						users: signers || file.signers || [],
 						visibleElements,
 						status,
 						signatureFlow: flowValue,
@@ -578,25 +613,46 @@ export const useFilesStore = function(...args) {
 				if (uuid || file.uuid) {
 					config.data.uuid = uuid || file.uuid
 				} else if (file.id) {
-					config.data.file = {
-						fileId: file.id,
-					}
-				} else if (file.nodeId) {
-					config.data.file = {
-						nodeId: file.nodeId,
+					config.data.file = { fileId: file.id }
+				} else if (file.files) {
+					config.data.files = file.files
+				} else if (!isNaN(file.nodeId)) {
+					config.data.file = { nodeId: file.nodeId }
+				}
+
+				if (file.settings) {
+					if (config.data.file) {
+						config.data.file.settings = file.settings
+					} else if (config.data.files) {
+						config.data.settings = file.settings
 					}
 				}
 				const { data } = await axios(config)
-				// Only update the existing file, don't trigger full reload via addFile
-				const responseFile = data.ocs.data.data
-				if (responseFile.nodeId && this.files[responseFile.nodeId]) {
+				const responseFile = data?.ocs?.data
+
+				if (file.nodeType === 'envelope' && typeof file.nodeId === 'string' && responseFile.nodeId !== file.nodeId) {
+					delete this.files[file.nodeId]
+					const index = this.ordered.indexOf(file.nodeId)
+					if (index !== -1) {
+						this.ordered.splice(index, 1)
+					}
+				}
+
+				if (responseFile.nodeId) {
 					const nodeId = responseFile.nodeId
-					// Update existing file in-place to avoid triggering side effects
 					set(this.files, nodeId, responseFile)
 					this.addUniqueIdentifierToAllSigners(this.files[nodeId].signers)
+					if (!this.ordered.includes(nodeId)) {
+						this.ordered.push(nodeId)
+					}
+					if (this.selectedNodeId === file.nodeId) {
+						this.selectedNodeId = nodeId
+					}
 				} else {
-					// Only add to store if it's a new file
 					this.addFile(responseFile)
+				}
+				if (!uuid && !file.uuid && responseFile.nodeType === 'envelope' && file.settings?.path) {
+					await this.emitEnvelopeNodeCreated(file.settings.path)
 				}
 				return data.ocs.data
 			},

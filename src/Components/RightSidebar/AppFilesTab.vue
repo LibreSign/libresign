@@ -36,18 +36,19 @@ export default {
 	methods: {
 		async checkAndLoadPendingEnvelope() {
 			const pendingEnvelope = window.OCA?.Libresign?.pendingEnvelope
-			if (pendingEnvelope?.id) {
-				await this.filesStore.addFile(pendingEnvelope)
-				this.filesStore.selectFile(pendingEnvelope.id)
-				delete window.OCA.Libresign.pendingEnvelope
-
-				this.$nextTick(() => {
-					this.updateSidebarTitle(pendingEnvelope.name)
-				})
-
-				return true
+			if (!pendingEnvelope) {
+				return false
 			}
-			return false
+
+			await this.filesStore.addFile(pendingEnvelope)
+			this.filesStore.selectFile(pendingEnvelope.nodeId)
+			delete window.OCA.Libresign.pendingEnvelope
+
+			this.$nextTick(() => {
+				this.updateSidebarTitle(pendingEnvelope.name)
+			})
+
+			return true
 		},
 
 		updateSidebarTitle(envelopeName) {
