@@ -59,10 +59,10 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * the returned `data` includes `filesCount` and `files` as a list of
 	 * envelope child files.
 	 *
-	 * @param LibresignNewFile $file File object.
 	 * @param LibresignNewSigner[] $users Collection of users who must sign the document. Each user can have: identify, displayName, description, notify, signing_order
 	 * @param string $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
+	 * @param LibresignNewFile $file File object.
 	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files)
 	 * @param string|null $callback URL that will receive a POST after the document is signed
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
@@ -77,10 +77,10 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[RequireManager]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/request-signature', requirements: ['apiVersion' => '(v1)'])]
 	public function request(
-		array $file,
 		array $users,
 		string $name,
 		array $settings = [],
+		array $file = [],
 		array $files = [],
 		?string $callback = null,
 		?int $status = 1,
@@ -236,6 +236,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		}
 
 		$data = [
+			'files' => $filesToSave,
 			'file' => $file,
 			'name' => $name,
 			'users' => $users,
@@ -250,23 +251,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		}
 		$this->requestSignatureService->validateNewRequestToFile($data);
 
-		$saveData = [
-			'files' => $filesToSave,
-			'name' => $name,
-			'userManager' => $user,
-			'settings' => !empty($settings) ? $settings : ($file['settings'] ?? []),
-			'users' => $users,
-			'status' => $status,
-			'signatureFlow' => $signatureFlow,
-		];
-		if ($callback !== null) {
-			$saveData['callback'] = $callback;
-		}
-		if ($visibleElements !== null) {
-			$saveData['visibleElements'] = $visibleElements;
-		}
-
-		$result = $this->requestSignatureService->saveFiles($saveData);
+		$result = $this->requestSignatureService->saveFiles($data);
 		$fileEntity = $result['file'];
 		$childFiles = $result['children'] ?? [];
 
