@@ -509,81 +509,7 @@ export const useFilesStore = function(...args) {
 			filesSorted() {
 				return this.ordered.map(key => this.files[key])
 			},
-			async saveWithVisibleElements({ visibleElements = [], signers = null, uuid = null, fileId = null, signatureFlow = null }) {
-				const file = this.getFile()
-
-				let flowValue = signatureFlow || file.signatureFlow
-				if (typeof flowValue === 'number') {
-					const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
-					flowValue = flowMap[flowValue] || 'parallel'
-				}
-
-				const config = {
-					url: generateOcsUrl('/apps/libresign/api/v1/request-signature'),
-					method: uuid || file.uuid ? 'patch' : 'post',
-					data: {
-						name: file?.name,
-						users: signers || file.signers || [],
-						visibleElements,
-						status: 0,
-						signatureFlow: flowValue,
-					},
-				}
-
-				if (uuid || file.uuid) {
-					config.data.uuid = uuid || file.uuid
-				} else if (file.id) {
-					config.data.file = { fileId: file.id }
-				} else if (file.files) {
-					config.data.files = file.files
-				} else if (!isNaN(file.nodeId)) {
-					config.data.file = { nodeId: file.nodeId }
-				}
-
-				if (file.settings) {
-					if (config.data.file) {
-						config.data.file.settings = file.settings
-					} else if (config.data.files) {
-						config.data.settings = file.settings
-					}
-				}
-
-				const { data } = await axios(config)
-				const responseFile = data?.ocs?.data
-
-				if (file.nodeType === 'envelope' && typeof file.nodeId === 'string' && responseFile.nodeId !== file.nodeId) {
-					delete this.files[file.nodeId]
-					const index = this.ordered.indexOf(file.nodeId)
-					if (index !== -1) {
-						this.ordered.splice(index, 1)
-					}
-				}
-
-				if (responseFile.nodeId) {
-					const nodeId = responseFile.nodeId
-					const existingFile = this.files[file.nodeId] || this.files[nodeId]
-					if (existingFile?.settings) {
-						responseFile.settings = { ...existingFile.settings, ...responseFile.settings }
-					}
-					set(this.files, nodeId, responseFile)
-					this.addUniqueIdentifierToAllSigners(this.files[nodeId].signers)
-					if (!this.ordered.includes(nodeId)) {
-						this.ordered.push(nodeId)
-					}
-					if (this.selectedNodeId === file.nodeId) {
-						this.selectedNodeId = nodeId
-					}
-				} else {
-					this.addFile(responseFile)
-				}
-				const eventName = (!uuid && !file.uuid) ? 'libresign:file:created' : 'libresign:file:updated'
-				emit(eventName, {
-					path: responseFile.settings?.path,
-					nodeId: responseFile.nodeId,
-				})
-				return data.ocs.data
-			},
-			async updateSignatureRequest({ visibleElements = [], signers = null, uuid = null, fileId = null, status = 1, signatureFlow = null }) {
+			async saveOrUpdateSignatureRequest({ visibleElements = [], signers = null, uuid = null, fileId = null, status = 0, signatureFlow = null } = {}) {
 				const file = this.getFile()
 
 				let flowValue = signatureFlow || file.signatureFlow
@@ -621,6 +547,7 @@ export const useFilesStore = function(...args) {
 						config.data.settings = file.settings
 					}
 				}
+
 				const { data } = await axios(config)
 				const responseFile = data?.ocs?.data
 
