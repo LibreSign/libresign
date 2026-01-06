@@ -17,14 +17,14 @@ use OCP\DB\Types;
  * @method void setId(int $id)
  * @method int getId()
  * @method void setNodeId(?int $nodeId)
- * @method int getNodeId()
- * @method void setSignedNodeId(int $nodeId)
+ * @method ?int getNodeId()
+ * @method void setSignedNodeId(?int $nodeId)
  * @method ?int getSignedNodeId()
- * @method void setSignedHash(string $hash)
+ * @method void setSignedHash(?string $hash)
  * @method ?string getSignedHash()
- * @method void setUserId(string $userId)
+ * @method void setUserId(?string $userId)
  * @method ?string getUserId()
- * @method void setSignRequestId(int $signRequestId)
+ * @method void setSignRequestId(?int $signRequestId)
  * @method ?int getSignRequestId()
  * @method void setUuid(string $uuid)
  * @method string getUuid()
@@ -50,7 +50,7 @@ use OCP\DB\Types;
  * @method ?int getParentFileId()
  */
 class File extends Entity {
-	protected int $nodeId = 0;
+	protected ?int $nodeId = null;
 	protected string $uuid = '';
 	protected ?\DateTime $createdAt = null;
 	protected string $name = '';

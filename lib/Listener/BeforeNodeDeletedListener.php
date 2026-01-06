@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Listener;
 
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\EventDispatcher\Event;
@@ -48,27 +49,26 @@ class BeforeNodeDeletedListener implements IEventListener {
 	}
 
 	private function deleteAllByNodeId(int $nodeId): void {
+		if ($this->handleSignedFileDeleted($nodeId)) {
+			return;
+		}
+
 		$fullOuterJoin = $this->db->getQueryBuilder();
 		$fullOuterJoin->select($fullOuterJoin->expr()->literal(1));
 
 		$qb = $this->db->getQueryBuilder();
 		$qb
 			->selectAlias('current.id', 'file_id')
+			->selectAlias('current.metadata', 'file_metadata')
+			->selectAlias('current.signed_node_id', 'current_signed_node_id')
 			->selectAlias('parent.id', 'parent_id')
 			->selectAlias('children.id', 'child_id')
-			->selectAlias('sibling.id', 'sibling_id')
-			->selectAlias('sf.id', 'signed_file_id')
 			->selectAlias('ue.id', 'user_element_id')
 			->selectAlias('fe.file_id', 'file_element_file_id')
 			->from($qb->createFunction('(' . $fullOuterJoin->getSQL() . ')'), 'foj')
 			->leftJoin('foj', 'libresign_file', 'current', $qb->expr()->eq('current.node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)))
 			->leftJoin('current', 'libresign_file', 'parent', $qb->expr()->eq('parent.id', 'current.parent_file_id'))
 			->leftJoin('current', 'libresign_file', 'children', $qb->expr()->eq('children.parent_file_id', 'current.id'))
-			->leftJoin('parent', 'libresign_file', 'sibling', $qb->expr()->andX(
-				$qb->expr()->eq('sibling.parent_file_id', 'parent.id'),
-				$qb->expr()->neq('sibling.id', 'current.id')
-			))
-			->leftJoin('foj', 'libresign_file', 'sf', $qb->expr()->eq('sf.signed_node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)))
 			->leftJoin('foj', 'libresign_user_element', 'ue', $qb->expr()->eq('ue.node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)))
 			->leftJoin('foj', 'libresign_file_element', 'fe', $qb->expr()->eq('fe.file_id', 'current.id'));
 
@@ -89,14 +89,63 @@ class BeforeNodeDeletedListener implements IEventListener {
 				$this->deleteFileElement((int)$row['file_element_file_id']);
 			}
 
-			foreach (['child_id', 'sibling_id', 'file_id', 'parent_id', 'signed_file_id'] as $key) {
-				if (!empty($row[$key]) && !isset($deletedFiles[$row[$key]])) {
-					$deletedFiles[(int)$row[$key]] = true;
-					$this->deleteLibreSignFile((int)$row[$key]);
-				}
+			if (!empty($row['file_id']) && !isset($deletedFiles[$row['file_id']])) {
+				$deletedFiles[(int)$row['file_id']] = true;
+				$this->markOriginalFileAsDeleted((int)$row['file_id'], isset($row['file_metadata']) ? (string)$row['file_metadata'] : null);
 			}
 		}
 		$cursor->closeCursor();
+	}
+
+	private function handleSignedFileDeleted(int $nodeId): bool {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('id', 'node_id', 'signed_node_id')
+			->from('libresign_file')
+			->where($qb->expr()->eq('signed_node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)));
+
+		$files = $qb->executeQuery()->fetchAll();
+
+		foreach ($files as $file) {
+			$fileId = (int)$file['id'];
+			$this->deleteSigningData($fileId);
+			$this->detachSignedFile($fileId);
+		}
+
+		return !empty($files);
+	}
+
+	private function markOriginalFileAsDeleted(int $fileId, ?string $metadataJson = null): void {
+		$existingMetadata = [];
+
+		if ($metadataJson !== null && $metadataJson !== '') {
+			try {
+				$decoded = json_decode($metadataJson, true, 512, JSON_THROW_ON_ERROR);
+				if (is_array($decoded)) {
+					$existingMetadata = $decoded;
+				}
+			} catch (\Throwable $e) {
+			}
+		}
+
+		$existingMetadata['original_file_deleted'] = true;
+		$existingMetadata['original_file_deleted_at'] = (new \DateTime('now', new \DateTimeZone('UTC')))->format(\DateTime::ATOM);
+
+		$update = $this->db->getQueryBuilder();
+		$update->update('libresign_file')
+			->set('node_id', $update->createNamedParameter(null, IQueryBuilder::PARAM_NULL))
+			->set('metadata', $update->createNamedParameter(json_encode($existingMetadata), IQueryBuilder::PARAM_STR))
+			->where($update->expr()->eq('id', $update->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)))
+			->executeStatement();
+	}
+
+	private function detachSignedFile(int $fileId): void {
+		$qb = $this->db->getQueryBuilder();
+		$qb->update('libresign_file')
+			->set('signed_node_id', $qb->createNamedParameter(null, IQueryBuilder::PARAM_NULL))
+			->set('status', $qb->createNamedParameter(FileStatus::DRAFT->value, IQueryBuilder::PARAM_INT))
+			->set('signed_hash', $qb->createNamedParameter(null, IQueryBuilder::PARAM_NULL))
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)))
+			->executeStatement();
 	}
 
 	private function deleteUserElement(int $nodeId): void {
@@ -113,11 +162,11 @@ class BeforeNodeDeletedListener implements IEventListener {
 			->executeStatement();
 	}
 
-	private function deleteLibreSignFile(int $fileId): void {
+	private function deleteSigningData(int $fileId): void {
 		$this->deleteIdentifyMethods($fileId);
 		$this->deleteSignRequests($fileId);
 		$this->deleteIdDocs($fileId);
-		$this->deleteFile($fileId);
+		$this->deleteFileElement($fileId);
 	}
 
 	private function deleteIdentifyMethods(int $fileId): void {
