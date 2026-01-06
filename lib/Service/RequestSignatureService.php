@@ -21,6 +21,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\Envelope\EnvelopeFileRelocator;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -69,8 +70,7 @@ class RequestSignatureService {
 	/**
 	 * Save files - creates single file or envelope based on files count
 	 *
-	 * @param array{files: array, name: string, settings: array, userManager: IUser} $data
-	 * @return array{file: FileEntity, children: FileEntity[]}
+	 * @return array{file: FileEntity, children: list<FileEntity>}
 	 */
 	public function saveFiles(array $data): array {
 		if (empty($data['files'])) {
