@@ -570,7 +570,7 @@ class FileService {
 		);
 	}
 
-	public function delete(int $fileId): void {
+	public function delete(int $fileId, bool $deleteFile = true): void {
 		$file = $this->fileMapper->getById($fileId);
 
 		$this->decrementEnvelopeFilesCountIfNeeded($file);
@@ -578,7 +578,7 @@ class FileService {
 		if ($file->getNodeType() === 'envelope') {
 			$childrenFiles = $this->fileMapper->getChildrenFiles($file->getId());
 			foreach ($childrenFiles as $childFile) {
-				$this->delete($childFile->getId());
+				$this->delete($childFile->getId(), $deleteFile);
 			}
 		}
 
@@ -590,14 +590,33 @@ class FileService {
 		}
 		$this->idDocsMapper->deleteByFileId($file->getId());
 		$this->fileMapper->delete($file);
-		if ($file->getSignedNodeId()) {
-			$signedNextcloudFile = $this->folderService->getFileByNodeId($file->getSignedNodeId());
-			$signedNextcloudFile->delete();
+		if ($deleteFile) {
+			if ($file->getSignedNodeId()) {
+				$signedNextcloudFile = $this->folderService->getFileByNodeId($file->getSignedNodeId());
+				$parentFolder = $signedNextcloudFile->getParent();
+				$signedNextcloudFile->delete();
+				$this->deleteEmptyFolder($parentFolder);
+			}
+			try {
+				$nextcloudFile = $this->folderService->getFileByNodeId($file->getNodeId());
+				$parentFolder = $nextcloudFile->getParent();
+				$nextcloudFile->delete();
+				$this->deleteEmptyFolder($parentFolder);
+			} catch (NotFoundException) {
+			}
 		}
+	}
+
+	private function deleteEmptyFolder(\OCP\Files\Folder $folder): void {
 		try {
-			$nextcloudFile = $this->folderService->getFileByNodeId($file->getNodeId());
-			$nextcloudFile->delete();
-		} catch (NotFoundException) {
+			$contents = $folder->getDirectoryListing();
+			if (count($contents) === 0) {
+				$folder->delete();
+			}
+		} catch (\Exception $e) {
+			$this->logger->debug('Could not delete empty folder: ' . $e->getMessage(), [
+				'exception' => $e,
+			]);
 		}
 	}
 
