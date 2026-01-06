@@ -30,6 +30,8 @@ use OCP\IUserSession;
  * @psalm-import-type LibresignNewSigner from ResponseDefinitions
  * @psalm-import-type LibresignValidateFile from ResponseDefinitions
  * @psalm-import-type LibresignFileDetail from ResponseDefinitions
+ * @psalm-import-type LibresignNextcloudFile from ResponseDefinitions
+ * @psalm-import-type LibresignFolderSettings from ResponseDefinitions
  * @psalm-import-type LibresignSettings from ResponseDefinitions
  * @psalm-import-type LibresignSigner from ResponseDefinitions
  * @psalm-import-type LibresignVisibleElement from ResponseDefinitions
@@ -60,10 +62,12 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param LibresignNewFile $file File object.
 	 * @param LibresignNewSigner[] $users Collection of users who must sign the document. Each user can have: identify, displayName, description, notify, signing_order
 	 * @param string $name The name of file to sign
+	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
+	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files)
 	 * @param string|null $callback URL that will receive a POST after the document is signed
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
 	 * @param string|null $signatureFlow Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration
-	 * @return DataResponse<Http::STATUS_OK, array{data: LibresignFileDetail, message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string, action?: integer, errors?: list<array{message: string, title?: string}>}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string, action?: integer, errors?: list<array{message: string, title?: string}>}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Unauthorized
@@ -76,30 +80,24 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		array $file,
 		array $users,
 		string $name,
+		array $settings = [],
+		array $files = [],
 		?string $callback = null,
 		?int $status = 1,
 		?string $signatureFlow = null,
 	): DataResponse {
-		$user = $this->userSession->getUser();
-		$data = [
-			'file' => $file,
-			'name' => $name,
-			'users' => $users,
-			'status' => $status,
-			'callback' => $callback,
-			'userManager' => $user,
-			'signatureFlow' => $signatureFlow,
-		];
 		try {
-			$this->requestSignatureService->validateNewRequestToFile($data);
-			$file = $this->requestSignatureService->save($data);
-			$return = $this->fileListService->formatSingleFile($user, $file);
-			return new DataResponse(
-				[
-					'message' => $this->l10n->t('Success'),
-					'data' => $return
-				],
-				Http::STATUS_OK
+			$user = $this->userSession->getUser();
+			return $this->createSignatureRequest(
+				$user,
+				$file,
+				$files,
+				$name,
+				$settings,
+				$users,
+				$status,
+				$callback,
+				$signatureFlow
 			);
 		} catch (LibresignException $e) {
 			$errorMessage = $e->getMessage();
@@ -136,7 +134,9 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
 	 * @param string|null $signatureFlow Signature flow mode: 'parallel' or 'ordered_numeric'. If not provided, uses global configuration
 	 * @param string|null $name The name of file to sign
-	 * @return DataResponse<Http::STATUS_OK, array{message: string, data: LibresignFileDetail}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string, action?: integer, errors?: list<array{message: string, title?: string}>}, array{}>
+	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
+	 * @param list<LibresignNewFile> $files Multiple files to create an envelope (optional, use either file or files)
+	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message?: string, action?: integer, errors?: list<array{message: string, title?: string}>}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Unauthorized
@@ -153,34 +153,49 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		?int $status = null,
 		?string $signatureFlow = null,
 		?string $name = null,
+		array $settings = [],
+		array $files = [],
 	): DataResponse {
-		$user = $this->userSession->getUser();
-		$data = [
-			'uuid' => $uuid,
-			'file' => $file,
-			'users' => $users,
-			'userManager' => $user,
-			'status' => $status,
-			'visibleElements' => $visibleElements,
-			'signatureFlow' => $signatureFlow,
-			'name' => $name,
-		];
 		try {
+			$user = $this->userSession->getUser();
+
+			if (empty($uuid)) {
+				return $this->createSignatureRequest(
+					$user,
+					$file,
+					$files,
+					$name,
+					$settings,
+					$users,
+					$status,
+					null,
+					$signatureFlow,
+					$visibleElements
+				);
+			}
+
+			$data = [
+				'uuid' => $uuid,
+				'file' => $file,
+				'users' => $users,
+				'userManager' => $user,
+				'status' => $status,
+				'visibleElements' => $visibleElements,
+				'signatureFlow' => $signatureFlow,
+				'name' => $name,
+				'settings' => $settings,
+			];
 			$this->validateHelper->validateExistingFile($data);
 			$this->validateHelper->validateFileStatus($data);
 			$this->validateHelper->validateIdentifySigners($data);
-			if (!empty($data['visibleElements'])) {
-				$this->validateHelper->validateVisibleElements($data['visibleElements'], $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
+			if (!empty($visibleElements)) {
+				$this->validateHelper->validateVisibleElements($visibleElements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
 			}
-			$file = $this->requestSignatureService->save($data);
-			$return = $this->fileListService->formatSingleFile($user, $file);
-			return new DataResponse(
-				[
-					'message' => $this->l10n->t('Success'),
-					'data' => $return
-				],
-				Http::STATUS_OK
-			);
+			$fileEntity = $this->requestSignatureService->save($data);
+			$childFiles = [];
+
+			$response = $this->fileListService->formatFileWithChildren($fileEntity, $childFiles, $user);
+			return new DataResponse($response, Http::STATUS_OK);
 		} catch (\Throwable $th) {
 			return new DataResponse(
 				[
@@ -189,6 +204,74 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
+	}
+
+	/**
+	 * Internal method to handle signature request creation logic
+	 * Used by both request() and updateSign() when creating new requests
+	 *
+	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>
+	 * @throws LibresignException
+	 */
+	private function createSignatureRequest(
+		$user,
+		array $file,
+		array $files,
+		string $name,
+		array $settings,
+		array $users,
+		?int $status,
+		?string $callback,
+		?string $signatureFlow,
+		?array $visibleElements = null,
+	): DataResponse {
+		$filesToSave = !empty($files) ? $files : ($file['files'] ?? null);
+
+		if (!$filesToSave && !empty($file)) {
+			$filesToSave = [$file];
+		}
+
+		if (empty($filesToSave)) {
+			throw new LibresignException($this->l10n->t('File or files parameter is required'));
+		}
+
+		$data = [
+			'file' => $file,
+			'name' => $name,
+			'users' => $users,
+			'status' => $status,
+			'callback' => $callback,
+			'userManager' => $user,
+			'signatureFlow' => $signatureFlow,
+			'settings' => !empty($settings) ? $settings : ($file['settings'] ?? []),
+		];
+		if ($visibleElements !== null) {
+			$data['visibleElements'] = $visibleElements;
+		}
+		$this->requestSignatureService->validateNewRequestToFile($data);
+
+		$saveData = [
+			'files' => $filesToSave,
+			'name' => $name,
+			'userManager' => $user,
+			'settings' => !empty($settings) ? $settings : ($file['settings'] ?? []),
+			'users' => $users,
+			'status' => $status,
+			'signatureFlow' => $signatureFlow,
+		];
+		if ($callback !== null) {
+			$saveData['callback'] = $callback;
+		}
+		if ($visibleElements !== null) {
+			$saveData['visibleElements'] = $visibleElements;
+		}
+
+		$result = $this->requestSignatureService->saveFiles($saveData);
+		$fileEntity = $result['file'];
+		$childFiles = $result['children'] ?? [];
+
+		$response = $this->fileListService->formatFileWithChildren($fileEntity, $childFiles, $user);
+		return new DataResponse($response, Http::STATUS_OK);
 	}
 
 	/**
