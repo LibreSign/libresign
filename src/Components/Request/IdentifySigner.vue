@@ -223,7 +223,7 @@ export default {
 			})
 
 			try {
-				await this.filesStore.saveWithVisibleElements({ visibleElements: [] })
+				await this.filesStore.saveOrUpdateSignatureRequest({})
 			} catch (error) {
 				console.error('Error saving signer:', error)
 			}
