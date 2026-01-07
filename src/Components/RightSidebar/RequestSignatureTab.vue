@@ -85,9 +85,11 @@
 			<NcButton
 				wide
 				type="secondary"
-				@click="showEnvelopeFilesDialog = true">
+				:disabled="hasLoading"
+				@click="openManageFiles">
 				<template #icon>
-					<FileMultiple :size="20" />
+					<NcLoadingIcon v-if="hasLoading" :size="20" />
+					<FileMultiple v-else :size="20" />
 				</template>
 				{{ t('libresign', 'Manage files ({count})', { count: envelopeFilesCount }) }}
 			</NcButton>
@@ -939,6 +941,19 @@ export default {
 				}
 			}
 			this.hasLoading = false
+		},
+		async openManageFiles() {
+			const file = this.filesStore.getFile()
+
+			this.hasLoading = true
+			let response = await this.filesStore.saveOrUpdateSignatureRequest({})
+			this.hasLoading = false
+			if (response?.success === false && response?.message) {
+				showError(response.message)
+				return
+			}
+
+			this.showEnvelopeFilesDialog = true
 		},
 		openFile() {
 			if (OCA?.Viewer !== undefined) {
