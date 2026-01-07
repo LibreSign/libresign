@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { registerFileAction, FileAction, getSidebar } from '@nextcloud/files'
+import { registerFileAction, FileAction } from '@nextcloud/files'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
@@ -43,7 +43,7 @@ export const action = new FileAction({
 	displayName: () => t('libresign', 'Open in LibreSign'),
 	iconSvgInline: () => SvgIcon,
 
-	enabled({ nodes }) {
+	enabled(nodes) {
 		if (!loadState('libresign', 'certificate_ok', false)) {
 			return false
 		}
@@ -71,10 +71,10 @@ export const action = new FileAction({
 	/**
 	 * Single file or folder: open in sidebar
 	 */
-	async exec({ nodes }) {
-		const sidebar = getSidebar()
-		const node = nodes[0]
-		await sidebar.open(node, 'libresign')
+	async exec(node) {
+		const sidebar = window.OCA.Files.Sidebar
+		sidebar.close()
+		await sidebar.open(node.path)
 		sidebar.setActiveTab('libresign')
 		return null
 	},
@@ -83,9 +83,9 @@ export const action = new FileAction({
 	 * Multiple files: prepare envelope data and delegate to sidebar
 	 * Similar to exec, but passes multiple files to the sidebar for processing
 	 */
-	async execBatch({ nodes }) {
+	async execBatch(nodes) {
 		if (nodes.length === 1) {
-			await this.exec({ nodes })
+			await this.exec(nodes[0])
 			return [null]
 		}
 
@@ -112,9 +112,10 @@ export const action = new FileAction({
 			uuid: null,
 		}
 
-		const sidebar = getSidebar()
+		const sidebar = window.OCA.Files.Sidebar
 		const firstNode = nodes[0]
-		await sidebar.open(firstNode, 'libresign')
+		sidebar.close()
+		await sidebar.open(firstNode.path)
 		sidebar.setActiveTab('libresign')
 
 		return new Array(nodes.length).fill(null)
