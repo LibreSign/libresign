@@ -569,6 +569,9 @@ class RequestSignatureService {
 
 	public function validateUsers(array $data): void {
 		if (empty($data['users'])) {
+			if (($data['status'] ?? FileEntity::STATUS_ABLE_TO_SIGN) === FileEntity::STATUS_DRAFT) {
+				return;
+			}
 			throw new \Exception($this->l10n->t('Empty users list'));
 		}
 		if (!is_array($data['users'])) {
