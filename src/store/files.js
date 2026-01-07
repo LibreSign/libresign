@@ -36,6 +36,31 @@ export const useFilesStore = function(...args) {
 		},
 
 		actions: {
+			removeFileById(fileId) {
+				if (!fileId) {
+					return
+				}
+
+				if (this.selectedFileId === fileId) {
+					const sidebarStore = useSidebarStore()
+					sidebarStore.hideSidebar()
+					this.selectedFileId = 0
+				}
+
+				del(this.files, fileId)
+				const index = this.ordered.indexOf(fileId)
+				if (index > -1) {
+					this.ordered.splice(index, 1)
+				}
+			},
+			removeFileByNodeId(nodeId) {
+				const fileId = this.getFileIdByNodeId(nodeId)
+				if (!fileId) {
+					return
+				}
+
+				this.removeFileById(fileId)
+			},
 			async addFile(file) {
 				if (!file.id && !file.nodeId) {
 					console.warn('[LibreSign] File must have id or nodeId:', file)
@@ -374,17 +399,7 @@ export const useFilesStore = function(...args) {
 						fileId: fileId,
 					}), { params })
 						.then(async () => {
-							if (this.selectedFileId === fileId) {
-								const sidebarStore = useSidebarStore()
-								sidebarStore.hideSidebar()
-								this.selectedFileId = 0
-							}
-
-							del(this.files, fileId)
-							const index = this.ordered.indexOf(fileId)
-							if (index > -1) {
-								this.ordered.splice(index, 1)
-							}
+							this.removeFileById(fileId)
 						})
 				}
 
