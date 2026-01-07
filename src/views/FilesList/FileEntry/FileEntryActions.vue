@@ -131,17 +131,17 @@ export default {
 	computed: {
 		openedMenu: {
 			get() {
-				return this.actionsMenuStore.opened === this.source.nodeId
+				return this.actionsMenuStore.opened === this.source.id
 			},
 			set(opened) {
-				this.actionsMenuStore.opened = opened ? this.source.nodeId : null
+				this.actionsMenuStore.opened = opened ? this.source.id : null
 			},
 		},
 		visibleMenu() {
 			return this.enabledMenuActions.filter(action => this.visibleIf(action))
 		},
 		file() {
-			return this.filesStore.files[this.source.nodeId]
+			return this.filesStore.files[this.source.id]
 		},
 		boundariesElement() {
 			return document.querySelector('.app-content > .files-list')
@@ -208,14 +208,15 @@ export default {
 					signer_uuid: signUuid,
 					force_fetch: true,
 				})
-				this.signStore.setFileToSign(files[this.source.nodeId])
+				this.signStore.setFileToSign(files[this.source.id])
 				this.$router.push({
 					name: 'SignPDF',
 					params: {
 						uuid: signUuid,
 					},
 				})
-				this.filesStore.selectFile(this.source.nodeId)
+				this.filesStore.selectFile(this.source.id)
+				this.sidebarStore.activeRequestSignatureTab()
 			} else if (action.id === 'validate') {
 				this.$router.push({
 					name: 'ValidationFile',
