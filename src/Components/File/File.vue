@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div v-if="currentNodeId > 0 && currentFile" class="content-file" @click="openSidebar">
+	<div v-if="currentFileId > 0 && currentFile" class="content-file" @click="openSidebar">
 		<img v-if="previewUrl && backgroundFailed !== true"
 			ref="previewImg"
 			alt=""
@@ -28,22 +28,20 @@ import FileIcon from 'vue-material-design-icons/File.vue'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 
 import { useFilesStore } from '../../store/files.js'
+import { useSidebarStore } from '../../store/sidebar.js'
 
 export default {
 	name: 'File',
 	components: {
 		FileIcon,
 	},
-	props: {
-		nodeId: {
-			type: Number,
-			default: 0,
-			required: false,
-		},
-	},
 	setup() {
 		const filesStore = useFilesStore()
-		return { filesStore }
+		const sidebarStore = useSidebarStore()
+		return {
+			filesStore,
+			sidebarStore,
+		}
 	},
 	data() {
 		return {
@@ -53,14 +51,11 @@ export default {
 		}
 	},
 	computed: {
-		currentNodeId() {
-			if (this.nodeId) {
-				return this.nodeId
-			}
-			return this.filesStore.selectedNodeId
+		currentFileId() {
+			return this.filesStore.selectedFileId
 		},
 		currentFile() {
-			return this.filesStore.files[this.currentNodeId]
+			return this.filesStore.files[this.currentFileId]
 		},
 		previewUrl() {
 			if (this.backgroundFailed === true) {
@@ -75,6 +70,10 @@ export default {
 			if (this.currentFile.nodeId) {
 				previewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
 					nodeId: this.currentFile.nodeId,
+				})
+			} else if (this.currentFile.id) {
+				previewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/file_id/{fileId}', {
+					fileId: this.currentFile.id,
 				})
 			} else {
 				previewUrl = window.location.origin + generateUrl('/core/preview?fileId={fileid}', {
@@ -96,7 +95,8 @@ export default {
 	},
 	methods: {
 		openSidebar() {
-			this.filesStore.selectFile(this.currentNodeId)
+			this.filesStore.selectFile(this.currentFileId)
+			this.sidebarStore.activeRequestSignatureTab()
 		},
 		statusToClass(status) {
 			switch (Number(status)) {

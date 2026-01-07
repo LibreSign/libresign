@@ -58,11 +58,11 @@ export default {
 	},
 	setup() {
 		const signStore = useSignStore()
-		const fileStore = useFilesStore()
+		const filesStore = useFilesStore()
 		const sidebarStore = useSidebarStore()
 		const signMethodsStore = useSignMethodsStore()
 		const isMobile = window.innerWidth <= 512
-		return { signStore, fileStore, sidebarStore, signMethodsStore, isMobile }
+		return { signStore, filesStore, sidebarStore, signMethodsStore, isMobile }
 	},
 	data() {
 		return {
@@ -111,14 +111,14 @@ export default {
 			}
 		},
 		async initSignInternal() {
-			const files = await this.fileStore.getAllFiles({
+			const files = await this.filesStore.getAllFiles({
 				signer_uuid: this.$route.params.uuid,
 			})
-			for (const nodeId in files) {
-				const signer = files[nodeId].signers.find(row => row.me) || {}
+			for (const key in files) {
+				const signer = files[key].signers.find(row => row.me) || {}
 				if (Object.keys(signer).length > 0) {
-					this.signStore.setFileToSign(files[nodeId])
-					this.fileStore.selectedNodeId = parseInt(nodeId)
+					this.signStore.setFileToSign(files[key])
+					this.filesStore.selectedFileId = parseInt(key)
 					return
 				}
 			}
@@ -128,7 +128,7 @@ export default {
 				generateOcsUrl('/apps/libresign/api/v1/file/validate/uuid/{uuid}', { uuid: this.$route.params.uuid })
 			)
 			this.signStore.setFileToSign(response.data.ocs.data)
-			this.fileStore.selectedNodeId = response.data.ocs.data.nodeId
+			this.filesStore.selectedFileId = response.data.ocs.data.id
 		},
 		async handleInitialStatePdfs(urls) {
 			if (!Array.isArray(urls) || urls.length === 0) {

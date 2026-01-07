@@ -375,7 +375,9 @@ export default {
 			showEnvelopeFilesDialog: false,
 			infoIcon: svgInfo,
 			adminSignatureFlow: '',
-			lastSyncedNodeId: null,
+			lastSyncedFileId: null,
+			debouncedSave: null,
+			debouncedTabChange: null,
 		}
 	},
 	computed: {
@@ -594,11 +596,11 @@ export default {
 		signers(signers) {
 			this.init(signers)
 		},
-		'filesStore.selectedNodeId': {
-			handler(newNodeId, oldNodeId) {
-				if (newNodeId && newNodeId !== this.lastSyncedNodeId) {
+		'filesStore.selectedFileId': {
+			handler(newFileId, oldFileId) {
+				if (newFileId && newFileId !== this.lastSyncedFileId) {
 					this.syncPreserveOrderWithFile()
-					this.lastSyncedNodeId = newNodeId
+					this.lastSyncedFileId = newFileId
 				}
 			},
 			immediate: true,
@@ -618,7 +620,7 @@ export default {
 		unsubscribe('libresign:edit-signer')
 	},
 	created() {
-		this.$set(this, 'methods', loadState('libresign', 'identify_methods'))
+		this.$set(this, 'methods', loadState('libresign', 'identify_methods', []))
 		this.$set(this, 'document', loadState('libresign', 'file_info', {}))
 
 		this.debouncedSave = debounce(async () => {
@@ -683,7 +685,7 @@ export default {
 
 			const flow = file.signatureFlow
 
-			this.lastSyncedNodeId = this.filesStore.selectedNodeId
+			this.lastSyncedFileId = this.filesStore.selectedFileId
 
 			if ((flow === 'ordered_numeric' || flow === 2) && !this.isAdminFlowForced) {
 				this.preserveOrder = true
