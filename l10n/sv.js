@@ -234,6 +234,7 @@ OC.L10N.register(
     "Select your file" : "Välj din fil",
     "URL of a PDF file" : "URL till en PDF-fil",
     "Send" : "Skicka",
+    "Create" : "Skapa",
     "Previous" : "Föregående",
     "Next" : "Nästa",
     "Account does not exist" : "Kontot finns inte",

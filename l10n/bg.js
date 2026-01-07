@@ -161,6 +161,7 @@ OC.L10N.register(
     "Choose from Files" : "Избор от Файлове",
     "Select your file" : "Изберете вашия файл ",
     "Send" : "Изпращане",
+    "Create" : "Създаване",
     "Previous" : "Предишен ",
     "Next" : "Следващ",
     "Searching …" : "Търсене ...",

@@ -239,6 +239,7 @@ OC.L10N.register(
     "Select your file" : "Επιλογή αρχείου σας",
     "URL of a PDF file" : "URL ενός αρχείου PDF",
     "Send" : "Αποστολή",
+    "Create" : "Δημιουργία",
     "Previous" : "Προηγούμενο",
     "Next" : "Επόμενο",
     "Account does not exist" : "Ο λογαριασμός δεν υπάρχει",

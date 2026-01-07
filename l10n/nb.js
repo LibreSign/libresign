@@ -190,6 +190,7 @@ OC.L10N.register(
     "Select your file" : "Velg filen din",
     "URL of a PDF file" : "URL-adressen til en PDF-fil",
     "Send" : "Send",
+    "Create" : "Opprett",
     "Previous" : "Forrige",
     "Next" : "Neste",
     "Searching …" : "Søker ...",

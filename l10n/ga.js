@@ -301,6 +301,7 @@ OC.L10N.register(
     "Select your file" : "Roghnaigh do chomhad",
     "URL of a PDF file" : "URL comhad PDF",
     "Send" : "Seol",
+    "Create" : "Cruthaigh",
     "Previous" : "Roimhe Seo",
     "Next" : "Ar aghaidh",
     "Account does not exist" : "Níl an cuntas ann",

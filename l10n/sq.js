@@ -33,6 +33,7 @@ OC.L10N.register(
     "Choose" : "Zgjidhni",
     "Upload failed" : "Ngarkimi dështoi",
     "Send" : "Dërgo",
+    "Create" : "Krijo",
     "Previous" : "I mëparshëm",
     "Next" : "Tjetër",
     "Saved" : "Ruajtur",

@@ -79,6 +79,7 @@ OC.L10N.register(
     "Choose" : "Causir",
     "Upload failed" : "Fracàs del mandadís",
     "Send" : "Enviar",
+    "Create" : "Crear",
     "Previous" : "Precedent",
     "Next" : "Seguent",
     "Searching …" : "Recèrca…",

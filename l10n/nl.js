@@ -151,6 +151,7 @@ OC.L10N.register(
     "Choose from Files" : "Kies uit Bestanden",
     "Select your file" : "Selecteer uw bestand",
     "Send" : "Verzenden",
+    "Create" : "Creëer",
     "Previous" : "Vorige",
     "Next" : "Volgende",
     "Searching …" : "Zoeken ...",

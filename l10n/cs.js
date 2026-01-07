@@ -280,6 +280,7 @@ OC.L10N.register(
     "Select your file" : "Vyberte soubor",
     "URL of a PDF file" : "URL PDF souboru",
     "Send" : "Odeslat",
+    "Create" : "Vytvářet",
     "Previous" : "Předchozí",
     "Next" : "Další",
     "Account does not exist" : "Účet neexistuje",

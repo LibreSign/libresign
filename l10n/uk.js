@@ -242,6 +242,7 @@ OC.L10N.register(
     "Select your file" : "Виберіть свій файл",
     "URL of a PDF file" : "URL-адреса PDF-файлу",
     "Send" : "Надіслати",
+    "Create" : "Додати",
     "Previous" : "Назад",
     "Next" : "Далі",
     "Account does not exist" : "Облікового запису не існує",

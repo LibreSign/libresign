@@ -279,6 +279,7 @@ OC.L10N.register(
     "Select your file" : "ھۆججىتىڭىزنى تاللاڭ",
     "URL of a PDF file" : "PDF ھۆججىتىنىڭ ئادرېسى",
     "Send" : "يوللا",
+    "Create" : "قۇر",
     "Previous" : "ئالدىنقى",
     "Next" : "كېيىنكى",
     "Account does not exist" : "ھېسابات مەۋجۇت ئەمەس",

@@ -42,6 +42,7 @@ OC.L10N.register(
     "Choose" : "Seleccionar",
     "Upload failed" : "Falla en la carga",
     "Send" : "Enviar",
+    "Create" : "Crear",
     "Previous" : "Previo",
     "Next" : "Siguiente",
     "Searching …" : "Buscando  …",

@@ -41,6 +41,7 @@ OC.L10N.register(
     "Upload failed" : "ההעלאה נכשלה",
     "Choose from Files" : "בחר מתוך קבצים",
     "Send" : "שליחה",
+    "Create" : "יצירה",
     "Previous" : "הקודם",
     "Next" : "הבא",
     "Searching …" : "מתבצע חיפוש…",

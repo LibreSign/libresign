@@ -54,6 +54,7 @@ OC.L10N.register(
     "Choose from Files" : "ファイルから選択",
     "Select your file" : "あなたのファイルを選択",
     "Send" : "送信",
+    "Create" : "作成",
     "Previous" : "前へ",
     "Next" : "次へ",
     "Searching …" : "検索しています…",

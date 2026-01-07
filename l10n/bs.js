@@ -19,6 +19,7 @@ OC.L10N.register(
     "Update" : "Ažuriraj",
     "Choose" : "Izaberite",
     "Send" : "Pošalji",
+    "Create" : "Kreiraj",
     "Previous" : "Prethodno",
     "Next" : "Sljedeće",
     "Saved" : "Spremljeno",
