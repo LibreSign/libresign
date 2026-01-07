@@ -91,7 +91,13 @@ class BeforeNodeDeletedListener implements IEventListener {
 
 			if (!empty($row['file_id']) && !isset($deletedFiles[$row['file_id']])) {
 				$deletedFiles[(int)$row['file_id']] = true;
-				$this->markOriginalFileAsDeleted((int)$row['file_id'], isset($row['file_metadata']) ? (string)$row['file_metadata'] : null);
+
+				if (!empty($row['parent_id']) || !empty($row['child_id'])) {
+					$this->deleteSigningData((int)$row['file_id']);
+					$this->deleteFile((int)$row['file_id']);
+				} else {
+					$this->markOriginalFileAsDeleted((int)$row['file_id'], isset($row['file_metadata']) ? (string)$row['file_metadata'] : null);
+				}
 			}
 		}
 		$cursor->closeCursor();
