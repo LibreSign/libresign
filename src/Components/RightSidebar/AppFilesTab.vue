@@ -133,13 +133,26 @@ export default {
 
 			this.disconnectTitleObserver()
 
+			const isEnvelopeFolder = fileInfo.type === 'folder' &&
+				fileInfo.attributes?.['libresign-signature-status'] !== undefined
+
+			if (isEnvelopeFolder) {
+				await this.filesStore.getAllFiles({
+					'nodeIds[]': [fileInfo.id],
+					force_fetch: true,
+				})
+			}
+
 			const fileId = await this.filesStore.selectFileByNodeId(fileInfo.id)
 			if (fileId) {
+				const file = this.filesStore.getFile()
+				const displayName = file?.name || fileInfo.name
+
 				this.$nextTick(() => {
 					const titleElement = document.querySelector('.app-sidebar-header__mainname')
 					if (titleElement) {
-						titleElement.textContent = fileInfo.name
-						titleElement.setAttribute('title', fileInfo.name)
+						titleElement.textContent = displayName
+						titleElement.setAttribute('title', displayName)
 					}
 				})
 				return
