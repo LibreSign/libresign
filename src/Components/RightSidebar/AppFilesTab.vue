@@ -21,6 +21,7 @@ import { generateRemoteUrl } from '@nextcloud/router'
 import RequestSignatureTab from '../RightSidebar/RequestSignatureTab.vue'
 
 import { useFilesStore } from '../../store/files.js'
+import { useSidebarStore } from '../../store/sidebar.js'
 
 export default {
 	name: 'AppFilesTab',
@@ -29,7 +30,11 @@ export default {
 	},
 	setup() {
 		const filesStore = useFilesStore()
-		return { filesStore }
+		const sidebarStore = useSidebarStore()
+		return {
+			filesStore,
+			sidebarStore,
+		}
 	},
 	data() {
 		return {
@@ -60,6 +65,7 @@ export default {
 
 			await this.filesStore.addFile(pendingEnvelope)
 			this.filesStore.selectFile(pendingEnvelope.nodeId)
+			this.sidebarStore.activeRequestSignatureTab()
 			delete window.OCA.Libresign.pendingEnvelope
 
 			this.$nextTick(() => {
@@ -99,7 +105,6 @@ export default {
 
 		disconnectTitleObserver() {
 			if (this.sidebarTitleObserver) {
-				console.log('Disconnecting sidebar title observer')
 				this.sidebarTitleObserver.disconnect()
 				this.sidebarTitleObserver = null
 			}
@@ -112,7 +117,15 @@ export default {
 
 			this.disconnectTitleObserver()
 
-			if (this.filesStore.selectedNodeId === fileInfo.id) {
+			const fileId = await this.filesStore.selectFileByNodeId(fileInfo.id)
+			if (fileId) {
+				this.$nextTick(() => {
+					const titleElement = document.querySelector('.app-sidebar-header__mainname')
+					if (titleElement) {
+						titleElement.textContent = fileInfo.name
+						titleElement.setAttribute('title', fileInfo.name)
+					}
+				})
 				return
 			}
 
@@ -123,7 +136,8 @@ export default {
 					.replace(/\/\/$/, '/'),
 				signers: [],
 			})
-			this.filesStore.selectFile(fileInfo.id)
+			this.filesStore.selectFile(-fileInfo.id)
+			this.sidebarStore.activeRequestSignatureTab()
 
 			this.$nextTick(() => {
 				const titleElement = document.querySelector('.app-sidebar-header__mainname')
@@ -146,7 +160,7 @@ export default {
 			emit(`files:node:${eventType}`, resultToNode(result.data))
 		},
 
-		async handleLibreSignFileChangeWithNodeId(nodeId, eventType) {
+		async handleLibreSignFileChangeAtCurretntFolder() {
 			const client = getClient()
 			const propfindPayload = getDefaultPropfind()
 			const rootPath = getRootPath()
@@ -169,7 +183,7 @@ export default {
 			if (path) {
 				await this.handleLibreSignFileChangeWithPath(path, eventType)
 			} else if (nodeId) {
-				await this.handleLibreSignFileChangeWithNodeId(nodeId, eventType)
+				await this.handleLibreSignFileChangeAtCurretntFolder()
 			}
 		},
 

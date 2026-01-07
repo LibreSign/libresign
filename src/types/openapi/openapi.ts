@@ -604,6 +604,23 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/thumbnail/file_id/{fileId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Return the thumbnail of a LibreSign file by fileId */
+        get: operations["file-get-thumbnail-by-file-id"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/file": {
         parameters: {
             query?: never;
@@ -2706,8 +2723,10 @@ export interface operations {
                 length?: number | null;
                 /** @description Signer UUID */
                 signer_uuid?: string | null;
+                /** @description The list of fileIds (database file IDs). It's the ids of LibreSign files */
+                "fileIds[]"?: number[] | null;
                 /** @description The list of nodeIds (also called fileIds). It's the ids of files at Nextcloud */
-                "nodeIds[]"?: string[] | null;
+                "nodeIds[]"?: number[] | null;
                 /** @description Status could be none or many of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted. */
                 "status[]"?: number[] | null;
                 /** @description Start date of signature request (UNIX timestamp) */
@@ -2776,6 +2795,96 @@ export interface operations {
                 apiVersion: "v1";
                 /** @description The nodeId of document */
                 nodeId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+            /** @description Redirect */
+            303: {
+                headers: {
+                    Location?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: unknown;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "file-get-thumbnail-by-file-id": {
+        parameters: {
+            query?: {
+                /** @description Width of generated file */
+                x?: number;
+                /** @description Height of generated file */
+                y?: number;
+                /** @description Crop, boolean value, default false */
+                a?: 0 | 1;
+                /** @description Force to generate a new thumbnail */
+                forceIcon?: 0 | 1;
+                /** @description To force a given mimetype for the file */
+                mode?: string;
+                /** @description If we have no preview enabled, we can redirect to the mime icon if any */
+                mimeFallback?: 0 | 1;
+            };
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description The LibreSign fileId (database id) */
+                fileId: number;
             };
             cookie?: never;
         };
