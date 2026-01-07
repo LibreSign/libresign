@@ -192,6 +192,7 @@ OC.L10N.register(
     "Select your file" : "Valitse tiedostosi",
     "URL of a PDF file" : "PDF-tiedoston URL-osoite",
     "Send" : "Lähetä",
+    "Create" : "Luo",
     "Previous" : "Edellinen",
     "Next" : "Seuraava",
     "Account does not exist" : "Tiliä ei ole olemassa",

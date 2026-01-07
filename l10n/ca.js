@@ -166,6 +166,7 @@ OC.L10N.register(
     "Choose from Files" : "Tria a Fitxers",
     "Select your file" : "Selecciona el fitxer",
     "Send" : "Envia",
+    "Create" : "Crea",
     "Previous" : "Anterior",
     "Next" : "Següent",
     "Searching …" : "S'està cercant…",

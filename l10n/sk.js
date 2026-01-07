@@ -206,6 +206,7 @@ OC.L10N.register(
     "Select your file" : "Vyberte váš súbor",
     "URL of a PDF file" : "URL pre PDF súbor",
     "Send" : "Odoslať",
+    "Create" : "Vytvoriť",
     "Previous" : "Predchádzajúce",
     "Next" : "Ďalšie",
     "Searching …" : "Hľadá sa…",

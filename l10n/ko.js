@@ -142,6 +142,7 @@ OC.L10N.register(
     "Choose from Files" : "파일에서 선택",
     "Select your file" : "파일 선택",
     "Send" : "전송",
+    "Create" : "생성",
     "Previous" : "이전",
     "Next" : "다음",
     "Searching …" : "검색 중...",

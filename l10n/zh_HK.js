@@ -301,6 +301,7 @@ OC.L10N.register(
     "Select your file" : "選擇您的檔案",
     "URL of a PDF file" : "PDF 檔案的 URL",
     "Send" : "傳送",
+    "Create" : "創建",
     "Previous" : "上一步",
     "Next" : "下一個檔案",
     "Account does not exist" : "帳戶不存在",

@@ -47,6 +47,7 @@ OC.L10N.register(
     "Upload failed" : "Upload fejlede",
     "Choose from Files" : "Vælg fra Filer",
     "Send" : "Send",
+    "Create" : "Opret",
     "Previous" : "Tidligere",
     "Next" : "Næste",
     "Searching …" : "Søger …",

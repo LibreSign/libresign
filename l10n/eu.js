@@ -165,6 +165,7 @@ OC.L10N.register(
     "Choose from Files" : "Aukeratu Fitxategiak-etik",
     "Select your file" : "Aukeratu zure fitxategia",
     "Send" : "Bidali",
+    "Create" : "Sortu",
     "Previous" : "Aurrekoa",
     "Next" : "Hurrengoa",
     "Searching …" : "Bilatzen…",

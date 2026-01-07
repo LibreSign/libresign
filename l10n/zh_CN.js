@@ -145,6 +145,7 @@ OC.L10N.register(
     "Choose from Files" : "从文件选择",
     "Select your file" : "选择你的文件",
     "Send" : "发送",
+    "Create" : "创建",
     "Previous" : "上一个",
     "Next" : "下一个",
     "Searching …" : "正在搜索 ...",

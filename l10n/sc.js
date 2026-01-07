@@ -94,6 +94,7 @@ OC.L10N.register(
     "Upload failed" : "Carrigamentu faddidu",
     "Choose from Files" : "Sèbera dae Archìvios",
     "Select your file" : "Seletziona is archìvios tuos",
+    "Create" : "Crea",
     "Previous" : "Pretzedente",
     "Next" : "Imbeniente",
     "Searching …" : "Chirchende …",

@@ -187,6 +187,7 @@ OC.L10N.register(
     "Select your file" : "Izbor datoteke",
     "URL of a PDF file" : "Naslov URL do datoteke PDF",
     "Send" : "Pošlji",
+    "Create" : "Ustvari",
     "Previous" : "Predhodni",
     "Next" : "Naslednji",
     "Searching …" : "Poteka iskanje ...",

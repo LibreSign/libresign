@@ -68,6 +68,7 @@ OC.L10N.register(
     "Choose" : "Pilih",
     "Upload failed" : "Gagal mengunggah",
     "Send" : "Kirim",
+    "Create" : "Buat",
     "Previous" : "Sebelumnya",
     "Next" : "Berikutnya",
     "No recommendations. Start typing." : "Tidak ada saran. Mulai mengetik.",

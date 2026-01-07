@@ -147,6 +147,7 @@ OC.L10N.register(
     "Select your file" : "Выберите свой файл",
     "URL of a PDF file" : "URL-адрес PDF-файла",
     "Send" : "Отправить",
+    "Create" : "Создать",
     "Previous" : "Назад",
     "Next" : "Далее",
     "Searching …" : "Поиск…",

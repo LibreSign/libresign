@@ -169,6 +169,7 @@ OC.L10N.register(
     "Choose from Files" : "Válasszon a Fájlokból",
     "Select your file" : "Válassza ki a fájlját",
     "Send" : "Küldés",
+    "Create" : "Létrehozás",
     "Previous" : "Előző",
     "Next" : "Következő",
     "Searching …" : "Keresés…",

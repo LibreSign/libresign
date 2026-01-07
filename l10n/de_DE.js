@@ -301,6 +301,7 @@ OC.L10N.register(
     "Select your file" : "Wählen Sie Ihre Datei",
     "URL of a PDF file" : "URL einer PDF-Datei",
     "Send" : "Senden",
+    "Create" : "Erstellen",
     "Previous" : "Vorheriges",
     "Next" : "Nächste",
     "Account does not exist" : "Konto existiert nicht",

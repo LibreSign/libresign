@@ -40,6 +40,7 @@ OC.L10N.register(
     "Upload failed" : "Tải lên thất bại",
     "Choose from Files" : "Chọn từ Tệp",
     "Send" : "Gửi",
+    "Create" : "Tạo",
     "Previous" : "Trước",
     "Next" : "Tiếp theo",
     "Searching …" : "Đang tìm kiếm ...",

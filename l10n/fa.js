@@ -155,6 +155,7 @@ OC.L10N.register(
     "Choose from Files" : "Choose from Files",
     "Select your file" : "Select your file",
     "Send" : "ارسال",
+    "Create" : "ایجاد",
     "Previous" : "قبلی",
     "Next" : "بعدی",
     "Searching …" : "جستجوکردن …",

@@ -37,6 +37,7 @@ OC.L10N.register(
     "Choose" : "เลือก",
     "Upload failed" : "อัปโหลดล้มเหลว",
     "Send" : "ส่ง",
+    "Create" : "สร้าง",
     "Previous" : "ก่อนหน้า",
     "Next" : "ถัดไป",
     "Searching …" : "กำลังค้นหา …",

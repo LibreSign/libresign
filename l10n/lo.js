@@ -240,6 +240,7 @@ OC.L10N.register(
     "Select your file" : "ເລືອກໄຟລ໌ຂອງທ່ານ",
     "URL of a PDF file" : "URL ຂອງໄຟລ໌ PDF",
     "Send" : "ສົ່ງ",
+    "Create" : "ສ້າງ",
     "Previous" : "ກ່ອນໜ້າ",
     "Next" : "ຖັດໄປ",
     "Account does not exist" : "ບັນຊີບໍ່ມີຢູ່",

@@ -45,6 +45,7 @@ OC.L10N.register(
     "Choose" : "Velja",
     "Upload failed" : "Innsending mistókst",
     "Send" : "Senda",
+    "Create" : "Búa til",
     "Previous" : "Fyrra",
     "Next" : "Næsta",
     "Searching …" : "Leita …",
