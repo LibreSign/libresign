@@ -57,10 +57,10 @@ export default {
 			return this.selectionStore.selected
 		},
 		isSelected() {
-			return this.selectedFiles.includes(this.source.nodeId)
+			return this.selectedFiles.includes(this.source.id)
 		},
 		index() {
-			return this.filesStore.ordered.findIndex(nodeId => Number(nodeId) === this.source.nodeId)
+			return this.filesStore.ordered.findIndex(key => Number(key) === this.source.id)
 		},
 		ariaLabel() {
 			return t('libresign', 'Toggle selection for file "{displayName}"', { displayName: this.source.basename })
@@ -77,7 +77,7 @@ export default {
 
 			// Get the last selected and select all files in between
 			if (this.keyboardStore?.shiftKey && lastSelectedIndex !== null) {
-				const isAlreadySelected = this.selectedFiles.includes(this.source.nodeId)
+				const isAlreadySelected = this.selectedFiles.includes(this.source.id)
 
 				const start = Math.min(newSelectedIndex, lastSelectedIndex)
 				const end = Math.max(lastSelectedIndex, newSelectedIndex)
@@ -88,15 +88,15 @@ export default {
 
 				// If already selected, update the new selection _without_ the current file
 				const selection = [...new Set([...lastSelection, ...filesToSelect])]
-					.filter(nodeId => !isAlreadySelected || nodeId !== this.source.nodeId)
+					.filter(key => !isAlreadySelected || key !== this.source.id)
 				// Keep previous lastSelectedIndex to be use for further shift selections
 				this.selectionStore.set(selection)
 				return
 			}
 
 			const selection = selected
-				? [...this.selectedFiles, this.source.nodeId]
-				: this.selectedFiles.filter(nodeId => nodeId !== this.source.nodeId)
+				? [...this.selectedFiles, this.source.id]
+				: this.selectedFiles.filter(key => key !== this.source.id)
 
 			logger.debug('Updating selection', { selection })
 			this.selectionStore.set(selection)
