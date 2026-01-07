@@ -1024,7 +1024,14 @@ class SignFileService {
 			$children = $this->fileMapper->getChildrenFiles($fileData->getId());
 			$files = [];
 			foreach ($children as $child) {
-				$file = $this->root->getUserFolder($child->getUserId())->getFirstNodeById($child->getNodeId());
+				$nodeId = $child->getNodeId();
+				if ($nodeId === null) {
+					throw new LibresignException(json_encode([
+						'action' => JSActions::ACTION_DO_NOTHING,
+						'errors' => [['message' => $this->l10n->t('File not found')]],
+					]), AppFrameworkHttp::STATUS_NOT_FOUND);
+				}
+				$file = $this->root->getUserFolder($child->getUserId())->getFirstNodeById($nodeId);
 				if ($file instanceof File) {
 					$files[] = $file;
 				}
@@ -1032,7 +1039,14 @@ class SignFileService {
 			return $files;
 		}
 
-		$fileToSign = $this->root->getUserFolder($fileData->getUserId())->getFirstNodeById($fileData->getNodeId());
+		$nodeId = $fileData->getNodeId();
+		if ($nodeId === null) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [['message' => $this->l10n->t('File not found')]],
+			]), AppFrameworkHttp::STATUS_NOT_FOUND);
+		}
+		$fileToSign = $this->root->getUserFolder($fileData->getUserId())->getFirstNodeById($nodeId);
 		if (!$fileToSign instanceof File) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
@@ -1050,7 +1064,14 @@ class SignFileService {
 			$children = $this->fileMapper->getChildrenFiles($fileData->getId());
 			$result = [];
 			foreach ($children as $child) {
-				$file = $this->root->getUserFolder($child->getUserId())->getFirstNodeById($child->getNodeId());
+				$nodeId = $child->getNodeId();
+				if ($nodeId === null) {
+					throw new LibresignException(json_encode([
+						'action' => JSActions::ACTION_DO_NOTHING,
+						'errors' => [['message' => $this->l10n->t('File not found')]],
+					]), AppFrameworkHttp::STATUS_NOT_FOUND);
+				}
+				$file = $this->root->getUserFolder($child->getUserId())->getFirstNodeById($nodeId);
 				if ($file instanceof File) {
 					$result[] = $child;
 				}
@@ -1058,7 +1079,14 @@ class SignFileService {
 			return $result;
 		}
 
-		$fileToSign = $this->root->getUserFolder($fileData->getUserId())->getFirstNodeById($fileData->getNodeId());
+		$nodeId = $fileData->getNodeId();
+		if ($nodeId === null) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [['message' => $this->l10n->t('File not found')]],
+			]), AppFrameworkHttp::STATUS_NOT_FOUND);
+		}
+		$fileToSign = $this->root->getUserFolder($fileData->getUserId())->getFirstNodeById($nodeId);
 		if (!$fileToSign instanceof File) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
