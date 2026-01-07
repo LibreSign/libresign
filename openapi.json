@@ -4307,6 +4307,19 @@
                         }
                     },
                     {
+                        "name": "fileIds[]",
+                        "in": "query",
+                        "description": "The list of fileIds (database file IDs). It's the ids of LibreSign files",
+                        "schema": {
+                            "type": "array",
+                            "nullable": true,
+                            "items": {
+                                "type": "integer",
+                                "format": "int64"
+                            }
+                        }
+                    },
+                    {
                         "name": "nodeIds[]",
                         "in": "query",
                         "description": "The list of nodeIds (also called fileIds). It's the ids of files at Nextcloud",
@@ -4314,7 +4327,8 @@
                             "type": "array",
                             "nullable": true,
                             "items": {
-                                "type": "string"
+                                "type": "integer",
+                                "format": "int64"
                             }
                         }
                     },
@@ -4474,6 +4488,233 @@
                         "name": "nodeId",
                         "in": "path",
                         "description": "The nodeId of document",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "default": -1
+                        }
+                    },
+                    {
+                        "name": "x",
+                        "in": "query",
+                        "description": "Width of generated file",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "default": 32
+                        }
+                    },
+                    {
+                        "name": "y",
+                        "in": "query",
+                        "description": "Height of generated file",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "default": 32
+                        }
+                    },
+                    {
+                        "name": "a",
+                        "in": "query",
+                        "description": "Crop, boolean value, default false",
+                        "schema": {
+                            "type": "integer",
+                            "default": 0,
+                            "enum": [
+                                0,
+                                1
+                            ]
+                        }
+                    },
+                    {
+                        "name": "forceIcon",
+                        "in": "query",
+                        "description": "Force to generate a new thumbnail",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "enum": [
+                                0,
+                                1
+                            ]
+                        }
+                    },
+                    {
+                        "name": "mode",
+                        "in": "query",
+                        "description": "To force a given mimetype for the file",
+                        "schema": {
+                            "type": "string",
+                            "default": "fill"
+                        }
+                    },
+                    {
+                        "name": "mimeFallback",
+                        "in": "query",
+                        "description": "If we have no preview enabled, we can redirect to the mime icon if any",
+                        "schema": {
+                            "type": "integer",
+                            "default": 0,
+                            "enum": [
+                                0,
+                                1
+                            ]
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "303": {
+                        "description": "Redirect",
+                        "headers": {
+                            "Location": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/thumbnail/file_id/{fileId}": {
+            "get": {
+                "operationId": "file-get-thumbnail-by-file-id",
+                "summary": "Return the thumbnail of a LibreSign file by fileId",
+                "tags": [
+                    "file"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "fileId",
+                        "in": "path",
+                        "description": "The LibreSign fileId (database id)",
                         "required": true,
                         "schema": {
                             "type": "integer",
