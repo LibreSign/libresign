@@ -29,13 +29,20 @@ Vue.use(PiniaVuePlugin)
 const pinia = createPinia()
 
 const isEnabled = function(fileInfo) {
-	if (fileInfo?.isDirectory() || !loadState('libresign', 'certificate_ok')) {
+	if (!loadState('libresign', 'certificate_ok')) {
 		return false
 	}
 
 	window.OCA.Libresign.fileInfo = fileInfo
 
-	const mimetype = fileInfo.get('mimetype') || ''
+	const attrs = fileInfo.get?.('attributes') ?? fileInfo.attributes
+	const hasLibreSignStatus = attrs?.['libresign-signature-status'] !== undefined
+	const isDir = fileInfo.isDirectory?.() ?? (fileInfo.type === 'folder')
+	if (isDir && hasLibreSignStatus) {
+		return true
+	}
+
+	const mimetype = fileInfo.get?.('mimetype') ?? fileInfo.mimetype ?? ''
 	if (mimetype === 'application/pdf') {
 		return true
 	}
