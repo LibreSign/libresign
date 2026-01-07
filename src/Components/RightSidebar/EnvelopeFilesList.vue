@@ -509,15 +509,9 @@ export default {
 			this.nameHelperText = ''
 
 			try {
-				const url = generateOcsUrl('/apps/libresign/api/v1/request-signature')
+				const success = await this.filesStore.rename(this.envelope.uuid, newName)
 
-				const response = await axios.patch(url, {
-					uuid: this.envelopeUuid,
-					name: newName,
-				})
-
-				if (response.data?.ocs?.meta?.status === 'ok') {
-					this.envelope.name = newName
+				if (success) {
 					this.nameUpdateSuccess = true
 					this.nameHelperText = this.t('libresign', 'Saved')
 					setTimeout(() => {
