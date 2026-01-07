@@ -25,7 +25,7 @@ export const useFilesStore = function(...args) {
 		state: () => {
 			return {
 				files: {},
-				selectedNodeId: 0,
+				selectedFileId: 0,
 				identifyingSigner: false,
 				loading: false,
 				canRequestSign: loadState('libresign', 'can_request_sign', false),
@@ -37,44 +37,64 @@ export const useFilesStore = function(...args) {
 
 		actions: {
 			async addFile(file) {
-				if (!file.nodeId) {
-					console.warn('[LibreSign] File must have nodeId:', file)
+				if (!file.id && !file.nodeId) {
+					console.warn('[LibreSign] File must have id or nodeId:', file)
 					return
 				}
 
-				const nodeId = file.nodeId
+				const key = file.id || (file.nodeId ? -file.nodeId : null)
 				const fileData = file
 
 				if (fileData.signers) {
 					this.addUniqueIdentifierToAllSigners(fileData.signers)
 				}
 
-				const existingFile = this.files[nodeId]
+				const existingFile = this.files[key]
 				if (existingFile?.settings) {
 					fileData.settings = { ...existingFile.settings, ...fileData.settings }
 				}
 
-				set(this.files, nodeId, fileData)
+				set(this.files, key, fileData)
 
-				if (!this.ordered.includes(nodeId)) {
-					this.ordered.push(nodeId)
+				if (!this.ordered.includes(key)) {
+					this.ordered.push(key)
 				}
 			},
-			selectFile(nodeId) {
-				this.selectedNodeId = nodeId ?? 0
-				if (this.selectedNodeId === 0) {
+			selectFile(fileId) {
+				this.selectedFileId = fileId ?? 0
+				if (this.selectedFileId === 0) {
 					const signStore = useSignStore()
 					signStore.reset()
 					return
 				}
-				const sidebarStore = useSidebarStore()
-				sidebarStore.activeRequestSignatureTab()
 			},
-			getNodeIdByFileId(fileId) {
-				if (!fileId) return null
-				for (const [nodeId, file] of Object.entries(this.files)) {
-					if (file.id === fileId) {
-						return parseInt(nodeId)
+			async selectFileByNodeId(nodeId) {
+				let fileId = this.getFileIdByNodeId(nodeId)
+
+				if (!fileId || fileId < 0) {
+					const files = await this.getAllFiles({
+						'nodeIds[]': [nodeId],
+						force_fetch: true,
+					})
+
+					for (const [key, file] of Object.entries(files)) {
+						this.addFile(file)
+						fileId = file.id
+						break
+					}
+				}
+
+				if (!fileId) {
+					return null
+				}
+
+				this.selectFile(fileId)
+				return fileId
+			},
+			getFileIdByNodeId(nodeId) {
+				for (const [key, file] of Object.entries(this.files)) {
+					if (file.nodeId === nodeId) {
+						return file.id || key
 					}
 				}
 				return null
@@ -83,13 +103,18 @@ export const useFilesStore = function(...args) {
 				if (typeof file === 'object' && file !== null) {
 					return file
 				}
-				return this.files[this.selectedNodeId] || emptyFile
+				return this.files[this.selectedFileId] || emptyFile
 			},
 			async flushSelectedFile() {
 				const files = await this.getAllFiles({
-					'nodeIds[]': [this.selectedNodeId],
+					'fileIds[]': [this.selectedFileId],
 				})
-				this.addFile(files[this.selectedNodeId])
+				for (const [key, file] of Object.entries(files)) {
+					if (parseInt(key) === this.selectedFileId) {
+						this.addFile(file)
+						break
+					}
+				}
 			},
 			async addFilesToEnvelope(envelopeUuid, formData, options = {}) {
 				return await axios.post(
@@ -107,8 +132,8 @@ export const useFilesStore = function(...args) {
 						const addedFiles = data.ocs.data.files || []
 						const newFilesCount = data.ocs.data.filesCount || 0
 
-						if (this.selectedNodeId && this.files[this.selectedNodeId]) {
-							set(this.files[this.selectedNodeId], 'filesCount', newFilesCount)
+						if (this.selectedFileId && this.files[this.selectedFileId]) {
+							set(this.files[this.selectedFileId], 'filesCount', newFilesCount)
 						}
 
 						return {
@@ -143,9 +168,9 @@ export const useFilesStore = function(...args) {
 
 				return await Promise.all(deletePromises)
 					.then(() => {
-						if (this.files[this.selectedNodeId] && this.files[this.selectedNodeId].filesCount) {
-							const newCount = Math.max(0, this.files[this.selectedNodeId].filesCount - fileIds.length)
-							set(this.files[this.selectedNodeId], 'filesCount', newCount)
+						if (this.files[this.selectedFileId] && this.files[this.selectedFileId].filesCount) {
+							const newCount = Math.max(0, this.files[this.selectedFileId].filesCount - fileIds.length)
+							set(this.files[this.selectedFileId], 'filesCount', newCount)
 						}
 
 						const isSingle = fileIds.length === 1
@@ -173,7 +198,7 @@ export const useFilesStore = function(...args) {
 			},
 			hasSigners(file) {
 				file = this.getFile(file)
-				if (this.selectedNodeId === 0) {
+				if (this.selectedFileId <= 0) {
 					return false
 				}
 				if (!Object.hasOwn(file, 'signers')) {
@@ -250,7 +275,7 @@ export const useFilesStore = function(...args) {
 					&& file?.signers?.length > 0
 			},
 			getSubtitle() {
-				if (this.selectedNodeId === 0) {
+				if (this.selectedFileId <= 0) {
 					return ''
 				}
 				const file = this.getFile()
@@ -301,7 +326,7 @@ export const useFilesStore = function(...args) {
 					signer.signingOrder = maxOrder + 1
 				}
 				this.getFile().signers.push(signer)
-				const selected = this.selectedNodeId
+				const selected = this.selectedFileId
 				this.selectFile(-1) // to force reactivity
 				this.selectFile(selected) // to force reactivity
 			},
@@ -317,13 +342,13 @@ export const useFilesStore = function(...args) {
 				}
 
 				set(
-					this.files[this.selectedNodeId],
+					this.files[this.selectedFileId],
 					'signers',
-					this.files[this.selectedNodeId].signers.filter((i) => i.identify !== signer.identify),
+					this.files[this.selectedFileId].signers.filter((i) => i.identify !== signer.identify),
 				)
 
 				if (file.signatureFlow === 'ordered_numeric' && signer.signingOrder) {
-					this.files[this.selectedNodeId].signers.forEach((s) => {
+					this.files[this.selectedFileId].signers.forEach((s) => {
 						if (s.signingOrder && s.signingOrder > signer.signingOrder) {
 							s.signingOrder -= 1
 						}
@@ -337,19 +362,19 @@ export const useFilesStore = function(...args) {
 						? '/apps/libresign/api/v1/file/file_id/{fileId}'
 						: '/apps/libresign/api/v1/sign/file_id/{fileId}'
 					const params = deleteFile ? { deleteFile: true } : {}
-					const nodeId = file.nodeId
+					const fileId = file.id
 					await axios.delete(generateOcsUrl(url, {
-						fileId: file.id,
+						fileId: fileId,
 					}), { params })
 						.then(async () => {
-							if (this.selectedNodeId === file.nodeId) {
+							if (this.selectedFileId === fileId) {
 								const sidebarStore = useSidebarStore()
 								sidebarStore.hideSidebar()
-								this.selectedNodeId = 0
+								this.selectedFileId = 0
 							}
 
-							del(this.files, file.nodeId)
-							const index = this.ordered.indexOf(file.nodeId)
+							del(this.files, fileId)
+							const index = this.ordered.indexOf(fileId)
 							if (index > -1) {
 								this.ordered.splice(index, 1)
 							}
@@ -357,10 +382,10 @@ export const useFilesStore = function(...args) {
 				}
 
 			},
-			async deleteMultiple(nodeIds, deleteFile) {
+			async deleteMultiple(fileIds, deleteFile) {
 				this.loading = true
-				for (const nodeId of nodeIds) {
-					await this.delete(this.files[nodeId], deleteFile)
+				for (const fileId of fileIds) {
+					await this.delete(this.files[fileId], deleteFile)
 				}
 				this.loading = false
 			},
@@ -372,9 +397,9 @@ export const useFilesStore = function(...args) {
 				})
 					.then((response) => {
 						if (response.data?.ocs?.meta?.status === 'ok') {
-							const nodeId = Object.keys(this.files).find(id => this.files[id].uuid === uuid)
-							if (nodeId && this.files[nodeId]) {
-								this.files[nodeId].name = newName
+							const fileId = Object.keys(this.files).find(key => this.files[key].uuid === uuid)
+							if (fileId && this.files[fileId]) {
+								this.files[fileId].name = newName
 							}
 							return true
 						}
@@ -491,10 +516,10 @@ export const useFilesStore = function(...args) {
 					identificationDocumentStore.setWaitingApproval(response.data.ocs.data.settings.identificationDocumentsWaitingApproval)
 				}
 
-				if (this.selectedNodeId && !this.files[this.selectedNodeId]) {
+				if (this.selectedFileId && !this.files[this.selectedFileId]) {
 					const sidebarStore = useSidebarStore()
 					sidebarStore.hideSidebar()
-					this.selectedNodeId = 0
+					this.selectedFileId = 0
 				}
 
 				this.loading = false
@@ -509,7 +534,8 @@ export const useFilesStore = function(...args) {
 			filesSorted() {
 				return this.ordered.map(key => this.files[key])
 			},
-			async saveOrUpdateSignatureRequest({ visibleElements = [], signers = null, uuid = null, fileId = null, status = 0, signatureFlow = null } = {}) {
+			async saveOrUpdateSignatureRequest({ visibleElements = [], signers = null, uuid = null, status = 0, signatureFlow = null } = {}) {
+				const currentFileKey = this.selectedFileId
 				const file = this.getFile()
 
 				let flowValue = signatureFlow || file.signatureFlow
@@ -520,10 +546,10 @@ export const useFilesStore = function(...args) {
 
 				const config = {
 					url: generateOcsUrl('/apps/libresign/api/v1/request-signature'),
-					method: uuid || file.uuid ? 'patch' : 'post',
+					method: uuid || file.id ? 'patch' : 'post',
 					data: {
 						name: file?.name,
-						users: signers || file.signers || [],
+						users: signers || file?.signers || [],
 						visibleElements,
 						status,
 						signatureFlow: flowValue,
@@ -532,7 +558,7 @@ export const useFilesStore = function(...args) {
 
 				if (uuid || file.uuid) {
 					config.data.uuid = uuid || file.uuid
-				} else if (file.id) {
+				} else if (file.id && file.id > 0) {
 					config.data.file = { fileId: file.id }
 				} else if (file.files) {
 					config.data.files = file.files
@@ -552,26 +578,37 @@ export const useFilesStore = function(...args) {
 				const responseFile = data?.ocs?.data
 
 				if (file.nodeType === 'envelope' && typeof file.nodeId === 'string' && responseFile.nodeId !== file.nodeId) {
-					delete this.files[file.nodeId]
-					const index = this.ordered.indexOf(file.nodeId)
+					delete this.files[this.selectedFileId]
+					const index = this.ordered.indexOf(this.selectedFileId)
 					if (index !== -1) {
 						this.ordered.splice(index, 1)
 					}
 				}
 
-				if (responseFile.nodeId) {
-					const nodeId = responseFile.nodeId
-					const existingFile = this.files[file.nodeId] || this.files[nodeId]
+				let newFileKey = responseFile.id
+				if (this.selectedFileId !== null && this.selectedFileId !== newFileKey) {
+					if (this.selectedFileId < 0 && this.files[this.selectedFileId]) {
+						delete this.files[this.selectedFileId]
+						const index = this.ordered.indexOf(this.selectedFileId)
+						if (index !== -1) {
+							this.ordered[index] = newFileKey
+						}
+						this.selectedFileId = newFileKey
+					}
+				}
+
+				if (file.id) {
+					const existingFile = this.files[newFileKey]
 					if (existingFile?.settings) {
 						responseFile.settings = { ...existingFile.settings, ...responseFile.settings }
 					}
-					set(this.files, nodeId, responseFile)
-					this.addUniqueIdentifierToAllSigners(this.files[nodeId].signers)
-					if (!this.ordered.includes(nodeId)) {
-						this.ordered.push(nodeId)
+					set(this.files, newFileKey, responseFile)
+					this.addUniqueIdentifierToAllSigners(this.files[newFileKey].signers)
+					if (!this.ordered.includes(newFileKey)) {
+						this.ordered.push(newFileKey)
 					}
-					if (this.selectedNodeId === file.nodeId) {
-						this.selectedNodeId = nodeId
+					if (this.selectedFileId === currentFileKey) {
+						this.selectedFileId = newFileKey
 					}
 				} else {
 					this.addFile(responseFile)

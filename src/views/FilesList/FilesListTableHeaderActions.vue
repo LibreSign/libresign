@@ -176,8 +176,10 @@ export default {
 			}
 		},
 		changeLoadingStatusOfSelectedFiles(status) {
-			this.selectionStore.selected.forEach(nodeId => {
-				this.filesStore.files[nodeId].loading = status
+			this.selectionStore.selected.forEach(key => {
+				if (this.filesStore.files[key]) {
+					this.filesStore.files[key].loading = status
+				}
 			})
 		},
 	},
