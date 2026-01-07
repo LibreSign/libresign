@@ -1631,7 +1631,7 @@ export type components = {
         };
         FileListItem: {
             /** Format: int64 */
-            nodeId: number;
+            nodeId: number | null;
             uuid: string;
             name: string;
             /** Format: int64 */

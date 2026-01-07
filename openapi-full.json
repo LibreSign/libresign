@@ -617,7 +617,8 @@
                 "properties": {
                     "nodeId": {
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int64",
+                        "nullable": true
                     },
                     "uuid": {
                         "type": "string"

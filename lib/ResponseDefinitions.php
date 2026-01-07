@@ -240,9 +240,9 @@ namespace OCA\Libresign;
  *     visibleElements?: LibresignVisibleElement[],
  * }
  * @psalm-type LibresignFileListItem = array{
- *     nodeId: int,
+ *     nodeId: ?int,
  *     uuid: string,
- *     name: string,
+ *     name: non-falsy-string,
  *     status: int,
  *     statusText: string,
  * }
