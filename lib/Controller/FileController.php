@@ -246,7 +246,8 @@ class FileController extends AEnvironmentAwareController {
 	 * List identification documents that need to be approved
 	 *
 	 * @param string|null $signer_uuid Signer UUID
-	 * @param list<string>|null $nodeIds The list of nodeIds (also called fileIds). It's the ids of files at Nextcloud
+	 * @param list<int>|null $fileIds The list of fileIds (database file IDs). It's the ids of LibreSign files
+	 * @param list<int>|null $nodeIds The list of nodeIds (also called fileIds). It's the ids of files at Nextcloud
 	 * @param list<int>|null $status Status could be none or many of 0 = draft, 1 = able to sign, 2 = partial signed, 3 = signed, 4 = deleted.
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
@@ -266,6 +267,7 @@ class FileController extends AEnvironmentAwareController {
 		?int $page = null,
 		?int $length = null,
 		?string $signer_uuid = null,
+		?array $fileIds = null,
 		?array $nodeIds = null,
 		?array $status = null,
 		?int $start = null,
@@ -276,6 +278,7 @@ class FileController extends AEnvironmentAwareController {
 	): DataResponse {
 		$filter = array_filter([
 			'signer_uuid' => $signer_uuid,
+			'fileIds' => $fileIds,
 			'nodeIds' => $nodeIds,
 			'status' => $status,
 			'start' => $start,
@@ -333,6 +336,64 @@ class FileController extends AEnvironmentAwareController {
 
 		try {
 			$libreSignFile = $this->fileMapper->getByNodeId($nodeId);
+			if ($libreSignFile->getUserId() !== $this->userSession->getUser()->getUID()) {
+				return new DataResponse([], Http::STATUS_FORBIDDEN);
+			}
+
+			if ($libreSignFile->getNodeType() === 'envelope') {
+				if ($mimeFallback) {
+					$url = $this->mimeIconProvider->getMimeIconUrl('folder');
+					if ($url) {
+						return new RedirectResponse($url);
+					}
+				}
+				return new DataResponse([], Http::STATUS_NOT_FOUND);
+			}
+
+			$node = $this->accountService->getPdfByUuid($libreSignFile->getUuid());
+		} catch (DoesNotExistException) {
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
+		}
+
+		return $this->fetchPreview($node, $x, $y, $a, $forceIcon, $mode, $mimeFallback);
+	}
+
+	/**
+	 * Return the thumbnail of a LibreSign file by fileId
+	 *
+	 * @param integer $fileId The LibreSign fileId (database id)
+	 * @param integer $x Width of generated file
+	 * @param integer $y Height of generated file
+	 * @param boolean $a Crop, boolean value, default false
+	 * @param boolean $forceIcon Force to generate a new thumbnail
+	 * @param string $mode To force a given mimetype for the file
+	 * @param boolean $mimeFallback If we have no preview enabled, we can redirect to the mime icon if any
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
+	 *
+	 * 200: OK
+	 * 303: Redirect
+	 * 400: Bad request
+	 * 403: Forbidden
+	 * 404: Not found
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/thumbnail/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
+	public function getThumbnailByFileId(
+		int $fileId = -1,
+		int $x = 32,
+		int $y = 32,
+		bool $a = false,
+		bool $forceIcon = true,
+		string $mode = 'fill',
+		bool $mimeFallback = false,
+	) {
+		if ($fileId === -1 || $x === 0 || $y === 0) {
+			return new DataResponse([], Http::STATUS_BAD_REQUEST);
+		}
+
+		try {
+			$libreSignFile = $this->fileMapper->getById($fileId);
 			if ($libreSignFile->getUserId() !== $this->userSession->getUser()->getUID()) {
 				return new DataResponse([], Http::STATUS_FORBIDDEN);
 			}

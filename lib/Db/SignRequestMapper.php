@@ -612,7 +612,15 @@ class SignRequestMapper extends QBMapper {
 			}
 			if (!empty($filter['nodeIds'])) {
 				$qb->andWhere(
-					$qb->expr()->in('f.node_id', $qb->createNamedParameter($filter['nodeIds'], IQueryBuilder::PARAM_STR_ARRAY))
+					$qb->expr()->orX(
+						$qb->expr()->in('f.node_id', $qb->createNamedParameter($filter['nodeIds'], IQueryBuilder::PARAM_INT_ARRAY)),
+						$qb->expr()->in('f.signed_node_id', $qb->createNamedParameter($filter['nodeIds'], IQueryBuilder::PARAM_INT_ARRAY))
+					)
+				);
+			}
+			if (!empty($filter['fileIds'])) {
+				$qb->andWhere(
+					$qb->expr()->in('f.id', $qb->createNamedParameter($filter['fileIds'], IQueryBuilder::PARAM_INT_ARRAY))
 				);
 			}
 			if (!empty($filter['status'])) {
