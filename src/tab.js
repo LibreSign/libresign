@@ -41,6 +41,8 @@ function mapNodeToFileInfo(node = {}) {
 		id: node.fileid || node.id,
 		name,
 		path: dirname,
+		type: node.type,
+		attributes: node.attributes,
 		isDirectory() {
 			return node.type === FileType.Folder || node.type === FileType.Collection || node.type === 'folder'
 		},
@@ -130,6 +132,11 @@ function isEnabled(context) {
 	const isFolder = node.type === FileType.Folder || node.type === FileType.Collection || node.type === 'folder'
 
 	if (isFolder) {
+		const hasLibreSignStatus = node.attributes?.['libresign-signature-status'] !== undefined
+		if (hasLibreSignStatus) {
+			window.OCA.Libresign.fileInfo = mapNodeToFileInfo(node)
+			return true
+		}
 		return false
 	}
 

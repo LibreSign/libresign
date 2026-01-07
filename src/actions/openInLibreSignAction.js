@@ -52,6 +52,10 @@ export const action = new FileAction({
 			return false
 		}
 
+		if (nodes.length === 1 && nodes[0].type === 'folder') {
+			return nodes[0].attributes?.['libresign-signature-status'] !== undefined
+		}
+
 		const allPdf = nodes.every(node => node.mime === 'application/pdf')
 		if (!allPdf) {
 			return false
@@ -65,7 +69,7 @@ export const action = new FileAction({
 	},
 
 	/**
-	 * Single file: open in sidebar
+	 * Single file or folder: open in sidebar
 	 */
 	async exec({ nodes }) {
 		const sidebar = getSidebar()
