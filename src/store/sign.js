@@ -48,10 +48,11 @@ export const useSignStore = defineStore('sign', {
 				signers: loadState('libresign', 'signers', []),
 			}
 			const filesStore = useFilesStore()
+			const sidebarStore = useSidebarStore()
 			await filesStore.addFile(file)
 			filesStore.selectFile(file.id)
 			this.setFileToSign(file)
-			this.sidebarStore.activeSignTab()
+			sidebarStore.activeSignTab()
 		},
 		setFileToSign(file) {
 			if (file) {
