@@ -63,18 +63,10 @@ export const useFilesStore = function(...args) {
 			},
 			async addFile(file) {
 				if (!file.id && !file.nodeId) {
-					console.warn('[LibreSign] File must have id or nodeId:', file)
 					return
 				}
 
-				let key
-				if (file.id) {
-					key = file.id
-				} else if (file.nodeId !== undefined && file.nodeId !== null) {
-					key = typeof file.nodeId === 'number' ? -file.nodeId : String(file.nodeId)
-				} else {
-					key = null
-				}
+				let key = file.id ?? null
 				const fileData = file
 
 				if (fileData.signers) {
@@ -306,6 +298,9 @@ export const useFilesStore = function(...args) {
 					&& !this.isFullSigned(file)
 					&& file?.signers?.length > 0
 			},
+			isTemporaryId(id) {
+				return id < 0 || (typeof id === 'string' && id.startsWith('envelope_'))
+			},
 			getSubtitle() {
 				if (this.selectedFileId <= 0) {
 					return ''
@@ -422,6 +417,7 @@ export const useFilesStore = function(...args) {
 							const fileId = Object.keys(this.files).find(key => this.files[key].uuid === uuid)
 							if (fileId && this.files[fileId]) {
 								this.files[fileId].name = newName
+								emit('libresign:envelope:renamed', { uuid, name: newName })
 							}
 							return true
 						}
@@ -596,8 +592,21 @@ export const useFilesStore = function(...args) {
 					}
 				}
 
-				const { data } = await axios(config)
-				const responseFile = data?.ocs?.data
+				let response = await axios(config)
+					.catch((error) => {
+						const message = error.response?.data?.ocs?.data?.message || 'Failed to save or update signature request'
+						return {
+							success: false,
+							message,
+							error,
+						}
+					})
+
+				if (response?.success === false) {
+					return response
+				}
+
+				const responseFile = response.data?.ocs?.data
 
 				if (file.nodeType === 'envelope' && typeof file.nodeId === 'string' && responseFile.nodeId !== file.nodeId) {
 					delete this.files[this.selectedFileId]
@@ -609,7 +618,7 @@ export const useFilesStore = function(...args) {
 
 				let newFileKey = responseFile.id
 				if (this.selectedFileId !== null && this.selectedFileId !== newFileKey) {
-					if (this.selectedFileId < 0 && this.files[this.selectedFileId]) {
+					if (this.isTemporaryId(this.selectedFileId) && this.files[this.selectedFileId]) {
 						delete this.files[this.selectedFileId]
 						const index = this.ordered.indexOf(this.selectedFileId)
 						if (index !== -1) {
@@ -640,7 +649,7 @@ export const useFilesStore = function(...args) {
 					path: responseFile.settings?.path,
 					nodeId: responseFile.nodeId,
 				})
-				return data.ocs.data
+				return responseFile
 			},
 		},
 	})
