@@ -41,11 +41,13 @@ export default {
 			sidebarTitleObserver: null,
 			unsubscribeCreated: null,
 			unsubscribeUpdated: null,
+			unsubscribeDeleted: null,
 		}
 	},
 	mounted() {
 		this.unsubscribeCreated = subscribe('libresign:file:created', this.handleLibreSignFileCreated)
 		this.unsubscribeUpdated = subscribe('libresign:file:updated', this.handleLibreSignFileUpdated)
+		this.unsubscribeDeleted = subscribe('files:node:deleted', this.handleFilesNodeDeleted)
 	},
 	beforeUnmount() {
 		this.disconnectTitleObserver()
@@ -54,6 +56,9 @@ export default {
 		}
 		if (this.unsubscribeUpdated) {
 			this.unsubscribeUpdated()
+		}
+		if (this.unsubscribeDeleted) {
+			this.unsubscribeDeleted()
 		}
 	},
 	methods: {
@@ -193,6 +198,17 @@ export default {
 
 		async handleLibreSignFileUpdated(payload) {
 			await this.handleLibreSignFileChange(payload, 'updated')
+		},
+
+		handleFilesNodeDeleted(node) {
+			const rawNodeId = node?.fileid ?? node?.id ?? node?.fileId ?? node?.nodeId
+			const nodeId = typeof rawNodeId === 'string' ? parseInt(rawNodeId, 10) : rawNodeId
+
+			if (!nodeId) {
+				return
+			}
+
+			this.filesStore.removeFileByNodeId(nodeId)
 		},
 	},
 }
