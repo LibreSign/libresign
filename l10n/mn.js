@@ -24,6 +24,7 @@ OC.L10N.register(
     "Upload failed" : "upload амжилтгүй болсон",
     "Choose from Files" : "Файлаас сонгох",
     "Send" : "илгээх",
+    "Create" : "үүсгэх",
     "Previous" : "өмнөх",
     "Next" : "дараагийх",
     "Saved" : "Хадгалах",

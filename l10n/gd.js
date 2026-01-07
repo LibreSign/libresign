@@ -26,6 +26,7 @@ OC.L10N.register(
     "Choose" : "Tagh",
     "Upload failed" : "Dh'fhàillig leis an luchdadh suas",
     "Send" : "Cuir",
+    "Create" : "Cruthaich",
     "Select all" : "Tagh na h-uile",
     "Close" : "Dùin",
     "Open sidebar" : "Fosgail am bàr-taoibh",

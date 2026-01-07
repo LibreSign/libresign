@@ -134,6 +134,7 @@ OC.L10N.register(
     "Choose from Files" : "Odaberi iz datoteka",
     "Select your file" : "Odaberite svoju datoteku",
     "Send" : "Pošaljite",
+    "Create" : "Stvori",
     "Previous" : "Natrag",
     "Next" : "Dalje",
     "Searching …" : "Traženje…",

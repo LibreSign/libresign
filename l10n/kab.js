@@ -24,6 +24,7 @@ OC.L10N.register(
     "Name" : "Nom",
     "Choose" : "Fren",
     "Send" : "Tuzna",
+    "Create" : "Snulfu-d",
     "Previous" : "Ɣer deffir",
     "Next" : "Uḍfir",
     "Searching …" : "Anadi …",

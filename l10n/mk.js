@@ -48,6 +48,7 @@ OC.L10N.register(
     "Upload failed" : "Прикачувањето не успеа",
     "Choose from Files" : "Избери од датотеките",
     "Send" : "Прати",
+    "Create" : "Креирај",
     "Previous" : "Предходна",
     "Next" : "Следна",
     "Searching …" : "Пребарување ...",

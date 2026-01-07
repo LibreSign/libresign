@@ -44,6 +44,7 @@ OC.L10N.register(
     "Upload failed" : "Envio falhou",
     "Choose from Files" : "Escolher a partir dos ficheiros",
     "Send" : "Enviar",
+    "Create" : "Criar",
     "Previous" : "Anterior",
     "Next" : "Seguinte",
     "Searching …" : "À procura …",

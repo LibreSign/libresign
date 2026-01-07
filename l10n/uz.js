@@ -32,6 +32,7 @@ OC.L10N.register(
     "Update" : "Update",
     "Choose" : "Choose",
     "Send" : "Yuborish",
+    "Create" : "Yaratish",
     "Previous" : "Oldingi",
     "Next" : "Keyingisi",
     "Searching …" : "Qidirilmoqda …",

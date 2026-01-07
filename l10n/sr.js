@@ -242,6 +242,7 @@ OC.L10N.register(
     "Select your file" : "Изаберите свој фајл",
     "URL of a PDF file" : "URL адреса PDF фајла",
     "Send" : "Пошаљи",
+    "Create" : "Креирање",
     "Previous" : "Претходно",
     "Next" : "Следећа",
     "Account does not exist" : "Налог не постоји",

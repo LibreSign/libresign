@@ -43,6 +43,7 @@ OC.L10N.register(
     "Choose" : "Alege",
     "Upload failed" : "Încărcarea a eșuat",
     "Send" : "Trimite",
+    "Create" : "Crează",
     "Previous" : "Precedentul",
     "Next" : "Următorul",
     "Searching …" : "Căutare ...",

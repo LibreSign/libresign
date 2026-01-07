@@ -21,6 +21,7 @@ OC.L10N.register(
     "Update" : "යාවත්කාල",
     "Choose" : "තෝරන්න",
     "Send" : "යවන්න",
+    "Create" : "සාදන්න",
     "Previous" : "පෙර",
     "Next" : "ඊළඟ",
     "Select all" : "සියල්ල තෝරන්න",

@@ -41,6 +41,7 @@ OC.L10N.register(
     "Choose" : "Choose",
     "Upload failed" : "Upload failed",
     "Send" : "Send",
+    "Create" : "Create",
     "Previous" : "Previous",
     "Next" : "Next",
     "Searching …" : "Searching …",

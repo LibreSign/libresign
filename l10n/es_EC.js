@@ -157,6 +157,7 @@ OC.L10N.register(
     "Choose from Files" : "Elegir desde archivos",
     "Select your file" : "Selecciona tu archivo",
     "Send" : "Enviar",
+    "Create" : "Crear",
     "Previous" : "Previo",
     "Next" : "Siguiente",
     "Searching …" : "Buscando...",

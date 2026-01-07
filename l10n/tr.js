@@ -300,6 +300,7 @@ OC.L10N.register(
     "Select your file" : "Dosyanızı seçin",
     "URL of a PDF file" : "Bir PDF dosyasının adresi",
     "Send" : "Gönder",
+    "Create" : "Oluştur",
     "Previous" : "Önceki",
     "Next" : "Sonraki",
     "Account does not exist" : "Hesap bulunamadı",
