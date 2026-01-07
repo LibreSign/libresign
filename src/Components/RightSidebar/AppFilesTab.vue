@@ -42,12 +42,14 @@ export default {
 			unsubscribeCreated: null,
 			unsubscribeUpdated: null,
 			unsubscribeDeleted: null,
+			unsubscribeEnvelopeRenamed: null,
 		}
 	},
 	mounted() {
 		this.unsubscribeCreated = subscribe('libresign:file:created', this.handleLibreSignFileCreated)
 		this.unsubscribeUpdated = subscribe('libresign:file:updated', this.handleLibreSignFileUpdated)
 		this.unsubscribeDeleted = subscribe('files:node:deleted', this.handleFilesNodeDeleted)
+		this.unsubscribeEnvelopeRenamed = subscribe('libresign:envelope:renamed', this.handleEnvelopeRenamed)
 	},
 	beforeUnmount() {
 		this.disconnectTitleObserver()
@@ -60,8 +62,17 @@ export default {
 		if (this.unsubscribeDeleted) {
 			this.unsubscribeDeleted()
 		}
+		if (this.unsubscribeEnvelopeRenamed) {
+			this.unsubscribeEnvelopeRenamed()
+		}
 	},
 	methods: {
+		handleEnvelopeRenamed({ uuid, name }) {
+			const current = this.filesStore.getFile()
+			if (current?.uuid && current.uuid === uuid) {
+				this.updateSidebarTitle(name)
+			}
+		},
 		async checkAndLoadPendingEnvelope() {
 			const pendingEnvelope = window.OCA?.Libresign?.pendingEnvelope
 			if (!pendingEnvelope) {
@@ -69,7 +80,7 @@ export default {
 			}
 
 			await this.filesStore.addFile(pendingEnvelope)
-			this.filesStore.selectFile(pendingEnvelope.nodeId)
+			this.filesStore.selectFile(pendingEnvelope.id)
 			this.sidebarStore.activeRequestSignatureTab()
 			delete window.OCA.Libresign.pendingEnvelope
 
@@ -135,6 +146,7 @@ export default {
 			}
 
 			await this.filesStore.addFile({
+				id: -fileInfo.id,
 				nodeId: fileInfo.id,
 				name: fileInfo.name,
 				file: generateRemoteUrl(`dav/files/${getCurrentUser()?.uid}/${fileInfo.path + '/' + fileInfo.name}`)
