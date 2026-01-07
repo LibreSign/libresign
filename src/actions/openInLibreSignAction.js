@@ -96,7 +96,7 @@ export const action = new FileAction({
 		const envelopePath = normalizedDir ? `${normalizedDir}/${envelopeName}` : `/${envelopeName}`
 
 		window.OCA.Libresign.pendingEnvelope = {
-			nodeId: `envelope_${Date.now()}`,
+			id: `envelope_${Date.now()}`,
 			nodeType: 'envelope',
 			name: envelopeName,
 			settings: {
