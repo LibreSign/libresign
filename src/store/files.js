@@ -42,7 +42,14 @@ export const useFilesStore = function(...args) {
 					return
 				}
 
-				const key = file.id || (file.nodeId ? -file.nodeId : null)
+				let key
+				if (file.id) {
+					key = file.id
+				} else if (file.nodeId !== undefined && file.nodeId !== null) {
+					key = typeof file.nodeId === 'number' ? -file.nodeId : String(file.nodeId)
+				} else {
+					key = null
+				}
 				const fileData = file
 
 				if (fileData.signers) {
