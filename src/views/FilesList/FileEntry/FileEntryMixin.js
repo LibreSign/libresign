@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+import { useSidebarStore } from '../../../store/sidebar.js'
+
 export default {
 	props: {
 		source: {
@@ -21,10 +23,10 @@ export default {
 
 		openedMenu: {
 			get() {
-				return this.actionsMenuStore.opened === this.source.nodeId
+				return this.actionsMenuStore.opened === this.source.id
 			},
 			set(opened) {
-				this.actionsMenuStore.opened = opened ? this.source.nodeId : null
+				this.actionsMenuStore.opened = opened ? this.source.id : null
 			},
 		},
 
@@ -61,7 +63,7 @@ export default {
 				return
 			}
 
-			this.actionsMenuStore.opened = this.source.nodeId
+			this.actionsMenuStore.opened = this.source.id
 
 			// Prevent any browser defaults
 			event.preventDefault()
@@ -78,7 +80,9 @@ export default {
 		openDetailsIfAvailable(event) {
 			event.preventDefault()
 			event.stopPropagation()
-			this.filesStore.selectFile(this.source.nodeId)
+			this.filesStore.selectFile(this.source.id)
+			const sidebarStore = useSidebarStore()
+			sidebarStore.activeRequestSignatureTab()
 		},
 	},
 }

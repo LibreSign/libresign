@@ -122,6 +122,7 @@ import UploadProgress from '../UploadProgress.vue'
 
 import { useActionsMenuStore } from '../../store/actionsmenu.js'
 import { useFilesStore } from '../../store/files.js'
+import { useSidebarStore } from '../../store/sidebar.js'
 
 export default {
 	name: 'RequestPicker',
@@ -150,9 +151,11 @@ export default {
 	setup() {
 		const actionsMenuStore = useActionsMenuStore()
 		const filesStore = useFilesStore()
+		const sidebarStore = useSidebarStore()
 		return {
 			actionsMenuStore,
 			filesStore,
+			sidebarStore,
 		}
 	},
 	data() {
@@ -278,6 +281,7 @@ export default {
 			})
 				.then((nodeId) => {
 					this.filesStore.selectFile(nodeId)
+					this.sidebarStore.activeRequestSignatureTab()
 				})
 				.catch((error) => {
 					if (error.code === 'ERR_CANCELED') {
@@ -338,6 +342,7 @@ export default {
 			})
 				.then((nodeId) => {
 					this.filesStore.selectFile(nodeId)
+					this.sidebarStore.activeRequestSignatureTab()
 					this.closeModalUploadFromUrl()
 				})
 				.catch(({ response }) => {
@@ -373,6 +378,7 @@ export default {
 					})
 						.then((nodeId) => {
 							this.filesStore.selectFile(nodeId)
+							this.sidebarStore.activeRequestSignatureTab()
 						})
 						.catch(({ response }) => {
 							showError(response?.data?.ocs?.data?.message || this.t('libresign', 'Upload failed'))
@@ -395,6 +401,7 @@ export default {
 			})
 				.then((nodeId) => {
 					this.filesStore.selectFile(nodeId)
+					this.sidebarStore.activeRequestSignatureTab()
 				})
 				.catch(({ response }) => {
 					showError(response.data.ocs.data.message)
