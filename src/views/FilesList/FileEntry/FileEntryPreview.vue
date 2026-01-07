@@ -70,9 +70,13 @@ export default {
 			}
 
 			let previewUrl = ''
-			if (this.source?.uuid?.length > 0) {
+			if (this.source?.nodeId) {
 				previewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
 					nodeId: this.source.nodeId,
+				})
+			} else if (this.source?.id) {
+				previewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/file_id/{fileId}', {
+					fileId: this.source.id,
 				})
 			} else {
 				previewUrl = window.location.origin + generateUrl('/core/preview?fileId={fileid}', {

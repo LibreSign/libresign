@@ -38,7 +38,6 @@ export const useSignStore = defineStore('sign', {
 
 			const file = {
 				id: loadState('libresign', 'id', 0),
-				nodeId: loadState('libresign', 'nodeId', 0),
 				name: loadState('libresign', 'filename', ''),
 				description: loadState('libresign', 'description', ''),
 				status: loadState('libresign', 'status', ''),
@@ -48,10 +47,11 @@ export const useSignStore = defineStore('sign', {
 				uuid: loadState('libresign', 'uuid', null),
 				signers: loadState('libresign', 'signers', []),
 			}
-			this.setFileToSign(file)
 			const filesStore = useFilesStore()
 			await filesStore.addFile(file)
-			filesStore.selectedNodeId = file.nodeId
+			filesStore.selectFile(file.id)
+			this.setFileToSign(file)
+			this.sidebarStore.activeSignTab()
 		},
 		setFileToSign(file) {
 			if (file) {
