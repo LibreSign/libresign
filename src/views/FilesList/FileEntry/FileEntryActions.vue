@@ -145,6 +145,8 @@ export default {
 		},
 		boundariesElement() {
 			return document.querySelector('.app-content > .files-list')
+				|| document.querySelector('.app-content')
+				|| document.body
 		},
 	},
 	mounted() {
