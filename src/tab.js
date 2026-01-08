@@ -9,7 +9,7 @@ import Vue from 'vue'
 import { loadState } from '@nextcloud/initial-state'
 import { translate, translatePlural } from '@nextcloud/l10n'
 
-import AppFilesTab from './Components/RightSidebar/AppFilesTab.vue'
+import AppFilesTab from './components/RightSidebar/AppFilesTab.vue'
 
 import './actions/openInLibreSignAction.js'
 import './actions/showStatusInlineAction.js'

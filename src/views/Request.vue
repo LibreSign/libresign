@@ -22,8 +22,8 @@
 	</div>
 </template>
 <script>
-import File from '../Components/File/File.vue'
-import ReqestPicker from '../Components/Request/RequestPicker.vue'
+import File from '../components/File/File.vue'
+import ReqestPicker from '../components/Request/RequestPicker.vue'
 
 import { useFilesStore } from '../store/files.js'
 import { useSidebarStore } from '../store/sidebar.js'
