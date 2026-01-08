@@ -376,6 +376,19 @@ class FileService {
 		$this->signersLoader->loadLibreSignSigners($this->file, $this->fileData, $this->options, $this->certData);
 	}
 
+	private function loadSignRequestUrl(): void {
+		if (empty($this->fileData->signers) || !is_array($this->fileData->signers)) {
+			return;
+		}
+
+		foreach ($this->fileData->signers as $signer) {
+			if (!empty($signer['me']) && isset($signer['sign_uuid'])) {
+				$this->fileData->url = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signer['sign_uuid']]);
+				return;
+			}
+		}
+	}
+
 	private function loadFileMetadata(): void {
 		$this->metadataLoader->loadMetadata($this->file, $this->fileData);
 	}
@@ -531,6 +544,7 @@ class FileService {
 		$this->loadFileMetadata();
 		$this->loadSettings();
 		$this->loadSigners();
+		$this->loadSignRequestUrl();
 		$this->loadMessages();
 		$this->computeEnvelopeSignersProgress();
 
