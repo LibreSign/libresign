@@ -70,6 +70,13 @@ class TwofactorGateway extends AbstractIdentifyMethod {
 		return $gateway->isComplete();
 	}
 
+	private function getGatewayName(): string {
+		return match ($this->getId()) {
+			'whatsapp' => 'gowhatsapp',
+			default => strtolower($this->getId()),
+		};
+	}
+
 	public function getSettings(): array {
 		if (!empty($this->settings)) {
 			return $this->settings;
