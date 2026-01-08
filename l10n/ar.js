@@ -205,6 +205,7 @@ OC.L10N.register(
     "Select your file" : "حدد الملف الخاص بك",
     "URL of a PDF file" : "عنوان URL لملف PDF",
     "Send" : "أرسِل",
+    "Create" : "إنشاء",
     "Previous" : "السابق",
     "Next" : "التالي",
     "Searching …" : "البحث جارٍ …",
