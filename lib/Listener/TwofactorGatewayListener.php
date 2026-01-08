@@ -159,7 +159,8 @@ class TwofactorGatewayListener implements IEventListener {
 
 			/** @var Factory */
 			$gatewayFactory = Server::get(Factory::class);
-			$gateway = $gatewayFactory->get(strtolower($entity->getIdentifierKey()));
+			$gatewayName = $this->getGatewayName($entity->getIdentifierKey());
+			$gateway = $gatewayFactory->get($gatewayName);
 			try {
 				$gateway->send($identifier, $message);
 			} catch (Exception $e) {
