@@ -350,6 +350,11 @@ class SignFileService {
 			} catch (LibresignException|Exception $e) {
 				$this->cleanupUnsignedSignedFile();
 				$this->recordSignatureAttempt($e);
+
+				$isEnvelope = $this->libreSignFile->isEnvelope() || $this->libreSignFile->hasParent();
+				if (!$isEnvelope) {
+					throw $e;
+				}
 				continue;
 			}
 
