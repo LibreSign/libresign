@@ -12,7 +12,7 @@ import { FileType, registerSidebarTab } from '@nextcloud/files'
 
 import LibreSignLogoDarkSvg from '../img/app-dark.svg?raw'
 
-import AppFilesTab from './Components/RightSidebar/AppFilesTab.vue'
+import AppFilesTab from './components/RightSidebar/AppFilesTab.vue'
 
 import './actions/openInLibreSignAction.js'
 import './actions/showStatusInlineAction.js'

@@ -157,7 +157,7 @@ import NcRichText from '@nextcloud/vue/components/NcRichText'
 
 import EmailManager from './ModalEmailManager.vue'
 import TokenManager from './ModalTokenManager.vue'
-import Draw from '../../../Components/Draw/Draw.vue'
+import Draw from '../../../components/Draw/Draw.vue'
 import Documents from '../../../views/Account/partials/Documents.vue'
 import Signatures from '../../../views/Account/partials/Signatures.vue'
 import CreatePassword from '../../../views/CreatePassword.vue'
