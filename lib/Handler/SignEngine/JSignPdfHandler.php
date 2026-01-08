@@ -479,33 +479,46 @@ class JSignPdfHandler extends Pkcs12Handler {
 			return $jSignPDF->sign();
 		} catch (\Throwable $th) {
 			$errorMessage = $th->getMessage();
-			$rows = str_getcsv($errorMessage);
 
-			$tsaError = array_filter($rows, fn ($r) => str_contains((string)$r, 'Invalid TSA'));
-			if (!empty($tsaError)) {
-				$tsaErrorMsg = current($tsaError);
-				if (preg_match("/Invalid TSA '([^']+)'/", $tsaErrorMsg, $matches)) {
-					$friendlyMessage = 'Timestamp Authority (TSA) service is unavailable or misconfigured.' . "\n"
-						. 'Please check the TSA configuration.';
-				} else {
-					$friendlyMessage = 'Timestamp Authority (TSA) service error.' . "\n"
-						. 'Please check the TSA configuration.';
-				}
-				throw new LibresignException($friendlyMessage);
-			}
-
-			// Check for hash algorithm errors
-			$hashAlgorithm = array_filter($rows, fn ($r) => str_contains((string)$r, 'The chosen hash algorithm'));
-			if (!empty($hashAlgorithm)) {
-				$hashAlgorithm = current($hashAlgorithm);
-				$hashAlgorithm = trim((string)$hashAlgorithm, 'INFO ');
-				$hashAlgorithm = str_replace('\"', '"', $hashAlgorithm);
-				$hashAlgorithm = preg_replace('/\.( )/', ".\n", $hashAlgorithm);
-				throw new LibresignException($hashAlgorithm);
-			}
+			$this->checkTsaError($errorMessage);
+			$this->checkHashAlgorithmError($errorMessage);
 
 			$this->logger->error('Error at JSignPdf side. LibreSign can not do nothing. Follow the error message: ' . $errorMessage);
 			throw new \Exception($errorMessage);
+		}
+	}
+
+	private function checkTsaError(string $errorMessage): void {
+		$tsaErrors = ['TSAClientBouncyCastle', 'UnknownHostException', 'Invalid TSA', 'Creating of signature failed'];
+		$isTsaError = false;
+		foreach ($tsaErrors as $error) {
+			if (str_contains($errorMessage, $error)) {
+				$isTsaError = true;
+				break;
+			}
+		}
+
+		if ($isTsaError) {
+			if (str_contains($errorMessage, 'Invalid TSA') && preg_match("/Invalid TSA '([^']+)'/", $errorMessage, $matches)) {
+				$friendlyMessage = 'Timestamp Authority (TSA) service is unavailable or misconfigured: ' . $matches[1];
+			} else {
+				$friendlyMessage = 'Timestamp Authority (TSA) service error.' . "\n"
+					. 'Please check the TSA configuration.';
+			}
+			throw new LibresignException($friendlyMessage);
+		}
+	}
+
+	private function checkHashAlgorithmError(string $errorMessage): void {
+		$rows = str_getcsv($errorMessage);
+		$hashAlgorithm = array_filter($rows, fn ($r) => str_contains((string)$r, 'The chosen hash algorithm'));
+		
+		if (!empty($hashAlgorithm)) {
+			$hashAlgorithm = current($hashAlgorithm);
+			$hashAlgorithm = trim((string)$hashAlgorithm, 'INFO ');
+			$hashAlgorithm = str_replace('\"', '"', $hashAlgorithm);
+			$hashAlgorithm = preg_replace('/\.( )/', ".\n", $hashAlgorithm);
+			throw new LibresignException($hashAlgorithm);
 		}
 	}
 }
