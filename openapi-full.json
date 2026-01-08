@@ -860,6 +860,9 @@
                     "file": {
                         "type": "string"
                     },
+                    "url": {
+                        "type": "string"
+                    },
                     "metadata": {
                         "$ref": "#/components/schemas/ValidateMetadata"
                     },
