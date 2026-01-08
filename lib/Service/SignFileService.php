@@ -335,13 +335,22 @@ class SignFileService {
 
 		foreach ($signRequests as $signRequestData) {
 			$this->libreSignFile = $signRequestData['file'];
+			if ($this->libreSignFile->getSignedHash()) {
+				continue;
+			}
 			$this->signRequest = $signRequestData['signRequest'];
 			$this->engine = null;
 			$this->elements = [];
 			$this->fileToSign = null;
 
 			$this->validateDocMdpAllowsSignatures();
-			$signedFile = $this->getEngine()->sign();
+
+			try {
+				$signedFile = $this->getEngine()->sign();
+			} catch (LibresignException | Exception $e) {
+				$this->recordSignatureAttempt($e);
+				continue;
+			}
 
 			$hash = $this->computeHash($signedFile);
 			$envelopeLastSignedDate = $this->getEngine()->getLastSignedDate();
@@ -1162,5 +1171,28 @@ class SignFileService {
 		}
 
 		return $pdfUrls;
+	}
+
+	private function recordSignatureAttempt(Exception $exception): void {
+		if (!$this->libreSignFile) {
+			return;
+		}
+
+		$metadata = $this->libreSignFile->getMetadata() ?? [];
+
+		if (!isset($metadata['signature_attempts'])) {
+			$metadata['signature_attempts'] = [];
+		}
+
+		$attempt = [
+			'timestamp' => (new DateTime())->format(\DateTime::ATOM),
+			'engine' => get_class($this->engine),
+			'error_message' => $exception->getMessage(),
+			'error_code' => $exception->getCode(),
+		];
+
+		$metadata['signature_attempts'][] = $attempt;
+		$this->libreSignFile->setMetadata($metadata);
+		$this->fileMapper->update($this->libreSignFile);
 	}
 }
