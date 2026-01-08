@@ -69,6 +69,7 @@ class SignFileService {
 	private $elements = [];
 	private bool $signWithoutPassword = false;
 	private ?File $fileToSign = null;
+	private ?File $createdSignedFile = null;
 	private string $userUniqueIdentifier = '';
 	private string $friendlyName = '';
 	private ?IUser $user = null;
@@ -347,6 +348,7 @@ class SignFileService {
 			try {
 				$signedFile = $this->getEngine()->sign();
 			} catch (LibresignException|Exception $e) {
+				$this->cleanupUnsignedSignedFile();
 				$this->recordSignatureAttempt($e);
 				continue;
 			}
@@ -971,6 +973,20 @@ class SignFileService {
 		return $fileToSign;
 	}
 
+	private function cleanupUnsignedSignedFile(): void {
+		if (!$this->createdSignedFile instanceof File) {
+			return;
+		}
+
+		try {
+			$this->createdSignedFile->delete();
+		} catch (\Throwable $e) {
+			$this->logger->warning('Failed to delete temporary signed file: ' . $e->getMessage());
+		} finally {
+			$this->createdSignedFile = null;
+		}
+	}
+
 	private function createSignedFile(File $originalFile, string $content): File {
 		$filename = preg_replace(
 			'/' . $originalFile->getExtension() . '$/',
@@ -981,7 +997,8 @@ class SignFileService {
 		try {
 			/** @var \OCP\Files\Folder */
 			$parentFolder = $this->root->getUserFolder($owner)->getFirstNodeById($originalFile->getParentId());
-			return $parentFolder->newFile($filename, $content);
+			$this->createdSignedFile = $parentFolder->newFile($filename, $content);
+			return $this->createdSignedFile;
 		} catch (NotPermittedException) {
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
 		}
