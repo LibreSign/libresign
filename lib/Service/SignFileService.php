@@ -347,7 +347,7 @@ class SignFileService {
 
 			try {
 				$signedFile = $this->getEngine()->sign();
-			} catch (LibresignException | Exception $e) {
+			} catch (LibresignException|Exception $e) {
 				$this->recordSignatureAttempt($e);
 				continue;
 			}
