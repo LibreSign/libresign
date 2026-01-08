@@ -64,10 +64,17 @@ class TwofactorGateway extends AbstractIdentifyMethod {
 		/** @var Factory */
 		$gatewayFactory = Server::get(Factory::class);
 
-		$gatewayName = strtolower($this->getId());
+		$gatewayName = $this->getGatewayName();
 
 		$gateway = $gatewayFactory->get($gatewayName);
 		return $gateway->isComplete();
+	}
+
+	private function getGatewayName(): string {
+		return match ($this->getId()) {
+			'whatsapp' => 'gowhatsapp',
+			default => strtolower($this->getId()),
+		};
 	}
 
 	public function getSettings(): array {
