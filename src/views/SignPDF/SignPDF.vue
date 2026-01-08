@@ -105,7 +105,7 @@ export default {
 	},
 	methods: {
 		async initSignExternal() {
-			this.signStore.initFromState()
+			await this.signStore.initFromState()
 			if (!this.signStore.document.uuid) {
 				this.signStore.document.uuid = this.$route.params.uuid
 			}
