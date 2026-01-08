@@ -257,6 +257,7 @@ namespace OCA\Libresign;
  *     nodeType: 'file'|'envelope',
  *     created_at: string,
  *     file: string,
+ *     url?: string,
  *     metadata: LibresignValidateMetadata,
  *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
  *     visibleElements: LibresignVisibleElement[],
