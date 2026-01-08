@@ -71,7 +71,6 @@ class SignFileService {
 	private ?File $fileToSign = null;
 	private string $userUniqueIdentifier = '';
 	private string $friendlyName = '';
-	private array $signers = [];
 	private ?IUser $user = null;
 	private ?SignEngineHandler $engine = null;
 
@@ -669,18 +668,7 @@ class SignFileService {
 	 * @return SignRequestEntity[]
 	 */
 	protected function getSigners(): array {
-		if (empty($this->signers)) {
-			$this->signers = $this->signRequestMapper->getByFileId($this->signRequest->getFileId());
-			if ($this->signers) {
-				foreach ($this->signers as $key => $signer) {
-					if ($signer->getId() === $this->signRequest->getId()) {
-						$this->signers[$key] = $this->signRequest;
-						break;
-					}
-				}
-			}
-		}
-		return $this->signers;
+		return $this->signRequestMapper->getByFileId($this->signRequest->getFileId());
 	}
 
 	protected function setNewStatusIfNecessary(): bool {
