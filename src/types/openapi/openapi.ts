@@ -1269,6 +1269,7 @@ export type components = {
             nodeType: "file" | "envelope";
             created_at: string;
             file: string;
+            url?: string;
             metadata: components["schemas"]["ValidateMetadata"];
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
