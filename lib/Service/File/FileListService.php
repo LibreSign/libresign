@@ -389,11 +389,16 @@ class FileListService {
 		$visibleElementsData = $this->signRequestMapper->getVisibleElementsFromSigners($signersEntities);
 
 		$signers = [];
+		$signRequestUrl = null;
 		foreach ($signersEntities as $signer) {
 			if ($user) {
-				$signers[] = $this->formatSignerData($signer, $identifyMethods, $visibleElementsData, $metadata, $user);
+				$signerData = $this->formatSignerData($signer, $identifyMethods, $visibleElementsData, $metadata, $user);
+				$signers[] = $signerData;
+
+				if ($signRequestUrl === null && !empty($signerData['me']) && isset($signerData['sign_uuid'])) {
+					$signRequestUrl = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signerData['sign_uuid']]);
+				}
 			} else {
-				// If $user is null, still include basic signer data without method-specific info
 				$signers[] = $this->formatSignerDataBasic($signer, $identifyMethods, $visibleElementsData);
 			}
 		}
@@ -425,6 +430,10 @@ class FileListService {
 				'displayName' => $this->userManager->get($mainEntity->getUserId())?->getDisplayName() ?? $mainEntity->getUserId(),
 			],
 		];
+
+		if ($signRequestUrl !== null) {
+			$response['url'] = $signRequestUrl;
+		}
 
 		if ($mainEntity->getNodeType() === 'envelope') {
 			$response['filesCount'] = $filesCount;
