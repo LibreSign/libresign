@@ -512,7 +512,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 	private function checkHashAlgorithmError(string $errorMessage): void {
 		$rows = str_getcsv($errorMessage);
 		$hashAlgorithm = array_filter($rows, fn ($r) => str_contains((string)$r, 'The chosen hash algorithm'));
-		
+
 		if (!empty($hashAlgorithm)) {
 			$hashAlgorithm = current($hashAlgorithm);
 			$hashAlgorithm = trim((string)$hashAlgorithm, 'INFO ');
