@@ -46,6 +46,7 @@ OC.L10N.register(
     "Choose" : "Escoyer",
     "Upload failed" : "Xuba fallida",
     "Send" : "Unviar",
+    "Create" : "Crear",
     "Previous" : "Anterior",
     "Next" : "Siguiente",
     "Searching …" : "Buscando…",
