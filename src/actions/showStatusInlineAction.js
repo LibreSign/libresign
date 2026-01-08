@@ -17,11 +17,12 @@ const action = new FileAction({
 		if (!node) return ''
 
 		const signedNodeId = node.attributes['libresign-signed-node-id']
+		const status = fileStatus.find(status => status.id === node.attributes['libresign-signature-status'])
 
 		if (!signedNodeId || node.fileid === signedNodeId) {
-			const status = fileStatus.find(status => status.id === node.attributes['libresign-signature-status'])
 			return status?.label ?? ''
 		}
+
 		return t('libresign', 'original file')
 	},
 	exec: async ({ nodes }) => {
@@ -36,13 +37,14 @@ const action = new FileAction({
 		if (!node) return ''
 
 		const signedNodeId = node.attributes['libresign-signed-node-id']
+		const status = fileStatus.find(status => status.id === node.attributes['libresign-signature-status'])
 
 		if (!signedNodeId || node.fileid === signedNodeId) {
-			const status = fileStatus.find(status => status.id === node.attributes['libresign-signature-status'])
 			return status?.icon ?? ''
 		}
-		const ableToSignStatus = fileStatus.find(status => status.id === SIGN_STATUS.ABLE_TO_SIGN)
-		return ableToSignStatus?.icon ?? ''
+
+		const neutralFile = fileStatus.find(status => status.id === SIGN_STATUS.DRAFT)
+		return neutralFile?.icon ?? ''
 	},
 	inline: () => true,
 	enabled: ({ nodes }) => {
