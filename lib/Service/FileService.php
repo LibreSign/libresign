@@ -374,6 +374,7 @@ class FileService {
 			}
 		}
 		$this->signersLoader->loadLibreSignSigners($this->file, $this->fileData, $this->options, $this->certData);
+		$this->loadSignRequestUrl();
 	}
 
 	private function loadSignRequestUrl(): void {
@@ -544,7 +545,6 @@ class FileService {
 		$this->loadFileMetadata();
 		$this->loadSettings();
 		$this->loadSigners();
-		$this->loadSignRequestUrl();
 		$this->loadMessages();
 		$this->computeEnvelopeSignersProgress();
 
