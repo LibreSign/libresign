@@ -89,7 +89,7 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 
 import FilesListVirtual from './FilesListVirtual.vue'
-import RequestPicker from '../../Components/Request/RequestPicker.vue'
+import RequestPicker from '../../components/Request/RequestPicker.vue'
 
 import { useFilesStore } from '../../store/files.js'
 import { useFiltersStore } from '../../store/filters.js'
