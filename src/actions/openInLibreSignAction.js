@@ -7,7 +7,7 @@ import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
 import { spawnDialog } from '@nextcloud/vue/functions/dialog'
-import EditNameDialog from '../Components/Common/EditNameDialog.vue'
+import EditNameDialog from '../components/Common/EditNameDialog.vue'
 
 // eslint-disable-next-line import/no-unresolved
 import SvgIcon from '../../img/app-dark.svg?raw'

@@ -37,8 +37,8 @@
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcButton from '@nextcloud/vue/components/NcButton'
 
-import PdfEditor from '../../Components/PdfEditor/PdfEditor.vue'
-import TopBar from '../../Components/TopBar/TopBar.vue'
+import PdfEditor from '../../components/PdfEditor/PdfEditor.vue'
+import TopBar from '../../components/TopBar/TopBar.vue'
 
 import { loadState } from '@nextcloud/initial-state'
 import { useFilesStore } from '../../store/files.js'
