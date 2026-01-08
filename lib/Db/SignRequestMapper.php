@@ -157,9 +157,7 @@ class SignRequestMapper extends QBMapper {
 		/** @var SignRequest[] */
 		$signers = $this->findEntities($qb);
 		foreach ($signers as $signRequest) {
-			if (!isset($this->signers[$signRequest->getId()])) {
-				$this->signers[$signRequest->getId()] = $signRequest;
-			}
+			$this->signers[$signRequest->getId()] = $signRequest;
 		}
 		return $signers;
 	}
