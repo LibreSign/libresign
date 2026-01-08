@@ -63,7 +63,7 @@ class IdentifyMethodService {
 		private Signal $signal,
 		private Sms $sms,
 		private Telegram $telegram,
-		private Whatsapp $whatsapp,
+		private Whatsapp $Whatsapp,
 		private Xmpp $xmpp,
 	) {
 	}
@@ -282,8 +282,8 @@ class IdentifyMethodService {
 		if ($this->telegram->isTwofactorGatewayEnabled()) {
 			$this->identifyMethodsSettings[] = $this->telegram->getSettings();
 		}
-		if ($this->whatsapp->isTwofactorGatewayEnabled()) {
-			$this->identifyMethodsSettings[] = $this->whatsapp->getSettings();
+		if ($this->Whatsapp->isTwofactorGatewayEnabled()) {
+			$this->identifyMethodsSettings[] = $this->Whatsapp->getSettings();
 		}
 		if ($this->xmpp->isTwofactorGatewayEnabled()) {
 			$this->identifyMethodsSettings[] = $this->xmpp->getSettings();
