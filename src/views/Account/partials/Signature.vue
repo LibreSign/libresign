@@ -50,8 +50,8 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
 
-import Draw from '../../../Components/Draw/Draw.vue'
-import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'
+import Draw from '../../../components/Draw/Draw.vue'
+import PreviewSignature from '../../../components/PreviewSignature/PreviewSignature.vue'
 
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 

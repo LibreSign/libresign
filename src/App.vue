@@ -24,8 +24,8 @@ import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcContent from '@nextcloud/vue/components/NcContent'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 
-import LeftSidebar from './Components/LeftSidebar/LeftSidebar.vue'
-import RightSidebar from './Components/RightSidebar/RightSidebar.vue'
+import LeftSidebar from './components/LeftSidebar/LeftSidebar.vue'
+import RightSidebar from './components/RightSidebar/RightSidebar.vue'
 import DefaultPageError from './views/DefaultPageError.vue'
 
 import LogoLibreSign from './../img/logo-gray.svg'

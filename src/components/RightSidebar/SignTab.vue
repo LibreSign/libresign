@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import Chip from '../../Components/Chip.vue'
+import Chip from '../../components/Chip.vue'
 import Sign from '../../views/SignPDF/_partials/Sign.vue'
 
 import { SIGN_STATUS } from '../../domains/sign/enum.js'
