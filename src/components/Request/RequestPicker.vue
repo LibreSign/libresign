@@ -279,8 +279,8 @@ export default {
 					}
 				},
 			})
-				.then((nodeId) => {
-					this.filesStore.selectFile(nodeId)
+				.then((id) => {
+					this.filesStore.selectFile(id)
 					this.sidebarStore.activeRequestSignatureTab()
 				})
 				.catch((error) => {
@@ -340,8 +340,8 @@ export default {
 					url: this.pdfUrl,
 				},
 			})
-				.then((nodeId) => {
-					this.filesStore.selectFile(nodeId)
+				.then((id) => {
+					this.filesStore.selectFile(id)
 					this.sidebarStore.activeRequestSignatureTab()
 					this.closeModalUploadFromUrl()
 				})
@@ -376,8 +376,8 @@ export default {
 						files: filesPayload,
 						name: envelopeName.trim(),
 					})
-						.then((nodeId) => {
-							this.filesStore.selectFile(nodeId)
+						.then((id) => {
+							this.filesStore.selectFile(id)
 							this.sidebarStore.activeRequestSignatureTab()
 						})
 						.catch(({ response }) => {
@@ -399,8 +399,8 @@ export default {
 				},
 				name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
 			})
-				.then((nodeId) => {
-					this.filesStore.selectFile(nodeId)
+				.then((id) => {
+					this.filesStore.selectFile(id)
 					this.sidebarStore.activeRequestSignatureTab()
 				})
 				.catch(({ response }) => {

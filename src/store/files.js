@@ -460,7 +460,7 @@ export const useFilesStore = function(...args) {
 					path: fileData.settings?.path,
 					nodeId: fileData.nodeId,
 				})
-				return fileData.nodeId
+				return fileData.id
 			},
 			async getAllFiles(filter) {
 				if (this.loading || this.loadedAll) {
