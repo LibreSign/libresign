@@ -97,7 +97,8 @@ class TwofactorGatewayListener implements IEventListener {
 
 			/** @var Factory */
 			$gatewayFactory = Server::get(Factory::class);
-			$gateway = $gatewayFactory->get(strtolower($entity->getIdentifierKey()));
+			$gatewayName = $this->getGatewayName($entity->getIdentifierKey());
+			$gateway = $gatewayFactory->get($gatewayName);
 			try {
 				$gateway->send($identifier, $message);
 			} catch (Exception $e) {
@@ -111,6 +112,16 @@ class TwofactorGatewayListener implements IEventListener {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
 			return;
 		}
+	}
+
+	/**
+	 * @todo Make compatible with GoWhatsapp and WhatsApp gateways
+	 */
+	private function getGatewayName(string $identifierKey): string {
+		return match ($identifierKey) {
+			'whatsapp' => 'gowhatsapp',
+			default => strtolower($identifierKey),
+		};
 	}
 
 	protected function sendSignedNotification(
