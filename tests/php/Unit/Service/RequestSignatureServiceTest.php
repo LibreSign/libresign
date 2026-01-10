@@ -274,7 +274,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$statusService = new SignRequestStatusService($sequentialSigningService, $fileStatusService);
 
 		// File status is ABLE_TO_SIGN (1)
-		$fileStatus = \OCA\Libresign\Db\File::STATUS_ABLE_TO_SIGN;
+		$fileStatus = \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value;
 
 		// Signer status is DRAFT (0) - as sent by frontend
 		$signerStatus = \OCA\Libresign\Enum\SignRequestStatus::DRAFT->value;
@@ -307,7 +307,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$fileStatusService = $this->createMock(FileStatusService::class);
 		$statusService = new SignRequestStatusService($sequentialSigningService, $fileStatusService);
 
-		$fileStatus = \OCA\Libresign\Db\File::STATUS_ABLE_TO_SIGN;
+		$fileStatus = \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value;
 		$signerStatus = \OCA\Libresign\Enum\SignRequestStatus::DRAFT->value;
 
 		// First signer (order 1) should be ABLE_TO_SIGN

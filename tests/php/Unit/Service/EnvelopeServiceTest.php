@@ -11,6 +11,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\NodeType;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
@@ -55,7 +56,7 @@ final class EnvelopeServiceTest extends TestCase {
 
 		$envelope = $this->service->createEnvelope('Contract Package', 'testuser');
 
-		$this->assertSame(FileEntity::STATUS_DRAFT, $envelope->getStatus());
+		$this->assertSame(FileStatus::DRAFT->value, $envelope->getStatus());
 	}
 
 	public function testEnvelopeIsCreatedWithEnvelopeType(): void {
@@ -88,7 +89,7 @@ final class EnvelopeServiceTest extends TestCase {
 
 		$envelope = new FileEntity();
 		$envelope->setNodeTypeEnum(NodeType::ENVELOPE);
-		$envelope->setStatus(FileEntity::STATUS_ABLE_TO_SIGN);
+		$envelope->setStatus(FileStatus::ABLE_TO_SIGN->value);
 
 		$this->fileMapper->method('getById')->willReturn($envelope);
 
@@ -100,7 +101,7 @@ final class EnvelopeServiceTest extends TestCase {
 
 		$envelope = new FileEntity();
 		$envelope->setNodeTypeEnum(NodeType::ENVELOPE);
-		$envelope->setStatus(FileEntity::STATUS_DRAFT);
+		$envelope->setStatus(FileStatus::DRAFT->value);
 
 		$this->fileMapper->method('getById')->willReturn($envelope);
 		$this->fileMapper->method('countChildrenFiles')->willReturn(50);
@@ -113,7 +114,7 @@ final class EnvelopeServiceTest extends TestCase {
 		$envelope = new FileEntity();
 		$envelope->setId($envelopeId);
 		$envelope->setNodeTypeEnum(NodeType::ENVELOPE);
-		$envelope->setStatus(FileEntity::STATUS_DRAFT);
+		$envelope->setStatus(FileStatus::DRAFT->value);
 
 		$file = new FileEntity();
 
@@ -130,7 +131,7 @@ final class EnvelopeServiceTest extends TestCase {
 		$envelope = new FileEntity();
 		$envelope->setId(1);
 		$envelope->setNodeTypeEnum(NodeType::ENVELOPE);
-		$envelope->setStatus(FileEntity::STATUS_DRAFT);
+		$envelope->setStatus(FileStatus::DRAFT->value);
 
 		$file = new FileEntity();
 
@@ -241,7 +242,7 @@ final class EnvelopeServiceTest extends TestCase {
 		}
 
 		$this->assertTrue($envelope->isEnvelope());
-		$this->assertSame(FileEntity::STATUS_DRAFT, $envelope->getStatus());
+		$this->assertSame(FileStatus::DRAFT->value, $envelope->getStatus());
 	}
 
 	public static function envelopeCreationProvider(): array {

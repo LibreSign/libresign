@@ -6,8 +6,8 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\SequentialSigningService;
@@ -63,11 +63,11 @@ final class SignRequestStatusServiceTest extends \OCA\Libresign\Tests\Unit\TestC
 
 	public static function shouldNotifyScenarios(): array {
 		return [
-			[SignRequestStatus::ABLE_TO_SIGN, FileEntity::STATUS_ABLE_TO_SIGN, true, true, true],
-			[SignRequestStatus::ABLE_TO_SIGN, FileEntity::STATUS_DRAFT, false, true, false],
-			[SignRequestStatus::DRAFT, FileEntity::STATUS_ABLE_TO_SIGN, true, false, false],
-			[SignRequestStatus::SIGNED, FileEntity::STATUS_ABLE_TO_SIGN, true, false, false],
-			[SignRequestStatus::DRAFT, FileEntity::STATUS_DRAFT, false, false, false],
+			[SignRequestStatus::ABLE_TO_SIGN, FileStatus::ABLE_TO_SIGN->value, true, true, true],
+			[SignRequestStatus::ABLE_TO_SIGN, FileStatus::DRAFT->value, false, true, false],
+			[SignRequestStatus::DRAFT, FileStatus::ABLE_TO_SIGN->value, true, false, false],
+			[SignRequestStatus::SIGNED, FileStatus::ABLE_TO_SIGN->value, true, false, false],
+			[SignRequestStatus::DRAFT, FileStatus::DRAFT->value, false, false, false],
 			[SignRequestStatus::ABLE_TO_SIGN, null, false, true, false],
 		];
 	}
@@ -151,8 +151,8 @@ final class SignRequestStatusServiceTest extends \OCA\Libresign\Tests\Unit\TestC
 	}
 
 	public static function initialStatusScenarios(): array {
-		$draft = FileEntity::STATUS_DRAFT;
-		$able = FileEntity::STATUS_ABLE_TO_SIGN;
+		$draft = FileStatus::DRAFT->value;
+		$able = FileStatus::ABLE_TO_SIGN->value;
 		$draftStatus = SignRequestStatus::DRAFT;
 		$ableStatus = SignRequestStatus::ABLE_TO_SIGN;
 		$signedStatus = SignRequestStatus::SIGNED;

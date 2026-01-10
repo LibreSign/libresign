@@ -378,7 +378,7 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->addMethods(['getStatus', 'getSignedNodeId', 'getNodeId'])
 			->getMock();
 		$libresignFile->method('getUserId')->willReturn('user123');
-		$libresignFile->method('getStatus')->willReturn(\OCA\Libresign\Db\File::STATUS_SIGNED);
+		$libresignFile->method('getStatus')->willReturn(\OCA\Libresign\Enum\FileStatus::SIGNED->value);
 		$libresignFile->method('getSignedNodeId')->willReturn(123);
 		$this->fileMapper
 			->method('getByUuid')
@@ -402,7 +402,7 @@ final class IdDocsServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->addMethods(['getStatus', 'getSignedNodeId', 'getNodeId'])
 			->getMock();
 		$libresignFile->method('getUserId')->willReturn('user123');
-		$libresignFile->method('getStatus')->willReturn(\OCA\Libresign\Db\File::STATUS_DRAFT);
+		$libresignFile->method('getStatus')->willReturn(\OCA\Libresign\Enum\FileStatus::DRAFT->value);
 		$libresignFile->method('getNodeId')->willReturn(456);
 		$this->fileMapper
 			->method('getByUuid')

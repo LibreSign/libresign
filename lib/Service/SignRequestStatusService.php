@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
 
 class SignRequestStatusService {
@@ -46,11 +46,11 @@ class SignRequestStatusService {
 		?int $signerStatus = null,
 		?SignRequestStatus $currentStatus = null,
 	): SignRequestStatus {
-		if ($fileStatus === FileEntity::STATUS_DRAFT) {
+		if ($fileStatus === FileStatus::DRAFT->value) {
 			return SignRequestStatus::DRAFT;
 		}
 
-		if ($fileStatus === FileEntity::STATUS_ABLE_TO_SIGN) {
+		if ($fileStatus === FileStatus::ABLE_TO_SIGN->value) {
 			return $this->determineStatusForAbleToSignFile($signingOrder);
 		}
 

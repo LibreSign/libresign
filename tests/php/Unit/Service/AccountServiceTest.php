@@ -229,7 +229,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				=> match ($method) {
 					'getSignedNodeId' => 1,
 					'getNodeId' => 1,
-					'getStatus' => \OCA\Libresign\Db\File::STATUS_SIGNED,
+					'getStatus' => \OCA\Libresign\Enum\FileStatus::SIGNED->value,
 				}
 			);
 		$this->fileMapper
@@ -254,7 +254,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				=> match ($method) {
 					'getSignedNodeId' => 1,
 					'getNodeId' => 1,
-					'getStatus' => \OCA\Libresign\Db\File::STATUS_SIGNED,
+					'getStatus' => \OCA\Libresign\Enum\FileStatus::SIGNED->value,
 				}
 			);
 		$this->fileMapper
