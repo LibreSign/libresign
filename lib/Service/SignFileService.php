@@ -27,6 +27,7 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Events\SignedEventFactory;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
@@ -491,11 +492,11 @@ class SignFileService {
 		}
 
 		if ($totalSignRequests === 0) {
-			$envelope->setStatus(FileEntity::STATUS_DRAFT);
+			$envelope->setStatus(FileStatus::DRAFT->value);
 		} elseif ($signedSignRequests === 0) {
-			$envelope->setStatus(FileEntity::STATUS_ABLE_TO_SIGN);
+			$envelope->setStatus(FileStatus::ABLE_TO_SIGN->value);
 		} elseif ($signedSignRequests === $totalSignRequests) {
-			$envelope->setStatus(FileEntity::STATUS_SIGNED);
+			$envelope->setStatus(FileStatus::SIGNED->value);
 			if ($envelopeSignRequest instanceof SignRequestEntity) {
 				$envelopeSignRequest->setSigned($signedDate ?: new DateTime());
 				$envelopeSignRequest->setStatusEnum(\OCA\Libresign\Enum\SignRequestStatus::SIGNED);
@@ -508,7 +509,7 @@ class SignFileService {
 					);
 			}
 		} else {
-			$envelope->setStatus(FileEntity::STATUS_PARTIAL_SIGNED);
+			$envelope->setStatusEnum(FileStatus::PARTIAL_SIGNED);
 		}
 
 		$this->fileMapper->update($envelope);
@@ -701,11 +702,11 @@ class SignFileService {
 		$totalSigned = count(array_filter($signers, fn ($s) => $s->getSigned() !== null));
 
 		if ($totalSigned === $total) {
-			return FileEntity::STATUS_SIGNED;
+			return FileStatus::SIGNED->value;
 		}
 
 		if ($totalSigned > 0) {
-			return FileEntity::STATUS_PARTIAL_SIGNED;
+			return FileStatus::PARTIAL_SIGNED->value;
 		}
 
 		return null;

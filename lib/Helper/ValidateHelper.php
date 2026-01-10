@@ -23,6 +23,7 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -48,12 +49,6 @@ class ValidateHelper {
 	public const TYPE_VISIBLE_ELEMENT_PDF = 2;
 	public const TYPE_VISIBLE_ELEMENT_USER = 3;
 	public const TYPE_ACCOUNT_DOCUMENT = 4;
-
-	public const STATUS_DRAFT = 0;
-	public const STATUS_ABLE_TO_SIGN = 1;
-	public const STATUS_PARTIAL_SIGNED = 2;
-	public const STATUS_SIGNED = 3;
-	public const STATUS_DELETED = 4;
 	public const VALID_MIMETIPE = [
 		'application/pdf',
 		'image/png',
@@ -391,8 +386,8 @@ class ValidateHelper {
 
 	public function fileCanBeSigned(File $file): void {
 		$statusList = [
-			File::STATUS_ABLE_TO_SIGN,
-			File::STATUS_PARTIAL_SIGNED
+			FileStatus::ABLE_TO_SIGN->value,
+			FileStatus::PARTIAL_SIGNED->value
 		];
 		if (!in_array($file->getStatus(), $statusList)) {
 			$statusText = $this->fileMapper->getTextOfStatus($file->getStatus());
@@ -501,9 +496,9 @@ class ValidateHelper {
 	public function validateFileStatus(array $data): void {
 		if (array_key_exists('status', $data)) {
 			$validStatusList = [
-				File::STATUS_DRAFT,
-				File::STATUS_ABLE_TO_SIGN,
-				File::STATUS_DELETED
+				FileStatus::DRAFT->value,
+				FileStatus::ABLE_TO_SIGN->value,
+				FileStatus::DELETED->value
 			];
 			if (!in_array($data['status'], $validStatusList)) {
 				throw new LibresignException($this->l10n->t('Invalid status code for file.'));
@@ -518,13 +513,13 @@ class ValidateHelper {
 			}
 			if (isset($file)) {
 				if ($data['status'] > $file->getStatus()) {
-					if ($file->getStatus() >= File::STATUS_ABLE_TO_SIGN) {
-						if ($data['status'] !== File::STATUS_DELETED) {
+					if ($file->getStatus() >= FileStatus::ABLE_TO_SIGN->value) {
+						if ($data['status'] !== FileStatus::DELETED->value) {
 							throw new LibresignException($this->l10n->t('Sign process already started. Unable to change status.'));
 						}
 					}
 				}
-			} elseif ($data['status'] === File::STATUS_DELETED) {
+			} elseif ($data['status'] === FileStatus::DELETED->value) {
 				throw new LibresignException($this->l10n->t('Invalid status code for file.'));
 			}
 		}

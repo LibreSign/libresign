@@ -10,6 +10,7 @@ namespace OCA\Libresign\Service;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCP\AppFramework\Db\DoesNotExistException;
 
 class FileStatusService {
@@ -32,7 +33,7 @@ class FileStatusService {
 	}
 
 	public function canNotifySigners(?int $fileStatus): bool {
-		return $fileStatus === FileEntity::STATUS_ABLE_TO_SIGN;
+		return $fileStatus === FileStatus::ABLE_TO_SIGN->value;
 	}
 
 	public function propagateStatusToParent(int $parentId): void {
@@ -52,8 +53,8 @@ class FileStatusService {
 			return;
 		}
 
-		$minStatus = FileEntity::STATUS_SIGNED;
-		$maxStatus = FileEntity::STATUS_DRAFT;
+		$minStatus = FileStatus::SIGNED->value;
+		$maxStatus = FileStatus::DRAFT->value;
 
 		foreach ($children as $child) {
 			$status = $child->getStatus();
@@ -65,14 +66,14 @@ class FileStatusService {
 			}
 		}
 
-		$newStatus = FileEntity::STATUS_DRAFT;
+		$newStatus = FileStatus::DRAFT->value;
 
-		if ($minStatus === FileEntity::STATUS_SIGNED && $maxStatus === FileEntity::STATUS_SIGNED) {
-			$newStatus = FileEntity::STATUS_SIGNED;
-		} elseif ($maxStatus >= FileEntity::STATUS_PARTIAL_SIGNED) {
-			$newStatus = FileEntity::STATUS_PARTIAL_SIGNED;
-		} elseif ($maxStatus >= FileEntity::STATUS_ABLE_TO_SIGN) {
-			$newStatus = FileEntity::STATUS_ABLE_TO_SIGN;
+		if ($minStatus === FileStatus::SIGNED->value && $maxStatus === FileStatus::SIGNED->value) {
+			$newStatus = FileStatus::SIGNED->value;
+		} elseif ($maxStatus >= FileStatus::PARTIAL_SIGNED->value) {
+			$newStatus = FileStatus::PARTIAL_SIGNED->value;
+		} elseif ($maxStatus >= FileStatus::ABLE_TO_SIGN->value) {
+			$newStatus = FileStatus::ABLE_TO_SIGN->value;
 		}
 
 		if ($parent->getStatus() !== $newStatus) {

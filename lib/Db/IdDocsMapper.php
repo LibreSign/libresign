@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Helper\Pagination;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
@@ -203,7 +204,7 @@ class IdDocsMapper extends QBMapper {
 		if (!empty($filter['approved'])) {
 			if ($filter['approved'] === 'yes') {
 				$qb->andWhere(
-					$qb->expr()->eq('f.status', $qb->createNamedParameter(File::STATUS_SIGNED, Types::INTEGER)),
+					$qb->expr()->eq('f.status', $qb->createNamedParameter(FileStatus::SIGNED->value, Types::INTEGER)),
 				);
 			}
 		}
@@ -303,8 +304,8 @@ class IdDocsMapper extends QBMapper {
 
 	private function getIdDocStatusText(int $status): string {
 		return match ($status) {
-			File::STATUS_ABLE_TO_SIGN => $this->l10n->t('waiting for approval'),
-			File::STATUS_SIGNED => $this->l10n->t('approved'),
+			FileStatus::ABLE_TO_SIGN->value => $this->l10n->t('waiting for approval'),
+			FileStatus::SIGNED->value => $this->l10n->t('approved'),
 			default => $this->fileMapper->getTextOfStatus($status),
 		};
 	}

@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Helper\Pagination;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -251,8 +252,8 @@ class SignRequestMapper extends QBMapper {
 			->where($qb->expr()->isNull('sr.signed'))
 			->andWhere($qb->expr()->neq('im.identifier_value', $qb->createNamedParameter('deleted_users')))
 			->andWhere($qb->expr()->in('f.status', $qb->createNamedParameter([
-				File::STATUS_ABLE_TO_SIGN,
-				File::STATUS_PARTIAL_SIGNED
+				FileStatus::ABLE_TO_SIGN->value,
+				FileStatus::PARTIAL_SIGNED->value
 			], IQueryBuilder::PARAM_INT_ARRAY)))
 			->setParameter('st', [1,2], IQueryBuilder::PARAM_INT_ARRAY)
 			->orderBy('sr.id', 'ASC');
@@ -585,7 +586,7 @@ class SignRequestMapper extends QBMapper {
 			$qb->expr()->andX(
 				$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter(IdentifyMethodService::IDENTIFY_ACCOUNT)),
 				$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($userId)),
-				$qb->expr()->neq('f.status', $qb->createNamedParameter(File::STATUS_DRAFT)),
+				$qb->expr()->neq('f.status', $qb->createNamedParameter(FileStatus::DRAFT->value)),
 				$qb->expr()->neq('sr.status', $qb->createNamedParameter(SignRequestStatus::DRAFT->value)),
 			)
 		];
