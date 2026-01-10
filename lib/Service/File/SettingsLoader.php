@@ -12,6 +12,7 @@ namespace OCA\Libresign\Service\File;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCP\IAppConfig;
 use stdClass;
 
@@ -81,12 +82,12 @@ class SettingsLoader {
 			return self::IDENTIFICATION_DOCUMENTS_NEED_SEND;
 		}
 
-		$deleted = array_filter($files, fn (File $file) => $file->getStatus() === File::STATUS_DELETED);
+		$deleted = array_filter($files, fn (File $file) => $file->getStatus() === FileStatus::DELETED->value);
 		if (count($deleted) === count($files)) {
 			return self::IDENTIFICATION_DOCUMENTS_NEED_SEND;
 		}
 
-		$signed = array_filter($files, fn (File $file) => $file->getStatus() === File::STATUS_SIGNED);
+		$signed = array_filter($files, fn (File $file) => $file->getStatus() === FileStatus::SIGNED->value);
 		if (count($signed) !== count($files)) {
 			return self::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL;
 		}

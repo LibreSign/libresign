@@ -12,6 +12,7 @@ use DateTime;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\NodeType;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FolderService;
@@ -72,7 +73,7 @@ class EnvelopeService {
 		$envelope->setName($name);
 		$envelope->setUuid($uuid);
 		$envelope->setCreatedAt(new DateTime());
-		$envelope->setStatus(FileEntity::STATUS_DRAFT);
+		$envelope->setStatusEnum(FileStatus::DRAFT);
 
 		$envelope->setMetadata(['filesCount' => $filesCount]);
 
@@ -90,7 +91,7 @@ class EnvelopeService {
 			throw new LibresignException($this->l10n->t('The specified ID is not an envelope'));
 		}
 
-		if ($envelope->getStatus() > FileEntity::STATUS_DRAFT) {
+		if ($envelope->getStatus() > FileStatus::DRAFT->value) {
 			throw new LibresignException($this->l10n->t('Cannot add files to an envelope that is already in signing process'));
 		}
 

@@ -11,9 +11,9 @@ namespace OCA\Libresign\Controller;
 use InvalidArgumentException;
 use OCA\Files_Sharing\SharedStorage;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -535,7 +535,7 @@ class FileController extends AEnvironmentAwareController {
 				throw new LibresignException($this->l10n->t('This is not an envelope'));
 			}
 
-			if ($envelope->getStatus() !== FileEntity::STATUS_DRAFT) {
+			if ($envelope->getStatus() !== FileStatus::DRAFT->value) {
 				throw new LibresignException($this->l10n->t('Cannot add files to an envelope that is not in draft status'));
 			}
 
@@ -556,7 +556,7 @@ class FileController extends AEnvironmentAwareController {
 					'file' => ['fileNode' => $prepared['node']],
 					'name' => $prepared['name'],
 					'userManager' => $this->userSession->getUser(),
-					'status' => FileEntity::STATUS_DRAFT,
+					'status' => FileStatus::DRAFT->value,
 					'parentFileId' => $envelope->getId(),
 				]);
 

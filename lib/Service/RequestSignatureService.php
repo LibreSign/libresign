@@ -15,6 +15,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCA\Libresign\Events\SignRequestCanceledEvent;
 use OCA\Libresign\Exception\LibresignException;
@@ -82,7 +83,7 @@ class RequestSignatureService {
 			$saveData = [
 				'name' => $data['name'] ?? $fileData['name'] ?? '',
 				'userManager' => $data['userManager'],
-				'status' => FileEntity::STATUS_DRAFT,
+				'status' => FileStatus::DRAFT->value,
 				'settings' => $data['settings'],
 			];
 
@@ -108,7 +109,7 @@ class RequestSignatureService {
 			'userManager' => $data['userManager'],
 			'settings' => $data['settings'],
 			'users' => $data['users'] ?? [],
-			'status' => $data['status'] ?? FileEntity::STATUS_DRAFT,
+			'status' => $data['status'] ?? FileStatus::DRAFT->value,
 			'visibleElements' => $data['visibleElements'] ?? [],
 			'signatureFlow' => $data['signatureFlow'] ?? null,
 		]);
@@ -150,7 +151,7 @@ class RequestSignatureService {
 			$this->associateToSigners($dataWithoutNotification, $child);
 		}
 
-		if ($envelope->getStatus() > FileEntity::STATUS_DRAFT) {
+		if ($envelope->getStatus() > FileStatus::DRAFT->value) {
 			$this->fileStatusService->propagateStatusToChildren($envelope->getId(), $envelope->getStatus());
 		}
 	}
@@ -289,7 +290,7 @@ class RequestSignatureService {
 			'file' => ['fileNode' => $node],
 			'name' => $fileName,
 			'userManager' => $userManager,
-			'status' => FileEntity::STATUS_DRAFT,
+			'status' => FileStatus::DRAFT->value,
 			'settings' => $settings,
 		]);
 	}
@@ -348,7 +349,7 @@ class RequestSignatureService {
 		if (isset($data['status'])) {
 			$file->setStatus($data['status']);
 		} else {
-			$file->setStatus(FileEntity::STATUS_ABLE_TO_SIGN);
+			$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
 		}
 
 		if (isset($data['parentFileId'])) {
@@ -569,7 +570,7 @@ class RequestSignatureService {
 
 	public function validateUsers(array $data): void {
 		if (empty($data['users'])) {
-			if (($data['status'] ?? FileEntity::STATUS_ABLE_TO_SIGN) === FileEntity::STATUS_DRAFT) {
+			if (($data['status'] ?? FileStatus::ABLE_TO_SIGN->value) === FileStatus::DRAFT->value) {
 				return;
 			}
 			throw new \Exception($this->l10n->t('Empty users list'));
