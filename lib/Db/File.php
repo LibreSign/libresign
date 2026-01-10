@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\NodeType;
 use OCA\Libresign\Enum\SignatureFlow;
 use OCP\AppFramework\Db\Entity;
@@ -66,12 +67,6 @@ class File extends Entity {
 	protected int $docmdpLevel = 0;
 	protected string $nodeType = 'file';
 	protected ?int $parentFileId = null;
-	public const STATUS_NOT_LIBRESIGN_FILE = -1;
-	public const STATUS_DRAFT = 0;
-	public const STATUS_ABLE_TO_SIGN = 1;
-	public const STATUS_PARTIAL_SIGNED = 2;
-	public const STATUS_SIGNED = 3;
-	public const STATUS_DELETED = 4;
 
 	public const MODIFICATION_UNCHECKED = 0;
 	public const MODIFICATION_UNMODIFIED = 1;
@@ -106,6 +101,14 @@ class File extends Entity {
 	public function getUserId(): string {
 		$metadata = $this->getMetadata();
 		return $metadata['deleted_account']['account'] ?? $this->userId ?? '';
+	}
+
+	public function getStatusEnum(): FileStatus {
+		return FileStatus::from($this->status ?? FileStatus::DRAFT->value);
+	}
+
+	public function setStatusEnum(FileStatus $status): void {
+		$this->setStatus($status->value);
 	}
 
 	public function getSignatureFlowEnum(): \OCA\Libresign\Enum\SignatureFlow {

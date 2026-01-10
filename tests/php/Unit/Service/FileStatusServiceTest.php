@@ -10,6 +10,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Service\FileStatusService;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -46,11 +47,11 @@ class FileStatusServiceTest extends TestCase {
 	}
 
 	public static function dataFileStatusUpgrade(): array {
-		$draft = FileEntity::STATUS_DRAFT;
-		$able = FileEntity::STATUS_ABLE_TO_SIGN;
-		$partial = FileEntity::STATUS_PARTIAL_SIGNED;
-		$signed = FileEntity::STATUS_SIGNED;
-		$deleted = FileEntity::STATUS_DELETED;
+		$draft = FileStatus::DRAFT->value;
+		$able = FileStatus::ABLE_TO_SIGN->value;
+		$partial = FileStatus::PARTIAL_SIGNED->value;
+		$signed = FileStatus::SIGNED->value;
+		$deleted = FileStatus::DELETED->value;
 
 		return [
 			[$draft, $able, true],
@@ -81,11 +82,11 @@ class FileStatusServiceTest extends TestCase {
 
 	public static function dataCanNotifySigners(): array {
 		return [
-			[FileEntity::STATUS_DRAFT, false],
-			[FileEntity::STATUS_ABLE_TO_SIGN, true],
-			[FileEntity::STATUS_PARTIAL_SIGNED, false],
-			[FileEntity::STATUS_SIGNED, false],
-			[FileEntity::STATUS_DELETED, false],
+			[FileStatus::DRAFT->value, false],
+			[FileStatus::ABLE_TO_SIGN->value, true],
+			[FileStatus::PARTIAL_SIGNED->value, false],
+			[FileStatus::SIGNED->value, false],
+			[FileStatus::DELETED->value, false],
 			[null, false],
 		];
 	}
@@ -130,10 +131,10 @@ class FileStatusServiceTest extends TestCase {
 	}
 
 	public static function dataPropagateStatusToParent(): array {
-		$draft = FileEntity::STATUS_DRAFT;
-		$able = FileEntity::STATUS_ABLE_TO_SIGN;
-		$partial = FileEntity::STATUS_PARTIAL_SIGNED;
-		$signed = FileEntity::STATUS_SIGNED;
+		$draft = FileStatus::DRAFT->value;
+		$able = FileStatus::ABLE_TO_SIGN->value;
+		$partial = FileStatus::PARTIAL_SIGNED->value;
+		$signed = FileStatus::SIGNED->value;
 
 		return [
 			'all draft' => [[$draft, $draft, $draft], $draft, $draft],
@@ -206,12 +207,12 @@ class FileStatusServiceTest extends TestCase {
 		$envelope = new FileEntity();
 		$envelope->setId($parentId);
 		$envelope->setNodeType('envelope');
-		$envelope->setStatus(FileEntity::STATUS_SIGNED);
+		$envelope->setStatus(FileStatus::SIGNED->value);
 
 		$child1 = new FileEntity();
-		$child1->setStatus(FileEntity::STATUS_SIGNED);
+		$child1->setStatus(FileStatus::SIGNED->value);
 		$child2 = new FileEntity();
-		$child2->setStatus(FileEntity::STATUS_SIGNED);
+		$child2->setStatus(FileStatus::SIGNED->value);
 
 		$this->fileMapper->expects($this->once())
 			->method('getById')
@@ -230,7 +231,7 @@ class FileStatusServiceTest extends TestCase {
 
 	public function testPropagateStatusToChildrenUpdatesAllChildren(): void {
 		$envelopeId = 1;
-		$newStatus = FileEntity::STATUS_ABLE_TO_SIGN;
+		$newStatus = FileStatus::ABLE_TO_SIGN->value;
 
 		$envelope = new FileEntity();
 		$envelope->setId($envelopeId);
@@ -239,11 +240,11 @@ class FileStatusServiceTest extends TestCase {
 
 		$child1 = new FileEntity();
 		$child1->setId(10);
-		$child1->setStatus(FileEntity::STATUS_DRAFT);
+		$child1->setStatus(FileStatus::DRAFT->value);
 
 		$child2 = new FileEntity();
 		$child2->setId(11);
-		$child2->setStatus(FileEntity::STATUS_DRAFT);
+		$child2->setStatus(FileStatus::DRAFT->value);
 
 		$children = [$child1, $child2];
 
@@ -268,7 +269,7 @@ class FileStatusServiceTest extends TestCase {
 
 	public function testPropagateStatusToChildrenWhenEnvelopeNotFound(): void {
 		$envelopeId = 999;
-		$newStatus = FileEntity::STATUS_ABLE_TO_SIGN;
+		$newStatus = FileStatus::ABLE_TO_SIGN->value;
 
 		$this->fileMapper->expects($this->once())
 			->method('getById')
@@ -283,7 +284,7 @@ class FileStatusServiceTest extends TestCase {
 
 	public function testPropagateStatusToChildrenWhenNotEnvelope(): void {
 		$fileId = 1;
-		$newStatus = FileEntity::STATUS_ABLE_TO_SIGN;
+		$newStatus = FileStatus::ABLE_TO_SIGN->value;
 
 		$file = new FileEntity();
 		$file->setId($fileId);
@@ -302,7 +303,7 @@ class FileStatusServiceTest extends TestCase {
 
 	public function testPropagateStatusToChildrenSkipsChildrenWithSameStatus(): void {
 		$envelopeId = 1;
-		$newStatus = FileEntity::STATUS_ABLE_TO_SIGN;
+		$newStatus = FileStatus::ABLE_TO_SIGN->value;
 
 		$envelope = new FileEntity();
 		$envelope->setId($envelopeId);
@@ -311,11 +312,11 @@ class FileStatusServiceTest extends TestCase {
 
 		$child1 = new FileEntity();
 		$child1->setId(10);
-		$child1->setStatus(FileEntity::STATUS_ABLE_TO_SIGN); // Already has the new status
+		$child1->setStatus(FileStatus::ABLE_TO_SIGN->value); // Already has the new status
 
 		$child2 = new FileEntity();
 		$child2->setId(11);
-		$child2->setStatus(FileEntity::STATUS_DRAFT); // Needs update
+		$child2->setStatus(FileStatus::DRAFT->value); // Needs update
 
 		$children = [$child1, $child2];
 
@@ -349,16 +350,16 @@ class FileStatusServiceTest extends TestCase {
 		$envelope = new FileEntity();
 		$envelope->setId($envelopeId);
 		$envelope->setNodeType('envelope');
-		$envelope->setStatus(FileEntity::STATUS_ABLE_TO_SIGN);
+		$envelope->setStatus(FileStatus::ABLE_TO_SIGN->value);
 
 		// Setup: Children files with DRAFT status (the bug scenario)
 		$child1 = new FileEntity();
 		$child1->setId(10);
-		$child1->setStatus(FileEntity::STATUS_DRAFT);
+		$child1->setStatus(FileStatus::DRAFT->value);
 
 		$child2 = new FileEntity();
 		$child2->setId(11);
-		$child2->setStatus(FileEntity::STATUS_DRAFT);
+		$child2->setStatus(FileStatus::DRAFT->value);
 
 		$children = [$child1, $child2];
 
@@ -380,14 +381,14 @@ class FileStatusServiceTest extends TestCase {
 			->with($this->callback(function (FileEntity $file) use (&$updateCount) {
 				$updateCount++;
 				// Verify status is updated correctly
-				$this->assertEquals(FileEntity::STATUS_ABLE_TO_SIGN, $file->getStatus());
+				$this->assertEquals(FileStatus::ABLE_TO_SIGN->value, $file->getStatus());
 				// Verify it's one of our children
 				$this->assertContains($file->getId(), [10, 11]);
 				return true;
 			}));
 
 		// Execute: Propagate status from envelope to children
-		$this->service->propagateStatusToChildren($envelopeId, FileEntity::STATUS_ABLE_TO_SIGN);
+		$this->service->propagateStatusToChildren($envelopeId, FileStatus::ABLE_TO_SIGN->value);
 
 		// Assert: Both children were updated
 		$this->assertEquals(2, $updateCount, 'Both children should have been updated');
@@ -404,15 +405,15 @@ class FileStatusServiceTest extends TestCase {
 		$envelope = new FileEntity();
 		$envelope->setId($envelopeId);
 		$envelope->setNodeType('envelope');
-		$envelope->setStatus(FileEntity::STATUS_ABLE_TO_SIGN);
+		$envelope->setStatus(FileStatus::ABLE_TO_SIGN->value);
 
 		$child1 = new FileEntity();
 		$child1->setId(10);
-		$child1->setStatus(FileEntity::STATUS_DRAFT);
+		$child1->setStatus(FileStatus::DRAFT->value);
 
 		$child2 = new FileEntity();
 		$child2->setId(11);
-		$child2->setStatus(FileEntity::STATUS_DRAFT);
+		$child2->setStatus(FileStatus::DRAFT->value);
 
 		$this->fileMapper->method('getById')->willReturn($envelope);
 		$this->fileMapper->method('getChildrenFiles')->willReturn([$child1, $child2]);
@@ -427,13 +428,13 @@ class FileStatusServiceTest extends TestCase {
 				return $file;
 			});
 
-		$this->service->propagateStatusToChildren($envelopeId, FileEntity::STATUS_ABLE_TO_SIGN);
+		$this->service->propagateStatusToChildren($envelopeId, FileStatus::ABLE_TO_SIGN->value);
 
 		// Verify both children were updated
 		$this->assertCount(2, $updatedFiles);
 
 		foreach ($updatedFiles as $updated) {
-			$this->assertEquals(FileEntity::STATUS_ABLE_TO_SIGN, $updated['status']);
+			$this->assertEquals(FileStatus::ABLE_TO_SIGN->value, $updated['status']);
 			$this->assertContains($updated['id'], [10, 11]);
 		}
 	}

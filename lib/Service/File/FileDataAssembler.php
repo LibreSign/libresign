@@ -13,6 +13,7 @@ use DateTimeInterface;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Service\FileElementService;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
@@ -61,7 +62,7 @@ class FileDataAssembler {
 			foreach ($childrenFiles as $childFile) {
 				$fileData->files[] = $this->envelopeAssembler->buildEnvelopeChildData($childFile, $options);
 			}
-			if ($file->getStatus() === File::STATUS_SIGNED) {
+			if ($file->getStatus() === FileStatus::SIGNED->value) {
 				$latestSignedDate = null;
 				foreach ($childrenFiles as $childFile) {
 					$signRequests = $this->signRequestMapper->getByFileId($childFile->getId());
