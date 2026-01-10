@@ -12,8 +12,8 @@ use DateTime;
 use DateTimeInterface;
 use InvalidArgumentException;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\IdentifyMethod;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
@@ -310,7 +310,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	protected function throwIfAlreadySigned(): void {
 		$signRequest = $this->identifyService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
 		$fileEntity = $this->identifyService->getFileMapper()->getById($signRequest->getFileId());
-		if ($fileEntity->getStatus() === FileEntity::STATUS_SIGNED
+		if ($fileEntity->getStatus() === FileStatus::SIGNED->value
 			|| $signRequest->getSigned()
 		) {
 			throw new LibresignException(json_encode([

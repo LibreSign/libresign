@@ -12,6 +12,8 @@ namespace OCA\Libresign\Tests\Unit\Service\File;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Service\File\AccountSettingsProvider;
 use OCA\Libresign\Service\File\FileResponseOptions;
 use OCA\Libresign\Service\File\SettingsLoader;
@@ -125,10 +127,10 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn(true);
 
 		$file1 = new File();
-		$file1->setStatus(File::STATUS_DELETED);
+		$file1->setStatus(FileStatus::DELETED->value);
 
 		$file2 = new File();
-		$file2->setStatus(File::STATUS_DELETED);
+		$file2->setStatus(FileStatus::DELETED->value);
 
 		$this->fileMapper->method('getFilesOfAccount')->with('user123')->willReturn([$file1, $file2]);
 
@@ -144,10 +146,10 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn(true);
 
 		$file1 = new File();
-		$file1->setStatus(File::STATUS_SIGNED);
+		$file1->setStatus(FileStatus::SIGNED->value);
 
 		$file2 = new File();
-		$file2->setStatus(File::STATUS_DRAFT);
+		$file2->setStatus(FileStatus::DRAFT->value);
 
 		$this->fileMapper->method('getFilesOfAccount')->with('user123')->willReturn([$file1, $file2]);
 
@@ -163,10 +165,10 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn(true);
 
 		$file1 = new File();
-		$file1->setStatus(File::STATUS_SIGNED);
+		$file1->setStatus(FileStatus::SIGNED->value);
 
 		$file2 = new File();
-		$file2->setStatus(File::STATUS_SIGNED);
+		$file2->setStatus(FileStatus::SIGNED->value);
 
 		$this->fileMapper->method('getFilesOfAccount')->with('user123')->willReturn([$file1, $file2]);
 
@@ -267,7 +269,7 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn(true);
 
 		$file = new File();
-		$file->setStatus(File::STATUS_DRAFT);
+		$file->setStatus(FileStatus::DRAFT->value);
 
 		$this->fileMapper->method('getFilesOfAccount')->with('user789')->willReturn([$file]);
 
@@ -284,10 +286,10 @@ final class SettingsLoaderTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn(true);
 
 		$file1 = new File();
-		$file1->setStatus(File::STATUS_SIGNED);
+		$file1->setStatus(FileStatus::SIGNED->value);
 
 		$file2 = new File();
-		$file2->setStatus(File::STATUS_SIGNED);
+		$file2->setStatus(FileStatus::SIGNED->value);
 
 		$this->fileMapper->method('getFilesOfAccount')->with('user999')->willReturn([$file1, $file2]);
 
