@@ -19,6 +19,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignedEventFactory;
 use OCA\Libresign\Exception\LibresignException;
@@ -494,16 +495,16 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public static function providerCheckStatusAfterSign(): array {
 		return [
-			[self::generateSigners(5, 1), File::STATUS_ABLE_TO_SIGN, File::STATUS_PARTIAL_SIGNED],
-			[self::generateSigners(5, 1), File::STATUS_PARTIAL_SIGNED, File::STATUS_PARTIAL_SIGNED],
-			[self::generateSigners(5, 5), File::STATUS_ABLE_TO_SIGN, File::STATUS_SIGNED],
-			[self::generateSigners(3, 0), File::STATUS_ABLE_TO_SIGN, File::STATUS_ABLE_TO_SIGN],
-			[self::generateSigners(3, 3), File::STATUS_PARTIAL_SIGNED, File::STATUS_SIGNED],
-			[self::generateSigners(2, 2), File::STATUS_SIGNED, File::STATUS_SIGNED],
-			[self::generateSigners(4, 3), File::STATUS_ABLE_TO_SIGN, File::STATUS_PARTIAL_SIGNED],
-			[self::generateSigners(4, 4), File::STATUS_PARTIAL_SIGNED, File::STATUS_SIGNED],
-			[self::generateSigners(1, 1), File::STATUS_ABLE_TO_SIGN, File::STATUS_SIGNED],
-			[self::generateSigners(0, 0), File::STATUS_ABLE_TO_SIGN, File::STATUS_ABLE_TO_SIGN],
+			[self::generateSigners(5, 1), FileStatus::ABLE_TO_SIGN->value, FileStatus::PARTIAL_SIGNED->value],
+			[self::generateSigners(5, 1), FileStatus::PARTIAL_SIGNED->value, FileStatus::PARTIAL_SIGNED->value],
+			[self::generateSigners(5, 5), FileStatus::ABLE_TO_SIGN->value, FileStatus::SIGNED->value],
+			[self::generateSigners(3, 0), FileStatus::ABLE_TO_SIGN->value, FileStatus::ABLE_TO_SIGN->value],
+			[self::generateSigners(3, 3), FileStatus::PARTIAL_SIGNED->value, FileStatus::SIGNED->value],
+			[self::generateSigners(2, 2), FileStatus::SIGNED->value, FileStatus::SIGNED->value],
+			[self::generateSigners(4, 3), FileStatus::ABLE_TO_SIGN->value, FileStatus::PARTIAL_SIGNED->value],
+			[self::generateSigners(4, 4), FileStatus::PARTIAL_SIGNED->value, FileStatus::SIGNED->value],
+			[self::generateSigners(1, 1), FileStatus::ABLE_TO_SIGN->value, FileStatus::SIGNED->value],
+			[self::generateSigners(0, 0), FileStatus::ABLE_TO_SIGN->value, FileStatus::ABLE_TO_SIGN->value],
 		];
 	}
 

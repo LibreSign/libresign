@@ -10,7 +10,6 @@ namespace OCA\Libresign\Service;
 
 use InvalidArgumentException;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
@@ -18,6 +17,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
@@ -322,7 +322,7 @@ class AccountService {
 	public function getPdfByUuid(string $uuid): File {
 		$fileData = $this->fileMapper->getByUuid($uuid);
 
-		if (in_array($fileData->getStatus(), [FileEntity::STATUS_PARTIAL_SIGNED, FileEntity::STATUS_SIGNED])) {
+		if (in_array($fileData->getStatus(), [FileStatus::PARTIAL_SIGNED->value, FileStatus::SIGNED->value])) {
 			$nodeId = $fileData->getSignedNodeId();
 		} else {
 			$nodeId = $fileData->getNodeId();

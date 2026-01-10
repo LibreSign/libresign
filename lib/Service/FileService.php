@@ -16,6 +16,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
@@ -310,10 +311,10 @@ class FileService {
 		$memoryFile = fopen($file['tmp_name'], 'rb');
 		try {
 			$this->certData = $this->pkcs12Handler->getCertificateChain($memoryFile);
-			$this->fileData->status = File::STATUS_SIGNED;
+			$this->fileData->status = FileStatus::SIGNED->value;
 			// Ignore when isnt a signed file
 		} catch (LibresignException) {
-			$this->fileData->status = File::STATUS_DRAFT;
+			$this->fileData->status = FileStatus::DRAFT->value;
 		}
 		fclose($memoryFile);
 		unlink($file['tmp_name']);
@@ -322,7 +323,7 @@ class FileService {
 			$libresignFile = $this->fileMapper->getBySignedHash($this->fileData->hash);
 			$this->setFile($libresignFile);
 		} catch (DoesNotExistException) {
-			$this->fileData->status = File::STATUS_NOT_LIBRESIGN_FILE;
+			$this->fileData->status = FileStatus::NOT_LIBRESIGN_FILE->value;
 		}
 		$this->fileData->name = $file['name'];
 		return $this;
@@ -351,7 +352,7 @@ class FileService {
 	public function getSignedNodeId(): ?int {
 		$status = $this->file->getStatus();
 
-		if (!in_array($status, [File::STATUS_PARTIAL_SIGNED, File::STATUS_SIGNED])) {
+		if (!in_array($status, [FileStatus::PARTIAL_SIGNED->value, FileStatus::SIGNED->value])) {
 			return null;
 		}
 		return $this->file->getSignedNodeId();
@@ -437,7 +438,7 @@ class FileService {
 			$this->fileData->filesCount = $metadata['filesCount'] ?? 0;
 			$this->fileData->files = [];
 			$this->loadEnvelopeFiles();
-			if ($this->file->getStatus() === File::STATUS_SIGNED) {
+			if ($this->file->getStatus() === FileStatus::SIGNED->value) {
 				$latestSignedDate = $this->getLatestSignedDateFromEnvelope();
 				if ($latestSignedDate) {
 					$this->fileData->signedDate = $latestSignedDate->format(DateTimeInterface::ATOM);
