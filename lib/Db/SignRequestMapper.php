@@ -164,6 +164,14 @@ class SignRequestMapper extends QBMapper {
 		return $signers;
 	}
 
+	public function flushCache(?int $signRequestId = null): void {
+		if ($signRequestId !== null) {
+			unset($this->signers[$signRequestId]);
+		} else {
+			$this->signers = [];
+		}
+	}
+
 	/**
 	 * @throws DoesNotExistException
 	 */
