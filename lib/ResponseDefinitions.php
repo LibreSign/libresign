@@ -229,7 +229,7 @@ namespace OCA\Libresign;
  *     file: string,
  *     url?: string,
  *     mime?: string,
- *     pages?: list<array{url: string, resolution: array{w: float, h: float}}>,
+ *     pages?: list<array{number: int, url: string, resolution: array{w: float, h: float}}>,
  *     metadata?: LibresignValidateMetadata,
  *     signers?: LibresignSigner[],
  *     settings?: LibresignSettings,
