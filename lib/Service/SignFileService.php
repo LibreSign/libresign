@@ -539,7 +539,7 @@ class SignFileService {
 		return $enqueued;
 	}
 
-	private function enqueueSigningJobForFile(SignRequestEntity $signRequest, File $file, array $jobArguments): void {
+	private function enqueueSigningJobForFile(SignRequestEntity $signRequest, FileEntity $file, array $jobArguments): void {
 		$args = $jobArguments;
 		$args = $this->addCredentialsToJobArgs($args, $signRequest, $file);
 		$args = array_merge($args, [
@@ -550,7 +550,7 @@ class SignFileService {
 		$this->jobList->add(SignSingleFileJob::class, $args);
 	}
 
-	private function addCredentialsToJobArgs(array $args, SignRequestEntity $signRequest, File $file): array {
+	private function addCredentialsToJobArgs(array $args, SignRequestEntity $signRequest, FileEntity $file): array {
 		if (!($this->signWithoutPassword || !empty($this->password))) {
 			return $args;
 		}
@@ -716,38 +716,46 @@ class SignFileService {
 
 	private function updateEnvelopeStatus(FileEntity $envelope, ?SignRequestEntity $envelopeSignRequest = null, ?DateTimeInterface $signedDate = null): void {
 		$childFiles = $this->fileMapper->getChildrenFiles($envelope->getId());
+		$signRequestsMap = $this->buildSignRequestsMap($childFiles);
 
-		// Build signRequestsMap: [fileId => [signRequests]]
+		$status = $this->envelopeStatusDeterminer->determineStatus($childFiles, $signRequestsMap);
+		$envelope->setStatus($status);
+
+		$this->handleSignedEnvelopeSignRequest($envelope, $envelopeSignRequest, $signedDate, $status);
+
+		$this->updateEnvelopeMetadata($envelope);
+		$this->fileMapper->update($envelope);
+		$this->updateEntityCacheAfterDbSave($envelope);
+	}
+
+	private function buildSignRequestsMap(array $childFiles): array {
 		$signRequestsMap = [];
 		foreach ($childFiles as $childFile) {
 			$signRequestsMap[$childFile->getId()] = $this->signRequestMapper->getByFileId($childFile->getId());
 		}
+		return $signRequestsMap;
+	}
 
-		// Determine envelope status based on child files and sign requests
-		$status = $this->envelopeStatusDeterminer->determineStatus($childFiles, $signRequestsMap);
-		$envelope->setStatus($status);
-
-		// Handle signed envelope signRequest updates
-		if ($status === FileStatus::SIGNED->value && $envelopeSignRequest instanceof SignRequestEntity) {
-			$envelopeSignRequest->setSigned($signedDate ?: new DateTime());
-			$envelopeSignRequest->setStatusEnum(\OCA\Libresign\Enum\SignRequestStatus::SIGNED);
-			$this->signRequestMapper->update($envelopeSignRequest);
-			$this->sequentialSigningService
-				->setFile($envelope)
-				->releaseNextOrder(
-					$envelopeSignRequest->getFileId(),
-					$envelopeSignRequest->getSigningOrder()
-				);
+	private function handleSignedEnvelopeSignRequest(FileEntity $envelope, ?SignRequestEntity $envelopeSignRequest, ?DateTimeInterface $signedDate, int $status): void {
+		if ($status !== FileStatus::SIGNED->value || !($envelopeSignRequest instanceof SignRequestEntity)) {
+			return;
 		}
 
-		// Track when envelope status changes for staleness logic
+		$envelopeSignRequest->setSigned($signedDate ?: new DateTime());
+		$envelopeSignRequest->setStatusEnum(\OCA\Libresign\Enum\SignRequestStatus::SIGNED);
+		$this->signRequestMapper->update($envelopeSignRequest);
+		$this->sequentialSigningService
+			->setFile($envelope)
+			->releaseNextOrder(
+				$envelopeSignRequest->getFileId(),
+				$envelopeSignRequest->getSigningOrder()
+			);
+	}
+
+	private function updateEnvelopeMetadata(FileEntity $envelope): void {
 		$meta = $envelope->getMetadata() ?? [];
 		$meta['status_changed_at'] = (new DateTime())->format(DateTimeInterface::ATOM);
 		$envelope->setMetadata($meta);
-
-		$this->fileMapper->update($envelope);
-		// Ensure long-polling on envelope UUID reacts immediately
-		$this->updateEntityCacheAfterDbSave($envelope);
 	}
 
 	/**
