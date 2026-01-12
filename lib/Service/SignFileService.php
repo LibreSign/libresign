@@ -532,38 +532,43 @@ class SignFileService {
 				continue;
 			}
 
-			// DO NOT mark file as signing in progress here!
-			// Let the SignSingleFileJob mark it when the worker actually picks it up
-			// This way the UI can show accurate "pending" vs "in progress" counts
-
-			// Prepare per-file credentials (if any) for this job
-			$args = $jobArguments;
-			if ($this->signWithoutPassword || !empty($this->password)) {
-				$credentialsId = 'libresign_sign_' . $signRequest->getId() . '_' . $file->getId() . '_' . $this->secureRandom->generate(8, ISecureRandom::CHAR_ALPHANUMERIC);
-				$this->credentialsManager->store(
-					$this->user?->getUID() ?? '',
-					$credentialsId,
-					[
-						'signWithoutPassword' => $this->signWithoutPassword,
-						'password' => $this->password,
-						'timestamp' => time(),
-						'expires' => time() + 3600,
-					]
-				);
-				$args['credentialsId'] = $credentialsId;
-			}
-
-			// Enqueue the job
-			$args = array_merge($args, [
-				'fileId' => $file->getId(),
-				'signRequestId' => $signRequest->getId(),
-			]);
-
-			$this->jobList->add(SignSingleFileJob::class, $args);
+			$this->enqueueSigningJobForFile($signRequest, $file, $jobArguments);
 			$enqueued++;
 		}
 
 		return $enqueued;
+	}
+
+	private function enqueueSigningJobForFile(SignRequestEntity $signRequest, File $file, array $jobArguments): void {
+		$args = $jobArguments;
+		$args = $this->addCredentialsToJobArgs($args, $signRequest, $file);
+		$args = array_merge($args, [
+			'fileId' => $file->getId(),
+			'signRequestId' => $signRequest->getId(),
+		]);
+
+		$this->jobList->add(SignSingleFileJob::class, $args);
+	}
+
+	private function addCredentialsToJobArgs(array $args, SignRequestEntity $signRequest, File $file): array {
+		if (!($this->signWithoutPassword || !empty($this->password))) {
+			return $args;
+		}
+
+		$credentialsId = 'libresign_sign_' . $signRequest->getId() . '_' . $file->getId() . '_' . $this->secureRandom->generate(8, ISecureRandom::CHAR_ALPHANUMERIC);
+		$this->credentialsManager->store(
+			$this->user?->getUID() ?? '',
+			$credentialsId,
+			[
+				'signWithoutPassword' => $this->signWithoutPassword,
+				'password' => $this->password,
+				'timestamp' => time(),
+				'expires' => time() + 3600,
+			]
+		);
+		$args['credentialsId'] = $credentialsId;
+
+		return $args;
 	}
 
 	/**
