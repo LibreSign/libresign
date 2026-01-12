@@ -83,7 +83,7 @@ class MetadataLoader {
 	/**
 	 * Get pages array with URLs and resolutions
 	 *
-	 * @return array<int, array{url: string, resolution: mixed}>
+	 * @return array<int, array{number: int, resolution: mixed}>
 	 */
 	private function getPages(File $file): array {
 		$return = [];
@@ -93,11 +93,7 @@ class MetadataLoader {
 
 		for ($page = 1; $page <= $pageCount; $page++) {
 			$return[] = [
-				'url' => $this->urlGenerator->linkToRoute('ocs.libresign.File.getPage', [
-					'apiVersion' => 'v1',
-					'uuid' => $file->getUuid(),
-					'page' => $page,
-				]),
+				'number' => $page,
 				'resolution' => $metadata['d'][$page - 1] ?? null,
 			];
 		}
