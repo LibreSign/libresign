@@ -8,7 +8,13 @@
 			<img :src="logo" :alt="t('libresign', 'LibreSign logo')" draggable="false">
 		</div>
 		<div id="validation-content">
-			<div v-if="!hasInfo" class="infor-container">
+			<!-- Signing in progress message -->
+			<div v-if="isAsyncSigning" class="infor-container">
+				<div class="section">
+					<SigningProgress :uuid="uuidToValidate" @completed="handleSigningComplete" @error="handleSigningError" />
+				</div>
+			</div>
+			<div v-else-if="!hasInfo" class="infor-container">
 				<div class="section">
 					<h1>{{ t('libresign', 'Validate signature') }}</h1>
 					<NcNoteCard v-if="validationErrorMessage" type="error">
@@ -85,7 +91,6 @@ import {
 	mdiUpload,
 } from '@mdi/js'
 import JSConfetti from 'js-confetti'
-
 import axios from '@nextcloud/axios'
 import { formatFileSize } from '@nextcloud/files'
 import { loadState } from '@nextcloud/initial-state'
@@ -108,9 +113,10 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 const EnvelopeValidation = () => import('../components/validation/EnvelopeValidation.vue')
 const FileValidation = () => import('../components/validation/FileValidation.vue')
+const SigningProgress = () => import('../components/validation/SigningProgress.vue')
 
 import logoGray from '../../img/logo-gray.svg'
-import { fileStatus } from '../helpers/fileStatus.js'
+import { getStatusLabel } from '../utils/fileStatus.js'
 import logger from '../logger.js'
 
 export default {
@@ -129,6 +135,7 @@ export default {
 		NcTextField,
 		EnvelopeValidation,
 		FileValidation,
+		SigningProgress,
 	},
 	setup() {
 		return {
@@ -173,11 +180,13 @@ export default {
 			docMdpOpenState: {},
 			validationErrorMessage: null,
 			documentValidMessage: null,
+			isAsyncSigning: false,
+			shouldFireAsyncConfetti: false,
 		}
 	},
 	computed: {
 		isAfterSigned() {
-			return this.$route.params.isAfterSigned ?? false
+			return this.$route.params.isAfterSigned ?? this.shouldFireAsyncConfetti ?? false
 		},
 		isEnvelope() {
 			return this.document?.nodeType === 'envelope'
@@ -201,11 +210,7 @@ export default {
 			return formatFileSize(this.document.size)
 		},
 		documentStatus() {
-			const actual = fileStatus.find(item => item.id === this.document.status)
-			if (actual === undefined) {
-				return fileStatus.find(item => item.id === -1).label
-			}
-			return actual.label
+			return getStatusLabel(this.document.status)
 		},
 		validityStatusMap() {
 			return {
@@ -241,6 +246,13 @@ export default {
 			})
 		} else if (this.uuidToValidate.length > 0) {
 			this.validate(this.uuidToValidate)
+		}
+
+		// Check if we arrived here from async signing
+		if (this.$route.params.isAsync === true) {
+			this.isAsyncSigning = true
+			this.shouldFireAsyncConfetti = true
+			this.loading = true
 		}
 	},
 	methods: {
@@ -299,22 +311,26 @@ export default {
 			}
 			return statusMap[status] || status
 		},
-		validate(id) {
+		async validate(id, { suppressLoading = false } = {}) {
 			this.validationErrorMessage = null
 			this.documentValidMessage = null
 			if (id === this.document?.uuid) {
 				this.documentValidMessage = t('libresign', 'This document is valid')
 				this.hasInfo = true
 			} else if (id.length === 36) {
-				this.validateByUUID(id)
+				await this.validateByUUID(id, { suppressLoading })
 			} else {
-				this.validateByNodeID(id)
+				await this.validateByNodeID(id, { suppressLoading })
 			}
 			this.getUUID = false
 		},
-		async validateByUUID(uuid) {
-			this.loading = true
-			await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${uuid}`))
+		async validateByUUID(uuid, { suppressLoading = false } = {}) {
+			if (!suppressLoading) {
+				this.loading = true
+			}
+			// Add cache-busting parameter when suppressLoading is true (after async signing)
+			const cacheBuster = suppressLoading ? `?_t=${Date.now()}` : ''
+			await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${uuid}${cacheBuster}`))
 				.then(({ data }) => {
 					this.handleValidationSuccess(data.ocs.data)
 				})
@@ -327,24 +343,32 @@ export default {
 						this.setValidationError(t('libresign', 'Failed to validate document'))
 					}
 				})
-			this.loading = false
+			if (!suppressLoading) {
+				this.loading = false
+			}
 		},
-		async validateByNodeID(nodeId) {
-			this.loading = true
-			await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${nodeId}`))
+		async validateByNodeID(nodeId, { suppressLoading = false } = {}) {
+			if (!suppressLoading) {
+				this.loading = true
+			}
+			// Add cache-busting parameter when suppressLoading is true (after async signing)
+			const cacheBuster = suppressLoading ? `?_t=${Date.now()}` : ''
+			await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${nodeId}${cacheBuster}`))
 				.then(({ data }) => {
 					this.handleValidationSuccess(data.ocs.data)
 				})
 				.catch(({ response }) => {
 					if (response?.status === 404) {
 						this.setValidationError(t('libresign', 'Document not found'))
-					} else if (response?.data?.ocs?.data?.errors?.length > 0) {
+					} else if (response?.data?.ocs?. data?.errors?.length > 0) {
 						this.setValidationError(response.data.ocs.data.errors[0].message)
 					} else {
 						this.setValidationError(t('libresign', 'Failed to validate document'))
 					}
 				})
-			this.loading = false
+			if (!suppressLoading) {
+				this.loading = false
+			}
 		},
 		getName(signer) {
 			return signer.displayName || signer.email || signer.signature_validation?.label || t('libresign', 'Unknown')
@@ -551,10 +575,49 @@ export default {
 				this.$set(file, 'opened', false)
 			})
 			this.hasInfo = true
-			if (this.isAfterSigned) {
+			const isSignedStatus = status => status === 3 || status === 'SIGNED'
+			const isSignedDoc = isSignedStatus(this.document?.status)
+			const allFilesSigned = Array.isArray(this.document?.files)
+				&& this.document.files.length > 0
+				&& this.document.files.every(file => isSignedStatus(file.status))
+			if ((isSignedDoc || allFilesSigned) && (this.isAfterSigned || this.shouldFireAsyncConfetti)) {
 				const jsConfetti = new JSConfetti()
 				jsConfetti.addConfetti()
+				this.shouldFireAsyncConfetti = false
 			}
+		},
+		async refreshAfterAsyncSigning() {
+			const maxAttempts = 8
+			for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+				await this.validate(this.uuidToValidate, { suppressLoading: true })
+
+				const isSignedStatus = status => status === 3 || status === 'SIGNED'
+				const isSigned = isSignedStatus(this.document?.status)
+				const allFilesSigned = Array.isArray(this.document?.files)
+					&& this.document.files.length > 0
+					&& this.document.files.every(file => isSignedStatus(file.status))
+
+				if (isSigned || allFilesSigned) {
+					return
+				}
+
+				await new Promise(resolve => setTimeout(resolve, 900))
+			}
+		},
+		handleSigningComplete() {
+			this.isAsyncSigning = false
+			this.shouldFireAsyncConfetti = true
+			this.loading = true
+			this.refreshAfterAsyncSigning()
+				.finally(() => {
+					this.loading = false
+				})
+		},
+		handleSigningError(message) {
+			this.isAsyncSigning = false
+			this.loading = false
+			const errorMessage = message || t('libresign', 'Signing failed. Please try again.')
+			this.setValidationError(errorMessage)
 		},
 	},
 }
