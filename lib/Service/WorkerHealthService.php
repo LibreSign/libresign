@@ -144,7 +144,7 @@ class WorkerHealthService {
 		return max(1, min($numWorkers, 32));
 	}
 
-	private function countRunningWorkers(): int {
+	protected function countRunningWorkers(): int {
 		try {
 			$occPath = \OC::$SERVERROOT . '/occ';
 			$cmd = sprintf(
