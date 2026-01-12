@@ -33,6 +33,7 @@ use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -105,6 +106,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ICredentialsManager&MockObject $credentialsManager;
 	private ICacheFactory&MockObject $cacheFactory;
 	private ICache&MockObject $cache;
+	private EnvelopeStatusDeterminer&MockObject $envelopeStatusDeterminer;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -148,6 +150,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->credentialsManager = $this->createMock(ICredentialsManager::class);
 		$this->cache = $this->createMock(ICache::class);
 		$this->cacheFactory = $this->createMock(ICacheFactory::class);
+		$this->envelopeStatusDeterminer = $this->createMock(EnvelopeStatusDeterminer::class);
 		$this->cacheFactory->method('createDistributed')->with('libresign_progress')->willReturn($this->cache);
 	}
 
@@ -189,6 +192,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->fileStatusService,
 					$this->jobList,
 					$this->credentialsManager,
+					$this->envelopeStatusDeterminer,
 					$this->cacheFactory,
 				])
 				->onlyMethods($methods)
@@ -229,6 +233,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileStatusService,
 			$this->jobList,
 			$this->credentialsManager,
+			$this->envelopeStatusDeterminer,
 			$this->cacheFactory,
 		);
 	}
@@ -489,6 +494,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getByFileId')
 			->with($child->getId())
 			->willReturn([$signRequest]);
+
+		$this->envelopeStatusDeterminer->expects($this->once())
+			->method('determineStatus')
+			->with([$child], [$child->getId() => [$signRequest]])
+			->willReturn(FileStatusEnum::SIGNED->value);
 
 		$this->signRequestMapper->expects($this->once())
 			->method('update')
