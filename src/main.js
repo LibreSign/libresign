@@ -20,7 +20,6 @@ import 'vue-advanced-cropper/dist/style.css'
 
 if (window.OCA && !window.OCA.LibreSign) {
 	Object.assign(window.OCA, { LibreSign: {} })
-	console.debug('OCA.LibreSign initialized')
 }
 
 // CSP config for webpack dynamic chunk loading
