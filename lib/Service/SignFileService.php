@@ -119,6 +119,7 @@ class SignFileService {
 		private IJobList $jobList,
 		private ICredentialsManager $credentialsManager,
 		private EnvelopeStatusDeterminer $envelopeStatusDeterminer,
+		private TsaValidationService $tsaValidationService,
 		ICacheFactory $cacheFactory,
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign_progress');
@@ -372,6 +373,14 @@ class SignFileService {
 		}
 
 		return $args;
+	}
+
+	/**
+	 * Validate all requirements before signing (e.g., TSA configuration)
+	 * Throws exception if signing cannot proceed
+	 */
+	public function validateSigningRequirements(): void {
+		$this->tsaValidationService->validateConfiguration();
 	}
 
 	public function sign(): void {
