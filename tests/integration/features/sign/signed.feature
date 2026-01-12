@@ -2,6 +2,7 @@ Feature: signed
   Scenario: Sign file using password
     Given as user "admin"
     And user "signer1" exists
+    And run the command "config:app:set libresign signing_mode --value=sync --type=string" with result code 0
     And run the command "libresign:install --use-local-cert --java" with result code 0
     And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
@@ -46,6 +47,7 @@ Feature: signed
     And user "signer1" exists
     And set the email of user "signer1" to "signer@domain.test"
     And set the email of user "admin" to "admin@email.tld"
+    And run the command "config:app:set libresign signing_mode --value=sync --type=string" with result code 0
     And run the command "config:app:set activity notify_notification_libresign_file_to_sign --value=1" with result code 0
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
     And run the command "config:app:set activity notify_notification_libresign_file_signed --value=1" with result code 0
@@ -110,6 +112,7 @@ Feature: signed
     And user "signer1" exists
     And set the email of user "signer1" to "signer@domain.test"
     And set the email of user "admin" to "admin@email.tld"
+    And run the command "config:app:set libresign signing_mode --value=sync --type=string" with result code 0
     And run the command "config:app:set activity notify_notification_libresign_file_to_sign --value=0" with result code 0
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=0" with result code 0
     And run the command "config:app:set activity notify_notification_libresign_file_signed --value=0" with result code 0
@@ -168,6 +171,7 @@ Feature: signed
 
   Scenario: Signing a file using unauthenticatd signer with click to sign
     Given as user "admin"
+    And run the command "config:app:set libresign signing_mode --value=sync --type=string" with result code 0
     And run the command "config:app:set activity notify_notification_libresign_file_to_sign --value=1" with result code 0
     And run the command "config:app:set activity notify_email_libresign_file_to_sign --value=1" with result code 0
     And run the command "config:app:set activity notify_notification_libresign_file_signed --value=1" with result code 0
