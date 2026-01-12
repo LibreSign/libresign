@@ -312,7 +312,6 @@ class FileService {
 		try {
 			$this->certData = $this->pkcs12Handler->getCertificateChain($memoryFile);
 			$this->fileData->status = FileStatus::SIGNED->value;
-			// Ignore when isnt a signed file
 		} catch (LibresignException) {
 			$this->fileData->status = FileStatus::DRAFT->value;
 		}
