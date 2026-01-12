@@ -169,6 +169,7 @@ import { useSignStore } from '../../../store/sign.js'
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { useIdentificationDocumentStore } from '../../../store/identificationDocument.js'
+import { FILE_STATUS } from '../../../constants.js'
 
 export default {
 	name: 'Sign',
@@ -264,8 +265,17 @@ export default {
 		},
 		signRequestUuid() {
 			const signer = this.signStore.document.signers.find(row => row.me) || {}
-			return signer.sign_uuid
+			// Envelopes must use the envelope/file UUID, not the first child file
+			if (this.signStore.document.nodeType === 'envelope') {
+				return this.signStore.document.uuid
+			}
+			// Fallback to signer-specific UUID when available
+			return signer.sign_uuid || this.signStore.document.uuid
 		},
+	},
+	beforeUnmount() {
+		// Reset modal/settings so next document doesn't reopen old dialogs
+		this.resetSignMethodsState()
 	},
 	mounted() {
 		this.loading = true
@@ -275,10 +285,30 @@ export default {
 		Promise.all([
 			this.loadUser(),
 		])
-			.catch(console.warn)
 			.then(() => {
 				this.loading = false
+				// If the document is already in signing progress, hand off to progress view
+				if (this.signStore.document?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
+					this.$emit('signing-started', {
+						fileUuid: this.signStore.document.uuid,
+						async: true,
+					})
+				}
 			})
+	},
+	watch: {
+		signRequestUuid(newUuid, oldUuid) {
+			// When document changes (new file to sign), reset modals and state
+			if (newUuid && oldUuid && newUuid !== oldUuid) {
+				// Close all open modals to avoid showing old dialog from previous document
+				Object.keys(this.signMethodsStore.modal).forEach(key => {
+					this.signMethodsStore.closeModal(key)
+				})
+				this.errors = []
+				this.showManagePassword = false
+				this.signPassword = ''
+			}
+		},
 	},
 	methods: {
 		async loadUser() {
@@ -297,6 +327,19 @@ export default {
 			this.showManagePassword = false
 			this.signMethodsStore.closeModal('password')
 		},
+		resetSignMethodsState() {
+			if (typeof this.signMethodsStore?.$reset === 'function') {
+				this.signMethodsStore.$reset()
+			} else {
+				Object.keys(this.signMethodsStore.modal || {}).forEach(key => {
+					this.signMethodsStore.closeModal(key)
+				})
+				this.signMethodsStore.settings = {}
+			}
+			this.errors = []
+			this.showManagePassword = false
+			this.signPassword = ''
+		},
 		showModalAndResetErrors(modalCode) {
 			this.errors = []
 			this.signMethodsStore.showModal(modalCode)
@@ -314,8 +357,11 @@ export default {
 			this.signMethodsStore.closeModal('createSignature')
 		},
 		async signWithClick() {
+			const signer = this.signStore.document.signers.find(s => s.me) || {}
+			const identify = signer.identifyMethods?.[0] || {}
 			await this.signDocument({
-				method: 'clickToSign',
+				method: identify.method,
+				identifyValue: identify.value,
 			})
 		},
 		async signWithPassword() {
@@ -359,18 +405,33 @@ export default {
 				}
 			}
 			let url = ''
-			if (this.signStore.document.fileId > 0) {
-				url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{nodeId}', { nodeId: this.signStore.document.nodeId })
+			if (this.signStore.document.id > 0) {
+				url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{id}', { id: this.signStore.document.id })
 			} else {
 				url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: this.signRequestUuid })
 			}
 
+			// Add async=true to enable asynchronous signing with long polling
+			url += '?async=true'
+
 			await axios.post(url, payload)
 				.then(({ data }) => {
-					if (data.ocs.data.action === 3500) { // ACTION_SIGNED
+					const responseData = data.ocs?.data
+					// Check if response indicates async signing in progress
+					if (responseData?.job?.status === 'SIGNING_IN_PROGRESS') {
+						// Async signing started, close modal and emit event for parent to handle polling
+						this.signMethodsStore.closeModal(payload.method)
+						this.$emit('signing-started', {
+							fileUuid: this.signStore.document.uuid,
+							async: true,
+						})
+						return
+					}
+					// Synchronous signing completed
+					if (responseData?.action === 3500) { // ACTION_SIGNED
 						this.signMethodsStore.closeModal(payload.method)
 						this.sidebarStore.hideSidebar()
-						this.$emit('signed', data.ocs.data)
+						this.$emit('signed', responseData)
 					}
 				})
 				.catch((err) => {

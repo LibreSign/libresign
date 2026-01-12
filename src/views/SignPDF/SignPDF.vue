@@ -47,6 +47,7 @@ import { useSignStore } from '../../store/sign.js'
 import { useSignMethodsStore } from '../../store/signMethods.js'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
+import { FILE_STATUS } from '../../constants.js'
 
 export default {
 	name: 'SignPDF',
@@ -79,6 +80,10 @@ export default {
 		},
 	},
 	async created() {
+		if (await this.redirectIfSigningInProgress()) {
+			return
+		}
+
 		if (this.$route.name === 'SignPDFExternal') {
 			await this.initSignExternal()
 		} else if (this.$route.name === 'SignPDF') {
@@ -118,7 +123,7 @@ export default {
 				const signer = files[key].signers.find(row => row.me) || {}
 				if (Object.keys(signer).length > 0) {
 					this.signStore.setFileToSign(files[key])
-					this.filesStore.selectedFileId = parseInt(key)
+					this.filesStore.selectFile(parseInt(key))
 					return
 				}
 			}
@@ -128,7 +133,7 @@ export default {
 				generateOcsUrl('/apps/libresign/api/v1/file/validate/uuid/{uuid}', { uuid: this.$route.params.uuid })
 			)
 			this.signStore.setFileToSign(response.data.ocs.data)
-			this.filesStore.selectedFileId = response.data.ocs.data.id
+			this.filesStore.selectFile(response.data.ocs.data.id)
 		},
 		async handleInitialStatePdfs(urls) {
 			if (!Array.isArray(urls) || urls.length === 0) {
@@ -201,7 +206,8 @@ export default {
 				for (const file of files) {
 					const signer = file.signers?.find(row => row.me) || {}
 					if (Object.keys(signer).length > 0) {
-						this.signStore.setFileToSign(file)
+						// Add child file to files store, but don't override the envelope in signStore
+						this.filesStore.addFile(file)
 						break
 					}
 				}
@@ -231,7 +237,38 @@ export default {
 		},
 		toggleSidebar() {
 			this.sidebarStore.toggleSidebar()
-		}
+		},
+		async redirectIfSigningInProgress() {
+			const targetRoute = this.$route.path.startsWith('/p/') ? 'ValidationFileExternal' : 'ValidationFile'
+			let targetUuid = null
+
+			const file = this.filesStore.getFile()
+			if (file && file?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
+				targetUuid = file.uuid
+			}
+
+			if (!targetUuid) {
+				const initialStatus = loadState('libresign', 'status', null)
+				const initialUuid = loadState('libresign', 'uuid', null)
+				if (initialStatus === FILE_STATUS.SIGNING_IN_PROGRESS && initialUuid) {
+					targetUuid = initialUuid
+				}
+			}
+
+			if (targetUuid) {
+				this.$router.push({
+					name: targetRoute,
+					params: {
+						uuid: targetUuid,
+						isAfterSigned: false,
+						isAsync: true,
+					},
+				})
+				return true
+			}
+
+			return false
+		},
 	},
 }
 </script>
