@@ -6,8 +6,8 @@ import { FileAction, registerFileAction } from '@nextcloud/files'
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 
-import { SIGN_STATUS } from '../domains/sign/enum.js'
-import { fileStatus } from '../helpers/fileStatus.js'
+import { FILE_STATUS } from '../constants.js'
+import { getStatusLabel, getStatusSvgInline } from '../utils/fileStatus.js'
 
 const action = new FileAction({
 	id: 'show-status-inline',
@@ -16,10 +16,10 @@ const action = new FileAction({
 		const node = nodes[0]
 
 		const signedNodeId = node.attributes['libresign-signed-node-id']
-		const status = fileStatus.find(status => status.id === node.attributes['libresign-signature-status'])
+		const statusCode = node.attributes['libresign-signature-status']
 
 		if (!signedNodeId || node.fileid === signedNodeId) {
-			return status?.label ?? ''
+			return getStatusLabel(statusCode) || ''
 		}
 
 		return t('libresign', 'original file')
@@ -33,14 +33,13 @@ const action = new FileAction({
 		const node = nodes[0]
 
 		const signedNodeId = node.attributes['libresign-signed-node-id']
-		const status = fileStatus.find(status => status.id === node.attributes['libresign-signature-status'])
+		const statusCode = node.attributes['libresign-signature-status']
 
 		if (!signedNodeId || node.fileid === signedNodeId) {
-			return status?.icon ?? ''
+			return getStatusSvgInline(statusCode) || ''
 		}
 
-		const neutralFile = fileStatus.find(status => status.id === SIGN_STATUS.DRAFT)
-		return neutralFile?.icon ?? ''
+		return getStatusSvgInline(FILE_STATUS.DRAFT) || ''
 	},
 	inline: () => true,
 	enabled: (nodes) => {
