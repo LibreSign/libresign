@@ -1987,6 +1987,8 @@ export type components = {
             url?: string;
             mime?: string;
             pages?: {
+                /** Format: int64 */
+                number: number;
                 url: string;
                 resolution: {
                     /** Format: double */
