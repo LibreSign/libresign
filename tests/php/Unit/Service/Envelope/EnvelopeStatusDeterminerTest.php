@@ -27,7 +27,7 @@ final class EnvelopeStatusDeterminerTest extends TestCase {
 	public function testDetermineStatus(
 		array $childFilesData,
 		array $signRequestsData,
-		int $expectedStatus
+		int $expectedStatus,
 	): void {
 		$childFiles = [];
 		$signRequestsMap = [];
