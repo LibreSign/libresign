@@ -340,17 +340,16 @@ class SignFileService {
 	}
 
 	/**
-	 * Collect job arguments from the current service state.
-	 * This is used to pass credentials and configuration to parallel SignSingleFileJob tasks.
-	 * Credentials are stored securely using ICredentialsManager instead of plain text in job arguments.
+	 * Collect job arguments from the current service state WITHOUT credentials.
 	 *
-	 * @return array Arguments for background job queue (includes credentialsId, not plain password)
+	 * Credentials are NOT included here. Instead, they are created per-file inside
+	 * enqueueParallelSigningJobs() using ICredentialsManager to ensure proper lifecycle
+	 * and secure storage. This prevents credentials from being stored in job queue records.
+	 *
+	 * @return array Arguments for background job queue (user, metadata, elements, etc.)
 	 */
-	public function getJobArguments(): array {
+	public function getJobArgumentsWithoutCredentials(): array {
 		$args = [];
-
-		// Do not store credentials here; credentials are created per-file
-		// inside enqueueParallelSigningJobs() to ensure proper lifecycle.
 
 		if (!empty($this->userUniqueIdentifier)) {
 			$args['userUniqueIdentifier'] = $this->userUniqueIdentifier;
@@ -394,7 +393,7 @@ class SignFileService {
 
 		// Use Background Job Queue for parallel processing of multiple files
 		if ($this->signingCoordinatorService->shouldUseParallelProcessing(count($signRequests))) {
-			$this->enqueueParallelSigningJobs($signRequests, $this->getJobArguments());
+			$this->enqueueParallelSigningJobs($signRequests, $this->getJobArgumentsWithoutCredentials());
 			// Set last signed date from the latest available data
 			foreach ($signRequests as $signRequestData) {
 				try {
