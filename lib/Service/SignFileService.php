@@ -389,26 +389,7 @@ class SignFileService {
 			throw new LibresignException('No sign requests found to process');
 		}
 
-		$envelopeLastSignedDate = null;
-
-		// Use Background Job Queue for parallel processing of multiple files
-		if ($this->signingCoordinatorService->shouldUseParallelProcessing(count($signRequests))) {
-			$this->enqueueParallelSigningJobs($signRequests, $this->getJobArgumentsWithoutCredentials());
-			// Set last signed date from the latest available data
-			foreach ($signRequests as $signRequestData) {
-				try {
-					$this->signRequestMapper->flushCache($signRequestData['signRequest']->getId());
-					$signRequest = $this->signRequestMapper->getById($signRequestData['signRequest']->getId());
-					if ($signRequest->getSigned()) {
-						$envelopeLastSignedDate = $signRequest->getSigned();
-					}
-				} catch (DoesNotExistException $e) {
-					// Continue to next
-				}
-			}
-		} else {
-			$envelopeLastSignedDate = $this->signSequentially($signRequests);
-		}
+		$envelopeLastSignedDate = $this->executeSigningStrategy($signRequests);
 
 		$envelopeContext = $this->getEnvelopeContext();
 		if ($envelopeContext['envelope'] instanceof FileEntity) {
@@ -418,6 +399,35 @@ class SignFileService {
 				$envelopeLastSignedDate
 			);
 		}
+	}
+
+	private function executeSigningStrategy(array $signRequests): ?DateTimeInterface {
+		if ($this->signingCoordinatorService->shouldUseParallelProcessing(count($signRequests))) {
+			return $this->processParallelSigning($signRequests);
+		}
+		return $this->signSequentially($signRequests);
+	}
+
+	private function processParallelSigning(array $signRequests): ?DateTimeInterface {
+		$this->enqueueParallelSigningJobs($signRequests, $this->getJobArgumentsWithoutCredentials());
+		return $this->getLatestSignedDate($signRequests);
+	}
+
+	private function getLatestSignedDate(array $signRequests): ?DateTimeInterface {
+		$latestSignedDate = null;
+
+		foreach ($signRequests as $signRequestData) {
+			try {
+				$this->signRequestMapper->flushCache($signRequestData['signRequest']->getId());
+				$signRequest = $this->signRequestMapper->getById($signRequestData['signRequest']->getId());
+				if ($signRequest->getSigned()) {
+					$latestSignedDate = $signRequest->getSigned();
+				}
+			} catch (DoesNotExistException) {
+			}
+		}
+
+		return $latestSignedDate;
 	}
 
 	/**
