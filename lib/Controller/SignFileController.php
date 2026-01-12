@@ -150,6 +150,10 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			$asyncEnabled = $this->workerHealthService->isAsyncLocalEnabled();
 
 			if ($asyncEnabled) {
+				// Validate signing requirements before enqueueing
+				// This ensures early error detection for configuration issues (e.g., invalid TSA)
+				$this->signFileService->validateSigningRequirements();
+
 				// Set file status to SIGNING_IN_PROGRESS before enqueuing
 				$libreSignFile->setStatusEnum(FileStatus::SIGNING_IN_PROGRESS);
 				$metadata = $libreSignFile->getMetadata() ?? [];
