@@ -14,7 +14,7 @@
 			<p>{{ deleteDialogConfig.message }}</p>
 		</NcDialog>
 		<div class="envelope-files-dialog">
-			<div v-if="envelope && envelope.status === SIGN_STATUS.DRAFT" class="envelope-header">
+			<div v-if="envelope && envelope.status === FILE_STATUS.DRAFT" class="envelope-header">
 				<div class="envelope-name-field">
 					<NcTextField v-model="editableEnvelopeName"
 						:label="t('libresign', 'Envelope name')"
@@ -22,8 +22,8 @@
 						:success="nameUpdateSuccess"
 						:error="nameUpdateError"
 						:helper-text="nameHelperText"
-						minlength="3"
-						maxlength="255"
+						:minlength="ENVELOPE_NAME_MIN_LENGTH"
+						:maxlength="ENVELOPE_NAME_MAX_LENGTH"
 						@update:value="onEnvelopeNameChange" />
 					<span v-if="isSavingName" class="saving-indicator">
 						<NcLoadingIcon :size="20" />
@@ -139,7 +139,7 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import UploadProgress from '../UploadProgress.vue'
 
-import { SIGN_STATUS } from '../../domains/sign/enum.js'
+import { FILE_STATUS, ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
 
 export default {
@@ -168,7 +168,7 @@ export default {
 	},
 	setup() {
 		const filesStore = useFilesStore()
-		return { filesStore, SIGN_STATUS }
+		return { filesStore, FILE_STATUS, ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH }
 	},
 	data() {
 		return {
@@ -207,10 +207,10 @@ export default {
 			return this.filesStore.getFile()
 		},
 		canDelete() {
-			return this.envelope?.status === SIGN_STATUS.DRAFT && this.files.length >= 1
+			return this.envelope?.status === FILE_STATUS.DRAFT && this.files.length >= 1
 		},
 		canAddFile() {
-			if (!this.envelope || this.envelope.status !== SIGN_STATUS.DRAFT) {
+			if (!this.envelope || this.envelope.status !== FILE_STATUS.DRAFT) {
 				return false
 			}
 			const capabilities = getCapabilities()
@@ -488,9 +488,9 @@ export default {
 			this.nameHelperText = ''
 
 			const trimmedName = newName.trim()
-			if (trimmedName.length < 3) {
+			if (trimmedName.length < ENVELOPE_NAME_MIN_LENGTH) {
 				this.nameUpdateError = true
-				this.nameHelperText = this.t('libresign', 'Name must be at least {min} characters', { min: 3 })
+				this.nameHelperText = this.t('libresign', 'Name must be at least {min} characters', { min: ENVELOPE_NAME_MIN_LENGTH })
 				return
 			}
 
