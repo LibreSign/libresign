@@ -42,6 +42,7 @@ use OCA\Libresign\Service\PdfSignatureDetectionService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\SigningCoordinatorService;
+use OCA\Libresign\Service\TsaValidationService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJobList;
@@ -107,6 +108,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ICacheFactory&MockObject $cacheFactory;
 	private ICache&MockObject $cache;
 	private EnvelopeStatusDeterminer&MockObject $envelopeStatusDeterminer;
+	private TsaValidationService&MockObject $tsaValidationService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -151,6 +153,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->cache = $this->createMock(ICache::class);
 		$this->cacheFactory = $this->createMock(ICacheFactory::class);
 		$this->envelopeStatusDeterminer = $this->createMock(EnvelopeStatusDeterminer::class);
+		$this->tsaValidationService = $this->createMock(TsaValidationService::class);
 		$this->cacheFactory->method('createDistributed')->with('libresign_progress')->willReturn($this->cache);
 	}
 
@@ -193,6 +196,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->jobList,
 					$this->credentialsManager,
 					$this->envelopeStatusDeterminer,
+					$this->tsaValidationService,
 					$this->cacheFactory,
 				])
 				->onlyMethods($methods)
@@ -234,6 +238,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->jobList,
 			$this->credentialsManager,
 			$this->envelopeStatusDeterminer,
+			$this->tsaValidationService,
 			$this->cacheFactory,
 		);
 	}
