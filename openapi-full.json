@@ -1494,10 +1494,15 @@
                         "items": {
                             "type": "object",
                             "required": [
+                                "number",
                                 "url",
                                 "resolution"
                             ],
                             "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
                                 "url": {
                                     "type": "string"
                                 },
