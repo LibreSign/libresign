@@ -441,7 +441,8 @@ Feature: request-signature
       | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.hashOfEmail    | d3ab1426f412df8b8bbb9cb2405fb39d |
 
   Scenario: Failed to sign with invalid method
-    Given run the command "libresign:configure:openssl --cn test" with result code 0
+    Given run the command "config:app:set libresign signing_mode --value=sync --type=string" with result code 0
+    And run the command "libresign:configure:openssl --cn test" with result code 0
     And as user "admin"
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"email","enabled":true,"mandatory":true,"signatureMethods":{"emailToken":{"enabled":true}},"can_create_account":false}] |
@@ -500,7 +501,8 @@ Feature: request-signature
       | (jq).ocs.data.errors[0].message | Invalid code. |
 
   Scenario: Failed to sign with invalid code
-    Given run the command "libresign:configure:openssl --cn test" with result code 0
+    Given run the command "config:app:set libresign signing_mode --value=sync --type=string" with result code 0
+    And run the command "libresign:configure:openssl --cn test" with result code 0
     And as user "admin"
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"email","enabled":true,"mandatory":true,"signatureMethods":{"emailToken":{"enabled":true}},"can_create_account":false}] |
