@@ -176,7 +176,7 @@ import {
 	mdiEye,
 } from '@mdi/js'
 import Moment from '@nextcloud/moment'
-import { fileStatus } from '../../helpers/fileStatus.js'
+import { getStatusLabel } from '../../utils/fileStatus.js'
 import SignerDetails from './SignerDetails.vue'
 import DocumentValidationDetails from './DocumentValidationDetails.vue'
 
@@ -214,18 +214,13 @@ export default {
 	},
 	computed: {
 		documentStatus() {
-			const actual = fileStatus.find(item => item.id === this.document.status)
-			if (actual === undefined) {
-				return fileStatus.find(item => item.id === -1).label
-			}
-			return actual.label
+			return getStatusLabel(this.document.status)
 		},
 	},
 	created() {
 		this.document.files?.forEach(file => {
 			this.$set(file, 'opened', false)
-			const actual = fileStatus.find(item => item.id === file.status)
-			this.$set(file, 'statusText', actual ? actual.label : fileStatus.find(item => item.id === -1).label)
+			this.$set(file, 'statusText', getStatusLabel(file.status))
 		})
 	},
 	methods: {
