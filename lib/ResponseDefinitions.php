@@ -258,6 +258,7 @@ namespace OCA\Libresign;
  *     created_at: string,
  *     file: string,
  *     url?: string,
+ *     signUuid?: string|null,
  *     metadata: LibresignValidateMetadata,
  *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
  *     visibleElements: LibresignVisibleElement[],
