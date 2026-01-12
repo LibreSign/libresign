@@ -16,7 +16,7 @@
 			:model-value="selectedOptions.includes(status.id)"
 			@click="toggleOption(status.id)">
 			<template #icon>
-				<NcIconSvgWrapper :svg="status.icon" />
+				<NcIconSvgWrapper :path="status.icon" />
 			</template>
 			{{ status.label }}
 		</NcActionButton>
@@ -31,7 +31,8 @@ import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
 import FileListFilter from './FileListFilter.vue'
 
-import { fileStatus } from '../../../helpers/fileStatus.js'
+import { FILE_STATUS } from '../../../constants.js'
+import { getStatusLabel, getStatusIcon } from '../../../utils/fileStatus.js'
 import { useFiltersStore } from '../../../store/filters.js'
 
 export default {
@@ -58,7 +59,8 @@ export default {
 			return this.selectedOptions.length > 0
 		},
 		fileStatus() {
-			return fileStatus.filter(item => [0, 1, 2, 3].includes(item.id))
+			const codes = [FILE_STATUS.DRAFT, FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED, FILE_STATUS.SIGNED]
+			return codes.map(id => ({ id, icon: getStatusIcon(id), label: getStatusLabel(id) }))
 		},
 	},
 	mounted() {
@@ -81,7 +83,7 @@ export default {
 			const chips = []
 			if (presets && presets.length > 0) {
 				for (const id of presets) {
-					const status = fileStatus.find(item => item.id === id)
+					const status = this.fileStatus.find(item => item.id === id)
 					if (!status) continue
 
 					chips.push({
@@ -117,7 +119,7 @@ export default {
 
 			if (this.selectedOptions.length > 0) {
 				for (const id of this.selectedOptions) {
-					const status = fileStatus.find(item => item.id === id)
+					const status = this.fileStatus.find(item => item.id === id)
 					if (!status) continue
 
 					chips.push({
