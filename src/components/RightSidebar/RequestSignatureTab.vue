@@ -118,6 +118,12 @@
 				{{ t('libresign', 'Request signatures') }}
 			</NcButton>
 		</NcFormBox>
+		<SigningProgress
+			v-if="showSigningProgress"
+			:status="signingProgressStatus"
+			:status-text="signingProgressStatusText"
+			:progress="signingProgress"
+			:is-loading="hasLoading" />
 		<NcFormBox v-if="filesStore.canSign()" class="action-form-box">
 			<NcButton
 				wide
@@ -288,16 +294,18 @@ import EnvelopeFilesList from './EnvelopeFilesList.vue'
 import IdentifySigner from '../Request/IdentifySigner.vue'
 import Signers from '../Signers/Signers.vue'
 import SigningOrderDiagram from '../SigningOrder/SigningOrderDiagram.vue'
+import SigningProgress from '../RequestSigningProgress.vue'
 import VisibleElements from '../Request/VisibleElements.vue'
 
 import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
-import { SIGN_STATUS } from '../../domains/sign/enum.js'
+import { FILE_STATUS } from '../../constants.js'
 import router from '../../router/router.js'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
+import { startLongPolling } from '../../services/longPolling.js'
 
 const iconMap = {
 	svgAccount,
@@ -345,6 +353,7 @@ export default {
 		Send,
 		Signers,
 		SigningOrderDiagram,
+		SigningProgress,
 		VisibleElements,
 	},
 	props: {
@@ -380,6 +389,11 @@ export default {
 			lastSyncedFileId: null,
 			debouncedSave: null,
 			debouncedTabChange: null,
+			// Long polling progress tracking
+			signingProgress: null,
+			signingProgressStatus: null,
+			signingProgressStatusText: '',
+			stopPollingFunction: null,
 		}
 	},
 	computed: {
@@ -512,7 +526,7 @@ export default {
 
 			const file = this.filesStore.getFile()
 
-			if (file.status === SIGN_STATUS.PARTIAL_SIGNED || file.status === SIGN_STATUS.SIGNED) {
+			if (file.status === FILE_STATUS.PARTIAL_SIGNED || file.status === FILE_STATUS.SIGNED) {
 				return false
 			}
 
@@ -593,6 +607,9 @@ export default {
 			}
 			return ''
 		},
+		showSigningProgress() {
+			return this.signingProgressStatus === FILE_STATUS.SIGNING_IN_PROGRESS
+		},
 	},
 	watch: {
 		signers(signers) {
@@ -607,6 +624,14 @@ export default {
 			},
 			immediate: true,
 		},
+		// Watch file status and start/stop long polling
+		'filesStore.currentFile.status'(newStatus) {
+			if (newStatus === FILE_STATUS.SIGNING_IN_PROGRESS) {
+				this.startSigningProgressPolling()
+			} else if (this.stopPollingFunction) {
+				this.stopSigningProgressPolling()
+			}
+		},
 	},
 	async mounted() {
 		subscribe('libresign:edit-signer', this.editSigner)
@@ -620,6 +645,10 @@ export default {
 	},
 	beforeUnmount() {
 		unsubscribe('libresign:edit-signer')
+		// Clean up long polling if active
+		if (this.stopPollingFunction) {
+			this.stopSigningProgressPolling()
+		}
 	},
 	created() {
 		this.$set(this, 'methods', loadState('libresign', 'identify_methods', []))
@@ -894,13 +923,7 @@ export default {
 			this.hasLoading = false
 		},
 		async sign() {
-			const uuid = this.filesStore.getFile().signers
-				.reduce((accumulator, signer) => {
-					if (signer.me) {
-						return signer.sign_uuid
-					}
-					return accumulator
-				}, '')
+			const uuid = this.filesStore.getFile().signUuid
 			if (this.useModal) {
 				const route = router.resolve({ name: 'SignPDFExternal', params: { uuid } })
 				this.modalSrc = route.href
@@ -971,6 +994,55 @@ export default {
 			} else {
 				window.open(`${this.document.file}?_t=${Date.now()}`)
 			}
+		},
+		startSigningProgressPolling() {
+			const file = this.filesStore.getFile()
+			if (!file?.id) {
+				return
+			}
+
+			// Initialize status from current file
+			this.signingProgressStatus = file.status
+			this.signingProgressStatusText = file.statusText || ''
+			this.signingProgress = null
+
+			// Start long polling loop
+			this.stopPollingFunction = startLongPolling(
+				file.id,
+				file.status,
+				(data) => {
+					// Update progress on status change
+					this.signingProgressStatus = data.status
+					this.signingProgressStatusText = data.statusText
+					this.signingProgress = data.progress
+
+					// Update file in store with new status
+					const currentFile = this.filesStore.getFile()
+					if (currentFile) {
+						currentFile.status = data.status
+						currentFile.statusText = data.statusText
+					}
+				},
+				() => {
+					// shouldStop callback - stop when component is unmounted or file changed
+					return !this.filesStore.getFile() || this.filesStore.getFile().id !== file.id
+				},
+				(error) => {
+					// onError callback
+					console.error('Error during signing progress polling:', error)
+					showError(this.t('libresign', 'Error monitoring signing progress'))
+				}
+			)
+		},
+		stopSigningProgressPolling() {
+			if (this.stopPollingFunction) {
+				this.stopPollingFunction()
+				this.stopPollingFunction = null
+			}
+			// Reset progress state
+			this.signingProgress = null
+			this.signingProgressStatus = null
+			this.signingProgressStatusText = ''
 		},
 	},
 }
