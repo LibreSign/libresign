@@ -53,6 +53,7 @@ class ApiTestCase extends TestCase {
 
 		// Reset settings
 		$this->getMockAppConfig()->setValueBool(Application::APP_ID, 'identification_documents', false);
+		$this->getMockAppConfig()->setValueBool(Application::APP_ID, 'async_worker_enabled', false);
 
 		$this->request = new \OCA\Libresign\Tests\Api\ApiRequester();
 	}
