@@ -725,6 +725,46 @@ export type paths = {
         patch: operations["file_element-patch"];
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/{fileId}/wait-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Wait for file/envelope status changes (long polling)
+         * @description Keeps connection open for up to 30 seconds waiting for status change.
+         */
+        get: operations["file_progress-wait-for-status-change"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/progress/{uuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Check file progress by UUID with long-polling (similar to Talk)
+         * @description Waits up to 30 seconds for status change using cache for efficiency.
+         */
+        get: operations["file_progress-check-progress-by-uuid"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/id-docs": {
         parameters: {
             query?: never;
@@ -1375,6 +1415,27 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signing-mode/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set signing mode configuration
+         * @description Configure whether document signing should be synchronous or asynchronous
+         *     This endpoint requires admin access
+         */
+        post: operations["admin-set-signing-mode-config"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-flow/config": {
         parameters: {
             query?: never;
@@ -1405,10 +1466,30 @@ export type paths = {
         get?: never;
         put?: never;
         /**
-         * Set DocMDP configuration
+         * Configure DocMDP signature restrictions
          * @description This endpoint requires admin access
          */
         post: operations["admin-set-doc-mdp-config"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/active-signings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get list of files currently being signed (status = SIGNING_IN_PROGRESS)
+         * @description This endpoint requires admin access
+         */
+        get: operations["admin-get-active-signings"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1726,6 +1807,7 @@ export type components = {
             created_at: string;
             file: string;
             url?: string;
+            signUuid?: string | null;
             metadata: components["schemas"]["ValidateMetadata"];
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
@@ -3883,6 +3965,129 @@ export interface operations {
             };
         };
     };
+    "file_progress-wait-for-status-change": {
+        parameters: {
+            query: {
+                /** @description Current status known by client */
+                currentStatus: number;
+                /** @description Seconds to wait (default 30, max 30) */
+                timeout?: number;
+            };
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description LibreSign file ID */
+                fileId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Status and progress returned */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** Format: int64 */
+                                status: number;
+                                statusText: string;
+                                name: string;
+                                progress: {
+                                    [key: string]: Record<string, never>;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description File not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "file_progress-check-progress-by-uuid": {
+        parameters: {
+            query?: {
+                /** @description Maximum seconds to wait (default 30) */
+                timeout?: number;
+            };
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description File UUID */
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Status and progress returned */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                status: string;
+                                /** Format: int64 */
+                                statusCode: number;
+                                statusText: string;
+                                /** Format: int64 */
+                                fileId: number;
+                                progress: {
+                                    [key: string]: Record<string, never>;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description File not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                                status: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
     "id_docs-list-of-unauthenticated-signer": {
         parameters: {
             query?: {
@@ -4620,9 +4825,16 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                message: string;
-                                file: {
+                                message?: string;
+                                file?: {
                                     uuid: string;
+                                };
+                                job?: {
+                                    /** @enum {string} */
+                                    status: "SIGNING_IN_PROGRESS";
+                                    file: {
+                                        uuid: string;
+                                    };
                                 };
                             };
                         };
@@ -4776,9 +4988,16 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                message: string;
-                                file: {
+                                message?: string;
+                                file?: {
                                     uuid: string;
+                                };
+                                job?: {
+                                    /** @enum {string} */
+                                    status: "SIGNING_IN_PROGRESS";
+                                    file: {
+                                        uuid: string;
+                                    };
                                 };
                             };
                         };
@@ -6382,6 +6601,79 @@ export interface operations {
             };
         };
     };
+    "admin-set-signing-mode-config": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Signing mode: "sync" or "async" */
+                    mode: string;
+                    /** @description Worker type when async: "local" or "external" (optional) */
+                    workerType?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Settings saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Invalid parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
     "admin-set-signature-flow-config": {
         parameters: {
             query?: never;
@@ -6470,13 +6762,14 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** @description Enable or disable DocMDP certification */
+                    /** @description Whether to enable DocMDP restrictions */
                     enabled: boolean;
                     /**
                      * Format: int64
-                     * @description Default DocMDP level (0-3): 0=none, 1=no changes, 2=form fill, 3=form fill + annotations
+                     * @description DocMDP level: 1 (no changes), 2 (fill forms), 3 (add annotations)
+                     * @default 2
                      */
-                    defaultLevel: number;
+                    defaultLevel?: number;
                 };
             };
         };
@@ -6514,6 +6807,62 @@ export interface operations {
                 };
             };
             /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-get-active-signings": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of active signings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                data: {
+                                    /** Format: int64 */
+                                    id: number;
+                                    uuid: string;
+                                    name: string;
+                                    signerEmail: string;
+                                    signerDisplayName: string;
+                                    /** Format: int64 */
+                                    updatedAt: number;
+                                }[];
+                            };
+                        };
+                    };
+                };
+            };
             500: {
                 headers: {
                     [name: string]: unknown;
