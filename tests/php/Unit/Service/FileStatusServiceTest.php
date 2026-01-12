@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use DateTimeInterface;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
@@ -80,6 +81,34 @@ class FileStatusServiceTest extends TestCase {
 		$this->assertEquals($expected, $result);
 	}
 
+	public function testUpdateFileStatusIfUpgradeSetsStatusChangedAt(): void {
+		$file = new FileEntity();
+		$file->setStatus(FileStatus::DRAFT->value);
+
+		$this->fileMapper->expects($this->once())
+			->method('update')
+			->with($this->callback(function (FileEntity $updated) {
+				$this->assertStatusChangedAtSet($updated);
+				return true;
+			}));
+
+		$this->service->updateFileStatusIfUpgrade($file, FileStatus::ABLE_TO_SIGN->value);
+	}
+
+	public function testUpdateFileStatusSetsStatusChangedAt(): void {
+		$file = new FileEntity();
+		$file->setStatus(FileStatus::DRAFT->value);
+
+		$this->fileMapper->expects($this->once())
+			->method('update')
+			->with($this->callback(function (FileEntity $updated) {
+				$this->assertStatusChangedAtSet($updated);
+				return true;
+			}));
+
+		$this->service->updateFileStatus($file, FileStatus::ABLE_TO_SIGN->value);
+	}
+
 	public static function dataCanNotifySigners(): array {
 		return [
 			[FileStatus::DRAFT->value, false],
@@ -126,6 +155,37 @@ class FileStatusServiceTest extends TestCase {
 		} else {
 			$this->fileMapper->expects($this->never())->method('update');
 		}
+
+		$this->service->propagateStatusToParent($parentId);
+	}
+
+	public function testPropagateStatusToParentSetsStatusChangedAt(): void {
+		$parentId = 99;
+		$envelope = new FileEntity();
+		$envelope->setId($parentId);
+		$envelope->setNodeType('envelope');
+		$envelope->setStatus(FileStatus::DRAFT->value);
+
+		$child = new FileEntity();
+		$child->setStatus(FileStatus::PARTIAL_SIGNED->value);
+
+		$this->fileMapper->expects($this->once())
+			->method('getById')
+			->with($parentId)
+			->willReturn($envelope);
+
+		$this->fileMapper->expects($this->once())
+			->method('getChildrenFiles')
+			->with($parentId)
+			->willReturn([$child]);
+
+		$this->fileMapper->expects($this->once())
+			->method('update')
+			->with($this->callback(function (FileEntity $updated) {
+				$this->assertStatusChangedAtSet($updated);
+				$this->assertEquals(FileStatus::PARTIAL_SIGNED->value, $updated->getStatus());
+				return true;
+			}));
 
 		$this->service->propagateStatusToParent($parentId);
 	}
@@ -265,6 +325,47 @@ class FileStatusServiceTest extends TestCase {
 			}));
 
 		$this->service->propagateStatusToChildren($envelopeId, $newStatus);
+	}
+
+	public function testPropagateStatusToChildrenSetsStatusChangedAt(): void {
+		$envelopeId = 50;
+		$newStatus = FileStatus::ABLE_TO_SIGN->value;
+
+		$envelope = new FileEntity();
+		$envelope->setId($envelopeId);
+		$envelope->setNodeType('envelope');
+		$envelope->setStatus($newStatus);
+
+		$child1 = new FileEntity();
+		$child1->setId(500);
+		$child1->setStatus(FileStatus::DRAFT->value);
+
+		$child2 = new FileEntity();
+		$child2->setId(501);
+		$child2->setStatus(FileStatus::PARTIAL_SIGNED->value);
+
+		$this->fileMapper->expects($this->once())
+			->method('getById')
+			->with($envelopeId)
+			->willReturn($envelope);
+
+		$this->fileMapper->expects($this->once())
+			->method('getChildrenFiles')
+			->with($envelopeId)
+			->willReturn([$child1, $child2]);
+
+		$updatedIds = [];
+		$this->fileMapper->expects($this->exactly(2))
+			->method('update')
+			->willReturnCallback(function (FileEntity $file) use (&$updatedIds) {
+				$this->assertStatusChangedAtSet($file);
+				$updatedIds[] = $file->getId();
+				return $file;
+			});
+
+		$this->service->propagateStatusToChildren($envelopeId, $newStatus);
+
+		$this->assertEqualsCanonicalizing([500, 501], $updatedIds);
 	}
 
 	public function testPropagateStatusToChildrenWhenEnvelopeNotFound(): void {
@@ -437,5 +538,16 @@ class FileStatusServiceTest extends TestCase {
 			$this->assertEquals(FileStatus::ABLE_TO_SIGN->value, $updated['status']);
 			$this->assertContains($updated['id'], [10, 11]);
 		}
+	}
+
+	private function assertStatusChangedAtSet(FileEntity $file): void {
+		$metadata = $file->getMetadata();
+		$this->assertIsArray($metadata);
+		$this->assertArrayHasKey('status_changed_at', $metadata);
+		$timestamp = $metadata['status_changed_at'];
+		$this->assertNotEmpty($timestamp);
+		$this->assertNotFalse(
+			\DateTimeImmutable::createFromFormat(DateTimeInterface::ATOM, $timestamp)
+		);
 	}
 }
