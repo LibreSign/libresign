@@ -30,6 +30,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Events\SignedEventFactory;
+use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
@@ -117,6 +118,7 @@ class SignFileService {
 		private FileStatusService $fileStatusService,
 		private IJobList $jobList,
 		private ICredentialsManager $credentialsManager,
+		private EnvelopeStatusDeterminer $envelopeStatusDeterminer,
 		ICacheFactory $cacheFactory,
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign_progress');
@@ -682,39 +684,27 @@ class SignFileService {
 	private function updateEnvelopeStatus(FileEntity $envelope, ?SignRequestEntity $envelopeSignRequest = null, ?DateTimeInterface $signedDate = null): void {
 		$childFiles = $this->fileMapper->getChildrenFiles($envelope->getId());
 
-		$totalSignRequests = 0;
-		$signedSignRequests = 0;
-
+		// Build signRequestsMap: [fileId => [signRequests]]
+		$signRequestsMap = [];
 		foreach ($childFiles as $childFile) {
-			$signRequests = $this->signRequestMapper->getByFileId($childFile->getId());
-			$totalSignRequests += count($signRequests);
-
-			foreach ($signRequests as $signRequest) {
-				if ($signRequest->getSigned()) {
-					$signedSignRequests++;
-				}
-			}
+			$signRequestsMap[$childFile->getId()] = $this->signRequestMapper->getByFileId($childFile->getId());
 		}
 
-		if ($totalSignRequests === 0) {
-			$envelope->setStatus(FileStatus::DRAFT->value);
-		} elseif ($signedSignRequests === 0) {
-			$envelope->setStatus(FileStatus::ABLE_TO_SIGN->value);
-		} elseif ($signedSignRequests === $totalSignRequests) {
-			$envelope->setStatus(FileStatus::SIGNED->value);
-			if ($envelopeSignRequest instanceof SignRequestEntity) {
-				$envelopeSignRequest->setSigned($signedDate ?: new DateTime());
-				$envelopeSignRequest->setStatusEnum(\OCA\Libresign\Enum\SignRequestStatus::SIGNED);
-				$this->signRequestMapper->update($envelopeSignRequest);
-				$this->sequentialSigningService
-					->setFile($envelope)
-					->releaseNextOrder(
-						$envelopeSignRequest->getFileId(),
-						$envelopeSignRequest->getSigningOrder()
-					);
-			}
-		} else {
-			$envelope->setStatusEnum(FileStatus::PARTIAL_SIGNED);
+		// Determine envelope status based on child files and sign requests
+		$status = $this->envelopeStatusDeterminer->determineStatus($childFiles, $signRequestsMap);
+		$envelope->setStatus($status);
+
+		// Handle signed envelope signRequest updates
+		if ($status === FileStatus::SIGNED->value && $envelopeSignRequest instanceof SignRequestEntity) {
+			$envelopeSignRequest->setSigned($signedDate ?: new DateTime());
+			$envelopeSignRequest->setStatusEnum(\OCA\Libresign\Enum\SignRequestStatus::SIGNED);
+			$this->signRequestMapper->update($envelopeSignRequest);
+			$this->sequentialSigningService
+				->setFile($envelope)
+				->releaseNextOrder(
+					$envelopeSignRequest->getFileId(),
+					$envelopeSignRequest->getSigningOrder()
+				);
 		}
 
 		// Track when envelope status changes for staleness logic
