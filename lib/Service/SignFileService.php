@@ -435,21 +435,14 @@ class SignFileService {
 	 * Used by SignSingleFileJob for parallel processing.
 	 */
 	public function signSingleFile(FileEntity $libreSignFile, SignRequestEntity $signRequest): void {
-		// Clear cached state to force fresh lookup from filesystem
-		// This prevents stale cache issues in persistent background workers
-		// When multiple jobs run on the same worker instance, we must reset all state
-		$previousFileToSign = $this->fileToSign;
-		$previousCreatedSignedFile = $this->createdSignedFile;
-		$previousEngine = $this->engine;
-		$this->fileToSign = null;
-		$this->createdSignedFile = null;
-		$this->engine = null;
+		$previousState = $this->saveCachedState();
+		$this->resetCachedState();
 
 		if ($libreSignFile->getSignedHash()) {
+			$this->restoreCachedState($previousState);
 			return;
 		}
 
-		// Temporarily set context for engine and other internal methods
 		$previousLibreSignFile = $this->libreSignFile;
 		$previousSignRequest = $this->signRequest;
 		$this->libreSignFile = $libreSignFile;
@@ -482,13 +475,30 @@ class SignFileService {
 				);
 			}
 		} finally {
-			// Restore previous context
 			$this->libreSignFile = $previousLibreSignFile;
 			$this->signRequest = $previousSignRequest;
-			$this->fileToSign = $previousFileToSign;
-			$this->createdSignedFile = $previousCreatedSignedFile;
-			$this->engine = $previousEngine;
+			$this->restoreCachedState($previousState);
 		}
+	}
+
+	private function saveCachedState(): array {
+		return [
+			'fileToSign' => $this->fileToSign,
+			'createdSignedFile' => $this->createdSignedFile,
+			'engine' => $this->engine,
+		];
+	}
+
+	private function resetCachedState(): void {
+		$this->fileToSign = null;
+		$this->createdSignedFile = null;
+		$this->engine = null;
+	}
+
+	private function restoreCachedState(array $state): void {
+		$this->fileToSign = $state['fileToSign'];
+		$this->createdSignedFile = $state['createdSignedFile'];
+		$this->engine = $state['engine'];
 	}
 
 	/**
