@@ -1486,6 +1486,10 @@
                     "url": {
                         "type": "string"
                     },
+                    "signUuid": {
+                        "type": "string",
+                        "nullable": true
+                    },
                     "mime": {
                         "type": "string"
                     },
