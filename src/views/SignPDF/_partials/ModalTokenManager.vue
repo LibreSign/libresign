@@ -52,7 +52,7 @@ import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
-import { settingsService } from '../../../domains/settings/index.js'
+import { settingsService } from '../../../services/settingsService.js'
 import { useSignStore } from '../../../store/sign.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 
