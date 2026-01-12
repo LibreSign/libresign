@@ -16,6 +16,7 @@
 		<Validation />
 		<DocMDP />
 		<SignatureFlow />
+		<SigningMode />
 		<AllowedGroups />
 		<LegalInformation />
 		<IdentificationDocuments />
@@ -49,6 +50,7 @@ import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
 import SignatureFlow from './SignatureFlow.vue'
 import SignatureHashAlgorithm from './SignatureHashAlgorithm.vue'
 import SignatureStamp from './SignatureStamp.vue'
+import SigningMode from './SigningMode.vue'
 import Envelope from './Envelope.vue'
 import SupportProject from './SupportProject.vue'
 import TSA from './TSA.vue'
@@ -75,6 +77,7 @@ export default {
 		SignatureFlow,
 		SignatureHashAlgorithm,
 		SignatureStamp,
+		SigningMode,
 		Envelope,
 		SupportProject,
 		TSA,
