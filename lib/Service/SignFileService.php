@@ -332,22 +332,10 @@ class SignFileService {
 		return null;
 	}
 
-	/**
-	 * @return VisibleElementAssoc[]
-	 */
 	public function getVisibleElements(): array {
 		return $this->elements;
 	}
 
-	/**
-	 * Collect job arguments from the current service state WITHOUT credentials.
-	 *
-	 * Credentials are NOT included here. Instead, they are created per-file inside
-	 * enqueueParallelSigningJobs() using ICredentialsManager to ensure proper lifecycle
-	 * and secure storage. This prevents credentials from being stored in job queue records.
-	 *
-	 * @return array Arguments for background job queue (user, metadata, elements, etc.)
-	 */
 	public function getJobArgumentsWithoutCredentials(): array {
 		$args = [];
 
@@ -465,7 +453,6 @@ class SignFileService {
 
 			$this->dispatchSignedEvent();
 
-			// Update envelope status after signing each child file (for parallel processing)
 			$envelopeContext = $this->getEnvelopeContext();
 			if ($envelopeContext['envelope'] instanceof FileEntity) {
 				$this->updateEnvelopeStatus(
@@ -501,14 +488,6 @@ class SignFileService {
 		$this->engine = $state['engine'];
 	}
 
-	/**
-	 * Enqueue individual signing jobs for parallel processing.
-	 * Each file in an envelope gets its own job that runs in parallel via background workers.
-	 *
-	 * @param array $signRequests Pre-calculated sign requests to avoid re-querying
-	 * @param array $jobArguments Arguments to pass to each job (userId, password, etc.)
-	 * @return int Number of jobs enqueued
-	 */
 	public function enqueueParallelSigningJobs(array $signRequests, array $jobArguments = []): int {
 
 		if (empty($signRequests)) {
@@ -524,7 +503,6 @@ class SignFileService {
 				continue;
 			}
 
-			// Verify file exists before enqueuing job to prevent NotFoundException
 			$nodeId = $file->getNodeId();
 			$userId = $file->getUserId() ?? $signRequest->getUserId();
 
@@ -708,7 +686,6 @@ class SignFileService {
 				$result['envelope']->getId()
 			);
 		} catch (DoesNotExistException $e) {
-			// Envelope not found or sign request not found, leave as null
 		}
 
 		return $result;
@@ -1035,7 +1012,6 @@ class SignFileService {
 			throw $e;
 		}
 
-		// If the owner differs from the userId (shared scenario), retry using the owner's UID
 		if ($originalFile->getOwner()->getUID() !== $userId) {
 			$originalFile = $this->getNodeByIdUsingUid($originalFile->getOwner()->getUID(), $nodeId);
 		}
@@ -1343,8 +1319,6 @@ class SignFileService {
 		);
 		$owner = $originalFile->getOwner()->getUID();
 
-		// Ensure unique filename by appending fileId to avoid collisions when multiple
-		// files with the same original name are signed in envelope context
 		$fileId = $this->libreSignFile->getId();
 		$extension = $originalFile->getExtension();
 		$nameWithoutExt = substr($filename, 0, -strlen($extension) - 1);
@@ -1362,7 +1336,6 @@ class SignFileService {
 			/** @var \OCP\Files\Folder */
 			$parentFolder = $this->root->getUserFolder($owner)->getFirstNodeById($originalFile->getParentId());
 
-			// Use unique filename to avoid collision with other signed files
 			$this->logger->info('[NEWFILE_ATTEMPT] About to call newFile() with unique filename', [
 				'filename' => $uniqueFilename,
 				'fileId' => $fileId,
