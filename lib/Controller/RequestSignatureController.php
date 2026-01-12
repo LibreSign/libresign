@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
@@ -45,6 +46,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		protected FileListService $fileListService,
 		protected ValidateHelper $validateHelper,
 		protected RequestSignatureService $requestSignatureService,
+		protected FileMapper $fileMapper,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -192,7 +194,10 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				$this->validateHelper->validateVisibleElements($visibleElements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
 			}
 			$fileEntity = $this->requestSignatureService->save($data);
-			$childFiles = [];
+			// Load child files if this is an envelope (parent_file_id is null for envelopes)
+			$childFiles = $fileEntity->getParentFileId() === null
+				? $this->fileMapper->getChildrenFiles($fileEntity->getId())
+				: [];
 
 			$fileData = $this->fileListService->formatFileWithChildren($fileEntity, $childFiles, $user);
 			return new DataResponse($fileData, Http::STATUS_OK);
