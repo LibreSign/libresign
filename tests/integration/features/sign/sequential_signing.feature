@@ -1,6 +1,7 @@
 Feature: sequential-signing
   Background:
     Given as user "admin"
+    And run the command "config:app:set libresign signing_mode --value=sync --type=string" with result code 0
     And run the command "libresign:install --use-local-cert --java" with result code 0
     And run the command "libresign:install --use-local-cert --jsignpdf" with result code 0
     And run the command "libresign:install --use-local-cert --pdftk" with result code 0
