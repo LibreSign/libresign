@@ -837,6 +837,9 @@ class ValidateHelper {
 	}
 
 	public function validateCredentials(SignRequest $signRequest, string $identifyMethodName, string $identifyValue, string $token): void {
+		if ($identifyMethodName === IdentifyMethodService::IDENTIFY_PASSWORD && $token === '') {
+			throw new LibresignException($this->l10n->t('libresign', 'Invalid password'));
+		}
 		$this->validateIfIdentifyMethodExists($identifyMethodName);
 		if ($signRequest->getSigned()) {
 			throw new LibresignException($this->l10n->t('File already signed.'));
