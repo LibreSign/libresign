@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 use bovigo\vfs\vfsStream;
 use OC\User\NoUserException;
+use OCA\Libresign\BackgroundJob\SignSingleFileJob;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
@@ -20,6 +21,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Enum\FileStatus as FileStatusEnum;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Events\SignedEventFactory;
 use OCA\Libresign\Exception\LibresignException;
@@ -38,20 +40,25 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\PdfSignatureDetectionService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Service\SigningCoordinatorService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\BackgroundJob\IJobList;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
+use OCP\ICache;
+use OCP\ICacheFactory;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
 use OCP\IUserSession;
+use OCP\Security\ICredentialsManager;
 use OCP\Security\ISecureRandom;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -93,6 +100,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private PdfSignatureDetectionService&MockObject $pdfSignatureDetectionService;
 	private \OCA\Libresign\Service\SequentialSigningService&MockObject $sequentialSigningService;
 	private FileStatusService&MockObject $fileStatusService;
+	private SigningCoordinatorService&MockObject $signingCoordinatorService;
+	private IJobList&MockObject $jobList;
+	private ICredentialsManager&MockObject $credentialsManager;
+	private ICacheFactory&MockObject $cacheFactory;
+	private ICache&MockObject $cache;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -131,6 +143,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pdfSignatureDetectionService = $this->createMock(PdfSignatureDetectionService::class);
 		$this->sequentialSigningService = $this->createMock(\OCA\Libresign\Service\SequentialSigningService::class);
 		$this->fileStatusService = $this->createMock(FileStatusService::class);
+		$this->signingCoordinatorService = $this->createMock(SigningCoordinatorService::class);
+		$this->jobList = $this->createMock(IJobList::class);
+		$this->credentialsManager = $this->createMock(ICredentialsManager::class);
+		$this->cache = $this->createMock(ICache::class);
+		$this->cacheFactory = $this->createMock(ICacheFactory::class);
+		$this->cacheFactory->method('createDistributed')->with('libresign_progress')->willReturn($this->cache);
 	}
 
 	private function getService(array $methods = []): SignFileService|MockObject {
@@ -159,6 +177,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->urlGenerator,
 					$this->identifyMethodMapper,
 					$this->tempManager,
+					$this->signingCoordinatorService,
 					$this->identifyMethodService,
 					$this->timeFactory,
 					$this->signEngineFactory,
@@ -168,6 +187,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->pdfSignatureDetectionService,
 					$this->sequentialSigningService,
 					$this->fileStatusService,
+					$this->jobList,
+					$this->credentialsManager,
+					$this->cacheFactory,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -195,6 +217,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			$this->identifyMethodMapper,
 			$this->tempManager,
+			$this->signingCoordinatorService,
 			$this->identifyMethodService,
 			$this->timeFactory,
 			$this->signEngineFactory,
@@ -204,6 +227,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->pdfSignatureDetectionService,
 			$this->sequentialSigningService,
 			$this->fileStatusService,
+			$this->jobList,
+			$this->credentialsManager,
+			$this->cacheFactory,
 		);
 	}
 
@@ -438,6 +464,134 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->setSignRequest($signRequest)
 			->setLibreSignFile($libreSignFile)
 			->sign();
+	}
+
+	public function testUpdateEnvelopeStatusAddsStatusChangedAt(): void {
+		$service = $this->getService();
+
+		$envelope = new File();
+		$envelope->setId(77);
+		$envelope->setStatus(FileStatus::DRAFT->value);
+
+		$child = new File();
+		$child->setId(99);
+
+		$signRequest = new SignRequest();
+		$signRequest->setFileId($child->getId());
+		$signRequest->setSigned(new DateTime());
+
+		$this->fileMapper->expects($this->once())
+			->method('getChildrenFiles')
+			->with($envelope->getId())
+			->willReturn([$child]);
+
+		$this->signRequestMapper->expects($this->once())
+			->method('getByFileId')
+			->with($child->getId())
+			->willReturn([$signRequest]);
+
+		$this->signRequestMapper->expects($this->once())
+			->method('update')
+			->with($signRequest);
+
+		$this->fileMapper->expects($this->once())
+			->method('update')
+			->with($this->callback(function (File $updated) {
+				$metadata = $updated->getMetadata();
+				$this->assertIsArray($metadata);
+				$this->assertArrayHasKey('status_changed_at', $metadata);
+				return true;
+			}));
+
+		$this->invokePrivate(
+			$service
+				->setLibreSignFile($envelope)
+				->setSignRequest($signRequest),
+			'updateEnvelopeStatus',
+			[$envelope, $signRequest, new DateTime()]
+		);
+
+		$this->assertEquals(FileStatusEnum::SIGNED->value, $envelope->getStatus());
+	}
+
+	public function testEnqueueParallelSigningJobsStoresPerFileCredentials(): void {
+		$service = $this->getService();
+
+		$envelope = new File();
+		$envelope->setId(1);
+		$envelope->setNodeType('envelope');
+
+		$fileA = new File();
+		$fileA->setId(10);
+		$fileA->setNodeId(100);
+		$fileA->setParentFileId($envelope->getId());
+		$signRequestA = new SignRequest();
+		$signRequestA->setId(100);
+		$signRequestA->setFileId($fileA->getId());
+
+		$fileB = new File();
+		$fileB->setId(11);
+		$fileB->setNodeId(101);
+		$fileB->setParentFileId($envelope->getId());
+		$signRequestB = new SignRequest();
+		$signRequestB->setId(101);
+		$signRequestB->setFileId($fileB->getId());
+
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')->willReturn('user1');
+
+		// Mock root folder for verifyFileExists
+		$mockUserFolder = $this->createMock(\OCP\Files\Folder::class);
+		$mockFile = $this->createMock(\OCP\Files\File::class);
+		$mockUserFolder->method('getFirstNodeById')->willReturn($mockFile);
+		$this->root->method('getUserFolder')->willReturn($mockUserFolder);
+
+		$capturedCredentials = [];
+		$this->credentialsManager->expects($this->exactly(2))
+			->method('store')
+			->willReturnCallback(function (string $uid, string $credentialsId, array $data) use (&$capturedCredentials) {
+				$this->assertSame('user1', $uid);
+				$this->assertStringStartsWith('libresign_sign_', $credentialsId);
+				$this->assertSame('s3cret', $data['password']);
+				$capturedCredentials[] = $credentialsId;
+				return true;
+			});
+
+		$callIndex = 0;
+		$this->jobList->expects($this->exactly(2))
+			->method('add')
+			->with(
+				SignSingleFileJob::class,
+				$this->callback(function (array $args) use (&$capturedCredentials, &$callIndex, $signRequestA, $signRequestB, $fileA, $fileB) {
+					$expected = [
+						['fileId' => $fileA->getId(), 'signRequestId' => $signRequestA->getId()],
+						['fileId' => $fileB->getId(), 'signRequestId' => $signRequestB->getId()],
+					];
+					$this->assertSame($expected[$callIndex]['fileId'], $args['fileId']);
+					$this->assertSame($expected[$callIndex]['signRequestId'], $args['signRequestId']);
+					$this->assertArrayNotHasKey('password', $args);
+					$this->assertArrayHasKey('credentialsId', $args);
+					$this->assertContains($args['credentialsId'], $capturedCredentials);
+					$callIndex++;
+					return true;
+				})
+			);
+
+		// Pre-build signRequests as the method now requires them as parameter
+		$signRequests = [
+			['file' => $fileA, 'signRequest' => $signRequestA],
+			['file' => $fileB, 'signRequest' => $signRequestB],
+		];
+
+		$enqueued = $service
+			->setLibreSignFile($envelope)
+			->setSignRequest($signRequestA)
+			->setCurrentUser($user)
+			->setPassword('s3cret')
+			->enqueueParallelSigningJobs($signRequests);
+
+		$this->assertSame(2, $enqueued);
+		$this->assertCount(2, array_unique($capturedCredentials));
 	}
 
 	#[DataProvider('providerCheckStatusAfterSign')]
@@ -712,7 +866,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	private function createSignRequestMock(array $methods): MockObject {
+	private function createSignRequestMock(array $methods): SignRequest {
 		$signRequest = $this->createMock(SignRequest::class);
 		$signRequest->method('__call')->willReturnCallback(fn (string $method)
 			=> $methods[$method] ?? null
