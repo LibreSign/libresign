@@ -1466,6 +1466,7 @@ export type components = {
             };
             file: string;
             url?: string;
+            signUuid?: string | null;
             mime?: string;
             pages?: {
                 /** Format: int64 */
