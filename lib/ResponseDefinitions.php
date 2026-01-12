@@ -228,6 +228,7 @@ namespace OCA\Libresign;
  *     },
  *     file: string,
  *     url?: string,
+ *     signUuid?: string|null,
  *     mime?: string,
  *     pages?: list<array{number: int, url: string, resolution: array{w: float, h: float}}>,
  *     metadata?: LibresignValidateMetadata,
