@@ -9,9 +9,11 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\BackgroundJob\SignFileJob;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -21,15 +23,20 @@ use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Service\WorkerHealthService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\BackgroundJob\IJobList;
+use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
+use OCP\Security\ICredentialsManager;
+use OCP\Security\ISecureRandom;
 use Psr\Log\LoggerInterface;
 
 class SignFileController extends AEnvironmentAwareController implements ISignatureUuid {
@@ -44,6 +51,11 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		protected SignFileService $signFileService,
 		private IdentifyMethodService $identifyMethodService,
 		private FileService $fileService,
+		private IJobList $jobList,
+		private WorkerHealthService $workerHealthService,
+		private IAppConfig $appConfig,
+		private ICredentialsManager $credentialsManager,
+		private ISecureRandom $secureRandom,
 		protected LoggerInterface $logger,
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -57,7 +69,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param array<string, mixed> $elements List of visible elements
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
-	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message?: string, file?: array{uuid: string}, job?: array{status: 'SIGNING_IN_PROGRESS', file: array{uuid: string}}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid data
@@ -80,7 +92,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param array<string, mixed> $elements List of visible elements
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
-	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message?: string, file?: array{uuid: string}, job?: array{status: 'SIGNING_IN_PROGRESS', file: array{uuid: string}}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid data
@@ -96,9 +108,16 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	}
 
 	/**
-	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message?: string, file?: array{uuid: string}, job?: array{status: 'SIGNING_IN_PROGRESS', file: array{uuid: string}}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}
 	 */
-	public function sign(string $method, array $elements = [], string $identifyValue = '', string $token = '', ?int $fileId = null, ?string $signRequestUuid = null): DataResponse {
+	public function sign(
+		string $method,
+		array $elements = [],
+		string $identifyValue = '',
+		string $token = '',
+		?int $fileId = null,
+		?string $signRequestUuid = null,
+	): DataResponse {
 		try {
 			$user = $this->userSession->getUser();
 			$this->validateHelper->canSignWithIdentificationDocumentStatus(
@@ -115,22 +134,76 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				$this->signFileService->setSignWithoutPassword();
 			}
 			$identifyMethod = $this->identifyMethodService->getIdentifiedMethod($signRequest->getId());
+			$userIdentifier = $identifyMethod->getEntity()->getIdentifierKey()
+				. ':'
+				. $identifyMethod->getEntity()->getIdentifierValue();
+
+			$metadata = $this->collectRequestMetadata();
+
 			$this->signFileService
 				->setLibreSignFile($libreSignFile)
 				->setSignRequest($signRequest)
-				->setUserUniqueIdentifier(
-					$identifyMethod->getEntity()->getIdentifierKey()
-					. ':'
-					. $identifyMethod->getEntity()->getIdentifierValue()
-				)
-				->setFriendlyName($signRequest->getDisplayName())
-				->storeUserMetadata([
-					'user-agent' => $this->request->getHeader('User-Agent'),
-					'remote-address' => $this->request->getRemoteAddress(),
-				])
 				->setCurrentUser($user)
+				->setUserUniqueIdentifier($userIdentifier)
+				->setFriendlyName($signRequest->getDisplayName());
+
+			$asyncEnabled = $this->workerHealthService->isAsyncLocalEnabled();
+
+			if ($asyncEnabled) {
+				// Set file status to SIGNING_IN_PROGRESS before enqueuing
+				$libreSignFile->setStatusEnum(FileStatus::SIGNING_IN_PROGRESS);
+				$metadata = $libreSignFile->getMetadata() ?? [];
+				$metadata['status_changed_at'] = (new \DateTime())->format(\DateTimeInterface::ATOM);
+				$libreSignFile->setMetadata($metadata);
+				$this->fileMapper->update($libreSignFile);
+
+				// Store credentials securely using ICredentialsManager
+				$credentialsId = 'libresign_sign_' . $signRequest->getId() . '_' . $this->secureRandom->generate(16, ISecureRandom::CHAR_ALPHANUMERIC);
+				$this->credentialsManager->store(
+					$user?->getUID() ?? '',
+					$credentialsId,
+					[
+						'signWithoutPassword' => $method !== 'password',
+						'password' => $method === 'password' ? $token : null,
+						'timestamp' => time(),
+					]
+				);
+
+				// Worker available, enqueue the job with credential ID instead of plain text password
+				$this->jobList->add(SignFileJob::class, [
+					'fileId' => $libreSignFile->getId(),
+					'signRequestId' => $signRequest->getId(),
+					'userId' => $user?->getUID(),
+					'credentialsId' => $credentialsId,  // Secure: only ID, not password
+					'userUniqueIdentifier' => $userIdentifier,
+					'friendlyName' => $signRequest->getDisplayName(),
+					'visibleElements' => $elements,
+					'metadata' => $metadata,
+				]);
+
+				// Start worker after enqueue (order: enqueue then ensure worker)
+				$this->workerHealthService->ensureWorkerRunning();
+
+
+				return new DataResponse(
+					[
+						'action' => JSActions::ACTION_DO_NOTHING,
+						'job' => [
+							'status' => 'SIGNING_IN_PROGRESS',
+							'file' => [
+								'uuid' => $libreSignFile->getUuid(),
+							],
+						],
+					],
+					Http::STATUS_OK
+				);
+			}
+
+			$this->signFileService
 				->setVisibleElements($elements)
+				->storeUserMetadata($metadata)
 				->sign();
+
 
 			$validationUuid = $libreSignFile->getUuid();
 			if ($libreSignFile->hasParent()) {
@@ -299,5 +372,17 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			],
 			$statusCode,
 		);
+	}
+
+	/**
+	 * Collect request metadata used both for immediate persistence and async job payload.
+	 *
+	 * @return array{user-agent: string|null, remote-address: string|null}
+	 */
+	private function collectRequestMetadata(): array {
+		return [
+			'user-agent' => $this->request->getHeader('User-Agent'),
+			'remote-address' => $this->request->getRemoteAddress(),
+		];
 	}
 }
