@@ -83,7 +83,7 @@ import Chip from '../Chip.vue'
 import PdfEditor from '../PdfEditor/PdfEditor.vue'
 import Signer from '../Signers/Signer.vue'
 
-import { SIGN_STATUS } from '../../domains/sign/enum.js'
+import { FILE_STATUS } from '../../constants.js'
 import { useFilesStore } from '../../store/files.js'
 
 export default {
@@ -144,7 +144,7 @@ export default {
 			return `${doc.name}.${doc.metadata.extension}`
 		},
 		canSign() {
-			if (this.status !== SIGN_STATUS.ABLE_TO_SIGN) {
+			if (this.status !== FILE_STATUS.ABLE_TO_SIGN) {
 				return false
 			}
 
@@ -153,9 +153,9 @@ export default {
 		canSave() {
 			if (
 				[
-					SIGN_STATUS.DRAFT,
-					SIGN_STATUS.ABLE_TO_SIGN,
-					SIGN_STATUS.PARTIAL_SIGNED,
+					FILE_STATUS.DRAFT,
+					FILE_STATUS.ABLE_TO_SIGN,
+					FILE_STATUS.PARTIAL_SIGNED,
 				].includes(this.status)
 			) {
 				return true
@@ -169,7 +169,7 @@ export default {
 			return this.document.statusText
 		},
 		isDraft() {
-			return this.status === SIGN_STATUS.DRAFT
+			return this.status === FILE_STATUS.DRAFT
 		},
 	},
 	mounted() {

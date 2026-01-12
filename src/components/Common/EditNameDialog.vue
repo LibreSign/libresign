@@ -12,19 +12,13 @@
 		<NcNoteCard v-if="localErrorMessage" type="error">
 			{{ localErrorMessage }}
 		</NcNoteCard>
-		<div class="edit-name-form">
-			<label :for="inputId">{{ label }}</label>
-			<input
-				:id="inputId"
-				v-model="localName"
-				type="text"
-				class="name-input"
-				:placeholder="placeholder"
-				minlength="3"
-				maxlength="255"
-				@keydown.enter="handleSave" />
-			<span class="character-count">{{ localName.length }} / 255</span>
-		</div>
+		<NcTextField v-model="localName"
+			:label="label"
+			:placeholder="placeholder"
+			:minlength="ENVELOPE_NAME_MIN_LENGTH"
+			:maxlength="ENVELOPE_NAME_MAX_LENGTH"
+			:helper-text="`${localName.length} / ${ENVELOPE_NAME_MAX_LENGTH}`"
+			@keydown.enter="handleSave" />
 	</NcDialog>
 </template>
 
@@ -32,6 +26,9 @@
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
+import NcTextField from '@nextcloud/vue/components/NcTextField'
+
+import { ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../constants.js'
 
 export default {
 	name: 'EditNameDialog',
@@ -39,6 +36,7 @@ export default {
 		NcButton,
 		NcDialog,
 		NcNoteCard,
+		NcTextField,
 	},
 	props: {
 		name: {
@@ -64,13 +62,14 @@ export default {
 			localName: this.name || '',
 			localSuccessMessage: '',
 			localErrorMessage: '',
-			inputId: `edit-name-${Math.random().toString(36).substr(2, 9)}`,
+			ENVELOPE_NAME_MIN_LENGTH,
+			ENVELOPE_NAME_MAX_LENGTH,
 		}
 	},
 	computed: {
 		isNameValid() {
 			const trimmedName = this.localName.trim()
-			return trimmedName.length >= 3 && trimmedName.length <= 255
+			return trimmedName.length >= ENVELOPE_NAME_MIN_LENGTH && trimmedName.length <= ENVELOPE_NAME_MAX_LENGTH
 		},
 		dialogButtons() {
 			return [
@@ -127,13 +126,13 @@ export default {
 				return
 			}
 
-			if (trimmedName.length < 3) {
-				this.showError(this.t('libresign', 'Name must be at least {min} characters', { min: 3 }))
+			if (trimmedName.length < ENVELOPE_NAME_MIN_LENGTH) {
+				this.showError(this.t('libresign', 'Name must be at least {min} characters', { min: ENVELOPE_NAME_MIN_LENGTH }))
 				return
 			}
 
-			if (trimmedName.length > 255) {
-				this.showError(this.t('libresign', 'Name must not exceed {max} characters', { max: 255 }))
+			if (trimmedName.length > ENVELOPE_NAME_MAX_LENGTH) {
+				this.showError(this.t('libresign', 'Name must not exceed {max} characters', { max: ENVELOPE_NAME_MAX_LENGTH }))
 				return
 			}
 
@@ -144,43 +143,5 @@ export default {
 </script>
 
 <style scoped>
-.edit-name-form {
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
-	padding: 8px 0;
-}
-
-.edit-name-form label {
-	font-weight: 500;
-	color: var(--color-text);
-	font-size: 14px;
-}
-
-.name-input {
-	padding: 12px 16px;
-	border: 2px solid var(--color-border-dark);
-	border-radius: var(--border-radius-large);
-	font-size: 16px;
-	width: 100%;
-	min-width: 300px;
-	transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.name-input:hover {
-	border-color: var(--color-primary-element);
-}
-
-.name-input:focus {
-	outline: none;
-	border-color: var(--color-primary-element);
-	box-shadow: 0 0 0 4px rgba(var(--color-primary-element-rgb), 0.1);
-}
-
-.character-count {
-	font-size: 12px;
-	color: var(--color-text-maxcontrast);
-	text-align: right;
-	margin-top: -4px;
-}
+/* NcTextField handles its own styling */
 </style>
