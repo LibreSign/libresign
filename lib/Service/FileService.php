@@ -375,10 +375,10 @@ class FileService {
 			}
 		}
 		$this->signersLoader->loadLibreSignSigners($this->file, $this->fileData, $this->options, $this->certData);
-		$this->loadSignRequestUrl();
+		$this->loadSignRequestData();
 	}
 
-	private function loadSignRequestUrl(): void {
+	private function loadSignRequestData(): void {
 		if (empty($this->fileData->signers) || !is_array($this->fileData->signers)) {
 			return;
 		}
@@ -386,6 +386,7 @@ class FileService {
 		foreach ($this->fileData->signers as $signer) {
 			if (!empty($signer->me) && isset($signer->sign_uuid)) {
 				$this->fileData->url = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $signer->sign_uuid]);
+				$this->fileData->signUuuid = $signer->sign_uuid;
 				return;
 			}
 		}
