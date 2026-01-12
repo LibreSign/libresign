@@ -86,11 +86,6 @@ export const useFilesStore = function(...args) {
 			},
 			selectFile(fileId) {
 				this.selectedFileId = fileId ?? 0
-				if (this.selectedFileId === 0) {
-					const signStore = useSignStore()
-					signStore.reset()
-					return
-				}
 			},
 			async selectFileByNodeId(nodeId) {
 				let fileId = this.getFileIdByNodeId(nodeId)
