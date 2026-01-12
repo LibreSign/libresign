@@ -469,13 +469,21 @@ Feature: request-signature
       | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.blurredEmail   | 111***@***.test                  |
       | (jq).[] \| select(.signatureMethods != null) \| .signatureMethods.emailToken.hashOfEmail    | c8cb84220c4cf19b723390f29b83a0f8 |
     And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
-      | method | emailToken |
+      | method | clickToSign |
       | token |  |
     And the response should have a status code 422
     Then the response should be a JSON array with the following mandatory values
-      | key                             | value                        |
-      | (jq).ocs.data.action            | 2000                         |
-      | (jq).ocs.data.errors[0].message | Invalid identification method |
+      | key                             | value         |
+      | (jq).ocs.data.action            | 2000          |
+      | (jq).ocs.data.errors[0].message | Invalid code. |
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>"
+      | method | account |
+      | token |  |
+    And the response should have a status code 422
+    Then the response should be a JSON array with the following mandatory values
+      | key                             | value         |
+      | (jq).ocs.data.action            | 2000          |
+      | (jq).ocs.data.errors[0].message | Invalid code. |
 
   Scenario: Failed to sign with invalid code
     Given run the command "config:app:set libresign signing_mode --value=sync --type=string" with result code 0
