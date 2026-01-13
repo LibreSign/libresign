@@ -238,6 +238,7 @@ OC.L10N.register(
     "\"{displayName}\" action failed" : "\"{displayName}\" 작업을 실패함",
     "(selected)" : "(선택됨)",
     "Version" : "버전",
+    "Fingerprint" : "지문",
     "Technical details" : "기술 정보",
     "Allowed" : "허용됨",
     "Request Signatures" : "서명 요청",
