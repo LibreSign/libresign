@@ -282,13 +282,18 @@ export default {
 			}
 
 			let visibleElementsToAdd = []
-			filesToProcess.forEach((f, fileIndex) => {
-				const elements = Array.isArray(f.visibleElements) ? f.visibleElements : []
+
+			const allSigners = this.document.signers || []
+			allSigners.forEach(signer => {
+				const elements = Array.isArray(signer.visibleElements) ? signer.visibleElements : []
 				elements.forEach(element => {
+					const fileInfo = filesToProcess.find(f => f.id === element.fileId)
+					const fileIndex = fileInfo ? filesToProcess.indexOf(fileInfo) : 0
 					visibleElementsToAdd.push({
 						...element,
 						documentIndex: fileIndex,
-						fileId: f.id,
+						fileId: element.fileId,
+						signRequestId: signer.signRequestId,
 					})
 				})
 			})
