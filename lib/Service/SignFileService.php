@@ -229,6 +229,32 @@ class SignFileService {
 		return $this;
 	}
 
+	/**
+	 * @return self
+	 */
+	public function prepareForSigning(
+		FileEntity $libreSignFile,
+		SignRequestEntity $signRequest,
+		?IUser $user,
+		string $userIdentifier,
+		string $displayName,
+		bool $signWithoutPassword,
+		?string $password = null,
+	): self {
+		if ($signWithoutPassword) {
+			$this->setSignWithoutPassword();
+		} else {
+			$this->setPassword($password);
+		}
+
+		return $this
+			->setLibreSignFile($libreSignFile)
+			->setSignRequest($signRequest)
+			->setCurrentUser($user)
+			->setUserUniqueIdentifier($userIdentifier)
+			->setFriendlyName($displayName);
+	}
+
 	public function setVisibleElements(array $list): self {
 		if (!$this->signRequest instanceof SignRequestEntity) {
 			return $this;
