@@ -30,8 +30,10 @@ class PdfValidator {
 	 */
 	public function validate(string $content, string $fileName): void {
 		$this->pdfParser->parse($content, $fileName);
+		$this->validateDocMdpRestrictions($content, $fileName);
+	}
 
-		// Validate DocMDP restrictions
+	private function validateDocMdpRestrictions(string $content, string $fileName): void {
 		$resource = fopen('php://memory', 'r+');
 		if (!is_resource($resource)) {
 			return;
