@@ -360,8 +360,7 @@ export default {
 			const signer = this.signStore.document.signers.find(s => s.me) || {}
 			const identify = signer.identifyMethods?.[0] || {}
 			await this.signDocument({
-				method: identify.method,
-				identifyValue: identify.value,
+				method: 'clickToSign',
 			})
 		},
 		async signWithPassword() {
