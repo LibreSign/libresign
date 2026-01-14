@@ -10,7 +10,7 @@ namespace OCA\Libresign\Migration;
 
 use Closure;
 use Doctrine\DBAL\Types\Types;
-use OCA\Libresign\Service\PdfParserService;
+use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCP\DB\ISchemaWrapper;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
@@ -24,7 +24,7 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 	public function __construct(
 		private IDBConnection $connection,
 		private IRootFolder $root,
-		private PdfParserService $pdfParserService,
+		private PdfMetadataExtractor $pdfMetadataExtractor,
 	) {
 	}
 
@@ -64,7 +64,7 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 			$userFolder = $this->root->getUserFolder($row['user_id']);
 			$file = $userFolder->getFirstNodeById($row['node_id']);
 			if ($file instanceof File) {
-				$data = $this->pdfParserService
+				$data = $this->pdfMetadataExtractor
 					->setFile($file)
 					->getPageDimensions();
 				$json = json_encode($data);

@@ -31,7 +31,7 @@ use OCA\Libresign\Service\File\FileResponseOptions;
 use OCA\Libresign\Service\File\MessagesLoader;
 use OCA\Libresign\Service\File\MetadataLoader;
 use OCA\Libresign\Service\File\MimeService;
-use OCA\Libresign\Service\File\PdfValidator;
+use OCA\Libresign\Service\File\Pdf\PdfValidator;
 use OCA\Libresign\Service\File\SettingsLoader;
 use OCA\Libresign\Service\File\SignersLoader;
 use OCA\Libresign\Service\File\UploadProcessor;
