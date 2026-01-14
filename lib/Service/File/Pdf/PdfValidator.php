@@ -3,21 +3,20 @@
 declare(strict_types=1);
 
 /**
- * SPDX-FileCopyrightText: 2025 LibreCode coop and contributors
+ * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service\File;
+namespace OCA\Libresign\Service\File\Pdf;
 
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\DocMdpHandler;
 use OCP\IL10N;
-use Psr\Log\LoggerInterface;
 
 class PdfValidator {
 	public function __construct(
+		private PdfParser $pdfParser,
 		private DocMdpHandler $docMdpHandler,
-		private LoggerInterface $logger,
 		private IL10N $l10n,
 	) {
 	}
@@ -30,15 +29,9 @@ class PdfValidator {
 	 * @throws LibresignException
 	 */
 	public function validate(string $content, string $fileName): void {
-		try {
-			$parser = new \OCA\Libresign\Vendor\Smalot\PdfParser\Parser();
-			$parser->parseContent($content);
-		} catch (\Throwable $th) {
-			$this->logger->error($th->getMessage());
-			// TRANSLATORS %s is the file name of the PDF that failed validation
-			throw new LibresignException($this->l10n->t('The file is not a valid PDF: %s', [$fileName]));
-		}
+		$this->pdfParser->parse($content, $fileName);
 
+		// Validate DocMDP restrictions
 		$resource = fopen('php://memory', 'r+');
 		if (!is_resource($resource)) {
 			return;
