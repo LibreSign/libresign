@@ -12,6 +12,7 @@ namespace OCA\Libresign\Service\File;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\File\Pdf\PdfValidator;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\Node;
 use OCP\IUser;
