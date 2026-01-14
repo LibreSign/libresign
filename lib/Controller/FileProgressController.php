@@ -153,6 +153,9 @@ class FileProgressController extends OCSController {
 		return $currentStatus;
 	}
 
+	/**
+	 * @return DataResponse<Http::STATUS_OK, array{status: string, statusCode: int, statusText: string, fileId: int, progress: array<string, mixed>}, array{}>
+	 */
 	private function buildStatusResponse(FileEntity $file, int $status): DataResponse {
 		$statusEnum = FileStatus::tryFrom($status);
 
