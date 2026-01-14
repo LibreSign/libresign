@@ -22,7 +22,6 @@ use OCP\AppFramework\OCSController;
 use OCP\ICache;
 use OCP\ICacheFactory;
 use OCP\IRequest;
-use Psr\Log\LoggerInterface;
 
 class FileProgressController extends OCSController {
 	private ICache $cache;
@@ -33,7 +32,6 @@ class FileProgressController extends OCSController {
 		private FileMapper $fileMapper,
 		private SignRequestMapper $signRequestMapper,
 		private WorkerHealthService $workerHealthService,
-		private LoggerInterface $logger,
 		ICacheFactory $cacheFactory,
 	) {
 		parent::__construct($appName, $request);
