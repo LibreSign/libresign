@@ -17,12 +17,10 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
-use OCP\IDateTimeFormatter;
 use OCP\IDBConnection;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
-use OCP\IUserManager;
 
 /**
  * Class SignRequestMapper
@@ -41,8 +39,6 @@ class SignRequestMapper extends QBMapper {
 		IDBConnection $db,
 		protected IL10N $l10n,
 		protected FileMapper $fileMapper,
-		private IUserManager $userManager,
-		private IDateTimeFormatter $dateTimeFormatter,
 		private IURLGenerator $urlGenerator,
 	) {
 		parent::__construct($db, 'libresign_sign_request');
