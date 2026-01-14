@@ -65,21 +65,17 @@ class FileProgressController extends OCSController {
 		$elapsedTime = 0;
 
 		try {
-			// Initial check
 			$file = $this->fileMapper->getById($fileId);
 			$statusChanged = $file->getStatus() !== $currentStatus;
 
-			// Long polling loop
 			while (!$statusChanged && $elapsedTime < $timeout) {
 				sleep(1);
 				$elapsedTime++;
 
-				// Re-fetch from DB
 				$file = $this->fileMapper->getById($fileId);
 				$statusChanged = $file->getStatus() !== $currentStatus;
 			}
 
-			// Build response with progress data
 			return new DataResponse([
 				'status' => $file->getStatus(),
 				'statusText' => $this->fileMapper->getTextOfStatus($file->getStatus()),
@@ -111,73 +107,15 @@ class FileProgressController extends OCSController {
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/progress/{uuid}', requirements: ['apiVersion' => '(v1)'])]
 	public function checkProgressByUuid(string $uuid, int $timeout = 30): DataResponse {
 		try {
-			// Get file by UUID
 			$file = $this->fileMapper->getByUuid($uuid);
 			$currentStatus = $file->getStatus();
-			$progress = $this->getSigningProgress($file);
 
-			// If we're in async progress status, ensure a worker is running
 			if ($currentStatus === FileStatus::SIGNING_IN_PROGRESS->value) {
 				$this->workerHealthService->ensureWorkerRunning();
+				$currentStatus = $this->pollForStatusChange($uuid, $currentStatus, $timeout);
 			}
 
-			$statusEnum = FileStatus::tryFrom($currentStatus);
-			$statusText = $statusEnum?->name ?? 'UNKNOWN';
-
-			// If already in final state, return immediately
-			if ($currentStatus === FileStatus::SIGNED->value
-				|| $currentStatus === FileStatus::DELETED->value) {
-				return new DataResponse([
-					'status' => $statusText,
-					'statusCode' => $currentStatus,
-					'statusText' => $this->fileMapper->getTextOfStatus($currentStatus),
-					'fileId' => $file->getId(),
-					'progress' => $progress,
-				], Http::STATUS_OK);
-			}
-
-			// If not in signing state and not final, return without polling
-			if ($currentStatus !== FileStatus::SIGNING_IN_PROGRESS->value) {
-				return new DataResponse([
-					'status' => $statusText,
-					'statusCode' => $currentStatus,
-					'statusText' => $this->fileMapper->getTextOfStatus($currentStatus),
-					'fileId' => $file->getId(),
-					'progress' => $progress,
-				], Http::STATUS_OK);
-			}
-
-			// Only perform long-polling if currently SIGNING_IN_PROGRESS
-			$elapsedTime = 0;
-			$cacheKey = 'status_' . $uuid;
-
-			// Get initial cached status
-			$cachedStatus = $this->cache->get($cacheKey);
-
-			while ($elapsedTime < $timeout) {
-				// Check cache first (like Talk's checkCacheOrDatabase)
-				$newCachedStatus = $this->cache->get($cacheKey);
-
-				if ($newCachedStatus !== $cachedStatus && $newCachedStatus !== false) {
-					// Cache changed - trust cache immediately to avoid DB lag
-					$currentStatus = (int)$newCachedStatus;
-					$statusEnum = FileStatus::tryFrom($currentStatus);
-					$statusText = $statusEnum?->name ?? 'UNKNOWN';
-					break;
-				}
-
-				// No cache change yet - wait 1 second
-				sleep(1);
-				$elapsedTime++;
-			}
-
-			return new DataResponse([
-				'status' => $statusText,
-				'statusCode' => $currentStatus,
-				'statusText' => $this->fileMapper->getTextOfStatus($currentStatus),
-				'fileId' => $file->getId(),
-				'progress' => $this->getSigningProgress($file),
-			], Http::STATUS_OK);
+			return $this->buildStatusResponse($file, $currentStatus);
 
 		} catch (\Exception $e) {
 			return new DataResponse([
@@ -202,6 +140,38 @@ class FileProgressController extends OCSController {
 		}
 
 		return $this->getFileProgress($file);
+	}
+
+	private function pollForStatusChange(string $uuid, int $initialStatus, int $timeout): int {
+		$elapsedTime = 0;
+		$cacheKey = 'status_' . $uuid;
+		$cachedStatus = $this->cache->get($cacheKey);
+		$currentStatus = $initialStatus;
+
+		while ($elapsedTime < $timeout) {
+			$newCachedStatus = $this->cache->get($cacheKey);
+
+			if ($newCachedStatus !== $cachedStatus && $newCachedStatus !== false) {
+				return (int)$newCachedStatus;
+			}
+
+			sleep(1);
+			$elapsedTime++;
+		}
+
+		return $currentStatus;
+	}
+
+	private function buildStatusResponse(FileEntity $file, int $status): DataResponse {
+		$statusEnum = FileStatus::tryFrom($status);
+
+		return new DataResponse([
+			'status' => $statusEnum?->name ?? 'UNKNOWN',
+			'statusCode' => $status,
+			'statusText' => $this->fileMapper->getTextOfStatus($status),
+			'fileId' => $file->getId(),
+			'progress' => $this->getSigningProgress($file),
+		], Http::STATUS_OK);
 	}
 
 	/**
