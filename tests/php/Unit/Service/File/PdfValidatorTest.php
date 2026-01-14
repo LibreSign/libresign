@@ -45,14 +45,14 @@ final class PdfValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$validator = $this->getService();
 
 		$this->expectNotToPerformAssertions();
-		$validator->validate($content);
+		$validator->validate($content, 'file.pdf');
 	}
 
 	public function testValidateThrowsOnInvalidPdf(): void {
 		$validator = $this->getService();
 
-		$this->expectException(\Exception::class);
-		$validator->validate('not a pdf');
+		$this->expectException(LibresignException::class);
+		$validator->validate('not a pdf', 'invalid.pdf');
 	}
 
 	public function testValidateThrowsLibresignWhenDocMdpDisallows(): void {
@@ -63,6 +63,6 @@ final class PdfValidatorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$validator = $this->getService();
 
 		$this->expectException(LibresignException::class);
-		$validator->validate($content);
+		$validator->validate($content, 'doc.pdf');
 	}
 }
