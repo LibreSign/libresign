@@ -229,6 +229,11 @@ class IdentifyMethodService {
 		throw new LibresignException($this->l10n->t('Invalid identification method'), 1);
 	}
 
+	public function getUserIdentifier(int $signRequestId): string {
+		$identifyMethod = $this->getIdentifiedMethod($signRequestId);
+		return $identifyMethod->getEntity()->getUniqueIdentifier();
+	}
+
 	public function deleteBySignRequestId(int $signRequestId): void {
 		$this->identifyMethodMapper->deleteBySignRequestId($signRequestId);
 		$this->clearCache();
