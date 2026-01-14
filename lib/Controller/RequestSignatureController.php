@@ -194,10 +194,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				$this->validateHelper->validateVisibleElements($visibleElements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
 			}
 			$fileEntity = $this->requestSignatureService->save($data);
-			// Load child files if this is an envelope (parent_file_id is null for envelopes)
-			$childFiles = $fileEntity->getParentFileId() === null
-				? $this->fileMapper->getChildrenFiles($fileEntity->getId())
-				: [];
+			$childFiles = $this->loadChildFilesIfEnvelope($fileEntity);
 
 			$fileData = $this->fileListService->formatFileWithChildren($fileEntity, $childFiles, $user);
 			return new DataResponse($fileData, Http::STATUS_OK);
@@ -264,7 +261,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			$childFiles = $result['children'] ?? [];
 		} else {
 			$fileEntity = $this->requestSignatureService->save($data);
-			$childFiles = [];
+			$childFiles = $this->loadChildFilesIfEnvelope($fileEntity);
 		}
 
 		$fileData = $this->fileListService->formatFileWithChildren($fileEntity, $childFiles, $user);
@@ -355,5 +352,11 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			],
 			Http::STATUS_OK
 		);
+	}
+
+	private function loadChildFilesIfEnvelope($fileEntity): array {
+		return $fileEntity->getParentFileId() === null
+			? $this->fileMapper->getChildrenFiles($fileEntity->getId())
+			: [];
 	}
 }
