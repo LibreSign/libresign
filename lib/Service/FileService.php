@@ -104,7 +104,7 @@ class FileService {
 		}
 
 		if (isset($data['uploadedFile'])) {
-			return $this->getNodeFromUploadedFile($data);
+			return $this->uploadProcessor->getNodeFromUploadedFile($data);
 		}
 
 		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
@@ -123,20 +123,17 @@ class FileService {
 		$content = $this->getFileRaw($data);
 		$extension = $this->getExtension($content);
 
-		$this->validateFileContent($content, $extension);
+		$fileName = $data['name'];
+		$this->validateFileContent($content, $fileName, $extension);
 
 		$folderToFile = $this->folderService->getFolderForFile($data, $data['userManager']);
 		$filename = $this->resolveFileName($data, $extension);
 		return $folderToFile->newFile($filename, $content);
 	}
 
-	public function getNodeFromUploadedFile(array $data): Node {
-		return $this->uploadProcessor->getNodeFromUploadedFile($data);
-	}
-
-	public function validateFileContent(string $content, string $extension): void {
+	public function validateFileContent(string $content, string $fileName, string $extension): void {
 		if ($extension === 'pdf') {
-			$this->pdfValidator->validate($content);
+			$this->pdfValidator->validate($content, $fileName);
 		}
 	}
 
