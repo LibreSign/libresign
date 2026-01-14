@@ -121,7 +121,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file = $this->createMock(\OCP\Files\File::class);
 		$file->method('getContent')->willReturn($content);
 		$instance->method('getInputFile')->willReturn($file);
-		$actual = self::invokePrivate($instance, 'getHashAlgorithm');
+		$actual = self::invokePrivate($instance, 'getHashAlgorithm', [$content]);
 		$this->assertEquals($expected, $actual);
 	}
 
@@ -141,6 +141,86 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'SHA512, PDF 1.6' => ['SHA512', '%PDF-1.6', 'SHA256'],
 			'RIPEMD160, PDF 1.6 (unsupported)' => ['RIPEMD160', '%PDF-1.6', 'SHA256'],
 			'RIPEMD160, PDF 1.7 (supported)' => ['RIPEMD160', '%PDF-1.7', 'RIPEMD160'],
+		];
+	}
+
+	#[DataProvider('providerExtractPdfVersion')]
+	public function testExtractPdfVersion(string $content, ?float $expected): void {
+		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
+			$this->markTestSkipped('Certificate initialization failed');
+		}
+
+		$instance = $this->getInstance();
+		$actual = self::invokePrivate($instance, 'extractPdfVersion', [$content]);
+		$this->assertEquals($expected, $actual);
+	}
+
+	public static function providerExtractPdfVersion(): array {
+		return [
+			'PDF 1.0' => ['%PDF-1.0', 1.0],
+			'PDF 1.1' => ['%PDF-1.1', 1.1],
+			'PDF 1.2' => ['%PDF-1.2', 1.2],
+			'PDF 1.3' => ['%PDF-1.3', 1.3],
+			'PDF 1.4' => ['%PDF-1.4', 1.4],
+			'PDF 1.5' => ['%PDF-1.5', 1.5],
+			'PDF 1.6' => ['%PDF-1.6', 1.6],
+			'PDF 1.7' => ['%PDF-1.7', 1.7],
+			'PDF 2.0' => ['%PDF-2.0', 2.0],
+			'Invalid header' => ['random data', null],
+			'No version' => ['%PDF-', null],
+			'Empty string' => ['', null],
+			'With content after' => ["%PDF-1.6\n%âãÏÓ", 1.6],
+		];
+	}
+
+	#[DataProvider('providerNormalizePdfVersion')]
+	public function testNormalizePdfVersion(string $hashAlgorithm, string $content, string $expectedStart): void {
+		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
+			$this->markTestSkipped('Certificate initialization failed');
+		}
+
+		$this->appConfig->setValueString('libresign', 'signature_hash_algorithm', $hashAlgorithm);
+		$instance = $this->getInstance();
+		$actual = self::invokePrivate($instance, 'normalizePdfVersion', [$content]);
+		$this->assertStringStartsWith($expectedStart, $actual);
+	}
+
+	public static function providerNormalizePdfVersion(): array {
+		return [
+			'PDF 1.0 upgraded to 1.3 (JSignPDF NullPointerException workaround)' => ['SHA256', '%PDF-1.0', '%PDF-1.3'],
+			'PDF 1.1 upgraded to 1.3 (JSignPDF NullPointerException workaround)' => ['SHA256', '%PDF-1.1', '%PDF-1.3'],
+			'PDF 1.2 upgraded to 1.6 for SHA256' => ['SHA256', '%PDF-1.2', '%PDF-1.6'],
+			'PDF 1.3 upgraded to 1.6 for SHA256' => ['SHA256', '%PDF-1.3', '%PDF-1.6'],
+			'PDF 1.4 upgraded to 1.6 for SHA256' => ['SHA256', '%PDF-1.4', '%PDF-1.6'],
+			'PDF 1.5 upgraded to 1.6 for SHA256' => ['SHA256', '%PDF-1.5', '%PDF-1.6'],
+			'PDF 1.5 not changed with SHA1' => ['SHA1', '%PDF-1.5', '%PDF-1.5'],
+			'PDF 1.6 not changed' => ['SHA256', '%PDF-1.6', '%PDF-1.6'],
+			'PDF 1.7 not changed' => ['SHA256', '%PDF-1.7', '%PDF-1.7'],
+			'PDF 2.0 not changed' => ['SHA256', '%PDF-2.0', '%PDF-2.0'],
+			'Invalid PDF not changed' => ['SHA256', 'random data', 'random data'],
+		];
+	}
+
+	#[DataProvider('providerNormalizeScaleFactor')]
+	public function testNormalizeScaleFactor(float $input, float $expected): void {
+		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
+			$this->markTestSkipped('Certificate initialization failed');
+		}
+
+		$instance = $this->getInstance();
+		$actual = self::invokePrivate($instance, 'normalizeScaleFactor', [$input]);
+		$this->assertEquals($expected, $actual);
+	}
+
+	public static function providerNormalizeScaleFactor(): array {
+		return [
+			'Below minimum (0)' => [0.0, 5.0],
+			'Below minimum (3.5)' => [3.5, 5.0],
+			'Below minimum (4.9)' => [4.9, 5.0],
+			'At minimum' => [5.0, 5.0],
+			'Above minimum (5.1)' => [5.1, 5.1],
+			'Above minimum (10.0)' => [10.0, 10.0],
+			'Large scale' => [100.0, 100.0],
 		];
 	}
 
@@ -233,7 +313,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'templateFontSize' => 10,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
-				'params' => '-a -kst PKCS12 --l2-text "" -V -llx 0 -lly 0 -urx 0 -ury 0 --bg-path merged.png --hash-algorithm SHA256'
+				'params' => '-a -kst PKCS12 --hash-algorithm SHA256 --l2-text "" -V -llx 0 -lly 0 -urx 0 -ury 0 --bg-path merged.png'
 			],
 			'page != 1: will have pg; without template: l2-text empty' => [
 				'visibleElements' => [self::getElement([
@@ -251,7 +331,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'templateFontSize' => 10,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
-				'params' => '-a -kst PKCS12 --l2-text "" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png --hash-algorithm SHA256'
+				'params' => '-a -kst PKCS12 --hash-algorithm SHA256 --l2-text "" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png'
 			],
 			'with template we have the l2-text' => [
 				'visibleElements' => [self::getElement([
@@ -395,7 +475,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'templateFontSize' => 10,
 				'pdfContent' => '%PDF-1.6',
 				'hashAlgorithm' => '',
-				'params' => '-a -kst PKCS12 --l2-text "" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png --hash-algorithm SHA256'
+				'params' => '-a -kst PKCS12 --hash-algorithm SHA256 --l2-text "" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png'
 			],
 		];
 	}
