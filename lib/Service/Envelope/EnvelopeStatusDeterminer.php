@@ -11,22 +11,10 @@ namespace OCA\Libresign\Service\Envelope;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Enum\FileStatus;
 
-/**
- * Determines envelope status based on child files and sign requests.
- *
- * Encapsulates the logic for deciding the envelope status:
- * - DRAFT: no sign requests
- * - ABLE_TO_SIGN: has sign requests but none are signed
- * - PARTIAL_SIGNED: some sign requests are signed
- * - SIGNED: all sign requests are signed
- */
 class EnvelopeStatusDeterminer {
 	/**
-	 * Determine the target status for an envelope based on its children
-	 *
-	 * @param FileEntity[] $childFiles Child files of the envelope
-	 * @param array $signRequestsMap Map of file ID to sign requests
-	 * @return int Target status value
+	 * @param FileEntity[] $childFiles
+	 * @param array<int, array> $signRequestsMap
 	 */
 	public function determineStatus(array $childFiles, array $signRequestsMap): int {
 		$totalSignRequests = 0;
