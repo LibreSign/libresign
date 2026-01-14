@@ -89,4 +89,11 @@ class IdentifyMethod extends Entity {
 		}
 		$this->markFieldUpdated('lastAttemptDate');
 	}
+
+	/**
+	 * Build the unique identifier in format "key:value"
+	 */
+	public function getUniqueIdentifier(): string {
+		return $this->getIdentifierKey() . ':' . $this->getIdentifierValue();
+	}
 }
