@@ -352,7 +352,6 @@ class FileMapper extends QBMapper {
 	 * @return File[]
 	 */
 	public function findStaleSigningInProgress(\DateTime $staleThreshold): array {
-		// Fetch all files currently marked as SIGNING_IN_PROGRESS
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')
 			->from($this->getTableName())
@@ -362,26 +361,25 @@ class FileMapper extends QBMapper {
 
 		$files = $this->findEntities($qb);
 
-		// Filter by metadata timestamp `status_changed_at` when available;
-		// fall back to createdAt for legacy records without metadata.
 		$stale = [];
 		foreach ($files as $file) {
+			$isStale = false;
 			$meta = $file->getMetadata();
+
 			if (is_array($meta) && isset($meta['status_changed_at'])) {
 				try {
 					$changedAt = new \DateTime($meta['status_changed_at']);
-					if ($changedAt < $staleThreshold) {
-						$stale[] = $file;
-					}
-					continue;
-				} catch (\Throwable $e) {
-					// Ignore parse errors and fall back below
+					$isStale = $changedAt < $staleThreshold;
+				} catch (\DateMalformedStringException) {
 				}
 			}
 
-			// Fallback: use createdAt when no metadata timestamp is present
-			$created = $file->getCreatedAt();
-			if ($created instanceof \DateTime && $created < $staleThreshold) {
+			if (!$isStale) {
+				$created = $file->getCreatedAt();
+				$isStale = $created instanceof \DateTime && $created < $staleThreshold;
+			}
+
+			if ($isStale) {
 				$stale[] = $file;
 			}
 		}
