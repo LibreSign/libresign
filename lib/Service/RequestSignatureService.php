@@ -204,17 +204,19 @@ class RequestSignatureService {
 	}
 
 	private function processFileData(array $fileData, ?IUser $userManager, array $settings): Node {
+		$name = $this->requireFileName($fileData);
+
 		if (isset($fileData['uploadedFile'])) {
 			$sourceNode = $this->fileService->getNodeFromData([
 				'userManager' => $userManager,
-				'name' => $fileData['name'] ?? '',
+				'name' => $name,
 				'uploadedFile' => $fileData['uploadedFile'],
 				'settings' => $settings,
 			]);
 		} else {
 			$sourceNode = $this->fileService->getNodeFromData([
 				'userManager' => $userManager,
-				'name' => $fileData['name'] ?? '',
+				'name' => $name,
 				'file' => $fileData,
 				'settings' => $settings,
 			]);
@@ -229,6 +231,14 @@ class RequestSignatureService {
 		}
 
 		return $sourceNode;
+	}
+
+	private function requireFileName(array $fileData): string {
+		$name = trim((string)($fileData['name'] ?? ''));
+		if ($name === '') {
+			throw new LibresignException($this->l10n->t('File name is required'));
+		}
+		return $name;
 	}
 
 	private function rollbackEnvelopeCreation(?FileEntity $envelope, array $files, array $createdNodes): void {
@@ -563,7 +573,7 @@ class RequestSignatureService {
 
 	public function validateNewFile(array $data): void {
 		if (empty($data['name'])) {
-			throw new \Exception($this->l10n->t('Name is mandatory'));
+			throw new \Exception($this->l10n->t('File name is required'));
 		}
 		$this->validateHelper->validateNewFile($data);
 	}
