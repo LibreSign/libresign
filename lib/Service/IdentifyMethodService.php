@@ -210,12 +210,21 @@ class IdentifyMethodService {
 
 	public function getIdentifiedMethod(int $signRequestId): IIdentifyMethod {
 		$matrix = $this->getIdentifyMethodsFromSignRequestId($signRequestId);
+		$firstMethod = null;
 		foreach ($matrix as $identifyMethods) {
 			foreach ($identifyMethods as $identifyMethod) {
+				if ($firstMethod === null) {
+					$firstMethod = $identifyMethod;
+				}
 				if ($identifyMethod->getEntity()->getIdentifiedAtDate()) {
 					return $identifyMethod;
 				}
 			}
+		}
+		// If no identified method found (e.g., clickToSign doesn't require identification),
+		// return the first available method
+		if ($firstMethod !== null) {
+			return $firstMethod;
 		}
 		throw new LibresignException($this->l10n->t('Invalid identification method'), 1);
 	}

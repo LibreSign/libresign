@@ -205,7 +205,10 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 	protected function throwIfInvalidToken(): void {
 		$code = $this->getEntity()->getCode();
-		if (($code === null || $code === '') && $this instanceof Account) {
+		if ($code === null || $code === '') {
+			if ($this->codeSentByUser !== null) {
+				throw new LibresignException($this->identifyService->getL10n()->t('Invalid code.'));
+			}
 			return;
 		}
 		if (empty($this->codeSentByUser) || !$this->identifyService->getHasher()->verify($this->codeSentByUser, $code)) {
