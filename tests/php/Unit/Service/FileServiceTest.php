@@ -110,8 +110,8 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = $this->createFileService();
 
 		$this->expectNotToPerformAssertions();
-		$service->validateFileContent('any content', 'txt');
-		$service->validateFileContent('{"json": true}', 'json');
+		$service->validateFileContent('any content', 'text-file', 'txt');
+		$service->validateFileContent('{"json": true}', 'payload', 'json');
 	}
 
 	public function testSetFileByIdThrowsOnInvalid(): void {

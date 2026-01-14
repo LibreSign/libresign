@@ -141,7 +141,7 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pdfValidator
 			->expects($this->once())
 			->method('validate')
-			->with($content);
+			->with($content, 'test');
 
 		$targetFolder = $this->createMock(Folder::class);
 		$this->folderService->method('getFolderForFile')->willReturn($targetFolder);
