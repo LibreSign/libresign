@@ -142,8 +142,6 @@ export default {
 
 				const responseData = data.ocs?.data || data
 				const status = responseData?.status
-				this.progress = responseData?.progress || null
-				this.fileId = responseData?.fileId || null
 				this.currentStatusCode = responseData?.statusCode ?? null
 				this.pollLastStatus = status
 
