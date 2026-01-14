@@ -926,27 +926,8 @@ class AdminController extends AEnvironmentAwareController {
 				], Http::STATUS_BAD_REQUEST);
 			}
 
-			// Only save if different from default ('async')
-			if ($mode === 'async') {
-				$this->appConfig->deleteKey(Application::APP_ID, 'signing_mode');
-			} else {
-				$this->appConfig->setValueString(
-					Application::APP_ID,
-					'signing_mode',
-					$mode
-				);
-			}
-
-			// Only save if different from default ('local')
-			if ($workerType === null || $workerType === 'local') {
-				$this->appConfig->deleteKey(Application::APP_ID, 'worker_type');
-			} else {
-				$this->appConfig->setValueString(
-					Application::APP_ID,
-					'worker_type',
-					$workerType
-				);
-			}
+			$this->saveOrDeleteConfig('signing_mode', $mode, 'async');
+			$this->saveOrDeleteConfig('worker_type', $workerType, 'local');
 
 			return new DataResponse([
 				'message' => $this->l10n->t('Settings saved'),
@@ -955,6 +936,14 @@ class AdminController extends AEnvironmentAwareController {
 			return new DataResponse([
 				'error' => $e->getMessage(),
 			], Http::STATUS_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	private function saveOrDeleteConfig(string $key, ?string $value, string $default): void {
+		if ($value === $default) {
+			$this->appConfig->deleteKey(Application::APP_ID, $key);
+		} else {
+			$this->appConfig->setValueString(Application::APP_ID, $key, $value);
 		}
 	}
 
