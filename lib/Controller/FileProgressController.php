@@ -125,20 +125,13 @@ class FileProgressController extends OCSController {
 		}
 	}
 
-	/**
-	 * Get signing progress for file or envelope
-	 */
 	private function getSigningProgress(FileEntity $file): array {
 		if ($file->getNodeType() === 'envelope') {
 			return $this->getEnvelopeProgress($file);
 		}
-
-		// For single files (no parent, not envelope), display as single-file progress
-		// This covers async signing without relying on status checks which may lag
 		if (!$file->getParentFileId()) {
 			return $this->getSingleFileProgress($file);
 		}
-
 		return $this->getFileProgress($file);
 	}
 
