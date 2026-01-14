@@ -38,9 +38,7 @@ class EnvelopeFileRelocator {
 
 		$filename = $sourceNode->getName();
 
-		// Check if file with same name already exists in envelope folder
 		if ($envelopeFolder->nodeExists($filename)) {
-			// Only add timestamp if collision detected
 			$extension = $sourceNode->getExtension();
 			$nameWithoutExt = substr($filename, 0, -strlen($extension) - 1);
 			$filename = $nameWithoutExt . '_' . time() . '.' . $extension;
