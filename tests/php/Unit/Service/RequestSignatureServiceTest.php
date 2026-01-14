@@ -17,12 +17,12 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\DocMdpConfigService;
 use OCA\Libresign\Service\Envelope\EnvelopeFileRelocator;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
+use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\PdfParserService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignRequestService;
@@ -53,7 +53,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private FileElementMapper&MockObject $fileElementMapper;
 	private FileElementService&MockObject $fileElementService;
 	private IdentifyMethodService&MockObject $identifyMethodService;
-	private PdfParserService&MockObject $pdfParserService;
+	private PdfMetadataExtractor&MockObject $pdfMetadataExtractor;
 	private IMimeTypeDetector&MockObject $mimeTypeDetector;
 	private IClientService&MockObject $client;
 	private DocMdpHandler&MockObject $docMdpHandler;
@@ -87,7 +87,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->fileElementService = $this->createMock(FileElementService::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
-		$this->pdfParserService = $this->createMock(PdfParserService::class);
+		$this->pdfMetadataExtractor = $this->createMock(PdfMetadataExtractor::class);
 		$this->mimeTypeDetector = $this->createMock(IMimeTypeDetector::class);
 		$this->client = $this->createMock(IClientService::class);
 		$this->docMdpHandler = $this->createMock(DocMdpHandler::class);
@@ -112,7 +112,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->userManager,
 			$this->fileMapper,
 			$this->identifyMethodMapper,
-			$this->pdfParserService,
+			$this->pdfMetadataExtractor,
 			$this->fileElementService,
 			$this->fileElementMapper,
 			$this->folderService,
@@ -134,7 +134,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	}
 
 	public function testValidateNameIsMandatory():void {
-		$this->expectExceptionMessage('Name is mandatory');
+		$this->expectExceptionMessage('File name is required');
 
 		$this->getService()->validateNewRequestToFile([
 			'file' => ['url' => 'qwert'],
@@ -216,10 +216,10 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$inputFile
 			->method('getExtension')
 			->willReturn($extension);
-		$this->pdfParserService
+		$this->pdfMetadataExtractor
 			->method('setFile')
-			->willReturn($this->pdfParserService);
-		$this->pdfParserService
+			->willReturn($this->pdfMetadataExtractor);
+		$this->pdfMetadataExtractor
 			->method('getPageDimensions')
 			->willReturn(['isValid' => true]);
 		$actual = self::invokePrivate($this->getService(), 'getFileMetadata', [$inputFile]);
