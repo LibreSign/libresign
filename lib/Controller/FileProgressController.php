@@ -167,10 +167,6 @@ class FileProgressController extends OCSController {
 		], Http::STATUS_OK);
 	}
 
-	/**
-	 * Get progress for a single file (not an envelope, not a child)
-	 * Returns file-list format for consistent UI display
-	 */
 	private function getSingleFileProgress(FileEntity $file): array {
 		return [
 			'total' => 1,
@@ -190,45 +186,36 @@ class FileProgressController extends OCSController {
 
 	private function getEnvelopeProgress(FileEntity $envelope): array {
 		$children = $this->fileMapper->getChildrenFiles($envelope->getId());
-
-		// If no children, this is an async-signing single file marked as envelope
-		// Include the envelope itself in the progress display
 		if (empty($children)) {
 			$children = [$envelope];
 		}
 
-		$total = count($children);
-		$signed = 0;
-		$inProgress = 0;
-		$pending = 0;
+		$totals = $this->countStatusTotals($children);
+		$files = array_map(fn ($child) => $this->mapFileProgress($child), $children);
 
-		$files = [];
+		return $totals + ['files' => $files];
+	}
+
+	private function countStatusTotals(array $children): array {
+		$totals = ['total' => count($children), 'signed' => 0, 'inProgress' => 0, 'pending' => 0];
+
 		foreach ($children as $child) {
-			$childStatus = $child->getStatus();
-			if ($childStatus === FileStatus::SIGNED->value) {
-				$signed++;
-			} elseif ($childStatus === FileStatus::SIGNING_IN_PROGRESS->value) {
-				$inProgress++;
-			} else {
-				// Any status other than SIGNED or SIGNING_IN_PROGRESS is pending
-				// This includes: DRAFT, ABLE_TO_SIGN, PARTIAL_SIGNED, etc.
-				$pending++;
-			}
-
-			$files[] = [
-				'id' => $child->getId(),
-				'name' => $child->getName(),
-				'status' => $childStatus,
-				'statusText' => $this->fileMapper->getTextOfStatus($childStatus),
-			];
+			match ($child->getStatus()) {
+				FileStatus::SIGNED->value => $totals['signed']++,
+				FileStatus::SIGNING_IN_PROGRESS->value => $totals['inProgress']++,
+				default => $totals['pending']++,
+			};
 		}
 
+		return $totals;
+	}
+
+	private function mapFileProgress(FileEntity $file): array {
 		return [
-			'total' => $total,
-			'signed' => $signed,
-			'inProgress' => $inProgress,
-			'pending' => $pending,
-			'files' => $files,
+			'id' => $file->getId(),
+			'name' => $file->getName(),
+			'status' => $file->getStatus(),
+			'statusText' => $this->fileMapper->getTextOfStatus($file->getStatus()),
 		];
 	}
 
