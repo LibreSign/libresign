@@ -24,27 +24,33 @@ class TsaValidationService {
 	 * @throws LibresignException if TSA is misconfigured
 	 */
 	public function validateConfiguration(): void {
-		$tsaUrl = $this->appConfig->getValueString(Application::APP_ID, 'tsa_url', '');
+		$tsaUrl = $this->getTsaUrl();
 		if (empty($tsaUrl)) {
-			// TSA not configured, nothing to validate
 			return;
 		}
 
-		// Basic URL validation
+		$this->validateTsaUrlFormat($tsaUrl);
+		$this->validateTsaHostResolution($tsaUrl);
+	}
+
+	private function getTsaUrl(): string {
+		return $this->appConfig->getValueString(Application::APP_ID, 'tsa_url', '');
+	}
+
+	private function validateTsaUrlFormat(string $tsaUrl): void {
 		if (!filter_var($tsaUrl, FILTER_VALIDATE_URL)) {
 			throw new LibresignException('Invalid TSA URL format: ' . $tsaUrl);
 		}
 
-		// Check if URL is reachable
 		$tsaUrlParsed = parse_url($tsaUrl);
 		if (!isset($tsaUrlParsed['host'])) {
 			throw new LibresignException('Invalid TSA URL: ' . $tsaUrl);
 		}
+	}
 
-		// Try to resolve hostname to detect DNS/connectivity issues early
-		$host = (string)$tsaUrlParsed['host'];
+	private function validateTsaHostResolution(string $tsaUrl): void {
+		$host = (string)parse_url($tsaUrl, PHP_URL_HOST);
 		if (!@gethostbyname($host) || gethostbyname($host) === $host) {
-			// Could not resolve hostname
 			throw new LibresignException('Timestamp Authority (TSA) service is unavailable or misconfigured: ' . $tsaUrl);
 		}
 	}
