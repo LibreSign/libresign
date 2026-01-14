@@ -20,9 +20,6 @@ use OCP\IUserManager;
 use OCP\Security\ICredentialsManager;
 use Psr\Log\LoggerInterface;
 
-/**
- * Shared orchestration logic for signing jobs.
- */
 class SignJobCoordinator {
 	public function __construct(
 		private FileMapper $fileMapper,
