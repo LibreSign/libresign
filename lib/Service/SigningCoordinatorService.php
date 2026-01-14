@@ -11,9 +11,6 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\AppInfo\Application;
 use OCP\IAppConfig;
 
-/**
- * Lightweight coordinator to decide parallel vs sequential signing.
- */
 class SigningCoordinatorService {
 	public function __construct(
 		private IAppConfig $appConfig,
