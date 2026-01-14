@@ -598,7 +598,7 @@ class FileController extends AEnvironmentAwareController {
 			$name = $this->extractFileName($fileData);
 		}
 		if (empty($name)) {
-			throw new LibresignException($this->l10n->t('Name is mandatory'));
+			throw new LibresignException($this->l10n->t('File name is required'));
 		}
 
 		if (isset($fileData['fileNode']) && $fileData['fileNode'] instanceof Node) {
