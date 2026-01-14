@@ -25,16 +25,18 @@ class PdfValidator {
 	/**
 	 * Validate PDF content and DocMDP restrictions.
 	 *
-	 * @throws \Exception
+	 * @param string $content The PDF content to validate
+	 * @param string $fileName File name for error messages
 	 * @throws LibresignException
 	 */
-	public function validate(string $content): void {
+	public function validate(string $content, string $fileName): void {
 		try {
 			$parser = new \OCA\Libresign\Vendor\Smalot\PdfParser\Parser();
 			$parser->parseContent($content);
 		} catch (\Throwable $th) {
 			$this->logger->error($th->getMessage());
-			throw new \Exception($this->l10n->t('Invalid PDF'));
+			// TRANSLATORS %s is the file name of the PDF that failed validation
+			throw new LibresignException($this->l10n->t('The file is not a valid PDF: %s', [$fileName]));
 		}
 
 		$resource = fopen('php://memory', 'r+');
@@ -47,7 +49,8 @@ class PdfValidator {
 			rewind($resource);
 
 			if (!$this->docMdpHandler->allowsAdditionalSignatures($resource)) {
-				throw new LibresignException($this->l10n->t('This document has been certified with no changes allowed, so no additional signatures can be added.'));
+				// TRANSLATORS %s is the file name of the PDF with DocMDP restrictions
+				throw new LibresignException($this->l10n->t('This document has been certified with no changes allowed, so no additional signatures can be added: %s', [$fileName]));
 			}
 		} finally {
 			fclose($resource);
