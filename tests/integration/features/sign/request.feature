@@ -25,8 +25,8 @@ Feature: request-signature
       | name | |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
-      | key                   | value             |
-      | (jq).ocs.data.message | Name is mandatory |
+      | key                   | value                 |
+      | (jq).ocs.data.message | File name is required |
 
   Scenario: Request to sign with error using different authenticated account
     Given as user "admin"
