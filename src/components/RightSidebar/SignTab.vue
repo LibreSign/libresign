@@ -47,7 +47,6 @@ export default {
 		return { signStore, sidebarStore }
 	},
 	mounted() {
-		// If signing is already in progress, redirect to validation/progress view
 		if (this.signStore.document?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
 			this.onSigningStarted({ fileUuid: this.signStore.document.uuid })
 		}
@@ -67,7 +66,6 @@ export default {
 			})
 		},
 		onSigningStarted(payload) {
-			// Async signing started, redirect to validation/progress page
 			this.$router.push({
 				name: this.$route.path.startsWith('/p/') ? 'ValidationFileExternal' : 'ValidationFile',
 				params: {

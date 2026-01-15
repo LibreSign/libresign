@@ -386,7 +386,6 @@ export default {
 			adminSignatureFlow: '',
 			debouncedSave: null,
 			debouncedTabChange: null,
-			// Long polling progress tracking
 			signingProgress: null,
 			signingProgressStatus: null,
 			signingProgressStatusText: '',
