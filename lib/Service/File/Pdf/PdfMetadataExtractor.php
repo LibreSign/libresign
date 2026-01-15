@@ -1,24 +1,27 @@
 <?php
 
 declare(strict_types=1);
+
 /**
- * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-FileCopyrightText: 2020-2026 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service;
+namespace OCA\Libresign\Service\File\Pdf;
 
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Vendor\Smalot\PdfParser\Document;
-use OCA\Libresign\Vendor\Smalot\PdfParser\Parser;
 use OCP\Files\File;
 use OCP\ITempManager;
 use Psr\Log\LoggerInterface;
 
-class PdfParserService {
+class PdfMetadataExtractor {
 	private string $content = '';
+	private string $fileName = '';
 	private ?Document $document = null;
+
 	public function __construct(
+		private PdfParser $pdfParser,
 		private ITempManager $tempManager,
 		private LoggerInterface $logger,
 	) {
@@ -27,18 +30,20 @@ class PdfParserService {
 	/**
 	 * @throws LibresignException
 	 */
-	public function setFile(File|string $file): self {
+	public function setFile(File $file): self {
+		$fileName = $file->getName();
 		try {
-			if ($file instanceof File) {
-				$this->content = $file->getContent();
-			} else {
-				$this->content = $file;
-			}
-		} catch (\Throwable) {
+			$this->content = $file->getContent();
+		} catch (\Throwable $e) {
+			throw new LibresignException(
+				sprintf('Unable to read file "%s": %s', $fileName, $e->getMessage())
+			);
 		}
 		if (!$this->content) {
-			throw new LibresignException('Empty file.');
+			throw new LibresignException(sprintf('The file "%s" is empty.', $fileName));
 		}
+		$this->fileName = $fileName;
+		$this->document = null;
 		return $this;
 	}
 
@@ -52,17 +57,7 @@ class PdfParserService {
 	private function getDocument(): Document {
 		if (!$this->document) {
 			$content = $this->getContent();
-			try {
-				$parser = new Parser();
-				$this->document = $parser->parseContent($content);
-				return $this->document;
-			} catch (\Throwable $th) {
-				if ($th->getMessage() === 'Secured pdf file are currently not supported.') {
-					throw new LibresignException('Secured pdf file are currently not supported.');
-				}
-				$this->logger->error('Impossible get metadata from this file: ' . $th->getMessage());
-				throw new LibresignException('Impossible get metadata from this file.');
-			}
+			$this->document = $this->pdfParser->parse($content, $this->fileName);
 		}
 		return $this->document;
 	}
@@ -139,7 +134,7 @@ class PdfParserService {
 	}
 
 	public function getPdfVersion(): string {
-		preg_match('/^%PDF-(?<version>\d+(\.\d+)?)/', $this->content, $match);
+		preg_match('/^%PDF-(?<version>\d+(\.\d+)?)/', $this->getContent(), $match);
 		return $match['version'];
 	}
 }

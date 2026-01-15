@@ -82,7 +82,7 @@ class TSA {
 
 		try {
 			$decoded = $this->decodeWithCache($timestampElement->element);
-			return $decoded[0] ? $this->extractCertificateHints([$decoded[0]]) : [];
+			return ($decoded[0] ?? null) ? $this->extractCertificateHints([$decoded[0]]) : [];
 		} catch (\Throwable) {
 			return [];
 		}

@@ -24,6 +24,7 @@ use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\Envelope\EnvelopeFileRelocator;
 use OCA\Libresign\Service\Envelope\EnvelopeService;
+use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
@@ -46,7 +47,7 @@ class RequestSignatureService {
 		protected IUserManager $userManager,
 		protected FileMapper $fileMapper,
 		protected IdentifyMethodMapper $identifyMethodMapper,
-		protected PdfParserService $pdfParserService,
+		protected PdfMetadataExtractor $pdfMetadataExtractor,
 		protected FileElementService $fileElementService,
 		protected FileElementMapper $fileElementMapper,
 		protected FolderService $folderService,
@@ -204,17 +205,19 @@ class RequestSignatureService {
 	}
 
 	private function processFileData(array $fileData, ?IUser $userManager, array $settings): Node {
+		$name = $this->requireFileName($fileData);
+
 		if (isset($fileData['uploadedFile'])) {
 			$sourceNode = $this->fileService->getNodeFromData([
 				'userManager' => $userManager,
-				'name' => $fileData['name'] ?? '',
+				'name' => $name,
 				'uploadedFile' => $fileData['uploadedFile'],
 				'settings' => $settings,
 			]);
 		} else {
 			$sourceNode = $this->fileService->getNodeFromData([
 				'userManager' => $userManager,
-				'name' => $fileData['name'] ?? '',
+				'name' => $name,
 				'file' => $fileData,
 				'settings' => $settings,
 			]);
@@ -229,6 +232,14 @@ class RequestSignatureService {
 		}
 
 		return $sourceNode;
+	}
+
+	private function requireFileName(array $fileData): string {
+		$name = trim((string)($fileData['name'] ?? ''));
+		if ($name === '') {
+			throw new LibresignException($this->l10n->t('File name is required'));
+		}
+		return $name;
 	}
 
 	private function rollbackEnvelopeCreation(?FileEntity $envelope, array $files, array $createdNodes): void {
@@ -411,12 +422,12 @@ class RequestSignatureService {
 				'extension' => $extension,
 			];
 			if ($metadata['extension'] === 'pdf') {
-				$pdfParser = $this->pdfParserService->setFile($node);
+				$this->pdfMetadataExtractor->setFile($node);
 				$metadata = array_merge(
 					$metadata,
-					$pdfParser->getPageDimensions()
+					$this->pdfMetadataExtractor->getPageDimensions()
 				);
-				$metadata['pdfVersion'] = $pdfParser->getPdfVersion();
+				$metadata['pdfVersion'] = $this->pdfMetadataExtractor->getPdfVersion();
 			}
 		}
 		return $metadata;
@@ -563,7 +574,7 @@ class RequestSignatureService {
 
 	public function validateNewFile(array $data): void {
 		if (empty($data['name'])) {
-			throw new \Exception($this->l10n->t('Name is mandatory'));
+			throw new \Exception($this->l10n->t('File name is required'));
 		}
 		$this->validateHelper->validateNewFile($data);
 	}

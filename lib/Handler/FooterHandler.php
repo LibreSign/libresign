@@ -11,7 +11,7 @@ namespace OCA\Libresign\Handler;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Service\PdfParserService;
+use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCA\Libresign\Vendor\Endroid\QrCode\Color\Color;
 use OCA\Libresign\Vendor\Endroid\QrCode\Encoding\Encoding;
 use OCA\Libresign\Vendor\Endroid\QrCode\ErrorCorrectionLevel;
@@ -36,7 +36,7 @@ class FooterHandler {
 
 	public function __construct(
 		private IAppConfig $appConfig,
-		private PdfParserService $pdfParserService,
+		private PdfMetadataExtractor $pdfMetadataExtractor,
 		private IURLGenerator $urlGenerator,
 		private IL10N $l10n,
 		private IFactory $l10nFactory,
@@ -87,7 +87,7 @@ class FooterHandler {
 	public function getMetadata(File $file, FileEntity $fileEntity): array {
 		$metadata = $fileEntity->getMetadata();
 		if (!is_array($metadata) || !isset($metadata['d'])) {
-			$metadata = $this->pdfParserService
+			$metadata = $this->pdfMetadataExtractor
 				->setFile($file)
 				->getPageDimensions();
 		}

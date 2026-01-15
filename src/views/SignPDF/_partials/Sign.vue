@@ -169,6 +169,7 @@ import { useSignStore } from '../../../store/sign.js'
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { useIdentificationDocumentStore } from '../../../store/identificationDocument.js'
+import { FILE_STATUS } from '../../../constants.js'
 
 export default {
 	name: 'Sign',
@@ -264,8 +265,14 @@ export default {
 		},
 		signRequestUuid() {
 			const signer = this.signStore.document.signers.find(row => row.me) || {}
-			return signer.sign_uuid
+			if (this.signStore.document.nodeType === 'envelope') {
+				return this.signStore.document.uuid
+			}
+			return signer.sign_uuid || this.signStore.document.uuid
 		},
+	},
+	beforeUnmount() {
+		this.resetSignMethodsState()
 	},
 	mounted() {
 		this.loading = true
@@ -275,10 +282,27 @@ export default {
 		Promise.all([
 			this.loadUser(),
 		])
-			.catch(console.warn)
 			.then(() => {
 				this.loading = false
+				if (this.signStore.document?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
+					this.$emit('signing-started', {
+						fileUuid: this.signStore.document.uuid,
+						async: true,
+					})
+				}
 			})
+	},
+	watch: {
+		signRequestUuid(newUuid, oldUuid) {
+			if (newUuid && oldUuid && newUuid !== oldUuid) {
+				Object.keys(this.signMethodsStore.modal).forEach(key => {
+					this.signMethodsStore.closeModal(key)
+				})
+				this.errors = []
+				this.showManagePassword = false
+				this.signPassword = ''
+			}
+		},
 	},
 	methods: {
 		async loadUser() {
@@ -297,6 +321,19 @@ export default {
 			this.showManagePassword = false
 			this.signMethodsStore.closeModal('password')
 		},
+		resetSignMethodsState() {
+			if (typeof this.signMethodsStore?.$reset === 'function') {
+				this.signMethodsStore.$reset()
+			} else {
+				Object.keys(this.signMethodsStore.modal || {}).forEach(key => {
+					this.signMethodsStore.closeModal(key)
+				})
+				this.signMethodsStore.settings = {}
+			}
+			this.errors = []
+			this.showManagePassword = false
+			this.signPassword = ''
+		},
 		showModalAndResetErrors(modalCode) {
 			this.errors = []
 			this.signMethodsStore.showModal(modalCode)
@@ -314,6 +351,8 @@ export default {
 			this.signMethodsStore.closeModal('createSignature')
 		},
 		async signWithClick() {
+			const signer = this.signStore.document.signers.find(s => s.me) || {}
+			const identify = signer.identifyMethods?.[0] || {}
 			await this.signDocument({
 				method: 'clickToSign',
 			})
@@ -359,18 +398,29 @@ export default {
 				}
 			}
 			let url = ''
-			if (this.signStore.document.fileId > 0) {
-				url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{nodeId}', { nodeId: this.signStore.document.nodeId })
+			if (this.signStore.document.id > 0) {
+				url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{id}', { id: this.signStore.document.id })
 			} else {
 				url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: this.signRequestUuid })
 			}
 
+			url += '?async=true'
+
 			await axios.post(url, payload)
 				.then(({ data }) => {
-					if (data.ocs.data.action === 3500) { // ACTION_SIGNED
+					const responseData = data.ocs?.data
+					if (responseData?.job?.status === 'SIGNING_IN_PROGRESS') {
+						this.signMethodsStore.closeModal(payload.method)
+						this.$emit('signing-started', {
+							fileUuid: this.signStore.document.uuid,
+							async: true,
+						})
+						return
+					}
+					if (responseData?.action === 3500) { // ACTION_SIGNED
 						this.signMethodsStore.closeModal(payload.method)
 						this.sidebarStore.hideSidebar()
-						this.$emit('signed', data.ocs.data)
+						this.$emit('signed', responseData)
 					}
 				})
 				.catch((err) => {

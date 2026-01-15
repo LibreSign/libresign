@@ -67,7 +67,7 @@ import {
 	mdiSignatureFreehand,
 } from '@mdi/js'
 
-import { fileStatus } from '../../helpers/fileStatus.js'
+import { getStatusLabel } from '../../utils/fileStatus.js'
 import SignerDetails from './SignerDetails.vue'
 
 export default {
@@ -97,11 +97,7 @@ export default {
 			return (size / 1048576).toFixed(2) + ' MB'
 		},
 		documentStatus() {
-			const actual = fileStatus.find(item => item.id === this.document.status)
-			if (actual === undefined) {
-				return fileStatus.find(item => item.id === -1).label
-			}
-			return actual.label
+			return getStatusLabel(this.document.status)
 		},
 	},
 	methods: {

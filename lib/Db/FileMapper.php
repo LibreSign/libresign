@@ -34,6 +34,14 @@ class FileMapper extends QBMapper {
 		parent::__construct($db, 'libresign_file');
 	}
 
+	public function flushCache(?int $fileId = null): void {
+		if ($fileId !== null) {
+			$this->file = array_filter($this->file, fn ($f) => $f->getId() !== $fileId);
+		} else {
+			$this->file = [];
+		}
+	}
+
 	/**
 	 * Return LibreSign file by ID
 	 *
@@ -56,7 +64,10 @@ class FileMapper extends QBMapper {
 
 		/** @var File */
 		$file = $this->findEntity($qb);
+
+		$this->file = array_filter($this->file, fn ($f) => $f->getId() !== $id);
 		$this->file[] = $file;
+
 		return $file;
 	}
 
@@ -113,7 +124,10 @@ class FileMapper extends QBMapper {
 
 		/** @var File */
 		$file = $this->findEntity($qb);
+
+		$this->file = array_filter($this->file, fn ($f) => $f->getUuid() !== $uuid);
 		$this->file[] = $file;
+
 		return $file;
 	}
 
@@ -311,5 +325,65 @@ class FileMapper extends QBMapper {
 		$cursor->closeCursor();
 
 		return $row ? (int)$row['count'] : 0;
+	}
+
+	/**
+	 * Find all files with a specific status
+	 *
+	 * @param int $status File status
+	 * @return File[]
+	 */
+	public function findByStatus(int $status): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('status', $qb->createNamedParameter($status, IQueryBuilder::PARAM_INT))
+			);
+
+		return $this->findEntities($qb);
+	}
+
+	/**
+	 * Find files stuck in SIGNING_IN_PROGRESS status older than threshold
+	 *
+	 * @param \DateTime $staleThreshold Files created before this time will be returned
+	 * @return File[]
+	 */
+	public function findStaleSigningInProgress(\DateTime $staleThreshold): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('status', $qb->createNamedParameter(FileStatus::SIGNING_IN_PROGRESS->value, IQueryBuilder::PARAM_INT))
+			);
+
+		$files = $this->findEntities($qb);
+
+		$stale = [];
+		foreach ($files as $file) {
+			$isStale = false;
+			$meta = $file->getMetadata();
+
+			if (is_array($meta) && isset($meta['status_changed_at'])) {
+				try {
+					$changedAt = new \DateTime($meta['status_changed_at']);
+					$isStale = $changedAt < $staleThreshold;
+				} catch (\Exception) {
+				}
+			}
+
+			if (!$isStale) {
+				$created = $file->getCreatedAt();
+				$isStale = $created instanceof \DateTime && $created < $staleThreshold;
+			}
+
+			if ($isStale) {
+				$stale[] = $file;
+			}
+		}
+
+		return $stale;
 	}
 }

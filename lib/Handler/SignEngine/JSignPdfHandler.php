@@ -27,6 +27,15 @@ use OCP\ITempManager;
 use Psr\Log\LoggerInterface;
 
 class JSignPdfHandler extends Pkcs12Handler {
+	private const MIN_PDF_VERSION = 1.2;
+	private const TARGET_OLD_PDF_VERSION = '1.3';
+	private const MIN_PDF_VERSION_SHA256 = 1.6;
+	private const TARGET_PDF_VERSION_SHA256 = '1.6';
+	private const MIN_PDF_VERSION_SHA1_REJECT = 1.7;
+	private const SIGNATURE_DEFAULT_FONT_SIZE = 10.0;
+	private const PAGE_FIRST = 1;
+	private const SCALE_FACTOR_MIN = 5;
+
 	/** @var JSignPDF */
 	private $jSignPdf;
 	/** @var JSignParam */
@@ -108,10 +117,25 @@ class JSignPdfHandler extends Pkcs12Handler {
 	 * > FINE Default property file /root/.JSignPdf doesn't exists.
 	 */
 	private function getHome(): string {
+		$configuredHome = $this->getConfiguredHome();
+		if ($configuredHome !== null) {
+			return $configuredHome;
+		}
+
+		$tempFolder = $this->createJSignPdfTempFolder();
+		$this->initializeJSignPdfConfigurationFiles($tempFolder);
+		return $tempFolder;
+	}
+
+	private function getConfiguredHome(): ?string {
 		$jSignPdfHome = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_home', '');
 		if ($jSignPdfHome && is_dir($jSignPdfHome)) {
 			return $jSignPdfHome;
 		}
+		return null;
+	}
+
+	private function createJSignPdfTempFolder(): string {
 		$jsignpdfTempFolder = $this->tempManager->getTemporaryFolder('jsignpdf');
 		if (!$jsignpdfTempFolder) {
 			throw new \Exception('Temporary file not accessible');
@@ -120,38 +144,99 @@ class JSignPdfHandler extends Pkcs12Handler {
 			directory: $jsignpdfTempFolder . '/conf',
 			recursive: true
 		);
-		$configFile = fopen($jsignpdfTempFolder . '/conf/conf.properties', 'w');
-		fclose($configFile);
-		$propertyFile = fopen($jsignpdfTempFolder . '/.JSignPdf', 'w');
-		fclose($propertyFile);
 		return $jsignpdfTempFolder;
 	}
 
-	private function getHashAlgorithm(): string {
-		$hashAlgorithm = $this->appConfig->getValueString(Application::APP_ID, 'signature_hash_algorithm', 'SHA256');
+	private function initializeJSignPdfConfigurationFiles(string $folder): void {
+		$this->createEmptyFile($folder . '/conf/conf.properties');
+		$this->createEmptyFile($folder . '/.JSignPdf');
+	}
+
+	private function createEmptyFile(string $path): void {
+		$file = fopen($path, 'w');
+		fclose($file);
+	}
+
+	private function getHashAlgorithm(string $pdfContent): string {
+		$configuredAlgorithm = $this->appConfig->getValueString(Application::APP_ID, 'signature_hash_algorithm', 'SHA256');
 		/**
 		 * Need to respect the follow code:
 		 * https://github.com/intoolswetrust/jsignpdf/blob/JSignPdf_2_2_2/jsignpdf/src/main/java/net/sf/jsignpdf/types/HashAlgorithm.java#L46-L47
 		 */
-		$content = $this->getInputFile()->getContent();
-		preg_match('/^%PDF-(?<version>\d+(\.\d+)?)/', $content, $match);
-		if (isset($match['version'])) {
-			$version = (float)$match['version'];
-			if ($version < 1.6) {
-				return 'SHA1';
-			}
-			if ($version < 1.7) {
-				return 'SHA256';
-			}
-			if ($version >= 1.7 && $hashAlgorithm === 'SHA1') {
-				return 'SHA256';
-			}
+		$pdfVersion = $this->extractPdfVersion($pdfContent);
+
+		if ($pdfVersion === null) {
+			return $this->validateHashAlgorithm($configuredAlgorithm);
 		}
 
-		if (in_array($hashAlgorithm, ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'])) {
-			return $hashAlgorithm;
+		return $this->getHashAlgorithmForPdfVersion($pdfVersion, $configuredAlgorithm);
+	}
+
+	private function extractPdfVersion(string $content): ?float {
+		if (!preg_match('/^%PDF-(?<version>\d+(\.\d+)?)/', $content, $match)) {
+			return null;
 		}
-		return 'SHA256';
+		return (float)$match['version'];
+	}
+
+	private function getHashAlgorithmForPdfVersion(float $pdfVersion, string $configuredAlgorithm): string {
+		if ($pdfVersion < 1.6) {
+			return 'SHA1';
+		}
+		if ($pdfVersion < self::MIN_PDF_VERSION_SHA1_REJECT) {
+			return 'SHA256';
+		}
+		if ($pdfVersion >= self::MIN_PDF_VERSION_SHA1_REJECT && $configuredAlgorithm === 'SHA1') {
+			return 'SHA256';
+		}
+		return $this->validateHashAlgorithm($configuredAlgorithm);
+	}
+
+	private function validateHashAlgorithm(string $algorithm): string {
+		$supportedAlgorithms = ['SHA1', 'SHA256', 'SHA384', 'SHA512', 'RIPEMD160'];
+		return in_array($algorithm, $supportedAlgorithms) ? $algorithm : 'SHA256';
+	}
+
+	/**
+	 * Normalizes very old PDFs (1.0/1.1) to 1.3.
+	 * Rationale: JSignPDF enum PdfVersion only defines 1.2+; for 1.0/1.1,
+	 * PdfVersion.fromCharVersion(...) returns null and SignerLogic.signFile() NPEs.
+	 * See JSignPDF 2.3.0 sources: types/PdfVersion.java and SignerLogic.signFile().
+	 */
+	private function normalizePdfVersion(string $content): string {
+		$version = $this->extractPdfVersion($content);
+		if ($version === null) {
+			return $content;
+		}
+
+		// Convert very old PDFs (< 1.2) to 1.3 to avoid JSignPDF NullPointerException
+		if ($this->isVeryOldPdfVersion($version)) {
+			return $this->replacePdfVersion($content, self::TARGET_OLD_PDF_VERSION);
+		}
+
+		// Convert PDFs < 1.6 to 1.6 if using SHA-256 (the default hash algorithm)
+		// This prevents "The chosen hash algorithm (SHA-256) requires a newer PDF version" error
+		if ($this->requiresPdfVersionUpgradeForSha256($version)) {
+			return $this->replacePdfVersion($content, self::TARGET_PDF_VERSION_SHA256);
+		}
+
+		return $content;
+	}
+
+	private function isVeryOldPdfVersion(float $version): bool {
+		return $version > 0 && $version < self::MIN_PDF_VERSION;
+	}
+
+	private function requiresPdfVersionUpgradeForSha256(float $version): bool {
+		if ($version >= self::MIN_PDF_VERSION_SHA256) {
+			return false;
+		}
+		$hashAlgorithm = $this->appConfig->getValueString(Application::APP_ID, 'signature_hash_algorithm', 'SHA256');
+		return $hashAlgorithm === 'SHA256';
+	}
+
+	private function replacePdfVersion(string $content, string $newVersion): string {
+		return (string)preg_replace('/^%PDF-\d+(\.\d+)?/', '%PDF-' . $newVersion, $content, 1);
 	}
 
 	private function getCertificationLevel(): ?string {
@@ -173,21 +258,34 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 	#[\Override]
 	public function getSignedContent(): string {
-		$param = $this->getJSignParam()
-			->setCertificate($this->getCertificate())
-			->setPdf($this->getInputFile()->getContent())
+		$normalizedPdf = $this->normalizePdfVersion($this->getInputFile()->getContent());
+		$hashAlgorithm = $this->getHashAlgorithm($normalizedPdf);
+		$param = $this->getJSignParam();
+		$param->setJSignParameters(
+			$param->getJSignParameters()
+			. $this->listParamsToString($this->getTsaParameters())
+		);
+		$param->setCertificate($this->getCertificate())
+			->setPdf($normalizedPdf)
 			->setPassword($this->getPassword());
 
-		$signed = $this->signUsingVisibleElements();
+		$signed = $this->signUsingVisibleElements($normalizedPdf, $hashAlgorithm);
 		if ($signed) {
 			return $signed;
 		}
+
+		$param->setJSignParameters(
+			$param->getJSignParameters()
+			. $this->listParamsToString([
+				'--hash-algorithm' => $hashAlgorithm,
+			])
+		);
 		$jSignPdf = $this->getJSignPdf();
 		$jSignPdf->setParam($param);
 		return $this->signWrapper($jSignPdf);
 	}
 
-	private function signUsingVisibleElements(): string {
+	private function signUsingVisibleElements(string $normalizedPdf, string $hashAlgorithm): string {
 		$visibleElements = $this->getVisibleElements();
 		if ($visibleElements) {
 			$jSignPdf = $this->getJSignPdf();
@@ -199,8 +297,17 @@ class JSignPdfHandler extends Pkcs12Handler {
 				'-V' => null,
 			];
 
+			// When l2-text is empty, add hash-algorithm at the beginning
+			if ($params['--l2-text'] === '""') {
+				$params = [
+					'--hash-algorithm' => $hashAlgorithm,
+					'--l2-text' => $params['--l2-text'],
+					'-V' => null,
+				];
+			}
+
 			$fontSize = $this->parseSignatureText()['templateFontSize'];
-			if ($fontSize === 10.0 || !$fontSize || $params['--l2-text'] === '""') {
+			if ($fontSize === self::SIGNATURE_DEFAULT_FONT_SIZE || !$fontSize || $params['--l2-text'] === '""') {
 				$fontSize = 0;
 			}
 
@@ -216,7 +323,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 			foreach ($visibleElements as $element) {
 				$params['-pg'] = $element->getFileElement()->getPage();
-				if ($params['-pg'] <= 1) {
+				if ($params['-pg'] <= self::PAGE_FIRST) {
 					unset($params['-pg']);
 				}
 				$params['-llx'] = $element->getFileElement()->getLlx();
@@ -237,7 +344,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 							width: ($params['-urx'] - $params['-llx']),
 							height: ($params['-ury'] - $params['-lly']),
 							fontSize: $this->signatureTextService->getSignatureFontSize() * $scaleFactor,
-							scaleFactor: $scaleFactor < 5 ? 5 : $scaleFactor,
+							scaleFactor: $this->normalizeScaleFactor($scaleFactor),
 						);
 					} elseif ($signatureImagePath) {
 						$params['--bg-path'] = $signatureImagePath;
@@ -247,7 +354,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 						$params['--bg-path'] = $this->mergeBackgroundWithSignature(
 							$backgroundPath,
 							$signatureImagePath,
-							$scaleFactor < 5 ? 5 : $scaleFactor
+							$this->normalizeScaleFactor($scaleFactor),
 						);
 					} else {
 						$params['--bg-path'] = $signatureImagePath;
@@ -264,23 +371,27 @@ class JSignPdfHandler extends Pkcs12Handler {
 							width: (int)(($params['-urx'] - $params['-llx']) / 2),
 							height: $params['-ury'] - $params['-lly'],
 							fontSize: $this->signatureTextService->getSignatureFontSize() * $scaleFactor,
-							scaleFactor: $scaleFactor < 5 ? 5 : $scaleFactor,
+							scaleFactor: $this->normalizeScaleFactor($scaleFactor),
 						);
 
 					} else {
-						// --render-mode DESCRIPTION_ONLY, this is the default
-						// render-mode, because this, is unecessary to set here
 						$params['--bg-path'] = $backgroundPath;
 					}
+				}
+
+				// Only add hash-algorithm at the end if l2-text is not empty
+				if ($params['--l2-text'] !== '""') {
+					$params['--hash-algorithm'] = $hashAlgorithm;
 				}
 
 				$param->setJSignParameters(
 					$originalParam->getJSignParameters()
 					. $this->listParamsToString($params)
 				);
+				$param->setPdf($normalizedPdf);
 				$jSignPdf->setParam($param);
 				$signed = $this->signWrapper($jSignPdf);
-				$param->setPdf($signed);
+				$normalizedPdf = $signed;
 			}
 			return $signed;
 		}
@@ -292,8 +403,11 @@ class JSignPdfHandler extends Pkcs12Handler {
 		if (!$systemWidth) {
 			return 1;
 		}
-		$widthScale = $width / $systemWidth;
-		return $widthScale;
+		return $width / $systemWidth;
+	}
+
+	private function normalizeScaleFactor(float $scaleFactor): float {
+		return max($scaleFactor, self::SCALE_FACTOR_MIN);
 	}
 
 
@@ -464,18 +578,6 @@ class JSignPdfHandler extends Pkcs12Handler {
 
 	private function signWrapper(JSignPDF $jSignPDF): string {
 		try {
-			$params = [
-				'--hash-algorithm' => $this->getHashAlgorithm(),
-			];
-
-			$params = array_merge($params, $this->getTsaParameters());
-			$param = $this->getJSignParam();
-			$param
-				->setJSignParameters(
-					$this->jSignParam->getJSignParameters()
-					. $this->listParamsToString($params)
-				);
-			$jSignPDF->setParam($param);
 			return $jSignPDF->sign();
 		} catch (\Throwable $th) {
 			$errorMessage = $th->getMessage();
@@ -489,7 +591,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 	}
 
 	private function checkTsaError(string $errorMessage): void {
-		$tsaErrors = ['TSAClientBouncyCastle', 'UnknownHostException', 'Invalid TSA', 'Creating of signature failed'];
+		$tsaErrors = ['TSAClientBouncyCastle', 'UnknownHostException', 'Invalid TSA'];
 		$isTsaError = false;
 		foreach ($tsaErrors as $error) {
 			if (str_contains($errorMessage, $error)) {

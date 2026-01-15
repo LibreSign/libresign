@@ -20,7 +20,6 @@ use OCA\Libresign\Service\IdentifyMethod\Sms;
 use OCA\Libresign\Service\IdentifyMethod\Telegram;
 use OCA\Libresign\Service\IdentifyMethod\Whatsapp;
 use OCA\Libresign\Service\IdentifyMethod\Xmpp;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUserManager;
 
@@ -54,7 +53,6 @@ class IdentifyMethodService {
 	private array $identifyMethods = [];
 
 	public function __construct(
-		private IConfig $config,
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private IL10N $l10n,
 		private IUserManager $userManager,
@@ -210,14 +208,41 @@ class IdentifyMethodService {
 
 	public function getIdentifiedMethod(int $signRequestId): IIdentifyMethod {
 		$matrix = $this->getIdentifyMethodsFromSignRequestId($signRequestId);
+		[$identifiedMethod, $firstMethod] = $this->findMethodsInMatrix($matrix);
+
+		if ($identifiedMethod !== null) {
+			return $identifiedMethod;
+		}
+
+		if ($firstMethod !== null) {
+			return $firstMethod;
+		}
+
+		throw new LibresignException($this->l10n->t('Invalid identification method'), 1);
+	}
+
+	/**
+	 * @return array{?IIdentifyMethod, ?IIdentifyMethod} [identifiedMethod, firstMethod]
+	 */
+	private function findMethodsInMatrix(array $matrix): array {
+		$firstMethod = null;
+
 		foreach ($matrix as $identifyMethods) {
 			foreach ($identifyMethods as $identifyMethod) {
+				$firstMethod ??= $identifyMethod;
+
 				if ($identifyMethod->getEntity()->getIdentifiedAtDate()) {
-					return $identifyMethod;
+					return [$identifyMethod, $firstMethod];
 				}
 			}
 		}
-		throw new LibresignException($this->l10n->t('Invalid identification method'), 1);
+
+		return [null, $firstMethod];
+	}
+
+	public function getUserIdentifier(int $signRequestId): string {
+		$identifyMethod = $this->getIdentifiedMethod($signRequestId);
+		return $identifyMethod->getEntity()->getUniqueIdentifier();
 	}
 
 	public function deleteBySignRequestId(int $signRequestId): void {
