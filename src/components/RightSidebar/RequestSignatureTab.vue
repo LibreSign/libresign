@@ -375,7 +375,6 @@ export default {
 			signerToEdit: {},
 			modalSrc: '',
 			document: {},
-			hasInfo: false,
 			methods: [],
 			showConfirmRequest: false,
 			showConfirmRequestSigner: false,
@@ -384,9 +383,7 @@ export default {
 			preserveOrder: false,
 			showOrderDiagram: false,
 			showEnvelopeFilesDialog: false,
-			infoIcon: svgInfo,
 			adminSignatureFlow: '',
-			lastSyncedFileId: null,
 			debouncedSave: null,
 			debouncedTabChange: null,
 			// Long polling progress tracking
@@ -616,15 +613,13 @@ export default {
 			this.init(signers)
 		},
 		'filesStore.selectedFileId': {
-			handler(newFileId, oldFileId) {
-				if (newFileId && newFileId !== this.lastSyncedFileId) {
+			handler(newFileId) {
+				if (newFileId) {
 					this.syncPreserveOrderWithFile()
-					this.lastSyncedFileId = newFileId
 				}
 			},
 			immediate: true,
 		},
-		// Watch file status and start/stop long polling
 		'filesStore.currentFile.status'(newStatus) {
 			if (newStatus === FILE_STATUS.SIGNING_IN_PROGRESS) {
 				this.startSigningProgressPolling()
@@ -715,8 +710,6 @@ export default {
 			}
 
 			const flow = file.signatureFlow
-
-			this.lastSyncedFileId = this.filesStore.selectedFileId
 
 			if ((flow === 'ordered_numeric' || flow === 2) && !this.isAdminFlowForced) {
 				this.preserveOrder = true
@@ -1001,34 +994,26 @@ export default {
 				return
 			}
 
-			// Initialize status from current file
 			this.signingProgressStatus = file.status
 			this.signingProgressStatusText = file.statusText || ''
 			this.signingProgress = null
 
-			// Start long polling loop
 			this.stopPollingFunction = startLongPolling(
 				file.id,
 				file.status,
 				(data) => {
-					// Update progress on status change
 					this.signingProgressStatus = data.status
 					this.signingProgressStatusText = data.statusText
 					this.signingProgress = data.progress
 
-					// Update file in store with new status
 					const currentFile = this.filesStore.getFile()
 					if (currentFile) {
 						currentFile.status = data.status
 						currentFile.statusText = data.statusText
 					}
 				},
-				() => {
-					// shouldStop callback - stop when component is unmounted or file changed
-					return !this.filesStore.getFile() || this.filesStore.getFile().id !== file.id
-				},
+				() => !this.filesStore.getFile() || this.filesStore.getFile().id !== file.id,
 				(error) => {
-					// onError callback
 					console.error('Error during signing progress polling:', error)
 					showError(this.t('libresign', 'Error monitoring signing progress'))
 				}
@@ -1039,7 +1024,6 @@ export default {
 				this.stopPollingFunction()
 				this.stopPollingFunction = null
 			}
-			// Reset progress state
 			this.signingProgress = null
 			this.signingProgressStatus = null
 			this.signingProgressStatusText = ''
