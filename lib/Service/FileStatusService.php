@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use DateTime;
+use DateTimeInterface;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
@@ -23,12 +25,14 @@ class FileStatusService {
 		$currentStatus = $file->getStatus();
 		if ($newStatus > $currentStatus) {
 			$file->setStatus($newStatus);
+			$this->touchStatusChangedAt($file);
 			$this->fileMapper->update($file);
 
 			if ($file->hasParent()) {
 				$this->propagateStatusToParent($file->getParentFileId());
 			}
 		}
+
 		return $file;
 	}
 
@@ -78,12 +82,14 @@ class FileStatusService {
 
 		if ($parent->getStatus() !== $newStatus) {
 			$parent->setStatus($newStatus);
+			$this->touchStatusChangedAt($parent);
 			$this->fileMapper->update($parent);
 		}
 	}
 
 	public function updateFileStatus(FileEntity $file, int $newStatus): FileEntity {
 		$file->setStatus($newStatus);
+		$this->touchStatusChangedAt($file);
 		$this->fileMapper->update($file);
 
 		if ($file->hasParent()) {
@@ -109,8 +115,15 @@ class FileStatusService {
 		foreach ($children as $child) {
 			if ($child->getStatus() !== $newStatus) {
 				$child->setStatus($newStatus);
+				$this->touchStatusChangedAt($child);
 				$this->fileMapper->update($child);
 			}
 		}
+	}
+
+	private function touchStatusChangedAt(FileEntity $file): void {
+		$metadata = $file->getMetadata() ?? [];
+		$metadata['status_changed_at'] = (new DateTime())->format(DateTimeInterface::ATOM);
+		$file->setMetadata($metadata);
 	}
 }

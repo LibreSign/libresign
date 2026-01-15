@@ -21,7 +21,8 @@
 				{{ t('libresign', 'Document not available for signature.') }}
 			</div>
 			<Sign v-else-if="signStore.mounted"
-				@signed="onSigned" />
+				@signed="onSigned"
+				@signing-started="onSigningStarted" />
 		</main>
 	</div>
 </template>
@@ -30,7 +31,7 @@
 import Chip from '../../components/Chip.vue'
 import Sign from '../../views/SignPDF/_partials/Sign.vue'
 
-import { SIGN_STATUS } from '../../domains/sign/enum.js'
+import { FILE_STATUS } from '../../constants.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 
@@ -45,10 +46,15 @@ export default {
 		const sidebarStore = useSidebarStore()
 		return { signStore, sidebarStore }
 	},
+	mounted() {
+		if (this.signStore.document?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
+			this.onSigningStarted({ fileUuid: this.signStore.document.uuid })
+		}
+	},
 	methods: {
 		signEnabled() {
-			return SIGN_STATUS.ABLE_TO_SIGN === this.signStore.document.status
-				|| SIGN_STATUS.PARTIAL_SIGNED === this.signStore.document.status
+			return FILE_STATUS.ABLE_TO_SIGN === this.signStore.document.status
+				|| FILE_STATUS.PARTIAL_SIGNED === this.signStore.document.status
 		},
 		onSigned(data) {
 			this.$router.push({
@@ -56,6 +62,16 @@ export default {
 				params: {
 					uuid: data.file.uuid,
 					isAfterSigned: true,
+				},
+			})
+		},
+		onSigningStarted(payload) {
+			this.$router.push({
+				name: this.$route.path.startsWith('/p/') ? 'ValidationFileExternal' : 'ValidationFile',
+				params: {
+					uuid: payload.fileUuid,
+					isAfterSigned: false,
+					isAsync: true,
 				},
 			})
 		},

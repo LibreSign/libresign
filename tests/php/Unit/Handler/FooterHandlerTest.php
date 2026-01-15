@@ -9,7 +9,7 @@ declare(strict_types=1);
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\TemplateVariables;
-use OCA\Libresign\Service\PdfParserService;
+use OCA\Libresign\Service\File\Pdf\PdfMetadataExtractor;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
@@ -20,7 +20,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 
 final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IAppConfig $appConfig;
-	private PdfParserService&MockObject $pdfParserService;
+	private PdfMetadataExtractor&MockObject $pdfMetadataExtractor;
 	private IURLGenerator&MockObject $urlGenerator;
 	private IL10N $l10n;
 	private IFactory $l10nFactory;
@@ -28,7 +28,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FooterHandler $footerHandler;
 	public function setUp(): void {
 		$this->appConfig = $this->getMockAppConfigWithReset();
-		$this->pdfParserService = $this->createMock(PdfParserService::class);
+		$this->pdfMetadataExtractor = $this->createMock(PdfMetadataExtractor::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->tempManager = \OCP\Server::get(ITempManager::class);
 		$this->l10nFactory = \OCP\Server::get(IFactory::class);
@@ -38,7 +38,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$templateVars = new TemplateVariables($this->l10n);
 		$this->footerHandler = new FooterHandler(
 			$this->appConfig,
-			$this->pdfParserService,
+			$this->pdfMetadataExtractor,
 			$this->urlGenerator,
 			$this->l10n,
 			$this->l10nFactory,

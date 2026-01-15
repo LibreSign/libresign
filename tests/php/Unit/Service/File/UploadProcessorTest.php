@@ -13,7 +13,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\File\MimeService;
-use OCA\Libresign\Service\File\PdfValidator;
+use OCA\Libresign\Service\File\Pdf\PdfValidator;
 use OCA\Libresign\Service\File\UploadProcessor;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\Folder;
@@ -141,7 +141,7 @@ final class UploadProcessorTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pdfValidator
 			->expects($this->once())
 			->method('validate')
-			->with($content);
+			->with($content, 'test');
 
 		$targetFolder = $this->createMock(Folder::class);
 		$this->folderService->method('getFolderForFile')->willReturn($targetFolder);

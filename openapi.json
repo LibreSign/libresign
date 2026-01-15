@@ -793,6 +793,10 @@
                     "url": {
                         "type": "string"
                     },
+                    "signUuid": {
+                        "type": "string",
+                        "nullable": true
+                    },
                     "metadata": {
                         "$ref": "#/components/schemas/ValidateMetadata"
                     },
@@ -1332,6 +1336,10 @@
                     "url": {
                         "type": "string"
                     },
+                    "signUuid": {
+                        "type": "string",
+                        "nullable": true
+                    },
                     "mime": {
                         "type": "string"
                     },
@@ -1340,10 +1348,15 @@
                         "items": {
                             "type": "object",
                             "required": [
+                                "number",
                                 "url",
                                 "resolution"
                             ],
                             "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
                                 "url": {
                                     "type": "string"
                                 },
@@ -4917,7 +4930,7 @@
             "post": {
                 "operationId": "file-save",
                 "summary": "Send a file",
-                "description": "Send a new file to Nextcloud and return the fileId to request signature. Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.",
+                "description": "Send a new file to Nextcloud and return the fileId to request signature. Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.\n**Note on multiple file uploads:** PHP has a limit on the number of files that can be uploaded in a single request (max_file_uploads directive, default 20). When uploading many files (more than 20), consider uploading them sequentially in multiple requests or use individual file uploads like the Files app does.",
                 "tags": [
                     "file"
                 ],
@@ -5972,6 +5985,336 @@
                                                                     }
                                                                 }
                                                             }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/{fileId}/wait-status": {
+            "get": {
+                "operationId": "file_progress-wait-for-status-change",
+                "summary": "Wait for file/envelope status changes (long polling)",
+                "description": "Keeps connection open for up to 30 seconds waiting for status change.",
+                "tags": [
+                    "file_progress"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "fileId",
+                        "in": "path",
+                        "description": "LibreSign file ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "currentStatus",
+                        "in": "query",
+                        "description": "Current status known by client",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "timeout",
+                        "in": "query",
+                        "description": "Seconds to wait (default 30, max 30)",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "default": 30
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status and progress returned",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "status",
+                                                        "statusText",
+                                                        "name",
+                                                        "progress"
+                                                    ],
+                                                    "properties": {
+                                                        "status": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        },
+                                                        "statusText": {
+                                                            "type": "string"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "progress": {
+                                                            "type": "object",
+                                                            "additionalProperties": {
+                                                                "type": "object"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/progress/{uuid}": {
+            "get": {
+                "operationId": "file_progress-check-progress-by-uuid",
+                "summary": "Check file progress by UUID with long-polling (similar to Talk)",
+                "description": "Waits up to 30 seconds for status change using cache for efficiency.",
+                "tags": [
+                    "file_progress"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "v1"
+                            ],
+                            "default": "v1"
+                        }
+                    },
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "File UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "timeout",
+                        "in": "query",
+                        "description": "Maximum seconds to wait (default 30)",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "default": 30
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status and progress returned",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "status",
+                                                        "statusCode",
+                                                        "statusText",
+                                                        "fileId",
+                                                        "progress"
+                                                    ],
+                                                    "properties": {
+                                                        "status": {
+                                                            "type": "string"
+                                                        },
+                                                        "statusCode": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        },
+                                                        "statusText": {
+                                                            "type": "string"
+                                                        },
+                                                        "fileId": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        },
+                                                        "progress": {
+                                                            "type": "object",
+                                                            "additionalProperties": {
+                                                                "type": "object"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message",
+                                                        "status"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        },
+                                                        "status": {
+                                                            "type": "string"
                                                         }
                                                     }
                                                 }
@@ -8054,9 +8397,7 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
-                                                        "action",
-                                                        "message",
-                                                        "file"
+                                                        "action"
                                                     ],
                                                     "properties": {
                                                         "action": {
@@ -8074,6 +8415,32 @@
                                                             "properties": {
                                                                 "uuid": {
                                                                     "type": "string"
+                                                                }
+                                                            }
+                                                        },
+                                                        "job": {
+                                                            "type": "object",
+                                                            "required": [
+                                                                "status",
+                                                                "file"
+                                                            ],
+                                                            "properties": {
+                                                                "status": {
+                                                                    "type": "string",
+                                                                    "enum": [
+                                                                        "SIGNING_IN_PROGRESS"
+                                                                    ]
+                                                                },
+                                                                "file": {
+                                                                    "type": "object",
+                                                                    "required": [
+                                                                        "uuid"
+                                                                    ],
+                                                                    "properties": {
+                                                                        "uuid": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    }
                                                                 }
                                                             }
                                                         }
@@ -8259,9 +8626,7 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
-                                                        "action",
-                                                        "message",
-                                                        "file"
+                                                        "action"
                                                     ],
                                                     "properties": {
                                                         "action": {
@@ -8279,6 +8644,32 @@
                                                             "properties": {
                                                                 "uuid": {
                                                                     "type": "string"
+                                                                }
+                                                            }
+                                                        },
+                                                        "job": {
+                                                            "type": "object",
+                                                            "required": [
+                                                                "status",
+                                                                "file"
+                                                            ],
+                                                            "properties": {
+                                                                "status": {
+                                                                    "type": "string",
+                                                                    "enum": [
+                                                                        "SIGNING_IN_PROGRESS"
+                                                                    ]
+                                                                },
+                                                                "file": {
+                                                                    "type": "object",
+                                                                    "required": [
+                                                                        "uuid"
+                                                                    ],
+                                                                    "properties": {
+                                                                        "uuid": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    }
                                                                 }
                                                             }
                                                         }

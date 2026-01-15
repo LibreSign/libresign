@@ -95,7 +95,7 @@ class SignersLoader {
 					switch ($type) {
 						case 'account':
 							$fileData->signers[$index]->displayName = $entity->getIdentifierValue();
-							$fileData->signers[$index]->uid = $entity->getIdentifierKey() . ':' . $entity->getIdentifierValue();
+							$fileData->signers[$index]->uid = $entity->getUniqueIdentifier();
 							if (!isset($fileData->signers[$index]->email)) {
 								$user = $this->userManager->get($entity->getIdentifierValue());
 								if (!$user) {
@@ -107,7 +107,7 @@ class SignersLoader {
 							break;
 						case 'email':
 							$fileData->signers[$index]->email = $entity->getIdentifierValue();
-							$fileData->signers[$index]->uid = $entity->getIdentifierKey() . ':' . $entity->getIdentifierValue();
+							$fileData->signers[$index]->uid = $entity->getUniqueIdentifier();
 							if (!isset($fileData->signers[$index]->displayName)) {
 								$fileData->signers[$index]->displayName = $entity->getIdentifierValue();
 							}

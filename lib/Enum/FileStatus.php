@@ -23,6 +23,7 @@ enum FileStatus: int {
 	case PARTIAL_SIGNED = 2;
 	case SIGNED = 3;
 	case DELETED = 4;
+	case SIGNING_IN_PROGRESS = 5;
 
 	public function getLabel(IL10N $l10n): string {
 		return match($this) {
@@ -38,6 +39,8 @@ enum FileStatus: int {
 			self::SIGNED => $l10n->t('signed'),
 			// TRANSLATORS Name of the status when the document was deleted
 			self::DELETED => $l10n->t('deleted'),
+			// TRANSLATORS Name of the status when the document is currently being signed
+			self::SIGNING_IN_PROGRESS => $l10n->t('signing in progress'),
 		};
 	}
 }

@@ -83,11 +83,14 @@
 			@closing="closeEnvelopeNameDialog">
 			<NcTextField v-model="envelopeNameInput"
 				:label="t('libresign', 'Enter a name for the envelope')"
-				:placeholder="t('libresign', 'Envelope name')" />
+				:placeholder="t('libresign', 'Envelope name')"
+				:minlength="ENVELOPE_NAME_MIN_LENGTH"
+				:maxlength="ENVELOPE_NAME_MAX_LENGTH"
+				:helper-text="`${envelopeNameInput.length} / ${ENVELOPE_NAME_MAX_LENGTH}`" />
 			<template #actions>
 				<NcButton type="submit"
 					variant="primary"
-					:disabled="!envelopeNameInput.trim()"
+					:disabled="envelopeNameInput.trim().length < ENVELOPE_NAME_MIN_LENGTH"
 					@click="handleEnvelopeNameSubmit()">
 					{{ t('libresign', 'Create') }}
 				</NcButton>
@@ -123,6 +126,7 @@ import UploadProgress from '../UploadProgress.vue'
 import { useActionsMenuStore } from '../../store/actionsmenu.js'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
+import { ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../constants.js'
 
 export default {
 	name: 'RequestPicker',
@@ -178,6 +182,8 @@ export default {
 			envelopeName: '',
 			showEnvelopeNameDialog: false,
 			envelopeNameInput: '',
+			ENVELOPE_NAME_MIN_LENGTH,
+			ENVELOPE_NAME_MAX_LENGTH,
 		}
 	},
 	computed: {
@@ -218,9 +224,10 @@ export default {
 	},
 	methods: {
 		handleEnvelopeNameSubmit() {
-			if (this.envelopeNameInput.trim() && this.pendingFiles.length > 0) {
+			const trimmedName = this.envelopeNameInput.trim()
+			if (trimmedName.length >= ENVELOPE_NAME_MIN_LENGTH && this.pendingFiles.length > 0) {
 				this.showEnvelopeNameDialog = false
-				this.upload(this.pendingFiles, this.envelopeNameInput)
+				this.upload(this.pendingFiles, trimmedName)
 				this.pendingFiles = []
 				this.envelopeNameInput = ''
 			}

@@ -9,18 +9,21 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\SigningErrorHandler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
+use OCA\Libresign\Service\AsyncSigningService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\RequestMetadataService;
 use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Service\WorkerHealthService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -30,7 +33,6 @@ use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
-use Psr\Log\LoggerInterface;
 
 class SignFileController extends AEnvironmentAwareController implements ISignatureUuid {
 	use LibresignTrait;
@@ -38,13 +40,15 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		IRequest $request,
 		protected IL10N $l10n,
 		private SignRequestMapper $signRequestMapper,
-		private FileMapper $fileMapper,
 		protected IUserSession $userSession,
 		private ValidateHelper $validateHelper,
 		protected SignFileService $signFileService,
 		private IdentifyMethodService $identifyMethodService,
 		private FileService $fileService,
-		protected LoggerInterface $logger,
+		private WorkerHealthService $workerHealthService,
+		private AsyncSigningService $asyncSigningService,
+		private RequestMetadataService $requestMetadataService,
+		private SigningErrorHandler $errorHandler,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -57,7 +61,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param array<string, mixed> $elements List of visible elements
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
-	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message?: string, file?: array{uuid: string}, job?: array{status: 'SIGNING_IN_PROGRESS', file: array{uuid: string}}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid data
@@ -80,7 +84,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param array<string, mixed> $elements List of visible elements
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
-	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message?: string, file?: array{uuid: string}, job?: array{status: 'SIGNING_IN_PROGRESS', file: array{uuid: string}}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid data
@@ -96,102 +100,120 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	}
 
 	/**
-	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message?: string, file?: array{uuid: string}, job?: array{status: 'SIGNING_IN_PROGRESS', file: array{uuid: string}}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>}, array{}>
 	 */
-	public function sign(string $method, array $elements = [], string $identifyValue = '', string $token = '', ?int $fileId = null, ?string $signRequestUuid = null): DataResponse {
+	public function sign(
+		string $method,
+		array $elements = [],
+		string $identifyValue = '',
+		string $token = '',
+		?int $fileId = null,
+		?string $signRequestUuid = null,
+	): DataResponse {
 		try {
 			$user = $this->userSession->getUser();
 			$this->validateHelper->canSignWithIdentificationDocumentStatus(
 				$user,
 				$this->fileService->getIdentificationDocumentsStatus($user?->getUID() ?? '')
 			);
+
 			$libreSignFile = $this->signFileService->getLibresignFile($fileId, $signRequestUuid);
 			$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, $signRequestUuid, $user);
 			$this->validateHelper->validateVisibleElementsRelation($elements, $signRequest, $user);
 			$this->validateHelper->validateCredentials($signRequest, $method, $identifyValue, $token);
-			if ($method === 'password') {
-				$this->signFileService->setPassword($token);
-			} else {
-				$this->signFileService->setSignWithoutPassword();
-			}
-			$identifyMethod = $this->identifyMethodService->getIdentifiedMethod($signRequest->getId());
-			$this->signFileService
-				->setLibreSignFile($libreSignFile)
-				->setSignRequest($signRequest)
-				->setUserUniqueIdentifier(
-					$identifyMethod->getEntity()->getIdentifierKey()
-					. ':'
-					. $identifyMethod->getEntity()->getIdentifierValue()
-				)
-				->setFriendlyName($signRequest->getDisplayName())
-				->storeUserMetadata([
-					'user-agent' => $this->request->getHeader('User-Agent'),
-					'remote-address' => $this->request->getRemoteAddress(),
-				])
-				->setCurrentUser($user)
-				->setVisibleElements($elements)
-				->sign();
 
-			$validationUuid = $libreSignFile->getUuid();
-			if ($libreSignFile->hasParent()) {
-				$parentFile = $this->signFileService->getFile($libreSignFile->getParentFileId());
-				$validationUuid = $parentFile->getUuid();
-			}
+			$userIdentifier = $this->identifyMethodService->getUserIdentifier($signRequest->getId());
+			$metadata = $this->requestMetadataService->collectMetadata();
 
-			return new DataResponse(
-				[
-					'action' => JSActions::ACTION_SIGNED,
-					'message' => $this->l10n->t('File signed'),
-					'file' => [
-						'uuid' => $validationUuid
-					]
-				],
-				Http::STATUS_OK
+			$this->signFileService->prepareForSigning(
+				$libreSignFile,
+				$signRequest,
+				$user,
+				$userIdentifier,
+				$signRequest->getDisplayName(),
+				$method !== 'password',
+				$method === 'password' ? $token : null,
 			);
-		} catch (LibresignException $e) {
-			$code = $e->getCode();
-			if ($code === 400) {
-				$action = JSActions::ACTION_CREATE_SIGNATURE_PASSWORD;
-			} else {
-				$action = JSActions::ACTION_DO_NOTHING;
+
+			if ($this->workerHealthService->isAsyncLocalEnabled()) {
+				return $this->signAsync($libreSignFile, $signRequest, $user, $userIdentifier, $method, $token, $elements, $metadata);
 			}
-			$data = [
-				'action' => $action,
-				'errors' => [['message' => $e->getMessage()]],
-			];
-		} catch (\Throwable $th) {
-			$message = $th->getMessage();
-			$data = [
-				'action' => JSActions::ACTION_DO_NOTHING,
-			];
-			switch ($message) {
-				case 'Host violates local access rules.':
-				case 'Certificate Password Invalid.':
-				case 'Certificate Password is Empty.':
-					$data['errors'] = [['message' => $this->l10n->t($message)]];
-					break;
-				default:
-					$this->logger->error($message, ['exception' => $th]);
-					$data['errors'] = [[
-						'message'
-							=> sprintf(
-								"The server was unable to complete your request.\n"
-								. "If this happens again, please send the technical details below to the server administrator.\n"
-								. "## Technical details:\n"
-								. "**Remote Address**: %s\n"
-								. "**Request ID**: %s\n"
-								. '**Message**: %s',
-								$this->request->getRemoteAddress(),
-								$this->request->getId(),
-								$message,
-							),
-						'title' => $this->l10n->t('Internal Server Error'),
-					]];
-			}
+
+			return $this->signSync($libreSignFile, $elements, $metadata);
+		} catch (\Throwable $e) {
+			$data = $this->errorHandler->handleException($e);
+			return new DataResponse($data, Http::STATUS_UNPROCESSABLE_ENTITY);
 		}
+	}
+
+	/**
+	 * Execute asynchronous signing using background job
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{action: integer, job: array{status: 'SIGNING_IN_PROGRESS', file: array{uuid: string}}}, array{}>
+	 */
+	private function signAsync(
+		$libreSignFile,
+		$signRequest,
+		$user,
+		string $userIdentifier,
+		string $method,
+		?string $token,
+		array $elements,
+		array $metadata,
+	): DataResponse {
+		$this->signFileService->validateSigningRequirements();
+
+		$this->asyncSigningService->enqueueSigningJob(
+			$libreSignFile,
+			$signRequest,
+			$user,
+			$userIdentifier,
+			$method !== 'password',
+			$method === 'password' ? $token : null,
+			$elements,
+			$metadata,
+		);
+
 		return new DataResponse(
-			$data,
-			Http::STATUS_UNPROCESSABLE_ENTITY
+			[
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'job' => [
+					'status' => 'SIGNING_IN_PROGRESS',
+					'file' => [
+						'uuid' => $libreSignFile->getUuid(),
+					],
+				],
+			],
+			Http::STATUS_OK
+		);
+	}
+
+	/**
+	 * Execute synchronous signing immediately
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message: string, file: array{uuid: string}}, array{}>
+	 */
+	private function signSync($libreSignFile, array $elements, array $metadata): DataResponse {
+		$this->signFileService
+			->setVisibleElements($elements)
+			->storeUserMetadata($metadata)
+			->sign();
+
+		$validationUuid = $libreSignFile->getUuid();
+		if ($libreSignFile->hasParent()) {
+			$parentFile = $this->signFileService->getFile($libreSignFile->getParentFileId());
+			$validationUuid = $parentFile->getUuid();
+		}
+
+		return new DataResponse(
+			[
+				'action' => JSActions::ACTION_SIGNED,
+				'message' => $this->l10n->t('File signed'),
+				'file' => [
+					'uuid' => $validationUuid
+				]
+			],
+			Http::STATUS_OK
 		);
 	}
 
@@ -279,7 +301,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 */
 	private function getCode(SignRequest $signRequest): DataResponse {
 		try {
-			$libreSignFile = $this->fileMapper->getById($signRequest->getFileId());
+			$libreSignFile = $this->signFileService->getFile($signRequest->getFileId());
 			$this->validateHelper->fileCanBeSigned($libreSignFile);
 			$this->signFileService->requestCode(
 				signRequest: $signRequest,
