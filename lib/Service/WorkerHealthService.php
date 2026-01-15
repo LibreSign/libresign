@@ -24,6 +24,10 @@ class WorkerHealthService {
 	) {
 	}
 
+	public function isAsyncLocalEnabled(): bool {
+		return $this->config->isAsyncLocalEnabled();
+	}
+
 	public function ensureWorkerRunning(): bool {
 		try {
 			if (!$this->config->isAsyncLocalEnabled()) {

@@ -370,7 +370,7 @@ class FileMapper extends QBMapper {
 				try {
 					$changedAt = new \DateTime($meta['status_changed_at']);
 					$isStale = $changedAt < $staleThreshold;
-				} catch (\DateMalformedStringException) {
+				} catch (\Exception) {
 				}
 			}
 
