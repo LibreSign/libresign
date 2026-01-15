@@ -206,7 +206,6 @@ export default {
 				for (const file of files) {
 					const signer = file.signers?.find(row => row.me) || {}
 					if (Object.keys(signer).length > 0) {
-						// Add child file to files store, but don't override the envelope in signStore
 						this.filesStore.addFile(file)
 						break
 					}
