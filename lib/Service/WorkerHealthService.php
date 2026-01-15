@@ -8,6 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\Service\Worker\StartThrottlePolicy;
+use OCA\Libresign\Service\Worker\WorkerConfiguration;
+use OCA\Libresign\Service\Worker\WorkerCounter;
+use OCA\Libresign\Service\Worker\WorkerStarter;
 use Psr\Log\LoggerInterface;
 
 class WorkerHealthService {
