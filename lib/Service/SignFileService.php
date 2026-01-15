@@ -229,9 +229,6 @@ class SignFileService {
 		return $this;
 	}
 
-	/**
-	 * @return self
-	 */
 	public function prepareForSigning(
 		FileEntity $libreSignFile,
 		SignRequestEntity $signRequest,
@@ -388,10 +385,6 @@ class SignFileService {
 		return $args;
 	}
 
-	/**
-	 * Validate all requirements before signing (e.g., TSA configuration)
-	 * Throws exception if signing cannot proceed
-	 */
 	public function validateSigningRequirements(): void {
 		$this->tsaValidationService->validateConfiguration();
 	}
@@ -444,10 +437,6 @@ class SignFileService {
 		return $latestSignedDate;
 	}
 
-	/**
-	 * Sign a single file without processing envelope children.
-	 * Used by SignSingleFileJob for parallel processing.
-	 */
 	public function signSingleFile(FileEntity $libreSignFile, SignRequestEntity $signRequest): void {
 		$previousState = $this->saveCachedState();
 		$this->resetCachedState();
@@ -576,8 +565,6 @@ class SignFileService {
 	}
 
 	/**
-	 * Sign multiple files sequentially
-	 *
 	 * @return DateTimeInterface|null Last signed date
 	 */
 	private function signSequentially(array $signRequests): ?DateTimeInterface {
