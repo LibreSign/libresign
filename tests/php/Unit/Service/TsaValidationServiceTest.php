@@ -12,6 +12,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\TsaValidationService;
 use OCP\IAppConfig;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * @internal
@@ -34,9 +35,7 @@ final class TsaValidationServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		];
 	}
 
-	/**
-	 * @dataProvider provideValidTsaUrls
-	 */
+	#[DataProvider('provideValidTsaUrls')]
 	public function testValidateConfigurationSuccess(string $tsaUrl): void {
 		$this->appConfig->setValueString(Application::APP_ID, 'tsa_url', $tsaUrl);
 		$this->service->validateConfiguration();
@@ -63,9 +62,7 @@ final class TsaValidationServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		];
 	}
 
-	/**
-	 * @dataProvider provideInvalidTsaUrls
-	 */
+	#[DataProvider('provideInvalidTsaUrls')]
 	public function testValidateConfigurationFailure(string $tsaUrl, string $expectedMessage, bool $isRegex): void {
 		$this->appConfig->setValueString(Application::APP_ID, 'tsa_url', $tsaUrl);
 
