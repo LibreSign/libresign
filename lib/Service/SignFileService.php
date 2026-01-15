@@ -607,11 +607,7 @@ class SignFileService {
 		return $envelopeLastSignedDate;
 	}
 
-
-
 	/**
-	 * Get sign requests to process.
-	 *
 	 * @return array Array of sign request data with 'file' => FileEntity, 'signRequest' => SignRequestEntity
 	 */
 	private function getSignRequestsToSign(): array {
@@ -668,8 +664,6 @@ class SignFileService {
 	}
 
 	/**
-	 * Get envelope context if the current file is or belongs to an envelope.
-	 *
 	 * @return array Array with 'envelope' => FileEntity or null, 'envelopeSignRequest' => SignRequestEntity or null
 	 */
 	private function getEnvelopeContext(): array {
@@ -929,8 +923,6 @@ class SignFileService {
 	}
 
 	private function updateCacheAfterDbSave(FileEntity $libreSignFile): void {
-		// Update cache AFTER database save to avoid race condition
-		// where polling reads stale data from DB while cache has new value
 		$cacheKey = 'status_' . $libreSignFile->getUuid();
 		$status = $libreSignFile->getStatus();
 		$this->cache->set($cacheKey, $status, 60); // Cache for 60 seconds
@@ -1181,19 +1173,8 @@ class SignFileService {
 	}
 
 	protected function getPdfToSign(File $originalFile): File {
-		$this->logger->info('[PDF_TO_SIGN_START] Starting getPdfToSign for file', [
-			'fileId' => $this->libreSignFile->getId(),
-			'signedNodeId' => $this->libreSignFile->getSignedNodeId(),
-			'originalFileName' => $originalFile->getName(),
-		]);
-
 		$file = $this->getSignedFile();
 		if ($file instanceof File) {
-			$this->logger->info('[PDF_REUSING_SIGNED] Reusing previously signed file', [
-				'fileId' => $this->libreSignFile->getId(),
-				'signedNodeId' => $this->libreSignFile->getSignedNodeId(),
-				'signedFileName' => $file->getName(),
-			]);
 			return $file;
 		}
 
@@ -1233,17 +1214,8 @@ class SignFileService {
 	protected function getSignedFile(): ?File {
 		$nodeId = $this->libreSignFile->getSignedNodeId();
 		if (!$nodeId) {
-			$this->logger->info('[SIGNED_FILE_NOT_SET] signedNodeId not set, will create new signed file', [
-				'fileId' => $this->libreSignFile->getId(),
-			]);
 			return null;
 		}
-
-		$this->logger->info('[SIGNED_FILE_LOOKUP] Looking up previously signed file', [
-			'fileId' => $this->libreSignFile->getId(),
-			'signedNodeId' => $nodeId,
-			'userId' => $this->libreSignFile->getUserId(),
-		]);
 
 		$fileToSign = $this->getNodeByIdUsingUid($this->libreSignFile->getUserId(), $nodeId);
 
@@ -1334,47 +1306,18 @@ class SignFileService {
 
 		$fileId = $this->libreSignFile->getId();
 		$extension = $originalFile->getExtension();
-		$nameWithoutExt = substr($filename, 0, -strlen($extension) - 1);
-		$uniqueFilename = $nameWithoutExt . '_' . $fileId . '.' . $extension;
-
-		$this->logger->info('[CREATE_SIGNED_FILE] Creating signed file', [
-			'originalFileName' => $originalFile->getName(),
-			'signedFileName' => $uniqueFilename,
-			'owner' => $owner,
-			'fileId' => $fileId,
-			'originalProposedName' => $filename,
-		]);
+		$uniqueFilename = substr($filename, 0, -strlen($extension) - 1) . '_' . $fileId . '.' . $extension;
 
 		try {
 			/** @var \OCP\Files\Folder */
 			$parentFolder = $this->root->getUserFolder($owner)->getFirstNodeById($originalFile->getParentId());
 
-			$this->logger->info('[NEWFILE_ATTEMPT] About to call newFile() with unique filename', [
-				'filename' => $uniqueFilename,
-				'fileId' => $fileId,
-				'owner' => $owner,
-				'parentFolderId' => $originalFile->getParentId(),
-			]);
-
 			$this->createdSignedFile = $parentFolder->newFile($uniqueFilename, $content);
-
-			$this->logger->info('[SIGNED_FILE_CREATED] Successfully created signed file', [
-				'signedFileId' => $this->createdSignedFile->getId(),
-				'signedFileName' => $this->createdSignedFile->getName(),
-				'fileId' => $fileId,
-				'contentSize' => strlen($content),
-			]);
 
 			return $this->createdSignedFile;
 		} catch (NotPermittedException) {
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
 		} catch (\Exception $e) {
-			$this->logger->error('[NEWFILE_ERROR] Error creating signed file', [
-				'filename' => $uniqueFilename,
-				'fileId' => $fileId,
-				'error' => $e->getMessage(),
-				'class' => get_class($e),
-			]);
 			throw $e;
 		}
 	}
