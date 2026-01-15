@@ -1,5 +1,5 @@
 <!--
-  - SPDX-FileCopyrightText: 2025 LibreCode coop and LibreCode contributors
+  - SPDX-FileCopyrightText: 2026 LibreCode coop and LibreCode contributors
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
@@ -105,7 +105,6 @@ export default {
 			loading: false,
 			errorMessage: '',
 			saved: false,
-			showErrorIcon: false,
 			debouncedSaveParallelWorkers: null,
 		}
 	},
@@ -151,7 +150,6 @@ export default {
 			this.loading = true
 			this.errorMessage = ''
 			this.saved = false
-			this.showErrorIcon = false
 
 			const url = generateOcsUrl('apps/libresign/api/v1/admin/signing-mode/config')
 			axios.post(url, {
@@ -168,27 +166,22 @@ export default {
 					console.error('Error saving signing mode configuration:', error)
 					this.errorMessage = error.response?.data?.ocs?.data?.error
 						?? t('libresign', 'Error saving configuration.')
-					this.showErrorIcon = true
 				})
 				.finally(() => {
 					this.loading = false
 				})
 		},
 		saveParallelWorkers() {
-			// Validate before saving
 			const numValue = parseInt(this.parallelWorkersCount, 10)
 
-			// If invalid, revert to last saved value and don't save
 			if (isNaN(numValue) || numValue < 1 || numValue > 32) {
 				this.parallelWorkersCount = this.lastSavedParallelWorkers
 				return
 			}
 
-			// Normalize to string
 			const normalizedValue = String(numValue)
 			this.parallelWorkersCount = normalizedValue
 
-			// Don't save if value hasn't changed
 			if (normalizedValue === this.lastSavedParallelWorkers) {
 				return
 			}
