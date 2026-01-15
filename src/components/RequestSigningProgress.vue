@@ -13,7 +13,6 @@
 		</div>
 
 		<div v-if="progress && isInProgress" class="signing-progress__details">
-			<!-- Overall progress bar -->
 			<div v-if="progress.total > 0" class="signing-progress__bar-container">
 				<div class="signing-progress__bar-label">
 					{{ t('libresign', 'Progress: {signed} of {total} signed', { signed: progress.signed, total: progress.total }) }}
@@ -28,7 +27,6 @@
 				</div>
 			</div>
 
-			<!-- File list for envelopes -->
 			<div v-if="progress.files && progress.files.length > 0" class="signing-progress__files">
 				<div class="signing-progress__files-title">
 					{{ t('libresign', 'Files') }}
@@ -50,7 +48,6 @@
 				</ul>
 			</div>
 
-			<!-- Signers list for single file -->
 			<div v-else-if="progress.signers && progress.signers.length > 0" class="signing-progress__signers">
 				<div class="signing-progress__signers-title">
 					{{ t('libresign', 'Signers') }}
@@ -83,24 +80,20 @@ export default {
 		NcIconSvgWrapper,
 	},
 	props: {
-		/** Current file status code */
 		status: {
 			type: Number,
 			required: true,
 		},
-		/** Status text label */
 		statusText: {
 			type: String,
 			required: false,
 			default: '',
 		},
-		/** Progress data object */
 		progress: {
 			type: Object,
 			required: false,
 			default: null,
 		},
-		/** Show loading indicator */
 		isLoading: {
 			type: Boolean,
 			required: false,
@@ -111,23 +104,14 @@ export default {
 		return { t }
 	},
 	computed: {
-		/**
-		 * Check if file is currently in signing progress state
-		 */
 		isInProgress() {
-			return this.status === 5 // SIGNING_IN_PROGRESS
+			return this.status === 5
 		},
 
-		/**
-		 * Get status icon path (MDI)
-		 */
 		statusIconPath() {
 			return getStatusIcon(this.status) || ''
 		},
 
-		/**
-		 * Calculate progress percentage
-		 */
 		progressPercentage() {
 			if (!this.progress || this.progress.total === 0) {
 				return 0
