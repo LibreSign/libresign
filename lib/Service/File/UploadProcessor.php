@@ -12,6 +12,7 @@ namespace OCA\Libresign\Service\File;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\FileUploadHelper;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\File\Pdf\PdfValidator;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\Node;
 use OCP\IUser;
@@ -46,7 +47,7 @@ class UploadProcessor {
 		$content = $this->uploadHelper->readUploadedFile($uploadedFile);
 
 		$extension = $this->mimeService->getExtension($content);
-		$this->validateFileContent($content, $extension);
+		$this->validateFileContent($content, $data['name'], $extension);
 
 		$folderToFile = $this->folderService->getFolderForFile($data, $data['userManager']);
 		if (!$folderToFile instanceof \OCP\Files\Folder) {
@@ -108,12 +109,14 @@ class UploadProcessor {
 	/**
 	 * Validate file content based on extension
 	 *
-	 * @throws \Exception
+	 * @param string $content The file content
+	 * @param string $fileName File name for error messages
+	 * @param string $extension The file extension
 	 * @throws LibresignException
 	 */
-	private function validateFileContent(string $content, string $extension): void {
+	private function validateFileContent(string $content, string $fileName, string $extension): void {
 		if ($extension === 'pdf') {
-			$this->pdfValidator->validate($content);
+			$this->pdfValidator->validate($content, $fileName);
 		}
 	}
 

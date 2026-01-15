@@ -47,6 +47,9 @@ final class EnvelopeProgressServiceTest extends TestCase {
 					public function getIdentifierValue(): string {
 						return $this->value;
 					}
+					public function getUniqueIdentifier(): string {
+						return $this->method . ':' . $this->value;
+					}
 				};
 			}
 		}]];

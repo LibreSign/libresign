@@ -633,6 +633,7 @@ export type paths = {
         /**
          * Send a file
          * @description Send a new file to Nextcloud and return the fileId to request signature. Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.
+         *     **Note on multiple file uploads:** PHP has a limit on the number of files that can be uploaded in a single request (max_file_uploads directive, default 20). When uploading many files (more than 20), consider uploading them sequentially in multiple requests or use individual file uploads like the Files app does.
          */
         post: operations["file-save"];
         delete?: never;
@@ -723,6 +724,46 @@ export type paths = {
          * @description Update visible element of a specific file
          */
         patch: operations["file_element-patch"];
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/{fileId}/wait-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Wait for file/envelope status changes (long polling)
+         * @description Keeps connection open for up to 30 seconds waiting for status change.
+         */
+        get: operations["file_progress-wait-for-status-change"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/progress/{uuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Check file progress by UUID with long-polling (similar to Talk)
+         * @description Waits up to 30 seconds for status change using cache for efficiency.
+         */
+        get: operations["file_progress-check-progress-by-uuid"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/id-docs": {
@@ -1270,6 +1311,7 @@ export type components = {
             created_at: string;
             file: string;
             url?: string;
+            signUuid?: string | null;
             metadata: components["schemas"]["ValidateMetadata"];
             /** @enum {string} */
             signatureFlow: "none" | "parallel" | "ordered_numeric";
@@ -1425,8 +1467,11 @@ export type components = {
             };
             file: string;
             url?: string;
+            signUuid?: string | null;
             mime?: string;
             pages?: {
+                /** Format: int64 */
+                number: number;
                 url: string;
                 resolution: {
                     /** Format: double */
@@ -3405,6 +3450,129 @@ export interface operations {
             };
         };
     };
+    "file_progress-wait-for-status-change": {
+        parameters: {
+            query: {
+                /** @description Current status known by client */
+                currentStatus: number;
+                /** @description Seconds to wait (default 30, max 30) */
+                timeout?: number;
+            };
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description LibreSign file ID */
+                fileId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Status and progress returned */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                /** Format: int64 */
+                                status: number;
+                                statusText: string;
+                                name: string;
+                                progress: {
+                                    [key: string]: Record<string, never>;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description File not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "file_progress-check-progress-by-uuid": {
+        parameters: {
+            query?: {
+                /** @description Maximum seconds to wait (default 30) */
+                timeout?: number;
+            };
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+                /** @description File UUID */
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Status and progress returned */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                status: string;
+                                /** Format: int64 */
+                                statusCode: number;
+                                statusText: string;
+                                /** Format: int64 */
+                                fileId: number;
+                                progress: {
+                                    [key: string]: Record<string, never>;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description File not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                                status: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
     "id_docs-list-of-unauthenticated-signer": {
         parameters: {
             query?: {
@@ -4142,9 +4310,16 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                message: string;
-                                file: {
+                                message?: string;
+                                file?: {
                                     uuid: string;
+                                };
+                                job?: {
+                                    /** @enum {string} */
+                                    status: "SIGNING_IN_PROGRESS";
+                                    file: {
+                                        uuid: string;
+                                    };
                                 };
                             };
                         };
@@ -4298,9 +4473,16 @@ export interface operations {
                             data: {
                                 /** Format: int64 */
                                 action: number;
-                                message: string;
-                                file: {
+                                message?: string;
+                                file?: {
                                     uuid: string;
+                                };
+                                job?: {
+                                    /** @enum {string} */
+                                    status: "SIGNING_IN_PROGRESS";
+                                    file: {
+                                        uuid: string;
+                                    };
                                 };
                             };
                         };

@@ -10,7 +10,9 @@ namespace OCA\Libresign\Controller;
 
 use DateTimeInterface;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\DocMdpLevel;
+use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\CertificateEngine\IEngineHandler;
@@ -69,6 +71,7 @@ class AdminController extends AEnvironmentAwareController {
 		private FooterService $footerService,
 		private DocMdpConfigService $docMdpConfigService,
 		private IdentifyMethodService $identifyMethodService,
+		private FileMapper $fileMapper,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->eventSource = $this->eventSourceFactory->create();
@@ -896,6 +899,55 @@ class AdminController extends AEnvironmentAwareController {
 	}
 
 	/**
+	 * Set signing mode configuration
+	 *
+	 * Configure whether document signing should be synchronous or asynchronous
+	 *
+	 * @param string $mode Signing mode: "sync" or "async"
+	 * @param string|null $workerType Worker type when async: "local" or "external" (optional)
+	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
+	 *
+	 * 200: Settings saved
+	 * 400: Invalid parameters
+	 * 500: Internal server error
+	 */
+	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/signing-mode/config', requirements: ['apiVersion' => '(v1)'])]
+	public function setSigningModeConfig(string $mode, ?string $workerType = null): DataResponse {
+		try {
+			if (!in_array($mode, ['sync', 'async'], true)) {
+				return new DataResponse([
+					'error' => $this->l10n->t('Invalid signing mode. Use "sync" or "async".'),
+				], Http::STATUS_BAD_REQUEST);
+			}
+
+			if ($workerType !== null && !in_array($workerType, ['local', 'external'], true)) {
+				return new DataResponse([
+					'error' => $this->l10n->t('Invalid worker type. Use "local" or "external".'),
+				], Http::STATUS_BAD_REQUEST);
+			}
+
+			$this->saveOrDeleteConfig('signing_mode', $mode, 'async');
+			$this->saveOrDeleteConfig('worker_type', $workerType, 'local');
+
+			return new DataResponse([
+				'message' => $this->l10n->t('Settings saved'),
+			]);
+		} catch (\Exception $e) {
+			return new DataResponse([
+				'error' => $e->getMessage(),
+			], Http::STATUS_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	private function saveOrDeleteConfig(string $key, ?string $value, string $default): void {
+		if ($value === $default) {
+			$this->appConfig->deleteKey(Application::APP_ID, $key);
+		} else {
+			$this->appConfig->setValueString(Application::APP_ID, $key, $value);
+		}
+	}
+
+	/**
 	 * Set signature flow configuration
 	 *
 	 * @param bool $enabled Whether to force a signature flow for all documents
@@ -947,10 +999,10 @@ class AdminController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * Set DocMDP configuration
+	 * Configure DocMDP signature restrictions
 	 *
-	 * @param bool $enabled Enable or disable DocMDP certification
-	 * @param int $defaultLevel Default DocMDP level (0-3): 0=none, 1=no changes, 2=form fill, 3=form fill + annotations
+	 * @param bool $enabled Whether to enable DocMDP restrictions
+	 * @param int $defaultLevel DocMDP level: 1 (no changes), 2 (fill forms), 3 (add annotations)
 	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 *
 	 * 200: Configuration saved successfully
@@ -958,7 +1010,7 @@ class AdminController extends AEnvironmentAwareController {
 	 * 500: Internal server error
 	 */
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/admin/docmdp/config', requirements: ['apiVersion' => '(v1)'])]
-	public function setDocMdpConfig(bool $enabled, int $defaultLevel): DataResponse {
+	public function setDocMdpConfig(bool $enabled, int $defaultLevel = 2): DataResponse {
 		try {
 			$this->docMdpConfigService->setEnabled($enabled);
 
@@ -975,6 +1027,40 @@ class AdminController extends AEnvironmentAwareController {
 
 			return new DataResponse([
 				'message' => $this->l10n->t('Settings saved'),
+			]);
+		} catch (\Exception $e) {
+			return new DataResponse([
+				'error' => $e->getMessage(),
+			], Http::STATUS_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/**
+	 * Get list of files currently being signed (status = SIGNING_IN_PROGRESS)
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{data: list<array{id: int, uuid: string, name: string, signerEmail: string, signerDisplayName: string, updatedAt: int}>}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
+	 *
+	 * 200: List of active signings
+	 */
+	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/admin/active-signings', requirements: ['apiVersion' => '(v1)'])]
+	public function getActiveSignings(): DataResponse {
+		try {
+			$activeSignings = $this->fileMapper->findByStatus(FileStatus::SIGNING_IN_PROGRESS->value);
+
+			$result = [];
+			foreach ($activeSignings as $file) {
+				$result[] = [
+					'id' => $file->getId(),
+					'uuid' => $file->getUuid(),
+					'name' => $file->getName(),
+					'signerEmail' => $file->getSignerEmail() ?? '',
+					'signerDisplayName' => $file->getSignerName() ?? '',
+					'updatedAt' => $file->getUpdatedAt(),
+				];
+			}
+
+			return new DataResponse([
+				'data' => $result,
 			]);
 		} catch (\Exception $e) {
 			return new DataResponse([

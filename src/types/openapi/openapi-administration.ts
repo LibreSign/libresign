@@ -344,6 +344,27 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signing-mode/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set signing mode configuration
+         * @description Configure whether document signing should be synchronous or asynchronous
+         *     This endpoint requires admin access
+         */
+        post: operations["admin-set-signing-mode-config"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/signature-flow/config": {
         parameters: {
             query?: never;
@@ -374,10 +395,30 @@ export type paths = {
         get?: never;
         put?: never;
         /**
-         * Set DocMDP configuration
+         * Configure DocMDP signature restrictions
          * @description This endpoint requires admin access
          */
         post: operations["admin-set-doc-mdp-config"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ocs/v2.php/apps/libresign/api/{apiVersion}/admin/active-signings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get list of files currently being signed (status = SIGNING_IN_PROGRESS)
+         * @description This endpoint requires admin access
+         */
+        get: operations["admin-get-active-signings"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1623,6 +1664,79 @@ export interface operations {
             };
         };
     };
+    "admin-set-signing-mode-config": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Signing mode: "sync" or "async" */
+                    mode: string;
+                    /** @description Worker type when async: "local" or "external" (optional) */
+                    workerType?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Settings saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Invalid parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
     "admin-set-signature-flow-config": {
         parameters: {
             query?: never;
@@ -1711,13 +1825,14 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** @description Enable or disable DocMDP certification */
+                    /** @description Whether to enable DocMDP restrictions */
                     enabled: boolean;
                     /**
                      * Format: int64
-                     * @description Default DocMDP level (0-3): 0=none, 1=no changes, 2=form fill, 3=form fill + annotations
+                     * @description DocMDP level: 1 (no changes), 2 (fill forms), 3 (add annotations)
+                     * @default 2
                      */
-                    defaultLevel: number;
+                    defaultLevel?: number;
                 };
             };
         };
@@ -1755,6 +1870,62 @@ export interface operations {
                 };
             };
             /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                error: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin-get-active-signings": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required to be true for the API request to pass */
+                "OCS-APIRequest": boolean;
+            };
+            path: {
+                apiVersion: "v1";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of active signings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ocs: {
+                            meta: components["schemas"]["OCSMeta"];
+                            data: {
+                                data: {
+                                    /** Format: int64 */
+                                    id: number;
+                                    uuid: string;
+                                    name: string;
+                                    signerEmail: string;
+                                    signerDisplayName: string;
+                                    /** Format: int64 */
+                                    updatedAt: number;
+                                }[];
+                            };
+                        };
+                    };
+                };
+            };
             500: {
                 headers: {
                     [name: string]: unknown;

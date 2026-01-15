@@ -55,7 +55,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mimeTypeDetector = $this->createMock(\OCP\Files\IMimeTypeDetector::class);
 		$this->pkcs12Handler = $this->createMock(\OCA\Libresign\Handler\SignEngine\Pkcs12Handler::class);
 		$this->docMdpHandler = $this->createMock(\OCA\Libresign\Handler\DocMdpHandler::class);
-		$this->pdfValidator = $this->createMock(\OCA\Libresign\Service\File\PdfValidator::class);
+		$this->pdfValidator = $this->createMock(\OCA\Libresign\Service\File\Pdf\PdfValidator::class);
 		$this->rootFolder = $this->createMock(\OCP\Files\IRootFolder::class);
 		$this->logger = $this->createMock(\Psr\Log\LoggerInterface::class);
 		$this->l10n = $this->createMock(\OCP\IL10N::class);
@@ -110,8 +110,8 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = $this->createFileService();
 
 		$this->expectNotToPerformAssertions();
-		$service->validateFileContent('any content', 'txt');
-		$service->validateFileContent('{"json": true}', 'json');
+		$service->validateFileContent('any content', 'text-file', 'txt');
+		$service->validateFileContent('{"json": true}', 'payload', 'json');
 	}
 
 	public function testSetFileByIdThrowsOnInvalid(): void {

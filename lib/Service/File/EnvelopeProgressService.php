@@ -89,7 +89,7 @@ class EnvelopeProgressService {
 		foreach ($identifyMethods as $methods) {
 			foreach ($methods as $identifyMethod) {
 				$entity = $identifyMethod->getEntity();
-				$keys[] = $entity->getIdentifierKey() . ':' . $entity->getIdentifierValue();
+				$keys[] = $entity->getUniqueIdentifier();
 			}
 		}
 		sort($keys);

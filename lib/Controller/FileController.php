@@ -472,6 +472,11 @@ class FileController extends AEnvironmentAwareController {
 	 * Send a new file to Nextcloud and return the fileId to request signature.
 	 * Files must be uploaded as multipart/form-data with field name 'file[]' or 'files[]'.
 	 *
+	 * **Note on multiple file uploads:**
+	 * PHP has a limit on the number of files that can be uploaded in a single request (max_file_uploads directive, default 20).
+	 * When uploading many files (more than 20), consider uploading them sequentially in multiple requests
+	 * or use individual file uploads like the Files app does.
+	 *
 	 * @param LibresignNewFile $file File to save
 	 * @param string $name The name of file to sign
 	 * @param LibresignFolderSettings $settings Settings to define how and where the file should be stored
@@ -598,7 +603,7 @@ class FileController extends AEnvironmentAwareController {
 			$name = $this->extractFileName($fileData);
 		}
 		if (empty($name)) {
-			throw new LibresignException($this->l10n->t('Name is mandatory'));
+			throw new LibresignException($this->l10n->t('File name is required'));
 		}
 
 		if (isset($fileData['fileNode']) && $fileData['fileNode'] instanceof Node) {

@@ -9,7 +9,8 @@ Feature: TSA Integration - End-to-End Workflow
     And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
 
   Scenario: TSA workflow - Successfully signs document with timestamp
-    Given run the command "config:app:set libresign tsa_url --value=https://freetsa.org/tsr --type=string" with result code 0
+    Given run the command "config:app:set libresign signing_mode --value=sync --type=string" with result code 0
+    And run the command "config:app:set libresign tsa_url --value=https://freetsa.org/tsr --type=string" with result code 0
     And run the command "config:app:set libresign tsa_auth_type --value=none --type=string" with result code 0
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":true}},"signatureMethodEnabled":"clickToSign"}] |

@@ -36,7 +36,15 @@ class EnvelopeFileRelocator {
 			throw new LibresignException('Invalid file type for envelope');
 		}
 
-		return $envelopeFolder->newFile($sourceNode->getName(), $sourceNode->getContent());
+		$filename = $sourceNode->getName();
+
+		if ($envelopeFolder->nodeExists($filename)) {
+			$extension = $sourceNode->getExtension();
+			$nameWithoutExt = substr($filename, 0, -strlen($extension) - 1);
+			$filename = $nameWithoutExt . '_' . time() . '.' . $extension;
+		}
+
+		return $envelopeFolder->newFile($filename, $sourceNode->getContent());
 	}
 
 	private function isNodeInsideFolder(Node $node, \OCP\Files\Folder $folder): bool {
