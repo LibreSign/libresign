@@ -78,18 +78,17 @@ export default {
 			t,
 			n,
 			formatFileSize,
+			getStatusLabel,
+			getStatusIcon,
 		}
 	},
 	data() {
 		return {
-			mdiCheckCircle,
-			mdiClockOutline,
 			mdiFilePdfBox,
-			mdiAlertCircle,
-			mdiHelpCircle,
 			files: [],
 			isLoading: false,
 			updatePollingInterval: null,
+			previouslySignedIds: [],
 		}
 	},
 	mounted() {
@@ -107,7 +106,6 @@ export default {
 
 			this.isLoading = true
 			try {
-				// Fetch file list with current status
 				const { data } = await axios.get(
 					generateOcsUrl('/apps/libresign/api/v1/file/list'),
 					{ timeout: 10000 }
@@ -116,22 +114,19 @@ export default {
 				const fileList = data.ocs?.data?.data ?? []
 				const fileMap = new Map(fileList.map(f => [f.id, f]))
 
-				// Map requested file IDs to files
 				this.files = this.fileIds
 					.map(id => fileMap.get(id))
 					.filter(Boolean)
 
 				this.$emit('files-updated', this.files)
 
-				// Check for newly signed files
-			const signedFile = this.files.find(f => f.status === FILE_STATUS.SIGNED)
-			if (signedFile && !this._previouslySignedIds?.includes(signedFile.id)) {
-				this.$emit('file-signed', signedFile)
-			}
+				const signedFile = this.files.find(f => f.status === FILE_STATUS.SIGNED)
+				if (signedFile && !this.previouslySignedIds?.includes(signedFile.id)) {
+					this.$emit('file-signed', signedFile)
+				}
 
-			// Track which files were signed
-			this._previouslySignedIds = this.files
-				.filter(f => f.status === FILE_STATUS.SIGNED)
+				this.previouslySignedIds = this.files
+					.filter(f => f.status === FILE_STATUS.SIGNED)
 					.map(f => f.id)
 			} catch (error) {
 				console.error('[libresign][FileStatusList] Error loading files:', error)
@@ -151,7 +146,6 @@ export default {
 			}
 		},
 		getStatusClass(status) {
-			// Map status codes to CSS classes
 			const statusMap = {
 				[FILE_STATUS.NOT_LIBRESIGN_FILE]: 'not-libresign',
 				[FILE_STATUS.DRAFT]: 'draft',
@@ -162,12 +156,6 @@ export default {
 				[FILE_STATUS.SIGNING_IN_PROGRESS]: 'signing',
 			}
 			return statusMap[status] || 'unknown'
-		},
-		getStatusLabel(status) {
-			return getStatusLabel(status)
-		},
-		getStatusIcon(status) {
-			return getStatusIcon(status)
 		},
 		formatDate(date) {
 			if (!date) return ''
