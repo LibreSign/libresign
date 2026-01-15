@@ -8,7 +8,6 @@
 			<img :src="logo" :alt="t('libresign', 'LibreSign logo')" draggable="false">
 		</div>
 		<div id="validation-content">
-			<!-- Signing in progress message -->
 			<div v-if="isAsyncSigning" class="infor-container">
 				<div class="section">
 					<SigningProgress :uuid="uuidToValidate" @completed="handleSigningComplete" @error="handleSigningError" />
@@ -248,7 +247,6 @@ export default {
 			this.validate(this.uuidToValidate)
 		}
 
-		// Check if we arrived here from async signing
 		if (this.$route.params.isAsync === true) {
 			this.isAsyncSigning = true
 			this.shouldFireAsyncConfetti = true
@@ -328,7 +326,6 @@ export default {
 			if (!suppressLoading) {
 				this.loading = true
 			}
-			// Add cache-busting parameter when suppressLoading is true (after async signing)
 			const cacheBuster = suppressLoading ? `?_t=${Date.now()}` : ''
 			await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${uuid}${cacheBuster}`))
 				.then(({ data }) => {
@@ -351,7 +348,6 @@ export default {
 			if (!suppressLoading) {
 				this.loading = true
 			}
-			// Add cache-busting parameter when suppressLoading is true (after async signing)
 			const cacheBuster = suppressLoading ? `?_t=${Date.now()}` : ''
 			await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${nodeId}${cacheBuster}`))
 				.then(({ data }) => {
