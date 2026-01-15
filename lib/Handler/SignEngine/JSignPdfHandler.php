@@ -273,7 +273,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 		if ($signed) {
 			return $signed;
 		}
-		
+
 		$param->setJSignParameters(
 			$param->getJSignParameters()
 			. $this->listParamsToString([
@@ -296,7 +296,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 				'--l2-text' => $this->getSignatureText(),
 				'-V' => null,
 			];
-			
+
 			// When l2-text is empty, add hash-algorithm at the beginning
 			if ($params['--l2-text'] === '""') {
 				$params = [
@@ -344,7 +344,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 							width: ($params['-urx'] - $params['-llx']),
 							height: ($params['-ury'] - $params['-lly']),
 							fontSize: $this->signatureTextService->getSignatureFontSize() * $scaleFactor,
-						scaleFactor: $this->normalizeScaleFactor($scaleFactor),
+							scaleFactor: $this->normalizeScaleFactor($scaleFactor),
 						);
 					} elseif ($signatureImagePath) {
 						$params['--bg-path'] = $signatureImagePath;
@@ -354,7 +354,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 						$params['--bg-path'] = $this->mergeBackgroundWithSignature(
 							$backgroundPath,
 							$signatureImagePath,
-						$this->normalizeScaleFactor($scaleFactor)
+							$this->normalizeScaleFactor($scaleFactor),
 						);
 					} else {
 						$params['--bg-path'] = $signatureImagePath;
@@ -371,14 +371,14 @@ class JSignPdfHandler extends Pkcs12Handler {
 							width: (int)(($params['-urx'] - $params['-llx']) / 2),
 							height: $params['-ury'] - $params['-lly'],
 							fontSize: $this->signatureTextService->getSignatureFontSize() * $scaleFactor,
-						scaleFactor: $this->normalizeScaleFactor($scaleFactor),
-					);
+							scaleFactor: $this->normalizeScaleFactor($scaleFactor),
+						);
 
-				} else {
-					$params['--bg-path'] = $backgroundPath;
+					} else {
+						$params['--bg-path'] = $backgroundPath;
+					}
 				}
-				}
-				
+
 				// Only add hash-algorithm at the end if l2-text is not empty
 				if ($params['--l2-text'] !== '""') {
 					$params['--hash-algorithm'] = $hashAlgorithm;

@@ -72,7 +72,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 	public function testFindMethodsInMatrix(
 		?string $expectedIdentifiedKey,
 		?string $expectedFirstKey,
-		array $methodsData
+		array $methodsData,
 	): void {
 		$matrix = $this->buildMatrix($methodsData);
 		[$identifiedMethod, $firstMethod] = self::invokePrivate($this->service, 'findMethodsInMatrix', [$matrix]);

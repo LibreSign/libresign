@@ -10,7 +10,6 @@ namespace OCA\Libresign\Service;
 
 use Psr\Log\LoggerInterface;
 
-
 class WorkerHealthService {
 	public function __construct(
 		private WorkerConfiguration $config,
