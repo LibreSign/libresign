@@ -265,16 +265,13 @@ export default {
 		},
 		signRequestUuid() {
 			const signer = this.signStore.document.signers.find(row => row.me) || {}
-			// Envelopes must use the envelope/file UUID, not the first child file
 			if (this.signStore.document.nodeType === 'envelope') {
 				return this.signStore.document.uuid
 			}
-			// Fallback to signer-specific UUID when available
 			return signer.sign_uuid || this.signStore.document.uuid
 		},
 	},
 	beforeUnmount() {
-		// Reset modal/settings so next document doesn't reopen old dialogs
 		this.resetSignMethodsState()
 	},
 	mounted() {
@@ -287,7 +284,6 @@ export default {
 		])
 			.then(() => {
 				this.loading = false
-				// If the document is already in signing progress, hand off to progress view
 				if (this.signStore.document?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
 					this.$emit('signing-started', {
 						fileUuid: this.signStore.document.uuid,
@@ -298,9 +294,7 @@ export default {
 	},
 	watch: {
 		signRequestUuid(newUuid, oldUuid) {
-			// When document changes (new file to sign), reset modals and state
 			if (newUuid && oldUuid && newUuid !== oldUuid) {
-				// Close all open modals to avoid showing old dialog from previous document
 				Object.keys(this.signMethodsStore.modal).forEach(key => {
 					this.signMethodsStore.closeModal(key)
 				})
@@ -410,15 +404,12 @@ export default {
 				url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: this.signRequestUuid })
 			}
 
-			// Add async=true to enable asynchronous signing with long polling
 			url += '?async=true'
 
 			await axios.post(url, payload)
 				.then(({ data }) => {
 					const responseData = data.ocs?.data
-					// Check if response indicates async signing in progress
 					if (responseData?.job?.status === 'SIGNING_IN_PROGRESS') {
-						// Async signing started, close modal and emit event for parent to handle polling
 						this.signMethodsStore.closeModal(payload.method)
 						this.$emit('signing-started', {
 							fileUuid: this.signStore.document.uuid,
@@ -426,7 +417,6 @@ export default {
 						})
 						return
 					}
-					// Synchronous signing completed
 					if (responseData?.action === 3500) { // ACTION_SIGNED
 						this.signMethodsStore.closeModal(payload.method)
 						this.sidebarStore.hideSidebar()

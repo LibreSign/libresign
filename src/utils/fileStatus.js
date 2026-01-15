@@ -16,10 +16,6 @@ import { translate as t } from '@nextcloud/l10n'
 
 import { FILE_STATUS } from '../constants.js'
 
-/**
- * File status UI configuration
- * Maps status codes to their UI representation
- */
 const STATUS_CONFIG = {
 	[FILE_STATUS.NOT_LIBRESIGN_FILE]: {
 		label: () => t('libresign', 'not LibreSign file'),
@@ -51,11 +47,6 @@ const STATUS_CONFIG = {
 	},
 }
 
-/**
- * Get status configuration
- * @param {number} status - The status code
- * @returns {object} Status configuration { label, icon }
- */
 export function getStatusConfig(status) {
 	return STATUS_CONFIG[status] || {
 		label: () => t('libresign', 'Unknown'),
@@ -63,33 +54,16 @@ export function getStatusConfig(status) {
 	}
 }
 
-/**
- * Get localized status label
- * @param {number} status - The status code
- * @returns {string} Localized label
- */
 export function getStatusLabel(status) {
 	return getStatusConfig(status).label()
 }
 
-/**
- * Get status icon path (MDI)
- * @param {number} status - The status code
- * @returns {string} MDI icon path
- */
 export function getStatusIcon(status) {
 	return getStatusConfig(status).icon
 }
 
-/**
- * Get status icon as inline SVG string (for Files app actions)
- * Uses @mdi/svg raw assets and applies color per status
- * @param {number} status - The status code
- * @returns {string} Inline SVG content or empty string
- */
 export function getStatusSvgInline(status) {
 	try {
-		// Lazy import raw SVGs only when needed to avoid bundling overhead
 		const svgs = {
 			[FILE_STATUS.DRAFT]: require('@mdi/svg/svg/file.svg?raw').default,
 			[FILE_STATUS.ABLE_TO_SIGN]: require('@mdi/svg/svg/signature.svg?raw').default,
@@ -112,16 +86,10 @@ export function getStatusSvgInline(status) {
 		if (!color) return svg
 		return svg.replace('<path ', `<path fill="${color}" `)
 	} catch (e) {
- 		// Fallback to empty string if raw svg assets are not available
- 		return ''
- 	}
+		return ''
+	}
 }
 
-/**
- * Build complete status map for components
- * Maps both numeric and string keys to status data
- * @returns {object} Status map with numeric and string keys
- */
 export function buildStatusMap() {
 	const classMap = {
 		[FILE_STATUS.NOT_LIBRESIGN_FILE]: 'unknown',
@@ -142,10 +110,8 @@ export function buildStatusMap() {
 			class: classMap[statusNum] || 'unknown',
 		}
 
-		// Add numeric key
 		map[statusNum] = entry
 
-		// Add string keys from FILE_STATUS enum
 		for (const [key, value] of Object.entries(FILE_STATUS)) {
 			if (value === parseInt(statusNum, 10)) {
 				map[key] = entry
@@ -153,7 +119,6 @@ export function buildStatusMap() {
 		}
 	})
 
-	// Add legacy aliases
 	map.PENDING = map[FILE_STATUS.ABLE_TO_SIGN]
 	map.PARTIAL = map[FILE_STATUS.PARTIAL_SIGNED]
 
