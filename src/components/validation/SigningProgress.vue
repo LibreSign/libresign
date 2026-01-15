@@ -76,11 +76,7 @@ export default {
 		return {
 			isPolling: false,
 			pollingInterval: null,
-			pollAttempt: 0,
-			pollStartedAt: null,
-			pollLastStatus: null,
 			progress: null,
-			fileId: null,
 			currentStatusCode: null,
 			statusMap: buildStatusMap(),
 		}
@@ -106,12 +102,7 @@ export default {
 				return
 			}
 			this.isPolling = true
-			this.pollAttempt = 0
-			this.pollStartedAt = Date.now()
-			this.pollLastStatus = null
-			// Kick off an immediate fetch to populate the list quickly
 			this.pollFileProgress()
-			// Also try to derive progress from validation right away to avoid blank state
 			this.fetchProgressFromValidation()
 		},
 		stopPolling() {
@@ -126,129 +117,109 @@ export default {
 				return
 			}
 
-			this.pollAttempt += 1
-			const startedAt = this.pollStartedAt || Date.now()
-			const elapsedMs = Date.now() - startedAt
-
-			try {
-				const { data } = await axios.get(
-					generateOcsUrl(`/apps/libresign/api/v1/file/progress/${this.uuid}`),
-					{
-						// Force immediate response instead of 30s long-poll to keep UI updating
-						params: { timeout: 0 },
-						timeout: 35000,
-					}
-				)
-
-				const responseData = data.ocs?.data || data
-				const status = responseData?.status
-				this.currentStatusCode = responseData?.statusCode ?? null
-				this.pollLastStatus = status
-
-				this.$emit('status-changed', status)
-
-				// Fallback: if progress not present, try snapshot via wait-status
-				if (!this.progress && this.fileId && this.currentStatusCode !== null) {
-					await this.fetchProgressSnapshot(this.fileId, this.currentStatusCode)
+		try {
+			const { data } = await axios.get(
+				generateOcsUrl(`/apps/libresign/api/v1/file/progress/${this.uuid}`),
+				{
+					params: { timeout: 0 },
+					timeout: 35000,
 				}
+			)
 
-				// Fallback 2: derive progress from validate/uuid when snapshot not available
-				if (!this.progress) {
-					await this.fetchProgressFromValidation()
-				}
+			const responseData = data.ocs?.data || data
+			const status = responseData?.status
+			this.currentStatusCode = responseData?.statusCode ?? null
 
-				if (status === 'SIGNED') {
-					// Signing completed, stop polling and emit event
-					this.stopPolling()
-					this.$emit('completed')
-				} else if (status === 'ERROR') {
-					// Signing failed
-					this.stopPolling()
-					this.$emit('error', t('libresign', 'Signing failed. Please try again.'))
-				} else if (status === 'SIGNING_IN_PROGRESS') {
-					// Still signing, continue polling with faster interval
-					this.pollingInterval = setTimeout(() => this.pollFileProgress(), 1000)
-				} else {
-					// Unknown status or no status, retry with slower interval
-					this.pollingInterval = setTimeout(() => this.pollFileProgress(), 2000)
-				}
-			} catch (error) {
-				if (error.code === 'ECONNABORTED') {
-					// Timeout - retry immediately (server-side timeout)
-					this.pollingInterval = setTimeout(() => this.pollFileProgress(), 100)
-				} else {
-					// Other error - stop polling
-					this.stopPolling()
-					this.$emit('error', t('libresign', 'Failed to check signing progress'))
-				}
+			this.$emit('status-changed', status)
+
+			if (!this.progress) {
+				await this.fetchProgressFromValidation()
 			}
-		},
-			async fetchProgressFromValidation() {
-				try {
-					const { data } = await axios.get(
-						generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${this.uuid}`)
-					)
-					const doc = data.ocs?.data || data
-					const derived = this.buildProgressFromValidation(doc)
-					if (derived) {
-						this.progress = derived
-					}
-				} catch (e) {
-					// Fallback failed, continue polling
-				}
-			},
-			buildProgressFromValidation(doc) {
-				if (!doc) {
-					return null
-				}
-				// Envelope: list child files
-				if (doc.nodeType === 'envelope' || (Array.isArray(doc.files) && doc.files.length > 0)) {
-					const files = doc.files.map(f => ({ id: f.id, name: f.name, status: f.status }))
-					const total = files.length
-					const signed = files.filter(f => f.status === 3).length
-					const inProgress = files.filter(f => f.status === 5).length
-					return {
-						total,
-						signed,
-						pending: total - signed - inProgress,
-						inProgress,
-						files,
-					}
-				}
 
-				// Single file: summarize signers
-				if (Array.isArray(doc.signers)) {
-					const total = doc.signers.length
-					const signed = doc.signers.filter(s => !!s.signed).length
-					return {
-						total,
-						signed,
-						pending: total - signed,
-					}
-				}
-				return null
-			},
-		async fetchProgressSnapshot(fileId, currentStatus) {
-			try {
-				const { data } = await axios.get(
-					generateOcsUrl(`/apps/libresign/api/v1/file/${fileId}/wait-status`),
-					{ params: { currentStatus, timeout: 0 } }
-				)
-				const responseData = data.ocs?.data || data
-				if (responseData?.progress) {
-					this.progress = responseData.progress
-				}
-			} catch (e) {
-				// Snapshot load failed, continue polling
+			if (status === 'SIGNED') {
+				this.stopPolling()
+				this.$emit('completed')
+			} else if (status === 'ERROR') {
+				this.stopPolling()
+				this.$emit('error', t('libresign', 'Signing failed. Please try again.'))
+			} else if (status === 'SIGNING_IN_PROGRESS') {
+				this.pollingInterval = setTimeout(() => this.pollFileProgress(), 1000)
+			} else {
+				this.pollingInterval = setTimeout(() => this.pollFileProgress(), 2000)
 			}
-		},
-		getStatusMeta(status) {
-			const meta = this.statusMap[status]
-			if (meta) {
-				return meta
+		} catch (error) {
+			if (error.code === 'ECONNABORTED') {
+				this.pollingInterval = setTimeout(() => this.pollFileProgress(), 100)
+			} else {
+				this.stopPolling()
+				this.$emit('error', t('libresign', 'Failed to check signing progress'))
 			}
-			return { label: t('libresign', 'Unknown'), icon: mdiHelpCircle }
-		},
+		}
+	},
+	async fetchProgressFromValidation() {
+		try {
+			const { data } = await axios.get(
+				generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${this.uuid}`)
+			)
+			const doc = data.ocs?.data || data
+			const derived = this.buildProgressFromValidation(doc)
+			if (derived) {
+				this.progress = derived
+			}
+		} catch (e) {
+			// Fallback failed, continue polling
+		}
+	},
+	buildProgressFromValidation(doc) {
+		if (!doc) {
+			return null
+		}
+		if (doc.nodeType === 'envelope' || (Array.isArray(doc.files) && doc.files.length > 0)) {
+			const files = doc.files.map(f => ({ id: f.id, name: f.name, status: f.status }))
+			const total = files.length
+			const signed = files.filter(f => f.status === 3).length
+			const inProgress = files.filter(f => f.status === 5).length
+			return {
+				total,
+				signed,
+				pending: total - signed - inProgress,
+				inProgress,
+				files,
+			}
+		}
+
+		if (Array.isArray(doc.signers)) {
+			const total = doc.signers.length
+			const signed = doc.signers.filter(s => !!s.signed).length
+			return {
+				total,
+				signed,
+				pending: total - signed,
+			}
+		}
+		return null
+	},
+	async fetchProgressSnapshot(fileId, currentStatus) {
+		try {
+			const { data } = await axios.get(
+				generateOcsUrl(`/apps/libresign/api/v1/file/${fileId}/wait-status`),
+				{ params: { currentStatus, timeout: 0 } }
+			)
+			const responseData = data.ocs?.data || data
+			if (responseData?.progress) {
+				this.progress = responseData.progress
+			}
+		} catch (e) {
+			// Snapshot load failed, continue polling
+		}
+	},
+	getStatusMeta(status) {
+		const meta = this.statusMap[status]
+		if (meta) {
+			return meta
+		}
+		return { label: t('libresign', 'Unknown'), icon: mdiHelpCircle }
+	},
 	},
 }
 </script>
