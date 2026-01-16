@@ -13,10 +13,10 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "Uma extensão PHP parou o envio do ficheiro.",
     "No file uploaded" : "Nenhum ficheiro carregado",
     "File not found" : "Ficheiro não encontrado",
-    "Internal Server Error" : "Erro Interno do Servidor",
     "deleted" : "eliminado",
     "Pending" : "Pendente",
     "Invalid password" : "Palavra-passe inválida",
+    "Internal Server Error" : "Erro Interno do Servidor",
     "Invalid file provided" : "Fornecido ficheiro inválido",
     "File is too big" : "O ficheiro é demasiado grande",
     "Cannot read file" : "Não é possível ler o ficheiro",
@@ -71,6 +71,7 @@ OC.L10N.register(
     "Hide details" : "Ocultar detalhes",
     "Show details" : "Mostrar detalhes",
     "No date" : "Sem data",
+    "File" : "Ficheiro",
     "Details" : "Detalhes",
     "Certificate" : "Certificado",
     "Upload file" : "Enviar ficheiro",
@@ -118,6 +119,7 @@ OC.L10N.register(
     "Password reset" : "Reposição da senha",
     "Current password" : "Palavra-passe atual",
     "New password" : "Nova palavra-passe",
+    "Refresh" : "Atualizar",
     "Add new" : "Adicionar nova",
     "Remove" : "Remover",
     "Message" : "Mensagem",
@@ -132,6 +134,7 @@ OC.L10N.register(
     "Invalid URL" : "URL inválido",
     "Username" : "Nome de utilizador",
     "Optional" : "Opcional ",
-    "Forgot password?" : "Senha esquecida?"
+    "Forgot password?" : "Senha esquecida?",
+    "Deleted" : "Eliminado"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

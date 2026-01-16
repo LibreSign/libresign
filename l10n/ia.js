@@ -48,11 +48,13 @@ OC.L10N.register(
     "Technical details" : "Detalios technic",
     "Current password" : "Contrasigno actual",
     "New password" : "Nove contrasigno",
+    "Refresh" : "Refrescar",
     "Resource" : "Ressource",
     "Reminders" : "Memento",
     "Yes" : "Si",
     "No" : "No",
     "Username" : "Nomine de usator",
-    "Optional" : "Optional"
+    "Optional" : "Optional",
+    "Deleted" : "Delite"
 },
 "nplurals=2; plural=(n != 1);");

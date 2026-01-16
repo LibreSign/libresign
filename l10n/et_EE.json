@@ -30,7 +30,6 @@
     "Failed to add file to envelope" : "Faili lisamine ümbrikku ei õnnestunud",
     "File or files parameter is required" : "Vajalik on fail või faili parameetrid",
     "File not found" : "Faili ei leitud",
-    "Internal Server Error" : "Serveri sisemine viga",
     "Renewed with success. Access the link again." : "Uuendamine õnnestus. Palun klõpsi linki uuesti.",
     "The code to sign file was successfully requested." : "Faili allkirjastamise koodi päring õnnestus.",
     "Elements not found" : "Elemente ei leidu",
@@ -66,6 +65,7 @@
     "Invalid Sign engine." : "Vigane allkirjamootor.",
     "Password to sign not defined. Create a password to sign." : "Allkirjastamise salasõna on puudu. Jätkamiseks palun lisa salasõna.",
     "Invalid password" : "Vale salasõna",
+    "Internal Server Error" : "Serveri sisemine viga",
     "Invalid file provided" : "Vigane fail",
     "File is too big" : "Fail on liiga suur",
     "Cannot read file" : "Faili lugemine ei õnnestu",
@@ -115,7 +115,6 @@
     "no signers" : "allkirjastajaid pole",
     "You need to sign this document" : "Sa pead selle dokumendi allkirjastama",
     "You cannot request signature for this document, please contact your administrator" : "Sa ei saa paluda selle dokumendi allkirjastamist, palun küsi abi serveri haldajalt või peakasutajalt",
-    "Invalid PDF" : "Vigane PDF-fail",
     "Invalid file identifier" : "Vigane failitunnus",
     "No file provided" : "Sa pole faili  lisanud",
     "Envelope folder not found" : "Ümbriku kausta ei leidu",
@@ -321,6 +320,7 @@
     "Certificate hash:" : "Sertifikaadi räsi:",
     "Signed on" : "Allkirjastamise aeg",
     "Awaiting signature" : "Allkirjade ootel",
+    "File" : "Fail",
     "Details" : "Üksikasjad",
     "Certificate" : "Sertifikaat",
     "Not sent yet" : "Pole veel saadetud",
@@ -485,6 +485,7 @@
     "Current password" : "Praegune salasõna",
     "New password" : "Uus salasõna",
     "Repeat password" : "Korda salasõna",
+    "Refresh" : "Värskenda",
     "Optional attributes" : "Lisaatribuudid",
     "Maximum {max} items" : "Maksimaalselt {max} objekti",
     "Add new" : "Lisa uus",
@@ -604,7 +605,6 @@
     "Validate signature" : "Kontrolli allkirja",
     "From UUID" : "UUID alusel",
     "original file" : "algne fail",
-    "not a LibreSign file" : "pole LibreSigni fail",
     "New signature request" : "Uus allkirjapäring"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

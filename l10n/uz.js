@@ -12,8 +12,8 @@ OC.L10N.register(
     "Could not write file to disk" : "Faylni diskka yozib bo'lmadi",
     "A PHP extension stopped the file upload" : "PHP kengaytmasi faylni yuklashni to'xtatdi",
     "File not found" : "File not found",
-    "Internal Server Error" : "Serverdagi ichki xatolik",
     "Pending" : "Kutilmoqda",
+    "Internal Server Error" : "Serverdagi ichki xatolik",
     "Invalid file provided" : "Invalid file provided",
     "File is too big" : "File is too big",
     "View" : "Ko'rish",
@@ -25,6 +25,7 @@ OC.L10N.register(
     "Upload" : "Yuklash",
     "Color" : "Rang",
     "Delete" : "O'chirish",
+    "_file_::_files_" : ["Fayllar"],
     "Preview" : "Ko‘rib chiqish",
     "Files" : "Fayllar",
     "Settings" : "Sozlamalar",
@@ -49,6 +50,7 @@ OC.L10N.register(
     "Unknown" : "Noma'lum",
     "Hide details" : "Tafsilotlarni yashirish",
     "Show details" : "Tafsilotlarni ko'rsatish",
+    "File" : "Fayl",
     "Details" : "Details",
     "Upload file" : "Upload file",
     "Delete file" : "Faylni o'chirish",
@@ -73,6 +75,7 @@ OC.L10N.register(
     "Password reset" : "Password reset",
     "Current password" : "Current password",
     "New password" : "New password",
+    "Refresh" : "Yangilash",
     "Add new" : "Yangi yaratish",
     "Remove" : "O'chirish",
     "on" : "da",
@@ -81,6 +84,7 @@ OC.L10N.register(
     "No" : "No",
     "Remove background" : "Fonni olib tashlash",
     "Username" : "Foydalanuvchi nomi",
-    "Forgot password?" : "Parolni unutdingizmi?"
+    "Forgot password?" : "Parolni unutdingizmi?",
+    "Deleted" : "O`chirilgan"
 },
 "nplurals=1; plural=0;");

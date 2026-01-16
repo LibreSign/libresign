@@ -45,11 +45,13 @@ OC.L10N.register(
     "1 file" : "1 Fichier",
     "Current password" : "Momentan 't Passwuert",
     "New password" : "Neit Passwuert",
+    "Refresh" : "Opfrëschen",
     "Resource" : "Ressource",
     "Reminders" : "Erennërungen",
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "Benotzernumm",
-    "Optional" : "Fräiwëlleg"
+    "Optional" : "Fräiwëlleg",
+    "Deleted" : "Geläscht"
 },
 "nplurals=2; plural=(n != 1);");

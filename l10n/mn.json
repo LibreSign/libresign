@@ -57,6 +57,7 @@
     "Password reset" : "Нууц үг солих",
     "Current password" : "одоогийн нууц үг",
     "New password" : "шинэ нууц үг",
+    "Refresh" : "Сэргээх",
     "Add new" : "Шинээр нэмэх",
     "Resource" : "Нөөц",
     "Reminders" : "Сануулагууд",
@@ -65,6 +66,7 @@
     "Reset to default" : "Анхны байдлаар сэргээх",
     "Learn more" : "Илүү их судалгаа",
     "Username" : "Хэрэглэгчийн нэр",
-    "Optional" : "Сайн дурын"
+    "Optional" : "Сайн дурын",
+    "Deleted" : "Устгагдсан"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -13,10 +13,10 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "הרחבת PHP עצרה את העלאת הקובץ",
     "No file uploaded" : "לא הועלה קובץ",
     "File not found" : "קובץ לא נמצא",
-    "Internal Server Error" : "שגיאה פנימית בשרת",
     "deleted" : "נמחק",
     "Pending" : "בהמתנה",
     "Invalid password" : "ססמה שגויה",
+    "Internal Server Error" : "שגיאה פנימית בשרת",
     "Invalid file provided" : "הקובץ שסופק שגוי",
     "File is too big" : "הקובץ גדול מדי",
     "File sharing" : "שיתוף קבצים",
@@ -67,6 +67,7 @@ OC.L10N.register(
     "Hide details" : "הסתרת פרטים",
     "Show details" : "הצגת פרטים",
     "No date" : "No date",
+    "File" : "קובץ",
     "Details" : "פרטים",
     "Certificate" : "אישור",
     "Upload file" : "העלאת קובץ",
@@ -104,6 +105,7 @@ OC.L10N.register(
     "Current password" : "ססמה נוכחית",
     "New password" : "ססמה חדשה",
     "Repeat password" : "חזרה על הססמה",
+    "Refresh" : "רענון",
     "Add new" : "הוסף חדש",
     "Remove" : "הסרה",
     "Message" : "הודעה",
@@ -118,6 +120,7 @@ OC.L10N.register(
     "Invalid URL" : "כתובת שגויה",
     "Username" : "שם משתמש",
     "Optional" : "אופציונלי",
-    "Forgot password?" : "שכחת ססמה?"
+    "Forgot password?" : "שכחת ססמה?",
+    "Deleted" : "נמחק"
 },
 "nplurals=3; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: 2;");

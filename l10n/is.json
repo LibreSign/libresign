@@ -10,12 +10,11 @@
     "Could not write file to disk" : "Tókst ekki að skrifa skrá á disk.",
     "A PHP extension stopped the file upload" : "PHP-viðbót stöðvaði innsendingu skráar",
     "No file uploaded" : "Engin skrá var send inn",
-    "Name is mandatory" : "Nafn er nauðsynlegt",
     "File not found" : "Skrá finnst ekki",
-    "Internal Server Error" : "Innri villa",
     "deleted" : "eytt",
     "Draft" : "Drög",
     "Pending" : "Í bið",
+    "Internal Server Error" : "Innri villa",
     "Invalid file provided" : "Ógild skrá gefin",
     "File is too big" : "Skrá er of stór",
     "Invalid email" : "Ógilt tölvupóstfang",
@@ -129,6 +128,7 @@
     "Current password" : "Núverandi lykilorð",
     "New password" : "Nýtt lykilorð",
     "Repeat password" : "Endurtaktu lykilorð",
+    "Refresh" : "Endurnýja",
     "Add new" : "Bæta við nýju",
     "Remove" : "Fjarlægja",
     "Message" : "Skilaboð",
@@ -141,9 +141,11 @@
     "Reset to default" : "Endurstilla á sjálfgefið",
     "Learn more" : "Læra meira",
     "Invalid URL" : "Ógild slóð",
+    "Name is mandatory" : "Nafn er nauðsynlegt",
     "Username" : "Notandanafn",
     "Optional" : "Valkvætt",
     "Partial" : "Að hluta",
-    "Complete" : "Fullklárað"
+    "Complete" : "Fullklárað",
+    "Deleted" : "Eytt"
 },"pluralForm" :"nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);"
 }

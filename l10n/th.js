@@ -12,9 +12,9 @@ OC.L10N.register(
     "Could not write file to disk" : "ไม่สามารถเขียนไฟล์ลงดิสก์",
     "A PHP extension stopped the file upload" : "ส่วนขยาย PHP ได้หยุดการอัปโหลดไฟล์",
     "File not found" : "ไม่พบไฟล์",
-    "Internal Server Error" : "ข้อผิดพลาดภายในเซิร์ฟเวอร์",
     "Pending" : "รอดำเนินการ",
     "Invalid password" : "รหัสผ่านไม่ถูกต้อง",
+    "Internal Server Error" : "ข้อผิดพลาดภายในเซิร์ฟเวอร์",
     "Invalid file provided" : "ไฟล์ที่ระบุไม่ถูกต้อง",
     "File is too big" : "ไฟล์ใหญ่เกินไป",
     "Cannot read file" : "ไม่สามารถอ่านไฟล์",
@@ -58,6 +58,7 @@ OC.L10N.register(
     "Hide details" : "ซ่อนข้อมูล",
     "Show details" : "แสดงข้อมูล",
     "No date" : "ไม่มีวันที่",
+    "File" : "ไฟล์",
     "Details" : "รายละเอียด",
     "Certificate" : "ใบรับรอง",
     "Upload file" : "อัปโหลดไฟล์",
@@ -88,6 +89,7 @@ OC.L10N.register(
     "Password reset" : "ตั้งรหัสผ่านใหม่",
     "Current password" : "รหัสผ่านปัจจุบัน",
     "New password" : "รหัสผ่านใหม่",
+    "Refresh" : "รีเฟรช",
     "Remove" : "ลบออก",
     "Resource" : "ทรัพยากร",
     "Reminders" : "การแจ้งเตือน",
@@ -95,6 +97,7 @@ OC.L10N.register(
     "No" : "ไม่",
     "Invalid URL" : "URL ไม่ถูกต้อง",
     "Username" : "ชื่อผู้ใช้",
-    "Optional" : "ไม่จำเป็น"
+    "Optional" : "ไม่จำเป็น",
+    "Deleted" : "ลบแล้ว"
 },
 "nplurals=1; plural=0;");
