@@ -12,11 +12,11 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "PHP გაფართოებამ შეწყვიტა ფაილის ატვირთვა",
     "No file uploaded" : "No file uploaded",
     "File not found" : "File not found",
-    "Internal Server Error" : "Internal Server Error",
     "deleted" : "deleted",
     "Draft" : "Draft",
     "Pending" : "Pending",
     "Invalid password" : "Invalid password",
+    "Internal Server Error" : "Internal Server Error",
     "Invalid file provided" : "მითითებულია არასწორი ფაილი",
     "File is too big" : "File is too big",
     "File sharing" : "File sharing",
@@ -64,6 +64,7 @@ OC.L10N.register(
     "Unknown" : "Unknown",
     "Hide details" : "Hide details",
     "Show details" : "Show details",
+    "File" : "ფაილი",
     "Details" : "Details",
     "Certificate" : "Certificate",
     "Upload file" : "Upload file",
@@ -113,6 +114,7 @@ OC.L10N.register(
     "Current password" : "Current password",
     "New password" : "New password",
     "Repeat password" : "Repeat password",
+    "Refresh" : "Refresh",
     "Add new" : "Add new",
     "Remove" : "Remove",
     "Message" : "Message",
@@ -125,6 +127,7 @@ OC.L10N.register(
     "Invalid URL" : "Invalid URL",
     "Username" : "Username",
     "Forgot password?" : "Forgot password?",
-    "Complete" : "Complete"
+    "Complete" : "Complete",
+    "Deleted" : "Deleted"
 },
 "nplurals=2; plural=(n!=1);");

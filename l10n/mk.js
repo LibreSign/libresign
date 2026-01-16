@@ -15,11 +15,11 @@ OC.L10N.register(
     "No file uploaded" : "Нема прикачено дадотека",
     "Notification sent with success." : "Успешно исптарено известување.",
     "File not found" : "Датотеката не е пронајдена",
-    "Internal Server Error" : "Внатрешна серверска грешка",
     "deleted" : "избришана",
     "Draft" : "Шаблон",
     "Pending" : "Чекање",
     "Invalid password" : "Погрешна лозинка",
+    "Internal Server Error" : "Внатрешна серверска грешка",
     "Invalid file provided" : "Доставена е невалидна датотека",
     "File is too big" : "Датотеката е премногу голема",
     "Cannot read file" : "Неможе да се прочита датотеката",
@@ -76,6 +76,7 @@ OC.L10N.register(
     "Show details" : "Прикажи детали",
     "Expiration:" : "Рок на траење:",
     "No date" : "No date",
+    "File" : "Датотека",
     "Details" : "Детали",
     "Certificate" : "Сертификат",
     "Upload file" : "Прикачи датотека",
@@ -128,6 +129,7 @@ OC.L10N.register(
     "Password reset" : "Ресетирај лозинка",
     "Current password" : "Моментална лозинка",
     "New password" : "Нова лозинка",
+    "Refresh" : "Освежи",
     "Add new" : "Додади нов",
     "Remove" : "Отстрани ",
     "Message" : "Порака",
@@ -143,6 +145,7 @@ OC.L10N.register(
     "Username" : "Корисничко име",
     "Optional" : "Опционално",
     "Forgot password?" : "Заборавена лозинка?",
-    "Partial" : "Делумно"
+    "Partial" : "Делумно",
+    "Deleted" : "Избришани"
 },
 "nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;");

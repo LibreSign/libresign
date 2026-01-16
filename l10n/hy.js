@@ -47,11 +47,13 @@ OC.L10N.register(
     "Version" : "Տարբերակ",
     "Password reset" : "Վերականգնել գաղտնաբառը",
     "New password" : "Նոր գաղտնաբառ",
+    "Refresh" : "Թարմացնել",
     "Resource" : "Ռեսուրս",
     "Reminders" : "Հիշեցումներ",
     "Yes" : "Yes",
     "No" : "No",
     "Username" : "Օգտանուն",
-    "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։"
+    "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։",
+    "Deleted" : "Ջնջված"
 },
 "nplurals=2; plural=(n != 1);");

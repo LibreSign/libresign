@@ -10,11 +10,11 @@
     "A PHP extension stopped the file upload" : "PHP paplašinājums apturēja datnes augšupielādi",
     "No file uploaded" : "Nav augšupielādēta datne",
     "File not found" : "Datne nav atrasta",
-    "Internal Server Error" : "Iekšēja servera kļūda",
     "deleted" : "izdzēsta",
     "Draft" : "Melnraksts",
     "Pending" : "Gaida",
     "Invalid password" : "Nederīga parole",
+    "Internal Server Error" : "Iekšēja servera kļūda",
     "Invalid file provided" : "Norādīta nederīga datne",
     "File is too big" : "Datne ir par lielu",
     "File type: %s. Empty file." : "Datnes veids: %s. Tukša datne.",
@@ -32,6 +32,7 @@
     "Upload" : "Augšupielādēt",
     "Color" : "Krāsa",
     "Delete" : "Izdzēst",
+    "_file_::_files_" : ["datņu","datne","datnes"],
     "Preview" : "Priekšskatīt",
     "Copy to clipboard" : "Kopēt starpliktuvē",
     "Files" : "Datnes",
@@ -64,6 +65,7 @@
     "Hide details" : "Paslēpt informāciju",
     "Show details" : "Rādīt informāciju",
     "No date" : "No date",
+    "File" : "Datne",
     "Details" : "Informācija",
     "Certificate" : "Sertifikāts",
     "Delete file" : "Izdzēst datni",
@@ -100,6 +102,7 @@
     "Current password" : "Pašreizējā parole",
     "New password" : "Jauna parole",
     "Repeat password" : "Atkārtojiet paroli",
+    "Refresh" : "Atsvaidzināt",
     "Add new" : "Pievienot jaunu",
     "Remove" : "Noņemt",
     "Status of setup" : "Iestatīšanas stāvoklis",
@@ -116,6 +119,7 @@
     "Forgot password?" : "Aizmirsta parole?",
     "Complete" : "Pabeigta",
     "Open in LibreSign" : "Atvērt LibreSign",
-    "Requested by {name}, at {date}" : "Pieprasīja {name} {date}"
+    "Requested by {name}, at {date}" : "Pieprasīja {name} {date}",
+    "Deleted" : "Izdzēsts"
 },"pluralForm" :"nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"
 }

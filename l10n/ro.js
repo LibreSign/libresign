@@ -13,10 +13,10 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "O extensie PHP a oprit încărcarea fișierelor",
     "No file uploaded" : "Nu a fost încărcat niciun fișier",
     "File not found" : "Fișierul nu a fost găsit",
-    "Internal Server Error" : "Eroare internă a serverului",
     "deleted" : "șterge",
     "Draft" : "Schiță",
     "Pending" : "În așteptare",
+    "Internal Server Error" : "Eroare internă a serverului",
     "Invalid file provided" : "Numele fișierului pe care l-ai oferit este invalid",
     "File is too big" : "Fișierul este prea mare",
     "File sharing" : "Partajare fișiere",
@@ -68,6 +68,7 @@ OC.L10N.register(
     "Hide details" : "Ascunde detaliile",
     "Show details" : "Arată detaliile",
     "No date" : "No date",
+    "File" : "Fișier",
     "Details" : "Detalii",
     "Certificate" : "Certificat",
     "Upload file" : "Încarcă fișier",
@@ -112,6 +113,7 @@ OC.L10N.register(
     "Password reset" : "Resetare parolă",
     "Current password" : "Parola curentă",
     "New password" : "Noua parolă",
+    "Refresh" : "Reîmprospătează",
     "Add new" : "Adaugă nou",
     "Remove" : "Elimină",
     "Message" : "Mesaj",
@@ -124,6 +126,7 @@ OC.L10N.register(
     "Learn more" : "Află mai mult",
     "Invalid URL" : "URL invalid",
     "Username" : "Nume utilizator",
-    "Optional" : "Opțional"
+    "Optional" : "Opțional",
+    "Deleted" : "Șters"
 },
 "nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));");

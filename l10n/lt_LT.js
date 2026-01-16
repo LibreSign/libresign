@@ -22,7 +22,6 @@ OC.L10N.register(
     "Notification sent with success." : "Pranešimas sėkmingai išsiųstas.",
     "File not found" : "Failas nerastas",
     "File signed" : "Failas pasirašytas",
-    "Internal Server Error" : "Vidinė serverio klaida",
     "Element updated with success" : "Elementas sėkmingai atnaujintas",
     "draft" : "juodraštis",
     "available for signature" : "prieinamas pasirašymui",
@@ -38,6 +37,7 @@ OC.L10N.register(
     "Certificate has expired" : "Liudijimas nebegalioja",
     "You do not have permission for this action." : "Jūs neturite leidimo atlikti šį veiksmą.",
     "Invalid password" : "Neteisingas slaptažodis",
+    "Internal Server Error" : "Vidinė serverio klaida",
     "Invalid file provided" : "Pateiktas neteisingas failas",
     "File is too big" : "Failas yra per didelis",
     "File type: %s. Empty file." : "Failo tipas: %s. Tuščias failas.",
@@ -136,6 +136,7 @@ OC.L10N.register(
     "Remote address:" : "Nuotolinis adresas:",
     "No date" : "No date",
     "Hash algorithm:" : "Maišos algoritmas:",
+    "File" : "Failas",
     "Details" : "Išsamiau",
     "Certificate" : "Liudijimas",
     "Not sent yet" : "Kol kas neišsiųsta",
@@ -203,6 +204,7 @@ OC.L10N.register(
     "Current password" : "Dabartinis slaptažodis",
     "New password" : "Naujas slaptažodis",
     "Repeat password" : "Pakartokite slaptažodį",
+    "Refresh" : "Įkelti iš naujo",
     "Add new" : "Pridėti naują",
     "Remove" : "Šalinti",
     "Status of setup" : "Sąrankos būsena",
@@ -225,6 +227,7 @@ OC.L10N.register(
     "Unable to sign." : "Nepavyko pasirašyti.",
     "Subscription password." : "Prenumeratos slaptažodis.",
     "Forgot password?" : "Pamiršote slaptažodį?",
-    "Complete" : "Baigti"
+    "Complete" : "Baigti",
+    "Deleted" : "Ištrinta"
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");

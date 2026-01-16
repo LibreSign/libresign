@@ -5,9 +5,9 @@ OC.L10N.register(
     "No file was uploaded" : "Ingen filer vart lasta opp",
     "Missing a temporary folder" : "Manglar ei mellombels mappe",
     "File not found" : "Fann ikkje fila",
-    "Internal Server Error" : "Intern serverfeil",
     "Pending" : "Ventar",
     "Invalid password" : "Feil passord",
+    "Internal Server Error" : "Intern serverfeil",
     "Invalid file provided" : "Ugyldig fil",
     "File is too big" : "Fila er for stor",
     "Email" : "Epost",
@@ -37,6 +37,7 @@ OC.L10N.register(
     "Cancel upload" : "Avbryt opplasting",
     "Unknown" : "Ukjend",
     "No date" : "No date",
+    "File" : "Fil",
     "Details" : "Detaljar",
     "Certificate" : "Sertifikat",
     "Signature" : "Signatur",
@@ -60,11 +61,13 @@ OC.L10N.register(
     "Password reset" : "Passord omstilling",
     "Current password" : "Passord",
     "New password" : "Nytt passord",
+    "Refresh" : "Last inn på nytt",
     "Resource" : "Ressurs",
     "Reminders" : "Påminningar",
     "Yes" : "Ja",
     "No" : "Nei",
     "Username" : "Brukarnamn",
-    "Optional" : "Valfritt"
+    "Optional" : "Valfritt",
+    "Deleted" : "Sletta"
 },
 "nplurals=2; plural=(n != 1);");

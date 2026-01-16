@@ -26,7 +26,6 @@ OC.L10N.register(
     "Notification sent with success." : "Notifikasi berhasil dikirim",
     "File not found" : "Berkas tidak ditemukan",
     "File signed" : "Berkas ditandatangani",
-    "Internal Server Error" : "Kesalahan Server Internal",
     "Renewed with success. Access the link again." : "Berhasil diperbaharui. Silahkan akses kembali tautan",
     "Invalid data to sign file" : "Berkas di tandatangani memiliki data yang tidak valid",
     "Element created with success" : "Elemen berhasil dibuat",
@@ -46,6 +45,7 @@ OC.L10N.register(
     "Unsigned file." : "Berkas belum ditandatangani.",
     "Password to sign not defined. Create a password to sign." : "Kata sandi untuk tandatangani tidak dibuat. Buat kata sandi untuk menandatangani.",
     "Invalid password" : "Kata sandi tidak valid",
+    "Internal Server Error" : "Kesalahan Server Internal",
     "Invalid file provided" : "Berkas tidak valid",
     "File is too big" : "Berkas terlalu besar",
     "View" : "Tampilan",
@@ -139,6 +139,7 @@ OC.L10N.register(
     "Password reset" : "Setel ulang kata sandi",
     "Current password" : "Kata sandi saat ini",
     "New password" : "Kata sandi baru",
+    "Refresh" : "Muat ulang",
     "Add new" : "Tambahkan baru",
     "Remove" : "Hapus",
     "Message" : "Pesan",
@@ -150,6 +151,7 @@ OC.L10N.register(
     "Reset to default" : "Reset ke default",
     "Learn more" : "Pelajari lebih lanjut",
     "Invalid URL" : "URL Tidak Valid",
-    "Username" : "Username"
+    "Username" : "Username",
+    "Deleted" : "Dihapus"
 },
 "nplurals=1; plural=0;");

@@ -9,9 +9,9 @@ OC.L10N.register(
     "Missing a temporary folder" : "Mungon një dosje e përkohshme",
     "No file uploaded" : "Asnjë skedar i ngarkuar",
     "File not found" : "Skedari nuk u gjet",
-    "Internal Server Error" : "Gabim i Brendshëm Shërbyesi",
     "deleted" : "të fshira",
     "Pending" : "Në Pritje të Konfirmimit",
+    "Internal Server Error" : "Gabim i Brendshëm Shërbyesi",
     "Invalid file provided" : "U dha kartelë e pavlefshme",
     "File is too big" : "Skedari është shumë i madh",
     "File sharing" : "Shpërndarja e skedarëve",
@@ -54,6 +54,7 @@ OC.L10N.register(
     "Number of documents:" : "Numri i dokumenteve:",
     "Hide details" : "Fsheh detajet",
     "No date" : "No date",
+    "File" : "Skedar ",
     "Details" : "Detajet",
     "Certificate" : "Çertifikata",
     "Change password" : "Ndrysho fjalëkalimin",
@@ -83,6 +84,7 @@ OC.L10N.register(
     "Current password" : "Fjalëkalimi aktual",
     "New password" : "Fjalëkalim i ri",
     "Repeat password" : "Përsërit Fjalëkalimin",
+    "Refresh" : "Rifreskoje",
     "Remove" : "Hiqe",
     "Message" : "Mesazh",
     "Resource" : "Burim",
@@ -95,6 +97,7 @@ OC.L10N.register(
     "Invalid URL" : "URL e pavlefshme",
     "Username" : "Emri i përdoruesit",
     "Optional" : "Jo i detyrueshëm",
-    "Complete" : "I Perfunduar"
+    "Complete" : "I Perfunduar",
+    "Deleted" : "E fshirë"
 },
 "nplurals=2; plural=(n != 1);");
