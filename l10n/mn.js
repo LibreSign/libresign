@@ -59,6 +59,7 @@ OC.L10N.register(
     "Password reset" : "Нууц үг солих",
     "Current password" : "одоогийн нууц үг",
     "New password" : "шинэ нууц үг",
+    "Refresh" : "Сэргээх",
     "Add new" : "Шинээр нэмэх",
     "Resource" : "Нөөц",
     "Reminders" : "Сануулагууд",
@@ -67,6 +68,7 @@ OC.L10N.register(
     "Reset to default" : "Анхны байдлаар сэргээх",
     "Learn more" : "Илүү их судалгаа",
     "Username" : "Хэрэглэгчийн нэр",
-    "Optional" : "Сайн дурын"
+    "Optional" : "Сайн дурын",
+    "Deleted" : "Устгагдсан"
 },
 "nplurals=2; plural=(n != 1);");

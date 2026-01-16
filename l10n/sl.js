@@ -22,7 +22,6 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "Razširitev PHP onemogoča pošiljanje datoteke",
     "No file uploaded" : "Ni poslanih datotek",
     "Internal error. Contact admin." : "Notranja napaka, stopite v stik s skrbnikom.",
-    "Name is mandatory" : "Ime je obvezno",
     "Invalid UUID" : "Neveljaven UUID",
     "Notification sent with success." : "Obvestilo je bilo uspešno poslano.",
     "File not found" : "Datoteke ni mogoče najti",
@@ -126,7 +125,6 @@ OC.L10N.register(
     "no signers" : "ni podpisnikov",
     "You need to sign this document" : "Ta dokument je treba podpisati",
     "You cannot request signature for this document, please contact your administrator" : "Za ta dokument ni mogoče zahtevati podpisa. Stopite v stik s skrbnikom sistema.",
-    "Invalid PDF" : "Neveljavna datoteka PDF",
     "Invalid file identifier" : "Neveljavno določilo datoteke.",
     "Link expired." : "Povezava je potekla.",
     "Invalid code." : "Neveljavna koda",
@@ -227,6 +225,7 @@ OC.L10N.register(
     "Hide details" : "Skrij podrobnosti",
     "Show details" : "Pokaži podrobnosti",
     "No date" : "Ni datuma",
+    "File" : "Datoteka",
     "Details" : "Podrobnosti",
     "Certificate" : "Potrdilo",
     "Not sent yet" : "Še ni poslano",
@@ -315,6 +314,7 @@ OC.L10N.register(
     "Current password" : "Trenutno geslo",
     "New password" : "Novo geslo",
     "Repeat password" : "Ponovi geslo",
+    "Refresh" : "Osveži",
     "Allow request to sign" : "Odpiranje zahtev za podpisovanje",
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Izbor skupin, pooblaščenih za izdajo zahtev za podpisovanje dokumentov. Skrbniki so  so privzeta skupina in je ni treba posebej določiti.",
     "Optional attributes" : "Izbirni atributi",
@@ -376,6 +376,7 @@ OC.L10N.register(
     "Remove background" : "Odstrani ozadje",
     "Learn more" : "Prikaži več",
     "Invalid URL" : "Neveljaven naslov URL",
+    "Name is mandatory" : "Ime je obvezno",
     "Username" : "Uporabniško ime",
     "Optional" : "Izbirno",
     "Validation URL" : "Naslov URL overjanja",
@@ -406,6 +407,7 @@ OC.L10N.register(
     "Validation" : "Potrjevanje",
     "Return" : "Nazaj",
     "Open in LibreSign" : "Odpri v LibreSign",
-    "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}"
+    "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}",
+    "Deleted" : "Izbrisano"
 },
 "nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);");

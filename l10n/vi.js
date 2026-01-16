@@ -13,9 +13,9 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "Một phần mở rộng của PHP đã dừng tải tệp lên",
     "No file uploaded" : "Không có tệp nào được tải lên",
     "File not found" : "Không tìm thấy tập tin",
-    "Internal Server Error" : "Lỗi máy chủ.",
     "deleted" : "đã xóa",
     "Pending" : "Đang dừng",
+    "Internal Server Error" : "Lỗi máy chủ.",
     "Invalid file provided" : "Tệp đã cung cấp không hợp lệ",
     "File is too big" : "Tệp quá lớn",
     "File sharing" : "Chia sẻ file",
@@ -65,6 +65,7 @@ OC.L10N.register(
     "Hide details" : "Ẩn chi tiết",
     "Show details" : "Hiển thị chi tiết",
     "No date" : "No date",
+    "File" : "Tệp Tin",
     "Details" : "Chi tiết",
     "Certificate" : "Chứng chỉ",
     "Upload file" : "Tải lên tập tin",
@@ -111,6 +112,7 @@ OC.L10N.register(
     "Password reset" : "Đặt lại mật khẩu",
     "Current password" : "Mật khẩu cũ",
     "New password" : "Mật khẩu mới",
+    "Refresh" : "Tải mới",
     "Add new" : "Thêm mới",
     "Remove" : "Xoá",
     "Resource" : "Tài nguyên",
@@ -124,6 +126,7 @@ OC.L10N.register(
     "Invalid URL" : "URL không hợp lệ",
     "Username" : "Tên đăng nhập",
     "Optional" : "Tùy chọn",
-    "Forgot password?" : "Quên mật khẩu sao?"
+    "Forgot password?" : "Quên mật khẩu sao?",
+    "Deleted" : "Đã xoá"
 },
 "nplurals=1; plural=0;");

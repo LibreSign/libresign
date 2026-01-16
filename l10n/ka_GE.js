@@ -50,6 +50,7 @@ OC.L10N.register(
     "Number of documents:" : "დოკუმენტების რაოდენობა:",
     "Hide details" : "დეტალების დამალვა",
     "No date" : "თარიღი არაა",
+    "File" : "ფაილი",
     "Details" : "დეტალები",
     "Certificate" : "სერტიფიკატი",
     "Signature" : "ხელმოწერა",
@@ -78,6 +79,7 @@ OC.L10N.register(
     "Current password" : "ამჟამინდელი პაროლი",
     "New password" : "ახალი პაროლი",
     "Repeat password" : "პაროლის გამეორება",
+    "Refresh" : "განახლება",
     "Message" : "წერილი",
     "Resource" : "რესურსი",
     "Dependencies" : "დამოკიდებულებები",
@@ -88,6 +90,7 @@ OC.L10N.register(
     "Learn more" : "შეიტყვეთ მეტი",
     "Username" : "მომხმარებლის სახელი",
     "Optional" : "არასავალდებულო",
-    "Complete" : "დასრულებულია"
+    "Complete" : "დასრულებულია",
+    "Deleted" : "გაუქმდა"
 },
 "nplurals=2; plural=(n!=1);");

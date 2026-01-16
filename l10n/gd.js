@@ -33,6 +33,7 @@ OC.L10N.register(
     "Open sidebar" : "Fosgail am bàr-taoibh",
     "Issued by:" : "Air fhoillseachadh le:",
     "Unknown" : "Chan eil fhios",
+    "File" : "Faidhle",
     "Details" : "Mion-fhiosrachadh",
     "Password" : "Facal-faire",
     "Enter a password" : "Cuir a-steach facal-faire",
@@ -42,10 +43,12 @@ OC.L10N.register(
     "Today" : "An-diugh",
     "Version" : "Tionndadh",
     "Password reset" : "Ath-shuidheachadh an fhacail-fhaire",
+    "Refresh" : "Ath-nuadhaich",
     "Remove" : "Thoir air falbh",
     "Yes" : "Tha",
     "No" : "Chan eil",
     "Invalid URL" : "URL mì-dhligheach",
-    "Username" : "Ainm-cleachdaiche"
+    "Username" : "Ainm-cleachdaiche",
+    "Deleted" : "Chaidh a sguabadh às"
 },
 "nplurals=4; plural=(n==1 || n==11) ? 0 : (n==2 || n==12) ? 1 : (n > 2 && n < 20) ? 2 : 3;");
