@@ -45,8 +45,10 @@ OC.L10N.register(
     "Version" : "ভার্সন",
     "Current password" : "বর্তমান কূটশব্দ",
     "New password" : "নতুন কূটশব্দ",
+    "Refresh" : "নবোদ্যম",
     "Yes" : "Yes",
     "No" : "No",
-    "Username" : "ব্যবহারকারী"
+    "Username" : "ব্যবহারকারী",
+    "Deleted" : "মুছে ফেলা"
 },
 "nplurals=2; plural=(n != 1);");

@@ -141,6 +141,7 @@ OC.L10N.register(
     "Invalid URL" : "URL inválida",
     "Username" : "Usuario",
     "Optional" : "Opcional",
-    "Complete" : "Terminar"
+    "Complete" : "Terminar",
+    "Deleted" : "Eliminado"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

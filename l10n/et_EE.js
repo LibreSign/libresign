@@ -607,6 +607,7 @@ OC.L10N.register(
     "Validate signature" : "Kontrolli allkirja",
     "From UUID" : "UUID alusel",
     "original file" : "algne fail",
-    "New signature request" : "Uus allkirjapäring"
+    "New signature request" : "Uus allkirjapäring",
+    "Deleted" : "Kustutatud"
 },
 "nplurals=2; plural=(n != 1);");

@@ -79,6 +79,7 @@ OC.L10N.register(
     "Show details" : "Vis detaljer",
     "Expiration:" : "Udløbsdato:",
     "No date" : "Ingen dato",
+    "File" : "Fil",
     "Details" : "Detaljer",
     "Certificate" : "Certifikat",
     "Upload file" : "Upload fil",
@@ -136,6 +137,7 @@ OC.L10N.register(
     "Current password" : "Nuværende adgangskode",
     "New password" : "Ny adgangskode",
     "Repeat password" : "Gentag adgangskode",
+    "Refresh" : "Opdatér",
     "Add new" : "Tilføj ny",
     "Remove" : "Fjern",
     "Message" : "Besked",
@@ -154,6 +156,7 @@ OC.L10N.register(
     "Optional" : "Valgfri",
     "Forgot password?" : "Glemt adgangskode?",
     "Complete" : "Færdig",
-    "Return" : "Aflever"
+    "Return" : "Aflever",
+    "Deleted" : "Slettet"
 },
 "nplurals=2; plural=(n != 1);");
