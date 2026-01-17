@@ -271,6 +271,7 @@ OC.L10N.register(
     "Select your signature file." : "Select your signature file.",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Use your mouse wheel to zoom in or out on the image and find the best view of your signature.",
     "Enter your Full Name or Initials to create Signature" : "Enter your Full Name or Initials to create Signature",
+    "_file_::_files_" : ["file","files"],
     "Configure the content displayed at the footer of the PDF. The text template uses Twig syntax: https://twig.symfony.com/" : "Configure the content displayed at the footer of the PDF. The text template uses Twig syntax: https://twig.symfony.com/",
     "Show available variables" : "Show available variables",
     "Available variables" : "Available variables",
@@ -438,6 +439,7 @@ OC.L10N.register(
     "_Document has %n revision_::_Document has %n revisions_" : ["Document has %n revision","Document has %n revisions"],
     "Signed on" : "Signed on",
     "Awaiting signature" : "Awaiting signature",
+    "File" : "File",
     "Details" : "Details",
     "Certificate" : "Certificate",
     "Not sent yet" : "Not sent yet",
@@ -608,6 +610,7 @@ OC.L10N.register(
     "Current password" : "Current password",
     "New password" : "New password",
     "Repeat password" : "Repeat password",
+    "Refresh" : "Refresh",
     "Allow request to sign" : "Allow request to sign",
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Select authorised groups that can request to sign documents. Admin group is the default group and don't need to be defined.",
     "Optional attributes" : "Optional attributes",
@@ -797,6 +800,7 @@ OC.L10N.register(
     "Open in LibreSign" : "Open in LibreSign",
     "original file" : "original file",
     "New signature request" : "New signature request",
-    "Requested by {name}, at {date}" : "Requested by {name}, at {date}"
+    "Requested by {name}, at {date}" : "Requested by {name}, at {date}",
+    "Deleted" : "Deleted"
 },
 "nplurals=2; plural=(n != 1);");

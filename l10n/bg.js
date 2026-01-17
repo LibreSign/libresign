@@ -146,6 +146,7 @@ OC.L10N.register(
     "Select your signature file." : "Изберете вашия файл с подпис.",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Използвайте колелото на мишката, за да увеличите или намалите изображението и да намерите най-добрия изглед на вашия подпис.",
     "Enter your Full Name or Initials to create Signature" : "Въведете вашето пълно име или инициали, за да създадете подпис",
+    "_file_::_files_" : ["файлове","файлове"],
     "Preview" : "Визуализация",
     "Height" : "Ръст",
     "Copy to clipboard" : "Копиране в клипборда",
@@ -194,6 +195,7 @@ OC.L10N.register(
     "Hide details" : "Скриване на подробностите",
     "Show details" : "Показване на подробности",
     "No date" : "Няма дата",
+    "File" : "Файл",
     "Details" : "Подробности",
     "Certificate" : "Сертификат",
     "Not sent yet" : "Все още не е изпратено",
@@ -270,6 +272,7 @@ OC.L10N.register(
     "Current password" : "Текуща парола",
     "New password" : "Нова парола",
     "Repeat password" : "Повторете паролата",
+    "Refresh" : "Опресняване",
     "Allow request to sign" : "Разрешаване на заявка за подписване",
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Изберете упълномощени групи, които могат да подават заявки за подписване на документи. Групата на администратора е група по подразбиране и не е необходимо да се определя.",
     "Optional attributes" : "Допълнителни атрибути /по избор/",
@@ -339,6 +342,7 @@ OC.L10N.register(
     "Validation" : "Проверка",
     "Return" : "Връщане ",
     "Open in LibreSign" : "Отваряне в LibreSign",
-    "Requested by {name}, at {date}" : "Поискано от {name}, на {date}"
+    "Requested by {name}, at {date}" : "Поискано от {name}, на {date}",
+    "Deleted" : "Изтрито"
 },
 "nplurals=2; plural=(n != 1);");

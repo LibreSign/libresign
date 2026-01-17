@@ -42,6 +42,7 @@
     "Open sidebar" : "Open kantbalk",
     "Cancel upload" : "Kanselleer oplaai",
     "No date" : "Geen datum",
+    "File" : "Lêer",
     "Details" : "Besonderhede",
     "Certificate" : "Sertifikaat",
     "Signature" : "Handtekening",
@@ -71,6 +72,7 @@
     "Reset to default" : "Herstel na verstek",
     "Username" : "Gebruikernaam",
     "Optional" : "Opsioneel",
-    "Forgot password?" : "Wagwoord vergeet?"
+    "Forgot password?" : "Wagwoord vergeet?",
+    "Deleted" : "Geskrap"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

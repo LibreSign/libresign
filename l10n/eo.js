@@ -61,6 +61,7 @@ OC.L10N.register(
     "Hide details" : "Kaŝi la detalojn",
     "Show details" : "Montri la detalojn",
     "No date" : "No date",
+    "File" : "Dosiero",
     "Details" : "Detaloj",
     "Certificate" : "Atestilo",
     "Upload file" : "Alŝuti dosieron",
@@ -95,6 +96,7 @@ OC.L10N.register(
     "Current password" : "Nuna pasvorto",
     "New password" : "Nova pasvorto",
     "Repeat password" : "Ripetu la pasvorton",
+    "Refresh" : "Aktualigi",
     "Message" : "Mesaĝo",
     "Resource" : "Risurco",
     "Dependencies" : "Dependecoj",
@@ -106,6 +108,7 @@ OC.L10N.register(
     "Username" : "Uzantnomo",
     "Optional" : "Malnepra",
     "Forgot password?" : "Ĉu vi forgesis vian pasvorton?",
-    "Complete" : "Plenumita"
+    "Complete" : "Plenumita",
+    "Deleted" : "Forigita"
 },
 "nplurals=2; plural=(n != 1);");

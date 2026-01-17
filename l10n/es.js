@@ -217,6 +217,7 @@ OC.L10N.register(
     "Select your signature file." : "Seleccione su archivo de firma.",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Use la rueda del ratón para para hacer acercar o alejar la imagen y encontrar la mejor vista de su firma.",
     "Enter your Full Name or Initials to create Signature" : "Introduzca su Nombre Completo o Iniciales para crear la Firma",
+    "_file_::_files_" : ["archivo","archivos","archivos"],
     "Preview" : "Vista previa",
     "Zoom level" : "Nivel de zoom",
     "Width" : "Anchura",
@@ -292,6 +293,7 @@ OC.L10N.register(
     "Expiration:" : "Caduca el:",
     "No date" : "Sin fecha",
     "Hash algorithm:" : "Algoritmo hash:",
+    "File" : "Archivo",
     "Details" : "Detalles",
     "Certificate" : "Certificado",
     "Not sent yet" : "No se ha enviado todavía",
@@ -388,6 +390,7 @@ OC.L10N.register(
     "Current password" : "Contraseña actual",
     "New password" : "Nueva contraseña",
     "Repeat password" : "Repetir contraseña",
+    "Refresh" : "Refrescar",
     "Allow request to sign" : "Permitir solicitud para firmar",
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Seleccione los grupos autorizados que pueden solicitar la firma de documentos. El grupo Admin es el grupo por defecto y no necesita ser definido.",
     "Optional attributes" : "Atributos opcionales",
@@ -518,6 +521,7 @@ OC.L10N.register(
     "Return" : "Volver",
     "Open in LibreSign" : "Abrir en LibreSign",
     "New signature request" : "Nueva solicitud de firma",
-    "Requested by {name}, at {date}" : "Solicitada por {name}, el {date}"
+    "Requested by {name}, at {date}" : "Solicitada por {name}, el {date}",
+    "Deleted" : "Eliminada"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

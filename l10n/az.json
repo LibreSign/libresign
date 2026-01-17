@@ -57,8 +57,10 @@
     "Password reset" : "Parolun sıfırlanması",
     "Current password" : "Hazırkı şifrə",
     "New password" : "Yeni şifrə",
+    "Refresh" : "Yenilə",
     "Yes" : "Yes",
     "No" : "No",
-    "Username" : "İstifadəçi adı"
+    "Username" : "İstifadəçi adı",
+    "Deleted" : "Silinib"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
