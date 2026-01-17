@@ -140,6 +140,7 @@
     "Select your signature file." : "Selecciona tu archivo de firma.",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Usa la rueda del ratón para hacer zoom y encontrar la mejor vista de tu firma.",
     "Enter your Full Name or Initials to create Signature" : "Ingresa tu nombre completo o iniciales para crear la firma",
+    "_file_::_files_" : ["archivo","archivos","archivos"],
     "Preview" : "Previsualizar",
     "Height" : "Altura",
     "Copy to clipboard" : "Copiar al portapapeles",
@@ -324,6 +325,7 @@
     "Validation" : "Validación",
     "Return" : "Regresar",
     "Open in LibreSign" : "Abrir en LibreSign",
-    "Requested by {name}, at {date}" : "Solicitado por {nombre}, el {fecha}"
+    "Requested by {name}, at {date}" : "Solicitado por {nombre}, el {fecha}",
+    "Deleted" : "Eliminado"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

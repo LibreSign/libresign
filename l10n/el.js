@@ -221,6 +221,7 @@ OC.L10N.register(
     "Select your signature file." : "Επιλέξτε το αρχείο υπογραφής σας.",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Χρησιμοποιήστε τον τροχό του ποντικιού για εστίαση ή απομάκρυνση στην εικόνα και βρείτε την καλύτερη προβολή της υπογραφής σας.",
     "Enter your Full Name or Initials to create Signature" : "Εισάγετε το Πλήρες Όνομα ή τα Αρχικά σας για δημιουργία Υπογραφής",
+    "_file_::_files_" : ["αρχείο","αρχεία"],
     "Preview" : "Προεπισκόπηση",
     "Zoom level" : "Επίπεδο εστίασης",
     "Width" : "Πλάτος",
@@ -294,6 +295,7 @@ OC.L10N.register(
     "Expiration:" : "Λήξη:",
     "No date" : "Καμία ημερομηνία",
     "Hash algorithm:" : "Αλγόριθμος κατακερματισμού:",
+    "File" : "Αρχείο",
     "Details" : "Λεπτομέρειες",
     "Certificate" : "Πιστοποιητικό",
     "Not sent yet" : "Δεν έχει σταλεί ακόμα",
@@ -390,6 +392,7 @@ OC.L10N.register(
     "Current password" : "Τρέχον συνθηματικό",
     "New password" : "Νέο συνθηματικό",
     "Repeat password" : "Επανάληψη συνθηματικού",
+    "Refresh" : "Ανανέωση",
     "Allow request to sign" : "Να επιτρέπεται το αίτημα υπογραφής",
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Επιλέξτε εξουσιοδοτημένες ομάδες που μπορούν να ζητήσουν υπογραφή εγγράφων. Η ομάδα διαχειριστών είναι η προεπιλεγμένη ομάδα και δεν χρειάζεται να οριστεί.",
     "Optional attributes" : "Προαιρετικά χαρακτηριστικά",
@@ -520,6 +523,7 @@ OC.L10N.register(
     "Return" : "Επιστροφή",
     "Open in LibreSign" : "Άνοιγμα στο LibreSign",
     "New signature request" : "Νέο αίτημα υπογραφής",
-    "Requested by {name}, at {date}" : "Ζητήθηκε από {name}, στις {date}"
+    "Requested by {name}, at {date}" : "Ζητήθηκε από {name}, στις {date}",
+    "Deleted" : "Διαγραμμένα"
 },
 "nplurals=2; plural=(n != 1);");

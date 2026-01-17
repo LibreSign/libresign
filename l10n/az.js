@@ -59,8 +59,10 @@ OC.L10N.register(
     "Password reset" : "Parolun sıfırlanması",
     "Current password" : "Hazırkı şifrə",
     "New password" : "Yeni şifrə",
+    "Refresh" : "Yenilə",
     "Yes" : "Yes",
     "No" : "No",
-    "Username" : "İstifadəçi adı"
+    "Username" : "İstifadəçi adı",
+    "Deleted" : "Silinib"
 },
 "nplurals=2; plural=(n != 1);");

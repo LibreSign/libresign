@@ -201,6 +201,7 @@ OC.L10N.register(
     "Show details" : "Mostra els detalls",
     "Expiration:" : "Expiració:",
     "No date" : "Sense data",
+    "File" : "Fitxer",
     "Details" : "Detalls",
     "Certificate" : "Certificat",
     "Not sent yet" : "Encara no s'ha enviat",
@@ -278,6 +279,7 @@ OC.L10N.register(
     "Current password" : "Contrasenya actual",
     "New password" : "Nova contrasenya",
     "Repeat password" : "Repetiu la contrasenya",
+    "Refresh" : "Actualitza",
     "Allow request to sign" : "Permet signar la sol·licitud",
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Seleccioneu grups autoritzats que poden sol·licitar signar documents. El grup d'administració és el grup predeterminat i no cal definir-lo.",
     "Optional attributes" : "Atributs opcionals",
@@ -346,6 +348,7 @@ OC.L10N.register(
     "Validation" : "Validació",
     "Return" : "Retorn",
     "Open in LibreSign" : "Obre a LibreSign",
-    "Requested by {name}, at {date}" : "Sol·licitat per {name}, a {date}"
+    "Requested by {name}, at {date}" : "Sol·licitat per {name}, a {date}",
+    "Deleted" : "Suprimit"
 },
 "nplurals=2; plural=(n != 1);");

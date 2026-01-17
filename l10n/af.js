@@ -44,6 +44,7 @@ OC.L10N.register(
     "Open sidebar" : "Open kantbalk",
     "Cancel upload" : "Kanselleer oplaai",
     "No date" : "Geen datum",
+    "File" : "Lêer",
     "Details" : "Besonderhede",
     "Certificate" : "Sertifikaat",
     "Signature" : "Handtekening",
@@ -73,6 +74,7 @@ OC.L10N.register(
     "Reset to default" : "Herstel na verstek",
     "Username" : "Gebruikernaam",
     "Optional" : "Opsioneel",
-    "Forgot password?" : "Wagwoord vergeet?"
+    "Forgot password?" : "Wagwoord vergeet?",
+    "Deleted" : "Geskrap"
 },
 "nplurals=2; plural=(n != 1);");

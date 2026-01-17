@@ -364,6 +364,7 @@ OC.L10N.register(
     "Validation" : "Egiaztapena",
     "Return" : "Bueltatu",
     "Open in LibreSign" : "Ireki LibreSign-en",
-    "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean"
+    "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean",
+    "Deleted" : "Ezabatuta"
 },
 "nplurals=2; plural=(n != 1);");

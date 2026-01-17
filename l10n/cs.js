@@ -254,6 +254,7 @@ OC.L10N.register(
     "Select your signature file." : "Vyberte soubor se svým podpisem.",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Kolečkem myši zvětšete nebo zmenšete obrázek a najděte tak nejlepší zobrazení pro svůj podpis.",
     "Enter your Full Name or Initials to create Signature" : "Pokud chcete vytvořit podpis, zadejte své celé jméno nebo iniciály",
+    "_file_::_files_" : ["soubor","soubory","souborů","soubory"],
     "Configure the content displayed at the footer of the PDF. The text template uses Twig syntax: https://twig.symfony.com/" : "Nastavte obsah, zobrazovaný v zápatí PDF. Šablona textu používá syntaxi Twig: https://twig.symfony.com/",
     "Show available variables" : "Zobrazit proměnné k dispozici",
     "Available variables" : "Proměnné k dispozici",
@@ -385,6 +386,7 @@ OC.L10N.register(
     "Hash algorithm:" : "Algoritmus vytvoření otisku:",
     "Certificate hash:" : "Otisk certifikátu:",
     "_Document has %n revision_::_Document has %n revisions_" : ["Dokument má %n revizi","Dokument má %n revize","Dokument má %n revizí","Dokument má %n revize"],
+    "File" : "Soubor",
     "Details" : "Podrobnosti",
     "Certificate" : "Certifikát",
     "Not sent yet" : "Doposud neodesláno",
@@ -555,6 +557,7 @@ OC.L10N.register(
     "Current password" : "Dosavadní heslo",
     "New password" : "Nové heslo",
     "Repeat password" : "Zopakujte zadání hesla",
+    "Refresh" : "Znovu načíst",
     "Allow request to sign" : "Umožnit zažádat o podepsání",
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Vyberte skupiny pověřené tím, že mohou zažádat o podepisování dokumentů. Skupina Admin (správci) už je zde zahrnuta ve výchozím stavu (není třeba zadávat).",
     "Optional attributes" : "Volitelné atributy",
@@ -739,6 +742,7 @@ OC.L10N.register(
     "Open in LibreSign" : "Otevřít v LibreSign",
     "original file" : "původní soubor",
     "New signature request" : "Nový požadavek na podepsání",
-    "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}"
+    "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}",
+    "Deleted" : "Smazáno"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

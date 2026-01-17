@@ -106,6 +106,7 @@ OC.L10N.register(
     "Username" : "Nombre de usuario",
     "Optional" : "Opcional",
     "Forgot password?" : "¿Contraseña olvidada?",
-    "Complete" : "Terminar"
+    "Complete" : "Terminar",
+    "Deleted" : "Eliminado"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

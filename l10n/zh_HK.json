@@ -23,6 +23,7 @@
     "Could not write file to disk" : "無法將檔案寫入磁碟",
     "A PHP extension stopped the file upload" : "某個 PHP 擴充功能終止了檔案的上傳",
     "No file uploaded" : "未上傳檔案",
+    "Invalid worker type. Use \"local\" or \"external\"." : "無效的工作節點類型。請使用「local」或「external」。",
     "Mode is required when signature flow is enabled." : "當簽名流程啟用時，模式為必填項目。",
     "Invalid signature flow mode. Use \"parallel\" or \"ordered_numeric\"." : "簽名流程模式無效。請使用「parallel」或「ordered_numeric」。",
     "Invalid DocMDP level" : "無效的 DocMDP 級別",

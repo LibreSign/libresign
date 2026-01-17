@@ -81,6 +81,7 @@ OC.L10N.register(
     "Hide details" : "Схаваць падрабязнасці",
     "Show details" : "Паказаць падрабязнасці",
     "No date" : "Няма даты",
+    "File" : "Файл",
     "Details" : "Падрабязнасці",
     "Certificate" : "Сертыфікат",
     "Upload file" : "Запампаваць файл",
@@ -140,6 +141,7 @@ OC.L10N.register(
     "Password reset" : "Скід пароля",
     "Current password" : "Бягучы пароль",
     "New password" : "Новы пароль",
+    "Refresh" : "Абнавіць",
     "Item {index}" : "Элемент {index}",
     "Remove" : "Выдаліць",
     "I will not use root certificate" : "Я не буду выкарыстоўваць каранёвы сертыфікат",
@@ -158,6 +160,7 @@ OC.L10N.register(
     "Description only" : "Толькі апісанне",
     "Learn more" : "Больш падрабязна",
     "Username" : "Імя карыстальніка",
-    "Forgot password?" : "Забылі пароль?"
+    "Forgot password?" : "Забылі пароль?",
+    "Deleted" : "Выдаленае"
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");

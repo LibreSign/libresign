@@ -54,6 +54,7 @@ OC.L10N.register(
     "Created at" : "Crëwyd ar",
     "Version" : "Fersiwn",
     "New password" : "Cyfrinair newydd",
+    "Refresh" : "Ail-lwytho",
     "Add new" : "Ychwanegu newydd",
     "Resource" : "Adnodd",
     "Dependencies" : "Dibyniaethau",
@@ -63,6 +64,7 @@ OC.L10N.register(
     "No" : "No",
     "Username" : "Enw defnyddiwr",
     "Optional" : "Dewisol",
-    "Forgot password?" : "Anghofio cyfrinair?"
+    "Forgot password?" : "Anghofio cyfrinair?",
+    "Deleted" : "Wedi dileu"
 },
 "nplurals=4; plural=(n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != 11) ? 2 : 3;");

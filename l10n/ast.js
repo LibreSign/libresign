@@ -73,6 +73,7 @@ OC.L10N.register(
     "Number of documents:" : "Númberu de documentos:",
     "Hide details" : "Esconder los detalles",
     "Show details" : "Amosar los detalles",
+    "File" : "Ficheru",
     "Details" : "Detalles",
     "Certificate" : "Certificáu",
     "Upload file" : "Xubir un ficheru",
@@ -121,6 +122,7 @@ OC.L10N.register(
     "Password reset" : "Reaniciu de la contraseña",
     "Current password" : "Contraseña actual",
     "New password" : "Contraseña nueva",
+    "Refresh" : "Anovar",
     "Optional attributes" : "Atributos opcionales",
     "Remove" : "Quitar",
     "Message" : "Mensaxe",
@@ -134,6 +136,7 @@ OC.L10N.register(
     "Invalid URL" : "La URL ye inválisa",
     "Username" : "Nome d'usuariu",
     "Forgot password?" : "¿Escaeciesti la contraseña?",
-    "Partial" : "Parcial"
+    "Partial" : "Parcial",
+    "Deleted" : "Desanicióse"
 },
 "nplurals=2; plural=(n != 1);");
