@@ -50,6 +50,7 @@ OC.L10N.register(
     "File is too big" : "Berkas terlalu besar",
     "View" : "Tampilan",
     "Dismiss notification" : "Abaikan notifikasi",
+    "Empty file" : "File kosong",
     "Account" : "Akun",
     "Invalid user" : "Pengguna salah",
     "Email" : "Email",
@@ -93,6 +94,7 @@ OC.L10N.register(
     "Hide details" : "Sembunyikan detail",
     "Show details" : "Tampilkan detail",
     "No date" : "No date",
+    "File" : "File",
     "Details" : "Detail",
     "Certificate" : "Sertifikat",
     "Delete file" : "Hapus file",
@@ -152,6 +154,7 @@ OC.L10N.register(
     "Learn more" : "Pelajari lebih lanjut",
     "Invalid URL" : "URL Tidak Valid",
     "Username" : "Username",
+    "Expiring soon" : "Akan segera kedaluwarsa",
     "Deleted" : "Dihapus"
 },
 "nplurals=1; plural=0;");
