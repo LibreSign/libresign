@@ -473,9 +473,6 @@ class SignRequestMapper extends QBMapper {
 
 		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder($user->getUID(), $filter, false, $sort);
 
-
-		$qb->orderBy('f.created_at', 'DESC');
-
 		$result = $qb->executeQuery();
 		$files = [];
 
