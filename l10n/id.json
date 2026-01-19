@@ -48,6 +48,7 @@
     "File is too big" : "Berkas terlalu besar",
     "View" : "Tampilan",
     "Dismiss notification" : "Abaikan notifikasi",
+    "Empty file" : "File kosong",
     "Account" : "Akun",
     "Invalid user" : "Pengguna salah",
     "Email" : "Email",
@@ -91,6 +92,7 @@
     "Hide details" : "Sembunyikan detail",
     "Show details" : "Tampilkan detail",
     "No date" : "No date",
+    "File" : "File",
     "Details" : "Detail",
     "Certificate" : "Sertifikat",
     "Delete file" : "Hapus file",
@@ -150,6 +152,7 @@
     "Learn more" : "Pelajari lebih lanjut",
     "Invalid URL" : "URL Tidak Valid",
     "Username" : "Username",
+    "Expiring soon" : "Akan segera kedaluwarsa",
     "Deleted" : "Dihapus"
 },"pluralForm" :"nplurals=1; plural=0;"
 }
