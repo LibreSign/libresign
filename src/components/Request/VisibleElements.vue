@@ -60,8 +60,10 @@
 				height="100%"
 				:files="pdfFiles"
 				:file-names="pdfFileNames"
+				:signers="document.signers"
 				@pdf-editor:end-init="updateSigners"
-				@pdf-editor:on-delete-signer="onDeleteSigner" />
+				@pdf-editor:on-delete-signer="onDeleteSigner">
+		</PdfEditor>
 		</div>
 	</NcDialog>
 </template>
