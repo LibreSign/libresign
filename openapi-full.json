@@ -585,6 +585,7 @@
             "FileListItem": {
                 "type": "object",
                 "required": [
+                    "fileId",
                     "id",
                     "nodeId",
                     "uuid",
@@ -596,6 +597,10 @@
                     "signers"
                 ],
                 "properties": {
+                    "fileId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
                     "id": {
                         "type": "integer",
                         "format": "int64"
@@ -1465,6 +1470,9 @@
                                 "type": "string"
                             }
                         }
+                    },
+                    "file": {
+                        "type": "string"
                     },
                     "url": {
                         "type": "string"
