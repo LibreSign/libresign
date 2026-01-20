@@ -1224,6 +1224,8 @@ export type components = {
         };
         FileListItem: {
             /** Format: int64 */
+            fileId: number;
+            /** Format: int64 */
             id: number;
             /** Format: int64 */
             nodeId: number | null;
@@ -1458,6 +1460,7 @@ export type components = {
                 userId: string;
                 displayName: string;
             };
+            file?: string;
             url?: string;
             signUuid?: string | null;
             mime?: string;
