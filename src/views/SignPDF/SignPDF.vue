@@ -226,8 +226,6 @@ export default {
 				currentSigner.visibleElements.forEach(element => {
 					const object = structuredClone(currentSigner)
 					object.readOnly = true
-					element.coordinates.ury = Math.round(data.measurement[element.coordinates.page].height)
-						- element.coordinates.ury
 					object.element = element
 					this.$refs.pdfEditor.addSigner(object)
 				})
