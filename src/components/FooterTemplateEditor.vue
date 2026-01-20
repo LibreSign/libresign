@@ -77,21 +77,12 @@
 				<div v-if="loadingPreview" class="footer-preview__loading">
 					<NcLoadingIcon :size="64" />
 				</div>
-				<VuePdfEditor ref="pdfPreview"
+				<PDFElements ref="pdfPreview"
 					:key="pdfKey"
-					:show-choose-file-btn="false"
-					:show-customize-editor="false"
-					:show-line-size-select="false"
-					:show-font-size-select="false"
-					:show-font-select="false"
-					:show-rename="false"
-					:show-save-btn="false"
-					:show-page-footer="false"
-					:save-to-upload="false"
-					:init-file="pdfPreviewFile"
+					:init-files="pdfPreviewFile ? [pdfPreviewFile] : []"
+					:init-file-names="['preview.pdf']"
 					:initial-scale="zoomLevel / 100"
-					@scale-changed="onScaleChanged"
-					@pdf-editor:ready="onPdfReady" />
+					@pdf-elements:end-init="onPdfReady" />
 			</div>
 		</div>
 
@@ -145,10 +136,11 @@ import NcFormBoxButton from '@nextcloud/vue/components/NcFormBoxButton'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 import Linkify from '@nextcloud/vue/directives/Linkify'
-// eslint-disable-next-line import/default
-import VuePdfEditor from '@libresign/vue-pdf-editor'
+
+import PDFElements from '@libresign/pdf-elements/src/components/PDFElements.vue'
 
 import CodeEditor from './CodeEditor.vue'
+import { ensurePdfWorker } from '../helpers/pdfWorker.js'
 
 import Check from 'vue-material-design-icons/Check.vue'
 import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
@@ -172,7 +164,7 @@ export default {
 		NcFormBoxButton,
 		NcLoadingIcon,
 		NcTextField,
-		VuePdfEditor,
+		PDFElements,
 		MagnifyMinusOutline,
 		MagnifyPlusOutline,
 		Undo,
@@ -203,6 +195,7 @@ export default {
 		},
 	},
 	created() {
+		ensurePdfWorker()
 		this.debouncedSaveFooterTemplate = debounce(this.saveFooterTemplate, 500)
 		this.debouncedUpdateScale = debounce(this.updateScale, 300)
 		this.debouncedSaveDimensions = debounce(this.saveDimensions, 500)
@@ -306,10 +299,6 @@ export default {
 			if (this.$refs.pdfPreview) {
 				this.$refs.pdfPreview.scale = this.zoomLevel / 100
 			}
-		},
-		onScaleChanged(newScale) {
-			this.zoomLevel = Math.round(newScale * 100)
-			OCP.AppConfig.setValue('libresign', 'footer_preview_zoom_level', this.zoomLevel)
 		},
 	},
 }
@@ -452,16 +441,5 @@ export default {
 		background-color: rgba(255, 255, 255, 0.8);
 		z-index: 100;
 	}
-}
-</style>
-
-<style>
-/** @todo remove this, only necessary because VuePdfEditor use Tailwind and the Tailwind have a global CSS that affect this */
-audio, canvas, embed, iframe, img, object, svg, video {
-	display: unset;
-}
-
-canvas {
-	border-bottom: 2px solid #eee;
 }
 </style>
