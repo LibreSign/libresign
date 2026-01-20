@@ -4,37 +4,33 @@
 -->
 <template>
 	<div class="absolute left-0 top-0 select-none"
-		:style="{
-			width: `${width + dw}px`,
-			height: `${Math.round((width + dw) / ratio)}px`,
-			transform: translateCoordinates(),
-		}">
+		:style="containerStyle">
 		<div class="signature absolute w-full h-full"
 			:class="[
-				!readOnly ? 'cursor-grab' : '',
+				isInteractive ? 'cursor-grab' : '',
 				operation === 'move' ? 'cursor-grabbing' : '',
 				operation ? 'operation' : '',
 			]"
 			@mousedown="handlePanStart"
 			@touchstart="handlePanStart">
-			<div v-if="!fixSize"
+			<div v-if="!fixSize && isInteractive"
 				data-direction="left-top"
 				class="absolute cursor-nwse-resize transform selector"
 				:style="{ top: '0%', left: '0%' }" />
-			<div v-if="!fixSize"
+			<div v-if="!fixSize && isInteractive"
 				data-direction="right-top"
 				class="absolute cursor-nesw-resize transform selector"
 				:style="{ top: '0%', left: '100%' }" />
-			<div v-if="!fixSize"
+			<div v-if="!fixSize && isInteractive"
 				data-direction="left-bottom"
 				class="absolute cursor-nesw-resize transform selector"
 				:style="{ top: '100%', left: '0%' }" />
-			<div v-if="!fixSize"
+			<div v-if="!fixSize && isInteractive"
 				data-direction="right-bottom"
 				class="absolute cursor-nwse-resize transform selector"
 				:style="{ top: '100%', left: '100%' }" />
 		</div>
-		<div v-if="!readOnly"
+		<div v-if="isInteractive"
 			class="absolute cursor-pointer transform delete"
 			:style="{ top: '0%', left: '50%' }"
 			@click="onDelete">
@@ -52,14 +48,11 @@
 <script>
 import CloseCircleIcon from 'vue-material-design-icons/CloseCircle.vue'
 
-import itemEventsMixin from '@libresign/vue-pdf-editor/src/Components/ItemEventsMixin.vue'
-
 export default {
 	name: 'Signature',
 	components: {
 		CloseCircleIcon,
 	},
-	mixins: [itemEventsMixin],
 	props: {
 		displayName: {
 			type: String,
@@ -97,11 +90,19 @@ export default {
 			type: Boolean,
 			default: false,
 		},
-		readOnly: {
-			type: Boolean,
-			default: false,
-		},
+	readOnly: {
+		type: Boolean,
+		default: false,
 	},
+	useContainerSize: {
+		type: Boolean,
+		default: false,
+	},
+	disableInteractions: {
+		type: Boolean,
+		default: false,
+	},
+},
 	data() {
 		return {
 			startX: null,
@@ -115,14 +116,39 @@ export default {
 		}
 	},
 	computed: {
+		containerStyle() {
+			if (this.useContainerSize) {
+				return {
+					width: '100%',
+					height: '100%',
+					transform: this.translateCoordinates(),
+				}
+			}
+			return {
+				width: `${this.width + this.dw}px`,
+				height: `${Math.round((this.width + this.dw) / this.ratio)}px`,
+				transform: this.translateCoordinates(),
+			}
+		},
+		isInteractive() {
+			return !this.readOnly && !this.disableInteractions
+		},
 		ratio() {
-			return this.originWidth / this.originHeight
+			const baseWidth = this.originWidth || this.width
+			const baseHeight = this.originHeight || this.height
+			if (!baseWidth || !baseHeight) {
+				return 1
+			}
+			return baseWidth / baseHeight
 		},
 	},
 	async mounted() {
 		await this.render()
 	},
 	methods: {
+		translateCoordinates() {
+			return `translate(${this.dx}px, ${this.dy}px)`
+		},
 		async render() {
 			let scale = 1
 			const MAX_TARGET = 500
@@ -137,6 +163,27 @@ export default {
 				width: this.width * scale,
 				height: this.height * scale,
 			})
+		},
+		handleMousedown(event) {
+			return { detail: { x: event.clientX, y: event.clientY, target: event.target } }
+		},
+		handleMousemove(event) {
+			return { detail: { x: event.clientX, y: event.clientY } }
+		},
+		handleMouseup(event) {
+			return { detail: { x: event.clientX, y: event.clientY } }
+		},
+		handleTouchStart(event) {
+			const touch = event.touches[0]
+			return { detail: { x: touch.clientX, y: touch.clientY, target: event.currentTarget } }
+		},
+		handleTouchmove(event) {
+			const touch = event.touches[0]
+			return { detail: { x: touch.clientX, y: touch.clientY } }
+		},
+		handleTouchend(event) {
+			const touch = event.changedTouches[0]
+			return { detail: { x: touch.clientX, y: touch.clientY } }
 		},
 		handlePanMove(event) {
 			let coordinate
@@ -202,7 +249,7 @@ export default {
 			this.operation = ''
 		},
 		handlePanStart(event) {
-			if (this.readOnly) {
+			if (this.readOnly || this.disableInteractions) {
 				return
 			}
 			let coordinate
