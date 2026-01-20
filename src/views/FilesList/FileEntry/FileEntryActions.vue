@@ -66,6 +66,7 @@ import svgSignature from '@mdi/svg/svg/signature.svg?raw'
 import svgTextBoxCheck from '@mdi/svg/svg/text-box-check.svg?raw'
 
 import { loadState } from '@nextcloud/initial-state'
+import { generateUrl } from '@nextcloud/router'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -243,9 +244,12 @@ export default {
 			this.deleting = false
 		},
 		openFile() {
+			const fileUrl = this.source.file
+				|| generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: this.source.uuid })
+
 			if (OCA?.Viewer !== undefined) {
 				const fileInfo = {
-					source: this.source.file,
+					source: fileUrl,
 					basename: this.source.name,
 					mime: 'application/pdf',
 					fileid: this.source.nodeId,
@@ -255,7 +259,7 @@ export default {
 					list: [fileInfo],
 				})
 			} else {
-				window.open(`${this.source.file}?_t=${Date.now()}`)
+				window.open(`${fileUrl}?_t=${Date.now()}`)
 			}
 		},
 		doRename(newName) {

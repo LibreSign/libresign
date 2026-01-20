@@ -376,9 +376,11 @@ export default {
 			return mdiAlertCircle
 		},
 		viewDocument() {
+			const fileUrl = this.document.files[0].file
+
 			if (OCA?.Viewer !== undefined) {
 				const fileInfo = {
-					source: this.document.file,
+					source: fileUrl,
 					basename: this.document.name,
 					mime: 'application/pdf',
 					fileid: this.document.nodeId,
@@ -388,7 +390,7 @@ export default {
 					list: [fileInfo],
 				})
 			} else {
-				window.open(`${this.document.file}?_t=${Date.now()}`)
+				window.open(`${fileUrl}?_t=${Date.now()}`)
 			}
 		},
 		goBack() {
