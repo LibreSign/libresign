@@ -50,7 +50,9 @@
 				</slot>
 			</template>
 			<template #element-signature="{ object }">
-				<SignatureBox :label="object.signer ? object.signer.displayName : ''" />
+				<SignatureBox
+					:label="getSignerLabel(object.signer)"
+					:signer="object.signer" />
 			</template>
 		</PDFElements>
 	</div>
