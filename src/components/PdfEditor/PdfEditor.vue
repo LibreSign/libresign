@@ -3,52 +3,34 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<VuePdfEditor ref="vuePdfEditor"
-		width="100%"
-		height="100%"
-		class="vue-pdf-editor"
-		:show-choose-file-btn="false"
-		:show-customize-editor="false"
-		:show-line-size-select="false"
-		:show-font-size-select="false"
-		:show-font-select="false"
-		:show-rename="false"
-		:show-save-btn="false"
-		:save-to-upload="false"
+	<PDFElements ref="pdfElements"
 		:init-files="files"
 		:init-file-names="fileNames"
-		:init-image-scale="1"
-		:seal-image-show="false"
 		:page-count-format="t('libresign', '{currentPage} of {totalPages}')"
-		@pdf-editor:end-init="endInit">
-		<template #custom="{ object, pagesScale, onUpdate, onDelete }">
-			<Signature :x="object.x"
-				:y="object.y"
-				:fix-size="object.signer.readOnly"
-				:read-only="object.signer.readOnly"
-				:display-name="object.signer.displayName"
-				:width="object.width"
-				:height="object.height"
-				:origin-width="object.originWidth"
-				:origin-height="object.originHeight"
-				:page-scale="pagesScale"
-				@onUpdate="onUpdate"
-				@onDelete="() => { onDeleteSigner(object); onDelete(); }" />
+		:auto-fit-zoom="true"
+		:read-only="readOnly"
+		:hide-selection-ui="readOnly"
+		:show-selection-handles="!readOnly"
+		:show-element-actions="!readOnly"
+		@pdf-elements:end-init="endInit"
+		@pdf-elements:delete-object="handleDeleteObject">
+		<template #element-signature="{ object }">
+			<SignatureBox :label="object.signer ? object.signer.displayName : ''" />
 		</template>
-	</VuePdfEditor>
+	</PDFElements>
 </template>
 
 <script>
-// eslint-disable-next-line import/default
-import VuePdfEditor from '@libresign/vue-pdf-editor'
+import PDFElements from '@libresign/pdf-elements/src/components/PDFElements.vue'
 
-import Signature from './Signature.vue'
+import SignatureBox from './SignatureBox.vue'
+import { ensurePdfWorker } from '../../helpers/pdfWorker.js'
 
 export default {
 	name: 'PdfEditor',
 	components: {
-		VuePdfEditor,
-		Signature,
+		PDFElements,
+		SignatureBox,
 	},
 	props: {
 		files: {
@@ -64,83 +46,127 @@ export default {
 			default: false,
 		},
 	},
-	mounted() {
-		window.addEventListener('resize', this.adjustZoomToFit)
-	},
-	beforeDestroy() {
-		window.removeEventListener('resize', this.adjustZoomToFit)
+	created() {
+		ensurePdfWorker()
 	},
 	methods: {
-		calculateOptimalScale(maxPageWidth) {
-			const containerWidth = this.$el?.clientWidth || 0
-			if (!containerWidth || !maxPageWidth) return 1
-
-			const availableWidth = containerWidth - 40
-			return Math.max(0.1, Math.min(2, availableWidth / maxPageWidth))
-		},
-		adjustZoomToFit() {
-			const vuePdfEditor = this.$refs.vuePdfEditor
-			const canvases = this.$el?.querySelectorAll('canvas')
-			if (!vuePdfEditor?.pdfDocuments?.length || !canvases?.length) return
-
-			const maxCanvasWidth = Math.max(...Array.from(canvases).map(canvas =>
-				canvas.width / (vuePdfEditor.scale || 1)
-			))
-
-			const optimalScale = this.calculateOptimalScale(maxCanvasWidth)
-			if (Math.abs(optimalScale - vuePdfEditor.scale) > 0.01) {
-				vuePdfEditor.scale = optimalScale
-			}
-		},
 		endInit(event) {
-			setTimeout(() => this.adjustZoomToFit(), 200)
-			this.$emit('pdf-editor:end-init', { ...event })
+			this.$nextTick(async () => {
+				const shouldAutoFit = this.$refs.pdfElements?.autoFitZoom
+				if (!shouldAutoFit && this.$refs.pdfElements?.adjustZoomToFit) {
+					this.$refs.pdfElements.adjustZoomToFit()
+				}
+
+				await this.$nextTick()
+				const measurement = await this.calculatePdfMeasurement()
+				this.$emit('pdf-editor:end-init', { ...event, measurement })
+			})
+		},
+		async calculatePdfMeasurement() {
+			const measurement = {}
+			const pdfElements = this.$refs.pdfElements
+			if (!pdfElements?.pdfDocuments?.length) return measurement
+
+			const doc = pdfElements.pdfDocuments[0]
+			for (let pageIndex = 0; pageIndex < doc.numPages; pageIndex++) {
+				const pageNumber = pageIndex + 1
+				const pdfPage = await doc.pages[pageIndex]
+				const viewport = pdfPage.getViewport({ scale: 1 })
+
+				measurement[pageNumber] = {
+					width: viewport.width,
+					height: viewport.height,
+				}
+			}
+			return measurement
 		},
 		onDeleteSigner(object) {
 			this.$emit('pdf-editor:on-delete-signer', object)
 		},
-		addSigner(signer) {
-			const object = {
-				id: this.$refs.vuePdfEditor.genID(),
-				type: 'custom',
-				signer,
-				width: signer.element.coordinates.width,
-				height: signer.element.coordinates.height,
-				originWidth: signer.element.coordinates.width,
-				originHeight: signer.element.coordinates.height,
-				x: signer.element.coordinates.left,
-				y: signer.element.coordinates.top,
+		handleDeleteObject({ object }) {
+			if (object?.signer) {
+				this.onDeleteSigner(object)
+			}
+		},
+		startAddingSigner(signer, size) {
+			const pdfElements = this.$refs.pdfElements
+			if (!pdfElements || !size?.width || !size?.height) {
+				return false
 			}
 
+			const signerPayload = signer
+				? { ...signer, element: signer.element ? { ...signer.element } : {} }
+				: { element: {} }
+
+			pdfElements.startAddingElement({
+				type: 'signature',
+				width: size.width,
+				height: size.height,
+				signer: signerPayload,
+			})
+
+			return true
+		},
+		cancelAdding() {
+			this.$refs.pdfElements?.cancelAdding()
+		},
+		addSigner(signer) {
 			const docIndex = signer.element.documentIndex !== undefined
 				? signer.element.documentIndex
-				: this.$refs.vuePdfEditor.selectedDocIndex
+				: this.$refs.pdfElements.selectedDocIndex
 
-			this.$refs.vuePdfEditor.addObjectToPage(
+			const pageIndex = signer.element.coordinates.page - 1
+
+			const coordinates = signer.element.coordinates || {}
+			const pdfElements = this.$refs.pdfElements
+			const pageHeight = pdfElements?.getPageHeight?.(docIndex, pageIndex) || 0
+			const width = Number.isFinite(coordinates.width)
+				? coordinates.width
+				: Number.isFinite(coordinates.urx) && Number.isFinite(coordinates.llx)
+					? Math.abs(coordinates.urx - coordinates.llx)
+					: 0
+			const height = Number.isFinite(coordinates.height)
+				? coordinates.height
+				: Number.isFinite(coordinates.ury) && Number.isFinite(coordinates.lly)
+					? Math.abs(coordinates.ury - coordinates.lly)
+					: 0
+			const x = Number.isFinite(coordinates.left)
+				? coordinates.left
+				: Number.isFinite(coordinates.llx)
+					? coordinates.llx
+					: 0
+			let y = 0
+			if (Number.isFinite(coordinates.top)) {
+				y = coordinates.top
+			} else if (Number.isFinite(coordinates.ury) && pageHeight) {
+				y = Math.max(0, pageHeight - coordinates.ury)
+			} else if (Number.isFinite(coordinates.lly) && pageHeight) {
+				y = Math.max(0, pageHeight - coordinates.lly - height)
+			}
+
+			const object = {
+				id: `obj-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+				type: 'signature',
+				signer,
+				width,
+				height,
+				x,
+				y,
+			}
+
+			pdfElements.addObjectToPage(
 				object,
-				signer.element.coordinates.page - 1,
+				pageIndex,
 				docIndex,
 			)
 		},
 	},
 }
 </script>
-<style>
-/** @todo remove this, only necessary because VuePdfEditor use Tailwind and the Tailwind have a global CSS that affect this */
-audio, canvas, embed, iframe, img, object, svg, video {
-	display: unset;
-}
-
-canvas {
-	border-bottom: 2px solid #eee;
-}
-</style>
 
 <style lang="scss" scoped>
-.vue-pdf-editor {
-	overflow: unset !important;
-	min-height: 0;
-	position: unset !important;
-	display: flex;
+:deep(.pdf-elements-root) {
+	width: 100%;
+	height: 100%;
 }
 </style>
