@@ -79,8 +79,8 @@ class FileSearchProvider implements IProvider {
 		);
 	}
 
-	private function formatResult(File $file, IUser $user): SearchResultEntry {
-		$userFolder = $this->rootFolder->getUserFolder($user->getUID());
+	private function formatResult(File $file): SearchResultEntry {
+		$userFolder = $this->rootFolder->getUserFolder($file->getUserId());
 		$thumbnailUrl = '';
 		$subline = '';
 		$icon = '';
@@ -115,7 +115,7 @@ class FileSearchProvider implements IProvider {
 
 		$searchResultEntry = new SearchResultEntry(
 			$thumbnailUrl,
-			$file->getName() ?? $this->l10n->t('Unnamed document'),
+			$file->getName(),
 			$subline,
 			$this->urlGenerator->getAbsoluteURL($link),
 			$icon,
@@ -130,6 +130,7 @@ class FileSearchProvider implements IProvider {
 	private function formatSubline(string $path): string {
 		if (strrpos($path, '/') > 0) {
 			$path = ltrim(dirname($path), '/');
+			// TRANSLATORS This string indicates the location of a file in a given path.
 			return $this->l10n->t('in %s', [$path]);
 		} else {
 			return '';

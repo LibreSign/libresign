@@ -565,7 +565,12 @@ class SignRequestMapper extends QBMapper {
 		return $file->fromRow($row);
 	}
 
-	private function getFilesAssociatedFilesWithMeQueryBuilder(string $userId, array $filter = [], bool $count = false, array $sort = []): IQueryBuilder {
+	private function getFilesAssociatedFilesWithMeQueryBuilder(
+			string $userId,
+			array $filter = [],
+			bool $count = false,
+			array $sort = []
+		): IQueryBuilder {
 		$qb = $this->db->getQueryBuilder();
 		$qb->from('libresign_file', 'f')
 			->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id')
