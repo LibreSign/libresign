@@ -1149,13 +1149,15 @@ export type components = {
             size?: number;
             pdfVersion?: string;
             signers: components["schemas"]["EnvelopeChildSignerSummary"][];
-            metadata?: components["schemas"]["ValidateMetadata"];
+            file: string;
+            metadata: components["schemas"]["ValidateMetadata"];
         };
         EnvelopeChildSignerSummary: {
             /** Format: int64 */
             signRequestId: number;
             displayName: string;
             email: string;
+            identifyMethods?: components["schemas"]["IdentifyMethod"][];
             signed: string | null;
             /** Format: int64 */
             status: number;
@@ -1196,18 +1198,7 @@ export type components = {
         };
         FileDetail: {
             created_at: string;
-            file: string;
-            files: {
-                /** Format: int64 */
-                fileId?: number;
-                /** Format: int64 */
-                nodeId: number;
-                uuid: string;
-                name: string;
-                /** Format: int64 */
-                status: number;
-                statusText: string;
-            }[];
+            files: components["schemas"]["FileListItem"][];
             /** Format: int64 */
             filesCount: number;
             /** Format: int64 */
@@ -1233,12 +1224,17 @@ export type components = {
         };
         FileListItem: {
             /** Format: int64 */
+            id: number;
+            /** Format: int64 */
             nodeId: number | null;
             uuid: string;
             name: string;
             /** Format: int64 */
             status: number;
             statusText: string;
+            file: string;
+            metadata: components["schemas"]["ValidateMetadata"];
+            signers: components["schemas"]["EnvelopeChildSignerSummary"][];
         };
         FolderSettings: {
             folderName?: string;
@@ -1271,8 +1267,7 @@ export type components = {
             acceptsEmailNotifications?: boolean;
         };
         IdentifyMethod: {
-            /** @enum {string} */
-            method: "email" | "account";
+            method: string;
             value: string;
             /** Format: int64 */
             mandatory: number;
@@ -1309,8 +1304,6 @@ export type components = {
             /** @enum {string} */
             nodeType: "file" | "envelope";
             created_at: string;
-            file: string;
-            url?: string;
             signUuid?: string | null;
             metadata: components["schemas"]["ValidateMetadata"];
             /** @enum {string} */
@@ -1412,7 +1405,7 @@ export type components = {
             /** Format: int64 */
             signingOrder?: number;
             identifyMethods?: components["schemas"]["IdentifyMethod"][];
-            visibleElements?: components["schemas"]["VisibleElement"][];
+            visibleElements: components["schemas"]["VisibleElement"][];
             signatureMethods?: components["schemas"]["SignatureMethods"];
             uid?: string;
         };
@@ -1465,7 +1458,6 @@ export type components = {
                 userId: string;
                 displayName: string;
             };
-            file: string;
             url?: string;
             signUuid?: string | null;
             mime?: string;

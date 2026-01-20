@@ -261,7 +261,9 @@
                     "status",
                     "statusText",
                     "nodeId",
-                    "signers"
+                    "signers",
+                    "file",
+                    "metadata"
                 ],
                 "properties": {
                     "id": {
@@ -304,6 +306,9 @@
                             "$ref": "#/components/schemas/EnvelopeChildSignerSummary"
                         }
                     },
+                    "file": {
+                        "type": "string"
+                    },
                     "metadata": {
                         "$ref": "#/components/schemas/ValidateMetadata"
                     }
@@ -329,6 +334,12 @@
                     },
                     "email": {
                         "type": "string"
+                    },
+                    "identifyMethods": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/IdentifyMethod"
+                        }
                     },
                     "signed": {
                         "type": "string",
@@ -471,7 +482,6 @@
                 "type": "object",
                 "required": [
                     "created_at",
-                    "file",
                     "files",
                     "filesCount",
                     "id",
@@ -491,43 +501,10 @@
                     "created_at": {
                         "type": "string"
                     },
-                    "file": {
-                        "type": "string"
-                    },
                     "files": {
                         "type": "array",
                         "items": {
-                            "type": "object",
-                            "required": [
-                                "nodeId",
-                                "uuid",
-                                "name",
-                                "status",
-                                "statusText"
-                            ],
-                            "properties": {
-                                "fileId": {
-                                    "type": "integer",
-                                    "format": "int64"
-                                },
-                                "nodeId": {
-                                    "type": "integer",
-                                    "format": "int64"
-                                },
-                                "uuid": {
-                                    "type": "string"
-                                },
-                                "name": {
-                                    "type": "string"
-                                },
-                                "status": {
-                                    "type": "integer",
-                                    "format": "int64"
-                                },
-                                "statusText": {
-                                    "type": "string"
-                                }
-                            }
+                            "$ref": "#/components/schemas/FileListItem"
                         }
                     },
                     "filesCount": {
@@ -608,13 +585,21 @@
             "FileListItem": {
                 "type": "object",
                 "required": [
+                    "id",
                     "nodeId",
                     "uuid",
                     "name",
                     "status",
-                    "statusText"
+                    "statusText",
+                    "file",
+                    "metadata",
+                    "signers"
                 ],
                 "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
                     "nodeId": {
                         "type": "integer",
                         "format": "int64",
@@ -632,6 +617,18 @@
                     },
                     "statusText": {
                         "type": "string"
+                    },
+                    "file": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "$ref": "#/components/schemas/ValidateMetadata"
+                    },
+                    "signers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EnvelopeChildSignerSummary"
+                        }
                     }
                 }
             },
@@ -734,11 +731,7 @@
                 ],
                 "properties": {
                     "method": {
-                        "type": "string",
-                        "enum": [
-                            "email",
-                            "account"
-                        ]
+                        "type": "string"
                     },
                     "value": {
                         "type": "string"
@@ -813,7 +806,6 @@
                     "statusText",
                     "nodeType",
                     "created_at",
-                    "file",
                     "metadata",
                     "signatureFlow",
                     "visibleElements",
@@ -855,12 +847,6 @@
                         ]
                     },
                     "created_at": {
-                        "type": "string"
-                    },
-                    "file": {
-                        "type": "string"
-                    },
-                    "url": {
                         "type": "string"
                     },
                     "signUuid": {
@@ -1221,7 +1207,8 @@
                     "me",
                     "signRequestId",
                     "status",
-                    "statusText"
+                    "statusText",
+                    "visibleElements"
                 ],
                 "properties": {
                     "description": {
@@ -1390,8 +1377,7 @@
                     "size",
                     "pdfVersion",
                     "created_at",
-                    "requested_by",
-                    "file"
+                    "requested_by"
                 ],
                 "properties": {
                     "id": {
@@ -1479,9 +1465,6 @@
                                 "type": "string"
                             }
                         }
-                    },
-                    "file": {
-                        "type": "string"
                     },
                     "url": {
                         "type": "string"
