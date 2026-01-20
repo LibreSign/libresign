@@ -274,7 +274,7 @@ import { getCapabilities } from '@nextcloud/capabilities'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
-import { generateOcsUrl } from '@nextcloud/router'
+import { generateOcsUrl, generateUrl } from '@nextcloud/router'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActionInput from '@nextcloud/vue/components/NcActionInput'
@@ -971,10 +971,18 @@ export default {
 			this.showEnvelopeFilesDialog = true
 		},
 		openFile() {
+			const file = this.filesStore.getFile()
+			const fileUrl = this.document?.files?.[0]?.file
+				|| (file?.uuid ? generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid }) : null)
+
+			if (!fileUrl) {
+				showError(this.t('libresign', 'Document URL not found'))
+				return
+			}
+
 			if (OCA?.Viewer !== undefined) {
-				const file = this.filesStore.getFile()
 				const fileInfo = {
-					source: file.file,
+					source: fileUrl,
 					basename: file.name,
 					mime: 'application/pdf',
 					fileid: file.nodeId,
@@ -984,7 +992,7 @@ export default {
 					list: [fileInfo],
 				})
 			} else {
-				window.open(`${this.document.file}?_t=${Date.now()}`)
+				window.open(`${fileUrl}?_t=${Date.now()}`)
 			}
 		},
 		startSigningProgressPolling() {
