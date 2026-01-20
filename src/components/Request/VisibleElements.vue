@@ -181,12 +181,8 @@ export default {
 		unsubscribe('libresign:visible-elements-select-signer', this.onSelectSigner)
 	},
 	methods: {
-		getVuePdfEditor() {
-			return this.$refs.pdfEditor?.$refs?.vuePdfEditor
-		},
-		getCanvasList() {
-			const editor = this.getVuePdfEditor()
-			return editor?.$refs?.pdfBody?.querySelectorAll('canvas') || []
+		getPdfElements() {
+			return this.$refs.pdfEditor?.$refs?.pdfElements
 		},
 		async showModal() {
 			if (!this.canRequestSign) {
@@ -265,6 +261,7 @@ export default {
 			this.filesStore.loading = false
 			this.elementsLoaded = false
 			this.loadedPdfsCount = 0
+			this.stopAddSigner()
 		},
 		getPageHeightForFile(fileId, page) {
 			const filesToSearch = this.document.files || []
@@ -343,81 +340,38 @@ export default {
 				return
 			}
 			this.signerSelected = signer
-			const canvasList = this.getCanvasList()
-			canvasList.forEach((canvas) => {
-				canvas.addEventListener('click', this.doSelectSigner)
-			})
-		},
-		doSelectSigner(event) {
-			const canvasList = this.getCanvasList()
-			const canvasIndex = Array.from(canvasList).indexOf(event.target)
-			const globalPageNumber = canvasIndex + 1 // 1-based
-
-			let documentIndex = 0
-			let pageInDocument = globalPageNumber
-
-			if (this.filePagesMap[globalPageNumber]) {
-				const pageInfo = this.filePagesMap[globalPageNumber]
-				documentIndex = pageInfo.fileIndex
-				pageInDocument = globalPageNumber - pageInfo.startPage + 1
-			}
-
-			this.addSignerToPosition(event, pageInDocument, documentIndex)
-			this.stopAddSigner()
-		},
-		addSignerToPosition(event, pageInDocument, documentIndex) {
-			const canvas = event.target
-			const rect = canvas.getBoundingClientRect()
-			const scale = this.$refs.pdfEditor.$refs.vuePdfEditor.scale || 1
-
-			let clickX = event.clientX - rect.left
-			let clickY = event.clientY - rect.top
-
-			if (Math.abs(rect.width - canvas.width) > 1) {
-				clickX = clickX * (canvas.width / rect.width)
-				clickY = clickY * (canvas.height / rect.height)
-			}
-
-			const normalizedX = clickX / scale
-			const normalizedY = clickY / scale
-
-			const targetFileId = this.document.files[documentIndex]?.id || this.document?.id
-			const pageHeight = this.getPageHeightForFile(targetFileId, pageInDocument)
-			if (!pageHeight) {
-				return
-			}
-			const left = normalizedX - this.width / 2
-			const top = normalizedY - this.height / 2
-			const llx = left
-			const ury = pageHeight - top
-
-			const coordinates = {
-				page: pageInDocument,
+			const started = this.$refs.pdfEditor.startAddingSigner(this.signerSelected, {
 				width: this.width,
 				height: this.height,
-				left,
-				top,
-				llx,
-				ury,
+			})
+			if (!started) {
+				this.signerSelected = null
+				return
 			}
 
-			this.signerSelected.element = {
-				coordinates: coordinates,
-			}
-
-			this.signerSelected.element.documentIndex = documentIndex
-
-			this.$refs.pdfEditor.addSigner(this.signerSelected)
+			this.$nextTick(() => {
+				const pdfElements = this.getPdfElements()
+				const watchAdding = () => {
+					if (!this.signerSelected) {
+						return
+					}
+					if (!pdfElements?.isAddingMode) {
+						this.stopAddSigner()
+						return
+					}
+					requestAnimationFrame(watchAdding)
+				}
+				requestAnimationFrame(watchAdding)
+			})
 		},
 		stopAddSigner() {
-			const canvasList = this.getCanvasList()
-			canvasList.forEach((canvas) => {
-				canvas.removeEventListener('click', this.doSelectSigner)
-			})
+			if (this.$refs.pdfEditor) {
+				this.$refs.pdfEditor.cancelAdding()
+			}
 			this.signerSelected = null
 		},
 		async onDeleteSigner(object) {
-			if (!object.signer.element.elementId) {
+			if (!object?.signer?.element?.elementId) {
 				return
 			}
 			await axios.delete(generateOcsUrl('/apps/libresign/api/v1/file-element/{uuid}/{elementId}', {
@@ -452,7 +406,7 @@ export default {
 			const visibleElements = []
 			const numDocuments = this.document.files.length
 			for (let docIndex = 0; docIndex < numDocuments; docIndex++) {
-				const objects = this.$refs.pdfEditor.$refs.vuePdfEditor.getAllObjects(docIndex)
+				const objects = this.$refs.pdfEditor.$refs.pdfElements.getAllObjects(docIndex)
 				objects.forEach(object => {
 					if (!object.signer) return
 
@@ -470,10 +424,10 @@ export default {
 						return
 					}
 
-					const left = Math.floor(object.normalizedCoordinates.llx)
-					const top = Math.floor(pageHeight - object.normalizedCoordinates.lly)
-					const width = Math.floor(object.normalizedCoordinates.width)
-					const height = Math.floor(object.normalizedCoordinates.height)
+					const left = Math.floor(object.x)
+					const top = Math.floor(object.y)
+					const width = Math.floor(object.width)
+					const height = Math.floor(object.height)
 
 					const coordinates = {
 						page: globalPageNumber,
@@ -485,7 +439,7 @@ export default {
 
 					const element = {
 						type: 'signature',
-						elementId: object.signer.element.elementId,
+						elementId: object.signer?.element?.elementId,
 						coordinates,
 					}
 
