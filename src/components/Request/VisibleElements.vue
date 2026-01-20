@@ -74,7 +74,7 @@ import { getCapabilities } from '@nextcloud/capabilities'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
-import { generateOcsUrl, generateUrl } from '@nextcloud/router'
+import { generateOcsUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
@@ -113,7 +113,6 @@ export default {
 			height: getCapabilities().libresign.config['sign-elements']['full-signature-height'],
 			filePagesMap: {},
 			elementsLoaded: false,
-			loadedPdfsCount: 0,
 		}
 	},
 	computed: {
@@ -133,7 +132,9 @@ export default {
 			return this.filesStore.getFile()
 		},
 		pdfFiles() {
-			return (this.document.files || []).map(f => f.file)
+			return (this.document.files || [])
+				.map(file => file?.file)
+				.filter(Boolean)
 		},
 		pdfFileNames() {
 			return (this.document.files || []).map(f => `${f.name}.${f.metadata?.extension || 'pdf'}`)
@@ -196,36 +197,14 @@ export default {
 			this.modal = true
 			this.filesStore.loading = true
 
-			if (this.document.nodeType === 'envelope' && this.document.files.length === 0) {
-				await this.fetchEnvelopeFiles()
-			} else if (this.document.nodeType !== 'envelope') {
-				if (!this.document.files || this.document.files.length === 0) {
-					const fileUrl = this.document.file || generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: this.document.uuid })
-					this.document.files = [{
-						id: this.document.id,
-						nodeId: this.document.nodeId,
-						uuid: this.document.uuid,
-						name: this.document.name,
-						file: fileUrl,
-						metadata: this.document.metadata,
-						signers: this.document.signers,
-						visibleElements: this.document.visibleElements || [],
-					}]
-				} else {
-					this.document.files = this.document.files.map(f => {
-						if (!f.file) {
-							const fileUrl = this.document.file || generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: f.uuid || this.document.uuid })
-							return { ...f, file: fileUrl }
-						}
-						return f
-					})
-				}
+			if (!this.document.files || this.document.files.length === 0) {
+				await this.fetchFiles()
 			}
 
 			this.buildFilePagesMap()
 			this.filesStore.loading = false
 		},
-		async fetchEnvelopeFiles() {
+		async fetchFiles() {
 			const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'), {
 				params: {
 					parentFileId: this.document.id,
@@ -262,7 +241,6 @@ export default {
 			this.modal = false
 			this.filesStore.loading = false
 			this.elementsLoaded = false
-			this.loadedPdfsCount = 0
 			this.stopAddSigner()
 		},
 		getPageHeightForFile(fileId, page) {
@@ -272,28 +250,20 @@ export default {
 			return metadata?.d?.[page - 1]?.h
 		},
 		updateSigners(data) {
-			this.loadedPdfsCount++
-
 			const filesToProcess = this.document.files || []
-			const expectedPdfsCount = filesToProcess.length
-			if (this.elementsLoaded || this.loadedPdfsCount < expectedPdfsCount) {
+			if (this.elementsLoaded || filesToProcess.length === 0) {
 				return
 			}
 
 			let visibleElementsToAdd = []
 
-			const allSigners = this.document.signers || []
-			allSigners.forEach(signer => {
-				const elements = Array.isArray(signer.visibleElements) ? signer.visibleElements : []
-				elements.forEach(element => {
-					const fileInfo = filesToProcess.find(f => f.id === element.fileId)
-					const fileIndex = fileInfo ? filesToProcess.indexOf(fileInfo) : 0
-					visibleElementsToAdd.push({
-						...element,
-						documentIndex: fileIndex,
-						fileId: element.fileId,
-						signRequestId: signer.signRequestId,
-					})
+			const elements = Array.isArray(this.document.visibleElements) ? this.document.visibleElements : []
+			elements.forEach(element => {
+				const fileInfo = filesToProcess.find(f => f.id === element.fileId)
+				const fileIndex = fileInfo ? filesToProcess.indexOf(fileInfo) : 0
+				visibleElementsToAdd.push({
+					...element,
+					documentIndex: fileIndex,
 				})
 			})
 
