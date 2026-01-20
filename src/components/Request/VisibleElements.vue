@@ -5,7 +5,7 @@
 <template>
 	<NcDialog v-if="modal"
 		:name="t('libresign', 'Signature positions')"
-		size="normal"
+		size="large"
 		@closing="closeModal">
 		<div v-if="filesStore.loading">
 			<NcLoadingIcon :size="64" :name="t('libresign', 'Loading …')" />
