@@ -45,7 +45,7 @@ import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
 import { useSignMethodsStore } from '../../store/signMethods.js'
-import { generateOcsUrl } from '@nextcloud/router'
+import { generateOcsUrl, generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { FILE_STATUS } from '../../constants.js'
 
@@ -70,6 +70,8 @@ export default {
 			mounted: false,
 			pdfBlobs: [],
 			fileNames: [],
+			envelopeFiles: [],
+			envelopePdfFiles: [],
 		}
 	},
 	computed: {
@@ -172,10 +174,15 @@ export default {
 
 			if (doc.nodeType === 'envelope') {
 				await this.loadEnvelopePdfs(doc.id)
-			} else if (doc.url) {
-				await this.handleInitialStatePdfs([doc.url])
 			} else {
-				this.signStore.errors = [{ message: t('libresign', 'Document URL not found') }]
+				const fileUrl = doc.url
+					|| doc.files?.[0]?.file
+					|| (doc.uuid ? generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: doc.uuid }) : null)
+				if (fileUrl) {
+					await this.handleInitialStatePdfs([fileUrl])
+				} else {
+					this.signStore.errors = [{ message: t('libresign', 'Document URL not found') }]
+				}
 			}
 		},
 		async loadEnvelopePdfs(parentFileId) {
@@ -203,6 +210,15 @@ export default {
 					}
 				}
 
+				this.envelopeFiles = files
+				const pdfFiles = files.flatMap(file => {
+					if (Array.isArray(file.files) && file.files.length > 0) {
+						return file.files
+					}
+					return [file]
+				})
+				this.envelopePdfFiles = pdfFiles
+
 				for (const file of files) {
 					const signer = file.signers?.find(row => row.me) || {}
 					if (Object.keys(signer).length > 0) {
@@ -211,8 +227,12 @@ export default {
 					}
 				}
 
-				const urls = files.map(file => file.file)
-				this.fileNames = files.map(file => {
+				const urls = pdfFiles.map(file => file.file).filter(Boolean)
+				if (urls.length === 0) {
+					this.signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
+					return
+				}
+				this.fileNames = pdfFiles.map(file => {
 					return `${file.name}.${file.metadata?.extension || 'pdf'}`
 				})
 				await this.handleInitialStatePdfs(urls)
@@ -221,9 +241,37 @@ export default {
 			}
 		},
 		updateSigners(data) {
+			if (this.signStore.document.nodeType === 'envelope' && this.envelopeFiles.length > 0) {
+				const fileIndexById = new Map(
+					this.envelopePdfFiles.map((file, index) => [file.id, index]),
+				)
+				const elements = this.envelopeFiles.flatMap(file => file.visibleElements || [])
+				elements.forEach(element => {
+					const fileInfo = this.envelopeFiles.find(file => file.id === element.fileId)
+					const signer = fileInfo?.signers?.find(row => row.signRequestId === element.signRequestId)
+						|| fileInfo?.signers?.find(row => row.me)
+					if (!signer) {
+						return
+					}
+					const object = structuredClone(signer)
+					object.readOnly = true
+					object.element = {
+						...element,
+						documentIndex: fileIndexById.get(element.fileId) ?? 0,
+					}
+					this.$refs.pdfEditor.addSigner(object)
+				})
+				this.signStore.mounted = true
+				return
+			}
+
 			const currentSigner = this.signStore.document.signers.find(signer => signer.me)
-			if (currentSigner && currentSigner.visibleElements.length > 0) {
-				currentSigner.visibleElements.forEach(element => {
+			const visibleElements = this.signStore.document.visibleElements || []
+			const elementsForSigner = currentSigner
+				? visibleElements.filter(element => element.signRequestId === currentSigner.signRequestId)
+				: []
+			if (currentSigner && elementsForSigner.length > 0) {
+				elementsForSigner.forEach(element => {
 					const object = structuredClone(currentSigner)
 					object.readOnly = true
 					object.element = element
