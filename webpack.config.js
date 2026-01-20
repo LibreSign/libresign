@@ -7,7 +7,6 @@ const path = require('path')
 const BabelLoaderExcludeNodeModulesExcept = require('babel-loader-exclude-node-modules-except')
 const { EsbuildPlugin } = require('esbuild-loader')
 const nextcloudWebpackConfig = require('@nextcloud/webpack-vue-config')
-const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = merge(nextcloudWebpackConfig, {
 	entry: {
@@ -72,14 +71,4 @@ module.exports = merge(nextcloudWebpackConfig, {
 		],
 	},
 	cache: true,
-	plugins: [
-		new CopyPlugin({
-			patterns: [
-				{
-					from: 'node_modules/@libresign/vue-pdf-editor/dist/pdf.worker.min.mjs',
-					to: '',
-				},
-			],
-		}),
-	],
 })
