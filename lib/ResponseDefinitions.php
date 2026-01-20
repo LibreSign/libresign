@@ -228,6 +228,7 @@ namespace OCA\Libresign;
  *         userId: string,
  *         displayName: string,
  *     },
+ *     file?: string,
  *     url?: string,
  *     signUuid?: string|null,
  *     mime?: string,
@@ -242,6 +243,7 @@ namespace OCA\Libresign;
  *     visibleElements?: LibresignVisibleElement[],
  * }
  * @psalm-type LibresignFileListItem = array{
+ *     fileId: int,
  *     id: int,
  *     nodeId: ?int,
  *     uuid: string,

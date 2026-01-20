@@ -154,16 +154,7 @@ class FileListService {
 			$file['files'] = [];
 		} else {
 			$file['filesCount'] = 1;
-			$file['files'] = [[
-				'id' => $file['id'],
-				'nodeId' => $file['nodeId'],
-				'uuid' => $file['uuid'],
-				'name' => $file['name'],
-				'status' => $file['status'],
-				'statusText' => $file['statusText'],
-				'file' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file['uuid']]),
-				'metadata' => $file['metadata'],
-			]];
+			$file['files'] = $this->formatChildFilesResponse([$fileEntity], $signers, $identifyMethods);
 		}
 
 		// Remove raw fields not needed in response
@@ -179,6 +170,9 @@ class FileListService {
 			if (!empty($signerData['me']) && !isset($file['signUuid'])) {
 				$file['signUuid'] = $signerData['sign_uuid'];
 			}
+		}
+		if (isset($file['signUuid'])) {
+			$file['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file['signUuid']]);
 		}
 
 		if (empty($file['signers'])) {
@@ -446,6 +440,7 @@ class FileListService {
 
 		if ($signUuid !== null) {
 			$response['signUuid'] = $signUuid;
+			$response['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $signUuid]);
 		}
 
 		if ($mainEntity->getNodeType() === 'envelope') {
@@ -457,16 +452,7 @@ class FileListService {
 			);
 		} else {
 			$response['filesCount'] = 1;
-			$response['files'] = [[
-				'id' => $mainEntity->getId(),
-				'nodeId' => $mainEntity->getNodeId(),
-				'uuid' => $mainEntity->getUuid(),
-				'name' => $mainEntity->getName(),
-				'status' => $mainEntity->getStatus(),
-				'statusText' => $this->fileMapper->getTextOfStatus($mainEntity->getStatus()),
-				'file' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $mainEntity->getUuid()]),
-				'metadata' => $metadata,
-			]];
+			$response['files'] = $this->formatChildFilesResponse([$mainEntity], $signRequestEntities, $identifyMethods);
 		}
 
 		/** @psalm-suppress LessSpecificReturnStatement */
@@ -671,6 +657,7 @@ class FileListService {
 			}, $signers);
 
 			return [
+				'fileId' => $file->getId(),
 				'id' => $file->getId(),
 				'nodeId' => $file->getNodeId(),
 				'uuid' => $file->getUuid(),
