@@ -3,33 +3,78 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<PDFElements ref="pdfElements"
-		:init-files="files"
-		:init-file-names="fileNames"
-		:page-count-format="t('libresign', '{currentPage} of {totalPages}')"
-		:auto-fit-zoom="true"
-		:read-only="readOnly"
-		:hide-selection-ui="readOnly"
-		:show-selection-handles="!readOnly"
-		:show-element-actions="!readOnly"
-		@pdf-elements:end-init="endInit"
-		@pdf-elements:delete-object="handleDeleteObject">
-		<template #element-signature="{ object }">
-			<SignatureBox :label="object.signer ? object.signer.displayName : ''" />
-		</template>
-	</PDFElements>
+	<div class="pdf-editor">
+		<PDFElements ref="pdfElements"
+			:init-files="files"
+			:init-file-names="fileNames"
+			:page-count-format="t('libresign', '{currentPage} of {totalPages}')"
+			:auto-fit-zoom="true"
+			:read-only="readOnly"
+			:hide-selection-ui="readOnly"
+			:show-selection-handles="!readOnly"
+			:show-element-actions="!readOnly"
+			:ignore-click-outside-selectors="ignoreClickOutsideSelectors"
+			:style="toolbarStyleVars"
+			@pdf-elements:end-init="endInit"
+			@pdf-elements:delete-object="handleDeleteObject">
+			<template #actions="slotProps">
+				<slot name="actions" v-bind="slotProps">
+					<SignerMenu
+						v-if="hasMultipleSigners && slotProps.object?.signer"
+						:signers="signers"
+						:current-signer="slotProps.object?.signer"
+						:get-signer-label="getSignerLabel"
+						@change="onSignerChange(slotProps.object, $event)" />
+					<NcButton
+						class="action-btn"
+						type="button"
+						variant="tertiary"
+						:aria-label="t('libresign', 'Duplicate')"
+						:title="t('libresign', 'Duplicate')"
+						@click.stop="slotProps.onDuplicate">
+						<template #icon>
+							<NcIconSvgWrapper :path="mdiContentCopy" :size="16" />
+						</template>
+					</NcButton>
+					<NcButton
+						class="action-btn"
+						type="button"
+						variant="tertiary"
+						:aria-label="t('libresign', 'Delete')"
+						:title="t('libresign', 'Delete')"
+						@click.stop="slotProps.onDelete">
+						<template #icon>
+							<NcIconSvgWrapper :path="mdiDelete" :size="16" />
+						</template>
+					</NcButton>
+				</slot>
+			</template>
+			<template #element-signature="{ object }">
+				<SignatureBox :label="object.signer ? object.signer.displayName : ''" />
+			</template>
+		</PDFElements>
+	</div>
 </template>
 
 <script>
 import PDFElements from '@libresign/pdf-elements/src/components/PDFElements.vue'
 
+import NcButton from '@nextcloud/vue/components/NcButton'
+import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
+
+import { mdiContentCopy, mdiDelete } from '@mdi/js'
+
+import SignerMenu from './SignerMenu.vue'
 import SignatureBox from './SignatureBox.vue'
 import { ensurePdfWorker } from '../../helpers/pdfWorker.js'
 
 export default {
 	name: 'PdfEditor',
 	components: {
+		NcButton,
+		NcIconSvgWrapper,
 		PDFElements,
+		SignerMenu,
 		SignatureBox,
 	},
 	props: {
@@ -45,9 +90,33 @@ export default {
 			type: Boolean,
 			default: false,
 		},
+		signers: {
+			type: Array,
+			default: () => [],
+		},
+	},
+	data() {
+		return {
+			mdiContentCopy,
+			mdiDelete,
+		}
 	},
 	created() {
 		ensurePdfWorker()
+	},
+	computed: {
+		ignoreClickOutsideSelectors() {
+			return ['.action-item__popper', '.action-item']
+		},
+		toolbarStyleVars() {
+			return {
+				'--pdf-elements-toolbar-gap': '10px',
+				'--pdf-elements-toolbar-padding': '10px 10px 6px 18px',
+			}
+		},
+		hasMultipleSigners() {
+			return (this.signers || []).length > 1
+		},
 	},
 	methods: {
 		endInit(event) {
@@ -87,6 +156,74 @@ export default {
 			if (object?.signer) {
 				this.onDeleteSigner(object)
 			}
+		},
+		getSignerLabel(signer) {
+			if (!signer) {
+				return ''
+			}
+			return signer.displayName || signer.name || signer.email || signer.id || ''
+		},
+		onSignerChange(object, signer) {
+			if (!object || !signer) {
+				return
+			}
+			const pdfElements = this.$refs.pdfElements
+			if (!pdfElements) {
+				return
+			}
+
+			const signerId = String(signer.signRequestId || signer.uuid || signer.id || signer.email || '')
+			if (!signerId) {
+				return
+			}
+			const targetSigner = (this.signers || []).find(entry => {
+				const candidateId = String(entry.signRequestId || entry.uuid || entry.id || entry.email || '')
+				return candidateId === signerId
+			})
+			if (!targetSigner) {
+				return
+			}
+
+			const currentElement = object.signer?.element ? { ...object.signer.element } : null
+			const nextSigner = structuredClone(targetSigner)
+			if (currentElement) {
+				nextSigner.element = { ...currentElement, signRequestId: targetSigner.signRequestId }
+			}
+			if (!nextSigner.displayName) {
+				const fallbackName = this.getSignerLabel(signer)
+				if (fallbackName) {
+					nextSigner.displayName = fallbackName
+				}
+			}
+
+			const location = this.findObjectLocation(pdfElements, object.id)
+			let docIndex = location?.docIndex
+			if (!Number.isFinite(docIndex)) {
+				docIndex = object.signer?.element?.documentIndex
+			}
+			if (!Number.isFinite(docIndex)) {
+				return
+			}
+
+			if (this.$set) {
+				this.$set(object, 'signer', nextSigner)
+			} else {
+				object.signer = nextSigner
+			}
+
+			pdfElements.updateObject(docIndex, object.id, { signer: nextSigner })
+		},
+		findObjectLocation(pdfElements, objectId) {
+			const docs = pdfElements?.pdfDocuments || []
+			for (let docIndex = 0; docIndex < docs.length; docIndex++) {
+				const pages = docs[docIndex]?.allObjects || []
+				for (let pageIndex = 0; pageIndex < pages.length; pageIndex++) {
+					if (pages[pageIndex]?.some(obj => obj.id === objectId)) {
+						return { docIndex, pageIndex }
+					}
+				}
+			}
+			return null
 		},
 		startAddingSigner(signer, size) {
 			const pdfElements = this.$refs.pdfElements
@@ -164,9 +301,34 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
-:deep(.pdf-elements-root) {
+<style lang="scss">
+.pdf-editor {
 	width: 100%;
 	height: 100%;
+
+	.actions-toolbar {
+		gap: var(--pdf-elements-toolbar-gap, 10px);
+		padding: var(--pdf-elements-toolbar-padding, 6px 10px 6px 14px);
+	}
+
+	.action-btn {
+		border: none;
+		background: transparent;
+		color: #ffffff;
+		padding: 4px;
+		min-height: 0;
+		min-width: 0;
+		border-radius: 4px;
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		transition: background 120ms ease;
+
+		&:hover {
+			background: rgba(255, 255, 255, 0.1);
+		}
+	}
+
 }
 </style>
