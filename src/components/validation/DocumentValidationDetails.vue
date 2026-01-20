@@ -102,10 +102,7 @@ export default {
 	},
 	methods: {
 		viewDocument() {
-			const hasDirectSource = !!this.document.file
-			const source = hasDirectSource
-				? this.document.file
-				: generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: this.document.uuid })
+			const source = this.document.files[0].file
 
 			if (OCA?.Viewer !== undefined) {
 				const fileInfo = {
