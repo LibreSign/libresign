@@ -3,18 +3,38 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<div class="signature-box">
+	<div class="signature-box" :style="boxStyle">
 		<span class="label">{{ label }}</span>
 	</div>
 </template>
 
 <script>
+import { usernameToColor } from '@nextcloud/vue/functions/usernameToColor'
+
 export default {
 	name: 'SignatureBox',
 	props: {
 		label: {
 			type: String,
 			default: '',
+		},
+		signer: {
+			type: Object,
+			default: null,
+		},
+	},
+	computed: {
+		boxStyle() {
+			const signer = this.signer || {}
+			const seed = signer.displayName || signer.name || signer.email || signer.id || this.label
+			if (!seed) {
+				return {}
+			}
+			const { r, g, b } = usernameToColor(String(seed))
+			return {
+				borderColor: `rgb(${r}, ${g}, ${b})`,
+				backgroundColor: `rgba(${r}, ${g}, ${b}, 0.12)`,
+			}
 		},
 	},
 }
