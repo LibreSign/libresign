@@ -381,7 +381,7 @@ class FileService {
 
 		foreach ($this->fileData->signers as $signer) {
 			if (!empty($signer->me) && isset($signer->sign_uuid)) {
-				$this->fileData->url = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $signer->sign_uuid]);
+				$this->fileData->url = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signer->sign_uuid]);
 				$this->fileData->signUuid = $signer->sign_uuid;
 				return;
 			}
