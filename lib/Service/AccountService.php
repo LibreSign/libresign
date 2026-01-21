@@ -327,6 +327,9 @@ class AccountService {
 		} else {
 			$nodeId = $fileData->getNodeId();
 		}
+		if ($nodeId === null) {
+			throw new DoesNotExistException('Not found');
+		}
 		$file = $this->root->getUserFolder($fileData->getUserId())->getFirstNodeById($nodeId);
 		if (!$file instanceof File) {
 			throw new DoesNotExistException('Not found');
