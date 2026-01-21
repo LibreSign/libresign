@@ -20,6 +20,7 @@ use OCA\Libresign\Listener\BeforeNodeDeletedListener;
 use OCA\Libresign\Listener\LoadAdditionalListener;
 use OCA\Libresign\Listener\MailNotifyListener;
 use OCA\Libresign\Listener\NotificationListener;
+use OCA\Libresign\Listener\RevokeClickToSignCertificateListener;
 use OCA\Libresign\Listener\SignedCallbackListener;
 use OCA\Libresign\Listener\TwofactorGatewayListener;
 use OCA\Libresign\Listener\UserDeletedListener;
@@ -76,6 +77,9 @@ class Application extends App implements IBootstrap {
 		$context->registerEventListener(SendSignNotificationEvent::class, MailNotifyListener::class);
 		$context->registerEventListener(SignedEvent::class, MailNotifyListener::class);
 		$context->registerEventListener(SignRequestCanceledEvent::class, MailNotifyListener::class);
+
+		// Certificate Revocation listener
+		$context->registerEventListener(SignedEvent::class, RevokeClickToSignCertificateListener::class);
 
 		// TwofactorGateway listener
 		$context->registerEventListener(SendSignNotificationEvent::class, TwofactorGatewayListener::class);
