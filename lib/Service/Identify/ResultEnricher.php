@@ -103,11 +103,12 @@ class ResultEnricher {
 				continue;
 			}
 
-			if ($this->isNotificationDisabledAtActivity($user->getUID(), 'libresign_file_to_sign')) {
-				continue;
-			}
+			$acceptsNotifications = !$this->isNotificationDisabledAtActivity($user->getUID(), 'libresign_file_to_sign');
 
-			$list[$key]['emailAddress'] = $email;
+			if ($acceptsNotifications) {
+				$list[$key]['emailAddress'] = $email;
+			}
+			$list[$key]['acceptsEmailNotifications'] = $acceptsNotifications;
 		}
 		return $list;
 	}

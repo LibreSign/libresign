@@ -128,7 +128,7 @@ class ResultEnricherTest extends TestCase {
 	}
 
 	#[DataProvider('providerAddEmailNotificationPreference')]
-	public function testAddEmailNotificationPreference(string $method, bool $shouldHaveEmail): void {
+	public function testAddEmailNotificationPreference(string $method, bool $shouldHaveEmail, bool $acceptsNotifications): void {
 		if ($method === 'account') {
 			$user = $this->createMock(IUser::class);
 			$user->method('getEMailAddress')
@@ -147,18 +147,24 @@ class ResultEnricherTest extends TestCase {
 
 		$result = $this->enricher->addEmailNotificationPreference($list);
 
-		if ($shouldHaveEmail) {
-			$this->assertEquals('john@company.com', $result[0]['emailAddress']);
+		if ($method === 'account') {
+			$this->assertEquals($acceptsNotifications, $result[0]['acceptsEmailNotifications']);
+			if ($shouldHaveEmail) {
+				$this->assertEquals('john@company.com', $result[0]['emailAddress']);
+			} else {
+				$this->assertArrayNotHasKey('emailAddress', $result[0]);
+			}
 		} else {
 			$this->assertArrayNotHasKey('emailAddress', $result[0]);
+			$this->assertArrayNotHasKey('acceptsEmailNotifications', $result[0]);
 		}
 	}
 
 	public static function providerAddEmailNotificationPreference(): array {
 		return [
-			'account with email' => ['account', true],
-			'email method' => ['email', false],
-			'phone method' => ['sms', false],
+			'account with email notifications enabled' => ['account', true, true],
+			'email method' => ['email', false, false],
+			'phone method' => ['sms', false, false],
 		];
 	}
 
@@ -173,6 +179,7 @@ class ResultEnricherTest extends TestCase {
 
 		$result = $this->enricher->addEmailNotificationPreference($list);
 		$this->assertArrayNotHasKey('emailAddress', $result[0]);
+		$this->assertArrayNotHasKey('acceptsEmailNotifications', $result[0]);
 	}
 
 	public function testAddEmailNotificationPreferenceWhenAccountHasNoEmail(): void {
@@ -190,5 +197,6 @@ class ResultEnricherTest extends TestCase {
 
 		$result = $this->enricher->addEmailNotificationPreference($list);
 		$this->assertArrayNotHasKey('emailAddress', $result[0]);
+		$this->assertArrayNotHasKey('acceptsEmailNotifications', $result[0]);
 	}
 }
