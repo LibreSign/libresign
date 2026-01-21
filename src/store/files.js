@@ -61,7 +61,7 @@ export const useFilesStore = function(...args) {
 
 				this.removeFileById(fileId)
 			},
-			async addFile(file) {
+			async addFile(file, { position = 'start' } = {}) {
 				if (!file.id && !file.nodeId) {
 					return
 				}
@@ -81,7 +81,11 @@ export const useFilesStore = function(...args) {
 				set(this.files, key, fileData)
 
 				if (!this.ordered.includes(key)) {
-					this.ordered.push(key)
+					if (position === 'start') {
+						this.ordered.unshift(key)
+					} else {
+						this.ordered.push(key)
+					}
 				}
 			},
 			selectFile(fileId) {
@@ -450,7 +454,7 @@ export const useFilesStore = function(...args) {
 				}
 
 				const fileData = data.ocs.data
-				this.addFile(fileData)
+				this.addFile(fileData, { position: 'start' })
 				emit('libresign:file:created', {
 					path: fileData.settings?.path,
 					nodeId: fileData.nodeId,
@@ -520,7 +524,7 @@ export const useFilesStore = function(...args) {
 				this.paginationNextUrl = response.data.ocs.data.pagination.next
 				this.loadedAll = !this.paginationNextUrl
 				response.data.ocs.data.data.forEach((file) => {
-					this.addFile(file)
+					this.addFile(file, { position: 'end' })
 				})
 
 				if (response.data.ocs.data.settings) {
@@ -637,7 +641,8 @@ export const useFilesStore = function(...args) {
 						this.selectedFileId = newFileKey
 					}
 				} else {
-					this.addFile(responseFile)
+					const shouldAddToTop = !uuid && !file.uuid
+					this.addFile(responseFile, { position: shouldAddToTop ? 'start' : 'end' })
 				}
 				const eventName = (!uuid && !file.uuid) ? 'libresign:file:created' : 'libresign:file:updated'
 				emit(eventName, {
