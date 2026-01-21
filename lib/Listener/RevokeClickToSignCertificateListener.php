@@ -14,6 +14,7 @@ use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Service\CrlService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use Override;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -26,6 +27,7 @@ class RevokeClickToSignCertificateListener implements IEventListener {
 	) {
 	}
 
+	#[Override]
 	public function handle(Event $event): void {
 		if (!($event instanceof SignedEvent)) {
 			return;
