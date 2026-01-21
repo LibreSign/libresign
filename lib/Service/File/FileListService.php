@@ -172,7 +172,7 @@ class FileListService {
 			}
 		}
 		if (isset($file['signUuid'])) {
-			$file['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file['signUuid']]);
+			$file['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $file['signUuid']]);
 		}
 
 		if (empty($file['signers'])) {
@@ -440,7 +440,7 @@ class FileListService {
 
 		if ($signUuid !== null) {
 			$response['signUuid'] = $signUuid;
-			$response['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $signUuid]);
+			$response['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signUuid]);
 		}
 
 		if ($mainEntity->getNodeType() === 'envelope') {
