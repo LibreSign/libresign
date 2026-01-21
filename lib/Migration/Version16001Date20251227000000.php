@@ -77,9 +77,9 @@ class Version16001Date20251227000000 extends SimpleMigrationStep {
 
 		// Update all files with normalized names
 		if (!empty($filesToUpdate)) {
-			$updateQb = $this->connection->getQueryBuilder();
-
 			foreach ($filesToUpdate as $file) {
+				$updateQb = $this->connection->getQueryBuilder();
+
 				$updateQb->update('libresign_file')
 					->set('name', $updateQb->createNamedParameter($file['newName']))
 					->where($updateQb->expr()->eq('id', $updateQb->createNamedParameter($file['id'], \OCP\DB\Types::INTEGER)))
