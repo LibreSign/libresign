@@ -42,6 +42,7 @@ OC.L10N.register(
     "Copy to clipboard" : "Afrita á klippispjald",
     "Files" : "Skrár",
     "Settings" : "Stillingar",
+    "Duplicate" : "Tvítaka",
     "Loading …" : "Hleð inn …",
     "Name" : "Heiti",
     "Update" : "Uppfæra",

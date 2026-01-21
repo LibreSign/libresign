@@ -39,6 +39,7 @@ OC.L10N.register(
     "Copy to clipboard" : "Copiar al portapapeles",
     "Files" : "Archivos",
     "Settings" : "Ajustes",
+    "Duplicate" : "Duplicado",
     "Loading …" : "Cargando …",
     "Name" : "Nombre",
     "Update" : "Actualizar",

@@ -198,6 +198,7 @@ OC.L10N.register(
     "Validate" : "Potvrdiť",
     "Documents Validation" : "Overenie Dokumentov",
     "Settings" : "Nastavenia",
+    "Duplicate" : "Duplikát",
     "Loading …" : "Načítavam …",
     "Name" : "Meno",
     "Update" : "Aktualizovať",

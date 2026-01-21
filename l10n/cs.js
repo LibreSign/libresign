@@ -278,6 +278,7 @@ OC.L10N.register(
     "CRL Management" : "Správa CRL seznamů",
     "Settings" : "Nastavení",
     "{currentPage} of {totalPages}" : "{currentPage} z {totalPages}",
+    "Duplicate" : "Zduplikovat",
     "Loading …" : "Načítání …",
     "Name" : "Název",
     "Update" : "Aktualizovat",

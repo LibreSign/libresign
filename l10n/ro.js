@@ -39,6 +39,7 @@ OC.L10N.register(
     "Copy to clipboard" : "Copiază în clipboard",
     "Files" : "Fișiere",
     "Settings" : "Setări",
+    "Duplicate" : "Duplicat",
     "Loading …" : "Se încarcă…",
     "Name" : "Nume",
     "Update" : "Actualizare",

@@ -274,6 +274,7 @@ OC.L10N.register(
     "Documents Validation" : "Documents Validation",
     "CRL Management" : "CRL Management",
     "Settings" : "Mipangilio",
+    "Duplicate" : "Zalisha",
     "Loading …" : "Inapakia",
     "Name" : "Jina",
     "Update" : "Sasisha",

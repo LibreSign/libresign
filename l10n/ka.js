@@ -37,6 +37,7 @@ OC.L10N.register(
     "Copy to clipboard" : "Copy to clipboard",
     "Files" : "ფაილები",
     "Settings" : "Settings",
+    "Duplicate" : "Duplicate",
     "Loading …" : "Loading …",
     "Name" : "Name",
     "Update" : "Update",

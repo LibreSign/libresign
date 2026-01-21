@@ -141,6 +141,7 @@ OC.L10N.register(
     "Files" : "文件",
     "Validate" : "验证",
     "Settings" : "设置",
+    "Duplicate" : "重复",
     "Loading …" : "正在加载 …",
     "Name" : "名称",
     "Update" : "更新",

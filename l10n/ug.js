@@ -276,6 +276,7 @@ OC.L10N.register(
     "CRL Management" : "CRL باشقۇرۇش",
     "Settings" : "تەڭشەكلەر",
     "{currentPage} of {totalPages}" : "{totalPages} دىن {currentPage}",
+    "Duplicate" : "كۆپەيتىلگەن",
     "Loading …" : "Loading…",
     "Name" : "ئاتى",
     "Update" : "يېڭىلا",

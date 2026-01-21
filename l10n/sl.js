@@ -177,6 +177,7 @@ OC.L10N.register(
     "Validate" : "Overi podpise",
     "Documents Validation" : "Overitev dokumenta",
     "Settings" : "Nastavitve",
+    "Duplicate" : "Podvoji",
     "Loading …" : "Poteka nalaganje …",
     "Name" : "Ime podpisnika",
     "Update" : "Posodobi",
