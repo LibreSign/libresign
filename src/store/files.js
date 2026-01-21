@@ -248,6 +248,9 @@ export const useFilesStore = function(...args) {
 			},
 			canSign(file) {
 				file = this.getFile(file)
+				if (this.isOriginalFileDeleted(file)) {
+					return false
+				}
 				return !this.isFullSigned(file)
 					&& file.status > 0
 					&& file?.signers?.filter(signer => signer.me).length > 0
@@ -270,6 +273,10 @@ export const useFilesStore = function(...args) {
 			canAddSigner(file) {
 				file = this.getFile(file)
 
+				if (this.isOriginalFileDeleted(file)) {
+					return false
+				}
+
 				if (this.isDocMdpNoChangesAllowed(file)) {
 					return false
 				}
@@ -286,8 +293,15 @@ export const useFilesStore = function(...args) {
 				file = this.getFile(file)
 				return file.docmdpLevel === 1 && file.signers && file.signers.length > 0
 			},
+			isOriginalFileDeleted(file) {
+				file = this.getFile(file)
+				return !!file?.metadata?.original_file_deleted
+			},
 			canSave(file) {
 				file = this.getFile(file)
+				if (this.isOriginalFileDeleted(file)) {
+					return false
+				}
 				return this.canRequestSign
 					&& (
 						!Object.hasOwn(file, 'requested_by')

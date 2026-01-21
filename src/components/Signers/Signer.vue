@@ -155,6 +155,9 @@ export default {
 			if (!this.draggable) {
 				return false
 			}
+			if (this.filesStore.isOriginalFileDeleted()) {
+				return false
+			}
 			const file = this.filesStore.getFile()
 			if (!file || !file.signers) {
 				return false
@@ -194,6 +197,9 @@ export default {
 	methods: {
 		signerClickAction(signer) {
 			if (!this.canRequestSign) {
+				return
+			}
+			if (this.filesStore.isOriginalFileDeleted()) {
 				return
 			}
 			if (this.event.length === 0) {
