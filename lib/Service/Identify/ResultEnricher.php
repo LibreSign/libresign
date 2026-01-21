@@ -124,20 +124,17 @@ class ResultEnricher {
 			return false;
 		}
 		$activityUserSettings = \OCP\Server::get(\OCA\Activity\UserSettings::class);
-		$methods = $activityUserSettings->getUserSetting($userId, 'notify', $type);
-		if ($methods === false) {
-			return false;
-		}
-		if (is_array($methods) && in_array('email', $methods)) {
-			return false;
-		}
-		$setting = $activityUserSettings->getUserSetting($userId, 'setting', 'batchtime');
-		if ($setting === false) {
-			return false;
-		}
-		if (is_numeric($setting) && (int)$setting === 0) {
+
+		$adminSetting = $activityUserSettings->getAdminSetting('email', $type);
+		if (!$adminSetting) {
 			return true;
 		}
+
+		$userSetting = $activityUserSettings->getUserSetting($userId, 'email', $type);
+		if (!$userSetting) {
+			return true;
+		}
+
 		return false;
 	}
 }
