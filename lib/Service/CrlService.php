@@ -49,8 +49,8 @@ class CrlService {
 
 			$crlNumber = $this->getNextCrlNumber($instanceId, $generation, $engineType);
 
-			$this->crlMapper->revokeCertificate(
-				$serialNumber,
+			$this->crlMapper->revokeCertificateEntity(
+				$certificate,
 				$reason,
 				$reasonText,
 				$revokedBy,
@@ -115,8 +115,8 @@ class CrlService {
 
 				$crlNumber = $this->getNextCrlNumber($instanceId, $generation, $engineType);
 
-				$this->crlMapper->revokeCertificate(
-					$serialNumber,
+				$this->crlMapper->revokeCertificateEntity(
+					$certificate,
 					$reason,
 					$reasonText,
 					$revokedBy,

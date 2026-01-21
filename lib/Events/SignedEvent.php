@@ -23,6 +23,8 @@ class SignedEvent extends Event {
 		private IIdentifyMethod $identifyMethod,
 		private IUser $user,
 		private File $signedFile,
+		private bool $signedWithoutPassword = false,
+		private ?string $certificateSerialNumber = null,
 	) {
 	}
 
@@ -44,5 +46,13 @@ class SignedEvent extends Event {
 
 	public function getSignedFile(): File {
 		return $this->signedFile;
+	}
+
+	public function wasSignedWithoutPassword(): bool {
+		return $this->signedWithoutPassword;
+	}
+
+	public function getCertificateSerialNumber(): ?string {
+		return $this->certificateSerialNumber;
 	}
 }
