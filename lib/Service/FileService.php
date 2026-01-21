@@ -451,6 +451,10 @@ class FileService {
 
 		$this->loadEnvelopeData();
 
+		if (!isset($this->fileData->files) || !is_array($this->fileData->files)) {
+			$this->fileData->files = [];
+		}
+
 		if ($this->options->isShowVisibleElements()) {
 			$signers = $this->signRequestMapper->getByMultipleFileId([$this->file->getId()]);
 			$this->fileData->visibleElements = [];
