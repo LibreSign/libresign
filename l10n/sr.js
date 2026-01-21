@@ -234,6 +234,7 @@ OC.L10N.register(
     "Validate" : "Потврди",
     "Documents Validation" : "Потврђивање докумената",
     "Settings" : "Поставке",
+    "Duplicate" : "Дупликат",
     "Loading …" : "Учитавање…",
     "Name" : "Име",
     "Update" : "Ажурирај",

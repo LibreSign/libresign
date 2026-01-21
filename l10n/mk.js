@@ -42,6 +42,7 @@ OC.L10N.register(
     "Copy to clipboard" : "Копирај во клипборд",
     "Files" : "Датотеки",
     "Settings" : "Параметри",
+    "Duplicate" : "Дуплирај",
     "Loading …" : "Се вчитува…",
     "Name" : "Име",
     "Update" : "Ажурирај",

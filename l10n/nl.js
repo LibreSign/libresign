@@ -144,6 +144,7 @@ OC.L10N.register(
     "Validate" : "Goedkeuren",
     "Documents Validation" : "Geldigheid van documenten",
     "Settings" : "Instellingen",
+    "Duplicate" : "Duplicaat",
     "Loading …" : "Laden …",
     "Name" : "Naam",
     "Update" : "Update",

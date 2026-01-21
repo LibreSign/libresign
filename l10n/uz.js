@@ -29,6 +29,7 @@ OC.L10N.register(
     "Preview" : "Ko‘rib chiqish",
     "Files" : "Fayllar",
     "Settings" : "Sozlamalar",
+    "Duplicate" : "Nusxa",
     "Loading …" : "Yuklanmoqda…",
     "Name" : "Name",
     "Update" : "Update",

@@ -229,6 +229,7 @@ OC.L10N.register(
     "Validate" : "Convalida",
     "Documents Validation" : "Convalida documenti",
     "Settings" : "Impostazioni",
+    "Duplicate" : "Duplicato",
     "Loading …" : "Caricamento …",
     "Name" : "Nome",
     "Update" : "Aggiorna",

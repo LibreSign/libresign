@@ -180,6 +180,7 @@ OC.L10N.register(
     "Validate" : "Valider",
     "Documents Validation" : "Validering av dokumenter",
     "Settings" : "Innstillinger",
+    "Duplicate" : "Duplikat",
     "Loading …" : "Laster ...",
     "Name" : "Navn",
     "Update" : "Oppdater",

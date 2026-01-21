@@ -49,6 +49,7 @@ OC.L10N.register(
     "Request" : "リクエスト",
     "Files" : "ファイル",
     "Settings" : "設定",
+    "Duplicate" : "複製",
     "Loading …" : "読み込み中…",
     "Name" : "名前",
     "Update" : "更新",

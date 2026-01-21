@@ -149,6 +149,7 @@ OC.L10N.register(
     "Validate" : "Validate",
     "Documents Validation" : "Documents Validation",
     "Settings" : "تنظیمات",
+    "Duplicate" : "Duplicate",
     "Loading …" : "بارگذاری …",
     "Name" : "نام",
     "Update" : "به‌روز رسانی",
@@ -340,6 +341,7 @@ OC.L10N.register(
     "Validation" : "Validation",
     "Return" : "Return",
     "Open in LibreSign" : "Open in LibreSign",
-    "Requested by {name}, at {date}" : "Requested by {name}, at {date}"
+    "Requested by {name}, at {date}" : "Requested by {name}, at {date}",
+    "Deleted" : "حذف شده"
 },
 "nplurals=2; plural=(n > 1);");

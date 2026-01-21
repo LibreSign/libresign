@@ -228,6 +228,7 @@ OC.L10N.register(
     "Validate" : "Validar",
     "Documents Validation" : "Validación de documentos",
     "Settings" : "Ajustes",
+    "Duplicate" : "Duplicar",
     "Loading …" : "Cargando …",
     "Name" : "Nombre",
     "Update" : "Actualizar",

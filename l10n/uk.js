@@ -234,6 +234,7 @@ OC.L10N.register(
     "Validate" : "Підтвердити",
     "Documents Validation" : "Перевірка документів",
     "Settings" : "Налаштування",
+    "Duplicate" : "Копіювати",
     "Loading …" : "Завантаження …",
     "Name" : "Назва",
     "Update" : "Оновлення",

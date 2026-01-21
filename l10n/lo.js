@@ -229,6 +229,7 @@ OC.L10N.register(
     "Validate" : "ກວດສອບ",
     "Documents Validation" : "ການກວດສອບເອກະສານ",
     "Settings" : "ການຕັ້ງຄ່າ",
+    "Duplicate" : "ສຳເນົາ",
     "Loading …" : "ກຳລັງໂຫຼດ...",
     "Name" : "ຊື່",
     "Update" : "ອັບເດດ",

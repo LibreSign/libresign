@@ -44,6 +44,7 @@ OC.L10N.register(
     "Copy to clipboard" : "Kopier til udklipsholder",
     "Files" : "Filer",
     "Settings" : "Indstillinger",
+    "Duplicate" : "Duplikér",
     "Loading …" : "Indlæser …",
     "Name" : "Navn",
     "Update" : "Opdatr",

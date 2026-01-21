@@ -136,6 +136,7 @@ OC.L10N.register(
     "Files" : "파일",
     "Validate" : "인증",
     "Settings" : "설정",
+    "Duplicate" : "복제",
     "Loading …" : "불러오는 중 …",
     "Name" : "이름",
     "Update" : "업데이트",

@@ -155,6 +155,7 @@ OC.L10N.register(
     "Validate" : "Проверка",
     "Documents Validation" : "Проверка на документите",
     "Settings" : "Настройки",
+    "Duplicate" : "Дубликат",
     "Loading …" : "Зареждане …",
     "Name" : "Име",
     "Update" : "Обновяване",
