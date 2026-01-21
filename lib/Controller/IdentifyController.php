@@ -12,6 +12,10 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Collaboration\Collaborators\SignerPlugin;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\ResponseDefinitions;
+use OCA\Libresign\Service\Identify\ResultEnricher;
+use OCA\Libresign\Service\Identify\ResultFilter;
+use OCA\Libresign\Service\Identify\ResultFormatter;
+use OCA\Libresign\Service\Identify\SearchNormalizer;
 use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCP\AppFramework\Http;
@@ -19,27 +23,24 @@ use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\Collaboration\Collaborators\ISearch;
-use OCP\IConfig;
 use OCP\IRequest;
-use OCP\IURLGenerator;
-use OCP\IUserManager;
-use OCP\IUserSession;
 use OCP\Share\IShare;
 
 /**
  * @psalm-import-type LibresignIdentifyAccount from ResponseDefinitions
  */
-class IdentifyAccountController extends AEnvironmentAwareController {
+class IdentifyController extends AEnvironmentAwareController {
 	private array $shareTypes = [];
+
 	public function __construct(
 		IRequest $request,
 		private ISearch $collaboratorSearch,
-		private IUserSession $userSession,
-		private IURLGenerator $urlGenerator,
 		private Email $identifyEmailMethod,
 		private Account $identifyAccountMethod,
-		private IUserManager $userManager,
-		private IConfig $config,
+		private SearchNormalizer $searchNormalizer,
+		private ResultFilter $resultFilter,
+		private ResultFormatter $resultFormatter,
+		private ResultEnricher $resultEnricher,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -62,26 +63,30 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 	#[RequireManager]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/identify-account/search', requirements: ['apiVersion' => '(v1)'])]
 	public function search(string $search = '', string $method = '', int $page = 1, int $limit = 25): DataResponse {
-		// only search for string larger than a minimum length
+		$search = $this->searchNormalizer->normalize($search, $method);
+
+		// Only search for string larger than a minimum length
 		if (strlen($search) < 1) {
-			return new DataResponse();
+			return new DataResponse([]);
 		}
 
 		$shareTypes = $this->getShareTypes();
-		$lookup = false;
-
 		$offset = $limit * ($page - 1);
+		
 		$this->registerPlugin($method);
-		[$result] = $this->collaboratorSearch->search($search, $shareTypes, $lookup, $limit, $offset);
-		$result['exact'] = $this->unifyResult($result['exact']);
-		$result = $this->unifyResult($result);
-		$result = $this->excludeEmptyShareWith($result);
-		$return = $this->formatForNcSelect($result);
-		$return = $this->addHerselfAccount($return, $search);
-		$return = $this->addHerselfEmail($return, $search);
-		$return = $this->replaceShareTypeByMethod($return);
-		$return = $this->addEmailNotificationPreference($return);
-		$return = $this->excludeNotAllowed($return);
+		[$result] = $this->collaboratorSearch->search($search, $shareTypes, false, $limit, $offset);
+		
+		// Process results through filters and formatters
+		$result['exact'] = $this->resultFilter->unify($result['exact']);
+		$result = $this->resultFilter->unify($result);
+		$result = $this->resultFilter->excludeEmpty($result);
+		
+		$return = $this->resultFormatter->formatForNcSelect($result);
+		$return = $this->resultEnricher->addHerselfAccount($return, $search);
+		$return = $this->resultEnricher->addHerselfEmail($return, $search);
+		$return = $this->resultFormatter->replaceShareTypeWithMethod($return);
+		$return = $this->resultEnricher->addEmailNotificationPreference($return);
+		$return = $this->resultFilter->excludeNotAllowed($return);
 
 		return new DataResponse($return);
 	}
@@ -113,193 +118,5 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 
 		$this->shareTypes[] = SignerPlugin::TYPE_SIGNER;
 		return $this->shareTypes;
-	}
-
-	private function unifyResult(array $list): array {
-		$ids = [];
-		$return = [];
-		foreach ($list as $items) {
-			foreach ($items as $item) {
-				if (in_array($item['value']['shareWith'], $ids)) {
-					continue;
-				}
-				$ids[] = $item['value']['shareWith'];
-				$return[] = $item;
-			}
-		}
-		return $return;
-	}
-
-	private function formatForNcSelect(array $list): array {
-		$formattedList = [];
-		foreach ($list as $key => $item) {
-			$formattedList[$key] = [
-				'id' => $item['value']['shareWith'],
-				'isNoUser' => $item['value']['shareType'] !== IShare::TYPE_USER
-					&& isset($item['method'])
-					&& $item['method'] !== 'account',
-				'displayName' => $item['label'],
-				'subname' => $item['shareWithDisplayNameUnique'] ?? '',
-			];
-			if ($item['value']['shareType'] === IShare::TYPE_EMAIL) {
-				$formattedList[$key]['method'] = 'email';
-				$formattedList[$key]['icon'] = 'icon-mail';
-			} elseif ($item['value']['shareType'] === IShare::TYPE_USER) {
-				$formattedList[$key]['method'] = 'account';
-				$formattedList[$key]['icon'] = 'icon-user';
-			} elseif ($item['value']['shareType'] === SignerPlugin::TYPE_SIGNER) {
-				$formattedList[$key]['method'] = $item['method'] ?? '';
-				if ($item['method'] === 'email') {
-					$formattedList[$key]['icon'] = 'icon-mail';
-				} elseif ($item['method'] === 'account') {
-					$formattedList[$key]['icon'] = 'icon-user';
-				} else {
-					$formattedList[$key]['iconSvg'] = 'svg' . ucfirst($item['method']);
-					$formattedList[$key]['iconName'] = $item['method'];
-				}
-			}
-		}
-		return $formattedList;
-	}
-
-	private function addHerselfAccount(array $return, string $search): array {
-		$settings = $this->identifyAccountMethod->getSettings();
-		if (empty($settings['enabled'])) {
-			return $return;
-		}
-		$user = $this->userSession->getUser();
-		$search = strtolower($search);
-		if (!str_contains($user->getUID(), $search)
-			&& !str_contains(strtolower($user->getDisplayName()), $search)
-			&& (
-				$user->getEMailAddress() === null
-				|| ($user->getEMailAddress() !== null && !str_contains($user->getEMailAddress(), $search))
-			)
-		) {
-			return $return;
-		}
-		$filtered = array_filter($return, fn ($i) => $i['id'] === $user->getUID());
-		if (count($filtered)) {
-			return $return;
-		}
-		$return[] = [
-			'id' => $user->getUID(),
-			'isNoUser' => false,
-			'displayName' => $user->getDisplayName(),
-			'subname' => $user->getEMailAddress(),
-			'icon' => 'icon-user',
-			'method' => 'account',
-		];
-		return $return;
-	}
-
-	private function addHerselfEmail(array $return, string $search): array {
-		$settings = $this->identifyEmailMethod->getSettings();
-		if (empty($settings['enabled'])) {
-			return $return;
-		}
-		$user = $this->userSession->getUser();
-		if (empty($user->getEMailAddress())) {
-			return $return;
-		}
-		if (!str_contains($user->getEMailAddress(), $search)
-			&& !str_contains($user->getDisplayName(), $search)
-		) {
-			return $return;
-		}
-		$filtered = array_filter($return, fn ($i) => $i['id'] === $user->getUID());
-		if (count($filtered)) {
-			return $return;
-		}
-		$return[] = [
-			'id' => $user->getEMailAddress(),
-			'isNoUser' => true,
-			'displayName' => $user->getDisplayName(),
-			'subname' => $user->getEMailAddress(),
-			'icon' => 'icon-mail',
-			'method' => 'email',
-		];
-		return $return;
-	}
-
-	private function excludeEmptyShareWith(array $list): array {
-		return array_filter($list, fn ($result) => strlen((string)$result['value']['shareWith']) > 0);
-	}
-
-	private function excludeNotAllowed(array $list): array {
-		return array_filter($list, fn ($result) => isset($result['method']) && !empty($result['method']));
-	}
-
-	private function replaceShareTypeByMethod(array $list): array {
-		foreach ($list as $key => $item) {
-			if (isset($item['method']) && !empty($item['method'])) {
-				continue;
-			}
-			$list[$key]['method'] = match ($item['shareType']) {
-				IShare::TYPE_EMAIL => 'email',
-				IShare::TYPE_USER => 'account',
-				default => '',
-			};
-			unset($list[$key]['shareType']);
-		}
-		return $list;
-	}
-
-	private function addEmailNotificationPreference(array $list): array {
-		foreach ($list as $key => $item) {
-			if ($item['method'] !== 'account') {
-				continue;
-			}
-
-			$user = $this->userManager->get($item['id']);
-			if ($user === null) {
-				$list[$key]['acceptsEmailNotifications'] = false;
-				continue;
-			}
-
-			$email = $user->getEMailAddress();
-			if (empty($email)) {
-				$list[$key]['acceptsEmailNotifications'] = false;
-				continue;
-			}
-
-			if ($this->isNotificationDisabledAtActivity($user->getUID(), 'libresign_file_to_sign')) {
-				$list[$key]['acceptsEmailNotifications'] = false;
-				continue;
-			}
-
-			$list[$key]['acceptsEmailNotifications'] = true;
-		}
-		return $list;
-	}
-
-	private function isNotificationDisabledAtActivity(string $userId, string $type): bool {
-		if (!class_exists(\OCA\Activity\UserSettings::class)) {
-			return false;
-		}
-		$activityUserSettings = \OCP\Server::get(\OCA\Activity\UserSettings::class);
-		if ($activityUserSettings) {
-			$manager = \OCP\Server::get(\OCP\Activity\IManager::class);
-			try {
-				$manager->getSettingById($type);
-			} catch (\Exception $e) {
-				return false;
-			}
-
-			$adminSetting = $activityUserSettings->getAdminSetting('email', $type);
-			if (!$adminSetting) {
-				return true;
-			}
-
-			$notificationSetting = $activityUserSettings->getUserSetting(
-				$userId,
-				'email',
-				$type
-			);
-			if (!$notificationSetting) {
-				return true;
-			}
-		}
-		return false;
 	}
 }
