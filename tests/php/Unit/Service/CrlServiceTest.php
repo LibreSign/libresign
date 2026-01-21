@@ -105,16 +105,14 @@ class CrlServiceTest extends TestCase {
 
 			$callCount = 0;
 			$this->crlMapper->expects($this->exactly($certificateCount))
-				->method('revokeCertificate')
-				->willReturnCallback(function ($serialNumber) use (&$callCount, $failOnIndex) {
+				->method('revokeCertificateEntity')
+				->willReturnCallback(function ($certificate) use (&$callCount, $failOnIndex) {
 					$callCount++;
 					if ($failOnIndex !== null && $callCount === $failOnIndex) {
 						throw new \Exception('Database error');
 					}
 
-					$cert = new Crl();
-					$cert->setSerialNumber($serialNumber);
-					return $cert;
+					return $certificate;
 				});
 		}
 
@@ -162,9 +160,9 @@ class CrlServiceTest extends TestCase {
 			->willReturn(4);
 
 		$this->crlMapper->expects($this->once())
-			->method('revokeCertificate')
+			->method('revokeCertificateEntity')
 			->with(
-				'123456',
+				$certificate,
 				CRLReason::KEY_COMPROMISE,
 				$reasonText,
 				$revokedBy,
