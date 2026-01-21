@@ -355,7 +355,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	}
 
 	private function loadChildFilesIfEnvelope($fileEntity): array {
-		return $fileEntity->getParentFileId() === null
+		return $fileEntity->getParentFileId() === null || $fileEntity->isEnvelope()
 			? $this->fileMapper->getChildrenFiles($fileEntity->getId())
 			: [];
 	}

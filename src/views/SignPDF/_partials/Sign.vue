@@ -217,7 +217,7 @@ export default {
 				return []
 			}
 
-			const visibleElements = (signer.visibleElements || [])
+			const visibleElements = (this.signStore.document?.visibleElements || [])
 				.filter(row => {
 					return this.signatureElementsStore.hasSignatureOfType(row.type)
 						&& row.signRequestId === signer.signRequestId
@@ -229,8 +229,9 @@ export default {
 		},
 		needCreateSignature() {
 			const signer = this.signStore.document?.signers.find(row => row.me) || {}
+			const visibleElements = this.signStore.document?.visibleElements || []
 			return !!signer.signRequestId
-				&& signer.visibleElements.length > 0
+				&& visibleElements.some(row => row.signRequestId === signer.signRequestId)
 				&& !this.hasSignatures
 				&& this.canCreateSignature
 		},
