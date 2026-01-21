@@ -309,10 +309,10 @@ export default {
 			}
 			return statusMap[status] || status
 		},
-		async validate(id, { suppressLoading = false } = {}) {
+		async validate(id, { suppressLoading = false, forceRefresh = false } = {}) {
 			this.validationErrorMessage = null
 			this.documentValidMessage = null
-			if (id === this.document?.uuid) {
+			if (id === this.document?.uuid && !forceRefresh) {
 				this.documentValidMessage = t('libresign', 'This document is valid')
 				this.hasInfo = true
 			} else if (id.length === 36) {
@@ -587,7 +587,7 @@ export default {
 		async refreshAfterAsyncSigning() {
 			const maxAttempts = 8
 			for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-				await this.validate(this.uuidToValidate, { suppressLoading: true })
+				await this.validate(this.uuidToValidate, { suppressLoading: true, forceRefresh: true })
 
 				const isSignedStatus = status => status === 3 || status === 'SIGNED'
 				const isSigned = isSignedStatus(this.document?.status)
