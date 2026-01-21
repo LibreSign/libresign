@@ -94,7 +94,7 @@ class MetadataLoader {
 		for ($page = 1; $page <= $pageCount; $page++) {
 			$return[] = [
 				'number' => $page,
-				'url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfPage', [
+				'url' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', [
 					'uuid' => $file->getUuid(),
 					'page' => $page,
 				]),
