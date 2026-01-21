@@ -104,7 +104,7 @@ namespace OCA\Libresign;
  *     identificationDocumentsWaitingApproval: bool,
  * }
  * @psalm-type LibresignIdentifyMethod = array{
- *     method: "email"|"account",
+ *     method: string,
  *     value: string,
  *     mandatory: non-negative-int,
  * }
@@ -175,7 +175,7 @@ namespace OCA\Libresign;
  *     statusText: string,
  *     signingOrder?: non-negative-int,
  *     identifyMethods?: LibresignIdentifyMethod[],
- *     visibleElements?: LibresignVisibleElement[],
+ *     visibleElements: LibresignVisibleElement[],
  *     signatureMethods?: LibresignSignatureMethods,
  *     uid?: string,
  * }
@@ -183,6 +183,7 @@ namespace OCA\Libresign;
  *     signRequestId: int,
  *     displayName: string,
  *     email: string,
+ *     identifyMethods?: LibresignIdentifyMethod[],
  *     signed: ?string,
  *     status: int,
  *     statusText: string,
@@ -204,7 +205,8 @@ namespace OCA\Libresign;
  *     size?: non-negative-int,
  *     pdfVersion?: string,
  *     signers: list<LibresignEnvelopeChildSignerSummary>,
- *     metadata?: LibresignValidateMetadata,
+ *     file: string,
+ *     metadata: LibresignValidateMetadata,
  * }
  * @psalm-type LibresignValidateFile = array{
  *     id: int,
@@ -226,7 +228,7 @@ namespace OCA\Libresign;
  *         userId: string,
  *         displayName: string,
  *     },
- *     file: string,
+ *     file?: string,
  *     url?: string,
  *     signUuid?: string|null,
  *     mime?: string,
@@ -241,11 +243,16 @@ namespace OCA\Libresign;
  *     visibleElements?: LibresignVisibleElement[],
  * }
  * @psalm-type LibresignFileListItem = array{
+ *     fileId: int,
+ *     id: int,
  *     nodeId: ?int,
  *     uuid: string,
  *     name: non-falsy-string,
  *     status: int,
  *     statusText: string,
+ *     file: string,
+ *     metadata: LibresignValidateMetadata,
+ *     signers: list<LibresignEnvelopeChildSignerSummary>,
  * }
  * @psalm-type LibresignNextcloudFile = array{
  *     message: string,
@@ -257,8 +264,6 @@ namespace OCA\Libresign;
  *     statusText: string,
  *     nodeType: 'file'|'envelope',
  *     created_at: string,
- *     file: string,
- *     url?: string,
  *     signUuid?: string|null,
  *     metadata: LibresignValidateMetadata,
  *     signatureFlow: 'none'|'parallel'|'ordered_numeric',
@@ -273,15 +278,7 @@ namespace OCA\Libresign;
  * }
  * @psalm-type LibresignFileDetail = array{
  *     created_at: string,
- *     file: string,
- *     files: list<array{
- *         fileId?: int,
- *         nodeId: int,
- *         uuid: string,
- *         name: string,
- *         status: int,
- *         statusText: string,
- *     }>,
+ *     files: list<LibresignFileListItem>,
  *     filesCount: int,
  *     id: int,
  *     metadata: array<string, mixed>,

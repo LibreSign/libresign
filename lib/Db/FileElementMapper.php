@@ -43,6 +43,27 @@ class FileElementMapper extends QBMapper {
 	}
 
 	/**
+	 * @param int[] $fileIds
+	 * @return FileElement[]
+	 */
+	public function getByFileIds(array $fileIds): array {
+		if (empty($fileIds)) {
+			return [];
+		}
+
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('fe.*')
+			->from($this->getTableName(), 'fe')
+			->where(
+				$qb->expr()->in('fe.file_id', $qb->createNamedParameter($fileIds, IQueryBuilder::PARAM_INT_ARRAY))
+			);
+
+		/** @var FileElement[] */
+		return $this->findEntities($qb);
+	}
+
+	/**
 	 * @return FileElement[]
 	 */
 	public function getByFileIdAndSignRequestId(int $fileId, ?int $signRequestId): array {

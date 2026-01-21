@@ -135,6 +135,14 @@ class FileElementService {
 	}
 
 	/**
+	 * @param int[] $fileIds
+	 * @return FileElement[]
+	 */
+	public function getByFileIds(array $fileIds): array {
+		return $this->fileElementMapper->getByFileIds($fileIds);
+	}
+
+	/**
 	 * Return visible elements formatted for API responses for given file and signRequestId
 	 *
 	 * @psalm-return list<LibresignVisibleElement>

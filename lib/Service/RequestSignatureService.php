@@ -496,6 +496,7 @@ class RequestSignatureService {
 		$return = [];
 		if (!empty($data['users'])) {
 			$this->deleteIdentifyMethodIfNotExits($data['users'], $file);
+			$this->identifyMethod->clearCache();
 
 			$this->sequentialSigningService->resetOrderCounter();
 			$fileStatus = $data['status'] ?? null;
