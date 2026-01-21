@@ -135,7 +135,7 @@ class FileListService {
 			'uuid' => $fileEntity->getUuid(),
 			'name' => $fileEntity->getName(),
 			'status' => $fileEntity->getStatus(),
-			'metadata' => $fileEntity->getMetadata(),
+			'metadata' => $fileEntity->getMetadata() ?? [],
 			'createdAt' => $fileEntity->getCreatedAt(),
 			'userId' => $fileEntity->getUserId(),
 			'signatureFlow' => $fileEntity->getSignatureFlow(),
