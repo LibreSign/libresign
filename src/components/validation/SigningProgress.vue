@@ -132,7 +132,9 @@ export default {
 
 			this.$emit('status-changed', status)
 
-			if (!this.progress) {
+			if (responseData?.progress) {
+				this.progress = responseData.progress
+			} else if (!this.progress) {
 				await this.fetchProgressFromValidation()
 			}
 
