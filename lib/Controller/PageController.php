@@ -487,7 +487,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[PublicPage]
-	#[AnonRateLimit(limit: 30, period: 60)]
+	#[AnonRateLimit(limit: 300, period: 60)]
 	#[FrontpageRoute(verb: 'GET', url: '/p/pdf/{uuid}')]
 	public function getPdf($uuid) {
 		try {
@@ -514,7 +514,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[RequireSignRequestUuid]
 	#[PublicPage]
 	#[RequireSetupOk]
-	#[AnonRateLimit(limit: 30, period: 60)]
+	#[AnonRateLimit(limit: 300, period: 60)]
 	#[FrontpageRoute(verb: 'GET', url: '/pdf/{uuid}')]
 	public function getPdfFile($uuid): FileDisplayResponse {
 		$files = $this->getNextcloudFiles();
