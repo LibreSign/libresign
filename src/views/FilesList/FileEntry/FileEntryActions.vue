@@ -193,6 +193,7 @@ export default {
 				visible = this.filesStore.canDelete(this.file)
 			} else if (action.id === 'open') {
 				visible = this.source?.nodeType !== 'envelope'
+					&& !this.filesStore.isOriginalFileDeleted(this.file)
 			}
 			return visible
 		},

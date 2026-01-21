@@ -7,10 +7,13 @@
 		<NcNoteCard v-if="showDocMdpWarning" type="warning">
 			{{ t('libresign', 'This document has been certified with no changes allowed. You cannot add more signers to this document.') }}
 		</NcNoteCard>
+		<NcNoteCard v-if="isOriginalFileDeleted" type="warning">
+			{{ t('libresign', 'The original file was deleted. You can no longer add signers or open it.') }}
+		</NcNoteCard>
 		<NcNoteCard v-if="hasSignersWithDisabledMethods" type="warning">
 			{{ t('libresign', 'Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures.') }}
 		</NcNoteCard>
-		<NcButton v-if="filesStore.canAddSigner()"
+		<NcButton v-if="filesStore.canAddSigner() && !isOriginalFileDeleted"
 			:variant="hasSigners ? 'secondary' : 'primary'"
 			@click="addSigner">
 			<template #icon>
@@ -18,13 +21,13 @@
 			</template>
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
-		<NcCheckboxRadioSwitch v-if="showPreserveOrder"
+		<NcCheckboxRadioSwitch v-if="showPreserveOrder && !isOriginalFileDeleted"
 			v-model="preserveOrder"
 			type="switch"
 			@update:checked="onPreserveOrderChange">
 			{{ t('libresign', 'Preserve signing order') }}
 		</NcCheckboxRadioSwitch>
-		<NcButton v-if="showViewOrderButton"
+		<NcButton v-if="showViewOrderButton && !isOriginalFileDeleted"
 			type="tertiary"
 			@click="showOrderDiagram = true">
 			<template #icon>
@@ -32,53 +35,55 @@
 			</template>
 			{{ t('libresign', 'View signing order') }}
 		</NcButton>
-		<Signers event="libresign:edit-signer"
+		<Signers :event="isOriginalFileDeleted ? '' : 'libresign:edit-signer'"
 			@signing-order-changed="debouncedSave">
 			<template #actions="{signer, closeActions}">
-				<NcActionInput v-if="canEditSigningOrder(signer)"
-					:label="t('libresign', 'Signing order')"
-					type="number"
-					:value="signer.signingOrder || 1"
-					@update:value="updateSigningOrder(signer, $event)"
-					@submit="confirmSigningOrder(signer); closeActions()"
-					@blur="confirmSigningOrder(signer)">
-					<template #icon>
-						<OrderNumericAscending :size="20" />
-					</template>
-				</NcActionInput>
-				<NcActionButton v-if="canCustomizeMessage(signer)"
-					:close-after-click="true"
-					@click="customizeMessage(signer); closeActions()">
-					<template #icon>
-						<MessageText :size="20" />
-					</template>
-					{{ t('libresign', 'Customize message') }}
-				</NcActionButton>
-				<NcActionButton v-if="canDelete(signer)"
-					aria-label="Delete"
-					:close-after-click="true"
-					@click="filesStore.deleteSigner(signer)">
-					<template #icon>
-						<Delete :size="20" />
-					</template>
-					{{ t('libresign', 'Delete') }}
-				</NcActionButton>
-				<NcActionButton v-if="canRequestSignature(signer)"
-					:close-after-click="true"
-					@click="requestSignatureForSigner(signer)">
-					<template #icon>
-						<Send :size="20" />
-					</template>
-					{{ t('libresign', 'Request signature') }}
-				</NcActionButton>
-				<NcActionButton v-if="canSendReminder(signer)"
-					:close-after-click="true"
-					@click="sendNotify(signer)">
-					<template #icon>
-						<Bell :size="20" />
-					</template>
-					{{ t('libresign', 'Send reminder') }}
-				</NcActionButton>
+				<template v-if="!isOriginalFileDeleted">
+					<NcActionInput v-if="canEditSigningOrder(signer)"
+						:label="t('libresign', 'Signing order')"
+						type="number"
+						:value="signer.signingOrder || 1"
+						@update:value="updateSigningOrder(signer, $event)"
+						@submit="confirmSigningOrder(signer); closeActions()"
+						@blur="confirmSigningOrder(signer)">
+						<template #icon>
+							<OrderNumericAscending :size="20" />
+						</template>
+					</NcActionInput>
+					<NcActionButton v-if="canCustomizeMessage(signer)"
+						:close-after-click="true"
+						@click="customizeMessage(signer); closeActions()">
+						<template #icon>
+							<MessageText :size="20" />
+						</template>
+						{{ t('libresign', 'Customize message') }}
+					</NcActionButton>
+					<NcActionButton v-if="canDelete(signer)"
+						aria-label="Delete"
+						:close-after-click="true"
+						@click="filesStore.deleteSigner(signer)">
+						<template #icon>
+							<Delete :size="20" />
+						</template>
+						{{ t('libresign', 'Delete') }}
+					</NcActionButton>
+					<NcActionButton v-if="canRequestSignature(signer)"
+						:close-after-click="true"
+						@click="requestSignatureForSigner(signer)">
+						<template #icon>
+							<Send :size="20" />
+						</template>
+						{{ t('libresign', 'Request signature') }}
+					</NcActionButton>
+					<NcActionButton v-if="canSendReminder(signer)"
+						:close-after-click="true"
+						@click="sendNotify(signer)">
+						<template #icon>
+							<Bell :size="20" />
+						</template>
+						{{ t('libresign', 'Send reminder') }}
+					</NcActionButton>
+				</template>
 			</template>
 		</Signers>
 		<NcFormBox v-if="isEnvelope" class="action-form-box">
@@ -147,7 +152,7 @@
 				</template>
 				{{ t('libresign', 'Validation info') }}
 			</NcButton>
-			<NcButton v-if="!isEnvelope"
+			<NcButton v-if="!isEnvelope && !isOriginalFileDeleted"
 				wide
 				variant="secondary"
 				@click="openFile()">
@@ -417,13 +422,22 @@ export default {
 			return this.signatureFlow === 'ordered_numeric'
 		},
 		showSigningOrderOptions() {
-			return this.hasSigners && this.filesStore.canSave() && !this.isAdminFlowForced
+			return !this.isOriginalFileDeleted
+				&& this.hasSigners
+				&& this.filesStore.canSave()
+				&& !this.isAdminFlowForced
 		},
 		showPreserveOrder() {
-			return this.totalSigners > 1 && this.filesStore.canSave() && !this.isAdminFlowForced
+			return !this.isOriginalFileDeleted
+				&& this.totalSigners > 1
+				&& this.filesStore.canSave()
+				&& !this.isAdminFlowForced
 		},
 		showViewOrderButton() {
-			return this.isOrderedNumeric && this.totalSigners > 1 && this.hasSigners
+			return !this.isOriginalFileDeleted
+				&& this.isOrderedNumeric
+				&& this.totalSigners > 1
+				&& this.hasSigners
 		},
 		shouldShowOrderedOptions() {
 			return this.isOrderedNumeric && this.totalSigners > 1
@@ -434,8 +448,14 @@ export default {
 		showDocMdpWarning() {
 			return this.filesStore.isDocMdpNoChangesAllowed() && !this.filesStore.canAddSigner()
 		},
+		isOriginalFileDeleted() {
+			return this.filesStore.isOriginalFileDeleted()
+		},
 		canEditSigningOrder() {
 			return (signer) => {
+				if (this.isOriginalFileDeleted) {
+					return false
+				}
 				const minSigners = this.isAdminFlowForced ? 1 : 2
 
 				return this.isOrderedNumeric
@@ -446,11 +466,17 @@ export default {
 		},
 		canDelete() {
 			return (signer) => {
+				if (this.isOriginalFileDeleted) {
+					return false
+				}
 				return this.filesStore.canSave() && !signer.signed
 			}
 		},
 		canCustomizeMessage() {
 			return (signer) => {
+				if (this.isOriginalFileDeleted) {
+					return false
+				}
 				if (signer.signed || !signer.signRequestId || signer.me) {
 					return false
 				}
@@ -469,6 +495,9 @@ export default {
 		},
 		canRequestSignature() {
 			return (signer) => {
+				if (this.isOriginalFileDeleted) {
+					return false
+				}
 				if (!this.filesStore.canRequestSign
 					|| signer.signed
 					|| !signer.signRequestId
@@ -482,6 +511,9 @@ export default {
 		},
 		canSendReminder() {
 			return (signer) => {
+				if (this.isOriginalFileDeleted) {
+					return false
+				}
 				if (!this.filesStore.canRequestSign
 					|| signer.signed
 					|| !signer.signRequestId
@@ -512,6 +544,9 @@ export default {
 			})
 		},
 		showSaveButton() {
+			if (this.isOriginalFileDeleted) {
+				return false
+			}
 			if (!this.filesStore.canSave()) {
 				return false
 			}
@@ -533,6 +568,9 @@ export default {
 			return true
 		},
 		showRequestButton() {
+			if (this.isOriginalFileDeleted) {
+				return false
+			}
 			if (!this.filesStore.canSave()) {
 				return false
 			}
