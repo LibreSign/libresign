@@ -27,6 +27,7 @@ use OCA\Libresign\Listener\UserDeletedListener;
 use OCA\Libresign\Middleware\GlobalInjectionMiddleware;
 use OCA\Libresign\Middleware\InjectionMiddleware;
 use OCA\Libresign\Notification\Notifier;
+use OCA\Libresign\Search\FileSearchProvider;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -56,6 +57,8 @@ class Application extends App implements IBootstrap {
 		$context->registerCapability(Capabilities::class);
 
 		$context->registerNotifierService(Notifier::class);
+
+		$context->registerSearchProvider(FileSearchProvider::class);
 
 		$context->registerEventListener(LoadSidebar::class, TemplateLoader::class);
 		$context->registerEventListener(BeforeNodeDeletedEvent::class, BeforeNodeDeletedListener::class);
