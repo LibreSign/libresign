@@ -39,6 +39,7 @@ OC.L10N.register(
     "Copy to clipboard" : "Kopēt starpliktuvē",
     "Files" : "Datnes",
     "Settings" : "Iestatījumi",
+    "Duplicate" : "Pavairot",
     "Loading …" : "Ielādē…",
     "Name" : "Vārds",
     "Update" : "Atjaunināt",

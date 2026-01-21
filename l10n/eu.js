@@ -159,6 +159,7 @@ OC.L10N.register(
     "Validate" : "Balidatu",
     "Documents Validation" : "Dokumentuen balioztatzea",
     "Settings" : "Ezarpenak",
+    "Duplicate" : "Bikoiztu",
     "Loading …" : "Kargatzen …",
     "Name" : "Izena",
     "Update" : "Eguneratu",

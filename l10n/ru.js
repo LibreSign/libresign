@@ -141,6 +141,7 @@ OC.L10N.register(
     "Files" : "Файлы",
     "Validate" : "Проверить",
     "Settings" : "Парметры",
+    "Duplicate" : "Дублировать",
     "Loading …" : "Загрузка …",
     "Name" : "Имя",
     "Update" : "Изменение",

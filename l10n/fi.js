@@ -474,6 +474,7 @@ OC.L10N.register(
     "Open in LibreSign" : "Avaa LibreSignissa",
     "original file" : "alkuperäinen tiedosto",
     "New signature request" : "Uusi allekirjoituspyyntö",
-    "Requested by {name}, at {date}" : "Pyytänyt {name} {date}"
+    "Requested by {name}, at {date}" : "Pyytänyt {name} {date}",
+    "Deleted" : "Poistettu"
 },
 "nplurals=2; plural=(n != 1);");

@@ -225,6 +225,7 @@ OC.L10N.register(
     "Validate" : "Validera",
     "Documents Validation" : "Dokumentvalidering",
     "Settings" : "Inställningar",
+    "Duplicate" : "Duplicera",
     "Loading …" : "Läser in …",
     "Name" : "Namn",
     "Update" : "Uppdatera",

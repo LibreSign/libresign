@@ -232,6 +232,7 @@ OC.L10N.register(
     "Validate" : "Επικύρωση",
     "Documents Validation" : "Επικύρωση Εγγράφων",
     "Settings" : "Ρυθμίσεις",
+    "Duplicate" : "Διπλότυπο",
     "Loading …" : "Φόρτωση …",
     "Name" : "Όνομα",
     "Update" : "Ενημέρωση",
