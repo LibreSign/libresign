@@ -134,7 +134,7 @@ class ResultEnricher {
 		if ($setting === false) {
 			return false;
 		}
-		if (is_numeric($setting) && (int) $setting === 0) {
+		if (is_numeric($setting) && (int)$setting === 0) {
 			return true;
 		}
 		return false;

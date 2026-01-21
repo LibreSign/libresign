@@ -72,15 +72,15 @@ class IdentifyController extends AEnvironmentAwareController {
 
 		$shareTypes = $this->getShareTypes();
 		$offset = $limit * ($page - 1);
-		
+
 		$this->registerPlugin($method);
 		[$result] = $this->collaboratorSearch->search($search, $shareTypes, false, $limit, $offset);
-		
+
 		// Process results through filters and formatters
 		$result['exact'] = $this->resultFilter->unify($result['exact']);
 		$result = $this->resultFilter->unify($result);
 		$result = $this->resultFilter->excludeEmpty($result);
-		
+
 		$return = $this->resultFormatter->formatForNcSelect($result);
 		$return = $this->resultEnricher->addHerselfAccount($return, $search);
 		$return = $this->resultEnricher->addHerselfEmail($return, $search);

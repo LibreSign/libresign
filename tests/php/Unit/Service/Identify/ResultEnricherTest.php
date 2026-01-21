@@ -192,4 +192,3 @@ class ResultEnricherTest extends TestCase {
 		$this->assertArrayNotHasKey('emailAddress', $result[0]);
 	}
 }
-
