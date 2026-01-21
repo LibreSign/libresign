@@ -7088,11 +7088,11 @@
         },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/identify-account/search": {
             "get": {
-                "operationId": "identify_account-search",
+                "operationId": "identify-search",
                 "summary": "List possible signers",
                 "description": "Used to identify who can sign the document. The return of this endpoint is related with Administration Settiongs > LibreSign > Identify method.",
                 "tags": [
-                    "identify_account"
+                    "identify"
                 ],
                 "security": [
                     {

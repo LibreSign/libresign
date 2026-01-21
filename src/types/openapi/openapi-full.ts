@@ -829,7 +829,7 @@ export type paths = {
          * List possible signers
          * @description Used to identify who can sign the document. The return of this endpoint is related with Administration Settiongs > LibreSign > Identify method.
          */
-        get: operations["identify_account-search"];
+        get: operations["identify-search"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4312,7 +4312,7 @@ export interface operations {
             };
         };
     };
-    "identify_account-search": {
+    "identify-search": {
         parameters: {
             query?: {
                 /** @description search params */
