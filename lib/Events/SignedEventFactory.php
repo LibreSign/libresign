@@ -26,7 +26,13 @@ class SignedEventFactory {
 	) {
 	}
 
-	public function make(SignRequest $signRequest, FileEntity $libreSignFile, File $signedFile): SignedEvent {
+	public function make(
+		SignRequest $signRequest,
+		FileEntity $libreSignFile,
+		File $signedFile,
+		bool $signedWithoutPassword = false,
+		?string $certificateSerialNumber = null,
+	): SignedEvent {
 		$identifyMethod = $this->getIdentifyMethod($signRequest);
 		$user = $this->getUser($libreSignFile);
 		return new SignedEvent(
@@ -35,6 +41,8 @@ class SignedEventFactory {
 			$identifyMethod,
 			$user,
 			$signedFile,
+			$signedWithoutPassword,
+			$certificateSerialNumber,
 		);
 	}
 

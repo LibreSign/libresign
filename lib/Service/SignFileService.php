@@ -827,10 +827,29 @@ class SignFileService {
 	}
 
 	protected function dispatchSignedEvent(): void {
+		$certificateSerialNumber = null;
+		if ($this->signWithoutPassword) {
+			try {
+				$certificateInfo = $this->getEngine()->readCertificate();
+				if (isset($certificateInfo['serialNumber']) && is_string($certificateInfo['serialNumber'])) {
+					$certificateSerialNumber = $certificateInfo['serialNumber'];
+				} else {
+					$this->logger->warning('Unable to extract certificate serial number for event payload');
+				}
+			} catch (\Throwable $e) {
+				$this->logger->error('Failed to get certificate info for event', [
+					'exception' => $e,
+					'signRequestId' => $this->signRequest->getId()
+				]);
+			}
+		}
+
 		$event = $this->signedEventFactory->make(
 			$this->signRequest,
 			$this->libreSignFile,
 			$this->getEngine()->getInputFile(),
+			$this->signWithoutPassword,
+			$certificateSerialNumber,
 		);
 		$this->eventDispatcher->dispatchTyped($event);
 	}
