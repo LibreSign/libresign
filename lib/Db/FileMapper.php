@@ -10,10 +10,11 @@ namespace OCA\Libresign\Db;
 
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\NodeType;
+use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\AppFramework\Db\QBMapper;
 use OCP\Comments\ICommentsManager;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\ICacheFactory;
 use OCP\IDBConnection;
 use OCP\IL10N;
 
@@ -21,25 +22,55 @@ use OCP\IL10N;
  * Class FileMapper
  *
  * @package OCA\Libresign\DB
- * @template-extends QBMapper<File>
+ * @template-extends CachedQBMapper<File>
  */
-class FileMapper extends QBMapper {
-	/** @var File[] */
-	private $file = [];
-
+class FileMapper extends CachedQBMapper {
 	public function __construct(
 		IDBConnection $db,
 		private IL10N $l,
+		ICacheFactory $cacheFactory,
 	) {
-		parent::__construct($db, 'libresign_file');
+		parent::__construct($db, $cacheFactory, 'libresign_file');
 	}
 
-	public function flushCache(?int $fileId = null): void {
-		if ($fileId !== null) {
-			$this->file = array_filter($this->file, fn ($f) => $f->getId() !== $fileId);
-		} else {
-			$this->file = [];
+	#[\Override]
+	public function update(Entity $entity): File {
+		$entityId = $entity->getId();
+		if ($entityId !== null) {
+			$cached = $this->cacheGet('id:' . $entityId);
+			if ($cached instanceof File) {
+				$nodeId = $cached->getNodeId();
+				if ($nodeId !== null) {
+					$this->cacheRemove('node_id:' . $nodeId);
+				}
+				$uuid = $cached->getUuid();
+				if ($uuid !== '') {
+					$this->cacheRemove('uuid:' . $uuid);
+				}
+			}
 		}
+		/** @var File */
+		return parent::update($entity);
+	}
+
+	#[\Override]
+	protected function cacheEntity(Entity $entity): void {
+		parent::cacheEntity($entity);
+		if ($entity instanceof File) {
+			$nodeId = $entity->getNodeId();
+			if ($nodeId !== null) {
+				$this->cacheSet('node_id:' . $nodeId, $entity->getId());
+			}
+			$uuid = $entity->getUuid();
+			if ($uuid !== '') {
+				$this->cacheSet('uuid:' . $uuid, $entity->getId());
+			}
+		}
+	}
+
+	#[\Override]
+	protected function shouldClearCacheOnDelete(): bool {
+		return true;
 	}
 
 	/**
@@ -49,10 +80,9 @@ class FileMapper extends QBMapper {
 	 * @return File Row of table libresign_file
 	 */
 	public function getById(int $id): File {
-		foreach ($this->file as $file) {
-			if ($file->getId() === $id) {
-				return $file;
-			}
+		$cached = $this->cacheGet('id:' . $id);
+		if ($cached instanceof File) {
+			return $cached;
 		}
 		$qb = $this->db->getQueryBuilder();
 
@@ -64,9 +94,7 @@ class FileMapper extends QBMapper {
 
 		/** @var File */
 		$file = $this->findEntity($qb);
-
-		$this->file = array_filter($this->file, fn ($f) => $f->getId() !== $id);
-		$this->file[] = $file;
+		$this->cacheEntity($file);
 
 		return $file;
 	}
@@ -78,11 +106,6 @@ class FileMapper extends QBMapper {
 	 * @return File Row of table libresign_file
 	 */
 	public function getBySignedHash(string $hash): File {
-		foreach ($this->file as $file) {
-			if ($file->getSignedHash() === $hash) {
-				return $file;
-			}
-		}
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('f.*')
@@ -98,21 +121,17 @@ class FileMapper extends QBMapper {
 
 		/** @var File */
 		$file = $this->findEntity($qb);
-		$this->file[] = $file;
+		$this->cacheEntity($file);
 		return $file;
 	}
 
 	/**
 	 * Return LibreSign file by file UUID
 	 */
-	public function getByUuid(?string $uuid = null): File {
-		if (is_null($uuid) && !empty($this->file)) {
-			return current($this->file);
-		}
-		foreach ($this->file as $file) {
-			if ($file->getUuid() === $uuid) {
-				return $file;
-			}
+	public function getByUuid(string $uuid): File {
+		$cachedId = $this->cacheGet('uuid:' . $uuid);
+		if (is_int($cachedId) || (is_string($cachedId) && ctype_digit($cachedId))) {
+			return $this->getById((int)$cachedId);
 		}
 		$qb = $this->db->getQueryBuilder();
 
@@ -124,9 +143,7 @@ class FileMapper extends QBMapper {
 
 		/** @var File */
 		$file = $this->findEntity($qb);
-
-		$this->file = array_filter($this->file, fn ($f) => $f->getUuid() !== $uuid);
-		$this->file[] = $file;
+		$this->cacheEntity($file);
 
 		return $file;
 	}
@@ -135,9 +152,6 @@ class FileMapper extends QBMapper {
 	 * Return LibreSign file by signer UUID
 	 */
 	public function getBySignerUuid(?string $uuid = null): File {
-		if (is_null($uuid) && !empty($this->file)) {
-			return current($this->file);
-		}
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('f.*')
@@ -149,7 +163,7 @@ class FileMapper extends QBMapper {
 
 		/** @var File */
 		$file = $this->findEntity($qb);
-		$this->file[] = $file;
+		$this->cacheEntity($file);
 		return $file;
 	}
 
@@ -157,13 +171,10 @@ class FileMapper extends QBMapper {
 	 * Return LibreSign file by nodeId
 	 */
 	public function getByNodeId(?int $nodeId = null): File {
-		$exists = array_filter($this->file, fn ($f) => $f->getNodeId() === $nodeId || $f->getSignedNodeId() === $nodeId);
-		if (!empty($exists)) {
-			return current($exists);
-		}
-		foreach ($this->file as $file) {
-			if ($file->getNodeId() === $nodeId) {
-				return $file;
+		if ($nodeId !== null) {
+			$cachedId = $this->cacheGet('node_id:' . $nodeId);
+			if (is_int($cachedId) || (is_string($cachedId) && ctype_digit($cachedId))) {
+				return $this->getById((int)$cachedId);
 			}
 		}
 		$qb = $this->db->getQueryBuilder();
@@ -179,16 +190,11 @@ class FileMapper extends QBMapper {
 
 		/** @var File */
 		$file = $this->findEntity($qb);
-		$this->file[] = $file;
+		$this->cacheEntity($file);
 		return $file;
 	}
 
-	public function fileIdExists(int $nodeId): bool {
-		$exists = array_filter($this->file, fn ($f) => $f->getNodeId() === $nodeId || $f->getSignedNodeId() === $nodeId);
-		if (!empty($exists)) {
-			return true;
-		}
-
+	public function nodeIdExists(int $nodeId): bool {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
@@ -203,7 +209,7 @@ class FileMapper extends QBMapper {
 		$files = $this->findEntities($qb);
 		if (!empty($files)) {
 			foreach ($files as $file) {
-				$this->file[] = $file;
+				$this->cacheEntity($file);
 			}
 			return true;
 		}
@@ -228,7 +234,7 @@ class FileMapper extends QBMapper {
 		while ($row = $cursor->fetch()) {
 			/** @var File */
 			$file = $this->mapRowToEntity($row);
-			$this->file[] = $file;
+			$this->cacheEntity($file);
 			$return[] = $file;
 		}
 		return $return;
@@ -267,11 +273,6 @@ class FileMapper extends QBMapper {
 	 * @return File[]
 	 */
 	public function getChildrenFiles(int $parentId): array {
-		$cached = array_filter($this->file, fn ($f) => $f->getParentFileId() === $parentId);
-		if (!empty($cached) && count($cached) > 1) {
-			return array_values($cached);
-		}
-
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
@@ -287,7 +288,7 @@ class FileMapper extends QBMapper {
 		$children = $this->findEntities($qb);
 
 		foreach ($children as $child) {
-			$this->file[] = $child;
+			$this->cacheEntity($child);
 		}
 
 		return $children;
@@ -304,11 +305,6 @@ class FileMapper extends QBMapper {
 	}
 
 	public function countChildrenFiles(int $envelopeId): int {
-		$cached = array_filter($this->file, fn ($f) => $f->getParentFileId() === $envelopeId);
-		if (!empty($cached)) {
-			return count($cached);
-		}
-
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select($qb->func()->count('*', 'count'))
