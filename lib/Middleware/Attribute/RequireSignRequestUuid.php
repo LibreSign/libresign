@@ -14,10 +14,15 @@ use Attribute;
 class RequireSignRequestUuid {
 	public function __construct(
 		protected bool $skipIfAuthenticated = false,
+		protected bool $redirectIfSignedToValidation = false,
 	) {
 	}
 
 	public function skipIfAuthenticated(): bool {
 		return $this->skipIfAuthenticated;
+	}
+
+	public function redirectIfSignedToValidation(): bool {
+		return $this->redirectIfSignedToValidation;
 	}
 }
