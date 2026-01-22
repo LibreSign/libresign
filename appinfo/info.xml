@@ -25,7 +25,7 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
 
 * [Donate with GitHub Sponsor: ![Donate using GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/libresign)
 	]]></description>
-	<version>13.0.0-dev.6</version>
+	<version>14.0.0-dev.1</version>
 	<licence>agpl</licence>
 	<author mail="contact@librecode.coop" homepage="https://librecode.coop">LibreCode</author>
 	<types>
@@ -48,7 +48,7 @@ Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform 
 	<donation type="stripe" title="Donate via Stripe">https://buy.stripe.com/eVqfZibhx8QO3LseWc2kw00</donation>
 	<dependencies>
 		<lib>openssl</lib>
-		<nextcloud min-version="33" max-version="33"/>
+		<nextcloud min-version="34" max-version="34"/>
 		<architecture>x86_64</architecture>
 		<architecture>aarch64</architecture>
 	</dependencies>
