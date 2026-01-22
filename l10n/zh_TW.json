@@ -167,6 +167,7 @@
     "View" : "檢視",
     "Changes have been made in a file that you have to sign." : "一份需要您簽署的檔案進行了多處變更。",
     "Dismiss notification" : "忽略通知",
+    "in %s" : "在 %s",
     "UUID not found" : "找不到 UUID",
     "Password is mandatory" : "密碼為必填",
     "You must have an email. You can define the email in your profile." : "您必須要有電子郵件。您可以在您的設定檔中定義電子郵件。",

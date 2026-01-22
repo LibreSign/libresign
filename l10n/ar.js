@@ -197,6 +197,7 @@ OC.L10N.register(
     "Validate" : "التحقق من الصحة",
     "Documents Validation" : "التحقق من صحة الوثائق",
     "Settings" : "الإعدادات",
+    "Duplicate" : "تكرار",
     "Loading …" : "التحميل جارٍ ...",
     "Name" : "الاسم",
     "Update" : "تحديث",

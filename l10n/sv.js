@@ -131,6 +131,7 @@ OC.L10N.register(
     "View" : "Visa",
     "Changes have been made in a file that you have to sign." : "Ändringar har gjorts i en fil som du måste signera.",
     "Dismiss notification" : "Avfärda notifiering",
+    "in %s" : "om %s",
     "UUID not found" : "UUID hittades inte",
     "Password is mandatory" : "Lösenord är obligatoriskt",
     "You must have an email. You can define the email in your profile." : "Du måste ha e-post. Du kan definiera e-post i din profil.",

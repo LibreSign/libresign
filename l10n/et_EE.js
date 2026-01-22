@@ -100,6 +100,7 @@ OC.L10N.register(
     "File sharing" : "Failide jagamine",
     "View" : "Vaata",
     "Dismiss notification" : "Sulge teavitus",
+    "in %s" : "kaustas %s",
     "Password is mandatory" : "Salasõna on kohustuslik",
     "Password to sign is mandatory" : "Salasõna on allkirjastamisel kohustuslik",
     "Visible element file must be png." : "Nähtav element peab olema png.",

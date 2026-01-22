@@ -51,6 +51,7 @@ OC.L10N.register(
     "File sharing" : "Cumpartzidura de archìvios",
     "View" : "Visualiza",
     "Dismiss notification" : "Iscarta notìfica",
+    "in %s" : "in %s",
     "UUID not found" : "No se ha hallado el UUID",
     "Password is mandatory" : "Sa crae est pretzisa",
     "You must have an email. You can define the email in your profile." : "Depes tènnere un'indiritzu de posta eletrònica. Ddu podes ispetzificare in su profilu tuo?",

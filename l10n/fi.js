@@ -110,6 +110,7 @@ OC.L10N.register(
     "View" : "Näytä",
     "Changes have been made in a file that you have to sign." : "Tiedostoon, joka sinun täytyy allekirjoittaa, on tehty muutoksia.",
     "Dismiss notification" : "Hylkää ilmoitus",
+    "in %s" : "luokassa %s",
     "UUID not found" : "UUID:tä ei löytynyt",
     "Password is mandatory" : "Salasana on pakollinen",
     "You must have an email. You can define the email in your profile." : "Sinulla tulee olla sähköpostiosoite. Voit määrittää sähköpostiosoitteen profiilissasi.",

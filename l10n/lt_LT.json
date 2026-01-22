@@ -57,6 +57,7 @@
     "View" : "Rodyti",
     "Changes have been made in a file that you have to sign." : "Faile, kurį turite pasirašyti, buvo atlikti pakeitimai.",
     "Dismiss notification" : "Atmesti pranešimą",
+    "in %s" : "per %s",
     "UUID not found" : "UUID nerastas",
     "Password is mandatory" : "Slaptažodis yra privalomas",
     "You must have an email. You can define the email in your profile." : "Jūs privalote turėti el. paštą. Galite apibrėžti el. paštą savo profilyje.",

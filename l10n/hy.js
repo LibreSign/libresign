@@ -12,6 +12,7 @@ OC.L10N.register(
     "File not found" : "Ֆայլը չգտնվեց",
     "Invalid file provided" : "Անվավեր նիշք",
     "File is too big" : "Նիշքը չափազանց մեծ է",
+    "in %s" : "դեպի {ուղի}",
     "Email" : "Էլ․փոստ",
     "Cancel" : "ընդհատել",
     "Save" : "Պահպանել",

@@ -17,6 +17,7 @@ OC.L10N.register(
     "File sharing" : "Shpërndarja e skedarëve",
     "View" : "Shiko",
     "Dismiss notification" : "Hiq lajmërimin",
+    "in %s" : "në %s",
     "Account" : "Llogari",
     "Invalid user" : "Përdorues i pavlefshëm",
     "Email" : "Emaili",

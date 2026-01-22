@@ -129,6 +129,7 @@
     "View" : "Afficher",
     "Changes have been made in a file that you have to sign." : "Des modifications ont été faites dans un fichier que vous avez signé.",
     "Dismiss notification" : "Ignorer la notification",
+    "in %s" : "dans %s",
     "UUID not found" : "UUID non trouvé",
     "Password is mandatory" : "Le mot de passe est obligatoire",
     "You must have an email. You can define the email in your profile." : "Vous devez voir un e-mail. Vous pouvez définir l'e-mail dans votre profil.",

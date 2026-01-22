@@ -12,6 +12,7 @@ OC.L10N.register(
     "Invalid password" : "Yir awal uffir",
     "Internal Server Error" : "Tuccḍa tagensant n uqeddac",
     "File is too big" : "Afaylu-agi bezzaf meqqer",
+    "in %s" : "deg {ubrid}",
     "Email" : "Imayl",
     "Cancel" : "Sefsex",
     "Save" : "Sekles",

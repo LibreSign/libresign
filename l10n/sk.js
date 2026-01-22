@@ -125,6 +125,7 @@ OC.L10N.register(
     "View" : "Zobrazenie",
     "Changes have been made in a file that you have to sign." : "V súbore ktorý chcete podpísať boli urobené zmeny.",
     "Dismiss notification" : "Zatvoriť upozornenie",
+    "in %s" : "v %s",
     "UUID not found" : "UUID nenájdené",
     "Password is mandatory" : "Heslo je povinné",
     "You must have an email. You can define the email in your profile." : "Musíte mať email. Môžete si nadefinovať email vo vašom profile.",

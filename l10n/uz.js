@@ -17,6 +17,7 @@ OC.L10N.register(
     "Invalid file provided" : "Invalid file provided",
     "File is too big" : "File is too big",
     "View" : "Ko'rish",
+    "in %s" : " %s da",
     "Account" : "Akkaunt",
     "Email" : "Email",
     "Cancel" : "Bekor qilish",
