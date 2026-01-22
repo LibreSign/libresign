@@ -31,6 +31,8 @@
 import Chip from '../../components/Chip.vue'
 import Sign from '../../views/SignPDF/_partials/Sign.vue'
 
+import { loadState } from '@nextcloud/initial-state'
+
 import { FILE_STATUS } from '../../constants.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
@@ -48,7 +50,10 @@ export default {
 	},
 	mounted() {
 		if (this.signStore.document?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
-			this.onSigningStarted({ fileUuid: this.signStore.document.uuid })
+			const signRequestUuid = this.getSignRequestUuid()
+			if (signRequestUuid) {
+				this.onSigningStarted({ signRequestUuid })
+			}
 		}
 	},
 	methods: {
@@ -56,11 +61,18 @@ export default {
 			return FILE_STATUS.ABLE_TO_SIGN === this.signStore.document.status
 				|| FILE_STATUS.PARTIAL_SIGNED === this.signStore.document.status
 		},
+		getSignRequestUuid() {
+			const doc = this.signStore.document || {}
+			const signer = doc.signers?.find(row => row.me) || doc.signers?.[0] || {}
+			const fromDoc = doc.signRequestUuid || doc.sign_request_uuid || doc.signUuid || doc.sign_uuid
+			const fromSigner = signer.sign_uuid
+			return fromDoc || fromSigner || loadState('libresign', 'sign_request_uuid', null)
+		},
 		onSigned(data) {
 			this.$router.push({
 				name: this.$route.path.startsWith('/p/') ? 'ValidationFileExternal' : 'ValidationFile',
 				params: {
-					uuid: data.file.uuid,
+					uuid: data.signRequestUuid,
 					isAfterSigned: true,
 				},
 			})
@@ -69,7 +81,7 @@ export default {
 			this.$router.push({
 				name: this.$route.path.startsWith('/p/') ? 'ValidationFileExternal' : 'ValidationFile',
 				params: {
-					uuid: payload.fileUuid,
+					uuid: payload.signRequestUuid,
 					isAfterSigned: false,
 					isAsync: true,
 				},
