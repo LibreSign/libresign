@@ -6,13 +6,15 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service;
+namespace OCA\Libresign\Service\SignRequest;
 
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
+use OCA\Libresign\Service\FileStatusService;
+use OCA\Libresign\Service\SequentialSigningService;
 
-class SignRequestStatusService {
+class StatusService {
 	public function __construct(
 		private SequentialSigningService $sequentialSigningService,
 		private FileStatusService $fileStatusService,
