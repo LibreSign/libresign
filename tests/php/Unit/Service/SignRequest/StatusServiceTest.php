@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 /**
- * SPDX-FileCopyrightText: 2025 LibreCode coop and contributors
+ * SPDX-FileCopyrightText: 2026 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
@@ -11,20 +11,20 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\SequentialSigningService;
-use OCA\Libresign\Service\SignRequestStatusService;
+use OCA\Libresign\Service\SignRequest\StatusService;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
-final class SignRequestStatusServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class StatusServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SequentialSigningService&MockObject $sequentialSigningService;
 	private FileStatusService&MockObject $fileStatusService;
-	private SignRequestStatusService $service;
+	private StatusService $service;
 
 	public function setUp(): void {
 		parent::setUp();
 		$this->sequentialSigningService = $this->createMock(SequentialSigningService::class);
 		$this->fileStatusService = $this->createMock(FileStatusService::class);
-		$this->service = new SignRequestStatusService(
+		$this->service = new StatusService(
 			$this->sequentialSigningService,
 			$this->fileStatusService
 		);
