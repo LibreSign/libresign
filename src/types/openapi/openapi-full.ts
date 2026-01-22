@@ -726,26 +726,6 @@ export type paths = {
         patch: operations["file_element-patch"];
         trace?: never;
     };
-    "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/{fileId}/wait-status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Wait for file/envelope status changes (long polling)
-         * @description Keeps connection open for up to 30 seconds waiting for status change.
-         */
-        get: operations["file_progress-wait-for-status-change"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/progress/{uuid}": {
         parameters: {
             query?: never;
@@ -754,8 +734,8 @@ export type paths = {
             cookie?: never;
         };
         /**
-         * Check file progress by UUID with long-polling (similar to Talk)
-         * @description Waits up to 30 seconds for status change using cache for efficiency.
+         * Check file progress by sign request UUID with long-polling (similar to Talk)
+         * @description Waits up to 30 seconds for status change using cache for efficiency. Returns progress for the specific sign request, not the global file status.
          */
         get: operations["file_progress-check-progress-by-uuid"];
         put?: never;
@@ -3964,67 +3944,6 @@ export interface operations {
             };
         };
     };
-    "file_progress-wait-for-status-change": {
-        parameters: {
-            query: {
-                /** @description Current status known by client */
-                currentStatus: number;
-                /** @description Seconds to wait (default 30, max 30) */
-                timeout?: number;
-            };
-            header: {
-                /** @description Required to be true for the API request to pass */
-                "OCS-APIRequest": boolean;
-            };
-            path: {
-                apiVersion: "v1";
-                /** @description LibreSign file ID */
-                fileId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Status and progress returned */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                /** Format: int64 */
-                                status: number;
-                                statusText: string;
-                                name: string;
-                                progress: {
-                                    [key: string]: Record<string, never>;
-                                };
-                            };
-                        };
-                    };
-                };
-            };
-            /** @description File not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ocs: {
-                            meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                message: string;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-    };
     "file_progress-check-progress-by-uuid": {
         parameters: {
             query?: {
@@ -4037,7 +3956,7 @@ export interface operations {
             };
             path: {
                 apiVersion: "v1";
-                /** @description File UUID */
+                /** @description Sign request UUID */
                 uuid: string;
             };
             cookie?: never;
@@ -4063,12 +3982,13 @@ export interface operations {
                                 progress: {
                                     [key: string]: Record<string, never>;
                                 };
+                                file?: components["schemas"]["ValidateFile"];
                             };
                         };
                     };
                 };
             };
-            /** @description File not found */
+            /** @description Sign request not found */
             404: {
                 headers: {
                     [name: string]: unknown;

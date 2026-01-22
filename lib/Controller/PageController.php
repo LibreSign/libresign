@@ -188,28 +188,43 @@ class PageController extends AEnvironmentPageAwareController {
 		if (preg_match('/validation\/(?<uuid>[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/', $path, $matches)) {
 
 			try {
-				$this->initialState->provideInitialState('file_info',
-					$this->fileService
-						->setFileByUuid($matches['uuid'])
-						->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
-						->setHost($this->request->getServerHost())
-						->setMe($this->userSession->getUser())
-						->showVisibleElements()
-						->showSigners()
-						->showSettings()
-						->showMessages()
-						->showValidateFile()
-						->toArray()
-				);
+				$this->fileService->setFileByUuid($matches['uuid']);
 			} catch (LibresignException) {
-				throw new LibresignException(json_encode([
-					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [['message' => $this->l10n->t('Invalid UUID')]],
-				]), Http::STATUS_NOT_FOUND);
+				try {
+					$this->fileService->setFileBySignerUuid($matches['uuid']);
+				} catch (LibresignException) {
+					throw new LibresignException(json_encode([
+						'action' => JSActions::ACTION_DO_NOTHING,
+						'errors' => [['message' => $this->l10n->t('Invalid UUID')]],
+					]), Http::STATUS_NOT_FOUND);
+				}
 			}
+
+			$this->initialState->provideInitialState('file_info',
+				$this->fileService
+					->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
+					->setHost($this->request->getServerHost())
+					->setMe($this->userSession->getUser())
+					->showVisibleElements()
+					->showSigners()
+					->showSettings()
+					->showMessages()
+					->showValidateFile()
+					->toArray()
+			);
 		} elseif (preg_match('/sign\/(?<uuid>[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/', $path, $matches)) {
 			try {
 				$signRequest = $this->signFileService->getSignRequestByUuid($matches['uuid']);
+				if ($signRequest->getStatusEnum() === \OCA\Libresign\Enum\SignRequestStatus::SIGNED) {
+					$file = $this->signFileService->getFile($signRequest->getFileId());
+					$redirectUrl = $this->urlGenerator->linkToRouteAbsolute('libresign.page.indexFPath', [
+						'path' => 'validation/' . $file->getUuid(),
+					]);
+					throw new LibresignException(json_encode([
+						'action' => JSActions::ACTION_REDIRECT,
+						'redirect' => $redirectUrl,
+					]), Http::STATUS_SEE_OTHER);
+				}
 				$file = $this->fileService
 					->setFile($this->signFileService->getFile($signRequest->getFileId()))
 					->setMe($this->userSession->getUser())
@@ -218,6 +233,8 @@ class PageController extends AEnvironmentPageAwareController {
 					->toArray();
 				$this->initialState->provideInitialState('needIdentificationDocuments', $file['settings']['needIdentificationDocuments'] ?? false);
 				$this->initialState->provideInitialState('identificationDocumentsWaitingApproval', $file['settings']['identificationDocumentsWaitingApproval'] ?? false);
+			} catch (LibresignException $e) {
+				throw $e;
 			} catch (\Throwable $e) {
 				throw new LibresignException(json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
@@ -241,7 +258,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[PublicPage]
-	#[RequireSignRequestUuid]
+	#[RequireSignRequestUuid(redirectIfSignedToValidation: true)]
 	#[FrontpageRoute(verb: 'GET', url: '/f/sign/{uuid}')]
 	public function signF(string $uuid): TemplateResponse {
 		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN_INTERNAL);
@@ -262,7 +279,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[PublicPage]
-	#[RequireSignRequestUuid]
+	#[RequireSignRequestUuid(redirectIfSignedToValidation: true)]
 	#[FrontpageRoute(verb: 'GET', url: '/f/sign/{uuid}/{path}', requirements: ['path' => '.+'])]
 	public function signFPath(string $uuid): TemplateResponse {
 		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN_INTERNAL);
@@ -283,7 +300,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[PublicPage]
-	#[RequireSignRequestUuid]
+	#[RequireSignRequestUuid(redirectIfSignedToValidation: true)]
 	#[FrontpageRoute(verb: 'GET', url: '/p/sign/{uuid}/{path}', requirements: ['path' => '.+'])]
 	public function signPPath(string $uuid): TemplateResponse {
 		return $this->sign($uuid);
@@ -304,7 +321,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[PublicPage]
-	#[RequireSignRequestUuid]
+	#[RequireSignRequestUuid(redirectIfSignedToValidation: true)]
 	#[FrontpageRoute(verb: 'GET', url: '/p/sign/{uuid}')]
 	public function sign(string $uuid): TemplateResponse {
 		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN);

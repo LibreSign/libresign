@@ -63,9 +63,10 @@ export default {
 		NcIconSvgWrapper,
 	},
 	props: {
-		uuid: {
+		signRequestUuid: {
 			type: String,
 			required: true,
+			description: 'Sign request UUID (not file UUID)',
 		},
 	},
 	emits: ['completed', 'error', 'status-changed'],
@@ -82,14 +83,14 @@ export default {
 		}
 	},
 	watch: {
-		uuid(newUuid, oldUuid) {
+		signRequestUuid(newUuid, oldUuid) {
 			if (newUuid && newUuid !== oldUuid) {
 				this.startPolling()
 			}
 		},
 	},
 	mounted() {
-		if (this.uuid) {
+		if (this.signRequestUuid) {
 			this.startPolling()
 		}
 	},
@@ -98,7 +99,7 @@ export default {
 	},
 	methods: {
 		startPolling() {
-			if (this.isPolling || !this.uuid) {
+			if (this.isPolling || !this.signRequestUuid) {
 				return
 			}
 			this.isPolling = true
@@ -119,7 +120,7 @@ export default {
 
 		try {
 			const { data } = await axios.get(
-				generateOcsUrl(`/apps/libresign/api/v1/file/progress/${this.uuid}`),
+				generateOcsUrl(`/apps/libresign/api/v1/file/progress/${this.signRequestUuid}`),
 				{
 					params: { timeout: 0 },
 					timeout: 35000,
@@ -138,13 +139,28 @@ export default {
 				await this.fetchProgressFromValidation()
 			}
 
-			if (status === 'SIGNED') {
+			if (responseData?.file) {
+				this.stopPolling()
+				this.$emit('completed', responseData.file)
+				return
+			}
+
+			const progressReady = this.progress && (this.progress.total ?? 0) > 0
+			const allSigned = progressReady && (this.progress.signed ?? 0) >= (this.progress.total ?? 0)
+			const hasPendingWork = !progressReady
+				|| !allSigned
+				|| (this.progress.pending ?? 0) > 0
+				|| (this.progress.inProgress ?? 0) > 0
+
+			if (status === 'SIGNED' && !hasPendingWork) {
 				this.stopPolling()
 				this.$emit('completed')
 			} else if (status === 'ERROR') {
 				this.stopPolling()
 				this.$emit('error', t('libresign', 'Signing failed. Please try again.'))
 			} else if (status === 'SIGNING_IN_PROGRESS') {
+				this.pollingInterval = setTimeout(() => this.pollFileProgress(), 1000)
+			} else if (status === 'SIGNED' && hasPendingWork) {
 				this.pollingInterval = setTimeout(() => this.pollFileProgress(), 1000)
 			} else {
 				this.pollingInterval = setTimeout(() => this.pollFileProgress(), 2000)
@@ -161,7 +177,7 @@ export default {
 	async fetchProgressFromValidation() {
 		try {
 			const { data } = await axios.get(
-				generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${this.uuid}`)
+				generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${this.signRequestUuid}`)
 			)
 			const doc = data.ocs?.data || data
 			const derived = this.buildProgressFromValidation(doc)

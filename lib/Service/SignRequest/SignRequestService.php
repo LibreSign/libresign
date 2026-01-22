@@ -6,11 +6,12 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-namespace OCA\Libresign\Service;
+namespace OCA\Libresign\Service\SignRequest;
 
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IL10N;
 use OCP\IUserManager;
@@ -22,7 +23,7 @@ class SignRequestService {
 		protected SignRequestMapper $signRequestMapper,
 		protected IUserManager $userManager,
 		protected IdentifyMethodService $identifyMethodService,
-		protected SignRequestStatusService $signRequestStatusService,
+		protected StatusService $signRequestStatusService,
 	) {
 	}
 
