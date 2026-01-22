@@ -5989,181 +5989,16 @@
                 }
             }
         },
-        "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/{fileId}/wait-status": {
-            "get": {
-                "operationId": "file_progress-wait-for-status-change",
-                "summary": "Wait for file/envelope status changes (long polling)",
-                "description": "Keeps connection open for up to 30 seconds waiting for status change.",
-                "tags": [
-                    "file_progress"
-                ],
-                "security": [
-                    {
-                        "bearer_auth": []
-                    },
-                    {
-                        "basic_auth": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "apiVersion",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "v1"
-                            ],
-                            "default": "v1"
-                        }
-                    },
-                    {
-                        "name": "fileId",
-                        "in": "path",
-                        "description": "LibreSign file ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64"
-                        }
-                    },
-                    {
-                        "name": "currentStatus",
-                        "in": "query",
-                        "description": "Current status known by client",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64"
-                        }
-                    },
-                    {
-                        "name": "timeout",
-                        "in": "query",
-                        "description": "Seconds to wait (default 30, max 30)",
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64",
-                            "default": 30
-                        }
-                    },
-                    {
-                        "name": "OCS-APIRequest",
-                        "in": "header",
-                        "description": "Required to be true for the API request to pass",
-                        "required": true,
-                        "schema": {
-                            "type": "boolean",
-                            "default": true
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status and progress returned",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "status",
-                                                        "statusText",
-                                                        "name",
-                                                        "progress"
-                                                    ],
-                                                    "properties": {
-                                                        "status": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "statusText": {
-                                                            "type": "string"
-                                                        },
-                                                        "name": {
-                                                            "type": "string"
-                                                        },
-                                                        "progress": {
-                                                            "type": "object",
-                                                            "additionalProperties": {
-                                                                "type": "object"
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "File not found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "ocs"
-                                    ],
-                                    "properties": {
-                                        "ocs": {
-                                            "type": "object",
-                                            "required": [
-                                                "meta",
-                                                "data"
-                                            ],
-                                            "properties": {
-                                                "meta": {
-                                                    "$ref": "#/components/schemas/OCSMeta"
-                                                },
-                                                "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "message"
-                                                    ],
-                                                    "properties": {
-                                                        "message": {
-                                                            "type": "string"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/ocs/v2.php/apps/libresign/api/{apiVersion}/file/progress/{uuid}": {
             "get": {
                 "operationId": "file_progress-check-progress-by-uuid",
-                "summary": "Check file progress by UUID with long-polling (similar to Talk)",
-                "description": "Waits up to 30 seconds for status change using cache for efficiency.",
+                "summary": "Check file progress by sign request UUID with long-polling (similar to Talk)",
+                "description": "Waits up to 30 seconds for status change using cache for efficiency. Returns progress for the specific sign request, not the global file status.",
                 "tags": [
                     "file_progress"
                 ],
                 "security": [
+                    {},
                     {
                         "bearer_auth": []
                     },
@@ -6187,7 +6022,7 @@
                     {
                         "name": "uuid",
                         "in": "path",
-                        "description": "File UUID",
+                        "description": "Sign request UUID",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -6264,6 +6099,9 @@
                                                             "additionalProperties": {
                                                                 "type": "object"
                                                             }
+                                                        },
+                                                        "file": {
+                                                            "$ref": "#/components/schemas/ValidateFile"
                                                         }
                                                     }
                                                 }
@@ -6275,7 +6113,7 @@
                         }
                     },
                     "404": {
-                        "description": "File not found",
+                        "description": "Sign request not found",
                         "content": {
                             "application/json": {
                                 "schema": {
