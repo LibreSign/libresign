@@ -68,11 +68,6 @@ class FileMapper extends CachedQBMapper {
 		}
 	}
 
-	#[\Override]
-	protected function shouldClearCacheOnDelete(): bool {
-		return true;
-	}
-
 	/**
 	 * Return LibreSign file by ID
 	 *
