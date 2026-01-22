@@ -25,8 +25,8 @@ use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SequentialSigningService;
-use OCA\Libresign\Service\SignRequestService;
-use OCA\Libresign\Service\SignRequestStatusService;
+use OCA\Libresign\Service\SignRequest\SignRequestService;
+use OCA\Libresign\Service\SignRequest\StatusService;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClient;
@@ -259,11 +259,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		];
 	}
 
-	/**
-	 * Test that parallel flow correctly sets ABLE_TO_SIGN status for all signers
-	 * even when frontend sends status 0 (DRAFT) for individual signers,
-	 * as long as file status is ABLE_TO_SIGN (1)
-	 */
 	public function testParallelFlowIgnoresSignerDraftStatusWhenFileIsAbleToSign(): void {
 		$sequentialSigningService = $this->createMock(SequentialSigningService::class);
 		$sequentialSigningService
@@ -271,7 +266,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			->willReturn(false); // Parallel flow
 
 		$fileStatusService = $this->createMock(FileStatusService::class);
-		$statusService = new SignRequestStatusService($sequentialSigningService, $fileStatusService);
+		$statusService = new StatusService($sequentialSigningService, $fileStatusService);
 
 		// File status is ABLE_TO_SIGN (1)
 		$fileStatus = \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value;
@@ -295,9 +290,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		);
 	}
 
-	/**
-	 * Test that ordered flow respects signing order when file is ABLE_TO_SIGN
-	 */
 	public function testOrderedFlowRespectsSigningOrderWhenFileIsAbleToSign(): void {
 		$sequentialSigningService = $this->createMock(SequentialSigningService::class);
 		$sequentialSigningService
@@ -305,7 +297,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			->willReturn(true); // Ordered flow
 
 		$fileStatusService = $this->createMock(FileStatusService::class);
-		$statusService = new SignRequestStatusService($sequentialSigningService, $fileStatusService);
+		$statusService = new StatusService($sequentialSigningService, $fileStatusService);
 
 		$fileStatus = \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value;
 		$signerStatus = \OCA\Libresign\Enum\SignRequestStatus::DRAFT->value;

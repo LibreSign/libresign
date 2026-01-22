@@ -15,6 +15,7 @@ use OCA\Libresign\Controller\AEnvironmentPageAwareController;
 use OCA\Libresign\Controller\ISignatureUuid;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Helper\JSActions;
@@ -24,6 +25,7 @@ use OCA\Libresign\Middleware\Attribute\PrivateValidation;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
+use OCA\Libresign\Middleware\Attribute\RequireSignerUuid;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Controller;
@@ -85,6 +87,9 @@ class InjectionMiddleware extends Middleware {
 		if (!empty($reflectionMethod->getAttributes(RequireSigner::class))) {
 			$this->requireSigner();
 		}
+		if (!empty($reflectionMethod->getAttributes(RequireSignerUuid::class))) {
+			$this->requireSignerUuid();
+		}
 
 		$this->requireSetupOk($reflectionMethod);
 
@@ -139,6 +144,7 @@ class InjectionMiddleware extends Middleware {
 			/** @var RequireSignRequestUuid $intance */
 			$intance = $attribute->newInstance();
 			$user = $this->userSession->getUser();
+			$this->redirectSignedToValidationIfNeeded($intance);
 			if (!($intance->skipIfAuthenticated() && $user instanceof IUser)) {
 				/** @var AEnvironmentPageAwareController $controller */
 				$controller->validateSignRequestUuid(
@@ -173,6 +179,52 @@ class InjectionMiddleware extends Middleware {
 		} catch (LibresignException $e) {
 			throw new LibresignException($e->getMessage());
 		}
+	}
+
+	private function requireSignerUuid(): void {
+		$uuid = $this->getUuidFromRequest();
+
+		try {
+			$this->validateHelper->validateSignerUuid($uuid);
+		} catch (LibresignException $e) {
+			throw new LibresignException($e->getMessage());
+		}
+	}
+
+	private function redirectSignedToValidationIfNeeded(RequireSignRequestUuid $requirement): void {
+		if (!$requirement->redirectIfSignedToValidation()) {
+			return;
+		}
+
+		$uuid = $this->getUuidFromRequest();
+		if (!$uuid) {
+			return;
+		}
+
+		try {
+			$signRequest = $this->signRequestMapper->getByUuid($uuid);
+			if ($signRequest->getStatusEnum() !== SignRequestStatus::SIGNED) {
+				return;
+			}
+			$file = $this->fileMapper->getById($signRequest->getFileId());
+			$fileUuid = $file->getUuid();
+		} catch (\Throwable) {
+			return;
+		}
+
+		$path = $this->request->getRawPathInfo() ?? '';
+		$redirectUrl = str_contains($path, '/p/')
+			? $this->urlGenerator->linkToRouteAbsolute('libresign.page.validationFilePublic', [
+				'uuid' => $fileUuid,
+			])
+			: $this->urlGenerator->linkToRouteAbsolute('libresign.page.indexFPath', [
+				'path' => 'validation/' . $fileUuid,
+			]);
+
+		throw new LibresignException(json_encode([
+			'action' => JSActions::ACTION_REDIRECT,
+			'redirect' => $redirectUrl,
+		]), Http::STATUS_SEE_OTHER);
 	}
 
 	private function requireSetupOk(\ReflectionMethod $reflectionMethod): void {

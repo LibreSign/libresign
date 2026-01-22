@@ -145,6 +145,7 @@
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
+import { loadState } from '@nextcloud/initial-state'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
 
@@ -265,11 +266,11 @@ export default {
 			return true
 		},
 		signRequestUuid() {
-			const signer = this.signStore.document.signers.find(row => row.me) || {}
-			if (this.signStore.document.nodeType === 'envelope') {
-				return this.signStore.document.uuid
-			}
-			return signer.sign_uuid || this.signStore.document.uuid
+			const doc = this.signStore.document || {}
+			const signer = doc.signers?.find(row => row.me) || doc.signers?.[0] || {}
+			const fromDoc = doc.signRequestUuid || doc.sign_request_uuid || doc.signUuid || doc.sign_uuid
+			const fromSigner = signer.sign_uuid
+			return fromDoc || fromSigner || loadState('libresign', 'sign_request_uuid', null)
 		},
 	},
 	beforeUnmount() {
@@ -287,7 +288,7 @@ export default {
 				this.loading = false
 				if (this.signStore.document?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
 					this.$emit('signing-started', {
-						fileUuid: this.signStore.document.uuid,
+						signRequestUuid: this.signRequestUuid,
 						async: true,
 					})
 				}
@@ -413,7 +414,7 @@ export default {
 					if (responseData?.job?.status === 'SIGNING_IN_PROGRESS') {
 						this.signMethodsStore.closeModal(payload.method)
 						this.$emit('signing-started', {
-							fileUuid: this.signStore.document.uuid,
+							signRequestUuid: this.signRequestUuid,
 							async: true,
 						})
 						return
@@ -421,7 +422,11 @@ export default {
 					if (responseData?.action === 3500) { // ACTION_SIGNED
 						this.signMethodsStore.closeModal(payload.method)
 						this.sidebarStore.hideSidebar()
-						this.$emit('signed', responseData)
+						const signedPayload = {
+							...responseData,
+							signRequestUuid: this.signRequestUuid,
+						}
+						this.$emit('signed', signedPayload)
 					}
 				})
 				.catch((err) => {

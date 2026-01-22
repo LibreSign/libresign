@@ -684,6 +684,10 @@ class ValidateHelper {
 		$this->validateIdentifyMethod($uuid, $user);
 	}
 
+	public function validateSignerUuid(string $uuid): void {
+		$this->validateSignerUuidExists($uuid);
+	}
+
 	/**
 	 * @throws LibresignException
 	 */

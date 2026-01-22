@@ -809,12 +809,21 @@ export default {
 			this.filesStore.flushSelectedFile()
 		},
 		validationFile() {
+			const file = this.filesStore.getFile()
+			const signer = file?.signers?.find(row => row.me) || file?.signers?.[0] || {}
+			const targetUuid = file?.signUuid
+				|| file?.sign_uuid
+				|| file?.signRequestUuid
+				|| file?.sign_request_uuid
+				|| signer.sign_uuid
+				|| loadState('libresign', 'sign_request_uuid', null)
+
 			if (this.useModal) {
-				const route = router.resolve({ name: 'ValidationFileExternal', params: { uuid: this.filesStore.getFile().uuid } })
+				const route = router.resolve({ name: 'ValidationFileExternal', params: { uuid: targetUuid } })
 				this.modalSrc = route.href
 				return
 			}
-			this.$router.push({ name: 'ValidationFile', params: { uuid: this.filesStore.getFile().uuid } })
+			this.$router.push({ name: 'ValidationFile', params: { uuid: targetUuid } })
 			this.sidebarStore.hideSidebar()
 		},
 		addSigner() {
