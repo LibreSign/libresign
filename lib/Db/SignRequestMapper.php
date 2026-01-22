@@ -15,8 +15,8 @@ use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\Entity;
-use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\ICacheFactory;
 use OCP\IDBConnection;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -26,13 +26,9 @@ use OCP\IUser;
  * Class SignRequestMapper
  *
  * @package OCA\Libresign\DB
- * @template-extends QBMapper<SignRequest>
+ * @template-extends CachedQBMapper<SignRequest>
  */
-class SignRequestMapper extends QBMapper {
-	/**
-	 * @var SignRequest[]
-	 */
-	private $signers = [];
+class SignRequestMapper extends CachedQBMapper {
 	private bool $firstNotification = false;
 
 	public function __construct(
@@ -40,8 +36,36 @@ class SignRequestMapper extends QBMapper {
 		protected IL10N $l10n,
 		protected FileMapper $fileMapper,
 		private IURLGenerator $urlGenerator,
+		ICacheFactory $cacheFactory,
 	) {
-		parent::__construct($db, 'libresign_sign_request');
+		parent::__construct($db, $cacheFactory, 'libresign_sign_request');
+	}
+
+	#[\Override]
+	public function update(Entity $entity): SignRequest {
+		$entityId = $entity->getId();
+		if ($entityId !== null) {
+			$cached = $this->cacheGet('id:' . $entityId);
+			if ($cached instanceof SignRequest) {
+				$uuid = $cached->getUuid();
+				if ($uuid !== '') {
+					$this->cacheRemove('uuid:' . $uuid);
+				}
+			}
+		}
+		/** @var SignRequest */
+		return parent::update($entity);
+	}
+
+	#[\Override]
+	protected function cacheEntity(Entity $entity): void {
+		parent::cacheEntity($entity);
+		if ($entity instanceof SignRequest) {
+			$uuid = $entity->getUuid();
+			if ($uuid !== '') {
+				$this->cacheSet('uuid:' . $uuid, $entity->getId());
+			}
+		}
 	}
 
 	/**
@@ -76,24 +100,15 @@ class SignRequestMapper extends QBMapper {
 	}
 
 	/**
-	 * @inheritDoc
-	 */
-	public function update(Entity $entity): SignRequest {
-		/** @var SignRequest */
-		$signRequest = parent::update($entity);
-		$this->signers[$signRequest->getId()] = $signRequest;
-		return $signRequest;
-	}
-
-	/**
 	 * Get sign request by UUID
 	 *
 	 * @throws DoesNotExistException
 	 */
 	public function getByUuid(string $uuid): SignRequest {
-		foreach ($this->signers as $signRequest) {
-			if ($signRequest->getUuid() === $uuid) {
-				return $signRequest;
+		if ($uuid !== '') {
+			$cachedId = $this->cacheGet('uuid:' . $uuid);
+			if (is_int($cachedId) || (is_string($cachedId) && ctype_digit($cachedId))) {
+				return $this->getById((int)$cachedId);
 			}
 		}
 		$qb = $this->db->getQueryBuilder();
@@ -105,9 +120,7 @@ class SignRequestMapper extends QBMapper {
 			);
 		/** @var SignRequest */
 		$signRequest = $this->findEntity($qb);
-		if (!isset($this->signers[$signRequest->getId()])) {
-			$this->signers[$signRequest->getId()] = $signRequest;
-		}
+		$this->cacheEntity($signRequest);
 		return $signRequest;
 	}
 
@@ -123,7 +136,9 @@ class SignRequestMapper extends QBMapper {
 				$qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
 			);
 		/** @var SignRequest */
-		return $this->findEntity($qb);
+		$signRequest = $this->findEntity($qb);
+		$this->cacheEntity($signRequest);
+		return $signRequest;
 	}
 
 	public function getByIdentifyMethodAndFileId(IIdentifyMethod $identifyMethod, int $fileId): SignRequest {
@@ -135,7 +150,9 @@ class SignRequestMapper extends QBMapper {
 			->andWhere($qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($identifyMethod->getEntity()->getIdentifierValue())))
 			->andWhere($qb->expr()->eq('sr.file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)));
 		/** @var SignRequest */
-		return $this->findEntity($qb);
+		$signRequest = $this->findEntity($qb);
+		$this->cacheEntity($signRequest);
+		return $signRequest;
 	}
 
 	/**
@@ -154,25 +171,18 @@ class SignRequestMapper extends QBMapper {
 		/** @var SignRequest[] */
 		$signers = $this->findEntities($qb);
 		foreach ($signers as $signRequest) {
-			$this->signers[$signRequest->getId()] = $signRequest;
+			$this->cacheEntity($signRequest);
 		}
 		return $signers;
-	}
-
-	public function flushCache(?int $signRequestId = null): void {
-		if ($signRequestId !== null) {
-			unset($this->signers[$signRequestId]);
-		} else {
-			$this->signers = [];
-		}
 	}
 
 	/**
 	 * @throws DoesNotExistException
 	 */
 	public function getById(int $signRequestId): SignRequest {
-		if (isset($this->signers[$signRequestId])) {
-			return $this->signers[$signRequestId];
+		$cached = $this->cacheGet('id:' . $signRequestId);
+		if ($cached instanceof SignRequest) {
+			return $cached;
 		}
 		$qb = $this->db->getQueryBuilder();
 
@@ -184,9 +194,7 @@ class SignRequestMapper extends QBMapper {
 
 		/** @var SignRequest */
 		$signRequest = $this->findEntity($qb);
-		if (!isset($this->signers[$signRequest->getId()])) {
-			$this->signers[$signRequest->getId()] = $signRequest;
-		}
+		$this->cacheEntity($signRequest);
 		return $signRequest;
 	}
 
@@ -216,9 +224,7 @@ class SignRequestMapper extends QBMapper {
 		/** @var SignRequest[] */
 		$signRequests = $this->findEntities($qb);
 		foreach ($signRequests as $signRequest) {
-			if (!isset($this->signers[$signRequest->getId()])) {
-				$this->signers[$signRequest->getId()] = $signRequest;
-			}
+			$this->cacheEntity($signRequest);
 		}
 		return $signRequests;
 	}
@@ -278,9 +284,7 @@ class SignRequestMapper extends QBMapper {
 				}
 				$signRequest->resetUpdatedFields();
 				$identifyMethod->resetUpdatedFields();
-				if (!isset($this->signers[$signRequest->getId()])) {
-					$this->signers[$signRequest->getId()] = $signRequest;
-				}
+				$this->cacheEntity($signRequest);
 				yield $identifyMethod;
 			}
 		} finally {
@@ -309,7 +313,11 @@ class SignRequestMapper extends QBMapper {
 			->orderBy('sr.id', 'ASC');
 
 		/** @var SignRequest[] */
-		return $this->findEntities($qb);
+		$signers = $this->findEntities($qb);
+		foreach ($signers as $signRequest) {
+			$this->cacheEntity($signRequest);
+		}
+		return $signers;
 	}
 
 	/**
@@ -329,6 +337,9 @@ class SignRequestMapper extends QBMapper {
 
 		/** @var SignRequest[] */
 		$signers = $this->findEntities($qb);
+		foreach ($signers as $signRequest) {
+			$this->cacheEntity($signRequest);
+		}
 		return $signers;
 	}
 
@@ -351,9 +362,7 @@ class SignRequestMapper extends QBMapper {
 		/** @var SignRequest[] */
 		$signers = $this->findEntities($qb);
 		foreach ($signers as $signRequest) {
-			if (!isset($this->signers[$signRequest->getId()])) {
-				$this->signers[$signRequest->getId()] = $signRequest;
-			}
+			$this->cacheEntity($signRequest);
 		}
 		return $signers;
 	}
@@ -369,9 +378,7 @@ class SignRequestMapper extends QBMapper {
 
 		/** @var SignRequest */
 		$signRequest = $this->findEntity($qb);
-		if (!isset($this->signers[$signRequest->getId()])) {
-			$this->signers[$signRequest->getId()] = $signRequest;
-		}
+		$this->cacheEntity($signRequest);
 		return $signRequest;
 	}
 
@@ -386,7 +393,9 @@ class SignRequestMapper extends QBMapper {
 			);
 
 		/** @var SignRequest */
-		return $this->findEntity($qb);
+		$signRequest = $this->findEntity($qb);
+		$this->cacheEntity($signRequest);
+		return $signRequest;
 	}
 
 	public function getByFileIdAndEmail(int $file_id, string $email): SignRequest {
@@ -403,13 +412,12 @@ class SignRequestMapper extends QBMapper {
 			);
 
 		/** @var SignRequest */
-		return $this->findEntity($qb);
+		$signRequest = $this->findEntity($qb);
+		$this->cacheEntity($signRequest);
+		return $signRequest;
 	}
 
 	public function getByFileIdAndSignRequestId(int $fileId, int $signRequestId): SignRequest {
-		if (isset($this->signers[$signRequestId])) {
-			return $this->signers[$signRequestId];
-		}
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('sr.*')
@@ -421,12 +429,10 @@ class SignRequestMapper extends QBMapper {
 				$qb->expr()->eq('sr.id', $qb->createNamedParameter($signRequestId))
 			);
 
-		$signRequest = $this->findEntity($qb);
-		if (!isset($this->signers[$signRequest->getId()])) {
-			$this->signers[$signRequest->getId()] = $signRequest;
-		}
 		/** @var SignRequest */
-		return end($this->signers);
+		$signRequest = $this->findEntity($qb);
+		$this->cacheEntity($signRequest);
+		return $signRequest;
 	}
 
 	/**

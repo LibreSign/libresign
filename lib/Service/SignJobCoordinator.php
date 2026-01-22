@@ -124,9 +124,7 @@ class SignJobCoordinator {
 	 * @return array{0:FileEntity,1:SignRequestEntity}
 	 */
 	private function loadEntities(int $fileId, int $signRequestId): array {
-		$this->fileMapper->flushCache($fileId);
 		$file = $this->fileMapper->getById($fileId);
-		$this->signRequestMapper->flushCache($signRequestId);
 		$signRequest = $this->signRequestMapper->getById($signRequestId);
 		return [$file, $signRequest];
 	}
