@@ -8,6 +8,7 @@ OC.L10N.register(
     "Pending" : "Pendente",
     "File is too big" : "File es troppo grande",
     "View" : "Vider",
+    "in %s" : "in %s",
     "Invalid user" : "Usator invalide",
     "Email" : "E-posta",
     "Cancel" : "Cancellar",

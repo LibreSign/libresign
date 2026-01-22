@@ -21,6 +21,7 @@ OC.L10N.register(
     "File sharing" : "Compartir archivos",
     "View" : "Ver",
     "Dismiss notification" : "Eliminar notificación",
+    "in %s" : "en %s",
     "Account" : "Cuenta",
     "Invalid user" : "Usuario inválido",
     "Email" : "Correo electrónico",

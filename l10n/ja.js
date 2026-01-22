@@ -27,6 +27,7 @@ OC.L10N.register(
     "File sharing" : "ファイル共有",
     "View" : "表示",
     "Dismiss notification" : "通知を閉じる",
+    "in %s" : "%sの中で",
     "UUID not found" : "UUIDが見つかりません",
     "Empty file" : "空白のファイル",
     "Invalid code." : "無効なコード。",

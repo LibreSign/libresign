@@ -89,6 +89,7 @@ OC.L10N.register(
     "File sharing" : "文件共享",
     "View" : "查看",
     "Dismiss notification" : "忽略通知",
+    "in %s" : "位于 %s",
     "UUID not found" : "UUID 未找到",
     "Password is mandatory" : "密码是强制的",
     "You must have an email. You can define the email in your profile." : "你必须有一个电子邮箱。你可以在你的个人资料中定义邮箱",

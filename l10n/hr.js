@@ -85,6 +85,7 @@ OC.L10N.register(
     "File sharing" : "Dijeljenje datoteka",
     "View" : "Pregledaj",
     "Dismiss notification" : "Zanemari obavijest",
+    "in %s" : "u %s",
     "UUID not found" : "UUID nije pronađen",
     "Password is mandatory" : "Zaporka je obavezna",
     "You must have an email. You can define the email in your profile." : "Morate imati adresu e-pošte. Možete je odrediti u svom profilu.",

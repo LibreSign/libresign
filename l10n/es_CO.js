@@ -20,6 +20,7 @@ OC.L10N.register(
     "File is too big" : "El archivo es demasiado grande.",
     "File sharing" : "Compartir archivos",
     "Dismiss notification" : "Descartar notificación",
+    "in %s" : "en %s",
     "Account" : "Cuenta",
     "Invalid user" : "Usuario inválido",
     "Email" : "Correo electrónico",

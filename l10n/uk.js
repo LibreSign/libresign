@@ -131,6 +131,7 @@ OC.L10N.register(
     "View" : "Перегляд",
     "Changes have been made in a file that you have to sign." : "Зміни були внесені у файл, який ви повинні підписати.",
     "Dismiss notification" : "Скасувати сповіщення",
+    "in %s" : "в %s",
     "UUID not found" : "UUID не знайдено",
     "Password is mandatory" : "Пароль обов'язковий",
     "You must have an email. You can define the email in your profile." : "Ви повинні мати електронну пошту. Ви можете вказати її у своєму профілі.",

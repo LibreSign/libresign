@@ -156,6 +156,7 @@ OC.L10N.register(
     "View" : "كۆرۈش",
     "Changes have been made in a file that you have to sign." : "سىز ئىمزا قويماقچى بولغان ھۆججەتتە ئۆزگەرتىش ئېلىپ بېرىلدى.",
     "Dismiss notification" : "ئۇقتۇرۇشنى ئەمەلدىن قالدۇرۇش",
+    "in %s" : "%s دا",
     "UUID not found" : "UUID تېپىلمىدى",
     "Password is mandatory" : "پارول مەجبۇرى",
     "You must have an email. You can define the email in your profile." : "سىزدە ئېلېكترونلۇق خەت بولۇشى كېرەك. ئارخىپىڭىزدىكى ئېلېكترونلۇق خەتنى ئېنىقلىيالايسىز.",

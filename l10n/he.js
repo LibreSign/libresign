@@ -22,6 +22,7 @@ OC.L10N.register(
     "File sharing" : "שיתוף קבצים",
     "View" : "צפייה",
     "Dismiss notification" : "התעלמות מהתראה",
+    "in %s" : "ב־%s",
     "Account" : "חשבון",
     "Invalid user" : "משתמש שגוי",
     "Email" : "דוא״ל",

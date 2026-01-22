@@ -129,6 +129,7 @@
     "View" : "Погледај",
     "Changes have been made in a file that you have to sign." : "Дошло је до измена у фајло који треба да потпишете.",
     "Dismiss notification" : "Уклони обавештење",
+    "in %s" : "за %s",
     "UUID not found" : "Није пронађен UUID",
     "Password is mandatory" : "Обавезна је лозинка",
     "You must have an email. You can define the email in your profile." : "Морате да имате и-мејл. И-мејл можете да дефинишете у свом профилу.",

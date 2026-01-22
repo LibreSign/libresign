@@ -21,6 +21,7 @@ OC.L10N.register(
     "File sharing" : "Kunhavigo de dosieroj",
     "View" : "Vidi",
     "Dismiss notification" : "Forsendi sciigon",
+    "in %s" : "en %s",
     "Empty file" : "Malplena dosiero",
     "Account" : "Konto",
     "Invalid user" : "Nevalida uzanto",

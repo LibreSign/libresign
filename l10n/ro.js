@@ -22,6 +22,7 @@ OC.L10N.register(
     "File sharing" : "Partajare fișiere",
     "View" : "Vizualizare",
     "Dismiss notification" : "Elimină notificarea",
+    "in %s" : "în %s",
     "Empty file" : "Fișier gol",
     "Account" : "Cont",
     "Invalid user" : "Utilizator invalid",

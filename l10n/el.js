@@ -130,6 +130,7 @@ OC.L10N.register(
     "View" : "Προβολή",
     "Changes have been made in a file that you have to sign." : "Έχουν γίνει αλλαγές σε ένα αρχείο που πρέπει να υπογράψετε.",
     "Dismiss notification" : "Απόρριψη ειδοποίησης",
+    "in %s" : "σε %s",
     "UUID not found" : "Το UUID δεν βρέθηκε",
     "Password is mandatory" : "Το συνθηματικό είναι υποχρεωτικό",
     "You must have an email. You can define the email in your profile." : "Πρέπει να έχετε ένα email. Μπορείτε να ορίσετε το email στο προφίλ σας.",

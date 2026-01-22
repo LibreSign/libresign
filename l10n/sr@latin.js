@@ -15,6 +15,7 @@ OC.L10N.register(
     "Invalid file provided" : "Dati fajl je neispravan",
     "File is too big" : "Fajl je preveliki",
     "Dismiss notification" : "Skloni obaveštenje",
+    "in %s" : "u %s",
     "Email" : "email",
     "Cancel" : "Otkaži",
     "Save" : "Sačuvaj",

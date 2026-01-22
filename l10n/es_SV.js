@@ -19,6 +19,7 @@ OC.L10N.register(
     "Invalid file provided" : "Archivo proporcionado inválido",
     "File is too big" : "El archivo es demasiado grande.",
     "File sharing" : "Compartir archivos",
+    "in %s" : "en %s",
     "Account" : "Cuenta",
     "Invalid user" : "Usuario inválido",
     "Email" : "Correo electrónico",

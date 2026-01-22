@@ -92,6 +92,7 @@ OC.L10N.register(
     "File sharing" : "Fitxategien partekatzea",
     "View" : "Ikusi",
     "Dismiss notification" : "Baztertu jakinarazpena",
+    "in %s" : "%s(e)n",
     "UUID not found" : "Ez da UUIDa aurkitu",
     "Password is mandatory" : "Pasahitza nahitaezkoa da",
     "You must have an email. You can define the email in your profile." : "Mezu elektronikoa izan behar duzu. Mezu elektronikoa zure profilean defini dezakezu.",

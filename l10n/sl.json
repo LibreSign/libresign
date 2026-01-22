@@ -107,6 +107,7 @@
     "View" : "Pogled",
     "Changes have been made in a file that you have to sign." : "V datoteki, ki jo morate podpisati, so nove spremembe.",
     "Dismiss notification" : "Opusti obvestilo",
+    "in %s" : "v kategoriji %s",
     "UUID not found" : "Vrednosti UUID ni mogoče najti.",
     "Password is mandatory" : "Geslo je obvezno",
     "You must have an email. You can define the email in your profile." : "Naveden mora biti veljaven elektronski naslov. Določiti ga je treba med podatki profila.",

@@ -23,6 +23,7 @@ OC.L10N.register(
     "File sharing" : "Partilha de ficheiro",
     "View" : "Ver",
     "Dismiss notification" : "Dispensar notificação",
+    "in %s" : "em %s",
     "Empty file" : "Ficheiro vazio",
     "Account" : "Conta",
     "Invalid user" : "Utilizador inválido",
