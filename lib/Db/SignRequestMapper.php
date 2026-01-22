@@ -100,16 +100,6 @@ class SignRequestMapper extends CachedQBMapper {
 	}
 
 	/**
-	 * @inheritDoc
-	 */
-	public function update(Entity $entity): SignRequest {
-		/** @var SignRequest */
-		$signRequest = parent::update($entity);
-		$this->signers[$signRequest->getId()] = $signRequest;
-		return $signRequest;
-	}
-
-	/**
 	 * Get sign request by UUID
 	 *
 	 * @throws DoesNotExistException
