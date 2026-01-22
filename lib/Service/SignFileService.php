@@ -396,16 +396,7 @@ class SignFileService {
 			throw new LibresignException('No sign requests found to process');
 		}
 
-		$envelopeLastSignedDate = $this->executeSigningStrategy($signRequests);
-
-		$envelopeContext = $this->getEnvelopeContext();
-		if ($envelopeContext['envelope'] instanceof FileEntity) {
-			$this->updateEnvelopeStatus(
-				$envelopeContext['envelope'],
-				$envelopeContext['envelopeSignRequest'] ?? null,
-				$envelopeLastSignedDate
-			);
-		}
+		$this->executeSigningStrategy($signRequests);
 	}
 
 	private function executeSigningStrategy(array $signRequests): ?DateTimeInterface {
@@ -425,7 +416,6 @@ class SignFileService {
 
 		foreach ($signRequests as $signRequestData) {
 			try {
-				$this->signRequestMapper->flushCache($signRequestData['signRequest']->getId());
 				$signRequest = $this->signRequestMapper->getById($signRequestData['signRequest']->getId());
 				if ($signRequest->getSigned()) {
 					$latestSignedDate = $signRequest->getSigned();
@@ -569,6 +559,7 @@ class SignFileService {
 	 */
 	private function signSequentially(array $signRequests): ?DateTimeInterface {
 		$envelopeLastSignedDate = null;
+		$envelopeContext = $this->getEnvelopeContext();
 
 		foreach ($signRequests as $index => $signRequestData) {
 			$this->libreSignFile = $signRequestData['file'];
@@ -602,6 +593,14 @@ class SignFileService {
 			$this->updateLibreSignFile($this->libreSignFile, $signedFile->getId(), $hash);
 
 			$this->dispatchSignedEvent();
+		}
+
+		if ($envelopeContext['envelope'] instanceof FileEntity) {
+			$this->updateEnvelopeStatus(
+				$envelopeContext['envelope'],
+				$envelopeContext['envelopeSignRequest'] ?? null,
+				$envelopeLastSignedDate
+			);
 		}
 
 		return $envelopeLastSignedDate;
@@ -698,7 +697,11 @@ class SignFileService {
 		return $result;
 	}
 
-	private function updateEnvelopeStatus(FileEntity $envelope, ?SignRequestEntity $envelopeSignRequest = null, ?DateTimeInterface $signedDate = null): void {
+	private function updateEnvelopeStatus(
+		FileEntity $envelope,
+		?SignRequestEntity $envelopeSignRequest = null,
+		?DateTimeInterface $signedDate = null,
+	): void {
 		$childFiles = $this->fileMapper->getChildrenFiles($envelope->getId());
 		$signRequestsMap = $this->buildSignRequestsMap($childFiles);
 
@@ -720,8 +723,13 @@ class SignFileService {
 		return $signRequestsMap;
 	}
 
-	private function handleSignedEnvelopeSignRequest(FileEntity $envelope, ?SignRequestEntity $envelopeSignRequest, ?DateTimeInterface $signedDate, int $status): void {
-		if ($status !== FileStatus::SIGNED->value || !($envelopeSignRequest instanceof SignRequestEntity)) {
+	private function handleSignedEnvelopeSignRequest(
+		FileEntity $envelope,
+		?SignRequestEntity $envelopeSignRequest,
+		?DateTimeInterface $signedDate,
+		int $status,
+	): void {
+		if (!($envelopeSignRequest instanceof SignRequestEntity)) {
 			return;
 		}
 
