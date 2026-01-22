@@ -90,6 +90,7 @@ OC.L10N.register(
     "File sharing" : "Compartir archivos",
     "View" : "Ver",
     "Dismiss notification" : "Descartar notificación",
+    "in %s" : "en %s",
     "UUID not found" : "UUID no encontrado",
     "Password is mandatory" : "La contraseña es obligatoria",
     "You must have an email. You can define the email in your profile." : "Debes tener un correo electrónico. Puedes definir el correo electrónico en tu perfil.",

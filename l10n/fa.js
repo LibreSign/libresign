@@ -89,6 +89,7 @@ OC.L10N.register(
     "File sharing" : "اشتراک گذاری پرونده",
     "View" : "نمایش",
     "Dismiss notification" : "رد کردن اعلان",
+    "in %s" : "در %s",
     "UUID not found" : "UUID not found",
     "Password is mandatory" : "Password is mandatory",
     "Password to sign is mandatory" : "Password to sign is mandatory",

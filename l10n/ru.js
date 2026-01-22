@@ -91,6 +91,7 @@ OC.L10N.register(
     "File sharing" : "Обмен файлами",
     "View" : "Просмотр",
     "Dismiss notification" : "Скрыть уведомление",
+    "in %s" : "в %s",
     "UUID not found" : "UUID не найден",
     "Password is mandatory" : "Необходимо использовать пароль",
     "You must have an email. You can define the email in your profile." : "У вас должна быть электронная почта. Вы можете указать адрес электронной почты в своем профиле.",

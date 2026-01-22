@@ -21,6 +21,7 @@ OC.L10N.register(
     "File sharing" : "Chia sẻ file",
     "View" : "Xem",
     "Dismiss notification" : "Bỏ qua thông báo ",
+    "in %s" : "trong %s",
     "Account" : "Tài khoản",
     "Invalid user" : "Người dùng không hợp lệ",
     "Email" : "Thư điện tử",

@@ -169,6 +169,7 @@ OC.L10N.register(
     "View" : "Amharc",
     "Changes have been made in a file that you have to sign." : "Rinneadh athruithe i gcomhad a chaithfidh tú a shíniú.",
     "Dismiss notification" : "Déan an fógra a dhíbhe",
+    "in %s" : "i %s",
     "UUID not found" : "UUID gan aimsiú",
     "Password is mandatory" : "Tá pasfhocal éigeantach",
     "You must have an email. You can define the email in your profile." : "Caithfidh ríomhphost a bheith agat. Is féidir leat an ríomhphost a shainiú i do phróifíl.",

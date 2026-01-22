@@ -20,6 +20,7 @@ OC.L10N.register(
     "Cannot read file" : "ไม่สามารถอ่านไฟล์",
     "View" : "มุมมอง",
     "Dismiss notification" : "ปิดการแจ้งเตือน",
+    "in %s" : "ใน %s",
     "Empty file" : "ไฟล์ว่าง",
     "Account" : "บัญชี",
     "Invalid user" : "ผู้ใช้ไม่ถูกต้อง",

@@ -8,6 +8,7 @@ OC.L10N.register(
     "Pending" : "Хүлээгдэж байгаа",
     "Invalid file provided" : "Буруу файл байна",
     "File is too big" : "Файлын хэмжээ хэт их байна",
+    "in %s" : "%s-д",
     "Account" : "аккаунт",
     "Invalid user" : "Буруу хэрэглэгч",
     "Email" : "Цахим шуудан",

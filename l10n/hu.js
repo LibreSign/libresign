@@ -98,6 +98,7 @@ OC.L10N.register(
     "View" : "Megtekintés",
     "Changes have been made in a file that you have to sign." : "Változások történtek egy aláírandó fájlban.",
     "Dismiss notification" : "Értesítés mellőzése",
+    "in %s" : "itt:  %s",
     "UUID not found" : "Az UUID nem található",
     "Password is mandatory" : "A jelszó megadása kötelező",
     "You must have an email. You can define the email in your profile." : "Rendelkeznie kell egy e-mail-címmel. Az e-mail-címet a profiljában adhatja meg.",

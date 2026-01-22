@@ -23,6 +23,7 @@ OC.L10N.register(
     "File sharing" : "Datņu koplietošana",
     "View" : "Skats",
     "Dismiss notification" : "Noraidīt paziņojumu",
+    "in %s" : "%s",
     "Empty file" : "Tukša datne",
     "Account" : "Konts",
     "Invalid user" : "Nepareizs lietotājs",

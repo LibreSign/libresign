@@ -167,6 +167,7 @@
     "View" : "Görüntüle",
     "Changes have been made in a file that you have to sign." : "İmzalamanız gereken bir dosyada değişiklikler yapıldı.",
     "Dismiss notification" : "Bildirimi yok say",
+    "in %s" : "%s içinde",
     "UUID not found" : "UUID bulunamadı",
     "Password is mandatory" : "Parola yazılması zorunludur",
     "You must have an email. You can define the email in your profile." : "Bir e-posta adresiniz olmalı. E-posta adresinizi profilinizden ayarlayabilirsiniz.",

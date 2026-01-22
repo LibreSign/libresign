@@ -26,6 +26,7 @@ OC.L10N.register(
     "File sharing" : "Споделување на датотеки",
     "View" : "Погледни",
     "Dismiss notification" : "Отфрли известување",
+    "in %s" : "во %s",
     "Empty file" : "Празна датотека",
     "Account" : "Сметка",
     "Invalid user" : "Неправилен корисник",

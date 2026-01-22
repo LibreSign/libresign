@@ -23,6 +23,7 @@ OC.L10N.register(
     "File sharing" : "Skráadeiling",
     "View" : "Skoða",
     "Dismiss notification" : "Afgreiða tilkynningu",
+    "in %s" : "í %s",
     "Empty file" : "Tóm skrá",
     "Account" : "Aðgangur",
     "Invalid user" : "Ógildur notandi",

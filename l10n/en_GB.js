@@ -169,6 +169,7 @@ OC.L10N.register(
     "View" : "View",
     "Changes have been made in a file that you have to sign." : "Changes have been made in a file that you have to sign.",
     "Dismiss notification" : "Dismiss notification",
+    "in %s" : "in %s",
     "UUID not found" : "UUID not found",
     "Password is mandatory" : "Password is mandatory",
     "You must have an email. You can define the email in your profile." : "You must have an email. You can define the email in your profile.",

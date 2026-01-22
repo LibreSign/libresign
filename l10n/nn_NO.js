@@ -10,6 +10,7 @@ OC.L10N.register(
     "Internal Server Error" : "Intern serverfeil",
     "Invalid file provided" : "Ugyldig fil",
     "File is too big" : "Fila er for stor",
+    "in %s" : "i %s",
     "Email" : "Epost",
     "Cancel" : "Avbryt",
     "Save" : "Lagre",

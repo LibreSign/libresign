@@ -14,6 +14,7 @@ OC.L10N.register(
     "Invalid file provided" : "არასწორი ფაილი",
     "File is too big" : "ფაილი ზედმეტად დიდია",
     "File sharing" : "ფაილების გაზიარება",
+    "in %s" : "%s-ში",
     "Account" : "ანგარიში",
     "Invalid user" : "არასწორი მომხმარებელი",
     "Email" : "ელ-ფოსტა",

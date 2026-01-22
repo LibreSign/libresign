@@ -110,6 +110,7 @@ OC.L10N.register(
     "View" : "Vis",
     "Changes have been made in a file that you have to sign." : "Det er gjort endringer i en fil du må signere.",
     "Dismiss notification" : "Ingen varsel",
+    "in %s" : "om %s",
     "UUID not found" : "UUID ikke funnet",
     "Password is mandatory" : "Passord er obligatorisk",
     "You must have an email. You can define the email in your profile." : "Du må ha en e-post. Du kan definere e-postadressen i profilen din.",
