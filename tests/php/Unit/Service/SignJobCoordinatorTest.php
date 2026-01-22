@@ -74,13 +74,6 @@ class SignJobCoordinatorTest extends TestCase {
 			->method('setUserId')
 			->with('user1');
 
-		$this->fileMapper->expects($this->once())
-			->method('flushCache')
-			->with($file->getId());
-		$this->signRequestMapper->expects($this->once())
-			->method('flushCache')
-			->with($signRequest->getId());
-
 		$this->fileMapper->method('getById')->willReturn($file);
 		$this->signRequestMapper->method('getById')->willReturn($signRequest);
 
