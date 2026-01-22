@@ -165,12 +165,10 @@ class FileMapper extends CachedQBMapper {
 	/**
 	 * Return LibreSign file by nodeId
 	 */
-	public function getByNodeId(?int $nodeId = null): File {
-		if ($nodeId !== null) {
-			$cachedId = $this->cacheGet('node_id:' . $nodeId);
-			if (is_int($cachedId) || (is_string($cachedId) && ctype_digit($cachedId))) {
-				return $this->getById((int)$cachedId);
-			}
+	public function getByNodeId(int $nodeId): File {
+		$cachedId = $this->cacheGet('node_id:' . $nodeId);
+		if (is_int($cachedId) || (is_string($cachedId) && ctype_digit($cachedId))) {
+			return $this->getById((int)$cachedId);
 		}
 		$qb = $this->db->getQueryBuilder();
 
