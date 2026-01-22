@@ -671,60 +671,6 @@ class ValidateHelper {
 		}
 	}
 
-	public function signerWasAssociated(array $signer): void {
-		try {
-			$libresignFile = $this->fileMapper->getByNodeId();
-		} catch (\Throwable) {
-			throw new LibresignException($this->l10n->t('File not loaded'));
-		}
-		$signatures = $this->signRequestMapper->getByFileUuid($libresignFile->getUuid());
-		$exists = array_filter($signatures, function (SignRequest $signRequest) use ($signer): bool {
-			$key = key($signer);
-			$value = current($signer);
-			$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId());
-			$found = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($key, $value) {
-				if ($identifyMethod->getIdentifierKey() === $key && $identifyMethod->getIdentifierValue() === $value) {
-					return true;
-				}
-				return false;
-			});
-			return count($found) > 0;
-		});
-		if (!$exists) {
-			throw new LibresignException($this->l10n->t('No signature was requested to %s', $signer['email']));
-		}
-	}
-
-	public function notSigned(array $signer): void {
-		try {
-			$libresignFile = $this->fileMapper->getByNodeId();
-		} catch (\Throwable) {
-			throw new LibresignException($this->l10n->t('File not loaded'));
-		}
-		$signatures = $this->signRequestMapper->getByFileUuid($libresignFile->getUuid());
-
-		$exists = array_filter($signatures, function (SignRequest $signRequest) use ($signer): bool {
-			$key = key($signer);
-			$value = current($signer);
-			$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId());
-			$found = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($key, $value) {
-				if ($identifyMethod->getIdentifierKey() === $key && $identifyMethod->getIdentifierValue() === $value) {
-					return true;
-				}
-				return false;
-			});
-			if (count($found) > 0) {
-				return $signRequest->getSigned() !== null;
-			}
-			return false;
-		});
-		if (!$exists) {
-			return;
-		}
-		$firstSigner = array_values($exists)[0];
-		throw new LibresignException($this->l10n->t('%s already signed this file', $firstSigner->getDisplayName()));
-	}
-
 	public function validateFileUuid(array $data): void {
 		try {
 			$this->fileMapper->getByUuid($data['uuid']);
