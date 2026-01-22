@@ -14,6 +14,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserSession;
 use OCP\Notification\IManager;
@@ -24,8 +25,11 @@ class NotifyService {
 		private IUserSession $userSession,
 		private SignRequestMapper $signRequestMapper,
 		private IdentifyMethodService $identifyMethodService,
+		private SignerIndexProvider $signerIndexProvider,
+		private SignerNotificationPolicy $signerNotificationPolicy,
 		private ITimeFactory $timeFactory,
 		private IManager $notificationManager,
+		private IL10N $l10n,
 	) {
 	}
 
@@ -44,10 +48,10 @@ class NotifyService {
 		if (!empty($signRequests)) {
 			$this->validateHelper->iRequestedSignThisFile($this->userSession->getUser(), $fileId);
 		}
+		$signRequestIndex = $this->signerIndexProvider->build($signRequests);
 		foreach ($signers as $signer) {
 			$this->validateHelper->haveValidMail($signer);
-			$this->validateHelper->signerWasAssociated($signer);
-			$this->validateHelper->notSigned($signer);
+			$this->validateSignerForNotification($signer, $signRequestIndex);
 		}
 		// @todo refactor this code
 		foreach ($signRequests as $signRequest) {
@@ -96,6 +100,22 @@ class NotifyService {
 					$instance->notify();
 				}
 			}
+		}
+	}
+
+	/**
+	 * @param array<string, SignRequest[]> $signRequestIndex Indexed by identifierKey:identifierValue
+	 * @throws \OCA\Libresign\Exception\LibresignException
+	 */
+	private function validateSignerForNotification(array $signer, array $signRequestIndex): void {
+		$error = $this->signerNotificationPolicy->getValidationError($signer, $signRequestIndex);
+		if ($error !== null) {
+			$message = match ($error['code']) {
+				'not_requested' => $this->l10n->t('No signature was requested to %s', $error['params']),
+				'already_signed' => $this->l10n->t('%s already signed this file', $error['params']),
+				default => $this->l10n->t('Invalid signer data'),
+			};
+			throw new \OCA\Libresign\Exception\LibresignException($message);
 		}
 	}
 }
