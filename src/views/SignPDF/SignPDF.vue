@@ -289,14 +289,13 @@ export default {
 
 			const file = this.filesStore.getFile()
 			if (file && file?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
-				targetUuid = file.uuid
+				targetUuid = loadState('libresign', 'sign_request_uuid', null)
 			}
 
 			if (!targetUuid) {
 				const initialStatus = loadState('libresign', 'status', null)
-				const initialUuid = loadState('libresign', 'uuid', null)
-				if (initialStatus === FILE_STATUS.SIGNING_IN_PROGRESS && initialUuid) {
-					targetUuid = initialUuid
+				if (initialStatus === FILE_STATUS.SIGNING_IN_PROGRESS) {
+					targetUuid = loadState('libresign', 'sign_request_uuid', null)
 				}
 			}
 
