@@ -8,11 +8,14 @@
 			<img :src="logo" :alt="t('libresign', 'LibreSign logo')" draggable="false">
 		</div>
 		<div id="validation-content">
-			<div v-if="isAsyncSigning" class="infor-container">
-				<div class="section">
-					<SigningProgress :uuid="uuidToValidate" @completed="handleSigningComplete" @error="handleSigningError" />
+				<div v-if="isAsyncSigning" class="infor-container">
+					<div class="section">
+						<SigningProgress
+							:sign-request-uuid="signRequestUuidForProgress"
+							@completed="handleSigningComplete"
+							@error="handleSigningError" />
+					</div>
 				</div>
-			</div>
 			<div v-else-if="!hasInfo" class="infor-container">
 				<div class="section">
 					<h1>{{ t('libresign', 'Validate signature') }}</h1>
@@ -117,6 +120,7 @@ const SigningProgress = () => import('../components/validation/SigningProgress.v
 import logoGray from '../../img/logo-gray.svg'
 import { getStatusLabel } from '../utils/fileStatus.js'
 import logger from '../logger.js'
+import { useSignStore } from '../store/sign.js'
 
 export default {
 	name: 'Validation',
@@ -137,9 +141,11 @@ export default {
 		SigningProgress,
 	},
 	setup() {
+		const signStore = useSignStore()
 		return {
 			t,
 			n,
+			signStore,
 		}
 	},
 	data() {
@@ -181,9 +187,22 @@ export default {
 			documentValidMessage: null,
 			isAsyncSigning: false,
 			shouldFireAsyncConfetti: false,
+			isActiveView: true,
 		}
 	},
 	computed: {
+		signRequestUuidForProgress() {
+			const doc = this.signStore?.document || {}
+			const signer = doc.signers?.find(row => row.me) || doc.signers?.[0] || {}
+			const fromDoc = doc.signRequestUuid || doc.sign_request_uuid || doc.signUuid || doc.sign_uuid
+			const fromSigner = signer.sign_uuid
+			return this.$route.query?.signRequestUuid
+				|| this.$route.params?.signRequestUuid
+				|| fromDoc
+				|| fromSigner
+				|| loadState('libresign', 'sign_request_uuid', null)
+				|| this.uuidToValidate
+		},
 		isAfterSigned() {
 			return this.$route.params.isAfterSigned ?? this.shouldFireAsyncConfetti ?? false
 		},
@@ -252,6 +271,9 @@ export default {
 			this.shouldFireAsyncConfetti = true
 			this.loading = true
 		}
+	},
+	beforeDestroy() {
+		this.isActiveView = false
 	},
 	methods: {
 		async upload(file) {
@@ -561,9 +583,27 @@ export default {
 			this.getUUID = true
 		},
 		handleValidationSuccess(data) {
+			if (!this.isActiveView) {
+				return
+			}
 			this.documentValidMessage = t('libresign', 'This document is valid')
 			if (!data?.nodeType && Array.isArray(data?.files) && data.files.length > 0) {
 				data.nodeType = 'envelope'
+			}
+			const routeName = this.$route?.name || ''
+			const shouldUpdateRoute = routeName === 'validation'
+				|| routeName === 'ValidationFile'
+				|| routeName === 'ValidationFileExternal'
+				|| routeName === 'ValidationFileShortUrl'
+			if (shouldUpdateRoute && data?.uuid && this.$route.params?.uuid !== data.uuid) {
+				this.$router.replace({
+					name: this.$route.name,
+					params: {
+						...this.$route.params,
+						uuid: data.uuid,
+					},
+					query: this.$route.query,
+				})
 			}
 			this.document = data
 			this.document.signers?.forEach(signer => {
@@ -578,7 +618,8 @@ export default {
 			const allFilesSigned = Array.isArray(this.document?.files)
 				&& this.document.files.length > 0
 				&& this.document.files.every(file => isSignedStatus(file.status))
-			if ((isSignedDoc || allFilesSigned) && (this.isAfterSigned || this.shouldFireAsyncConfetti)) {
+			const signerCompleted = this.isCurrentSignerSigned()
+			if ((isSignedDoc || allFilesSigned || signerCompleted) && (this.isAfterSigned || this.shouldFireAsyncConfetti)) {
 				const jsConfetti = new JSConfetti()
 				jsConfetti.addConfetti()
 				this.shouldFireAsyncConfetti = false
@@ -587,7 +628,14 @@ export default {
 		async refreshAfterAsyncSigning() {
 			const maxAttempts = 8
 			for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+				if (!this.isActiveView) {
+					return
+				}
 				await this.validate(this.uuidToValidate, { suppressLoading: true, forceRefresh: true })
+
+				if (this.isCurrentSignerSigned()) {
+					return
+				}
 
 				const isSignedStatus = status => status === 3 || status === 'SIGNED'
 				const isSigned = isSignedStatus(this.document?.status)
@@ -602,9 +650,17 @@ export default {
 				await new Promise(resolve => setTimeout(resolve, 900))
 			}
 		},
-		handleSigningComplete() {
+		handleSigningComplete(file) {
+			if (!this.isActiveView) {
+				return
+			}
 			this.isAsyncSigning = false
 			this.shouldFireAsyncConfetti = true
+			if (file) {
+				this.loading = false
+				this.handleValidationSuccess(file)
+				return
+			}
 			this.loading = true
 			this.refreshAfterAsyncSigning()
 				.finally(() => {
@@ -616,6 +672,10 @@ export default {
 			this.loading = false
 			const errorMessage = message || t('libresign', 'Signing failed. Please try again.')
 			this.setValidationError(errorMessage)
+		},
+		isCurrentSignerSigned() {
+			const signer = this.document?.signers?.find(row => row.me)
+			return !!signer?.signed || signer?.status === 2 || signer?.status === 'SIGNED'
 		},
 	},
 }
