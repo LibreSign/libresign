@@ -342,7 +342,7 @@ class FileService {
 	}
 
 	public function isLibresignFile(int $nodeId): bool {
-		return $this->fileMapper->fileIdExists($nodeId);
+		return $this->fileMapper->nodeIdExists($nodeId);
 	}
 
 	public function getSignedNodeId(): ?int {
