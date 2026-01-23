@@ -158,6 +158,10 @@ class SignJobCoordinator {
 			$this->signFileService->setFriendlyName($argument['friendlyName']);
 		}
 
+		if (!empty($argument['signatureMethod'])) {
+			$this->signFileService->setSignatureMethod($argument['signatureMethod']);
+		}
+
 		$this->signFileService
 			->setLibreSignFile($file)
 			->setSignRequest($signRequest)

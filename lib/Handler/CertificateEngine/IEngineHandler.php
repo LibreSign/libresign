@@ -59,6 +59,8 @@ interface IEngineHandler {
 
 	public function getLeafExpiryInDays(): int;
 
+	public function setLeafExpiryOverrideInDays(?int $days): self;
+
 	public function getCaExpiryInDays(): int;
 
 	public function configureCheck(): array;

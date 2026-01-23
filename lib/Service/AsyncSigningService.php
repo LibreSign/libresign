@@ -38,6 +38,7 @@ class AsyncSigningService {
 		string $userUniqueIdentifier,
 		bool $signWithoutPassword,
 		?string $password,
+		?string $signatureMethod,
 		array $visibleElements,
 		array $metadata,
 	): array {
@@ -51,6 +52,7 @@ class AsyncSigningService {
 			'credentialsId' => $credentialsId,
 			'userUniqueIdentifier' => $userUniqueIdentifier,
 			'friendlyName' => $signRequest->getDisplayName(),
+			'signatureMethod' => $signatureMethod,
 			'visibleElements' => $visibleElements,
 			'metadata' => $metadata,
 		]);
