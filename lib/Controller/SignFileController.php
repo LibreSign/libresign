@@ -23,7 +23,7 @@ use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestMetadataService;
 use OCA\Libresign\Service\SignFileService;
-use OCA\Libresign\Service\WorkerHealthService;
+use OCA\Libresign\Service\Worker\WorkerHealthService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
