@@ -21,9 +21,15 @@ class SignerIndexProvider {
 	 * @return array<string, SignRequest[]>
 	 */
 	public function build(array $signRequests): array {
+		if (empty($signRequests)) {
+			return [];
+		}
+		$signRequestIds = array_column(array_map(fn ($sr) => ['id' => $sr->getId()], $signRequests), 'id');
+		$identifyMethodsBatch = $this->identifyMethodService->getIdentifyMethodsFromSignRequestIds($signRequestIds);
+
 		$index = [];
 		foreach ($signRequests as $signRequest) {
-			$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
+			$identifyMethods = $identifyMethodsBatch[$signRequest->getId()] ?? [];
 			foreach ($identifyMethods as $methodInstances) {
 				foreach ($methodInstances as $identifyMethod) {
 					$entity = $identifyMethod->getEntity();
