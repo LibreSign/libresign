@@ -59,9 +59,7 @@ use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
 use OCP\IUser;
-use OCP\IUserManager;
 use OCP\IUserSession;
-use OCP\Security\Events\GenerateSecurePasswordEvent;
 use OCP\Security\ICredentialsManager;
 use OCP\Security\ISecureRandom;
 use Psr\Log\LoggerInterface;
@@ -75,6 +73,7 @@ class SignFileService {
 	/** @var VisibleElementAssoc[] */
 	private $elements = [];
 	private bool $signWithoutPassword = false;
+	private ?string $signatureMethodName = null;
 	private ?File $fileToSign = null;
 	private ?File $createdSignedFile = null;
 	private string $userUniqueIdentifier = '';
@@ -82,6 +81,7 @@ class SignFileService {
 	private ?IUser $user = null;
 	private ?SignEngineHandler $engine = null;
 	private ICache $cache;
+	private PfxProvider $pfxProvider;
 
 	public function __construct(
 		protected IL10N $l10n,
@@ -91,7 +91,6 @@ class SignFileService {
 		private FooterHandler $footerHandler,
 		protected FolderService $folderService,
 		private IClientService $client,
-		private IUserManager $userManager,
 		protected LoggerInterface $logger,
 		private IAppConfig $appConfig,
 		protected ValidateHelper $validateHelper,
@@ -121,8 +120,10 @@ class SignFileService {
 		private EnvelopeStatusDeterminer $envelopeStatusDeterminer,
 		private TsaValidationService $tsaValidationService,
 		ICacheFactory $cacheFactory,
+		PfxProvider $pfxProvider,
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign_progress');
+		$this->pfxProvider = $pfxProvider;
 	}
 
 	/**
@@ -216,6 +217,11 @@ class SignFileService {
 		return $this;
 	}
 
+	public function setSignatureMethod(?string $signatureMethodName): self {
+		$this->signatureMethodName = $signatureMethodName;
+		return $this;
+	}
+
 	/**
 	 * @return static
 	 */
@@ -237,6 +243,7 @@ class SignFileService {
 		string $displayName,
 		bool $signWithoutPassword,
 		?string $password = null,
+		?string $signatureMethodName = null,
 	): self {
 		if ($signWithoutPassword) {
 			$this->setSignWithoutPassword();
@@ -249,7 +256,8 @@ class SignFileService {
 			->setSignRequest($signRequest)
 			->setCurrentUser($user)
 			->setUserUniqueIdentifier($userIdentifier)
-			->setFriendlyName($displayName);
+			->setFriendlyName($displayName)
+			->setSignatureMethod($signatureMethodName);
 	}
 
 	public function setVisibleElements(array $list): self {
@@ -984,29 +992,18 @@ class SignFileService {
 	}
 
 	private function getOrGeneratePfxContent(SignEngineHandler $engine): string {
-		if ($certificate = $engine->getCertificate()) {
-			return $certificate;
+		$result = $this->pfxProvider->getOrGeneratePfx(
+			$engine,
+			$this->signWithoutPassword,
+			$this->signatureMethodName,
+			$this->userUniqueIdentifier,
+			$this->friendlyName,
+			$this->password,
+		);
+		if ($result['password'] !== null) {
+			$this->setPassword($result['password']);
 		}
-		if ($this->signWithoutPassword) {
-			$tempPassword = $this->generateTemporaryPassword();
-			$this->setPassword($tempPassword);
-			$engine->generateCertificate(
-				[
-					'host' => $this->userUniqueIdentifier,
-					'uid' => $this->userUniqueIdentifier,
-					'name' => $this->friendlyName,
-				],
-				$tempPassword,
-				$this->friendlyName,
-			);
-		}
-		return $engine->getPfxOfCurrentSigner();
-	}
-
-	private function generateTemporaryPassword(): string {
-		$passwordEvent = new GenerateSecurePasswordEvent();
-		$this->eventDispatcher->dispatchTyped($passwordEvent);
-		return $passwordEvent->getPassword() ?? $this->secureRandom->generate(20);
+		return $result['pfx'];
 	}
 
 	protected function readCertificate(): array {

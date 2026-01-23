@@ -120,6 +120,11 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		return $this;
 	}
 
+	public function setLeafExpiryOverrideInDays(?int $days): self {
+		$this->getCertificateEngine()->setLeafExpiryOverrideInDays($days);
+		return $this;
+	}
+
 	/**
 	 * Generate certificate
 	 *
