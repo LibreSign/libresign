@@ -13,6 +13,7 @@ OC.L10N.register(
     "Pending" : "Gözləmə",
     "Invalid file provided" : "Yanlış fayl təqdim edilib",
     "File is too big" : "Fayl çox böyükdür",
+    "in %s" : "içinə %s",
     "Account" : "Hesab",
     "Invalid user" : "İstifadəçi adı yalnışdır",
     "Email" : "Email",

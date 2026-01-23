@@ -7,6 +7,7 @@ OC.L10N.register(
     "File not found" : "ফাইল খুঁজে পাওয়া গেল না",
     "Pending" : "মুলতুবি",
     "File is too big" : "ফাইল খুব বড়",
+    "in %s" : "ভেতর %s",
     "Email" : "ইমেইল",
     "Cancel" : "বাতির",
     "Save" : "সংরক্ষণ",

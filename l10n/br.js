@@ -13,6 +13,7 @@ OC.L10N.register(
     "File is too big" : "Re vras eo ar restr",
     "View" : "Gwell",
     "Dismiss notification" : "Arrest ar gemenadennoù",
+    "in %s" : "e %s",
     "Account" : "Kont",
     "Email" : "Postel",
     "Cancel" : "Nullañ",
