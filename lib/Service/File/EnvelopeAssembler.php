@@ -60,10 +60,16 @@ class EnvelopeAssembler {
 		$fileData->visibleElements = [];
 
 		$signRequests = $this->signRequestMapper->getByFileId($childFile->getId());
+		if (empty($signRequests)) {
+			return $fileData;
+		}
+		$signRequestIds = array_column(array_map(fn ($sr) => ['id' => $sr->getId()], $signRequests), 'id');
+		$identifyMethodsBatch = $this->identifyMethodService
+			->setIsRequest(false)
+			->getIdentifyMethodsFromSignRequestIds($signRequestIds);
+
 		foreach ($signRequests as $signRequest) {
-			$identifyMethods = $this->identifyMethodService
-				->setIsRequest(false)
-				->getIdentifyMethodsFromSignRequestId($signRequest->getId());
+			$identifyMethods = $identifyMethodsBatch[$signRequest->getId()] ?? [];
 
 			$email = '';
 			foreach ($identifyMethods[IdentifyMethodService::IDENTIFY_EMAIL] ?? [] as $identifyMethod) {
