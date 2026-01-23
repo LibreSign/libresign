@@ -31,14 +31,18 @@ use OCA\Libresign\Handler\PdfTk\Pdf;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Handler\SignEngine\Pkcs7Handler;
 use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
+use OCA\Libresign\Handler\SignEngine\SignEngineHandler;
 use OCA\Libresign\Helper\JavaHelper;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\CertificateValidityPolicy;
 use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\PdfSignatureDetectionService;
+use OCA\Libresign\Service\PfxProvider;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\SigningCoordinatorService;
@@ -58,7 +62,6 @@ use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
-use OCP\IUserManager;
 use OCP\IUserSession;
 use OCP\Security\ICredentialsManager;
 use OCP\Security\ISecureRandom;
@@ -76,7 +79,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignRequestMapper&MockObject $signRequestMapper;
 	private IdDocsMapper&MockObject $idDocsMapper;
 	private IClientService&MockObject $clientService;
-	private IUserManager&MockObject $userManager;
 	private FolderService&MockObject $folderService;
 	private LoggerInterface&MockObject $logger;
 	private IAppConfig $appConfig;
@@ -109,6 +111,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ICache&MockObject $cache;
 	private EnvelopeStatusDeterminer&MockObject $envelopeStatusDeterminer;
 	private TsaValidationService&MockObject $tsaValidationService;
+	private CertificateValidityPolicy $certificateValidityPolicy;
+	private PfxProvider $pfxProvider;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -121,7 +125,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->idDocsMapper = $this->createMock(IdDocsMapper::class);
 		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->clientService = $this->createMock(IClientService::class);
-		$this->userManager = $this->createMock(IUserManager::class);
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->appConfig = $this->getMockAppConfigWithReset();
@@ -154,7 +157,67 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->cacheFactory = $this->createMock(ICacheFactory::class);
 		$this->envelopeStatusDeterminer = $this->createMock(EnvelopeStatusDeterminer::class);
 		$this->tsaValidationService = $this->createMock(TsaValidationService::class);
+		$this->certificateValidityPolicy = new CertificateValidityPolicy();
+		$this->pfxProvider = new PfxProvider(
+			$this->certificateValidityPolicy,
+			$this->eventDispatcher,
+			$this->secureRandom,
+		);
 		$this->cacheFactory->method('createDistributed')->with('libresign_progress')->willReturn($this->cache);
+	}
+
+	public function testClickToSignUsesShortLivedCertificate(): void {
+		$service = $this->getService();
+		$service
+			->setSignWithoutPassword(true)
+			->setSignatureMethod(ISignatureMethod::SIGNATURE_METHOD_CLICK_TO_SIGN)
+			->setUserUniqueIdentifier('user@example.com')
+			->setFriendlyName('User Example');
+
+		$engine = $this->getMockBuilder(SignEngineHandler::class)
+			->setConstructorArgs([
+				$this->l10n,
+				$this->folderService,
+				$this->logger,
+			])
+			->onlyMethods([
+				'getCertificate',
+				'generateCertificate',
+				'getPfxOfCurrentSigner',
+				'setLeafExpiryOverrideInDays',
+			])
+			->getMockForAbstractClass();
+
+		$engine->method('getCertificate')->willReturn('');
+		$expiryCalls = [];
+		$engine->expects($this->exactly(2))
+			->method('setLeafExpiryOverrideInDays')
+			->willReturnCallback(function ($value) use (&$expiryCalls, $engine) {
+				$expiryCalls[] = $value;
+				return $engine;
+			});
+
+		$engine->expects($this->once())
+			->method('generateCertificate')
+			->with(
+				$this->callback(function (array $user): bool {
+					return $user['host'] === 'user@example.com'
+						&& $user['uid'] === 'user@example.com'
+						&& $user['name'] === 'User Example';
+				}),
+				$this->isType('string'),
+				'User Example',
+			)
+			->willReturn('cert');
+
+		$engine->method('getPfxOfCurrentSigner')->willReturn('pfx');
+
+		$method = new \ReflectionMethod(SignFileService::class, 'getOrGeneratePfxContent');
+		$method->setAccessible(true);
+		$result = $method->invoke($service, $engine);
+
+		$this->assertSame('pfx', $result);
+		$this->assertSame([1, null], $expiryCalls);
 	}
 
 	private function getService(array $methods = []): SignFileService|MockObject {
@@ -168,7 +231,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->footerHandler,
 					$this->folderService,
 					$this->clientService,
-					$this->userManager,
 					$this->logger,
 					$this->appConfig,
 					$this->validateHelper,
@@ -198,6 +260,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->envelopeStatusDeterminer,
 					$this->tsaValidationService,
 					$this->cacheFactory,
+					$this->pfxProvider,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -210,7 +273,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->footerHandler,
 			$this->folderService,
 			$this->clientService,
-			$this->userManager,
 			$this->logger,
 			$this->appConfig,
 			$this->validateHelper,
@@ -240,6 +302,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->envelopeStatusDeterminer,
 			$this->tsaValidationService,
 			$this->cacheFactory,
+			$this->pfxProvider,
 		);
 	}
 
@@ -728,7 +791,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = $this->getService([
 			'getFileToSign',
 			'identifyEngine',
-			'generateTemporaryPassword',
 			'computeHash',
 			'updateSignRequest',
 			'updateLibreSignFile',
@@ -748,6 +810,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			])
 			->getMock();
 
+		$signEngineHandler->method('getCertificate')->willReturn('');
+		$signEngineHandler->method('getPfxOfCurrentSigner')->willReturn('pfx');
 		$mockFile = $this->createMock(\OCP\Files\File::class);
 		$mockFile->method('getId')->willReturn(555);
 
