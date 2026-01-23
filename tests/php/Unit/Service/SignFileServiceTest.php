@@ -1488,6 +1488,19 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				isAuthenticatedSigner: true,
 				expectedException: LibresignException::class,
 			),
+
+			'unauthenticated signer with file in folder service (WhatsApp scenario)' => self::createScenarioSetVisibleElements(
+				signerList: [
+					['documentElementId' => $validDocumentId, 'profileNodeId' => $validProfileNodeId],
+				],
+				fileElements: [
+					['id' => $validDocumentId],
+				],
+				tempFiles: [$validProfileNodeId => $vfsPath],
+				signatureFile: [$validProfileNodeId => ['valid' => true, 'content' => 'valid content']],
+				canCreateSignature: true,
+				isAuthenticatedSigner: false,
+			),
 		];
 	}
 
