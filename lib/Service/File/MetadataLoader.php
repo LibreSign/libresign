@@ -65,7 +65,7 @@ class MetadataLoader {
 	 *
 	 * @throws \OCA\Libresign\Exception\LibresignException
 	 */
-	private function getFileNode(File $file): \OCP\Files\File {
+	private function getFileNode(File $file): \OCP\Files\File|\OCP\Files\Folder {
 		$nodeId = $file->getSignedNodeId();
 		if (!$nodeId) {
 			$nodeId = $file->getNodeId();
@@ -73,7 +73,7 @@ class MetadataLoader {
 
 		$fileNode = $this->root->getUserFolder($file->getUserId())->getFirstNodeById($nodeId);
 
-		if (!$fileNode instanceof \OCP\Files\File) {
+		if (!$fileNode instanceof \OCP\Files\File && !$fileNode instanceof \OCP\Files\Folder) {
 			throw new \OCA\Libresign\Exception\LibresignException('File not found', 404);
 		}
 
