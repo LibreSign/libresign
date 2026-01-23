@@ -133,6 +133,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				$signRequest->getDisplayName(),
 				$method !== 'password',
 				$method === 'password' ? $token : null,
+				$method,
 			);
 
 			if ($this->workerHealthService->isAsyncLocalEnabled()) {
@@ -170,6 +171,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			$userIdentifier,
 			$method !== 'password',
 			$method === 'password' ? $token : null,
+			$method,
 			$elements,
 			$metadata,
 		);
