@@ -17,28 +17,30 @@
 					:size="44" />
 			</template>
 			<template #subname>
-				<strong>{{ t('libresign', 'Expiration:') }}</strong>
-				<span v-if="signer.valid_to">
-					{{ dateFromSqlAnsi(signer.valid_to) }}
-				</span>
-				<span v-else>{{ t('libresign', 'No expiration date') }}</span>
+				<template v-if="!signer.signed">
+					<strong>{{ t('libresign', 'Status:') }}</strong>
+					<span>{{ t('libresign', 'Not signed yet') }}</span>
+				</template>
+				<template v-else>
+					<strong>{{ t('libresign', 'Expiration:') }}</strong>
+					<span v-if="signer.valid_to">
+						{{ dateFromSqlAnsi(signer.valid_to) }}
+					</span>
+					<span v-else>{{ t('libresign', 'No expiration date') }}</span>
+				</template>
 			</template>
 			<template #indicator>
-				<NcIconSvgWrapper v-if="getValidityStatus(signer) === 'expired'"
+				<NcIconSvgWrapper v-if="signer.signed && getValidityStatus(signer) === 'expired'"
 					:path="mdiAlertCircleOutline"
 					class="icon-error"
 					:size="20" />
-				<NcIconSvgWrapper v-else-if="getValidityStatus(signer) === 'expiring'"
+				<NcIconSvgWrapper v-else-if="signer.signed && getValidityStatus(signer) === 'expiring'"
 					:path="mdiAlertCircleOutline"
 					class="icon-warning"
 					:size="20" />
-				<NcIconSvgWrapper v-else
-					:path="mdiKey"
-					class="icon-success"
-					:size="20" />
 			</template>
 			<template #extra-actions>
-				<NcButton variant="tertiary"
+				<NcButton v-if="signer.signed" variant="tertiary"
 					:aria-label="isOpen ? t('libresign', 'Collapse details') : t('libresign', 'Expand details')"
 					@click.stop="toggleOpen">
 					<template #icon>
@@ -314,6 +316,9 @@ export default {
 	},
 	methods: {
 		toggleOpen() {
+			if (!this.signer?.signed) {
+				return
+			}
 			this.isOpen = !this.isOpen
 		},
 		getName(signer) {
