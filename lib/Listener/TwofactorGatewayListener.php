@@ -151,8 +151,8 @@ class TwofactorGatewayListener implements IEventListener {
 			$message .= "\n";
 			// TRANSLATORS The text in the message that is sent after a document has been signed by a user. %s will be replaced with the name of the user who signed the document.
 			$message .= $this->l10n->t('%s signed the document. You can access it using the link below:', [$signRequest->getDisplayName()]);
-			$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.indexFPath', [
-				'path' => 'validation/' . $libreSignFile->getUuid(),
+			$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.validationFilePublic', [
+				'uuid' => $libreSignFile->getUuid(),
 			]);
 			$message .= "\n";
 			$message .= $libreSignFile->getName() . ': ' . $link;
