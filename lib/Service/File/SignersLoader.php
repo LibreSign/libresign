@@ -41,10 +41,16 @@ class SignersLoader {
 			return;
 		}
 		$signers = $this->signRequestMapper->getByFileId($file->getId());
+		if (empty($signers)) {
+			return;
+		}
+		$signRequestIds = array_column(array_map(fn ($s) => ['id' => $s->getId()], $signers), 'id');
+		$identifyMethodsBatch = $this->identifyMethodService
+			->setIsRequest(false)
+			->getIdentifyMethodsFromSignRequestIds($signRequestIds);
+
 		foreach ($signers as $signer) {
-			$identifyMethods = $this->identifyMethodService
-				->setIsRequest(false)
-				->getIdentifyMethodsFromSignRequestId($signer->getId());
+			$identifyMethods = $identifyMethodsBatch[$signer->getId()] ?? [];
 			if (!empty($fileData->signers)) {
 				$found = array_filter($fileData->signers, function (stdClass $found) use ($identifyMethods) {
 					if (!isset($found->uid)) {

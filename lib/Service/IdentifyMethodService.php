@@ -206,6 +206,39 @@ class IdentifyMethodService {
 		return $return;
 	}
 
+	/**
+	 * @param int[] $signRequestIds
+	 * @return array<int, array<string,array<IIdentifyMethod>>>
+	 */
+	public function getIdentifyMethodsFromSignRequestIds(array $signRequestIds): array {
+		if (empty($signRequestIds)) {
+			return [];
+		}
+
+		$entitiesBySignRequest = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestIds($signRequestIds);
+
+		foreach ($entitiesBySignRequest as $entities) {
+			foreach ($entities as $entity) {
+				$this->setCurrentIdentifyMethod($entity);
+				$this->getInstanceOfIdentifyMethod($entity->getIdentifierKey(), $entity->getIdentifierValue());
+			}
+		}
+
+		$results = [];
+		foreach ($signRequestIds as $signRequestId) {
+			$results[$signRequestId] = [];
+			foreach ($this->identifyMethods as $methodName => $list) {
+				foreach ($list as $method) {
+					if ($method->getEntity()->getSignRequestId() === $signRequestId) {
+						$results[$signRequestId][$methodName][] = $method;
+					}
+				}
+			}
+		}
+
+		return $results;
+	}
+
 	public function getIdentifiedMethod(int $signRequestId): IIdentifyMethod {
 		$matrix = $this->getIdentifyMethodsFromSignRequestId($signRequestId);
 		[$identifiedMethod, $firstMethod] = $this->findMethodsInMatrix($matrix);

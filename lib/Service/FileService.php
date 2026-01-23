@@ -484,13 +484,16 @@ class FileService {
 		$childrenFiles = $this->fileMapper->getChildrenFiles($this->file->getId());
 		$latestDate = null;
 
-		foreach ($childrenFiles as $childFile) {
-			$signRequests = $this->signRequestMapper->getByFileId($childFile->getId());
-			foreach ($signRequests as $signRequest) {
-				$signed = $signRequest->getSigned();
-				if ($signed && (!$latestDate || $signed > $latestDate)) {
-					$latestDate = $signed;
-				}
+		$childFileIds = array_map(fn ($childFile) => $childFile->getId(), $childrenFiles);
+		if (empty($childFileIds)) {
+			return null;
+		}
+
+		$signRequests = $this->signRequestMapper->getByMultipleFileId($childFileIds);
+		foreach ($signRequests as $signRequest) {
+			$signed = $signRequest->getSigned();
+			if ($signed && (!$latestDate || $signed > $latestDate)) {
+				$latestDate = $signed;
 			}
 		}
 
@@ -556,10 +559,7 @@ class FileService {
 	}
 
 	private function computeEnvelopeSignersProgress(): void {
-		if (!$this->file || $this->file->getParentFileId()) {
-			return;
-		}
-		if (empty($this->fileData->signers)) {
+		if (!$this->file || $this->file->getParentFileId() || empty($this->fileData->signers)) {
 			return;
 		}
 
@@ -568,13 +568,20 @@ class FileService {
 			return;
 		}
 
-		$signRequestsByFileId = [];
+		$childFileIds = array_map(fn ($childFile) => $childFile->getId(), $childrenFiles);
+		$allSignRequests = $this->signRequestMapper->getByMultipleFileId($childFileIds);
+
+		$signRequestsByFileId = array_fill_keys($childFileIds, []);
+		foreach ($allSignRequests as $signRequest) {
+			$signRequestsByFileId[$signRequest->getFileId()][] = $signRequest;
+		}
+
 		$identifyMethodsBySignRequest = [];
-		foreach ($childrenFiles as $child) {
-			$signRequestsByFileId[$child->getId()] = $this->signRequestMapper->getByFileId($child->getId());
-			foreach ($signRequestsByFileId[$child->getId()] as $sr) {
-				$identifyMethodsBySignRequest[$sr->getId()] = $this->identifyMethodService->setIsRequest(false)->getIdentifyMethodsFromSignRequestId($sr->getId());
-			}
+		if (!empty($allSignRequests)) {
+			$allSignRequestIds = array_map(fn ($sr) => $sr->getId(), $allSignRequests);
+			$identifyMethodsBySignRequest = $this->identifyMethodService
+				->setIsRequest(false)
+				->getIdentifyMethodsFromSignRequestIds($allSignRequestIds);
 		}
 
 		$this->envelopeProgressService->computeProgress(
