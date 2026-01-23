@@ -454,25 +454,23 @@ class FileService {
 		if (!isset($this->fileData->files) || !is_array($this->fileData->files)) {
 			$this->fileData->files = [];
 		}
+	}
 
-		if ($this->options->isShowVisibleElements()) {
-			$signers = $this->signRequestMapper->getByMultipleFileId([$this->file->getId()]);
-			$this->fileData->visibleElements = [];
-			foreach ($this->signRequestMapper->getVisibleElementsFromSigners($signers) as $visibleElements) {
-				if (empty($visibleElements)) {
-					continue;
-				}
-				$file = array_filter($this->fileData->files, fn (stdClass $file) => $file->id === $visibleElements[0]->getFileId());
-				if (empty($file)) {
-					continue;
-				}
-				$file = current($file);
-				$fileMetadata = $this->file->getMetadata();
-				$this->fileData->visibleElements = array_merge(
-					$this->fileElementService->formatVisibleElements($visibleElements, $fileMetadata),
-					$this->fileData->visibleElements
-				);
+	private function loadVisibleElements(): void {
+		if (!$this->options->isShowVisibleElements()) {
+			return;
+		}
+		$signers = $this->signRequestMapper->getByMultipleFileId([$this->file->getId()]);
+		$this->fileData->visibleElements = [];
+		$fileMetadata = $this->file->getMetadata();
+		foreach ($this->signRequestMapper->getVisibleElementsFromSigners($signers) as $visibleElements) {
+			if (empty($visibleElements)) {
+				continue;
 			}
+			$this->fileData->visibleElements = array_merge(
+				$this->fileElementService->formatVisibleElements($visibleElements, $fileMetadata),
+				$this->fileData->visibleElements
+			);
 		}
 	}
 
@@ -550,6 +548,7 @@ class FileService {
 		$this->loadFileMetadata();
 		$this->loadSettings();
 		$this->loadSigners();
+		$this->loadVisibleElements();
 		$this->loadMessages();
 		$this->computeEnvelopeSignersProgress();
 
