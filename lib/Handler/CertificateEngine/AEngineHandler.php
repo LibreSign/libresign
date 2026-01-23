@@ -64,6 +64,7 @@ abstract class AEngineHandler implements IEngineHandler {
 	protected string $organization = '';
 	protected array $organizationalUnit = [];
 	protected string $UID = '';
+	private ?int $leafExpiryOverrideInDays = null;
 	protected string $password = '';
 	protected string $configPath = '';
 	protected string $engine = '';
@@ -446,6 +447,9 @@ abstract class AEngineHandler implements IEngineHandler {
 	}
 
 	public function getLeafExpiryInDays(): int {
+		if ($this->leafExpiryOverrideInDays !== null) {
+			return $this->leafExpiryOverrideInDays;
+		}
 		$exp = $this->appConfig->getValueInt(Application::APP_ID, 'expiry_in_days', 365);
 		return $exp > 0 ? $exp : 365;
 	}
