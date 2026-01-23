@@ -43,7 +43,7 @@ class WorkerStarter {
 	private function executeCommand(string $phpPath, string $occPath, array $jobClasses): void {
 		$jobClassesArg = implode(' ', array_map('escapeshellarg', $jobClasses));
 		$cmd = sprintf(
-			'%s %s background-job:worker %s --stop_after=1h >> /dev/null 2>&1 &',
+			'%s %s background-job:worker %s --stop_after=30m >> /dev/null 2>&1 &',
 			escapeshellarg($phpPath),
 			escapeshellarg($occPath),
 			$jobClassesArg
