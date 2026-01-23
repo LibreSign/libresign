@@ -18,7 +18,7 @@ use OCA\Libresign\Middleware\Attribute\RequireSignerUuid;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignRequest\ProgressService;
-use OCA\Libresign\Service\WorkerHealthService;
+use OCA\Libresign\Service\Worker\WorkerHealthService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
