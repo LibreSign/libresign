@@ -137,10 +137,11 @@ class SignJobCoordinator {
 	}
 
 	private function retrieveCredentials(?IUser $user, ?string $credentialsId): ?array {
-		if (empty($credentialsId) || $user === null) {
+		if (empty($credentialsId)) {
 			return null;
 		}
-		return $this->credentialsManager->retrieve($user->getUID(), $credentialsId);
+		$uid = $user?->getUID() ?? '';
+		return $this->credentialsManager->retrieve($uid, $credentialsId);
 	}
 
 	private function hydrateSignService(array $argument, ?array $credentials, FileEntity $file, SignRequestEntity $signRequest, ?IUser $user): void {

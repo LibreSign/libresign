@@ -18,6 +18,7 @@ use OCA\Libresign\Middleware\Attribute\PrivateValidation;
 use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\File\FileListService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -61,6 +62,7 @@ class PageController extends AEnvironmentPageAwareController {
 		private IdentifyMethodService $identifyMethodService,
 		private IAppConfig $appConfig,
 		private FileService $fileService,
+		private FileListService $fileListService,
 		private FileMapper $fileMapper,
 		private SignRequestMapper $signRequestMapper,
 		private LoggerInterface $logger,
@@ -395,29 +397,34 @@ class PageController extends AEnvironmentPageAwareController {
 	}
 
 	private function getEnvelopeChildFiles(): array {
-		$childFiles = $this->fileMapper->getChildrenFiles($this->getFileEntity()->getId());
-		$result = [];
+		$parentFileId = $this->getFileEntity()->getId();
+		$currentSignRequest = $this->getSignRequestEntity();
+		$childFiles = $this->fileMapper->getChildrenFiles($parentFileId);
+		$childSignRequests = $this->signRequestMapper->getByEnvelopeChildrenAndIdentifyMethod(
+			$parentFileId,
+			$currentSignRequest->getId()
+		);
 
-		foreach ($childFiles as $childFile) {
-
-			$childSignRequest = $this->signRequestMapper->getByFileIdAndSignRequestId(
-				$childFile->getId(),
-				$this->getSignRequestEntity()->getId()
-			);
-
-			$fileData = $this->fileService
-				->setFile($childFile)
-				->setHost($this->request->getServerHost())
-				->setSignerIdentified()
-				->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
-				->setSignRequest($childSignRequest)
-				->showSigners()
-				->toArray();
-
-			$result[] = $fileData;
+		$signRequestsByFileId = [];
+		foreach ($childSignRequests as $childSignRequest) {
+			$signRequestsByFileId[$childSignRequest->getFileId()] = true;
 		}
 
-		return $result;
+		foreach ($childFiles as $childFile) {
+			if (!isset($signRequestsByFileId[$childFile->getId()])) {
+				$this->logger->warning('Missing sign request for envelope child file', [
+					'parentFileId' => $parentFileId,
+					'childFileId' => $childFile->getId(),
+					'signRequestId' => $currentSignRequest->getId(),
+				]);
+			}
+		}
+
+		return $this->fileListService->formatEnvelopeChildFilesForSignRequest(
+			$childFiles,
+			$childSignRequests,
+			$currentSignRequest,
+		);
 	}
 
 	/**
