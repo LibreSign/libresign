@@ -63,6 +63,8 @@
 		<NcDialog v-if="signMethodsStore.modal.clickToSign"
 			:no-close="loading"
 			:name="t('libresign', 'Confirm')"
+			size="small"
+			dialog-classes="libresign-dialog"
 			@closing="signMethodsStore.closeModal('clickToSign')">
 			<NcNoteCard v-for="(error, index) in errors"
 				:key="index"
@@ -90,6 +92,8 @@
 		<NcDialog v-if="signMethodsStore.modal.password"
 			:no-close="loading"
 			:name="t('libresign', 'Confirm your signature')"
+			size="small"
+			dialog-classes="libresign-dialog"
 			@closing="onCloseConfirmPassword">
 			<NcNoteCard v-for="(error, index) in errors"
 				:key="index"
@@ -520,6 +524,30 @@ export default {
 		display: flex;
 		width: 100%;
 		justify-content: space-between;
+	}
+}
+</style>
+
+<style lang="scss">
+/* Targeted override: keep small dialog compact on guest/mobile */
+@media only screen and ((max-width: 512px) or (max-height: 400px)) {
+	.libresign-dialog .modal-wrapper--small > .modal-container {
+		width: fit-content !important;
+		height: unset !important;
+		max-height: 90% !important;
+		position: relative !important;
+		top: unset !important;
+		border-radius: var(--border-radius-large) !important;
+	}
+
+	/* Apply same rule to NcDialog's default wrapper class */
+	.dialog__modal .modal-wrapper--small > .modal-container {
+		width: fit-content !important;
+		height: unset !important;
+		max-height: 90% !important;
+		position: relative !important;
+		top: unset !important;
+		border-radius: var(--border-radius-large) !important;
 	}
 }
 </style>
