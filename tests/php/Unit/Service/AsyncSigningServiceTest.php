@@ -15,7 +15,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Service\AsyncSigningService;
-use OCA\Libresign\Service\WorkerHealthService;
+use OCA\Libresign\Service\Worker\WorkerHealthService;
 use OCP\BackgroundJob\IJobList;
 use OCP\IUser;
 use OCP\Security\ICredentialsManager;
