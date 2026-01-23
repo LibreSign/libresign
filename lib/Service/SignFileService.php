@@ -337,12 +337,12 @@ class SignFileService {
 	}
 
 	private function getNode(int $nodeId): ?File {
-		if ($this->user instanceof IUser) {
+		try {
 			return $this->folderService->getFileByNodeId($nodeId);
+		} catch (\Throwable) {
+			$filesOfElementes = $this->signerElementsService->getElementsFromSession();
+			return $this->array_find($filesOfElementes, fn ($file) => $file->getId() === $nodeId);
 		}
-
-		$filesOfElementes = $this->signerElementsService->getElementsFromSession();
-		return $this->array_find($filesOfElementes, fn ($file) => $file->getId() === $nodeId);
 	}
 
 	/**
