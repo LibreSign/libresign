@@ -128,4 +128,43 @@ final class SignersLoaderTest extends TestCase {
 			],
 		];
 	}
+
+	public function testLoadSignersFromCertDataMatchesExistingSigner(): void {
+		$signRequestMapper = $this->createMock(\OCA\Libresign\Db\SignRequestMapper::class);
+		$signRequestMapper->method('getTextOfSignerStatus')->willReturn('status-text');
+
+		$identifyMethodService = $this->createMock(\OCA\Libresign\Service\IdentifyMethodService::class);
+		$identifyMethodService->method('resolveUid')->willReturn('account:admin');
+
+		$service = $this->getService($signRequestMapper, $identifyMethodService);
+
+		$fileData = new \stdClass();
+		$fileData->signers = [];
+		$fileData->signers[0] = (object)[
+			'displayName' => 'admin',
+			'email' => '',
+		];
+		$fileData->signers[1] = (object)[
+			'displayName' => 'Leon Green',
+			'email' => 'leon@example.com',
+		];
+
+		$certData = [
+			[
+				'chain' => [
+					[
+						'name' => 'Admin Cert',
+						'subject' => ['CN' => 'admin'],
+					],
+				],
+			],
+		];
+
+		$service->loadSignersFromCertData($fileData, $certData, 'example.com');
+
+		$this->assertCount(2, $fileData->signers);
+		$this->assertSame('admin', $fileData->signers[0]->displayName);
+		$this->assertSame('Admin Cert', $fileData->signers[0]->chain[0]['displayName']);
+		$this->assertObjectNotHasProperty('chain', $fileData->signers[1]);
+	}
 }

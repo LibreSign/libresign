@@ -118,6 +118,7 @@ const FileValidation = () => import('../components/validation/FileValidation.vue
 const SigningProgress = () => import('../components/validation/SigningProgress.vue')
 
 import logoGray from '../../img/logo-gray.svg'
+import { openDocument } from '../utils/viewer.js'
 import { getStatusLabel } from '../utils/fileStatus.js'
 import logger from '../logger.js'
 import { useSignStore } from '../store/sign.js'
@@ -398,22 +399,11 @@ export default {
 			return mdiAlertCircle
 		},
 		viewDocument() {
-			const fileUrl = this.document.files[0].file
-
-			if (OCA?.Viewer !== undefined) {
-				const fileInfo = {
-					source: fileUrl,
-					basename: this.document.name,
-					mime: 'application/pdf',
-					fileid: this.document.nodeId,
-				}
-				OCA.Viewer.open({
-					fileInfo,
-					list: [fileInfo],
-				})
-			} else {
-				window.open(`${fileUrl}?_t=${Date.now()}`)
-			}
+			openDocument({
+				fileUrl: file.file,
+				filename: this.document.name,
+				nodeId: this.document.nodeId,
+			})
 		},
 		goBack() {
 			const urlParams = new URLSearchParams(window.location.search)

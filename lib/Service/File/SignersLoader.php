@@ -192,34 +192,53 @@ class SignersLoader {
 	}
 
 	public function loadSignersFromCertData(stdClass $fileData, array $certData, string $host): void {
+		$existingSigners = (isset($fileData->signers) && is_array($fileData->signers)) ? $fileData->signers : [];
+		$indexMap = $this->buildSignerIndexMap($existingSigners);
+		$usedIndexes = [];
+
 		foreach ($certData as $index => $signer) {
-			if (!isset($fileData->signers[$index])) {
-				$fileData->signers[$index] = new stdClass();
+			$targetIndex = $index;
+			if (!empty($existingSigners)) {
+				$resolvedUid = $signer['uid'] ?? null;
+				if (!$resolvedUid && isset($signer['chain'][0])) {
+					$resolvedUid = $this->identifyMethodService->resolveUid($signer['chain'][0], $host);
+				}
+				$matchedIndex = $this->findMatchingSignerIndex($indexMap, $resolvedUid, $signer);
+				if ($matchedIndex !== null && !isset($usedIndexes[$matchedIndex])) {
+					$targetIndex = $matchedIndex;
+				} else {
+					$targetIndex = $this->nextAvailableSignerIndex($existingSigners, $usedIndexes);
+				}
 			}
-			$fileData->signers[$index]->status = 2;
-			$fileData->signers[$index]->statusText = $this->signRequestMapper->getTextOfSignerStatus(2);
+			$usedIndexes[$targetIndex] = true;
+
+			if (!isset($fileData->signers[$targetIndex])) {
+				$fileData->signers[$targetIndex] = new stdClass();
+			}
+			$fileData->signers[$targetIndex]->status = 2;
+			$fileData->signers[$targetIndex]->statusText = $this->signRequestMapper->getTextOfSignerStatus(2);
 
 			if (isset($signer['timestamp'])) {
-				$fileData->signers[$index]->timestamp = $signer['timestamp'];
+				$fileData->signers[$targetIndex]->timestamp = $signer['timestamp'];
 				if (isset($signer['timestamp']['genTime']) && $signer['timestamp']['genTime'] instanceof DateTimeInterface) {
-					$fileData->signers[$index]->timestamp['genTime'] = $signer['timestamp']['genTime']->format(DateTimeInterface::ATOM);
+					$fileData->signers[$targetIndex]->timestamp['genTime'] = $signer['timestamp']['genTime']->format(DateTimeInterface::ATOM);
 				}
 			}
 			if (isset($signer['signingTime']) && $signer['signingTime'] instanceof DateTimeInterface) {
-				$fileData->signers[$index]->signingTime = $signer['signingTime'];
-				$fileData->signers[$index]->signed = $signer['signingTime']->format(DateTimeInterface::ATOM);
+				$fileData->signers[$targetIndex]->signingTime = $signer['signingTime'];
+				$fileData->signers[$targetIndex]->signed = $signer['signingTime']->format(DateTimeInterface::ATOM);
 			}
 			if (isset($signer['docmdp'])) {
-				$fileData->signers[$index]->docmdp = $signer['docmdp'];
+				$fileData->signers[$targetIndex]->docmdp = $signer['docmdp'];
 			}
 			if (isset($signer['modifications'])) {
-				$fileData->signers[$index]->modifications = $signer['modifications'];
+				$fileData->signers[$targetIndex]->modifications = $signer['modifications'];
 			}
 			if (isset($signer['modification_validation'])) {
-				$fileData->signers[$index]->modification_validation = $signer['modification_validation'];
+				$fileData->signers[$targetIndex]->modification_validation = $signer['modification_validation'];
 			}
 			if (isset($signer['chain'])) {
-				$fileData->signers[$index]->chain = [];
+				$fileData->signers[$targetIndex]->chain = [];
 				foreach ($signer['chain'] as $chainIndex => $chainItem) {
 					$chainArr = $chainItem;
 					if (isset($chainItem['validFrom_time_t']) && is_numeric($chainItem['validFrom_time_t'])) {
@@ -229,27 +248,67 @@ class SignersLoader {
 						$chainArr['valid_to'] = (new DateTime('@' . $chainItem['validTo_time_t'], new \DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
 					}
 					$chainArr['displayName'] = $chainArr['name'] ?? ($chainArr['subject']['CN'] ?? '');
-					$fileData->signers[$index]->chain[$chainIndex] = $chainArr;
+					$fileData->signers[$targetIndex]->chain[$chainIndex] = $chainArr;
 					if ($chainIndex === 0) {
 						foreach ($chainArr as $key => $value) {
-							if (!isset($fileData->signers[$index]->$key)) {
-								$fileData->signers[$index]->$key = $value;
+							if (!isset($fileData->signers[$targetIndex]->$key)) {
+								$fileData->signers[$targetIndex]->$key = $value;
 							}
 						}
-						$fileData->signers[$index]->uid = $this->identifyMethodService->resolveUid($chainArr, $host);
+						$fileData->signers[$targetIndex]->uid = $this->identifyMethodService->resolveUid($chainArr, $host);
 					}
 				}
 			}
 			if (isset($signer['uid'])) {
-				$fileData->signers[$index]->uid = $signer['uid'];
+				$fileData->signers[$targetIndex]->uid = $signer['uid'];
 			}
 			if (isset($signer['signDate'])) {
-				$fileData->signers[$index]->signDate = $signer['signDate'];
+				$fileData->signers[$targetIndex]->signDate = $signer['signDate'];
 			}
 			if (isset($signer['type'])) {
-				$fileData->signers[$index]->type = $signer['type'];
+				$fileData->signers[$targetIndex]->type = $signer['type'];
 			}
 		}
+	}
+
+	private function buildSignerIndexMap(array $signers): array {
+		$map = [];
+		foreach ($signers as $index => $signer) {
+			if (isset($signer->uid)) {
+				$map[strtolower((string)$signer->uid)] = $index;
+			}
+			if (!empty($signer->email)) {
+				$map['email:' . strtolower((string)$signer->email)] = $index;
+			}
+			if (!empty($signer->displayName)) {
+				$map['account:' . strtolower((string)$signer->displayName)] = $index;
+			}
+		}
+		return $map;
+	}
+
+	private function findMatchingSignerIndex(array $indexMap, ?string $resolvedUid, array $certSigner): ?int {
+		$identifiers = [];
+		if ($resolvedUid) {
+			$identifiers[] = strtolower($resolvedUid);
+		}
+		if (!empty($certSigner['uid'])) {
+			$identifiers[] = strtolower((string)$certSigner['uid']);
+		}
+		foreach ($identifiers as $identifier) {
+			if (isset($indexMap[$identifier])) {
+				return $indexMap[$identifier];
+			}
+		}
+		return null;
+	}
+
+	private function nextAvailableSignerIndex(array $existingSigners, array $usedIndexes): int {
+		$index = count($existingSigners);
+		while (isset($existingSigners[$index]) || isset($usedIndexes[$index])) {
+			$index++;
+		}
+		return $index;
 	}
 
 	public function reset(): void {
