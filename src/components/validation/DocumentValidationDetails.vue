@@ -37,7 +37,7 @@
 			</NcListItem>
 		</ul>
 		<div class="info-document">
-			<NcButton v-if="document.nodeId || document.uuid" variant="primary" @click="viewDocument">
+			<NcButton v-if="document.uuid" variant="primary" @click="viewDocument">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiEye" :size="20" />
 				</template>
@@ -65,6 +65,7 @@ import {
 } from '@mdi/js'
 
 import { getStatusLabel } from '../../utils/fileStatus.js'
+import { openDocument } from '../../utils/viewer.js'
 import SignerDetails from './SignerDetails.vue'
 
 export default {
@@ -97,22 +98,12 @@ export default {
 	},
 	methods: {
 		viewDocument() {
-			const source = this.document.files[0].file
-
-			if (OCA?.Viewer !== undefined) {
-				const fileInfo = {
-					source,
-					basename: this.document.name,
-					mime: 'application/pdf',
-					fileid: this.document.nodeId,
-				}
-				OCA.Viewer.open({
-					fileInfo,
-					list: [fileInfo],
-				})
-			} else {
-				window.open(`${source}?_t=${Date.now()}`)
-			}
+			const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: this.document.uuid })
+			openDocument({
+				fileUrl,
+				filename: this.document.name,
+				nodeId: this.document.nodeId,
+			})
 		},
 	},
 }
