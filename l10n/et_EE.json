@@ -85,7 +85,6 @@
     "Please provide either UUID or File object" : "Palun lisa kas UUID või Failirakenduse objekt",
     "No user data" : "Kasutaja andmeid pole",
     "User %s has no email address." : "Kasutajal %s pole e-posti aadressi.",
-    "File not loaded" : "Fail pole laaditud",
     "You are not allowed to sign this document yet" : "Sul pole veel õigust seda dokumenti allkirjastada",
     "Signer not associated to this file" : "Allkirjastaja pole selle failiga seotud",
     "You need to have an approved identification document to sign." : "Allkirjastamiseks peab sul olema kinnitatud tuvastusdokument.",

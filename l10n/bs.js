@@ -7,6 +7,7 @@ OC.L10N.register(
     "File not found" : "Datoteka nije pronađena",
     "Pending" : "Na čekanju",
     "Internal Server Error" : "Unutarnja Server Greška",
+    "in %s" : "u %s",
     "Invalid user" : "Nevažeči korisnik",
     "Email" : "E-pošta",
     "Cancel" : "Otkaži",
