@@ -9,6 +9,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $fileMapper;
@@ -295,5 +296,54 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = $this->createFileService();
 
 		$service->delete(1, false);
+	}
+
+	#[DataProvider('providerTestVisibleElements')]
+	public function testVisibleElements(bool $showVisibleElementsFlag, bool $expectedInResult): void {
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId(1);
+		$file->setUuid('test-uuid');
+		$file->setName('test.pdf');
+		$file->setStatus(1);
+		$file->setCreatedAt(new \DateTime());
+		$file->setNodeId(100);
+		$file->setSignatureFlow('');
+		$file->setDocmdpLevel('');
+
+		$file->setUserId('testuser');
+
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getDisplayName')->willReturn('Test User');
+
+		$this->fileMapper->method('getById')->willReturn($file);
+		$this->fileMapper->method('getTextOfStatus')->willReturn('Status text');
+		$this->userManager->method('get')->willReturn($user);
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([]);
+		if ($showVisibleElementsFlag) {
+			$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+		}
+
+		$service = $this->createFileService();
+		$chainedService = $service->setFile($file);
+
+		if ($showVisibleElementsFlag) {
+			$chainedService->showVisibleElements();
+		}
+
+		$result = $chainedService->toArray();
+
+		if ($expectedInResult) {
+			$this->assertArrayHasKey('visibleElements', $result);
+			$this->assertIsArray($result['visibleElements']);
+		} else {
+			$this->assertArrayNotHasKey('visibleElements', $result);
+		}
+	}
+
+	public static function providerTestVisibleElements(): array {
+		return [
+			'visible elements included when showVisibleElements() called' => [true, true],
+			'visible elements not included when showVisibleElements() not called' => [false, false],
+		];
 	}
 }
