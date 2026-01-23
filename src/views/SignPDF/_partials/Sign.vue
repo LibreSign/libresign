@@ -399,8 +399,9 @@ export default {
 						}))
 				}
 			}
+			const isAuthenticated = !!getCurrentUser()
 			let url = ''
-			if (this.signStore.document.id > 0) {
+			if (isAuthenticated && this.signStore.document.id > 0) {
 				url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{id}', { id: this.signStore.document.id })
 			} else {
 				url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: this.signRequestUuid })
