@@ -6,6 +6,7 @@ OC.L10N.register(
     "Missing a temporary folder" : "Plygell dros dro yn eisiau",
     "Pending" : "I ddod",
     "View" : "Golwg",
+    "in %s" : "yn %s",
     "Account" : "Cyfrif",
     "Email" : "E-bost",
     "Cancel" : "Diddymu",

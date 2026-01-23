@@ -24,6 +24,7 @@ OC.L10N.register(
     "File sharing" : "Fildeling",
     "View" : "Vis",
     "Dismiss notification" : "Fjern notifikation",
+    "in %s" : "i %s",
     "Empty file" : "Tom fil",
     "Account" : "Konto",
     "Invalid user" : "Ugyldig bruger",
