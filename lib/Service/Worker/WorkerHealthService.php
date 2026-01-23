@@ -12,17 +12,22 @@ use Psr\Log\LoggerInterface;
 
 class WorkerHealthService {
 	public function __construct(
-		private WorkerConfiguration $config,
-		private WorkerCounter $counter,
-		private StartThrottlePolicy $throttle,
-		private WorkerStarter $starter,
+		private WorkerConfiguration $workerConfiguration,
+		private WorkerCounter $workerCounter,
+		private WorkerJobCounter $workerJobCounter,
+		private StartThrottlePolicy $startThrottlePolicy,
+		private WorkerStarter $workerStarter,
 		private LoggerInterface $logger,
 	) {
 	}
 
+	public function isAsyncLocalEnabled(): bool {
+		return $this->workerConfiguration->isAsyncLocalEnabled();
+	}
+
 	public function ensureWorkerRunning(): bool {
 		try {
-			if (!$this->config->isAsyncLocalEnabled()) {
+			if (!$this->workerConfiguration->isAsyncLocalEnabled()) {
 				return false;
 			}
 
@@ -31,12 +36,12 @@ class WorkerHealthService {
 				return true;
 			}
 
-			if ($this->throttle->isThrottled()) {
+			if ($this->startThrottlePolicy->isThrottled()) {
 				return true;
 			}
 
-			$this->throttle->recordAttempt();
-			$this->starter->startWorkers($workersNeeded);
+			$this->startThrottlePolicy->recordAttempt();
+			$this->workerStarter->startWorkers($workersNeeded);
 			return true;
 		} catch (\Throwable $e) {
 			$this->logger->error('Failed to ensure worker is running: {error}', [
@@ -48,8 +53,24 @@ class WorkerHealthService {
 	}
 
 	private function calculateWorkersNeeded(): int {
-		$desired = $this->config->getDesiredWorkerCount();
-		$running = $this->counter->countRunning();
-		return max(0, $desired - $running);
+		$desired = $this->workerConfiguration->getDesiredWorkerCount();
+		$running = $this->workerCounter->countRunning();
+		$pendingJobs = $this->workerJobCounter->countPendingJobs();
+
+		if ($this->hasNoPendingWork($pendingJobs)) {
+			return 0;
+		}
+
+		return $this->limitWorkersByAvailableWork($pendingJobs, $desired, $running);
+	}
+
+	private function hasNoPendingWork(int $pendingJobs): bool {
+		return $pendingJobs === 0;
+	}
+
+	private function limitWorkersByAvailableWork(int $pendingJobs, int $desired, int $running): int {
+		$workersNeeded = $desired - $running;
+		$workersLimitedByJobs = min($pendingJobs, $workersNeeded);
+		return max(0, $workersLimitedByJobs);
 	}
 }
