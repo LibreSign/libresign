@@ -89,6 +89,77 @@ class FileListService {
 		return $this->formatSingleFileData($file, $signers, $identifyMethods, $visibleElements, $user);
 	}
 
+	public function formatSingleFileForSignRequest(File $file, ?SignRequest $currentSignRequest = null): array {
+		$signers = $this->signRequestMapper->getByMultipleFileId([$file->getId()]);
+		$identifyMethods = $this->signRequestMapper->getIdentifyMethodsFromSigners($signers);
+		$visibleElements = $this->signRequestMapper->getVisibleElementsFromSigners($signers);
+
+		return $this->formatSingleFileData(
+			$file,
+			$signers,
+			$identifyMethods,
+			$visibleElements,
+			null,
+			$currentSignRequest?->getId(),
+		);
+	}
+
+	/**
+	 * Format multiple envelope child files for a sign request with preloaded data.
+	 * Avoids N+1 queries by reusing the provided sign request collection.
+	 *
+	 * @param File[] $childFiles
+	 * @param SignRequest[] $childSignRequests
+	 * @return list<array<string, mixed>>
+	 */
+	public function formatEnvelopeChildFilesForSignRequest(
+		array $childFiles,
+		array $childSignRequests,
+		?SignRequest $currentSignRequest = null,
+	): array {
+		$identifyMethods = $this->signRequestMapper->getIdentifyMethodsFromSigners($childSignRequests);
+		$visibleElements = $this->signRequestMapper->getVisibleElementsFromSigners($childSignRequests);
+		$signRequestsByFileId = [];
+		foreach ($childSignRequests as $signRequest) {
+			$signRequestsByFileId[$signRequest->getFileId()][] = $signRequest;
+		}
+		$currentIdentifyKey = null;
+		if ($currentSignRequest) {
+			if (!isset($identifyMethods[$currentSignRequest->getId()])) {
+				$currentIdentifyMethods = $this->signRequestMapper->getIdentifyMethodsFromSigners([$currentSignRequest]);
+				$identifyMethods += $currentIdentifyMethods;
+			}
+			$currentIdentifyMethods = $identifyMethods[$currentSignRequest->getId()] ?? [];
+			$currentIdentifyKey = $this->buildIdentifyKey($currentIdentifyMethods);
+		}
+
+		$formatted = [];
+		foreach ($childFiles as $childFile) {
+			$signers = $signRequestsByFileId[$childFile->getId()] ?? [];
+			$meSignRequestId = null;
+			if ($currentIdentifyKey !== null) {
+				foreach ($signers as $signer) {
+					$signerIdentifyKey = $this->buildIdentifyKey($identifyMethods[$signer->getId()] ?? []);
+					if ($signerIdentifyKey === $currentIdentifyKey) {
+						$meSignRequestId = $signer->getId();
+						break;
+					}
+				}
+			}
+
+			$formatted[] = $this->formatSingleFileData(
+				$childFile,
+				$signers,
+				$identifyMethods,
+				$visibleElements,
+				null,
+				$meSignRequestId,
+			);
+		}
+
+		return $formatted;
+	}
+
 	/**
 	 * @param File[] $files
 	 * @param SignRequest[] $signers
@@ -119,7 +190,7 @@ class FileListService {
 	 * @param SignRequest[] $signers
 	 * @param array<int, array<string, Entity&IdentifyMethod>> $identifyMethods
 	 * @param array<int, FileElement[]> $visibleElements
-	 * @param IUser $user
+	 * @param IUser|null $user
 	 * @return LibresignFileDetail
 	 */
 	private function formatSingleFileData(
@@ -127,7 +198,8 @@ class FileListService {
 		array $signers,
 		array $identifyMethods,
 		array $visibleElements,
-		IUser $user,
+		?IUser $user,
+		?int $meSignRequestId = null,
 	): array {
 		$file = [
 			'id' => $fileEntity->getId(),
@@ -165,7 +237,14 @@ class FileListService {
 			if ($signer->getFileId() !== $fileEntity->getId()) {
 				continue;
 			}
-			$signerData = $this->formatSignerData($signer, $identifyMethods, $visibleElements, $file['metadata'], $user);
+			$signerData = $this->formatSignerData(
+				$signer,
+				$identifyMethods,
+				$visibleElements,
+				$file['metadata'],
+				$user,
+				$meSignRequestId,
+			);
 			$file['signers'][] = $signerData;
 			if (!empty($signerData['me']) && !isset($file['signUuid'])) {
 				$file['signUuid'] = $signerData['sign_uuid'];
@@ -214,9 +293,24 @@ class FileListService {
 		array $identifyMethods,
 		array $visibleElements,
 		array $metadata,
-		IUser $user,
+		?IUser $user,
+		?int $meSignRequestId = null,
 	): array {
 		$identifyMethodsOfSigner = $identifyMethods[$signer->getId()] ?? [];
+		$me = false;
+		if ($meSignRequestId !== null) {
+			$me = $signer->getId() === $meSignRequestId;
+		} elseif ($user) {
+			$me = array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
+				if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
+					return $user->getUID() === $identifyMethod->getIdentifierValue();
+				}
+				if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL && $user->getEMailAddress()) {
+					return $user->getEMailAddress() === $identifyMethod->getIdentifierValue();
+				}
+				return $carry;
+			}, false);
+		}
 		/** @var LibresignSigner */
 		$data = [
 			'email' => array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
@@ -241,15 +335,7 @@ class FileListService {
 			'signingOrder' => $signer->getSigningOrder(),
 			'status' => $signer->getStatus(),
 			'statusText' => $this->signRequestMapper->getTextOfSignerStatus($signer->getStatus()),
-			'me' => array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
-				if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
-					return $user->getUID() === $identifyMethod->getIdentifierValue();
-				}
-				if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL && $user->getEMailAddress()) {
-					return $user->getEMailAddress() === $identifyMethod->getIdentifierValue();
-				}
-				return $carry;
-			}, false),
+			'me' => $me,
 			'visibleElements' => isset($visibleElements[$signer->getId()])
 				? $this->fileElementService->formatVisibleElements(
 					$visibleElements[$signer->getId()],
