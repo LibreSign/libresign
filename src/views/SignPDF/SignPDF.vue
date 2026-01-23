@@ -71,7 +71,6 @@ export default {
 			pdfBlobs: [],
 			fileNames: [],
 			envelopeFiles: [],
-			envelopePdfFiles: [],
 		}
 	},
 	computed: {
@@ -187,63 +186,53 @@ export default {
 		},
 		async loadEnvelopePdfs(parentFileId) {
 			try {
-				const envelopeFiles = loadState('libresign', 'envelopeFiles', [])
+				const envelopeFiles = await this.fetchEnvelopeFiles(parentFileId)
+				this.envelopeFiles = envelopeFiles
 
-				let files = []
-				if (envelopeFiles.length > 0) {
-					files = envelopeFiles
-				} else {
-					const url = generateOcsUrl('/apps/libresign/api/v1/file/list')
-					const params = new URLSearchParams({
-						page: '1',
-						length: '100',
-						parentFileId: parentFileId.toString(),
-						signer_uuid: this.$route.params.uuid,
-					})
-
-					const { data } = await axios.get(`${url}?${params.toString()}`)
-					if (data.ocs?.data?.data) {
-						files = data.ocs.data.data
-					} else {
-						this.signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
-						return
-					}
-				}
-
-				this.envelopeFiles = files
-				const pdfFiles = files.flatMap(file => {
-					if (Array.isArray(file.files) && file.files.length > 0) {
-						return file.files
-					}
-					return [file]
-				})
-				this.envelopePdfFiles = pdfFiles
-
-				for (const file of files) {
-					const signer = file.signers?.find(row => row.me) || {}
-					if (Object.keys(signer).length > 0) {
-						this.filesStore.addFile(file)
-						break
-					}
-				}
-
-				const urls = pdfFiles.map(file => file.file).filter(Boolean)
-				if (urls.length === 0) {
+				if (!envelopeFiles.length) {
 					this.signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
 					return
 				}
-				this.fileNames = pdfFiles.map(file => {
-					return `${file.name}.${file.metadata?.extension || 'pdf'}`
-				})
+
+				const fileWithMe = envelopeFiles.find(file => file.signers?.some(row => row.me))
+				if (fileWithMe) {
+					this.filesStore.addFile(fileWithMe)
+				}
+
+				const urls = envelopeFiles
+					.map(file => file.files?.[0]?.file)
+					.filter(Boolean)
+				if (!urls.length) {
+					this.signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
+					return
+				}
+
+				this.fileNames = envelopeFiles.map(file => `${file.name}.${file.metadata?.extension || 'pdf'}`)
 				await this.handleInitialStatePdfs(urls)
 			} catch (error) {
 				this.signStore.errors = [{ message: t('libresign', 'Failed to load envelope files') }]
 			}
 		},
+		async fetchEnvelopeFiles(parentFileId) {
+			const cachedEnvelopeFiles = loadState('libresign', 'envelopeFiles', [])
+			if (Array.isArray(cachedEnvelopeFiles) && cachedEnvelopeFiles.length > 0) {
+				return cachedEnvelopeFiles
+			}
+
+			const url = generateOcsUrl('/apps/libresign/api/v1/file/list')
+			const params = new URLSearchParams({
+				page: '1',
+				length: '100',
+				parentFileId: parentFileId.toString(),
+				signer_uuid: this.$route.params.uuid,
+			})
+			const response = await axios.get(`${url}?${params.toString()}`)
+			return response.data?.ocs?.data?.data ?? []
+		},
 		updateSigners(data) {
 			if (this.signStore.document.nodeType === 'envelope' && this.envelopeFiles.length > 0) {
 				const fileIndexById = new Map(
-					this.envelopePdfFiles.map((file, index) => [file.id, index]),
+					this.envelopeFiles.map((file, index) => [file.id, index]),
 				)
 				const elements = this.envelopeFiles.flatMap(file => file.visibleElements || [])
 				elements.forEach(element => {
