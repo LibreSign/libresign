@@ -25,6 +25,7 @@ const defaultState = {
 		nodeType: 'file',
 		uuid: '',
 		signers: [],
+		visibleElements: [],
 	},
 	mounted: false,
 }
@@ -46,6 +47,7 @@ export const useSignStore = defineStore('sign', {
 				nodeType: loadState('libresign', 'nodeType', ''),
 				uuid: loadState('libresign', 'uuid', null),
 				signers: loadState('libresign', 'signers', []),
+				visibleElements: loadState('libresign', 'visibleElements', []),
 			}
 			const filesStore = useFilesStore()
 			const sidebarStore = useSidebarStore()
