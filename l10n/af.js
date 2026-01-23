@@ -17,6 +17,7 @@ OC.L10N.register(
     "Invalid file provided" : "Ongeldige lêer verskaf",
     "File is too big" : "Lêer is te groot",
     "View" : "Bekyk",
+    "in %s" : "in %s",
     "Account" : "Rekening",
     "Invalid user" : "Ongeldige gebruiker",
     "Email" : "E-pos",
