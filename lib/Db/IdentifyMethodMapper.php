@@ -47,6 +47,35 @@ class IdentifyMethodMapper extends QBMapper {
 		return $this->methodsBySignRequest[$signRequestId];
 	}
 
+	/**
+	 * @param int[] $signRequestIds
+	 * @return array<int, IdentifyMethod[]>
+	 */
+	public function getIdentifyMethodsFromSignRequestIds(array $signRequestIds): array {
+		if (empty($signRequestIds)) {
+			return [];
+		}
+
+		$missing = array_diff($signRequestIds, array_keys($this->methodsBySignRequest));
+
+		if (!empty($missing)) {
+			$qb = $this->db->getQueryBuilder();
+			$qb->select('im.*')
+				->from('libresign_identify_method', 'im')
+				->where($qb->expr()->in('im.sign_request_id', $qb->createNamedParameter($missing, IQueryBuilder::PARAM_INT_ARRAY)));
+
+			$cursor = $qb->executeQuery();
+			while ($row = $cursor->fetch()) {
+				$entity = $this->mapRowToEntity($row);
+				$signRequestId = $entity->getSignRequestId();
+				$this->methodsBySignRequest[$signRequestId][] = $entity;
+			}
+			$cursor->closeCursor();
+		}
+
+		return array_map(fn ($id) => $this->methodsBySignRequest[$id] ?? [], $signRequestIds);
+	}
+
 	public function neutralizeDeletedUser(string $userId, string $displayName): void {
 		$update = $this->db->getQueryBuilder();
 		$qb = $this->db->getQueryBuilder();
@@ -59,8 +88,6 @@ class IdentifyMethodMapper extends QBMapper {
 		while ($row = $cursor->fetch()) {
 			if (is_string($row['metadata']) && !empty($row['metadata'])) {
 				$row['metadata'] = json_decode($row['metadata'], true);
-			} else {
-				$row['metadata'] = [];
 			}
 			$row['metadata']['deleted_account'] = [
 				'account' => $userId,
