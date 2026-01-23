@@ -113,6 +113,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $certContent;
 	}
 
+	#[\Override]
 	public function updatePassword(string $certificate, string $currentPrivateKey, string $newPrivateKey): string {
 		if (empty($certificate) || empty($currentPrivateKey) || empty($newPrivateKey)) {
 			throw new EmptyCertificateException();
@@ -123,6 +124,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $certContent;
 	}
 
+	#[\Override]
 	public function readCertificate(string $certificate, string $privateKey): array {
 		if (empty($certificate) || empty($privateKey)) {
 			throw new EmptyCertificateException();
@@ -148,6 +150,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $caId;
 	}
 
+	#[\Override]
 	public function parseCertificate(string $certificate): array {
 		return $this->parseX509($certificate);
 	}
@@ -287,6 +290,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		$this->appConfig->setValueArray(Application::APP_ID, 'identify_methods', $config);
 	}
 
+	#[\Override]
 	public function getEngine(): string {
 		if ($this->engine) {
 			return $this->engine;
@@ -295,6 +299,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $this->engine;
 	}
 
+	#[\Override]
 	public function populateInstance(array $rootCert): IEngineHandler {
 		if (empty($rootCert)) {
 			$rootCert = $this->appConfig->getValueArray(Application::APP_ID, 'rootCert');
@@ -318,6 +323,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $this;
 	}
 
+	#[\Override]
 	public function getCurrentConfigPath(): string {
 		if ($this->configPath) {
 			return $this->configPath;
@@ -336,6 +342,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $this->configPath;
 	}
 
+	#[\Override]
 	public function getConfigPathByParams(string $instanceId, int $generation): string {
 		$engineName = $this->getName();
 
@@ -404,6 +411,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $path;
 	}
 
+	#[\Override]
 	public function setConfigPath(string $configPath): IEngineHandler {
 		if (!$configPath) {
 			$this->appConfig->deleteKey(Application::APP_ID, 'config_path');
@@ -446,6 +454,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return str_replace(' ', '+', $this->UID);
 	}
 
+	#[\Override]
 	public function getLeafExpiryInDays(): int {
 		if ($this->leafExpiryOverrideInDays !== null) {
 			return $this->leafExpiryOverrideInDays;
@@ -454,6 +463,13 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $exp > 0 ? $exp : 365;
 	}
 
+	#[\Override]
+	public function setLeafExpiryOverrideInDays(?int $days): self {
+		$this->leafExpiryOverrideInDays = ($days !== null && $days > 0) ? $days : null;
+		return $this;
+	}
+
+	#[\Override]
 	public function getCaExpiryInDays(): int {
 		$exp = $this->appConfig->getValueInt(Application::APP_ID, 'ca_expiry_in_days', 3650); // 10 years
 		return $exp > 0 ? $exp : 3650;
@@ -484,6 +500,7 @@ abstract class AEngineHandler implements IEngineHandler {
 
 	abstract protected function getSetupErrorTip(): string;
 
+	#[\Override]
 	public function configureCheck(): array {
 		$checks = $this->getEngineSpecificChecks();
 
@@ -713,6 +730,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return null;
 	}
 
+	#[\Override]
 	public function toArray(): array {
 		$generated = $this->isSetupOk();
 		$return = [
@@ -935,6 +953,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		}
 	}
 
+	#[\Override]
 	public function generateCrlDer(array $revokedCertificates, string $instanceId, int $generation, int $crlNumber): string {
 		$configPath = $this->getConfigPathByParams($instanceId, $generation);
 		$issuer = $this->loadCaIssuer($configPath);
@@ -1042,6 +1061,7 @@ abstract class AEngineHandler implements IEngineHandler {
 		return $crlDerData;
 	}
 
+	#[\Override]
 	public function validateRootCertificate(): void {
 		$configPath = $this->getCurrentConfigPath();
 		if (empty($configPath)) {
