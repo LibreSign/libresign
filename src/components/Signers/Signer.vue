@@ -227,11 +227,18 @@ export default {
 	display: flex;
 	align-items: center;
 	gap: 4px;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
+	min-width: 0;
+	overflow: hidden;
 }
 
 .signer-status-chip {
 	flex-shrink: 0;
+}
+
+:deep(.signer-subname .nc-chip) {
+	flex-shrink: 1;
+	min-width: 0;
 }
 
 .signer-extra {
