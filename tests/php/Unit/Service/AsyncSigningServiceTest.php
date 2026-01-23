@@ -130,15 +130,17 @@ class AsyncSigningServiceTest extends TestCase {
 				return isset($metadata['status_changed_at']);
 			}));
 
+		$signatureMethod = 'clickToSign';
 		$this->jobList->expects($this->once())
 			->method('add')
 			->with(
 				SignFileJob::class,
-				$this->callback(function ($args) use ($fileId, $signRequestId, $userId, $expectedCredentialsId) {
+				$this->callback(function ($args) use ($fileId, $signRequestId, $userId, $expectedCredentialsId, $signatureMethod) {
 					return $args['fileId'] === $fileId
 						&& $args['signRequestId'] === $signRequestId
 						&& $args['userId'] === $userId
 						&& $args['credentialsId'] === $expectedCredentialsId
+						&& $args['signatureMethod'] === $signatureMethod
 						&& isset($args['userUniqueIdentifier'])
 						&& isset($args['friendlyName'])
 						&& isset($args['visibleElements'])
@@ -156,6 +158,7 @@ class AsyncSigningServiceTest extends TestCase {
 			'account:testuser',
 			$signWithoutPassword,
 			$password,
+			$signatureMethod,
 			[],
 			['user-agent' => 'TestAgent']
 		);
@@ -195,6 +198,7 @@ class AsyncSigningServiceTest extends TestCase {
 			'email:test@example.com',
 			true,
 			null,
+			null,
 			[],
 			[]
 		);
@@ -232,6 +236,7 @@ class AsyncSigningServiceTest extends TestCase {
 			null,
 			'account:user',
 			true,
+			null,
 			null,
 			[],
 			[]
@@ -271,6 +276,7 @@ class AsyncSigningServiceTest extends TestCase {
 			null,
 			'account:test',
 			true,
+			null,
 			null,
 			[],
 			[]
