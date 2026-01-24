@@ -77,6 +77,7 @@ OC.L10N.register(
     "Update" : "Perbarui",
     "Choose" : "Pilih",
     "Upload failed" : "Gagal mengunggah",
+    "Choose from Files" : "Pilih dari File",
     "Send" : "Kirim",
     "Create" : "Buat",
     "Previous" : "Sebelumnya",
