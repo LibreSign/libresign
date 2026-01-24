@@ -238,6 +238,7 @@ OC.L10N.register(
     "Use this code to sign the document:" : "Legen Sie ein Code fest, um das Dokument zu signieren",
     "No signature was requested to %s" : "Für %s wurde keine Signatur angefordert",
     "%s already signed this file" : "%s hat diese Datei bereits signiert",
+    "Invalid signer data" : "Ungültige Unterzeichnerdaten",
     "Envelope %s" : "Umschlag %s",
     "Empty users list" : "Leere Benutzerliste",
     "User list needs to be an array" : "Benutzerliste muss ein Array sein",
