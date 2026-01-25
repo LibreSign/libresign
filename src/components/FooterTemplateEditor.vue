@@ -82,6 +82,7 @@
 					:init-files="pdfPreviewFile ? [pdfPreviewFile] : []"
 					:init-file-names="['preview.pdf']"
 					:initial-scale="zoomLevel / 100"
+					:show-page-footer="false"
 					@pdf-elements:end-init="onPdfReady" />
 			</div>
 		</div>
