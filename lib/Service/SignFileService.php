@@ -267,7 +267,18 @@ class SignFileService {
 		if (!$this->signRequest instanceof SignRequestEntity) {
 			return $this;
 		}
-		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($this->signRequest->getFileId(), $this->signRequest->getId());
+		$fileId = $this->signRequest->getFileId();
+		$signRequestId = $this->signRequest->getId();
+
+		if (empty($list) && ($fileId === null || $signRequestId === null)) {
+			return $this;
+		}
+
+		if ($fileId === null || $signRequestId === null) {
+			throw new LibresignException($this->l10n->t('File not found'));
+		}
+
+		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
 		$canCreateSignature = $this->signerElementsService->canCreateSignature();
 
 		foreach ($fileElements as $fileElement) {
