@@ -22,10 +22,10 @@
 				@change="fileSelect">
 		</div>
 
-		<div v-if="hasImage" class="cropper-container">
+		<div v-if="hasImage" ref="cropperContainer" class="cropper-container">
 			<Cropper :src="image"
 				:stencil-size="stencilSize"
-				image-restriction="none"
+				image-restriction="fit-area"
 				@change="change" />
 			<p>
 				{{ t('libresign', 'Use your mouse wheel to zoom in or out on the image and find the best view of your signature.') }}
@@ -80,18 +80,47 @@ export default {
 			loading: false,
 			image: '',
 			imageData: '',
-			stencilSize: {
-				width: getCapabilities().libresign.config['sign-elements']['signature-width'],
-				height: getCapabilities().libresign.config['sign-elements']['signature-height'],
-			},
+			containerWidth: 0,
+			stencilBaseWidth: getCapabilities().libresign.config['sign-elements']['signature-width'],
+			stencilBaseHeight: getCapabilities().libresign.config['sign-elements']['signature-height'],
 		}
 	},
 	computed: {
 		hasImage() {
 			return !!this.image
 		},
+		stencilSize() {
+			if (!this.containerWidth) {
+				return {
+					width: this.stencilBaseWidth,
+					height: this.stencilBaseHeight,
+				}
+			}
+			const availableWidth = Math.max(0, this.containerWidth - 24)
+			const scale = Math.min(1, availableWidth / this.stencilBaseWidth)
+			return {
+				width: Math.floor(this.stencilBaseWidth * scale),
+				height: Math.floor(this.stencilBaseHeight * scale),
+			}
+		},
+	},
+	mounted() {
+		this.updateContainerWidth()
+		if (window.ResizeObserver) {
+			this.resizeObserver = new ResizeObserver(() => this.updateContainerWidth())
+			this.resizeObserver.observe(this.$refs.cropperContainer)
+		} else {
+			window.addEventListener('resize', this.updateContainerWidth)
+		}
+	},
+	beforeUnmount() {
+		this.resizeObserver?.disconnect()
+		window.removeEventListener('resize', this.updateContainerWidth)
 	},
 	methods: {
+		updateContainerWidth() {
+			this.containerWidth = this.$refs.cropperContainer?.offsetWidth || 0
+		},
 		fileSelect(ev) {
 			this.loading = true
 			const fr = new FileReader()
@@ -136,6 +165,10 @@ export default {
 
 <style lang="scss" scoped>
 .draw-file-input {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 8px 0;
 	> img {
 		max-width: 100%;
 	}
@@ -144,7 +177,21 @@ export default {
 		display: flex;
 		box-sizing: border-box;
 		grid-gap: 10px;
+		margin-top: 4px;
 	}
+}
+
+.cropper-container {
+	width: 100%;
+	overflow: auto;
+}
+
+.file-input-container {
+	margin-bottom: 0;
+}
+
+:global(.draw-file-input .vue-advanced-cropper) {
+	max-width: none !important;
 }
 
 .file-input-container {

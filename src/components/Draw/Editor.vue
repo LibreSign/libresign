@@ -28,8 +28,8 @@
 		<div ref="canvasWrapper" class="canvas-wrapper">
 			<canvas ref="canvas"
 				class="canvas"
-				width="10px"
-				height="10px" />
+				_width="10px"
+				_height="10px" />
 		</div>
 		<div class="action-buttons">
 			<NcButton variant="primary"
@@ -58,7 +58,6 @@
 </template>
 
 <script>
-import debounce from 'debounce'
 import SignaturePad from 'signature_pad'
 
 import DeleteIcon from 'vue-material-design-icons/Delete.vue'
@@ -101,15 +100,12 @@ export default {
 	mounted() {
 		this.mounted = true
 		this.$nextTick(() => {
+			this.applyCanvasSize()
 			this.$refs.canvas.signaturePad = new SignaturePad(this.$refs.canvas)
 			this.$refs.canvas.signaturePad.addEventListener('endStroke', () => {
 				this.canSave = !this.$refs.canvas.signaturePad.isEmpty()
 			})
-			this.observeResize()
 		})
-	},
-	beforeUnmount() {
-		this.resizeObserver?.disconnect()
 	},
 	beforeDestroy() {
 		this.mounted = false
@@ -117,29 +113,30 @@ export default {
 		this.imageData = null
 	},
 	methods: {
-		observeResize() {
-			this.debounceScaleCanvasToFit = debounce(this.scaleCanvasToFit, 200)
-			this.resizeObserver = new ResizeObserver(() => {
-				this.debounceScaleCanvasToFit()
-			})
-			this.resizeObserver.observe(this.$refs.canvasWrapper)
-		},
-		scaleCanvasToFit() {
-			if (!this.$refs.canvasWrapper) {
+		applyCanvasSize() {
+			if (!this.$refs.canvasWrapper || !this.$refs.canvas) {
 				return
 			}
-			const padding = 3
-			const maxWidth = this.$refs.canvasWrapper.offsetWidth - padding
-			const maxHeight = this.$refs.canvasWrapper.offsetHeight - padding
+			const padding = 12
+			const wrapperWidth = this.$refs.canvasWrapper.offsetWidth || 0
+			const maxScaleWidth = wrapperWidth ? (wrapperWidth - padding) / this.canvasWidth : 1
+			const maxScale = maxScaleWidth
 
-			this.scale = Math.min(maxWidth / this.canvasWidth, maxHeight / this.canvasHeight)
+			const minDisplayWidth = 420
+			const minDisplayHeight = 220
+			const minScaleWidth = minDisplayWidth / this.canvasWidth
+			const minScaleHeight = minDisplayHeight / this.canvasHeight
+			const minScale = Math.max(1, minScaleWidth, minScaleHeight)
 
-			const finalWidth = this.canvasWidth * this.scale
-			const finalHeight = this.canvasHeight * this.scale
+			this.scale = Math.min(maxScale || 1, minScale)
+
+			const finalWidth = Math.round(this.canvasWidth * this.scale)
+			const finalHeight = Math.round(this.canvasHeight * this.scale)
 
 			this.$refs.canvas.width = finalWidth
 			this.$refs.canvas.height = finalHeight
-			this.$refs.canvas.signaturePad.clear()
+			this.$refs.canvas.style.width = `${finalWidth}px`
+			this.$refs.canvas.style.height = `${finalHeight}px`
 		},
 		updateColor() {
 			this.$refs.canvas.signaturePad.penColor = this.color
@@ -175,6 +172,7 @@ export default {
 	flex-direction: column;
 	justify-content: space-between;
 	height: 100%;
+	min-height: 0;
 
 	.actions{
 		display: flex;
@@ -210,14 +208,16 @@ export default {
 	.canvas-wrapper{
 		display: flex;
 		position: relative;
-		overflow: hidden;
+		overflow: auto;
 		width: 100%;
 		height: 100%;
+		min-height: 0;
+		flex: 1 1 auto;
 		justify-content: center;
 		align-items: center;
 		.canvas{
-			max-width: 100%;
-			max-height: 100%;
+			max-width: none;
+			max-height: none;
 			position: block;
 			background-color: #cecece;
 			border-radius: 10px;
@@ -228,6 +228,11 @@ export default {
 		display: flex;
 		box-sizing: border-box;
 		grid-gap: 10px;
+		position: sticky;
+		bottom: 0;
+		background: var(--color-main-background);
+		padding: 8px 0;
+		z-index: 1;
 	}
 }
 
