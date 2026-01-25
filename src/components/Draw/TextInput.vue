@@ -6,9 +6,7 @@
 	<div class="container-draw">
 		<div ref="canvasWrapper" class="canvas-wrapper">
 			<canvas ref="canvas"
-				class="canvas"
-				width="10px"
-				height="10px" />
+				class="canvas" />
 		</div>
 		<NcTextField id="text"
 			ref="input"
@@ -40,7 +38,6 @@
 
 <script>
 import '@fontsource/dancing-script'
-import debounce from 'debounce'
 
 import { getCapabilities } from '@nextcloud/capabilities'
 
@@ -80,34 +77,36 @@ export default {
 	},
 	mounted() {
 		this.$nextTick(() => {
-			this.observeResize()
+			this.applyCanvasSize()
 		})
 		this.setFocus()
 	},
 
 	methods: {
-		observeResize() {
-			this.debounceScaleCanvasToFit = debounce(this.scaleCanvasToFit, 200)
-			this.resizeObserver = new ResizeObserver(() => {
-				this.debounceScaleCanvasToFit()
-			})
-			this.resizeObserver.observe(this.$refs.canvasWrapper)
-		},
-		scaleCanvasToFit() {
-			if (!this.$refs.canvasWrapper) {
+		applyCanvasSize() {
+			if (!this.$refs.canvasWrapper || !this.$refs.canvas) {
 				return
 			}
-			const padding = 5
-			const maxWidth = this.$refs.canvasWrapper.offsetWidth - padding
-			const maxHeight = this.$refs.canvasWrapper.offsetHeight - padding
+			const padding = 12
+			const wrapperWidth = this.$refs.canvasWrapper.offsetWidth || 0
+			const maxScaleWidth = wrapperWidth ? (wrapperWidth - padding) / this.canvasWidth : 1
+			const maxScale = maxScaleWidth
 
-			this.scale = Math.min(maxWidth / this.canvasWidth, maxHeight / this.canvasHeight)
+			const minDisplayWidth = 420
+			const minDisplayHeight = 220
+			const minScaleWidth = minDisplayWidth / this.canvasWidth
+			const minScaleHeight = minDisplayHeight / this.canvasHeight
+			const minScale = Math.max(1, minScaleWidth, minScaleHeight)
 
-			const finalWidth = this.canvasWidth * this.scale
-			const finalHeight = this.canvasHeight * this.scale
+			this.scale = Math.min(maxScale || 1, minScale)
+
+			const finalWidth = Math.round(this.canvasWidth * this.scale)
+			const finalHeight = Math.round(this.canvasHeight * this.scale)
 
 			this.$refs.canvas.width = finalWidth
 			this.$refs.canvas.height = finalHeight
+			this.$refs.canvas.style.width = `${finalWidth}px`
+			this.$refs.canvas.style.height = `${finalHeight}px`
 		},
 		saveSignature() {
 			this.handleModal(false)
@@ -159,25 +158,28 @@ export default {
 	justify-content: space-between;
 	width: 100%;
 	height: 100%;
+	gap: 12px;
+	padding: 8px 0;
 	.action-buttons{
 		justify-content: end;
 		display: flex;
 		box-sizing: border-box;
 		grid-gap: 10px;
+		margin-top: 4px;
 	}
 }
 
 .canvas-wrapper{
 	display: flex;
 	position: relative;
-	overflow: hidden;
+	overflow: auto;
 	width: 100%;
 	height: 100%;
 	justify-content: center;
 	align-items: center;
 	.canvas{
-		max-width: 100%;
-		max-height: 100%;
+		max-width: none;
+		max-height: none;
 		position: block;
 		background-color: #cecece;
 		border-radius: 10px;
@@ -185,6 +187,10 @@ export default {
 }
 label {
 	word-wrap: break-word;
+}
+
+:deep(.input-field) {
+	margin-top: 4px;
 }
 
 img{
