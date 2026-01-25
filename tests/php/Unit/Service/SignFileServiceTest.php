@@ -1681,4 +1681,44 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 		];
 	}
+
+	#[DataProvider('providerSetVisibleElementsValidation')]
+	public function testSetVisibleElementsValidation(
+		array $signerList,
+		?int $fileId,
+		?int $signRequestId,
+		?string $expectedException,
+	): void {
+		$service = $this->getService();
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest
+			->method('__call')
+			->willReturnCallback(fn (string $method)
+				=> match ($method) {
+					'getFileId' => $fileId,
+					'getId' => $signRequestId,
+				}
+			);
+		$service->setSignRequest($signRequest);
+
+		$this->fileElementMapper->method('getByFileIdAndSignRequestId')->willReturn([]);
+		$this->signerElementsService->method('canCreateSignature')->willReturn(false);
+
+		if ($expectedException) {
+			$this->expectException($expectedException);
+		}
+
+		$service->setVisibleElements($signerList);
+	}
+
+	public static function providerSetVisibleElementsValidation(): array {
+		return [
+			[[], null, 171, null],
+			[[], 171, null, null],
+			[[], null, null, null],
+			[[['documentElementId' => 171]], null, 171, LibresignException::class],
+			[[['documentElementId' => 171]], 171, null, LibresignException::class],
+			[[['documentElementId' => 171]], null, null, LibresignException::class],
+		];
+	}
 }
