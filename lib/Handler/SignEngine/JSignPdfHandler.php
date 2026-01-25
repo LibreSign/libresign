@@ -336,6 +336,10 @@ class JSignPdfHandler extends Pkcs12Handler {
 					$params['--font-size'] = $fontSize * $scaleFactor;
 				}
 
+				$backgroundPathForElement = $backgroundPath
+					? $this->prepareBackgroundForPdf($backgroundPath, $this->normalizeScaleFactor($scaleFactor))
+					: '';
+
 				$signatureImagePath = $element->getTempFile();
 				if ($backgroundType === 'deleted') {
 					if ($renderMode === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION) {
@@ -350,9 +354,9 @@ class JSignPdfHandler extends Pkcs12Handler {
 						$params['--bg-path'] = $signatureImagePath;
 					}
 				} elseif ($params['--l2-text'] === '""') {
-					if ($backgroundPath) {
+					if ($backgroundPathForElement) {
 						$params['--bg-path'] = $this->mergeBackgroundWithSignature(
-							$backgroundPath,
+							$backgroundPathForElement,
 							$signatureImagePath,
 							$this->normalizeScaleFactor($scaleFactor),
 						);
@@ -362,11 +366,11 @@ class JSignPdfHandler extends Pkcs12Handler {
 				} else {
 					if ($renderMode === SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION) {
 						$params['--render-mode'] = SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION;
-						$params['--bg-path'] = $backgroundPath;
+						$params['--bg-path'] = $backgroundPathForElement;
 						$params['--img-path'] = $signatureImagePath;
 					} elseif ($renderMode === SignerElementsService::RENDER_MODE_SIGNAME_AND_DESCRIPTION) {
 						$params['--render-mode'] = SignerElementsService::RENDER_MODE_GRAPHIC_AND_DESCRIPTION;
-						$params['--bg-path'] = $backgroundPath;
+						$params['--bg-path'] = $backgroundPathForElement;
 						$params['--img-path'] = $this->createTextImage(
 							width: (int)(($params['-urx'] - $params['-llx']) / 2),
 							height: $params['-ury'] - $params['-lly'],
@@ -375,7 +379,7 @@ class JSignPdfHandler extends Pkcs12Handler {
 						);
 
 					} else {
-						$params['--bg-path'] = $backgroundPath;
+						$params['--bg-path'] = $backgroundPathForElement;
 					}
 				}
 
@@ -471,10 +475,11 @@ class JSignPdfHandler extends Pkcs12Handler {
 		$signature->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
 
 		$background->resizeImage(
-			(int)round($background->getImageWidth() * $scaleFactor),
-			(int)round($background->getImageHeight() * $scaleFactor),
+			(int)$canvasWidth,
+			(int)$canvasHeight,
 			Imagick::FILTER_LANCZOS,
-			1
+			1,
+			true
 		);
 
 		$signature->resizeImage(
@@ -506,6 +511,48 @@ class JSignPdfHandler extends Pkcs12Handler {
 		$canvas->clear();
 		$background->clear();
 		$signature->clear();
+
+		return $tmpPath;
+	}
+
+	private function prepareBackgroundForPdf(string $backgroundPath, float $scaleFactor): string {
+		if (!extension_loaded('imagick')) {
+			throw new \Exception('Extension imagick is not loaded.');
+		}
+		$baseWidth = $this->signatureTextService->getFullSignatureWidth();
+		$baseHeight = $this->signatureTextService->getFullSignatureHeight();
+
+		$canvasWidth = (int)round($baseWidth * $scaleFactor);
+		$canvasHeight = (int)round($baseHeight * $scaleFactor);
+
+		$background = new Imagick($backgroundPath);
+		$background->setImageFormat('png');
+		$background->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
+		$background->resizeImage(
+			$canvasWidth,
+			$canvasHeight,
+			Imagick::FILTER_LANCZOS,
+			1,
+			true
+		);
+
+		$canvas = new Imagick();
+		$canvas->newImage($canvasWidth, $canvasHeight, new ImagickPixel('transparent'));
+		$canvas->setImageFormat('png32');
+		$canvas->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
+
+		$bgX = (int)(($canvasWidth - $background->getImageWidth()) / 2);
+		$bgY = (int)(($canvasHeight - $background->getImageHeight()) / 2);
+		$canvas->compositeImage($background, Imagick::COMPOSITE_OVER, $bgX, $bgY);
+
+		$tmpPath = $this->tempManager->getTemporaryFile('_background.png');
+		if (!$tmpPath) {
+			throw new \Exception('Temporary file not accessible');
+		}
+		$canvas->writeImage($tmpPath);
+
+		$canvas->clear();
+		$background->clear();
 
 		return $tmpPath;
 	}
