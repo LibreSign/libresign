@@ -278,7 +278,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$paramsAsOptions = $jSignParam->getJSignParameters();
 		$paramsAsOptions = preg_replace('/\\/\S+_merged.png/', 'merged.png', $paramsAsOptions);
 		$paramsAsOptions = preg_replace('/\\/\S+_text_image.png/', 'text_image.png', (string)$paramsAsOptions);
-		$paramsAsOptions = preg_replace('/\\/\S+LibreSign.png/', 'background.png', (string)$paramsAsOptions);
+		$paramsAsOptions = preg_replace('/\\/\S+_background.png/', 'background.png', (string)$paramsAsOptions);
 		$paramsAsOptions = preg_replace('/\\/\S+app-dark.png/', 'signature.png', (string)$paramsAsOptions);
 		$this->assertEquals($params, $paramsAsOptions);
 	}
