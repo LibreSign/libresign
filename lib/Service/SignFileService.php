@@ -72,6 +72,7 @@ class SignFileService {
 	private ?FileEntity $libreSignFile = null;
 	/** @var VisibleElementAssoc[] */
 	private $elements = [];
+	private array $elementsInput = [];
 	private bool $signWithoutPassword = false;
 	private ?string $signatureMethodName = null;
 	private ?File $fileToSign = null;
@@ -261,10 +262,23 @@ class SignFileService {
 	}
 
 	public function setVisibleElements(array $list): self {
+		$this->elementsInput = $list;
+		$this->elements = [];
 		if (!$this->signRequest instanceof SignRequestEntity) {
 			return $this;
 		}
-		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($this->signRequest->getFileId(), $this->signRequest->getId());
+		$fileId = $this->signRequest->getFileId();
+		$signRequestId = $this->signRequest->getId();
+
+		if (empty($list) && ($fileId === null || $signRequestId === null)) {
+			return $this;
+		}
+
+		if ($fileId === null || $signRequestId === null) {
+			throw new LibresignException($this->l10n->t('File not found'));
+		}
+
+		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
 		$canCreateSignature = $this->signerElementsService->canCreateSignature();
 
 		foreach ($fileElements as $fileElement) {
@@ -576,7 +590,7 @@ class SignFileService {
 			}
 			$this->signRequest = $signRequestData['signRequest'];
 			$this->engine = null;
-			$this->elements = [];
+			$this->setVisibleElements($this->elementsInput);
 			$this->fileToSign = null;
 
 			$this->validateDocMdpAllowsSignatures();
