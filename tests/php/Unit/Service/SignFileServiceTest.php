@@ -1708,7 +1708,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->expectException($expectedException);
 		}
 
-		$service->setVisibleElements($signerList);
+		$result = $service->setVisibleElements($signerList);
+
+		$this->assertSame($service, $result);
 	}
 
 	public static function providerSetVisibleElementsValidation(): array {
