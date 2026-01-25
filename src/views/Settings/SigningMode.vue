@@ -105,6 +105,7 @@ export default {
 			loading: false,
 			errorMessage: '',
 			saved: false,
+			showErrorIcon: false,
 			debouncedSaveParallelWorkers: null,
 		}
 	},
