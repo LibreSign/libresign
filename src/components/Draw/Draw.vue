@@ -5,39 +5,26 @@
 <template>
 	<NcDialog v-if="mounted"
 		class="draw-signature"
-		:size="size"
+		size="small"
 		:name="t('libresign', 'Customize your signatures')"
 		@closing="close">
-		<NcAppSidebar active="tab-draw"
-			:name="t('libresign', 'Customize your signatures')">
-			<NcAppSidebarTab v-if="drawEditor"
-				id="tab-draw"
-				:name="t('libresign', 'Draw')">
-				<template #icon>
-					<DrawIcon :size="20" />
-				</template>
-				<Editor @close="close"
-					@save="save" />
-			</NcAppSidebarTab>
-			<NcAppSidebarTab v-if="textEditor"
-				id="tab-text"
-				:name="t('libresign', 'Text')">
-				<template #icon>
-					<SignatureTextIcon :size="20" />
-				</template>
-				<TextInput @save="save"
-					@close="close" />
-			</NcAppSidebarTab>
-			<NcAppSidebarTab v-if="fileEditor"
-				id="tab-upload"
-				:name="t('libresign', 'Upload')">
-				<template #icon>
-					<UploadIcon :size="20" />
-				</template>
-				<FileUpload @save="save"
-					@close="close" />
-			</NcAppSidebarTab>
-		</NcAppSidebar>
+		<div v-if="availableTabs.length > 1" class="draw-signature__tabs" role="tablist" :aria-label="t('libresign', 'Signature type')">
+			<NcButton
+				v-for="tab in availableTabs"
+				:key="tab.id"
+				class="draw-signature__tab"
+				:class="{ 'draw-signature__tab--active': activeTab === tab.id }"
+				variant="tertiary"
+				:aria-pressed="activeTab === tab.id"
+				@click="activeTab = tab.id">
+				<component :is="tab.icon" :size="18" />
+				<span class="draw-signature__tab-label">{{ tab.label }}</span>
+			</NcButton>
+		</div>
+
+		<Editor v-if="activeTab === 'draw' && drawEditor" @close="close" @save="save" />
+		<TextInput v-if="activeTab === 'text' && textEditor" @save="save" @close="close" />
+		<FileUpload v-if="activeTab === 'file' && fileEditor" @save="save" @close="close" />
 
 		<div class="content" />
 	</NcDialog>
@@ -48,8 +35,7 @@ import DrawIcon from 'vue-material-design-icons/Draw.vue'
 import SignatureTextIcon from 'vue-material-design-icons/SignatureText.vue'
 import UploadIcon from 'vue-material-design-icons/Upload.vue'
 
-import NcAppSidebar from '@nextcloud/vue/components/NcAppSidebar'
-import NcAppSidebarTab from '@nextcloud/vue/components/NcAppSidebarTab'
+import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 
 import Editor from './Editor.vue'
@@ -62,8 +48,7 @@ export default {
 	name: 'Draw',
 	components: {
 		NcDialog,
-		NcAppSidebar,
-		NcAppSidebarTab,
+		NcButton,
 		SignatureTextIcon,
 		DrawIcon,
 		UploadIcon,
@@ -99,15 +84,38 @@ export default {
 	data() {
 		return {
 			mounted: false,
+			activeTab: 'draw',
 		}
 	},
 	computed: {
 		size() {
 			return window.matchMedia('(max-width: 512px)').matches ? 'full' : 'small'
 		},
+		availableTabs() {
+			const tabs = []
+			if (this.drawEditor) {
+				tabs.push({ id: 'draw', label: this.t('libresign', 'Draw'), icon: DrawIcon })
+			}
+			if (this.textEditor) {
+				tabs.push({ id: 'text', label: this.t('libresign', 'Text'), icon: SignatureTextIcon })
+			}
+			if (this.fileEditor) {
+				tabs.push({ id: 'file', label: this.t('libresign', 'Upload'), icon: UploadIcon })
+			}
+			return tabs
+		},
 	},
 	mounted() {
 		this.mounted = true
+		if (!this.availableTabs.find(tab => tab.id === this.activeTab)) {
+			this.activeTab = this.availableTabs[0]?.id || 'draw'
+		}
+		document.body.classList.add('libresign-modal-open')
+		document.documentElement.classList.add('libresign-modal-open')
+	},
+	beforeUnmount() {
+		document.body.classList.remove('libresign-modal-open')
+		document.documentElement.classList.remove('libresign-modal-open')
 	},
 	methods: {
 		close() {
@@ -124,23 +132,52 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.draw-signature{
-	::v-deep .app-sidebar-header{
-		display: none;
+@media (max-width: 512px) {
+	:global(.dialog__modal.draw-signature .modal-header) {
+		display: none !important;
 	}
-	::v-deep #tab-tab-upload {
-		min-width: 350px;
+
+	:global(.dialog__modal.draw-signature .modal-wrapper--small > .modal-container) {
+		position: fixed !important;
+		top: 0 !important;
+		overscroll-behavior: contain;
 	}
-	::v-deep aside {
-		border-left: unset;
+}
+
+:global(.dialog__modal.draw-signature .dialog__content) {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+:global(body.libresign-modal-open) {
+	overflow: hidden;
+	touch-action: none;
+}
+
+.draw-signature {
+	&__tabs {
+		display: flex;
+		gap: 6px;
+		padding: 6px 12px 2px;
+		align-items: center;
+		justify-content: center;
+		flex-wrap: wrap;
 	}
-	::v-deep .app-sidebar__close {
-		display: none;
-	}
-	@media (min-width: 513px) {
-		::v-deep #app-sidebar-vue {
-			width: unset;
+
+	&__tab {
+		display: inline-flex;
+		gap: 6px;
+		align-items: center;
+
+		&--active {
+			background-color: var(--color-primary-element-light) !important;
+			color: var(--color-primary-text) !important;
 		}
+	}
+
+	&__tab-label {
+		font-weight: 600;
 	}
 }
 </style>
