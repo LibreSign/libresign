@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\SignRequest\Error;
 
 use OCA\Libresign\Service\SignRequest\Error\ErrorPayloadBuilder;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class ErrorPayloadBuilderTest extends TestCase {
@@ -26,43 +27,70 @@ class ErrorPayloadBuilderTest extends TestCase {
 		$this->assertEquals(500, $payload['code']);
 	}
 
-	public function testBuildWithFile(): void {
-		$builder = new ErrorPayloadBuilder();
-		$payload = $builder
-			->setMessage('File error')
-			->setCode(400)
-			->setFileId(123)
-			->build();
-
-		$this->assertEquals(123, $payload['fileId']);
+	public static function buildWithContextDataProvider(): array {
+		return [
+			'with file only' => [
+				'fileId' => 123,
+				'signRequestId' => null,
+				'signRequestUuid' => null,
+				'expectedKeys' => ['fileId'],
+				'notExpectedKeys' => ['signRequestId', 'signRequestUuid'],
+			],
+			'with sign request only' => [
+				'fileId' => null,
+				'signRequestId' => 456,
+				'signRequestUuid' => 'test-uuid-123',
+				'expectedKeys' => ['signRequestId', 'signRequestUuid'],
+				'notExpectedKeys' => ['fileId'],
+			],
+			'with file and sign request' => [
+				'fileId' => 789,
+				'signRequestId' => 456,
+				'signRequestUuid' => 'test-uuid-456',
+				'expectedKeys' => ['fileId', 'signRequestId', 'signRequestUuid'],
+				'notExpectedKeys' => [],
+			],
+			'with null values' => [
+				'fileId' => null,
+				'signRequestId' => null,
+				'signRequestUuid' => null,
+				'expectedKeys' => [],
+				'notExpectedKeys' => ['fileId', 'signRequestId', 'signRequestUuid'],
+			],
+		];
 	}
 
-	public function testBuildWithSignRequest(): void {
+	#[DataProvider('buildWithContextDataProvider')]
+	public function testBuildWithContext(
+		?int $fileId,
+		?int $signRequestId,
+		?string $signRequestUuid,
+		array $expectedKeys,
+		array $notExpectedKeys
+	): void {
 		$builder = new ErrorPayloadBuilder();
 		$payload = $builder
-			->setMessage('Sign request error')
+			->setMessage('Test error')
 			->setCode(400)
-			->setSignRequestId(456)
-			->setSignRequestUuid('test-uuid-123')
+			->setFileId($fileId)
+			->setSignRequestId($signRequestId)
+			->setSignRequestUuid($signRequestUuid)
 			->build();
 
-		$this->assertEquals(456, $payload['signRequestId']);
-		$this->assertEquals('test-uuid-123', $payload['signRequestUuid']);
-	}
+		foreach ($expectedKeys as $key) {
+			$this->assertArrayHasKey($key, $payload);
+			if ($key === 'fileId') {
+				$this->assertEquals($fileId, $payload[$key]);
+			} elseif ($key === 'signRequestId') {
+				$this->assertEquals($signRequestId, $payload[$key]);
+			} elseif ($key === 'signRequestUuid') {
+				$this->assertEquals($signRequestUuid, $payload[$key]);
+			}
+		}
 
-	public function testBuildWithFileAndSignRequest(): void {
-		$builder = new ErrorPayloadBuilder();
-		$payload = $builder
-			->setMessage('Combined error')
-			->setCode(400)
-			->setFileId(789)
-			->setSignRequestId(456)
-			->setSignRequestUuid('test-uuid-456')
-			->build();
-
-		$this->assertEquals(789, $payload['fileId']);
-		$this->assertEquals(456, $payload['signRequestId']);
-		$this->assertEquals('test-uuid-456', $payload['signRequestUuid']);
+		foreach ($notExpectedKeys as $key) {
+			$this->assertArrayNotHasKey($key, $payload);
+		}
 	}
 
 	public function testAddFileError(): void {
@@ -97,28 +125,72 @@ class ErrorPayloadBuilderTest extends TestCase {
 		$this->assertArrayNotHasKey('fileErrors', $payload2);
 	}
 
-	public function testFromException(): void {
-		$exception = new \Exception('Exception message', 789);
-
-		$payload = ErrorPayloadBuilder::fromException($exception, 555, 666, 'exception-uuid')->build();
-
-		$this->assertEquals('Exception message', $payload['message']);
-		$this->assertEquals(789, $payload['code']);
-		$this->assertEquals(555, $payload['fileId']);
-		$this->assertEquals(666, $payload['signRequestId']);
-		$this->assertEquals('exception-uuid', $payload['signRequestUuid']);
+	public static function fromExceptionDataProvider(): array {
+		return [
+			'with full context' => [
+				'message' => 'Exception message',
+				'code' => 789,
+				'fileId' => 555,
+				'signRequestId' => 666,
+				'signRequestUuid' => 'exception-uuid',
+				'expectedKeys' => ['message', 'code', 'fileId', 'signRequestId', 'signRequestUuid'],
+			],
+			'without context' => [
+				'message' => 'Standalone error',
+				'code' => 999,
+				'fileId' => null,
+				'signRequestId' => null,
+				'signRequestUuid' => null,
+				'expectedKeys' => ['message', 'code'],
+			],
+			'with partial context (file only)' => [
+				'message' => 'File error',
+				'code' => 400,
+				'fileId' => 123,
+				'signRequestId' => null,
+				'signRequestUuid' => null,
+				'expectedKeys' => ['message', 'code', 'fileId'],
+			],
+		];
 	}
 
-	public function testFromExceptionWithoutContext(): void {
-		$exception = new \Exception('Standalone error', 999);
+	#[DataProvider('fromExceptionDataProvider')]
+	public function testFromException(
+		string $message,
+		int $code,
+		?int $fileId,
+		?int $signRequestId,
+		?string $signRequestUuid,
+		array $expectedKeys
+	): void {
+		$exception = new \Exception($message, $code);
 
-		$payload = ErrorPayloadBuilder::fromException($exception)->build();
+		$payload = ErrorPayloadBuilder::fromException($exception, $fileId, $signRequestId, $signRequestUuid)->build();
 
-		$this->assertEquals('Standalone error', $payload['message']);
-		$this->assertEquals(999, $payload['code']);
-		$this->assertArrayNotHasKey('fileId', $payload);
-		$this->assertArrayNotHasKey('signRequestId', $payload);
-		$this->assertArrayNotHasKey('signRequestUuid', $payload);
+		$this->assertEquals($message, $payload['message']);
+		$this->assertEquals($code, $payload['code']);
+
+		foreach ($expectedKeys as $key) {
+			$this->assertArrayHasKey($key, $payload);
+		}
+
+		if ($fileId !== null) {
+			$this->assertEquals($fileId, $payload['fileId']);
+		} else {
+			$this->assertArrayNotHasKey('fileId', $payload);
+		}
+
+		if ($signRequestId !== null) {
+			$this->assertEquals($signRequestId, $payload['signRequestId']);
+		} else {
+			$this->assertArrayNotHasKey('signRequestId', $payload);
+		}
+
+		if ($signRequestUuid !== null) {
+			$this->assertEquals($signRequestUuid, $payload['signRequestUuid']);
+		} else {
+			$this->assertArrayNotHasKey('signRequestUuid', $payload);
+		}
 	}
 
 	public function testFluentInterface(): void {
@@ -139,21 +211,6 @@ class ErrorPayloadBuilderTest extends TestCase {
 		$this->assertEquals(222, $payload['code']);
 		$this->assertEquals(111, $payload['fileId']);
 		$this->assertCount(2, $payload['fileErrors']);
-	}
-
-	public function testNullFileAndSignRequestNotIncluded(): void {
-		$builder = new ErrorPayloadBuilder();
-		$payload = $builder
-			->setMessage('Error without context')
-			->setCode(400)
-			->setFileId(null)
-			->setSignRequestId(null)
-			->setSignRequestUuid(null)
-			->build();
-
-		$this->assertArrayNotHasKey('fileId', $payload);
-		$this->assertArrayNotHasKey('signRequestId', $payload);
-		$this->assertArrayNotHasKey('signRequestUuid', $payload);
 	}
 
 	public function testTimestampPresent(): void {
