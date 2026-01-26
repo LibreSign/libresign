@@ -267,7 +267,7 @@ class SignRequestErrorReporterTest extends TestCase {
 		array $context,
 		bool $expectSignRequestError,
 		bool $expectFileError,
-		int $expectedTtl
+		int $expectedTtl,
 	): void {
 		if ($expectSignRequestError) {
 			$this->progressService->expects($this->once())
@@ -340,7 +340,7 @@ class SignRequestErrorReporterTest extends TestCase {
 	public function testErrorWithDifferentExceptionTypes(
 		\Throwable $exception,
 		string $expectedMessage,
-		int $expectedCode
+		int $expectedCode,
 	): void {
 		$context = [
 			'exception' => $exception,
@@ -427,7 +427,7 @@ class SignRequestErrorReporterTest extends TestCase {
 	#[DataProvider('missingRequiredFieldsDataProvider')]
 	public function testErrorDoesNotStoreWhenRequiredFieldsMissing(
 		array $context,
-		bool $shouldStore
+		bool $shouldStore,
 	): void {
 		if ($shouldStore) {
 			$this->progressService->expects($this->atLeastOnce())
