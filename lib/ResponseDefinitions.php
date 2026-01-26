@@ -242,6 +242,35 @@ namespace OCA\Libresign;
  *     }[],
  *     visibleElements?: LibresignVisibleElement[],
  * }
+ * @psalm-type LibresignProgressError = array{
+ *     message: string,
+ *     code?: int,
+ *     timestamp?: string,
+ *     fileId?: int,
+ *     signRequestId?: int,
+ *     signRequestUuid?: string,
+ * }
+ * @psalm-type LibresignProgressFile = array{
+ *     id: int,
+ *     name: string,
+ *     status: int,
+ *     statusText: string,
+ *     error?: LibresignProgressError,
+ * }
+ * @psalm-type LibresignProgressPayload = array{
+ *     total: int,
+ *     signed: int,
+ *     inProgress: int,
+ *     pending: int,
+ *     errors?: int,
+ *     files?: list<LibresignProgressFile>,
+ *     signers?: list<array{
+ *         id: int,
+ *         displayName: string,
+ *         signed: ?string,
+ *         status: int,
+ *     }>,
+ * }
  * @psalm-type LibresignFileListItem = array{
  *     fileId: int,
  *     id: int,
