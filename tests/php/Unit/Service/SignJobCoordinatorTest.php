@@ -33,7 +33,7 @@ class SignJobCoordinatorTest extends TestCase {
 	private IUserManager&MockObject $userManager;
 	private ICredentialsManager&MockObject $credentialsManager;
 	private ProgressService&MockObject $progressService;
-	private SignRequestErrorReporter&MockObject $errorReporter;
+	private SignRequestErrorReporter $errorReporter;
 	private LoggerInterface&MockObject $logger;
 	private SignJobCoordinator $coordinator;
 
@@ -46,8 +46,11 @@ class SignJobCoordinatorTest extends TestCase {
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->credentialsManager = $this->createMock(ICredentialsManager::class);
 		$this->progressService = $this->createMock(ProgressService::class);
-		$this->errorReporter = $this->createMock(SignRequestErrorReporter::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->errorReporter = new SignRequestErrorReporter(
+			$this->progressService,
+			$this->logger,
+		);
 		$this->coordinator = new SignJobCoordinator(
 			$this->fileMapper,
 			$this->signRequestMapper,
@@ -201,14 +204,17 @@ class SignJobCoordinatorTest extends TestCase {
 		$this->progressService->expects($this->once())
 			->method('clearSignRequestError')
 			->with('sign-request-uuid');
+		$this->progressService->expects($this->once())
+			->method('setSignRequestError')
+			->with('sign-request-uuid', $this->arrayHasKey('message'));
+		$this->progressService->expects($this->once())
+			->method('setFileError')
+			->with('sign-request-uuid', $file->getId(), $this->arrayHasKey('message'));
 
 		$exception = new \Exception('Certificate validation failed', 422);
 		$this->signFileService->expects($this->once())
 			->method('sign')
 			->willThrowException($exception);
-
-		$this->errorReporter->expects($this->once())
-			->method('error');
 
 		$this->coordinator->runSignFile([
 			'fileId' => $file->getId(),
@@ -246,12 +252,15 @@ class SignJobCoordinatorTest extends TestCase {
 		$this->progressService->expects($this->once())
 			->method('clearSignRequestError')
 			->with('single-sign-uuid');
+		$this->progressService->expects($this->once())
+			->method('setSignRequestError')
+			->with('single-sign-uuid', $this->arrayHasKey('message'));
+		$this->progressService->expects($this->once())
+			->method('setFileError')
+			->with('single-sign-uuid', $file->getId(), $this->arrayHasKey('message'));
 
 		$exception = new \InvalidArgumentException('Invalid parameters', 400);
 		$this->signFileService->method('signSingleFile')->willThrowException($exception);
-
-		$this->errorReporter->expects($this->once())
-			->method('error');
 
 		$this->fileMapper->expects($this->once())
 			->method('update')
