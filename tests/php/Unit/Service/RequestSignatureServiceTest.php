@@ -26,6 +26,7 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignRequest\SignRequestService;
+use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\IMimeTypeDetector;
@@ -266,7 +267,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			->willReturn(false); // Parallel flow
 
 		$fileStatusService = $this->createMock(FileStatusService::class);
-		$statusService = new StatusService($sequentialSigningService, $fileStatusService);
+		$statusCacheService = $this->createMock(StatusCacheService::class);
+		$statusService = new StatusService($sequentialSigningService, $fileStatusService, $statusCacheService);
 
 		// File status is ABLE_TO_SIGN (1)
 		$fileStatus = \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value;
@@ -297,7 +299,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			->willReturn(true); // Ordered flow
 
 		$fileStatusService = $this->createMock(FileStatusService::class);
-		$statusService = new StatusService($sequentialSigningService, $fileStatusService);
+		$statusCacheService = $this->createMock(StatusCacheService::class);
+		$statusService = new StatusService($sequentialSigningService, $fileStatusService, $statusCacheService);
 
 		$fileStatus = \OCA\Libresign\Enum\FileStatus::ABLE_TO_SIGN->value;
 		$signerStatus = \OCA\Libresign\Enum\SignRequestStatus::DRAFT->value;
