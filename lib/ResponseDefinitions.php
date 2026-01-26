@@ -271,6 +271,15 @@ namespace OCA\Libresign;
  *         status: int,
  *     }>,
  * }
+ * @psalm-type LibresignProgressResponse = array{
+ *     status: string,
+ *     statusCode: int,
+ *     statusText: string,
+ *     fileId: int,
+ *     progress: LibresignProgressPayload,
+ *     file?: LibresignValidateFile,
+ *     error?: LibresignProgressError,
+ * }
  * @psalm-type LibresignFileListItem = array{
  *     fileId: int,
  *     id: int,

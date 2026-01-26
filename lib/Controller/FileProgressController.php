@@ -32,6 +32,7 @@ use OCP\IUserSession;
  * @psalm-import-type LibresignValidateFile from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignProgressPayload from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignProgressError from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignProgressResponse from \OCA\Libresign\ResponseDefinitions
  */
 class FileProgressController extends AEnvironmentAwareController {
 	public function __construct(
@@ -55,7 +56,7 @@ class FileProgressController extends AEnvironmentAwareController {
 	 *
 	 * @param string $uuid Sign request UUID
 	 * @param int $timeout Maximum seconds to wait (default 30)
-	 * @return DataResponse<Http::STATUS_OK, array{status: string, statusCode: int, statusText: string, fileId: int, progress: LibresignProgressPayload, file?: LibresignValidateFile, error?: LibresignProgressError}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string, status: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignProgressResponse, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string, status: string}, array{}>
 	 *
 	 * 200: Status and progress returned
 	 * 404: Sign request not found
@@ -95,8 +96,8 @@ class FileProgressController extends AEnvironmentAwareController {
 	 * @param FileEntity $file The file entity
 	 * @param SignRequestEntity $signRequest The sign request entity
 	 * @param int $status Current status code
-	 * @return DataResponse<Http::STATUS_OK, array{status: string, statusCode: int, statusText: string, fileId: int, progress: LibresignProgressPayload, file?: LibresignValidateFile, error?: LibresignProgressError}, array{}>
-	 * @psalm-return DataResponse<Http::STATUS_OK, array{status: string, statusCode: int, statusText: string, fileId: int, progress: LibresignProgressPayload, file?: LibresignValidateFile, error?: LibresignProgressError}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, LibresignProgressResponse, array{}>
+	 * @psalm-return DataResponse<Http::STATUS_OK, LibresignProgressResponse, array{}>
 	 */
 	private function buildStatusResponse(FileEntity $file, SignRequestEntity $signRequest, int $status): DataResponse {
 		$statusEnum = FileStatus::tryFrom($status);
@@ -107,16 +108,7 @@ class FileProgressController extends AEnvironmentAwareController {
 
 		$hasFileErrors = !empty($progress['files']) && $this->hasErrorsInFiles($progress['files']);
 
-		/** @psalm-var array{
-		 *     status: string,
-		 *     statusCode: int,
-		 *     statusText: string,
-		 *     fileId: int,
-		 *     progress: LibresignProgressPayload,
-		 *     file?: LibresignValidateFile,
-		 *     error?: LibresignProgressError
-		 * } $response
-		 */
+		/** @psalm-var LibresignProgressResponse $response */
 		$response = [
 			'status' => $statusEnum?->name ?? 'UNKNOWN',
 			'statusCode' => $status,
