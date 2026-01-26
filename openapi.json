@@ -1044,6 +1044,41 @@
                     }
                 }
             },
+            "ProgressResponse": {
+                "type": "object",
+                "required": [
+                    "status",
+                    "statusCode",
+                    "statusText",
+                    "fileId",
+                    "progress"
+                ],
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    },
+                    "statusCode": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "statusText": {
+                        "type": "string"
+                    },
+                    "fileId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "progress": {
+                        "$ref": "#/components/schemas/ProgressPayload"
+                    },
+                    "file": {
+                        "$ref": "#/components/schemas/ValidateFile"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ProgressError"
+                    }
+                }
+            },
             "PublicCapabilities": {
                 "type": "object",
                 "properties": {
@@ -6194,39 +6229,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "status",
-                                                        "statusCode",
-                                                        "statusText",
-                                                        "fileId",
-                                                        "progress"
-                                                    ],
-                                                    "properties": {
-                                                        "status": {
-                                                            "type": "string"
-                                                        },
-                                                        "statusCode": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "statusText": {
-                                                            "type": "string"
-                                                        },
-                                                        "fileId": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "progress": {
-                                                            "$ref": "#/components/schemas/ProgressPayload"
-                                                        },
-                                                        "file": {
-                                                            "$ref": "#/components/schemas/ValidateFile"
-                                                        },
-                                                        "error": {
-                                                            "$ref": "#/components/schemas/ProgressError"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/ProgressResponse"
                                                 }
                                             }
                                         }
