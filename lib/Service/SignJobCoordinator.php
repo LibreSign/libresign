@@ -15,6 +15,8 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Service\SignRequest\Error\SignRequestErrorReporter;
+use OCA\Libresign\Service\SignRequest\ProgressService;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\Security\ICredentialsManager;
@@ -28,11 +30,15 @@ class SignJobCoordinator {
 		private FolderService $folderService,
 		private IUserManager $userManager,
 		private ICredentialsManager $credentialsManager,
+		private ProgressService $progressService,
+		private SignRequestErrorReporter $signRequestErrorReporter,
 		private LoggerInterface $logger,
 	) {
 	}
 
 	public function runSignFile(array $argument): void {
+		$file = null;
+		$signRequest = null;
 		try {
 			if (empty($argument)) {
 				throw new \InvalidArgumentException('SignFileJob: Cannot proceed with empty arguments');
@@ -40,6 +46,7 @@ class SignJobCoordinator {
 
 			[$fileId, $signRequestId] = $this->requireIds($argument, 'SignFileJob');
 			[$file, $signRequest] = $this->loadEntities($fileId, $signRequestId);
+			$this->progressService->clearSignRequestError($signRequest->getUuid());
 			$user = $this->resolveUser($argument['userId'] ?? null, null, null);
 			if ($user) {
 				$this->folderService->setUserId($user->getUID());
@@ -50,9 +57,11 @@ class SignJobCoordinator {
 
 			$this->signFileService->sign();
 		} catch (\Throwable $e) {
-			$this->logger->error('SignFileJob failed: {error}', [
-				'error' => $e->getMessage(),
+			$this->signRequestErrorReporter->error('SignFileJob failed', [
 				'exception' => $e,
+				'fileId' => $file?->getId() ?? ($argument['fileId'] ?? null),
+				'signRequestId' => $signRequest?->getId() ?? ($argument['signRequestId'] ?? null),
+				'signRequestUuid' => $signRequest?->getUuid() ?? ($argument['signRequestUuid'] ?? null),
 			]);
 		} finally {
 			$this->deleteCredentials($argument['userId'] ?? '', $argument['credentialsId'] ?? null);
@@ -73,7 +82,7 @@ class SignJobCoordinator {
 
 			[$fileId, $signRequestId] = $this->requireIds($argument, 'SignSingleFileJob');
 			[$file, $signRequest] = $this->loadEntities($fileId, $signRequestId);
-
+			$this->progressService->clearSignRequestError($signRequest->getUuid());
 
 			$effectiveUserId = $effectiveUserId
 				?? $file->getUserId()
@@ -90,11 +99,11 @@ class SignJobCoordinator {
 
 			$this->signFileService->signSingleFile($file, $signRequest);
 		} catch (\Throwable $e) {
-			$contextFileId = $fileId ?? ($argument['fileId'] ?? 'unknown');
-			$this->logger->error('SignSingleFileJob failed for file {fileId}: {error}', [
-				'fileId' => $contextFileId,
-				'error' => $e->getMessage(),
+			$this->signRequestErrorReporter->error('SignSingleFileJob failed for file {fileId}', [
 				'exception' => $e,
+				'fileId' => $file?->getId() ?? ($argument['fileId'] ?? null),
+				'signRequestId' => $signRequest?->getId() ?? ($argument['signRequestId'] ?? null),
+				'signRequestUuid' => $signRequest?->getUuid() ?? ($argument['signRequestUuid'] ?? null),
 			]);
 		} finally {
 			$this->deleteCredentials($argument['userId'] ?? ($effectiveUserId ?? ''), $argument['credentialsId'] ?? null);
@@ -190,4 +199,5 @@ class SignJobCoordinator {
 		}
 		$this->credentialsManager->delete($userId, $credentialsId);
 	}
+
 }
