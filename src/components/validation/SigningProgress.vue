@@ -34,10 +34,10 @@
 					<div v-for="file in progress.files" :key="file.id" class="file-item">
 						<div class="file-row">
 							<span class="file-name">{{ file.name }}</span>
-						<span :class="['status-pill', `status-${getFileStatusMeta(file).class}`]">
-							<NcIconSvgWrapper :path="getFileStatusMeta(file).icon" />
-							{{ getFileStatusMeta(file).label }}
-						</span>
+							<span :class="['status-pill', `status-${getFileStatusMeta(file).class}`]">
+								<NcIconSvgWrapper :path="getFileStatusMeta(file).icon" />
+								{{ getFileStatusMeta(file).label }}
+							</span>
 						</div>
 						<div v-if="file.error && file.error.message" class="file-error">
 							<span class="error-icon">⚠</span>
