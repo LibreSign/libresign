@@ -16,6 +16,8 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\SignJobCoordinator;
+use OCA\Libresign\Service\SignRequest\Error\SignRequestErrorReporter;
+use OCA\Libresign\Service\SignRequest\ProgressService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -30,6 +32,8 @@ class SignJobCoordinatorTest extends TestCase {
 	private FolderService&MockObject $folderService;
 	private IUserManager&MockObject $userManager;
 	private ICredentialsManager&MockObject $credentialsManager;
+	private ProgressService&MockObject $progressService;
+	private SignRequestErrorReporter&MockObject $errorReporter;
 	private LoggerInterface&MockObject $logger;
 	private SignJobCoordinator $coordinator;
 
@@ -41,6 +45,8 @@ class SignJobCoordinatorTest extends TestCase {
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->credentialsManager = $this->createMock(ICredentialsManager::class);
+		$this->progressService = $this->createMock(ProgressService::class);
+		$this->errorReporter = $this->createMock(SignRequestErrorReporter::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->coordinator = new SignJobCoordinator(
 			$this->fileMapper,
@@ -49,6 +55,8 @@ class SignJobCoordinatorTest extends TestCase {
 			$this->folderService,
 			$this->userManager,
 			$this->credentialsManager,
+			$this->progressService,
+			$this->errorReporter,
 			$this->logger,
 		);
 	}
@@ -169,14 +177,98 @@ class SignJobCoordinatorTest extends TestCase {
 			->method('delete')
 			->with('user2', 'cred-2');
 
-		$this->logger->expects($this->once())
-			->method('error');
-
 		$this->coordinator->runSignSingleFile([
 			'fileId' => $file->getId(),
 			'signRequestId' => $signRequest->getId(),
 			'userId' => 'user2',
 			'credentialsId' => 'cred-2',
+		]);
+	}
+
+	public function testRunSignFileStoresErrorInProgressService(): void {
+		$file = new File();
+		$file->setId(10);
+		$file->setStatus(FileStatus::DRAFT->value);
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(20);
+		$signRequest->setFileId($file->getId());
+		$signRequest->setUuid('sign-request-uuid');
+
+		$this->fileMapper->method('getById')->willReturn($file);
+		$this->signRequestMapper->method('getById')->willReturn($signRequest);
+
+		$this->progressService->expects($this->once())
+			->method('clearSignRequestError')
+			->with('sign-request-uuid');
+
+		$exception = new \Exception('Certificate validation failed', 422);
+		$this->signFileService->method('sign')->willThrowException($exception);
+
+		$this->errorReporter->expects($this->once())
+			->method('error');
+
+		$this->coordinator->runSignFile([
+			'fileId' => $file->getId(),
+			'signRequestId' => $signRequest->getId(),
+		]);
+	}
+
+	public function testRunSignSingleFileStoresErrorWhenValidationFails(): void {
+		$file = new File();
+		$file->setId(50);
+		$file->setUserId('user3');
+		$file->setStatus(FileStatus::DRAFT->value);
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(60);
+		$signRequest->setFileId($file->getId());
+		$signRequest->setUuid('single-sign-uuid');
+
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('user3');
+		$this->userManager->method('get')->willReturn($user);
+		$this->folderService->method('setUserId');
+
+		$this->fileMapper->method('getById')->willReturn($file);
+		$this->signRequestMapper->method('getById')->willReturn($signRequest);
+
+		$this->credentialsManager->method('retrieve')->willReturn(null);
+
+		$this->signFileService->method('setLibreSignFile')->willReturnSelf();
+		$this->signFileService->method('setSignRequest')->willReturnSelf();
+		$this->signFileService->method('setCurrentUser')->willReturnSelf();
+		$this->signFileService->method('storeUserMetadata')->willReturnSelf();
+		$this->signFileService->method('setVisibleElements')->willReturnSelf();
+
+		$this->progressService->expects($this->once())
+			->method('clearSignRequestError')
+			->with('single-sign-uuid');
+
+		$exception = new \InvalidArgumentException('Invalid parameters', 400);
+		$this->signFileService->method('signSingleFile')->willThrowException($exception);
+
+		$this->errorReporter->expects($this->once())
+			->method('error');
+
+		$this->fileMapper->expects($this->once())
+			->method('update')
+			->with($this->callback(function (File $updated) {
+				return $updated->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value;
+			}));
+
+		$this->coordinator->runSignSingleFile([
+			'fileId' => $file->getId(),
+			'signRequestId' => $signRequest->getId(),
+		]);
+	}
+
+	public function testRunSignFileWithoutSignRequestId(): void {
+		$this->logger->expects($this->once())
+			->method('error');
+
+		$this->coordinator->runSignFile([
+			'fileId' => 123,
 		]);
 	}
 }
