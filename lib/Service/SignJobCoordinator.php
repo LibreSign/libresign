@@ -199,5 +199,4 @@ class SignJobCoordinator {
 		}
 		$this->credentialsManager->delete($userId, $credentialsId);
 	}
-
 }
