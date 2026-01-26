@@ -667,7 +667,6 @@ export default {
 		},
 		handleSigningError(message) {
 			this.loading = false
-			// Keep async view visible so the user can see per-file errors.
 			const errorMessage = message || t('libresign', 'Signing failed. Please try again.')
 			this.setValidationError(errorMessage)
 		},
