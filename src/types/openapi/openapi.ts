@@ -1362,6 +1362,17 @@ export type components = {
                 status: number;
             }[];
         };
+        ProgressResponse: {
+            status: string;
+            /** Format: int64 */
+            statusCode: number;
+            statusText: string;
+            /** Format: int64 */
+            fileId: number;
+            progress: components["schemas"]["ProgressPayload"];
+            file?: components["schemas"]["ValidateFile"];
+            error?: components["schemas"]["ProgressError"];
+        };
         PublicCapabilities: {
             libresign?: components["schemas"]["Capabilities"];
         };
@@ -3494,17 +3505,7 @@ export interface operations {
                     "application/json": {
                         ocs: {
                             meta: components["schemas"]["OCSMeta"];
-                            data: {
-                                status: string;
-                                /** Format: int64 */
-                                statusCode: number;
-                                statusText: string;
-                                /** Format: int64 */
-                                fileId: number;
-                                progress: components["schemas"]["ProgressPayload"];
-                                file?: components["schemas"]["ValidateFile"];
-                                error?: components["schemas"]["ProgressError"];
-                            };
+                            data: components["schemas"]["ProgressResponse"];
                         };
                     };
                 };
