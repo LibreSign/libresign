@@ -5,6 +5,9 @@
 <template>
 	<div class="signing-progress">
 		<h1>{{ getHeaderTitle() }}</h1>
+		<NcNoteCard v-if="generalErrorMessage" type="error" class="general-error-card">
+			{{ generalErrorMessage }}
+		</NcNoteCard>
 		<NcNoteCard type="info">
 			<div class="note-header">
 				<NcLoadingIcon v-if="isPolling" :size="20" />
@@ -39,10 +42,9 @@
 								{{ getFileStatusMeta(file).label }}
 							</span>
 						</div>
-						<div v-if="file.error && file.error.message" class="file-error">
-							<span class="error-icon">⚠</span>
-							<span class="error-message">{{ file.error.message }}</span>
-						</div>
+						<NcNoteCard v-if="file.error && file.error.message" type="error" class="file-error-card">
+							{{ file.error.message }}
+						</NcNoteCard>
 					</div>
 				</div>
 			</div>
@@ -85,6 +87,7 @@ export default {
 			isPolling: false,
 			pollingInterval: null,
 			progress: null,
+			generalErrorMessage: null,
 			statusMap: buildStatusMap(),
 			pollTimeoutSeconds: 30,
 		}
@@ -174,9 +177,10 @@ export default {
 					this.$emit('file-errors', fileErrors)
 				}
 
-				if (responseData?.error && !this.progress?.files) {
+				if (responseData?.error && !hasFileErrors) {
 					this.stopPolling()
-					this.$emit('error', responseData.error.message || t('libresign', 'Signing failed. Please try again.'))
+					this.generalErrorMessage = responseData.error.message || t('libresign', 'Signing failed. Please try again.')
+					this.$emit('error', this.generalErrorMessage)
 					return
 				}
 
@@ -207,7 +211,8 @@ export default {
 
 				if (status === 'ERROR' && !hasPendingWork && !hasFileErrors) {
 					this.stopPolling()
-					this.$emit('error', t('libresign', 'Signing failed. Please try again.'))
+					this.generalErrorMessage = t('libresign', 'Signing failed. Please try again.')
+					this.$emit('error', this.generalErrorMessage)
 					return
 				}
 
@@ -330,6 +335,9 @@ export default {
 		gap: 10px;
 		color: var(--color-main-text);
 	}
+	.general-error-card {
+		margin: 12px 0;
+	}
 
 	.progress-body {
 		margin-top: 16px;
@@ -412,28 +420,9 @@ export default {
 				&.status-unknown { background: #eceff1; color: #455a64; }
 			}
 
-			.file-error {
-				display: flex;
-				align-items: center;
-				gap: 8px;
-				padding: 8px 12px;
+			.file-error-card {
 				margin: 0 10px;
-				border-radius: 6px;
-				background-color: var(--color-error, #ffebee);
-				border: 1px solid var(--color-error, #ffcdd2);
 				font-size: 13px;
-
-				.error-icon {
-					font-size: 16px;
-					color: var(--color-error, #c62828);
-					flex-shrink: 0;
-				}
-
-				.error-message {
-					color: var(--color-main-text);
-					word-break: break-word;
-					flex: 1;
-				}
 			}
 		}
 	}
