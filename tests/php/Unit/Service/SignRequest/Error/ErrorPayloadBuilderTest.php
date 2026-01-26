@@ -66,7 +66,7 @@ class ErrorPayloadBuilderTest extends TestCase {
 		?int $signRequestId,
 		?string $signRequestUuid,
 		array $expectedKeys,
-		array $notExpectedKeys
+		array $notExpectedKeys,
 	): void {
 		$builder = new ErrorPayloadBuilder();
 		$payload = $builder
@@ -161,7 +161,7 @@ class ErrorPayloadBuilderTest extends TestCase {
 		?int $fileId,
 		?int $signRequestId,
 		?string $signRequestUuid,
-		array $expectedKeys
+		array $expectedKeys,
 	): void {
 		$exception = new \Exception($message, $code);
 
