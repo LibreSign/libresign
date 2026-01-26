@@ -4,11 +4,11 @@
 -->
 <template>
 	<div class="signing-progress">
-		<h1>{{ t('libresign', 'Signing document...') }}</h1>
+		<h1>{{ getHeaderTitle() }}</h1>
 		<NcNoteCard type="info">
 			<div class="note-header">
-				<NcLoadingIcon :size="20" />
-				<span>{{ t('libresign', 'Your document is being signed. This may take a few moments.') }}</span>
+				<NcLoadingIcon v-if="isPolling" :size="20" />
+				<span>{{ getHeaderSubtitle() }}</span>
 			</div>
 			<div v-if="progress" class="progress-body">
 				<div class="summary">
@@ -31,12 +31,18 @@
 						<span>{{ t('libresign', 'File') }}</span>
 						<span>{{ t('libresign', 'Status') }}</span>
 					</div>
-					<div v-for="file in progress.files" :key="file.id" class="file-row">
-						<span class="file-name">{{ file.name }}</span>
-						<span :class="['status-pill', `status-${getStatusMeta(file.status).class}`]">
-							<NcIconSvgWrapper :path="getStatusMeta(file.status).icon" />
-							{{ getStatusMeta(file.status).label }}
+					<div v-for="file in progress.files" :key="file.id" class="file-item">
+						<div class="file-row">
+							<span class="file-name">{{ file.name }}</span>
+						<span :class="['status-pill', `status-${getFileStatusMeta(file).class}`]">
+							<NcIconSvgWrapper :path="getFileStatusMeta(file).icon" />
+							{{ getFileStatusMeta(file).label }}
 						</span>
+						</div>
+						<div v-if="file.error && file.error.message" class="file-error">
+							<span class="error-icon">⚠</span>
+							<span class="error-message">{{ file.error.message }}</span>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -53,6 +59,7 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
+import { mdiAlertCircleOutline, mdiHelpCircle } from '@mdi/js'
 import { buildStatusMap } from '../../utils/fileStatus.js'
 
 export default {
@@ -69,7 +76,7 @@ export default {
 			description: 'Sign request UUID (not file UUID)',
 		},
 	},
-	emits: ['completed', 'error', 'status-changed'],
+	emits: ['completed', 'error', 'status-changed', 'file-errors'],
 	setup() {
 		return { t }
 	},
@@ -80,6 +87,7 @@ export default {
 			progress: null,
 			currentStatusCode: null,
 			statusMap: buildStatusMap(),
+			pollTimeoutSeconds: 30,
 		}
 	},
 	watch: {
@@ -98,13 +106,39 @@ export default {
 		this.stopPolling()
 	},
 	methods: {
+		getHeaderTitle() {
+			const { allProcessed, errorCount } = this.getProgressCompletionState()
+			if (!this.isPolling && allProcessed && errorCount > 0) {
+				return t('libresign', 'Signing finished with errors')
+			}
+			return t('libresign', 'Signing document...')
+		},
+		getHeaderSubtitle() {
+			const { allProcessed, errorCount } = this.getProgressCompletionState()
+			if (!this.isPolling && allProcessed && errorCount > 0) {
+				return t('libresign', 'Some files could not be signed. Please review the errors below.')
+			}
+			return t('libresign', 'Your document is being signed. This may take a few moments.')
+		},
+		getProgressCompletionState() {
+			const progressReady = this.progress && (this.progress.total ?? 0) > 0
+			const total = this.progress?.total ?? 0
+			const signed = this.progress?.signed ?? 0
+			const fileErrors = this.getFilesWithErrors()
+			const errorCount = this.progress?.errors ?? fileErrors.length
+			const processedCount = signed + errorCount
+			const allProcessed = progressReady && processedCount >= total
+			return { allProcessed, errorCount }
+		},
 		startPolling() {
 			if (this.isPolling || !this.signRequestUuid) {
 				return
 			}
 			this.isPolling = true
 			this.pollFileProgress()
-			this.fetchProgressFromValidation()
+			if (!this.progress) {
+				this.fetchProgressFromValidation()
+			}
 		},
 		stopPolling() {
 			this.isPolling = false
@@ -122,8 +156,8 @@ export default {
 			const { data } = await axios.get(
 				generateOcsUrl(`/apps/libresign/api/v1/file/progress/${this.signRequestUuid}`),
 				{
-					params: { timeout: 0 },
-					timeout: 35000,
+					params: { timeout: this.pollTimeoutSeconds },
+					timeout: (this.pollTimeoutSeconds + 5) * 1000,
 				}
 			)
 
@@ -139,6 +173,20 @@ export default {
 				await this.fetchProgressFromValidation()
 			}
 
+			// Detectar se há erros em arquivos individuais
+			const hasFileErrors = this.hasIndividualFileErrors()
+			const fileErrors = this.getFilesWithErrors()
+			if (hasFileErrors) {
+				this.$emit('file-errors', fileErrors)
+			}
+
+			// Erro geral do job (não erro de arquivo individual)
+			if (responseData?.error && !this.progress?.files) {
+				this.stopPolling()
+				this.$emit('error', responseData.error.message || t('libresign', 'Signing failed. Please try again.'))
+				return
+			}
+
 			if (responseData?.file) {
 				this.stopPolling()
 				this.$emit('completed', responseData.file)
@@ -146,28 +194,36 @@ export default {
 			}
 
 			const progressReady = this.progress && (this.progress.total ?? 0) > 0
-			const allSigned = progressReady && (this.progress.signed ?? 0) >= (this.progress.total ?? 0)
-			const hasPendingWork = !progressReady
-				|| !allSigned
-				|| (this.progress.pending ?? 0) > 0
-				|| (this.progress.inProgress ?? 0) > 0
+			const total = this.progress?.total ?? 0
+			const signed = this.progress?.signed ?? 0
+			const errorCount = this.progress?.errors ?? fileErrors.length
+			const processedCount = signed + errorCount
+			const pending = this.progress?.pending ?? Math.max(total - processedCount - (this.progress?.inProgress ?? 0), 0)
+			const inProgress = this.progress?.inProgress ?? 0
+			const allProcessed = progressReady && processedCount >= total
+			const hasPendingWork = !progressReady || pending > 0 || inProgress > 0 || !allProcessed
 
-			if (status === 'SIGNED' && !hasPendingWork) {
+			if (status === 'ABLE_TO_SIGN' || this.currentStatusCode === 1) {
+				this.stopPolling()
+				this.$emit('error', t('libresign', 'Document ready to sign'))
+			} else if (allProcessed && errorCount > 0) {
+				this.stopPolling()
+				const firstError = fileErrors.find(file => file?.error?.message)?.error?.message
+				this.$emit('error', firstError || t('libresign', 'Signing failed. Please try again.'))
+			} else if (status === 'SIGNED' && !hasPendingWork) {
 				this.stopPolling()
 				this.$emit('completed')
-			} else if (status === 'ERROR') {
+			} else if (status === 'ERROR' && !hasPendingWork && !hasFileErrors) {
+				// Só parar se for erro geral e não há trabalho pendente
 				this.stopPolling()
 				this.$emit('error', t('libresign', 'Signing failed. Please try again.'))
-			} else if (status === 'SIGNING_IN_PROGRESS') {
-				this.pollingInterval = setTimeout(() => this.pollFileProgress(), 1000)
-			} else if (status === 'SIGNED' && hasPendingWork) {
-				this.pollingInterval = setTimeout(() => this.pollFileProgress(), 1000)
 			} else {
-				this.pollingInterval = setTimeout(() => this.pollFileProgress(), 2000)
+				// Long-poll returns on change/timeout; re-open immediately.
+				this.pollingInterval = setTimeout(() => this.pollFileProgress(), 0)
 			}
 		} catch (error) {
 			if (error.code === 'ECONNABORTED') {
-				this.pollingInterval = setTimeout(() => this.pollFileProgress(), 100)
+				this.pollingInterval = setTimeout(() => this.pollFileProgress(), 0)
 			} else {
 				this.stopPolling()
 				this.$emit('error', t('libresign', 'Failed to check signing progress'))
@@ -176,12 +232,15 @@ export default {
 	},
 	async fetchProgressFromValidation() {
 		try {
+			if (this.hasIndividualFileErrors() || (this.progress?.errors ?? 0) > 0) {
+				return
+			}
 			const { data } = await axios.get(
 				generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${this.signRequestUuid}`)
 			)
 			const doc = data.ocs?.data || data
 			const derived = this.buildProgressFromValidation(doc)
-			if (derived) {
+			if (derived && !this.hasIndividualFileErrors() && (this.progress?.errors ?? 0) === 0) {
 				this.progress = derived
 			}
 		} catch (e) {
@@ -237,6 +296,28 @@ export default {
 			return meta
 		}
 		return { label: t('libresign', 'Unknown'), icon: mdiHelpCircle }
+	},
+	getFileStatusMeta(file) {
+		if (file?.error) {
+			return {
+				label: t('libresign', 'Error'),
+				icon: mdiAlertCircleOutline,
+				class: 'error',
+			}
+		}
+		return this.getStatusMeta(file?.status)
+	},
+	hasIndividualFileErrors() {
+		if (!this.progress?.files || !Array.isArray(this.progress.files)) {
+			return false
+		}
+		return this.progress.files.some(file => file.error !== null && file.error !== undefined)
+	},
+	getFilesWithErrors() {
+		if (!this.progress?.files || !Array.isArray(this.progress.files)) {
+			return []
+		}
+		return this.progress.files.filter(file => file.error !== null && file.error !== undefined)
 	},
 	},
 }
@@ -294,6 +375,12 @@ export default {
 			flex-direction: column;
 			gap: 8px;
 
+			.file-item {
+				display: flex;
+				flex-direction: column;
+				gap: 4px;
+			}
+
 			.file-row {
 				display: grid;
 				grid-template-columns: 2fr 1fr;
@@ -331,8 +418,33 @@ export default {
 				&.status-partial { background: #e3f2fd; color: #1976d2; }
 				&.status-signed { background: #e8f5e9; color: #2e7d32; }
 				&.status-deleted { background: #ffebee; color: #c62828; }
+				&.status-error { background: #ffebee; color: #c62828; }
 				&.status-signing { background: #fff3e0; color: #f57c00; }
 				&.status-unknown { background: #eceff1; color: #455a64; }
+			}
+
+			.file-error {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				padding: 8px 12px;
+				margin: 0 10px;
+				border-radius: 6px;
+				background-color: var(--color-error, #ffebee);
+				border: 1px solid var(--color-error, #ffcdd2);
+				font-size: 13px;
+
+				.error-icon {
+					font-size: 16px;
+					color: var(--color-error, #c62828);
+					flex-shrink: 0;
+				}
+
+				.error-message {
+					color: var(--color-main-text);
+					word-break: break-word;
+					flex: 1;
+				}
 			}
 		}
 	}
