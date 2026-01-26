@@ -29,7 +29,6 @@ class SignSingleFileJob extends QueuedJob {
 	 */
 	#[\Override]
 	public function run($argument): void {
-		// Handle null arguments from Nextcloud background job system
 		$argument = is_array($argument) ? $argument : [];
 		$this->coordinator->runSignSingleFile($argument);
 	}

@@ -921,6 +921,164 @@
                     }
                 }
             },
+            "ProgressError": {
+                "type": "object",
+                "required": [
+                    "message"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "code": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "timestamp": {
+                        "type": "string"
+                    },
+                    "fileId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "signRequestId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "signRequestUuid": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ProgressFile": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name",
+                    "status",
+                    "statusText"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "statusText": {
+                        "type": "string"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ProgressError"
+                    }
+                }
+            },
+            "ProgressPayload": {
+                "type": "object",
+                "required": [
+                    "total",
+                    "signed",
+                    "inProgress",
+                    "pending"
+                ],
+                "properties": {
+                    "total": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "signed": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "inProgress": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "pending": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "errors": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "files": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ProgressFile"
+                        }
+                    },
+                    "signers": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "id",
+                                "displayName",
+                                "signed",
+                                "status"
+                            ],
+                            "properties": {
+                                "id": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "displayName": {
+                                    "type": "string"
+                                },
+                                "signed": {
+                                    "type": "string",
+                                    "nullable": true
+                                },
+                                "status": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "ProgressResponse": {
+                "type": "object",
+                "required": [
+                    "status",
+                    "statusCode",
+                    "statusText",
+                    "fileId",
+                    "progress"
+                ],
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    },
+                    "statusCode": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "statusText": {
+                        "type": "string"
+                    },
+                    "fileId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "progress": {
+                        "$ref": "#/components/schemas/ProgressPayload"
+                    },
+                    "file": {
+                        "$ref": "#/components/schemas/ValidateFile"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ProgressError"
+                    }
+                }
+            },
             "PublicCapabilities": {
                 "type": "object",
                 "properties": {
@@ -6071,39 +6229,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "status",
-                                                        "statusCode",
-                                                        "statusText",
-                                                        "fileId",
-                                                        "progress"
-                                                    ],
-                                                    "properties": {
-                                                        "status": {
-                                                            "type": "string"
-                                                        },
-                                                        "statusCode": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "statusText": {
-                                                            "type": "string"
-                                                        },
-                                                        "fileId": {
-                                                            "type": "integer",
-                                                            "format": "int64"
-                                                        },
-                                                        "progress": {
-                                                            "type": "object",
-                                                            "additionalProperties": {
-                                                                "type": "object"
-                                                            }
-                                                        },
-                                                        "file": {
-                                                            "$ref": "#/components/schemas/ValidateFile"
-                                                        }
-                                                    }
+                                                    "$ref": "#/components/schemas/ProgressResponse"
                                                 }
                                             }
                                         }
