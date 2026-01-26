@@ -42,6 +42,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\Envelope\EnvelopeStatusDeterminer;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\IToken;
+use OCA\Libresign\Service\SignRequest\StatusService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -52,8 +53,6 @@ use OCP\Files\IRootFolder;
 use OCP\Files\NotPermittedException;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
-use OCP\ICache;
-use OCP\ICacheFactory;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\ITempManager;
@@ -81,7 +80,6 @@ class SignFileService {
 	private string $friendlyName = '';
 	private ?IUser $user = null;
 	private ?SignEngineHandler $engine = null;
-	private ICache $cache;
 	private PfxProvider $pfxProvider;
 
 	public function __construct(
@@ -116,14 +114,13 @@ class SignFileService {
 		private PdfSignatureDetectionService $pdfSignatureDetectionService,
 		private SequentialSigningService $sequentialSigningService,
 		private FileStatusService $fileStatusService,
+		private StatusService $statusService,
 		private IJobList $jobList,
 		private ICredentialsManager $credentialsManager,
 		private EnvelopeStatusDeterminer $envelopeStatusDeterminer,
 		private TsaValidationService $tsaValidationService,
-		ICacheFactory $cacheFactory,
 		PfxProvider $pfxProvider,
 	) {
-		$this->cache = $cacheFactory->createDistributed('libresign_progress');
 		$this->pfxProvider = $pfxProvider;
 	}
 
@@ -550,6 +547,7 @@ class SignFileService {
 		$args = array_merge($args, [
 			'fileId' => $file->getId(),
 			'signRequestId' => $signRequest->getId(),
+			'signRequestUuid' => $signRequest->getUuid(),
 		]);
 
 		$this->jobList->add(SignSingleFileJob::class, $args);
@@ -972,15 +970,11 @@ class SignFileService {
 	}
 
 	private function updateCacheAfterDbSave(FileEntity $libreSignFile): void {
-		$cacheKey = 'status_' . $libreSignFile->getUuid();
-		$status = $libreSignFile->getStatus();
-		$this->cache->set($cacheKey, $status, 60); // Cache for 60 seconds
+		$this->statusService->cacheFileStatus($libreSignFile);
 	}
 
 	private function updateEntityCacheAfterDbSave(FileEntity $file): void {
-		$cacheKey = 'status_' . $file->getUuid();
-		$status = $file->getStatus();
-		$this->cache->set($cacheKey, $status, 60);
+		$this->statusService->cacheFileStatus($file);
 	}
 
 	private function evaluateStatusFromSigners(): ?int {
