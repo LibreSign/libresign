@@ -3983,6 +3983,9 @@ export interface operations {
                                     [key: string]: Record<string, never>;
                                 };
                                 file?: components["schemas"]["ValidateFile"];
+                                error?: {
+                                    [key: string]: Record<string, never>;
+                                };
                             };
                         };
                     };

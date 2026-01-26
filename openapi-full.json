@@ -6252,6 +6252,12 @@
                                                         },
                                                         "file": {
                                                             "$ref": "#/components/schemas/ValidateFile"
+                                                        },
+                                                        "error": {
+                                                            "type": "object",
+                                                            "additionalProperties": {
+                                                                "type": "object"
+                                                            }
                                                         }
                                                     }
                                                 }
