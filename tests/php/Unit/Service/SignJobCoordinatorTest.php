@@ -203,7 +203,9 @@ class SignJobCoordinatorTest extends TestCase {
 			->with('sign-request-uuid');
 
 		$exception = new \Exception('Certificate validation failed', 422);
-		$this->signFileService->method('sign')->willThrowException($exception);
+		$this->signFileService->expects($this->once())
+			->method('sign')
+			->willThrowException($exception);
 
 		$this->errorReporter->expects($this->once())
 			->method('error');
