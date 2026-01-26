@@ -69,7 +69,7 @@ class ProgressServiceTest extends TestCase {
 
 		$sequence = [$initialStatus, $initialStatus, $newStatus];
 		$index = 0;
-		
+
 		// Create a fresh mock to avoid conflicts with setUp()
 		$this->statusCacheService = $this->createMock(StatusCacheService::class);
 		$this->statusCacheService
@@ -80,7 +80,7 @@ class ProgressServiceTest extends TestCase {
 				$index++;
 				return $value;
 			});
-		
+
 		// Recreate service with the new mock
 		$this->service = new ProgressService(
 			$this->fileMapper,
