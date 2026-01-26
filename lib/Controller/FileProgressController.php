@@ -145,9 +145,7 @@ class FileProgressController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * Check if any file in the files list has an error
-	 *
-	 * @param array<int, array<string, mixed>> $files
+	 * @param list<LibresignProgressFile> $files
 	 */
 	private function hasErrorsInFiles(array $files): bool {
 		foreach ($files as $file) {
