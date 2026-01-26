@@ -70,8 +70,6 @@ class ProgressServiceTest extends TestCase {
 		$sequence = [$initialStatus, $initialStatus, $newStatus];
 		$index = 0;
 
-		// Create a fresh mock to avoid conflicts with setUp()
-		$this->statusCacheService = $this->createMock(StatusCacheService::class);
 		$this->statusCacheService
 			->method('getStatus')
 			->with($uuid)
@@ -80,14 +78,6 @@ class ProgressServiceTest extends TestCase {
 				$index++;
 				return $value;
 			});
-
-		// Recreate service with the new mock
-		$this->service = new ProgressService(
-			$this->fileMapper,
-			$this->cacheFactory,
-			$this->signRequestMapper,
-			$this->statusCacheService,
-		);
 
 		$result = $this->service->pollForStatusChange($uuid, $initialStatus, 5, 0);
 
@@ -267,7 +257,6 @@ class ProgressServiceTest extends TestCase {
 	}
 
 	public function testGetSignRequestProgressRoutesToCorrectMethod(): void {
-		// Test single file
 		$file = $this->createFileEntity(1, 'test.pdf', FileStatus::DRAFT->value, null);
 		$signRequest = $this->createSignRequestEntity(100, 'John Doe', FileStatus::DRAFT->value, null);
 
@@ -448,7 +437,6 @@ class ProgressServiceTest extends TestCase {
 
 		$signRequest->setUuid($uuid);
 
-		// Use reflection to test private method
 		$reflection = new \ReflectionClass($this->service);
 		$method = $reflection->getMethod('mapSignRequestFileProgress');
 		$method->setAccessible(true);
@@ -464,7 +452,6 @@ class ProgressServiceTest extends TestCase {
 		$signRequest = $this->createSignRequestEntity(100, 'John Doe', FileStatus::DRAFT->value, null);
 		$signRequest->setUuid('no-error-uuid');
 
-		// Use reflection to test private method
 		$reflection = new \ReflectionClass($this->service);
 		$method = $reflection->getMethod('mapSignRequestFileProgress');
 		$method->setAccessible(true);
@@ -488,8 +475,6 @@ class ProgressServiceTest extends TestCase {
 		$this->fileMapper
 			->method('getTextOfStatus')
 			->willReturnCallback(fn ($status) => FileStatus::tryFrom($status)?->name ?? 'UNKNOWN');
-
-		// Set error for child2
 		$error = ['message' => 'Signature failed', 'code' => 422];
 		$this->service->setFileError($uuid, 3, $error);
 
@@ -610,6 +595,128 @@ class ProgressServiceTest extends TestCase {
 		$signRequest->setSigned($signed);
 
 		return $signRequest;
+	}
+
+	public function testFileErrorsSuppressRootError(): void {
+		$uuid = 'suppress-test-uuid';
+		$progress = [
+			'total' => 2,
+			'signed' => 0,
+			'pending' => 2,
+			'files' => [
+				[
+					'id' => 101,
+					'name' => 'file1.pdf',
+					'status' => FileStatus::DRAFT->value,
+					'statusText' => 'DRAFT',
+					'error' => [
+						'message' => 'File validation failed',
+						'code' => 422,
+					],
+				],
+				[
+					'id' => 102,
+					'name' => 'file2.pdf',
+					'status' => FileStatus::DRAFT->value,
+					'statusText' => 'DRAFT',
+				],
+			],
+		];
+
+		$rootError = [
+			'message' => 'Root error that should be suppressed',
+			'code' => 500,
+		];
+
+		$this->service->setSignRequestError($uuid, $rootError);
+
+		$cachedError = $this->service->getSignRequestError($uuid);
+
+		$this->assertIsArray($cachedError);
+		$this->assertEquals('Root error that should be suppressed', $cachedError['message']);
+		$this->assertIsArray($progress['files'][0]['error']);
+		$this->assertEquals('File validation failed', $progress['files'][0]['error']['message']);
+	}
+
+	public function testMultipleFileErrorsArePreserved(): void {
+		$uuid = 'multi-error-uuid';
+		$fileId1 = 201;
+		$fileId2 = 202;
+
+		$error1 = [
+			'message' => 'File 1 error',
+			'code' => 422,
+		];
+
+		$error2 = [
+			'message' => 'File 2 error',
+			'code' => 400,
+		];
+
+		$this->service->setFileError($uuid, $fileId1, $error1);
+		$this->service->setFileError($uuid, $fileId2, $error2);
+
+		$retrieved1 = $this->service->getFileError($uuid, $fileId1);
+		$retrieved2 = $this->service->getFileError($uuid, $fileId2);
+
+		$this->assertEquals('File 1 error', $retrieved1['message']);
+		$this->assertEquals('File 2 error', $retrieved2['message']);
+	}
+
+	public function testErrorsArePersistedInMetadata(): void {
+		$uuid = 'metadata-persist-uuid';
+		$fileId = 303;
+
+		$error = [
+			'message' => 'Persistent error',
+			'code' => 500,
+		];
+
+		$cache = new InMemoryCache();
+		$cacheFactory = new InMemoryCacheFactory($cache);
+		$service = new ProgressService(
+			$this->fileMapper,
+			$cacheFactory,
+			$this->signRequestMapper,
+			$this->statusCacheService,
+		);
+
+		$service->setFileError($uuid, $fileId, $error);
+
+		$cache->clear();
+
+		$signRequest = new SignRequestEntity();
+		$signRequest->setUuid($uuid);
+		$signRequest->setMetadata([
+			'libresign_file_errors' => [
+				$fileId => $error,
+			],
+		]);
+
+		$this->signRequestMapper
+			->method('getByUuidUncached')
+			->with($uuid)
+			->willReturn($signRequest);
+
+		$retrieved = $service->getFileError($uuid, $fileId);
+
+		$this->assertIsArray($retrieved);
+		$this->assertEquals('Persistent error', $retrieved['message']);
+	}
+
+	public function testClearSignRequestErrorRemovesFromCacheAndMetadata(): void {
+		$uuid = 'clear-error-uuid';
+		$error = [
+			'message' => 'Error to be cleared',
+			'code' => 500,
+		];
+
+		$this->service->setSignRequestError($uuid, $error);
+		$this->assertIsArray($this->service->getSignRequestError($uuid));
+
+		$this->service->clearSignRequestError($uuid);
+
+		$this->assertNull($this->service->getSignRequestError($uuid));
 	}
 }
 
