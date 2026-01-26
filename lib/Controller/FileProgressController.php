@@ -33,6 +33,7 @@ use OCP\IUserSession;
  * @psalm-import-type LibresignProgressPayload from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignProgressError from \OCA\Libresign\ResponseDefinitions
  * @psalm-import-type LibresignProgressResponse from \OCA\Libresign\ResponseDefinitions
+ * @psalm-import-type LibresignProgressFile from \OCA\Libresign\ResponseDefinitions
  */
 class FileProgressController extends AEnvironmentAwareController {
 	public function __construct(
