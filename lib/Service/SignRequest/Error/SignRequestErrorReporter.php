@@ -41,7 +41,7 @@ class SignRequestErrorReporter extends AbstractLogger {
 			return;
 		}
 
-		$ttl = (int)($context['ttl'] ?? 300);
+		$ttl = (int)($context['ttl'] ?? ProgressService::ERROR_CACHE_TTL);
 		$fileId = $context['fileId'] ?? null;
 		$signRequestId = $context['signRequestId'] ?? null;
 		$payload = ErrorPayloadBuilder::fromException(
