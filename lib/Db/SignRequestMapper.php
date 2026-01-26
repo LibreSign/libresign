@@ -124,6 +124,22 @@ class SignRequestMapper extends CachedQBMapper {
 		return $signRequest;
 	}
 
+	/**
+	 * @throws DoesNotExistException
+	 */
+	public function getByUuidUncached(string $uuid): SignRequest {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid))
+			);
+
+		/** @var SignRequest */
+		return $this->findEntity($qb);
+	}
+
 	public function getByEmailAndFileId(string $email, int $fileId): SignRequest {
 		$qb = $this->db->getQueryBuilder();
 
