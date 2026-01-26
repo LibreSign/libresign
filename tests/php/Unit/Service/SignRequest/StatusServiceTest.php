@@ -11,6 +11,7 @@ use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\SequentialSigningService;
+use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCA\Libresign\Service\SignRequest\StatusService;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -18,15 +19,18 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class StatusServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SequentialSigningService&MockObject $sequentialSigningService;
 	private FileStatusService&MockObject $fileStatusService;
+	private StatusCacheService&MockObject $statusCacheService;
 	private StatusService $service;
 
 	public function setUp(): void {
 		parent::setUp();
 		$this->sequentialSigningService = $this->createMock(SequentialSigningService::class);
 		$this->fileStatusService = $this->createMock(FileStatusService::class);
+		$this->statusCacheService = $this->createMock(StatusCacheService::class);
 		$this->service = new StatusService(
 			$this->sequentialSigningService,
-			$this->fileStatusService
+			$this->fileStatusService,
+			$this->statusCacheService
 		);
 	}
 
