@@ -53,7 +53,7 @@ class FileProgressController extends AEnvironmentAwareController {
 	 *
 	 * @param string $uuid Sign request UUID
 	 * @param int $timeout Maximum seconds to wait (default 30)
-	 * @return DataResponse<Http::STATUS_OK, array{status: string, statusCode: int, statusText: string, fileId: int, progress: array<string, mixed>, file?: LibresignValidateFile}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string, status: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{status: string, statusCode: int, statusText: string, fileId: int, progress: array<string, mixed>, file?: LibresignValidateFile, error?: array<string, mixed>}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string, status: string}, array{}>
 	 *
 	 * 200: Status and progress returned
 	 * 404: Sign request not found
@@ -64,14 +64,17 @@ class FileProgressController extends AEnvironmentAwareController {
 	#[PublicPage]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/file/progress/{uuid}', requirements: ['apiVersion' => '(v1)'])]
 	public function checkProgressByUuid(string $uuid, int $timeout = 30): DataResponse {
+		$timeout = max(1, min($timeout, 30));
 		try {
 			$signRequest = $this->signRequestMapper->getByUuid($uuid);
 			$file = $this->fileMapper->getById($signRequest->getFileId());
 			$currentStatus = $this->progressService->getStatusCodeForSignRequest($file, $signRequest);
 
-			if ($file->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value) {
-				$this->workerHealthService->ensureWorkerRunning();
-				$currentStatus = $this->progressService->pollForStatusChange($uuid, $currentStatus, $timeout);
+			if ($timeout > 0) {
+				if ($file->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value) {
+					$this->workerHealthService->ensureWorkerRunning();
+				}
+				$currentStatus = $this->progressService->pollForStatusOrErrorChange($file, $signRequest, $currentStatus, $timeout);
 			}
 
 			return $this->buildStatusResponse($file, $signRequest, $currentStatus);
@@ -90,12 +93,16 @@ class FileProgressController extends AEnvironmentAwareController {
 	 * @param FileEntity $file The file entity
 	 * @param SignRequestEntity $signRequest The sign request entity
 	 * @param int $status Current status code
-	 * @return DataResponse<Http::STATUS_OK, array{status: string, statusCode: int, statusText: string, fileId: int, progress: array<string, mixed>, file?: LibresignValidateFile}, array{}>
-	 * @psalm-return DataResponse<Http::STATUS_OK, array{status: string, statusCode: int, statusText: string, fileId: int, progress: array<string, mixed>, file?: LibresignValidateFile}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{status: string, statusCode: int, statusText: string, fileId: int, progress: array<string, mixed>, file?: LibresignValidateFile, error?: array<string, mixed>}, array{}>
+	 * @psalm-return DataResponse<Http::STATUS_OK, array{status: string, statusCode: int, statusText: string, fileId: int, progress: array<string, mixed>, file?: LibresignValidateFile, error?: array<string, mixed>}, array{}>
 	 */
 	private function buildStatusResponse(FileEntity $file, SignRequestEntity $signRequest, int $status): DataResponse {
 		$statusEnum = FileStatus::tryFrom($status);
 		$progress = $this->progressService->getSignRequestProgress($file, $signRequest);
+		$error = $this->progressService->getSignRequestError($signRequest->getUuid());
+
+		$hasFileErrors = !empty($progress['files']) && $this->hasErrorsInFiles($progress['files']);
+
 		$response = [
 			'status' => $statusEnum?->name ?? 'UNKNOWN',
 			'statusCode' => $status,
@@ -104,7 +111,16 @@ class FileProgressController extends AEnvironmentAwareController {
 			'progress' => $progress,
 		];
 
-		if ($this->progressService->isProgressComplete($progress)) {
+		if ($error && !$hasFileErrors) {
+			$response['status'] = 'ERROR';
+			if (!empty($error['message'])) {
+				$response['statusText'] = (string)$error['message'];
+			}
+			$response['error'] = $error;
+		}
+
+		$hasAnyError = $error || $hasFileErrors || ($progress['errors'] ?? 0) > 0;
+		if (!$hasAnyError && $this->progressService->isProgressComplete($progress)) {
 			$response['file'] = $this->fileService
 				->setFile($file)
 				->setSignRequest($signRequest)
@@ -120,5 +136,19 @@ class FileProgressController extends AEnvironmentAwareController {
 		}
 
 		return new DataResponse($response, Http::STATUS_OK);
+	}
+
+	/**
+	 * Check if any file in the files list has an error
+	 *
+	 * @param array<int, array<string, mixed>> $files
+	 */
+	private function hasErrorsInFiles(array $files): bool {
+		foreach ($files as $file) {
+			if (!empty($file['error'])) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
