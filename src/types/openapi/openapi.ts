@@ -1321,6 +1321,47 @@ export type components = {
             last: string | null;
             first: string | null;
         };
+        ProgressError: {
+            message: string;
+            /** Format: int64 */
+            code?: number;
+            timestamp?: string;
+            /** Format: int64 */
+            fileId?: number;
+            /** Format: int64 */
+            signRequestId?: number;
+            signRequestUuid?: string;
+        };
+        ProgressFile: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /** Format: int64 */
+            status: number;
+            statusText: string;
+            error?: components["schemas"]["ProgressError"];
+        };
+        ProgressPayload: {
+            /** Format: int64 */
+            total: number;
+            /** Format: int64 */
+            signed: number;
+            /** Format: int64 */
+            inProgress: number;
+            /** Format: int64 */
+            pending: number;
+            /** Format: int64 */
+            errors?: number;
+            files?: components["schemas"]["ProgressFile"][];
+            signers?: {
+                /** Format: int64 */
+                id: number;
+                displayName: string;
+                signed: string | null;
+                /** Format: int64 */
+                status: number;
+            }[];
+        };
         PublicCapabilities: {
             libresign?: components["schemas"]["Capabilities"];
         };
@@ -3460,13 +3501,9 @@ export interface operations {
                                 statusText: string;
                                 /** Format: int64 */
                                 fileId: number;
-                                progress: {
-                                    [key: string]: Record<string, never>;
-                                };
+                                progress: components["schemas"]["ProgressPayload"];
                                 file?: components["schemas"]["ValidateFile"];
-                                error?: {
-                                    [key: string]: Record<string, never>;
-                                };
+                                error?: components["schemas"]["ProgressError"];
                             };
                         };
                     };
