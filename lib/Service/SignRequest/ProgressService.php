@@ -34,9 +34,9 @@ class ProgressService {
 	public const ERROR_KEY_PREFIX = 'libresign_sign_request_error_';
 	public const FILE_ERROR_KEY_PREFIX = 'libresign_file_error_';
 	public const ERROR_CACHE_TTL = 300;
-	/** @var array<string, array<string, mixed>> */
+	/** @var array<string, array> */
 	private array $signRequestErrors = [];
-	/** @var array<string, array<string, mixed>> */
+	/** @var array<string, array> */
 	private array $fileErrors = [];
 
 	public function __construct(
@@ -129,7 +129,6 @@ class ProgressService {
 		$this->cache->set(self::ERROR_KEY_PREFIX . $uuid, $error, $ttl);
 		$this->storeSignRequestErrorInMetadata($uuid, $error);
 	}
-
 
 	public function getSignRequestError(string $uuid): ?array {
 		$error = $this->cache->get(self::ERROR_KEY_PREFIX . $uuid);
