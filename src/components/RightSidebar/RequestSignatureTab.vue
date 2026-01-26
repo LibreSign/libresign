@@ -962,7 +962,13 @@ export default {
 			this.hasLoading = false
 		},
 		async sign() {
-			const uuid = this.filesStore.getFile().signUuid
+			const file = this.filesStore.getFile()
+			if (file?.status === FILE_STATUS.SIGNING_IN_PROGRESS) {
+				this.validationFile()
+				return
+			}
+
+			const uuid = file.signUuid
 			if (this.useModal) {
 				const route = router.resolve({ name: 'SignPDFExternal', params: { uuid } })
 				this.modalSrc = route.href

@@ -122,6 +122,7 @@ import { openDocument } from '../utils/viewer.js'
 import { getStatusLabel } from '../utils/fileStatus.js'
 import logger from '../logger.js'
 import { useSignStore } from '../store/sign.js'
+import { useSidebarStore } from '../store/sidebar.js'
 
 export default {
 	name: 'Validation',
@@ -143,10 +144,12 @@ export default {
 	},
 	setup() {
 		const signStore = useSignStore()
+		const sidebarStore = useSidebarStore()
 		return {
 			t,
 			n,
 			signStore,
+			sidebarStore,
 		}
 	},
 	data() {
@@ -252,6 +255,11 @@ export default {
 		},
 	},
 	watch: {
+		isAsyncSigning(active) {
+			if (active) {
+				this.sidebarStore.hideSidebar()
+			}
+		},
 		'$route.params.uuid'(uuid) {
 			this.validate(uuid)
 		},
@@ -658,8 +666,8 @@ export default {
 				})
 		},
 		handleSigningError(message) {
-			this.isAsyncSigning = false
 			this.loading = false
+			// Keep async view visible so the user can see per-file errors.
 			const errorMessage = message || t('libresign', 'Signing failed. Please try again.')
 			this.setValidationError(errorMessage)
 		},
