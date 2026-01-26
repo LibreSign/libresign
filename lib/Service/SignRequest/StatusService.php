@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\SignRequest;
 
+use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
@@ -18,6 +19,7 @@ class StatusService {
 	public function __construct(
 		private SequentialSigningService $sequentialSigningService,
 		private FileStatusService $fileStatusService,
+		private StatusCacheService $statusCacheService,
 	) {
 	}
 
@@ -28,6 +30,10 @@ class StatusService {
 
 	public function canNotifySignRequest(SignRequestStatus $status): bool {
 		return $status === SignRequestStatus::ABLE_TO_SIGN;
+	}
+
+	public function cacheFileStatus(FileEntity $file, int $ttl = StatusCacheService::DEFAULT_TTL): void {
+		$this->statusCacheService->setStatus($file->getUuid(), $file->getStatus(), $ttl);
 	}
 
 	public function updateStatusIfAllowed(

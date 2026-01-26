@@ -46,6 +46,7 @@ use OCA\Libresign\Service\PfxProvider;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\SigningCoordinatorService;
+use OCA\Libresign\Service\SignRequest\StatusService;
 use OCA\Libresign\Service\TsaValidationService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -56,8 +57,6 @@ use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
-use OCP\ICache;
-use OCP\ICacheFactory;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\ITempManager;
@@ -107,8 +106,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SigningCoordinatorService&MockObject $signingCoordinatorService;
 	private IJobList&MockObject $jobList;
 	private ICredentialsManager&MockObject $credentialsManager;
-	private ICacheFactory&MockObject $cacheFactory;
-	private ICache&MockObject $cache;
+	private StatusService&MockObject $statusService;
 	private EnvelopeStatusDeterminer&MockObject $envelopeStatusDeterminer;
 	private TsaValidationService&MockObject $tsaValidationService;
 	private CertificateValidityPolicy $certificateValidityPolicy;
@@ -153,8 +151,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signingCoordinatorService = $this->createMock(SigningCoordinatorService::class);
 		$this->jobList = $this->createMock(IJobList::class);
 		$this->credentialsManager = $this->createMock(ICredentialsManager::class);
-		$this->cache = $this->createMock(ICache::class);
-		$this->cacheFactory = $this->createMock(ICacheFactory::class);
+		$this->statusService = $this->createMock(StatusService::class);
 		$this->envelopeStatusDeterminer = $this->createMock(EnvelopeStatusDeterminer::class);
 		$this->tsaValidationService = $this->createMock(TsaValidationService::class);
 		$this->certificateValidityPolicy = new CertificateValidityPolicy();
@@ -163,7 +160,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->eventDispatcher,
 			$this->secureRandom,
 		);
-		$this->cacheFactory->method('createDistributed')->with('libresign_progress')->willReturn($this->cache);
 	}
 
 	public function testClickToSignUsesShortLivedCertificate(): void {
@@ -255,11 +251,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->pdfSignatureDetectionService,
 					$this->sequentialSigningService,
 					$this->fileStatusService,
+					$this->statusService,
 					$this->jobList,
 					$this->credentialsManager,
 					$this->envelopeStatusDeterminer,
 					$this->tsaValidationService,
-					$this->cacheFactory,
 					$this->pfxProvider,
 				])
 				->onlyMethods($methods)
@@ -297,11 +293,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->pdfSignatureDetectionService,
 			$this->sequentialSigningService,
 			$this->fileStatusService,
+			$this->statusService,
 			$this->jobList,
 			$this->credentialsManager,
 			$this->envelopeStatusDeterminer,
 			$this->tsaValidationService,
-			$this->cacheFactory,
 			$this->pfxProvider,
 		);
 	}

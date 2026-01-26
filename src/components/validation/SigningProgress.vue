@@ -4,11 +4,14 @@
 -->
 <template>
 	<div class="signing-progress">
-		<h1>{{ t('libresign', 'Signing document...') }}</h1>
+		<h1>{{ getHeaderTitle() }}</h1>
+		<NcNoteCard v-if="generalErrorMessage" type="error" class="general-error-card">
+			{{ generalErrorMessage }}
+		</NcNoteCard>
 		<NcNoteCard type="info">
 			<div class="note-header">
-				<NcLoadingIcon :size="20" />
-				<span>{{ t('libresign', 'Your document is being signed. This may take a few moments.') }}</span>
+				<NcLoadingIcon v-if="isPolling" :size="20" />
+				<span>{{ getHeaderSubtitle() }}</span>
 			</div>
 			<div v-if="progress" class="progress-body">
 				<div class="summary">
@@ -31,12 +34,17 @@
 						<span>{{ t('libresign', 'File') }}</span>
 						<span>{{ t('libresign', 'Status') }}</span>
 					</div>
-					<div v-for="file in progress.files" :key="file.id" class="file-row">
-						<span class="file-name">{{ file.name }}</span>
-						<span :class="['status-pill', `status-${getStatusMeta(file.status).class}`]">
-							<NcIconSvgWrapper :path="getStatusMeta(file.status).icon" />
-							{{ getStatusMeta(file.status).label }}
-						</span>
+					<div v-for="file in progress.files" :key="file.id" class="file-item">
+						<div class="file-row">
+							<span class="file-name">{{ file.name }}</span>
+							<span :class="['status-pill', `status-${getFileStatusMeta(file).class}`]">
+								<NcIconSvgWrapper :path="getFileStatusMeta(file).icon" />
+								{{ getFileStatusMeta(file).label }}
+							</span>
+						</div>
+						<NcNoteCard v-if="file.error && file.error.message" type="error" class="file-error-card">
+							{{ file.error.message }}
+						</NcNoteCard>
 					</div>
 				</div>
 			</div>
@@ -53,6 +61,7 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 
+import { mdiAlertCircleOutline, mdiHelpCircle } from '@mdi/js'
 import { buildStatusMap } from '../../utils/fileStatus.js'
 
 export default {
@@ -69,7 +78,7 @@ export default {
 			description: 'Sign request UUID (not file UUID)',
 		},
 	},
-	emits: ['completed', 'error', 'status-changed'],
+	emits: ['completed', 'error', 'status-changed', 'file-errors'],
 	setup() {
 		return { t }
 	},
@@ -78,8 +87,9 @@ export default {
 			isPolling: false,
 			pollingInterval: null,
 			progress: null,
-			currentStatusCode: null,
+			generalErrorMessage: null,
 			statusMap: buildStatusMap(),
+			pollTimeoutSeconds: 30,
 		}
 	},
 	watch: {
@@ -98,13 +108,29 @@ export default {
 		this.stopPolling()
 	},
 	methods: {
+		getHeaderTitle() {
+			const { allProcessed, errorCount } = this.getProgressState()
+			if (!this.isPolling && allProcessed && errorCount > 0) {
+				return t('libresign', 'Signing finished with errors')
+			}
+			return t('libresign', 'Signing document...')
+		},
+		getHeaderSubtitle() {
+			const { allProcessed, errorCount } = this.getProgressState()
+			if (!this.isPolling && allProcessed && errorCount > 0) {
+				return t('libresign', 'Some files could not be signed. Please review the errors below.')
+			}
+			return t('libresign', 'Your document is being signed. This may take a few moments.')
+		},
 		startPolling() {
 			if (this.isPolling || !this.signRequestUuid) {
 				return
 			}
 			this.isPolling = true
 			this.pollFileProgress()
-			this.fetchProgressFromValidation()
+			if (!this.progress) {
+				this.fetchProgressFromValidation()
+			}
 		},
 		stopPolling() {
 			this.isPolling = false
@@ -118,74 +144,103 @@ export default {
 				return
 			}
 
-		try {
-			const { data } = await axios.get(
-				generateOcsUrl(`/apps/libresign/api/v1/file/progress/${this.signRequestUuid}`),
-				{
-					params: { timeout: 0 },
-					timeout: 35000,
+			try {
+				const { data } = await axios.get(
+					generateOcsUrl(`/apps/libresign/api/v1/file/progress/${this.signRequestUuid}`),
+					{
+						params: { timeout: this.pollTimeoutSeconds },
+						timeout: (this.pollTimeoutSeconds + 5) * 1000,
+					}
+				)
+
+				const responseData = data.ocs?.data || data
+				const status = responseData?.status
+				const statusCode = responseData?.statusCode ?? null
+
+				this.$emit('status-changed', status)
+
+				if (responseData?.progress) {
+					this.progress = responseData.progress
+				} else if (!this.progress) {
+					await this.fetchProgressFromValidation()
 				}
-			)
 
-			const responseData = data.ocs?.data || data
-			const status = responseData?.status
-			this.currentStatusCode = responseData?.statusCode ?? null
+				const {
+					allProcessed,
+					errorCount,
+					fileErrors,
+					hasFileErrors,
+					hasPendingWork,
+				} = this.getProgressState()
 
-			this.$emit('status-changed', status)
+				if (hasFileErrors) {
+					this.$emit('file-errors', fileErrors)
+				}
 
-			if (responseData?.progress) {
-				this.progress = responseData.progress
-			} else if (!this.progress) {
-				await this.fetchProgressFromValidation()
+				if (responseData?.error && !hasFileErrors) {
+					this.stopPolling()
+					this.generalErrorMessage = responseData.error.message || t('libresign', 'Signing failed. Please try again.')
+					this.$emit('error', this.generalErrorMessage)
+					return
+				}
+
+				if (responseData?.file) {
+					this.stopPolling()
+					this.$emit('completed', responseData.file)
+					return
+				}
+
+				if (status === 'ABLE_TO_SIGN' || statusCode === 1) {
+					this.stopPolling()
+					this.$emit('error', t('libresign', 'Document ready to sign'))
+					return
+				}
+
+				if (allProcessed && errorCount > 0) {
+					this.stopPolling()
+					const firstError = fileErrors.find(file => file?.error?.message)?.error?.message
+					this.$emit('error', firstError || t('libresign', 'Signing failed. Please try again.'))
+					return
+				}
+
+				if (status === 'SIGNED' && !hasPendingWork) {
+					this.stopPolling()
+					this.$emit('completed')
+					return
+				}
+
+				if (status === 'ERROR' && !hasPendingWork && !hasFileErrors) {
+					this.stopPolling()
+					this.generalErrorMessage = t('libresign', 'Signing failed. Please try again.')
+					this.$emit('error', this.generalErrorMessage)
+					return
+				}
+
+				this.pollingInterval = setTimeout(() => this.pollFileProgress(), 0)
+			} catch (error) {
+				if (error.code === 'ECONNABORTED') {
+					this.pollingInterval = setTimeout(() => this.pollFileProgress(), 0)
+				} else {
+					this.stopPolling()
+					this.$emit('error', t('libresign', 'Failed to check signing progress'))
+				}
 			}
-
-			if (responseData?.file) {
-				this.stopPolling()
-				this.$emit('completed', responseData.file)
-				return
-			}
-
-			const progressReady = this.progress && (this.progress.total ?? 0) > 0
-			const allSigned = progressReady && (this.progress.signed ?? 0) >= (this.progress.total ?? 0)
-			const hasPendingWork = !progressReady
-				|| !allSigned
-				|| (this.progress.pending ?? 0) > 0
-				|| (this.progress.inProgress ?? 0) > 0
-
-			if (status === 'SIGNED' && !hasPendingWork) {
-				this.stopPolling()
-				this.$emit('completed')
-			} else if (status === 'ERROR') {
-				this.stopPolling()
-				this.$emit('error', t('libresign', 'Signing failed. Please try again.'))
-			} else if (status === 'SIGNING_IN_PROGRESS') {
-				this.pollingInterval = setTimeout(() => this.pollFileProgress(), 1000)
-			} else if (status === 'SIGNED' && hasPendingWork) {
-				this.pollingInterval = setTimeout(() => this.pollFileProgress(), 1000)
-			} else {
-				this.pollingInterval = setTimeout(() => this.pollFileProgress(), 2000)
-			}
-		} catch (error) {
-			if (error.code === 'ECONNABORTED') {
-				this.pollingInterval = setTimeout(() => this.pollFileProgress(), 100)
-			} else {
-				this.stopPolling()
-				this.$emit('error', t('libresign', 'Failed to check signing progress'))
-			}
-		}
-	},
+		},
 	async fetchProgressFromValidation() {
 		try {
+			const { errorCount, hasFileErrors } = this.getProgressState()
+			if (hasFileErrors || errorCount > 0) {
+				return
+			}
 			const { data } = await axios.get(
 				generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${this.signRequestUuid}`)
 			)
 			const doc = data.ocs?.data || data
 			const derived = this.buildProgressFromValidation(doc)
-			if (derived) {
+			if (derived && !hasFileErrors && errorCount === 0) {
 				this.progress = derived
 			}
 		} catch (e) {
-			// Fallback failed, continue polling
 		}
 	},
 	buildProgressFromValidation(doc) {
@@ -217,26 +272,46 @@ export default {
 		}
 		return null
 	},
-	async fetchProgressSnapshot(fileId, currentStatus) {
-		try {
-			const { data } = await axios.get(
-				generateOcsUrl(`/apps/libresign/api/v1/file/${fileId}/wait-status`),
-				{ params: { currentStatus, timeout: 0 } }
-			)
-			const responseData = data.ocs?.data || data
-			if (responseData?.progress) {
-				this.progress = responseData.progress
-			}
-		} catch (e) {
-			// Snapshot load failed, continue polling
-		}
-	},
 	getStatusMeta(status) {
 		const meta = this.statusMap[status]
 		if (meta) {
 			return meta
 		}
 		return { label: t('libresign', 'Unknown'), icon: mdiHelpCircle }
+	},
+	getFileStatusMeta(file) {
+		if (file?.error) {
+			return {
+				label: t('libresign', 'Error'),
+				icon: mdiAlertCircleOutline,
+				class: 'error',
+			}
+		}
+		return this.getStatusMeta(file?.status)
+	},
+	getProgressState() {
+		const progress = this.progress
+		const progressReady = !!progress && (progress.total ?? 0) > 0
+		const total = progress?.total ?? 0
+		const signed = progress?.signed ?? 0
+		const inProgress = progress?.inProgress ?? 0
+		const fileErrors = Array.isArray(progress?.files)
+			? progress.files.filter(file => file?.error)
+			: []
+		const errorCount = progress?.errors ?? fileErrors.length
+		const processedCount = signed + errorCount
+		const pending = progress?.pending ?? Math.max(total - processedCount - inProgress, 0)
+		const allProcessed = progressReady && processedCount >= total
+		const hasPendingWork = !progressReady || pending > 0 || inProgress > 0 || !allProcessed
+		const hasFileErrors = fileErrors.length > 0
+
+		return {
+			allProcessed,
+			errorCount,
+			fileErrors,
+			hasFileErrors,
+			hasPendingWork,
+		}
 	},
 	},
 }
@@ -259,6 +334,9 @@ export default {
 		align-items: center;
 		gap: 10px;
 		color: var(--color-main-text);
+	}
+	.general-error-card {
+		margin: 12px 0;
 	}
 
 	.progress-body {
@@ -293,6 +371,12 @@ export default {
 			display: flex;
 			flex-direction: column;
 			gap: 8px;
+
+			.file-item {
+				display: flex;
+				flex-direction: column;
+				gap: 4px;
+			}
 
 			.file-row {
 				display: grid;
@@ -331,8 +415,14 @@ export default {
 				&.status-partial { background: #e3f2fd; color: #1976d2; }
 				&.status-signed { background: #e8f5e9; color: #2e7d32; }
 				&.status-deleted { background: #ffebee; color: #c62828; }
+				&.status-error { background: #ffebee; color: #c62828; }
 				&.status-signing { background: #fff3e0; color: #f57c00; }
 				&.status-unknown { background: #eceff1; color: #455a64; }
+			}
+
+			.file-error-card {
+				margin: 0 10px;
+				font-size: 13px;
 			}
 		}
 	}
