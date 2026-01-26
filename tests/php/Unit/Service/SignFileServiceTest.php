@@ -103,11 +103,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private PdfSignatureDetectionService&MockObject $pdfSignatureDetectionService;
 	private \OCA\Libresign\Service\SequentialSigningService&MockObject $sequentialSigningService;
 	private FileStatusService&MockObject $fileStatusService;
-private SigningCoordinatorService&MockObject $signingCoordinatorService;
-private IJobList&MockObject $jobList;
-private ICredentialsManager&MockObject $credentialsManager;
-private StatusService&MockObject $statusService;
-private EnvelopeStatusDeterminer&MockObject $envelopeStatusDeterminer;
+	private SigningCoordinatorService&MockObject $signingCoordinatorService;
+	private IJobList&MockObject $jobList;
+	private ICredentialsManager&MockObject $credentialsManager;
+	private StatusService&MockObject $statusService;
+	private EnvelopeStatusDeterminer&MockObject $envelopeStatusDeterminer;
 	private TsaValidationService&MockObject $tsaValidationService;
 	private CertificateValidityPolicy $certificateValidityPolicy;
 	private PfxProvider $pfxProvider;
