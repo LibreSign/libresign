@@ -74,6 +74,7 @@ OC.L10N.register(
     "Show details" : "Mostrar detalles",
     "Expiration:" : "Caducidad:",
     "No date" : "Sin fecha",
+    "Error" : "Error",
     "File" : "Archivo",
     "Details" : "Detalles",
     "Certificate" : "Certificado",

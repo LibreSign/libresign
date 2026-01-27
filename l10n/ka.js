@@ -66,6 +66,7 @@ OC.L10N.register(
     "Unknown" : "Unknown",
     "Hide details" : "Hide details",
     "Show details" : "Show details",
+    "Error" : "Error",
     "File" : "ფაილი",
     "Details" : "Details",
     "Certificate" : "Certificate",

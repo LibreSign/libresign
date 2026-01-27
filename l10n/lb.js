@@ -30,6 +30,7 @@ OC.L10N.register(
     "Issued by:" : "Ausgestallt vun:",
     "Unknown" : "Onbekannt",
     "No date" : "No date",
+    "Error" : "Fehler",
     "Details" : "Detailer",
     "Create account" : "Kont uleeën",
     "Password" : "Passwuert",

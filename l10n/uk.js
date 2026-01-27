@@ -298,6 +298,7 @@ OC.L10N.register(
     "Expiration:" : "Термін завершення:",
     "No date" : "Без дати",
     "Hash algorithm:" : "Хеш-алгоритм:",
+    "Error" : "Помилка",
     "File" : "Файл",
     "Details" : "Деталі",
     "Certificate" : "Сертифікат",

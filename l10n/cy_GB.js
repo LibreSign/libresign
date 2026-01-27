@@ -34,6 +34,7 @@ OC.L10N.register(
     "Issued by:" : "Rhoddwyd gan:",
     "Unknown" : "Anhysbys",
     "No date" : "No date",
+    "Error" : "Gwall",
     "Details" : "Manylion",
     "Certificate" : "Tystysgrif",
     "Signature" : "Llofnod",

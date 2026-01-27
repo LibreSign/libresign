@@ -297,6 +297,7 @@ OC.L10N.register(
     "Expiration:" : "Expiration:",
     "No date" : "ບໍ່ມີວັນທີ",
     "Hash algorithm:" : "ຂັ້ນຕອນວິທີການແຮັຊ:",
+    "Error" : "ຂໍ້ຜິດພາດ",
     "File" : "ໄຟລ໌",
     "Details" : "ລາຍລະອຽດ",
     "Certificate" : "ໃບຢັ້ງຢືນ",

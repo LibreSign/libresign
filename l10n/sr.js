@@ -304,6 +304,7 @@ OC.L10N.register(
     "Expiration:" : "Истек:",
     "No date" : "Нема датума",
     "Hash algorithm:" : "Хеш алгоритам:",
+    "Error" : "Грешка",
     "File" : "Фајл",
     "Details" : "Детаљи",
     "Certificate" : "Сертификат",

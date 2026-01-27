@@ -53,6 +53,7 @@ OC.L10N.register(
     "Unknown" : "Noma'lum",
     "Hide details" : "Tafsilotlarni yashirish",
     "Show details" : "Tafsilotlarni ko'rsatish",
+    "Error" : "Xatolik",
     "File" : "Fayl",
     "Details" : "Details",
     "Upload file" : "Upload file",

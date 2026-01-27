@@ -191,6 +191,7 @@ OC.L10N.register(
     "Hide details" : "مخفی کردن جزئیات",
     "Show details" : "نمایش جزئیات",
     "No date" : "No date",
+    "Error" : "خطا",
     "File" : "پرونده",
     "Details" : "جزئیات",
     "Certificate" : "گواهی",

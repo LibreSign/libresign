@@ -187,6 +187,7 @@ OC.L10N.register(
     "Show details" : "Подробные сведения",
     "Expiration:" : "Срок действия:",
     "No date" : "Нет даты",
+    "Error" : "Ошибка",
     "File" : "Файл",
     "Details" : "Свойства",
     "Certificate" : "Сертификат",

@@ -206,6 +206,7 @@ OC.L10N.register(
     "Show details" : "Erakutsi xehetasunak",
     "Expiration:" : "Iraungitzea:",
     "No date" : "Datarik gabe",
+    "Error" : "Errorea",
     "File" : "Fitxategia",
     "Details" : "Xehetasunak",
     "Certificate" : "Ziurtagiria",

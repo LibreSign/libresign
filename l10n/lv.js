@@ -69,6 +69,7 @@ OC.L10N.register(
     "Hide details" : "Paslēpt informāciju",
     "Show details" : "Rādīt informāciju",
     "No date" : "No date",
+    "Error" : "Kļūda",
     "File" : "Datne",
     "Details" : "Informācija",
     "Certificate" : "Sertifikāts",

@@ -206,6 +206,7 @@ OC.L10N.register(
     "Hide details" : "Részletek elrejtése",
     "Show details" : "Részletek megjelenítése",
     "No date" : "Nincs dátum",
+    "Error" : "Hiba",
     "File" : "Fájl",
     "Details" : "Részletek",
     "Certificate" : "Tanúsítvány",
