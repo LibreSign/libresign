@@ -59,6 +59,7 @@ OC.L10N.register(
     "Hide details" : "ซ่อนข้อมูล",
     "Show details" : "แสดงข้อมูล",
     "No date" : "ไม่มีวันที่",
+    "Error" : "ข้อผิดพลาด",
     "File" : "ไฟล์",
     "Details" : "รายละเอียด",
     "Certificate" : "ใบรับรอง",

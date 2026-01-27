@@ -23,6 +23,7 @@ OC.L10N.register(
     "Issued by:" : "ஆல் வழங்கப்பட்டது:",
     "Unknown" : "தெரியாத",
     "No date" : "No date",
+    "Error" : "வழு",
     "File" : "File",
     "Details" : "விவரங்கள்",
     "Create account" : "கணக்கை உருவாக்குக",

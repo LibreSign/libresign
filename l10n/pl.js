@@ -191,6 +191,7 @@ OC.L10N.register(
     "Show details" : "Pokaż szczegóły",
     "Expiration:" : "Wygaśnięcie:",
     "No date" : "Brak daty",
+    "Error" : "Błąd",
     "File" : "Plik",
     "Details" : "Szczegóły",
     "Certificate" : "Certyfikat",

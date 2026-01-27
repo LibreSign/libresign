@@ -70,6 +70,7 @@ OC.L10N.register(
     "Hide details" : "Ascunde detaliile",
     "Show details" : "Arată detaliile",
     "No date" : "No date",
+    "Error" : "Eroare",
     "File" : "Fișier",
     "Details" : "Detalii",
     "Certificate" : "Certificat",

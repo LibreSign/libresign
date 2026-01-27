@@ -37,6 +37,7 @@ OC.L10N.register(
     "Unknown" : "Үл танигдах зүйл",
     "Number of documents:" : "баримт бичгийн тоо",
     "No date" : "No date",
+    "Error" : "Алдаа",
     "Details" : "Дэлгэрэнгүй",
     "Certificate" : "Гэрчилгээ",
     "Upload file" : "Файл байршуулах",

@@ -40,6 +40,7 @@ OC.L10N.register(
     "Unknown" : "Arussin",
     "Hide details" : "Ffer tilɣa",
     "Show details" : "Sken talqayt",
+    "Error" : "Tuccḍa",
     "File" : "Afaylu",
     "Details" : "Talqayt",
     "Delete file" : "Kkes afaylu",

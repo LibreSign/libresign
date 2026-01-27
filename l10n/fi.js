@@ -263,6 +263,7 @@ OC.L10N.register(
     "No date" : "Ei päiväystä",
     "Valid at signing time" : "Kelvollinen allekirjoituksen aikana",
     "_Document has %n revision_::_Document has %n revisions_" : ["Asiakirjasta on %n versio","Asiakirjasta on %n versiota"],
+    "Error" : "Virhe",
     "File" : "Tiedosto",
     "Details" : "Tiedot",
     "Certificate" : "Varmenne",

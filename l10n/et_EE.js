@@ -324,6 +324,7 @@ OC.L10N.register(
     "Certificate hash:" : "Sertifikaadi räsi:",
     "Signed on" : "Allkirjastamise aeg",
     "Awaiting signature" : "Allkirjade ootel",
+    "Error" : "Viga",
     "File" : "Fail",
     "Details" : "Üksikasjad",
     "Certificate" : "Sertifikaat",

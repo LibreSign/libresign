@@ -88,6 +88,7 @@ OC.L10N.register(
     "Show details" : "詳細を見る",
     "Expiration:" : "期限切れ:",
     "No date" : "日付なし",
+    "Error" : "エラー",
     "File" : "ファイル",
     "Details" : "詳細",
     "Certificate" : "証明",

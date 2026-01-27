@@ -441,6 +441,7 @@ OC.L10N.register(
     "_Document has %n revision_::_Document has %n revisions_" : ["O documento ten %n revisión","O documento ten %n revisións"],
     "Signed on" : "Asinado o",
     "Awaiting signature" : "Agardando pola sinatura",
+    "Error" : "Erro",
     "File" : "Ficheiro",
     "Details" : "Detalles",
     "Certificate" : "Certificado",

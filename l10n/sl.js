@@ -226,6 +226,7 @@ OC.L10N.register(
     "Hide details" : "Skrij podrobnosti",
     "Show details" : "Pokaži podrobnosti",
     "No date" : "Ni datuma",
+    "Error" : "Napaka",
     "File" : "Datoteka",
     "Details" : "Podrobnosti",
     "Certificate" : "Potrdilo",

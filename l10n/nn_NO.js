@@ -38,6 +38,7 @@ OC.L10N.register(
     "Cancel upload" : "Avbryt opplasting",
     "Unknown" : "Ukjend",
     "No date" : "No date",
+    "Error" : "Feil",
     "File" : "Fil",
     "Details" : "Detaljar",
     "Certificate" : "Sertifikat",

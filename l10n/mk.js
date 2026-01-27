@@ -78,6 +78,7 @@ OC.L10N.register(
     "Show details" : "Прикажи детали",
     "Expiration:" : "Рок на траење:",
     "No date" : "No date",
+    "Error" : "Грешка",
     "File" : "Датотека",
     "Details" : "Детали",
     "Certificate" : "Сертификат",

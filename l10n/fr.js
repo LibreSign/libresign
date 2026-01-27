@@ -301,6 +301,7 @@ OC.L10N.register(
     "Expiration:" : "Expiration:",
     "No date" : "Pas de date",
     "Hash algorithm:" : "Algorithme de hachage:",
+    "Error" : "Erreur",
     "File" : "Fichier",
     "Details" : "Détails",
     "Certificate" : "Certificat",
