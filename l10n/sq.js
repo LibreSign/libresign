@@ -55,6 +55,7 @@ OC.L10N.register(
     "Number of documents:" : "Numri i dokumenteve:",
     "Hide details" : "Fsheh detajet",
     "No date" : "No date",
+    "Error" : "Gabim",
     "File" : "Skedar ",
     "Details" : "Detajet",
     "Certificate" : "Çertifikata",

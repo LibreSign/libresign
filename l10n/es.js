@@ -294,6 +294,7 @@ OC.L10N.register(
     "Expiration:" : "Caduca el:",
     "No date" : "Sin fecha",
     "Hash algorithm:" : "Algoritmo hash:",
+    "Error" : "Error",
     "File" : "Archivo",
     "Details" : "Detalles",
     "Certificate" : "Certificado",

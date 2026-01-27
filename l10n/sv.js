@@ -290,6 +290,7 @@ OC.L10N.register(
     "Expiration:" : "Upphör:",
     "No date" : "Inget datum",
     "Hash algorithm:" : "Hash-algoritm:",
+    "Error" : "Fel",
     "File" : "Fil",
     "Details" : "Detaljer",
     "Certificate" : "Certifikat",

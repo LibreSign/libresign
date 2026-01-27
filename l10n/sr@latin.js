@@ -33,6 +33,7 @@ OC.L10N.register(
     "Open sidebar" : "Otvori bočnu traku",
     "Issued by:" : "Izdavač:",
     "No date" : "No date",
+    "Error" : "Greška",
     "File" : "Fajl",
     "Details" : "Detalji",
     "Signature" : "Potpis",

@@ -184,6 +184,7 @@ OC.L10N.register(
     "Show details" : "显示详情",
     "Expiration:" : "有效期：",
     "No date" : "无日期",
+    "Error" : "错误",
     "File" : "文件",
     "Details" : "详情",
     "Certificate" : "证书",

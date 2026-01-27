@@ -78,6 +78,7 @@ OC.L10N.register(
     "Show details" : "Birta nánari upplýsingar",
     "Expiration:" : "Gildistími:",
     "No date" : "Engin dagsetning",
+    "Error" : "Villa",
     "Details" : "Details",
     "Certificate" : "Skilríki",
     "Delete file" : "Eyða skrá",

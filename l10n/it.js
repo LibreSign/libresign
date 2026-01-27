@@ -293,6 +293,7 @@ OC.L10N.register(
     "Expiration:" : "Scadenza:",
     "No date" : "Nessuna data",
     "Hash algorithm:" : "Algoritmo hash:",
+    "Error" : "Errore",
     "File" : "File",
     "Details" : "Dettagli",
     "Certificate" : "Certificato",

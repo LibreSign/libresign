@@ -101,6 +101,7 @@ OC.L10N.register(
     "Hide details" : "Amagar detalhs",
     "Show details" : "Mostrar detalhs",
     "No date" : "Cap de data",
+    "Error" : "Error",
     "File" : "Fichier",
     "Details" : "Detalhs",
     "Certificate" : "Certificat",

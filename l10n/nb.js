@@ -232,6 +232,7 @@ OC.L10N.register(
     "Show details" : "Vis detaljer",
     "Expiration:" : "Utløp:",
     "No date" : "Ingen dato",
+    "Error" : "Feil",
     "File" : "Fil",
     "Details" : "Detaljer",
     "Certificate" : "Sertifikat",

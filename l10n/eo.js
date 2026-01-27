@@ -62,6 +62,7 @@ OC.L10N.register(
     "Hide details" : "Kaŝi la detalojn",
     "Show details" : "Montri la detalojn",
     "No date" : "No date",
+    "Error" : "Eraro",
     "File" : "Dosiero",
     "Details" : "Detaloj",
     "Certificate" : "Atestilo",

@@ -193,6 +193,7 @@ OC.L10N.register(
     "Hide details" : "Ocultar detalles",
     "Show details" : "Mostrar detalles",
     "No date" : "Sin fecha",
+    "Error" : "Error",
     "File" : "Archivo",
     "Details" : "Detalles",
     "Certificate" : "Certificado",

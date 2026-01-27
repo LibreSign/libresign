@@ -136,6 +136,7 @@ OC.L10N.register(
     "Remote address:" : "Nuotolinis adresas:",
     "No date" : "No date",
     "Hash algorithm:" : "Maišos algoritmas:",
+    "Error" : "Klaida",
     "File" : "Failas",
     "Details" : "Išsamiau",
     "Certificate" : "Liudijimas",

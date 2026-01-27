@@ -32,6 +32,7 @@ OC.L10N.register(
     "Close" : "Փակել",
     "Unknown" : "Անհայտ",
     "No date" : "No date",
+    "Error" : "Սխալ",
     "Details" : "Մանրամասներ",
     "Create account" : "Ստեղծել հաշիվ",
     "Password" : "Գաղտնաբառ",

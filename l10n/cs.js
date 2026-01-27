@@ -387,6 +387,7 @@ OC.L10N.register(
     "Hash algorithm:" : "Algoritmus vytvoření otisku:",
     "Certificate hash:" : "Otisk certifikátu:",
     "_Document has %n revision_::_Document has %n revisions_" : ["Dokument má %n revizi","Dokument má %n revize","Dokument má %n revizí","Dokument má %n revize"],
+    "Error" : "Error",
     "File" : "Soubor",
     "Details" : "Podrobnosti",
     "Certificate" : "Certifikát",

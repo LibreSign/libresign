@@ -55,6 +55,7 @@ OC.L10N.register(
     "Number of documents:" : "Número de documentos:",
     "Hide details" : "Ocultar detalles",
     "No date" : "Sin fecha",
+    "Error" : "Error",
     "File" : "Archivo",
     "Details" : "Detalles",
     "Certificate" : "Certificado",

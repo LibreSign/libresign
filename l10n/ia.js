@@ -31,6 +31,7 @@ OC.L10N.register(
     "Cancel upload" : "Cancellar incarga",
     "Unknown" : "Incognite",
     "No date" : "No date",
+    "Error" : "Error",
     "Details" : "Detalios",
     "Profile picture" : "Pictura de profilo",
     "Create account" : "Crear conto",
