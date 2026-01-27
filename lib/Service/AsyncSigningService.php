@@ -49,6 +49,7 @@ class AsyncSigningService {
 		$this->jobList->add(SignFileJob::class, [
 			'fileId' => $libreSignFile->getId(),
 			'signRequestId' => $signRequest->getId(),
+			'signRequestUuid' => $signRequest->getUuid(),
 			'userId' => $user?->getUID(),
 			'credentialsId' => $credentialsId,
 			'userUniqueIdentifier' => $userUniqueIdentifier,
