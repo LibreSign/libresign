@@ -30,6 +30,7 @@ OC.L10N.register(
     "Open file" : "ගොනුව විවෘත කරන්න",
     "Close" : "වසන්න",
     "Confirm" : "තහවුරු කරන්න",
+    "Error" : "දෝෂය",
     "File" : "ගොනුව",
     "Details" : "විස්තර",
     "Certificate" : "සහතිකය",

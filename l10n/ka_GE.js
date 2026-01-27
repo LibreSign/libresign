@@ -51,6 +51,7 @@ OC.L10N.register(
     "Number of documents:" : "დოკუმენტების რაოდენობა:",
     "Hide details" : "დეტალების დამალვა",
     "No date" : "თარიღი არაა",
+    "Error" : "შეცდომა",
     "File" : "ფაილი",
     "Details" : "დეტალები",
     "Certificate" : "სერტიფიკატი",

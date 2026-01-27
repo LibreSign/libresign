@@ -188,6 +188,7 @@ OC.L10N.register(
     "Show details" : "Tonen details",
     "Expiration:" : "Vervaldatum:",
     "No date" : "Geen datum",
+    "Error" : "Fout",
     "File" : "Bestand",
     "Details" : "Details",
     "Certificate" : "Certificaat",

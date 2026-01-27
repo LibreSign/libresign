@@ -33,6 +33,7 @@ OC.L10N.register(
     "Open sidebar" : "Fosgail am bàr-taoibh",
     "Issued by:" : "Air fhoillseachadh le:",
     "Unknown" : "Chan eil fhios",
+    "Error" : "Mearachd",
     "File" : "Faidhle",
     "Details" : "Mion-fhiosrachadh",
     "Password" : "Facal-faire",

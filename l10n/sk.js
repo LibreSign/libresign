@@ -261,6 +261,7 @@ OC.L10N.register(
     "Expiration:" : "Expirácia:",
     "No date" : "Žiadný dátum",
     "Hash algorithm:" : "Hash algoritmus:",
+    "Error" : "Chyba",
     "File" : "Súbor",
     "Details" : "Podrobnosti",
     "Certificate" : "Certifikát",

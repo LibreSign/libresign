@@ -66,6 +66,7 @@ OC.L10N.register(
     "Hide details" : "Ẩn chi tiết",
     "Show details" : "Hiển thị chi tiết",
     "No date" : "No date",
+    "Error" : "Lỗi",
     "File" : "Tệp Tin",
     "Details" : "Chi tiết",
     "Certificate" : "Chứng chỉ",

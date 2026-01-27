@@ -68,6 +68,7 @@ OC.L10N.register(
     "Hide details" : "הסתרת פרטים",
     "Show details" : "הצגת פרטים",
     "No date" : "No date",
+    "Error" : "שגיאה",
     "File" : "קובץ",
     "Details" : "פרטים",
     "Certificate" : "אישור",

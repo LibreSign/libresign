@@ -348,6 +348,7 @@ OC.L10N.register(
     "Document information" : "Document information",
     "Document integrity verified" : "Document integrity verified",
     "Expiration:" : "Muda wake wa kuisha:",
+    "Error" : "Hitilafu",
     "File" : "Faili",
     "Details" : "Maelezo ya kina",
     "Certificate" : "Cheti",

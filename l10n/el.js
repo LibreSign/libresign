@@ -296,6 +296,7 @@ OC.L10N.register(
     "Expiration:" : "Λήξη:",
     "No date" : "Καμία ημερομηνία",
     "Hash algorithm:" : "Αλγόριθμος κατακερματισμού:",
+    "Error" : "Σφάλμα",
     "File" : "Αρχείο",
     "Details" : "Λεπτομέρειες",
     "Certificate" : "Πιστοποιητικό",

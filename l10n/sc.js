@@ -120,6 +120,7 @@ OC.L10N.register(
     "Hide details" : "Cua detàllios",
     "Show details" : "Mustra detàllios",
     "No date" : "Peruna data",
+    "Error" : "Errore",
     "File" : "Archìviu",
     "Details" : "Detàllios",
     "Certificate" : "Tzertificadu",

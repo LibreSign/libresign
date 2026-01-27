@@ -174,6 +174,7 @@ OC.L10N.register(
     "Hide details" : "자세한 정보 숨기기",
     "Show details" : "세부 정보",
     "No date" : "날짜 없음",
+    "Error" : "오류",
     "File" : "파일",
     "Details" : "세부사항",
     "Certificate" : "인증서",

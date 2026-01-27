@@ -164,6 +164,7 @@ OC.L10N.register(
     "Hide details" : "Sakrij pojedinosti",
     "Show details" : "Prikaži pojedinosti",
     "No date" : "Nema datuma",
+    "Error" : "Pogreška",
     "File" : "Datoteka",
     "Details" : "Pojedinosti",
     "Certificate" : "Vjerodajnica",
