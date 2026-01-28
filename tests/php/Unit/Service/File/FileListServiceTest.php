@@ -276,6 +276,102 @@ final class FileListServiceTest extends TestCase {
 		$this->assertStringContainsString('+00:00', $result['created_at']);
 	}
 
+	public function testSignerDisplayNamePreservedWhenIdentifyMethodIsAccount(): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+
+		$signer = $this->createSigner(100, 1);
+		$signer->setDisplayName('Admin Display');
+
+		$identifyMethod = $this->createIdentifyMethod(
+			IdentifyMethodService::IDENTIFY_ACCOUNT,
+			'admin'
+		);
+
+		$mockCreatorUser = $this->createMock(IUser::class);
+		$mockCreatorUser->method('getDisplayName')->willReturn('Creator Display');
+		$mockAdminUser = $this->createMock(IUser::class);
+		$mockAdminUser->method('getDisplayName')->willReturn('Admin Name');
+
+		$this->userManager->method('get')->willReturnMap([
+			['creator123', $mockCreatorUser],
+			['admin', $mockAdminUser],
+		]);
+
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([$signer]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([100 => [$identifyMethod]]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('pending');
+
+		$service = $this->getService();
+		$result = $service->formatSingleFile($this->user, $file);
+
+		$this->assertSame('Admin Display', $result['signers'][0]['displayName']);
+	}
+
+	public function testSignerDisplayNameFallsBackToUserWhenEmpty(): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+
+		$signer = $this->createSigner(100, 1);
+		$signer->setDisplayName('');
+
+		$identifyMethod = $this->createIdentifyMethod(
+			IdentifyMethodService::IDENTIFY_ACCOUNT,
+			'admin'
+		);
+
+		$mockCreatorUser = $this->createMock(IUser::class);
+		$mockCreatorUser->method('getDisplayName')->willReturn('Creator Display');
+		$mockAdminUser = $this->createMock(IUser::class);
+		$mockAdminUser->method('getDisplayName')->willReturn('Admin Name');
+
+		$this->userManager->method('get')->willReturnMap([
+			['creator123', $mockCreatorUser],
+			['admin', $mockAdminUser],
+		]);
+
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([$signer]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([100 => [$identifyMethod]]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('pending');
+
+		$service = $this->getService();
+		$result = $service->formatSingleFile($this->user, $file);
+
+		$this->assertSame('Admin Name', $result['signers'][0]['displayName']);
+	}
+
+	public function testSignerDisplayNameFallsBackWhenMatchesAccountIdentifier(): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+
+		$signer = $this->createSigner(100, 1);
+		$signer->setDisplayName('admin');
+
+		$identifyMethod = $this->createIdentifyMethod(
+			IdentifyMethodService::IDENTIFY_ACCOUNT,
+			'admin'
+		);
+
+		$mockCreatorUser = $this->createMock(IUser::class);
+		$mockCreatorUser->method('getDisplayName')->willReturn('Creator Display');
+		$mockAdminUser = $this->createMock(IUser::class);
+		$mockAdminUser->method('getDisplayName')->willReturn('Admin Name');
+
+		$this->userManager->method('get')->willReturnMap([
+			['creator123', $mockCreatorUser],
+			['admin', $mockAdminUser],
+		]);
+
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn([$signer]);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([100 => [$identifyMethod]]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('pending');
+
+		$service = $this->getService();
+		$result = $service->formatSingleFile($this->user, $file);
+
+		$this->assertSame('Admin Name', $result['signers'][0]['displayName']);
+	}
+
 	private static function createFileEntity(
 		int $id,
 		string $nodeType,
