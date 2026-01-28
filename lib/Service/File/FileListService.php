@@ -297,6 +297,7 @@ class FileListService {
 		?int $meSignRequestId = null,
 	): array {
 		$identifyMethodsOfSigner = $identifyMethods[$signer->getId()] ?? [];
+		$resolvedDisplayName = $this->resolveSignerDisplayName($signer, $identifyMethodsOfSigner);
 		$me = false;
 		if ($meSignRequestId !== null) {
 			$me = $signer->getId() === $meSignRequestId;
@@ -323,12 +324,7 @@ class FileListService {
 				return $carry;
 			}, ''),
 			'description' => $signer->getDescription(),
-			'displayName' => array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
-				if (!$carry && $identifyMethod->getMandatory()) {
-					return $identifyMethod->getIdentifierValue();
-				}
-				return $carry;
-			}, $signer->getDisplayName()),
+			'displayName' => $resolvedDisplayName,
 			'request_sign_date' => $signer->getCreatedAt()->format(DateTimeInterface::ATOM),
 			'signed' => null,
 			'signRequestId' => $signer->getId(),
@@ -397,6 +393,7 @@ class FileListService {
 		array $visibleElements,
 	): array {
 		$identifyMethodsOfSigner = $identifyMethods[$signer->getId()] ?? [];
+		$resolvedDisplayName = $this->resolveSignerDisplayName($signer, $identifyMethodsOfSigner);
 		/** @var LibresignSigner */
 		$data = [
 			'email' => array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
@@ -409,12 +406,7 @@ class FileListService {
 				return $carry;
 			}, ''),
 			'description' => $signer->getDescription(),
-			'displayName' => array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
-				if (!$carry && $identifyMethod->getMandatory()) {
-					return $identifyMethod->getIdentifierValue();
-				}
-				return $carry;
-			}, $signer->getDisplayName()),
+			'displayName' => $resolvedDisplayName,
 			'request_sign_date' => $signer->getCreatedAt()->format(DateTimeInterface::ATOM),
 			'signed' => null,
 			'signRequestId' => $signer->getId(),
@@ -440,6 +432,49 @@ class FileListService {
 		}
 		ksort($data);
 		return $data;
+	}
+
+	/**
+	 * Prefer the sign request display name, with safe fallbacks from identify methods.
+	 *
+	 * @param SignRequest $signer
+	 * @param IdentifyMethod[] $identifyMethodsOfSigner
+	 */
+	private function resolveSignerDisplayName(SignRequest $signer, array $identifyMethodsOfSigner): string {
+		$displayName = $signer->getDisplayName();
+		foreach ($identifyMethodsOfSigner as $identifyMethod) {
+			if ($identifyMethod->getIdentifierKey() !== IdentifyMethodService::IDENTIFY_ACCOUNT) {
+				continue;
+			}
+			$identifierValue = $identifyMethod->getIdentifierValue();
+			if ($displayName === '' || $displayName === $identifierValue) {
+				$user = $this->userManager->get($identifierValue);
+				if ($user) {
+					return $user->getDisplayName();
+				}
+			}
+			if ($displayName !== '') {
+				return $displayName;
+			}
+		}
+		if ($displayName !== '') {
+			return $displayName;
+		}
+
+		foreach ($identifyMethodsOfSigner as $identifyMethod) {
+			if (!$identifyMethod->getMandatory()) {
+				continue;
+			}
+			if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
+				$user = $this->userManager->get($identifyMethod->getIdentifierValue());
+				if ($user) {
+					return $user->getDisplayName();
+				}
+			}
+			return $identifyMethod->getIdentifierValue();
+		}
+
+		return '';
 	}
 
 	/**
