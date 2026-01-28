@@ -40,6 +40,7 @@ OC.L10N.register(
     "Issued by:" : "Tərəfindən verilib:",
     "Name:" : "Ad:",
     "No date" : "No date",
+    "Error" : "Səhv",
     "Details" : "Detallar",
     "Certificate" : "Sertifikat",
     "Signature" : "İmza",
