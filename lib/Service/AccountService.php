@@ -212,6 +212,13 @@ class AccountService {
 		return $info;
 	}
 
+	public function getConfigSorting(?IUser $user = null): array {
+		$info['sorting_mode'] = $this->getUserConfigByKey('sorting_mode', $user) ?: 'name';
+		$info['sorting_direction'] = $this->getUserConfigByKey('sorting_direction', $user) ?: 'asc';
+
+		return $info;
+	}
+
 	private function updateIdentifyMethodToAccount(int $signRequestId, string $email, string $uid): void {
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequestId);
 		foreach ($identifyMethods as $name => $methods) {
