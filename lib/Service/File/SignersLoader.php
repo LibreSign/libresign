@@ -220,7 +220,11 @@ class SignersLoader {
 
 			if ($isLibreSignCert) {
 				$certUid = $signer['chain'][0]['subject']['UID'] ?? null;
-				$resolvedUid = $certUid ? 'account:' . $certUid : null;
+				if ($certUid) {
+					$resolvedUid = str_starts_with($certUid, 'account:') ? $certUid : 'account:' . $certUid;
+				} else {
+					$resolvedUid = null;
+				}
 			} else {
 				$resolvedUid = $signer['uid'] ?? null;
 				if (!$resolvedUid && isset($signer['chain'][0])) {
@@ -228,14 +232,12 @@ class SignersLoader {
 				}
 			}
 
-			if (!empty($existingSigners)) {
-				$matchedIndex = $this->findMatchingSignerIndex($indexMap, $resolvedUid, $signer);
-				if ($matchedIndex !== null && !isset($usedIndexes[$matchedIndex])) {
-					$targetIndex = $matchedIndex;
-					$isLibreSignMatch = isset($existingSigners[$matchedIndex]->signRequestId);
-				} else {
-					$targetIndex = $this->nextAvailableSignerIndex($existingSigners, $usedIndexes);
-				}
+			$matchedIndex = $this->findMatchingSignerIndex($indexMap, $resolvedUid, $signer);
+			if ($matchedIndex !== null) {
+				$targetIndex = $matchedIndex;
+				$isLibreSignMatch = isset($existingSigners[$matchedIndex]->signRequestId);
+			} elseif (!empty($existingSigners)) {
+				$targetIndex = $this->nextAvailableSignerIndex($existingSigners, $usedIndexes);
 			}
 			$usedIndexes[$targetIndex] = true;
 
@@ -295,8 +297,9 @@ class SignersLoader {
 
 			if (isset($signer['uid'])) {
 				$fileData->signers[$targetIndex]->uid = $signer['uid'];
-			}
-			if (!isset($fileData->signers[$targetIndex]->uid) && isset($signer['chain'][0])) {
+			} elseif ($resolvedUid) {
+				$fileData->signers[$targetIndex]->uid = $resolvedUid;
+			} elseif (isset($signer['chain'][0])) {
 				$fileData->signers[$targetIndex]->uid = $this->identifyMethodService->resolveUid($signer['chain'][0], $host);
 			}
 
@@ -319,6 +322,16 @@ class SignersLoader {
 				}
 			} elseif (!isset($fileData->signers[$targetIndex]->displayName) && isset($signer['chain'][0])) {
 				$fileData->signers[$targetIndex]->displayName = $signer['chain'][0]['name'] ?? ($signer['chain'][0]['subject']['CN'] ?? '');
+			}
+
+			if (isset($fileData->signers[$targetIndex]->uid)) {
+				$indexMap[strtolower((string)$fileData->signers[$targetIndex]->uid)] = $targetIndex;
+			}
+			if (!empty($fileData->signers[$targetIndex]->email)) {
+				$indexMap['email:' . strtolower((string)$fileData->signers[$targetIndex]->email)] = $targetIndex;
+			}
+			if (!empty($fileData->signers[$targetIndex]->displayName)) {
+				$indexMap['account:' . strtolower((string)$fileData->signers[$targetIndex]->displayName)] = $targetIndex;
 			}
 		}
 	}
