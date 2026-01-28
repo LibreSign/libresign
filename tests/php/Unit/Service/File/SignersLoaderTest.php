@@ -10,33 +10,46 @@ namespace OCA\Libresign\Tests\Unit\Service\File;
 
 use DateTime;
 use DateTimeInterface;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\File\SignersLoader;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Tests\Unit\TestCase;
+use OCP\Accounts\IAccountManager;
+use OCP\IUserManager;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
 
 final class SignersLoaderTest extends TestCase {
-	private function getService($signRequestMapper = null, $identifyMethodService = null): SignersLoader {
-		$signRequestMapper ??= $this->createMock(\OCA\Libresign\Db\SignRequestMapper::class);
-		$identifyMethodService ??= $this->createMock(\OCA\Libresign\Service\IdentifyMethodService::class);
-		$accountManager = $this->createMock(\OCP\Accounts\IAccountManager::class);
-		$userManager = $this->createMock(\OCP\IUserManager::class);
+	private SignRequestMapper&MockObject $signRequestMapper;
+	private IdentifyMethodService&MockObject $identifyMethodService;
+	private IAccountManager&MockObject $accountManager;
+	private IUserManager&MockObject $userManager;
 
-		return new SignersLoader($signRequestMapper, $identifyMethodService, $accountManager, $userManager);
+	public function setUp(): void {
+		parent::setUp();
+		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
+		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->accountManager = $this->createMock(IAccountManager::class);
+		$this->userManager = $this->createMock(IUserManager::class);
+	}
+
+	private function getService(): SignersLoader {
+		return new SignersLoader(
+			$this->signRequestMapper,
+			$this->identifyMethodService,
+			$this->accountManager,
+			$this->userManager,
+		);
 	}
 
 	#[DataProvider('dataLoadSignersFromCertData')]
 	public function testLoadSignersFromCertData(array $certData, string $host, string $resolveUidReturn, array $expected): void {
-		$signRequestMapper = $this->createMock(\OCA\Libresign\Db\SignRequestMapper::class);
-		$signRequestMapper->method('getTextOfSignerStatus')->willReturn('status-text');
-
-		$identifyMethodService = $this->createMock(\OCA\Libresign\Service\IdentifyMethodService::class);
-		$identifyMethodService->method('resolveUid')->willReturn($resolveUidReturn);
-
-		$service = $this->getService($signRequestMapper, $identifyMethodService);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('status-text');
+		$this->identifyMethodService->method('resolveUid')->willReturn($resolveUidReturn);
 
 		$fileData = new \stdClass();
 
-		$service->loadSignersFromCertData($fileData, $certData, $host);
+		$this->getService()->loadSignersFromCertData($fileData, $certData, $host);
 
 		$this->assertTrue(isset($fileData->signers), 'signers not set');
 		$this->assertIsArray($fileData->signers);
@@ -126,17 +139,43 @@ final class SignersLoaderTest extends TestCase {
 					],
 				],
 			],
+			'LibreSign certificate with isLibreSignRootCA flag' => [
+				[
+					[
+						'chain' => [
+							[
+								'isLibreSignRootCA' => true,
+								'name' => '/C=BR/UID=account:admin/CN=admin',
+								'subject' => [
+									'C' => 'BR',
+									'UID' => 'account:admin',
+									'CN' => 'admin',
+								],
+								'issuer' => ['CN' => 'LibreSign'],
+								'hash' => 'abc123',
+								'version' => 2,
+							],
+						],
+						'signingTime' => new DateTime('2026-01-28T19:56:57Z'),
+					],
+				],
+				'example.com',
+				'not-called-for-libresign',
+				[
+					0 => [
+						'status' => 2,
+						'statusText' => 'status-text',
+						'uid' => 'account:admin',
+						'displayName' => 'admin',
+					],
+				],
+			],
 		];
 	}
 
 	public function testLoadSignersFromCertDataMatchesExistingSigner(): void {
-		$signRequestMapper = $this->createMock(\OCA\Libresign\Db\SignRequestMapper::class);
-		$signRequestMapper->method('getTextOfSignerStatus')->willReturn('status-text');
-
-		$identifyMethodService = $this->createMock(\OCA\Libresign\Service\IdentifyMethodService::class);
-		$identifyMethodService->method('resolveUid')->willReturn('account:admin');
-
-		$service = $this->getService($signRequestMapper, $identifyMethodService);
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('status-text');
+		$this->identifyMethodService->method('resolveUid')->willReturn('account:admin');
 
 		$fileData = new \stdClass();
 		$fileData->signers = [];
@@ -160,11 +199,114 @@ final class SignersLoaderTest extends TestCase {
 			],
 		];
 
-		$service->loadSignersFromCertData($fileData, $certData, 'example.com');
+		$this->getService()->loadSignersFromCertData($fileData, $certData, 'example.com');
 
 		$this->assertCount(2, $fileData->signers);
 		$this->assertSame('admin', $fileData->signers[0]->displayName);
 		$this->assertSame('Admin Cert', $fileData->signers[0]->chain[0]['displayName']);
 		$this->assertObjectNotHasProperty('chain', $fileData->signers[1]);
+	}
+
+	public function testLoadSignersFromCertDataDeduplicatesByUid(): void {
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('status-text');
+		$this->identifyMethodService->method('resolveUid')->willReturn('account:admin');
+
+		$fileData = new \stdClass();
+		$certData = [
+			[
+				'chain' => [
+					[
+						'name' => '/C=BR/UID=account:admin/CN=admin',
+						'subject' => ['CN' => 'admin'],
+					],
+				],
+				'signingTime' => new DateTime('2023-02-02T10:00:00Z'),
+			],
+			[
+				'chain' => [
+					[
+						'name' => '/C=BR/UID=account:admin/CN=admin',
+						'subject' => ['CN' => 'admin'],
+					],
+				],
+				'signingTime' => new DateTime('2023-02-03T10:00:00Z'),
+			],
+		];
+
+		$this->getService()->loadSignersFromCertData($fileData, $certData, 'example.com');
+
+		$this->assertCount(1, $fileData->signers);
+		$this->assertSame('account:admin', $fileData->signers[0]->uid);
+	}
+
+	public function testLoadSignersFromCertDataUsesUserDisplayNameForAccountUid(): void {
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('status-text');
+		$this->identifyMethodService->method('resolveUid')->willReturn('account:admin');
+
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getDisplayName')->willReturn('Admin Display');
+		$this->userManager->method('get')->with('admin')->willReturn($user);
+
+		$fileData = new \stdClass();
+		$certData = [
+			[
+				'chain' => [
+					[
+						'name' => '/C=BR/UID=account:admin/CN=admin',
+						'subject' => ['CN' => 'admin'],
+					],
+				],
+			],
+		];
+
+		$this->getService()->loadSignersFromCertData($fileData, $certData, 'example.com');
+
+		$this->assertSame('Admin Display', $fileData->signers[0]->displayName);
+		$this->assertSame('account:admin', $fileData->signers[0]->uid);
+	}
+
+
+
+	public function testLoadSignersFromCertDataMatchesLibreSignSignerByUid(): void {
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('Signed');
+		$this->identifyMethodService->expects($this->never())->method('resolveUid');
+
+		$fileData = new \stdClass();
+		$fileData->signers = [
+			(object)[
+				'uid' => 'account:admin',
+				'displayName' => 'Admin User',
+				'signRequestId' => 52,
+			],
+		];
+
+		$certData = [
+			[
+				'chain' => [
+					[
+						'isLibreSignRootCA' => true,
+						'name' => '/C=BR/UID=account:admin/CN=admin',
+						'subject' => [
+							'C' => 'BR',
+							'UID' => 'account:admin',
+							'CN' => 'admin',
+						],
+						'issuer' => ['CN' => 'LibreSign'],
+						'hash' => 'abc123',
+						'version' => 2,
+					],
+				],
+				'signingTime' => new DateTime('2026-01-28T19:56:57Z'),
+			],
+		];
+
+		$this->getService()->loadSignersFromCertData($fileData, $certData, 'example.com');
+
+		$this->assertCount(1, $fileData->signers);
+		$signer = $fileData->signers[0];
+		$this->assertSame('Admin User', $signer->displayName);
+		$this->assertSame('account:admin', $signer->uid);
+		$this->assertTrue(isset($signer->chain));
+		$this->assertTrue(isset($signer->name));
 	}
 }
