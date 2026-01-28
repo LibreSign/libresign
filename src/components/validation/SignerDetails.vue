@@ -29,16 +29,6 @@
 					<span v-else>{{ t('libresign', 'No expiration date') }}</span>
 				</template>
 			</template>
-			<template #indicator>
-				<NcIconSvgWrapper v-if="signer.signed && getValidityStatus(signer) === 'expired'"
-					:path="mdiAlertCircleOutline"
-					class="icon-error"
-					:size="20" />
-				<NcIconSvgWrapper v-else-if="signer.signed && getValidityStatus(signer) === 'expiring'"
-					:path="mdiAlertCircleOutline"
-					class="icon-warning"
-					:size="20" />
-			</template>
 			<template #extra-actions>
 				<NcButton v-if="signer.signed" variant="tertiary"
 					:aria-label="isOpen ? t('libresign', 'Collapse details') : t('libresign', 'Expand details')"
@@ -129,7 +119,7 @@
 						:class="getCrlValidationIconClass(signer)" />
 				</template>
 				<template #name>
-					{{ crlStatusMap[signer.crl_validation]?.text || signer.crl_validation }}
+					{{ getCrlStatusText(signer) }}
 				</template>
 			</NcListItem>
 		</div>
@@ -306,11 +296,13 @@ export default {
 			MODIFICATION_ALLOWED: 2,
 			MODIFICATION_VIOLATION: 3,
 			crlStatusMap: {
-				CRL_VERIFIED_VALID: { icon: mdiCheckCircle, text: t('libresign', 'CRL: Certificate Valid'), class: 'icon-success' },
-				CRL_VERIFIED_REVOKED: { icon: mdiCloseCircle, text: t('libresign', 'CRL: Certificate Revoked'), class: 'icon-error' },
-				CRL_NOT_FOUND: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Not Found'), class: 'icon-warning' },
-				CRL_PARSE_FAILED: { icon: mdiAlertCircle, text: t('libresign', 'CRL: Parse Failed'), class: 'icon-error' },
-				CRL_DOWNLOAD_FAILED: { icon: mdiAlertCircle, text: t('libresign', 'CRL: Download Failed'), class: 'icon-warning' },
+				valid: { icon: mdiCheckCircle, text: t('libresign', 'CRL: Not revoked'), class: 'icon-success' },
+				revoked: { icon: mdiCloseCircle, text: t('libresign', 'CRL: Certificate revoked'), class: 'icon-error' },
+				missing: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No information'), class: 'icon-warning' },
+				no_urls: { icon: mdiAlertCircle, text: t('libresign', 'CRL: No URLs found'), class: 'icon-warning' },
+				urls_inaccessible: { icon: mdiHelpCircle, text: t('libresign', 'CRL: URLs inaccessible'), class: 'icon-warning' },
+				validation_failed: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation failed'), class: 'icon-warning' },
+				validation_error: { icon: mdiHelpCircle, text: t('libresign', 'CRL: Validation error'), class: 'icon-warning' },
 			},
 		}
 	},
@@ -325,7 +317,31 @@ export default {
 			return signer.displayName || signer.email || signer.name || t('libresign', 'Unknown')
 		},
 		hasValidationIssues(signer) {
-			return signer.signature_validation?.id !== 1 || signer.certificate_validation?.id !== 1
+			return signer.signature_validation?.id !== 1
+				|| signer.certificate_validation?.id !== 1
+				|| this.isRevokedBeforeSigning(signer)
+		},
+		isRevokedStatus(status) {
+			return status === 'revoked'
+		},
+		isRevokedBeforeSigning(signer) {
+			if (!this.isRevokedStatus(signer.crl_validation)) {
+				return false
+			}
+
+			const revokedAt = signer.crl_revoked_at
+			const signedAt = signer.signed
+			if (!revokedAt || !signedAt) {
+				return true
+			}
+
+			const revokedDate = new Date(revokedAt)
+			const signedDate = new Date(signedAt)
+			if (Number.isNaN(revokedDate.getTime()) || Number.isNaN(signedDate.getTime())) {
+				return true
+			}
+
+			return revokedDate <= signedDate
 		},
 		getIconValidityPath(signer) {
 			if (signer.signature_validation?.id === 1) {
@@ -371,8 +387,26 @@ export default {
 			return (signedTime >= validFrom && signedTime <= validTo) ? 'valid' : 'invalid'
 		},
 		getCrlValidationIconClass(signer) {
+			if (this.isRevokedStatus(signer.crl_validation)) {
+				return this.isRevokedBeforeSigning(signer) ? 'icon-error' : 'icon-success'
+			}
+			return this.crlStatusMap[signer.crl_validation]?.class || 'icon-warning'
+		},
+		getCrlStatusText(signer) {
 			const status = signer.crl_validation
-			return this.crlStatusMap[status]?.class || 'icon-warning'
+			if (!this.isRevokedStatus(status)) {
+				return this.crlStatusMap[status]?.text || status
+			}
+
+			if (this.isRevokedBeforeSigning(signer)) {
+				return t('libresign', 'CRL: Certificate revoked before signing')
+			}
+
+			if (signer.crl_revoked_at) {
+				const formattedDate = this.dateFromSqlAnsi(signer.crl_revoked_at)
+				return t('libresign', 'CRL: Valid at signing time (revoked on {date})', { date: formattedDate })
+			}
+			return t('libresign', 'CRL: Valid at signing time')
 		},
 		hasDocMdpInfo(signer) {
 			return signer.docmdp || signer.modification_validation || (signer.modifications && signer.modifications.modified)
