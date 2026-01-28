@@ -74,6 +74,7 @@ OC.L10N.register(
     "Number of documents:" : "Númberu de documentos:",
     "Hide details" : "Esconder los detalles",
     "Show details" : "Amosar los detalles",
+    "Error" : "Error",
     "File" : "Ficheru",
     "Details" : "Detalles",
     "Certificate" : "Certificáu",

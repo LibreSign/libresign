@@ -298,6 +298,7 @@ OC.L10N.register(
     "Yes" : "Tak",
     "No" : "Nie",
     "Reset to default" : "Przywróć domyślne",
+    "Background image" : "Obraz tła",
     "Remove background" : "Usuń tło",
     "Learn more" : "Dowiedz się więcej",
     "Invalid URL" : "Nieprawidłowy adres URL",
