@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="6.14.2@bbd217fc98c0daa0a13aea2a7f119d03ba3fc9a0">
+<files psalm-version="6.14.3@d0b040a91f280f071c1abcb1b77ce3822058725a">
   <file src="lib/AppInfo/Application.php">
     <InvalidArgument>
       <code><![CDATA[LoadAdditionalListener::class]]></code>
@@ -59,8 +59,6 @@
       <code><![CDATA[QueryBuilder]]></code>
     </UndefinedClass>
   </file>
-  <file src="lib/Files/TemplateLoader.php">
-  </file>
   <file src="lib/Handler/CertificateEngine/CfsslHandler.php">
     <InvalidArgument>
       <code><![CDATA[function (): void { }]]></code>
@@ -82,7 +80,6 @@
       <code><![CDATA[LoadAdditionalListener]]></code>
     </UndefinedDocblockClass>
   </file>
-
   <file src="lib/Listener/TwofactorGatewayListener.php">
     <UndefinedClass>
       <code><![CDATA[Factory]]></code>
