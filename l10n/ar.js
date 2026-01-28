@@ -258,6 +258,7 @@ OC.L10N.register(
     "Expiration:" : "إنتهاء الصلاحية:",
     "No date" : "لا يوجد تاريخ",
     "Hash algorithm:" : "خوارزمية الاختزال:",
+    "Error" : "خطأ",
     "File" : "File",
     "Details" : "التفاصيل",
     "Certificate" : "الشهادة",

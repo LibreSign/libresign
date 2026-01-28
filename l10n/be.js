@@ -81,6 +81,7 @@ OC.L10N.register(
     "Hide details" : "Схаваць падрабязнасці",
     "Show details" : "Паказаць падрабязнасці",
     "No date" : "Няма даты",
+    "Error" : "Памылка",
     "File" : "Файл",
     "Details" : "Падрабязнасці",
     "Certificate" : "Сертыфікат",
