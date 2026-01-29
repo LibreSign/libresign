@@ -68,6 +68,7 @@ import svgTextBoxCheck from '@mdi/svg/svg/text-box-check.svg?raw'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
 
+import { openDocument } from '../../../utils/viewer.js'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -248,20 +249,11 @@ export default {
 			const fileUrl = this.source.file
 				|| generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: this.source.uuid })
 
-			if (OCA?.Viewer !== undefined) {
-				const fileInfo = {
-					source: fileUrl,
-					basename: this.source.name,
-					mime: 'application/pdf',
-					fileid: this.source.nodeId,
-				}
-				OCA.Viewer.open({
-					fileInfo,
-					list: [fileInfo],
-				})
-			} else {
-				window.open(`${fileUrl}?_t=${Date.now()}`)
-			}
+			openDocument({
+				fileUrl,
+				filename: this.source.name,
+				nodeId: this.source.nodeId,
+			})
 		},
 		doRename(newName) {
 			return this.filesStore.rename(this.source.uuid, newName)

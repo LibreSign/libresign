@@ -165,6 +165,7 @@ import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
 
+import { openDocument } from '../../utils/viewer.js'
 import { useUserConfigStore } from '../../store/userconfig.js'
 
 import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
@@ -352,20 +353,11 @@ export default {
 				return
 			}
 
-			if (OCA?.Viewer !== undefined) {
-				const fileInfo = {
-					source: fileUrl,
-					basename: doc.file.name,
-					mime: 'application/pdf',
-					fileid: doc.nodeId,
-				}
-				OCA.Viewer.open({
-					fileInfo,
-					list: [fileInfo],
-				})
-			} else {
-				window.open(`${fileUrl}?_t=${Date.now()}`)
-			}
+			openDocument({
+				fileUrl,
+				filename: doc.file.name,
+				nodeId: doc.nodeId,
+			})
 		},
 
 		openValidationURL(doc) {
