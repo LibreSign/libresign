@@ -13,18 +13,21 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Service\FileStatusService;
+use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class FileStatusServiceTest extends TestCase {
 	private FileMapper|MockObject $fileMapper;
+	private StatusCacheService|MockObject $statusCacheService;
 	private FileStatusService $service;
 
 	protected function setUp(): void {
 		parent::setUp();
 		$this->fileMapper = $this->createMock(FileMapper::class);
-		$this->service = new FileStatusService($this->fileMapper);
+		$this->statusCacheService = $this->createMock(StatusCacheService::class);
+		$this->service = new FileStatusService($this->fileMapper, $this->statusCacheService);
 	}
 
 	#[DataProvider('dataFileStatusUpgrade')]
@@ -95,9 +98,9 @@ class FileStatusServiceTest extends TestCase {
 		$this->service->updateFileStatusIfUpgrade($file, FileStatus::ABLE_TO_SIGN->value);
 	}
 
-	public function testUpdateFileStatusSetsStatusChangedAt(): void {
+	public function testUpdateSetsStatusChangedAt(): void {
 		$file = new FileEntity();
-		$file->setStatus(FileStatus::DRAFT->value);
+		$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
 
 		$this->fileMapper->expects($this->once())
 			->method('update')
@@ -106,7 +109,7 @@ class FileStatusServiceTest extends TestCase {
 				return true;
 			}));
 
-		$this->service->updateFileStatus($file, FileStatus::ABLE_TO_SIGN->value);
+		$this->service->update($file);
 	}
 
 	public static function dataCanNotifySigners(): array {
