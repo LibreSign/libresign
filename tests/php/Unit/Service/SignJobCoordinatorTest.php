@@ -13,6 +13,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\SignJobCoordinator;
@@ -33,6 +34,7 @@ class SignJobCoordinatorTest extends TestCase {
 	private IUserManager&MockObject $userManager;
 	private ICredentialsManager&MockObject $credentialsManager;
 	private ProgressService&MockObject $progressService;
+	private FileService&MockObject $fileService;
 	private SignRequestErrorReporter $errorReporter;
 	private LoggerInterface&MockObject $logger;
 	private SignJobCoordinator $coordinator;
@@ -47,6 +49,7 @@ class SignJobCoordinatorTest extends TestCase {
 		$this->credentialsManager = $this->createMock(ICredentialsManager::class);
 		$this->progressService = $this->createMock(ProgressService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->fileService = $this->createMock(FileService::class);
 		$this->errorReporter = new SignRequestErrorReporter(
 			$this->progressService,
 			$this->logger,
@@ -61,6 +64,7 @@ class SignJobCoordinatorTest extends TestCase {
 			$this->progressService,
 			$this->errorReporter,
 			$this->logger,
+			$this->fileService,
 		);
 	}
 
@@ -73,6 +77,7 @@ class SignJobCoordinatorTest extends TestCase {
 		$signRequest = new SignRequest();
 		$signRequest->setId(20);
 		$signRequest->setFileId($file->getId());
+		$signRequest->setUuid('sign-request-uuid-1');
 
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('user1');
@@ -87,6 +92,10 @@ class SignJobCoordinatorTest extends TestCase {
 
 		$this->fileMapper->method('getById')->willReturn($file);
 		$this->signRequestMapper->method('getById')->willReturn($signRequest);
+
+		$this->progressService->expects($this->once())
+			->method('clearSignRequestError')
+			->with('sign-request-uuid-1');
 
 		$this->credentialsManager->expects($this->once())
 			->method('retrieve')
@@ -120,12 +129,12 @@ class SignJobCoordinatorTest extends TestCase {
 		$this->signFileService->expects($this->once())
 			->method('signSingleFile');
 
-		$this->fileMapper->expects($this->once())
+		$this->fileService->expects($this->once())
 			->method('update')
 			->with($this->callback(function (File $updated) {
-				return $updated->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value
-					&& ($updated->getMetadata()['status_changed_at'] ?? null) !== null;
-			}));
+				return $updated->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value;
+			}))
+			->willReturnArgument(0);
 
 		$this->credentialsManager->expects($this->once())
 			->method('delete')
@@ -148,6 +157,7 @@ class SignJobCoordinatorTest extends TestCase {
 		$signRequest = new SignRequest();
 		$signRequest->setId(40);
 		$signRequest->setFileId($file->getId());
+		$signRequest->setUuid('sign-request-uuid-2');
 
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('user2');
@@ -156,6 +166,8 @@ class SignJobCoordinatorTest extends TestCase {
 
 		$this->fileMapper->method('getById')->willReturn($file);
 		$this->signRequestMapper->method('getById')->willReturn($signRequest);
+
+		$this->progressService->method('clearSignRequestError');
 
 		$this->credentialsManager->method('retrieve')->willReturn(['password' => 'pw2']);
 
@@ -169,12 +181,12 @@ class SignJobCoordinatorTest extends TestCase {
 			->method('signSingleFile')
 			->willThrowException(new \RuntimeException('failure'));
 
-		$this->fileMapper->expects($this->once())
+		$this->fileService->expects($this->once())
 			->method('update')
 			->with($this->callback(function (File $updated) {
-				return $updated->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value
-					&& ($updated->getMetadata()['status_changed_at'] ?? null) !== null;
-			}));
+				return $updated->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value;
+			}))
+			->willReturnArgument(0);
 
 		$this->credentialsManager->expects($this->once())
 			->method('delete')
@@ -262,11 +274,12 @@ class SignJobCoordinatorTest extends TestCase {
 		$exception = new \InvalidArgumentException('Invalid parameters', 400);
 		$this->signFileService->method('signSingleFile')->willThrowException($exception);
 
-		$this->fileMapper->expects($this->once())
+		$this->fileService->expects($this->once())
 			->method('update')
 			->with($this->callback(function (File $updated) {
 				return $updated->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value;
-			}));
+			}))
+			->willReturnArgument(0);
 
 		$this->coordinator->runSignSingleFile([
 			'fileId' => $file->getId(),
