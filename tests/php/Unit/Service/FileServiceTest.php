@@ -40,6 +40,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $metadataLoader;
 	private $settingsLoader;
 	private $messagesLoader;
+	private $fileStatusService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -72,6 +73,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->metadataLoader = $this->createMock(\OCA\Libresign\Service\File\MetadataLoader::class);
 		$this->settingsLoader = $this->createMock(\OCA\Libresign\Service\File\SettingsLoader::class);
 		$this->messagesLoader = $this->createMock(\OCA\Libresign\Service\File\MessagesLoader::class);
+		$this->fileStatusService = $this->createMock(\OCA\Libresign\Service\FileStatusService::class);
 	}
 
 	private function createFileService(): FileService {
@@ -104,6 +106,7 @@ final class FileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->metadataLoader,
 			$this->settingsLoader,
 			$this->messagesLoader,
+			$this->fileStatusService,
 		);
 	}
 
