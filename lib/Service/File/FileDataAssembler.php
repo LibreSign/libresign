@@ -15,6 +15,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Service\FileElementService;
+use OCA\Libresign\Service\FileService;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
 
@@ -26,6 +27,7 @@ class FileDataAssembler {
 		private EnvelopeAssembler $envelopeAssembler,
 		private IURLGenerator $urlGenerator,
 		private IUserManager $userManager,
+		private FileService $fileService,
 	) {
 	}
 
@@ -46,7 +48,7 @@ class FileDataAssembler {
 			$childrenFiles = $this->fileMapper->getChildrenFiles($fileId);
 			if (!empty($childrenFiles)) {
 				$file->setNodeType('envelope');
-				$this->fileMapper->update($file);
+				$this->fileService->update($file);
 
 				$fileData->nodeType = 'envelope';
 				$fileData->filesCount = count($childrenFiles);
