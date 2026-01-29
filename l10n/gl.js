@@ -415,11 +415,6 @@ OC.L10N.register(
     "Remote address:" : "Enderezo remoto:",
     "User agent:" : "Axente de usuario:",
     "Document information" : "Información do documento",
-    "CRL: Certificate Valid" : "CRL: Certificado válido",
-    "CRL: Certificate Revoked" : "CRL: Certificado revogado",
-    "CRL: Not Found" : "CRL: Non atopado",
-    "CRL: Parse Failed" : "CRL: Fallou a análise",
-    "CRL: Download Failed" : "CRL: Descarga fallada",
     "Document integrity verified" : "Integridade do documento verificada",
     "Document integrity check failed" : "Fallou a comprobación da integridade do documento",
     "Trust Chain: Trusted ({trustedBy})" : "Cadea de Confianza: fiábel ({trustedBy})",
@@ -803,6 +798,11 @@ OC.L10N.register(
     "original file" : "ficheiro orixinal",
     "New signature request" : "Nova solicitude de sinatura",
     "Requested by {name}, at {date}" : "Solicitado por {name}, o {date}",
-    "Deleted" : "Eliminada"
+    "Deleted" : "Eliminada",
+    "CRL: Certificate Valid" : "CRL: Certificado válido",
+    "CRL: Certificate Revoked" : "CRL: Certificado revogado",
+    "CRL: Not Found" : "CRL: Non atopado",
+    "CRL: Parse Failed" : "CRL: Fallou a análise",
+    "CRL: Download Failed" : "CRL: Descarga fallada"
 },
 "nplurals=2; plural=(n != 1);");

@@ -29,6 +29,7 @@ OC.L10N.register(
     "Issued by:" : "প্রদান করলেন:",
     "Unknown" : "অজানা",
     "No date" : "No date",
+    "Error" : "সমস্যা",
     "Details" : "বিসতারিত",
     "Upload file" : "ফাইল আপলোড",
     "Create account" : "একাউন্ট তেরী কর",
