@@ -38,7 +38,8 @@
                         "type": "object",
                         "required": [
                             "sign-elements",
-                            "envelope"
+                            "envelope",
+                            "upload"
                         ],
                         "properties": {
                             "sign-elements": {
@@ -84,6 +85,18 @@
                                 "properties": {
                                     "is-available": {
                                         "type": "boolean"
+                                    }
+                                }
+                            },
+                            "upload": {
+                                "type": "object",
+                                "required": [
+                                    "max-file-uploads"
+                                ],
+                                "properties": {
+                                    "max-file-uploads": {
+                                        "type": "integer",
+                                        "format": "int64"
                                     }
                                 }
                             }
@@ -8438,6 +8451,11 @@
                                         "type": "string",
                                         "default": "",
                                         "description": "Token, commonly send by email"
+                                    },
+                                    "async": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "Execute signing asynchronously when possible"
                                     }
                                 }
                             }
@@ -8668,6 +8686,11 @@
                                         "type": "string",
                                         "default": "",
                                         "description": "Token, commonly send by email"
+                                    },
+                                    "async": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "Execute signing asynchronously when possible"
                                     }
                                 }
                             }
