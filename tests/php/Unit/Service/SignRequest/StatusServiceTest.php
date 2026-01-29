@@ -93,6 +93,9 @@ final class StatusServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				->with($current, $desired)
 				->willReturn($isUpgrade);
 		}
+		$this->sequentialSigningService
+			->method('isOrderedNumericFlow')
+			->willReturn(false);
 
 		$signRequest
 			->expects($shouldUpdate ? $this->once() : $this->never())
@@ -120,6 +123,44 @@ final class StatusServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[$draft, $draft, false, false, false],
 			[$able, $able, false, false, false],
 		];
+	}
+
+	public function testUpdateStatusAllowsOrderedFlowDowngrade(): void {
+		$signRequest = $this->getMockBuilder(SignRequestEntity::class)
+			->disableOriginalConstructor()
+			->addMethods(['getFileId', 'getSigningOrder'])
+			->onlyMethods(['setStatusEnum'])
+			->getMock();
+
+		$signRequest->method('getFileId')->willReturn(10);
+		$signRequest->method('getSigningOrder')->willReturn(3);
+
+		$this->sequentialSigningService
+			->expects($this->once())
+			->method('isStatusUpgrade')
+			->with(SignRequestStatus::ABLE_TO_SIGN, SignRequestStatus::DRAFT)
+			->willReturn(false);
+		$this->sequentialSigningService
+			->expects($this->once())
+			->method('isOrderedNumericFlow')
+			->willReturn(true);
+		$this->sequentialSigningService
+			->expects($this->once())
+			->method('hasPendingLowerOrderSigners')
+			->with(10, 3)
+			->willReturn(true);
+
+		$signRequest
+			->expects($this->once())
+			->method('setStatusEnum')
+			->with(SignRequestStatus::DRAFT);
+
+		$this->service->updateStatusIfAllowed(
+			$signRequest,
+			SignRequestStatus::ABLE_TO_SIGN,
+			SignRequestStatus::DRAFT,
+			false
+		);
 	}
 
 	#[DataProvider('initialStatusScenarios')]
