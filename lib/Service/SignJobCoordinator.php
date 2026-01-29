@@ -8,8 +8,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use DateTime;
-use DateTimeInterface;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
@@ -33,6 +31,7 @@ class SignJobCoordinator {
 		private ProgressService $progressService,
 		private SignRequestErrorReporter $signRequestErrorReporter,
 		private LoggerInterface $logger,
+		private FileService $fileService,
 	) {
 	}
 
@@ -187,10 +186,7 @@ class SignJobCoordinator {
 		}
 
 		$file->setStatusEnum(FileStatus::SIGNING_IN_PROGRESS);
-		$meta = $file->getMetadata() ?? [];
-		$meta['status_changed_at'] = (new DateTime())->format(DateTimeInterface::ATOM);
-		$file->setMetadata($meta);
-		$this->fileMapper->update($file);
+		$this->fileService->update($file);
 	}
 
 	private function deleteCredentials(string $userId, ?string $credentialsId): void {
