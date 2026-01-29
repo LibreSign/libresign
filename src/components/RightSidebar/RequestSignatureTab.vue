@@ -690,7 +690,9 @@ export default {
 		this.debouncedSave = debounce(async () => {
 			try {
 				const file = this.filesStore.getFile()
+				const signers = this.isOrderedNumeric ? file?.signers : null
 				await this.filesStore.saveOrUpdateSignatureRequest({
+					signers,
 					signatureFlow: file?.signatureFlow,
 				})
 			} catch (error) {
