@@ -302,11 +302,6 @@ OC.L10N.register(
     "Not signed yet" : "Pole veel allkirjastatud",
     "Remote address:" : "Kaugseadme aadress:",
     "Document information" : "Dokumendi teave",
-    "CRL: Certificate Valid" : "Tühistusloend: sertifikaat kehtib",
-    "CRL: Certificate Revoked" : "Tühistusloend: sertifikaat on tühistatud",
-    "CRL: Not Found" : "Tühistusloend: ei leidu",
-    "CRL: Parse Failed" : "Tühistusloend: töötlemine/parsimine ei õnnestunud",
-    "CRL: Download Failed" : "Tühistusloend: allalaadimine ei õnnestunud",
     "Document integrity verified" : "Dokumendi terviklus on kinnitatud",
     "Trust Chain: Trusted ({trustedBy})" : "Usaldusahela olek: usaldatud ({trustedBy})",
     "Trust Chain: Not Trusted" : "Usaldusahela olek: pole usaldatud",
@@ -610,6 +605,11 @@ OC.L10N.register(
     "From UUID" : "UUID alusel",
     "original file" : "algne fail",
     "New signature request" : "Uus allkirjapäring",
-    "Deleted" : "Kustutatud"
+    "Deleted" : "Kustutatud",
+    "CRL: Certificate Valid" : "Tühistusloend: sertifikaat kehtib",
+    "CRL: Certificate Revoked" : "Tühistusloend: sertifikaat on tühistatud",
+    "CRL: Not Found" : "Tühistusloend: ei leidu",
+    "CRL: Parse Failed" : "Tühistusloend: töötlemine/parsimine ei õnnestunud",
+    "CRL: Download Failed" : "Tühistusloend: allalaadimine ei õnnestunud"
 },
 "nplurals=2; plural=(n != 1);");

@@ -202,6 +202,7 @@ OC.L10N.register(
     "Show details" : "Mostra els detalls",
     "Expiration:" : "Expiració:",
     "No date" : "Sense data",
+    "Error" : "Error",
     "File" : "Fitxer",
     "Details" : "Detalls",
     "Certificate" : "Certificat",

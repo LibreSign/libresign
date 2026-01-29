@@ -432,11 +432,6 @@ OC.L10N.register(
     "User agent:" : "Gníomhaire Úsáideora:",
     "No files to display" : "Gan aon chomhaid le taispeáint",
     "Document information" : "Faisnéis faoin doiciméad",
-    "CRL: Certificate Valid" : "CRL: Teastas Bailí",
-    "CRL: Certificate Revoked" : "CRL: Teastas Cúlghairthe",
-    "CRL: Not Found" : "CRL: Níor aimsíodh",
-    "CRL: Parse Failed" : "CRL: Theip ar Pharsáil",
-    "CRL: Download Failed" : "CRL: Theip ar an Íoslódáil",
     "Document integrity verified" : "Sláine doiciméad fíoraithe",
     "Document integrity check failed" : "Theip ar sheiceáil sláine an doiciméid",
     "Trust Chain: Trusted ({trustedBy})" : "Slabhra Muiníne: Iontaofa ({trustedBy})",
@@ -843,6 +838,11 @@ OC.L10N.register(
     "Ready to sign" : "Réidh le síniú",
     "Partially signed" : "Sínithe go páirteach",
     "Deleted" : "Scriosta",
-    "Signing" : "Síniú"
+    "Signing" : "Síniú",
+    "CRL: Certificate Valid" : "CRL: Teastas Bailí",
+    "CRL: Certificate Revoked" : "CRL: Teastas Cúlghairthe",
+    "CRL: Not Found" : "CRL: Níor aimsíodh",
+    "CRL: Parse Failed" : "CRL: Theip ar Pharsáil",
+    "CRL: Download Failed" : "CRL: Theip ar an Íoslódáil"
 },
 "nplurals=5; plural=(n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n<11 ? 3 : 4);");

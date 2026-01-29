@@ -429,11 +429,6 @@ OC.L10N.register(
     "User agent:" : "Kullanıcı uygulaması:",
     "No files to display" : "Görüntülenebilecek bir dosya yok",
     "Document information" : "Belge bilgileri",
-    "CRL: Certificate Valid" : "Sertifika geçersiz kılma listesi: Sertifika geçerli",
-    "CRL: Certificate Revoked" : "Sertifika geçersiz kılma listesi: Sertifika geçersiz kılınmış",
-    "CRL: Not Found" : "Sertifika geçersiz kılma listesi: Bulunamadı",
-    "CRL: Parse Failed" : "Sertifika geçersiz kılma listesi: İşlenemedi",
-    "CRL: Download Failed" : "Sertifika geçersiz kılma listesi: İndirilemedi",
     "Document integrity verified" : "Belge bütünlüğü doğrulandı",
     "Document integrity check failed" : "Belge bütünlüğü doğrulanamadı",
     "Trust Chain: Trusted ({trustedBy})" : "Güven zinciri: Güvenilir ({trustedBy})",
@@ -840,6 +835,11 @@ OC.L10N.register(
     "Ready to sign" : "İmzalamaya hazır",
     "Partially signed" : "Bir bölümü imzalanmış",
     "Deleted" : "Silindi",
-    "Signing" : "İmzalanıyor"
+    "Signing" : "İmzalanıyor",
+    "CRL: Certificate Valid" : "Sertifika geçersiz kılma listesi: Sertifika geçerli",
+    "CRL: Certificate Revoked" : "Sertifika geçersiz kılma listesi: Sertifika geçersiz kılınmış",
+    "CRL: Not Found" : "Sertifika geçersiz kılma listesi: Bulunamadı",
+    "CRL: Parse Failed" : "Sertifika geçersiz kılma listesi: İşlenemedi",
+    "CRL: Download Failed" : "Sertifika geçersiz kılma listesi: İndirilemedi"
 },
 "nplurals=2; plural=(n > 1);");

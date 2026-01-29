@@ -196,6 +196,7 @@ OC.L10N.register(
     "Hide details" : "Скриване на подробностите",
     "Show details" : "Показване на подробности",
     "No date" : "Няма дата",
+    "Error" : "Грешка",
     "File" : "Файл",
     "Details" : "Подробности",
     "Certificate" : "Сертификат",
