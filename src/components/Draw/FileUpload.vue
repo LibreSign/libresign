@@ -10,7 +10,7 @@
 				@click="$refs.file.click()">
 				{{
 					hasImage
-						? t('libresign', 'Select other file')
+						? t('libresign', 'Change file')
 						: t('libresign', 'Select your signature file.')
 				}}
 			</NcButton>
@@ -23,12 +23,55 @@
 		</div>
 
 		<div v-if="hasImage" ref="cropperContainer" class="cropper-container">
-			<Cropper :src="image"
-				:stencil-size="stencilSize"
-				image-restriction="fit-area"
+			<Cropper ref="cropper"
+				:src="image"
+				:default-size="defaultStencilSize"
+				:stencil-props="stencilProps"
+				image-restriction="none"
 				@change="change" />
-			<p>
-				{{ t('libresign', 'Use your mouse wheel to zoom in or out on the image and find the best view of your signature.') }}
+			<div class="zoom-controls">
+				<NcButton type="tertiary"
+					:aria-label="t('libresign', 'Decrease zoom level')"
+					:title="t('libresign', 'Decrease zoom level')"
+					:disabled="!hasImage"
+					@click="zoomOut">
+					<template #icon>
+						<MagnifyMinusOutline :size="20" />
+					</template>
+				</NcButton>
+				<NcButton type="tertiary"
+					:aria-label="t('libresign', 'Increase zoom level')"
+					:title="t('libresign', 'Increase zoom level')"
+					:disabled="!hasImage"
+					@click="zoomIn">
+					<template #icon>
+						<MagnifyPlusOutline :size="20" />
+					</template>
+				</NcButton>
+				<NcButton type="tertiary"
+					:aria-label="t('libresign', 'Fit image to frame')"
+					:title="t('libresign', 'Fit image to frame')"
+					:disabled="!hasImage"
+					@click="fitToArea">
+					<template #icon>
+						<FitToPageOutline :size="20" />
+					</template>
+				</NcButton>
+				<label class="zoom-level">
+					<NcTextField
+						class="zoom-field"
+						type="number"
+						min="10"
+						max="800"
+						step="5"
+						:label="t('libresign', 'Zoom level')"
+						v-model="zoomPercentValue"
+						:disabled="!hasImage" />
+					<span class="zoom-suffix">%</span>
+				</label>
+			</div>
+			<p class="zoom-hint">
+				{{ t('libresign', 'Use the mouse wheel or the zoom buttons to adjust.') }}
 			</p>
 
 			<div class="action-buttons">
@@ -43,8 +86,11 @@
 
 		<NcDialog v-if="modal"
 			:name="t('libresign', 'Confirm your signature')"
+			content-classes="confirm-dialog__content"
 			@closing="cancel">
-			<img :src="imageData">
+			<div class="confirm-preview">
+				<img class="confirm-preview__image" :src="imageData">
+			</div>
 			<template #actions>
 				<NcButton variant="primary" @click="saveSignature">
 					{{ t('libresign', 'Save') }}
@@ -64,8 +110,13 @@ import { getCapabilities } from '@nextcloud/capabilities'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
+import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import 'vue-advanced-cropper/dist/style.css'
+
+import MagnifyMinusOutline from 'vue-material-design-icons/MagnifyMinusOutline.vue'
+import MagnifyPlusOutline from 'vue-material-design-icons/MagnifyPlusOutline.vue'
+import FitToPageOutline from 'vue-material-design-icons/FitToPageOutline.vue'
 
 export default {
 	name: 'FileUpload',
@@ -73,14 +124,22 @@ export default {
 		NcButton,
 		Cropper,
 		NcDialog,
+		NcTextField,
+		MagnifyMinusOutline,
+		MagnifyPlusOutline,
+		FitToPageOutline,
 	},
 	data() {
 		return {
 			modal: false,
-			loading: false,
 			image: '',
 			imageData: '',
 			containerWidth: 0,
+			pendingFitCenter: false,
+			zoomLevel: 1,
+			zoomMin: 0.1,
+			zoomMax: 8,
+			zoomStep: 0.1,
 			stencilBaseWidth: getCapabilities().libresign.config['sign-elements']['signature-width'],
 			stencilBaseHeight: getCapabilities().libresign.config['sign-elements']['signature-height'],
 		}
@@ -89,7 +148,26 @@ export default {
 		hasImage() {
 			return !!this.image
 		},
-		stencilSize() {
+		zoomPercentValue: {
+			get() {
+				return Math.round(this.zoomLevel * 100)
+			},
+			set(value) {
+				this.onZoomPercentChange(value)
+			},
+		},
+		stencilAspectRatio() {
+			if (!this.stencilBaseWidth || !this.stencilBaseHeight) {
+				return undefined
+			}
+			return this.stencilBaseWidth / this.stencilBaseHeight
+		},
+		stencilProps() {
+			return {
+				aspectRatio: this.stencilAspectRatio,
+			}
+		},
+		defaultStencilSize() {
 			if (!this.containerWidth) {
 				return {
 					width: this.stencilBaseWidth,
@@ -107,8 +185,9 @@ export default {
 	mounted() {
 		this.updateContainerWidth()
 		if (window.ResizeObserver) {
-			this.resizeObserver = new ResizeObserver(() => this.updateContainerWidth())
-			this.resizeObserver.observe(this.$refs.cropperContainer)
+			this.$nextTick(() => {
+				this.initResizeObserver()
+			})
 		} else {
 			window.addEventListener('resize', this.updateContainerWidth)
 		}
@@ -118,33 +197,120 @@ export default {
 		window.removeEventListener('resize', this.updateContainerWidth)
 	},
 	methods: {
+		initResizeObserver() {
+			if (!window.ResizeObserver || !this.$refs.cropperContainer) {
+				return
+			}
+			if (!this.resizeObserver) {
+				this.resizeObserver = new ResizeObserver(() => this.updateContainerWidth())
+			} else {
+				this.resizeObserver.disconnect()
+			}
+			this.resizeObserver.observe(this.$refs.cropperContainer)
+		},
 		updateContainerWidth() {
 			this.containerWidth = this.$refs.cropperContainer?.offsetWidth || 0
 		},
-		fileSelect(ev) {
-			this.loading = true
-			const fr = new FileReader()
-
-			const done = () => {
-				this.$nextTick(() => {
-					this.loading = true
-				})
+		updateZoomLevel(result) {
+			if (result) {
+				this.updateZoomLevelFromResult(result)
+				return
 			}
+			const cropper = this.$refs.cropper
+			if (!cropper?.getResult) {
+				return
+			}
+			this.updateZoomLevelFromResult(cropper.getResult())
+		},
+		updateZoomLevelFromResult(result) {
+			const visibleWidth = result?.visibleArea?.width
+			const imageWidth = result?.image?.width
+			if (!Number.isFinite(visibleWidth) || !Number.isFinite(imageWidth) || visibleWidth <= 0) {
+				return
+			}
+			const nextZoom = imageWidth / visibleWidth
+			if (Number.isFinite(nextZoom) && nextZoom > 0) {
+				this.zoomLevel = Math.min(this.zoomMax, Math.max(this.zoomMin, nextZoom))
+			}
+		},
+		zoomBy(factor) {
+			const cropper = this.$refs.cropper
+			if (!cropper?.zoom || !Number.isFinite(factor) || factor <= 0) {
+				return
+			}
+			cropper.zoom(factor)
+			this.$nextTick(() => this.updateZoomLevel())
+		},
+		setZoomLevel(targetZoom) {
+			const clamped = Math.min(this.zoomMax, Math.max(this.zoomMin, targetZoom))
+			const factor = clamped / (this.zoomLevel || 1)
+			if (!Number.isFinite(factor) || Math.abs(factor - 1) < 0.001) {
+				return
+			}
+			this.zoomBy(factor)
+		},
+		fitToArea() {
+			const cropper = this.$refs.cropper
+			if (!cropper?.move || !cropper?.getResult) {
+				this.setZoomLevel(1)
+				return
+			}
+			this.pendingFitCenter = true
+			this.setZoomLevel(1)
+		},
+		zoomIn() {
+			this.setZoomLevel(this.zoomLevel + this.zoomStep)
+		},
+		zoomOut() {
+			this.setZoomLevel(this.zoomLevel - this.zoomStep)
+		},
+		onZoomPercentChange(value) {
+			const raw = Number.parseFloat(value)
+			if (!Number.isFinite(raw)) {
+				return
+			}
+			this.setZoomLevel(raw / 100)
+		},
+		fileSelect(ev) {
+			const fr = new FileReader()
 
 			fr.addEventListener('load', () => {
 				this.image = fr.result
-				done()
 			})
 
 			fr.addEventListener('error', (err) => {
 				console.error(err)
-				done()
 			})
 
 			fr.readAsDataURL(ev.target.files[0])
 		},
-		change({ canvas }) {
-			this.imageData = canvas.toDataURL('image/png')
+		centerImage(result) {
+			const cropper = this.$refs.cropper
+			if (!cropper?.move) {
+				return
+			}
+			const visible = result?.visibleArea
+			const image = result?.image
+			if (!visible || !image) {
+				return
+			}
+			const targetLeft = Math.max(0, (image.width - visible.width) / 2)
+			const targetTop = Math.max(0, (image.height - visible.height) / 2)
+			const deltaX = targetLeft - visible.left
+			const deltaY = targetTop - visible.top
+			if (Number.isFinite(deltaX) && Number.isFinite(deltaY) && (Math.abs(deltaX) > 0.5 || Math.abs(deltaY) > 0.5)) {
+				cropper.move(deltaX, deltaY)
+			}
+		},
+		change(result) {
+			if (result?.canvas) {
+				this.imageData = result.canvas.toDataURL('image/png')
+			}
+			this.updateZoomLevel(result)
+			if (this.pendingFitCenter && Math.abs(this.zoomLevel - 1) < 0.02) {
+				this.centerImage(result)
+				this.pendingFitCenter = false
+			}
 		},
 		saveSignature() {
 			this.modal = false
@@ -160,6 +326,21 @@ export default {
 			this.$emit('close')
 		},
 	},
+	watch: {
+		hasImage(value) {
+			if (value) {
+				this.$nextTick(() => {
+					this.updateContainerWidth()
+					this.initResizeObserver()
+				})
+				return
+			}
+			this.resizeObserver?.disconnect()
+			this.containerWidth = 0
+			this.zoomLevel = 1
+			this.pendingFitCenter = false
+		},
+	},
 }
 </script>
 
@@ -169,43 +350,96 @@ export default {
 	flex-direction: column;
 	gap: 12px;
 	padding: 8px 0;
+
 	> img {
 		max-width: 100%;
 	}
-	.action-buttons{
-		justify-content: end;
+
+	.action-buttons {
 		display: flex;
-		box-sizing: border-box;
 		grid-gap: 10px;
+		justify-content: end;
+		box-sizing: border-box;
 		margin-top: 4px;
 	}
-}
 
-.cropper-container {
-	width: 100%;
-	overflow: auto;
-}
+	.cropper-container {
+		width: 100%;
+		overflow: visible;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		box-shadow: none;
+	}
 
-.file-input-container {
-	margin-bottom: 0;
+	.zoom-controls {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-top: 8px;
+	}
+
+	.zoom-level {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+	}
+
+	:dir(rtl) .zoom-level {
+		flex-direction: row-reverse;
+	}
+
+	.zoom-field {
+		width: 100px;
+	}
+
+	.zoom-suffix {
+		font-size: 13px;
+		color: var(--color-text-maxcontrast);
+	}
+
+	.zoom-hint {
+		margin: 4px 0 0;
+		font-size: 12px;
+		color: var(--color-text-maxcontrast);
+	}
+
+	.confirm-preview {
+		display: flex;
+		justify-content: center;
+		width: 100%;
+	}
+
+	.confirm-preview__image {
+		display: block;
+		max-width: 100%;
+		margin: 0 auto;
+	}
+
+	.file-input-container {
+		margin-bottom: 5px;
+
+		input[type='file'] {
+			display: none;
+		}
+	}
+
+	img {
+		padding: 20px;
+
+		@media screen and (max-width: 650px) {
+			width: 100%;
+		}
+	}
 }
 
 :global(.draw-file-input .vue-advanced-cropper) {
 	max-width: none !important;
 }
 
-.file-input-container {
-	margin-bottom: 5px;
-
-	input[type='file'] {
-		display: none;
-	}
-}
-img{
-	padding: 20px;
-
-	@media screen and (max-width: 650px){
-		width: 100%;
-	}
+:deep(.confirm-dialog__content) {
+	display: flex;
+	justify-content: center;
 }
 </style>
