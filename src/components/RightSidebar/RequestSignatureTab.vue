@@ -809,15 +809,36 @@ export default {
 			this.modalSrc = ''
 			this.filesStore.flushSelectedFile()
 		},
-		validationFile() {
+		getValidationFileUuid() {
 			const file = this.filesStore.getFile()
+
+			if (file?.uuid) {
+				return file.uuid
+			}
+
 			const signer = file?.signers?.find(row => row.me) || file?.signers?.[0] || {}
-			const targetUuid = file?.signUuid
-				|| file?.sign_uuid
-				|| file?.signRequestUuid
-				|| file?.sign_request_uuid
-				|| signer.sign_uuid
-				|| loadState('libresign', 'sign_request_uuid', null)
+			if (signer?.sign_uuid) {
+				return signer.sign_uuid
+			}
+
+			const loadedUuid = loadState('libresign', 'sign_request_uuid', null)
+			if (loadedUuid) {
+				return loadedUuid
+			}
+
+			if (file?.id) {
+				return file.id
+			}
+
+			return null
+		},
+		validationFile() {
+			const targetUuid = this.getValidationFileUuid()
+
+			if (!targetUuid) {
+				showError(this.t('libresign', 'Document not found'))
+				return
+			}
 
 			if (this.useModal) {
 				const route = router.resolve({ name: 'ValidationFileExternal', params: { uuid: targetUuid } })
