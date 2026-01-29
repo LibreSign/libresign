@@ -61,6 +61,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param array<string, mixed> $elements List of visible elements
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
+	 * @param bool $async Execute signing asynchronously when possible
 	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message?: string, file?: array{uuid: string}, job?: array{status: 'SIGNING_IN_PROGRESS', file: array{uuid: string}}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}>
 	 *
 	 * 200: OK
@@ -72,8 +73,8 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[RequireManager]
 	#[PublicPage]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/file_id/{fileId}', requirements: ['apiVersion' => '(v1)'])]
-	public function signUsingFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = ''): DataResponse {
-		return $this->sign($method, $elements, $identifyValue, $token, $fileId, null);
+	public function signUsingFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false): DataResponse {
+		return $this->sign($method, $elements, $identifyValue, $token, $fileId, null, $async);
 	}
 
 	/**
@@ -84,6 +85,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param array<string, mixed> $elements List of visible elements
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
+	 * @param bool $async Execute signing asynchronously when possible
 	 * @return DataResponse<Http::STATUS_OK, array{action: integer, message?: string, file?: array{uuid: string}, job?: array{status: 'SIGNING_IN_PROGRESS', file: array{uuid: string}}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: integer, errors: list<array{message: string, title?: string}>, redirect?: string}, array{}>
 	 *
 	 * 200: OK
@@ -95,8 +97,8 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[RequireSigner]
 	#[PublicPage]
 	#[ApiRoute(verb: 'POST', url: '/api/{apiVersion}/sign/uuid/{uuid}', requirements: ['apiVersion' => '(v1)'])]
-	public function signUsingUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = ''): DataResponse {
-		return $this->sign($method, $elements, $identifyValue, $token, null, $uuid);
+	public function signUsingUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = '', bool $async = false): DataResponse {
+		return $this->sign($method, $elements, $identifyValue, $token, null, $uuid, $async);
 	}
 
 	/**
@@ -109,6 +111,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		string $token = '',
 		?int $fileId = null,
 		?string $signRequestUuid = null,
+		bool $async = false,
 	): DataResponse {
 		try {
 			$user = $this->userSession->getUser();
@@ -136,7 +139,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				$method,
 			);
 
-			if ($this->workerHealthService->isAsyncLocalEnabled()) {
+			if ($async && $this->workerHealthService->isAsyncLocalEnabled()) {
 				return $this->signAsync($libreSignFile, $signRequest, $user, $userIdentifier, $method, $token, $elements, $metadata);
 			}
 
