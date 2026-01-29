@@ -17,11 +17,13 @@ use OCA\Libresign\Db\IdDocsMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
@@ -45,6 +47,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private UserElementMapper&MockObject $userElementMapper;
 	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
 	private IdentifyMethodService&MockObject $identifyMethodService;
+	private SequentialSigningService&MockObject $sequentialSigningService;
 	private SignerElementsService&MockObject $signerElementsService;
 	private IMimeTypeDetector $mimeTypeDetector;
 	private IHasher&MockObject $hasher;
@@ -66,6 +69,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->sequentialSigningService = $this->createMock(SequentialSigningService::class);
 		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->mimeTypeDetector = \OCP\Server::get(IMimeTypeDetector::class);
 		$this->hasher = $this->createMock(IHasher::class);
@@ -86,6 +90,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->userElementMapper,
 			$this->identifyMethodMapper,
 			$this->identifyMethodService,
+			$this->sequentialSigningService,
 			$this->signerElementsService,
 			$this->mimeTypeDetector,
 			$this->hasher,
@@ -95,6 +100,63 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->root,
 		);
 		return $validateHelper;
+	}
+
+	#[DataProvider('validateSignerLowerOrderScenarios')]
+	public function testValidateSignerBlocksWhenLowerOrderPending(
+		bool $isOrderedFlow,
+		bool $hasPendingLowerOrder,
+		bool $expectsBlock,
+	): void {
+		$uuid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+		$signRequest = new \OCA\Libresign\Db\SignRequest();
+		$file = new \OCA\Libresign\Db\File();
+
+		$this->signRequestMapper
+			->method('getByUuid')
+			->with($uuid)
+			->willReturn($signRequest);
+		$this->fileMapper
+			->method('getById')
+			->willReturn($file);
+
+		$signRequest->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
+		$signRequest->setId(99);
+		$signRequest->setFileId(10);
+		$signRequest->setSigningOrder(3);
+
+		$this->identifyMethodService
+			->method('getIdentifyMethodsFromSignRequestId')
+			->willReturn([]);
+
+		$this->sequentialSigningService
+			->expects($this->once())
+			->method('setFile')
+			->with($file);
+		$this->sequentialSigningService
+			->method('isOrderedNumericFlow')
+			->willReturn($isOrderedFlow);
+		$this->sequentialSigningService
+			->method('hasPendingLowerOrderSigners')
+			->with(10, 3)
+			->willReturn($hasPendingLowerOrder);
+
+		if ($expectsBlock) {
+			$this->expectException(LibresignException::class);
+		}
+
+		$this->getValidateHelper()->validateSigner($uuid);
+		if (!$expectsBlock) {
+			$this->assertTrue(true);
+		}
+	}
+
+	public static function validateSignerLowerOrderScenarios(): array {
+		return [
+			'ordered_pending' => [true, true, true],
+			'ordered_no_pending' => [true, false, false],
+			'parallel_pending' => [false, true, false],
+		];
 	}
 
 	public function testValidateFileWithoutAllNecessaryData():void {
