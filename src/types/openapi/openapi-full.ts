@@ -1559,6 +1559,10 @@ export type components = {
                 envelope: {
                     "is-available": boolean;
                 };
+                upload: {
+                    /** Format: int64 */
+                    "max-file-uploads": number;
+                };
             };
             version: string;
         };
