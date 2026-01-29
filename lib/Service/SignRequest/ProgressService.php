@@ -100,12 +100,20 @@ class ProgressService {
 		$initialProgress = $this->getSignRequestProgress($file, $signRequest);
 		$initialHash = $this->buildProgressHash($initialProgress);
 
+		if ($cachedStatus !== false && $cachedStatus !== null && (int)$cachedStatus !== $initialStatus) {
+			return (int)$cachedStatus;
+		}
+
 		for ($elapsed = 0; $elapsed < $timeout; $elapsed += $interval) {
 			if (!empty($errorUuids) && $this->hasAnySignRequestError($errorUuids)) {
 				return $initialStatus;
 			}
 
 			$newCachedStatus = $this->statusCacheService->getStatus($statusUuid);
+			if ($newCachedStatus !== $cachedStatus && $newCachedStatus !== false && $newCachedStatus !== null) {
+				return (int)$newCachedStatus;
+			}
+
 			$currentProgress = $this->getSignRequestProgress($file, $signRequest);
 			$currentHash = $this->buildProgressHash($currentProgress);
 
@@ -113,10 +121,6 @@ class ProgressService {
 				return $newCachedStatus !== false && $newCachedStatus !== null
 					? (int)$newCachedStatus
 					: $initialStatus;
-			}
-
-			if ($newCachedStatus !== $cachedStatus && $newCachedStatus !== false) {
-				return (int)$newCachedStatus;
 			}
 
 			if ($intervalSeconds > 0) {
