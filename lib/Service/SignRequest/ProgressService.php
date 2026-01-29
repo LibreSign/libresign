@@ -99,26 +99,9 @@ class ProgressService {
 		$interval = max(1, $intervalSeconds);
 		$initialProgress = $this->getSignRequestProgress($file, $signRequest);
 		$initialHash = $this->buildProgressHash($initialProgress);
-		\OC::$server->get(\Psr\Log\LoggerInterface::class)->debug(
-			'LIBRESIGN_POLL start statusUuid={statusUuid} initialStatus={initialStatus} cachedStatus={cachedStatus} initialHash={initialHash}',
-			[
-				'statusUuid' => $statusUuid,
-				'initialStatus' => $initialStatus,
-				'cachedStatus' => $cachedStatus,
-				'initialHash' => $initialHash,
-				'isEnvelope' => $file->getNodeType() === 'envelope',
-			]
-		);
 
 		for ($elapsed = 0; $elapsed < $timeout; $elapsed += $interval) {
 			if (!empty($errorUuids) && $this->hasAnySignRequestError($errorUuids)) {
-				\OC::$server->get(\Psr\Log\LoggerInterface::class)->debug(
-					'LIBRESIGN_POLL stop reason=error elapsed={elapsed} statusUuid={statusUuid}',
-					[
-						'elapsed' => $elapsed,
-						'statusUuid' => $statusUuid,
-					]
-				);
 				return $initialStatus;
 			}
 
@@ -127,32 +110,12 @@ class ProgressService {
 			$currentHash = $this->buildProgressHash($currentProgress);
 
 			if ($currentHash !== $initialHash) {
-				\OC::$server->get(\Psr\Log\LoggerInterface::class)->debug(
-					'LIBRESIGN_POLL stop reason=progressChanged elapsed={elapsed} statusUuid={statusUuid} initialHash={initialHash} currentHash={currentHash} cachedStatus={cachedStatus} newCachedStatus={newCachedStatus}',
-					[
-						'elapsed' => $elapsed,
-						'statusUuid' => $statusUuid,
-						'initialHash' => $initialHash,
-						'currentHash' => $currentHash,
-						'cachedStatus' => $cachedStatus,
-						'newCachedStatus' => $newCachedStatus,
-					]
-				);
 				return $newCachedStatus !== false && $newCachedStatus !== null
 					? (int)$newCachedStatus
 					: $initialStatus;
 			}
 
 			if ($newCachedStatus !== $cachedStatus && $newCachedStatus !== false) {
-				\OC::$server->get(\Psr\Log\LoggerInterface::class)->debug(
-					'LIBRESIGN_POLL stop reason=cacheChanged elapsed={elapsed} statusUuid={statusUuid} cachedStatus={cachedStatus} newCachedStatus={newCachedStatus}',
-					[
-						'elapsed' => $elapsed,
-						'statusUuid' => $statusUuid,
-						'cachedStatus' => $cachedStatus,
-						'newCachedStatus' => $newCachedStatus,
-					]
-				);
 				return (int)$newCachedStatus;
 			}
 
@@ -161,13 +124,6 @@ class ProgressService {
 			}
 		}
 
-		\OC::$server->get(\Psr\Log\LoggerInterface::class)->debug(
-			'LIBRESIGN_POLL stop reason=timeout statusUuid={statusUuid} timeout={timeout}',
-			[
-				'statusUuid' => $statusUuid,
-				'timeout' => $timeout,
-			]
-		);
 		return $initialStatus;
 	}
 
