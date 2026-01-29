@@ -10,7 +10,6 @@ namespace OCA\Libresign\Service;
 
 use OCA\Libresign\BackgroundJob\SignFileJob;
 use OCA\Libresign\Db\File as LibreSignFile;
-use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Service\Worker\WorkerHealthService;
@@ -24,7 +23,7 @@ class AsyncSigningService {
 		private IJobList $jobList,
 		private ICredentialsManager $credentialsManager,
 		private ISecureRandom $secureRandom,
-		private FileMapper $fileMapper,
+		private FileStatusService $fileStatusService,
 		private WorkerHealthService $workerHealthService,
 	) {
 	}
@@ -43,7 +42,8 @@ class AsyncSigningService {
 		array $visibleElements,
 		array $metadata,
 	): array {
-		$this->updateFileStatus($libreSignFile);
+		$libreSignFile->setStatus(FileStatus::SIGNING_IN_PROGRESS->value);
+		$this->fileStatusService->update($libreSignFile);
 		$credentialsId = $this->storeCredentials($signRequest, $user, $signWithoutPassword, $password);
 
 		$this->jobList->add(SignFileJob::class, [
@@ -65,14 +65,6 @@ class AsyncSigningService {
 			'credentialsId' => $credentialsId,
 			'jobAdded' => true,
 		];
-	}
-
-	private function updateFileStatus(LibreSignFile $libreSignFile): void {
-		$libreSignFile->setStatusEnum(FileStatus::SIGNING_IN_PROGRESS);
-		$metadata = $libreSignFile->getMetadata() ?? [];
-		$metadata['status_changed_at'] = (new \DateTime())->format(\DateTimeInterface::ATOM);
-		$libreSignFile->setMetadata($metadata);
-		$this->fileMapper->update($libreSignFile);
 	}
 
 	private function storeCredentials(
