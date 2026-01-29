@@ -35,7 +35,7 @@ export default {
 	},
 	methods: {
 		saveEnvelopeEnabled() {
-			OCP.AppConfig.setValue('libresign', 'envelope_enabled', this.envelopeEnabled ? 1 : 0, {
+			OCP.AppConfig.setValue('libresign', 'envelope_enabled', this.envelopeEnabled ? '1' : '0', {
 				success: () => {
 					emit('envelope:changed')
 				},
