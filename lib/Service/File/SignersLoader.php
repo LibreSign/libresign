@@ -400,6 +400,10 @@ class SignersLoader {
 			$signer->signatureTypeSN = $endEntityCert['signatureTypeSN'];
 		}
 
+		if (isset($endEntityCert['subject']) && !isset($signer->subject)) {
+			$signer->subject = $endEntityCert['subject'];
+		}
+
 		if (isset($endEntityCert['crl_urls']) && !isset($signer->crl_urls)) {
 			$signer->crl_urls = $endEntityCert['crl_urls'];
 		}
