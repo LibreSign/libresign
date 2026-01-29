@@ -10,6 +10,7 @@ namespace OCA\Libresign\Service\SignRequest;
 
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -66,7 +67,10 @@ class SignRequestService {
 		$isNewSignRequest = !$signRequest->getId();
 		$currentStatus = $signRequest->getStatusEnum();
 
-		if ($isNewSignRequest || $currentStatus === \OCA\Libresign\Enum\SignRequestStatus::DRAFT || $currentStatus === \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN) {
+		if ($isNewSignRequest
+			|| $currentStatus === SignRequestStatus::DRAFT
+			|| $currentStatus === SignRequestStatus::ABLE_TO_SIGN
+		) {
 			$desiredStatus = $this->signRequestStatusService->determineInitialStatus(
 				$signingOrder,
 				$fileId,
