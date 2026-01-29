@@ -10,7 +10,6 @@
 		class="signers-list"
 		chosenClass="signer-dragging"
 		dragClass="signer-drag-ghost"
-		@start="onDragStart"
 		@end="onDragEnd">
 		<transition-group name="signer-list" tag="div">
 			<Signer v-for="(signer, index) in sortableSigners"
@@ -41,13 +40,10 @@ import { loadState } from '@nextcloud/initial-state'
 import draggable from 'vuedraggable'
 
 import Signer from './Signer.vue'
-import signingOrderMixin from '../../mixins/signingOrderMixin.js'
-
 import { useFilesStore } from '../../store/files.js'
 
 export default {
 	name: 'Signers',
-	mixins: [signingOrderMixin],
 	components: {
 		Signer,
 		draggable,
@@ -62,11 +58,6 @@ export default {
 	setup() {
 		const filesStore = useFilesStore()
 		return { filesStore }
-	},
-	data() {
-		return {
-			originalOrders: [],
-		}
 	},
 	computed: {
 		signers() {
@@ -97,10 +88,6 @@ export default {
 		},
 	},
 	methods: {
-		onDragStart() {
-			const file = this.filesStore.getFile()
-			this.originalOrders = file.signers.map(s => s.signingOrder)
-		},
 		onDragEnd(evt) {
 			const { oldIndex, newIndex } = evt
 			if (oldIndex === newIndex) {
@@ -108,14 +95,9 @@ export default {
 			}
 
 			const file = this.filesStore.getFile()
-			const signers = file.signers
-
-			this.recalculateSigningOrders(signers, newIndex, this.originalOrders, oldIndex)
-
-			const sorted = [...file.signers].sort((a, b) => {
-				return (a.signingOrder || 999) - (b.signingOrder || 999)
+			file.signers.forEach((signer, index) => {
+				this.$set(signer, 'signingOrder', index + 1)
 			})
-			this.$set(file, 'signers', sorted)
 
 			this.$emit('signing-order-changed')
 		},
