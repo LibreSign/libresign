@@ -109,9 +109,9 @@ import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import UploadIcon from 'vue-material-design-icons/Upload.vue'
 
 import { getCapabilities } from '@nextcloud/capabilities'
+import { loadState } from '@nextcloud/initial-state'
 import { showError } from '@nextcloud/dialogs'
 import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
-import { loadState } from '@nextcloud/initial-state'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -223,6 +223,18 @@ export default {
 		},
 	},
 	methods: {
+		getMaxFileUploads() {
+			const capabilitiesMax = getCapabilities()?.libresign?.config?.upload?.['max-file-uploads']
+			return Number.isFinite(capabilitiesMax) && capabilitiesMax > 0 ? Math.floor(capabilitiesMax) : 20
+		},
+		validateMaxFileUploads(filesCount) {
+			const maxFileUploads = this.getMaxFileUploads()
+			if (filesCount > maxFileUploads) {
+				showError(t('libresign', 'You can upload at most {max} files at once.', { max: maxFileUploads }))
+				return false
+			}
+			return true
+		},
 		handleEnvelopeNameSubmit() {
 			const trimmedName = this.envelopeNameInput.trim()
 			if (trimmedName.length >= ENVELOPE_NAME_MIN_LENGTH && this.pendingFiles.length > 0) {
@@ -250,6 +262,10 @@ export default {
 			this.loading = false
 		},
 		async upload(files, envelopeName = null) {
+			if (!this.validateMaxFileUploads(files.length)) {
+				return
+			}
+
 			this.loading = true
 			this.isUploading = true
 			this.uploadProgress = 0
@@ -318,10 +334,14 @@ export default {
 			const input = document.createElement('input')
 			input.accept = 'application/pdf'
 			input.type = 'file'
-			input.multiple = this.envelopeEnabled
+			input.multiple = this.envelopeEnabled && this.getMaxFileUploads() > 1
 
 			input.onchange = async (ev) => {
 				const files = Array.from(ev.target.files)
+				if (!this.validateMaxFileUploads(files.length)) {
+					input.remove()
+					return
+				}
 
 				if (files.length > 1 && this.envelopeEnabled) {
 					this.pendingFiles = files
