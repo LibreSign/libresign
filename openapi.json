@@ -8288,6 +8288,11 @@
                                         "type": "string",
                                         "default": "",
                                         "description": "Token, commonly send by email"
+                                    },
+                                    "async": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "Execute signing asynchronously when possible"
                                     }
                                 }
                             }
@@ -8518,6 +8523,11 @@
                                         "type": "string",
                                         "default": "",
                                         "description": "Token, commonly send by email"
+                                    },
+                                    "async": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "Execute signing asynchronously when possible"
                                     }
                                 }
                             }

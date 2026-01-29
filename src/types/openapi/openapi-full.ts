@@ -4769,6 +4769,11 @@ export interface operations {
                      * @default
                      */
                     token?: string;
+                    /**
+                     * @description Execute signing asynchronously when possible
+                     * @default false
+                     */
+                    async?: boolean;
                 };
             };
         };
@@ -4932,6 +4937,11 @@ export interface operations {
                      * @default
                      */
                     token?: string;
+                    /**
+                     * @description Execute signing asynchronously when possible
+                     * @default false
+                     */
+                    async?: boolean;
                 };
             };
         };
