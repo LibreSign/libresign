@@ -620,6 +620,18 @@ export const useFilesStore = function(...args) {
 				}
 
 				const responseFile = response.data?.ocs?.data
+				if (responseFile?.signatureFlow === 'ordered_numeric' && Array.isArray(responseFile.signers)) {
+					const indexedSigners = responseFile.signers.map((signer, index) => ({ signer, index }))
+					indexedSigners.sort((a, b) => {
+						const orderA = a.signer.signingOrder || 999
+						const orderB = b.signer.signingOrder || 999
+						if (orderA === orderB) {
+							return a.index - b.index
+						}
+						return orderA - orderB
+					})
+					responseFile.signers = indexedSigners.map(({ signer }) => signer)
+				}
 
 				if (file.nodeType === 'envelope' && typeof file.nodeId === 'string' && responseFile.nodeId !== file.nodeId) {
 					delete this.files[this.selectedFileId]
