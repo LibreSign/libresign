@@ -27,6 +27,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\IMimeTypeDetector;
@@ -63,6 +64,7 @@ class ValidateHelper {
 		private UserElementMapper $userElementMapper,
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private IdentifyMethodService $identifyMethodService,
+		private SequentialSigningService $sequentialSigningService,
 		private SignerElementsService $signerElementsService,
 		private IMimeTypeDetector $mimeTypeDetector,
 		private IHasher $hasher,
@@ -695,6 +697,9 @@ class ValidateHelper {
 		$signRequest = $this->signRequestMapper->getByUuid($uuid);
 		$status = $signRequest->getStatusEnum();
 
+		$file = $this->fileMapper->getById($signRequest->getFileId());
+		$this->sequentialSigningService->setFile($file);
+
 		if ($status === \OCA\Libresign\Enum\SignRequestStatus::DRAFT) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
@@ -706,6 +711,19 @@ class ValidateHelper {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [['message' => $this->l10n->t('Document already signed')]],
+			]));
+		}
+
+		if (
+			$this->sequentialSigningService->isOrderedNumericFlow()
+			&& $this->sequentialSigningService->hasPendingLowerOrderSigners(
+				$signRequest->getFileId(),
+				$signRequest->getSigningOrder()
+			)
+		) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [['message' => $this->l10n->t('You are not allowed to sign this document yet')]],
 			]));
 		}
 	}
