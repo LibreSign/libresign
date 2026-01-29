@@ -66,7 +66,7 @@ class SignRequestService {
 		$isNewSignRequest = !$signRequest->getId();
 		$currentStatus = $signRequest->getStatusEnum();
 
-		if ($isNewSignRequest || $currentStatus === \OCA\Libresign\Enum\SignRequestStatus::DRAFT) {
+		if ($isNewSignRequest || $currentStatus === \OCA\Libresign\Enum\SignRequestStatus::DRAFT || $currentStatus === \OCA\Libresign\Enum\SignRequestStatus::ABLE_TO_SIGN) {
 			$desiredStatus = $this->signRequestStatusService->determineInitialStatus(
 				$signingOrder,
 				$fileId,
