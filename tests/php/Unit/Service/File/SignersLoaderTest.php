@@ -309,4 +309,240 @@ final class SignersLoaderTest extends TestCase {
 		$this->assertTrue(isset($signer->chain));
 		$this->assertTrue(isset($signer->name));
 	}
+
+	public function testLoadSignersFromCertDataPreventsDuplicateFormattedDates(): void {
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('Signed');
+		$this->identifyMethodService->expects($this->never())->method('resolveUid');
+
+		$fileData = new \stdClass();
+
+		$certData = [
+			[
+				'signingTime' => new DateTime('2026-01-28T23:58:51Z'),
+				'chain' => [
+					[
+						'name' => '/C=BR/ST=RJ/L=Rio de Janeiro/O=LibreCode/OU=Libresign, libresign-ca-id:g0sm1ngk87_g:29_e:o/UID=email:leon@example.com/CN=Leon Green (leon@example.com)',
+						'subject' => [
+							'C' => 'BR',
+							'ST' => 'RJ',
+							'L' => 'Rio de Janeiro',
+							'O' => 'LibreCode',
+							'OU' => ['Libresign', 'libresign-ca-id:g0sm1ngk87_g:29_e:o'],
+							'UID' => 'email:leon@example.com',
+							'CN' => 'Leon Green (leon@example.com)',
+						],
+						'hash' => '97f8c8c6',
+						'issuer' => [
+							'C' => 'BR',
+							'ST' => 'RJ',
+							'L' => 'Rio de Janeiro',
+							'O' => 'LibreCode',
+							'OU' => ['Libresign', 'libresign-ca-id:g0sm1ngk87_g:29_e:o'],
+							'CN' => 'LibreSign',
+						],
+						'version' => 2,
+						'serialNumber' => '3953192966914338552',
+						'serialNumberHex' => '36DC900EF9806EF8',
+						'validFrom' => '260128235851Z',
+						'validTo' => '260129235851Z',
+						'validFrom_time_t' => 1769644731,
+						'validTo_time_t' => 1769731131,
+						'signatureTypeSN' => 'RSA-SHA256',
+						'signatureTypeLN' => 'sha256WithRSAEncryption',
+						'signatureTypeNID' => 668,
+						'purposes' => [
+							'1' => [true, false, 'sslclient'],
+							'2' => [false, false, 'sslserver'],
+						],
+						'extensions' => [
+							'basicConstraints' => 'CA:FALSE',
+							'keyUsage' => 'Digital Signature, Non Repudiation, Key Encipherment',
+						],
+						// Backend already formatted these dates - this is the problem!
+						'valid_from' => 'January 28, 2026, 11:58:51 PM',
+						'valid_to' => 'January 29, 2026, 11:58:51 PM',
+						'crl_urls' => ['http://localhost/index.php/apps/libresign/crl/libresign_g0sm1ngk87_29_o.crl'],
+						'crl_validation' => 'revoked',
+						'crl_revoked_at' => '2026-01-28T23:58:53+00:00',
+						'signature_validation' => ['id' => 1, 'label' => 'Signature is valid.'],
+						'isLibreSignRootCA' => true,
+					],
+				],
+				'docmdp' => [
+					'level' => 0,
+					'label' => 'No certification',
+					'isCertifying' => false,
+				],
+			],
+		];
+
+		$this->getService()->loadSignersFromCertData($fileData, $certData, 'localhost');
+
+		$this->assertCount(1, $fileData->signers);
+		$signer = $fileData->signers[0];
+
+		// Chain should have ISO formatted dates
+		$this->assertSame('2026-01-28T23:58:51+00:00', $signer->chain[0]['valid_from']);
+		$this->assertSame('2026-01-29T23:58:51+00:00', $signer->chain[0]['valid_to']);
+
+		// Root level should NOT have the formatted dates from backend
+		// These fields should only exist in the chain, not duplicated at root level
+		$this->assertObjectNotHasProperty('valid_from', $signer, 'valid_from should not be copied to root level');
+		$this->assertObjectNotHasProperty('valid_to', $signer, 'valid_to should not be copied to root level');
+
+		// Also verify other technical fields are not duplicated
+		$this->assertObjectNotHasProperty('validFrom_time_t', $signer);
+		$this->assertObjectNotHasProperty('validTo_time_t', $signer);
+		$this->assertObjectNotHasProperty('purposes', $signer);
+		$this->assertObjectNotHasProperty('extensions', $signer);
+		$this->assertObjectNotHasProperty('version', $signer);
+		$this->assertObjectNotHasProperty('signatureTypeNID', $signer);
+		$this->assertObjectNotHasProperty('signatureTypeLN', $signer);
+
+		// But essential fields should be present
+		$this->assertSame('97f8c8c6', $signer->hash);
+		$this->assertSame('email:leon@example.com', $signer->uid);
+		$this->assertSame('2026-01-28T23:58:51+00:00', $signer->signed);
+	}
+
+	#[DataProvider('dataLoadSignersFromCertDataEdgeCases')]
+	public function testLoadSignersFromCertDataEdgeCases(
+		?array $existingSigners,
+		array $certData,
+		string $description,
+		array $assertions,
+	): void {
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('Signed');
+		$this->identifyMethodService->expects($this->never())->method('resolveUid');
+
+		$fileData = new \stdClass();
+		if ($existingSigners !== null) {
+			$fileData->signers = $existingSigners;
+		}
+
+		$this->getService()->loadSignersFromCertData($fileData, $certData, 'localhost');
+
+		foreach ($assertions as $assertion) {
+			$assertion($fileData->signers);
+		}
+	}
+
+	public static function dataLoadSignersFromCertDataEdgeCases(): array {
+		return [
+			'LibreSign UID without prefix' => [
+				null,
+				[
+					[
+						'chain' => [
+							[
+								'isLibreSignRootCA' => true,
+								'name' => '/C=BR/UID=admin/CN=admin',
+								'subject' => [
+									'C' => 'BR',
+									'UID' => 'admin',  // No prefix
+									'CN' => 'admin',
+								],
+								'issuer' => ['CN' => 'LibreSign'],
+								'hash' => 'abc123',
+							],
+						],
+						'signingTime' => new DateTime('2026-01-28T19:56:57Z'),
+					],
+				],
+				'UID without prefix should have account: added',
+				[
+					function (array $signers) {
+						assert(isset($signers[0]), 'signer should exist');
+						assert($signers[0]->uid === 'account:admin', "uid should be 'account:admin', got {$signers[0]->uid}");
+					},
+				],
+			],
+			'chain with multiple certificates' => [
+				null,
+				[
+					[
+						'chain' => [
+							[
+								'name' => 'End-Entity Cert',
+								'subject' => [
+									'CN' => 'User',
+									'UID' => 'email:user@example.com',
+								],
+								'hash' => 'endentity123',
+								'serialNumber' => '111',
+								'isLibreSignRootCA' => true,
+								'crl_validation' => 'valid',
+								'validFrom_time_t' => 1609459200,  // 2021-01-01
+								'validTo_time_t' => 1640995200,    // 2022-01-01
+							],
+							[
+								'name' => 'CA Cert',
+								'subject' => ['CN' => 'LibreSign'],
+								'hash' => 'cacert456',
+								'serialNumber' => '222',
+								'validFrom_time_t' => 1577836800,  // 2020-01-01
+								'validTo_time_t' => 1672531200,    // 2023-01-01
+							],
+						],
+						'signingTime' => new DateTime('2026-01-28T19:56:57Z'),
+					],
+				],
+				'only end-entity (chain[0]) fields should enrich root',
+				[
+					function (array $signers) {
+						$signer = $signers[0];
+						assert($signer->hash === 'endentity123', 'root hash should be from chain[0]');
+						assert($signer->serialNumber === '111', 'root serialNumber should be from chain[0]');
+						assert($signer->crl_validation === 'valid', 'root crl_validation should be from chain[0]');
+						assert($signer->chain[1]['hash'] === 'cacert456', 'chain[1] should retain its hash');
+						assert($signer->chain[1]['serialNumber'] === '222', 'chain[1] should retain its serialNumber');
+					},
+					function (array $signers) {
+						$signer = $signers[0];
+						assert($signer->chain[0]['valid_from'] === '2021-01-01T00:00:00+00:00', 'chain[0] valid_from should be ISO');
+						assert($signer->chain[0]['valid_to'] === '2022-01-01T00:00:00+00:00', 'chain[0] valid_to should be ISO');
+						assert($signer->chain[1]['valid_from'] === '2020-01-01T00:00:00+00:00', 'chain[1] valid_from should be ISO');
+						assert($signer->chain[1]['valid_to'] === '2023-01-01T00:00:00+00:00', 'chain[1] valid_to should be ISO');
+					},
+				],
+			],
+			'does not overwrite existing fields' => [
+				[
+					(object)[
+						'hash' => 'existing_hash',
+						'uid' => 'email:user@example.com',
+						'displayName' => 'Existing User',
+					],
+				],
+				[
+					[
+						'chain' => [
+							[
+								'isLibreSignRootCA' => true,
+								'name' => '/C=BR/UID=email:user@example.com/CN=User',
+								'subject' => [
+									'UID' => 'email:user@example.com',
+									'CN' => 'User',
+								],
+								'hash' => 'new_hash_from_cert',
+								'serialNumber' => '123',
+								'issuer' => ['CN' => 'LibreSign'],
+							],
+						],
+						'signingTime' => new DateTime('2026-01-28T19:56:57Z'),
+					],
+				],
+				'should match by uid and not overwrite existing fields',
+				[
+					function (array $signers) {
+						assert(count($signers) === 1, 'should match existing signer');
+						$signer = $signers[0];
+						assert($signer->hash === 'existing_hash', 'existing hash should NOT be overwritten');
+						assert($signer->serialNumber === '123', 'new serialNumber should be added');
+						assert($signer->displayName === 'Existing User', 'displayName should be preserved');
+					},
+				],
+			],
+		];
+	}
 }
