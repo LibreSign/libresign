@@ -433,11 +433,6 @@ OC.L10N.register(
     "User agent:" : "Benutzeragent:",
     "No files to display" : "Keine Dateien zum Anzeigen",
     "Document information" : "Dokumentinformationen",
-    "CRL: Certificate Valid" : "CRL: Zertifikat gültig",
-    "CRL: Certificate Revoked" : "CRL: Zertifikat widerrufen",
-    "CRL: Not Found" : "CRL: Nicht gefunden",
-    "CRL: Parse Failed" : "CRL: Parsen fehlgeschlagen",
-    "CRL: Download Failed" : "CRL: Herunterladen fehlgeschlagen",
     "Document integrity verified" : "Dokumentintegrität überprüft",
     "Document integrity check failed" : "Überprüfung der Dokumentintegrität ist fehlgeschlagen",
     "Trust Chain: Trusted ({trustedBy})" : "Vertrauenskette: Vertrauenswürdig ({trustedBy})",
@@ -847,6 +842,11 @@ OC.L10N.register(
     "Ready to sign" : "Bereit zum Signieren",
     "Partially signed" : "Teilweise signiert",
     "Deleted" : "Gelöscht",
-    "Signing" : "Signiere"
+    "Signing" : "Signiere",
+    "CRL: Certificate Valid" : "CRL: Zertifikat gültig",
+    "CRL: Certificate Revoked" : "CRL: Zertifikat widerrufen",
+    "CRL: Not Found" : "CRL: Nicht gefunden",
+    "CRL: Parse Failed" : "CRL: Parsen fehlgeschlagen",
+    "CRL: Download Failed" : "CRL: Herunterladen fehlgeschlagen"
 },
 "nplurals=2; plural=(n != 1);");

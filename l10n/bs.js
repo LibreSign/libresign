@@ -31,6 +31,7 @@ OC.L10N.register(
     "Cancel upload" : "Prekini učitavanje",
     "Unknown" : "Nepoznato",
     "No date" : "No date",
+    "Error" : "Greška",
     "Profile picture" : "Slika profila",
     "Create account" : "Kreiraj račun",
     "Password" : "Lozinka",

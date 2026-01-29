@@ -431,11 +431,6 @@
     "User agent:" : "使用者代理字串：",
     "No files to display" : "沒有可顯示的檔案",
     "Document information" : "文件資訊",
-    "CRL: Certificate Valid" : "CRL：憑證有效",
-    "CRL: Certificate Revoked" : "CRL：憑證已撤銷",
-    "CRL: Not Found" : "CRL：找不到",
-    "CRL: Parse Failed" : "CRL：解析失敗",
-    "CRL: Download Failed" : "CRL：下載失敗",
     "Document integrity verified" : "已驗證文件完整性",
     "Document integrity check failed" : "文件完整性檢查失敗",
     "Trust Chain: Trusted ({trustedBy})" : "信任鏈：信任 ({trustedBy})",
@@ -845,6 +840,11 @@
     "Ready to sign" : "準備好簽署",
     "Partially signed" : "部份簽署",
     "Deleted" : "已刪除",
-    "Signing" : "簽署"
+    "Signing" : "簽署",
+    "CRL: Certificate Valid" : "CRL：憑證有效",
+    "CRL: Certificate Revoked" : "CRL：憑證已撤銷",
+    "CRL: Not Found" : "CRL：找不到",
+    "CRL: Parse Failed" : "CRL：解析失敗",
+    "CRL: Download Failed" : "CRL：下載失敗"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

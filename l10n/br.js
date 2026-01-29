@@ -46,6 +46,7 @@ OC.L10N.register(
     "Hide details" : "Skoachañ ar munudoù",
     "Show details" : "Diskouel ar munudoù",
     "No date" : "Deizat ebet",
+    "Error" : "Fazi",
     "File" : "Restr",
     "Details" : "Munudoù",
     "Upload file" : "Pellgas ur restr",

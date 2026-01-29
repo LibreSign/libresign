@@ -433,11 +433,6 @@ OC.L10N.register(
     "User agent:" : "User agent:",
     "No files to display" : "No files to display",
     "Document information" : "Document information",
-    "CRL: Certificate Valid" : "CRL: Certificate Valid",
-    "CRL: Certificate Revoked" : "CRL: Certificate Revoked",
-    "CRL: Not Found" : "CRL: Not Found",
-    "CRL: Parse Failed" : "CRL: Parse Failed",
-    "CRL: Download Failed" : "CRL: Download Failed",
     "Document integrity verified" : "Document integrity verified",
     "Document integrity check failed" : "Document integrity check failed",
     "Trust Chain: Trusted ({trustedBy})" : "Trust Chain: Trusted ({trustedBy})",
@@ -847,6 +842,11 @@ OC.L10N.register(
     "Ready to sign" : "Ready to sign",
     "Partially signed" : "Partially signed",
     "Deleted" : "Deleted",
-    "Signing" : "Signing"
+    "Signing" : "Signing",
+    "CRL: Certificate Valid" : "CRL: Certificate Valid",
+    "CRL: Certificate Revoked" : "CRL: Certificate Revoked",
+    "CRL: Not Found" : "CRL: Not Found",
+    "CRL: Parse Failed" : "CRL: Parse Failed",
+    "CRL: Download Failed" : "CRL: Download Failed"
 },
 "nplurals=2; plural=(n != 1);");
