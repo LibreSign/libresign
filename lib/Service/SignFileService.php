@@ -843,11 +843,7 @@ class SignFileService {
 		$libreSignFile->setSignedNodeId($nodeId);
 		$libreSignFile->setSignedHash($hash);
 		$this->setNewStatusIfNecessary($libreSignFile);
-		$meta = $libreSignFile->getMetadata() ?? [];
-		$meta['status_changed_at'] = (new \DateTime())->format(\DateTimeInterface::ATOM);
-		$libreSignFile->setMetadata($meta);
-		$this->fileMapper->update($libreSignFile);
-		$this->updateCacheAfterDbSave($libreSignFile); // Update cache AFTER DB save
+		$this->fileStatusService->update($libreSignFile);
 
 		if ($libreSignFile->hasParent()) {
 			$this->fileStatusService->propagateStatusToParent($libreSignFile->getParentFileId());
@@ -967,10 +963,6 @@ class SignFileService {
 		$libreSignFile->setStatus($newStatus);
 
 		return true;
-	}
-
-	private function updateCacheAfterDbSave(FileEntity $libreSignFile): void {
-		$this->statusService->cacheFileStatus($libreSignFile);
 	}
 
 	private function updateEntityCacheAfterDbSave(FileEntity $file): void {
@@ -1194,6 +1186,23 @@ class SignFileService {
 
 			if (!$signRequest) {
 				throw new DoesNotExistException('Sign request not found');
+			}
+			$signRequestFile = $libresignFile;
+			if ($signRequestFile->getId() !== $signRequest->getFileId()) {
+				$signRequestFile = $this->fileMapper->getById($signRequest->getFileId());
+			}
+			$this->sequentialSigningService->setFile($signRequestFile);
+			if (
+				$this->sequentialSigningService->isOrderedNumericFlow()
+				&& $this->sequentialSigningService->hasPendingLowerOrderSigners(
+					$signRequest->getFileId(),
+					$signRequest->getSigningOrder()
+				)
+			) {
+				throw new LibresignException(json_encode([
+					'action' => JSActions::ACTION_DO_NOTHING,
+					'errors' => [['message' => $this->l10n->t('You are not allowed to sign this document yet')]],
+				]));
 			}
 			if ($signRequest->getSigned()) {
 				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
