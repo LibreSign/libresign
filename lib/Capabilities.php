@@ -51,6 +51,9 @@ class Capabilities implements IPublicCapability {
 				'envelope' => [
 					'is-available' => $this->envelopeService->isEnabled(),
 				],
+				'upload' => [
+					'max-file-uploads' => $this->getMaxFileUploads(),
+				],
 			],
 			'version' => $this->appManager->getAppVersion('libresign'),
 		];
@@ -58,5 +61,13 @@ class Capabilities implements IPublicCapability {
 		return [
 			'libresign' => $capabilities,
 		];
+	}
+
+	private function getMaxFileUploads(): int {
+		$maxFileUploads = ini_get('max_file_uploads');
+		if (!is_numeric($maxFileUploads) || (int)$maxFileUploads <= 0) {
+			return 20;
+		}
+		return (int)$maxFileUploads;
 	}
 }
