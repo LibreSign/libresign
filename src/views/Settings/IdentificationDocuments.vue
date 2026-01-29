@@ -84,7 +84,7 @@ export default {
 				.catch((error) => logger.debug('Could not fetch groups_request_sign', { error }))
 		},
 		saveIdentificationDocumentsStatus() {
-			OCP.AppConfig.setValue('libresign', 'identification_documents', this.identificationDocumentsFlowEnabled ? 1 : 0)
+			OCP.AppConfig.setValue('libresign', 'identification_documents', this.identificationDocumentsFlowEnabled ? '1' : '0')
 		},
 
 		saveApprovalGroups() {
