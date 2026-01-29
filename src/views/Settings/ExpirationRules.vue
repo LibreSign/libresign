@@ -94,7 +94,7 @@ export default {
 			if (!this.enableMaximumValidity) {
 				this.maximumValidity = '0'
 			}
-			OCP.AppConfig.setValue('libresign', 'maximum_validity', Number(this.maximumValidity))
+			OCP.AppConfig.setValue('libresign', 'maximum_validity', String(Number(this.maximumValidity)))
 		},
 		async getRenewalInterval() {
 			const response = await axios.get(
@@ -107,7 +107,7 @@ export default {
 			if (!this.enableRenewalInterval) {
 				this.renewalInterval = '0'
 			}
-			OCP.AppConfig.setValue('libresign', 'renewal_interval', Number(this.renewalInterval))
+			OCP.AppConfig.setValue('libresign', 'renewal_interval', String(Number(this.renewalInterval)))
 		},
 		async getExpiryInDays() {
 			const response = await axios.get(
@@ -122,7 +122,7 @@ export default {
 			if (!this.expiryInDays) {
 				this.expiryInDays = 365
 			}
-			OCP.AppConfig.setValue('libresign', 'expiry_in_days', Number(this.expiryInDays))
+			OCP.AppConfig.setValue('libresign', 'expiry_in_days', String(Number(this.expiryInDays)))
 		},
 	},
 }
