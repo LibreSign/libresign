@@ -86,8 +86,11 @@
 
 		<NcDialog v-if="modal"
 			:name="t('libresign', 'Confirm your signature')"
+			content-classes="confirm-dialog__content"
 			@closing="cancel">
-			<img :src="imageData">
+			<div class="confirm-preview">
+				<img class="confirm-preview__image" :src="imageData">
+			</div>
 			<template #actions>
 				<NcButton variant="primary" @click="saveSignature">
 					{{ t('libresign', 'Save') }}
@@ -347,6 +350,7 @@ export default {
 	flex-direction: column;
 	gap: 12px;
 	padding: 8px 0;
+
 	> img {
 		max-width: 100%;
 	}
@@ -401,6 +405,18 @@ export default {
 		color: var(--color-text-maxcontrast);
 	}
 
+	.confirm-preview {
+		display: flex;
+		justify-content: center;
+		width: 100%;
+	}
+
+	.confirm-preview__image {
+		display: block;
+		max-width: 100%;
+		margin: 0 auto;
+	}
+
 	.file-input-container {
 		margin-bottom: 5px;
 
@@ -420,5 +436,10 @@ export default {
 
 :global(.draw-file-input .vue-advanced-cropper) {
 	max-width: none !important;
+}
+
+:deep(.confirm-dialog__content) {
+	display: flex;
+	justify-content: center;
 }
 </style>
