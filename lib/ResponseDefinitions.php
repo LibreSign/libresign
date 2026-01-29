@@ -393,6 +393,9 @@ namespace OCA\Libresign;
  *         envelope: array{
  *             is-available: bool,
  *         },
+ *         upload: array{
+ *             max-file-uploads: int,
+ *         },
  *     },
  *     version: string,
  * }
