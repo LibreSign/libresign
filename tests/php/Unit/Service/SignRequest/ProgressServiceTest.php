@@ -20,6 +20,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\ICache;
 use OCP\ICacheFactory;
 use OCP\IMemcache;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -123,6 +124,11 @@ class ProgressServiceTest extends TestCase {
 			->with(100, 200)
 			->willReturn([$childSignRequest]);
 
+		$this->fileMapper
+			->method('getChildrenFiles')
+			->with(100)
+			->willReturn([]);
+
 		$errorKey = ProgressService::ERROR_KEY_PREFIX . 'child-sign-request-uuid';
 
 		$this->cache
@@ -148,6 +154,58 @@ class ProgressServiceTest extends TestCase {
 		);
 
 		$this->assertEquals(FileStatus::SIGNING_IN_PROGRESS->value, $result);
+	}
+
+	#[DataProvider('envelopeProgressChangeProvider')]
+	public function testPollForStatusOrErrorChangeReturnsWhenEnvelopeProgressChanges(int $childIndex, int $newStatus): void {
+		$envelope = $this->createFileEntity(1, 'envelope.pdf', FileStatus::DRAFT->value, null, 'envelope');
+		$envelope->setUuid('envelope-uuid');
+		$signRequest = $this->createSignRequestEntity(10, 'Signer', FileStatus::DRAFT->value, null);
+		$signRequest->setUuid('sign-request-uuid');
+
+		$children = [
+			$this->createFileEntity(2, 'child1.pdf', FileStatus::DRAFT->value, $envelope->getId()),
+			$this->createFileEntity(3, 'child2.pdf', FileStatus::DRAFT->value, $envelope->getId()),
+		];
+
+		$call = 0;
+		$this->fileMapper
+			->method('getChildrenFiles')
+			->willReturnCallback(function () use (&$call, $children, $childIndex, $newStatus): array {
+				if ($call === 0) {
+					$call++;
+					return $children;
+				}
+				$children[$childIndex]->setStatus($newStatus);
+				return $children;
+			});
+
+		$this->signRequestMapper
+			->method('getByEnvelopeChildrenAndIdentifyMethod')
+			->willReturn([]);
+
+		$this->statusCacheService
+			->method('getStatus')
+			->with('envelope-uuid')
+			->willReturn(FileStatus::ABLE_TO_SIGN->value);
+
+		$result = $this->service->pollForStatusOrErrorChange(
+			$envelope,
+			$signRequest,
+			FileStatus::SIGNING_IN_PROGRESS->value,
+			2,
+			0,
+		);
+
+		$this->assertEquals(FileStatus::ABLE_TO_SIGN->value, $result);
+	}
+
+	public static function envelopeProgressChangeProvider(): array {
+		return [
+			'child 1 signed' => [0, FileStatus::SIGNED->value],
+			'child 2 signed' => [1, FileStatus::SIGNED->value],
+			'child 1 in progress' => [0, FileStatus::SIGNING_IN_PROGRESS->value],
+		];
 	}
 
 	public function testGetSignRequestProgressForSingleFile(): void {
