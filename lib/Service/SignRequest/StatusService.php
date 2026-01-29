@@ -32,8 +32,8 @@ class StatusService {
 		return $status === SignRequestStatus::ABLE_TO_SIGN;
 	}
 
-	public function cacheFileStatus(FileEntity $file, int $ttl = StatusCacheService::DEFAULT_TTL): void {
-		$this->statusCacheService->setStatus($file->getUuid(), $file->getStatus(), $ttl);
+	public function cacheFileStatus(FileEntity $file): void {
+		$this->statusCacheService->setStatus($file->getUuid(), $file->getStatus());
 	}
 
 	public function updateStatusIfAllowed(
@@ -42,7 +42,25 @@ class StatusService {
 		SignRequestStatus $desiredStatus,
 		bool $isNewSignRequest,
 	): void {
-		if ($isNewSignRequest || $this->sequentialSigningService->isStatusUpgrade($currentStatus, $desiredStatus)) {
+		if ($isNewSignRequest) {
+			$signRequest->setStatusEnum($desiredStatus);
+			return;
+		}
+
+		if ($this->sequentialSigningService->isStatusUpgrade($currentStatus, $desiredStatus)) {
+			$signRequest->setStatusEnum($desiredStatus);
+			return;
+		}
+
+		if (
+			$desiredStatus === SignRequestStatus::DRAFT
+			&& $currentStatus === SignRequestStatus::ABLE_TO_SIGN
+			&& $this->sequentialSigningService->isOrderedNumericFlow()
+			&& $this->sequentialSigningService->hasPendingLowerOrderSigners(
+				$signRequest->getFileId(),
+				$signRequest->getSigningOrder()
+			)
+		) {
 			$signRequest->setStatusEnum($desiredStatus);
 		}
 	}
