@@ -93,9 +93,14 @@ class FileService {
 		private MetadataLoader $metadataLoader,
 		private SettingsLoader $settingsLoader,
 		private MessagesLoader $messagesLoader,
+		private FileStatusService $fileStatusService,
 	) {
 		$this->fileData = new stdClass();
 		$this->options = new FileResponseOptions();
+	}
+
+	public function update(File $file): File {
+		return $this->fileStatusService->update($file);
 	}
 
 	public function getNodeFromData(array $data): Node {
