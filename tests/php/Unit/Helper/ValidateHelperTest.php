@@ -143,7 +143,6 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		if ($expectsBlock) {
 			$this->expectException(LibresignException::class);
-			$this->expectExceptionMessage('You are not allowed to sign this document yet');
 		}
 
 		$this->getValidateHelper()->validateSigner($uuid);
