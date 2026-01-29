@@ -186,7 +186,11 @@ abstract class AEngineHandler implements IEngineHandler {
 			$extractedUrls = $matches[1] ?? [];
 
 			$certData['crl_urls'] = $extractedUrls;
-			$certData['crl_validation'] = $this->validateCrlFromUrls($extractedUrls, $certPem);
+			$crlDetails = $this->validateCrlFromUrlsWithDetails($extractedUrls, $certPem);
+			$certData['crl_validation'] = $crlDetails['status'];
+			if (!empty($crlDetails['revoked_at'])) {
+				$certData['crl_revoked_at'] = $crlDetails['revoked_at'];
+			}
 		} else {
 			$certData['crl_validation'] = 'missing';
 			$certData['crl_urls'] = [];
@@ -785,19 +789,24 @@ abstract class AEngineHandler implements IEngineHandler {
 	}
 
 	private function validateCrlFromUrls(array $crlUrls, string $certPem): string {
+		$details = $this->validateCrlFromUrlsWithDetails($crlUrls, $certPem);
+		return $details['status'];
+	}
+
+	private function validateCrlFromUrlsWithDetails(array $crlUrls, string $certPem): array {
 		if (empty($crlUrls)) {
-			return 'no_urls';
+			return ['status' => 'no_urls'];
 		}
 
 		$accessibleUrls = 0;
 		foreach ($crlUrls as $crlUrl) {
 			try {
-				$validationResult = $this->downloadAndValidateCrl($crlUrl, $certPem);
-				if ($validationResult === 'valid') {
-					return 'valid';
+				$validationResult = $this->downloadAndValidateCrlWithDetails($crlUrl, $certPem);
+				if ($validationResult['status'] === 'valid') {
+					return $validationResult;
 				}
-				if ($validationResult === 'revoked') {
-					return 'revoked';
+				if ($validationResult['status'] === 'revoked') {
+					return $validationResult;
 				}
 				$accessibleUrls++;
 			} catch (\Exception $e) {
@@ -806,10 +815,10 @@ abstract class AEngineHandler implements IEngineHandler {
 		}
 
 		if ($accessibleUrls === 0) {
-			return 'urls_inaccessible';
+			return ['status' => 'urls_inaccessible'];
 		}
 
-		return 'validation_failed';
+		return ['status' => 'validation_failed'];
 	}
 
 	private function downloadAndValidateCrl(string $crlUrl, string $certPem): string {
@@ -828,6 +837,25 @@ abstract class AEngineHandler implements IEngineHandler {
 
 		} catch (\Exception $e) {
 			return 'validation_error';
+		}
+	}
+
+	private function downloadAndValidateCrlWithDetails(string $crlUrl, string $certPem): array {
+		try {
+			if ($this->isLocalCrlUrl($crlUrl)) {
+				$crlContent = $this->generateLocalCrl($crlUrl);
+			} else {
+				$crlContent = $this->downloadCrlContent($crlUrl);
+			}
+
+			if (!$crlContent) {
+				throw new \Exception('Failed to get CRL content');
+			}
+
+			return $this->checkCertificateInCrlWithDetails($certPem, $crlContent);
+
+		} catch (\Exception $e) {
+			return ['status' => 'validation_error'];
 		}
 	}
 
@@ -918,6 +946,25 @@ abstract class AEngineHandler implements IEngineHandler {
 				return 'validation_error';
 			}
 
+			return $this->checkCertificateInCrlWithDetails($certPem, $crlContent)['status'];
+
+		} catch (\Exception $e) {
+			return 'validation_error';
+		}
+	}
+
+	private function checkCertificateInCrlWithDetails(string $certPem, string $crlContent): array {
+		try {
+			$certResource = openssl_x509_read($certPem);
+			if (!$certResource) {
+				return ['status' => 'validation_error'];
+			}
+
+			$certData = openssl_x509_parse($certResource);
+			if (!isset($certData['serialNumber'])) {
+				return ['status' => 'validation_error'];
+			}
+
 			$tempCrlFile = $this->tempManager->getTemporaryFile('.crl');
 			file_put_contents($tempCrlFile, $crlContent);
 
@@ -929,18 +976,27 @@ abstract class AEngineHandler implements IEngineHandler {
 
 				exec($crlTextCmd, $output, $exitCode);
 
-				if ($exitCode === 0) {
-					$crlText = implode("\n", $output);
-
-					if ($this->isSerialNumberInCrl($crlText, $certData['serialNumber'])
-						|| (!empty($certData['serialNumberHex']) && $this->isSerialNumberInCrl($crlText, $certData['serialNumberHex']))) {
-						return 'revoked';
-					}
-
-					return 'valid';
+				if ($exitCode !== 0) {
+					return ['status' => 'validation_error'];
 				}
 
-				return 'validation_error';
+				$crlText = implode("\n", $output);
+				$serialCandidates = [$certData['serialNumber']];
+				if (!empty($certData['serialNumberHex'])) {
+					$serialCandidates[] = $certData['serialNumberHex'];
+				}
+
+				foreach ($serialCandidates as $serial) {
+					if ($this->isSerialNumberInCrl($crlText, $serial)) {
+						$revokedAt = $this->extractRevocationDateFromCrlText($crlText, $serialCandidates);
+						return array_filter([
+							'status' => 'revoked',
+							'revoked_at' => $revokedAt,
+						]);
+					}
+				}
+
+				return ['status' => 'valid'];
 
 			} finally {
 				if (file_exists($tempCrlFile)) {
@@ -949,8 +1005,26 @@ abstract class AEngineHandler implements IEngineHandler {
 			}
 
 		} catch (\Exception $e) {
-			return 'validation_error';
+			return ['status' => 'validation_error'];
 		}
+	}
+
+	private function extractRevocationDateFromCrlText(string $crlText, array $serialNumbers): ?string {
+		foreach ($serialNumbers as $serial) {
+			$normalizedSerial = strtoupper(ltrim((string)$serial, '0')) ?: '0';
+			$pattern = '/Serial Number:\s*0*' . preg_quote($normalizedSerial, '/') . '\s*\R\s*Revocation Date:\s*([^\r\n]+)/i';
+			if (preg_match($pattern, $crlText, $matches) !== 1) {
+				continue;
+			}
+			$dateText = trim($matches[1]);
+			try {
+				$date = new \DateTimeImmutable($dateText, new \DateTimeZone('UTC'));
+				return $date->setTimezone(new \DateTimeZone('UTC'))->format(\DateTimeInterface::ATOM);
+			} catch (\Exception $e) {
+				continue;
+			}
+		}
+		return null;
 	}
 
 	#[\Override]
