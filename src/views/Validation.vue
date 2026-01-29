@@ -406,9 +406,10 @@ export default {
 			}
 			return mdiAlertCircle
 		},
-		viewDocument() {
-			openDocument({
-				fileUrl: file.file,
+		async viewDocument() {
+			const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: this.document.uuid })
+			await openDocument({
+				fileUrl,
 				filename: this.document.name,
 				nodeId: this.document.nodeId,
 			})
