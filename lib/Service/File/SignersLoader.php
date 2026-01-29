@@ -221,7 +221,7 @@ class SignersLoader {
 			if ($isLibreSignCert) {
 				$certUid = $signer['chain'][0]['subject']['UID'] ?? null;
 				if ($certUid) {
-					$resolvedUid = str_starts_with($certUid, 'account:') ? $certUid : 'account:' . $certUid;
+					$resolvedUid = str_contains($certUid, ':') ? $certUid : 'account:' . $certUid;
 				} else {
 					$resolvedUid = null;
 				}
@@ -273,26 +273,7 @@ class SignersLoader {
 			}
 
 			if (isset($signer['chain'])) {
-				$fileData->signers[$targetIndex]->chain = [];
-				foreach ($signer['chain'] as $chainIndex => $chainItem) {
-					$chainArr = $chainItem;
-					if (isset($chainItem['validFrom_time_t']) && is_numeric($chainItem['validFrom_time_t'])) {
-						$chainArr['valid_from'] = (new DateTime('@' . $chainItem['validFrom_time_t'], new \DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
-					}
-					if (isset($chainItem['validTo_time_t']) && is_numeric($chainItem['validTo_time_t'])) {
-						$chainArr['valid_to'] = (new DateTime('@' . $chainItem['validTo_time_t'], new \DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
-					}
-					$chainArr['displayName'] = $chainArr['name'] ?? ($chainArr['subject']['CN'] ?? '');
-					$fileData->signers[$targetIndex]->chain[$chainIndex] = $chainArr;
-				}
-
-				if (isset($signer['chain'][0])) {
-					foreach ($signer['chain'][0] as $key => $value) {
-						if (!isset($fileData->signers[$targetIndex]->$key)) {
-							$fileData->signers[$targetIndex]->$key = $value;
-						}
-					}
-				}
+				$this->processChainData($fileData->signers[$targetIndex], $signer['chain']);
 			}
 
 			if (isset($signer['uid'])) {
@@ -378,6 +359,68 @@ class SignersLoader {
 
 	public function reset(): void {
 		$this->signersLibreSignLoaded = false;
+	}
+
+	private function processChainData(stdClass $signer, array $chain): void {
+		$signer->chain = [];
+
+		foreach ($chain as $chainIndex => $chainItem) {
+			$chainArr = $chainItem;
+
+			if (isset($chainItem['validFrom_time_t']) && is_numeric($chainItem['validFrom_time_t'])) {
+				$chainArr['valid_from'] = (new DateTime('@' . $chainItem['validFrom_time_t'], new \DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
+			}
+			if (isset($chainItem['validTo_time_t']) && is_numeric($chainItem['validTo_time_t'])) {
+				$chainArr['valid_to'] = (new DateTime('@' . $chainItem['validTo_time_t'], new \DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
+			}
+
+			$chainArr['displayName'] = $chainArr['name'] ?? ($chainArr['subject']['CN'] ?? '');
+			$signer->chain[$chainIndex] = $chainArr;
+		}
+
+		if (isset($chain[0])) {
+			$this->enrichSignerWithCertificateValidation($signer, $chain[0]);
+		}
+	}
+
+	private function enrichSignerWithCertificateValidation(stdClass $signer, array $endEntityCert): void {
+		if (isset($endEntityCert['name']) && !isset($signer->name)) {
+			$signer->name = $endEntityCert['name'];
+		}
+		if (isset($endEntityCert['hash']) && !isset($signer->hash)) {
+			$signer->hash = $endEntityCert['hash'];
+		}
+		if (isset($endEntityCert['serialNumber']) && !isset($signer->serialNumber)) {
+			$signer->serialNumber = $endEntityCert['serialNumber'];
+		}
+		if (isset($endEntityCert['serialNumberHex']) && !isset($signer->serialNumberHex)) {
+			$signer->serialNumberHex = $endEntityCert['serialNumberHex'];
+		}
+		if (isset($endEntityCert['signatureTypeSN']) && !isset($signer->signatureTypeSN)) {
+			$signer->signatureTypeSN = $endEntityCert['signatureTypeSN'];
+		}
+
+		if (isset($endEntityCert['subject']) && !isset($signer->subject)) {
+			$signer->subject = $endEntityCert['subject'];
+		}
+
+		if (isset($endEntityCert['crl_urls']) && !isset($signer->crl_urls)) {
+			$signer->crl_urls = $endEntityCert['crl_urls'];
+		}
+		if (isset($endEntityCert['crl_validation']) && !isset($signer->crl_validation)) {
+			$signer->crl_validation = $endEntityCert['crl_validation'];
+		}
+		if (isset($endEntityCert['crl_revoked_at']) && !isset($signer->crl_revoked_at)) {
+			$signer->crl_revoked_at = $endEntityCert['crl_revoked_at'];
+		}
+
+		if (isset($endEntityCert['signature_validation']) && !isset($signer->signature_validation)) {
+			$signer->signature_validation = $endEntityCert['signature_validation'];
+		}
+
+		if (isset($endEntityCert['isLibreSignRootCA']) && !isset($signer->isLibreSignRootCA)) {
+			$signer->isLibreSignRootCA = $endEntityCert['isLibreSignRootCA'];
+		}
 	}
 
 }
