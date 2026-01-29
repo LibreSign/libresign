@@ -9,37 +9,42 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Db\File;
-use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\SigningProgressService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
 class SigningProgressServiceTest extends TestCase {
-	private FileMapper&MockObject $fileMapper;
+	private FileStatusService&MockObject $fileStatusService;
 	private LoggerInterface&MockObject $logger;
 	private SigningProgressService $service;
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->fileMapper = $this->createMock(FileMapper::class);
+		$this->fileStatusService = $this->createMock(FileStatusService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
-		$this->service = new SigningProgressService($this->fileMapper, $this->logger);
+		$this->service = new SigningProgressService($this->fileStatusService, $this->logger);
 	}
 
 	public function testSetInProgressUpdatesOnlyWhenNotAlready(): void {
 		$file1 = new File();
 		$file1->setStatusEnum(FileStatus::ABLE_TO_SIGN);
+		$file1->setUuid('uuid1');
 
 		$file2 = new File();
 		$file2->setStatusEnum(FileStatus::SIGNING_IN_PROGRESS);
+		$file2->setUuid('uuid2');
 
-		$this->fileMapper->expects($this->once())
+		$this->fileStatusService->expects($this->once())
 			->method('update')
-			->with($this->callback(function (File $f) use ($file1) {
-				return $f === $file1 && $f->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value;
-			}));
+			->with(
+				$this->callback(function (File $f) use ($file1) {
+					return $f === $file1 && $f->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value;
+				}),
+			)
+			->willReturnArgument(0);
 
 		$this->service->setInProgressStatus([
 			['file' => $file1, 'signRequest' => null],
@@ -60,11 +65,14 @@ class SigningProgressServiceTest extends TestCase {
 		$file3 = new File();
 		$file3->setStatusEnum(FileStatus::DRAFT);
 
-		$this->fileMapper->expects($this->once())
+		$this->fileStatusService->expects($this->once())
 			->method('update')
-			->with($this->callback(function (File $f) use ($file1) {
-				return $f === $file1 && $f->getStatus() === FileStatus::ABLE_TO_SIGN->value;
-			}));
+			->with(
+				$this->callback(function (File $f) use ($file1) {
+					return $f === $file1 && $f->getStatus() === FileStatus::ABLE_TO_SIGN->value;
+				}),
+			)
+			->willReturnArgument(0);
 
 		$this->logger->expects($this->once())
 			->method('error');
