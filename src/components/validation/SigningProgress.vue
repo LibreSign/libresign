@@ -203,7 +203,9 @@ export default {
 					return
 				}
 
-				if (status === 'SIGNED' && !hasPendingWork) {
+				const totalCount = this.progress?.total ?? 0
+				const isSingleFile = totalCount === 1
+				if (status === 'SIGNED' && (!hasPendingWork || isSingleFile)) {
 					this.stopPolling()
 					this.$emit('completed')
 					return
