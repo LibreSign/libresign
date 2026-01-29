@@ -432,11 +432,6 @@ OC.L10N.register(
     "User agent:" : "User agent:",
     "No files to display" : "Tidak ada file untuk ditampilkan",
     "Document information" : "Informasi dokumen",
-    "CRL: Certificate Valid" : "CRL: Sertifikat Valid",
-    "CRL: Certificate Revoked" : "CRL: Sertifikat Dicabut",
-    "CRL: Not Found" : "CRL: Tidak Ditemukan",
-    "CRL: Parse Failed" : "CRL: Gagal Mengurai",
-    "CRL: Download Failed" : "CRL: Gagal Mengunduh",
     "Document integrity verified" : "Integritas dokumen terverifikasi",
     "Document integrity check failed" : "Pemeriksaan integritas dokumen gagal",
     "Trust Chain: Trusted ({trustedBy})" : "Rantai Kepercayaan: Tepercaya ({trustedBy})",
@@ -843,6 +838,11 @@ OC.L10N.register(
     "Ready to sign" : "Siap ditandatangani",
     "Partially signed" : "Ditandatangani sebagian",
     "Deleted" : "Dihapus",
-    "Signing" : "Menandatangani"
+    "Signing" : "Menandatangani",
+    "CRL: Certificate Valid" : "CRL: Sertifikat Valid",
+    "CRL: Certificate Revoked" : "CRL: Sertifikat Dicabut",
+    "CRL: Not Found" : "CRL: Tidak Ditemukan",
+    "CRL: Parse Failed" : "CRL: Gagal Mengurai",
+    "CRL: Download Failed" : "CRL: Gagal Mengunduh"
 },
 "nplurals=1; plural=0;");

@@ -433,11 +433,6 @@ OC.L10N.register(
     "User agent:" : "用戶代理字串：",
     "No files to display" : "沒有可顯示的檔案",
     "Document information" : "文件資訊",
-    "CRL: Certificate Valid" : "CRL：憑證有效",
-    "CRL: Certificate Revoked" : "CRL：憑證已註銷",
-    "CRL: Not Found" : "CRL：找不到",
-    "CRL: Parse Failed" : "CRL：解析失敗",
-    "CRL: Download Failed" : "CRL：下載失敗",
     "Document integrity verified" : "文件完整性已驗證",
     "Document integrity check failed" : "文件完整性檢查失敗",
     "Trust Chain: Trusted ({trustedBy})" : "信任鏈：可信（{trustedBy}）",
@@ -847,6 +842,11 @@ OC.L10N.register(
     "Ready to sign" : "準備簽署",
     "Partially signed" : "已部分簽署",
     "Deleted" : "已刪除",
-    "Signing" : "簽署中"
+    "Signing" : "簽署中",
+    "CRL: Certificate Valid" : "CRL：憑證有效",
+    "CRL: Certificate Revoked" : "CRL：憑證已註銷",
+    "CRL: Not Found" : "CRL：找不到",
+    "CRL: Parse Failed" : "CRL：解析失敗",
+    "CRL: Download Failed" : "CRL：下載失敗"
 },
 "nplurals=1; plural=0;");

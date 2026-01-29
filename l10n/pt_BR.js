@@ -433,11 +433,6 @@ OC.L10N.register(
     "User agent:" : "Agente do usuário:",
     "No files to display" : "Não há arquivos para exibir",
     "Document information" : "Informações do documento",
-    "CRL: Certificate Valid" : "CRL: Certificado Válido",
-    "CRL: Certificate Revoked" : "CRL: Certificado Revogado",
-    "CRL: Not Found" : "CRL: Não Encontrada",
-    "CRL: Parse Failed" : "CRL: Falha na Análise",
-    "CRL: Download Failed" : "CRL: Falha no Download",
     "Document integrity verified" : "Integridade do documento verificada",
     "Document integrity check failed" : "Falha na verificação da integridade do documento",
     "Trust Chain: Trusted ({trustedBy})" : "Cadeia de Confiança: Confiável ({trustedBy})",
@@ -847,6 +842,11 @@ OC.L10N.register(
     "Ready to sign" : "Pronto para assinar",
     "Partially signed" : "Assinado parcialmente",
     "Deleted" : "Excluído",
-    "Signing" : "Assinando"
+    "Signing" : "Assinando",
+    "CRL: Certificate Valid" : "CRL: Certificado Válido",
+    "CRL: Certificate Revoked" : "CRL: Certificado Revogado",
+    "CRL: Not Found" : "CRL: Não Encontrada",
+    "CRL: Parse Failed" : "CRL: Falha na Análise",
+    "CRL: Download Failed" : "CRL: Falha no Download"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
