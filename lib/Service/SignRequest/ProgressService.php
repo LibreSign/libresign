@@ -118,9 +118,13 @@ class ProgressService {
 			$currentHash = $this->buildProgressHash($currentProgress);
 
 			if ($currentHash !== $initialHash) {
-				return $newCachedStatus !== false && $newCachedStatus !== null
-					? (int)$newCachedStatus
-					: $initialStatus;
+				if ($newCachedStatus !== false && $newCachedStatus !== null) {
+					return (int)$newCachedStatus;
+				}
+				if ($cachedStatus !== false && $cachedStatus !== null) {
+					return (int)$cachedStatus;
+				}
+				return $initialStatus;
 			}
 
 			if ($intervalSeconds > 0) {
