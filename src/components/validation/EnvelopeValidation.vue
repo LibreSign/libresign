@@ -177,6 +177,7 @@ import {
 } from '@mdi/js'
 import Moment from '@nextcloud/moment'
 import { getStatusLabel } from '../../utils/fileStatus.js'
+import { openDocument } from '../../utils/viewer.js'
 import SignerDetails from './SignerDetails.vue'
 import DocumentValidationDetails from './DocumentValidationDetails.vue'
 
@@ -243,20 +244,11 @@ export default {
 		},
 		viewFile(file) {
 			const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
-			if (OCA?.Viewer !== undefined) {
-				const fileInfo = {
-					source: fileUrl,
-					basename: file.name,
-					mime: 'application/pdf',
-					fileid: file.nodeId,
-				}
-				OCA.Viewer.open({
-					fileInfo,
-					list: [fileInfo],
-				})
-			} else {
-				window.open(`${fileUrl}?_t=${Date.now()}`)
-			}
+			openDocument({
+				fileUrl,
+				filename: file.name,
+				nodeId: file.nodeId,
+			})
 		},
 	},
 }
