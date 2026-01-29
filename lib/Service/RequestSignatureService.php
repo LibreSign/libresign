@@ -318,7 +318,7 @@ class RequestSignatureService {
 			$this->updateSignatureFlowIfAllowed($file, $data);
 			if (!empty($data['name'])) {
 				$file->setName($data['name']);
-				$this->fileMapper->update($file);
+				$this->fileService->update($file);
 			}
 			return $this->fileStatusService->updateFileStatusIfUpgrade($file, $data['status'] ?? 0);
 		}
@@ -383,7 +383,7 @@ class RequestSignatureService {
 			$adminFlowEnum = SignatureFlow::from($adminFlow);
 			if ($file->getSignatureFlowEnum() !== $adminFlowEnum) {
 				$file->setSignatureFlowEnum($adminFlowEnum);
-				$this->fileMapper->update($file);
+				$this->fileService->update($file);
 			}
 			return;
 		}
@@ -392,7 +392,7 @@ class RequestSignatureService {
 			$newFlow = SignatureFlow::from($data['signatureFlow']);
 			if ($file->getSignatureFlowEnum() !== $newFlow) {
 				$file->setSignatureFlowEnum($newFlow);
-				$this->fileMapper->update($file);
+				$this->fileService->update($file);
 			}
 		}
 	}
