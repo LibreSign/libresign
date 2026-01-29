@@ -244,11 +244,14 @@ export default {
 .signer-extra {
 	display: flex;
 	align-items: center;
+	height: 100%;
 }
 
 .drag-handle-wrapper {
 	display: flex;
 	align-items: center;
+	height: 100%;
+	margin-top: 0;
 }
 
 .drag-handle {
