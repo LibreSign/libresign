@@ -72,7 +72,36 @@ export default {
 			ctx.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height)
 			ctx.fillStyle = 'black'
 			ctx.font = "30px 'Dancing Script'"
-			ctx.fillText(val, 15, 50)
+			const paddingX = 15
+			const maxWidth = Math.max(0, this.$refs.canvas.width - (paddingX * 2))
+			const lineHeight = 36
+			const words = String(val).trim().split(/\s+/).filter(Boolean)
+
+			const lines = []
+			let line = ''
+			for (const word of words) {
+				const testLine = line ? `${line} ${word}` : word
+				if (ctx.measureText(testLine).width <= maxWidth || !line) {
+					line = testLine
+				} else {
+					lines.push(line)
+					line = word
+				}
+			}
+			if (line) {
+				lines.push(line)
+			}
+
+			ctx.textAlign = 'center'
+			ctx.textBaseline = 'middle'
+
+			const totalHeight = lines.length * lineHeight
+			const startY = (this.$refs.canvas.height / 2) - ((totalHeight - lineHeight) / 2)
+			const centerX = this.$refs.canvas.width / 2
+
+			lines.forEach((text, index) => {
+				ctx.fillText(text, centerX, startY + (index * lineHeight))
+			})
 		},
 	},
 	mounted() {
