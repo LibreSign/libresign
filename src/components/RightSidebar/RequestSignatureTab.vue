@@ -305,6 +305,7 @@ import VisibleElements from '../Request/VisibleElements.vue'
 import svgSignal from '../../../img/logo-signal-app.svg?raw'
 import svgTelegram from '../../../img/logo-telegram-app.svg?raw'
 import { FILE_STATUS } from '../../constants.js'
+import { openDocument } from '../../utils/viewer.js'
 import router from '../../router/router.js'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
@@ -1033,20 +1034,11 @@ export default {
 				return
 			}
 
-			if (OCA?.Viewer !== undefined) {
-				const fileInfo = {
-					source: fileUrl,
-					basename: file.name,
-					mime: 'application/pdf',
-					fileid: file.nodeId,
-				}
-				OCA.Viewer.open({
-					fileInfo,
-					list: [fileInfo],
-				})
-			} else {
-				window.open(`${fileUrl}?_t=${Date.now()}`)
-			}
+			openDocument({
+				fileUrl,
+				filename: file.name,
+				nodeId: file.nodeId,
+			})
 		},
 		startSigningProgressPolling() {
 			const file = this.filesStore.getFile()
