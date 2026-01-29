@@ -97,9 +97,9 @@ export default {
 		},
 	},
 	methods: {
-		viewDocument() {
+		async viewDocument() {
 			const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: this.document.uuid })
-			openDocument({
+			await openDocument({
 				fileUrl,
 				filename: this.document.name,
 				nodeId: this.document.nodeId,

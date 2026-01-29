@@ -69,6 +69,7 @@ import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
+import { openDocument } from '../../utils/viewer.js'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
@@ -112,11 +113,11 @@ export default {
 	},
 	methods: {
 		view() {
-			if (OCA?.Viewer !== undefined) {
-				OCA.Viewer.open({ path: this.CPS })
-			} else {
-				window.open(`${this.CPS}?_t=${Date.now()}`)
-			}
+			openDocument({
+				fileUrl: this.CPS,
+				filename: 'Certificate Policy',
+				nodeId: null,
+			})
 		},
 		activateLocalFilePicker() {
 			// Set to null so that selecting the same file will trigger the change event

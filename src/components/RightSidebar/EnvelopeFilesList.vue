@@ -140,6 +140,7 @@ import NcTextField from '@nextcloud/vue/components/NcTextField'
 import UploadProgress from '../UploadProgress.vue'
 
 import { FILE_STATUS, ENVELOPE_NAME_MIN_LENGTH, ENVELOPE_NAME_MAX_LENGTH } from '../../constants.js'
+import { openDocument } from '../../utils/viewer.js'
 import { useFilesStore } from '../../store/files.js'
 
 export default {
@@ -357,20 +358,11 @@ export default {
 		},
 		openFile(file) {
 			const fileUrl = generateUrl('/apps/libresign/p/pdf/{uuid}', { uuid: file.uuid })
-			if (OCA?.Viewer !== undefined) {
-				const fileInfo = {
-					source: fileUrl,
-					basename: file.name,
-					mime: 'application/pdf',
-					fileid: file.id,
-				}
-				OCA.Viewer.open({
-					fileInfo,
-					list: [fileInfo],
-				})
-			} else {
-				window.open(`${fileUrl}?_t=${Date.now()}`)
-			}
+			openDocument({
+				fileUrl,
+				filename: file.name,
+				nodeId: file.id,
+			})
 		},
 		isSelected(fileId) {
 			return this.selectedFiles.includes(fileId)
