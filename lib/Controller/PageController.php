@@ -369,6 +369,9 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('nodeType', $this->getFileEntity()->getNodeType());
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
+		if (class_exists(LoadViewer::class)) {
+			$this->eventDispatcher->dispatchTyped(new LoadViewer());
+		}
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
 
 		$policy = new ContentSecurityPolicy();
