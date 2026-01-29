@@ -343,6 +343,19 @@ export default {
 			this.clearMessages()
 			this.errorMessage = message
 		},
+		getMaxFileUploads() {
+			const capabilitiesMax = getCapabilities()?.libresign?.config?.upload?.['max-file-uploads']
+			const max = Number.isFinite(capabilitiesMax) ? capabilitiesMax : 20
+			return max > 0 ? Math.floor(max) : 20
+		},
+		validateMaxFileUploads(filesCount) {
+			const maxFileUploads = this.getMaxFileUploads()
+			if (filesCount > maxFileUploads) {
+				this.showError(this.t('libresign', 'You can upload at most {max} files at once.', { max: maxFileUploads }))
+				return false
+			}
+			return true
+		},
 		getPreviewUrl(file) {
 			if (!file.nodeId) return null
 			const url = new URL(
@@ -418,6 +431,9 @@ export default {
 			input.onchange = async (e) => {
 				const files = e.target.files
 				if (!files || files.length === 0) return
+				if (!this.validateMaxFileUploads(files.length)) {
+					return
+				}
 
 				this.hasLoading = true
 				this.isUploading = true
