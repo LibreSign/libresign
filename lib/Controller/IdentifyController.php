@@ -9,6 +9,9 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Collaboration\Collaborators\AccountPhonePlugin;
+use OCA\Libresign\Collaboration\Collaborators\ContactPhonePlugin;
+use OCA\Libresign\Collaboration\Collaborators\ManualPhonePlugin;
 use OCA\Libresign\Collaboration\Collaborators\SignerPlugin;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\ResponseDefinitions;
@@ -16,6 +19,7 @@ use OCA\Libresign\Service\Identify\ResultEnricher;
 use OCA\Libresign\Service\Identify\ResultFilter;
 use OCA\Libresign\Service\Identify\ResultFormatter;
 use OCA\Libresign\Service\Identify\SearchNormalizer;
+use OCA\Libresign\Service\Identify\SignerSearchContext;
 use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCP\AppFramework\Http;
@@ -30,7 +34,7 @@ use OCP\Share\IShare;
  * @psalm-import-type LibresignIdentifyAccount from ResponseDefinitions
  */
 class IdentifyController extends AEnvironmentAwareController {
-	private array $shareTypes = [];
+	private const PHONE_METHODS = ['whatsapp', 'sms', 'telegram', 'signal'];
 
 	public function __construct(
 		IRequest $request,
@@ -38,6 +42,7 @@ class IdentifyController extends AEnvironmentAwareController {
 		private Email $identifyEmailMethod,
 		private Account $identifyAccountMethod,
 		private SearchNormalizer $searchNormalizer,
+		private SignerSearchContext $signerSearchContext,
 		private ResultFilter $resultFilter,
 		private ResultFormatter $resultFormatter,
 		private ResultEnricher $resultEnricher,
@@ -63,6 +68,7 @@ class IdentifyController extends AEnvironmentAwareController {
 	#[RequireManager]
 	#[ApiRoute(verb: 'GET', url: '/api/{apiVersion}/identify-account/search', requirements: ['apiVersion' => '(v1)'])]
 	public function search(string $search = '', string $method = '', int $page = 1, int $limit = 25): DataResponse {
+		$rawSearch = $search;
 		$search = $this->searchNormalizer->normalize($search, $method);
 
 		// Only search for string larger than a minimum length
@@ -70,10 +76,11 @@ class IdentifyController extends AEnvironmentAwareController {
 			return new DataResponse([]);
 		}
 
-		$shareTypes = $this->getShareTypes();
+		$shareTypes = $this->getShareTypes($method);
 		$offset = $limit * ($page - 1);
 
-		$this->registerPlugin($method);
+		$this->signerSearchContext->set($method, $search, $rawSearch);
+		$this->registerPlugin();
 		[$result] = $this->collaboratorSearch->search($search, $shareTypes, false, $limit, $offset);
 
 		// Process results through filters and formatters
@@ -91,32 +98,37 @@ class IdentifyController extends AEnvironmentAwareController {
 		return new DataResponse($return);
 	}
 
-	private function registerPlugin(string $method): void {
-		SignerPlugin::setMethod($method);
+	private function registerPlugin(): void {
 
 		$refObject = new \ReflectionObject($this->collaboratorSearch);
 		$refProperty = $refObject->getProperty('pluginList');
 
 		$plugins = $refProperty->getValue($this->collaboratorSearch);
 		$plugins[SignerPlugin::TYPE_SIGNER] = [SignerPlugin::class];
+		$plugins[AccountPhonePlugin::TYPE_SIGNER_ACCOUNT_PHONE] = [AccountPhonePlugin::class];
+		$plugins[ContactPhonePlugin::TYPE_SIGNER_CONTACT_PHONE] = [ContactPhonePlugin::class];
+		$plugins[ManualPhonePlugin::TYPE_SIGNER_MANUAL_PHONE] = [ManualPhonePlugin::class];
 
 		$refProperty->setValue($this->collaboratorSearch, $plugins);
 	}
 
-	private function getShareTypes(): array {
-		if (count($this->shareTypes) > 0) {
-			return $this->shareTypes;
-		}
+	private function getShareTypes(string $method): array {
+		$shareTypes = [];
 		$settings = $this->identifyEmailMethod->getSettings();
 		if ($settings['enabled']) {
-			$this->shareTypes[] = IShare::TYPE_EMAIL;
+			$shareTypes[] = IShare::TYPE_EMAIL;
 		}
 		$settings = $this->identifyAccountMethod->getSettings();
 		if ($settings['enabled']) {
-			$this->shareTypes[] = IShare::TYPE_USER;
+			$shareTypes[] = IShare::TYPE_USER;
 		}
 
-		$this->shareTypes[] = SignerPlugin::TYPE_SIGNER;
-		return $this->shareTypes;
+		$shareTypes[] = SignerPlugin::TYPE_SIGNER;
+		if (in_array($method, self::PHONE_METHODS, true)) {
+			$shareTypes[] = AccountPhonePlugin::TYPE_SIGNER_ACCOUNT_PHONE;
+			$shareTypes[] = ContactPhonePlugin::TYPE_SIGNER_CONTACT_PHONE;
+			$shareTypes[] = ManualPhonePlugin::TYPE_SIGNER_MANUAL_PHONE;
+		}
+		return $shareTypes;
 	}
 }
