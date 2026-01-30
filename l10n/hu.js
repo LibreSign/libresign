@@ -148,9 +148,7 @@ OC.L10N.register(
     "Choose color" : "Válasszon színt",
     "Delete" : "Törlés",
     "Confirm your signature" : "Erősítse meg az aláírását",
-    "Select other file" : "Válasszon másik fájlt",
     "Select your signature file." : "Válassza ki az aláírásfájlt.",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Használja az egérgörgőt hogy nagyítsa vagy kicsinyítse a képet, és találja meg hogy néz ki a legjobban az aláírása.",
     "Enter your Full Name or Initials to create Signature" : "Aláírás létrehozásához adja meg a teljes nevét vagy a monogramját",
     "_file_::_files_" : ["fájl","fájlok"],
     "Preview" : "Előnézet",
@@ -362,6 +360,8 @@ OC.L10N.register(
     "Return" : "Vissza",
     "Open in LibreSign" : "Megnyitás a LibreSignban",
     "Requested by {name}, at {date}" : "{name} kérte, ekkor: {date}",
-    "Deleted" : "Törölve"
+    "Deleted" : "Törölve",
+    "Select other file" : "Válasszon másik fájlt",
+    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Használja az egérgörgőt hogy nagyítsa vagy kicsinyítse a képet, és találja meg hogy néz ki a legjobban az aláírása."
 },
 "nplurals=2; plural=(n != 1);");

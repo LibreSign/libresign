@@ -184,9 +184,7 @@ OC.L10N.register(
     "Choose color" : "Vyberte farbu",
     "Delete" : "Vymazať",
     "Confirm your signature" : "Potvrďte svoj podpis",
-    "Select other file" : "Vyberte iný súbor",
     "Select your signature file." : "Vyberte súbor s vašim podpisom.",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Použite koliesko myši na priblíženie alebo oddialenie obrázka a nájdite najlepší pohľad na svoj podpis.",
     "Enter your Full Name or Initials to create Signature" : "Na vytvorenie podpisu zadajte svoje úplné meno alebo iniciály",
     "_file_::_files_" : ["súbor","súbory","súbory","súbory"],
     "Preview" : "Náhľad",
@@ -457,6 +455,8 @@ OC.L10N.register(
     "Open in LibreSign" : "Otvoriť v LibreSign",
     "New signature request" : "Nová žiadosť o podpis",
     "Requested by {name}, at {date}" : "Vyžiadané od {name}, o {date}",
-    "Deleted" : "Odstránené"
+    "Deleted" : "Odstránené",
+    "Select other file" : "Vyberte iný súbor",
+    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Použite koliesko myši na priblíženie alebo oddialenie obrázka a nájdite najlepší pohľad na svoj podpis."
 },
 "nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);");

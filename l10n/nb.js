@@ -167,9 +167,7 @@ OC.L10N.register(
     "Choose color" : "Velg farge",
     "Delete" : "Slett",
     "Confirm your signature" : "Bekreft signaturen din",
-    "Select other file" : "Velg en annen fil",
     "Select your signature file." : "Velg signaturfilen din.",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Bruk musehjulet til å zoome inn eller ut på bildet og finne den beste visningen av signaturen din.",
     "Enter your Full Name or Initials to create Signature" : "Skriv inn ditt fulle navn eller initialer for å opprette signatur",
     "_file_::_files_" : ["fil","filer"],
     "Preview" : "Forhåndsvis",
@@ -416,6 +414,8 @@ OC.L10N.register(
     "Return" : "Returner",
     "Open in LibreSign" : "Åpne i LibreSign",
     "Requested by {name}, at {date}" : "Bedt av {name}, den {date}",
-    "Deleted" : "Slettet"
+    "Deleted" : "Slettet",
+    "Select other file" : "Velg en annen fil",
+    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Bruk musehjulet til å zoome inn eller ut på bildet og finne den beste visningen av signaturen din."
 },
 "nplurals=2; plural=(n != 1);");

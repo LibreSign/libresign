@@ -132,9 +132,7 @@ OC.L10N.register(
     "Color" : "Kleur",
     "Delete" : "Verwijder",
     "Confirm your signature" : "Bevestig je handtekening",
-    "Select other file" : "Selecteer ander bestand",
     "Select your signature file." : "Kies uw kandtekening bestand.",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Gebruik uw muiswiel om in of uit te zoomen op de afbeelding en vind de beste weergave van uw handtekening.",
     "Enter your Full Name or Initials to create Signature" : "Voer je Volledige Naam of Initialen in om Handtekening te creëren",
     "Preview" : "Voorbeeld",
     "Height" : "Lengte",
@@ -311,6 +309,8 @@ OC.L10N.register(
     "Return" : "Terug",
     "Open in LibreSign" : "Openen in LibreSign",
     "Requested by {name}, at {date}" : "Aangevraagd door {name}, op {date}",
-    "Deleted" : "Verwijderd"
+    "Deleted" : "Verwijderd",
+    "Select other file" : "Selecteer ander bestand",
+    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Gebruik uw muiswiel om in of uit te zoomen op de afbeelding en vind de beste weergave van uw handtekening."
 },
 "nplurals=2; plural=(n != 1);");
