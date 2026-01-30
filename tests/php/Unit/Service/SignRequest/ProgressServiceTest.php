@@ -200,6 +200,51 @@ class ProgressServiceTest extends TestCase {
 		$this->assertEquals(FileStatus::ABLE_TO_SIGN->value, $result);
 	}
 
+	public function testPollForStatusOrErrorChangeUsesPreviousCachedStatusWhenCacheClears(): void {
+		$envelope = $this->createFileEntity(1, 'envelope.pdf', FileStatus::DRAFT->value, null, 'envelope');
+		$envelope->setUuid('envelope-uuid');
+		$signRequest = $this->createSignRequestEntity(10, 'Signer', FileStatus::DRAFT->value, null);
+		$signRequest->setUuid('sign-request-uuid');
+
+		$children = [
+			$this->createFileEntity(2, 'child1.pdf', FileStatus::DRAFT->value, $envelope->getId()),
+		];
+
+		$call = 0;
+		$this->fileMapper
+			->method('getChildrenFiles')
+			->willReturnCallback(function () use (&$call, $children): array {
+				if ($call === 0) {
+					$call++;
+					return $children;
+				}
+				$children[0]->setStatus(FileStatus::SIGNED->value);
+				return $children;
+			});
+
+		$this->signRequestMapper
+			->method('getByEnvelopeChildrenAndIdentifyMethod')
+			->willReturn([]);
+
+		$this->statusCacheService
+			->method('getStatus')
+			->with('envelope-uuid')
+			->willReturnOnConsecutiveCalls(
+				FileStatus::ABLE_TO_SIGN->value,
+				false
+			);
+
+		$result = $this->service->pollForStatusOrErrorChange(
+			$envelope,
+			$signRequest,
+			FileStatus::SIGNING_IN_PROGRESS->value,
+			2,
+			0,
+		);
+
+		$this->assertEquals(FileStatus::ABLE_TO_SIGN->value, $result);
+	}
+
 	public static function envelopeProgressChangeProvider(): array {
 		return [
 			'child 1 signed' => [0, FileStatus::SIGNED->value],
