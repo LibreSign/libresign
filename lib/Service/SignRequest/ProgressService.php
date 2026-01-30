@@ -167,9 +167,6 @@ class ProgressService {
 		return $initialStatus;
 	}
 
-	/**
-	 * @param array<string, mixed> $progress
-	 */
 	private function buildProgressHash(array $progress): string {
 		if (!empty($progress['files']) && is_array($progress['files'])) {
 			usort($progress['files'], function (array $left, array $right): int {
