@@ -13,19 +13,22 @@ use OCP\ICacheFactory;
 
 class StatusCacheService {
 	public const STATUS_KEY_PREFIX = 'libresign_status_';
-	public const DEFAULT_TTL = 60;
+	public const DEFAULT_TTL = 300;
 
 	private ICache $cache;
 
-	public function __construct(ICacheFactory $cacheFactory) {
+	public function __construct(
+		ICacheFactory $cacheFactory,
+	) {
 		$this->cache = $cacheFactory->createDistributed('libresign_progress');
 	}
 
-	public function setStatus(string $fileUuid, int $status, int $ttl = self::DEFAULT_TTL): void {
+	public function setStatus(string $fileUuid, int $status): void {
+
 		if ($fileUuid === '') {
 			return;
 		}
-		$this->cache->set(self::STATUS_KEY_PREFIX . $fileUuid, $status, $ttl);
+		$this->cache->set(self::STATUS_KEY_PREFIX . $fileUuid, $status, self::DEFAULT_TTL);
 	}
 
 	public function getStatus(string $fileUuid): mixed {

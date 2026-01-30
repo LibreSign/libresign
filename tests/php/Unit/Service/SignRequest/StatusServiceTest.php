@@ -6,13 +6,13 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\SequentialSigningService;
 use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCA\Libresign\Service\SignRequest\StatusService;
+use OCA\Libresign\Service\SignRequest\StatusUpdatePolicy;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -20,6 +20,7 @@ final class StatusServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SequentialSigningService&MockObject $sequentialSigningService;
 	private FileStatusService&MockObject $fileStatusService;
 	private StatusCacheService&MockObject $statusCacheService;
+	private StatusUpdatePolicy $statusUpdatePolicy;
 	private StatusService $service;
 
 	public function setUp(): void {
@@ -27,10 +28,12 @@ final class StatusServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->sequentialSigningService = $this->createMock(SequentialSigningService::class);
 		$this->fileStatusService = $this->createMock(FileStatusService::class);
 		$this->statusCacheService = $this->createMock(StatusCacheService::class);
+		$this->statusUpdatePolicy = new StatusUpdatePolicy();
 		$this->service = new StatusService(
 			$this->sequentialSigningService,
 			$this->fileStatusService,
-			$this->statusCacheService
+			$this->statusCacheService,
+			$this->statusUpdatePolicy
 		);
 	}
 
@@ -73,52 +76,6 @@ final class StatusServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[SignRequestStatus::SIGNED, FileStatus::ABLE_TO_SIGN->value, true, false, false],
 			[SignRequestStatus::DRAFT, FileStatus::DRAFT->value, false, false, false],
 			[SignRequestStatus::ABLE_TO_SIGN, null, false, true, false],
-		];
-	}
-
-	#[DataProvider('signRequestStatusUpdateScenarios')]
-	public function testUpdateStatusIfAllowed(
-		SignRequestStatus $current,
-		SignRequestStatus $desired,
-		bool $isNew,
-		bool $isUpgrade,
-		bool $shouldUpdate,
-	): void {
-		$signRequest = $this->createMock(SignRequestEntity::class);
-
-		if (!$isNew) {
-			$this->sequentialSigningService
-				->expects($this->once())
-				->method('isStatusUpgrade')
-				->with($current, $desired)
-				->willReturn($isUpgrade);
-		}
-
-		$signRequest
-			->expects($shouldUpdate ? $this->once() : $this->never())
-			->method('setStatusEnum')
-			->with($desired);
-
-		$this->service->updateStatusIfAllowed($signRequest, $current, $desired, $isNew);
-	}
-
-	public static function signRequestStatusUpdateScenarios(): array {
-		$draft = SignRequestStatus::DRAFT;
-		$able = SignRequestStatus::ABLE_TO_SIGN;
-		$signed = SignRequestStatus::SIGNED;
-
-		return [
-			[$draft, $able, true, true, true],
-			[$draft, $signed, true, true, true],
-			[$able, $signed, true, true, true],
-			[$draft, $able, false, true, true],
-			[$draft, $signed, false, true, true],
-			[$able, $signed, false, true, true],
-			[$able, $draft, false, false, false],
-			[$signed, $draft, false, false, false],
-			[$signed, $able, false, false, false],
-			[$draft, $draft, false, false, false],
-			[$able, $able, false, false, false],
 		];
 	}
 
