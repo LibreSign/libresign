@@ -18,17 +18,6 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\ICache;
 use OCP\ICacheFactory;
 
-/**
- * Service for calculating and managing sign request progress
- *
- * This service encapsulates the business logic for:
- * - Calculating progress for specific sign requests
- * - Handling different file types (simple files, envelopes)
- * - Polling for status changes
- * - Building status responses
- *
- * Testable unit that can be tested independently of HTTP concerns
- */
 class ProgressService {
 	private ICache $cache;
 	public const ERROR_KEY_PREFIX = 'libresign_sign_request_error_';
@@ -44,6 +33,7 @@ class ProgressService {
 		ICacheFactory $cacheFactory,
 		private SignRequestMapper $signRequestMapper,
 		private StatusCacheService $statusCacheService,
+		private ProgressPollDecisionPolicy $pollDecisionPolicy,
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign_progress');
 	}
@@ -66,10 +56,10 @@ class ProgressService {
 		int $timeout = 30,
 		int $intervalSeconds = 1,
 	): int {
-		$statusUuid = $file->getUuid();
 		if ($file->getNodeType() !== 'envelope') {
-			return $this->pollForStatusChangeInternal(
-				$statusUuid,
+			return $this->pollForProgressChange(
+				$file,
+				$signRequest,
 				[$signRequest->getUuid()],
 				$initialStatus,
 				$timeout,
@@ -87,13 +77,65 @@ class ProgressService {
 			}
 		}
 
-		return $this->pollForStatusChangeInternal(
-			$statusUuid,
+		return $this->pollForProgressChange(
+			$file,
+			$signRequest,
 			$signRequestUuids,
 			$initialStatus,
 			$timeout,
 			$intervalSeconds,
 		);
+	}
+
+	private function pollForProgressChange(
+		FileEntity $file,
+		SignRequestEntity $signRequest,
+		array $errorUuids,
+		int $initialStatus,
+		int $timeout,
+		int $intervalSeconds,
+	): int {
+		$statusUuid = $file->getUuid();
+		$cachedStatus = $this->statusCacheService->getStatus($statusUuid);
+		$interval = max(1, $intervalSeconds);
+		$initialProgress = $this->getSignRequestProgress($file, $signRequest);
+		$initialHash = $this->buildProgressHash($initialProgress);
+
+		$initialCachedStatus = $this->pollDecisionPolicy->normalizeCachedStatus($cachedStatus);
+		$initialDecision = $this->pollDecisionPolicy->initialStatusFromCache($initialCachedStatus, $initialStatus);
+		if ($initialDecision !== null) {
+			return $initialDecision;
+		}
+
+		for ($elapsed = 0; $elapsed < $timeout; $elapsed += $interval) {
+			if (!empty($errorUuids) && $this->hasAnySignRequestError($errorUuids)) {
+				return $initialStatus;
+			}
+
+			$newCachedStatus = $this->statusCacheService->getStatus($statusUuid);
+			$newCachedStatusValue = $this->pollDecisionPolicy->normalizeCachedStatus($newCachedStatus);
+			$cacheDecision = $this->pollDecisionPolicy->statusFromCacheChange($initialCachedStatus, $newCachedStatusValue);
+			if ($cacheDecision !== null) {
+				return $cacheDecision;
+			}
+
+			$currentProgress = $this->getSignRequestProgress($file, $signRequest);
+			$currentHash = $this->buildProgressHash($currentProgress);
+
+			if ($currentHash !== $initialHash) {
+				return $this->pollDecisionPolicy->statusFromProgressChange(
+					$newCachedStatusValue,
+					$initialCachedStatus,
+					$initialStatus
+				);
+			}
+
+			if ($intervalSeconds > 0) {
+				sleep($intervalSeconds);
+			}
+		}
+
+		return $initialStatus;
 	}
 
 	private function pollForStatusChangeInternal(
@@ -105,6 +147,10 @@ class ProgressService {
 	): int {
 		$cachedStatus = $this->statusCacheService->getStatus($statusUuid);
 		$interval = max(1, $intervalSeconds);
+
+		if ($cachedStatus !== false && $cachedStatus !== null && (int)$cachedStatus !== $initialStatus) {
+			return (int)$cachedStatus;
+		}
 
 		for ($elapsed = 0; $elapsed < $timeout; $elapsed += $interval) {
 			if (!empty($errorUuids) && $this->hasAnySignRequestError($errorUuids)) {
@@ -122,6 +168,22 @@ class ProgressService {
 		}
 
 		return $initialStatus;
+	}
+
+	private function buildProgressHash(array $progress): string {
+		if (!empty($progress['files']) && is_array($progress['files'])) {
+			usort($progress['files'], function (array $left, array $right): int {
+				return ($left['id'] ?? 0) <=> ($right['id'] ?? 0);
+			});
+		}
+
+		if (!empty($progress['signers']) && is_array($progress['signers'])) {
+			usort($progress['signers'], function (array $left, array $right): int {
+				return ($left['id'] ?? 0) <=> ($right['id'] ?? 0);
+			});
+		}
+
+		return hash('sha256', json_encode($progress, JSON_UNESCAPED_SLASHES) ?: '');
 	}
 
 	public function setSignRequestError(string $uuid, array $error, int $ttl = self::ERROR_CACHE_TTL): void {
@@ -532,12 +594,12 @@ class ProgressService {
 	}
 
 	private function getSignRequestStatusCode(FileEntity $file, SignRequestEntity $signRequest): int {
-		if ($file->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value) {
-			return FileStatus::SIGNING_IN_PROGRESS->value;
-		}
-
 		if ($signRequest->getSigned() !== null) {
 			return FileStatus::SIGNED->value;
+		}
+
+		if ($file->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value) {
+			return FileStatus::SIGNING_IN_PROGRESS->value;
 		}
 
 		return match ($signRequest->getStatusEnum()) {

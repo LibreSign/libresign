@@ -13,11 +13,13 @@ use DateTimeInterface;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCP\AppFramework\Db\DoesNotExistException;
 
 class FileStatusService {
 	public function __construct(
 		private FileMapper $fileMapper,
+		private StatusCacheService $statusCacheService,
 	) {
 	}
 
@@ -27,6 +29,7 @@ class FileStatusService {
 			$file->setStatus($newStatus);
 			$this->touchStatusChangedAt($file);
 			$this->fileMapper->update($file);
+			$this->statusCacheService->setStatus($file->getUuid(), $newStatus);
 
 			if ($file->hasParent()) {
 				$this->propagateStatusToParent($file->getParentFileId());
@@ -84,13 +87,14 @@ class FileStatusService {
 			$parent->setStatus($newStatus);
 			$this->touchStatusChangedAt($parent);
 			$this->fileMapper->update($parent);
+			$this->statusCacheService->setStatus($parent->getUuid(), $newStatus);
 		}
 	}
 
-	public function updateFileStatus(FileEntity $file, int $newStatus): FileEntity {
-		$file->setStatus($newStatus);
+	public function update(FileEntity $file): FileEntity {
 		$this->touchStatusChangedAt($file);
 		$this->fileMapper->update($file);
+		$this->statusCacheService->setStatus($file->getUuid(), $file->getStatus());
 
 		if ($file->hasParent()) {
 			$this->propagateStatusToParent($file->getParentFileId());
@@ -117,6 +121,7 @@ class FileStatusService {
 				$child->setStatus($newStatus);
 				$this->touchStatusChangedAt($child);
 				$this->fileMapper->update($child);
+				$this->statusCacheService->setStatus($child->getUuid(), $newStatus);
 			}
 		}
 	}
