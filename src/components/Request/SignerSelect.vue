@@ -79,6 +79,7 @@ export default {
 			options: [],
 			selectedSigner: null,
 			haveError: false,
+			intersectionObserver: null,
 		}
 	},
 	computed: {
@@ -98,6 +99,13 @@ export default {
 	mounted() {
 		if (Object.keys(this.signer).length > 0) {
 			this.selectedSigner = this.signer
+		}
+		this.setupVisibilityObserver()
+		this.focusInput()
+	},
+	beforeDestroy() {
+		if (this.intersectionObserver) {
+			this.intersectionObserver.disconnect()
 		}
 	},
 	methods: {
@@ -137,6 +145,38 @@ export default {
 					subname: item.subname ?? '',
 				}
 			})
+		},
+
+		focusInput() {
+			if (this.selectedSigner) {
+				return
+			}
+
+			this.$nextTick(() => {
+				const input = this.$refs.select?.$el?.querySelector('input')
+				if (input) {
+					input.focus()
+				}
+			})
+		},
+
+		setupVisibilityObserver() {
+			const container = this.$el
+			if (!container) {
+				return
+			}
+
+			this.intersectionObserver = new IntersectionObserver((entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						this.focusInput()
+					}
+				})
+			}, {
+				threshold: 0.1,
+			})
+
+			this.intersectionObserver.observe(container)
 		},
 	},
 }
