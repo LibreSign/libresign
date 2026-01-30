@@ -136,9 +136,7 @@ OC.L10N.register(
     "Choose color" : "Choose color",
     "Delete" : "حذف",
     "Confirm your signature" : "Confirm your signature",
-    "Select other file" : "Select other file",
     "Select your signature file." : "Select your signature file.",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Use your mouse wheel to zoom in or out on the image and find the best view of your signature.",
     "Enter your Full Name or Initials to create Signature" : "Enter your Full Name or Initials to create Signature",
     "_file_::_files_" : ["file","files"],
     "Preview" : "پیش‌نمایش",
@@ -343,6 +341,8 @@ OC.L10N.register(
     "Return" : "Return",
     "Open in LibreSign" : "Open in LibreSign",
     "Requested by {name}, at {date}" : "Requested by {name}, at {date}",
-    "Deleted" : "حذف شده"
+    "Deleted" : "حذف شده",
+    "Select other file" : "Select other file",
+    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Use your mouse wheel to zoom in or out on the image and find the best view of your signature."
 },
 "nplurals=2; plural=(n > 1);");

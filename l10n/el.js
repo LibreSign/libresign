@@ -217,13 +217,11 @@ OC.L10N.register(
     "Choose color" : "Επιλογή χρώματος",
     "Delete" : "Διαγραφή",
     "Confirm your signature" : "Επιβεβαιώστε την υπογραφή σας",
-    "Select other file" : "Επιλογή άλλου αρχείου",
     "Select your signature file." : "Επιλέξτε το αρχείο υπογραφής σας.",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Χρησιμοποιήστε τον τροχό του ποντικιού για εστίαση ή απομάκρυνση στην εικόνα και βρείτε την καλύτερη προβολή της υπογραφής σας.",
+    "Zoom level" : "Επίπεδο εστίασης",
     "Enter your Full Name or Initials to create Signature" : "Εισάγετε το Πλήρες Όνομα ή τα Αρχικά σας για δημιουργία Υπογραφής",
     "_file_::_files_" : ["αρχείο","αρχεία"],
     "Preview" : "Προεπισκόπηση",
-    "Zoom level" : "Επίπεδο εστίασης",
     "Width" : "Πλάτος",
     "Height" : "Ύψος",
     "Copy to clipboard" : "Αντιγραφή στο πρόχειρο",
@@ -526,6 +524,8 @@ OC.L10N.register(
     "Open in LibreSign" : "Άνοιγμα στο LibreSign",
     "New signature request" : "Νέο αίτημα υπογραφής",
     "Requested by {name}, at {date}" : "Ζητήθηκε από {name}, στις {date}",
-    "Deleted" : "Διαγραμμένα"
+    "Deleted" : "Διαγραμμένα",
+    "Select other file" : "Επιλογή άλλου αρχείου",
+    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Χρησιμοποιήστε τον τροχό του ποντικιού για εστίαση ή απομάκρυνση στην εικόνα και βρείτε την καλύτερη προβολή της υπογραφής σας."
 },
 "nplurals=2; plural=(n != 1);");

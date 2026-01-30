@@ -147,9 +147,7 @@ OC.L10N.register(
     "Color" : "Color",
     "Delete" : "Suprimir",
     "Confirm your signature" : "Confirmeu la vostra signatura",
-    "Select other file" : "Seleccioneu un altre fitxer",
     "Select your signature file." : "Seleccioneu el vostre fitxer de signatura.",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Utilitzeu la roda del ratolí per ampliar o reduir la imatge i trobar la millor visió de la vostra signatura.",
     "Enter your Full Name or Initials to create Signature" : "Introduïu el vostre nom complet o inicials per crear la signatura",
     "Preview" : "Previsualitza",
     "Width" : "Amplada",
@@ -351,6 +349,8 @@ OC.L10N.register(
     "Return" : "Retorn",
     "Open in LibreSign" : "Obre a LibreSign",
     "Requested by {name}, at {date}" : "Sol·licitat per {name}, a {date}",
-    "Deleted" : "Suprimit"
+    "Deleted" : "Suprimit",
+    "Select other file" : "Seleccioneu un altre fitxer",
+    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Utilitzeu la roda del ratolí per ampliar o reduir la imatge i trobar la millor visió de la vostra signatura."
 },
 "nplurals=2; plural=(n != 1);");

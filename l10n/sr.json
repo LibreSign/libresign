@@ -217,13 +217,11 @@
     "Choose color" : "Изаберите бој",
     "Delete" : "Избриши",
     "Confirm your signature" : "Потврдите свој потпис",
-    "Select other file" : "Изаберите други фајл",
     "Select your signature file." : "Изаберите фајл вашег потписа.",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Употребите точкић миша да увећате или умањите слику тако да пронађете најбољи поглед на свој потпис.",
+    "Zoom level" : "Ниво увећања",
     "Enter your Full Name or Initials to create Signature" : "Унесите Пуно име или Иницијале да креирате Потпис",
     "_file_::_files_" : ["фајл","фајла","фајлова"],
     "Preview" : "Преглед",
-    "Zoom level" : "Ниво увећања",
     "Width" : "Ширина",
     "Height" : "Висина",
     "Copy to clipboard" : "Копирај у оставу",
@@ -570,6 +568,8 @@
     "Open in LibreSign" : "Отвори у LibreSign",
     "New signature request" : "Нови захтев за потпис",
     "Requested by {name}, at {date}" : "Захтевао {name}, дана {date}",
-    "Deleted" : "Обрисано"
+    "Deleted" : "Обрисано",
+    "Select other file" : "Изаберите други фајл",
+    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Употребите точкић миша да увећате или умањите слику тако да пронађете најбољи поглед на свој потпис."
 },"pluralForm" :"nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
 }

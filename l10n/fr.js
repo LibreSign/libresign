@@ -218,13 +218,11 @@ OC.L10N.register(
     "Choose color" : "Sélectionnez une couleur",
     "Delete" : "Supprimer",
     "Confirm your signature" : "Confirmez votre signature",
-    "Select other file" : "Sélectionnez un autre fichier",
     "Select your signature file." : "Sélectionnez votre fichier de signature.",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Utilisez la molette de la souris pour zommer ou dézoomer sur l'image et trouvez le meilleur point de vue pour votre signature.",
+    "Zoom level" : "Niveau de zoom:",
     "Enter your Full Name or Initials to create Signature" : "Entrez votre nom complet ou vos initiales afin de créer une signature",
     "_file_::_files_" : ["fichier","fichiers","fichiers"],
     "Preview" : "Prévisualiser",
-    "Zoom level" : "Niveau de zoom:",
     "Width" : "Largeur",
     "Height" : "Hauteur",
     "Copy to clipboard" : "Copier dans le presse-papiers",
@@ -525,6 +523,8 @@ OC.L10N.register(
     "Open in LibreSign" : "Ouvrir dans LibreSign",
     "New signature request" : "Nouvelle demande de signature",
     "Requested by {name}, at {date}" : "Demandé par {name}, le {date}",
-    "Deleted" : "Effacé"
+    "Deleted" : "Effacé",
+    "Select other file" : "Sélectionnez un autre fichier",
+    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Utilisez la molette de la souris pour zommer ou dézoomer sur l'image et trouvez le meilleur point de vue pour votre signature."
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

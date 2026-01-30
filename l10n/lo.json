@@ -215,12 +215,10 @@
     "Choose color" : "ເລືອກສີ",
     "Delete" : "ລຶບ",
     "Confirm your signature" : "ຢືນຢັນລາຍເຊັນຂອງທ່ານ",
-    "Select other file" : "ເລືອກໄຟລ໌ອື່ນ",
     "Select your signature file." : "ເລືອກໄຟລ໌ລາຍເຊັນຂອງທ່ານ.",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "ໃຊ້ລໍ້ເມົ້າຂອງທ່ານເພື່ອຊູມເຂົ້າ ຫຼື ຊູມອອກຮູບ ແລະ ຊອກຫາມຸມມອງທີ່ດີທີ່ສຸດຂອງລາຍເຊັນຂອງທ່ານ.",
+    "Zoom level" : "ລະດັບການຊູມ",
     "Enter your Full Name or Initials to create Signature" : "ໃສ່ຊື່ເຕັມ ຫຼື ຊື່ຫຍໍ້ຂອງທ່ານເພື່ອສ້າງລາຍເຊັນ",
     "Preview" : "ເບິ່ງຕົວຢ່າງ",
-    "Zoom level" : "ລະດັບການຊູມ",
     "Copy to clipboard" : "ສຳເນົາໃສ່ຄລິບບອດ",
     "Request" : "ຮ້ອງຂໍ",
     "Files" : "ໄຟລ໌ຕ່າງໆ",
@@ -563,6 +561,8 @@
     "Open in LibreSign" : "ເປີດໃນ LibreSign",
     "New signature request" : "ຄຳຮ້ອງຂໍລາຍເຊັນໃໝ່",
     "Requested by {name}, at {date}" : "ຮ້ອງຂໍໂດຍ {name}, ເມື່ອ {date}",
-    "Deleted" : "ລຶບແລ້ວ"
+    "Deleted" : "ລຶບແລ້ວ",
+    "Select other file" : "ເລືອກໄຟລ໌ອື່ນ",
+    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "ໃຊ້ລໍ້ເມົ້າຂອງທ່ານເພື່ອຊູມເຂົ້າ ຫຼື ຊູມອອກຮູບ ແລະ ຊອກຫາມຸມມອງທີ່ດີທີ່ສຸດຂອງລາຍເຊັນຂອງທ່ານ."
 },"pluralForm" :"nplurals=1; plural=0;"
 }
