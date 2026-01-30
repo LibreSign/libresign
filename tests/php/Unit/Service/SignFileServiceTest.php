@@ -441,6 +441,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'validateDocMdpAllowsSignatures',
 		]);
 
+		$this->signingCoordinatorService
+			->method('shouldUseParallelProcessing')
+			->willReturn(false);
+
 		$nextcloudFile = $this->createMock(\OCP\Files\File::class);
 		$nextcloudFile->method('getContent')->willReturn('pdf content');
 		$nextcloudFile->method('getId')->willReturn(456);
@@ -448,7 +452,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service->method('validateDocMdpAllowsSignatures');
 		$service->method('computeHash')->willReturn('hash');
 
-		$this->fileMapper->expects($this->once())->method('update');
+		$this->fileStatusService->expects($this->once())
+			->method('update')
+			->willReturnArgument(0);
 		$this->signRequestMapper->expects($this->once())->method('update');
 
 		$pkcs12Handler = $this->createMock(Pkcs12Handler::class);

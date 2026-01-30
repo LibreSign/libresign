@@ -11,10 +11,10 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\BackgroundJob\SignFileJob;
 use OCA\Libresign\Db\File as LibreSignFile;
-use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Service\AsyncSigningService;
+use OCA\Libresign\Service\FileStatusService;
 use OCA\Libresign\Service\Worker\WorkerHealthService;
 use OCP\BackgroundJob\IJobList;
 use OCP\IUser;
@@ -29,21 +29,21 @@ class AsyncSigningServiceTest extends TestCase {
 	private IJobList&MockObject $jobList;
 	private ICredentialsManager&MockObject $credentialsManager;
 	private ISecureRandom&MockObject $secureRandom;
-	private FileMapper&MockObject $fileMapper;
+	private FileStatusService&MockObject $fileStatusService;
 	private WorkerHealthService&MockObject $workerHealthService;
 
 	protected function setUp(): void {
 		$this->jobList = $this->createMock(IJobList::class);
 		$this->credentialsManager = $this->createMock(ICredentialsManager::class);
 		$this->secureRandom = $this->createMock(ISecureRandom::class);
-		$this->fileMapper = $this->createMock(FileMapper::class);
+		$this->fileStatusService = $this->createMock(FileStatusService::class);
 		$this->workerHealthService = $this->createMock(WorkerHealthService::class);
 
 		$this->service = new AsyncSigningService(
 			$this->jobList,
 			$this->credentialsManager,
 			$this->secureRandom,
-			$this->fileMapper,
+			$this->fileStatusService,
 			$this->workerHealthService
 		);
 	}
@@ -123,12 +123,12 @@ class AsyncSigningServiceTest extends TestCase {
 				})
 			);
 
-		$this->fileMapper->expects($this->once())
+		$this->fileStatusService->expects($this->once())
 			->method('update')
 			->with($this->callback(function ($updatedFile) {
-				$metadata = $updatedFile->getMetadata();
-				return isset($metadata['status_changed_at']);
-			}));
+				return $updatedFile->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value;
+			}))
+			->willReturnArgument(0);
 
 		$signatureMethod = 'clickToSign';
 		$this->jobList->expects($this->once())
@@ -175,12 +175,12 @@ class AsyncSigningServiceTest extends TestCase {
 		$file->setId(1);
 		$file->setMetadata([]);
 
-		$this->fileMapper->expects($this->once())
+		$this->fileStatusService->expects($this->once())
 			->method('update')
 			->with($this->callback(function ($updatedFile) {
-				return $updatedFile->getStatusEnum() === FileStatus::SIGNING_IN_PROGRESS
-					&& isset($updatedFile->getMetadata()['status_changed_at']);
-			}));
+				return $updatedFile->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value;
+			}))
+			->willReturnArgument(0);
 
 		$signRequest = new SignRequest();
 		$signRequest->setId(1);
@@ -209,17 +209,12 @@ class AsyncSigningServiceTest extends TestCase {
 		$file->setId(1);
 		$file->setMetadata(['old' => 'data']);
 
-		$this->fileMapper->expects($this->once())
+		$this->fileStatusService->expects($this->once())
 			->method('update')
 			->with($this->callback(function ($updatedFile) {
-				$metadata = $updatedFile->getMetadata();
-				if (!isset($metadata['status_changed_at'])) {
-					return false;
-				}
-				$timestamp = $metadata['status_changed_at'];
-				$parsed = \DateTime::createFromFormat(\DateTimeInterface::ATOM, $timestamp);
-				return $parsed !== false && $parsed->format(\DateTimeInterface::ATOM) === $timestamp;
-			}));
+				return $updatedFile->getStatus() === FileStatus::SIGNING_IN_PROGRESS->value;
+			}))
+			->willReturnArgument(0);
 
 		$signRequest = new SignRequest();
 		$signRequest->setId(1);
@@ -253,7 +248,7 @@ class AsyncSigningServiceTest extends TestCase {
 		$signRequest->setDisplayName('User');
 
 		$this->secureRandom->method('generate')->willReturn('random');
-		$this->fileMapper->method('update');
+		$this->fileStatusService->method('update');
 		$this->credentialsManager->method('store');
 
 		$jobAdded = false;

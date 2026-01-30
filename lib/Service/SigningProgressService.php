@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use OCA\Libresign\Db\File as FileEntity;
-use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Enum\FileStatus;
 use Psr\Log\LoggerInterface;
 
@@ -21,7 +20,7 @@ use Psr\Log\LoggerInterface;
  */
 class SigningProgressService {
 	public function __construct(
-		private FileMapper $fileMapper,
+		private FileStatusService $fileStatusService,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -38,8 +37,8 @@ class SigningProgressService {
 			$currentStatus = $file->getStatus();
 
 			if ($currentStatus !== FileStatus::SIGNING_IN_PROGRESS->value) {
-				$file->setStatusEnum(FileStatus::SIGNING_IN_PROGRESS);
-				$this->fileMapper->update($file);
+				$file->setStatus(FileStatus::SIGNING_IN_PROGRESS->value);
+				$this->fileStatusService->update($file);
 			}
 		}
 	}
@@ -56,8 +55,8 @@ class SigningProgressService {
 			$currentStatus = $file->getStatus();
 
 			if ($currentStatus === FileStatus::SIGNING_IN_PROGRESS->value) {
-				$file->setStatusEnum(FileStatus::ABLE_TO_SIGN);
-				$this->fileMapper->update($file);
+				$file->setStatus(FileStatus::ABLE_TO_SIGN->value);
+				$this->fileStatusService->update($file);
 			}
 		}
 

@@ -20,6 +20,7 @@ class StatusService {
 		private SequentialSigningService $sequentialSigningService,
 		private FileStatusService $fileStatusService,
 		private StatusCacheService $statusCacheService,
+		private StatusUpdatePolicy $statusUpdatePolicy,
 	) {
 	}
 
@@ -32,8 +33,8 @@ class StatusService {
 		return $status === SignRequestStatus::ABLE_TO_SIGN;
 	}
 
-	public function cacheFileStatus(FileEntity $file, int $ttl = StatusCacheService::DEFAULT_TTL): void {
-		$this->statusCacheService->setStatus($file->getUuid(), $file->getStatus(), $ttl);
+	public function cacheFileStatus(FileEntity $file): void {
+		$this->statusCacheService->setStatus($file->getUuid(), $file->getStatus());
 	}
 
 	public function updateStatusIfAllowed(
@@ -42,7 +43,25 @@ class StatusService {
 		SignRequestStatus $desiredStatus,
 		bool $isNewSignRequest,
 	): void {
-		if ($isNewSignRequest || $this->sequentialSigningService->isStatusUpgrade($currentStatus, $desiredStatus)) {
+		$isStatusUpgrade = !$isNewSignRequest
+			? $this->sequentialSigningService->isStatusUpgrade($currentStatus, $desiredStatus)
+			: false;
+		$isOrderedNumericFlow = $this->sequentialSigningService->isOrderedNumericFlow();
+		$hasPendingLowerOrderSigners = $isOrderedNumericFlow
+			? $this->sequentialSigningService->hasPendingLowerOrderSigners(
+				$signRequest->getFileId(),
+				$signRequest->getSigningOrder()
+			)
+			: false;
+
+		if ($this->statusUpdatePolicy->shouldUpdateStatus(
+			$currentStatus,
+			$desiredStatus,
+			$isNewSignRequest,
+			$isStatusUpgrade,
+			$isOrderedNumericFlow,
+			$hasPendingLowerOrderSigners,
+		)) {
 			$signRequest->setStatusEnum($desiredStatus);
 		}
 	}
