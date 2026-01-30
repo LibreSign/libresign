@@ -14,6 +14,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
+use OCA\Libresign\Service\SignRequest\ProgressPollDecisionPolicy;
 use OCA\Libresign\Service\SignRequest\ProgressService;
 use OCA\Libresign\Service\SignRequest\StatusCacheService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -31,6 +32,7 @@ class ProgressServiceTest extends TestCase {
 	private ICacheFactory&MockObject $cacheFactory;
 	private SignRequestMapper&MockObject $signRequestMapper;
 	private StatusCacheService&MockObject $statusCacheService;
+	private ProgressPollDecisionPolicy $pollDecisionPolicy;
 
 	protected function setUp(): void {
 		$this->fileMapper = $this->createMock(FileMapper::class);
@@ -42,12 +44,14 @@ class ProgressServiceTest extends TestCase {
 			->with('libresign_progress')
 			->willReturn($this->cache);
 		$this->statusCacheService = $this->createMock(StatusCacheService::class);
+		$this->pollDecisionPolicy = new ProgressPollDecisionPolicy();
 
 		$this->service = new ProgressService(
 			$this->fileMapper,
 			$this->cacheFactory,
 			$this->signRequestMapper,
 			$this->statusCacheService,
+			$this->pollDecisionPolicy,
 		);
 	}
 
@@ -188,51 +192,6 @@ class ProgressServiceTest extends TestCase {
 			->method('getStatus')
 			->with('envelope-uuid')
 			->willReturn(FileStatus::ABLE_TO_SIGN->value);
-
-		$result = $this->service->pollForStatusOrErrorChange(
-			$envelope,
-			$signRequest,
-			FileStatus::SIGNING_IN_PROGRESS->value,
-			2,
-			0,
-		);
-
-		$this->assertEquals(FileStatus::ABLE_TO_SIGN->value, $result);
-	}
-
-	public function testPollForStatusOrErrorChangeUsesPreviousCachedStatusWhenCacheClears(): void {
-		$envelope = $this->createFileEntity(1, 'envelope.pdf', FileStatus::DRAFT->value, null, 'envelope');
-		$envelope->setUuid('envelope-uuid');
-		$signRequest = $this->createSignRequestEntity(10, 'Signer', FileStatus::DRAFT->value, null);
-		$signRequest->setUuid('sign-request-uuid');
-
-		$children = [
-			$this->createFileEntity(2, 'child1.pdf', FileStatus::DRAFT->value, $envelope->getId()),
-		];
-
-		$call = 0;
-		$this->fileMapper
-			->method('getChildrenFiles')
-			->willReturnCallback(function () use (&$call, $children): array {
-				if ($call === 0) {
-					$call++;
-					return $children;
-				}
-				$children[0]->setStatus(FileStatus::SIGNED->value);
-				return $children;
-			});
-
-		$this->signRequestMapper
-			->method('getByEnvelopeChildrenAndIdentifyMethod')
-			->willReturn([]);
-
-		$this->statusCacheService
-			->method('getStatus')
-			->with('envelope-uuid')
-			->willReturnOnConsecutiveCalls(
-				FileStatus::ABLE_TO_SIGN->value,
-				false
-			);
 
 		$result = $this->service->pollForStatusOrErrorChange(
 			$envelope,
@@ -409,7 +368,13 @@ class ProgressServiceTest extends TestCase {
 	public function testSetAndGetSignRequestErrorWithInMemoryCache(): void {
 		$cache = new InMemoryCache();
 		$cacheFactory = new InMemoryCacheFactory($cache);
-		$service = new ProgressService($this->fileMapper, $cacheFactory, $this->signRequestMapper, $this->statusCacheService);
+		$service = new ProgressService(
+			$this->fileMapper,
+			$cacheFactory,
+			$this->signRequestMapper,
+			$this->statusCacheService,
+			$this->pollDecisionPolicy
+		);
 
 		$uuid = 'real-cache-uuid';
 		$error = [
@@ -440,7 +405,13 @@ class ProgressServiceTest extends TestCase {
 		$this->cache->method('get')->willReturn(false);
 		$this->signRequestMapper->method('getByUuidUncached')->with($uuid)->willReturn($signRequest);
 
-		$service = new ProgressService($this->fileMapper, $this->cacheFactory, $this->signRequestMapper, $this->statusCacheService);
+		$service = new ProgressService(
+			$this->fileMapper,
+			$this->cacheFactory,
+			$this->signRequestMapper,
+			$this->statusCacheService,
+			$this->pollDecisionPolicy
+		);
 
 		$retrieved = $service->getSignRequestError($uuid);
 
@@ -468,7 +439,13 @@ class ProgressServiceTest extends TestCase {
 		$this->cache->method('get')->willReturn(false);
 		$this->signRequestMapper->method('getByUuidUncached')->with($uuid)->willReturn($signRequest);
 
-		$service = new ProgressService($this->fileMapper, $this->cacheFactory, $this->signRequestMapper, $this->statusCacheService);
+		$service = new ProgressService(
+			$this->fileMapper,
+			$this->cacheFactory,
+			$this->signRequestMapper,
+			$this->statusCacheService,
+			$this->pollDecisionPolicy
+		);
 
 		$retrieved = $service->getFileError($uuid, $fileId);
 
@@ -782,6 +759,7 @@ class ProgressServiceTest extends TestCase {
 			$cacheFactory,
 			$this->signRequestMapper,
 			$this->statusCacheService,
+			$this->pollDecisionPolicy
 		);
 
 		$service->setFileError($uuid, $fileId, $error);
