@@ -1131,6 +1131,9 @@ export default {
 	::v-deep .app-sidebar__close {
 		display: none;
 	}
+	::v-deep .app-sidebar__tab {
+		box-sizing: border-box;
+	}
 	@media (min-width: 513px) {
 		::v-deep #app-sidebar-vue {
 			width: unset;
