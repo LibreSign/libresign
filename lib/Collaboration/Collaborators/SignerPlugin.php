@@ -12,20 +12,21 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCP\Collaboration\Collaborators\ISearchPlugin;
 use OCP\Collaboration\Collaborators\ISearchResult;
 use OCP\Collaboration\Collaborators\SearchResultType;
+use OCA\Libresign\Service\Identify\SignerSearchContext;
 use OCP\IUserSession;
 
 class SignerPlugin implements ISearchPlugin {
 	public const TYPE_SIGNER = 50; // IShare::TYPE_SIGNER = 50; It's a custom share type. Not defined in OCP\Share\IShare
-	public static string $method = '';
 
 	public function __construct(
 		protected IdentifyMethodMapper $identifyMethodMapper,
+		private SignerSearchContext $searchContext,
 		private IUserSession $userSession,
 	) {
 	}
 
-	public static function setMethod(string $method): void {
-		self::$method = $method;
+	private function getMethod(): string {
+		return $this->searchContext->getMethod();
 	}
 
 	/**
@@ -33,12 +34,13 @@ class SignerPlugin implements ISearchPlugin {
 	 */
 	public function search($search, $limit, $offset, ISearchResult $searchResult): bool {
 		$user = $this->userSession->getUser()->getUID();
+		$method = $this->getMethod();
 
 		$limit++;
 		$identifiers = $this->identifyMethodMapper->searchByIdentifierValue(
 			$search,
 			$user,
-			self::$method,
+			$method,
 			$limit,
 			$offset,
 		);
@@ -62,26 +64,14 @@ class SignerPlugin implements ISearchPlugin {
 			}
 		}
 
-		if (empty($identifiers) && self::$method && !$this->canValidateMethod()) {
-			$result['exact'][] = [
-				'label' => $search,
-				'shareWithDisplayNameUnique' => $search,
-				'method' => self::$method,
-				'value' => [
-					'shareWith' => $search,
-					'shareType' => self::TYPE_SIGNER,
-				],
-			];
-		}
-
 		$type = new SearchResultType('signer');
 		$searchResult->addResultSet($type, $result['wide'], $result['exact']);
 
 		return $hasMore;
 	}
 
-	private function canValidateMethod(): bool {
-		return in_array(self::$method, ['email', 'account'], true);
+	private function canValidateMethod(string $method): bool {
+		return in_array($method, ['email', 'account'], true);
 	}
 
 	private function rowToSearchResultItem(array $row): array {
