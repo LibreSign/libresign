@@ -33,6 +33,7 @@ class ProgressService {
 		ICacheFactory $cacheFactory,
 		private SignRequestMapper $signRequestMapper,
 		private StatusCacheService $statusCacheService,
+		private ProgressPollDecisionPolicy $pollDecisionPolicy,
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign_progress');
 	}
@@ -100,8 +101,10 @@ class ProgressService {
 		$initialProgress = $this->getSignRequestProgress($file, $signRequest);
 		$initialHash = $this->buildProgressHash($initialProgress);
 
-		if ($cachedStatus !== false && $cachedStatus !== null && (int)$cachedStatus !== $initialStatus) {
-			return (int)$cachedStatus;
+		$initialCachedStatus = $this->pollDecisionPolicy->normalizeCachedStatus($cachedStatus);
+		$initialDecision = $this->pollDecisionPolicy->initialStatusFromCache($initialCachedStatus, $initialStatus);
+		if ($initialDecision !== null) {
+			return $initialDecision;
 		}
 
 		for ($elapsed = 0; $elapsed < $timeout; $elapsed += $interval) {
@@ -110,21 +113,21 @@ class ProgressService {
 			}
 
 			$newCachedStatus = $this->statusCacheService->getStatus($statusUuid);
-			if ($newCachedStatus !== $cachedStatus && $newCachedStatus !== false && $newCachedStatus !== null) {
-				return (int)$newCachedStatus;
+			$newCachedStatusValue = $this->pollDecisionPolicy->normalizeCachedStatus($newCachedStatus);
+			$cacheDecision = $this->pollDecisionPolicy->statusFromCacheChange($initialCachedStatus, $newCachedStatusValue);
+			if ($cacheDecision !== null) {
+				return $cacheDecision;
 			}
 
 			$currentProgress = $this->getSignRequestProgress($file, $signRequest);
 			$currentHash = $this->buildProgressHash($currentProgress);
 
 			if ($currentHash !== $initialHash) {
-				if ($newCachedStatus !== false && $newCachedStatus !== null) {
-					return (int)$newCachedStatus;
-				}
-				if ($cachedStatus !== false && $cachedStatus !== null) {
-					return (int)$cachedStatus;
-				}
-				return $initialStatus;
+				return $this->pollDecisionPolicy->statusFromProgressChange(
+					$newCachedStatusValue,
+					$initialCachedStatus,
+					$initialStatus
+				);
 			}
 
 			if ($intervalSeconds > 0) {
