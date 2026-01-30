@@ -12,6 +12,7 @@ use OCA\Libresign\BackgroundJob\SignFileJob;
 use OCA\Libresign\BackgroundJob\SignSingleFileJob;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Enum\NodeType;
 use OCA\Libresign\Service\Worker\WorkerJobCounter;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\BackgroundJob\IJobList;
@@ -49,13 +50,20 @@ class WorkerJobCounterTest extends TestCase {
 	}
 
 	public function testCountPendingJobsReturnsZeroWhenNoJobs(): void {
+		$signFileJobs = [];
+		$signSingleJobs = [];
+		$callIndex = 0;
 		$this->jobList->expects($this->exactly(2))
 			->method('getJobsIterator')
-			->withConsecutive(
-				[SignFileJob::class, null, 0],
-				[SignSingleFileJob::class, null, 0]
-			)
-			->willReturnOnConsecutiveCalls([], []);
+			->willReturnCallback(function (string $class) use (&$callIndex, $signFileJobs, $signSingleJobs) {
+				$callIndex++;
+				if ($callIndex === 1) {
+					$this->assertSame(SignFileJob::class, $class);
+					return $signFileJobs;
+				}
+				$this->assertSame(SignSingleFileJob::class, $class);
+				return $signSingleJobs;
+			});
 
 		$counter = $this->makeCounter();
 		$this->assertSame(0, $counter->countPendingJobs());
@@ -63,17 +71,24 @@ class WorkerJobCounterTest extends TestCase {
 
 	public function testCountPendingJobsCountsSignFileJobsBasedOnEnvelopeFiles(): void {
 		$signFileJob = $this->makeSignFileJob(['fileId' => 42]);
-		$envelope = $this->createMock(FileEntity::class);
-		$envelope->method('isEnvelope')->willReturn(true);
-		$envelope->method('getId')->willReturn(42);
+		$envelope = new FileEntity();
+		$envelope->setId(42);
+		$envelope->setNodeTypeEnum(NodeType::ENVELOPE);
 
+		$signFileJobs = [$signFileJob];
+		$signSingleJobs = [];
+		$callIndex = 0;
 		$this->jobList->expects($this->exactly(2))
 			->method('getJobsIterator')
-			->withConsecutive(
-				[SignFileJob::class, null, 0],
-				[SignSingleFileJob::class, null, 0]
-			)
-			->willReturnOnConsecutiveCalls([$signFileJob], []);
+			->willReturnCallback(function (string $class) use (&$callIndex, $signFileJobs, $signSingleJobs) {
+				$callIndex++;
+				if ($callIndex === 1) {
+					$this->assertSame(SignFileJob::class, $class);
+					return $signFileJobs;
+				}
+				$this->assertSame(SignSingleFileJob::class, $class);
+				return $signSingleJobs;
+			});
 
 		$this->fileMapper->expects($this->once())
 			->method('getById')
@@ -91,16 +106,24 @@ class WorkerJobCounterTest extends TestCase {
 
 	public function testCountPendingJobsCountsSignFileJobsAsOneWhenNotEnvelope(): void {
 		$signFileJob = $this->makeSignFileJob(['fileId' => 7]);
-		$file = $this->createMock(FileEntity::class);
-		$file->method('isEnvelope')->willReturn(false);
+		$file = new FileEntity();
+		$file->setId(7);
+		$file->setNodeTypeEnum(NodeType::FILE);
 
+		$signFileJobs = [$signFileJob];
+		$signSingleJobs = [];
+		$callIndex = 0;
 		$this->jobList->expects($this->exactly(2))
 			->method('getJobsIterator')
-			->withConsecutive(
-				[SignFileJob::class, null, 0],
-				[SignSingleFileJob::class, null, 0]
-			)
-			->willReturnOnConsecutiveCalls([$signFileJob], []);
+			->willReturnCallback(function (string $class) use (&$callIndex, $signFileJobs, $signSingleJobs) {
+				$callIndex++;
+				if ($callIndex === 1) {
+					$this->assertSame(SignFileJob::class, $class);
+					return $signFileJobs;
+				}
+				$this->assertSame(SignSingleFileJob::class, $class);
+				return $signSingleJobs;
+			});
 
 		$this->fileMapper->expects($this->once())
 			->method('getById')
@@ -115,13 +138,20 @@ class WorkerJobCounterTest extends TestCase {
 		$signSingleJob = $this->makeSignSingleFileJob(['fileId' => 1]);
 		$signSingleJobTwo = $this->makeSignSingleFileJob(['fileId' => 2]);
 
+		$signFileJobs = [];
+		$signSingleJobs = [$signSingleJob, $signSingleJobTwo];
+		$callIndex = 0;
 		$this->jobList->expects($this->exactly(2))
 			->method('getJobsIterator')
-			->withConsecutive(
-				[SignFileJob::class, null, 0],
-				[SignSingleFileJob::class, null, 0]
-			)
-			->willReturnOnConsecutiveCalls([], [$signSingleJob, $signSingleJobTwo]);
+			->willReturnCallback(function (string $class) use (&$callIndex, $signFileJobs, $signSingleJobs) {
+				$callIndex++;
+				if ($callIndex === 1) {
+					$this->assertSame(SignFileJob::class, $class);
+					return $signFileJobs;
+				}
+				$this->assertSame(SignSingleFileJob::class, $class);
+				return $signSingleJobs;
+			});
 
 		$counter = $this->makeCounter();
 		$this->assertSame(2, $counter->countPendingJobs());
@@ -129,18 +159,25 @@ class WorkerJobCounterTest extends TestCase {
 
 	public function testCountPendingJobsSumsBothJobTypes(): void {
 		$signFileJob = $this->makeSignFileJob(['fileId' => 55]);
-		$envelope = $this->createMock(FileEntity::class);
-		$envelope->method('isEnvelope')->willReturn(true);
-		$envelope->method('getId')->willReturn(55);
+		$envelope = new FileEntity();
+		$envelope->setId(55);
+		$envelope->setNodeTypeEnum(NodeType::ENVELOPE);
 		$signSingleJob = $this->makeSignSingleFileJob(['fileId' => 99]);
 
+		$signFileJobs = [$signFileJob];
+		$signSingleJobs = [$signSingleJob];
+		$callIndex = 0;
 		$this->jobList->expects($this->exactly(2))
 			->method('getJobsIterator')
-			->withConsecutive(
-				[SignFileJob::class, null, 0],
-				[SignSingleFileJob::class, null, 0]
-			)
-			->willReturnOnConsecutiveCalls([$signFileJob], [$signSingleJob]);
+			->willReturnCallback(function (string $class) use (&$callIndex, $signFileJobs, $signSingleJobs) {
+				$callIndex++;
+				if ($callIndex === 1) {
+					$this->assertSame(SignFileJob::class, $class);
+					return $signFileJobs;
+				}
+				$this->assertSame(SignSingleFileJob::class, $class);
+				return $signSingleJobs;
+			});
 
 		$this->fileMapper->expects($this->once())
 			->method('getById')
@@ -175,21 +212,28 @@ class WorkerJobCounterTest extends TestCase {
 
 	public function testCountPendingJobsHandlesLargeNumbers(): void {
 		$signFileJob = $this->makeSignFileJob(['fileId' => 101]);
-		$envelope = $this->createMock(FileEntity::class);
-		$envelope->method('isEnvelope')->willReturn(true);
-		$envelope->method('getId')->willReturn(101);
+		$envelope = new FileEntity();
+		$envelope->setId(101);
+		$envelope->setNodeTypeEnum(NodeType::ENVELOPE);
 
 		$signSingleJobOne = $this->makeSignSingleFileJob(['fileId' => 1]);
 		$signSingleJobTwo = $this->makeSignSingleFileJob(['fileId' => 2]);
 		$signSingleJobThree = $this->makeSignSingleFileJob(['fileId' => 3]);
 
+		$signFileJobs = [$signFileJob];
+		$signSingleJobs = [$signSingleJobOne, $signSingleJobTwo, $signSingleJobThree];
+		$callIndex = 0;
 		$this->jobList->expects($this->exactly(2))
 			->method('getJobsIterator')
-			->withConsecutive(
-				[SignFileJob::class, null, 0],
-				[SignSingleFileJob::class, null, 0]
-			)
-			->willReturnOnConsecutiveCalls([$signFileJob], [$signSingleJobOne, $signSingleJobTwo, $signSingleJobThree]);
+			->willReturnCallback(function (string $class) use (&$callIndex, $signFileJobs, $signSingleJobs) {
+				$callIndex++;
+				if ($callIndex === 1) {
+					$this->assertSame(SignFileJob::class, $class);
+					return $signFileJobs;
+				}
+				$this->assertSame(SignSingleFileJob::class, $class);
+				return $signSingleJobs;
+			});
 
 		$this->fileMapper->expects($this->once())
 			->method('getById')
