@@ -9,6 +9,9 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Identify;
 
 use OCA\Libresign\Collaboration\Collaborators\SignerPlugin as SignerCollaborator;
+use OCA\Libresign\Collaboration\Collaborators\AccountPhonePlugin;
+use OCA\Libresign\Collaboration\Collaborators\ContactPhonePlugin;
+use OCA\Libresign\Collaboration\Collaborators\ManualPhonePlugin;
 use OCA\Libresign\Service\Identify\ResultFormatter;
 use OCP\Share\IShare;
 use PHPUnit\Framework\TestCase;
@@ -173,19 +176,121 @@ class ResultFormatterTest extends TestCase {
 
 		$this->assertCount(3, $result);
 
-		// User
 		$this->assertEquals('user1', $result[0]['id']);
 		$this->assertFalse($result[0]['isNoUser']);
 		$this->assertEquals('account', $result[0]['method']);
 
-		// Email
 		$this->assertEquals('email@example.com', $result[1]['id']);
 		$this->assertTrue($result[1]['isNoUser']);
 		$this->assertEquals('email', $result[1]['method']);
 
-		// Signer with phone
 		$this->assertEquals('+5521987776666', $result[2]['id']);
 		$this->assertTrue($result[2]['isNoUser']);
 		$this->assertEquals('whatsapp', $result[2]['method']);
+	}
+
+	public function testFormatAccountPhoneMethod(): void {
+		$list = [
+			[
+				'value' => ['shareWith' => '+5521987776666', 'shareType' => AccountPhonePlugin::TYPE_SIGNER_ACCOUNT_PHONE],
+				'label' => 'John Account Phone',
+				'shareWithDisplayNameUnique' => '+5521987776666',
+				'method' => 'sms',
+			],
+		];
+
+		$result = $this->formatter->formatForNcSelect($list);
+
+		$this->assertCount(1, $result);
+		$this->assertEquals('+5521987776666', $result[0]['id']);
+		$this->assertTrue($result[0]['isNoUser']);
+		$this->assertEquals('sms', $result[0]['method']);
+		$this->assertEquals('svgSms', $result[0]['iconSvg']);
+		$this->assertEquals('sms', $result[0]['iconName']);
+	}
+
+	public function testFormatContactPhoneMethod(): void {
+		$list = [
+			[
+				'value' => ['shareWith' => '+5521987776666', 'shareType' => ContactPhonePlugin::TYPE_SIGNER_CONTACT_PHONE],
+				'label' => 'Contact Phone',
+				'shareWithDisplayNameUnique' => '+5521987776666',
+				'method' => 'whatsapp',
+			],
+		];
+
+		$result = $this->formatter->formatForNcSelect($list);
+
+		$this->assertCount(1, $result);
+		$this->assertEquals('+5521987776666', $result[0]['id']);
+		$this->assertTrue($result[0]['isNoUser']);
+		$this->assertEquals('whatsapp', $result[0]['method']);
+		$this->assertEquals('svgWhatsapp', $result[0]['iconSvg']);
+		$this->assertEquals('whatsapp', $result[0]['iconName']);
+	}
+
+	public function testFormatManualPhoneMethod(): void {
+		$list = [
+			[
+				'value' => ['shareWith' => '+5521987776666', 'shareType' => ManualPhonePlugin::TYPE_SIGNER_MANUAL_PHONE],
+				'label' => '+55 21 98777-6666',
+				'shareWithDisplayNameUnique' => '+5521987776666',
+				'method' => 'telegram',
+			],
+		];
+
+		$result = $this->formatter->formatForNcSelect($list);
+
+		$this->assertCount(1, $result);
+		$this->assertEquals('+5521987776666', $result[0]['id']);
+		$this->assertTrue($result[0]['isNoUser']);
+		$this->assertEquals('telegram', $result[0]['method']);
+		$this->assertEquals('svgTelegram', $result[0]['iconSvg']);
+		$this->assertEquals('telegram', $result[0]['iconName']);
+	}
+
+	public function testFormatSignalPhoneMethod(): void {
+		$list = [
+			[
+				'value' => ['shareWith' => '+5521987776666', 'shareType' => AccountPhonePlugin::TYPE_SIGNER_ACCOUNT_PHONE],
+				'label' => 'Signal User',
+				'shareWithDisplayNameUnique' => '+5521987776666',
+				'method' => 'signal',
+			],
+		];
+
+		$result = $this->formatter->formatForNcSelect($list);
+
+		$this->assertCount(1, $result);
+		$this->assertEquals('+5521987776666', $result[0]['id']);
+		$this->assertEquals('signal', $result[0]['method']);
+		$this->assertEquals('svgSignal', $result[0]['iconSvg']);
+	}
+
+	public function testFormatMultiplePhoneTypesCorrectly(): void {
+		$list = [
+			[
+				'value' => ['shareWith' => '+5521987776666', 'shareType' => AccountPhonePlugin::TYPE_SIGNER_ACCOUNT_PHONE],
+				'label' => 'John SMS',
+				'method' => 'sms',
+			],
+			[
+				'value' => ['shareWith' => '+5521987776666', 'shareType' => ContactPhonePlugin::TYPE_SIGNER_CONTACT_PHONE],
+				'label' => 'Contact WhatsApp',
+				'method' => 'whatsapp',
+			],
+			[
+				'value' => ['shareWith' => '+5521987776666', 'shareType' => ManualPhonePlugin::TYPE_SIGNER_MANUAL_PHONE],
+				'label' => 'Manual Telegram',
+				'method' => 'telegram',
+			],
+		];
+
+		$result = $this->formatter->formatForNcSelect($list);
+
+		$this->assertCount(3, $result);
+		$this->assertEquals('sms', $result[0]['method']);
+		$this->assertEquals('whatsapp', $result[1]['method']);
+		$this->assertEquals('telegram', $result[2]['method']);
 	}
 }
