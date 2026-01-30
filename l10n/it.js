@@ -214,13 +214,11 @@ OC.L10N.register(
     "Choose color" : "Scegli il colore",
     "Delete" : "Elimina",
     "Confirm your signature" : "Conferma la tua firma",
-    "Select other file" : "Seleziona un altro file",
     "Select your signature file." : "Seleziona il file della tua firma.",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Usa la rotellina del mouse per ingrandire o rimpicciolire l'immagine per trovare la migliore visualizzazione della tua firma.",
+    "Zoom level" : "Livello di zoom",
     "Enter your Full Name or Initials to create Signature" : "Inserisci il tuo nome completo o le iniziali per creare la firma",
     "_file_::_files_" : ["file","File","File"],
     "Preview" : "Anteprima",
-    "Zoom level" : "Livello di zoom",
     "Width" : "Larghezza",
     "Height" : "Altezza",
     "Copy to clipboard" : "Copia negli appunti",
@@ -513,6 +511,8 @@ OC.L10N.register(
     "Open in LibreSign" : "Apri in LibreSign",
     "New signature request" : "Nuova richiesta di firma",
     "Requested by {name}, at {date}" : "Richiesta da {name}, il {date}",
-    "Deleted" : "Eliminato"
+    "Deleted" : "Eliminato",
+    "Select other file" : "Seleziona un altro file",
+    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Usa la rotellina del mouse per ingrandire o rimpicciolire l'immagine per trovare la migliore visualizzazione della tua firma."
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

@@ -171,7 +171,6 @@ OC.L10N.register(
     "Choose color" : "Valitse väri",
     "Delete" : "Poista",
     "Confirm your signature" : "Vahvista allekirjoitus",
-    "Select other file" : "Valitse muu tiedosto",
     "Select your signature file." : "Valitse allekirjoitustiedostosi.",
     "Enter your Full Name or Initials to create Signature" : "Anna koko nimesi tai nimikirjaimet luodaksesi allekirjoituksen",
     "_file_::_files_" : ["tiedosto","tiedostoa"],
@@ -221,6 +220,7 @@ OC.L10N.register(
     "Close" : "Sulje",
     "Edit signer" : "Muokkaa allekirjoittajaa",
     "Add new signer" : "Lisää uusi allekirjoittaja",
+    "Document not found" : "Asiakirjaa ei löytynyt",
     "Signature requested" : "Allekirjoitus pyydetty",
     "Add signer" : "Lisää allekirjoittaja",
     "Signing order" : "Allekirjoitusjärjestys",
@@ -439,7 +439,6 @@ OC.L10N.register(
     "Validation URL" : "Validoinnin URL",
     "Add visible footer with signature details" : "Lisää näkyvä alatunniste allekirjoitustietojen kera",
     "Customize footer template" : "Mukauta alatunnisteen mallipohjaa",
-    "Document not found" : "Asiakirjaa ei löytynyt",
     "Sign with your email." : "Allekirjoita sähköpostiosoitteellasi.",
     "Enter the code you received" : "Kirjoita saamasi koodi",
     "Enter your code" : "Kirjoita koodisi",
@@ -476,6 +475,7 @@ OC.L10N.register(
     "original file" : "alkuperäinen tiedosto",
     "New signature request" : "Uusi allekirjoituspyyntö",
     "Requested by {name}, at {date}" : "Pyytänyt {name} {date}",
-    "Deleted" : "Poistettu"
+    "Deleted" : "Poistettu",
+    "Select other file" : "Valitse muu tiedosto"
 },
 "nplurals=2; plural=(n != 1);");

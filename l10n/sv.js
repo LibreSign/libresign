@@ -211,12 +211,10 @@ OC.L10N.register(
     "Color" : "Färg",
     "Delete" : "Radera",
     "Confirm your signature" : "Bekräfta din signatur",
-    "Select other file" : "Välj annan fil",
     "Select your signature file." : "Välj din signaturfil.",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Använd din musrulle för att zooma in eller ut på bilden och hitta den bästa vyn av din signatur.",
+    "Zoom level" : "Zoomnivå",
     "Enter your Full Name or Initials to create Signature" : "Ange ditt fullständiga namn eller initialer för att skapa en signatur",
     "Preview" : "Förhandsgranskning",
-    "Zoom level" : "Zoomnivå",
     "Width" : "Bredd",
     "Height" : "Höjd",
     "Copy to clipboard" : "Kopiera till urklipp",
@@ -509,6 +507,8 @@ OC.L10N.register(
     "Open in LibreSign" : "Öppna i LibreSign",
     "New signature request" : "Ny signaturförfrågan",
     "Requested by {name}, at {date}" : "Begärd av {name}, den {date}",
-    "Deleted" : "Borttagen"
+    "Deleted" : "Borttagen",
+    "Select other file" : "Välj annan fil",
+    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Använd din musrulle för att zooma in eller ut på bilden och hitta den bästa vyn av din signatur."
 },
 "nplurals=2; plural=(n != 1);");

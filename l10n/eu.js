@@ -145,9 +145,7 @@ OC.L10N.register(
     "Choose color" : "Aukeratu kolorea",
     "Delete" : "Ezabatu",
     "Confirm your signature" : "Berretsi sinadura",
-    "Select other file" : "Hautatu beste fitxategi bat",
     "Select your signature file." : "Hautatu zure sinadura fitxategia.",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Erabili saguaren gurpila irudia handitzeko edo txikitzeko eta aurkitu zure sinaduraren ikuspegirik onena.",
     "Enter your Full Name or Initials to create Signature" : "Sartu zure izen osoa edo inizialak sinadura sortzeko",
     "_file_::_files_" : ["fitxategia","fitxategiak"],
     "Preview" : "Aurrebista",
@@ -367,6 +365,8 @@ OC.L10N.register(
     "Return" : "Bueltatu",
     "Open in LibreSign" : "Ireki LibreSign-en",
     "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean",
-    "Deleted" : "Ezabatuta"
+    "Deleted" : "Ezabatuta",
+    "Select other file" : "Hautatu beste fitxategi bat",
+    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Erabili saguaren gurpila irudia handitzeko edo txikitzeko eta aurkitu zure sinaduraren ikuspegirik onena."
 },
 "nplurals=2; plural=(n != 1);");
