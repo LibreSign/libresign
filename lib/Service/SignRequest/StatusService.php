@@ -20,6 +20,7 @@ class StatusService {
 		private SequentialSigningService $sequentialSigningService,
 		private FileStatusService $fileStatusService,
 		private StatusCacheService $statusCacheService,
+		private StatusUpdatePolicy $statusUpdatePolicy,
 	) {
 	}
 
@@ -42,25 +43,25 @@ class StatusService {
 		SignRequestStatus $desiredStatus,
 		bool $isNewSignRequest,
 	): void {
-		if ($isNewSignRequest) {
-			$signRequest->setStatusEnum($desiredStatus);
-			return;
-		}
-
-		if ($this->sequentialSigningService->isStatusUpgrade($currentStatus, $desiredStatus)) {
-			$signRequest->setStatusEnum($desiredStatus);
-			return;
-		}
-
-		if (
-			$desiredStatus === SignRequestStatus::DRAFT
-			&& $currentStatus === SignRequestStatus::ABLE_TO_SIGN
-			&& $this->sequentialSigningService->isOrderedNumericFlow()
-			&& $this->sequentialSigningService->hasPendingLowerOrderSigners(
+		$isStatusUpgrade = !$isNewSignRequest
+			? $this->sequentialSigningService->isStatusUpgrade($currentStatus, $desiredStatus)
+			: false;
+		$isOrderedNumericFlow = $this->sequentialSigningService->isOrderedNumericFlow();
+		$hasPendingLowerOrderSigners = $isOrderedNumericFlow
+			? $this->sequentialSigningService->hasPendingLowerOrderSigners(
 				$signRequest->getFileId(),
 				$signRequest->getSigningOrder()
 			)
-		) {
+			: false;
+
+		if ($this->statusUpdatePolicy->shouldUpdateStatus(
+			$currentStatus,
+			$desiredStatus,
+			$isNewSignRequest,
+			$isStatusUpgrade,
+			$isOrderedNumericFlow,
+			$hasPendingLowerOrderSigners,
+		)) {
 			$signRequest->setStatusEnum($desiredStatus);
 		}
 	}
