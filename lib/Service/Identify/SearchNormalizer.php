@@ -39,6 +39,6 @@ class SearchNormalizer {
 		// convertToStandardFormat validates and normalizes, returns null if invalid
 		$standardFormat = $this->phoneNumberUtil->convertToStandardFormat($search, $defaultRegion);
 
-		return $standardFormat ?? '';
+		return $standardFormat ?? $search;
 	}
 }

@@ -69,14 +69,14 @@ class SearchNormalizerTest extends TestCase {
 		];
 	}
 
-	public function testInvalidPhoneNumbersReturnEmptyString(): void {
+	public function testInvalidPhoneNumbersReturnOriginalInput(): void {
 		$this->config->expects($this->once())
 			->method('getSystemValueString')
 			->with('default_phone_region', '')
 			->willReturn('BR');
 
 		$result = $this->normalizer->normalize('123', 'whatsapp');
-		$this->assertEquals('', $result);
+		$this->assertEquals('123', $result);
 	}
 
 	#[DataProvider('providerAllPhoneMethodsNormalizeIdentically')]
