@@ -63,6 +63,7 @@ import svgDelete from '@mdi/svg/svg/delete.svg?raw'
 import svgFileDocument from '@mdi/svg/svg/file-document-outline.svg?raw'
 import svgPencil from '@mdi/svg/svg/pencil-outline.svg?raw'
 import svgSignature from '@mdi/svg/svg/signature.svg?raw'
+import svgInformation from '@mdi/svg/svg/information-outline.svg?raw'
 import svgTextBoxCheck from '@mdi/svg/svg/text-box-check.svg?raw'
 
 import { loadState } from '@nextcloud/initial-state'
@@ -153,6 +154,16 @@ export default {
 	},
 	mounted() {
 		this.registerAction({
+			id: 'request-signature',
+			title: t('libresign', 'Request signature'),
+			iconSvgInline: svgSignature,
+		})
+		this.registerAction({
+			id: 'details',
+			title: t('libresign', 'Details'),
+			iconSvgInline: svgInformation,
+		})
+		this.registerAction({
 			id: 'rename',
 			title: t('libresign', 'Rename'),
 			iconSvgInline: svgPencil,
@@ -184,7 +195,11 @@ export default {
 	methods: {
 		visibleIf(action) {
 			let visible = false
-			if (action.id === 'rename') {
+			if (action.id === 'request-signature') {
+				visible = (this.source?.signers?.length ?? 0) === 0
+			} else if (action.id === 'details') {
+				visible = (this.source?.signers?.length ?? 0) > 0
+			} else if (action.id === 'rename') {
 				visible = true
 			} else if (action.id === 'sign') {
 				visible = this.filesStore.canSign(this.file)
@@ -201,7 +216,10 @@ export default {
 		async onActionClick(action) {
 			this.openedMenu = null
 			this.sidebarStore.hideSidebar()
-			if (action.id === 'sign') {
+			if (action.id === 'details' || action.id === 'request-signature') {
+				this.filesStore.selectFile(this.source.id)
+				this.sidebarStore.activeRequestSignatureTab()
+			} else if (action.id === 'sign') {
 				const signUuid = this.source.signers
 					.reduce((accumulator, signer) => {
 						if (signer.me) {
