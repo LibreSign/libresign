@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Collaboration\Collaborators;
 
+use OC\Collaboration\Collaborators\SearchResult;
 use OCA\Libresign\Collaboration\Collaborators\ManualPhonePlugin;
 use OCA\Libresign\Service\Identify\SignerSearchContext;
-use OC\Collaboration\Collaborators\SearchResult;
 use OCP\IConfig;
 use OCP\IPhoneNumberUtil;
 use PHPUnit\Framework\Attributes\DataProvider;

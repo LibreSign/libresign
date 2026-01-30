@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Service\Identify;
 
-use OCA\Libresign\Collaboration\Collaborators\SignerPlugin as SignerCollaborator;
 use OCA\Libresign\Collaboration\Collaborators\AccountPhonePlugin;
 use OCA\Libresign\Collaboration\Collaborators\ContactPhonePlugin;
 use OCA\Libresign\Collaboration\Collaborators\ManualPhonePlugin;
+use OCA\Libresign\Collaboration\Collaborators\SignerPlugin as SignerCollaborator;
 use OCA\Libresign\Service\Identify\ResultFormatter;
 use OCP\Share\IShare;
 use PHPUnit\Framework\TestCase;

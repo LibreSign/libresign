@@ -8,13 +8,13 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Collaboration\Collaborators;
 
-use OCA\Libresign\Service\Identify\SignerSearchContext;
 use OC\KnownUser\KnownUserService;
+use OCA\Libresign\Service\Identify\SignerSearchContext;
 use OCP\Collaboration\Collaborators\ISearchPlugin;
 use OCP\Collaboration\Collaborators\ISearchResult;
 use OCP\Collaboration\Collaborators\SearchResultType;
-use OCP\IAppConfig;
 use OCP\Contacts\IManager;
+use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IUserManager;
 use OCP\IUserSession;

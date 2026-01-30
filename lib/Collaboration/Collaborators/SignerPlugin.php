@@ -9,10 +9,10 @@ declare(strict_types=1);
 namespace OCA\Libresign\Collaboration\Collaborators;
 
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCA\Libresign\Service\Identify\SignerSearchContext;
 use OCP\Collaboration\Collaborators\ISearchPlugin;
 use OCP\Collaboration\Collaborators\ISearchResult;
 use OCP\Collaboration\Collaborators\SearchResultType;
-use OCA\Libresign\Service\Identify\SignerSearchContext;
 use OCP\IUserSession;
 
 class SignerPlugin implements ISearchPlugin {

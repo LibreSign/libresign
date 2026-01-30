@@ -8,11 +8,11 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Collaboration\Collaborators;
 
+use OC\Collaboration\Collaborators\SearchResult;
+use OC\KnownUser\KnownUserService;
 use OCA\Libresign\Collaboration\Collaborators\ContactPhonePlugin;
 use OCA\Libresign\Service\Identify\SignerSearchContext;
 use OCA\Libresign\Tests\Unit\TestCase;
-use OC\Collaboration\Collaborators\SearchResult;
-use OC\KnownUser\KnownUserService;
 use OCP\Contacts\IManager;
 use OCP\IGroupManager;
 use OCP\IUser;
