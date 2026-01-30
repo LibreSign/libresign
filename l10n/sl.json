@@ -163,9 +163,7 @@
     "Choose color" : "Izbor barve",
     "Delete" : "Izbriši",
     "Confirm your signature" : "Potrdite podpis",
-    "Select other file" : "Izbor druge datoteke",
     "Select your signature file." : "Izbor datoteke podpisa.",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Uporabite miško za približanje slike in iskanje najboljšega pogleda podpisa.",
     "Enter your Full Name or Initials to create Signature" : "Za ustvarjanje podpisa je treba vpisati polno ime ali začetnice.",
     "Preview" : "Predogled",
     "Height" : "Višina",
@@ -408,6 +406,8 @@
     "Return" : "Nazaj",
     "Open in LibreSign" : "Odpri v LibreSign",
     "Requested by {name}, at {date}" : "Zahteva {name}, poslano {date}",
-    "Deleted" : "Izbrisano"
+    "Deleted" : "Izbrisano",
+    "Select other file" : "Izbor druge datoteke",
+    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Uporabite miško za približanje slike in iskanje najboljšega pogleda podpisa."
 },"pluralForm" :"nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);"
 }

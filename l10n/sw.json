@@ -246,9 +246,10 @@
     "Choose color" : "Chagua rangi",
     "Delete" : "Futa",
     "Confirm your signature" : "Confirm your signature",
-    "Select other file" : "Select other file",
     "Select your signature file." : "Select your signature file.",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Use your mouse wheel to zoom in or out on the image and find the best view of your signature.",
+    "Decrease zoom level" : "Decrease zoom level",
+    "Increase zoom level" : "Increase zoom level",
+    "Zoom level" : "Zoom level",
     "Enter your Full Name or Initials to create Signature" : "Enter your Full Name or Initials to create Signature",
     "Configure the content displayed at the footer of the PDF. The text template uses Twig syntax: https://twig.symfony.com/" : "Configure the content displayed at the footer of the PDF. The text template uses Twig syntax: https://twig.symfony.com/",
     "Show available variables" : "Show available variables",
@@ -256,9 +257,6 @@
     "Footer template" : "Footer template",
     "A twig template to be used at footer of PDF. Will be rendered by mPDF." : "A twig template to be used at footer of PDF. Will be rendered by mPDF.",
     "Preview" : "Mwonekano wa awali",
-    "Decrease zoom level" : "Decrease zoom level",
-    "Increase zoom level" : "Increase zoom level",
-    "Zoom level" : "Zoom level",
     "Width" : "Upana",
     "Height" : "Urefu",
     "Reset dimensions" : "Reset dimensions",
@@ -311,6 +309,7 @@
     "Close" : "Funga",
     "Edit signer" : "Edit signer",
     "Add new signer" : "Add new signer",
+    "Document not found" : "Document not found",
     "Signature requested" : "Signature requested",
     "Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures." : "Some signers use identification methods that have been disabled. Please remove or update them before requesting signatures.",
     "Add signer" : "Add signer",
@@ -655,7 +654,6 @@
     "Write QR code on footer with validation URL" : "Write QR code on footer with validation URL",
     "To validate the signature of the documents. Only change this value if you want to replace the default validation URL with a different one." : "To validate the signature of the documents. Only change this value if you want to replace the default validation URL with a different one.",
     "Customize footer template" : "Customize footer template",
-    "Document not found" : "Document not found",
     "Sign with your email." : "Sign with your email.",
     "Enter the code you received" : "Enter the code you received",
     "Enter your code" : "Enter your code",
@@ -699,6 +697,8 @@
     "Enter the ID or UUID of the document to validate." : "Enter the ID or UUID of the document to validate.",
     "Validation" : "Validation",
     "Return" : "Rudi",
-    "Deleted" : "Vilivyofutwa"
+    "Deleted" : "Vilivyofutwa",
+    "Select other file" : "Select other file",
+    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Use your mouse wheel to zoom in or out on the image and find the best view of your signature."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
