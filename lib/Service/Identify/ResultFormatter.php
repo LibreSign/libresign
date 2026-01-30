@@ -8,6 +8,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Identify;
 
+use OCA\Libresign\Collaboration\Collaborators\AccountPhonePlugin;
+use OCA\Libresign\Collaboration\Collaborators\ContactPhonePlugin;
+use OCA\Libresign\Collaboration\Collaborators\ManualPhonePlugin;
 use OCA\Libresign\Collaboration\Collaborators\SignerPlugin;
 use OCP\Share\IShare;
 
@@ -37,7 +40,12 @@ class ResultFormatter {
 			} elseif ($shareType === IShare::TYPE_USER) {
 				$formattedList[$key]['method'] = 'account';
 				$formattedList[$key]['icon'] = 'icon-user';
-			} elseif ($shareType === SignerPlugin::TYPE_SIGNER) {
+			} elseif (in_array($shareType, [
+				SignerPlugin::TYPE_SIGNER,
+				AccountPhonePlugin::TYPE_SIGNER_ACCOUNT_PHONE,
+				ContactPhonePlugin::TYPE_SIGNER_CONTACT_PHONE,
+				ManualPhonePlugin::TYPE_SIGNER_MANUAL_PHONE,
+			], true)) {
 				$method = $item['method'] ?? '';
 				$formattedList[$key]['method'] = $method;
 
