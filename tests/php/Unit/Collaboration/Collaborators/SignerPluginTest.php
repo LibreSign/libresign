@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit\Collaboration\Collaborators;
 
+use OC\Collaboration\Collaborators\SearchResult;
 use OCA\Libresign\Collaboration\Collaborators\SignerPlugin;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Service\Identify\SignerSearchContext;
-use OC\Collaboration\Collaborators\SearchResult;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\Attributes\DataProvider;

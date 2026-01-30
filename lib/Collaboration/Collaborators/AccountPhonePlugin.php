@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Collaboration\Collaborators;
 
+use OC\KnownUser\KnownUserService;
 use OCA\Libresign\Service\Identify\SignerSearchContext;
 use OCP\Accounts\IAccountManager;
 use OCP\Collaboration\Collaborators\ISearchPlugin;
@@ -17,7 +18,6 @@ use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IUserManager;
 use OCP\IUserSession;
-use OC\KnownUser\KnownUserService;
 
 class AccountPhonePlugin implements ISearchPlugin {
 	public const TYPE_SIGNER_ACCOUNT_PHONE = 51;
