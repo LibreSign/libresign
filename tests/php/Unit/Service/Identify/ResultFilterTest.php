@@ -9,96 +9,266 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\Unit\Service\Identify;
 
 use OCA\Libresign\Service\Identify\ResultFilter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class ResultFilterTest extends TestCase {
-	private ResultFilter $filter;
-
-	protected function setUp(): void {
-		parent::setUp();
-		$this->filter = new ResultFilter();
-	}
-
-	public function testUnifyRemovesDuplicatesByShareWith(): void {
-		$input = [
+	public function testUnifyPrefersCustomLabelWhenDuplicateShareWith(): void {
+		$filter = new ResultFilter();
+		$items = [
 			[
-				['value' => ['shareWith' => 'user1'], 'label' => 'User 1'],
-				['value' => ['shareWith' => 'user2'], 'label' => 'User 2'],
+				'label' => '+5521993408474',
+				'shareWithDisplayNameUnique' => '+5521993408474',
+				'value' => [
+					'shareWith' => '+5521993408474',
+				],
 			],
 			[
-				['value' => ['shareWith' => 'user1'], 'label' => 'User 1 Duplicate'],
-				['value' => ['shareWith' => 'user3'], 'label' => 'User 3'],
+				'label' => 'admin',
+				'shareWithDisplayNameUnique' => '+5521993408474',
+				'value' => [
+					'shareWith' => '+5521993408474',
+				],
 			],
 		];
 
-		$result = $this->filter->unify($input);
+		$result = $filter->unify([$items]);
 
-		$this->assertCount(3, $result);
-		$this->assertEquals('user1', $result[0]['value']['shareWith']);
-		$this->assertEquals('user2', $result[1]['value']['shareWith']);
-		$this->assertEquals('user3', $result[2]['value']['shareWith']);
+		$this->assertCount(1, $result);
+		$this->assertSame('admin', $result[0]['label']);
 	}
 
-	public function testUnifyWithEmptyInput(): void {
-		$result = $this->filter->unify([]);
-		$this->assertCount(0, $result);
-	}
-
-	public function testExcludeEmptyRemovesBlankShareWith(): void {
-		$input = [
-			['value' => ['shareWith' => 'user1']],
-			['value' => ['shareWith' => '']],
-			['value' => ['shareWith' => 'user2']],
+	public function testUnifyFallsBackToNumericLabelWhenNoCustomLabel(): void {
+		$filter = new ResultFilter();
+		$items = [
+			[
+				'label' => '+5521993408474',
+				'shareWithDisplayNameUnique' => '+5521993408474',
+				'value' => [
+					'shareWith' => '+5521993408474',
+				],
+			],
+			[
+				'label' => '+5521993408474',
+				'shareWithDisplayNameUnique' => '+5521993408474',
+				'value' => [
+					'shareWith' => '+5521993408474',
+				],
+			],
 		];
 
-		$result = $this->filter->excludeEmpty($input);
+		$result = $filter->unify([$items]);
+
+		$this->assertCount(1, $result);
+		$this->assertSame('+5521993408474', $result[0]['label']);
+	}
+
+	#[DataProvider('providerScoreAndSelectBestResult')]
+	public function testUnifySelectsItemWithHighestScore(
+		array $items,
+		string $expectedLabel,
+		string $expectedShareWith,
+	): void {
+		$filter = new ResultFilter();
+		$result = $filter->unify([$items]);
+
+		$this->assertCount(1, $result, 'Should have exactly 1 result after unifying duplicates');
+		$this->assertSame($expectedLabel, $result[0]['label']);
+		$this->assertSame($expectedShareWith, $result[0]['value']['shareWith']);
+	}
+
+	public function testUnifySkipsItemsWithoutShareWith(): void {
+		$filter = new ResultFilter();
+		$items = [
+			[
+				'label' => 'Valid Item',
+				'shareWithDisplayNameUnique' => 'valid',
+				'value' => [
+					'shareWith' => 'valid',
+				],
+			],
+			[
+				'label' => 'Invalid Item',
+				'shareWithDisplayNameUnique' => 'invalid',
+				'value' => [
+					// Missing shareWith
+				],
+			],
+		];
+
+		$result = $filter->unify([$items]);
+
+		$this->assertCount(1, $result);
+		$this->assertSame('Valid Item', $result[0]['label']);
+	}
+
+	public function testUnifyHandlesMultipleListsCorrectly(): void {
+		$filter = new ResultFilter();
+		$list1 = [
+			[
+				'label' => 'User 1',
+				'shareWithDisplayNameUnique' => 'user1',
+				'value' => ['shareWith' => 'user1'],
+			],
+		];
+		$list2 = [
+			[
+				'label' => 'User 2',
+				'shareWithDisplayNameUnique' => 'user2',
+				'value' => ['shareWith' => 'user2'],
+			],
+		];
+
+		$result = $filter->unify([$list1, $list2]);
 
 		$this->assertCount(2, $result);
-		$resultValues = array_values($result);
-		$this->assertEquals('user1', $resultValues[0]['value']['shareWith']);
-		$this->assertEquals('user2', $resultValues[1]['value']['shareWith']);
 	}
 
-	public function testExcludeNotAllowedRemovesNoMethod(): void {
-		$input = [
-			['method' => 'email'],
-			['method' => ''],
-			['method' => 'sms'],
-			[],
-			['method' => 'whatsapp'],
+	public function testUnifyRemovesDuplicatesAcrossMultipleLists(): void {
+		$filter = new ResultFilter();
+		$list1 = [
+			[
+				'label' => 'Numeric',
+				'shareWithDisplayNameUnique' => '+5521993408474',
+				'value' => ['shareWith' => '+5521993408474'],
+			],
+		];
+		$list2 = [
+			[
+				'label' => 'Contact Name',
+				'shareWithDisplayNameUnique' => '+5521993408474',
+				'value' => ['shareWith' => '+5521993408474'],
+			],
 		];
 
-		$result = $this->filter->excludeNotAllowed($input);
+		$result = $filter->unify([$list1, $list2]);
 
-		$this->assertCount(3, $result);
-		$resultValues = array_values($result);
-		$this->assertEquals('email', $resultValues[0]['method']);
-		$this->assertEquals('sms', $resultValues[1]['method']);
-		$this->assertEquals('whatsapp', $resultValues[2]['method']);
+		$this->assertCount(1, $result, 'Should merge duplicates from different lists');
+		$this->assertSame('Contact Name', $result[0]['label'], 'Should keep last item when scores tie');
 	}
 
-	public function testSequentialFilteringRealisticScenario(): void {
-		// Realistic case: mixed valid and invalid data
-		$input = [
-			['value' => ['shareWith' => 'user1'], 'method' => 'email'],
-			['value' => ['shareWith' => ''], 'method' => 'sms'],
-			['value' => ['shareWith' => '+5521987776666'], 'method' => ''],
-			['value' => ['shareWith' => 'test@example.com'], 'method' => 'email'],
+	public function testUnifyHandlesEmptyLabelAsZeroScore(): void {
+		$filter = new ResultFilter();
+		$items = [
+			[
+				'label' => '',
+				'shareWithDisplayNameUnique' => 'test',
+				'value' => ['shareWith' => 'test'],
+			],
+			[
+				'label' => 'Test Label',
+				'shareWithDisplayNameUnique' => 'test',
+				'value' => ['shareWith' => 'test'],
+			],
 		];
 
-		// Step 1: Remove empty shareWith
-		$result = $this->filter->excludeEmpty($input);
-		$this->assertCount(3, $result);
+		$result = $filter->unify([$items]);
 
-		// Step 2: Remove results without method
-		$result = $this->filter->excludeNotAllowed($result);
-		$this->assertCount(2, $result);
+		$this->assertCount(1, $result);
+		$this->assertSame('Test Label', $result[0]['label']);
+	}
 
-		// Verify final results
-		$resultValues = array_values($result);
-		$this->assertEquals('user1', $resultValues[0]['value']['shareWith']);
-		$this->assertEquals('email', $resultValues[0]['method']);
-		$this->assertEquals('test@example.com', $resultValues[1]['value']['shareWith']);
-		$this->assertEquals('email', $resultValues[1]['method']);
+	public function testExcludeEmptyFiltersOutEmptyShareWith(): void {
+		$filter = new ResultFilter();
+		$items = [
+			['label' => 'Valid', 'value' => ['shareWith' => 'valid']],
+			['label' => 'Empty', 'value' => ['shareWith' => '']],
+			['label' => 'None', 'value' => ['shareWith' => null]],
+		];
+
+		$result = $filter->excludeEmpty($items);
+
+		$this->assertCount(1, $result);
+		$this->assertSame('Valid', $result[0]['label']);
+	}
+
+	public static function providerScoreAndSelectBestResult(): array {
+		return [
+			'numeric label vs custom label' => [
+				'items' => [
+					[
+						'label' => '+5521993408474',
+						'shareWithDisplayNameUnique' => '+5521993408474',
+						'value' => ['shareWith' => '+5521993408474'],
+					],
+					[
+						'label' => 'John Doe',
+						'shareWithDisplayNameUnique' => '+5521993408474',
+						'value' => ['shareWith' => '+5521993408474'],
+					],
+				],
+				'expectedLabel' => 'John Doe',
+				'expectedShareWith' => '+5521993408474',
+			],
+			'label matches shareWithDisplayNameUnique vs custom' => [
+				'items' => [
+					[
+						'label' => 'john@example.com',
+						'shareWithDisplayNameUnique' => 'john@example.com',
+						'value' => ['shareWith' => 'john@example.com'],
+					],
+					[
+						'label' => 'John Doe',
+						'shareWithDisplayNameUnique' => 'john@example.com',
+						'value' => ['shareWith' => 'john@example.com'],
+					],
+				],
+				'expectedLabel' => 'John Doe',
+				'expectedShareWith' => 'john@example.com',
+			],
+			'label matches shareWith vs custom' => [
+				'items' => [
+					[
+						'label' => 'test@example.com',
+						'shareWithDisplayNameUnique' => 'unique@example.com',
+						'value' => ['shareWith' => 'test@example.com'],
+					],
+					[
+						'label' => 'Custom Name',
+						'shareWithDisplayNameUnique' => 'unique@example.com',
+						'value' => ['shareWith' => 'test@example.com'],
+					],
+				],
+				'expectedLabel' => 'Custom Name',
+				'expectedShareWith' => 'test@example.com',
+			],
+			'all same label should keep first' => [
+				'items' => [
+					[
+						'label' => 'Same Label',
+						'shareWithDisplayNameUnique' => 'same',
+						'value' => ['shareWith' => 'same'],
+					],
+					[
+						'label' => 'Same Label',
+						'shareWithDisplayNameUnique' => 'same',
+						'value' => ['shareWith' => 'same'],
+					],
+				],
+				'expectedLabel' => 'Same Label',
+				'expectedShareWith' => 'same',
+			],
+			'empty label has lowest score' => [
+				'items' => [
+					[
+						'label' => '',
+						'shareWithDisplayNameUnique' => 'phone',
+						'value' => ['shareWith' => 'phone'],
+					],
+					[
+						'label' => '+5521987776666',
+						'shareWithDisplayNameUnique' => 'phone',
+						'value' => ['shareWith' => 'phone'],
+					],
+					[
+						'label' => 'Mobile User',
+						'shareWithDisplayNameUnique' => 'phone',
+						'value' => ['shareWith' => 'phone'],
+					],
+				],
+				'expectedLabel' => 'Mobile User',
+				'expectedShareWith' => 'phone',
+			],
+		];
 	}
 }
