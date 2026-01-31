@@ -451,7 +451,7 @@ export default {
 	height: 100%;
 	width: 100%;
 
-	@media (min-width: 1024px) {
+	@media (min-width: 768px) {
 		flex-direction: row;
 	}
 }
@@ -462,11 +462,11 @@ export default {
 	gap: 8px;
 	margin: 0 0 12px 0;
 
-	@media (max-width: 1023px) {
+	@media (max-width: 767px) {
 		flex-direction: row;
 	}
 
-	@media (min-width: 1024px) {
+	@media (min-width: 768px) {
 		flex-direction: column;
 		align-items: flex-start;
 	}
@@ -477,12 +477,12 @@ export default {
 		overflow-wrap: break-word;
 		word-break: break-word;
 
-		@media (max-width: 1023px) {
+		@media (max-width: 767px) {
 			text-align: center;
 			font-size: 21px;
 		}
 
-		@media (min-width: 1024px) {
+		@media (min-width: 768px) {
 			text-align: left;
 			width: 100%;
 		}
@@ -501,11 +501,12 @@ export default {
 		overflow-y: auto;
 		overflow-x: hidden;
 
-		@media (max-width: 1023px) {
-			max-height: 50vh;
+		@media (max-width: 767px) {
+			max-height: 30vh;
+			min-height: 200px;
 		}
 
-		@media (min-width: 1024px) {
+		@media (min-width: 768px) {
 			width: 320px;
 			min-width: 320px;
 			flex-shrink: 0;
