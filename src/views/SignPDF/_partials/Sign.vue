@@ -175,6 +175,7 @@ import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { useIdentificationDocumentStore } from '../../../store/identificationDocument.js'
 import { FILE_STATUS } from '../../../constants.js'
+import { getPrimarySigningAction } from '../../../helpers/SigningActionHelper.js'
 
 export default {
 	name: 'Sign',
@@ -255,19 +256,13 @@ export default {
 			return getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true
 		},
 		ableToSign() {
-			if (this.signMethodsStore.needCreatePassword()) {
-				return false
-			}
-			if (this.needCreateSignature) {
-				return false
-			}
-			if (this.needIdentificationDocuments) {
-				return false
-			}
-			if (this.signStore.errors.length > 0) {
-				return false
-			}
-			return true
+			const primaryAction = getPrimarySigningAction(
+				this.signStore,
+				this.signMethodsStore,
+				this.needCreateSignature,
+				this.needIdentificationDocuments
+			)
+			return primaryAction?.action === 'sign'
 		},
 		signRequestUuid() {
 			const doc = this.signStore.document || {}
