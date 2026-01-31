@@ -3,58 +3,60 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcDialog v-if="modal"
+	<NcModal v-if="modal"
 		:name="t('libresign', 'Signature positions')"
+		:close-button-contained="false"
+		:close-button-outside="true"
 		size="full"
-		@closing="closeModal">
+		@close="closeModal">
 		<div v-if="filesStore.loading">
 			<NcLoadingIcon :size="64" :name="t('libresign', 'Loading …')" />
 		</div>
-		<div v-else class="sign-details">
-			<h2 class="modal_name">
-				<Chip :state="isDraft ? 'warning' : 'default'">
-					{{ statusLabel }}
-				</Chip>
-				<span class="name">{{ document.name }}</span>
-			</h2>
-			<p v-if="!signerSelected">
-				<NcNoteCard type="info"
-					:text="t('libresign', 'Select a signer to set their signature position')" />
-			</p>
-			<ul class="view-sign-detail__sidebar">
-				<li v-if="signerSelected"
-					:class="{ tip: signerSelected }">
-					{{ t('libresign', 'Click on the place you want to add.') }}
-					<NcButton variant="primary"
-						@click="stopAddSigner">
-						{{ t('libresign', 'Cancel') }}
-					</NcButton>
-				</li>
-				<Signer v-for="(signer, key) in document.signers"
-					:key="key"
-					:signer-index="key"
+		<div v-else class="visible-elements-container">
+			<div class="sign-details">
+				<h2 class="modal_name">
+					<Chip :state="isDraft ? 'warning' : 'default'">
+						{{ statusLabel }}
+					</Chip>
+					<span class="name">{{ document.name }}</span>
+				</h2>
+				<p v-if="!signerSelected">
+					<NcNoteCard type="info"
+						:text="t('libresign', 'Select a signer to set their signature position')" />
+				</p>
+				<ul class="view-sign-detail__sidebar">
+					<li v-if="signerSelected"
+						:class="{ tip: signerSelected }">
+						{{ t('libresign', 'Click on the place you want to add.') }}
+						<NcButton variant="primary"
+							@click="stopAddSigner">
+							{{ t('libresign', 'Cancel') }}
+						</NcButton>
+					</li>
+					<Signer v-for="(signer, key) in document.signers"
+						:key="key"
+						:signer-index="key"
+						:class="{ disabled: signerSelected }"
+						event="libresign:visible-elements-select-signer">
+						<slot v-bind="{signer}" slot="actions" name="actions" />
+					</Signer>
+				</ul>
+				<NcButton v-if="canSave"
+					:variant="variantOfSaveButton"
+					:wide="true"
 					:class="{ disabled: signerSelected }"
-					event="libresign:visible-elements-select-signer">
-					<slot v-bind="{signer}" slot="actions" name="actions" />
-				</Signer>
-			</ul>
-			<NcButton v-if="canSave"
-				:variant="variantOfSaveButton"
-				:wide="true"
-				:class="{ disabled: signerSelected }"
-				@click="save()">
-				{{ t('libresign', 'Save') }}
-			</NcButton>
+					@click="save()">
+					{{ t('libresign', 'Save') }}
+				</NcButton>
 
-			<NcButton v-if="canSign"
-				:variant="variantOfSignButton"
-				:wide="true"
-				@click="goToSign">
-				{{ t('libresign', 'Sign') }}
-			</NcButton>
-		</div>
-		<div class="image-page">
-		<PdfEditor v-if="!filesStore.loading && pdfFiles.length > 0"
+				<NcButton v-if="canSign"
+					:variant="variantOfSignButton"
+					:wide="true"
+					@click="goToSign">
+					{{ t('libresign', 'Sign') }}
+				</NcButton>
+			</div>
+			<PdfEditor v-if="!filesStore.loading && pdfFiles.length > 0"
 				ref="pdfEditor"
 				width="100%"
 				height="100%"
@@ -63,9 +65,9 @@
 				:signers="document.signers"
 				@pdf-editor:end-init="updateSigners"
 				@pdf-editor:on-delete-signer="onDeleteSigner">
-		</PdfEditor>
+			</PdfEditor>
 		</div>
-	</NcDialog>
+	</NcModal>
 </template>
 
 <script>
@@ -77,7 +79,7 @@ import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
-import NcDialog from '@nextcloud/vue/components/NcDialog'
+import NcModal from '@nextcloud/vue/components/NcModal'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 
@@ -92,7 +94,7 @@ export default {
 	name: 'VisibleElements',
 	components: {
 		NcNoteCard,
-		NcDialog,
+		NcModal,
 		Signer,
 		Chip,
 		NcButton,
@@ -443,49 +445,73 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.image-page {
-	::v-deep .py-12{
-		all: unset;
+.visible-elements-container {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	width: 100%;
+
+	@media (min-width: 1024px) {
+		flex-direction: row;
 	}
-	::v-deep .p-5 {
-		all: unset;
-	}
 }
-:deep(.dialog__name) {
-	display: none;
-}
-:deep(.modal-container__close) {
-	z-index: 10 !important;
-}
+
 .modal_name {
 	display: flex;
 	align-items: center;
+	gap: 8px;
+	margin: 0 0 12px 0;
+
+	@media (max-width: 1023px) {
+		flex-direction: row;
+	}
+
+	@media (min-width: 1024px) {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
 	.name {
 		flex: auto;
-		text-align: center;
-		font-size: 21px;
+		font-size: 18px;
 		overflow-wrap: break-word;
+		word-break: break-word;
+
+		@media (max-width: 1023px) {
+			text-align: center;
+			font-size: 21px;
+		}
+
+		@media (min-width: 1024px) {
+			text-align: left;
+			width: 100%;
+		}
 	}
 }
 .modal-container {
 	.notecard--info {
 		margin: unset;
 	}
-	&--sidebar {
-		width: 300px;
-	}
-	& {
-		overflow: auto;
-	}
 	.button-vue {
 		margin: 4px;
 	}
 	.sign-details {
-		padding: 0 8px 8px;
-		position: sticky;
-		top: 0;
-		z-index: 9;
+		padding: 8px;
 		background-color: var(--color-main-background);
+		overflow-y: auto;
+		overflow-x: hidden;
+
+		@media (max-width: 1023px) {
+			max-height: 50vh;
+		}
+
+		@media (min-width: 1024px) {
+			width: 320px;
+			min-width: 320px;
+			flex-shrink: 0;
+			max-height: 100vh;
+		}
+
 		&__sidebar {
 			li {
 				margin: 3px 3px 1em 3px;
@@ -496,17 +522,15 @@ export default {
 			visibility: hidden;
 		}
 		.tip {
-			position: absolute;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			margin-top: 1px;
-			margin-bottom: 1px;
 			display: flex;
 			flex-direction: column;
 			justify-content: center;
 			align-items: center;
+			gap: 8px;
+			padding: 12px 8px;
+			background-color: var(--color-primary-element-light);
+			border-radius: 4px;
+			text-align: center;
 		}
 	}
 }
