@@ -799,7 +799,10 @@ class ValidateHelper {
 			FileService::IDENTIFICATION_DOCUMENTS_APPROVED,
 		];
 		if (!in_array($status, $allowedStatus)) {
-			throw new LibresignException($this->l10n->t('You need to have an approved identification document to sign.'));
+			throw new LibresignException(
+				$this->l10n->t('You need to have an approved identification document to sign.'),
+				JSActions::ACTION_SIGN_ID_DOC,
+			);
 		}
 	}
 
