@@ -19,7 +19,9 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -963,5 +965,79 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'Display name must not be longer than 64 characters'
 			],
 		];
+	}
+
+	public static function canSignWithIdentificationDocumentStatusProvider(): array {
+		return [
+			'disabled identification documents allows signing' => [
+				'status' => FileService::IDENTIFICATION_DOCUMENTS_DISABLED,
+				'canSign' => true,
+			],
+			'approved identification documents allows signing' => [
+				'status' => FileService::IDENTIFICATION_DOCUMENTS_APPROVED,
+				'canSign' => true,
+			],
+			'need send identification documents blocks signing with correct error code' => [
+				'status' => FileService::IDENTIFICATION_DOCUMENTS_NEED_SEND,
+				'canSign' => false,
+				'expectedCode' => JSActions::ACTION_SIGN_ID_DOC,
+			],
+			'need approval identification documents blocks signing with correct error code' => [
+				'status' => FileService::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL,
+				'canSign' => false,
+				'expectedCode' => JSActions::ACTION_SIGN_ID_DOC,
+			],
+		];
+	}
+
+	#[DataProvider('canSignWithIdentificationDocumentStatusProvider')]
+	public function testCanSignWithIdentificationDocumentStatus(
+		int $status,
+		bool $canSign,
+		?int $expectedCode = null,
+	): void {
+		$user = $this->createMock(IUser::class);
+		$validateHelper = $this->getValidateHelper();
+
+		if ($canSign) {
+			try {
+				$validateHelper->canSignWithIdentificationDocumentStatus($user, $status);
+				$this->assertTrue(true, 'Expected no exception when can sign');
+			} catch (LibresignException $e) {
+				$this->fail(sprintf('Unexpected exception when user can sign: %s', $e->getMessage()));
+			}
+		} else {
+			try {
+				$validateHelper->canSignWithIdentificationDocumentStatus($user, $status);
+				$this->fail('Expected LibresignException for pending identification document status');
+			} catch (LibresignException $e) {
+				$this->assertSame(
+					$expectedCode,
+					$e->getCode(),
+					sprintf(
+						'Expected error code %d but got %d: %s',
+						$expectedCode,
+						$e->getCode(),
+						$e->getMessage(),
+					),
+				);
+			}
+		}
+	}
+
+	public function testCanSignWithIdentificationDocumentStatusThrowsWithCorrectMessage(): void {
+		$user = $this->createMock(IUser::class);
+		$validateHelper = $this->getValidateHelper();
+
+		try {
+			$validateHelper->canSignWithIdentificationDocumentStatus($user, FileService::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL);
+			$this->fail('Expected LibresignException');
+		} catch (LibresignException $e) {
+			$this->assertStringContainsString(
+				'approved identification document',
+				$e->getMessage(),
+				'Error message should mention identification document requirement'
+			);
+		}
 	}
 }
