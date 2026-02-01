@@ -165,4 +165,65 @@ describe('selectAction helper', () => {
 
 		expect(result).toBe('Incomplete')
 	})
+
+	it('returns DefaultPageErrorExternal when route not found and error state is true (external)', async () => {
+		const { selectAction } = await loadModule((app, key, defaultValue) => {
+			if (key === 'error') return true
+			return defaultValue
+		})
+
+		const result = selectAction(
+			999,
+			{ path: '/p/error', name: 'ErrorExternal' },
+			{ path: '/' },
+		)
+
+		expect(result).toBe('DefaultPageErrorExternal')
+	})
+
+	it('returns DefaultPageError when route not found and error state is true (internal)', async () => {
+		const { selectAction } = await loadModule((app, key, defaultValue) => {
+			if (key === 'error') return true
+			return defaultValue
+		})
+
+		const result = selectAction(
+			999,
+			{ path: '/error', name: 'Error' },
+			{ path: '/dashboard' },
+		)
+
+		expect(result).toBe('DefaultPageError')
+	})
+
+	it('returns null when route not found and error state is false', async () => {
+		const { selectAction } = await loadModule((app, key, defaultValue) => {
+			if (key === 'error') return false
+			return defaultValue
+		})
+
+		const result = selectAction(
+			999,
+			{ path: '/sign/error', name: 'Error' },
+			{ path: '/dashboard' },
+		)
+
+		expect(result).toBeNull()
+	})
+
+	it('returns null when route is redirect', async () => {
+		const mockMapping = {
+			'sign': { route: 'redirect' },
+		}
+
+		vi.doMock('./ActionMapping.js', () => ({
+			default: mockMapping,
+		}))
+
+		const { selectAction } = await import('./SelectAction.js?t=' + Date.now())
+
+		const result = selectAction('sign', { path: '/sign' }, { path: '/' })
+
+		expect(result).toBeNull()
+	})
 })
