@@ -10,12 +10,14 @@
 			:page-count-format="t('libresign', '{currentPage} of {totalPages}')"
 			:auto-fit-zoom="true"
 			:read-only="readOnly"
+			:emit-object-click="true"
 			:hide-selection-ui="readOnly"
 			:show-selection-handles="!readOnly"
 			:show-element-actions="!readOnly"
 			:ignore-click-outside-selectors="ignoreClickOutsideSelectors"
 			:style="toolbarStyleVars"
 			@pdf-elements:end-init="endInit"
+			@pdf-elements:object-click="handleObjectClick"
 			@pdf-elements:delete-object="handleDeleteObject">
 			<template #actions="slotProps">
 				<slot name="actions" v-bind="slotProps">
@@ -158,6 +160,9 @@ export default {
 			if (object?.signer) {
 				this.onDeleteSigner(object)
 			}
+		},
+		handleObjectClick(event) {
+			this.$emit('pdf-editor:object-click', event)
 		},
 		getSignerLabel(signer) {
 			if (!signer) {
