@@ -128,4 +128,60 @@ describe('SigningRequirementValidator', () => {
 
 		expect(result).toBe(false)
 	})
+
+	it('returns createSignature before clickToSign when no signature exists', () => {
+		const stores = createStores({
+			signMethodsStore: {
+				needClickToSign: () => true,
+			},
+		})
+		const validator = new SigningRequirementValidator(
+			stores.signStore,
+			stores.signMethodsStore,
+			stores.identificationDocumentStore,
+		)
+
+		const result = validator.getFirstUnmetRequirement({
+			hasSignatures: false,
+			canCreateSignature: true,
+		})
+
+		expect(result).toBe('createSignature')
+	})
+
+	it('returns clickToSign when signature exists but needs confirmation', () => {
+		const stores = createStores({
+			signMethodsStore: {
+				needClickToSign: () => true,
+			},
+		})
+		const validator = new SigningRequirementValidator(
+			stores.signStore,
+			stores.signMethodsStore,
+			stores.identificationDocumentStore,
+		)
+
+		const result = validator.getFirstUnmetRequirement({
+			hasSignatures: true,
+			canCreateSignature: true,
+		})
+
+		expect(result).toBe('clickToSign')
+	})
+
+	it('returns null when all requirements are met', () => {
+		const stores = createStores()
+		const validator = new SigningRequirementValidator(
+			stores.signStore,
+			stores.signMethodsStore,
+			stores.identificationDocumentStore,
+		)
+
+		const result = validator.getFirstUnmetRequirement({
+			hasSignatures: true,
+			canCreateSignature: true,
+		})
+
+		expect(result).toBe(null)
+	})
 })
