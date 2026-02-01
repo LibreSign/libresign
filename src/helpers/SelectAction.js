@@ -6,40 +6,35 @@
 import { loadState } from '@nextcloud/initial-state'
 
 import { isExternal } from '../helpers/isExternal.js'
+import { ACTION_CODES, ACTION_CODE_TO_ROUTE } from '../helpers/ActionMapping.js'
 
 const redirectURL = loadState('libresign', 'redirect', 'Home')
 
 export const selectAction = (action, to, from) => {
 	const isExternalRoute = isExternal(to, from)
 	const external = isExternalRoute ? 'External' : ''
-	switch (action) {
-	case 1000: // ACTION_REDIRECT
+
+	if (action === ACTION_CODES.REDIRECT) {
 		window.location.replace(redirectURL.toString())
-		break
-	case 1500: // ACTION_CREATE_ACCOUNT
-		return 'CreateAccount' + external
-	case 2000: // ACTION_DO_NOTHING
+		return
+	}
+
+	if (action === ACTION_CODES.DO_NOTHING) {
 		return to.name
-	case 2500: // ACTION_SIGN
-		return 'SignPDF' + external
-	case 2625: // ACTION_SIGN_INTERNAL
-		return 'SignPDF' + external
-	case 2750: // ACTION_SIGN_ID_DOC
-		return 'IdDocsApprove' + external
-	case 3000: // ACTION_SHOW_ERROR
-		return 'DefaultPageError' + external
-	case 3500: // ACTION_SIGNED
-		return 'ValidationFile' + external
-	case 4000: // ACTION_CREATE_SIGNATURE_PASSWORD
-		return 'CreatePassword' + external
-	case 4500: // ACTION_RENEW_EMAIL
-		return 'RenewEmail' + external
-	case 5000: // ACTION_INCOMPLETE_SETUP
-		return 'Incomplete' + external
-	default:
+	}
+
+	const route = ACTION_CODE_TO_ROUTE[action]
+
+	if (!route) {
 		if (loadState('libresign', 'error', false)) {
 			return 'DefaultPageError' + external
 		}
-		break
+		return null
 	}
+
+	if (route === 'redirect') {
+		return null
+	}
+
+	return route + external
 }
