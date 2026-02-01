@@ -25,7 +25,7 @@
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
-					@click="showModalAndResetErrors('uploadCertificate')">
+					@click="actionHandler.showModal('uploadCertificate')">
 					{{ t('libresign', 'Upload certificate') }}
 				</NcButton>
 			</div>
@@ -36,7 +36,7 @@
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
-					@click="showModalAndResetErrors('createPassword')">
+					@click="actionHandler.showModal('createPassword')">
 					{{ t('libresign', 'Define a password and sign the document.') }}
 				</NcButton>
 			</div>
@@ -47,7 +47,7 @@
 				<NcButton :wide="true"
 					:disabled="loading"
 					variant="primary"
-					@click="showModalAndResetErrors('createSignature')">
+					@click="actionHandler.showModal('createSignature')">
 					{{ t('libresign', 'Define your signature.') }}
 				</NcButton>
 			</div>
@@ -66,7 +66,7 @@
 			size="small"
 			dialog-classes="libresign-dialog"
 			@closing="signMethodsStore.closeModal('clickToSign')">
-			<NcNoteCard v-for="(error, index) in errors"
+			<NcNoteCard v-for="(error, index) in signStore.errors"
 				:key="index"
 				:heading="error.title || ''"
 				type="error">
@@ -95,7 +95,7 @@
 			size="small"
 			dialog-classes="libresign-dialog"
 			@closing="onCloseConfirmPassword">
-			<NcNoteCard v-for="(error, index) in errors"
+			<NcNoteCard v-for="(error, index) in signStore.errors"
 				:key="index"
 				:heading="error.title || ''"
 				type="error">
@@ -132,7 +132,7 @@
 		<CreatePassword @password:created="onSignatureFileCreated" />
 		<UploadCertificate
 			:useModal="true"
-			:errors="errors"
+			:errors="signStore.errors"
 			@certificate:uploaded="onSignatureFileCreated" />
 		<TokenManager v-if="signMethodsStore.modal.sms"
 			:phone-number="user?.account?.phoneNumber || ''"
@@ -146,12 +146,12 @@
 </template>
 
 <script>
-import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
+import { getCurrentUser } from '@nextcloud/auth'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
@@ -174,8 +174,10 @@ import { useSignStore } from '../../../store/sign.js'
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { useIdentificationDocumentStore } from '../../../store/identificationDocument.js'
+import { SigningRequirementValidator } from '../../../services/SigningRequirementValidator.js'
+import { SignFlowHandler } from '../../../services/SignFlowHandler.js'
+import { ACTION_CODES } from '../../../helpers/ActionMapping.js'
 import { FILE_STATUS } from '../../../constants.js'
-import { getPrimarySigningAction } from '../../../helpers/SigningActionHelper.js'
 
 export default {
 	name: 'Sign',
@@ -212,7 +214,6 @@ export default {
 			signPassword: '',
 			showManagePassword: false,
 			isModal: window.self !== window.top,
-			errors: [],
 		}
 	},
 	computed: {
@@ -243,10 +244,7 @@ export default {
 		},
 		needIdentificationDocuments() {
 			const needsFromStore = this.identificationDocumentStore.needIdentificationDocument()
-
-			const hasError = this.errors.some(error =>
-				error.message && error.message.includes('approved identification document')
-			)
+			const hasError = this.signStore.errors.some(error => error.code === ACTION_CODES.SIGN_ID_DOC)
 
 			const isWaitingApproval = this.identificationDocumentStore.enabled && this.identificationDocumentStore.waitingApproval
 
@@ -256,13 +254,7 @@ export default {
 			return getCapabilities()?.libresign?.config?.['sign-elements']?.['can-create-signature'] === true
 		},
 		ableToSign() {
-			const primaryAction = getPrimarySigningAction(
-				this.signStore,
-				this.signMethodsStore,
-				this.needCreateSignature,
-				this.needIdentificationDocuments
-			)
-			return primaryAction?.action === 'sign'
+			return this.signStore.ableToSign
 		},
 		signRequestUuid() {
 			const doc = this.signStore.document || {}
@@ -274,11 +266,26 @@ export default {
 	},
 	beforeUnmount() {
 		this.resetSignMethodsState()
+		if (this.unwatchPendingAction) {
+			this.unwatchPendingAction()
+		}
 	},
 	mounted() {
 		this.loading = true
 		this.signatureElementsStore.signRequestUuid = this.signRequestUuid
 		this.signatureElementsStore.loadSignatures()
+
+		this.unwatchPendingAction = this.$watch(
+			() => this.signStore.pendingAction,
+			(newAction) => {
+				if (newAction) {
+					this.executeSigningAction(newAction)
+					this.signStore.clearPendingAction()
+				}
+			}
+		)
+
+		this.initializeServices()
 
 		Promise.all([
 			this.loadUser(),
@@ -299,13 +306,23 @@ export default {
 				Object.keys(this.signMethodsStore.modal).forEach(key => {
 					this.signMethodsStore.closeModal(key)
 				})
-				this.errors = []
+				this.signStore.clearSigningErrors()
 				this.showManagePassword = false
 				this.signPassword = ''
 			}
 		},
 	},
 	methods: {
+		initializeServices() {
+			this.requirementValidator = new SigningRequirementValidator(
+				this.signStore,
+				this.signMethodsStore,
+				this.identificationDocumentStore
+			)
+
+			this.actionHandler = new SignFlowHandler(this.signMethodsStore)
+		},
+
 		async loadUser() {
 			if (getCurrentUser()) {
 				try {
@@ -331,16 +348,12 @@ export default {
 				})
 				this.signMethodsStore.settings = {}
 			}
-			this.errors = []
+			this.signStore.clearSigningErrors()
 			this.showManagePassword = false
 			this.signPassword = ''
 		},
-		showModalAndResetErrors(modalCode) {
-			this.errors = []
-			this.signMethodsStore.showModal(modalCode)
-		},
 		onSignatureFileCreated() {
-			this.errors = []
+			this.signStore.clearSigningErrors()
 			this.showManagePassword = false
 		},
 		saveSignature() {
@@ -352,14 +365,10 @@ export default {
 			this.signMethodsStore.closeModal('createSignature')
 		},
 		async signWithClick() {
-			const signer = this.signStore.document.signers.find(s => s.me) || {}
-			const identify = signer.identifyMethods?.[0] || {}
-			await this.signDocument({
-				method: 'clickToSign',
-			})
+			await this.submitSignature({ method: 'clickToSign' })
 		},
 		async signWithPassword() {
-			await this.signDocument({
+			await this.submitSignature({
 				method: 'password',
 				token: this.signPassword,
 			})
@@ -370,111 +379,111 @@ export default {
 				Object.hasOwn(this.signMethodsStore.settings, method)
 			) || 'sms'
 
-			await this.signDocument({
+			await this.submitSignature({
 				method: activeMethod,
 				token,
 			})
 		},
 		async signWithEmailToken() {
-			await this.signDocument({
+			await this.submitSignature({
 				method: this.signMethodsStore.settings.emailToken.identifyMethod,
 				token: this.signMethodsStore.settings.emailToken.token,
 			})
 		},
-		async signDocument(payload = {}) {
+		async submitSignature(methodConfig = {}) {
 			this.loading = true
-			this.errors = []
-			if (this.elements.length > 0) {
-				if (this.canCreateSignature) {
-					payload.elements = this.elements
-						.map(row => ({
-							documentElementId: row.elementId,
-							profileNodeId: this.signatureElementsStore.signs[row.type].file.nodeId,
-						}))
-				} else {
-					payload.elements = this.elements
-						.map(row => ({
-							documentElementId: row.elementId,
-						}))
+			this.signStore.clearSigningErrors()
+
+			try {
+				const payload = {
+					method: methodConfig.method,
 				}
-			}
-			const isAuthenticated = !!getCurrentUser()
-			let url = ''
-			if (isAuthenticated && this.signStore.document.id > 0) {
-				url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{id}', { id: this.signStore.document.id })
-			} else {
-				url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: this.signRequestUuid })
-			}
 
-			url += '?async=true'
+				if (methodConfig.token) {
+					payload.token = methodConfig.token
+				}
 
-			await axios.post(url, payload)
-				.then(({ data }) => {
-					const responseData = data.ocs?.data
-					if (responseData?.job?.status === 'SIGNING_IN_PROGRESS') {
-						this.signMethodsStore.closeModal(payload.method)
-						this.$emit('signing-started', {
-							signRequestUuid: this.signRequestUuid,
-							async: true,
-						})
-						return
+				if (this.elements.length > 0) {
+					if (this.canCreateSignature) {
+						payload.elements = this.elements
+							.map(row => ({
+								documentElementId: row.elementId,
+								profileNodeId: this.signatureElementsStore.signs[row.type].file.nodeId,
+							}))
+					} else {
+						payload.elements = this.elements
+							.map(row => ({
+								documentElementId: row.elementId,
+							}))
 					}
-					if (responseData?.action === 3500) { // ACTION_SIGNED
-						this.signMethodsStore.closeModal(payload.method)
-						this.sidebarStore.hideSidebar()
-						const signedPayload = {
-							...responseData,
-							signRequestUuid: this.signRequestUuid,
-						}
-						this.$emit('signed', signedPayload)
+				}
+
+				const result = await this.signStore.submitSignature(
+					payload,
+					this.signRequestUuid,
+					{
+						isAuthenticated: !!getCurrentUser(),
+						documentId: this.signStore.document.id,
 					}
-				})
-				.catch((err) => {
-					const action = err.response?.data?.ocs?.data?.action
-					if (action === 4000) {
-						if (this.signMethodsStore.certificateEngine === 'none') {
-							this.showModalAndResetErrors('uploadCertificate')
-						} else {
-							this.showModalAndResetErrors('createPassword')
-						}
-					}
-					this.errors = err.response?.data?.ocs?.data?.errors ?? []
-				})
-			this.loading = false
+				)
+
+				if (result.status === 'signingInProgress') {
+					this.actionHandler.closeModal(methodConfig.method)
+					this.$emit('signing-started', {
+						signRequestUuid: this.signRequestUuid,
+						async: true,
+					})
+				} else if (result.status === 'signed') {
+					this.actionHandler.closeModal(methodConfig.method)
+					this.sidebarStore.hideSidebar()
+					this.$emit('signed', {
+						...result.data,
+						signRequestUuid: this.signRequestUuid,
+					})
+				}
+			} catch (error) {
+				if (error.type === 'missingCertification') {
+					const modalCode = this.signMethodsStore.certificateEngine === 'none'
+						? 'uploadCertificate'
+						: 'createPassword'
+					this.actionHandler.showModal(modalCode)
+				}
+
+				this.signStore.setSigningErrors(error.errors || [])
+			} finally {
+				this.loading = false
+			}
 		},
 		confirmSignDocument() {
-			this.errors = []
-			if (this.needIdentificationDocuments) {
-				this.showModalAndResetErrors('uploadDocuments')
-				return
+			this.signStore.clearSigningErrors()
+
+			const unmetRequirement = this.requirementValidator.getFirstUnmetRequirement({
+				errors: this.signStore.errors,
+				hasSignatures: this.hasSignatures,
+				canCreateSignature: this.canCreateSignature,
+			})
+
+			const result = this.actionHandler.handleAction('sign', { unmetRequirement })
+
+			if (result === 'ready') {
+				this.proceedWithSigning()
 			}
-			if (this.signMethodsStore.needEmailCode()) {
-				this.showModalAndResetErrors('emailToken')
-				return
-			}
-			if (this.needCreateSignature) {
-				this.showModalAndResetErrors('createSignature')
-				return
-			}
-			if (this.signMethodsStore.needTokenCode()) {
-				this.showModalAndResetErrors('sms')
-				return
-			}
-			if (this.signMethodsStore.needCertificate()) {
-				this.showModalAndResetErrors('uploadCertificate')
-				return
-			}
-			if (this.signMethodsStore.needCreatePassword()) {
-				this.showModalAndResetErrors('createPassword')
-				return
-			}
-			if (this.signMethodsStore.needSignWithPassword()) {
-				this.showModalAndResetErrors('password')
-				return
-			}
+		},
+		proceedWithSigning() {
 			if (this.signMethodsStore.needClickToSign()) {
-				this.showModalAndResetErrors('clickToSign')
-				return
+				this.actionHandler.showModal('clickToSign')
+			} else if (this.signMethodsStore.needSignWithPassword()) {
+				this.actionHandler.showModal('password')
+			} else if (this.signMethodsStore.needTokenCode()) {
+				this.actionHandler.showModal('sms')
+			}
+		},
+		executeSigningAction(action) {
+			this.signStore.clearSigningErrors()
+			const result = this.actionHandler.handleAction(action)
+
+			if (result === 'ready') {
+				this.proceedWithSigning()
 			}
 		},
 	},
