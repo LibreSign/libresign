@@ -14,6 +14,8 @@
 			:files="pdfBlobs"
 			:file-names="fileNames.length > 0 ? fileNames : [pdfFileName]"
 			:read-only="true"
+			:emit-object-click="true"
+			@pdf-editor:object-click="dispatchPrimaryAction"
 			@pdf-editor:end-init="updateSigners" />
 		<div class="button-wrapper">
 			<NcButton
@@ -44,7 +46,6 @@ import { loadState } from '@nextcloud/initial-state'
 import { useFilesStore } from '../../store/files.js'
 import { useSidebarStore } from '../../store/sidebar.js'
 import { useSignStore } from '../../store/sign.js'
-import { useSignMethodsStore } from '../../store/signMethods.js'
 import { generateOcsUrl, generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { FILE_STATUS } from '../../constants.js'
@@ -61,9 +62,8 @@ export default {
 		const signStore = useSignStore()
 		const filesStore = useFilesStore()
 		const sidebarStore = useSidebarStore()
-		const signMethodsStore = useSignMethodsStore()
 		const isMobile = window.innerWidth <= 512
-		return { signStore, filesStore, sidebarStore, signMethodsStore, isMobile }
+		return { signStore, filesStore, sidebarStore, isMobile }
 	},
 	data() {
 		return {
@@ -104,6 +104,12 @@ export default {
 			await this.loadPdfsFromStore()
 		}
 		this.mounted = true
+	},
+	mounted() {
+		this.setupElementClickListener()
+	},
+	beforeUnmount() {
+		this.removeElementClickListener()
 	},
 	beforeRouteLeave(to, from, next) {
 		this.sidebarStore.hideSidebar()
@@ -271,6 +277,33 @@ export default {
 		},
 		toggleSidebar() {
 			this.sidebarStore.toggleSidebar()
+		},
+		setupElementClickListener() {
+			this.$nextTick(() => {
+				const pdfEditor = this.$refs.pdfEditor?.$el
+				if (!pdfEditor) {
+					return
+				}
+
+				this.elementClickHandler = this.dispatchPrimaryAction.bind(this)
+				pdfEditor.addEventListener('click', this.elementClickHandler, true)
+			})
+		},
+		removeElementClickListener() {
+			if (this.elementClickHandler) {
+				const pdfEditor = this.$refs.pdfEditor?.$el
+				if (pdfEditor) {
+					pdfEditor.removeEventListener('click', this.elementClickHandler, true)
+				}
+				this.elementClickHandler = null
+			}
+		},
+		dispatchPrimaryAction() {
+			const primaryAction = this.signStore.primaryAction
+			if (!primaryAction) {
+				return
+			}
+			this.signStore.queueAction(primaryAction.action)
 		},
 		async redirectIfSigningInProgress() {
 			const targetRoute = this.$route.path.startsWith('/p/') ? 'ValidationFileExternal' : 'ValidationFile'
