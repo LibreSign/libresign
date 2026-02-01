@@ -7,6 +7,8 @@ import { defineStore } from 'pinia'
 import { set } from 'vue'
 
 import { loadState } from '@nextcloud/initial-state'
+import { generateOcsUrl } from '@nextcloud/router'
+import axios from '@nextcloud/axios'
 
 import { useFilesStore } from './files.js'
 import { useSidebarStore } from './sidebar.js'
@@ -77,6 +79,83 @@ export const useSignStore = defineStore('sign', {
 			set(this, 'document', defaultState)
 			const sidebarStore = useSidebarStore()
 			sidebarStore.setActiveTab()
+		},
+		queueAction(action) {
+			this.pendingAction = action
+		},
+		clearPendingAction() {
+			this.pendingAction = null
+		},
+
+		async submitSignature(payload, signRequestUuid, options = {}) {
+			const url = this.buildSignUrl(signRequestUuid, options)
+			try {
+				const response = await axios.post(url, payload)
+				return this.parseSignResponse(response.data)
+			} catch (error) {
+				throw this.parseSignError(error)
+			}
+		},
+
+		buildSignUrl(signRequestUuid, options = {}) {
+			const isAuthenticated = options.isAuthenticated
+			const documentId = options.documentId
+
+			const baseUrl = isAuthenticated && documentId > 0
+				? generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{id}', { id: documentId })
+				: generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: signRequestUuid })
+
+			return `${baseUrl}?async=true`
+		},
+
+		parseSignResponse(data) {
+			const responseData = data.ocs?.data
+
+			if (responseData?.job?.status === 'SIGNING_IN_PROGRESS') {
+				return {
+					status: 'signingInProgress',
+					data: responseData,
+				}
+			}
+
+			if (responseData?.action === 3500) { // ACTION_SIGNED
+				return {
+					status: 'signed',
+					data: responseData,
+				}
+			}
+
+			return {
+				status: 'unknown',
+				data: responseData,
+			}
+		},
+
+		parseSignError(error) {
+			const errorData = error.response?.data?.ocs?.data
+			const action = errorData?.action
+
+			if (action === 4000) {
+				return {
+					type: 'missingCertification',
+					action,
+					errors: errorData?.errors || [],
+				}
+			}
+
+			return {
+				type: 'signError',
+				action,
+				errors: errorData?.errors || [],
+			}
+		},
+
+		clearSigningErrors() {
+			this.errors = []
+		},
+
+		setSigningErrors(errors) {
+			this.errors = errors || []
 		},
 	},
 })
