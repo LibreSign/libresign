@@ -8468,6 +8468,10 @@
                                                                     "message": {
                                                                         "type": "string"
                                                                     },
+                                                                    "code": {
+                                                                        "type": "integer",
+                                                                        "format": "int64"
+                                                                    },
                                                                     "title": {
                                                                         "type": "string"
                                                                     }
@@ -8701,6 +8705,10 @@
                                                                 "properties": {
                                                                     "message": {
                                                                         "type": "string"
+                                                                    },
+                                                                    "code": {
+                                                                        "type": "integer",
+                                                                        "format": "int64"
                                                                     },
                                                                     "title": {
                                                                         "type": "string"
