@@ -7,8 +7,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useUserConfigStore } from './userconfig.js'
 
-const putMock = vi.fn(() => Promise.resolve())
-const generateOcsUrlMock = vi.fn(() => '/ocs/config/locale')
+const { putMock, generateOcsUrlMock } = vi.hoisted(() => ({
+	putMock: vi.fn(() => Promise.resolve()),
+	generateOcsUrlMock: vi.fn(() => '/ocs/config/locale'),
+}))
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {
