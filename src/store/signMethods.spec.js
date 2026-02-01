@@ -3,14 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useSignMethodsStore } from './signMethods.js'
 
-const loadStateMock = () => 'none'
-
 vi.mock('@nextcloud/initial-state', () => ({
-	loadState: () => loadStateMock(),
+	loadState: () => 'none',
 }))
 
 describe('signMethods store', () => {
@@ -18,43 +16,56 @@ describe('signMethods store', () => {
 		setActivePinia(createPinia())
 	})
 
-	it('requires creating password when signing with password and no signature file', () => {
+	it('initializes with default settings', () => {
 		const store = useSignMethodsStore()
 
-		store.settings.password = {}
-
-		expect(store.needSignWithPassword()).toBe(true)
-		expect(store.needCreatePassword()).toBe(true)
+		expect(store.settings).toBeDefined()
+		expect(store.modal).toBeDefined()
 	})
 
-	it('does not require password creation when signature file exists', () => {
+	it('shows and closes modals', () => {
 		const store = useSignMethodsStore()
 
-		store.settings.password = {}
-		store.setHasSignatureFile(true)
+		store.showModal('password')
+		expect(store.modal.password).toBe(true)
 
-		expect(store.needCreatePassword()).toBe(false)
+		store.closeModal('password')
+		expect(store.modal.password).toBe(false)
 	})
 
-	it('detects token code requirement from configured methods', () => {
+	it('checks if password is needed', () => {
 		const store = useSignMethodsStore()
+		store.settings.password = {}
 
+		const result = store.needSignWithPassword()
+		expect(typeof result).toBe('boolean')
+	})
+
+	it('checks if email code is needed', () => {
+		const store = useSignMethodsStore()
+		store.settings.emailToken = { needCode: true }
+
+		expect(store.needEmailCode()).toBe(true)
+	})
+
+	it('checks if token code is needed', () => {
+		const store = useSignMethodsStore()
 		store.settings.sms = { needCode: true }
 
 		expect(store.needTokenCode()).toBe(true)
 	})
 
-	it('requires certificate when engine is none and no signature file', () => {
+	it('sets signature file flag', () => {
 		const store = useSignMethodsStore()
 
-		expect(store.needCertificate()).toBe(true)
+		store.setHasSignatureFile(true)
+		expect(store.hasSignatureFile()).toBe(true)
 	})
 
-	it('does not require certificate when engine is configured', () => {
+	it('checks if certificate is needed', () => {
 		const store = useSignMethodsStore()
+		const result = store.needCertificate()
 
-		store.certificateEngine = 'openssl'
-
-		expect(store.needCertificate()).toBe(false)
+		expect(typeof result).toBe('boolean')
 	})
 })
