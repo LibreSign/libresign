@@ -66,6 +66,11 @@ class SigningErrorHandlerTest extends TestCase {
 				'message' => 'Server error',
 				'expectedAction' => JSActions::ACTION_DO_NOTHING,
 			],
+			'code 2750 (SIGN_ID_DOC) triggers do nothing action with id doc requirement' => [
+				'code' => JSActions::ACTION_SIGN_ID_DOC,
+				'message' => 'You need to have an approved identification document to sign.',
+				'expectedAction' => JSActions::ACTION_DO_NOTHING,
+			],
 		];
 	}
 
@@ -85,6 +90,8 @@ class SigningErrorHandlerTest extends TestCase {
 		$this->assertIsArray($result['errors']);
 		$this->assertCount(1, $result['errors']);
 		$this->assertSame($message, $result['errors'][0]['message']);
+		$this->assertArrayHasKey('code', $result['errors'][0]);
+		$this->assertSame($code, $result['errors'][0]['code']);
 	}
 
 	public static function knownErrorMessagesProvider(): array {
