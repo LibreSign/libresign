@@ -30,6 +30,7 @@ const defaultState = {
 		visibleElements: [],
 	},
 	mounted: false,
+	pendingAction: null,
 }
 
 export const useSignStore = defineStore('sign', {
