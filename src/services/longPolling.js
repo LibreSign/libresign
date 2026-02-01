@@ -23,6 +23,8 @@ export const waitForFileStatusChange = async (fileId, currentStatus, timeout = 3
 export const startLongPolling = (fileId, initialStatus, onUpdate, shouldStop, onError = null) => {
 	let isRunning = true
 	let currentStatus = initialStatus
+	let errorCount = 0
+	const MAX_ERRORS = 5
 
 	const stopPolling = () => {
 		isRunning = false
@@ -37,6 +39,8 @@ export const startLongPolling = (fileId, initialStatus, onUpdate, shouldStop, on
 			try {
 				const data = await waitForFileStatusChange(fileId, currentStatus, 30)
 
+				errorCount = 0
+
 				if (data.status !== currentStatus) {
 					currentStatus = data.status
 					onUpdate(data)
@@ -46,8 +50,15 @@ export const startLongPolling = (fileId, initialStatus, onUpdate, shouldStop, on
 					}
 				}
 			} catch (error) {
+				errorCount++
+
 				if (onError) {
 					onError(error)
+				}
+
+				if (errorCount >= MAX_ERRORS) {
+					console.error('Long polling stopped after', MAX_ERRORS, 'consecutive errors')
+					break
 				}
 
 				await sleep(3000)
