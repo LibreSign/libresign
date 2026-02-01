@@ -4824,6 +4824,8 @@ export interface operations {
                                 action: number;
                                 errors: {
                                     message: string;
+                                    /** Format: int64 */
+                                    code?: number;
                                     title?: string;
                                 }[];
                                 redirect?: string;
@@ -4992,6 +4994,8 @@ export interface operations {
                                 action: number;
                                 errors: {
                                     message: string;
+                                    /** Format: int64 */
+                                    code?: number;
                                     title?: string;
                                 }[];
                                 redirect?: string;
