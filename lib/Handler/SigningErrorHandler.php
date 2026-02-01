@@ -23,7 +23,7 @@ class SigningErrorHandler {
 	}
 
 	/**
-	 * @return array{action: int, errors: list<array{message: string, title?: string}>}
+	 * @return array{action: int, errors: list<array{message: string, code?: int, title?: string}>}
 	 */
 	public function handleException(\Throwable $exception): array {
 		if ($exception instanceof LibresignException) {
@@ -34,7 +34,7 @@ class SigningErrorHandler {
 	}
 
 	/**
-	 * @return array{action: int, errors: list<array{message: string}>}
+	 * @return array{action: int, errors: list<array{message: string, code: int}>}
 	 */
 	private function handleLibresignException(LibresignException $exception): array {
 		$code = $exception->getCode();
@@ -52,7 +52,7 @@ class SigningErrorHandler {
 	}
 
 	/**
-	 * @return array{action: int, errors: list<array{message: string, title?: string}>}
+	 * @return array{action: int, errors: list<array{message: string, code?: int, title?: string}>}
 	 */
 	private function handleGenericException(\Throwable $exception): array {
 		$message = $exception->getMessage();
