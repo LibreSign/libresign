@@ -44,7 +44,10 @@ class SigningErrorHandler {
 
 		return [
 			'action' => $action,
-			'errors' => [['message' => $exception->getMessage()]],
+			'errors' => [[
+				'message' => $exception->getMessage(),
+				'code' => $code,
+			]],
 		];
 	}
 
