@@ -298,12 +298,11 @@ export default {
 				this.elementClickHandler = null
 			}
 		},
-		dispatchPrimaryAction() {
-			const primaryAction = this.signStore.primaryAction
-			if (!primaryAction) {
-				return
+		dispatchPrimaryAction(event) {
+			if (!this.sidebarStore.show || this.sidebarStore.activeTab !== 'sign-tab') {
+				this.sidebarStore.activeSignTab()
 			}
-			this.signStore.queueAction(primaryAction.action)
+			this.signStore.queueAction('sign')
 		},
 		async redirectIfSigningInProgress() {
 			const targetRoute = this.$route.path.startsWith('/p/') ? 'ValidationFileExternal' : 'ValidationFile'

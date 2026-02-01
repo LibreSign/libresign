@@ -275,6 +275,8 @@ export default {
 		this.signatureElementsStore.signRequestUuid = this.signRequestUuid
 		this.signatureElementsStore.loadSignatures()
 
+		this.initializeServices()
+
 		this.unwatchPendingAction = this.$watch(
 			() => this.signStore.pendingAction,
 			(newAction) => {
@@ -285,7 +287,12 @@ export default {
 			}
 		)
 
-		this.initializeServices()
+		if (this.signStore.pendingAction) {
+			this.$nextTick(() => {
+				this.executeSigningAction(this.signStore.pendingAction)
+				this.signStore.clearPendingAction()
+			})
+		}
 
 		Promise.all([
 			this.loadUser(),
@@ -480,7 +487,15 @@ export default {
 		},
 		executeSigningAction(action) {
 			this.signStore.clearSigningErrors()
-			const result = this.actionHandler.handleAction(action)
+
+			const unmetRequirement = this.requirementValidator.getFirstUnmetRequirement({
+				errors: this.signStore.errors,
+				hasSignatures: this.hasSignatures,
+				canCreateSignature: this.canCreateSignature,
+			})
+
+			const config = unmetRequirement ? { unmetRequirement } : {}
+			const result = this.actionHandler.handleAction(action, config)
 
 			if (result === 'ready') {
 				this.proceedWithSigning()
