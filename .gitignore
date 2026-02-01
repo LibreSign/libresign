@@ -19,3 +19,5 @@ node_modules/
 /src/__test__/coverage
 /appinfo/install-*.json
 /lib/Vendor/
+/coverage
+
