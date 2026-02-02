@@ -60,7 +60,7 @@
 			"elevateIfNeeded": true
 		},
 		"8025": {
-			"label": "mailhog",
+			"label": "mailpit",
 			"protocol": "http",
 			"onAutoForward": "notify",
 			"elevateIfNeeded": true
