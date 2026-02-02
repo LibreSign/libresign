@@ -14,7 +14,7 @@ const action = new FileAction({
 	displayName: () => '',
 	title: ({ nodes }) => {
 		const node = nodes?.[0]
-		if (!node) return ''
+		if (!node || !node.attributes) return ''
 
 		const signedNodeId = node.attributes['libresign-signed-node-id']
 		const statusCode = node.attributes['libresign-signature-status']
@@ -27,14 +27,15 @@ const action = new FileAction({
 	},
 	exec: async ({ nodes }) => {
 		const sidebar = getSidebar()
-		const node = nodes[0]
+		const node = nodes?.[0]
+		if (!node) return null
 		sidebar.open(node, 'libresign')
 		sidebar.setActiveTab('libresign')
 		return null
 	},
 	iconSvgInline: ({ nodes }) => {
 		const node = nodes?.[0]
-		if (!node) return ''
+		if (!node || !node.attributes) return ''
 
 		const signedNodeId = node.attributes['libresign-signed-node-id']
 		const statusCode = node.attributes['libresign-signature-status']
@@ -48,7 +49,7 @@ const action = new FileAction({
 	inline: () => true,
 	enabled: ({ nodes }) => {
 		const certificateOk = loadState('libresign', 'certificate_ok')
-		const allHaveStatus = nodes?.every(node => node.attributes['libresign-signature-status'] !== undefined)
+		const allHaveStatus = nodes?.every(node => node.attributes?.['libresign-signature-status'] !== undefined)
 
 		if (!certificateOk || !allHaveStatus) {
 			return false
