@@ -13,7 +13,7 @@ default:
 
   extensions:
     rpkamp\Behat\MailhogExtension:
-      base_url: http://mailhog:8025
+      base_url: http://mailpit:8025
     PhpBuiltin\Server:
       runAs: www-data
       workers: 10
