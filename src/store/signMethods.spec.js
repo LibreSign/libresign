@@ -18,8 +18,9 @@ describe('signMethods store', () => {
 
 	it('initializes with default settings', () => {
 		const store = useSignMethodsStore()
+		store.settings = {}
 
-		expect(store.settings).toBeDefined()
+		expect(store.settings).toEqual({})
 		expect(store.modal).toBeDefined()
 	})
 
@@ -35,7 +36,7 @@ describe('signMethods store', () => {
 
 	it('checks if password is needed', () => {
 		const store = useSignMethodsStore()
-		store.settings.password = {}
+		store.settings = { password: {} }
 
 		const result = store.needSignWithPassword()
 		expect(typeof result).toBe('boolean')
@@ -43,14 +44,18 @@ describe('signMethods store', () => {
 
 	it('checks if email code is needed', () => {
 		const store = useSignMethodsStore()
-		store.settings.emailToken = { needCode: true }
+		store.settings = {
+			emailToken: { needCode: true },
+		}
 
 		expect(store.needEmailCode()).toBe(true)
 	})
 
 	it('checks if token code is needed', () => {
 		const store = useSignMethodsStore()
-		store.settings.sms = { needCode: true }
+		store.settings = {
+			sms: { needCode: true },
+		}
 
 		expect(store.needTokenCode()).toBe(true)
 	})
@@ -64,6 +69,9 @@ describe('signMethods store', () => {
 
 	it('checks if certificate is needed', () => {
 		const store = useSignMethodsStore()
+		store.settings = {
+			password: { hasSignatureFile: false },
+		}
 		const result = store.needCertificate()
 
 		expect(typeof result).toBe('boolean')
