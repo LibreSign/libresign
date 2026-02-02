@@ -6,6 +6,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
+import { generateOCSResponse } from '../test-helpers.js'
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {
@@ -33,7 +34,11 @@ vi.mock('@nextcloud/event-bus', () => ({
 }))
 
 vi.mock('@nextcloud/auth', () => ({
-	getCurrentUser: vi.fn(() => ({ uid: 'testuser' })),
+	getCurrentUser: vi.fn(() => ({
+		uid: 'testuser',
+		displayName: 'Test User',
+		email: 'test@example.com',
+	})),
 }))
 
 vi.mock('@nextcloud/moment', () => ({
@@ -112,9 +117,9 @@ describe('files store - regras críticas de negócio', () => {
 			store.selectedFileId = 100
 			store.files[100] = { id: 100, filesCount: 2 }
 
-			axios.post.mockResolvedValue({
-				data: { ocs: { data: { filesCount: 5 } } },
-			})
+			axios.post.mockResolvedValue(generateOCSResponse({
+				payload: { filesCount: 5 },
+			}))
 
 			await store.addFilesToEnvelope('uuid', new FormData())
 

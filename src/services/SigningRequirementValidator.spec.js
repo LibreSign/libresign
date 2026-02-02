@@ -11,7 +11,16 @@ describe('SigningRequirementValidator', () => {
 	const createStores = (overrides = {}) => {
 		const signStore = {
 			document: {
-				signers: [{ me: true, signRequestId: 10 }],
+				signers: [{
+					me: true,
+					signRequestId: 10,
+					email: 'signer@example.com',
+					displayName: 'Test Signer',
+					signed: null,
+					signedDate: null,
+					identifyMethod: 'email',
+					identifyValue: 'signer@example.com',
+				}],
 				visibleElements: [{ signRequestId: 10 }],
 			},
 			...overrides.signStore,
@@ -30,6 +39,7 @@ describe('SigningRequirementValidator', () => {
 		const identificationDocumentStore = {
 			enabled: false,
 			waitingApproval: false,
+			modal: false,
 			needIdentificationDocument: () => false,
 			...overrides.identificationDocumentStore,
 		}
