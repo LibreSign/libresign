@@ -49,8 +49,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.REDIRECT,
-			{ path: '/p/sign/abc123/pdf', name: 'SignPDFExternal' },
-			{ path: '/' },
+			{ path: '/p/sign/abc123/pdf', name: 'SignPDFExternal', params: {}, query: {} },
+			{ path: '/', name: 'Home', params: {}, query: {} },
 		)
 
 		expect(replaceSpy).toHaveBeenCalledWith('https://example.test/redirect')
@@ -62,8 +62,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.DO_NOTHING,
-			{ path: '/sign/request', name: 'RequestSign' },
-			{ path: '/' },
+			{ path: '/sign/request', name: 'RequestSign', params: {}, query: {} },
+			{ path: '/', name: 'Home', params: {}, query: {} },
 		)
 
 		expect(result).toBe('RequestSign')
@@ -75,8 +75,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.SIGN,
-			{ path: '/p/sign/abc123/pdf', name: 'SignPDFExternal' },
-			{ path: '/' },
+			{ path: '/p/sign/abc123/pdf', name: 'SignPDFExternal', params: {}, query: {} },
+			{ path: '/', name: 'Home', params: {}, query: {} },
 		)
 
 		expect(result).toBe('SignPDFExternal')
@@ -87,8 +87,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.SIGN,
-			{ path: '/sign/request', name: 'SignPDF' },
-			{ path: '/dashboard' },
+			{ path: '/sign/request', name: 'SignPDF', params: {}, query: {} },
+			{ path: '/dashboard', name: 'Dashboard', params: {}, query: {} },
 		)
 
 		expect(result).toBe('SignPDF')
@@ -99,8 +99,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.CREATE_ACCOUNT,
-			{ path: '/p/sign/abc123/sign-in', name: 'CreateAccountExternal' },
-			{ path: '/' },
+			{ path: '/p/sign/abc123/sign-in', name: 'CreateAccountExternal', params: {}, query: {} },
+			{ path: '/', name: 'Home', params: {}, query: {} },
 		)
 
 		expect(result).toBe('CreateAccountExternal')
@@ -111,8 +111,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.SIGN_ID_DOC,
-			{ path: '/sign/request', name: 'IdDocsApprove' },
-			{ path: '/dashboard' },
+			{ path: '/sign/request', name: 'IdDocsApprove', params: {}, query: {} },
+			{ path: '/dashboard', name: 'Dashboard', params: {}, query: {} },
 		)
 
 		expect(result).toBe('IdDocsApprove')
@@ -123,8 +123,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.SIGNED,
-			{ path: '/p/validation/abc123', name: 'ValidationFileExternal' },
-			{ path: '/' },
+			{ path: '/p/validation/abc123', name: 'ValidationFileExternal', params: {}, query: {} },
+			{ path: '/', name: 'Home', params: {}, query: {} },
 		)
 
 		expect(result).toBe('ValidationFileExternal')
@@ -135,8 +135,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.CREATE_SIGNATURE_PASSWORD,
-			{ path: '/settings/signature', name: 'CreatePassword' },
-			{ path: '/dashboard' },
+			{ path: '/settings/signature', name: 'CreatePassword', params: {}, query: {} },
+			{ path: '/dashboard', name: 'Dashboard', params: {}, query: {} },
 		)
 
 		expect(result).toBe('CreatePassword')
@@ -147,8 +147,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.RENEW_EMAIL,
-			{ path: '/p/sign/abc123/renew/email', name: 'RenewEmailExternal' },
-			{ path: '/' },
+			{ path: '/p/sign/abc123/renew/email', name: 'RenewEmailExternal', params: {}, query: {} },
+			{ path: '/', name: 'Home', params: {}, query: {} },
 		)
 
 		expect(result).toBe('RenewEmailExternal')
@@ -159,8 +159,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			ACTION_CODES.INCOMPLETE_SETUP,
-			{ path: '/settings/incomplete', name: 'Incomplete' },
-			{ path: '/dashboard' },
+			{ path: '/settings/incomplete', name: 'Incomplete', params: {}, query: {} },
+			{ path: '/dashboard', name: 'Dashboard', params: {}, query: {} },
 		)
 
 		expect(result).toBe('Incomplete')
@@ -174,8 +174,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			999,
-			{ path: '/p/error', name: 'ErrorExternal' },
-			{ path: '/' },
+			{ path: '/p/error', name: 'ErrorExternal', params: {}, query: {} },
+			{ path: '/', name: 'Home', params: {}, query: {} },
 		)
 
 		expect(result).toBe('DefaultPageErrorExternal')
@@ -189,8 +189,8 @@ describe('selectAction helper', () => {
 
 		const result = selectAction(
 			999,
-			{ path: '/error', name: 'Error' },
-			{ path: '/dashboard' },
+			{ path: '/error', name: 'Error', params: {}, query: {} },
+			{ path: '/dashboard', name: 'Dashboard', params: {}, query: {} },
 		)
 
 		expect(result).toBe('DefaultPageError')
