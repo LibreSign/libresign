@@ -106,10 +106,14 @@ describe('filters store - regras de negócio de filtros', () => {
 		})
 
 		it('retorna array vazio quando filter_status é JSON inválido', () => {
+			const originalError = console.error
+			console.error = vi.fn()
+
 			const store = useFiltersStore()
 			store.filter_status = 'invalid json'
 
 			expect(store.filterStatusArray).toEqual([])
+			console.error = originalError
 		})
 
 		it('converte JSON válido em array', () => {
