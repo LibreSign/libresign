@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useIdentificationDocumentStore } from './identificationDocument.js'
 
+
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: () => false,
 }))

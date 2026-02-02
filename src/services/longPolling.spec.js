@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
+import { generateOCSResponse } from '../test-helpers.js'
 
 const getMock = vi.fn()
 const generateOcsUrlMock = vi.fn(() => '/ocs/wait-status')
@@ -20,7 +21,9 @@ vi.mock('@nextcloud/router', () => ({
 
 describe('waitForFileStatusChange', () => {
 	it('requests status updates and returns response data', async () => {
-		getMock.mockResolvedValue({ data: { ocs: { data: { status: 3 } } } })
+		getMock.mockResolvedValue(generateOCSResponse({
+			payload: { status: 3 },
+		}))
 		const { waitForFileStatusChange } = await import('./longPolling.js')
 
 		const result = await waitForFileStatusChange(42, 1, 15)
@@ -35,7 +38,9 @@ describe('waitForFileStatusChange', () => {
 
 	it('uses default timeout of 30 seconds', async () => {
 		getMock.mockClear()
-		getMock.mockResolvedValue({ data: { ocs: { data: { status: 1 } } } })
+		getMock.mockResolvedValue(generateOCSResponse({
+			payload: { status: 1 },
+		}))
 		const { waitForFileStatusChange } = await import('./longPolling.js')
 
 		await waitForFileStatusChange(1, '0')

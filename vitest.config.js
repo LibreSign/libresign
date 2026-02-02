@@ -22,9 +22,13 @@ export default defineConfig({
 		},
 		coverage: {
 			include: ['src/**/*.js'],
-			exclude: ['src/**/*.{test,spec}.?(c|m)[jt]s?(x)', 'src/**/index.js', 'src/**/*.vue'],
+			exclude: [
+				'src/**/*.{test,spec}.?(c|m)[jt]s?(x)',
+				'src/**/index.js',
+				'src/test-*.js',
+			],
 			provider: 'v8',
-			reporter: ['text', 'lcov'],
+			reporter: ['text', 'lcov', 'html'],
 		},
 		setupFiles: ['src/test-setup.js'],
 	},

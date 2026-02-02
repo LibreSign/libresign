@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
+import { generateOCSResponse } from '../test-helpers.js'
 
 const patchMock = vi.fn()
 const generateUrlMock = vi.fn(() => '/apps/libresign/api/v1/account/settings')
@@ -27,7 +28,8 @@ const loadModule = async () => {
 
 describe('settingsService', () => {
 	it('saves user phone number via API', async () => {
-		patchMock.mockResolvedValue({ data: { success: true } })
+		const response = generateOCSResponse({ payload: { success: true } })
+		patchMock.mockResolvedValue(response)
 		const { settingsService } = await loadModule()
 
 		const result = await settingsService.saveUserNumber('+551199999999')
@@ -37,6 +39,6 @@ describe('settingsService', () => {
 			'/apps/libresign/api/v1/account/settings',
 			{ phone: '+551199999999' },
 		)
-		expect(result).toEqual({ success: true })
+		expect(result).toEqual(response.data)
 	})
 })
