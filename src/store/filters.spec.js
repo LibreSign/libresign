@@ -61,24 +61,27 @@ describe('filters store - regras de negócio de filtros', () => {
 
 		it('retorna chips de um único filtro', () => {
 			const store = useFiltersStore()
+			const signedChip = { id: 'signed', label: 'Signed' }
 			store.chips = {
-				status: [{ id: 'signed', label: 'Signed' }],
+				status: [signedChip],
 			}
 
-			expect(store.activeChips).toEqual([{ id: 'signed', label: 'Signed' }])
+			expect(store.activeChips).toEqual([signedChip])
 		})
 
 		it('retorna chips de múltiplos filtros em um único array', () => {
 			const store = useFiltersStore()
+			const signedChip = { id: 'signed', label: 'Signed' }
+			const todayChip = { id: 'today', label: 'Today' }
 			store.chips = {
-				status: [{ id: 'signed', label: 'Signed' }],
-				modified: [{ id: 'today', label: 'Today' }],
+				status: [signedChip],
+				modified: [todayChip],
 			}
 
 			const chips = store.activeChips
 			expect(chips).toHaveLength(2)
-			expect(chips).toContainEqual({ id: 'signed', label: 'Signed' })
-			expect(chips).toContainEqual({ id: 'today', label: 'Today' })
+			expect(chips).toContainEqual(signedChip)
+			expect(chips).toContainEqual(todayChip)
 		})
 
 		it('retorna múltiplos chips do mesmo filtro', () => {
