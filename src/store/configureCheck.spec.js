@@ -6,6 +6,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
+import { generateOCSResponse } from '../test-helpers.js'
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {
@@ -41,17 +42,13 @@ describe('configureCheck store - regras de negócio essenciais', () => {
 
 	describe('REGRA: checkSetup valida se recursos estão configurados corretamente', () => {
 		it('java com erro muda estado para "need download"', async () => {
-			axios.get.mockResolvedValue({
-				data: {
-					ocs: {
-						data: [
-							{ resource: 'java', status: 'error' },
-							{ resource: 'jsignpdf', status: 'success' },
-							{ resource: 'cfssl', status: 'success' },
-						],
-					},
-				},
-			})
+			axios.get.mockResolvedValue(generateOCSResponse({
+				payload: [
+				{ resource: 'java', status: 'error' },
+				{ resource: 'jsignpdf', status: 'success' },
+				{ resource: 'cfssl', status: 'success' },
+			],
+		}))
 
 			const store = useConfigureCheckStore()
 			await vi.waitUntil(() => store.state !== 'in progress', { timeout: 1000 })
@@ -60,17 +57,13 @@ describe('configureCheck store - regras de negócio essenciais', () => {
 		})
 
 		it('todos recursos ok muda estado para "done"', async () => {
-			axios.get.mockResolvedValue({
-				data: {
-					ocs: {
-						data: [
-							{ resource: 'java', status: 'success' },
-							{ resource: 'jsignpdf', status: 'success' },
-							{ resource: 'cfssl', status: 'success' },
-						],
-					},
-				},
-			})
+			axios.get.mockResolvedValue(generateOCSResponse({
+				payload: [
+					{ resource: 'java', status: 'success' },
+					{ resource: 'jsignpdf', status: 'success' },
+					{ resource: 'cfssl', status: 'success' },
+				],
+			}))
 
 			const store = useConfigureCheckStore()
 			await vi.waitUntil(() => store.state !== 'in progress', { timeout: 1000 })
@@ -81,7 +74,7 @@ describe('configureCheck store - regras de negócio essenciais', () => {
 
 	describe('REGRA: certificateEngine determina modo de operação', () => {
 		it('isNoneEngine retorna true quando engine é "none"', async () => {
-			axios.get.mockResolvedValue({ data: { ocs: { data: [] } } })
+			axios.get.mockResolvedValue(generateOCSResponse({ payload: [] }))
 
 			const store = useConfigureCheckStore()
 			store.setCertificateEngine('none')
@@ -90,27 +83,19 @@ describe('configureCheck store - regras de negócio essenciais', () => {
 		})
 
 		it('saveCertificateEngine persiste engine e atualiza identifyMethods', async () => {
-			axios.post.mockResolvedValue({
-				data: {
-					ocs: {
-						data: {
-							identify_methods: ['email', 'sms'],
-						},
-					},
+			axios.post.mockResolvedValue(generateOCSResponse({
+				payload: {
+					identify_methods: ['email', 'sms'],
 				},
-			})
+			}))
 
-			axios.get.mockResolvedValue({
-				data: {
-					ocs: {
-						data: [
-							{ resource: 'java', status: 'success' },
-							{ resource: 'jsignpdf', status: 'success' },
-							{ resource: 'cfssl', status: 'success' },
-						],
-					},
-				},
-			})
+			axios.get.mockResolvedValue(generateOCSResponse({
+				payload: [
+				{ resource: 'java', status: 'success' },
+				{ resource: 'jsignpdf', status: 'success' },
+				{ resource: 'cfssl', status: 'success' },
+			],
+		}))
 
 			const store = useConfigureCheckStore()
 			const result = await store.saveCertificateEngine('openssl')
@@ -123,15 +108,11 @@ describe('configureCheck store - regras de negócio essenciais', () => {
 
 	describe('REGRA: isConfigureOk valida configuração específica de engine', () => {
 		it('retorna true quando engine está configurado sem erros', async () => {
-			axios.get.mockResolvedValue({
-				data: {
-					ocs: {
-						data: [
-							{ resource: 'openssl-configure', status: 'success' },
-						],
-					},
-				},
-			})
+			axios.get.mockResolvedValue(generateOCSResponse({
+				payload: [
+				{ resource: 'openssl-configure', status: 'success' },
+			],
+		}))
 
 			const store = useConfigureCheckStore()
 			await vi.waitUntil(() => store.items.length > 0, { timeout: 1000 })
@@ -140,15 +121,11 @@ describe('configureCheck store - regras de negócio essenciais', () => {
 		})
 
 		it('retorna false quando engine tem erro de configuração', async () => {
-			axios.get.mockResolvedValue({
-				data: {
-					ocs: {
-						data: [
-							{ resource: 'openssl-configure', status: 'error' },
-						],
-					},
-				},
-			})
+			axios.get.mockResolvedValue(generateOCSResponse({
+				payload: [
+				{ resource: 'openssl-configure', status: 'error' },
+			],
+		}))
 
 			const store = useConfigureCheckStore()
 			await vi.waitUntil(() => store.items.length > 0, { timeout: 1000 })
