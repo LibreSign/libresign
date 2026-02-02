@@ -28,10 +28,16 @@ describe('openDocument', () => {
 			},
 		}
 
-		openDocument({
-			fileUrl: 'https://example.test/index.php/apps/files/?file=/doc.pdf',
+		const file = {
 			filename: 'doc.pdf',
 			nodeId: 123,
+			url: 'https://example.test/index.php/apps/files/?file=/doc.pdf',
+		}
+
+		openDocument({
+			fileUrl: file.url,
+			filename: file.filename,
+			nodeId: file.nodeId,
 		})
 
 		expect(viewerOpen).toHaveBeenCalledTimes(1)
@@ -45,10 +51,16 @@ describe('openDocument', () => {
 	it('opens new window when Viewer is not available', () => {
 		global.OCA = undefined
 
-		openDocument({
-			fileUrl: '/apps/files/?file=/doc.pdf',
+		const file = {
 			filename: 'doc.pdf',
-			nodeId: 123,
+			nodeId: 456,
+			url: '/apps/files/?file=/doc.pdf',
+		}
+
+		openDocument({
+			fileUrl: file.url,
+			filename: file.filename,
+			nodeId: file.nodeId,
 		})
 
 		expect(openSpy).toHaveBeenCalledTimes(1)
