@@ -217,7 +217,7 @@ OC.L10N.register(
     "Active filters" : "Aktivni filteri",
     "Remove filter" : "Ukloni filter",
     "Switch to list view" : "Prebacite na prikaz popisa",
-    "Switch to grid view" : "Prebacite se na prikaz mreže",
+    "Switch to grid view" : "Prebacite se na prikaz rešetke",
     "There are no documents" : "Nema dokumenata",
     "Choose the file to request signatures." : "Odaberite datoteku za traženje potpisa.",
     "Total rows summary" : "Sažetak ukupnog broja redaka",
