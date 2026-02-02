@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2025 LibreCode coop and contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-import { FileAction, registerFileAction } from '@nextcloud/files'
+import { FileAction, registerFileAction, getSidebar } from '@nextcloud/files'
 import { loadState } from '@nextcloud/initial-state'
 import { t } from '@nextcloud/l10n'
 
@@ -12,8 +12,9 @@ import { getStatusLabel, getStatusSvgInline } from '../utils/fileStatus.js'
 const action = new FileAction({
 	id: 'show-status-inline',
 	displayName: () => '',
-	title: (nodes) => {
-		const node = nodes[0]
+	title: ({ nodes }) => {
+		const node = nodes?.[0]
+		if (!node || !node.attributes) return ''
 
 		const signedNodeId = node.attributes['libresign-signed-node-id']
 		const statusCode = node.attributes['libresign-signature-status']
@@ -24,13 +25,17 @@ const action = new FileAction({
 
 		return t('libresign', 'original file')
 	},
-	exec: async (node) => {
-		await window.OCA.Files.Sidebar.open(node.path)
-		OCA.Files.Sidebar.setActiveTab('libresign')
+	exec: async ({ nodes }) => {
+		const sidebar = getSidebar()
+		const node = nodes?.[0]
+		if (!node) return null
+		sidebar.open(node, 'libresign')
+		sidebar.setActiveTab('libresign')
 		return null
 	},
-	iconSvgInline: (nodes) => {
-		const node = nodes[0]
+	iconSvgInline: ({ nodes }) => {
+		const node = nodes?.[0]
+		if (!node || !node.attributes) return ''
 
 		const signedNodeId = node.attributes['libresign-signed-node-id']
 		const statusCode = node.attributes['libresign-signature-status']
@@ -42,7 +47,7 @@ const action = new FileAction({
 		return getStatusSvgInline(FILE_STATUS.DRAFT) || ''
 	},
 	inline: () => true,
-	enabled: (nodes) => {
+	enabled: ({ nodes }) => {
 		const certificateOk = loadState('libresign', 'certificate_ok')
 		const allHaveStatus = nodes?.every(node => node.attributes?.['libresign-signature-status'] !== undefined)
 
