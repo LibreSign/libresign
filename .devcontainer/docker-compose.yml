@@ -51,9 +51,9 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-nextcloud}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-nextcloud}
       - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-nextcloud}
-      - MAIL_DOMAIN=${MAIL_DOMAIN:-mailhog}
+      - MAIL_DOMAIN=${MAIL_DOMAIN:-mailpit}
       - MAIL_SMTPPORT=${MAIL_SMTPPORT:-1025}
-      - MAIL_SMTPHOST=${MAIL_SMTPHOST:-mailhog}
+      - MAIL_SMTPHOST=${MAIL_SMTPHOST:-mailpit}
       - VERSION_NEXTCLOUD=${VERSION_NEXTCLOUD:-master}
       - AUTOINSTALL=${AUTOINSTALL:-1}
       - XDEBUG_CONFIG
@@ -68,10 +68,10 @@ services:
       - ../:/var/www/html/apps-extra/libresign:ro
     ports:
       - ${HTTP_PORT:-80}:80
-  mailhog:
-    image: blueimp/mailhog
+  mailpit:
+    image: axllent/mailpit
     ports:
-      - 127.0.0.1:${MAILHOG_PORT:-8025}:8025
+      - 127.0.0.1:${MAILPIT_PORT:-8025}:8025
   redis:
     image: redis
 volumes:
