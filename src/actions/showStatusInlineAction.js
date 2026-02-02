@@ -44,7 +44,7 @@ const action = new FileAction({
 	inline: () => true,
 	enabled: (nodes) => {
 		const certificateOk = loadState('libresign', 'certificate_ok')
-		const allHaveStatus = nodes?.every(node => node.attributes['libresign-signature-status'] !== undefined)
+		const allHaveStatus = nodes?.every(node => node.attributes?.['libresign-signature-status'] !== undefined)
 
 		if (!certificateOk || !allHaveStatus) {
 			return false
