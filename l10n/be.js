@@ -38,6 +38,7 @@ OC.L10N.register(
     "Upload" : "Запампаваць",
     "Choose color" : "Выберыце колер",
     "Delete" : "Выдаліць",
+    "Change file" : "Змяніць файл",
     "Show available variables" : "Паказаць даступныя пераменныя",
     "Available variables" : "Даступныя пераменныя",
     "Preview" : "Перадпрагляд",
