@@ -76,8 +76,8 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: rootpassword
         options: --health-cmd="mysqladmin ping" --health-interval 5s --health-timeout 2s --health-retries 10
-      mailhog:
-        image: mailhog/mailhog
+      mailpit:
+        image: axllent/mailpit
         ports:
           - 8025:8025/tcp
           - 1025:1025/tcp
@@ -144,7 +144,7 @@ jobs:
         env:
           DB_PORT: 4444
         run: |
-          sudo echo "127.0.0.1 mailhog" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 mailpit" | sudo tee -a /etc/hosts
           mkdir data
           ./occ maintenance:install \
             --verbose \
@@ -166,7 +166,7 @@ jobs:
           ./occ app:enable --force guests
           ./occ config:system:set allow_local_remote_servers --value true --type boolean
           ./occ config:system:set auth.bruteforce.protection.enabled --value false --type boolean
-          ./occ config:system:set mail_smtphost --value mailhog
+          ./occ config:system:set mail_smtphost --value mailpit
           ./occ config:system:set mail_smtpport --value 1025 --type integer
           ./occ config:system:set ratelimit.protection.enabled --value false --type boolean
           ./occ config:app:set dav enableDefaultContact --value false --type boolean
