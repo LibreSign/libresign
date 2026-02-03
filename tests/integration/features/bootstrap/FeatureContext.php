@@ -13,8 +13,8 @@ use Behat\Step\Given;
 use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
 use Libresign\NextcloudBehat\NextcloudApiContext;
 use PHPUnit\Framework\Assert;
-use rpkamp\Behat\MailhogExtension\Context\OpenedEmailStorageAwareContext;
-use rpkamp\Behat\MailhogExtension\Service\OpenedEmailStorage;
+use LibreSign\Behat\MailpitExtension\Context\OpenedEmailStorageAwareContext;
+use LibreSign\Behat\MailpitExtension\Service\OpenedEmailStorage;
 
 /**
  * Defines application features from the specific context.
@@ -82,7 +82,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 			throw new RuntimeException('No email opened, unable to do something!');
 		}
 
-		/** @var \rpkamp\Mailhog\Message\Message $openedEmail */
+		/** @var \LibreSign\Mailpit\Message\Message $openedEmail */
 		$openedEmail = $this->openedEmailStorage->getOpenedEmail();
 		preg_match('/p\/sign\/(?<uuid>[\w-]+)"/', $openedEmail->body, $matches);
 

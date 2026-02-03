@@ -6,13 +6,13 @@ default:
   suites:
     default:
       contexts:
-        - rpkamp\Behat\MailhogExtension\Context\MailhogContext
+        - LibreSign\Behat\MailpitExtension\Context\MailpitContext
         - FeatureContext
       paths:
         - '%paths.base%/../features'
 
   extensions:
-    rpkamp\Behat\MailhogExtension:
+    LibreSign\Behat\MailpitExtension\ServiceContainer\MailpitExtension:
       base_url: http://mailpit:8025
     PhpBuiltin\Server:
       runAs: www-data
