@@ -13,6 +13,7 @@ import axios from '@nextcloud/axios'
 import { useFilesStore } from './files.js'
 import { useSidebarStore } from './sidebar.js'
 import { useSignMethodsStore } from './signMethods.js'
+import { FILE_STATUS } from '../constants.js'
 
 const defaultState = {
 	errors: [],
@@ -35,6 +36,26 @@ const defaultState = {
 
 export const useSignStore = defineStore('sign', {
 	state: () => ({ ...defaultState }),
+
+	getters: {
+		ableToSign(state) {
+			const allowedStatuses = [FILE_STATUS.ABLE_TO_SIGN, FILE_STATUS.PARTIAL_SIGNED]
+			if (!allowedStatuses.includes(state.document?.status)) {
+				return false
+			}
+
+			const mySigner = state.document?.signers?.find(signer => signer.me)
+			if (!mySigner) {
+				return false
+			}
+
+			if (mySigner.status !== 1) {
+				return false
+			}
+
+			return true
+		},
+	},
 
 	actions: {
 		async initFromState() {
