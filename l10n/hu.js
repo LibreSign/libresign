@@ -159,6 +159,7 @@ OC.L10N.register(
     "Validate" : "Ellenőrzés",
     "Documents Validation" : "Dokumentum-ellenőrzés",
     "Settings" : "Beállítások",
+    "{currentPage} of {totalPages}" : "{currentPage} / {totalPages}",
     "Duplicate" : "Kettőzés",
     "Loading …" : "Betöltés…",
     "Name" : "Név",
