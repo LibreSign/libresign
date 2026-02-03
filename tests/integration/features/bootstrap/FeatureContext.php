@@ -11,10 +11,10 @@ use Behat\Hook\BeforeScenario;
 use Behat\Hook\BeforeSuite;
 use Behat\Step\Given;
 use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
-use Libresign\NextcloudBehat\NextcloudApiContext;
-use PHPUnit\Framework\Assert;
 use LibreSign\Behat\MailpitExtension\Context\OpenedEmailStorageAwareContext;
 use LibreSign\Behat\MailpitExtension\Service\OpenedEmailStorage;
+use Libresign\NextcloudBehat\NextcloudApiContext;
+use PHPUnit\Framework\Assert;
 
 /**
  * Defines application features from the specific context.
