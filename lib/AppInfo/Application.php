@@ -91,7 +91,6 @@ class Application extends App implements IBootstrap {
 
 		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
 
-		// Register Dashboard Widget
 		$context->registerDashboardWidget(PendingSignaturesWidget::class);
 	}
 }
