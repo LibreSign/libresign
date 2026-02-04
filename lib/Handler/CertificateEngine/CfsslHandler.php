@@ -335,7 +335,8 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		$host = parse_url($this->getCfsslUri(), PHP_URL_HOST);
 		$port = parse_url($this->getCfsslUri(), PHP_URL_PORT);
 
-		set_error_handler(function (): void {
+		set_error_handler(function (int $errno, string $errstr, string $errfile = '', int $errline = 0, array $errcontext = []): bool {
+			return true;
 		});
 		$socket = fsockopen($host, $port, $errno, $errstr, 0.1);
 		restore_error_handler();
