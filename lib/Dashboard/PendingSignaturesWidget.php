@@ -148,7 +148,7 @@ class PendingSignaturesWidget implements IAPIWidget, IAPIWidgetV2, IButtonWidget
 	#[Override]
 	public function getItems(string $userId, ?string $since = null, int $limit = 7): array {
 		$widgetItems = $this->getItemsV2($userId, $since, $limit);
-		return $widgetItems->getItems();
+		return array_values($widgetItems->getItems());
 	}
 
 	#[Override]
