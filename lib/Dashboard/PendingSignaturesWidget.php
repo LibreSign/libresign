@@ -104,7 +104,7 @@ class PendingSignaturesWidget implements IAPIWidget, IAPIWidgetV2, IButtonWidget
 				}
 
 				$item = new WidgetItem(
-					$this->getDocumentTitle($fileEntity),
+					$fileEntity->getName(),
 					$this->getSubtitle($signRequest, $fileEntity),
 					$this->urlGenerator->linkToRouteAbsolute('libresign.page.signFPath', ['uuid' => $signRequest->getUuid(), 'path' => 'pdf']),
 					$this->urlGenerator->getAbsoluteURL(
@@ -121,10 +121,6 @@ class PendingSignaturesWidget implements IAPIWidget, IAPIWidgetV2, IButtonWidget
 			$items,
 			empty($items) ? $this->l10n->t('No pending signatures') : '',
 		);
-	}
-
-	private function getDocumentTitle(\OCA\Libresign\Db\File $fileEntity): string {
-		return $fileEntity->getName();
 	}
 
 	private function getSubtitle(\OCA\Libresign\Db\SignRequest $signRequest, \OCA\Libresign\Db\File $fileEntity): string {
