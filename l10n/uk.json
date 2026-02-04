@@ -367,7 +367,7 @@
     "There are no documents" : "Немає жодних документів",
     "Choose the file to request signatures." : "Виберіть файл для запиту підписів.",
     "1 file" : "1 файл",
-    "{fileCount} files" : "{fileCount} файли",
+    "{fileCount} files" : "{fileCount} файлів",
     "Total rows summary" : "Загалом рядків",
     "Created at" : "Коли створено",
     "Toggle selection for all files" : "Переключити вибір для всіх файлів",
@@ -524,7 +524,7 @@
     "Return" : "Повернення",
     "Open in LibreSign" : "Відкрити в LibreSign",
     "New signature request" : "Новий запит на підпис",
-    "Requested by {name}, at {date}" : "Надіслано на електронну адресу: {name}, за адресою {date}",
+    "Requested by {name}, at {date}" : "Надіслано запит від {name} {date}",
     "Deleted" : "Вилучено",
     "Select other file" : "Виберіть інший файл",
     "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Використовуйте коліщатко миші, щоб збільшити або зменшити зображення і знайти найкращий вигляд вашого підпису."
