@@ -62,9 +62,6 @@
   <file src="lib/Files/TemplateLoader.php">
   </file>
   <file src="lib/Handler/CertificateEngine/CfsslHandler.php">
-    <InvalidArgument>
-      <code><![CDATA[function (): void { }]]></code>
-    </InvalidArgument>
   </file>
   <file src="lib/Helper/Pagination.php">
     <MissingTemplateParam>
