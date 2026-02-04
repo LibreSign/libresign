@@ -10,6 +10,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Dashboard;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\File;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
@@ -123,7 +125,7 @@ class PendingSignaturesWidget implements IAPIWidget, IAPIWidgetV2, IButtonWidget
 		);
 	}
 
-	private function getSubtitle(\OCA\Libresign\Db\SignRequest $signRequest, \OCA\Libresign\Db\File $fileEntity): string {
+	private function getSubtitle(SignRequest $signRequest, File $fileEntity): string {
 		$displayName = $signRequest->getDisplayName();
 		$createdAt = $fileEntity->getCreatedAt();
 		if ($createdAt instanceof \DateTime) {
@@ -135,7 +137,7 @@ class PendingSignaturesWidget implements IAPIWidget, IAPIWidgetV2, IButtonWidget
 		return $this->l10n->t('From: %s', [$displayName]);
 	}
 
-	private function getTimestamp(\OCA\Libresign\Db\File $fileEntity): string {
+	private function getTimestamp(File $fileEntity): string {
 		$createdAt = $fileEntity->getCreatedAt();
 		if ($createdAt instanceof \DateTime) {
 			return (string)$createdAt->getTimestamp();
