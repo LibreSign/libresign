@@ -123,7 +123,7 @@ appstore:
 	rm -rf $(appstore_sign_dir)/$(app_name)/3rdparty/vendor-bin
 	rm -rf $(appstore_sign_dir)/$(app_name)/3rdparty/scoper.inc.php
 	mkdir -p $(appstore_sign_dir)/$(app_name)/tests/php/fixtures
-	cp tests/php/fixtures/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/php/fixtures
+	cp tests/php/fixtures/pdfs/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/php/fixtures
 
 	mkdir -p $(cert_dir)
 	if [ -n "$$GITHUB_ACTION" ]; then \
