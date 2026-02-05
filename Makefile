@@ -155,6 +155,7 @@ appstore:
 			--privateKey=$(cert_dir)/$(app_name).key \
 			--certificate=$(cert_dir)/$(app_name).crt; \
 		cp -r appinfo $(appstore_sign_dir)/$(app_name); \
+		chmod -R a+w $(appstore_sign_dir)/$(app_name); \
 		echo "Signing app files…"; \
 		$(occ) integrity:sign-app \
 			--privateKey=$(cert_dir)/$(app_name).key\
