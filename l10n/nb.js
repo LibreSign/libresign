@@ -35,6 +35,7 @@ OC.L10N.register(
     "Element not found" : "Element ikke funnet",
     "Element updated with success" : "Element oppdatert",
     "Visible element deleted" : "Synlig element slettet",
+    "User not found" : "Fant ikke brukeren",
     "Identification Document" : "Identifikasjonsdokument",
     "draft" : "utkast",
     "available for signature" : "tilgjengelig for signatur",

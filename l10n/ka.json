@@ -10,6 +10,7 @@
     "A PHP extension stopped the file upload" : "PHP გაფართოებამ შეწყვიტა ფაილის ატვირთვა",
     "No file uploaded" : "No file uploaded",
     "File not found" : "File not found",
+    "User not found" : "User not found",
     "deleted" : "deleted",
     "Draft" : "Draft",
     "Pending" : "Pending",

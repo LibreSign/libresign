@@ -38,6 +38,7 @@ OC.L10N.register(
     "Element not found" : "Elementi ei leidu",
     "Element updated with success" : "Elemendi uuendamine õnnestus",
     "Visible element deleted" : "Nähtav element on kustutatud",
+    "User not found" : "Kasutajat ei leitud",
     "waiting for approval" : "kinnituse ootel",
     "approved" : "kinnitatud",
     "not LibreSign file" : "pole LibreSigni fail",

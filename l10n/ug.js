@@ -42,6 +42,7 @@ OC.L10N.register(
     "Element not found" : "ئېلېمېنت تېپىلمىدى",
     "Element updated with success" : "ئېلېمېنت مۇۋەپپەقىيەت بىلەن يېڭىلاندى",
     "Visible element deleted" : "كۆرۈنگەن ئېلېمېنت ئۆچۈرۈلدى",
+    "User not found" : "ئىشلەتكۈچى تېپىلمىدى",
     "Identification Document" : "كىملىك",
     "waiting for approval" : "تەستىقلىنىشنى كۈتۈۋاتىدۇ",
     "approved" : "تەستىقلاندى",

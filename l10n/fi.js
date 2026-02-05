@@ -39,6 +39,7 @@ OC.L10N.register(
     "Element not found" : "Elementtiä ei löydy",
     "Element updated with success" : "Elementti päivitetty onnistuneesti",
     "Visible element deleted" : "Näkyvä elementti poistettu",
+    "User not found" : "Käyttäjää ei löydy",
     "waiting for approval" : "odottaa hyväksyntää",
     "approved" : "hyväksytty",
     "No changes allowed" : "Muutoksia ei sallita",

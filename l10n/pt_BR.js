@@ -51,6 +51,7 @@ OC.L10N.register(
     "Element not found" : "Elemento não encontrado ",
     "Element updated with success" : "Elemento atualizado com sucesso",
     "Visible element deleted" : "Elemento visível excluído",
+    "User not found" : "Usuário não encontrado",
     "Identification Document" : "Documento de identificação",
     "waiting for approval" : "aguardando aprovação",
     "approved" : "aprovado",

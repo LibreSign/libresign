@@ -51,6 +51,7 @@ OC.L10N.register(
     "Element not found" : "Bileşen bulunamadı",
     "Element updated with success" : "Bileşen güncellendi",
     "Visible element deleted" : "Görülebilir bileşen silindi",
+    "User not found" : "Kullanıcı bulunamadı",
     "Identification Document" : "Kimlik doğrulama belgesi",
     "waiting for approval" : "onay bekleniyor",
     "approved" : "onaylandı",

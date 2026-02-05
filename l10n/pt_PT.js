@@ -13,6 +13,7 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "Uma extensão PHP parou o envio do ficheiro.",
     "No file uploaded" : "Nenhum ficheiro carregado",
     "File not found" : "Ficheiro não encontrado",
+    "User not found" : "Utilizador não encontrado",
     "deleted" : "eliminado",
     "Pending" : "Pendente",
     "Invalid password" : "Palavra-passe inválida",

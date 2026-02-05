@@ -23,6 +23,7 @@ OC.L10N.register(
     "File not found" : "Failas nerastas",
     "File signed" : "Failas pasirašytas",
     "Element updated with success" : "Elementas sėkmingai atnaujintas",
+    "User not found" : "Naudotojas nerastas",
     "draft" : "juodraštis",
     "available for signature" : "prieinamas pasirašymui",
     "partially signed" : "dalinai pasirašytas",
