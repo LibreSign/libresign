@@ -163,11 +163,13 @@ jobs:
       - name: Extract version and create tag
         id: version
         run: |
-          TIMESTAMP=$(date -u +"%Y%m%d-%H%M%S")
-          TAG="nightly-${TIMESTAMP}"
+          # Use branch name for stable tag (nightly-stable32, nightly-stable33, nightly-main)
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          TAG="nightly-${BRANCH_NAME}"
 
           echo "version=${{ env.APP_VERSION }}" >> $GITHUB_OUTPUT
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "branch=${BRANCH_NAME}" >> $GITHUB_OUTPUT
 
       - name: Get recent commits for release notes
         id: release-notes
@@ -184,7 +186,7 @@ jobs:
           cat << EOF > release-notes.md
           ## 🌙 Nightly Build - ${{ steps.version.outputs.version }}
 
-          Automated nightly build from \`main\` branch.
+          Automated nightly build from \`${{ steps.version.outputs.branch }}\` branch.
 
           ⚠️ **Development version** - may contain bugs or unstable features.
 
@@ -200,11 +202,22 @@ jobs:
           cat release-notes.md >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      - name: Delete previous nightly release and tag
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          
+          # Delete release and tag if they exist
+          gh release delete "$TAG" -y --repo ${{ github.repository }} 2>/dev/null || true
+          git push --delete origin "$TAG" 2>/dev/null || true
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@e7a8f85e1c67a31e6ed99a94b41bd0b71bbee6b8 # v2.2.0
         with:
           tag_name: ${{ steps.version.outputs.tag }}
-          name: "Nightly ${{ steps.version.outputs.version }} (${{ steps.version.outputs.tag }})"
+          name: "Nightly ${{ steps.version.outputs.version }} (${{ steps.version.outputs.branch }})"
           body: ${{ steps.release-notes.outputs.notes }}
           prerelease: true
           draft: false
