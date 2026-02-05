@@ -214,7 +214,7 @@ jobs:
           git push --delete origin "$TAG" 2>/dev/null || true
 
       - name: Create GitHub release
-        uses: softprops/action-gh-release@e7a8f85e1c67a31e6ed99a94b41bd0b71bbee6b8 # v2.2.0
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.2.0
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: "Nightly ${{ steps.version.outputs.version }} (${{ steps.version.outputs.branch }})"
