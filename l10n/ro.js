@@ -13,6 +13,7 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "O extensie PHP a oprit încărcarea fișierelor",
     "No file uploaded" : "Nu a fost încărcat niciun fișier",
     "File not found" : "Fișierul nu a fost găsit",
+    "User not found" : "Utilizatorul nu a fost găsit",
     "deleted" : "șterge",
     "Draft" : "Schiță",
     "Pending" : "În așteptare",

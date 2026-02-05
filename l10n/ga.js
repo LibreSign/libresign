@@ -51,6 +51,7 @@ OC.L10N.register(
     "Element not found" : "Níor aimsíodh an eilimint",
     "Element updated with success" : "Nuashonraíodh an eilimint go rathúil",
     "Visible element deleted" : "Scriosadh an eilimint infheicthe",
+    "User not found" : "Úsáideoir gan aimsiú",
     "Identification Document" : "Doiciméad Aitheantais",
     "waiting for approval" : "ag fanacht le formheas",
     "approved" : "ceadaithe",

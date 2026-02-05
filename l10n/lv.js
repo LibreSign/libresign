@@ -12,6 +12,7 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "PHP paplašinājums apturēja datnes augšupielādi",
     "No file uploaded" : "Nav augšupielādēta datne",
     "File not found" : "Datne nav atrasta",
+    "User not found" : "Lietotājs nav atrasts",
     "deleted" : "izdzēsta",
     "Draft" : "Melnraksts",
     "Pending" : "Gaida",

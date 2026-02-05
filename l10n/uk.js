@@ -37,6 +37,7 @@ OC.L10N.register(
     "Element not found" : "Елемент не знайдено",
     "Element updated with success" : "Елемент успішно оновлено",
     "Visible element deleted" : "Видалено видимий елемент",
+    "User not found" : "Користувача не знайдено",
     "Identification Document" : "Документ, що посвідчує особу",
     "not LibreSign file" : "не файл LibreSign",
     "draft" : "проект",

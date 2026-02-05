@@ -35,6 +35,7 @@ OC.L10N.register(
     "Element not found" : "Element no trobat",
     "Element updated with success" : "Element actualitzat correctament",
     "Visible element deleted" : "S'ha suprimit l'element visible",
+    "User not found" : "No s'ha trobat l'usuari",
     "Identification Document" : "Document identificatiu",
     "draft" : "esborrany",
     "available for signature" : "disponible per a signar",

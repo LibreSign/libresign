@@ -51,6 +51,7 @@ OC.L10N.register(
     "Element not found" : "找不到元素",
     "Element updated with success" : "成功更新元素",
     "Visible element deleted" : "已刪除可見元素",
+    "User not found" : "找不到使用者",
     "Identification Document" : "身份證明文件",
     "waiting for approval" : "正在等待核准",
     "approved" : "已核准",

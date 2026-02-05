@@ -37,6 +37,7 @@ OC.L10N.register(
     "Element not found" : "Елемент није пронађен",
     "Element updated with success" : "Елемент је успешно ажуриран",
     "Visible element deleted" : "Обрисан је видљиви елемент",
+    "User not found" : "Корисник није нађен",
     "Identification Document" : "Идентификациони документ",
     "not LibreSign file" : "није LibreSign фајл",
     "draft" : "нацрт",
