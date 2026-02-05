@@ -12,6 +12,7 @@ OC.L10N.register(
     "Could not write file to disk" : "Faylni diskka yozib bo'lmadi",
     "A PHP extension stopped the file upload" : "PHP kengaytmasi faylni yuklashni to'xtatdi",
     "File not found" : "File not found",
+    "User not found" : "Foydalanuvchi topilmadi",
     "Pending" : "Kutilmoqda",
     "Internal Server Error" : "Serverdagi ichki xatolik",
     "Invalid file provided" : "Invalid file provided",

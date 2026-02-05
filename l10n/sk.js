@@ -35,6 +35,7 @@ OC.L10N.register(
     "Element not found" : "Prvok nebol nájdený",
     "Element updated with success" : "Prvok bol úspešne aktualizovaný",
     "Visible element deleted" : "Viditeľný prvok bol vymazaný",
+    "User not found" : "Užívateľ nebol nájdený",
     "Identification Document" : "Identifikačný doklad",
     "not LibreSign file" : "žiadny súbor LibreSign",
     "draft" : "koncept",

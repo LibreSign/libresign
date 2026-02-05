@@ -13,6 +13,7 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "הרחבת PHP עצרה את העלאת הקובץ",
     "No file uploaded" : "לא הועלה קובץ",
     "File not found" : "קובץ לא נמצא",
+    "User not found" : "המשתמש לא נמצא",
     "deleted" : "נמחק",
     "Pending" : "בהמתנה",
     "Invalid password" : "ססמה שגויה",

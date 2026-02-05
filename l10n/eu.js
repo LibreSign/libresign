@@ -28,6 +28,7 @@ OC.L10N.register(
     "Element not found" : "Elementua ez da aurkitu",
     "Element updated with success" : "Elementua ondo eguneratu da",
     "Visible element deleted" : "Elementu ikusgarria ezabatuta",
+    "User not found" : "Ez da erabiltzailea aurkitu",
     "Identification Document" : "Identifikazio dokumentua",
     "draft" : "zirriborroa",
     "partially signed" : "partzialki sinatuta",

@@ -13,6 +13,7 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "PHP拡張機能がファイルのアップロードを停止しました",
     "No file uploaded" : "ファイルがアップロードされていません",
     "File not found" : "ファイルが見つかりません",
+    "User not found" : "ユーザーが見つかりません",
     "draft" : "下書き",
     "deleted" : "削除しました",
     "Draft" : "下書き",

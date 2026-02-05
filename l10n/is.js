@@ -13,6 +13,7 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "PHP-viðbót stöðvaði innsendingu skráar",
     "No file uploaded" : "Engin skrá var send inn",
     "File not found" : "Skrá finnst ekki",
+    "User not found" : "Notandi fannst ekki",
     "deleted" : "eytt",
     "Draft" : "Drög",
     "Pending" : "Í bið",

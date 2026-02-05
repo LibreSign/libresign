@@ -28,6 +28,7 @@ OC.L10N.register(
     "Element not found" : "Az elem nem található",
     "Element updated with success" : "Elem sikeresen frissítve",
     "Visible element deleted" : "Látható elem törölve",
+    "User not found" : "A felhasználó nem található",
     "Identification Document" : "Azonosító dokumentum",
     "draft" : "vázlat",
     "partially signed" : "részlegesen aláírva",

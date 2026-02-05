@@ -20,6 +20,7 @@ OC.L10N.register(
     "File not found" : "Archìviu no agatadu",
     "File signed" : "Archìviu firmadu",
     "Invalid data to sign file" : "Datos pro firmare is archìvios non bàlidos",
+    "User not found" : "Utèntzia no agatada",
     "signed" : "firmadu",
     "deleted" : "cantzelladu",
     "Pending" : "In isetu",

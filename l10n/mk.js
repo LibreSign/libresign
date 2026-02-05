@@ -15,6 +15,7 @@ OC.L10N.register(
     "No file uploaded" : "Нема прикачено дадотека",
     "Notification sent with success." : "Успешно исптарено известување.",
     "File not found" : "Датотеката не е пронајдена",
+    "User not found" : "Корисникот не е пронајден",
     "deleted" : "избришана",
     "Draft" : "Шаблон",
     "Pending" : "Чекање",

@@ -28,6 +28,7 @@ OC.L10N.register(
     "Element not found" : "Nie znaleziono elementu",
     "Element updated with success" : "Element zaktualizowany z powodzeniem",
     "Visible element deleted" : "Widoczny element usunięty",
+    "User not found" : "Nie znaleziono użytkownika",
     "Identification Document" : "Dokument tożsamości",
     "draft" : "kopia robocza",
     "partially signed" : "częściowo podpisany",

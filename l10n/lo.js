@@ -37,6 +37,7 @@ OC.L10N.register(
     "Element not found" : "ບໍ່ພົບອົງປະກອບ",
     "Element updated with success" : "ອັບເດດອົງປະກອບສຳເລັດແລ້ວ",
     "Visible element deleted" : "ລຶບອົງປະກອບທີ່ເບິ່ງເຫັນແລ້ວ",
+    "User not found" : "ບໍ່ພົບຜູ້ໃຊ້",
     "Identification Document" : "ເອກະສານຢັ້ງຢືນຕົວຕົນ",
     "not LibreSign file" : "ບໍ່ແມ່ນໄຟລ໌ LibreSign",
     "draft" : "ສະບັບຮ່າງ",
