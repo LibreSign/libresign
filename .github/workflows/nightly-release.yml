@@ -160,21 +160,6 @@ jobs:
           echo '${{ secrets.APP_PRIVATE_KEY }}' > build/tools/certificates/${{ env.APP_NAME }}.key
           make appstore
 
-      - name: Sign app
-        run: |
-          # Extracting release
-          cd ${{ env.APP_NAME }}/build/artifacts
-          tar -xvf ${{ env.APP_NAME }}.tar.gz
-          cd ../../../
-          # Setting up keys
-          echo '${{ secrets.APP_PRIVATE_KEY }}' > ${{ env.APP_NAME }}.key
-          wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/${{ env.APP_NAME }}/${{ env.APP_NAME }}.crt"
-          # Signing
-          php nextcloud/occ integrity:sign-app --privateKey=../${{ env.APP_NAME }}.key --certificate=../${{ env.APP_NAME }}.crt --path=../${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}
-          # Rebuilding archive
-          cd ${{ env.APP_NAME }}/build/artifacts
-          tar -zcvf ${{ env.APP_NAME }}.tar.gz ${{ env.APP_NAME }}
-
       - name: Extract version and create tag
         id: version
         run: |
