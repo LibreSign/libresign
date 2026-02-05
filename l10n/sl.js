@@ -35,6 +35,7 @@ OC.L10N.register(
     "Element not found" : "Predmeta ni mogoče najti.",
     "Element updated with success" : "Predmet je uspešno posodobljen.",
     "Visible element deleted" : "Vidni predmet je izbrisan.",
+    "User not found" : "Uporabnika ni mogoče najti",
     "Identification Document" : "Identifikacijski dokument",
     "draft" : "osnutek",
     "available for signature" : "na voljo za podpis",

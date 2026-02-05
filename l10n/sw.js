@@ -42,6 +42,7 @@ OC.L10N.register(
     "Element not found" : "Element not found",
     "Element updated with success" : "Element updated with success",
     "Visible element deleted" : "Visible element deleted",
+    "User not found" : "Mtumiaji hapatikani",
     "Identification Document" : "Identification Document",
     "waiting for approval" : "waiting for approval",
     "approved" : "approved",

@@ -19,6 +19,7 @@ OC.L10N.register(
     "Invalid data to sign file" : "Donadas pas validas per signar lo fichièr",
     "Elements not found" : "Elements pas trobats",
     "Element not found" : "Element pas trobat",
+    "User not found" : "Utilizaire pas trobat",
     "draft" : "borrolhon",
     "signed" : "signat",
     "deleted" : "suprimit",

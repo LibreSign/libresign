@@ -13,6 +13,7 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "En PHP udvidelse stoppede filupload.",
     "No file uploaded" : "Ingen fil uploadet",
     "File not found" : "Fil ikke fundet",
+    "User not found" : "Bruger ikke fundet",
     "deleted" : "Slettet",
     "Draft" : "Kladde",
     "Pending" : "Afventer",

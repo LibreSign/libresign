@@ -30,6 +30,7 @@ OC.L10N.register(
     "Element not found" : "Элемент не найден",
     "Element updated with success" : "Элемент обновлен успешно",
     "Visible element deleted" : "Видимый элемент удален",
+    "User not found" : "Пользователь не найден",
     "draft" : "черновик",
     "partially signed" : "частично подписан",
     "signed" : "подписан",

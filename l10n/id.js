@@ -51,6 +51,7 @@ OC.L10N.register(
     "Element not found" : "Elemen tidak ditemukan",
     "Element updated with success" : "Elemen berhasil diperbarui",
     "Visible element deleted" : "Elemen terlihat dihapus",
+    "User not found" : "Pengguna tidak ditemukan",
     "Identification Document" : "Dokumen Identifikasi",
     "waiting for approval" : "menunggu persetujuan",
     "approved" : "disetujui",

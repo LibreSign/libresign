@@ -27,6 +27,7 @@ OC.L10N.register(
     "Element not found" : "Element niet gevonden",
     "Element updated with success" : "Element succesvol geüpdatet",
     "Visible element deleted" : "Zichtbaar element verwijderd",
+    "User not found" : "Gebruiker niet gevonden",
     "Identification Document" : "Identiteitsdocument",
     "draft" : "concept",
     "partially signed" : "gedeeltelijk gesigneerd",

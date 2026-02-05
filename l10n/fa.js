@@ -28,6 +28,7 @@ OC.L10N.register(
     "Element not found" : "Element not found",
     "Element updated with success" : "Element updated with success",
     "Visible element deleted" : "Visible element deleted",
+    "User not found" : "کاربر یافت نشد",
     "Identification Document" : "Identification Document",
     "draft" : "draft",
     "partially signed" : "partially signed",

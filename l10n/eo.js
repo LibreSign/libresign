@@ -12,6 +12,7 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "PHP-modulo haltigis la dosieralŝuton",
     "No file uploaded" : "Neniu dosiero alŝutiĝis",
     "File not found" : "Netrovita dosiero",
+    "User not found" : "Netrovita uzanto",
     "deleted" : "forigita",
     "Pending" : "Pritraktota",
     "Invalid password" : "Nevalida pasvorto",

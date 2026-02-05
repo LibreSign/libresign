@@ -13,6 +13,7 @@ OC.L10N.register(
     "A PHP extension stopped the file upload" : "Một phần mở rộng của PHP đã dừng tải tệp lên",
     "No file uploaded" : "Không có tệp nào được tải lên",
     "File not found" : "Không tìm thấy tập tin",
+    "User not found" : "Không tìm thấy người dùng",
     "deleted" : "đã xóa",
     "Pending" : "Đang dừng",
     "Internal Server Error" : "Lỗi máy chủ.",

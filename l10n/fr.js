@@ -37,6 +37,7 @@ OC.L10N.register(
     "Element not found" : "Élement non trouvés",
     "Element updated with success" : "Élément mis à jour avec succès",
     "Visible element deleted" : "Élément visible effacé",
+    "User not found" : "Utilisateur non trouvé",
     "Identification Document" : "Identification du document",
     "not LibreSign file" : "pas de fichier LibreSign",
     "draft" : "brouillon",
