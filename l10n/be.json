@@ -10,6 +10,7 @@
     "Could not write file to disk" : "Не ўдалося запісаць файл на дыск",
     "A PHP extension stopped the file upload" : "Пашырэнне PHP спыніла запампоўванне файла",
     "File not found" : "Файл не знойдзены",
+    "User not found" : "Карыстальнік не знойдзены",
     "draft" : "чарнавік",
     "Draft" : "Чарнавік",
     "Pending" : "У чаканні",
