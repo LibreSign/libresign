@@ -35,6 +35,7 @@ OC.L10N.register(
     "Element not found" : "العنصر غير موجود",
     "Element updated with success" : "تم تحديث العنصر بنجاح",
     "Visible element deleted" : "تم حذف العنصر المرئي",
+    "User not found" : "المستخدم غير موجود",
     "Identification Document" : "وثيقة تعريف",
     "not LibreSign file" : "ليس ملف LibreSign",
     "draft" : "مسودة",
