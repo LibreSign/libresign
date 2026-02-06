@@ -19,8 +19,32 @@ permissions:
   actions: write
 
 jobs:
+  check-latest-stable:
+    runs-on: ubuntu-latest
+    outputs:
+      is_latest: ${{ steps.latest.outputs.is_latest }}
+      latest_branch: ${{ steps.latest.outputs.latest_branch }}
+    steps:
+      - name: Determine latest stable branch
+        id: latest
+        run: |
+          latest_number=$(git ls-remote --heads https://github.com/${{ github.repository }}.git "stable*" | awk -F/ '{print $NF}' | sed 's/^stable//' | sort -n | tail -1)
+          if [ -z "$latest_number" ]; then
+            echo "is_latest=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          latest_branch="stable${latest_number}"
+          echo "latest_branch=${latest_branch}" >> $GITHUB_OUTPUT
+          if [ "${GITHUB_REF_NAME}" = "${latest_branch}" ]; then
+            echo "is_latest=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_latest=false" >> $GITHUB_OUTPUT
+          fi
+
   nightly-release:
     runs-on: ubuntu-latest
+    needs: check-latest-stable
+    if: ${{ needs.check-latest-stable.outputs.is_latest == 'true' }}
 
     steps:
       - name: Check actor permission
@@ -207,7 +231,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ steps.version.outputs.tag }}"
-          
           # Delete release and tag if they exist
           gh release delete "$TAG" -y --repo ${{ github.repository }} 2>/dev/null || true
           git push --delete origin "$TAG" 2>/dev/null || true
