@@ -499,7 +499,10 @@ class InstallService {
 	 */
 	private function saveJsignPdfHome(): void {
 		$home = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_home');
-		if ($home && preg_match('/libresign\/jsignpdf_home/', $home)) {
+		if ($home
+			&& preg_match('/libresign\/jsignpdf_home/', $home)
+			&& is_dir($home)
+		) {
 			return;
 		}
 		$libresignFolder = $this->appData->getFolder('/');
