@@ -183,16 +183,26 @@ jobs:
           echo '${{ secrets.APP_PRIVATE_KEY }}' > build/tools/certificates/${{ env.APP_NAME }}.key
           make appstore
 
-      - name: Extract version and create tag
+      - name: Define nightly metadata
         id: version
         run: |
-          # Use branch name for stable tag (nightly-stable32, nightly-stable33, nightly-main)
           BRANCH_NAME="${GITHUB_REF#refs/heads/}"
-          TAG="nightly-${BRANCH_NAME}"
+          TAG="nightly"
 
           echo "version=${{ env.APP_VERSION }}" >> $GITHUB_OUTPUT
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
           echo "branch=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Update nightly tag
+        run: |
+          cd ${{ env.APP_NAME }}
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          TAG="${{ steps.version.outputs.tag }}"
+
+          git tag -f "$TAG" "${GITHUB_SHA}"
+          git push -f origin "$TAG"
 
       - name: Get recent commits for release notes
         id: release-notes
@@ -225,24 +235,27 @@ jobs:
           cat release-notes.md >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Delete previous nightly release and tag
-        continue-on-error: true
+      - name: Create or update GitHub release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ steps.version.outputs.tag }}"
-          # Delete release and tag if they exist
-          gh release delete "$TAG" -y --repo ${{ github.repository }} 2>/dev/null || true
-          git push --delete origin "$TAG" 2>/dev/null || true
+          TITLE="Nightly ${{ steps.version.outputs.version }} (${{ steps.version.outputs.branch }})"
+          NOTES_FILE="${{ env.APP_NAME }}/release-notes.md"
 
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@e7a8f85e1c67a31e6ed99a94b41bd0b71bbee6b8 # v2.2.0
-        with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: "Nightly ${{ steps.version.outputs.version }} (${{ steps.version.outputs.branch }})"
-          body: ${{ steps.release-notes.outputs.notes }}
-          prerelease: true
-          draft: false
+          if gh release view "$TAG" --repo "${{ github.repository }}" > /dev/null 2>&1; then
+            gh release edit "$TAG" \
+              --repo "${{ github.repository }}" \
+              --title "$TITLE" \
+              --notes-file "$NOTES_FILE" \
+              --prerelease
+          else
+            gh release create "$TAG" \
+              --repo "${{ github.repository }}" \
+              --title "$TITLE" \
+              --notes-file "$NOTES_FILE" \
+              --prerelease
+          fi
 
       - name: Attach tarball to github release
         uses: svenstaro/upload-release-action@6b7fa9f267e90b50a19fef07b3596790bb941741 # v2.11.3
