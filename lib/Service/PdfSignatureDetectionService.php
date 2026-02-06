@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\SignEngine\SignEngineFactory;
 use Psr\Log\LoggerInterface;
 
@@ -38,6 +39,9 @@ class PdfSignatureDetectionService {
 			$engine = $this->signEngineFactory->resolve('pdf');
 			$certificates = $engine->getCertificateChain($resource);
 			return !empty($certificates);
+		} catch (LibresignException $e) {
+			$this->logger->debug('No signatures detected: ' . $e->getMessage());
+			return false;
 		} catch (\Throwable $e) {
 			$this->logger->debug('Failed to detect signatures: ' . $e->getMessage());
 			return false;
