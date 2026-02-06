@@ -17,18 +17,10 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
 
 class PdfSignatureDetectionServiceTest extends TestCase {
-
-	private PdfSignatureDetectionService $service;
-
-	public function setUp(): void {
-		parent::setUp();
-
-		$signEngineFactory = \OCP\Server::get(SignEngineFactory::class);
-		$logger = \OCP\Server::get(LoggerInterface::class);
-
-		$this->service = new PdfSignatureDetectionService(
-			$signEngineFactory,
-			$logger
+	private function getService(): PdfSignatureDetectionService {
+		return new PdfSignatureDetectionService(
+			\OCP\Server::get(SignEngineFactory::class),
+			\OCP\Server::get(LoggerInterface::class)
 		);
 	}
 
@@ -40,7 +32,6 @@ class PdfSignatureDetectionServiceTest extends TestCase {
 
 		$unsignedFixture = $catalog->getByFilename('small_valid.pdf');
 		$unsignedPdf = $unsignedFixture ? file_get_contents($unsignedFixture->getFilePath()) : '';
-
 
 		return [
 			'signed PDF from catalog' => [fn () => $signedPdf, true],
@@ -56,7 +47,7 @@ class PdfSignatureDetectionServiceTest extends TestCase {
 
 	#[DataProvider('pdfContentProvider')]
 	public function testHasSignatures(callable $pdfProvider, bool $expected): void {
-		$result = $this->service->hasSignatures($pdfProvider());
+		$result = $this->getService()->hasSignatures($pdfProvider());
 		$this->assertSame($expected, $result);
 	}
 }
