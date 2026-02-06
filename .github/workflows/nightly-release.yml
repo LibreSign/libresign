@@ -6,7 +6,6 @@ name: Nightly Release
 on:
   push:
     branches:
-      - main
       - stable*
     paths-ignore:
       - '**.md'
