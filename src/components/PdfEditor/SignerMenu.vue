@@ -12,7 +12,7 @@
 			<span class="signer-trigger">
 				<NcAvatar
 					class="signer-avatar"
-					:size="30"
+					:size="28"
 					:is-no-user="true"
 					:display-name="label(currentSigner)" />
 				<NcIconSvgWrapper :path="mdiChevronDown" :size="18" />
@@ -99,21 +99,22 @@ export default {
 <style lang="scss">
 .signer-menu {
 	display: inline-flex;
-	margin: 0 10px 0 12px;
 
 	.action-item__menutoggle {
-		padding: 0;
-		min-height: 0;
-		min-width: 0;
-		overflow: visible;
+		padding: 0 !important;
+		min-width: 80px !important;
+		width: auto !important;
+		height: 40px !important;
 
 		.button-vue__wrapper {
-			padding: 0;
+			padding: 0 !important;
+			width: 100% !important;
 		}
 
 		.button-vue__icon {
-			width: auto;
-			height: auto;
+			width: 100% !important;
+			height: 100% !important;
+			min-width: 80px !important;
 		}
 	}
 }
@@ -121,27 +122,29 @@ export default {
 .signer-trigger {
 	display: inline-flex;
 	align-items: center;
-	gap: 6px;
-	padding: 4px 10px;
-	min-width: 56px;
-	min-height: 34px;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 6px 8px;
 	border-radius: 6px;
 	background: rgba(255, 255, 255, 0.08);
 	border: 1px solid rgba(255, 255, 255, 0.16);
-	color: #ffffff;
-	font-size: 12px;
-	line-height: 1;
-	white-space: nowrap;
+	color: #fff;
+	font-size: 13px;
+	transition: background-color 0.1s ease, border-color 0.1s ease;
+
+	&:hover {
+		background: rgba(255, 255, 255, 0.15);
+		border-color: rgba(255, 255, 255, 0.24);
+	}
 
 	.nc-icon-svg-wrapper {
-		flex: 0 0 auto;
-		color: #ffffff;
+		flex-shrink: 0;
+		opacity: 0.7;
 	}
 }
 
 .signer-avatar {
-	--avatar-size: 30px;
-	flex: 0 0 var(--avatar-size);
+	flex-shrink: 0;
 }
 
 .signer-option-icon {
