@@ -8,16 +8,17 @@
 			<Signatures v-if="hasSignatures" />
 		</div>
 		<div v-if="!loading" class="button-wrapper">
-			<NcButton v-if="ableToSign"
-				:wide="true"
-				:disabled="loading"
-				variant="primary"
-				@click="confirmSignDocument">
-				<template #icon>
-					<NcLoadingIcon v-if="loading" :size="20" />
-				</template>
-				{{ t('libresign', 'Sign the document.') }}
-			</NcButton>
+			<div v-if="needCreateSignature" class="no-signature-warning">
+				<p>
+					{{ t('libresign', 'You do not have any signature defined.') }}
+				</p>
+				<NcButton :wide="true"
+					:disabled="loading"
+					variant="primary"
+					@click="actionHandler.showModal('createSignature')">
+					{{ t('libresign', 'Define your signature.') }}
+				</NcButton>
+			</div>
 			<div v-else-if="signMethodsStore.needCertificate()">
 				<p>
 					{{ t('libresign', 'You need to upload your certificate to sign the document.') }}
@@ -40,20 +41,19 @@
 					{{ t('libresign', 'Define a password and sign the document.') }}
 				</NcButton>
 			</div>
-			<div v-else-if="needCreateSignature" class="no-signature-warning">
-				<p>
-					{{ t('libresign', 'You do not have any signature defined.') }}
-				</p>
-				<NcButton :wide="true"
-					:disabled="loading"
-					variant="primary"
-					@click="actionHandler.showModal('createSignature')">
-					{{ t('libresign', 'Define your signature.') }}
-				</NcButton>
-			</div>
 			<div v-else-if="needIdentificationDocuments" class="no-identification-warning">
 				<Documents :sign-request-uuid="signRequestUuid" />
 			</div>
+			<NcButton v-else-if="ableToSign"
+				:wide="true"
+				:disabled="loading"
+				variant="primary"
+				@click="confirmSignDocument">
+				<template #icon>
+					<NcLoadingIcon v-if="loading" :size="20" />
+				</template>
+				{{ t('libresign', 'Sign the document.') }}
+			</NcButton>
 			<div v-else>
 				<p>
 					{{ t('libresign', 'Unable to sign.') }}
