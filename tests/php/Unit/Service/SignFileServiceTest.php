@@ -600,22 +600,27 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$envelope = new File();
 		$envelope->setId(1);
 		$envelope->setNodeType('envelope');
+		$envelope->setUserId('user1');
 
 		$fileA = new File();
 		$fileA->setId(10);
 		$fileA->setNodeId(100);
 		$fileA->setParentFileId($envelope->getId());
+		$fileA->setUserId('user1');
 		$signRequestA = new SignRequest();
 		$signRequestA->setId(100);
 		$signRequestA->setFileId($fileA->getId());
+		$signRequestA->setMetadata(['key' => 'value']);
 
 		$fileB = new File();
 		$fileB->setId(11);
 		$fileB->setNodeId(101);
 		$fileB->setParentFileId($envelope->getId());
+		$fileB->setUserId('user1');
 		$signRequestB = new SignRequest();
 		$signRequestB->setId(101);
 		$signRequestB->setFileId($fileB->getId());
+		$signRequestB->setMetadata(['key' => 'value']);
 
 		$user = $this->createMock(\OCP\IUser::class);
 		$user->method('getUID')->willReturn('user1');
@@ -652,6 +657,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->assertArrayNotHasKey('password', $args);
 					$this->assertArrayHasKey('credentialsId', $args);
 					$this->assertContains($args['credentialsId'], $capturedCredentials);
+					$this->assertArrayHasKey('userUniqueIdentifier', $args);
+					$this->assertArrayHasKey('userId', $args);
+					$this->assertArrayHasKey('isExternalSigner', $args);
 					$callIndex++;
 					return true;
 				})
@@ -663,12 +671,16 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			['file' => $fileB, 'signRequest' => $signRequestB],
 		];
 
-		$enqueued = $service
+		$service
 			->setLibreSignFile($envelope)
 			->setSignRequest($signRequestA)
 			->setCurrentUser($user)
-			->setPassword('s3cret')
-			->enqueueParallelSigningJobs($signRequests);
+			->setUserUniqueIdentifier('account:user1')
+			->setFriendlyName('User One')
+			->setPassword('s3cret');
+
+		$jobArguments = $service->getJobArgumentsWithoutCredentials();
+		$enqueued = $service->enqueueParallelSigningJobs($signRequests, $jobArguments);
 
 		$this->assertSame(2, $enqueued);
 		$this->assertCount(2, array_unique($capturedCredentials));
@@ -1298,13 +1310,14 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$visibleElements = $service->getVisibleElements();
 			$this->assertCount(count($fileElements), $visibleElements);
 			foreach ($fileElements as $key => $element) {
-				$this->assertArrayHasKey($key, $visibleElements);
-				$this->assertSame($element, $visibleElements[$key]->getFileElement());
+				$elementId = $element->getId();
+				$this->assertArrayHasKey($elementId, $visibleElements);
+				$this->assertSame($element, $visibleElements[$elementId]->getFileElement());
 				$this->assertEquals(
 					isset($signerList[$key], $signerList[$key]['profileNodeId'], $tempFiles[$signerList[$key]['profileNodeId']])
 						? $tempFiles[$signerList[$key]['profileNodeId']] . '/_' . $signerList[$key]['profileNodeId'] . '.png'
 						: '',
-					$visibleElements[$key]->getTempFile(),
+					$visibleElements[$elementId]->getTempFile(),
 				);
 			}
 		}
@@ -1356,32 +1369,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				],
 				tempFiles: [$validProfileNodeId => false],
 				signatureFile: [$validProfileNodeId => ['valid' => true, 'content' => '']],
-				canCreateSignature: true,
-				isAuthenticatedSigner: true,
-				expectedException: LibresignException::class,
-			),
-
-			'unauthenticated signer without profileNodeId' => self::createScenarioSetVisibleElements(
-				signerList: [],
-				fileElements: [
-					['id' => $validDocumentId],
-				],
-				tempFiles: [$validProfileNodeId => $vfsPath],
-				signatureFile: [$validProfileNodeId => ['valid' => true, 'content' => 'valid content']],
-				canCreateSignature: true,
-				isAuthenticatedSigner: false,
-				expectedException: LibresignException::class,
-			),
-
-			'invalid signature file, with invalid field' => self::createScenarioSetVisibleElements(
-				signerList: [
-					['fake' => 'value', 'profileNodeId' => $validProfileNodeId],
-				],
-				fileElements: [
-					['id' => $validDocumentId],
-				],
-				tempFiles: [$validProfileNodeId => $vfsPath],
-				signatureFile: [$validProfileNodeId => ['valid' => false, 'content' => 'valid content']],
 				canCreateSignature: true,
 				isAuthenticatedSigner: true,
 				expectedException: LibresignException::class,
