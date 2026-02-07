@@ -46,13 +46,7 @@ class SignJobCoordinator {
 			[$fileId, $signRequestId] = $this->requireIds($argument, 'SignFileJob');
 			[$file, $signRequest] = $this->loadEntities($fileId, $signRequestId);
 			$this->progressService->clearSignRequestError($signRequest->getUuid());
-			$user = $this->resolveUser($argument['userId'] ?? null, null, null);
-			if ($user) {
-				$this->folderService->setUserId($user->getUID());
-			}
-
-			$credentials = $this->retrieveCredentials($user, $argument['credentialsId'] ?? null);
-			$this->hydrateSignService($argument, $credentials, $file, $signRequest, $user);
+			$this->hydrateSignService($argument, $file, $signRequest);
 
 			$this->signFileService->sign();
 		} catch (\Throwable $e) {
@@ -63,14 +57,13 @@ class SignJobCoordinator {
 				'signRequestUuid' => $signRequest?->getUuid() ?? ($argument['signRequestUuid'] ?? null),
 			]);
 		} finally {
-			$this->deleteCredentials($argument['userId'] ?? '', $argument['credentialsId'] ?? null);
+			$this->deleteCredentials($argument['userId'], $argument['credentialsId'] ?? null);
 		}
 	}
 
 	public function runSignSingleFile(array $argument): void {
 		$fileId = $argument['fileId'] ?? null;
 		$signRequestId = $argument['signRequestId'] ?? null;
-		$effectiveUserId = $argument['userId'] ?? null;
 		$file = null;
 		$signRequest = null;
 
@@ -82,17 +75,7 @@ class SignJobCoordinator {
 			[$fileId, $signRequestId] = $this->requireIds($argument, 'SignSingleFileJob');
 			[$file, $signRequest] = $this->loadEntities($fileId, $signRequestId);
 			$this->progressService->clearSignRequestError($signRequest->getUuid());
-
-			$effectiveUserId = $effectiveUserId
-				?? $file->getUserId()
-				?? ($signRequest->getUserId() ?? null);
-			$user = $this->resolveUser($effectiveUserId);
-			if ($user) {
-				$this->folderService->setUserId($user->getUID());
-			}
-
-			$credentials = $this->retrieveCredentials($user, $argument['credentialsId'] ?? null);
-			$this->hydrateSignService($argument, $credentials, $file, $signRequest, $user);
+			$this->hydrateSignService($argument, $file, $signRequest);
 
 			$this->markInProgress($file);
 
@@ -105,7 +88,7 @@ class SignJobCoordinator {
 				'signRequestUuid' => $signRequest?->getUuid() ?? ($argument['signRequestUuid'] ?? null),
 			]);
 		} finally {
-			$this->deleteCredentials($argument['userId'] ?? ($effectiveUserId ?? ''), $argument['credentialsId'] ?? null);
+			$this->deleteCredentials($argument['userId'], $argument['credentialsId'] ?? null);
 		}
 	}
 
@@ -144,16 +127,25 @@ class SignJobCoordinator {
 		return $this->userManager->get($userId);
 	}
 
-	private function retrieveCredentials(?IUser $user, ?string $credentialsId): ?array {
+	private function retrieveCredentials(IUser $user, ?string $credentialsId): ?array {
 		if (empty($credentialsId)) {
 			return null;
 		}
-		$uid = $user?->getUID() ?? '';
-		return $this->credentialsManager->retrieve($uid, $credentialsId);
+		return $this->credentialsManager->retrieve($user->getUID(), $credentialsId);
 	}
 
-	private function hydrateSignService(array $argument, ?array $credentials, FileEntity $file, SignRequestEntity $signRequest, ?IUser $user): void {
-		if ($credentials && !empty($credentials['signWithoutPassword'])) {
+	private function hydrateSignService(array $argument, FileEntity $file, SignRequestEntity $signRequest): void {
+		$user = $this->resolveUser($argument['userId']);
+
+		$credentials = null;
+		if ($user && !$argument['isExternalSigner']) {
+			$this->folderService->setUserId($user->getUID());
+			$credentials = $this->retrieveCredentials($user, $argument['credentialsId'] ?? null);
+		}
+
+		if ($argument['isExternalSigner']) {
+			$this->signFileService->setSignWithoutPassword(true);
+		} elseif ($credentials === null || ($credentials['signWithoutPassword'] ?? false)) {
 			$this->signFileService->setSignWithoutPassword(true);
 		} elseif ($credentials && !empty($credentials['password'])) {
 			$this->signFileService->setPassword($credentials['password']);
