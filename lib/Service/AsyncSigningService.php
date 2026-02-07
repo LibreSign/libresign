@@ -45,13 +45,15 @@ class AsyncSigningService {
 		$libreSignFile->setStatus(FileStatus::SIGNING_IN_PROGRESS->value);
 		$this->fileStatusService->update($libreSignFile);
 		$credentialsId = $this->storeCredentials($signRequest, $user, $signWithoutPassword, $password);
+		$jobUserId = $user?->getUID() ?? $libreSignFile->getUserId();
 
 		$this->jobList->add(SignFileJob::class, [
 			'fileId' => $libreSignFile->getId(),
 			'signRequestId' => $signRequest->getId(),
 			'signRequestUuid' => $signRequest->getUuid(),
-			'userId' => $user?->getUID(),
+			'userId' => $jobUserId,
 			'credentialsId' => $credentialsId,
+			'isExternalSigner' => $user === null,
 			'userUniqueIdentifier' => $userUniqueIdentifier,
 			'friendlyName' => $signRequest->getDisplayName(),
 			'signatureMethod' => $signatureMethod,
