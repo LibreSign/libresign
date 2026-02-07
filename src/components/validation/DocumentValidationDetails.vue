@@ -37,6 +37,7 @@
 			</NcListItem>
 		</ul>
 		<div class="info-document">
+			<NcRichText v-if="legalInformation" class="legal-information" :text="legalInformation" :use-markdown="true" />
 			<NcButton v-if="document.uuid" variant="primary" @click="viewDocument">
 				<template #icon>
 					<NcIconSvgWrapper :path="mdiEye" :size="20" />
@@ -57,6 +58,7 @@ import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcIconSvgWrapper from '@nextcloud/vue/dist/Components/NcIconSvgWrapper.js'
 import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
+import NcRichText from '@nextcloud/vue/dist/Components/NcRichText.js'
 
 import {
 	mdiEye,
@@ -74,10 +76,12 @@ export default {
 		NcButton,
 		NcIconSvgWrapper,
 		NcListItem,
+		NcRichText,
 		SignerDetails,
 	},
 	props: {
 		document: { type: Object, required: true },
+		legalInformation: { type: String, default: '' },
 		documentValidMessage: { type: String, default: '' },
 		isAfterSigned: { type: Boolean, default: false },
 	},
@@ -126,6 +130,11 @@ export default {
 		flex-direction: column;
 		gap: 16px;
 		margin-top: 16px;
+
+		.legal-information {
+			opacity: 0.8;
+			font-size: 1rem;
+		}
 	}
 
 	:deep(.list-item__wrapper) {
