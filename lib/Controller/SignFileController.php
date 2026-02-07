@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
@@ -32,6 +33,7 @@ use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IUser;
 use OCP\IUserSession;
 
 class SignFileController extends AEnvironmentAwareController implements ISignatureUuid {
@@ -156,9 +158,9 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @return DataResponse<Http::STATUS_OK, array{action: integer, job: array{status: 'SIGNING_IN_PROGRESS', file: array{uuid: string}}}, array{}>
 	 */
 	private function signAsync(
-		$libreSignFile,
-		$signRequest,
-		$user,
+		File $libreSignFile,
+		SignRequest $signRequest,
+		?IUser $user,
 		string $userIdentifier,
 		string $method,
 		?string $token,
