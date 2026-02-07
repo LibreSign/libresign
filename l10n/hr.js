@@ -194,6 +194,7 @@ OC.L10N.register(
     "Unspecified" : "Neodređen",
     "Filters" : "Filteri",
     "Owner" : "Vlasnik",
+    "Clear filters" : "Očisti filtre",
     "Type" : "Vrsta",
     "Reason" : "Razlog",
     "Comment" : "Komentar",
