@@ -688,7 +688,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		?array $fileElement,
 		bool $userElementExists,
 		array $fileElements,
-		string $expectedException
+		string $expectedException,
 	): void {
 		$this->expectExceptionMessage($expectedException);
 
@@ -767,7 +767,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		int $fileId,
 		string $fileOwner,
 		string $authenticatedUser,
-		bool $shouldThrowException
+		bool $shouldThrowException,
 	): void {
 		if ($shouldThrowException) {
 			$this->expectExceptionMessage('does not belong to user');
