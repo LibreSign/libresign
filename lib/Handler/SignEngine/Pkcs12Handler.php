@@ -75,8 +75,6 @@ class Pkcs12Handler extends SignEngineHandler {
 			}
 			yield $decodedSignature;
 		}
-
-		$this->tempManager->clean();
 	}
 
 	public function setIsLibreSignFile(): void {
