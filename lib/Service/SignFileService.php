@@ -69,7 +69,7 @@ class SignFileService {
 	private ?SignRequestEntity $signRequest = null;
 	private string $password = '';
 	private ?FileEntity $libreSignFile = null;
-	/** @var VisibleElementAssoc[] */
+	/** @var array<int, VisibleElementAssoc> indexed by fileElementId */
 	private $elements = [];
 	private array $elementsInput = [];
 	private bool $signWithoutPassword = false;
@@ -260,7 +260,6 @@ class SignFileService {
 
 	public function setVisibleElements(array $list): self {
 		$this->elementsInput = $list;
-		$this->elements = [];
 		if (!$this->signRequest instanceof SignRequestEntity) {
 			return $this;
 		}
@@ -277,23 +276,37 @@ class SignFileService {
 
 		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
 		$canCreateSignature = $this->signerElementsService->canCreateSignature();
+		$newElements = [];
 
 		foreach ($fileElements as $fileElement) {
-			$this->elements[] = $this->buildVisibleElementAssoc($fileElement, $list, $canCreateSignature);
+			$fileElementId = $fileElement->getId();
+			if (!$canCreateSignature) {
+				$newElements[$fileElementId] = new VisibleElementAssoc($fileElement);
+				continue;
+			}
+			$element = $this->array_find($list, fn (array $element): bool => ($element['documentElementId'] ?? '') === $fileElementId);
+			if (!$element) {
+				continue;
+			}
+			$nodeId = $this->getNodeId($element, $fileElement);
+
+			$existing = $this->elements[$fileElementId] ?? null;
+			if ($existing instanceof VisibleElementAssoc && $this->isTempFileValid($existing)) {
+				$newElements[$fileElementId] = $existing;
+				continue;
+			}
+
+			$newElements[$fileElementId] = $this->bindFileElementWithTempFile($fileElement, $nodeId);
 		}
+
+		$this->elements = $newElements;
 
 		return $this;
 	}
 
-	private function buildVisibleElementAssoc(FileElement $fileElement, array $list, bool $canCreateSignature): VisibleElementAssoc {
-		if (!$canCreateSignature) {
-			return new VisibleElementAssoc($fileElement);
-		}
-
-		$element = $this->array_find($list, fn (array $element): bool => ($element['documentElementId'] ?? '') === $fileElement->getId());
-		$nodeId = $this->getNodeId($element, $fileElement);
-
-		return $this->bindFileElementWithTempFile($fileElement, $nodeId);
+	private function isTempFileValid(VisibleElementAssoc $elementAssoc): bool {
+		$tempFile = $elementAssoc->getTempFile();
+		return $tempFile !== '' && is_file($tempFile);
 	}
 
 	private function getNodeId(?array $element, FileElement $fileElement): int {
@@ -459,6 +472,7 @@ class SignFileService {
 		$previousSignRequest = $this->signRequest;
 		$this->libreSignFile = $libreSignFile;
 		$this->signRequest = $signRequest;
+		$this->setVisibleElements($this->elementsInput);
 
 		try {
 			$this->validateDocMdpAllowsSignatures();
@@ -548,6 +562,8 @@ class SignFileService {
 			'fileId' => $file->getId(),
 			'signRequestId' => $signRequest->getId(),
 			'signRequestUuid' => $signRequest->getUuid(),
+			'userId' => $file->getUserId(),
+			'isExternalSigner' => !str_starts_with($args['userUniqueIdentifier'] ?? '', 'account:'),
 		]);
 
 		$this->jobList->add(SignSingleFileJob::class, $args);
@@ -583,7 +599,7 @@ class SignFileService {
 
 		foreach ($signRequests as $index => $signRequestData) {
 			$this->libreSignFile = $signRequestData['file'];
-			if ($this->libreSignFile->getSignedHash()) {
+			if ($this->libreSignFile->getStatus() === FileStatus::SIGNED->value) {
 				continue;
 			}
 			$this->signRequest = $signRequestData['signRequest'];

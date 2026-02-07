@@ -542,6 +542,32 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
+	public function testValidateElementSignRequestIdRequiresAssociation(): void {
+		$this->expectExceptionMessage('Element must be associated with a user');
+
+		$validateHelper = $this->getValidateHelper();
+		$validateHelper->validateElementSignRequestId(
+			['type' => 'signature'],
+			ValidateHelper::TYPE_VISIBLE_ELEMENT_PDF,
+		);
+	}
+
+	public function testValidateFileWithPathNotFound(): void {
+		$this->expectExceptionMessage('Invalid data to validate file');
+
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('john.doe');
+
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder->method('get')->willThrowException(new \OCP\Files\NotFoundException());
+		$this->root->method('getUserFolder')->willReturn($folder);
+
+		$this->getValidateHelper()->validateFile([
+			'file' => ['path' => '/missing.pdf'],
+			'userManager' => $user,
+		]);
+	}
+
 	/**
 	 * @dataProvider dataElementType
 	 */
@@ -596,6 +622,176 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[['coordinates' => ['page' => '']], 'Page number must be an integer'],
 			[['coordinates' => ['page' => 0]], 'Page must be equal to or greater than 1']
 		];
+	}
+
+	public static function dataValidateVisibleElementsRelation(): array {
+		return [
+			'requires documentElementId when canCreateSignature is true' => [
+				'canCreateSignature' => true,
+				'visibleElements' => [['profileNodeId' => 1]],
+				'hasUser' => true,
+				'signRequestId' => 10,
+				'fileElement' => null,
+				'userElementExists' => true,
+				'fileElements' => [],
+				'expectedException' => 'Field %s not found',
+			],
+			'requires profileNodeId when canCreateSignature is true' => [
+				'canCreateSignature' => true,
+				'visibleElements' => [['documentElementId' => 99]],
+				'hasUser' => true,
+				'signRequestId' => 10,
+				'fileElement' => null,
+				'userElementExists' => true,
+				'fileElements' => [],
+				'expectedException' => 'Field %s not found',
+			],
+			'rejects not owned documentElement' => [
+				'canCreateSignature' => false,
+				'visibleElements' => [['documentElementId' => 99]],
+				'hasUser' => false,
+				'signRequestId' => 10,
+				'fileElement' => ['id' => 99, 'signRequestId' => 11],
+				'userElementExists' => true,
+				'fileElements' => [['id' => 99, 'signRequestId' => 11]],
+				'expectedException' => 'Invalid data to sign file',
+			],
+			'rejects profileNode not owned by user' => [
+				'canCreateSignature' => true,
+				'visibleElements' => [['documentElementId' => 99, 'profileNodeId' => 123]],
+				'hasUser' => true,
+				'signRequestId' => 10,
+				'fileElement' => ['id' => 99, 'signRequestId' => 10],
+				'userElementExists' => false,
+				'fileElements' => [],
+				'expectedException' => 'does not belong to user',
+			],
+			'requires userElement when missing' => [
+				'canCreateSignature' => true,
+				'visibleElements' => [],
+				'hasUser' => true,
+				'signRequestId' => 10,
+				'fileElement' => null,
+				'userElementExists' => false,
+				'fileElements' => [['id' => 99, 'type' => 'signature']],
+				'expectedException' => 'You need to define a visible signature or initials to sign this document.',
+			],
+		];
+	}
+
+	#[DataProvider('dataValidateVisibleElementsRelation')]
+	public function testValidateVisibleElementsRelation(
+		bool $canCreateSignature,
+		array $visibleElements,
+		bool $hasUser,
+		int $signRequestId,
+		?array $fileElement,
+		bool $userElementExists,
+		array $fileElements,
+		string $expectedException,
+	): void {
+		$this->expectExceptionMessage($expectedException);
+
+		$this->signerElementsService
+			->method('canCreateSignature')
+			->willReturn($canCreateSignature);
+
+		$signRequest = new \OCA\Libresign\Db\SignRequest();
+		$signRequest->setId($signRequestId);
+		$signRequest->setFileId(20);
+
+		if ($fileElement !== null) {
+			$fileElementEntity = new \OCA\Libresign\Db\FileElement();
+			$fileElementEntity->setId($fileElement['id']);
+			$fileElementEntity->setSignRequestId($fileElement['signRequestId']);
+			$this->fileElementMapper->method('getById')->willReturn($fileElementEntity);
+		}
+
+		if (!empty($fileElements)) {
+			$fileElementEntities = [];
+			foreach ($fileElements as $fe) {
+				$entity = new \OCA\Libresign\Db\FileElement();
+				$entity->setId($fe['id']);
+				if (isset($fe['signRequestId'])) {
+					$entity->setSignRequestId($fe['signRequestId']);
+				}
+				if (isset($fe['type'])) {
+					$entity->setType($fe['type']);
+				}
+				$fileElementEntities[] = $entity;
+			}
+			$this->fileElementMapper->method('getByFileIdAndSignRequestId')->willReturn($fileElementEntities);
+		}
+
+		if (!$userElementExists) {
+			if (empty($fileElements)) {
+				$this->userElementMapper->method('findOne')->willThrowException(new \Exception('not found'));
+			} else {
+				$this->userElementMapper->method('findMany')->willThrowException(new \Exception('missing'));
+			}
+		}
+
+		$user = $hasUser ? $this->createMock(IUser::class) : null;
+		if ($hasUser && $user !== null) {
+			$user->method('getUID')->willReturn('user1');
+		}
+
+		$this->getValidateHelper()->validateVisibleElementsRelation($visibleElements, $signRequest, $user);
+	}
+
+	public static function dataValidateAuthenticatedUserIsOwnerOfPdfVisibleElement(): array {
+		return [
+			'validates owner successfully' => [
+				'fileElementId' => 77,
+				'signRequestId' => 55,
+				'fileId' => 33,
+				'fileOwner' => 'owner',
+				'authenticatedUser' => 'owner',
+				'shouldThrowException' => false,
+			],
+			'rejects different owner' => [
+				'fileElementId' => 77,
+				'signRequestId' => 55,
+				'fileId' => 33,
+				'fileOwner' => 'owner',
+				'authenticatedUser' => 'other',
+				'shouldThrowException' => true,
+			],
+		];
+	}
+
+	#[DataProvider('dataValidateAuthenticatedUserIsOwnerOfPdfVisibleElement')]
+	public function testValidateAuthenticatedUserIsOwnerOfPdfVisibleElement(
+		int $fileElementId,
+		int $signRequestId,
+		int $fileId,
+		string $fileOwner,
+		string $authenticatedUser,
+		bool $shouldThrowException,
+	): void {
+		if ($shouldThrowException) {
+			$this->expectExceptionMessage('does not belong to user');
+		}
+
+		$fileElement = new \OCA\Libresign\Db\FileElement();
+		$fileElement->setId($fileElementId);
+		$fileElement->setSignRequestId($signRequestId);
+		$this->fileElementMapper->method('getById')->willReturn($fileElement);
+
+		$signRequest = new \OCA\Libresign\Db\SignRequest();
+		$signRequest->setId($signRequestId);
+		$signRequest->setFileId($fileId);
+		$this->signRequestMapper->method('getById')->willReturn($signRequest);
+
+		$file = new \OCA\Libresign\Db\File();
+		$file->setId($fileId);
+		$file->setUserId($fileOwner);
+		$this->fileMapper->method('getById')->willReturn($file);
+
+		$this->getValidateHelper()->validateAuthenticatedUserIsOwnerOfPdfVisibleElement($fileElementId, $authenticatedUser);
+		if (!$shouldThrowException) {
+			$this->assertTrue(true);
+		}
 	}
 
 	/**
