@@ -144,7 +144,13 @@ class SignJobCoordinatorTest extends TestCase {
 			'fileId' => $file->getId(),
 			'signRequestId' => $signRequest->getId(),
 			'userId' => 'user1',
+			'isExternalSigner' => false,
+			'userUniqueIdentifier' => 'account:user1',
+			'friendlyName' => 'User 1',
+			'signatureMethod' => 'clickToSign',
 			'credentialsId' => 'cred-1',
+			'metadata' => [],
+			'visibleElements' => [],
 		]);
 	}
 
@@ -196,7 +202,13 @@ class SignJobCoordinatorTest extends TestCase {
 			'fileId' => $file->getId(),
 			'signRequestId' => $signRequest->getId(),
 			'userId' => 'user2',
+			'isExternalSigner' => false,
+			'userUniqueIdentifier' => 'account:user2',
+			'friendlyName' => 'User 2',
+			'signatureMethod' => 'clickToSign',
 			'credentialsId' => 'cred-2',
+			'metadata' => [],
+			'visibleElements' => [],
 		]);
 	}
 
@@ -231,6 +243,14 @@ class SignJobCoordinatorTest extends TestCase {
 		$this->coordinator->runSignFile([
 			'fileId' => $file->getId(),
 			'signRequestId' => $signRequest->getId(),
+			'userId' => '',
+			'isExternalSigner' => true,
+			'userUniqueIdentifier' => 'account:external',
+			'friendlyName' => '',
+			'signatureMethod' => null,
+			'credentialsId' => null,
+			'metadata' => [],
+			'visibleElements' => [],
 		]);
 	}
 
@@ -284,6 +304,14 @@ class SignJobCoordinatorTest extends TestCase {
 		$this->coordinator->runSignSingleFile([
 			'fileId' => $file->getId(),
 			'signRequestId' => $signRequest->getId(),
+			'userId' => 'user3',
+			'isExternalSigner' => false,
+			'userUniqueIdentifier' => 'account:user3',
+			'friendlyName' => 'User 3',
+			'signatureMethod' => 'clickToSign',
+			'credentialsId' => null,
+			'metadata' => [],
+			'visibleElements' => [],
 		]);
 	}
 
@@ -293,6 +321,14 @@ class SignJobCoordinatorTest extends TestCase {
 
 		$this->coordinator->runSignFile([
 			'fileId' => 123,
+			'userId' => '',
+			'isExternalSigner' => true,
+			'userUniqueIdentifier' => 'account:test',
+			'friendlyName' => '',
+			'signatureMethod' => null,
+			'credentialsId' => null,
+			'metadata' => [],
+			'visibleElements' => [],
 		]);
 	}
 }

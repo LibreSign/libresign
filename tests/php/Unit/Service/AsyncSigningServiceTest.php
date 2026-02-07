@@ -92,6 +92,10 @@ class AsyncSigningServiceTest extends TestCase {
 		$file = new LibreSignFile();
 		$file->setId($fileId);
 		$file->setMetadata(['existing' => 'data']);
+		// For guest users, file must have a userId for the fallback logic
+		if ($userId === null) {
+			$file->setUserId('');
+		}
 
 		$signRequest = new SignRequest();
 		$signRequest->setId($signRequestId);
@@ -138,13 +142,14 @@ class AsyncSigningServiceTest extends TestCase {
 				$this->callback(function ($args) use ($fileId, $signRequestId, $userId, $expectedCredentialsId, $signatureMethod) {
 					return $args['fileId'] === $fileId
 						&& $args['signRequestId'] === $signRequestId
-						&& $args['userId'] === $userId
+						&& ($userId === null ? $args['userId'] === '' : $args['userId'] === $userId)
 						&& $args['credentialsId'] === $expectedCredentialsId
 						&& $args['signatureMethod'] === $signatureMethod
 						&& isset($args['userUniqueIdentifier'])
 						&& isset($args['friendlyName'])
 						&& isset($args['visibleElements'])
-						&& isset($args['metadata']);
+						&& isset($args['metadata'])
+						&& $args['isExternalSigner'] === ($userId === null);
 				})
 			);
 
