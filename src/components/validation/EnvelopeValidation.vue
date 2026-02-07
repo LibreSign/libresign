@@ -85,7 +85,6 @@
 					<div v-if="file.opened" class="file-signers">
 						<DocumentValidationDetails
 							:document="file"
-							:legalInformation="legalInformation"
 						/>
 					</div>
 				</li>
