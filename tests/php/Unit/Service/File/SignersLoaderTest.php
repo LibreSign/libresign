@@ -375,6 +375,7 @@ final class SignersLoaderTest extends TestCase {
 					'label' => 'No certification',
 					'isCertifying' => false,
 				],
+				'docmdp_validation' => 'DocMDP warning message',
 			],
 		];
 
@@ -405,6 +406,7 @@ final class SignersLoaderTest extends TestCase {
 		$this->assertSame('97f8c8c6', $signer->hash);
 		$this->assertSame('email:leon@example.com', $signer->uid);
 		$this->assertSame('2026-01-28T23:58:51+00:00', $signer->signed);
+		$this->assertSame('DocMDP warning message', $signer->docmdp_validation);
 	}
 
 	#[DataProvider('dataLoadSignersFromCertDataEdgeCases')]
