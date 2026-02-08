@@ -294,14 +294,25 @@ final class DocMdpHandlerTest extends TestCase {
 		$this->assertSame(DocMdpLevel::NOT_CERTIFIED->value, $result['docmdp']['level'], 'ISO 32000-1: ByteRange required when DocMDP transform method is used');
 	}
 
-	public function testRejectsMultipleDocMdpSignatures(): void {
+	public function testPreservesDocMdpLevelWithMultipleSignatures(): void {
 		$pdf = PdfGenerator::createPdfWithMultipleDocMdpSignatures();
 
 		$resource = PdfGenerator::createResourceFromContent($pdf);
 		$result = $this->handler->extractDocMdpData($resource);
 		fclose($resource);
 
-		$this->assertSame(DocMdpLevel::NOT_CERTIFIED->value, $result['docmdp']['level'], 'ISO 32000-1 12.8.2.2.1: A document can contain only one signature field that contains a DocMDP transform method');
+		$this->assertSame(DocMdpLevel::CERTIFIED_FORM_FILLING->value, $result['docmdp']['level'], 'ISO 32000-1 12.8.2.2: Must preserve DocMDP level from first certifying signature');
+	}
+
+	public function testWarnsWhenMultipleDocMdpSignaturesViolateIso(): void {
+		$pdf = PdfGenerator::createPdfWithMultipleDocMdpSignatures();
+
+		$resource = PdfGenerator::createResourceFromContent($pdf);
+		$result = $this->handler->extractDocMdpData($resource);
+		fclose($resource);
+
+		$this->assertArrayHasKey('docmdp_validation', $result, 'ISO 32000-1 12.8.2.2.1: Must warn when multiple DocMDP signatures found (only first shall be certifying)');
+		$this->assertFalse($result['docmdp_validation']['valid']);
 	}
 
 	public function testRejectsDocMdpNotFirstSignature(): void {

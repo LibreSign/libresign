@@ -579,13 +579,15 @@ class PdfGenerator {
 
 		$pdf .= "5 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
 		$pdf .= "/ByteRange [0 100 200 100]\n";
-		$pdf .= "/Reference [7 0 R] >>\nendobj\n";
+		$pdf .= "/Reference [7 0 R]\n";
+		$pdf .= '/Contents <' . str_repeat('00', 50) . "> >>\nendobj\n";
 		$pdf .= "6 0 obj\n<< /FT /Sig /T (Signature1) /V 5 0 R >>\nendobj\n";
 		$pdf .= "7 0 obj\n<< /Type /SigRef /TransformMethod /DocMDP /TransformParams << /Type /TransformParams /P 2 /V /1.2 >> >>\nendobj\n";
 
 		$pdf .= "8 0 obj\n<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /ETSI.CAdES.detached\n";
 		$pdf .= "/ByteRange [0 100 300 100]\n";
-		$pdf .= "/Reference [9 0 R] >>\nendobj\n";
+		$pdf .= "/Reference [9 0 R]\n";
+		$pdf .= '/Contents <' . str_repeat('00', 50) . "> >>\nendobj\n";
 		$pdf .= "9 0 obj\n<< /Type /SigRef /TransformMethod /DocMDP /TransformParams << /Type /TransformParams /P 3 /V /1.2 >> >>\nendobj\n";
 		$pdf .= "10 0 obj\n<< /FT /Sig /T (Signature2) /V 8 0 R >>\nendobj\n";
 

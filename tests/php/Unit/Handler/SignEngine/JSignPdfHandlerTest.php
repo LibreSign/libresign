@@ -11,9 +11,11 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\FileElement;
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Handler\CertificateEngine\CertificateEngineFactory;
 use OCA\Libresign\Handler\SignEngine\JSignPdfHandler;
 use OCA\Libresign\Helper\JavaHelper;
+use OCA\Libresign\Service\DocMdpConfigService;
 use OCA\Libresign\Service\SignatureBackgroundService;
 use OCA\Libresign\Service\SignatureTextService;
 use OCA\Libresign\Service\SignerElementsService;
@@ -108,6 +110,12 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			])
 			->onlyMethods($methods)
 			->getMock();
+	}
+
+	private function setDocMdpConfigService(JSignPdfHandler $handler, DocMdpConfigService $docMdpConfigService): void {
+		$reflection = new \ReflectionProperty(JSignPdfHandler::class, 'docMdpConfigService');
+		$reflection->setAccessible(true);
+		$reflection->setValue($handler, $docMdpConfigService);
 	}
 
 	#[DataProvider('providerGetHashAlgorithm')]
@@ -478,6 +486,130 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'params' => '-a -kst PKCS12 --hash-algorithm SHA256 --l2-text "" -V -pg 2 -llx 10 -lly 20 -urx 30 -ury 40 --bg-path merged.png'
 			],
 		];
+	}
+
+	public function testDocMdpAppliedOnlyOnFirstVisibleElement(): void {
+		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
+			$this->markTestSkipped('Certificate initialization failed');
+		}
+
+		$inputFile = $this->createMock(\OC\Files\Node\File::class);
+		$inputFile->method('getContent')->willReturn('%PDF-1.6');
+
+		$this->signatureBackgroundService->method('getSignatureBackgroundType')->willReturn('deleted');
+		$this->signatureBackgroundService->method('getImagePath')->willReturn(
+			realpath(__DIR__ . '/../../../../../img/LibreSign.png')
+		);
+
+		$this->appConfig->setValueFloat('libresign', 'template_font_size', 10);
+		$this->appConfig->setValueString('libresign', 'signature_render_mode', SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY);
+		$this->appConfig->setValueString('libresign', 'signature_text_template', '');
+		$this->appConfig->setValueString('libresign', 'signature_hash_algorithm', '');
+		$this->appConfig->setValueString('libresign', 'java_path', __FILE__);
+		$this->appConfig->setValueString('libresign', 'jsignpdf_temp_path', sys_get_temp_dir());
+		$this->appConfig->setValueString('libresign', 'jsignpdf_jar_path', __FILE__);
+		$this->appConfig->setValueFloat('libresign', 'signature_width', 100);
+		$this->appConfig->setValueFloat('libresign', 'signature_height', 100);
+
+		$paramsSeen = [];
+		$mock = $this->createMock(JSignPDF::class);
+		$mock->expects($this->exactly(2))
+			->method('setParam')
+			->willReturnCallback(function (JSignParam $param) use (&$paramsSeen): void {
+				$paramsSeen[] = $param->getJSignParameters();
+			});
+		$mock->method('sign')->willReturn('content');
+
+		$docMdpConfigService = $this->createMock(DocMdpConfigService::class);
+		$docMdpConfigService->method('isEnabled')->willReturn(true);
+		$docMdpConfigService->method('getLevel')->willReturn(DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS);
+
+		$jSignPdfHandler = $this->getInstance();
+		$this->setDocMdpConfigService($jSignPdfHandler, $docMdpConfigService);
+		$jSignPdfHandler->setVisibleElements([
+			self::getElement([
+				'page' => 1,
+				'llx' => 10,
+				'lly' => 10,
+				'urx' => 110,
+				'ury' => 60,
+			], realpath(__DIR__ . '/../../../../../img/app-dark.png')),
+			self::getElement([
+				'page' => 1,
+				'llx' => 120,
+				'lly' => 10,
+				'urx' => 220,
+				'ury' => 60,
+			], realpath(__DIR__ . '/../../../../../img/app-dark.png')),
+		]);
+		$jSignPdfHandler->setJSignPdf($mock);
+		$jSignPdfHandler->setInputFile($inputFile);
+		$jSignPdfHandler->setCertificate(self::$certificateContent);
+		$jSignPdfHandler->setPassword('password');
+
+		$jSignPdfHandler->getSignedContent();
+
+		$this->assertCount(2, $paramsSeen);
+		$this->assertStringContainsString(' -cl ' . DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name, $paramsSeen[0]);
+		$this->assertStringNotContainsString(' -cl ' . DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name, $paramsSeen[1]);
+	}
+
+	public function testDocMdpSkippedWhenSignatureExists(): void {
+		if (self::$certificateEngineFactory === null || empty(self::$certificateContent)) {
+			$this->markTestSkipped('Certificate initialization failed');
+		}
+
+		$inputFile = $this->createMock(\OC\Files\Node\File::class);
+		$inputFile->method('getContent')->willReturn('%PDF-1.6\n/ByteRange [0 0 0 0]');
+
+		$this->signatureBackgroundService->method('getSignatureBackgroundType')->willReturn('deleted');
+		$this->signatureBackgroundService->method('getImagePath')->willReturn(
+			realpath(__DIR__ . '/../../../../../img/LibreSign.png')
+		);
+
+		$this->appConfig->setValueFloat('libresign', 'template_font_size', 10);
+		$this->appConfig->setValueString('libresign', 'signature_render_mode', SignerElementsService::RENDER_MODE_DESCRIPTION_ONLY);
+		$this->appConfig->setValueString('libresign', 'signature_text_template', '');
+		$this->appConfig->setValueString('libresign', 'signature_hash_algorithm', '');
+		$this->appConfig->setValueString('libresign', 'java_path', __FILE__);
+		$this->appConfig->setValueString('libresign', 'jsignpdf_temp_path', sys_get_temp_dir());
+		$this->appConfig->setValueString('libresign', 'jsignpdf_jar_path', __FILE__);
+		$this->appConfig->setValueFloat('libresign', 'signature_width', 100);
+		$this->appConfig->setValueFloat('libresign', 'signature_height', 100);
+
+		$paramsSeen = [];
+		$mock = $this->createMock(JSignPDF::class);
+		$mock->expects($this->once())
+			->method('setParam')
+			->willReturnCallback(function (JSignParam $param) use (&$paramsSeen): void {
+				$paramsSeen[] = $param->getJSignParameters();
+			});
+		$mock->method('sign')->willReturn('content');
+
+		$docMdpConfigService = $this->createMock(DocMdpConfigService::class);
+		$docMdpConfigService->method('isEnabled')->willReturn(true);
+		$docMdpConfigService->method('getLevel')->willReturn(DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS);
+
+		$jSignPdfHandler = $this->getInstance();
+		$this->setDocMdpConfigService($jSignPdfHandler, $docMdpConfigService);
+		$jSignPdfHandler->setVisibleElements([
+			self::getElement([
+				'page' => 1,
+				'llx' => 10,
+				'lly' => 10,
+				'urx' => 110,
+				'ury' => 60,
+			], realpath(__DIR__ . '/../../../../../img/app-dark.png')),
+		]);
+		$jSignPdfHandler->setJSignPdf($mock);
+		$jSignPdfHandler->setInputFile($inputFile);
+		$jSignPdfHandler->setCertificate(self::$certificateContent);
+		$jSignPdfHandler->setPassword('password');
+
+		$jSignPdfHandler->getSignedContent();
+
+		$this->assertCount(1, $paramsSeen);
+		$this->assertStringNotContainsString(' -cl ' . DocMdpLevel::CERTIFIED_FORM_FILLING_AND_ANNOTATIONS->name, $paramsSeen[0]);
 	}
 
 	private static function getElement(array $attributes = [], string $imagePath = ''): VisibleElementAssoc {
