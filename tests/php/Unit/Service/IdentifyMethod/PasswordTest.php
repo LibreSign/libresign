@@ -129,4 +129,166 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'throws InvalidPasswordException' => [true, 'mock-pfx'],
 		];
 	}
+
+	#[DataProvider('providerValidateToSignWithCertificateData')]
+	public function testValidateToSignWithCertificateData(array $certificateData, bool $shouldThrow, string $expectedMessage = ''): void {
+		$this->pkcs12Handler = $this->getPkcs12Instance(['getPfxOfCurrentSigner', 'setCertificate', 'setPassword', 'readCertificate']);
+		$this->pkcs12Handler->method('getPfxOfCurrentSigner')->willReturn('mock-pfx');
+		$this->pkcs12Handler->method('setCertificate')->willReturnSelf();
+		$this->pkcs12Handler->method('setPassword')->willReturnSelf();
+		$this->pkcs12Handler->method('readCertificate')->willReturn($certificateData);
+
+		$this->identifyService->method('getL10n')->willReturn($this->l10n);
+
+		$password = $this->getClass();
+		$password->setCodeSentByUser('senha');
+
+		if ($shouldThrow) {
+			$this->expectException(LibresignException::class);
+			if ($expectedMessage) {
+				$this->expectExceptionMessage($expectedMessage);
+			}
+		}
+
+		$password->validateToSign();
+
+		if (!$shouldThrow) {
+			$this->expectNotToPerformAssertions();
+		}
+	}
+
+	public static function providerValidateToSignWithCertificateData(): array {
+		$futureTimestamp = (new \DateTime('+1 year'))->getTimestamp();
+		$pastTimestamp = (new \DateTime('-1 year'))->getTimestamp();
+		$nowTimestamp = (new \DateTime())->getTimestamp();
+
+		return [
+			'valid certificate - no expiration data' => [
+				'certificateData' => [],
+				'shouldThrow' => false,
+			],
+			'valid certificate - future expiration' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+				],
+				'shouldThrow' => false,
+			],
+			'expired certificate' => [
+				'certificateData' => [
+					'validTo_time_t' => $pastTimestamp,
+				],
+				'shouldThrow' => true,
+				'expectedMessage' => 'Certificate has expired',
+			],
+			'boundary - expires exactly now' => [
+				'certificateData' => [
+					'validTo_time_t' => $nowTimestamp,
+				],
+				'shouldThrow' => true,
+				'expectedMessage' => 'Certificate has expired',
+			],
+			'boundary - expires soon (10 seconds)' => [
+				'certificateData' => [
+					'validTo_time_t' => $nowTimestamp + 10,
+				],
+				'shouldThrow' => false,
+			],
+			'invalid certificate - validTo_time_t is string' => [
+				'certificateData' => [
+					'validTo_time_t' => '1234567890',
+				],
+				'shouldThrow' => true,
+				'expectedMessage' => 'Invalid certificate',
+			],
+			'invalid certificate - validTo_time_t is null' => [
+				'certificateData' => [
+					'validTo_time_t' => null,
+				],
+				'shouldThrow' => true,
+				'expectedMessage' => 'Invalid certificate',
+			],
+			'invalid certificate - validTo_time_t is float' => [
+				'certificateData' => [
+					'validTo_time_t' => 1234567890.5,
+				],
+				'shouldThrow' => true,
+				'expectedMessage' => 'Invalid certificate',
+			],
+			'invalid certificate - validTo_time_t is boolean true' => [
+				'certificateData' => [
+					'validTo_time_t' => true,
+				],
+				'shouldThrow' => true,
+				'expectedMessage' => 'Invalid certificate',
+			],
+			'invalid certificate - validTo_time_t is boolean false' => [
+				'certificateData' => [
+					'validTo_time_t' => false,
+				],
+				'shouldThrow' => true,
+				'expectedMessage' => 'Invalid certificate',
+			],
+			'invalid certificate - validTo_time_t is array' => [
+				'certificateData' => [
+					'validTo_time_t' => ['timestamp' => 1234567890],
+				],
+				'shouldThrow' => true,
+				'expectedMessage' => 'Invalid certificate',
+			],
+			'revoked certificate' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+					'crl_validation' => 'revoked',
+				],
+				'shouldThrow' => true,
+				'expectedMessage' => 'Certificate has been revoked',
+			],
+			'valid certificate with crl validation' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+					'crl_validation' => 'valid',
+				],
+				'shouldThrow' => false,
+			],
+			'invalid certificate - crl validation failed' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+					'crl_validation' => 'failed',
+				],
+				'shouldThrow' => true,
+				'expectedMessage' => 'Certificate has been revoked',
+			],
+			'invalid certificate - crl validation empty string' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+					'crl_validation' => '',
+				],
+				'shouldThrow' => true,
+				'expectedMessage' => 'Certificate has been revoked',
+			],
+			'invalid certificate - crl validation null' => [
+				'certificateData' => [
+					'validTo_time_t' => $futureTimestamp,
+					'crl_validation' => null,
+				],
+				'shouldThrow' => true,
+				'expectedMessage' => 'Certificate has been revoked',
+			],
+			'revoked and expired certificate' => [
+				'certificateData' => [
+					'validTo_time_t' => $pastTimestamp,
+					'crl_validation' => 'revoked',
+				],
+				'shouldThrow' => true,
+				'expectedMessage' => 'Certificate has been revoked', // revocation is checked first
+			],
+			'valid certificate - old date but valid (1970s timestamp)' => [
+				'certificateData' => [
+					'validTo_time_t' => 31536000, // 1971-01-01
+				],
+				'shouldThrow' => true,
+				'expectedMessage' => 'Certificate has expired',
+			],
+		];
+	}
 }
