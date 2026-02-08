@@ -217,13 +217,21 @@ export default {
 			return getStatusLabel(this.document.status)
 		},
 	},
+	watch: {
+		document(newDoc) {
+			this.initializeDocument(newDoc)
+		},
+	},
 	created() {
-		this.document.files?.forEach(file => {
-			this.$set(file, 'opened', false)
-			this.$set(file, 'statusText', getStatusLabel(file.status))
-		})
+		this.initializeDocument(this.document)
 	},
 	methods: {
+		initializeDocument(doc) {
+			doc.files?.forEach(file => {
+				this.$set(file, 'opened', false)
+				this.$set(file, 'statusText', getStatusLabel(file.status))
+			})
+		},
 		dateFromSqlAnsi(date) {
 			return Moment(Date.parse(date)).format('LL LTS')
 		},
