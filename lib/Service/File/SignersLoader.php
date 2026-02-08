@@ -271,6 +271,9 @@ class SignersLoader {
 			if (isset($signer['docmdp'])) {
 				$fileData->signers[$targetIndex]->docmdp = $signer['docmdp'];
 			}
+			if (isset($signer['docmdp_validation'])) {
+				$fileData->signers[$targetIndex]->docmdp_validation = $signer['docmdp_validation'];
+			}
 			if (isset($signer['modifications'])) {
 				$fileData->signers[$targetIndex]->modifications = $signer['modifications'];
 			}
