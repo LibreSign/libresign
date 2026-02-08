@@ -180,10 +180,12 @@ final class SignersLoaderTest extends TestCase {
 		$fileData = new \stdClass();
 		$fileData->signers = [];
 		$fileData->signers[0] = (object)[
+			'uid' => 'account:admin',
 			'displayName' => 'admin',
 			'email' => '',
 		];
 		$fileData->signers[1] = (object)[
+			'uid' => 'account:leon',
 			'displayName' => 'Leon Green',
 			'email' => 'leon@example.com',
 		];
@@ -542,6 +544,166 @@ final class SignersLoaderTest extends TestCase {
 						assert($signer->displayName === 'Existing User', 'displayName should be preserved');
 					},
 				],
+			],
+		];
+	}
+
+	#[DataProvider('dataExternalCertificateMatchingRules')]
+	public function testExternalCertificateMatchingRules(
+		?object $existingSigner,
+		array $certData,
+		bool $expectsNewSigner,
+		string $expectedMatchedUid,
+	): void {
+		$this->signRequestMapper->method('getTextOfSignerStatus')->willReturn('Signed');
+		$this->identifyMethodService->method('resolveUid')->willReturn('email:external@example.com');
+
+		$fileData = new \stdClass();
+		if ($existingSigner) {
+			$fileData->signers = [$existingSigner];
+		} else {
+			$fileData->signers = [];
+		}
+
+		$this->getService()->loadSignersFromCertData($fileData, $certData, 'example.com');
+
+		$initialCount = $existingSigner ? 1 : 0;
+		$expectedCount = $expectsNewSigner ? $initialCount + 1 : $initialCount;
+		$this->assertCount($expectedCount, $fileData->signers);
+
+		if (!$expectsNewSigner && $expectedMatchedUid) {
+			$this->assertSame($expectedMatchedUid, $fileData->signers[0]->uid);
+		} elseif ($expectsNewSigner && $expectedMatchedUid) {
+			$foundNewSigner = false;
+			foreach ($fileData->signers as $signer) {
+				if ($signer->uid === $expectedMatchedUid) {
+					$foundNewSigner = true;
+					break;
+				}
+			}
+			$this->assertTrue($foundNewSigner, "Expected to find signer with uid '{$expectedMatchedUid}'");
+		}
+	}
+
+	public static function dataExternalCertificateMatchingRules(): array {
+		return [
+			'match by serialNumber (primary rule)' => [
+				(object)[
+					'uid' => 'external:john',
+					'metadata' => ['certificate_info' => ['serialNumber' => '111111']],
+				],
+				[[
+					'chain' => [['subject' => ['CN' => 'John'], 'serialNumber' => '111111', 'serialNumberHex' => 'DIFFERENT', 'hash' => 'different_hash']],
+					'signingTime' => new DateTime(),
+				]],
+				false,
+				'external:john',
+			],
+			'match by serialNumberHex when serialNumber differs' => [
+				(object)[
+					'uid' => 'external:jane',
+					'metadata' => ['certificate_info' => ['serialNumberHex' => 'ABCDEF']],
+				],
+				[[
+					'chain' => [['subject' => ['CN' => 'Jane'], 'serialNumber' => '999999', 'serialNumberHex' => 'ABCDEF', 'hash' => 'different_hash']],
+					'signingTime' => new DateTime(),
+				]],
+				false,
+				'external:jane',
+			],
+			'match by hash as last resort' => [
+				(object)[
+					'uid' => 'external:bob',
+					'metadata' => ['certificate_info' => ['hash' => 'final_hash']],
+				],
+				[[
+					'chain' => [['subject' => ['CN' => 'Bob'], 'hash' => 'final_hash']],
+					'signingTime' => new DateTime(),
+				]],
+				false,
+				'external:bob',
+			],
+			'no match: metadata is null' => [
+				(object)[
+					'uid' => 'old:signer',
+					'metadata' => null,
+				],
+				[[
+					'chain' => [['subject' => ['CN' => 'New'], 'serialNumber' => '111111']],
+					'signingTime' => new DateTime(),
+				]],
+				true,
+				'email:external@example.com',
+			],
+			'no match: metadata certificate_info is empty' => [
+				(object)[
+					'uid' => 'old:signer2',
+					'metadata' => ['certificate_info' => []],
+				],
+				[[
+					'chain' => [['subject' => ['CN' => 'New'], 'serialNumber' => '222222']],
+					'signingTime' => new DateTime(),
+				]],
+				true,
+				'email:external@example.com',
+			],
+			'no match: cert has no identifiers (serialNumber, serialNumberHex, hash)' => [
+				(object)[
+					'uid' => 'external:alice',
+					'metadata' => ['certificate_info' => ['serialNumber' => '333333']],
+				],
+				[[
+					'chain' => [['subject' => ['CN' => 'Alice']]],
+					'signingTime' => new DateTime(),
+				]],
+				true,
+				'email:external@example.com',
+			],
+			'no match: identifiers differ across all fields' => [
+				(object)[
+					'uid' => 'external:charlie',
+					'metadata' => ['certificate_info' => [
+						'serialNumber' => '111111',
+						'serialNumberHex' => 'AAAAAA',
+						'hash' => 'hash_a',
+					]],
+				],
+				[[
+					'chain' => [['subject' => ['CN' => 'Charlie'], 'serialNumber' => '222222', 'serialNumberHex' => 'BBBBBB', 'hash' => 'hash_b']],
+					'signingTime' => new DateTime(),
+				]],
+				true,
+				'email:external@example.com',
+			],
+			'match with multiple fields succeeds on first match' => [
+				(object)[
+					'uid' => 'external:diana',
+					'metadata' => ['certificate_info' => [
+						'serialNumber' => '444444',
+						'serialNumberHex' => 'CCCCCC',
+						'hash' => 'matching_hash',
+					]],
+				],
+				[[
+					'chain' => [['subject' => ['CN' => 'Diana'], 'serialNumber' => '444444', 'serialNumberHex' => 'CCCCCC', 'hash' => 'matching_hash']],
+					'signingTime' => new DateTime(),
+				]],
+				false,
+				'external:diana',
+			],
+			'match preserves existing signer properties' => [
+				(object)[
+					'uid' => 'external:eve',
+					'displayName' => 'Eve Smith',
+					'hash' => 'old_hash',
+					'metadata' => ['certificate_info' => ['serialNumber' => '555555']],
+				],
+				[[
+					'chain' => [['subject' => ['CN' => 'Eve'], 'serialNumber' => '555555', 'hash' => 'new_hash_from_pdf']],
+					'signingTime' => new DateTime(),
+				]],
+				false,
+				'external:eve',
 			],
 		];
 	}
