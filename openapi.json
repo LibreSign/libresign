@@ -1334,6 +1334,9 @@
                     },
                     "uid": {
                         "type": "string"
+                    },
+                    "metadata": {
+                        "type": "object"
                     }
                 }
             },
