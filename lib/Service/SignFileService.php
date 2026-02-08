@@ -845,6 +845,9 @@ class SignFileService {
 		$this->signRequest->setSignedHash($hash);
 		$this->signRequest->setStatusEnum(\OCA\Libresign\Enum\SignRequestStatus::SIGNED);
 
+		$certificateInfo = $this->getEngine()->readCertificate();
+		$this->storeCertificateInfoInMetadata($certificateInfo);
+
 		$this->signRequestMapper->update($this->signRequest);
 
 		$this->sequentialSigningService
@@ -853,6 +856,30 @@ class SignFileService {
 				$this->signRequest->getFileId(),
 				$this->signRequest->getSigningOrder()
 			);
+	}
+
+	private function storeCertificateInfoInMetadata(array $certificateInfo): void {
+		$metadata = $this->signRequest->getMetadata() ?? [];
+
+		$certificateData = [];
+
+		if (isset($certificateInfo['serialNumber'])) {
+			$certificateData['serialNumber'] = $certificateInfo['serialNumber'];
+		}
+		if (isset($certificateInfo['serialNumberHex'])) {
+			$certificateData['serialNumberHex'] = $certificateInfo['serialNumberHex'];
+		}
+		if (isset($certificateInfo['hash'])) {
+			$certificateData['hash'] = $certificateInfo['hash'];
+		}
+		if (isset($certificateInfo['subject'])) {
+			$certificateData['subject'] = $certificateInfo['subject'];
+		}
+
+		if (!empty($certificateData)) {
+			$metadata['certificate_info'] = $certificateData;
+			$this->signRequest->setMetadata($metadata);
+		}
 	}
 
 	protected function updateLibreSignFile(FileEntity $libreSignFile, int $nodeId, string $hash): void {
