@@ -97,11 +97,6 @@ class JSignPdfHandler extends Pkcs12Handler {
 					. ' -Duser.home=' . escapeshellarg($this->getHome()) . ' '
 				);
 			}
-
-			$certificationLevel = $this->getCertificationLevel();
-			if ($certificationLevel !== null) {
-				$this->jSignParam->setJSignParameters(' -cl ' . $certificationLevel);
-			}
 		}
 		return $this->jSignParam;
 	}
@@ -261,9 +256,20 @@ class JSignPdfHandler extends Pkcs12Handler {
 		$normalizedPdf = $this->normalizePdfVersion($this->getInputFile()->getContent());
 		$hashAlgorithm = $this->getHashAlgorithm($normalizedPdf);
 		$param = $this->getJSignParam();
+
+		$tsaParams = $this->listParamsToString($this->getTsaParameters());
+
+		$visibleElements = $this->getVisibleElements();
+		$certParams = '';
+		$certificationLevel = $this->getCertificationLevel();
+		if ($certificationLevel !== null && !$visibleElements && !$this->hasExistingSignatures($normalizedPdf)) {
+			$certParams = ' -cl ' . $certificationLevel;
+		}
+
 		$param->setJSignParameters(
 			$param->getJSignParameters()
-			. $this->listParamsToString($this->getTsaParameters())
+			. $certParams
+			. $tsaParams
 		);
 		$param->setCertificate($this->getCertificate())
 			->setPdf($normalizedPdf)
@@ -318,10 +324,16 @@ class JSignPdfHandler extends Pkcs12Handler {
 				$backgroundPath = '';
 			}
 
+			$certificationLevel = $this->getCertificationLevel();
+			$applyCertification = $certificationLevel !== null && !$this->hasExistingSignatures($normalizedPdf);
+			$certParams = $applyCertification ? ' -cl ' . $certificationLevel : '';
+			$elementIndex = 0;
+
 			$param = $this->getJSignParam();
 			$originalParam = clone $param;
 
 			foreach ($visibleElements as $element) {
+				$elementIndex++;
 				$params['-pg'] = $element->getFileElement()->getPage();
 				if ($params['-pg'] <= self::PAGE_FIRST) {
 					unset($params['-pg']);
@@ -388,8 +400,10 @@ class JSignPdfHandler extends Pkcs12Handler {
 					$params['--hash-algorithm'] = $hashAlgorithm;
 				}
 
+				$elementCertParams = ($applyCertification && $elementIndex === 1) ? $certParams : '';
 				$param->setJSignParameters(
 					$originalParam->getJSignParameters()
+					. $elementCertParams
 					. $this->listParamsToString($params)
 				);
 				$param->setPdf($normalizedPdf);
@@ -400,6 +414,10 @@ class JSignPdfHandler extends Pkcs12Handler {
 			return $signed;
 		}
 		return '';
+	}
+
+	private function hasExistingSignatures(string $pdfContent): bool {
+		return (bool)preg_match('/\/ByteRange\s*\[|\/Type\s*\/Sig\b|\/DocMDP\b|\/Perms\b/', $pdfContent);
 	}
 
 	private function getScaleFactor(float $width): float {
