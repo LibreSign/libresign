@@ -43,19 +43,19 @@ class Password extends AbstractSignatureMethod {
 	}
 
 	private function validateCertificateRevocation(array $certificateData): void {
-		if (isset($certificateData['crl_validation']) && $certificateData['crl_validation'] !== 'valid') {
+		if (array_key_exists('crl_validation', $certificateData) && $certificateData['crl_validation'] !== 'valid') {
 			throw new LibresignException($this->identifyService->getL10n()->t('Certificate has been revoked'), 400);
 		}
 	}
 
 	private function validateCertificateExpiration(array $certificateData): void {
-		if (isset($certificateData['valid_to'])) {
-			$validTo = \DateTime::createFromFormat('F j, Y, g:i:s A', $certificateData['valid_to']);
-			if ($validTo === false) {
+		if (array_key_exists('validTo_time_t', $certificateData)) {
+			$validTo = $certificateData['validTo_time_t'];
+			if (!is_int($validTo)) {
 				throw new LibresignException($this->identifyService->getL10n()->t('Invalid certificate'), 400);
 			}
-			$now = new \DateTime();
-			if ($validTo < $now) {
+			$now = (new \DateTime())->getTimestamp();
+			if ($validTo <= $now) {
 				throw new LibresignException($this->identifyService->getL10n()->t('Certificate has expired'), 400);
 			}
 		}
