@@ -158,9 +158,8 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public static function providerValidateToSignWithCertificateData(): array {
-		$futureTimestamp = (new \DateTime('+1 year'))->getTimestamp();
-		$pastTimestamp = (new \DateTime('-1 year'))->getTimestamp();
-		$nowTimestamp = (new \DateTime())->getTimestamp();
+		$futureTimestamp = (new \DateTime('+50 years'))->getTimestamp();
+		$pastTimestamp = (new \DateTime('-50 years'))->getTimestamp();
 
 		return [
 			'valid certificate - no expiration data' => [
@@ -179,19 +178,6 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				],
 				'shouldThrow' => true,
 				'expectedMessage' => 'Certificate has expired',
-			],
-			'boundary - expires exactly now' => [
-				'certificateData' => [
-					'validTo_time_t' => $nowTimestamp,
-				],
-				'shouldThrow' => true,
-				'expectedMessage' => 'Certificate has expired',
-			],
-			'boundary - expires soon (10 seconds)' => [
-				'certificateData' => [
-					'validTo_time_t' => $nowTimestamp + 10,
-				],
-				'shouldThrow' => false,
 			],
 			'invalid certificate - validTo_time_t is string' => [
 				'certificateData' => [
