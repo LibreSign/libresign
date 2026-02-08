@@ -57,8 +57,10 @@
 				</div>
 			</div>
 			<div v-else class="infor-container">
-				<component :is="isEnvelope ? 'EnvelopeValidation' : 'FileValidation'" :document="document"
-					:legal-information="legalInformation" :document-valid-message="documentValidMessage"
+				<component :is="isEnvelope ? 'EnvelopeValidation' : 'FileValidation'"
+					:document="document"
+					:legal-information="legalInformation"
+					:document-valid-message="documentValidMessage"
 					:is-after-signed="isAfterSigned" />
 				<NcButton v-if="clickedValidate" class="change" type="primary" @click="goBack()">
 					<template #icon>
@@ -266,8 +268,20 @@ export default {
 	},
 	created() {
 		this.document = loadState('libresign', 'file_info', {})
+		
+		if (!this.uuidToValidate) {
+			this.document = {}
+			this.hasInfo = false
+			return
+		}
+		
 		this.hasInfo = !!this.document?.name
-		if (this.hasInfo && this.document.signers) {
+		
+		if (this.uuidToValidate !== this.document?.uuid) {
+			this.document = {}
+			this.hasInfo = false
+			this.validate(this.uuidToValidate)
+		} else if (this.hasInfo && this.document.signers) {
 			this.document.signers.forEach(signer => {
 				this.$set(signer, 'opened', false)
 			})
