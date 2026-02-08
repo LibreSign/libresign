@@ -719,17 +719,18 @@ class SignRequestMapper extends CachedQBMapper {
 		if (!empty($sort['sortBy']) && !empty($sort['sortDirection'])) {
 			switch ($sort['sortBy']) {
 				case 'name':
-				case 'status':
 					$qb->orderBy(
 						$qb->func()->lower('f.' . $sort['sortBy']),
 						$sort['sortDirection'] == 'asc' ? 'asc' : 'desc'
 					);
 					break;
+				case 'status':
 				case 'created_at':
 					$qb->orderBy(
 						'f.' . $sort['sortBy'],
 						$sort['sortDirection'] == 'asc' ? 'asc' : 'desc'
 					);
+					break;
 			}
 		}
 
