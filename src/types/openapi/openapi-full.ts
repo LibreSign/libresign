@@ -1965,6 +1965,7 @@ export type components = {
             visibleElements: components["schemas"]["VisibleElement"][];
             signatureMethods?: components["schemas"]["SignatureMethods"];
             uid?: string;
+            metadata?: Record<string, never>;
         };
         UserElement: {
             /** Format: int64 */
