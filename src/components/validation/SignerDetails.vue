@@ -169,6 +169,14 @@
 					{{ signer.docmdp.description }}
 				</template>
 			</NcListItem>
+			<NcListItem v-if="signer.docmdp_validation" class="extra-chain" compact>
+				<template #icon>
+					<NcIconSvgWrapper :path="mdiAlertCircle" class="icon-warning" />
+				</template>
+				<template #name>
+					{{ signer.docmdp_validation.message }}
+				</template>
+			</NcListItem>
 			<NcListItem v-if="signer.modification_validation" class="extra-chain" compact>
 				<template #icon>
 					<NcIconSvgWrapper :path="getModificationStatusIcon(signer)"
@@ -409,7 +417,10 @@ export default {
 			return t('libresign', 'CRL: Valid at signing time')
 		},
 		hasDocMdpInfo(signer) {
-			return signer.docmdp || signer.modification_validation || (signer.modifications && signer.modifications.modified)
+			return signer.docmdp
+				|| signer.docmdp_validation
+				|| signer.modification_validation
+				|| (signer.modifications && signer.modifications.modified)
 		},
 		getModificationStatusIcon(signer) {
 			if (!signer.modification_validation) return null
