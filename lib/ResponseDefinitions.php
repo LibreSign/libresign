@@ -178,6 +178,7 @@ namespace OCA\Libresign;
  *     visibleElements: LibresignVisibleElement[],
  *     signatureMethods?: LibresignSignatureMethods,
  *     uid?: string,
+ *     metadata?: mixed,
  * }
  * @psalm-type LibresignEnvelopeChildSignerSummary = array{
  *     signRequestId: int,

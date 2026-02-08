@@ -368,6 +368,8 @@ class FileService {
 			return;
 		}
 
+		$this->signersLoader->loadLibreSignSigners($this->file, $this->fileData, $this->options, $this->certData);
+
 		if ($this->file->getSignedNodeId()) {
 			$fileNode = $this->getFile();
 			$certData = $this->certificateChainService->getCertificateChain($fileNode, $this->file, $this->options);
@@ -375,7 +377,6 @@ class FileService {
 				$this->signersLoader->loadSignersFromCertData($this->fileData, $certData, $this->options->getHost());
 			}
 		}
-		$this->signersLoader->loadLibreSignSigners($this->file, $this->fileData, $this->options, $this->certData);
 		$this->loadSignRequestData();
 	}
 
