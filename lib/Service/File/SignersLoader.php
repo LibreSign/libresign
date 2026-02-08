@@ -86,6 +86,7 @@ class SignersLoader {
 			$fileData->signers[$index]->description = $signer->getDescription();
 			$fileData->signers[$index]->displayName = $signer->getDisplayName();
 			$fileData->signers[$index]->request_sign_date = $signer->getCreatedAt()->format(DateTimeInterface::ATOM);
+			$fileData->signers[$index]->metadata = $signer->getMetadata();
 			$fileData->signers[$index]->identifyMethods = [];
 			$fileData->signers[$index]->visibleElements = [];
 			foreach ($identifyMethods as $type => $methods) {
@@ -116,7 +117,7 @@ class SignersLoader {
 									break;
 								}
 								$account = $this->accountManager->getAccount($user);
-								$fileData->signers[$index]->email = $account->getProperty('email');
+								$fileData->signers[$index]->email = $account->getProperty('email')->getValue();
 							}
 							break;
 						case 'email':
@@ -208,7 +209,7 @@ class SignersLoader {
 	}
 
 	public function loadSignersFromCertData(stdClass $fileData, array $certData, string $host): void {
-		$existingSigners = (isset($fileData->signers) && is_array($fileData->signers)) ? $fileData->signers : [];
+		$existingSigners = $fileData->signers ?? [];
 		$indexMap = $this->buildSignerIndexMap($existingSigners);
 		$usedIndexes = [];
 
@@ -216,19 +217,22 @@ class SignersLoader {
 			$targetIndex = $index;
 			$isLibreSignMatch = false;
 
-			$isLibreSignCert = isset($signer['chain'][0]['isLibreSignRootCA']) && $signer['chain'][0]['isLibreSignRootCA'] === true;
-
-			if ($isLibreSignCert) {
-				$certUid = $signer['chain'][0]['subject']['UID'] ?? null;
-				if ($certUid) {
-					$resolvedUid = str_contains($certUid, ':') ? $certUid : 'account:' . $certUid;
+			$resolvedUid = $this->tryMatchWithExistingSigners($signer['chain'][0], $existingSigners);
+			if (!$resolvedUid) {
+				$isLibreSignCert = isset($signer['chain'][0]['isLibreSignRootCA'])
+					&& $signer['chain'][0]['isLibreSignRootCA'] === true;
+				if ($isLibreSignCert) {
+					$certUid = $signer['chain'][0]['subject']['UID'] ?? null;
+					if ($certUid) {
+						$resolvedUid = str_contains($certUid, ':') ? $certUid : 'account:' . $certUid;
+					} else {
+						$resolvedUid = null;
+					}
 				} else {
-					$resolvedUid = null;
-				}
-			} else {
-				$resolvedUid = $signer['uid'] ?? null;
-				if (!$resolvedUid && isset($signer['chain'][0])) {
-					$resolvedUid = $this->identifyMethodService->resolveUid($signer['chain'][0], $host);
+					$resolvedUid = $signer['uid'] ?? null;
+					if (!$resolvedUid && isset($signer['chain'][0])) {
+						$resolvedUid = $this->identifyMethodService->resolveUid($signer['chain'][0], $host);
+					}
 				}
 			}
 
@@ -236,8 +240,10 @@ class SignersLoader {
 			if ($matchedIndex !== null) {
 				$targetIndex = $matchedIndex;
 				$isLibreSignMatch = isset($existingSigners[$matchedIndex]->signRequestId);
-			} elseif (!empty($existingSigners)) {
-				$targetIndex = $this->nextAvailableSignerIndex($existingSigners, $usedIndexes);
+			} else {
+				if (!empty($existingSigners)) {
+					$targetIndex = $this->nextAvailableSignerIndex($existingSigners, $usedIndexes);
+				}
 			}
 			$usedIndexes[$targetIndex] = true;
 
@@ -311,9 +317,6 @@ class SignersLoader {
 			if (!empty($fileData->signers[$targetIndex]->email)) {
 				$indexMap['email:' . strtolower((string)$fileData->signers[$targetIndex]->email)] = $targetIndex;
 			}
-			if (!empty($fileData->signers[$targetIndex]->displayName)) {
-				$indexMap['account:' . strtolower((string)$fileData->signers[$targetIndex]->displayName)] = $targetIndex;
-			}
 		}
 	}
 
@@ -325,9 +328,6 @@ class SignersLoader {
 			}
 			if (!empty($signer->email)) {
 				$map['email:' . strtolower((string)$signer->email)] = $index;
-			}
-			if (!empty($signer->displayName)) {
-				$map['account:' . strtolower((string)$signer->displayName)] = $index;
 			}
 		}
 		return $map;
@@ -421,6 +421,51 @@ class SignersLoader {
 		if (isset($endEntityCert['isLibreSignRootCA']) && !isset($signer->isLibreSignRootCA)) {
 			$signer->isLibreSignRootCA = $endEntityCert['isLibreSignRootCA'];
 		}
+	}
+
+	private function tryMatchWithExistingSigners(array $certData, array $existingSigners): ?string {
+		if (empty($existingSigners)) {
+			return null;
+		}
+
+		$certSerialNumber = $certData['serialNumber'] ?? null;
+		$certSerialNumberHex = $certData['serialNumberHex'] ?? null;
+		$certHash = $certData['hash'] ?? null;
+
+		if (!$certSerialNumber && !$certSerialNumberHex && !$certHash) {
+			return null;
+		}
+
+		foreach ($existingSigners as $signer) {
+			if (!isset($signer->metadata) || !is_array($signer->metadata)) {
+				continue;
+			}
+
+			$certInfo = $signer->metadata['certificate_info'] ?? null;
+			if (!is_array($certInfo)) {
+				continue;
+			}
+
+			if ($certSerialNumber && isset($certInfo['serialNumber'])) {
+				if ($certSerialNumber === $certInfo['serialNumber']) {
+					return $signer->uid ?? null;
+				}
+			}
+
+			if ($certSerialNumberHex && isset($certInfo['serialNumberHex'])) {
+				if ($certSerialNumberHex === $certInfo['serialNumberHex']) {
+					return $signer->uid ?? null;
+				}
+			}
+
+			if ($certHash && isset($certInfo['hash'])) {
+				if ($certHash === $certInfo['hash']) {
+					return $signer->uid ?? null;
+				}
+			}
+		}
+
+		return null;
 	}
 
 }
