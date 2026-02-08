@@ -80,7 +80,6 @@ class SignFileService {
 	private string $friendlyName = '';
 	private ?IUser $user = null;
 	private ?SignEngineHandler $engine = null;
-	private PfxProvider $pfxProvider;
 
 	public function __construct(
 		protected IL10N $l10n,
@@ -119,9 +118,8 @@ class SignFileService {
 		private ICredentialsManager $credentialsManager,
 		private EnvelopeStatusDeterminer $envelopeStatusDeterminer,
 		private TsaValidationService $tsaValidationService,
-		PfxProvider $pfxProvider,
+		private PfxProvider $pfxProvider,
 	) {
-		$this->pfxProvider = $pfxProvider;
 	}
 
 	/**
