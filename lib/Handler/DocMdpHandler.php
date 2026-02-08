@@ -37,6 +37,11 @@ class DocMdpHandler {
 			return [];
 		}
 
+		rewind($resource);
+		$content = stream_get_contents($resource);
+		$isoStatus = $this->getIsoComplianceStatus($content);
+
+		rewind($resource);
 		$docmdpLevel = $this->extractDocMdpLevel($resource);
 
 		$result = [
@@ -47,6 +52,12 @@ class DocMdpHandler {
 				'isCertifying' => $docmdpLevel->isCertifying(),
 			],
 		];
+		if ($docmdpLevel->isCertifying() && $this->isOnlySingleDocMdpViolation($isoStatus)) {
+			$result['docmdp_validation'] = [
+				'valid' => false,
+				'message' => $this->l10n->t('Multiple DocMDP signatures detected. The first certifying signature is used to determine the certification level.'),
+			];
+		}
 
 		$modificationInfo = $this->detectModifications($resource);
 		$result['modifications'] = $modificationInfo;
@@ -75,7 +86,8 @@ class DocMdpHandler {
 		rewind($pdfResource);
 		$content = stream_get_contents($pdfResource);
 
-		if (!$this->validateIsoCompliance($content)) {
+		$isoStatus = $this->getIsoComplianceStatus($content);
+		if (!$this->isIsoCompliant($isoStatus) && !$this->isOnlySingleDocMdpViolation($isoStatus)) {
 			return DocMdpLevel::NOT_CERTIFIED;
 		}
 
@@ -97,6 +109,29 @@ class DocMdpHandler {
 			&& $this->validateDocMdpIsFirstSignature($content)
 			&& $this->validateSignatureDictionary($content)
 			&& $this->validateSignatureReference($content);
+	}
+
+	private function getIsoComplianceStatus(string $content): array {
+		return [
+			'single_docmdp' => $this->validateSingleDocMdpSignature($content),
+			'docmdp_first' => $this->validateDocMdpIsFirstSignature($content),
+			'sig_dict' => $this->validateSignatureDictionary($content),
+			'sig_ref' => $this->validateSignatureReference($content),
+		];
+	}
+
+	private function isIsoCompliant(array $status): bool {
+		return $status['single_docmdp']
+			&& $status['docmdp_first']
+			&& $status['sig_dict']
+			&& $status['sig_ref'];
+	}
+
+	private function isOnlySingleDocMdpViolation(array $status): bool {
+		return !$status['single_docmdp']
+			&& $status['docmdp_first']
+			&& $status['sig_dict']
+			&& $status['sig_ref'];
 	}
 
 	/**
@@ -376,8 +411,35 @@ class DocMdpHandler {
 	 * ISO 32000-1 12.8.2.2.1: A document can contain only one signature field that contains a DocMDP transform method
 	 */
 	private function validateSingleDocMdpSignature(string $content): bool {
-		$docmdpCount = preg_match_all('/\/TransformMethod\s*\/DocMDP/', $content);
-		return $docmdpCount === 1;
+		$objects = $this->parsePdfObjects($content);
+		if (empty($objects)) {
+			return false;
+		}
+
+		$latestByObj = [];
+		foreach ($objects as $obj) {
+			$objNum = $obj['objNum'];
+			if (!isset($latestByObj[$objNum]) || $obj['position'] > $latestByObj[$objNum]['position']) {
+				$latestByObj[$objNum] = $obj;
+			}
+		}
+
+		$docMdpSignatureCount = 0;
+		foreach ($latestByObj as $obj) {
+			$dict = $obj['dict'];
+			if (!preg_match('/\/Type\s*\/Sig\b/', $dict) || !preg_match('/\/Reference\s*\[/', $dict)) {
+				continue;
+			}
+			if ($this->signatureHasDocMdp($content, $dict)) {
+				$docMdpSignatureCount++;
+				if ($docMdpSignatureCount > 1) {
+					return false;
+				}
+			}
+		}
+
+		// ISO 32000-1: exactly one DocMDP certifying signature is allowed.
+		return $docMdpSignatureCount === 1;
 	}
 
 	/**
