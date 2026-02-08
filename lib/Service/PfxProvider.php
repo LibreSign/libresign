@@ -66,8 +66,12 @@ class PfxProvider {
 			}
 		}
 
+		$uid = \preg_replace('/^account:/', '', $userUniqueIdentifier);
+
 		return [
-			'pfx' => $engine->getPfxOfCurrentSigner(),
+			'pfx' => $engine
+				->setPassword($effectivePassword)
+				->getPfxOfCurrentSigner($uid),
 			'password' => $effectivePassword !== '' ? $effectivePassword : null,
 		];
 	}
