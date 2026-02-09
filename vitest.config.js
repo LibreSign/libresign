@@ -25,7 +25,7 @@ export default defineConfig({
 			},
 		},
 		coverage: {
-			include: ['src/**/*.js'],
+			include: ['src/**/*.{js,vue}'],
 			exclude: [
 				'src/**/*.{test,spec}.?(c|m)[jt]s?(x)',
 				'src/**/index.js',
