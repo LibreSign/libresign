@@ -6,7 +6,7 @@
 <template>
 	<div class="sign-pdf-sidebar">
 		<header>
-			<NcChip :text="signStore.document.statusText" no-close />
+			<NcChip :text="signStore.document.statusText" variant="primary" no-close />
 		</header>
 
 		<main>
@@ -91,7 +91,9 @@ export default {
 
 <style lang="scss" scoped>
 header {
-	text-align: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 	width: 100%;
 }
 @media (min-width: 513px) {
