@@ -6,9 +6,7 @@
 <template>
 	<div class="sign-pdf-sidebar">
 		<header>
-			<Chip>
-				{{ signStore.document.statusText }}
-			</Chip>
+			<NcChip :text="signStore.document.statusText" no-close />
 		</header>
 
 		<main>
@@ -28,7 +26,7 @@
 </template>
 
 <script>
-import Chip from '../../components/Chip.vue'
+import NcChip from '@nextcloud/vue/components/NcChip'
 import Sign from '../../views/SignPDF/_partials/Sign.vue'
 
 import { loadState } from '@nextcloud/initial-state'
@@ -40,7 +38,7 @@ import { useSignStore } from '../../store/sign.js'
 export default {
 	name: 'SignTab',
 	components: {
-		Chip,
+		NcChip,
 		Sign,
 	},
 	setup() {
