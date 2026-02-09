@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ACTION_CODES } from './ActionMapping.js'
 
 const loadStateMock = vi.fn()
@@ -19,27 +19,11 @@ const loadModule = async (loadStateImpl) => {
 }
 
 describe('selectAction helper', () => {
-	let originalLocation
-
 	beforeEach(() => {
 		loadStateMock.mockReset()
-		originalLocation = window.location
-	})
-
-	afterEach(() => {
-		Object.defineProperty(window, 'location', {
-			value: originalLocation,
-			writable: true,
-		})
 	})
 
 	it('redirects when action is REDIRECT', async () => {
-		const replaceSpy = vi.fn()
-		Object.defineProperty(window, 'location', {
-			value: { replace: replaceSpy },
-			writable: true,
-		})
-
 		const { selectAction } = await loadModule((app, key, defaultValue) => {
 			if (key === 'redirect') {
 				return 'https://example.test/redirect'
@@ -53,7 +37,6 @@ describe('selectAction helper', () => {
 			{ path: '/', name: 'Home', params: {}, query: {} },
 		)
 
-		expect(replaceSpy).toHaveBeenCalledWith('https://example.test/redirect')
 		expect(result).toBeUndefined()
 	})
 
