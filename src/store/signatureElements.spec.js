@@ -41,7 +41,7 @@ vi.mock('vue', () => ({
 	}),
 }))
 
-describe('signatureElements store - regras de negócio de assinaturas', () => {
+describe('signatureElements store - signature business rules', () => {
 	let useSignatureElementsStore
 
 	beforeEach(async () => {
@@ -53,8 +53,8 @@ describe('signatureElements store - regras de negócio de assinaturas', () => {
 		useSignatureElementsStore = module.useSignatureElementsStore
 	})
 
-	describe('REGRA: hasSignatureOfType valida se usuário tem assinatura do tipo', () => {
-		it('retorna true quando assinatura tem createdAt preenchido', () => {
+	describe('RULE: hasSignatureOfType validates if user has signature of type', () => {
+		it('returns true when signature has createdAt filled', () => {
 			loadState.mockReturnValue([{
 				type: 'signature',
 				createdAt: '2024-01-01',
@@ -66,7 +66,7 @@ describe('signatureElements store - regras de negócio de assinaturas', () => {
 			expect(store.hasSignatureOfType('signature')).toBe(true)
 		})
 
-		it('retorna false quando assinatura não tem createdAt', () => {
+		it('returns false when signature has no createdAt', () => {
 			loadState.mockReturnValue([])
 
 			const store = useSignatureElementsStore()
@@ -75,8 +75,8 @@ describe('signatureElements store - regras de negócio de assinaturas', () => {
 		})
 	})
 
-	describe('REGRA: save deve usar PATCH se assinatura existe, POST se não existe', () => {
-		it('usa PATCH quando assinatura já existe (nodeId > 0)', async () => {
+	describe('RULE: save should use PATCH if signature exists, POST if not', () => {
+		it('uses PATCH when signature already exists (nodeId > 0)', async () => {
 			loadState.mockImplementation((app, key, defaultValue) => {
 				if (key === 'user_signatures') {
 					return [{
@@ -110,7 +110,7 @@ describe('signatureElements store - regras de negócio de assinaturas', () => {
 			)
 		})
 
-		it('usa POST quando assinatura não existe (nodeId = 0)', async () => {
+		it('uses POST when signature does not exist (nodeId = 0)', async () => {
 			loadState.mockReturnValue([])
 
 			axios.mockResolvedValue({
@@ -138,8 +138,8 @@ describe('signatureElements store - regras de negócio de assinaturas', () => {
 		})
 	})
 
-	describe('REGRA: salvar com signRequestUuid deve enviar header específico', () => {
-		it('inclui header quando tem signRequestUuid', async () => {
+	describe('RULE: saving with signRequestUuid should send specific header', () => {
+		it('includes header when has signRequestUuid', async () => {
 			loadState.mockImplementation((app, key, defaultValue) => {
 				if (key === 'sign_request_uuid') return 'uuid-123'
 				if (key === 'user_signatures') return []
@@ -171,7 +171,7 @@ describe('signatureElements store - regras de negócio de assinaturas', () => {
 			)
 		})
 
-		it('não inclui header quando não tem signRequestUuid', async () => {
+		it('does not include header when has no signRequestUuid', async () => {
 			loadState.mockImplementation((app, key, defaultValue) => {
 				if (key === 'sign_request_uuid') return ''
 				if (key === 'user_signatures') return []
@@ -199,8 +199,8 @@ describe('signatureElements store - regras de negócio de assinaturas', () => {
 		})
 	})
 
-	describe('REGRA: delete deve limpar assinatura e usar emptyElement', () => {
-		it('delete deve resetar assinatura para estado vazio', async () => {
+	describe('RULE: delete should clear signature and use emptyElement', () => {
+		it('delete should reset signature to empty state', async () => {
 			loadState.mockImplementation((app, key, defaultValue) => {
 				if (key === 'user_signatures') {
 					return [{
@@ -231,7 +231,7 @@ describe('signatureElements store - regras de negócio de assinaturas', () => {
 			expect(store.signs.signature.file.nodeId).toBe(0)
 		})
 
-		it('delete com erro 404 deve resetar assinatura mesmo assim', async () => {
+		it('delete with 404 error should reset signature anyway', async () => {
 			loadState.mockImplementation((app, key, defaultValue) => {
 				if (key === 'user_signatures') {
 					return [{
@@ -258,7 +258,7 @@ describe('signatureElements store - regras de negócio de assinaturas', () => {
 			expect(store.signs.signature.file.nodeId).toBe(0)
 		})
 
-		it('delete deve incluir signRequestUuid no header quando disponível', async () => {
+		it('delete should include signRequestUuid in header when available', async () => {
 			loadState.mockImplementation((app, key, defaultValue) => {
 				if (key === 'sign_request_uuid') return 'uuid-123'
 				if (key === 'user_signatures') {
@@ -296,8 +296,8 @@ describe('signatureElements store - regras de negócio de assinaturas', () => {
 		})
 	})
 
-	describe('REGRA: loadSignatures só deve executar uma vez', () => {
-		it('carrega assinaturas do loadState se disponível', () => {
+	describe('RULE: loadSignatures should only execute once', () => {
+		it('loads signatures from loadState if available', () => {
 			loadState.mockImplementation((app, key, defaultValue) => {
 				if (key === 'user_signatures') {
 					return [
@@ -323,7 +323,7 @@ describe('signatureElements store - regras de negócio de assinaturas', () => {
 			expect(axios).not.toHaveBeenCalled()
 		})
 
-		it('busca do servidor se loadState não tem assinaturas', async () => {
+		it('fetches from server if loadState has no signatures', async () => {
 			loadState.mockImplementation((app, key, defaultValue) => {
 				return defaultValue
 			})
@@ -353,8 +353,8 @@ describe('signatureElements store - regras de negócio de assinaturas', () => {
 		})
 	})
 
-	describe('REGRA: tratamento de erros', () => {
-		it('save deve capturar erro com campo errors', async () => {
+	describe('RULE: error handling', () => {
+		it('save should capture error with errors field', async () => {
 			loadState.mockReturnValue([])
 
 			axios.mockRejectedValue({
@@ -375,7 +375,7 @@ describe('signatureElements store - regras de negócio de assinaturas', () => {
 			expect(store.error).toEqual({ field: 'signature', message: 'Invalid format' })
 		})
 
-		it('save deve capturar erro sem campo errors', async () => {
+		it('save should capture error without errors field', async () => {
 			loadState.mockReturnValue([])
 
 			axios.mockRejectedValue({
