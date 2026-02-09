@@ -173,4 +173,59 @@ describe('useSignStore', () => {
 			expect(url).toContain(`/sign/uuid/${validUuid}`)
 		})
 	})
+
+	describe('sign response parsing', () => {
+		it('returns signingInProgress when job status matches', () => {
+			const store = useSignStore()
+			const result = store.parseSignResponse({
+				ocs: { data: { job: { status: 'SIGNING_IN_PROGRESS' } } },
+			})
+
+			expect(result.status).toBe('signingInProgress')
+		})
+
+		it('returns signed when action is signed', () => {
+			const store = useSignStore()
+			const result = store.parseSignResponse({
+				ocs: { data: { action: 3500 } },
+			})
+
+			expect(result.status).toBe('signed')
+		})
+
+		it('returns unknown for other responses', () => {
+			const store = useSignStore()
+			const result = store.parseSignResponse({
+				ocs: { data: { action: 1234 } },
+			})
+
+			expect(result.status).toBe('unknown')
+		})
+	})
+
+	describe('sign error parsing', () => {
+		it('returns missingCertification when action indicates it', () => {
+			const store = useSignStore()
+			const error = {
+				response: { data: { ocs: { data: { action: 4000, errors: ['err'] } } } },
+			}
+
+			const result = store.parseSignError(error)
+
+			expect(result.type).toBe('missingCertification')
+			expect(result.errors).toEqual(['err'])
+		})
+
+		it('returns signError for other actions', () => {
+			const store = useSignStore()
+			const error = {
+				response: { data: { ocs: { data: { action: 123, errors: ['err'] } } } },
+			}
+
+			const result = store.parseSignError(error)
+
+			expect(result.type).toBe('signError')
+			expect(result.errors).toEqual(['err'])
+		})
+	})
 })
