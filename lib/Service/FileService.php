@@ -620,10 +620,13 @@ class FileService {
 		$this->fileMapper->delete($file);
 		if ($deleteFile) {
 			if ($file->getSignedNodeId()) {
-				$signedNextcloudFile = $this->folderService->getFileByNodeId($file->getSignedNodeId());
-				$parentFolder = $signedNextcloudFile->getParent();
-				$signedNextcloudFile->delete();
-				$this->deleteEmptyFolder($parentFolder);
+				try {
+					$signedNextcloudFile = $this->folderService->getFileByNodeId($file->getSignedNodeId());
+					$parentFolder = $signedNextcloudFile->getParent();
+					$signedNextcloudFile->delete();
+					$this->deleteEmptyFolder($parentFolder);
+				} catch (NotFoundException) {
+				}
 			}
 			try {
 				$nextcloudFile = $this->folderService->getFileByNodeId($file->getNodeId());
