@@ -65,7 +65,7 @@ vi.mock('./sign.js', () => ({
 	useSignStore: vi.fn(() => ({ signData: {} })),
 }))
 
-describe('files store - regras críticas de negócio', () => {
+describe('files store - critical business rules', () => {
 	let useFilesStore
 
 	beforeEach(async () => {
@@ -77,8 +77,8 @@ describe('files store - regras críticas de negócio', () => {
 		useFilesStore = module.useFilesStore
 	})
 
-	describe('REGRA: remover arquivo selecionado deve limpar seleção', () => {
-		it('arquivo selecionado removido zera selectedFileId', () => {
+	describe('RULE: removing selected file clears selection', () => {
+		it('removing selected file resets selectedFileId', () => {
 			const store = useFilesStore()
 			store.files[123] = { id: 123, name: 'test.pdf' }
 			store.selectedFileId = 123
@@ -89,8 +89,8 @@ describe('files store - regras críticas de negócio', () => {
 		})
 	})
 
-	describe('REGRA: settings de arquivos devem ser mesclados, não substituídos', () => {
-		it('atualizar arquivo preserva settings anteriores', async () => {
+	describe('RULE: file settings are merged, not replaced', () => {
+		it('updating a file preserves previous settings', async () => {
 			const store = useFilesStore()
 			store.files[123] = {
 				id: 123,
@@ -111,8 +111,8 @@ describe('files store - regras críticas de negócio', () => {
 		})
 	})
 
-	describe('REGRA: envelope filesCount deve refletir operações de arquivo', () => {
-		it('adicionar arquivos incrementa filesCount do envelope', async () => {
+	describe('RULE: envelope filesCount reflects file operations', () => {
+		it('adding files increments envelope filesCount', async () => {
 			const store = useFilesStore()
 			store.selectedFileId = 100
 			store.files[100] = { id: 100, filesCount: 2 }
@@ -126,7 +126,7 @@ describe('files store - regras críticas de negócio', () => {
 			expect(store.files[100].filesCount).toBe(5)
 		})
 
-		it('remover arquivos decrementa filesCount corretamente', async () => {
+		it('removing files decrements filesCount correctly', async () => {
 			const store = useFilesStore()
 			store.selectedFileId = 100
 			store.files[100] = { id: 100, filesCount: 5 }
@@ -138,7 +138,7 @@ describe('files store - regras críticas de negócio', () => {
 			expect(store.files[100].filesCount).toBe(2) // 5 - 3 = 2
 		})
 
-		it('filesCount nunca fica negativo', async () => {
+		it('filesCount never goes negative', async () => {
 			const store = useFilesStore()
 			store.selectedFileId = 100
 			store.files[100] = { id: 100, filesCount: 1 }
@@ -151,8 +151,8 @@ describe('files store - regras críticas de negócio', () => {
 		})
 	})
 
-	describe('REGRA: cancelamento de upload tem tratamento especial', () => {
-		it('ERR_CANCELED retorna mensagem específica', async () => {
+	describe('RULE: upload cancellation has special handling', () => {
+		it('ERR_CANCELED returns a specific message', async () => {
 			const store = useFilesStore()
 
 			const error = new Error('Cancelled')
@@ -163,6 +163,56 @@ describe('files store - regras críticas de negócio', () => {
 
 			expect(result.success).toBe(false)
 			expect(result.message).toBe('Upload cancelled')
+		})
+	})
+
+	describe('RULE: signing order affects signing permission', () => {
+		it('in ordered flow, signer with higher order cannot sign', () => {
+			const store = useFilesStore()
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				status: 1,
+				signatureFlow: 'ordered_numeric',
+				signers: [
+					{ me: false, signingOrder: 1, signed: [] },
+					{ me: true, signingOrder: 2, signed: [] },
+				],
+			}
+
+			expect(store.canSign()).toBe(false)
+		})
+
+		it('in ordered flow, signer with lowest pending order can sign', () => {
+			const store = useFilesStore()
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				status: 1,
+				signatureFlow: 'ordered_numeric',
+				signers: [
+					{ me: false, signingOrder: 1, signed: ['signed'] },
+					{ me: true, signingOrder: 2, signed: [] },
+				],
+			}
+
+			expect(store.canSign()).toBe(true)
+		})
+
+		it('in parallel flow, order does not block signing', () => {
+			const store = useFilesStore()
+			store.selectedFileId = 1
+			store.files[1] = {
+				id: 1,
+				status: 1,
+				signatureFlow: 'parallel',
+				signers: [
+					{ me: false, signingOrder: 1, signed: [] },
+					{ me: true, signingOrder: 2, signed: [] },
+				],
+			}
+
+			expect(store.canSign()).toBe(true)
 		})
 	})
 })
