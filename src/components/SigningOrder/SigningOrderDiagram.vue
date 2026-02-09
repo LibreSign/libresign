@@ -64,7 +64,7 @@
 								<div class="popover-row">
 									<strong>{{ t('libresign', 'Status') }}:</strong>
 									<NcChip :text="getStatusLabel(signer)"
-										:type="getChipType(signer)"
+										:variant="getChipType(signer)"
 										:icon-path="getStatusIconPath(signer)"
 										:no-close="true" />
 								</div>
