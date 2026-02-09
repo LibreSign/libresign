@@ -30,8 +30,11 @@ final class TsaValidationServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 	public static function provideValidTsaUrls(): array {
 		return [
 			'no TSA configured' => [''],
-			'valid URL' => ['https://freetsa.org/tsr'],
-			'localhost URL' => ['http://localhost:8080/tsa'],
+			'valid HTTPS URL' => ['https://freetsa.org/tsr'],
+			'localhost IP with HTTPS' => ['https://127.0.0.1:8080/tsa'],
+			'localhost hostname' => ['http://localhost:8080/tsa'],
+			'HTTPS with custom port' => ['https://localhost:8443/api/v1/tsa/timestamp'],
+			'HTTPS with path' => ['https://localhost:8080/api/v1/tsa/timestamp'],
 		];
 	}
 
@@ -54,8 +57,28 @@ final class TsaValidationServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 				'Invalid TSA URL format: http://',
 				false,
 			],
+			'whitespace only' => [
+				'   ',
+				'Invalid TSA URL format',
+				false,
+			],
+			'javascript protocol' => [
+				'javascript:alert(1)',
+				'TSA URL must use HTTP or HTTPS protocol',
+				false,
+			],
+			'file protocol' => [
+				'file:///etc/passwd',
+				'TSA URL must use HTTP or HTTPS protocol',
+				false,
+			],
+			'ftp protocol' => [
+				'ftp://tsa.example.com/tsr',
+				'TSA URL must use HTTP or HTTPS protocol',
+				false,
+			],
 			'unresolvable host' => [
-				'https://invalid-tsa-server.example.com/tsr',
+				'https://invalid-tsa-server-abc123xyz.example.com/tsr',
 				'/Timestamp Authority \(TSA\) service is unavailable or misconfigured/',
 				true,
 			],
@@ -74,5 +97,40 @@ final class TsaValidationServiceTest extends \OCA\Libresign\Tests\Unit\TestCase 
 		}
 
 		$this->service->validateConfiguration();
+	}
+
+	public function testGetTsaUrlRetrievesConfiguredValue(): void {
+		$this->appConfig->setValueString(Application::APP_ID, 'tsa_url', 'https://test-tsa.example.com');
+
+		$result = self::invokePrivate($this->service, 'getTsaUrl');
+
+		$this->assertSame('https://test-tsa.example.com', $result);
+	}
+
+	public static function provideUrlsForFormatValidation(): array {
+		return [
+			'valid HTTPS' => ['https://freetsa.org/tsr', true],
+			'valid HTTP' => ['http://localhost:8080/tsa', true],
+			'invalid protocol (not)' => ['not://a//url', false],
+			'invalid protocol (ftp)' => ['ftp://tsa.example.com/tsr', false],
+			'invalid protocol (file)' => ['file:///etc/passwd', false],
+			'invalid protocol (javascript)' => ['javascript:alert(1)', false],
+			'missing scheme' => ['://no-scheme.com', false],
+			'only domain' => ['example.com', false],
+		];
+	}
+
+	#[DataProvider('provideUrlsForFormatValidation')]
+	public function testValidateTsaUrlFormat(string $url, bool $shouldPass): void {
+		if (!$shouldPass) {
+			$this->expectException(LibresignException::class);
+			$this->expectExceptionMessageMatches('/(Invalid TSA URL|TSA URL must use HTTP or HTTPS protocol)/');
+		}
+
+		self::invokePrivate($this->service, 'validateTsaUrlFormat', [$url]);
+
+		if ($shouldPass) {
+			$this->assertTrue(true);
+		}
 	}
 }
