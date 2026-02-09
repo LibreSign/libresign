@@ -41,7 +41,7 @@ vi.mock('../helpers/logger.js', () => ({
 	},
 }))
 
-describe('filters store - regras de negócio de filtros', () => {
+describe('filters store - filter business rules', () => {
 	let useFiltersStore
 
 	beforeEach(async () => {
@@ -52,14 +52,14 @@ describe('filters store - regras de negócio de filtros', () => {
 		useFiltersStore = module.useFiltersStore
 	})
 
-	describe('regra de negócio: activeChips deve retornar todos os chips ativos de todos os filtros', () => {
-		it('retorna array vazio quando não há chips', () => {
+	describe('business rule: activeChips should return all active chips from all filters', () => {
+		it('returns empty array when there are no chips', () => {
 			const store = useFiltersStore()
 
 			expect(store.activeChips).toEqual([])
 		})
 
-		it('retorna chips de um único filtro', () => {
+		it('returns chips from a single filter', () => {
 			const store = useFiltersStore()
 			const signedChip = { id: 'signed', label: 'Signed' }
 			store.chips = {
@@ -69,7 +69,7 @@ describe('filters store - regras de negócio de filtros', () => {
 			expect(store.activeChips).toEqual([signedChip])
 		})
 
-		it('retorna chips de múltiplos filtros em um único array', () => {
+		it('returns chips from multiple filters in a single array', () => {
 			const store = useFiltersStore()
 			const signedChip = { id: 'signed', label: 'Signed' }
 			const todayChip = { id: 'today', label: 'Today' }
@@ -84,7 +84,7 @@ describe('filters store - regras de negócio de filtros', () => {
 			expect(chips).toContainEqual(todayChip)
 		})
 
-		it('retorna múltiplos chips do mesmo filtro', () => {
+		it('returns multiple chips from the same filter', () => {
 			const store = useFiltersStore()
 			store.chips = {
 				status: [
@@ -97,15 +97,15 @@ describe('filters store - regras de negócio de filtros', () => {
 		})
 	})
 
-	describe('regra de negócio: filterStatusArray deve converter JSON string em array', () => {
-		it('retorna array vazio quando filter_status é string vazia', () => {
+	describe('business rule: filterStatusArray should convert JSON string to array', () => {
+		it('returns empty array when filter_status is empty string', () => {
 			const store = useFiltersStore()
 			store.filter_status = ''
 
 			expect(store.filterStatusArray).toEqual([])
 		})
 
-		it('retorna array vazio quando filter_status é JSON inválido', () => {
+		it('returns empty array when filter_status is invalid JSON', () => {
 			const originalError = console.error
 			console.error = vi.fn()
 
@@ -116,14 +116,14 @@ describe('filters store - regras de negócio de filtros', () => {
 			console.error = originalError
 		})
 
-		it('converte JSON válido em array', () => {
+		it('converts valid JSON to array', () => {
 			const store = useFiltersStore()
 			store.filter_status = '["signed","pending"]'
 
 			expect(store.filterStatusArray).toEqual(['signed', 'pending'])
 		})
 
-		it('converte array de objetos JSON', () => {
+		it('converts JSON object array', () => {
 			const store = useFiltersStore()
 			store.filter_status = '[{"id":1},{"id":2}]'
 
@@ -131,8 +131,8 @@ describe('filters store - regras de negócio de filtros', () => {
 		})
 	})
 
-	describe('regra de negócio: atualização de chips deve emitir evento de filtro', () => {
-		it('onFilterUpdateChips deve emitir evento libresign:filters:update', async () => {
+	describe('business rule: chips update should emit filter event', () => {
+		it('onFilterUpdateChips should emit libresign:filters:update event', async () => {
 			const store = useFiltersStore()
 			const event = {
 				id: 'status',
@@ -144,7 +144,7 @@ describe('filters store - regras de negócio de filtros', () => {
 			expect(emit).toHaveBeenCalledWith('libresign:filters:update')
 		})
 
-		it('onFilterUpdateChips deve atualizar chips do filtro específico', async () => {
+		it('onFilterUpdateChips should update chips for specific filter', async () => {
 			const store = useFiltersStore()
 			const event = {
 				id: 'status',
@@ -156,7 +156,7 @@ describe('filters store - regras de negócio de filtros', () => {
 			expect(store.chips.status).toEqual([{ id: 'signed', label: 'Signed' }])
 		})
 
-		it('onFilterUpdateChips não deve sobrescrever outros filtros', async () => {
+		it('onFilterUpdateChips should not overwrite other filters', async () => {
 			const store = useFiltersStore()
 			store.chips = {
 				modified: [{ id: 'today', label: 'Today' }],
@@ -174,8 +174,8 @@ describe('filters store - regras de negócio de filtros', () => {
 		})
 	})
 
-	describe('regra de negócio: filtro de modificação deve salvar no servidor', () => {
-		it('filtro modified deve salvar primeiro chip ID no servidor', async () => {
+	describe('business rule: modification filter should save to server', () => {
+		it('modified filter should save first chip ID to server', async () => {
 			axios.put.mockResolvedValue({ data: { success: true } })
 
 			const store = useFiltersStore()
@@ -192,7 +192,7 @@ describe('filters store - regras de negócio de filtros', () => {
 			)
 		})
 
-		it('filtro modified com múltiplos chips deve salvar apenas o primeiro', async () => {
+		it('modified filter with multiple chips should save only the first', async () => {
 			axios.put.mockResolvedValue({ data: { success: true } })
 
 			const store = useFiltersStore()
@@ -212,7 +212,7 @@ describe('filters store - regras de negócio de filtros', () => {
 			)
 		})
 
-		it('filtro modified vazio deve salvar string vazia', async () => {
+		it('empty modified filter should save empty string', async () => {
 			axios.put.mockResolvedValue({ data: { success: true } })
 
 			const store = useFiltersStore()
@@ -230,8 +230,8 @@ describe('filters store - regras de negócio de filtros', () => {
 		})
 	})
 
-	describe('regra de negócio: filtro de status deve salvar array JSON no servidor', () => {
-		it('filtro status deve salvar array de IDs como JSON', async () => {
+	describe('business rule: status filter should save JSON array to server', () => {
+		it('status filter should save ID array as JSON', async () => {
 			axios.put.mockResolvedValue({ data: { success: true } })
 
 			const store = useFiltersStore()
@@ -251,7 +251,7 @@ describe('filters store - regras de negócio de filtros', () => {
 			)
 		})
 
-		it('filtro status vazio deve salvar string vazia', async () => {
+		it('empty status filter should save empty string', async () => {
 			axios.put.mockResolvedValue({ data: { success: true } })
 
 			const store = useFiltersStore()
@@ -268,7 +268,7 @@ describe('filters store - regras de negócio de filtros', () => {
 			)
 		})
 
-		it('filtro status deve atualizar estado local após salvar', async () => {
+		it('status filter should update local state after saving', async () => {
 			axios.put.mockResolvedValue({ data: { success: true } })
 
 			const store = useFiltersStore()
@@ -283,8 +283,8 @@ describe('filters store - regras de negócio de filtros', () => {
 		})
 	})
 
-	describe('regra de negócio: apenas filtros modified e status devem salvar no servidor', () => {
-		it('filtro com ID diferente não deve chamar API', async () => {
+	describe('business rule: only modified and status filters should save to server', () => {
+		it('filter with different ID should not call API', async () => {
 			const store = useFiltersStore()
 			const event = {
 				id: 'other_filter',
@@ -296,7 +296,7 @@ describe('filters store - regras de negócio de filtros', () => {
 			expect(axios.put).not.toHaveBeenCalled()
 		})
 
-		it('filtro com ID diferente ainda deve emitir evento', async () => {
+		it('filter with different ID should still emit event', async () => {
 			const store = useFiltersStore()
 			const event = {
 				id: 'other_filter',
@@ -305,7 +305,6 @@ describe('filters store - regras de negócio de filtros', () => {
 
 			await store.onFilterUpdateChipsAndSave(event)
 
-			// Não emite porque não é modified nem status
 			expect(emit).not.toHaveBeenCalled()
 		})
 	})
