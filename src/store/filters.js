@@ -26,7 +26,6 @@ export const useFiltersStore = defineStore('filter', {
 			try {
 				return state.filter_status != '' ? JSON.parse(state.filter_status) : []
 			} catch (e) {
-				console.error('Erro ao converter filter_status:', e)
 				return []
 			}
 		},
