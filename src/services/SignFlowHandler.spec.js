@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { SignFlowHandler } from './SignFlowHandler.js'
 
 const createStore = () => ({
@@ -12,6 +12,9 @@ const createStore = () => ({
 })
 
 describe('SignFlowHandler', () => {
+	afterEach(() => {
+		vi.restoreAllMocks()
+	})
 	it('shows modal for createSignature action', () => {
 		const store = createStore()
 		const handler = new SignFlowHandler(store)
@@ -39,6 +42,16 @@ describe('SignFlowHandler', () => {
 
 		expect(store.showModal).toHaveBeenCalledWith('emailToken')
 		expect(result).toBe('modalShown')
+	})
+
+	it('returns null for unknown action', () => {
+		const store = createStore()
+		const handler = new SignFlowHandler(store)
+		vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		const result = handler.handleAction('unknown')
+
+		expect(result).toBeNull()
 	})
 
 })
