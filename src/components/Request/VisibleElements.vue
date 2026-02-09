@@ -251,59 +251,52 @@ export default {
 			const metadata = fileInfo?.metadata
 			return metadata?.d?.[page - 1]?.h
 		},
-		updateSigners(data) {
+		async updateSigners() {
 			const filesToProcess = this.document.files || []
 			if (this.elementsLoaded || filesToProcess.length === 0) {
 				return
 			}
+			const pdfElements = this.getPdfElements()
 
-			let visibleElementsToAdd = []
-
+			const fileIndexById = new Map(
+				filesToProcess.map((file, index) => [file.id, index]),
+			)
 			const elements = Array.isArray(this.document.visibleElements) ? this.document.visibleElements : []
+			const elementsByDoc = new Map()
 			elements.forEach(element => {
 				const fileInfo = filesToProcess.find(f => f.id === element.fileId)
-				const fileIndex = fileInfo ? filesToProcess.indexOf(fileInfo) : 0
-				visibleElementsToAdd.push({
-					...element,
-					documentIndex: fileIndex,
-				})
-			})
-
-			visibleElementsToAdd.forEach(element => {
-				let envelopeSignerMatch = null
-				let childSigner = null
-				if (element.fileId) {
-					const fileInfo = filesToProcess.find(f => f.id === element.fileId)
-					if (fileInfo) {
-						childSigner = (fileInfo.signers || []).find(s => s.signRequestId === element.signRequestId)
-					}
-				}
-
-				if (childSigner) {
-					const childIdMethods = (childSigner.identifyMethods || []).map(m => `${m.method}:${m.value}`).sort().join('|')
-					envelopeSignerMatch = this.document.signers.find(s => {
-						const envIdMethods = (s.identifyMethods || []).map(m => `${m.method}:${m.value}`).sort().join('|')
-						return envIdMethods === childIdMethods
-					})
-				}
-
-				const baseSigner = envelopeSignerMatch || this.document.signers.find(s => s.signRequestId === element.signRequestId) || null
-				if (!baseSigner) {
+				if (!fileInfo) {
 					return
 				}
+				const docIndex = fileIndexById.get(element.fileId)
+				if (docIndex === undefined) {
+					return
+				}
+				const signer = (fileInfo.signers || []).find(s => s.signRequestId === element.signRequestId)
+				if (!signer) {
+					return
+				}
+				const items = elementsByDoc.get(docIndex) || []
+				items.push({ element, signer })
+				elementsByDoc.set(docIndex, items)
+			})
 
-				const object = structuredClone(baseSigner)
-				const fileInfo = this.document.files.find(f => f.id === element.fileId)
-				if (fileInfo) {
-					const fileIndex = this.document.files.indexOf(fileInfo)
-					object.element = { ...element, documentIndex: fileIndex }
+			for (const [docIndex, items] of elementsByDoc.entries()) {
+				if (typeof pdfElements?.selectPage === 'function') {
+					pdfElements.selectPage(docIndex, 0)
+				} else if (pdfElements) {
+					pdfElements.selectedDocIndex = docIndex
+					pdfElements.selectedPageIndex = 0
+				}
+				await this.$nextTick()
+				await this.$nextTick()
+
+				items.forEach(({ element, signer }) => {
+					const object = structuredClone(signer)
+					object.element = { ...element, documentIndex: docIndex }
 					this.$refs.pdfEditor.addSigner(object)
-					return
-				}
-
-				object.element = element
-				this.$refs.pdfEditor.addSigner(object)
-			})
+				})
+			}
 
 			this.elementsLoaded = true
 
