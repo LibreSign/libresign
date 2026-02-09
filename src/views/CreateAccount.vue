@@ -118,9 +118,9 @@ export default {
 		emailError() {
 			if (this.$v.email.$model) {
 				if (this.$v.email.$error) {
-					return t('libresign', 'This is not a valid email')
+					return this.t('libresign', 'This is not a valid email')
 				} else if (this.isEqualEmail === false) {
-					return t('libresign', 'The email entered is not the same as the email in the invitation')
+					return this.t('libresign', 'The email entered is not the same as the email in the invitation')
 				}
 			}
 			return ''
@@ -131,7 +131,7 @@ export default {
 		passwordError() {
 			if (this.password && this.passwordConfirm) {
 				if (this.password.length <= 4) {
-					return t('libresign', 'Your password must be greater than 4 digits')
+					return this.t('libresign', 'Your password must be greater than 4 digits')
 				}
 			}
 			return ''
@@ -139,7 +139,7 @@ export default {
 		confirmPasswordError() {
 			if (this.password && this.passwordConfirm) {
 				if (this.password !== this.passwordConfirm) {
-					return t('libresign', 'Passwords does not match')
+					return this.t('libresign', 'Passwords does not match')
 				}
 			}
 			return ''
@@ -159,7 +159,9 @@ export default {
 	},
 
 	created() {
-		showWarning(t('libresign', this.message))
+		if (this.message) {
+			showWarning(this.message)
+		}
 	},
 
 	methods: {
