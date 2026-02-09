@@ -105,7 +105,40 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->signRequestService = $this->createMock(SignRequestService::class);
 	}
 
-	private function getService(): RequestSignatureService {
+	private function getService(array $methods = []): RequestSignatureService|MockObject {
+		if ($methods) {
+			return $this->getMockBuilder(RequestSignatureService::class)
+				->setConstructorArgs([
+					$this->fileService,
+					$this->l10n,
+					$this->identifyMethodService,
+					$this->signRequestMapper,
+					$this->userManager,
+					$this->fileMapper,
+					$this->identifyMethodMapper,
+					$this->pdfMetadataExtractor,
+					$this->fileElementService,
+					$this->fileElementMapper,
+					$this->folderService,
+					$this->mimeTypeDetector,
+					$this->validateHelper,
+					$this->client,
+					$this->docMdpHandler,
+					$this->loggerInterface,
+					$this->sequentialSigningService,
+					$this->appConfig,
+					$this->eventDispatcher,
+					$this->fileStatusService,
+					$this->docMdpConfigService,
+					$this->envelopeService,
+					$this->envelopeFileRelocator,
+					$this->uploadHelper,
+					$this->signRequestService,
+				])
+				->onlyMethods($methods)
+				->getMock();
+		}
+
 		return new RequestSignatureService(
 			$this->fileService,
 			$this->l10n,
@@ -133,6 +166,64 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->uploadHelper,
 			$this->signRequestService,
 		);
+	}
+
+	public function testSaveFilesUsesSaveForSingleFile(): void {
+		$service = $this->getService(['save']);
+
+		$fileEntity = new \OCA\Libresign\Db\File();
+		$fileEntity->setId(123);
+
+		$service->expects($this->once())
+			->method('save')
+			->with($this->callback(function (array $payload): bool {
+				return $payload['name'] === 'My File'
+					&& $payload['status'] === \OCA\Libresign\Enum\FileStatus::DRAFT->value
+					&& $payload['settings'] === ['path' => '/docs'];
+			}))
+			->willReturn($fileEntity);
+
+		$result = $service->saveFiles([
+			'files' => [[
+				'name' => 'My File',
+				'uploadedFile' => 'payload',
+			]],
+			'name' => 'My File',
+			'userManager' => $this->user,
+			'settings' => ['path' => '/docs'],
+		]);
+
+		$this->assertSame($fileEntity, $result['file']);
+		$this->assertSame([$fileEntity], $result['children']);
+	}
+
+	public function testSaveFilesUsesEnvelopeForMultipleFiles(): void {
+		$service = $this->getService(['saveEnvelope']);
+
+		$envelope = new \OCA\Libresign\Db\File();
+		$envelope->setId(77);
+		$fileA = new \OCA\Libresign\Db\File();
+		$fileB = new \OCA\Libresign\Db\File();
+
+		$service->expects($this->once())
+			->method('saveEnvelope')
+			->willReturn([
+				'envelope' => $envelope,
+				'files' => [$fileA, $fileB],
+			]);
+
+		$result = $service->saveFiles([
+			'files' => [
+				['name' => 'A', 'uploadedFile' => 'payload-a'],
+				['name' => 'B', 'uploadedFile' => 'payload-b'],
+			],
+			'name' => 'Envelope',
+			'userManager' => $this->user,
+			'settings' => [],
+		]);
+
+		$this->assertSame($envelope, $result['file']);
+		$this->assertSame([$fileA, $fileB], $result['children']);
 	}
 
 	public function testValidateNameIsMandatory():void {
