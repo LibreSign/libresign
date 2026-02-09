@@ -429,7 +429,6 @@ export default {
 					payload,
 					this.signRequestUuid,
 					{
-						isAuthenticated: !!getCurrentUser(),
 						documentId: this.signStore.document.id,
 					}
 				)

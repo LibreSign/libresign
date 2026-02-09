@@ -120,14 +120,13 @@ export const useSignStore = defineStore('sign', {
 		},
 
 		buildSignUrl(signRequestUuid, options = {}) {
-			const isAuthenticated = options.isAuthenticated
-			const documentId = options.documentId
+			const { documentId } = options
 
-			const baseUrl = isAuthenticated && documentId > 0
-				? generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{id}', { id: documentId })
-				: generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: signRequestUuid })
+			if (signRequestUuid) {
+				return generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: signRequestUuid }) + '?async=true'
+			}
 
-			return `${baseUrl}?async=true`
+			return generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{id}', { id: documentId }) + '?async=true'
 		},
 
 		parseSignResponse(data) {
