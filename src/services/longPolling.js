@@ -20,55 +20,63 @@ export const waitForFileStatusChange = async (fileId, currentStatus, timeout = 3
 	return response.data.ocs.data
 }
 
-export const startLongPolling = (fileId, initialStatus, onUpdate, shouldStop, onError = null) => {
-	let isRunning = true
-	let currentStatus = initialStatus
-	let errorCount = 0
-	const MAX_ERRORS = 5
+export const createLongPolling = (options = {}) => {
+	return (fileId, initialStatus, onUpdate, shouldStop, onError = null) => {
+		let isRunning = true
+		let currentStatus = initialStatus
+		let errorCount = 0
+		const MAX_ERRORS = 5
+		const waitForStatusChange = options.waitForFileStatusChange || waitForFileStatusChange
+		const sleepFn = options.sleep || sleep
 
-	const stopPolling = () => {
-		isRunning = false
-	}
+		const stopPolling = () => {
+			isRunning = false
+		}
 
-	const poll = async () => {
-		while (isRunning) {
-			if (shouldStop && shouldStop()) {
-				break
-			}
-
-			try {
-				const data = await waitForFileStatusChange(fileId, currentStatus, 30)
-
-				errorCount = 0
-
-				if (data.status !== currentStatus) {
-					currentStatus = data.status
-					onUpdate(data)
-
-					if (isTerminalStatus(data.status)) {
-						break
-					}
-				}
-			} catch (error) {
-				errorCount++
-
-				if (onError) {
-					onError(error)
-				}
-
-				if (errorCount >= MAX_ERRORS) {
-					console.error('Long polling stopped after', MAX_ERRORS, 'consecutive errors')
+		const poll = async () => {
+			while (isRunning) {
+				if (shouldStop && shouldStop()) {
 					break
 				}
 
-				await sleep(3000)
+				try {
+					const data = await waitForStatusChange(fileId, currentStatus, 30)
+
+					errorCount = 0
+
+					if (data.status !== currentStatus) {
+						currentStatus = data.status
+						onUpdate(data)
+
+						if (isTerminalStatus(data.status)) {
+							break
+						}
+					}
+				} catch (error) {
+					errorCount++
+
+					if (onError) {
+						onError(error)
+					}
+
+					if (errorCount >= MAX_ERRORS) {
+						console.error('Long polling stopped after', MAX_ERRORS, 'consecutive errors')
+						break
+					}
+
+					await sleepFn(3000)
+				}
 			}
 		}
+
+		poll()
+
+		return stopPolling
 	}
+}
 
-	poll()
-
-	return stopPolling
+export const startLongPolling = (fileId, initialStatus, onUpdate, shouldStop, onError = null, options = {}) => {
+	return createLongPolling(options)(fileId, initialStatus, onUpdate, shouldStop, onError)
 }
 
 const isTerminalStatus = (status) => {
