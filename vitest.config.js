@@ -5,8 +5,10 @@
 
 import { resolve } from 'node:path'
 import { defineConfig } from 'vitest/config'
+import vue from '@vitejs/plugin-vue2'
 
 export default defineConfig({
+	plugins: [vue()],
 	resolve: {
 		alias: {
 			'@': resolve(__dirname, './src'),
@@ -15,6 +17,8 @@ export default defineConfig({
 	test: {
 		include: ['src/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
 		environment: 'jsdom',
+		globals: true,
+		pool: 'vmForks',
 		environmentOptions: {
 			jsdom: {
 				url: 'http://localhost',
