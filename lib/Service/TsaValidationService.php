@@ -38,11 +38,17 @@ class TsaValidationService {
 	}
 
 	private function validateTsaUrlFormat(string $tsaUrl): void {
+		$tsaUrlParsed = parse_url($tsaUrl);
+
+		$scheme = $tsaUrlParsed['scheme'] ?? '';
+		if ($scheme !== '' && !in_array(strtolower($scheme), ['http', 'https'], true)) {
+			throw new LibresignException('TSA URL must use HTTP or HTTPS protocol: ' . $tsaUrl);
+		}
+
 		if (!filter_var($tsaUrl, FILTER_VALIDATE_URL)) {
 			throw new LibresignException('Invalid TSA URL format: ' . $tsaUrl);
 		}
 
-		$tsaUrlParsed = parse_url($tsaUrl);
 		if (!isset($tsaUrlParsed['host'])) {
 			throw new LibresignException('Invalid TSA URL: ' . $tsaUrl);
 		}
@@ -50,6 +56,11 @@ class TsaValidationService {
 
 	private function validateTsaHostResolution(string $tsaUrl): void {
 		$host = (string)parse_url($tsaUrl, PHP_URL_HOST);
+
+		if (filter_var($host, FILTER_VALIDATE_IP)) {
+			return;
+		}
+
 		if (!@gethostbyname($host) || gethostbyname($host) === $host) {
 			throw new LibresignException('Timestamp Authority (TSA) service is unavailable or misconfigured: ' . $tsaUrl);
 		}
