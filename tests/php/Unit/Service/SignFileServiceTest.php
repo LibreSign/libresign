@@ -20,6 +20,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Enum\DocMdpLevel;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\FileStatus as FileStatusEnum;
 use OCA\Libresign\Events\SignedEvent;
@@ -52,6 +53,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJobList;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
@@ -96,7 +98,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IdentifyMethodService&MockObject $identifyMethodService;
 	private ITimeFactory&MockObject $timeFactory;
 	private JavaHelper&MockObject $javaHelper;
-	private SignEngineFactory $signEngineFactory;
+	private SignEngineFactory&MockObject $signEngineFactory;
 	private SignedEventFactory&MockObject $signedEventFactory;
 	private Pdf&MockObject $pdf;
 	private DocMdpHandler $docMdpHandler;
@@ -141,7 +143,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->timeFactory = $this->createMock(ITimeFactory::class);
 		$this->javaHelper = $this->createMock(JavaHelper::class);
-		$this->signEngineFactory = \OCP\Server::get(SignEngineFactory::class);
+		$this->signEngineFactory = $this->createMock(SignEngineFactory::class);
 		$this->signedEventFactory = $this->createMock(SignedEventFactory::class);
 		$this->pdf = $this->createMock(Pdf::class);
 		$this->docMdpHandler = new DocMdpHandler($this->l10n);
@@ -208,12 +210,182 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$engine->method('getPfxOfCurrentSigner')->willReturn('pfx');
 
-		$method = new \ReflectionMethod(SignFileService::class, 'getOrGeneratePfxContent');
-		$method->setAccessible(true);
-		$result = $method->invoke($service, $engine);
+		$result = self::invokePrivate($service, 'getOrGeneratePfxContent', [$engine]);
 
 		$this->assertSame('pfx', $result);
 		$this->assertSame([1, null], $expiryCalls);
+	}
+
+	public function testGetJobArgumentsWithoutCredentialsIncludesContext(): void {
+		$service = $this->getService();
+
+		$fileElement = new FileElement();
+		$fileElement->setId(5);
+		$elementAssoc = new \OCA\Libresign\DataObjects\VisibleElementAssoc($fileElement);
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(9);
+		$signRequest->setMetadata(['remote-address' => '127.0.0.1']);
+
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')->willReturn('user1');
+
+		$service->setUserUniqueIdentifier('account:user1');
+		$service->setFriendlyName('User One');
+		$service->setSignRequest($signRequest);
+		$service->setCurrentUser($user);
+
+		self::invokePrivate($service, 'elements', [[5 => $elementAssoc]]);
+
+		$args = $service->getJobArgumentsWithoutCredentials();
+
+		$this->assertSame('account:user1', $args['userUniqueIdentifier']);
+		$this->assertSame('User One', $args['friendlyName']);
+		$this->assertSame('user1', $args['userId']);
+		$this->assertSame(['remote-address' => '127.0.0.1'], $args['metadata']);
+		$this->assertArrayHasKey('visibleElements', $args);
+	}
+
+	public function testValidateSigningRequirementsDelegatesToTsaValidation(): void {
+		$service = $this->getService();
+		$this->tsaValidationService->expects($this->once())
+			->method('validateConfiguration');
+
+		$service->validateSigningRequirements();
+	}
+
+	public function testEnqueueParallelSigningJobsSkipsIneligibleFiles(): void {
+		$service = $this->getService();
+
+		$signedFile = new File();
+		$signedFile->setId(1);
+		$signedFile->setSignedHash('hash');
+		$signedFile->setNodeId(10);
+		$signedFile->setUserId('user1');
+
+		$validFile = new File();
+		$validFile->setId(2);
+		$validFile->setNodeId(20);
+		$validFile->setUserId('user1');
+
+		$signRequestA = new SignRequest();
+		$signRequestA->setId(100);
+		$signRequestA->setUuid('uuid-a');
+
+		$signRequestB = new SignRequest();
+		$signRequestB->setId(200);
+		$signRequestB->setUuid('uuid-b');
+
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder->method('getFirstNodeById')
+			->with(20)
+			->willReturn($this->createMock(\OCP\Files\File::class));
+
+		$this->root->method('getUserFolder')
+			->with('user1')
+			->willReturn($folder);
+
+		$this->jobList->expects($this->once())
+			->method('add')
+			->with(
+				SignSingleFileJob::class,
+				$this->callback(function (array $args): bool {
+					return $args['fileId'] === 2
+						&& $args['signRequestId'] === 200
+						&& $args['signRequestUuid'] === 'uuid-b';
+				})
+			);
+
+		$enqueued = $service->enqueueParallelSigningJobs([
+			['file' => $signedFile, 'signRequest' => $signRequestA],
+			['file' => $validFile, 'signRequest' => $signRequestB],
+		]);
+
+		$this->assertSame(1, $enqueued);
+	}
+
+	public function testValidateDocMdpAllowsSignaturesThrowsWhenCertifiedNoChanges(): void {
+		$service = $this->getService();
+
+		$file = new File();
+		$file->setDocmdpLevelEnum(DocMdpLevel::CERTIFIED_NO_CHANGES_ALLOWED);
+		$service->setLibreSignFile($file);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('This document has been certified with no changes allowed. You cannot add more signers to this document.');
+
+		self::invokePrivate($service, 'validateDocMdpAllowsSignatures');
+	}
+
+	public function testValidateDocMdpAllowsSignaturesChecksDocMdpHandler(): void {
+		$this->docMdpHandler = $this->createMock(DocMdpHandler::class);
+		$this->docMdpHandler->expects($this->once())
+			->method('allowsAdditionalSignatures')
+			->willReturn(false);
+
+		$service = $this->getService(['getLibreSignFileAsResource']);
+		$resource = fopen('php://memory', 'r+');
+		fwrite($resource, 'pdf');
+		rewind($resource);
+
+		$service->method('getLibreSignFileAsResource')
+			->willReturn($resource);
+
+		$file = new File();
+		$file->setDocmdpLevelEnum(DocMdpLevel::NOT_CERTIFIED);
+		$service->setLibreSignFile($file);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('This document has been certified with no changes allowed. You cannot add more signers to this document.');
+
+		self::invokePrivate($service, 'validateDocMdpAllowsSignatures');
+	}
+
+	public function testEnqueueParallelSigningJobsStoresCredentialsWhenPasswordless(): void {
+		$service = $this->getService();
+		$service->setSignWithoutPassword(true);
+		$service->setCurrentUser($this->createMock(\OCP\IUser::class));
+
+		$file = new File();
+		$file->setId(2);
+		$file->setNodeId(20);
+		$file->setUserId('user1');
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(200);
+		$signRequest->setUuid('uuid-b');
+
+		$folder = $this->createMock(Folder::class);
+		$folder->method('getFirstNodeById')
+			->with(20)
+			->willReturn($this->createMock(\OCP\Files\File::class));
+		$this->root->method('getUserFolder')->willReturn($folder);
+
+		$this->credentialsManager->expects($this->once())
+			->method('store')
+			->with(
+				'',
+				$this->stringContains('libresign_sign_'),
+				$this->callback(function (array $payload): bool {
+					return $payload['signWithoutPassword'] === true
+						&& isset($payload['expires']);
+				})
+			);
+
+		$this->jobList->expects($this->once())
+			->method('add')
+			->with(
+				SignSingleFileJob::class,
+				$this->callback(function (array $args): bool {
+					return isset($args['credentialsId']);
+				})
+			);
+
+		$enqueued = $service->enqueueParallelSigningJobs([
+			['file' => $file, 'signRequest' => $signRequest],
+		]);
+
+		$this->assertSame(1, $enqueued);
 	}
 
 	private function getService(array $methods = []): SignFileService|MockObject {
@@ -767,6 +939,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	#[DataProvider('providerGetEngineWillWorkWithLazyLoadedEngine')]
 	public function testGetEngineWillWorkWithLazyLoadedEngine(string $extension, string $instanceOf): void {
+		$expectedEngine = $this->createMock($instanceOf);
+
+		$this->signEngineFactory->method('resolve')
+			->willReturn($expectedEngine);
+
 		$service = $this->getService([
 			'updateSignRequest',
 			'updateLibreSignFile',
@@ -1711,5 +1888,431 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[[['documentElementId' => 171]], 171, null, LibresignException::class],
 			[[['documentElementId' => 171]], null, null, LibresignException::class],
 		];
+	}
+	public function testGetSignRequestsToSignForStandaloneFile(): void {
+		$service = $this->getService();
+
+		$file = new File();
+		$file->setId(1);
+		$file->setNodeType('file');
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(10);
+		$signRequest->setFileId(1);
+
+		$service->setLibreSignFile($file);
+		$service->setSignRequest($signRequest);
+
+		$result = self::invokePrivate($service, 'getSignRequestsToSign');
+		$this->assertSame($signRequest, $result[0]['signRequest']);
+	}
+
+	public function testGetSignRequestsToSignForEnvelopeWithChildren(): void {
+		$service = $this->getService();
+
+		$envelope = new File();
+		$envelope->setId(1);
+		$envelope->setNodeType('envelope');
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(10);
+		$signRequest->setFileId(1);
+
+		$child1 = new File();
+		$child1->setId(2);
+		$child2 = new File();
+		$child2->setId(3);
+
+		$childSr1 = new SignRequest();
+		$childSr1->setId(20);
+		$childSr1->setFileId(2);
+
+		$childSr2 = new SignRequest();
+		$childSr2->setId(21);
+		$childSr2->setFileId(3);
+
+		$this->fileMapper->method('getChildrenFiles')
+			->with(1)
+			->willReturn([$child1, $child2]);
+
+		$this->signRequestMapper->method('getByEnvelopeChildrenAndIdentifyMethod')
+			->with(1, 10)
+			->willReturn([$childSr1, $childSr2]);
+
+		$service->setLibreSignFile($envelope);
+		$service->setSignRequest($signRequest);
+
+		$result = self::invokePrivate($service, 'getSignRequestsToSign');
+		$this->assertSame(20, $result[0]['signRequest']->getId());
+		$this->assertSame(3, $result[1]['file']->getId());
+		$this->assertSame(21, $result[1]['signRequest']->getId());
+	}
+
+	public function testGetSignRequestsToSignThrowsWhenNoChildrenFiles(): void {
+		$service = $this->getService();
+
+		$envelope = new File();
+		$envelope->setId(1);
+		$envelope->setNodeType('envelope');
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(10);
+
+		$this->fileMapper->method('getChildrenFiles')
+			->with(1)
+			->willReturn([]);
+
+		$service->setLibreSignFile($envelope);
+		$service->setSignRequest($signRequest);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('No files found in envelope');
+
+		self::invokePrivate($service, 'getSignRequestsToSign');
+	}
+
+	public function testGetSignRequestsToSignThrowsWhenNoSignRequests(): void {
+		$service = $this->getService();
+
+		$envelope = new File();
+		$envelope->setId(1);
+		$envelope->setNodeType('envelope');
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(10);
+
+		$child = new File();
+		$child->setId(2);
+
+		$this->fileMapper->method('getChildrenFiles')
+			->willReturn([$child]);
+
+		$this->signRequestMapper->method('getByEnvelopeChildrenAndIdentifyMethod')
+			->willReturn([]);
+
+		$service->setLibreSignFile($envelope);
+		$service->setSignRequest($signRequest);
+
+		$this->expectException(LibresignException::class);
+		$this->expectExceptionMessage('No sign requests found for envelope files');
+
+		self::invokePrivate($service, 'getSignRequestsToSign');
+	}
+
+	public static function getEnvelopeContextProvider(): array {
+		return [
+			'standalone file' => [null, 1, 'file', null],
+			'envelope itself' => [null, 1, 'envelope', 1],
+			'child file' => [1, 2, 'file', 1],
+		];
+	}
+
+	#[DataProvider('getEnvelopeContextProvider')]
+	public function testGetEnvelopeContext(?int $parentFileId, int $fileId, string $nodeType, ?int $expectedEnvelopeId): void {
+		$service = $this->getService();
+
+		$file = new File();
+		$file->setId($fileId);
+		$file->setNodeType($nodeType);
+		$file->setParentFileId($parentFileId);
+
+		$service->setLibreSignFile($file);
+
+		if ($nodeType === 'file' && $parentFileId === null) {
+			$signRequest = new SignRequest();
+			$signRequest->setId(10);
+			$service->setSignRequest($signRequest);
+			$result = self::invokePrivate($service, 'getEnvelopeContext');
+			$this->assertNull($result['envelopeSignRequest']);
+		} elseif ($nodeType === 'envelope') {
+			$signRequest = new SignRequest();
+			$signRequest->setId(10);
+			$service->setSignRequest($signRequest);
+			$result = self::invokePrivate($service, 'getEnvelopeContext');
+			$this->assertArrayHasKey('envelope', $result);
+		} elseif ($nodeType === 'file' && $parentFileId !== null) {
+			$envelope = new File();
+			$envelope->setId($expectedEnvelopeId);
+			$envelope->setNodeType('envelope');
+			$this->fileMapper->method('getById')
+				->with($expectedEnvelopeId)
+				->willReturn($envelope);
+
+			$identifyMethod = $this->createMock(IIdentifyMethod::class);
+			$this->identifyMethodService->method('getIdentifiedMethod')
+				->willReturn($identifyMethod);
+
+			$envelopeSignRequest = new SignRequest();
+			$envelopeSignRequest->setId(100);
+			$envelopeSignRequest->setFileId($expectedEnvelopeId);
+
+			$this->signRequestMapper->method('getByIdentifyMethodAndFileId')
+				->with($identifyMethod, $expectedEnvelopeId)
+				->willReturn($envelopeSignRequest);
+
+			$childSignRequest = new SignRequest();
+			$childSignRequest->setId(20);
+			$childSignRequest->setFileId($fileId);
+			$service->setSignRequest($childSignRequest);
+
+			$result = self::invokePrivate($service, 'getEnvelopeContext');
+
+			$this->assertSame($expectedEnvelopeId, $result['envelope']->getId());
+		}
+	}
+
+	public function testGetEnvelopeContextReturnsNullWhenEnvelopeNotFound(): void {
+		$service = $this->getService();
+
+		$child = new File();
+		$child->setId(2);
+		$child->setNodeType('file');
+		$child->setParentFileId(1);
+
+		$childSignRequest = new SignRequest();
+		$childSignRequest->setId(20);
+
+		$this->fileMapper->method('getById')
+			->willThrowException(new DoesNotExistException(''));
+
+		$service->setLibreSignFile($child);
+		$service->setSignRequest($childSignRequest);
+
+		$result = self::invokePrivate($service, 'getEnvelopeContext');
+
+		$this->assertNull($result['envelope']);
+		$this->assertNull($result['envelopeSignRequest']);
+	}
+
+	public function testStoreCertificateInfoInMetadata(): void {
+		$service = $this->getService();
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(10);
+		$signRequest->setFileId(1);
+		$signRequest->setMetadata(['existing' => 'data']);
+
+		$service->setSignRequest($signRequest);
+
+		$certificateInfo = [
+			'serialNumber' => '12345',
+			'serialNumberHex' => 'abc123',
+			'hash' => 'sha256hash',
+			'subject' => [
+				'CN' => 'John Doe',
+				'C' => 'US',
+			],
+		];
+
+		$engine = $this->createMock(SignEngineHandler::class);
+		$engine->method('readCertificate')->willReturn($certificateInfo);
+
+		self::invokePrivate($service, 'engine', [$engine]);
+		self::invokePrivate($service, 'storeCertificateInfoInMetadata', [$certificateInfo]);
+
+		$meta = $signRequest->getMetadata();
+		$this->assertArrayHasKey('certificate_info', $meta);
+		$this->assertSame('12345', $meta['certificate_info']['serialNumber']);
+		$this->assertSame('abc123', $meta['certificate_info']['serialNumberHex']);
+		$this->assertSame('sha256hash', $meta['certificate_info']['hash']);
+		$this->assertArrayHasKey('subject', $meta['certificate_info']);
+		$this->assertSame('John Doe', $meta['certificate_info']['subject']['CN']);
+		$this->assertSame('US', $meta['certificate_info']['subject']['C']);
+		$this->assertArrayHasKey('existing', $meta);
+		$this->assertSame('data', $meta['existing']);
+	}
+
+	public function testStoreCertificateInfoDoesNotOverwriteExistingMetadata(): void {
+		$service = $this->getService();
+
+		$signRequest = new SignRequest();
+		$signRequest->setId(10);
+		$signRequest->setMetadata([
+			'existing_key' => 'existing_value',
+			'other_data' => 'preserved',
+		]);
+
+		$service->setSignRequest($signRequest);
+
+		$certificateInfo = [
+			'serialNumber' => '99999',
+		];
+
+		self::invokePrivate($service, 'storeCertificateInfoInMetadata', [$certificateInfo]);
+
+		$meta = $signRequest->getMetadata();
+		$this->assertArrayHasKey('existing_key', $meta);
+		$this->assertSame('existing_value', $meta['existing_key']);
+		$this->assertArrayHasKey('other_data', $meta);
+	}
+
+	public function testBuildSignRequestsMapGroupsByFileId(): void {
+		$service = $this->getService();
+
+		$child1 = new File();
+		$child1->setId(10);
+
+		$child2 = new File();
+		$child2->setId(20);
+
+		$signRequest1a = new SignRequest();
+		$signRequest1a->setId(1);
+		$signRequest1a->setFileId(10);
+
+		$signRequest1b = new SignRequest();
+		$signRequest1b->setId(2);
+		$signRequest1b->setFileId(10);
+
+		$signRequest2 = new SignRequest();
+		$signRequest2->setId(3);
+		$signRequest2->setFileId(20);
+
+		$this->signRequestMapper->method('getByFileId')
+			->willReturnMap([
+				[10, [$signRequest1a, $signRequest1b]],
+				[20, [$signRequest2]],
+			]);
+
+		$result = self::invokePrivate($service, 'buildSignRequestsMap', [[$child1, $child2]]);
+
+		$this->assertCount(2, $result);
+		$this->assertArrayHasKey(10, $result);
+		$this->assertArrayHasKey(20, $result);
+		$this->assertCount(2, $result[10]);
+		$this->assertCount(1, $result[20]);
+
+		$this->assertCount(2, $result);
+		$this->assertArrayHasKey(10, $result);
+		$this->assertArrayHasKey(20, $result);
+		$this->assertCount(2, $result[10]);
+		$this->assertCount(1, $result[20]);
+	}
+
+	public function testHandleSignedEnvelopeSignRequestUpdatesStatusAndReleases(): void {
+		$service = $this->getService();
+
+		$envelope = new File();
+		$envelope->setId(1);
+		$envelope->setNodeType('envelope');
+
+		$envelopeSignRequest = new SignRequest();
+		$envelopeSignRequest->setId(10);
+		$envelopeSignRequest->setFileId(1);
+		$envelopeSignRequest->setSigningOrder(1);
+
+		$signedDate = new \DateTime('2026-01-15 10:00:00');
+
+		$this->signRequestMapper->expects($this->once())
+			->method('update')
+			->with($this->callback(function (SignRequest $sr) use ($signedDate) {
+				$this->assertEquals($signedDate, $sr->getSigned());
+				$this->assertEquals(\OCA\Libresign\Enum\SignRequestStatus::SIGNED, $sr->getStatusEnum());
+				return true;
+			}));
+
+		$this->sequentialSigningService->expects($this->once())
+			->method('setFile')
+			->with($envelope)
+			->willReturnSelf();
+
+		$this->sequentialSigningService->expects($this->once())
+			->method('releaseNextOrder')
+			->with(1, 1);
+
+		self::invokePrivate($service, 'handleSignedEnvelopeSignRequest', [$envelope, $envelopeSignRequest, $signedDate, FileStatus::PARTIAL_SIGNED->value]);
+	}
+
+	public function testHandleSignedEnvelopeSignRequestSkipsWhenNoSignRequest(): void {
+		$service = $this->getService();
+
+		$envelope = new File();
+		$envelope->setId(1);
+
+		$this->signRequestMapper->expects($this->never())
+			->method('update');
+
+		self::invokePrivate($service, 'handleSignedEnvelopeSignRequest', [$envelope, null, null, FileStatus::DRAFT->value]);
+	}
+
+	public function testUpdateEnvelopeMetadataAddsTimestamp(): void {
+		$service = $this->getService();
+
+		$envelope = new File();
+		$envelope->setId(1);
+		$envelope->setMetadata(['existing' => 'value']);
+
+		self::invokePrivate($service, 'updateEnvelopeMetadata', [$envelope]);
+
+		$meta = $envelope->getMetadata();
+		$this->assertArrayHasKey('existing', $meta);
+		$this->assertNotEmpty($meta['status_changed_at']);
+
+		// Validate ISO 8601 format
+		$timestamp = \DateTime::createFromFormat(\DateTimeInterface::ATOM, $meta['status_changed_at']);
+		$this->assertNotFalse($timestamp);
+	}
+
+	public static function verifyFileExistsProvider(): array {
+		return [
+			'accessible file' => ['user1', 123, true, 'file'],
+			'node is folder' => ['user1', 123, false, 'folder'],
+			'user exception' => ['user1', 123, false, 'exception'],
+			'null uid' => [null, 123, false, 'skip'],
+			'zero node id' => ['user1', 0, false, 'skip'],
+		];
+	}
+
+	#[DataProvider('verifyFileExistsProvider')]
+	public function testVerifyFileExists(?string $uid, int $nodeId, bool $expected, string $scenario): void {
+		$service = $this->getService();
+
+		if ($scenario === 'exception') {
+			$this->root->method('getUserFolder')
+				->willThrowException(new NoUserException());
+		} elseif ($scenario === 'file') {
+			$mockFile = $this->createMock(\OCP\Files\File::class);
+			$mockFolder = $this->createMock(\OCP\Files\Folder::class);
+			$mockFolder->method('getFirstNodeById')->willReturn($mockFile);
+			$this->root->method('getUserFolder')->willReturn($mockFolder);
+		} elseif ($scenario === 'folder') {
+			$mockFolder = $this->createMock(\OCP\Files\Folder::class);
+			$mockFolder->method('getFirstNodeById')->willReturn($mockFolder);
+			$this->root->method('getUserFolder')->willReturn($mockFolder);
+		}
+
+		$result = self::invokePrivate($service, 'verifyFileExists', [$uid, $nodeId]);
+
+		$this->assertSame($expected, $result);
+	}
+
+	public static function cleanupUnsignedSignedFileProvider(): array {
+		return [
+			'delete success' => [true, null],
+			'delete with error' => [true, new \Exception('Delete failed')],
+			'no file' => [false, null],
+		];
+	}
+
+	#[DataProvider('cleanupUnsignedSignedFileProvider')]
+	public function testCleanupUnsignedSignedFile(bool $hasFile, ?\Exception $deleteException): void {
+		$service = $this->getService();
+
+		if ($hasFile) {
+			$mockFile = $this->createMock(\OCP\Files\File::class);
+
+			if ($deleteException) {
+				$mockFile->method('delete')
+					->willThrowException($deleteException);
+			} else {
+				$mockFile->expects($this->once())
+					->method('delete');
+			}
+
+			self::invokePrivate($service, 'createdSignedFile', [$mockFile]);
+		}
+
+		self::invokePrivate($service, 'cleanupUnsignedSignedFile');
+
+		$this->assertNull(self::invokePrivate($service, 'createdSignedFile'));
 	}
 }
