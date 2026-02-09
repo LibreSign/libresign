@@ -775,8 +775,9 @@ export default {
 
 			const file = this.filesStore.getFile()
 			const signerOrder = signer.signingOrder || 1
+			const signers = Array.isArray(file?.signers) ? file.signers : []
 
-			const hasPendingLowerOrder = file.signers.some(s => {
+			const hasPendingLowerOrder = signers.some(s => {
 				const otherOrder = s.signingOrder || 1
 				return otherOrder < signerOrder && !s.signed
 			})
@@ -784,10 +785,12 @@ export default {
 			return !hasPendingLowerOrder
 		},
 		hasAnyDraftSigner(file) {
-			return file.signers.some(signer => signer.status === 0)
+			const signers = Array.isArray(file?.signers) ? file.signers : []
+			return signers.some(signer => signer.status === 0)
 		},
 		hasSequentialDraftSigners(file) {
-			const signersNotSigned = file.signers.filter(s => !s.signed)
+			const signers = Array.isArray(file?.signers) ? file.signers : []
+			const signersNotSigned = signers.filter(s => !s.signed)
 			if (signersNotSigned.length === 0) {
 				return false
 			}
@@ -799,7 +802,8 @@ export default {
 			return Math.min(...signersNotSigned.map(s => s.signingOrder || 1))
 		},
 		hasOrderDraftSigners(file, order) {
-			return file.signers.some(signer => {
+			const signers = Array.isArray(file?.signers) ? file.signers : []
+			return signers.some(signer => {
 				const signerOrder = signer.signingOrder || 1
 				return signerOrder === order && signer.status === 0
 			})

@@ -227,11 +227,17 @@ export const useFilesStore = function(...args) {
 				if (!Object.hasOwn(file, 'signers')) {
 					return false
 				}
+				if (!Array.isArray(file.signers)) {
+					return false
+				}
 				return file.signers.length > 0
 			},
 			isPartialSigned(file) {
 				file = this.getFile(file)
 				if (!Object.hasOwn(file, 'signers')) {
+					return false
+				}
+				if (!Array.isArray(file.signers)) {
 					return false
 				}
 				return file.signers
@@ -240,6 +246,9 @@ export const useFilesStore = function(...args) {
 			isFullSigned(file) {
 				file = this.getFile(file)
 				if (!Object.hasOwn(file, 'signers')) {
+					return false
+				}
+				if (!Array.isArray(file.signers)) {
 					return false
 				}
 				return file.signers.length > 0
