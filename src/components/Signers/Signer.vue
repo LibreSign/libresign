@@ -21,7 +21,7 @@
 					:text="method"
 					:no-close="true" />
 				<NcChip :text="signer.statusText"
-					:type="chipType"
+					:variant="chipType"
 					:icon-path="statusIconPath"
 					:no-close="true"
 					class="signer-status-chip" />
