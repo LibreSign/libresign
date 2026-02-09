@@ -369,8 +369,8 @@ export default {
 			return 'valid'
 		},
 		hasValidationStatus(signer) {
-			return signer.signature_validation || signer.certificate_validation || signer.crl_validation
-				|| (signer.valid_from && signer.valid_to && signer.signed)
+			return !!(signer.signature_validation || signer.certificate_validation || signer.crl_validation
+				|| (signer.valid_from && signer.valid_to && signer.signed))
 		},
 		getSignatureValidationMessage(signer) {
 			if (signer.signature_validation?.id === 1) {
