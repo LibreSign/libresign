@@ -14,12 +14,10 @@
 		</div>
 		<div v-else class="visible-elements-container">
 			<div class="sign-details">
-				<h2 class="modal_name">
-					<Chip :state="isDraft ? 'warning' : 'default'">
-						{{ statusLabel }}
-					</Chip>
-					<span class="name">{{ document.name }}</span>
-				</h2>
+				<div class="modal_name">
+					<NcChip :text="statusLabel" :variant="isDraft ? 'warning' : 'primary'" no-close />
+					<h2 class="name">{{ document.name }}</h2>
+				</div>
 				<p v-if="!signerSelected">
 					<NcNoteCard type="info"
 						:text="t('libresign', 'Select a signer to set their signature position')" />
@@ -79,11 +77,11 @@ import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcChip from '@nextcloud/vue/components/NcChip'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 
-import Chip from '../Chip.vue'
 import PdfEditor from '../PdfEditor/PdfEditor.vue'
 import Signer from '../Signers/Signer.vue'
 
@@ -95,8 +93,8 @@ export default {
 	components: {
 		NcNoteCard,
 		NcModal,
+		NcChip,
 		Signer,
-		Chip,
 		NcButton,
 		NcLoadingIcon,
 		PdfEditor,
@@ -454,32 +452,14 @@ export default {
 	align-items: center;
 	gap: 8px;
 	margin: 0 0 12px 0;
+}
 
-	@media (max-width: 767px) {
-		flex-direction: row;
-	}
-
-	@media (min-width: 768px) {
-		flex-direction: column;
-		align-items: flex-start;
-	}
-
-	.name {
-		flex: auto;
-		font-size: 18px;
-		overflow-wrap: break-word;
-		word-break: break-word;
-
-		@media (max-width: 767px) {
-			text-align: center;
-			font-size: 21px;
-		}
-
-		@media (min-width: 768px) {
-			text-align: left;
-			width: 100%;
-		}
-	}
+.name {
+	flex: 1;
+	font-size: 18px;
+	overflow-wrap: break-word;
+	word-break: break-word;
+	margin: 0;
 }
 .modal-container {
 	.notecard--info {
