@@ -3,10 +3,23 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { describe, expect, it, beforeEach } from 'vitest'
+import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useSignStore } from './sign.js'
 import { FILE_STATUS } from '../constants.js'
+
+// Mock @nextcloud/router
+vi.mock('@nextcloud/router', () => ({
+	generateOcsUrl: vi.fn((path, params) => {
+		let url = `/ocs/v2.php/apps/libresign${path}`
+		if (params) {
+			Object.keys(params).forEach(key => {
+				url = url.replace(`{${key}}`, params[key])
+			})
+		}
+		return url
+	}),
+}))
 
 describe('useSignStore', () => {
 	beforeEach(() => {
@@ -105,6 +118,59 @@ describe('useSignStore', () => {
 				signers: [],
 			}
 			expect(store.ableToSign).toBe(false)
+		})
+	})
+
+	describe('buildSignUrl', () => {
+		it('uses /sign/uuid endpoint when signRequestUuid is provided', () => {
+			const store = useSignStore()
+			const url = store.buildSignUrl('abc-123-def-456', { documentId: 999 })
+
+			expect(url).toContain('/sign/uuid/abc-123-def-456')
+			expect(url).toContain('?async=true')
+			expect(url).not.toContain('/sign/file_id/')
+		})
+
+		it('uses /sign/file_id endpoint when signRequestUuid is not provided', () => {
+			const store = useSignStore()
+			const url = store.buildSignUrl(null, { documentId: 271 })
+
+			expect(url).toContain('/sign/file_id/271')
+			expect(url).toContain('?async=true')
+			expect(url).not.toContain('/sign/uuid/')
+		})
+
+		it('uses /sign/file_id endpoint when signRequestUuid is undefined', () => {
+			const store = useSignStore()
+			const url = store.buildSignUrl(undefined, { documentId: 100 })
+
+			expect(url).toContain('/sign/file_id/100')
+			expect(url).toContain('?async=true')
+		})
+
+		it('uses /sign/file_id endpoint when signRequestUuid is empty string', () => {
+			const store = useSignStore()
+			const url = store.buildSignUrl('', { documentId: 42 })
+
+			expect(url).toContain('/sign/file_id/42')
+			expect(url).toContain('?async=true')
+		})
+
+		it('prioritizes signRequestUuid over documentId when both are provided', () => {
+			const store = useSignStore()
+			const url = store.buildSignUrl('uuid-from-email', { documentId: 999 })
+
+			// Should use UUID endpoint, not file_id
+			expect(url).toContain('/sign/uuid/uuid-from-email')
+			expect(url).not.toContain('/sign/file_id/')
+		})
+
+		it('handles valid UUID format', () => {
+			const store = useSignStore()
+			const validUuid = '550e8400-e29b-41d4-a716-446655440000'
+			const url = store.buildSignUrl(validUuid, { documentId: 100 })
+
+			expect(url).toContain(`/sign/uuid/${validUuid}`)
 		})
 	})
 })
