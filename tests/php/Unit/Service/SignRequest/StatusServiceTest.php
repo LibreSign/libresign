@@ -6,6 +6,7 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Enum\FileStatus;
 use OCA\Libresign\Enum\SignRequestStatus;
 use OCA\Libresign\Service\FileStatusService;
@@ -157,5 +158,33 @@ final class StatusServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[3, 123, null, null, null, true, $draftStatus],
 			[10, 123, null, null, null, true, $draftStatus],
 		];
+	}
+
+	public static function updateStatusIfAllowedScenarios(): array {
+		return [
+			'keeps status when policy blocks' => [false, SignRequestStatus::ABLE_TO_SIGN],
+			'downgrades when pending lower signers' => [true, SignRequestStatus::DRAFT],
+		];
+	}
+
+	#[DataProvider('updateStatusIfAllowedScenarios')]
+	public function testUpdateStatusIfAllowed(bool $hasPendingLowerSigners, SignRequestStatus $expectedStatus): void {
+		$signRequest = new SignRequestEntity();
+		$signRequest->setStatusEnum(SignRequestStatus::ABLE_TO_SIGN);
+		$signRequest->setSigningOrder(2);
+		$signRequest->setFileId(10);
+
+		$this->sequentialSigningService->method('isOrderedNumericFlow')->willReturn(true);
+		$this->sequentialSigningService->method('isStatusUpgrade')->willReturn(false);
+		$this->sequentialSigningService->method('hasPendingLowerOrderSigners')->willReturn($hasPendingLowerSigners);
+
+		$this->service->updateStatusIfAllowed(
+			$signRequest,
+			SignRequestStatus::ABLE_TO_SIGN,
+			SignRequestStatus::DRAFT,
+			false
+		);
+
+		$this->assertSame($expectedStatus, $signRequest->getStatusEnum());
 	}
 }

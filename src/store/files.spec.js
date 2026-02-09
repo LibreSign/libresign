@@ -215,4 +215,34 @@ describe('files store - critical business rules', () => {
 			expect(store.canSign()).toBe(true)
 		})
 	})
+
+	describe('RULE: adding signers respects document state', () => {
+		it('blocks adding signers when original file was deleted', () => {
+			const store = useFilesStore()
+			store.selectedFileId = 1
+			store.canRequestSign = true
+			store.files[1] = {
+				id: 1,
+				metadata: { original_file_deleted: true },
+				signers: [],
+			}
+
+			expect(store.canAddSigner()).toBe(false)
+		})
+
+		it('blocks adding signers when DocMDP forbids changes', () => {
+			const store = useFilesStore()
+			store.selectedFileId = 1
+			store.canRequestSign = true
+			store.files[1] = {
+				id: 1,
+				docmdpLevel: 1,
+				signers: [{ me: true }],
+				requested_by: { userId: 'testuser' },
+			}
+
+			expect(store.isDocMdpNoChangesAllowed()).toBe(true)
+			expect(store.canAddSigner()).toBe(false)
+		})
+	})
 })
