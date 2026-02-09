@@ -251,11 +251,30 @@ export const useFilesStore = function(...args) {
 				if (this.isOriginalFileDeleted(file)) {
 					return false
 				}
-				return !this.isFullSigned(file)
-					&& file.status > 0
-					&& file?.signers?.filter(signer => signer.me).length > 0
-					&& file?.signers?.filter(signer => signer.me)
-						.filter(signer => signer.signed?.length > 0).length === 0
+				const isSigned = (signer) => Array.isArray(signer.signed)
+					? signer.signed.length > 0
+					: !!signer.signed
+				const mySigners = file?.signers?.filter(signer => signer.me) || []
+				if (this.isFullSigned(file)
+					|| file.status <= 0
+					|| mySigners.length === 0
+					|| mySigners.some((signer) => isSigned(signer))) {
+					return false
+				}
+
+				const flow = file?.signatureFlow
+				const isOrderedNumeric = flow === 'ordered_numeric' || flow === 2
+				if (!isOrderedNumeric) {
+					return true
+				}
+
+				const pendingSigners = file?.signers?.filter(signer => !isSigned(signer)) || []
+				if (pendingSigners.length === 0) {
+					return false
+				}
+
+				const minOrder = Math.min(...pendingSigners.map(signer => signer.signingOrder || 1))
+				return mySigners.some(signer => (signer.signingOrder || 1) === minOrder)
 			},
 			canValidate(file) {
 				file = this.getFile(file)
