@@ -12,7 +12,7 @@ vi.mock('vue', () => ({
 	}),
 }))
 
-describe('sidebar store - regras de visibilidade', () => {
+describe('sidebar store - visibility rules', () => {
 	let useSidebarStore
 
 	beforeEach(async () => {
@@ -23,8 +23,8 @@ describe('sidebar store - regras de visibilidade', () => {
 		useSidebarStore = module.useSidebarStore
 	})
 
-	describe('regra de negócio: sidebar só pode ser mostrado se tiver uma aba ativa', () => {
-		it('não pode mostrar sidebar sem aba ativa', () => {
+	describe('business rule: sidebar can only be shown if it has an active tab', () => {
+		it('cannot show sidebar without active tab', () => {
 			const store = useSidebarStore()
 			store.show = false
 			store.activeTab = ''
@@ -32,7 +32,7 @@ describe('sidebar store - regras de visibilidade', () => {
 			expect(store.canShow()).toBe(false)
 		})
 
-		it('pode mostrar sidebar quando tem aba ativa', () => {
+		it('can show sidebar when it has active tab', () => {
 			const store = useSidebarStore()
 			store.show = false
 			store.activeTab = 'sign-tab'
@@ -40,7 +40,7 @@ describe('sidebar store - regras de visibilidade', () => {
 			expect(store.canShow()).toBe(true)
 		})
 
-		it('não pode mostrar se já está visível', () => {
+		it('cannot show if already visible', () => {
 			const store = useSidebarStore()
 			store.show = true
 			store.activeTab = 'sign-tab'
@@ -49,8 +49,8 @@ describe('sidebar store - regras de visibilidade', () => {
 		})
 	})
 
-	describe('regra de negócio: sidebar só está visível se estiver show=true E com aba ativa', () => {
-		it('não está visível se show=false mesmo com aba', () => {
+	describe('business rule: sidebar is only visible if show=true AND has active tab', () => {
+		it('not visible if show=false even with tab', () => {
 			const store = useSidebarStore()
 			store.show = false
 			store.activeTab = 'sign-tab'
@@ -58,7 +58,7 @@ describe('sidebar store - regras de visibilidade', () => {
 			expect(store.isVisible()).toBe(false)
 		})
 
-		it('não está visível se show=true mas sem aba', () => {
+		it('not visible if show=true but without tab', () => {
 			const store = useSidebarStore()
 			store.show = true
 			store.activeTab = ''
@@ -66,7 +66,7 @@ describe('sidebar store - regras de visibilidade', () => {
 			expect(store.isVisible()).toBe(false)
 		})
 
-		it('está visível apenas quando show=true E tem aba ativa', () => {
+		it('visible only when show=true AND has active tab', () => {
 			const store = useSidebarStore()
 			store.show = true
 			store.activeTab = 'sign-tab'
@@ -75,8 +75,8 @@ describe('sidebar store - regras de visibilidade', () => {
 		})
 	})
 
-	describe('regra de negócio: setActiveTab deve mostrar sidebar quando aba é definida', () => {
-		it('ativar aba deve mostrar sidebar automaticamente', () => {
+	describe('business rule: setActiveTab should show sidebar when tab is defined', () => {
+		it('activating tab should show sidebar automatically', () => {
 			const store = useSidebarStore()
 			store.show = false
 
@@ -86,7 +86,7 @@ describe('sidebar store - regras de visibilidade', () => {
 			expect(store.show).toBe(true)
 		})
 
-		it('limpar aba (null) deve esconder sidebar', () => {
+		it('clearing tab (null) should hide sidebar', () => {
 			const store = useSidebarStore()
 			store.show = true
 			store.activeTab = 'sign-tab'
@@ -97,7 +97,7 @@ describe('sidebar store - regras de visibilidade', () => {
 			expect(store.show).toBe(false)
 		})
 
-		it('limpar aba (undefined) deve esconder sidebar', () => {
+		it('clearing tab (undefined) should hide sidebar', () => {
 			const store = useSidebarStore()
 			store.show = true
 			store.activeTab = 'sign-tab'
@@ -109,8 +109,8 @@ describe('sidebar store - regras de visibilidade', () => {
 		})
 	})
 
-	describe('regra de negócio: atalhos para abas específicas', () => {
-		it('activeSignTab deve ativar aba de assinatura e mostrar sidebar', () => {
+	describe('business rule: shortcuts for specific tabs', () => {
+		it('activeSignTab should activate signature tab and show sidebar', () => {
 			const store = useSidebarStore()
 			store.show = false
 
@@ -120,7 +120,7 @@ describe('sidebar store - regras de visibilidade', () => {
 			expect(store.show).toBe(true)
 		})
 
-		it('activeRequestSignatureTab deve ativar aba de solicitação e mostrar sidebar', () => {
+		it('activeRequestSignatureTab should activate request tab and show sidebar', () => {
 			const store = useSidebarStore()
 			store.show = false
 
@@ -131,8 +131,8 @@ describe('sidebar store - regras de visibilidade', () => {
 		})
 	})
 
-	describe('regra de negócio: toggle deve inverter estado de visibilidade', () => {
-		it('toggle muda de escondido para visível', () => {
+	describe('business rule: toggle should invert visibility state', () => {
+		it('toggle changes from hidden to visible', () => {
 			const store = useSidebarStore()
 			store.show = false
 
@@ -141,7 +141,7 @@ describe('sidebar store - regras de visibilidade', () => {
 			expect(store.show).toBe(true)
 		})
 
-		it('toggle muda de visível para escondido', () => {
+		it('toggle changes from visible to hidden', () => {
 			const store = useSidebarStore()
 			store.show = true
 
@@ -150,7 +150,7 @@ describe('sidebar store - regras de visibilidade', () => {
 			expect(store.show).toBe(false)
 		})
 
-		it('toggle múltiplas vezes alterna corretamente', () => {
+		it('toggle multiple times switches correctly', () => {
 			const store = useSidebarStore()
 			store.show = false
 

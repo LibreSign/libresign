@@ -28,7 +28,7 @@ vi.mock('vue', () => ({
 	set: vi.fn((obj, key, value) => { obj[key] = value }),
 }))
 
-describe('configureCheck store - regras de negócio essenciais', () => {
+describe('configureCheck store - essential business rules', () => {
 	let useConfigureCheckStore
 
 	beforeEach(async () => {
@@ -40,8 +40,8 @@ describe('configureCheck store - regras de negócio essenciais', () => {
 		useConfigureCheckStore = module.useConfigureCheckStore
 	})
 
-	describe('REGRA: checkSetup valida se recursos estão configurados corretamente', () => {
-		it('java com erro muda estado para "need download"', async () => {
+	describe('RULE: checkSetup validates if resources are properly configured', () => {
+		it('java with error changes state to "need download"', async () => {
 			axios.get.mockResolvedValue(generateOCSResponse({
 				payload: [
 				{ resource: 'java', status: 'error' },
@@ -56,7 +56,7 @@ describe('configureCheck store - regras de negócio essenciais', () => {
 			expect(store.state).toBe('need download')
 		})
 
-		it('todos recursos ok muda estado para "done"', async () => {
+		it('all resources ok changes state to "done"', async () => {
 			axios.get.mockResolvedValue(generateOCSResponse({
 				payload: [
 					{ resource: 'java', status: 'success' },
@@ -72,8 +72,8 @@ describe('configureCheck store - regras de negócio essenciais', () => {
 		})
 	})
 
-	describe('REGRA: certificateEngine determina modo de operação', () => {
-		it('isNoneEngine retorna true quando engine é "none"', async () => {
+	describe('RULE: certificateEngine determines operation mode', () => {
+		it('isNoneEngine returns true when engine is "none"', async () => {
 			axios.get.mockResolvedValue(generateOCSResponse({ payload: [] }))
 
 			const store = useConfigureCheckStore()
@@ -82,7 +82,7 @@ describe('configureCheck store - regras de negócio essenciais', () => {
 			expect(store.isNoneEngine).toBe(true)
 		})
 
-		it('saveCertificateEngine persiste engine e atualiza identifyMethods', async () => {
+		it('saveCertificateEngine persists engine and updates identifyMethods', async () => {
 			axios.post.mockResolvedValue(generateOCSResponse({
 				payload: {
 					identify_methods: ['email', 'sms'],
@@ -106,8 +106,8 @@ describe('configureCheck store - regras de negócio essenciais', () => {
 		})
 	})
 
-	describe('REGRA: isConfigureOk valida configuração específica de engine', () => {
-		it('retorna true quando engine está configurado sem erros', async () => {
+	describe('RULE: isConfigureOk validates engine-specific configuration', () => {
+		it('returns true when engine is configured without errors', async () => {
 			axios.get.mockResolvedValue(generateOCSResponse({
 				payload: [
 				{ resource: 'openssl-configure', status: 'success' },
@@ -120,7 +120,7 @@ describe('configureCheck store - regras de negócio essenciais', () => {
 			expect(store.isConfigureOk('openssl')).toBe(true)
 		})
 
-		it('retorna false quando engine tem erro de configuração', async () => {
+		it('returns false when engine has configuration error', async () => {
 			axios.get.mockResolvedValue(generateOCSResponse({
 				payload: [
 				{ resource: 'openssl-configure', status: 'error' },
