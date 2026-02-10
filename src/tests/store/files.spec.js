@@ -43,10 +43,17 @@ vi.mock('@nextcloud/router', () => ({
 	generateOcsUrl: vi.fn((path, params) => `/ocs/v2.php${path.replace(/{(\w+)}/g, (_, key) => params[key])}`),
 }))
 
-vi.mock('vue', () => ({
-	del: vi.fn((obj, key) => { delete obj[key] }),
-	set: vi.fn((obj, key, value) => { obj[key] = value }),
-}))
+vi.mock('vue', async () => {
+	const actual = await vi.importActual('vue')
+	const Vue = actual.default ?? actual
+	return {
+		...actual,
+		default: Object.assign(Vue, {
+			del: vi.fn((obj, key) => { delete obj[key] }),
+			set: vi.fn((obj, key, value) => { obj[key] = value }),
+		}),
+	}
+})
 
 vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((app, key, defaultValue) => defaultValue),
