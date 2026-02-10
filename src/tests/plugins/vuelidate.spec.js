@@ -29,9 +29,16 @@ const mockVue = {
 	use: vi.fn(),
 }
 
-vi.mock('vue', () => ({
-	default: mockVue,
-}))
+vi.mock('vue', async () => {
+	const actual = await vi.importActual('vue')
+	const Vue = actual.default ?? actual
+	return {
+		...actual,
+		default: Object.assign(Vue, {
+			use: mockVue.use,
+		}),
+	}
+})
 
 vi.mock('vuelidate', () => ({
 	default: {},
