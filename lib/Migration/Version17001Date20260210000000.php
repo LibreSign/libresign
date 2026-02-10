@@ -38,7 +38,7 @@ class Version17001Date20260210000000 extends SimpleMigrationStep {
 	#[\Override]
 	public function postSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
 		$identifyMethods = $this->appConfig->getValueArray(Application::APP_ID, 'identify_methods', []);
-		
+
 		if (!is_array($identifyMethods) || empty($identifyMethods)) {
 			return;
 		}
