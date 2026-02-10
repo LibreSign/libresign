@@ -3,9 +3,9 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <template>
-	<NcDialog v-if="signMethodsStore.modal.sms"
+	<NcDialog v-if="signMethodsStore.modal.token"
 		:name="t('libresign', 'Sign with your phone number.')"
-		@closing="signMethodsStore.closeModal('sms')">
+		@closing="signMethodsStore.closeModal('token')">
 		<div v-if="tokenRequested" class="code-request">
 			<h3 class="phone">
 				{{ newPhoneNumber }}
@@ -91,10 +91,10 @@ export default {
 	},
 	computed: {
 		activeTokenMethod() {
-			const tokenMethods = ['sms', 'whatsapp', 'signal', 'telegram', 'xmpp']
+			const tokenMethods = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 			return tokenMethods.find(method =>
 				Object.hasOwn(this.signMethodsStore.settings, method)
-			) || 'sms'
+			) || 'smsToken'
 		},
 		activeIdentifyMethod() {
 			return this.activeTokenMethod
