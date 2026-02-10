@@ -6,11 +6,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 
-vi.mock('vue', () => ({
-	set: vi.fn((obj, key, value) => {
-		obj[key] = value
-	}),
-}))
+vi.mock('vue', async () => {
+	const actual = await vi.importActual('vue')
+	const Vue = actual.default ?? actual
+	return {
+		...actual,
+		default: Object.assign(Vue, {
+			set: vi.fn((obj, key, value) => {
+				obj[key] = value
+			}),
+		}),
+	}
+})
 
 describe('sidebar store - visibility rules', () => {
 	let useSidebarStore
