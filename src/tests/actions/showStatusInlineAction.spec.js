@@ -56,6 +56,19 @@ describe('showStatusInlineAction', () => {
 		mockGetSidebar.mockClear()
 		mockLoadState.mockClear()
 		mockLoadState.mockReturnValue(true)
+
+		// Mock window.OCA.Files.Sidebar for Nextcloud 32
+		if (!global.window) {
+			global.window = {}
+		}
+		global.window.OCA = {
+			Files: {
+				Sidebar: {
+					open: vi.fn(),
+					setActiveTab: vi.fn(),
+				},
+			},
+		}
 	})
 
 	describe('action configuration', () => {
@@ -168,17 +181,11 @@ describe('showStatusInlineAction', () => {
 
 	describe('exec', () => {
 		it('opens sidebar and sets active tab', async () => {
-			const mockSidebar = {
-				open: vi.fn(),
-				setActiveTab: vi.fn(),
-			}
-			mockGetSidebar.mockReturnValue(mockSidebar)
-
-			const node = { fileid: 123, name: 'test.pdf' }
+			const node = { fileid: 123, name: 'test.pdf', path: '/test.pdf' }
 			const result = await action.exec({ nodes: [node] })
 
-			expect(mockSidebar.open).toHaveBeenCalledWith(node, 'libresign')
-			expect(mockSidebar.setActiveTab).toHaveBeenCalledWith('libresign')
+			expect(global.window.OCA.Files.Sidebar.open).toHaveBeenCalledWith('/test.pdf')
+			expect(global.window.OCA.Files.Sidebar.setActiveTab).toHaveBeenCalledWith('libresign')
 			expect(result).toBe(null)
 		})
 	})
