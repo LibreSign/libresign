@@ -3,15 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 let capturedAction = null
-
-const mockRegisterFileAction = vi.fn((actionInstance) => {
-	capturedAction = actionInstance
-})
-const mockGetSidebar = vi.fn()
-const mockLoadState = vi.fn(() => true)
+let mockRegisterFileAction = vi.fn()
+let mockGetSidebar = vi.fn()
+let mockLoadState = vi.fn()
 
 vi.mock('@nextcloud/files', () => ({
 	FileAction: class {
@@ -19,12 +16,15 @@ vi.mock('@nextcloud/files', () => ({
 			Object.assign(this, config)
 		}
 	},
-	registerFileAction: mockRegisterFileAction,
-	getSidebar: mockGetSidebar,
+	registerFileAction: (actionInstance) => {
+		capturedAction = actionInstance
+		mockRegisterFileAction(actionInstance)
+	},
+	getSidebar: () => mockGetSidebar(),
 }))
 
 vi.mock('@nextcloud/initial-state', () => ({
-	loadState: mockLoadState,
+	loadState: (...args) => mockLoadState(...args),
 }))
 
 vi.mock('@nextcloud/l10n', () => ({
@@ -46,14 +46,16 @@ vi.mock('../../utils/fileStatus.js', () => ({
 describe('showStatusInlineAction', () => {
 	let action
 
-	beforeEach(async () => {
-		vi.clearAllMocks()
-		vi.resetModules()
-		capturedAction = null
+	beforeAll(async () => {
 		mockLoadState.mockReturnValue(true)
-
 		await import('../../actions/showStatusInlineAction.js')
 		action = capturedAction
+	})
+
+	beforeEach(() => {
+		mockGetSidebar.mockClear()
+		mockLoadState.mockClear()
+		mockLoadState.mockReturnValue(true)
 	})
 
 	describe('action configuration', () => {
