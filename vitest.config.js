@@ -20,6 +20,11 @@ export default defineConfig({
 		globals: true,
 		// Required for transforming CSS files
 		pool: 'vmForks',
+		server: {
+			deps: {
+				inline: ['splitpanes'],
+			},
+		},
 		coverage: {
 			include: ['src/**/*.{js,vue}'],
 			exclude: [
