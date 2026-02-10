@@ -79,6 +79,7 @@ OC.L10N.register(
     "Pending" : "Ar feitheamh",
     "Signed" : "Sínithe",
     "User not found." : "Úsáideoir gan aimsiú.",
+    "Multiple DocMDP signatures detected. The first certifying signature is used to determine the certification level." : "Braitheadh ​​​​sínithe DocMDP iolracha. Úsáidtear an chéad síniú deimhniúcháin chun an leibhéal deimhniúcháin a chinneadh.",
     "Digitally signed by LibreSign." : "Sínithe go digiteach ag LibreSign.",
     "Validate in %s." : "Bailíochtaigh i %s.",
     "The admin hasn't set up LibreSign yet, please wait." : "Níl LibreSign socraithe ag an riarthóir go fóill, fan go fóill.",
