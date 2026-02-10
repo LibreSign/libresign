@@ -6,21 +6,23 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { generateOCSResponse } from '../test-helpers.js'
 
-const getMock = vi.fn()
-const generateOcsUrlMock = vi.fn(() => '/ocs/wait-status')
+let getMock
+let generateOcsUrlMock
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {
-		get: getMock,
+		get: (...args) => getMock(...args),
 	},
 }))
 
 vi.mock('@nextcloud/router', () => ({
-	generateOcsUrl: generateOcsUrlMock,
+	generateOcsUrl: (...args) => generateOcsUrlMock(...args),
 }))
 
 describe('longPolling services', () => {
 	beforeEach(() => {
+		getMock = vi.fn()
+		generateOcsUrlMock = vi.fn(() => '/ocs/wait-status')
 		vi.clearAllMocks()
 	})
 
