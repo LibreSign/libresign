@@ -5,12 +5,7 @@
 
 import { describe, it, expect, vi } from 'vitest'
 
-const mockLogger = {
-	debug: vi.fn(),
-	info: vi.fn(),
-	warn: vi.fn(),
-	error: vi.fn(),
-}
+let mockLogger
 
 vi.mock('@nextcloud/logger', () => ({
 	getLogger: vi.fn(() => ({
@@ -19,11 +14,19 @@ vi.mock('@nextcloud/logger', () => ({
 		info: vi.fn(),
 		debug: vi.fn(),
 	})),
-	getLoggerBuilder: vi.fn(() => ({
-		setApp: vi.fn().mockReturnThis(),
-		detectUser: vi.fn().mockReturnThis(),
-		build: vi.fn().mockReturnValue(mockLogger),
-	})),
+	getLoggerBuilder: vi.fn(() => {
+		mockLogger = {
+			debug: vi.fn(),
+			info: vi.fn(),
+			warn: vi.fn(),
+			error: vi.fn(),
+		}
+		return {
+			setApp: vi.fn().mockReturnThis(),
+			detectUser: vi.fn().mockReturnThis(),
+			build: vi.fn().mockReturnValue(mockLogger),
+		}
+	}),
 }))
 
 describe('logger', () => {
