@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
 import { generateOCSResponse } from '../test-helpers.js'
@@ -58,13 +58,14 @@ vi.mock('vue', async () => {
 describe('configureCheck store - essential business rules', () => {
 	let useConfigureCheckStore
 
-	beforeEach(async () => {
-		setActivePinia(createPinia())
-		vi.clearAllMocks()
-		vi.resetModules()
-
+	beforeAll(async () => {
 		const module = await import('../../store/configureCheck.js')
 		useConfigureCheckStore = module.useConfigureCheckStore
+	})
+
+	beforeEach(() => {
+		setActivePinia(createPinia())
+		vi.clearAllMocks()
 	})
 
 	describe('RULE: checkSetup validates if resources are properly configured', () => {
