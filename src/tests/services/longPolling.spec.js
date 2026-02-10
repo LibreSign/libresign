@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { generateOCSResponse } from '../../test-helpers.js'
+import { generateOCSResponse } from '../test-helpers.js'
 
 const getMock = vi.fn()
 const generateOcsUrlMock = vi.fn(() => '/ocs/wait-status')
