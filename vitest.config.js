@@ -16,24 +16,21 @@ export default defineConfig({
 	},
 	test: {
 		include: ['src/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
-		environment: 'jsdom',
+		environment: 'happy-dom',
 		globals: true,
+		// Required for transforming CSS files
 		pool: 'vmForks',
-		environmentOptions: {
-			jsdom: {
-				url: 'http://localhost',
-			},
-		},
 		coverage: {
 			include: ['src/**/*.{js,vue}'],
 			exclude: [
 				'src/**/*.{test,spec}.?(c|m)[jt]s?(x)',
 				'src/**/index.js',
 				'src/test-*.js',
+				'src/tests/**',
 			],
 			provider: 'v8',
 			reporter: ['text', 'lcov', 'html'],
 		},
-		setupFiles: ['src/test-setup.js'],
+		setupFiles: ['src/tests/setup.js'],
 	},
 })
