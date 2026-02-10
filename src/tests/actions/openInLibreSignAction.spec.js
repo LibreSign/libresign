@@ -94,6 +94,7 @@ describe('openInLibreSignAction rules', () => {
 
 	beforeEach(async () => {
 		vi.clearAllMocks()
+		vi.resetModules()
 		mockSidebar.open.mockClear()
 		mockSidebar.setActiveTab.mockClear()
 
