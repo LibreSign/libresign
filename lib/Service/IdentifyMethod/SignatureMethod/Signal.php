@@ -16,7 +16,7 @@ class Signal extends TwofactorGatewayToken {
 		protected TokenService $tokenService,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by Signal
-		$this->setFriendlyName($this->identifyService->getL10n()->t('Signal'));
+		$this->setFriendlyName($this->identifyService->getL10n()->t('Signal token'));
 		parent::__construct(
 			$identifyService,
 			$tokenService,
