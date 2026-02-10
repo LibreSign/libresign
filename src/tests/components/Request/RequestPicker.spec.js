@@ -12,9 +12,13 @@ vi.mock('@nextcloud/initial-state')
 vi.mock('@nextcloud/capabilities')
 vi.mock('@nextcloud/dialogs', () => ({
 	showError: vi.fn(),
+}))
+vi.mock('@nextcloud/dialogs/filepicker.js', () => ({
 	FilePickerVue: {
 		name: 'FilePicker',
-		template: '<div></div>',
+		render() {
+			return null
+		},
 	},
 }))
 
