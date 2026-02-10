@@ -30,7 +30,7 @@ vi.mock('@nextcloud/l10n', () => ({
 	translatePlural: vi.fn((app, singular, plural, count) => count === 1 ? singular : plural),
 }))
 
-let optionFromMock
+let optionFromMock = vi.fn()
 
 vi.mock('@marionebl/option', () => ({
 	Option: {
@@ -40,7 +40,8 @@ vi.mock('@marionebl/option', () => ({
 
 describe('selectCustonOption', () => {
 	beforeEach(() => {
-		optionFromMock = vi.fn((value) => ({ value }))
+		optionFromMock.mockClear()
+		optionFromMock.mockImplementation((value) => ({ value }))
 	})
 
 	it('returns option wrapped when id exists', async () => {
