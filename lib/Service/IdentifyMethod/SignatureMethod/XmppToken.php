@@ -10,7 +10,7 @@ namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 
-class Xmpp extends TwofactorGatewayToken {
+class XmppToken extends TwofactorGatewayToken {
 	public function __construct(
 		protected IdentifyService $identifyService,
 		protected TokenService $tokenService,
