@@ -30,7 +30,6 @@ export default defineConfig({
 			exclude: [
 				'src/**/*.{test,spec}.?(c|m)[jt]s?(x)',
 				'src/**/index.js',
-				'src/test-*.js',
 				'src/tests/**',
 			],
 			provider: 'v8',
