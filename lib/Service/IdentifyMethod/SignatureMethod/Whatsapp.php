@@ -16,7 +16,7 @@ class Whatsapp extends TwofactorGatewayToken {
 		protected TokenService $tokenService,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by WhatsApp
-		$this->setFriendlyName($this->identifyService->getL10n()->t('WhatsApp'));
+		$this->setFriendlyName($this->identifyService->getL10n()->t('WhatsApp token'));
 		parent::__construct(
 			$identifyService,
 			$tokenService,
