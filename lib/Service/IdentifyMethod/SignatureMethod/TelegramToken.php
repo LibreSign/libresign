@@ -15,7 +15,7 @@ class TelegramToken extends TwofactorGatewayToken {
 		protected IdentifyService $identifyService,
 		protected TokenService $tokenService,
 	) {
-		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by Telegram
+		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by Telegram token
 		$this->setFriendlyName($this->identifyService->getL10n()->t('Telegram token'));
 		parent::__construct(
 			$identifyService,
