@@ -79,6 +79,7 @@ OC.L10N.register(
     "Pending" : "Čeká",
     "Signed" : "Podepsáno",
     "User not found." : "Uživatel nenalezen.",
+    "Multiple DocMDP signatures detected. The first certifying signature is used to determine the certification level." : "Zjištěno vícero DocMDP podpisů. Pro zjištění stupně certifikace je použit první certifikující podpis.",
     "Digitally signed by LibreSign." : "Digitálně podepsáno pomocí LibreSign.",
     "Validate in %s." : "Ověřit v %s.",
     "The admin hasn't set up LibreSign yet, please wait." : "Správce zatím ještě LibreSign nenastavil – vyčkejte prosím.",
