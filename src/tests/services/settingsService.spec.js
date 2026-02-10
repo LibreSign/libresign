@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { generateOCSResponse } from '../test-helpers.js'
 
-const patchMock = vi.fn()
-const generateUrlMock = vi.fn(() => '/apps/libresign/api/v1/account/settings')
+let patchMock
+let generateUrlMock
 
 // Mock @nextcloud/logger to avoid import-time errors
 vi.mock('@nextcloud/logger', () => ({
@@ -31,26 +31,24 @@ vi.mock('@nextcloud/logger', () => ({
 
 vi.mock('@nextcloud/axios', () => ({
 	default: {
-		patch: patchMock,
+		patch: (...args) => patchMock(...args),
 	},
 }))
 
 vi.mock('@nextcloud/router', () => ({
-	generateUrl: generateUrlMock,
+	generateUrl: (...args) => generateUrlMock(...args),
 }))
 
-const loadModule = async () => {
-	vi.resetModules()
-	patchMock.mockClear()
-	generateUrlMock.mockClear()
-	return await import('../../services/settingsService.js')
-}
-
 describe('settingsService', () => {
+	beforeEach(() => {
+		patchMock = vi.fn()
+		generateUrlMock = vi.fn(() => '/apps/libresign/api/v1/account/settings')
+	})
+
 	it('saves user phone number via API', async () => {
 		const response = generateOCSResponse({ payload: { success: true } })
 		patchMock.mockResolvedValue(response)
-		const { settingsService } = await loadModule()
+		const { settingsService } = await import('../../services/settingsService.js')
 
 		const result = await settingsService.saveUserNumber('+551199999999')
 
