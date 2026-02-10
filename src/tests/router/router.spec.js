@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { describe, expect, it, beforeEach, vi, afterEach } from 'vitest'
+import { describe, expect, it, beforeAll, beforeEach, vi, afterEach } from 'vitest'
 import Vue from 'vue'
 import Router from 'vue-router'
 
@@ -59,29 +59,33 @@ describe('router business rules', () => {
 	let router
 	let loadState
 	let generateUrl
+	let getRootUrl
 	let isExternal
 	let selectAction
 
-	beforeEach(async () => {
+	beforeAll(async () => {
 		const { loadState: loadStateModule } = await import('@nextcloud/initial-state')
-		const { generateUrl: generateUrlModule, getRootUrl } = await import('@nextcloud/router')
+		const { generateUrl: generateUrlModule, getRootUrl: getRootUrlModule } = await import('@nextcloud/router')
 		const { isExternal: isExternalModule } = await import('../../helpers/isExternal.js')
 		const { selectAction: selectActionModule } = await import('../../helpers/SelectAction.js')
 
 		loadState = loadStateModule
 		generateUrl = generateUrlModule
+		getRootUrl = getRootUrlModule
 		isExternal = isExternalModule
 		selectAction = selectActionModule
 
+		const routerModule = await import('../../router/router.js')
+		router = routerModule.default
+	})
+
+	beforeEach(() => {
+		vi.clearAllMocks()
 		loadState.mockReturnValue('')
 		generateUrl.mockImplementation(path => path)
 		getRootUrl.mockReturnValue('')
 		isExternal.mockReturnValue(false)
 		selectAction.mockReturnValue(undefined)
-
-		vi.resetModules()
-		const routerModule = await import('../../router/router.js')
-		router = routerModule.default
 	})
 
 	afterEach(() => {
