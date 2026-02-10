@@ -5,10 +5,21 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-let mockRegisterFileAction
-let mockGetSidebar
-let mockLoadState
-const capturedActionRef = { value: null }
+const mocks = vi.hoisted(() => {
+	const mockRegisterFileAction = vi.fn()
+	const mockGetSidebar = vi.fn()
+	const mockLoadState = vi.fn()
+	const capturedActionRef = { value: null }
+
+	return {
+		capturedActionRef,
+		mockRegisterFileAction,
+		mockGetSidebar,
+		mockLoadState
+	}
+})
+
+let action
 
 vi.mock('@nextcloud/files', () => ({
 	FileAction: class {
@@ -17,14 +28,14 @@ vi.mock('@nextcloud/files', () => ({
 		}
 	},
 	registerFileAction: (actionInstance) => {
-		capturedActionRef.value = actionInstance
-		mockRegisterFileAction(actionInstance)
+		mocks.capturedActionRef.value = actionInstance
+		mocks.mockRegisterFileAction(actionInstance)
 	},
-	getSidebar: () => mockGetSidebar(),
+	getSidebar: () => mocks.mockGetSidebar(),
 }))
 
 vi.mock('@nextcloud/initial-state', () => ({
-	loadState: (...args) => mockLoadState(...args),
+	loadState: (...args) => mocks.mockLoadState(...args),
 }))
 
 vi.mock('@nextcloud/l10n', () => ({
@@ -47,36 +58,25 @@ describe('showStatusInlineAction', () => {
 	let action
 
 	beforeAll(async () => {
-		mockRegisterFileAction = vi.fn()
-		mockGetSidebar = vi.fn()
-		mockLoadState = vi.fn()
-		mockLoadState.mockReturnValue(true)
+		mocks.mockLoadState.mockReturnValue(true)
 		await import('../../actions/showStatusInlineAction.js')
-		action = capturedActionRef.value
+		action = mocks.capturedActionRef.value
 	})
 
-	beforeEach(() => {
-		mockGetSidebar.mockClear()
-		mockLoadState.mockClear()
-		mockLoadState.mockReturnValue(true)
+	it('has correct id', () => {
+		expect(action.id).toBe('show-status-inline')
 	})
 
-	describe('action configuration', () => {
-		it('has correct id', () => {
-			expect(action.id).toBe('show-status-inline')
-		})
+	it('has empty display name', () => {
+		expect(action.displayName()).toBe('')
+	})
 
-		it('has empty display name', () => {
-			expect(action.displayName()).toBe('')
-		})
+	it('is inline action', () => {
+		expect(action.inline()).toBe(true)
+	})
 
-		it('is inline action', () => {
-			expect(action.inline()).toBe(true)
-		})
-
-		it('has correct order', () => {
-			expect(action.order).toBe(-1)
-		})
+	it('has correct order', () => {
+		expect(action.order).toBe(-1)
 	})
 
 	describe('title', () => {
@@ -175,7 +175,7 @@ describe('showStatusInlineAction', () => {
 				open: vi.fn(),
 				setActiveTab: vi.fn(),
 			}
-			mockGetSidebar.mockReturnValue(mockSidebar)
+			mocks.mockGetSidebar.mockReturnValue(mockSidebar)
 
 			const node = { fileid: 123, name: 'test.pdf' }
 			const result = await action.exec({ nodes: [node] })
@@ -188,7 +188,7 @@ describe('showStatusInlineAction', () => {
 
 	describe('enabled', () => {
 		it('returns false when certificate is not ok', () => {
-			mockLoadState.mockReturnValue(false)
+			mocks.mockLoadState.mockReturnValue(false)
 
 			const result = action.enabled({
 				nodes: [{
@@ -203,7 +203,7 @@ describe('showStatusInlineAction', () => {
 		})
 
 		it('returns false when nodes do not have status', () => {
-			mockLoadState.mockReturnValue(true)
+			mocks.mockLoadState.mockReturnValue(true)
 
 			const result = action.enabled({
 				nodes: [{
@@ -216,7 +216,7 @@ describe('showStatusInlineAction', () => {
 		})
 
 		it('returns true for PDF with status', () => {
-			mockLoadState.mockReturnValue(true)
+			mocks.mockLoadState.mockReturnValue(true)
 
 			const result = action.enabled({
 				nodes: [{
@@ -231,7 +231,7 @@ describe('showStatusInlineAction', () => {
 		})
 
 		it('returns true for folder with status', () => {
-			mockLoadState.mockReturnValue(true)
+			mocks.mockLoadState.mockReturnValue(true)
 
 			const result = action.enabled({
 				nodes: [{
@@ -246,7 +246,7 @@ describe('showStatusInlineAction', () => {
 		})
 
 		it('returns false for non-PDF/non-folder', () => {
-			mockLoadState.mockReturnValue(true)
+			mocks.mockLoadState.mockReturnValue(true)
 
 			const result = action.enabled({
 				nodes: [{
@@ -262,7 +262,7 @@ describe('showStatusInlineAction', () => {
 		})
 
 		it('returns true for multiple PDFs with status', () => {
-			mockLoadState.mockReturnValue(true)
+			mocks.mockLoadState.mockReturnValue(true)
 
 			const result = action.enabled({
 				nodes: [
@@ -287,7 +287,7 @@ describe('showStatusInlineAction', () => {
 
 	describe('registration', () => {
 		it('registers file action', () => {
-			expect(mockRegisterFileAction).toHaveBeenCalled()
+			expect(mocks.mockRegisterFileAction).toHaveBeenCalled()
 		})
 	})
 })
