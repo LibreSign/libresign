@@ -16,7 +16,7 @@ export const useSignMethodsStore = defineStore('signMethods', {
 			signPassword: false,
 			createSignature: false,
 			password: false,
-			sms: false,
+			token: false, // Generic token modal for all token-based methods
 			uploadCertificate: false,
 		},
 		settings: {},
@@ -69,11 +69,11 @@ export const useSignMethodsStore = defineStore('signMethods', {
 			return Object.hasOwn(this.settings, 'clickToSign')
 		},
 		needSmsCode() {
-			return Object.hasOwn(this.settings, 'sms')
-				&& this.settings.sms.needCode
+			return Object.hasOwn(this.settings, 'smsToken')
+				&& this.settings.smsToken.needCode
 		},
 		needTokenCode() {
-			const tokenMethods = ['sms', 'whatsapp', 'signal', 'telegram', 'xmpp']
+			const tokenMethods = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 			return tokenMethods.some(method =>
 				Object.hasOwn(this.settings, method) && this.settings[method].needCode
 			)
