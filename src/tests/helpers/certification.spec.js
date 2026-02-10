@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 // Mock @nextcloud packages to avoid import-time errors
 vi.mock('@nextcloud/logger', () => ({
@@ -30,23 +30,21 @@ vi.mock('@nextcloud/l10n', () => ({
 	translatePlural: vi.fn((app, singular, plural, count) => count === 1 ? singular : plural),
 }))
 
-const optionFromMock = vi.fn((value) => ({ value }))
+let optionFromMock
 
 vi.mock('@marionebl/option', () => ({
 	Option: {
-		from: optionFromMock,
+		from: (...args) => optionFromMock(...args),
 	},
 }))
 
-const loadModule = async () => {
-	vi.resetModules()
-	optionFromMock.mockClear()
-	return await import('../../helpers/certification.js')
-}
-
 describe('selectCustonOption', () => {
+	beforeEach(() => {
+		optionFromMock = vi.fn((value) => ({ value }))
+	})
+
 	it('returns option wrapped when id exists', async () => {
-		const { selectCustonOption, options } = await loadModule()
+		const { selectCustonOption, options } = await import('../../helpers/certification.js')
 		const expectedOption = options.find((item) => item.id === 'CN')
 
 		const result = selectCustonOption('CN')
@@ -56,7 +54,7 @@ describe('selectCustonOption', () => {
 	})
 
 	it('returns empty option when id does not exist', async () => {
-		const { selectCustonOption } = await loadModule()
+		const { selectCustonOption } = await import('../../helpers/certification.js')
 
 		const result = selectCustonOption('UNKNOWN')
 
