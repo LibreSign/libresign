@@ -10,7 +10,7 @@ namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 
-class Telegram extends TwofactorGatewayToken {
+class TelegramToken extends TwofactorGatewayToken {
 	public function __construct(
 		protected IdentifyService $identifyService,
 		protected TokenService $tokenService,
