@@ -79,6 +79,7 @@ OC.L10N.register(
     "Pending" : "Ausstehend",
     "Signed" : "Signiert",
     "User not found." : "Benutzer nicht gefunden.",
+    "Multiple DocMDP signatures detected. The first certifying signature is used to determine the certification level." : "Mehrere DocMDP-Signaturen erkannt. Zur Bestimmung des Zertifizierungsniveaus wird die erste Zertifizierungssignatur verwendet.",
     "Digitally signed by LibreSign." : "Digital signiert durch LibreSign.",
     "Validate in %s." : "Validieren in %s.",
     "The admin hasn't set up LibreSign yet, please wait." : "Die Administration hat bislang Libresign noch nicht eingerichtet. Bitte warten.",
