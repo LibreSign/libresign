@@ -98,7 +98,8 @@ export const useSignStore = defineStore('sign', {
 			this.reset()
 		},
 		reset() {
-			set(this, 'document', defaultState)
+			this.errors = []
+			set(this, 'document', defaultState.document)
 			const sidebarStore = useSidebarStore()
 			sidebarStore.setActiveTab()
 		},
