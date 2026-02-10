@@ -16,7 +16,7 @@ class Xmpp extends TwofactorGatewayToken {
 		protected TokenService $tokenService,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by XMPP
-		$this->setFriendlyName($this->identifyService->getL10n()->t('XMPP'));
+		$this->setFriendlyName($this->identifyService->getL10n()->t('XMPP token'));
 		parent::__construct(
 			$identifyService,
 			$tokenService,
