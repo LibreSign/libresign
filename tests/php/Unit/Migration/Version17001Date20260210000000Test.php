@@ -46,7 +46,7 @@ final class Version17001Date20260210000000Test extends \OCA\Libresign\Tests\Unit
 			->method('info')
 			->with('Updated signature method names to new format with Token suffix');
 
-		$this->migration->postSchemaChange($this->output, fn() => null, []);
+		$this->migration->postSchemaChange($this->output, fn () => null, []);
 
 		$result = $this->appConfig->getValueArray(Application::APP_ID, 'identify_methods', []);
 
@@ -76,7 +76,7 @@ final class Version17001Date20260210000000Test extends \OCA\Libresign\Tests\Unit
 
 		$this->appConfig->setValueArray(Application::APP_ID, 'identify_methods', $legacyData);
 
-		$this->migration->postSchemaChange($this->output, fn() => null, []);
+		$this->migration->postSchemaChange($this->output, fn () => null, []);
 
 		$result = $this->appConfig->getValueArray(Application::APP_ID, 'identify_methods', []);
 		$methods = $result[0]['signatureMethods'];
@@ -114,7 +114,7 @@ final class Version17001Date20260210000000Test extends \OCA\Libresign\Tests\Unit
 			->expects($this->never())
 			->method('info');
 
-		$this->migration->postSchemaChange($this->output, fn() => null, []);
+		$this->migration->postSchemaChange($this->output, fn () => null, []);
 
 		$dataAfter = $this->appConfig->getValueArray(Application::APP_ID, 'identify_methods', []);
 		$this->assertEquals($dataBefore, $dataAfter);
@@ -134,7 +134,7 @@ final class Version17001Date20260210000000Test extends \OCA\Libresign\Tests\Unit
 
 		$this->appConfig->setValueArray(Application::APP_ID, 'identify_methods', $mixedData);
 
-		$this->migration->postSchemaChange($this->output, fn() => null, []);
+		$this->migration->postSchemaChange($this->output, fn () => null, []);
 
 		$result = $this->appConfig->getValueArray(Application::APP_ID, 'identify_methods', []);
 		$methods = $result[0]['signatureMethods'];
@@ -163,7 +163,7 @@ final class Version17001Date20260210000000Test extends \OCA\Libresign\Tests\Unit
 			->expects($this->never())
 			->method('info');
 
-		$this->migration->postSchemaChange($this->output, fn() => null, []);
+		$this->migration->postSchemaChange($this->output, fn () => null, []);
 
 		$dataAfter = $this->appConfig->getValueArray(Application::APP_ID, 'identify_methods', []);
 		$this->assertEquals($dataBefore, $dataAfter);
@@ -183,7 +183,7 @@ final class Version17001Date20260210000000Test extends \OCA\Libresign\Tests\Unit
 			->expects($this->never())
 			->method('info');
 
-		$this->migration->postSchemaChange($this->output, fn() => null, []);
+		$this->migration->postSchemaChange($this->output, fn () => null, []);
 	}
 
 	public function testHandlesMissingArrays(): void {
@@ -200,7 +200,7 @@ final class Version17001Date20260210000000Test extends \OCA\Libresign\Tests\Unit
 			->expects($this->never())
 			->method('info');
 
-		$this->migration->postSchemaChange($this->output, fn() => null, []);
+		$this->migration->postSchemaChange($this->output, fn () => null, []);
 	}
 
 	public function testConvertsSignatureMethodEnabledArray(): void {
@@ -213,7 +213,7 @@ final class Version17001Date20260210000000Test extends \OCA\Libresign\Tests\Unit
 
 		$this->appConfig->setValueArray(Application::APP_ID, 'identify_methods', $legacyData);
 
-		$this->migration->postSchemaChange($this->output, fn() => null, []);
+		$this->migration->postSchemaChange($this->output, fn () => null, []);
 
 		$result = $this->appConfig->getValueArray(Application::APP_ID, 'identify_methods', []);
 		$enabled = $result[0]['signatureMethodEnabled'];
@@ -234,7 +234,7 @@ final class Version17001Date20260210000000Test extends \OCA\Libresign\Tests\Unit
 
 		$this->appConfig->setValueArray(Application::APP_ID, 'identify_methods', $legacyData);
 
-		$this->migration->postSchemaChange($this->output, fn() => null, []);
+		$this->migration->postSchemaChange($this->output, fn () => null, []);
 
 		$result = $this->appConfig->getValueArray(Application::APP_ID, 'identify_methods', []);
 		$available = $result[0]['availableSignatureMethods'];
@@ -247,4 +247,3 @@ final class Version17001Date20260210000000Test extends \OCA\Libresign\Tests\Unit
 		$this->assertNotContains('signal', $available);
 	}
 }
-
