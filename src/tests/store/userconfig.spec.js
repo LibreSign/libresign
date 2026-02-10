@@ -6,7 +6,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useUserConfigStore } from '../../store/userconfig.js'
-import { generateOCSResponse } from '../../test-helpers.js'
+import { generateOCSResponse } from '../test-helpers.js'
 
 const { putMock, generateOcsUrlMock } = vi.hoisted(() => ({
 	putMock: vi.fn(() => Promise.resolve()),
