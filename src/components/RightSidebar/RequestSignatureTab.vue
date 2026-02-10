@@ -478,7 +478,7 @@ export default {
 				if (this.isOriginalFileDeleted) {
 					return false
 				}
-				if (signer.signed || !signer.signRequestId || signer.me) {
+				if (this.isSignerSigned(signer) || !signer.signRequestId || signer.me) {
 					return false
 				}
 
@@ -499,8 +499,10 @@ export default {
 				if (this.isOriginalFileDeleted) {
 					return false
 				}
+				const file = this.filesStore.getFile()
 				if (!this.filesStore.canRequestSign
-					|| signer.signed
+					|| file?.status === FILE_STATUS.DRAFT
+					|| this.isSignerSigned(signer)
 					|| !signer.signRequestId
 					|| signer.me
 					|| signer.status !== 0) {
@@ -515,8 +517,10 @@ export default {
 				if (this.isOriginalFileDeleted) {
 					return false
 				}
+				const file = this.filesStore.getFile()
 				if (!this.filesStore.canRequestSign
-					|| signer.signed
+					|| file?.status === FILE_STATUS.DRAFT
+					|| this.isSignerSigned(signer)
 					|| !signer.signRequestId
 					|| signer.me
 					|| signer.status !== 1) {
@@ -713,7 +717,7 @@ export default {
 			if (Array.isArray(signer?.signed)) {
 				return signer.signed.length > 0
 			}
-			return !!signer.signed
+			return !!signer?.signed
 		},
 		onPreserveOrderChange(value) {
 			this.preserveOrder = value
