@@ -43,10 +43,17 @@ vi.mock('@nextcloud/initial-state', () => ({
 	loadState: vi.fn((app, key, defaultValue) => defaultValue),
 }))
 
-vi.mock('vue', () => ({
-	del: vi.fn((obj, key) => { delete obj[key] }),
-	set: vi.fn((obj, key, value) => { obj[key] = value }),
-}))
+vi.mock('vue', async () => {
+	const actual = await vi.importActual('vue')
+	const Vue = actual.default ?? actual
+	return {
+		...actual,
+		default: Object.assign(Vue, {
+			del: vi.fn((obj, key) => { delete obj[key] }),
+			set: vi.fn((obj, key, value) => { obj[key] = value }),
+		}),
+	}
+})
 
 describe('configureCheck store - essential business rules', () => {
 	let useConfigureCheckStore
