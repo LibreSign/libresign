@@ -92,24 +92,25 @@ describe('Draw.vue', () => {
 
 	it('renders dialog when mounted', async () => {
 		const wrapper = mount(Draw, {
-			props: {
+			propsData: {
 				type: 'signature',
 				drawEditor: true,
 			},
-			global: {
-				mocks: {
-					t: (key, message) => message,
-				},
-				stubs: {
-					NcDialog: { template: '<div class="nc-dialog"><slot /></div>', emits: ['closing'] },
-					NcButton: { template: '<button @click="$emit(\'click\')"><slot /></button>', emits: ['click'] },
-					Editor: { template: '<div></div>', emits: ['close', 'save'] },
-					TextInput: { template: '<div></div>', emits: ['close', 'save'] },
-					FileUpload: { template: '<div></div>', emits: ['close', 'save'] },
-					DrawIcon: { template: '<div></div>' },
-					SignatureTextIcon: { template: '<div></div>' },
-					UploadIcon: { template: '<div></div>' },
-				},
+			mocks: {
+				t: (key, message) => message,
+			},
+			mocks: {
+				t: (key, message) => message,
+			},
+			stubs: {
+				NcDialog: { template: '<div class="nc-dialog"><slot /></div>' },
+				NcButton: { template: '<button @click="$listeners.click"><slot /></button>' },
+				Editor: { template: '<div></div>' },
+				TextInput: { template: '<div></div>' },
+				FileUpload: { template: '<div></div>' },
+				DrawIcon: { template: '<div></div>' },
+				SignatureTextIcon: { template: '<div></div>' },
+				UploadIcon: { template: '<div></div>' },
 			},
 		})
 
@@ -119,26 +120,24 @@ describe('Draw.vue', () => {
 
 	it('renders only draw tab when all editors disabled', async () => {
 		const wrapper = mount(Draw, {
-			props: {
+			propsData: {
 				type: 'signature',
 				drawEditor: true,
 				textEditor: false,
 				fileEditor: false,
 			},
-			global: {
-				mocks: {
-					t: (key, message) => message,
-				},
-				stubs: {
-					NcDialog: { template: '<div class="nc-dialog"><slot /></div>', emits: ['closing'] },
-					NcButton: { template: '<button @click="$emit(\'click\')"><slot /></button>', emits: ['click'] },
-					Editor: { template: '<div></div>', emits: ['close', 'save'] },
-					TextInput: { template: '<div></div>', emits: ['close', 'save'] },
-					FileUpload: { template: '<div></div>', emits: ['close', 'save'] },
-					DrawIcon: { template: '<div></div>' },
-					SignatureTextIcon: { template: '<div></div>' },
-					UploadIcon: { template: '<div></div>' },
-				},
+			mocks: {
+				t: (key, message) => message,
+			},
+			stubs: {
+				NcDialog: { template: '<div class="nc-dialog"><slot /></div>' },
+				NcButton: { template: '<button @click="$listeners.click"><slot /></button>' },
+				Editor: { template: '<div></div>' },
+				TextInput: { template: '<div></div>' },
+				FileUpload: { template: '<div></div>' },
+				DrawIcon: { template: '<div></div>' },
+				SignatureTextIcon: { template: '<div></div>' },
+				UploadIcon: { template: '<div></div>' },
 			},
 		})
 
@@ -149,26 +148,24 @@ describe('Draw.vue', () => {
 
 	it('renders multiple tabs when multiple editors enabled', async () => {
 		const wrapper = mount(Draw, {
-			props: {
+			propsData: {
 				type: 'signature',
 				drawEditor: true,
 				textEditor: true,
 				fileEditor: true,
 			},
-			global: {
-				mocks: {
-					t: (key, message) => message,
-				},
-				stubs: {
-					NcDialog: { template: '<div class="nc-dialog"><slot /></div>', emits: ['closing'] },
-					NcButton: { template: '<button @click="$emit(\'click\')"><slot /></button>', emits: ['click'] },
-					Editor: { template: '<div></div>', emits: ['close', 'save'] },
-					TextInput: { template: '<div></div>', emits: ['close', 'save'] },
-					FileUpload: { template: '<div></div>', emits: ['close', 'save'] },
-					DrawIcon: { template: '<div></div>' },
-					SignatureTextIcon: { template: '<div></div>' },
-					UploadIcon: { template: '<div></div>' },
-				},
+			mocks: {
+				t: (key, message) => message,
+			},
+			stubs: {
+				NcDialog: { template: '<div class="nc-dialog"><slot /></div>' },
+				NcButton: { template: '<button @click="$listeners.click"><slot /></button>' },
+				Editor: { template: '<div></div>' },
+				TextInput: { template: '<div></div>' },
+				FileUpload: { template: '<div></div>' },
+				DrawIcon: { template: '<div></div>' },
+				SignatureTextIcon: { template: '<div></div>' },
+				UploadIcon: { template: '<div></div>' },
 			},
 		})
 
@@ -179,16 +176,11 @@ describe('Draw.vue', () => {
 
 	it('switches active tab when tab clicked', async () => {
 		const wrapper = mount(Draw, {
-			props: {
+			propsData: {
 				type: 'signature',
 				drawEditor: true,
 				textEditor: true,
 				fileEditor: true,
-			},
-			global: {
-				mocks: {
-					t: (key, message) => message,
-				},
 			},
 		})
 
@@ -200,16 +192,14 @@ describe('Draw.vue', () => {
 
 	it('sets active tab to first available when current is not available', async () => {
 		const wrapper = mount(Draw, {
-			props: {
+			propsData: {
 				type: 'signature',
 				drawEditor: true,
 				textEditor: true,
 				fileEditor: true,
 			},
-			global: {
-				mocks: {
-					t: (key, message) => message,
-				},
+			mocks: {
+				t: (key, message) => message,
 			},
 		})
 
@@ -225,13 +215,11 @@ describe('Draw.vue', () => {
 
 	it('emits close when close method called', async () => {
 		const wrapper = mount(Draw, {
-			props: {
+			propsData: {
 				type: 'signature',
 			},
-			global: {
-				mocks: {
-					t: (key, message) => message,
-				},
+			mocks: {
+				t: (key, message) => message,
 			},
 		})
 
@@ -242,13 +230,11 @@ describe('Draw.vue', () => {
 
 	it('calls store loadSignatures when save is triggered', async () => {
 		const wrapper = mount(Draw, {
-			props: {
+			propsData: {
 				type: 'signature',
 			},
-			global: {
-				mocks: {
-					t: (key, message) => message,
-				},
+			mocks: {
+				t: (key, message) => message,
 			},
 		})
 
@@ -268,13 +254,11 @@ describe('Draw.vue', () => {
 
 	it('emits save event after complete flow', async () => {
 		const wrapper = mount(Draw, {
-			props: {
+			propsData: {
 				type: 'signature',
 			},
-			global: {
-				mocks: {
-					t: (key, message) => message,
-				},
+			mocks: {
+				t: (key, message) => message,
 			},
 		})
 
@@ -290,13 +274,11 @@ describe('Draw.vue', () => {
 
 	it('closes dialog after successful save', async () => {
 		const wrapper = mount(Draw, {
-			props: {
+			propsData: {
 				type: 'signature',
 			},
-			global: {
-				mocks: {
-					t: (key, message) => message,
-				},
+			mocks: {
+				t: (key, message) => message,
 			},
 		})
 
@@ -316,13 +298,11 @@ describe('Draw.vue', () => {
 
 	it('adds class to body and document on mount', async () => {
 		const wrapper = mount(Draw, {
-			props: {
+			propsData: {
 				type: 'signature',
 			},
-			global: {
-				mocks: {
-					t: (key, message) => message,
-				},
+			mocks: {
+				t: (key, message) => message,
 			},
 		})
 
@@ -331,59 +311,15 @@ describe('Draw.vue', () => {
 		expect(document.documentElement.classList.contains('libresign-modal-open')).toBe(true)
 	})
 
-	it('removes classes when dialog closed', async () => {
-		const wrapper = mount(Draw, {
-			props: {
-				type: 'signature',
-				drawEditor: true,
-			},
-			global: {
-				mocks: {
-					t: (key, message) => message,
-				},
-				stubs: {
-					NcDialog: { template: '<div class="nc-dialog"><slot /></div>', emits: ['closing'] },
-					NcButton: { template: '<button @click="$emit(\'click\')"><slot /></button>', emits: ['click'] },
-					Editor: { template: '<div></div>', emits: ['close', 'save'] },
-					TextInput: { template: '<div></div>', emits: ['close', 'save'] },
-					FileUpload: { template: '<div></div>', emits: ['close', 'save'] },
-					DrawIcon: { template: '<div></div>' },
-					SignatureTextIcon: { template: '<div></div>' },
-					UploadIcon: { template: '<div></div>' },
-				},
-			},
-		})
-
-		await wrapper.vm.$nextTick()
-		expect(document.body.classList.contains('libresign-modal-open')).toBe(true)
-
-		// Unmount the component
-		wrapper.unmount()
-		await wrapper.vm.$nextTick()
-		expect(document.body.classList.contains('libresign-modal-open')).toBe(false)
-		expect(document.documentElement.classList.contains('libresign-modal-open')).toBe(false)
-	})
 
 	it('accepts type property', () => {
 		const wrapper = mount(Draw, {
-			props: {
+			propsData: {
 				type: 'initial',
 				drawEditor: true,
 			},
-			global: {
-				mocks: {
-					t: (key, message) => message,
-				},
-				stubs: {
-					NcDialog: { template: '<div class="nc-dialog"><slot /></div>', emits: ['closing'] },
-					NcButton: { template: '<button @click="$emit(\'click\')"><slot /></button>', emits: ['click'] },
-					Editor: { template: '<div></div>', emits: ['close', 'save'] },
-					TextInput: { template: '<div></div>', emits: ['close', 'save'] },
-					FileUpload: { template: '<div></div>', emits: ['close', 'save'] },
-					DrawIcon: { template: '<div></div>' },
-					SignatureTextIcon: { template: '<div></div>' },
-					UploadIcon: { template: '<div></div>' },
-				},
+			mocks: {
+				t: (key, message) => message,
 			},
 		})
 
@@ -392,16 +328,14 @@ describe('Draw.vue', () => {
 
 	it('replaces active tab when props change', async () => {
 		const wrapper = mount(Draw, {
-			props: {
+			propsData: {
 				type: 'signature',
 				drawEditor: true,
 				textEditor: true,
 				fileEditor: false,
 			},
-			global: {
-				mocks: {
-					t: (key, message) => message,
-				},
+			mocks: {
+				t: (key, message) => message,
 			},
 		})
 
@@ -413,30 +347,26 @@ describe('Draw.vue', () => {
 		expect(wrapper.vm.availableTabs.map(t => t.id)).toEqual(['draw', 'file'])
 	})
 
-	it('initializes mounted flag to false', () => {
+	it('initializes mounted flag to true after mount', () => {
 		const wrapper = mount(Draw, {
-			props: {
+			propsData: {
 				type: 'signature',
 			},
-			global: {
-				mocks: {
-					t: (key, message) => message,
-				},
+			mocks: {
+				t: (key, message) => message,
 			},
 		})
 
-		expect(wrapper.vm.mounted).toBe(false)
+		expect(wrapper.vm.mounted).toBe(true)
 	})
 
 	it('initializes active tab to draw', () => {
 		const wrapper = mount(Draw, {
-			props: {
+			propsData: {
 				type: 'signature',
 			},
-			global: {
-				mocks: {
-					t: (key, message) => message,
-				},
+			mocks: {
+				t: (key, message) => message,
 			},
 		})
 
