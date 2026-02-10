@@ -10,7 +10,7 @@ namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 
-class Signal extends TwofactorGatewayToken {
+class SignalToken extends TwofactorGatewayToken {
 	public function __construct(
 		protected IdentifyService $identifyService,
 		protected TokenService $tokenService,
