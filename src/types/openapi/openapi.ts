@@ -4545,7 +4545,7 @@ export interface operations {
                      * @enum {string|null}
                      */
                     identifyMethod?: "account" | "email" | null;
-                    /** @description Method used to sign the document, i.e. emailToken, account, clickToSign, sms, signal, telegram, whatsapp, xmpp */
+                    /** @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken */
                     signMethod?: string | null;
                     /** @description Identify value, i.e. the signer email, account or phone number */
                     identify?: string | null;
@@ -4609,7 +4609,7 @@ export interface operations {
                      * @enum {string|null}
                      */
                     identifyMethod?: "account" | "email" | null;
-                    /** @description Method used to sign the document, i.e. emailToken, account, clickToSign, sms, signal, telegram, whatsapp, xmpp */
+                    /** @description Method used to sign the document, i.e. emailToken, account, clickToSign, smsToken, signalToken, telegramToken, whatsappToken, xmppToken */
                     signMethod?: string | null;
                     /** @description Identify value, i.e. the signer email, account or phone number */
                     identify?: string | null;
