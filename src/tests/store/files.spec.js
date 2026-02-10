@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
 import { emit } from '@nextcloud/event-bus'
@@ -102,19 +102,20 @@ vi.mock('./sign.js', () => ({
 describe('files store - critical business rules', () => {
 	let useFilesStore
 
-	beforeEach(async () => {
+	beforeAll(async () => {
+		const module = await import('../../store/files.js')
+		useFilesStore = module.useFilesStore
+	})
+
+	beforeEach(() => {
 		setActivePinia(createPinia())
 		vi.clearAllMocks()
-		vi.resetModules()
 		globalThis.t = vi.fn((app, msg, params) => {
 			if (!params) {
 				return msg
 			}
 			return msg.replace('{name}', params.name).replace('{date}', params.date)
 		})
-
-		const module = await import('../../store/files.js')
-		useFilesStore = module.useFilesStore
 	})
 
 	describe('RULE: removing selected file clears selection', () => {
