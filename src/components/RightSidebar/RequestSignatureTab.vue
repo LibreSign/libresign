@@ -405,7 +405,7 @@ export default {
 
 			if (typeof flow === 'number') {
 				const flowMap = { 0: 'none', 1: 'parallel', 2: 'ordered_numeric' }
-				flow = flowMap[flow]
+				return flowMap[flow]
 			}
 
 			if (flow && flow !== 'none') {
@@ -462,7 +462,7 @@ export default {
 				return this.isOrderedNumeric
 					&& this.totalSigners >= minSigners
 					&& this.filesStore.canSave()
-					&& !signer.signed
+					&& !this.isSignerSigned(signer)
 			}
 		},
 		canDelete() {
@@ -470,7 +470,7 @@ export default {
 				if (this.isOriginalFileDeleted) {
 					return false
 				}
-				return this.filesStore.canSave() && !signer.signed
+				return this.filesStore.canSave() && !this.isSignerSigned(signer)
 			}
 		},
 		canCustomizeMessage() {
@@ -478,7 +478,7 @@ export default {
 				if (this.isOriginalFileDeleted) {
 					return false
 				}
-				if (signer.signed || !signer.signRequestId || signer.me) {
+				if (this.isSignerSigned(signer) || !signer.signRequestId || signer.me) {
 					return false
 				}
 
@@ -499,8 +499,10 @@ export default {
 				if (this.isOriginalFileDeleted) {
 					return false
 				}
+				const file = this.filesStore.getFile()
 				if (!this.filesStore.canRequestSign
-					|| signer.signed
+					|| file?.status === FILE_STATUS.DRAFT
+					|| this.isSignerSigned(signer)
 					|| !signer.signRequestId
 					|| signer.me
 					|| signer.status !== 0) {
@@ -515,8 +517,10 @@ export default {
 				if (this.isOriginalFileDeleted) {
 					return false
 				}
+				const file = this.filesStore.getFile()
 				if (!this.filesStore.canRequestSign
-					|| signer.signed
+					|| file?.status === FILE_STATUS.DRAFT
+					|| this.isSignerSigned(signer)
 					|| !signer.signRequestId
 					|| signer.me
 					|| signer.status !== 1) {
@@ -533,7 +537,7 @@ export default {
 			}
 
 			return file.signers.some(signer => {
-				if (signer.signed) {
+				if (this.isSignerSigned(signer)) {
 					return false
 				}
 				const method = signer.identifyMethods?.[0]?.method
@@ -709,6 +713,12 @@ export default {
 		}, 500)
 	},
 	methods: {
+		isSignerSigned(signer) {
+			if (Array.isArray(signer?.signed)) {
+				return signer.signed.length > 0
+			}
+			return !!signer?.signed
+		},
 		onPreserveOrderChange(value) {
 			this.preserveOrder = value
 			const file = this.filesStore.getFile()
@@ -728,7 +738,7 @@ export default {
 				if (!this.isAdminFlowForced) {
 					if (file?.signers) {
 						file.signers.forEach(signer => {
-							if (!signer.signed) {
+							if (!this.isSignerSigned(signer)) {
 								this.$set(signer, 'signingOrder', 1)
 							}
 						})
@@ -779,7 +789,7 @@ export default {
 
 			const hasPendingLowerOrder = signers.some(s => {
 				const otherOrder = s.signingOrder || 1
-				return otherOrder < signerOrder && !s.signed
+				return otherOrder < signerOrder && !this.isSignerSigned(s)
 			})
 
 			return !hasPendingLowerOrder
@@ -790,7 +800,7 @@ export default {
 		},
 		hasSequentialDraftSigners(file) {
 			const signers = Array.isArray(file?.signers) ? file.signers : []
-			const signersNotSigned = signers.filter(s => !s.signed)
+			const signersNotSigned = signers.filter(s => !this.isSignerSigned(s))
 			if (signersNotSigned.length === 0) {
 				return false
 			}

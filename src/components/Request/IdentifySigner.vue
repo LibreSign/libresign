@@ -175,6 +175,9 @@ export default {
 		},
 	},
 	beforeMount() {
+		if (!this.signerToEdit) {
+			return
+		}
 		this.displayName = this.signerToEdit.displayName ?? ''
 		this.description = this.signerToEdit.description ?? ''
 		this.enableCustomMessage = !!(this.signerToEdit.description)

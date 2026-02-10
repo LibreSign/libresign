@@ -78,7 +78,7 @@
     "@vue/tsconfig": "^0.5.1",
     "babel-loader-exclude-node-modules-except": "^1.2.1",
     "esbuild-loader": "^4.4.0",
-    "jsdom": "^27.4.0",
+    "happy-dom": "^20.6.0",
     "openapi-typescript": "^7.10.1",
     "vitest": "^4.0.18",
     "vue-loader": "15.11.1",
