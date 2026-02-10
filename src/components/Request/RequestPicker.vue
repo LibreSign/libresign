@@ -110,8 +110,10 @@ import UploadIcon from 'vue-material-design-icons/Upload.vue'
 
 import { getCapabilities } from '@nextcloud/capabilities'
 import { loadState } from '@nextcloud/initial-state'
+import { translate as t } from '@nextcloud/l10n'
 import { showError } from '@nextcloud/dialogs'
 import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
+import { spawnDialog } from '@nextcloud/vue/functions/dialog'
 
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -122,6 +124,7 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 import UploadProgress from '../UploadProgress.vue'
+import EditNameDialog from '../Common/EditNameDialog.vue'
 
 import { useActionsMenuStore } from '../../store/actionsmenu.js'
 import { useFilesStore } from '../../store/files.js'
@@ -431,7 +434,7 @@ export default {
 					this.sidebarStore.activeRequestSignatureTab()
 				})
 				.catch(({ response }) => {
-					showError(response.data.ocs.data.message)
+					showError(response?.data?.ocs?.data?.message || this.t('libresign', 'Upload failed'))
 				})
 		},
 	},
