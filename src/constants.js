@@ -57,9 +57,11 @@ export const SIGN_METHOD = Object.freeze({
 	PASSWORD: 'password',
 	EMAIL_TOKEN: 'emailToken',
 	CLICK_TO_SIGN: 'clickToSign',
-	SMS_OTP: 'smsOtp',
-	TELEGRAM: 'telegram',
-	SIGNAL: 'signal',
+	SMS_TOKEN: 'smsToken',
+	TELEGRAM_TOKEN: 'telegramToken',
+	SIGNAL_TOKEN: 'signalToken',
+	WHATSAPP_TOKEN: 'whatsappToken',
+	XMPP_TOKEN: 'xmppToken',
 })
 
 /**
