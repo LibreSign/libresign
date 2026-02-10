@@ -15,7 +15,7 @@ class SmsToken extends TwofactorGatewayToken {
 		protected IdentifyService $identifyService,
 		protected TokenService $tokenService,
 	) {
-		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by SMS
+		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by SMS token
 		$this->setFriendlyName($this->identifyService->getL10n()->t('SMS token'));
 		parent::__construct(
 			$identifyService,
