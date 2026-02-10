@@ -6,10 +6,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ACTION_CODES } from '../../helpers/ActionMapping.js'
 
-const loadStateMock = vi.fn()
+let loadStateMock
 
 vi.mock('@nextcloud/initial-state', () => ({
-	loadState: loadStateMock,
+	loadState: (...args) => loadStateMock(...args),
 }))
 
 vi.mock('@nextcloud/logger', () => ({
@@ -31,24 +31,19 @@ vi.mock('@nextcloud/logger', () => ({
 	})),
 }))
 
-const loadModule = async (loadStateImpl) => {
-	vi.resetModules()
-	loadStateMock.mockImplementation(loadStateImpl)
-	return await import('../../helpers/SelectAction.js')
-}
-
 describe('selectAction helper', () => {
 	beforeEach(() => {
-		loadStateMock.mockReset()
+		loadStateMock = vi.fn()
 	})
 
 	it('redirects when action is REDIRECT', async () => {
-		const { selectAction } = await loadModule((app, key, defaultValue) => {
+		loadStateMock.mockImplementation((app, key, defaultValue) => {
 			if (key === 'redirect') {
 				return 'https://example.test/redirect'
 			}
 			return defaultValue
 		})
+		const { selectAction } = await import('../../helpers/SelectAction.js')
 
 		const result = selectAction(
 			ACTION_CODES.REDIRECT,
@@ -60,7 +55,8 @@ describe('selectAction helper', () => {
 	})
 
 	it('returns current route name when action is DO_NOTHING', async () => {
-		const { selectAction } = await loadModule((app, key, defaultValue) => defaultValue)
+		loadStateMock.mockImplementation((app, key, defaultValue) => defaultValue)
+		const { selectAction } = await import('../../helpers/SelectAction.js')
 
 		const result = selectAction(
 			ACTION_CODES.DO_NOTHING,
@@ -73,7 +69,8 @@ describe('selectAction helper', () => {
 
 
 	it('returns mapped route with External suffix for public routes', async () => {
-		const { selectAction } = await loadModule((app, key, defaultValue) => defaultValue)
+		loadStateMock.mockImplementation((app, key, defaultValue) => defaultValue)
+		const { selectAction } = await import('../../helpers/SelectAction.js')
 
 		const result = selectAction(
 			ACTION_CODES.SIGN,
@@ -85,7 +82,8 @@ describe('selectAction helper', () => {
 	})
 
 	it('returns mapped route for internal routes', async () => {
-		const { selectAction } = await loadModule((app, key, defaultValue) => defaultValue)
+		loadStateMock.mockImplementation((app, key, defaultValue) => defaultValue)
+		const { selectAction } = await import('../../helpers/SelectAction.js')
 
 		const result = selectAction(
 			ACTION_CODES.SIGN,
@@ -97,7 +95,8 @@ describe('selectAction helper', () => {
 	})
 
 	it('maps CREATE_ACCOUNT to CreateAccount for public routes', async () => {
-		const { selectAction } = await loadModule((app, key, defaultValue) => defaultValue)
+		loadStateMock.mockImplementation((app, key, defaultValue) => defaultValue)
+		const { selectAction } = await import('../../helpers/SelectAction.js')
 
 		const result = selectAction(
 			ACTION_CODES.CREATE_ACCOUNT,
@@ -109,7 +108,8 @@ describe('selectAction helper', () => {
 	})
 
 	it('maps SIGN_ID_DOC to IdDocsApprove for internal routes', async () => {
-		const { selectAction } = await loadModule((app, key, defaultValue) => defaultValue)
+		loadStateMock.mockImplementation((app, key, defaultValue) => defaultValue)
+		const { selectAction } = await import('../../helpers/SelectAction.js')
 
 		const result = selectAction(
 			ACTION_CODES.SIGN_ID_DOC,
@@ -121,7 +121,8 @@ describe('selectAction helper', () => {
 	})
 
 	it('maps SIGNED to ValidationFile for public routes', async () => {
-		const { selectAction } = await loadModule((app, key, defaultValue) => defaultValue)
+		loadStateMock.mockImplementation((app, key, defaultValue) => defaultValue)
+		const { selectAction } = await import('../../helpers/SelectAction.js')
 
 		const result = selectAction(
 			ACTION_CODES.SIGNED,
@@ -133,7 +134,8 @@ describe('selectAction helper', () => {
 	})
 
 	it('maps CREATE_SIGNATURE_PASSWORD to CreatePassword for internal routes', async () => {
-		const { selectAction } = await loadModule((app, key, defaultValue) => defaultValue)
+		loadStateMock.mockImplementation((app, key, defaultValue) => defaultValue)
+		const { selectAction } = await import('../../helpers/SelectAction.js')
 
 		const result = selectAction(
 			ACTION_CODES.CREATE_SIGNATURE_PASSWORD,
@@ -145,7 +147,8 @@ describe('selectAction helper', () => {
 	})
 
 	it('maps RENEW_EMAIL to RenewEmail for public routes', async () => {
-		const { selectAction } = await loadModule((app, key, defaultValue) => defaultValue)
+		loadStateMock.mockImplementation((app, key, defaultValue) => defaultValue)
+		const { selectAction } = await import('../../helpers/SelectAction.js')
 
 		const result = selectAction(
 			ACTION_CODES.RENEW_EMAIL,
@@ -157,7 +160,8 @@ describe('selectAction helper', () => {
 	})
 
 	it('maps INCOMPLETE_SETUP to Incomplete for internal routes', async () => {
-		const { selectAction } = await loadModule((app, key, defaultValue) => defaultValue)
+		loadStateMock.mockImplementation((app, key, defaultValue) => defaultValue)
+		const { selectAction } = await import('../../helpers/SelectAction.js')
 
 		const result = selectAction(
 			ACTION_CODES.INCOMPLETE_SETUP,
@@ -169,10 +173,11 @@ describe('selectAction helper', () => {
 	})
 
 	it('returns DefaultPageErrorExternal when route not found and error state is true (external)', async () => {
-		const { selectAction } = await loadModule((app, key, defaultValue) => {
+		loadStateMock.mockImplementation((app, key, defaultValue) => {
 			if (key === 'error') return true
 			return defaultValue
 		})
+		const { selectAction } = await import('../../helpers/SelectAction.js')
 
 		const result = selectAction(
 			999,
@@ -184,10 +189,11 @@ describe('selectAction helper', () => {
 	})
 
 	it('returns DefaultPageError when route not found and error state is true (internal)', async () => {
-		const { selectAction } = await loadModule((app, key, defaultValue) => {
+		loadStateMock.mockImplementation((app, key, defaultValue) => {
 			if (key === 'error') return true
 			return defaultValue
 		})
+		const { selectAction } = await import('../../helpers/SelectAction.js')
 
 		const result = selectAction(
 			999,
@@ -199,10 +205,11 @@ describe('selectAction helper', () => {
 	})
 
 	it('returns null when route not found and error state is false', async () => {
-		const { selectAction } = await loadModule((app, key, defaultValue) => {
+		loadStateMock.mockImplementation((app, key, defaultValue) => {
 			if (key === 'error') return false
 			return defaultValue
 		})
+		const { selectAction } = await import('../../helpers/SelectAction.js')
 
 		const result = selectAction(
 			999,
