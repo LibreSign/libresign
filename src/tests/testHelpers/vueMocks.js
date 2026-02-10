@@ -23,11 +23,9 @@ const translatePluralMock = (app, singular, plural, count) => {
 	return count === 1 ? singular : plural
 }
 
-// Add translation functions to Vue prototype (available in all components)
 Vue.prototype.t = (app, str, vars) => translateMock(app, str, vars)
 Vue.prototype.n = (app, singular, plural, count) => translatePluralMock(app, singular, plural, count)
 
-// Configure Vue Test Utils to provide global mocks
 config.mocks = {
 	t: (app, str, vars) => translateMock(app, str, vars),
 	n: (app, singular, plural, count) => translatePluralMock(app, singular, plural, count),
