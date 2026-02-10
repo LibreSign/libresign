@@ -38,6 +38,7 @@ import debounce from 'debounce'
 import AlertCircle from 'vue-material-design-icons/AlertCircleOutline.vue'
 
 import axios from '@nextcloud/axios'
+import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 
 import NcSelect from '@nextcloud/vue/components/NcSelect'
