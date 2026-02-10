@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { generateOCSResponse } from '../../test-helpers.js'
+import { generateOCSResponse } from '../test-helpers.js'
 
 const patchMock = vi.fn()
 const generateUrlMock = vi.fn(() => '/apps/libresign/api/v1/account/settings')
