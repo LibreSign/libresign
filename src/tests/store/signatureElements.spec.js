@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
@@ -71,13 +71,14 @@ vi.mock('vue', async () => {
 describe('signatureElements store - signature business rules', () => {
 	let useSignatureElementsStore
 
-	beforeEach(async () => {
-		setActivePinia(createPinia())
-		vi.clearAllMocks()
-		vi.resetModules()
-
+	beforeAll(async () => {
 		const module = await import('../../store/signatureElements.js')
 		useSignatureElementsStore = module.useSignatureElementsStore
+	})
+
+	beforeEach(() => {
+		setActivePinia(createPinia())
+		vi.clearAllMocks()
 	})
 
 	describe('RULE: hasSignatureOfType validates if user has signature of type', () => {
