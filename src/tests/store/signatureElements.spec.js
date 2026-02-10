@@ -55,11 +55,18 @@ vi.mock('@nextcloud/router', () => ({
 	}),
 }))
 
-vi.mock('vue', () => ({
-	set: vi.fn((obj, key, value) => {
-		obj[key] = value
-	}),
-}))
+vi.mock('vue', async () => {
+	const actual = await vi.importActual('vue')
+	const Vue = actual.default ?? actual
+	return {
+		...actual,
+		default: Object.assign(Vue, {
+			set: vi.fn((obj, key, value) => {
+				obj[key] = value
+			}),
+		}),
+	}
+})
 
 describe('signatureElements store - signature business rules', () => {
 	let useSignatureElementsStore
