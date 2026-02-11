@@ -256,6 +256,83 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 		$this->assertEquals('email', $result->getEntity()->getIdentifierKey());
 	}
 
+	#[DataProvider('providerIdentifyMethodsSettings')]
+	public function testGetIdentifyMethodsSettings(
+		array $settingsData,
+		bool $isTwofactorGatewayEnabled,
+		?array $expectedSettings,
+	): void {
+		$methodName = $settingsData['name'];
+
+		// Configure the mock for this specific method
+		$mock = $this->{$methodName};
+		$mock->method('isTwofactorGatewayEnabled')->willReturn($isTwofactorGatewayEnabled);
+		if ($isTwofactorGatewayEnabled) {
+			$mock->method('getSettings')->willReturn($settingsData);
+		}
+
+		$result = $this->service->getIdentifyMethodsSettings();
+		$byName = array_column($result, null, 'name');
+
+		if ($expectedSettings === null) {
+			$this->assertArrayNotHasKey($methodName, $byName);
+		} else {
+			$this->assertArrayHasKey($methodName, $byName);
+			$this->assertEquals($expectedSettings, $byName[$methodName]);
+		}
+	}
+
+	public static function providerIdentifyMethodsSettings(): array {
+		$whatsappSettingsData = [
+			'name' => 'whatsapp',
+			'friendly_name' => 'WhatsApp',
+			'enabled' => true,
+			'mandatory' => true,
+			'signatureMethods' => [
+				'clickToSign' => ['name' => 'clickToSign', 'enabled' => false],
+				'whatsappToken' => ['name' => 'whatsappToken', 'enabled' => true],
+			],
+			'test_url' => '/settings/user/security',
+			'signatureMethodEnabled' => 'whatsappToken',
+		];
+
+		$smsSettingsData = [
+			'name' => 'sms',
+			'friendly_name' => 'SMS',
+			'enabled' => true,
+			'mandatory' => true,
+			'signatureMethods' => [
+				'clickToSign' => ['name' => 'clickToSign', 'enabled' => false],
+				'smsToken' => ['name' => 'smsToken', 'enabled' => true],
+			],
+			'test_url' => '/settings/user/security',
+			'signatureMethodEnabled' => 'smsToken',
+		];
+
+		return [
+			'whatsapp twofactor enabled' => [
+				$whatsappSettingsData,
+				true,
+				$whatsappSettingsData,
+			],
+			'whatsapp twofactor disabled' => [
+				$whatsappSettingsData,
+				false,
+				null,
+			],
+			'sms twofactor enabled' => [
+				$smsSettingsData,
+				true,
+				$smsSettingsData,
+			],
+			'sms twofactor disabled' => [
+				$smsSettingsData,
+				false,
+				null,
+			],
+		];
+	}
+
 	private function buildMatrix(array $methodsData): array {
 		$matrix = [];
 
