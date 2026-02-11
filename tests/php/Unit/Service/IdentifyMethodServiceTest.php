@@ -264,7 +264,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 	): void {
 		$methodName = $settingsData['name'];
 
-		// Configure the mock for this specific method
+		$this->assertObjectHasProperty($methodName, $this);
 		$mock = $this->{$methodName};
 		$mock->method('isTwofactorGatewayEnabled')->willReturn($isTwofactorGatewayEnabled);
 		if ($isTwofactorGatewayEnabled) {
