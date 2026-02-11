@@ -97,7 +97,8 @@ export default {
 			)
 		},
 		activeIdentifyMethod() {
-			return this.activeTokenMethod
+			const signatureMethodData = this.signMethodsStore.settings[this.activeTokenMethod]
+			return signatureMethodData.identifyMethod
 		},
 	},
 	methods: {
