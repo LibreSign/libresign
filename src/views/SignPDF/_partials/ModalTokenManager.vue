@@ -94,7 +94,7 @@ export default {
 			const tokenMethods = ['smsToken', 'whatsappToken', 'signalToken', 'telegramToken', 'xmppToken']
 			return tokenMethods.find(method =>
 				Object.hasOwn(this.signMethodsStore.settings, method)
-			) || 'smsToken'
+			)
 		},
 		activeIdentifyMethod() {
 			return this.activeTokenMethod
