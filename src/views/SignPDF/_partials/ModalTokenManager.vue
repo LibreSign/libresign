@@ -155,17 +155,17 @@ export default {
 				)
 					showSuccess(data.ocs.data.message)
 				}
-			this.tokenRequested = true
-		} catch (err) {
-			const errorMessage = err.response?.data?.ocs?.data?.message || err.response?.data?.message || err.message
+				this.tokenRequested = true
+			} catch (err) {
+				const errorMessage = err.response?.data?.ocs?.data?.message || err.response?.data?.message || err.message
 
-			if (errorMessage && errorMessage.includes('Invalid configuration')) {
-				const method = this.activeTokenMethod.charAt(0).toUpperCase() + this.activeTokenMethod.slice(1)
-				showError(t('libresign', '{method} is not configured. Please contact your administrator.', { method }))
-			} else {
-				showError(errorMessage)
-			}
-		} finally {
+				if (errorMessage && errorMessage.includes('Invalid configuration')) {
+					const method = this.activeTokenMethod.charAt(0).toUpperCase() + this.activeTokenMethod.slice(1)
+					showError(t('libresign', '{method} is not configured. Please contact your administrator.', { method }))
+				} else {
+					showError(errorMessage)
+				}
+			} finally {
 				this.loading = false
 			}
 		},
