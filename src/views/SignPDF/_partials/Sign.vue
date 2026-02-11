@@ -390,8 +390,11 @@ export default {
 				throw new Error('No active token method found')
 			}
 
+			const signatureMethodData = this.signMethodsStore.settings[activeMethod]
+			const identifyMethod = signatureMethodData.identifyMethod
+
 			await this.submitSignature({
-				method: activeMethod,
+				method: identifyMethod,
 				token,
 			})
 		},
