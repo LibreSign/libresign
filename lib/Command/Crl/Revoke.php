@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Command\Crl;
 
 use OCA\Libresign\Enum\CRLReason;
-use OCA\Libresign\Service\CrlService;
+use OCA\Libresign\Service\Crl\CrlService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
