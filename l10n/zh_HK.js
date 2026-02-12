@@ -79,6 +79,7 @@ OC.L10N.register(
     "Pending" : "待定",
     "Signed" : "已簽署",
     "User not found." : "未找到用戶。",
+    "Multiple DocMDP signatures detected. The first certifying signature is used to determine the certification level." : "檢測到多個 DocMDP 簽名。使用第一個認證簽名來確定認證等級。",
     "Digitally signed by LibreSign." : "透過 LibreSign 數位簽署。",
     "Validate in %s." : "在 %s 中驗證。",
     "The admin hasn't set up LibreSign yet, please wait." : "管理員尚未設置 LibreSign，請稍候。",
