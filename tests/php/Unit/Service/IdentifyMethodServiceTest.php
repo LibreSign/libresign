@@ -19,6 +19,7 @@ use OCA\Libresign\Service\IdentifyMethod\Telegram;
 use OCA\Libresign\Service\IdentifyMethod\Whatsapp;
 use OCA\Libresign\Service\IdentifyMethod\Xmpp;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCP\IL10N;
 use OCP\IUserManager;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -39,6 +40,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 	private Telegram&MockObject $telegram;
 	private Whatsapp&MockObject $whatsapp;
 	private Xmpp&MockObject $xmpp;
+	private SubjectAlternativeNameService&MockObject $subjectAlternativeNameService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -53,6 +55,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 		$this->telegram = $this->createMock(Telegram::class);
 		$this->whatsapp = $this->createMock(Whatsapp::class);
 		$this->xmpp = $this->createMock(Xmpp::class);
+		$this->subjectAlternativeNameService = $this->createMock(SubjectAlternativeNameService::class);
 
 		$this->service = new IdentifyMethodService(
 			$this->identifyMethodMapper,
@@ -65,6 +68,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 			$this->telegram,
 			$this->whatsapp,
 			$this->xmpp,
+			$this->subjectAlternativeNameService,
 		);
 	}
 
@@ -238,6 +242,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 				$this->telegram,
 				$this->whatsapp,
 				$this->xmpp,
+				$this->subjectAlternativeNameService,
 			])
 			->onlyMethods(['getIdentifyMethodsFromSignRequestId'])
 			->getMock();
