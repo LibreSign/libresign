@@ -14,7 +14,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Enum\CRLReason;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Listener\RevokeClickToSignCertificateListener;
-use OCA\Libresign\Service\CrlService;
+use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\EventDispatcher\Event;
 use OCP\Files\File;
