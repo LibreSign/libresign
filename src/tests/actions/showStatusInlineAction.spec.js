@@ -5,10 +5,19 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-let capturedAction = null
-let mockRegisterFileAction = vi.fn()
-let mockGetSidebar = vi.fn()
-let mockLoadState = vi.fn()
+const mocks = vi.hoisted(() => {
+	const mockRegisterFileAction = vi.fn()
+	const mockGetSidebar = vi.fn()
+	const mockLoadState = vi.fn()
+	const capturedActionRef = { value: null }
+
+	return {
+		capturedActionRef,
+		mockRegisterFileAction,
+		mockGetSidebar,
+		mockLoadState
+	}
+})
 
 vi.mock('@nextcloud/files', () => ({
 	FileAction: class {
@@ -17,14 +26,14 @@ vi.mock('@nextcloud/files', () => ({
 		}
 	},
 	registerFileAction: (actionInstance) => {
-		capturedAction = actionInstance
-		mockRegisterFileAction(actionInstance)
+		mocks.capturedActionRef.value = actionInstance
+		mocks.mockRegisterFileAction(actionInstance)
 	},
-	getSidebar: () => mockGetSidebar(),
+	getSidebar: () => mocks.mockGetSidebar(),
 }))
 
 vi.mock('@nextcloud/initial-state', () => ({
-	loadState: (...args) => mockLoadState(...args),
+	loadState: (...args) => mocks.mockLoadState(...args),
 }))
 
 vi.mock('@nextcloud/l10n', () => ({
@@ -47,15 +56,15 @@ describe('showStatusInlineAction', () => {
 	let action
 
 	beforeAll(async () => {
-		mockLoadState.mockReturnValue(true)
+		mocks.mockLoadState.mockReturnValue(true)
 		await import('../../actions/showStatusInlineAction.js')
-		action = capturedAction
+		action = mocks.capturedActionRef.value
 	})
 
 	beforeEach(() => {
-		mockGetSidebar.mockClear()
-		mockLoadState.mockClear()
-		mockLoadState.mockReturnValue(true)
+		mocks.mockGetSidebar.mockClear()
+		mocks.mockLoadState.mockClear()
+		mocks.mockLoadState.mockReturnValue(true)
 
 		// Mock window.OCA.Files.Sidebar for Nextcloud 32
 		if (!global.window) {
@@ -192,7 +201,7 @@ describe('showStatusInlineAction', () => {
 
 	describe('enabled', () => {
 		it('returns false when certificate is not ok', () => {
-			mockLoadState.mockReturnValue(false)
+			mocks.mockLoadState.mockReturnValue(false)
 
 			const result = action.enabled({
 				nodes: [{
@@ -207,7 +216,7 @@ describe('showStatusInlineAction', () => {
 		})
 
 		it('returns false when nodes do not have status', () => {
-			mockLoadState.mockReturnValue(true)
+			mocks.mockLoadState.mockReturnValue(true)
 
 			const result = action.enabled({
 				nodes: [{
@@ -220,7 +229,7 @@ describe('showStatusInlineAction', () => {
 		})
 
 		it('returns true for PDF with status', () => {
-			mockLoadState.mockReturnValue(true)
+			mocks.mockLoadState.mockReturnValue(true)
 
 			const result = action.enabled({
 				nodes: [{
@@ -235,7 +244,7 @@ describe('showStatusInlineAction', () => {
 		})
 
 		it('returns true for folder with status', () => {
-			mockLoadState.mockReturnValue(true)
+			mocks.mockLoadState.mockReturnValue(true)
 
 			const result = action.enabled({
 				nodes: [{
@@ -250,7 +259,7 @@ describe('showStatusInlineAction', () => {
 		})
 
 		it('returns false for non-PDF/non-folder', () => {
-			mockLoadState.mockReturnValue(true)
+			mocks.mockLoadState.mockReturnValue(true)
 
 			const result = action.enabled({
 				nodes: [{
@@ -266,7 +275,7 @@ describe('showStatusInlineAction', () => {
 		})
 
 		it('returns true for multiple PDFs with status', () => {
-			mockLoadState.mockReturnValue(true)
+			mocks.mockLoadState.mockReturnValue(true)
 
 			const result = action.enabled({
 				nodes: [
@@ -291,7 +300,7 @@ describe('showStatusInlineAction', () => {
 
 	describe('registration', () => {
 		it('registers file action', () => {
-			expect(mockRegisterFileAction).toHaveBeenCalled()
+			expect(mocks.mockRegisterFileAction).toHaveBeenCalled()
 		})
 	})
 })
