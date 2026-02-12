@@ -38,7 +38,7 @@ class CrlUrlParserService {
 
 		return [
 			'instanceId' => $matches[1],
-			'generation' => (int) $matches[2],
+			'generation' => (int)$matches[2],
 			'engineType' => $matches[3],
 		];
 	}
