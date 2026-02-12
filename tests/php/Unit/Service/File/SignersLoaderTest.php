@@ -13,6 +13,7 @@ use DateTimeInterface;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\File\SignersLoader;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\Accounts\IAccountManager;
 use OCP\IUserManager;
@@ -22,6 +23,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class SignersLoaderTest extends TestCase {
 	private SignRequestMapper&MockObject $signRequestMapper;
 	private IdentifyMethodService&MockObject $identifyMethodService;
+	private SubjectAlternativeNameService&MockObject $subjectAlternativeNameService;
 	private IAccountManager&MockObject $accountManager;
 	private IUserManager&MockObject $userManager;
 
@@ -29,6 +31,7 @@ final class SignersLoaderTest extends TestCase {
 		parent::setUp();
 		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->subjectAlternativeNameService = $this->createMock(SubjectAlternativeNameService::class);
 		$this->accountManager = $this->createMock(IAccountManager::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 	}
@@ -37,6 +40,7 @@ final class SignersLoaderTest extends TestCase {
 		return new SignersLoader(
 			$this->signRequestMapper,
 			$this->identifyMethodService,
+			$this->subjectAlternativeNameService,
 			$this->accountManager,
 			$this->userManager,
 		);
