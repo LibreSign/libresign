@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Controller;
 
-use OCA\Libresign\Service\CrlService;
+use OCA\Libresign\Service\Crl\CrlService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
