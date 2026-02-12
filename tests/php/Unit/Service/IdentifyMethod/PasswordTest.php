@@ -15,6 +15,7 @@ use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\CaIdentifierService;
+use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\Password;
@@ -40,6 +41,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private LoggerInterface&MockObject $logger;
 	private CaIdentifierService&MockObject $caIdentifierService;
 	private DocMdpHandler&MockObject $docMdpHandler;
+	private CrlService&MockObject $crlService;
 
 	public function setUp(): void {
 		$this->identifyService = $this->createMock(IdentifyService::class);
@@ -53,6 +55,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->caIdentifierService = $this->createMock(CaIdentifierService::class);
 		$this->docMdpHandler = $this->createMock(DocMdpHandler::class);
+		$this->crlService = $this->createMock(CrlService::class);
 		$this->pkcs12Handler = $this->getPkcs12Instance();
 	}
 
@@ -79,6 +82,7 @@ final class PasswordTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				$this->logger,
 				$this->caIdentifierService,
 				$this->docMdpHandler,
+				$this->crlService,
 			])
 			->onlyMethods($methods)
 			->getMock();
