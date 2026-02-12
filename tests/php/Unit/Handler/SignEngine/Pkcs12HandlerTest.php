@@ -12,6 +12,7 @@ use OCA\Libresign\Handler\DocMdpHandler;
 use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\SignEngine\Pkcs12Handler;
 use OCA\Libresign\Service\CaIdentifierService;
+use OCA\Libresign\Service\Crl\CrlService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Tests\Fixtures\PdfFixtureCatalog;
 use OCP\Files\NotFoundException;
@@ -34,6 +35,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private CertificateEngineFactory&MockObject $certificateEngineFactory;
 	private CaIdentifierService&MockObject $caIdentifierService;
 	private DocMdpHandler&MockObject $docMdpHandler;
+	private CrlService&MockObject $crlService;
 
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
@@ -45,6 +47,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->caIdentifierService = $this->createMock(CaIdentifierService::class);
 		$this->docMdpHandler = $this->createMock(DocMdpHandler::class);
+		$this->crlService = $this->createMock(CrlService::class);
 	}
 
 	private function getHandler(array $methods = []): Pkcs12Handler|MockObject {
@@ -60,6 +63,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->logger,
 					$this->caIdentifierService,
 					$this->docMdpHandler,
+					$this->crlService,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -74,6 +78,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->logger,
 			$this->caIdentifierService,
 			$this->docMdpHandler,
+			$this->crlService,
 		);
 	}
 
