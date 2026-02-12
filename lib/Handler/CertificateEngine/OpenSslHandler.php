@@ -15,6 +15,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
 use OCA\Libresign\Service\SerialNumberService;
+use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
 use OCP\IConfig;
@@ -43,6 +44,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		protected CaIdentifierService $caIdentifierService,
 		protected LoggerInterface $logger,
 		protected CrlMapper $crlMapper,
+		protected SubjectAlternativeNameService $subjectAlternativeNameService,
 	) {
 		parent::__construct(
 			$config,
@@ -340,13 +342,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 	private function getSubjectAltNames(): string {
 		$hosts = $this->getHosts();
-		$altNames = [];
-		foreach ($hosts as $host) {
-			if (filter_var($host, FILTER_VALIDATE_EMAIL)) {
-				$altNames[] = 'email:' . $host;
-			}
-		}
-		return implode(', ', $altNames);
+		return $this->subjectAlternativeNameService->buildForHosts($hosts);
 	}
 
 	/**
