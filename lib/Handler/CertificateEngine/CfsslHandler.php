@@ -11,7 +11,6 @@ namespace OCA\Libresign\Handler\CertificateEngine;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
-use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\CrlMapper;
 use OCA\Libresign\Enum\CertificateType;
@@ -48,7 +47,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	public function __construct(
 		protected IConfig $config,
 		protected IAppConfig $appConfig,
-		private SystemConfig $systemConfig,
 		protected IAppDataFactory $appDataFactory,
 		protected IDateTimeFormatter $dateTimeFormatter,
 		protected ITempManager $tempManager,
