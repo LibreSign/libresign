@@ -13,6 +13,7 @@ use DateTimeInterface;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCP\Accounts\IAccountManager;
 use OCP\IUserManager;
 use stdClass;
@@ -26,6 +27,7 @@ class SignersLoader {
 	public function __construct(
 		private SignRequestMapper $signRequestMapper,
 		private IdentifyMethodService $identifyMethodService,
+		private SubjectAlternativeNameService $subjectAlternativeNameService,
 		private IAccountManager $accountManager,
 		private IUserManager $userManager,
 	) {
@@ -217,7 +219,7 @@ class SignersLoader {
 			$targetIndex = $index;
 			$isLibreSignMatch = false;
 
-			$resolvedUid = $this->tryMatchWithExistingSigners($signer['chain'][0], $existingSigners);
+			$resolvedUid = $this->tryMatchWithExistingSigners($signer['chain'][0], $existingSigners, $host);
 			if (!$resolvedUid) {
 				$isLibreSignCert = isset($signer['chain'][0]['isLibreSignRootCA'])
 					&& $signer['chain'][0]['isLibreSignRootCA'] === true;
@@ -317,9 +319,6 @@ class SignersLoader {
 			if (isset($fileData->signers[$targetIndex]->uid)) {
 				$indexMap[strtolower((string)$fileData->signers[$targetIndex]->uid)] = $targetIndex;
 			}
-			if (!empty($fileData->signers[$targetIndex]->email)) {
-				$indexMap['email:' . strtolower((string)$fileData->signers[$targetIndex]->email)] = $targetIndex;
-			}
 		}
 	}
 
@@ -329,8 +328,13 @@ class SignersLoader {
 			if (isset($signer->uid)) {
 				$map[strtolower((string)$signer->uid)] = $index;
 			}
-			if (!empty($signer->email)) {
-				$map['email:' . strtolower((string)$signer->email)] = $index;
+			if (!empty($signer->identifyMethods)) {
+				foreach ($signer->identifyMethods as $identifyMethod) {
+					if (isset($identifyMethod['method']) && isset($identifyMethod['value'])) {
+						$identifier = $this->subjectAlternativeNameService->build($identifyMethod['method'], $identifyMethod['value']);
+						$map[strtolower($identifier)] = $index;
+					}
+				}
 			}
 		}
 		return $map;
@@ -426,7 +430,7 @@ class SignersLoader {
 		}
 	}
 
-	private function tryMatchWithExistingSigners(array $certData, array $existingSigners): ?string {
+	private function tryMatchWithExistingSigners(array $certData, array $existingSigners, string $host): ?string {
 		if (empty($existingSigners)) {
 			return null;
 		}
@@ -451,19 +455,19 @@ class SignersLoader {
 
 			if ($certSerialNumber && isset($certInfo['serialNumber'])) {
 				if ($certSerialNumber === $certInfo['serialNumber']) {
-					return $signer->uid ?? null;
+					return $signer->uid ?? $this->identifyMethodService->resolveUid($certData, $host);
 				}
 			}
 
 			if ($certSerialNumberHex && isset($certInfo['serialNumberHex'])) {
 				if ($certSerialNumberHex === $certInfo['serialNumberHex']) {
-					return $signer->uid ?? null;
+					return $signer->uid ?? $this->identifyMethodService->resolveUid($certData, $host);
 				}
 			}
 
 			if ($certHash && isset($certInfo['hash'])) {
 				if ($certHash === $certInfo['hash']) {
-					return $signer->uid ?? null;
+					return $signer->uid ?? $this->identifyMethodService->resolveUid($certData, $host);
 				}
 			}
 		}
