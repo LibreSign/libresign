@@ -55,7 +55,7 @@ class CrlServiceTest extends TestCase {
 		string $instanceId,
 		int $generation,
 		CertificateEngineType $engineType,
-		string $expectedCert
+		string $expectedCert,
 	): void {
 		$this->crlUrlParserService->expects($this->exactly(count($crlUrls)))
 			->method('parseUrl')
@@ -76,7 +76,7 @@ class CrlServiceTest extends TestCase {
 	#[DataProvider('rootCertificateFromCrlUrlEmptyProvider')]
 	public function testGetRootCertificateFromCrlUrlsReturnsEmpty(
 		array $crlUrls,
-		array $parseResults
+		array $parseResults,
 	): void {
 		if (empty($crlUrls)) {
 			$this->crlUrlParserService->expects($this->never())
