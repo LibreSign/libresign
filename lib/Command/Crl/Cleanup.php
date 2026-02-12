@@ -62,7 +62,6 @@ class Cleanup extends Command {
 			if ($result === false) {
 				throw new \InvalidArgumentException("Invalid period format: {$period}");
 			}
-			// Ensure cleanup date is in the past
 			$now = new DateTime();
 			if ($cleanupDate > $now) {
 				throw new \InvalidArgumentException('Period must result in a past date for cleanup');
