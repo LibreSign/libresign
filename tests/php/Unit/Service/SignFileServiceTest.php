@@ -48,6 +48,7 @@ use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\SigningCoordinatorService;
 use OCA\Libresign\Service\SignRequest\StatusService;
+use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCA\Libresign\Service\TsaValidationService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -113,6 +114,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private TsaValidationService&MockObject $tsaValidationService;
 	private CertificateValidityPolicy $certificateValidityPolicy;
 	private PfxProvider $pfxProvider;
+	private SubjectAlternativeNameService&MockObject $subjectAlternativeNameService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -148,6 +150,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pdf = $this->createMock(Pdf::class);
 		$this->docMdpHandler = new DocMdpHandler($this->l10n);
 		$this->pdfSignatureDetectionService = $this->createMock(PdfSignatureDetectionService::class);
+		$this->subjectAlternativeNameService = $this->createMock(SubjectAlternativeNameService::class);
 		$this->sequentialSigningService = $this->createMock(\OCA\Libresign\Service\SequentialSigningService::class);
 		$this->fileStatusService = $this->createMock(FileStatusService::class);
 		$this->signingCoordinatorService = $this->createMock(SigningCoordinatorService::class);
@@ -429,6 +432,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->envelopeStatusDeterminer,
 					$this->tsaValidationService,
 					$this->pfxProvider,
+					$this->subjectAlternativeNameService,
 				])
 				->onlyMethods($methods)
 				->getMock();
@@ -471,6 +475,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->envelopeStatusDeterminer,
 			$this->tsaValidationService,
 			$this->pfxProvider,
+			$this->subjectAlternativeNameService,
 		);
 	}
 
@@ -1203,6 +1208,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	): void {
 		$libreSignFile = new \OCA\Libresign\Db\File();
 		$libreSignFile->setUuid('uuid');
+
+		$expectedEmail = isset($expected['SignerEmail']) ? $expected['SignerEmail'] : null;
+		$this->subjectAlternativeNameService
+			->method('extractEmailFromCertificate')
+			->willReturn($expectedEmail);
+
 		$service = $this->getService(['readCertificate']);
 		$service->method('readCertificate')
 			->willReturn($certData);
