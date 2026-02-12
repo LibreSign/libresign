@@ -127,6 +127,7 @@ class InjectionMiddleware extends Middleware {
 		}
 
 		$uuid = $this->getUuidFromRequest();
+		$this->maintainSessionConsistencyWithUuid($uuid);
 
 		if (!empty($reflectionMethod->getAttributes(CanSignRequestUuid::class))) {
 			/** @var AEnvironmentPageAwareController $controller */
@@ -161,6 +162,24 @@ class InjectionMiddleware extends Middleware {
 
 	private function getUuidFromRequest(): ?string {
 		return $this->request->getParam('uuid', $this->request->getHeader('libresign-sign-request-uuid'));
+	}
+
+	/**
+	 * Maintain session consistency when sign request UUID is provided
+	 *
+	 * For unauthenticated requests with a sign request UUID header,
+	 * store the UUID in the session to ensure consistent session ID
+	 * across multiple HTTP requests. Each request without authentication
+	 * would otherwise create a new session ID, causing data lookup failures.
+	 *
+	 * @param string|null $uuid The sign request UUID from request header
+	 */
+	private function maintainSessionConsistencyWithUuid(?string $uuid): void {
+		if ($uuid && !$this->userSession->getUser() instanceof IUser) {
+			if (!$this->session->get('libresign-uuid')) {
+				$this->session->set('libresign-uuid', $uuid);
+			}
+		}
 	}
 
 	private function getLoggedIn(): void {
