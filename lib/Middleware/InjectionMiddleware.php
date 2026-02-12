@@ -175,7 +175,7 @@ class InjectionMiddleware extends Middleware {
 	 * @param string|null $uuid The sign request UUID from request header
 	 */
 	private function maintainSessionConsistencyWithUuid(?string $uuid): void {
-		if ($uuid && !$this->userSession->getUser() instanceof IUser) {
+		if ($uuid && !($this->userSession->getUser() instanceof IUser)) {
 			if (!$this->session->get('libresign-uuid')) {
 				$this->session->set('libresign-uuid', $uuid);
 			}
