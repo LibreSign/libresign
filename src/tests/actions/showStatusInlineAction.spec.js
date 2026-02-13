@@ -57,7 +57,6 @@ describe('showStatusInlineAction', () => {
 
 	beforeAll(async () => {
 		mocks.capturedActionRef.value = null
-		vi.resetModules()
 		mocks.mockLoadState.mockReturnValue(true)
 		await import('../../actions/showStatusInlineAction.js')
 		action = mocks.capturedActionRef.value
