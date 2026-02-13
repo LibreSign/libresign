@@ -19,6 +19,7 @@ use OCA\Libresign\Service\IdentifyMethod\Telegram;
 use OCA\Libresign\Service\IdentifyMethod\Whatsapp;
 use OCA\Libresign\Service\IdentifyMethod\Xmpp;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCP\IL10N;
 use OCP\IUserManager;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -39,6 +40,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 	private Telegram&MockObject $telegram;
 	private Whatsapp&MockObject $whatsapp;
 	private Xmpp&MockObject $xmpp;
+	private SubjectAlternativeNameService&MockObject $subjectAlternativeNameService;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -53,6 +55,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 		$this->telegram = $this->createMock(Telegram::class);
 		$this->whatsapp = $this->createMock(Whatsapp::class);
 		$this->xmpp = $this->createMock(Xmpp::class);
+		$this->subjectAlternativeNameService = $this->createMock(SubjectAlternativeNameService::class);
 
 		$this->service = new IdentifyMethodService(
 			$this->identifyMethodMapper,
@@ -65,6 +68,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 			$this->telegram,
 			$this->whatsapp,
 			$this->xmpp,
+			$this->subjectAlternativeNameService,
 		);
 	}
 
@@ -238,6 +242,7 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 				$this->telegram,
 				$this->whatsapp,
 				$this->xmpp,
+				$this->subjectAlternativeNameService,
 			])
 			->onlyMethods(['getIdentifyMethodsFromSignRequestId'])
 			->getMock();
@@ -254,6 +259,83 @@ final class IdentifyMethodServiceTest extends \OCA\Libresign\Tests\Unit\TestCase
 
 		$this->assertNotNull($result);
 		$this->assertEquals('email', $result->getEntity()->getIdentifierKey());
+	}
+
+	#[DataProvider('providerIdentifyMethodsSettings')]
+	public function testGetIdentifyMethodsSettings(
+		array $settingsData,
+		bool $isTwofactorGatewayEnabled,
+		?array $expectedSettings,
+	): void {
+		$methodName = $settingsData['name'];
+
+		$this->assertObjectHasProperty($methodName, $this);
+		$mock = $this->{$methodName};
+		$mock->method('isTwofactorGatewayEnabled')->willReturn($isTwofactorGatewayEnabled);
+		if ($isTwofactorGatewayEnabled) {
+			$mock->method('getSettings')->willReturn($settingsData);
+		}
+
+		$result = $this->service->getIdentifyMethodsSettings();
+		$byName = array_column($result, null, 'name');
+
+		if ($expectedSettings === null) {
+			$this->assertArrayNotHasKey($methodName, $byName);
+		} else {
+			$this->assertArrayHasKey($methodName, $byName);
+			$this->assertEquals($expectedSettings, $byName[$methodName]);
+		}
+	}
+
+	public static function providerIdentifyMethodsSettings(): array {
+		$whatsappSettingsData = [
+			'name' => 'whatsapp',
+			'friendly_name' => 'WhatsApp',
+			'enabled' => true,
+			'mandatory' => true,
+			'signatureMethods' => [
+				'clickToSign' => ['name' => 'clickToSign', 'enabled' => false],
+				'whatsappToken' => ['name' => 'whatsappToken', 'enabled' => true],
+			],
+			'test_url' => '/settings/user/security',
+			'signatureMethodEnabled' => 'whatsappToken',
+		];
+
+		$smsSettingsData = [
+			'name' => 'sms',
+			'friendly_name' => 'SMS',
+			'enabled' => true,
+			'mandatory' => true,
+			'signatureMethods' => [
+				'clickToSign' => ['name' => 'clickToSign', 'enabled' => false],
+				'smsToken' => ['name' => 'smsToken', 'enabled' => true],
+			],
+			'test_url' => '/settings/user/security',
+			'signatureMethodEnabled' => 'smsToken',
+		];
+
+		return [
+			'whatsapp twofactor enabled' => [
+				$whatsappSettingsData,
+				true,
+				$whatsappSettingsData,
+			],
+			'whatsapp twofactor disabled' => [
+				$whatsappSettingsData,
+				false,
+				null,
+			],
+			'sms twofactor enabled' => [
+				$smsSettingsData,
+				true,
+				$smsSettingsData,
+			],
+			'sms twofactor disabled' => [
+				$smsSettingsData,
+				false,
+				null,
+			],
+		];
 	}
 
 	private function buildMatrix(array $methodsData): array {

@@ -10,6 +10,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Service\CaIdentifierService;
 use OCA\Libresign\Service\CertificatePolicyService;
+use OCA\Libresign\Service\SubjectAlternativeNameService;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IAppConfig;
 use OCP\IConfig;
@@ -29,6 +30,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IURLGenerator $urlGenerator;
 	private CaIdentifierService $caIdentifierService;
 	private LoggerInterface $logger;
+	private SubjectAlternativeNameService $subjectAlternativeNameService;
 
 	public function setUp(): void {
 		$this->config = \OCP\Server::get(IConfig::class);
@@ -43,6 +45,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->urlGenerator = \OCP\Server::get(IURLGenerator::class);
 		$this->caIdentifierService = \OCP\Server::get(CaIdentifierService::class);
 		$this->logger = \OCP\Server::get(LoggerInterface::class);
+		$this->subjectAlternativeNameService = \OCP\Server::get(SubjectAlternativeNameService::class);
 	}
 
 	private function getInstance(): OpenSslHandler {
@@ -58,6 +61,7 @@ final class AEngineHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->caIdentifierService,
 			$this->logger,
 			\OCP\Server::get(\OCA\Libresign\Db\CrlMapper::class),
+			$this->subjectAlternativeNameService,
 		);
 	}
 

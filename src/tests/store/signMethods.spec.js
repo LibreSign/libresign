@@ -54,7 +54,7 @@ describe('signMethods store', () => {
 	it('checks if token code is needed', () => {
 		const store = useSignMethodsStore()
 		store.settings = {
-			sms: { needCode: true },
+			smsToken: { needCode: true },
 		}
 
 		expect(store.needTokenCode()).toBe(true)
@@ -205,35 +205,35 @@ describe('signMethods store', () => {
 	describe('needTokenCode rules', () => {
 		it('detects SMS token requirement', () => {
 			const store = useSignMethodsStore()
-			store.settings = { sms: { needCode: true } }
+			store.settings = { smsToken: { needCode: true } }
 
 			expect(store.needTokenCode()).toBe(true)
 		})
 
 		it('detects WhatsApp token requirement', () => {
 			const store = useSignMethodsStore()
-			store.settings = { whatsapp: { needCode: true } }
+			store.settings = { whatsappToken: { needCode: true } }
 
 			expect(store.needTokenCode()).toBe(true)
 		})
 
 		it('detects Signal token requirement', () => {
 			const store = useSignMethodsStore()
-			store.settings = { signal: { needCode: true } }
+			store.settings = { signalToken: { needCode: true } }
 
 			expect(store.needTokenCode()).toBe(true)
 		})
 
 		it('detects Telegram token requirement', () => {
 			const store = useSignMethodsStore()
-			store.settings = { telegram: { needCode: true } }
+			store.settings = { telegramToken: { needCode: true } }
 
 			expect(store.needTokenCode()).toBe(true)
 		})
 
 		it('detects XMPP token requirement', () => {
 			const store = useSignMethodsStore()
-			store.settings = { xmpp: { needCode: true } }
+			store.settings = { xmppToken: { needCode: true } }
 
 			expect(store.needTokenCode()).toBe(true)
 		})
@@ -241,8 +241,8 @@ describe('signMethods store', () => {
 		it('returns false when no token code needed', () => {
 			const store = useSignMethodsStore()
 			store.settings = {
-				sms: { needCode: false },
-				whatsapp: { needCode: false },
+				smsToken: { needCode: false },
+				whatsappToken: { needCode: false },
 			}
 
 			expect(store.needTokenCode()).toBe(false)
@@ -258,9 +258,9 @@ describe('signMethods store', () => {
 		it('returns true if any token method needs code', () => {
 			const store = useSignMethodsStore()
 			store.settings = {
-				sms: { needCode: false },
-				whatsapp: { needCode: false },
-				telegram: { needCode: true },
+				smsToken: { needCode: false },
+				whatsappToken: { needCode: false },
+				telegramToken: { needCode: true },
 			}
 
 			expect(store.needTokenCode()).toBe(true)
@@ -293,14 +293,14 @@ describe('signMethods store', () => {
 	describe('needSmsCode rules', () => {
 		it('returns true when SMS needs code', () => {
 			const store = useSignMethodsStore()
-			store.settings = { sms: { needCode: true } }
+			store.settings = { smsToken: { needCode: true } }
 
 			expect(store.needSmsCode()).toBe(true)
 		})
 
 		it('returns false when SMS does not need code', () => {
 			const store = useSignMethodsStore()
-			store.settings = { sms: { needCode: false } }
+			store.settings = { smsToken: { needCode: false } }
 
 			expect(store.needSmsCode()).toBe(false)
 		})
@@ -350,7 +350,7 @@ describe('signMethods store', () => {
 			expect(store.modal.signPassword).toBe(false)
 			expect(store.modal.createSignature).toBe(false)
 			expect(store.modal.password).toBe(false)
-			expect(store.modal.sms).toBe(false)
+			expect(store.modal.token).toBe(false)
 			expect(store.modal.uploadCertificate).toBe(false)
 		})
 

@@ -119,6 +119,7 @@ class SignFileService {
 		private EnvelopeStatusDeterminer $envelopeStatusDeterminer,
 		private TsaValidationService $tsaValidationService,
 		private PfxProvider $pfxProvider,
+		private SubjectAlternativeNameService $subjectAlternativeNameService,
 	) {
 	}
 
@@ -943,17 +944,15 @@ class SignFileService {
 	}
 
 	private function addEmailToSignatureParams(array $signatureParams, array $certificateData): array {
-		if (isset($certificateData['extensions']['subjectAltName'])) {
-			preg_match('/(?:email:)+(?<email>[^\s,]+)/', $certificateData['extensions']['subjectAltName'], $matches);
-			if ($matches && filter_var($matches['email'], FILTER_VALIDATE_EMAIL)) {
-				$signatureParams['SignerEmail'] = $matches['email'];
-			} elseif (filter_var($certificateData['extensions']['subjectAltName'], FILTER_VALIDATE_EMAIL)) {
-				$signatureParams['SignerEmail'] = $certificateData['extensions']['subjectAltName'];
-			}
+		$email = $this->subjectAlternativeNameService->extractEmailFromCertificate($certificateData);
+		if ($email) {
+			$signatureParams['SignerEmail'] = $email;
 		}
+
 		if (empty($signatureParams['SignerEmail']) && $this->user instanceof IUser) {
 			$signatureParams['SignerEmail'] = $this->user->getEMailAddress();
 		}
+
 		if (empty($signatureParams['SignerEmail']) && $this->signRequest instanceof SignRequestEntity) {
 			$identifyMethod = $this->identifyMethodService->getIdentifiedMethod($this->signRequest->getId());
 			if ($identifyMethod->getName() === IdentifyMethodService::IDENTIFY_EMAIL) {
