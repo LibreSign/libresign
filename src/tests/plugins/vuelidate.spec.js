@@ -46,6 +46,7 @@ vi.mock('vuelidate', () => ({
 
 describe('vuelidate plugin', () => {
 	it('registers Vuelidate plugin with Vue', async () => {
+		vi.resetModules()
 		await import('../../plugins/vuelidate.js')
 
 		expect(mockVue.use).toHaveBeenCalled()
