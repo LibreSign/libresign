@@ -71,6 +71,14 @@ vi.mock('../../../views/FilesList/FileEntry/FileEntryStatus.vue', () => ({
 	},
 }))
 
+vi.mock('../../../views/FilesList/FileEntry/FileEntrySigners.vue', () => ({
+	default: {
+		name: 'FileEntrySigners',
+		template: '<div></div>',
+		props: ['signersCount', 'signers'],
+	},
+}))
+
 vi.mock('../../../views/FilesList/FileEntry/FileEntryMixin.js', () => ({
 	default: {
 		computed: {
@@ -296,6 +304,65 @@ describe('FileEntry.vue - Individual File Entry', () => {
 		})
 
 		expect(wrapper.findComponent({ name: 'FileEntryStatus' }).exists()).toBe(true)
+	})
+
+	it('renders file entry signers', async () => {
+		const wrapper = mount(FileEntry, {
+			props: {},
+			global: {
+				mocks: {
+					t: (key, message) => message,
+				},
+			},
+		})
+
+		expect(wrapper.findComponent({ name: 'FileEntrySigners' }).exists()).toBe(true)
+	})
+
+	it('passes signersCount to FileEntrySigners', async () => {
+		const wrapper = mount(FileEntry, {
+			props: {},
+			global: {
+				mocks: {
+					t: (key, message) => message,
+				},
+			},
+		})
+
+		await wrapper.vm.$nextTick()
+		const signersComponent = wrapper.findComponent({ name: 'FileEntrySigners' })
+		expect(signersComponent.exists()).toBe(true)
+		expect(signersComponent.props('signersCount')).toBeDefined()
+	})
+
+	it('passes signers array to FileEntrySigners', async () => {
+		const wrapper = mount(FileEntry, {
+			props: {},
+			global: {
+				mocks: {
+					t: (key, message) => message,
+				},
+			},
+		})
+
+		await wrapper.vm.$nextTick()
+		const signersComponent = wrapper.findComponent({ name: 'FileEntrySigners' })
+		expect(signersComponent.exists()).toBe(true)
+		expect(signersComponent.props('signers')).toBeDefined()
+	})
+
+	it('renders row signers cell with click handler', async () => {
+		const wrapper = mount(FileEntry, {
+			props: {},
+			global: {
+				mocks: {
+					t: (key, message) => message,
+				},
+			},
+		})
+
+		const signersCell = wrapper.find('.files-list__row-signers')
+		expect(signersCell.exists()).toBe(true)
 	})
 
 	it('renders file modification time', async () => {
