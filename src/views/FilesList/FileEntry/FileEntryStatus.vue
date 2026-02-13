@@ -44,22 +44,16 @@ export default {
 	},
 	methods: {
 		statusToVariant(status) {
-			// Status 0 can be "no signers" (error/red) or "draft" (gray)
-			if (status === 0) {
-				return this.signers.length === 0 ? 'error' : 'draft'
+			const statusMap = {
+				'-1': 'not-libresign',
+				'0': 'draft',
+				'1': 'available',
+				'2': 'partial',
+				'3': 'signed',
+				'4': 'deleted',
+				'5': 'signing',
 			}
-			switch (Number(status)) {
-			case 1:
-				return 'available'
-			case 2:
-				return 'partial'
-			case 3:
-				return 'signed'
-			case 5:
-				return 'signing'
-			default:
-				return 'secondary'
-			}
+			return statusMap[String(status)] || 'draft'
 		},
 	},
 }
@@ -100,6 +94,11 @@ export default {
 		color: var(--color-error-text);
 	}
 
+	&--not-libresign {
+		background-color: var(--color-error);
+		color: var(--color-error-text);
+	}
+
 	&--draft {
 		background-color: #E0E0E0;
 		color: #424242;
@@ -125,12 +124,11 @@ export default {
 		color: #FF9500;
 	}
 
-	&--secondary {
-		background-color: var(--color-primary-element-light);
-		color: var(--color-primary-element-light-text);
+	&--deleted {
+		background-color: #D3D3D3;
+		color: #666666;
 	}
 
-	// Mobile: show only icon
 	@media (max-width: 768px) {
 		display: inline-flex;
 		align-items: center;
