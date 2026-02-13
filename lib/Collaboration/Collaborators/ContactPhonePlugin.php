@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Collaboration\Collaborators;
 
 use OC\KnownUser\KnownUserService;
+use OCA\Libresign\Service\Identify\SearchNormalizer;
 use OCA\Libresign\Service\Identify\SignerSearchContext;
 use OCP\Collaboration\Collaborators\ISearchPlugin;
 use OCP\Collaboration\Collaborators\ISearchResult;
@@ -31,6 +32,7 @@ class ContactPhonePlugin implements ISearchPlugin {
 		private IUserSession $userSession,
 		private KnownUserService $knownUserService,
 		private SignerSearchContext $searchContext,
+		private SearchNormalizer $searchNormalizer,
 	) {
 	}
 
@@ -114,19 +116,24 @@ class ContactPhonePlugin implements ISearchPlugin {
 
 			$displayName = $contact['FN'] ?? '';
 			foreach ($this->extractPhoneValues($contact) as $phoneValue) {
-				if (isset($seen[$phoneValue])) {
+				$normalizedPhone = $this->searchNormalizer->tryNormalizePhoneNumber($phoneValue, $method);
+				if ($normalizedPhone === null) {
+					continue;
+				}
+
+				if (isset($seen[$normalizedPhone])) {
 					continue;
 				}
 				$rows[] = [
-					'label' => $displayName !== '' ? $displayName : $phoneValue,
-					'shareWithDisplayNameUnique' => $phoneValue,
+					'label' => $displayName !== '' ? $displayName : $normalizedPhone,
+					'shareWithDisplayNameUnique' => $normalizedPhone,
 					'method' => $method,
 					'value' => [
 						'shareType' => self::TYPE_SIGNER_CONTACT_PHONE,
-						'shareWith' => $phoneValue,
+						'shareWith' => $normalizedPhone,
 					],
 				];
-				$seen[$phoneValue] = true;
+				$seen[$normalizedPhone] = true;
 				if (count($rows) >= $max) {
 					break 2;
 				}
