@@ -508,10 +508,30 @@ class AccountService {
 				$file->delete();
 			} catch (NotFoundException) {
 			}
-		} else {
-			$rootSignatureFolder = $this->folderService->getFolder();
-			$folderName = $sessionId;
-			$rootSignatureFolder->delete($folderName);
+			return;
+		}
+
+		$this->deleteSignatureElementFromSession($sessionId, $nodeId);
+	}
+
+	private function deleteSignatureElementFromSession(string $sessionId, int $nodeId): void {
+		$rootSignatureFolder = $this->folderService->getFolder();
+		try {
+			/** @var \OCP\Files\Folder $sessionFolder */
+			$sessionFolder = $rootSignatureFolder->get($sessionId);
+		} catch (NotFoundException) {
+			throw new DoesNotExistException($this->l10n->t('Element not found'));
+		}
+
+		$element = $sessionFolder->getFirstNodeById($nodeId);
+		if (!$element instanceof File) {
+			throw new DoesNotExistException($this->l10n->t('Element not found'));
+		}
+		$element->delete();
+
+		// Clean up empty session folder
+		if (count($sessionFolder->getDirectoryListing()) === 0) {
+			$sessionFolder->delete();
 		}
 	}
 

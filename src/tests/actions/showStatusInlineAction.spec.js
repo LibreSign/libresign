@@ -5,10 +5,10 @@
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-let capturedAction = null
-let mockRegisterFileAction = vi.fn()
-let mockGetSidebar = vi.fn()
-let mockLoadState = vi.fn()
+let mockRegisterFileAction
+let mockGetSidebar
+let mockLoadState
+const capturedActionRef = { value: null }
 
 vi.mock('@nextcloud/files', () => ({
 	FileAction: class {
@@ -17,7 +17,7 @@ vi.mock('@nextcloud/files', () => ({
 		}
 	},
 	registerFileAction: (actionInstance) => {
-		capturedAction = actionInstance
+		capturedActionRef.value = actionInstance
 		mockRegisterFileAction(actionInstance)
 	},
 	getSidebar: () => mockGetSidebar(),
@@ -47,9 +47,12 @@ describe('showStatusInlineAction', () => {
 	let action
 
 	beforeAll(async () => {
+		mockRegisterFileAction = vi.fn()
+		mockGetSidebar = vi.fn()
+		mockLoadState = vi.fn()
 		mockLoadState.mockReturnValue(true)
 		await import('../../actions/showStatusInlineAction.js')
-		action = capturedAction
+		action = capturedActionRef.value
 	})
 
 	beforeEach(() => {
