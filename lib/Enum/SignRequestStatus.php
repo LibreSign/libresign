@@ -21,7 +21,7 @@ enum SignRequestStatus: int {
 			// TRANSLATORS Name of the status when signer document is in draft state
 			self::DRAFT => $l10n->t('Draft'),
 			// TRANSLATORS Name of the status when signer can sign the document
-			self::ABLE_TO_SIGN => $l10n->t('Pending'),
+			self::ABLE_TO_SIGN => $l10n->t('Ready to sign'),
 			// TRANSLATORS Name of the status when signer has already signed
 			self::SIGNED => $l10n->t('Signed'),
 		};
