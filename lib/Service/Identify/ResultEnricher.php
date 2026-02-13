@@ -23,7 +23,11 @@ class ResultEnricher {
 	) {
 	}
 
-	public function addHerselfAccount(array $return, string $search): array {
+	public function addHerselfAccount(array $return, string $search, string $method = ''): array {
+		if (!empty($method) && $method !== 'account') {
+			return $return;
+		}
+
 		$settings = $this->identifyAccountMethod->getSettings();
 		if (empty($settings['enabled'])) {
 			return $return;
@@ -53,7 +57,11 @@ class ResultEnricher {
 		return $return;
 	}
 
-	public function addHerselfEmail(array $return, string $search): array {
+	public function addHerselfEmail(array $return, string $search, string $method = ''): array {
+		if (!empty($method) && $method !== 'email') {
+			return $return;
+		}
+
 		$settings = $this->identifyEmailMethod->getSettings();
 		if (empty($settings['enabled'])) {
 			return $return;
