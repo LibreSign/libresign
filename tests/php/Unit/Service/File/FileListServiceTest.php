@@ -155,6 +155,7 @@ final class FileListServiceTest extends TestCase {
 
 		$this->assertEmpty($result['signers']);
 		$this->assertEquals('Draft', $result['statusText']);
+		$this->assertEquals(0, $result['signersCount']);
 		$this->assertEmpty($result['visibleElements']);
 	}
 
@@ -180,6 +181,7 @@ final class FileListServiceTest extends TestCase {
 
 		$this->assertNotEmpty($result['signers']);
 		$this->assertEquals('Draft', $result['statusText']);
+		$this->assertEquals(1, $result['signersCount']);
 	}
 
 	public function testStatusTextIsConsistentBetweenFormattingMethods(): void {
@@ -205,6 +207,37 @@ final class FileListServiceTest extends TestCase {
 
 		$this->assertEquals('Draft', $result1['statusText']);
 		$this->assertEquals('Draft', $result2['statusText']);
+	}
+
+	#[DataProvider('provideSignersCountValues')]
+	public function testSignersCountIsAccurateWithVariousQuantities(int $signerCount): void {
+		$file = self::createFileEntity(1, 'file', 'doc.pdf');
+
+		$signers = [];
+		for ($i = 0; $i < $signerCount; $i++) {
+			$signers[] = $this->createSigner(100 + $i, 1, $i + 1);
+		}
+
+		$this->signRequestMapper->method('getByMultipleFileId')->willReturn($signers);
+		$this->signRequestMapper->method('getIdentifyMethodsFromSigners')->willReturn([]);
+		$this->signRequestMapper->method('getVisibleElementsFromSigners')->willReturn([]);
+
+		$service = $this->getService();
+		$result = $service->formatSingleFile($this->user, $file);
+
+		$this->assertCount($signerCount, $result['signers']);
+		$this->assertEquals($signerCount, $result['signersCount']);
+	}
+
+	public static function provideSignersCountValues(): array {
+		return [
+			'no signers' => [0],
+			'single signer' => [1],
+			'two signers' => [2],
+			'three signers' => [3],
+			'five signers' => [5],
+			'ten signers' => [10],
+		];
 	}
 
 	public function testSignersAreSortedBySigningOrderThenById(): void {
